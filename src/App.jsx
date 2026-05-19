@@ -362,8 +362,8 @@ const DISPLAY_NOTES = [
 
 const DEFAULT_BPM = 80;
 const MIN_BPM = 40;
-const MAX_BPM = 180;
-const MIN_REPEAT_COUNT = 2;
+const MAX_BPM = 220;
+const MIN_REPEAT_COUNT = 1;
 const MAX_REPEAT_COUNT = 12;
 const HIT_WINDOW_MS = 150;
 const PERFECT_WINDOW_MS = 55;
@@ -922,9 +922,10 @@ function App() {
   const [selectedScaleType, setSelectedScaleType] = useState(PENTATONIC_TYPES.minor.id);
   const [selectedScaleBox, setSelectedScaleBox] = useState(1);
   const [repeatPractice, setRepeatPractice] = useState(false);
-  const [repeatCount, setRepeatCount] = useState(2);
+  const [repeatCount, setRepeatCount] = useState(1);
   const [bpm, setBpm] = useState(DEFAULT_BPM);
   const [metronomeOn, setMetronomeOn] = useState(true);
+  const [isMobileLayout, setIsMobileLayout] = useState(false);
   const [hitZoneNote, setHitZoneNote] = useState(null);
   const [isHitWindowActive, setIsHitWindowActive] = useState(false);
   const [shooterTargets, setShooterTargets] = useState([]);
@@ -944,6 +945,7 @@ function App() {
   const flashTimerRef = useRef(null);
   const appModeRef = useRef(APP_MODES.MENU);
   const gameStateRef = useRef(GAME_STATES.IDLE);
+  const isMobileLayoutRef = useRef(false);
   const speedRef = useRef(RHYTHM_SUBDIVISIONS.One);
   const bpmRef = useRef(DEFAULT_BPM);
   const metronomeOnRef = useRef(true);
@@ -963,6 +965,7 @@ function App() {
   const lastMissRef = useRef({ note: null, time: 0 });
   const hitsRef = useRef(0);
   const lastDebugUpdateRef = useRef(0);
+  const lastDetectedDisplayUpdateRef = useRef(0);
   const tunerCandidateRef = useRef({ name: null, count: 0 });
   const lockedTunerStringRef = useRef(null);
   const smoothedCentsRef = useRef(0);
@@ -1110,6 +1113,9 @@ function App() {
   }, []);
 
   const flashStage = useCallback((type) => {
+    if (isMobileLayoutRef.current && appModeRef.current === APP_MODES.PRACTICE && type === "miss") {
+      return;
+    }
     window.clearTimeout(flashTimerRef.current);
     setStageFlash(type);
     flashTimerRef.current = window.setTimeout(() => setStageFlash(""), 150);
@@ -1130,8 +1136,11 @@ function App() {
   const holdLastStableNote = useCallback((now, fallbackStatus = "No Signal") => {
     const hasRecentStableNote =
       lastStableNoteRef.current && now - lastDetectedTimeRef.current < NOTE_HOLD_MS;
+    const shouldUpdateDisplay = now - lastDetectedDisplayUpdateRef.current > 70;
 
     if (hasRecentStableNote) {
+      if (!shouldUpdateDisplay) return true;
+      lastDetectedDisplayUpdateRef.current = now;
       const heldNote = {
         ...(lastStableTargetRef.current ?? {}),
         name: lastStableNoteRef.current,
@@ -1157,6 +1166,8 @@ function App() {
       return true;
     }
 
+    if (!shouldUpdateDisplay) return false;
+    lastDetectedDisplayUpdateRef.current = now;
     setDetected(null);
     setDetectedPitch(null);
     lockedTunerStringRef.current = null;
@@ -1481,7 +1492,13 @@ function App() {
 
       if (rms < LOW_SIGNAL_LEVEL) {
         shooterReleaseLockRef.current = null;
-        holdLastStableNote(now);
+        if (appModeRef.current === APP_MODES.TUNER) {
+          holdLastStableNote(now);
+        } else if (now - lastDetectedDisplayUpdateRef.current > 70) {
+          lastDetectedDisplayUpdateRef.current = now;
+          setDetected(null);
+          setDetectedPitch(null);
+        }
         return;
       }
 
@@ -1493,75 +1510,80 @@ function App() {
           ? activeNotesRef.current
           : DEFAULT_CATEGORY.notes;
       const gameNote = frequencyToNearest(pitch, activeNotes, 45);
-      const detectedString = frequencyToNearest(pitch, TUNER_STRINGS, 90);
-
-      setDetected(displayNote);
-      setDetectedPitch(
-        pitch
-          ? {
-              frequency: pitch,
-              note: displayNote?.pitch ?? "--",
-            }
-          : null,
-      );
-
-      if (detectedString) {
-        if (tunerCandidateRef.current.name === detectedString.pitch) {
-          tunerCandidateRef.current.count += 1;
-        } else {
-          tunerCandidateRef.current = { name: detectedString.pitch, count: 1 };
-        }
-
-        if (
-          (!lockedTunerStringRef.current && tunerCandidateRef.current.count >= PITCH_LOCK_FRAMES) ||
-          (lockedTunerStringRef.current &&
-            lockedTunerStringRef.current.pitch !== detectedString.pitch &&
-            tunerCandidateRef.current.count >= NOTE_SWITCH_FRAMES)
-        ) {
-          lockedTunerStringRef.current = TUNER_STRINGS.find(
-            (stringNote) => stringNote.pitch === detectedString.pitch,
-          );
-        }
+      if (now - lastDetectedDisplayUpdateRef.current > 50) {
+        lastDetectedDisplayUpdateRef.current = now;
+        setDetected(displayNote);
+        setDetectedPitch(
+          pitch
+            ? {
+                frequency: pitch,
+                note: displayNote?.pitch ?? "--",
+              }
+            : null,
+        );
       }
 
-      const targetString = lockedTunerStringRef.current ?? detectedString;
-      if (!targetString) {
-        const isHolding = holdLastStableNote(now, detectedString ? "Listening..." : "No Signal");
-        if (!isHolding && detectedString) {
-          setTunerReading({
-            ...EMPTY_TUNER_READING,
-            status: "Listening...",
-            confidence: Math.min(1, tunerCandidateRef.current.count / PITCH_LOCK_FRAMES),
-          });
-        }
-      } else if (pitch) {
-        const rawCents = centsBetween(pitch, targetString.frequency);
-        if (Math.abs(rawCents) <= 95) {
-          smoothedCentsRef.current += (rawCents - smoothedCentsRef.current) * 0.32;
-          const status = getTuningStatus(smoothedCentsRef.current);
-          const stableCents = Math.round(smoothedCentsRef.current);
+      if (appModeRef.current === APP_MODES.TUNER) {
+        const detectedString = frequencyToNearest(pitch, TUNER_STRINGS, 90);
 
-          if (tunerCandidateRef.current.count >= PITCH_LOCK_FRAMES) {
-            lastStableNoteRef.current = targetString.pitch;
-            lastStableFrequencyRef.current = pitch;
-            lastStableCentsRef.current = stableCents;
-            lastStableTargetRef.current = targetString;
-            lastDetectedTimeRef.current = now;
+        if (detectedString) {
+          if (tunerCandidateRef.current.name === detectedString.pitch) {
+            tunerCandidateRef.current.count += 1;
+          } else {
+            tunerCandidateRef.current = { name: detectedString.pitch, count: 1 };
           }
 
-          setTunerReading({
-            target: targetString,
-            detectedNote: targetString.pitch,
-            frequency: pitch,
-            cents: stableCents,
-            needle: smoothedCentsRef.current,
-            status:
-              tunerCandidateRef.current.count >= PITCH_LOCK_FRAMES ? status.label : "Listening...",
-            tone: status.tone,
-            confidence: Math.min(1, tunerCandidateRef.current.count / PITCH_LOCK_FRAMES),
-          });
-        } else {
-          holdLastStableNote(now, "Listening...");
+          if (
+            (!lockedTunerStringRef.current && tunerCandidateRef.current.count >= PITCH_LOCK_FRAMES) ||
+            (lockedTunerStringRef.current &&
+              lockedTunerStringRef.current.pitch !== detectedString.pitch &&
+              tunerCandidateRef.current.count >= NOTE_SWITCH_FRAMES)
+          ) {
+            lockedTunerStringRef.current = TUNER_STRINGS.find(
+              (stringNote) => stringNote.pitch === detectedString.pitch,
+            );
+          }
+        }
+
+        const targetString = lockedTunerStringRef.current ?? detectedString;
+        if (!targetString) {
+          const isHolding = holdLastStableNote(now, detectedString ? "Listening..." : "No Signal");
+          if (!isHolding && detectedString) {
+            setTunerReading({
+              ...EMPTY_TUNER_READING,
+              status: "Listening...",
+              confidence: Math.min(1, tunerCandidateRef.current.count / PITCH_LOCK_FRAMES),
+            });
+          }
+        } else if (pitch) {
+          const rawCents = centsBetween(pitch, targetString.frequency);
+          if (Math.abs(rawCents) <= 95) {
+            smoothedCentsRef.current += (rawCents - smoothedCentsRef.current) * 0.32;
+            const status = getTuningStatus(smoothedCentsRef.current);
+            const stableCents = Math.round(smoothedCentsRef.current);
+
+            if (tunerCandidateRef.current.count >= PITCH_LOCK_FRAMES) {
+              lastStableNoteRef.current = targetString.pitch;
+              lastStableFrequencyRef.current = pitch;
+              lastStableCentsRef.current = stableCents;
+              lastStableTargetRef.current = targetString;
+              lastDetectedTimeRef.current = now;
+            }
+
+            setTunerReading({
+              target: targetString,
+              detectedNote: targetString.pitch,
+              frequency: pitch,
+              cents: stableCents,
+              needle: smoothedCentsRef.current,
+              status:
+                tunerCandidateRef.current.count >= PITCH_LOCK_FRAMES ? status.label : "Listening...",
+              tone: status.tone,
+              confidence: Math.min(1, tunerCandidateRef.current.count / PITCH_LOCK_FRAMES),
+            });
+          } else {
+            holdLastStableNote(now, "Listening...");
+          }
         }
       }
 
@@ -1780,6 +1802,17 @@ function App() {
       return false;
     }
   }, [setState]);
+
+  const startTuner = useCallback(async () => {
+    appModeRef.current = APP_MODES.TUNER;
+    setAppMode(APP_MODES.TUNER);
+    const microphoneReady = streamRef.current || (await startMic());
+    if (!microphoneReady) return;
+    await ensureAudioReady();
+    setFeedback("Tune Up");
+    setState(GAME_STATES.LISTENING);
+    lastFrameRef.current = performance.now();
+  }, [ensureAudioReady, setState, startMic]);
 
   const startPractice = useCallback(async (category = selectedCategory) => {
     const safeCategory = getPlayableCategory(category);
@@ -2012,6 +2045,7 @@ function App() {
   const changeRepeatCount = useCallback((value) => {
     const nextCount = Math.max(MIN_REPEAT_COUNT, Math.min(MAX_REPEAT_COUNT, Number(value) || MIN_REPEAT_COUNT));
     setRepeatCount(nextCount);
+    if (isMobileLayout) setRepeatPractice(nextCount > 1);
     const safeCategory = getPlayableCategory(selectedCategory);
     sequenceRef.current = getPracticeSequence(safeCategory);
     patternRef.current = 0;
@@ -2025,7 +2059,7 @@ function App() {
     setIsHitWindowActive(false);
     setLaneFeedback([]);
     setFeedback("Ready");
-  }, [getPlayableCategory, getPracticeSequence, selectedCategory]);
+  }, [getPlayableCategory, getPracticeSequence, isMobileLayout, selectedCategory]);
 
   const stopMicrophone = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -2075,13 +2109,32 @@ function App() {
   }, [setState]);
 
   const backToTuner = useCallback(() => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    sourceRef.current?.disconnect();
+    sourceRef.current = null;
+    analyserRef.current = null;
+    bufferRef.current = null;
     appModeRef.current = APP_MODES.TUNER;
     setAppMode(APP_MODES.TUNER);
     enemiesRef.current = [];
     setEnemies([]);
     setBeat(0);
+    setDetected(null);
+    setDetectedPitch(null);
+    tunerCandidateRef.current = { name: null, count: 0 };
+    lockedTunerStringRef.current = null;
+    smoothedCentsRef.current = 0;
+    lastStableNoteRef.current = null;
+    lastStableFrequencyRef.current = null;
+    lastStableCentsRef.current = 0;
+    lastStableTargetRef.current = null;
+    lastDetectedTimeRef.current = 0;
+    setTunerReading(EMPTY_TUNER_READING);
+    setSignalLevel(0);
+    setMicStatus("No Signal");
     setFeedback("Tune Up");
-    setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
+    setState(GAME_STATES.IDLE);
   }, [setState]);
 
   const showCurriculum = useCallback(() => {
@@ -2144,6 +2197,17 @@ function App() {
   useEffect(() => {
     shooterSoundOnRef.current = shooterSoundOn;
   }, [shooterSoundOn]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 680px)");
+    const updateMobileLayout = () => {
+      isMobileLayoutRef.current = mediaQuery.matches;
+      setIsMobileLayout(mediaQuery.matches);
+    };
+    updateMobileLayout();
+    mediaQuery.addEventListener?.("change", updateMobileLayout);
+    return () => mediaQuery.removeEventListener?.("change", updateMobileLayout);
+  }, []);
 
   useEffect(() => {
     const safeCategory = getPlayableCategory(selectedCategory);
@@ -2229,6 +2293,8 @@ function App() {
     return selectedPentatonic.notes.find((note) => note.pitch === detected.pitch) ?? null;
   }, [appMode, detected, gameState, selectedCategory.id, selectedPentatonic.notes]);
   const referencePrompt = detectedScaleNote ?? currentPrompt;
+  const referenceDisplayPrompt = isMobileLayout ? null : referencePrompt;
+  const detectedReferenceScaleNote = isMobileLayout ? null : detectedScaleNote;
   const debugTargetNote =
     appMode === APP_MODES.SHOOTER
       ? shooterTargets[0]?.detail ?? null
@@ -2413,9 +2479,9 @@ function App() {
             </div>
 
             <div className="tunerMicControls buttons playbackButtons">
-              <button className="primary" onClick={startMic} type="button">
+              <button className="primary" onClick={startTuner} type="button">
                 <Mic size={18} />
-                마이크
+                시작
               </button>
               <button onClick={stopMicrophone} type="button" disabled={!hasMic}>
                 <MicOff size={18} />
@@ -2429,7 +2495,7 @@ function App() {
           <div className="curriculumHeader">
             <span>연습 목차</span>
             <strong>{selectedCategory.title}</strong>
-            <small>한 번 클릭은 선택, 더블클릭은 연습 화면으로 들어가기예요.</small>
+            <small>한 번 클릭은 선택, 선택된 카드를 한 번 더 누르면 연습 화면으로 들어가요.</small>
           </div>
 
           <div className="trainingGrid">
@@ -2439,6 +2505,10 @@ function App() {
               className={`trainingCard ${category.tutorial ? "tutorialCard" : ""} ${category.featured ? "featuredCard" : ""} ${category.unavailable ? "comingSoonCard" : ""} ${selectedCategoryId === category.id ? "selected" : ""}`}
               key={category.id}
               onClick={() => {
+                if (isMobileLayout && selectedCategoryId === category.id && !category.unavailable) {
+                  enterPracticePreview(category);
+                  return;
+                }
                 setSelectedCategoryId(category.id);
                 setFeedback("Choose a practice card");
               }}
@@ -2498,7 +2568,7 @@ function App() {
               <span>레벨</span>
               <strong>{shooterLevel.name}</strong>
             </div>
-            <div>
+            <div className="shooterLivesHud">
               <span>목숨</span>
               <strong className="lifeHearts" aria-label={`남은 목숨 ${shooterLives}`}>
                 {Array.from({ length: SHOOTER_MAX_LIVES }, (_, index) => (
@@ -2534,6 +2604,13 @@ function App() {
                   )}
                 </div>
               )}
+            </div>
+            <div className={`detector mobileShooterDetector ${isSignalActive ? "active" : ""}`}>
+              <Radio size={15} />
+              <div>
+                <span>감지음</span>
+                <strong>{detected ? detected.pitch : "--"}</strong>
+              </div>
             </div>
             <button
               aria-pressed={showShooterFretGuide}
@@ -2608,10 +2685,19 @@ function App() {
                 <i className="guitarHead" />
               </div>
             </div>
+            <div className="mobileShooterLives" aria-label={`남은 목숨 ${shooterLives}`}>
+              {Array.from({ length: SHOOTER_MAX_LIVES }, (_, index) => (
+                <i className={index < shooterLives ? "active" : ""} key={index}>♥</i>
+              ))}
+            </div>
             {gameState !== GAME_STATES.PLAYING && (
               <div className={`shooterCenterStatus ${classNameFromLabel(feedback)} ${gameState === GAME_STATES.GAMEOVER ? "gameOver" : ""}`}>
                 <strong>{gameState === GAME_STATES.GAMEOVER ? "게임 오버" : t(feedback)}</strong>
                 {gameState === GAME_STATES.GAMEOVER && <span>시작을 눌러 다시 연습하세요</span>}
+                <button className="mobileShooterStartButton primary" onClick={() => startShooter(selectedCategory)} type="button">
+                  <Play size={18} />
+                  시작
+                </button>
               </div>
             )}
           </div>
@@ -2642,11 +2728,30 @@ function App() {
                 </button>
               ))}
             </div>
+            {!hasDirectionPractice && (
+            <label className="mobileSelectControl mobileSubdivisionSelect">
+              <span>리듬 분할</span>
+              <select
+                aria-label="리듬 분할 선택"
+                onChange={(event) => {
+                  const nextSpeed = Object.values(RHYTHM_SUBDIVISIONS).find((speed) => speed.label === event.target.value);
+                  if (nextSpeed) changeNoteSpeed(nextSpeed);
+                }}
+                value={noteSpeed.label}
+              >
+                {Object.values(RHYTHM_SUBDIVISIONS).map((speed) => (
+                  <option disabled={speed.disabled} key={speed.label} value={speed.label}>
+                    {speed.label} / {speed.hint}
+                  </option>
+                ))}
+              </select>
+            </label>
+            )}
             {hasDirectionPractice && (
               <div className="scaleDirectionPanel" aria-label="Scale direction">
                 {selectedCategory.id === "scale-block" && (
                   <div className="scalePickerPanel">
-                    <label>
+                    <label className="scaleKeySelect">
                       <span>키</span>
                       <select
                         aria-label="Pentatonic root"
@@ -2660,35 +2765,37 @@ function App() {
                         ))}
                       </select>
                     </label>
-                    <label>
-                      <span>종류</span>
-                      <select
-                        aria-label="Scale family"
-                        onChange={(event) => changeScaleFamily(event.target.value)}
-                        value={selectedScaleFamily}
-                      >
-                        {Object.values(SCALE_FAMILIES).map((family) => (
-                          <option key={family.id} value={family.id}>
-                            {family.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      <span>타입</span>
-                      <select
-                        aria-label="Scale type"
-                        onChange={(event) => changeScaleType(event.target.value)}
-                        value={selectedScaleType}
-                      >
-                        {Object.values(selectedScaleTypeOptions).map((type) => (
-                          <option key={type.id} value={type.id}>
-                            {type.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
+                    <div className="scaleTypeGroup">
+                      <label>
+                        <span>종류</span>
+                        <select
+                          aria-label="Scale family"
+                          onChange={(event) => changeScaleFamily(event.target.value)}
+                          value={selectedScaleFamily}
+                        >
+                          {Object.values(SCALE_FAMILIES).map((family) => (
+                            <option key={family.id} value={family.id}>
+                              {family.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        <span>타입</span>
+                        <select
+                          aria-label="Scale type"
+                          onChange={(event) => changeScaleType(event.target.value)}
+                          value={selectedScaleType}
+                        >
+                          {Object.values(selectedScaleTypeOptions).map((type) => (
+                            <option key={type.id} value={type.id}>
+                              {type.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    <label className="scaleBoxSelect">
                       <span>Box</span>
                       <select
                         aria-label="Scale box"
@@ -2705,6 +2812,37 @@ function App() {
                     <strong>{selectedPentatonic.label}</strong>
                   </div>
                 )}
+                <label className="mobileSelectControl mobileDirectionSelect">
+                  <span>진행 방향</span>
+                  <select
+                    aria-label="진행 방향 선택"
+                    onChange={(event) => changeScaleDirection(event.target.value)}
+                    value={scaleDirection}
+                  >
+                    {SCALE_DIRECTION_OPTIONS.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="mobileSelectControl mobileSubdivisionSelect">
+                  <span>리듬 분할</span>
+                  <select
+                    aria-label="리듬 분할 선택"
+                    onChange={(event) => {
+                      const nextSpeed = Object.values(RHYTHM_SUBDIVISIONS).find((speed) => speed.label === event.target.value);
+                      if (nextSpeed) changeNoteSpeed(nextSpeed);
+                    }}
+                    value={noteSpeed.label}
+                  >
+                    {Object.values(RHYTHM_SUBDIVISIONS).map((speed) => (
+                      <option disabled={speed.disabled} key={speed.label} value={speed.label}>
+                        {speed.label} / {speed.hint}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 {SCALE_DIRECTION_OPTIONS.map((option) => (
                   <button
                     className={scaleDirection === option.id ? "selected" : ""}
@@ -2731,19 +2869,37 @@ function App() {
                   <span>반복 연습</span>
                   <small>{repeatPractice ? `${repeatCount}회 반복 후 멈춤` : "1회 후 멈춤"}</small>
                 </label>
-                <label className="repeatCountControl">
-                  <span>횟수</span>
+                <div className="repeatCountControl">
+                  <span>반복</span>
                   <input
                     aria-label="Repeat count"
-                    disabled={!repeatPractice}
+                    disabled={!repeatPractice && !isMobileLayout}
                     max={MAX_REPEAT_COUNT}
                     min={MIN_REPEAT_COUNT}
                     onChange={(event) => changeRepeatCount(event.target.value)}
                     type="number"
                     value={repeatCount}
                   />
+                  <div className="repeatStepper" aria-label="반복 횟수 조절">
+                    <button
+                      aria-label="반복 횟수 늘리기"
+                      disabled={repeatCount >= MAX_REPEAT_COUNT}
+                      onClick={() => changeRepeatCount(repeatCount + 1)}
+                      type="button"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      aria-label="반복 횟수 줄이기"
+                      disabled={repeatCount <= MIN_REPEAT_COUNT}
+                      onClick={() => changeRepeatCount(repeatCount - 1)}
+                      type="button"
+                    >
+                      ▼
+                    </button>
+                  </div>
                   <small>회</small>
-                </label>
+                </div>
               </div>
             )}
           </div>
@@ -2763,6 +2919,21 @@ function App() {
               type="number"
               value={bpm}
             />
+            <label className="mobileBpmPresetSelect">
+              <span>빠른 BPM</span>
+              <select
+                aria-label="빠른 BPM 선택"
+                onChange={(event) => changeBpm(event.target.value)}
+                value={BPM_PRESETS.includes(bpm) ? bpm : ""}
+              >
+                <option value="">선택</option>
+                {BPM_PRESETS.map((preset) => (
+                  <option key={preset} value={preset}>
+                    {preset}
+                  </option>
+                ))}
+              </select>
+            </label>
             <button onClick={() => changeBpm(bpm + 1)} type="button">+</button>
             <div className="bpmPresets">
               {BPM_PRESETS.map((preset) => (
@@ -2874,10 +3045,10 @@ function App() {
                 <span>참고 지판</span>
                 <strong>
                   {selectedCategory.id === "scale-block"
-                    ? detectedScaleNote
-                      ? `${detectedScaleNote.solfege} / ${detectedScaleNote.pitch}`
+                    ? detectedReferenceScaleNote
+                      ? `${detectedReferenceScaleNote.solfege} / ${detectedReferenceScaleNote.pitch}`
                       : selectedPentatonic.label
-                  : referencePrompt ? `${referencePrompt.solfege ?? getSolfege(referencePrompt.pitch)} / ${referencePrompt.pitch}` : "준비"}
+                  : referenceDisplayPrompt ? `${referenceDisplayPrompt.solfege ?? getSolfege(referenceDisplayPrompt.pitch)} / ${referenceDisplayPrompt.pitch}` : "준비"}
                 </strong>
               </div>
               {selectedCategory.id === "scale-block" ? (
@@ -2908,7 +3079,7 @@ function App() {
                   </div>
                   {referenceStrings.map((stringNumber) => (
                     <span
-                      className={`miniString ${referencePrompt?.stringNumber === stringNumber ? "active" : ""}`}
+                      className={`miniString ${referenceDisplayPrompt?.stringNumber === stringNumber ? "active" : ""}`}
                       key={stringNumber}
                       style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
                     >
@@ -2918,12 +3089,12 @@ function App() {
                   {selectedPentatonic.notes.map((note) => {
                     const isRoot = note.noteName === selectedScaleRoot;
                     const isActive =
-                      referencePrompt?.pitch === note.pitch &&
-                      referencePrompt?.stringNumber === note.stringNumber &&
-                      referencePrompt?.fretNumber === note.fretNumber;
+                      referenceDisplayPrompt?.pitch === note.pitch &&
+                      referenceDisplayPrompt?.stringNumber === note.stringNumber &&
+                      referenceDisplayPrompt?.fretNumber === note.fretNumber;
                     return (
                       <span
-                      className={`scaleNote ${isRoot ? "root" : ""} ${isActive ? "active" : ""} ${detectedScaleNote && isActive ? "detectedActive" : ""}`}
+                      className={`scaleNote ${isRoot ? "root" : ""} ${isActive ? "active" : ""} ${detectedReferenceScaleNote && isActive ? "detectedActive" : ""}`}
                       key={`${note.octaveNote}-${note.stringNumber}-${note.fretNumber}`}
                       style={{
                         left: getReferenceFretLeft(note),
@@ -2965,36 +3136,60 @@ function App() {
                   </div>
                   {referenceStrings.map((stringNumber) => (
                     <span
-                      className={`miniString ${referencePrompt?.stringNumber === stringNumber ? "active" : ""}`}
+                      className={`miniString ${referenceDisplayPrompt?.stringNumber === stringNumber ? "active" : ""}`}
                       key={stringNumber}
                       style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
                     >
                       <b>{stringNumber}번줄</b>
                     </span>
                   ))}
-                  {referencePrompt && (
+                  {referenceDisplayPrompt && (
                     <span
                       className="miniNote"
                       style={{
-                        left: getReferenceFretLeft(referencePrompt),
-                        top: `${getReferenceStringTop(referencePrompt)}%`,
-                        ...getNoteColorStyle(referencePrompt.pitch),
+                        left: getReferenceFretLeft(referenceDisplayPrompt),
+                        top: `${getReferenceStringTop(referenceDisplayPrompt)}%`,
+                        ...getNoteColorStyle(referenceDisplayPrompt.pitch),
                       }}
                     >
-                      <b>{referencePrompt.octaveNote ?? referencePrompt.pitch}</b>
-                      <small>{referencePrompt.solfege ?? getSolfege(referencePrompt.pitch)}</small>
+                      <b>{referenceDisplayPrompt.octaveNote ?? referenceDisplayPrompt.pitch}</b>
+                      <small>{referenceDisplayPrompt.solfege ?? getSolfege(referenceDisplayPrompt.pitch)}</small>
                     </span>
                   )}
                 </div>
               )}
               <p>
                 {selectedCategory.id === "scale-block"
-                  ? detectedScaleNote
+                  ? detectedReferenceScaleNote
                     ? "지금 친 음이 선택한 박스에서 빛나고 있어요."
                     : `${selectedPentatonic.label} 안에서 연주할 줄과 프렛을 확인하세요.`
-                  : referencePrompt?.hint ?? "다음 음의 줄과 프렛을 확인하세요."}
+                  : referenceDisplayPrompt?.hint ?? "다음 음의 줄과 프렛을 확인하세요."}
               </p>
             </aside>
+
+            <div className="mobileRhythmControls compactControls">
+              <div className={`detector mobileDetector ${isSignalActive ? "active" : ""}`}>
+                <Radio size={16} />
+                <div>
+                  <span>감지음</span>
+                  <strong>{detected ? detected.pitch : "--"}</strong>
+                </div>
+              </div>
+              <div className="buttons playbackButtons">
+                <button className="primary" onClick={() => startPractice(selectedCategory)} type="button">
+                  <Play size={17} />
+                  시작
+                </button>
+                <button
+                  disabled={gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED}
+                  onClick={gameState === GAME_STATES.PAUSED ? resumeGame : pauseGame}
+                  type="button"
+                >
+                  <Pause size={17} />
+                  {gameState === GAME_STATES.PAUSED ? "계속" : "일시정지"}
+                </button>
+              </div>
+            </div>
 
             <div
               className={`stage ${stageFlash}`}
@@ -3077,6 +3272,7 @@ function App() {
                 ))}
               </div>
             </div>
+            {!isMobileLayout && (
             <aside className="practiceStatsPanel" aria-label="Practice statistics">
               <div className="statsPanelHeader">
                 <span>연습 현황</span>
@@ -3125,11 +3321,12 @@ function App() {
                 </div>
               </div>
             </aside>
+            )}
           </div>
         </section>
       )}
 
-      {appMode === APP_MODES.SHOOTER && <section className="controlBar compactControls">
+      {appMode === APP_MODES.SHOOTER && <section className="controlBar compactControls shooterControlBar">
         <div className={`detector ${isSignalActive ? "active" : ""}`}>
           <Radio size={20} />
           <div>
@@ -3146,9 +3343,9 @@ function App() {
         <div className="buttons playbackButtons">
           {appMode === APP_MODES.TUNER && (
             <>
-              <button className="primary" onClick={startMic} type="button">
+              <button className="primary" onClick={startTuner} type="button">
                 <Mic size={18} />
-                마이크
+                시작
               </button>
               <button onClick={stopMicrophone} type="button" disabled={!hasMic}>
                 <MicOff size={18} />
