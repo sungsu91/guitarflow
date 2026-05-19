@@ -543,6 +543,7 @@ const SHOOTER_LEVELS = [
   { name: "레벨 4", unlockAt: 38, poolRatio: 1, durationBeats: 18, spawnGapBeats: 2.85, randomness: 0.82, jumpBias: 0.66 },
   { name: "레벨 5", unlockAt: 62, poolRatio: 1, durationBeats: 16, spawnGapBeats: 2.25, randomness: 0.94, jumpBias: 0.82 },
 ];
+const SHOOTER_MAX_LIVES = 3;
 
 function classNameFromLabel(label) {
   return label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -558,7 +559,6 @@ const UI_LABELS = {
   "Start Shooter": "슈팅게임 시작",
   "Game Over": "게임 오버",
   Success: "성공!",
-  Boss: "보스 등장",
   Paused: "일시정지",
   Play: "연주",
   "Restart Practice": "연습 다시 시작",
@@ -682,50 +682,6 @@ function getShooterMovementScore(note, previousNote) {
   const fretDistance = Math.abs((note.fretNumber ?? 0) - (previousNote.fretNumber ?? 0));
   const stringDistance = Math.abs((note.stringNumber ?? 0) - (previousNote.stringNumber ?? 0));
   return fretDistance * 1.1 + stringDistance * 1.7;
-}
-
-function findNoteByClass(pool, noteClass, startMidi = 0) {
-  const matches = pool
-    .filter((note) => note.noteName === noteClass)
-    .sort((a, b) => Math.abs((pitchToMidi(a.pitch) ?? 0) - startMidi) - Math.abs((pitchToMidi(b.pitch) ?? 0) - startMidi));
-  return matches[0] ?? null;
-}
-
-function getShooterBossChord(pool, level) {
-  if (pool.length < 3) return pool.slice(0, 3);
-  const sortedPool = [...pool].sort((a, b) => (pitchToMidi(a.pitch) ?? 0) - (pitchToMidi(b.pitch) ?? 0));
-  const rootCandidates = sortedPool.filter((note, index, list) => list.findIndex((item) => item.noteName === note.noteName) === index);
-  const chordCandidates = [];
-
-  for (const root of rootCandidates) {
-    const rootIndex = NOTE_INDEX[root.noteName];
-    const rootMidi = pitchToMidi(root.pitch) ?? 0;
-    const chordQualities = [
-      [0, 4, 7],
-      [0, 3, 7],
-    ];
-    for (const intervals of chordQualities) {
-      const chord = intervals
-        .map((interval) => CHROMATIC_NOTES[(rootIndex + interval) % CHROMATIC_NOTES.length])
-        .map((noteClass) => findNoteByClass(sortedPool, noteClass, rootMidi))
-        .filter(Boolean);
-      const uniqueChord = chord.filter((note, index, list) => list.findIndex((item) => item.pitch === note.pitch) === index);
-      if (uniqueChord.length === 3) {
-        chordCandidates.push(uniqueChord.sort((a, b) => (pitchToMidi(a.pitch) ?? 0) - (pitchToMidi(b.pitch) ?? 0)));
-      }
-    }
-  }
-
-  if (chordCandidates.length) {
-    const wantsAccidentalBoss = level.unlockAt >= 20;
-    const accidentalChord = chordCandidates.find((chord) => chord.some((note) => note.noteName.includes("#")));
-    return wantsAccidentalBoss && accidentalChord ? accidentalChord : chordCandidates[0];
-  }
-
-  const first = sortedPool[0];
-  const middle = sortedPool[Math.floor(sortedPool.length / 2)];
-  const last = sortedPool[sortedPool.length - 1];
-  return [first, middle, last].filter((note, index, list) => note && list.findIndex((item) => item.pitch === note.pitch) === index).slice(0, 3);
 }
 
 function pickShooterNote(pool, previousNote, level) {
@@ -977,6 +933,7 @@ function App() {
   const [shooterAim, setShooterAim] = useState(undefined);
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
+  const [shooterLives, setShooterLives] = useState(SHOOTER_MAX_LIVES);
 
   const audioRef = useRef(null);
   const analyserRef = useRef(null);
@@ -1024,7 +981,7 @@ function App() {
   const lastShooterNoteRef = useRef(null);
   const lastShooterXRef = useRef(50);
   const shooterReleaseLockRef = useRef(null);
-  const spawnedBossLevelsRef = useRef(new Set());
+  const shooterLivesRef = useRef(SHOOTER_MAX_LIVES);
   const shooterSoundOnRef = useRef(true);
   const lastShotRef = useRef({ note: null, time: 0 });
   const laneFeedbackIdRef = useRef(1);
@@ -1119,12 +1076,13 @@ function App() {
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
     shooterReleaseLockRef.current = null;
-    spawnedBossLevelsRef.current = new Set();
+    shooterLivesRef.current = SHOOTER_MAX_LIVES;
     lastShotRef.current = { note: null, time: 0 };
     setShooterTargets([]);
     setProjectiles([]);
     setParticles([]);
     setShooterAim(undefined);
+    setShooterLives(SHOOTER_MAX_LIVES);
     setFeedback("Ready");
   }, []);
 
@@ -1289,14 +1247,6 @@ function App() {
       return;
     }
 
-    if (type === "boss") {
-      master.gain.exponentialRampToValueAtTime(0.2, now + 0.018);
-      playTone({ wave: "triangle", from: 155, to: 310, length: 0.34, level: 0.54 });
-      playTone({ wave: "sine", from: 466, to: 622, start: 0.08, length: 0.24, level: 0.32 });
-      playTone({ wave: "sine", from: 932, to: 784, start: 0.18, length: 0.18, level: 0.2 });
-      return;
-    }
-
     if (type === "gameover") {
       master.gain.exponentialRampToValueAtTime(0.12, now + 0.018);
       playTone({ wave: "sine", from: 330, to: 220, length: 0.24, level: 0.38 });
@@ -1386,39 +1336,6 @@ function App() {
     return true;
   }, [playShooterSound]);
 
-  const spawnShooterBoss = useCallback((level) => {
-    if (!level || level.unlockAt === 0 || spawnedBossLevelsRef.current.has(level.name)) return false;
-    const pool = getShooterPool(activeNotesRef.current, level);
-    const chordNotes = getShooterBossChord(pool, level);
-    if (chordNotes.length < 3) return false;
-    spawnedBossLevelsRef.current.add(level.name);
-    const nextX = getShooterSpawnX(lastShooterXRef.current);
-    lastShooterXRef.current = nextX;
-    const targetNote = chordNotes[0];
-    shooterTargetsRef.current = [
-      ...shooterTargetsRef.current,
-      {
-        id: shooterTargetIdRef.current++,
-        note: targetNote.pitch,
-        detail: targetNote,
-        x: nextX,
-        y: 7,
-        bornAt: gameTimeRef.current,
-        duration: getBeatMs(bpmRef.current) * level.durationBeats * 1.45,
-        level: level.name,
-        isBoss: true,
-        chordNotes,
-        remainingNotes: chordNotes.map((note) => note.pitch),
-      },
-    ];
-    shooterNextSpawnAtRef.current = gameTimeRef.current + getBeatMs(bpmRef.current) * level.spawnGapBeats * 1.6;
-    setShooterTargets([...shooterTargetsRef.current]);
-    setFeedback("Boss");
-    flashStage("hit");
-    playShooterSound("boss");
-    return true;
-  }, [flashStage, playShooterSound]);
-
   const judgeNote = useCallback(
     (detectedPitchName) => {
       const now = gameTimeRef.current;
@@ -1505,9 +1422,7 @@ function App() {
       const frontTarget = orderedTargets[0] ?? null;
       const target = frontTarget?.target ?? null;
       const targetIndex = frontTarget?.index ?? -1;
-      const matchesFrontTarget = target?.isBoss
-        ? target.remainingNotes?.[0] === detectedPitchName
-        : target?.note === detectedPitchName;
+      const matchesFrontTarget = target?.note === detectedPitchName;
       lastShotRef.current = { note: detectedPitchName, time: now };
       shooterReleaseLockRef.current = detectedPitchName;
 
@@ -1520,26 +1435,12 @@ function App() {
         return;
       }
 
-      if (target.isBoss) {
-        const remainingNotes = (target.remainingNotes ?? []).filter((note) => note !== detectedPitchName);
-        if (remainingNotes.length > 0) {
-          const nextDetail = target.chordNotes.find((note) => note.pitch === remainingNotes[0]) ?? target.detail;
-          shooterTargetsRef.current = shooterTargetsRef.current.map((item, index) =>
-            index === targetIndex
-              ? { ...item, note: remainingNotes[0], detail: nextDetail, remainingNotes }
-              : item,
-          );
-        } else {
-          shooterTargetsRef.current = shooterTargetsRef.current.filter((_, index) => index !== targetIndex);
-        }
-      } else {
-        shooterTargetsRef.current = shooterTargetsRef.current.filter((_, index) => index !== targetIndex);
-      }
+      shooterTargetsRef.current = shooterTargetsRef.current.filter((_, index) => index !== targetIndex);
       setShooterTargets([...shooterTargetsRef.current]);
       fireProjectile(target, detectedPitchName);
       playShooterSound("hit");
-      setFeedback(target.isBoss ? "Boss" : "Success");
-      setScore((value) => value + (target.isBoss ? 150 : 100));
+      setFeedback("Success");
+      setScore((value) => value + 100);
       setCombo((value) => {
         const next = value + 1;
         comboRef.current = next;
@@ -1547,17 +1448,8 @@ function App() {
         return next;
       });
       setHits((value) => {
-        const previousLevel = getShooterLevel(hitsRef.current);
         const next = value + 1;
         hitsRef.current = next;
-        const nextLevel = getShooterLevel(next);
-        if (nextLevel.name !== previousLevel.name) {
-          window.setTimeout(() => {
-            if (appModeRef.current === APP_MODES.SHOOTER && gameStateRef.current === GAME_STATES.PLAYING) {
-              spawnShooterBoss(nextLevel);
-            }
-          }, 180);
-        }
         return next;
       });
       setAttempts((value) => value + 1);
@@ -1568,7 +1460,7 @@ function App() {
         }
       }, 70);
     },
-    [fireProjectile, flashStage, playShooterSound, spawnShooterBoss, spawnShooterTarget],
+    [fireProjectile, flashStage, playShooterSound, spawnShooterTarget],
   );
 
   const readMicrophone = useCallback(
@@ -1712,6 +1604,7 @@ function App() {
         lastBeatRef.current = currentBeat;
         const beatInBar = currentBeat % 4;
         setBeat(beatInBar);
+        playTick(beatInBar === 0);
       }
 
       const expired = enemiesRef.current.filter(
@@ -1795,18 +1688,26 @@ function App() {
         return { ...target, y: 8 + progress * 80 };
       });
 
-      const expiredTarget = shooterTargetsRef.current.find(
+      const expiredTargets = shooterTargetsRef.current.filter(
         (target) => gameTimeRef.current - target.bornAt >= target.duration,
       );
-      if (expiredTarget) {
-        shooterTargetsRef.current = [];
+      if (expiredTargets.length > 0) {
+        const expiredIds = new Set(expiredTargets.map((target) => target.id));
+        shooterTargetsRef.current = shooterTargetsRef.current.filter((target) => !expiredIds.has(target.id));
         comboRef.current = 0;
         setCombo(0);
-        setAttempts((value) => value + 1);
-        setFeedback("Game Over");
-        setState(GAME_STATES.GAMEOVER);
+        setAttempts((value) => value + expiredTargets.length);
+        setMissCount((value) => value + expiredTargets.length);
+        const nextLives = Math.max(0, shooterLivesRef.current - expiredTargets.length);
+        shooterLivesRef.current = nextLives;
+        setShooterLives(nextLives);
+        setFeedback(nextLives <= 0 ? "Game Over" : "Miss");
         flashStage("miss");
-        playShooterSound("gameover");
+        playShooterSound(nextLives <= 0 ? "gameover" : "miss");
+        if (nextLives <= 0) {
+          shooterTargetsRef.current = [];
+          setState(GAME_STATES.GAMEOVER);
+        }
       }
 
       projectilesRef.current = projectilesRef.current.filter(
@@ -1947,6 +1848,8 @@ function App() {
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
     shooterReleaseLockRef.current = null;
+    shooterLivesRef.current = SHOOTER_MAX_LIVES;
+    setShooterLives(SHOOTER_MAX_LIVES);
     setShooterAim(undefined);
     spawnShooterTarget();
     setFeedback("Start Shooter");
@@ -1989,6 +1892,8 @@ function App() {
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
     shooterReleaseLockRef.current = null;
+    shooterLivesRef.current = SHOOTER_MAX_LIVES;
+    setShooterLives(SHOOTER_MAX_LIVES);
     if (modeToRestart === APP_MODES.SHOOTER) setShooterAim(undefined);
     if (modeToRestart === APP_MODES.SHOOTER) spawnShooterTarget();
     setFeedback(modeToRestart === APP_MODES.SHOOTER ? "Shoot the notes" : "Restart Practice");
@@ -2155,12 +2060,13 @@ function App() {
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
     shooterReleaseLockRef.current = null;
-    spawnedBossLevelsRef.current = new Set();
+    shooterLivesRef.current = SHOOTER_MAX_LIVES;
     setEnemies([]);
     setShooterTargets([]);
     setProjectiles([]);
     setParticles([]);
     setShooterAim(undefined);
+    setShooterLives(SHOOTER_MAX_LIVES);
     setHitZoneNote(null);
     setIsHitWindowActive(false);
     setBeat(0);
@@ -2199,12 +2105,13 @@ function App() {
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
     shooterReleaseLockRef.current = null;
-    spawnedBossLevelsRef.current = new Set();
+    shooterLivesRef.current = SHOOTER_MAX_LIVES;
     setEnemies([]);
     setShooterTargets([]);
     setProjectiles([]);
     setParticles([]);
     setShooterAim(undefined);
+    setShooterLives(SHOOTER_MAX_LIVES);
     setBeat(0);
     setFeedback("Start Shooter");
     setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
@@ -2331,9 +2238,7 @@ function App() {
   const shooterTarget =
     [...shooterTargets].sort((a, b) => b.y - a.y || a.bornAt - b.bornAt)[0] ?? null;
   const shooterTargetDetail = shooterTarget?.detail ?? (shooterTarget ? getShooterNoteDetail(shooterTarget.note) : null);
-  const shooterGuidePitch = shooterTarget?.isBoss
-    ? shooterTarget.remainingNotes?.[0]
-    : shooterTargetDetail?.octaveNote ?? shooterTargetDetail?.pitch;
+  const shooterGuidePitch = shooterTargetDetail?.octaveNote ?? shooterTargetDetail?.pitch;
   const shooterGuidePositions = shooterGuidePitch ? getFretboardPositionsForPitch(shooterGuidePitch) : [];
   const shooterLevel = getShooterLevel(hits);
   const shooterPreview = getShooterQueue(hits, shooterTarget ? Math.max(0, patternRef.current - 1) : patternRef.current, 5);
@@ -2593,6 +2498,14 @@ function App() {
               <span>레벨</span>
               <strong>{shooterLevel.name}</strong>
             </div>
+            <div>
+              <span>목숨</span>
+              <strong className="lifeHearts" aria-label={`남은 목숨 ${shooterLives}`}>
+                {Array.from({ length: SHOOTER_MAX_LIVES }, (_, index) => (
+                  <i className={index < shooterLives ? "active" : ""} key={index}>♥</i>
+                ))}
+              </strong>
+            </div>
           </div>
 
           <div className="modeHelper shooterHelper">
@@ -2621,9 +2534,6 @@ function App() {
                   )}
                 </div>
               )}
-              {showShooterFretGuide && shooterTarget?.isBoss && (
-                <small>보스 순서: {shooterTarget.remainingNotes?.join(" → ")}</small>
-              )}
             </div>
             <button
               aria-pressed={showShooterFretGuide}
@@ -2637,20 +2547,19 @@ function App() {
           <div className={`shooterArena ${stageFlash}`}>
             {shooterTargets.map((target) => {
               const targetDetail = target.detail ?? getShooterNoteDetail(target.note);
-              const targetStyleNote = target.isBoss ? target.remainingNotes?.[0] ?? target.note : target.note;
               return (
               <div
-                className={`enemy shooterEnemy fallingTarget ${target.isBoss ? "bossEnemy" : ""}`}
+                className="enemy shooterEnemy fallingTarget"
                 key={target.id}
                 style={{
                   left: `${target.x}%`,
                   top: `${target.y}%`,
-                  "--hit-note-size": target.isBoss ? `${NOTE_SIZE * 1.72}px` : `${NOTE_SIZE}px`,
-                  ...getNoteColorStyle(targetStyleNote),
+                  "--hit-note-size": `${NOTE_SIZE}px`,
+                  ...getNoteColorStyle(target.note),
                 }}
               >
-                <em>{target.isBoss ? "BOSS" : targetDetail?.solfege ?? getSolfege(target.note)}</em>
-                <span>{target.isBoss ? target.remainingNotes?.join(" ") : targetDetail?.octaveNote ?? target.note}</span>
+                <em>{targetDetail?.solfege ?? getSolfege(target.note)}</em>
+                <span>{targetDetail?.octaveNote ?? target.note}</span>
                 <small>{getFretLabel(targetDetail)}</small>
               </div>
               );
@@ -2699,10 +2608,12 @@ function App() {
                 <i className="guitarHead" />
               </div>
             </div>
-            <div className={`shooterCenterStatus ${classNameFromLabel(feedback)} ${gameState === GAME_STATES.GAMEOVER ? "gameOver" : ""}`}>
-              <strong>{gameState === GAME_STATES.GAMEOVER ? "게임 오버" : t(feedback)}</strong>
-              {gameState === GAME_STATES.GAMEOVER && <span>시작을 눌러 다시 연습하세요</span>}
-            </div>
+            {gameState !== GAME_STATES.PLAYING && (
+              <div className={`shooterCenterStatus ${classNameFromLabel(feedback)} ${gameState === GAME_STATES.GAMEOVER ? "gameOver" : ""}`}>
+                <strong>{gameState === GAME_STATES.GAMEOVER ? "게임 오버" : t(feedback)}</strong>
+                {gameState === GAME_STATES.GAMEOVER && <span>시작을 눌러 다시 연습하세요</span>}
+              </div>
+            )}
           </div>
 
         </section>
