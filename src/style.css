@@ -4545,3 +4545,98 @@ button.primary svg {
     width: 100%;
   }
 }
+
+@media (max-width: 520px) {
+  .app {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .hud,
+  .controlBar,
+  .compactControls {
+    gap: 8px;
+  }
+
+  .hud {
+    padding: 8px;
+  }
+
+  .modeSwitch {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+    padding: 5px;
+  }
+
+  .modeSwitch button {
+    min-height: 36px;
+    padding: 0 6px;
+    font-size: 12px;
+  }
+
+  .shooterPanel {
+    gap: 7px;
+    padding-top: 4px;
+  }
+
+  .shooterGameHud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding: 7px;
+  }
+
+  .shooterGameHud div {
+    min-height: 48px;
+    gap: 2px;
+    padding: 6px 4px;
+  }
+
+  .shooterGameHud span {
+    font-size: 10px;
+  }
+
+  .shooterGameHud strong {
+    font-size: 18px;
+  }
+
+  .shooterArena {
+    min-height: min(620px, 64dvh);
+    border-radius: 10px;
+  }
+
+  .shooterFretGuide {
+    gap: 7px;
+    padding: 7px;
+  }
+
+  .shooterFretGuide strong {
+    font-size: 14px;
+  }
+
+  .fretGuideChips {
+    gap: 5px;
+    max-height: 74px;
+    overflow: auto;
+  }
+
+  .fretGuideChips b {
+    min-height: 26px;
+    padding: 4px 6px;
+  }
+
+  .controlBar .playbackButtons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .controlBar .playbackButtons button {
+    width: auto;
+    min-height: 38px;
+  }
+
+  .controlBar .playbackButtons .iconOnlyButton {
+    width: auto;
+  }
+}
