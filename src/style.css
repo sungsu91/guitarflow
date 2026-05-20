@@ -561,25 +561,77 @@ button:disabled {
 
 .modeSwitch {
   display: inline-flex;
-  gap: 8px;
-  padding: 7px;
-  border: 1px solid rgba(94, 234, 212, 0.22);
-  border-radius: 999px;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(94, 234, 212, 0.32);
+  border-radius: 18px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
-    rgba(7, 9, 15, 0.68);
+    linear-gradient(90deg, rgba(94, 234, 212, 0.13), transparent 18%, rgba(244, 114, 182, 0.08) 100%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.86)),
+    rgba(7, 9, 15, 0.82);
   box-shadow:
-    inset 0 0 22px rgba(15, 23, 42, 0.62),
-    0 0 28px rgba(94, 234, 212, 0.08);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+    inset 0 0 28px rgba(15, 23, 42, 0.72),
+    0 0 32px rgba(94, 234, 212, 0.12),
+    0 14px 30px rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(16px);
 }
 
-.modeSwitch button,
+.modeSwitch button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015)),
+    rgba(6, 12, 23, 0.72);
+  color: rgba(226, 232, 240, 0.8);
+  font-weight: 920;
+  letter-spacing: 0;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.025),
+    inset 0 -12px 24px rgba(0, 0, 0, 0.16);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.modeSwitch button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(94, 234, 212, 0.42);
+  color: #f8fafc;
+  box-shadow:
+    0 0 18px rgba(94, 234, 212, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.045);
+}
+
+.modeSwitch button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
 .stringSelector button {
   background: transparent;
 }
 
-.modeSwitch .selected,
+.modeSwitch .selected {
+  transform: translateY(-2px);
+  border-color: rgba(125, 249, 230, 0.92);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(236, 252, 203, 0.28), transparent 46%),
+    linear-gradient(135deg, rgba(94, 234, 212, 0.36), rgba(20, 184, 166, 0.16) 48%, rgba(56, 189, 248, 0.2)),
+    rgba(15, 23, 42, 0.96);
+  color: #f8fafc;
+  box-shadow:
+    0 0 0 1px rgba(236, 252, 203, 0.2),
+    0 0 26px rgba(94, 234, 212, 0.42),
+    0 14px 26px rgba(45, 212, 191, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 0 22px rgba(94, 234, 212, 0.13);
+}
+
 .stringSelector .selected {
   border-color: rgba(94, 234, 212, 0.82);
   background:
@@ -4418,11 +4470,13 @@ button.primary svg {
   .modeSwitch {
     justify-self: stretch;
     background:
-      linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(2, 6, 23, 0.86)),
+      linear-gradient(90deg, rgba(94, 234, 212, 0.12), transparent 22%, rgba(244, 114, 182, 0.08)),
+      linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.88)),
       rgba(2, 6, 23, 0.72);
     box-shadow:
-      0 0 0 1px rgba(94, 234, 212, 0.16),
-      0 12px 28px rgba(0, 0, 0, 0.22);
+      inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+      0 0 0 1px rgba(94, 234, 212, 0.18),
+      0 12px 28px rgba(0, 0, 0, 0.24);
   }
 
   .modeSwitch button {
@@ -4430,10 +4484,14 @@ button.primary svg {
     position: relative;
     justify-content: center;
     gap: 5px;
-    border-color: rgba(148, 163, 184, 0.2);
-    background: rgba(15, 23, 42, 0.62);
+    border-color: rgba(148, 163, 184, 0.22);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.014)),
+      rgba(15, 23, 42, 0.72);
     color: rgba(226, 232, 240, 0.82);
-    box-shadow: inset 0 0 18px rgba(15, 23, 42, 0.42);
+    box-shadow:
+      inset 0 0 18px rgba(15, 23, 42, 0.46),
+      0 5px 14px rgba(0, 0, 0, 0.14);
   }
 
   .modeSwitch button::before {
@@ -4463,14 +4521,17 @@ button.primary svg {
   }
 
   .modeSwitch .selected {
-    border-color: rgba(94, 234, 212, 0.82);
+    border-color: rgba(125, 249, 230, 0.94);
     background:
-      linear-gradient(180deg, rgba(45, 212, 191, 0.28), rgba(20, 184, 166, 0.16)),
-      rgba(15, 23, 42, 0.9);
+      radial-gradient(circle at 50% 0%, rgba(236, 252, 203, 0.24), transparent 48%),
+      linear-gradient(135deg, rgba(45, 212, 191, 0.36), rgba(20, 184, 166, 0.16), rgba(56, 189, 248, 0.18)),
+      rgba(15, 23, 42, 0.94);
     color: #f8fafc;
     box-shadow:
-      0 0 20px rgba(45, 212, 191, 0.22),
-      inset 0 0 18px rgba(94, 234, 212, 0.1);
+      0 0 0 1px rgba(236, 252, 203, 0.18),
+      0 0 24px rgba(45, 212, 191, 0.36),
+      0 10px 22px rgba(45, 212, 191, 0.16),
+      inset 0 0 18px rgba(94, 234, 212, 0.12);
   }
 
   .modeSwitch .selected::before {
@@ -4630,6 +4691,276 @@ button.primary svg {
     padding: 12px;
   }
 
+  .menuApp {
+    padding: 0;
+  }
+
+  .mainHub {
+    gap: 10px;
+    padding: 14px 10px;
+    min-height: 100dvh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .hubBrand {
+    padding: 0 4px;
+  }
+
+  .hubBrand span {
+    font-size: 11px;
+  }
+
+  .hubBrand h1 {
+    max-width: 100%;
+    font-size: clamp(34px, 11vw, 54px);
+    line-height: 0.98;
+  }
+
+  .hubBrand p {
+    max-width: 31ch;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .hubGuitarHead {
+    position: absolute;
+    left: 50%;
+    top: 20px;
+    bottom: auto;
+    width: min(58vw, 280px);
+    margin: 0;
+    opacity: 0.5;
+    pointer-events: none;
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+
+  .hubSecondary {
+    display: none;
+  }
+
+  .hubMenuPanel {
+    position: relative;
+    z-index: 2;
+    gap: 9px;
+    padding: 11px;
+  }
+
+  .hubMenuButton {
+    min-height: 76px;
+    padding: 11px 12px;
+    border-radius: 10px;
+  }
+
+  .hubMenuButton span {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .hubMenuButton strong {
+    font-size: 23px;
+    line-height: 1.05;
+  }
+
+  .hubMenuButton small {
+    font-size: 11.5px;
+    line-height: 1.2;
+  }
+
+  .hud {
+    gap: 4px;
+    padding: 5px;
+  }
+
+  .hud .eyebrow {
+    font-size: 9px;
+    margin-bottom: 3px;
+  }
+
+  .hud h1 {
+    font-size: clamp(19px, 5.5vw, 25px);
+    line-height: 1.05;
+  }
+
+  .modeSwitch {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    padding: 7px;
+    border: 1px solid rgba(94, 234, 212, 0.32);
+    border-radius: 14px;
+    background:
+      linear-gradient(90deg, rgba(94, 234, 212, 0.13), transparent 24%, rgba(244, 114, 182, 0.08)),
+      linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.88)),
+      rgba(2, 6, 23, 0.78);
+  }
+
+  .modeSwitch button {
+    min-width: 0;
+    min-height: 36px;
+    padding: 0 7px;
+    gap: 4px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 950;
+    line-height: 1.05;
+    white-space: normal;
+    word-break: keep-all;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.018)),
+      rgba(8, 13, 25, 0.88);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.045),
+      0 7px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .modeSwitch button::before {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    font-size: 9px;
+  }
+
+  .modeSwitch button:nth-child(1) {
+    border-color: rgba(103, 232, 249, 0.34);
+  }
+
+  .modeSwitch button:nth-child(2) {
+    border-color: rgba(190, 242, 100, 0.34);
+  }
+
+  .modeSwitch button:nth-child(3) {
+    border-color: rgba(250, 204, 21, 0.34);
+  }
+
+  .modeSwitch .selected {
+    background:
+      radial-gradient(circle at 50% 0%, rgba(236, 252, 203, 0.25), transparent 50%),
+      linear-gradient(135deg, rgba(94, 234, 212, 0.36), rgba(20, 184, 166, 0.18), rgba(56, 189, 248, 0.18)),
+      rgba(15, 23, 42, 0.94);
+    box-shadow:
+      0 0 0 1px rgba(236, 252, 203, 0.18),
+      0 0 22px rgba(94, 234, 212, 0.36),
+      0 10px 20px rgba(45, 212, 191, 0.15),
+      inset 0 0 0 1px rgba(190, 242, 100, 0.18);
+  }
+
+  .curriculum {
+    gap: 8px;
+  }
+
+  .curriculumHeader {
+    gap: 3px;
+    padding: 10px;
+  }
+
+  .curriculumHeader span {
+    font-size: 10px;
+  }
+
+  .curriculumHeader strong {
+    font-size: 18px;
+    line-height: 1.1;
+  }
+
+  .curriculumHeader small {
+    font-size: 11px;
+    line-height: 1.25;
+  }
+
+  .trainingGrid {
+    gap: 8px;
+  }
+
+  .trainingCard {
+    min-height: auto;
+    gap: 5px;
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .trainingCard.tutorialCard {
+    min-height: 48px;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 7px;
+    padding: 7px 9px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
+      rgba(7, 9, 15, 0.72);
+  }
+
+  .trainingCard.tutorialCard span {
+    display: none;
+  }
+
+  .trainingCard.tutorialCard strong {
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .trainingCard.tutorialCard small {
+    display: block;
+    font-size: 10px;
+    line-height: 1.15;
+    opacity: 0.74;
+  }
+
+  .trainingCard.tutorialCard em {
+    display: none;
+  }
+
+  .trainingCard.tutorialCard b {
+    display: none;
+  }
+
+  .trainingCard:not(.tutorialCard):not(.comingSoonCard) {
+    border-color: rgba(94, 234, 212, 0.28);
+    background:
+      linear-gradient(180deg, rgba(94, 234, 212, 0.1), rgba(255, 255, 255, 0.035)),
+      var(--panel-bg-strong);
+  }
+
+  .trainingCard.featuredCard {
+    border-color: rgba(190, 242, 100, 0.34);
+  }
+
+  .trainingCard.comingSoonCard {
+    opacity: 0.62;
+  }
+
+  .trainingCard span {
+    font-size: 10px;
+  }
+
+  .trainingCard strong {
+    font-size: 16px;
+    line-height: 1.12;
+  }
+
+  .trainingCard small {
+    font-size: 11px;
+    line-height: 1.25;
+    width: 100%;
+    min-width: 0;
+    padding-left: 0;
+    overflow-wrap: anywhere;
+    word-break: keep-all;
+  }
+
+  .trainingCard em {
+    margin-top: 2px;
+    padding: 4px 7px;
+    border-radius: 7px;
+    font-size: 10px;
+    line-height: 1.1;
+  }
+
+  .trainingCard b {
+    font-size: 9px;
+  }
+
   .app.signalGlow {
     box-shadow: none;
   }
@@ -4640,7 +4971,7 @@ button.primary svg {
   }
 
   .stage {
-    min-height: 360px;
+    min-height: 292px;
     aspect-ratio: auto;
     transition: none;
   }
@@ -4699,12 +5030,16 @@ button.primary svg {
     grid-template-columns: 1fr;
   }
 
+  .rhythmWorkbench {
+    gap: 4px;
+  }
+
   .mobilePracticeMiniStats {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 5px;
     width: 100%;
-    padding: 5px;
+    padding: 4px;
     border: 1px solid rgba(94, 234, 212, 0.16);
     border-radius: 8px;
     background: rgba(7, 9, 15, 0.66);
@@ -4714,7 +5049,7 @@ button.primary svg {
     display: grid;
     place-items: center;
     gap: 1px;
-    min-height: 30px;
+    min-height: 24px;
     border-radius: 7px;
     background: rgba(255, 255, 255, 0.045);
   }
@@ -4791,11 +5126,14 @@ button.primary svg {
 
   .gamePanel {
     padding-top: 8px;
+    overflow-x: hidden;
   }
 
   .gameToolbar {
     grid-template-columns: 1fr 1fr;
     align-items: stretch;
+    gap: 4px;
+    padding: 4px 6px;
   }
 
   .rhythmSubdivisionHeader,
@@ -4824,8 +5162,8 @@ button.primary svg {
   .mobileSelectControl {
     display: grid;
     gap: 0;
-    min-height: 30px;
-    padding: 4px 6px;
+    min-height: 28px;
+    padding: 3px 5px;
     border: 1px solid rgba(94, 234, 212, 0.26);
     border-radius: 8px;
     background: rgba(15, 23, 42, 0.72);
@@ -4837,7 +5175,7 @@ button.primary svg {
 
   .mobileSelectControl select {
     width: 100%;
-    min-height: 24px;
+    min-height: 22px;
     border: 1px solid rgba(94, 234, 212, 0.3);
     border-radius: 7px;
     background: rgba(3, 7, 18, 0.9);
@@ -4872,20 +5210,20 @@ button.primary svg {
     grid-column: auto;
     display: grid;
     order: 1;
-    min-height: 30px;
-    padding: 4px 6px;
+    min-height: 28px;
+    padding: 3px 5px;
   }
 
   .mobileDirectionSelect select {
-    min-height: 24px;
+    min-height: 22px;
     padding: 0 6px;
   }
 
   .scalePickerPanel {
     grid-column: 1 / -1;
-    grid-template-columns: minmax(52px, 0.78fr) minmax(126px, 1.65fr) minmax(56px, 0.78fr);
+    grid-template-columns: minmax(48px, 0.78fr) minmax(112px, 1.55fr) minmax(50px, 0.72fr);
     gap: 4px;
-    padding: 4px 6px;
+    padding: 3px 5px;
   }
 
   .scalePickerPanel label {
@@ -4913,7 +5251,7 @@ button.primary svg {
   }
 
   .scalePickerPanel select {
-    min-height: 24px;
+    min-height: 22px;
     padding: 0 5px;
     font-size: 11px;
   }
@@ -4941,7 +5279,7 @@ button.primary svg {
     grid-template-columns: auto 64px auto minmax(76px, 0.8fr);
     align-items: center;
     gap: 5px;
-    padding: 6px 8px;
+    padding: 5px 7px;
   }
 
   .metronomePanel > button,
@@ -5128,10 +5466,10 @@ button.primary svg {
   }
 
   .referenceFretboard {
-    min-height: 300px;
-    max-height: 330px;
-    gap: 6px;
-    padding: 9px;
+    min-height: 224px;
+    max-height: 248px;
+    gap: 5px;
+    padding: 7px;
     background: rgba(7, 9, 15, 0.82);
     box-shadow: none;
     backdrop-filter: none;
@@ -5139,16 +5477,28 @@ button.primary svg {
 
   .miniFretboard,
   .pentatonicFretboard {
-    min-height: 235px;
+    min-height: 170px;
     background: rgba(5, 8, 14, 0.78);
     box-shadow: none;
+  }
+
+  .miniFretColumns {
+    inset: 20px 10px 20px 42px;
+  }
+
+  .miniFretColumns span {
+    border-left-width: 1px;
+  }
+
+  .miniFretColumns span:first-child {
+    border-left-width: 4px;
   }
 
   .miniStaticNote {
     position: absolute;
     z-index: 3;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     transform: translate(-50%, -50%);
     display: grid;
     place-items: center;
@@ -5162,16 +5512,29 @@ button.primary svg {
 
   .miniStaticNote b {
     color: var(--note-text, #ecfeff);
-    font-size: 8px;
+    font-size: 7px;
     font-weight: 950;
     line-height: 1;
   }
 
   .miniStaticNote small {
     color: var(--note-text, #cffafe);
-    font-size: 6px;
+    font-size: 5.5px;
     font-weight: 900;
     line-height: 1;
+  }
+
+  .scaleNote {
+    width: 23px;
+    height: 23px;
+  }
+
+  .scaleNote b {
+    font-size: 7.5px;
+  }
+
+  .scaleNote small {
+    font-size: 6.5px;
   }
 
   .miniFretColumns span {
@@ -5223,7 +5586,7 @@ button.primary svg {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     align-items: center;
-    gap: 6px;
+    gap: 3px;
     width: 100%;
   }
 
@@ -5235,11 +5598,14 @@ button.primary svg {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
+    gap: 4px;
   }
 
   .mobileRhythmControls .playbackButtons button {
     width: auto;
-    min-height: 38px;
+    min-height: 27px;
+    padding: 0 8px;
+    font-size: 11px;
   }
 
   .mobileDetector {
@@ -5308,31 +5674,115 @@ button.primary svg {
 
 @media (max-width: 520px) {
   .app {
-    padding: 8px;
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .mainHub {
     gap: 8px;
+    padding: 12px 8px;
+  }
+
+  .hubBrand h1 {
+    font-size: clamp(31px, 10vw, 44px);
+  }
+
+  .hubBrand p {
+    font-size: 12px;
+  }
+
+  .hubGuitarHead {
+    top: 22px;
+    bottom: auto;
+    width: min(53vw, 212px);
+    margin: 0;
+    opacity: 0.46;
+  }
+
+  .hubMenuButton {
+    min-height: 68px;
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .hubMenuButton strong {
+    font-size: 21px;
+  }
+
+  .hubMenuButton small {
+    font-size: 10.5px;
   }
 
   .hud,
   .controlBar,
   .compactControls {
-    gap: 8px;
+    gap: 6px;
   }
 
   .hud {
-    padding: 8px;
+    padding: 6px;
+  }
+
+  .hud h1 {
+    font-size: 22px;
+  }
+
+  .hud .eyebrow {
+    display: none;
   }
 
   .modeSwitch {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 5px;
-    padding: 5px;
+    gap: 6px;
+    padding: 6px;
   }
 
   .modeSwitch button {
-    min-height: 32px;
+    min-height: 34px;
     padding: 0 5px;
     font-size: 11px;
+  }
+
+  .modeSwitch button::before {
+    width: 18px;
+    height: 18px;
+    font-size: 8px;
+  }
+
+  .curriculumHeader {
+    padding: 8px;
+  }
+
+  .curriculumHeader strong {
+    font-size: 16px;
+  }
+
+  .curriculumHeader small {
+    font-size: 10px;
+  }
+
+  .trainingCard {
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .trainingCard.tutorialCard {
+    min-height: 38px;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 6px 8px;
+  }
+
+  .trainingCard strong {
+    font-size: 15px;
+  }
+
+  .trainingCard.tutorialCard strong {
+    font-size: 13px;
+  }
+
+  .trainingCard small {
+    font-size: 10px;
   }
 
   .hud:has(+ .shooterPanel) {

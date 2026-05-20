@@ -450,8 +450,8 @@ const FIRST_POSITION_SEQUENCE_GROUPS = [
 const PRACTICE_CATEGORIES = [
   {
     id: "open",
-    title: "개방현 연습",
-    subtitle: "기타 6개 줄 이름과 소리를 익혀요",
+    title: "튜토리얼",
+    subtitle: "간단 개방현 연습",
     notes: OPEN_STRING_NOTES,
     sequence: ["E2", "A2", "D3", "G3", "B3", "E4"],
     modeLabel: "개방현",
@@ -461,43 +461,43 @@ const PRACTICE_CATEGORIES = [
   },
   {
     id: "first-position",
-    title: "1포지션 음계 연습",
-    subtitle: "개방현과 1~3프렛 음을 순서대로 익혀요",
+    title: "1~3F 포지션 트레이닝",
+    subtitle: "6번줄부터 1~3프렛 구간의 미파솔라시도레 흐름을 반복 연습",
     notes: FIRST_POSITION_NOTES,
     sequence: FIRST_POSITION_SEQUENCE,
-    modeLabel: "0~3프렛",
+    modeLabel: "Low Position",
     judgmentMode: JUDGMENT_MODES.PITCH.id,
     loop: false,
   },
   {
     id: "scale-block",
-    title: "음계 블록 연습",
-    subtitle: "스케일과 펜타토닉을 키별로 선택해 연습해요",
+    title: "포지션 기반 지판 훈련",
+    subtitle: "개방현부터 1~3프렛 포지션, 스케일·펜타토닉 Box까지 단계별로 지판 감각을 익혀요.",
     notes: NOTES,
     sequence: SCALE_ASCENDING,
-    modeLabel: "키 선택 음계",
+    modeLabel: "Box Pattern",
     judgmentMode: JUDGMENT_MODES.POSITION.id,
     loop: true,
     featured: true,
   },
   {
     id: "rhythm",
-    title: "리듬 연습",
-    subtitle: "익숙한 음으로 박자 감각을 연습해요",
+    title: "Rhythm Sync Training",
+    subtitle: "박자에 맞춰 음을 찾아 반응 속도와 타이밍 감각 강화",
     notes: OPEN_STRING_NOTES,
     sequence: ["E2", "E2", "A2", "A2", "D3", "D3", "G3", "B3", "E4"],
-    modeLabel: "기초 박자",
+    modeLabel: "Beat & Timing",
     judgmentMode: JUDGMENT_MODES.PITCH.id,
     loop: true,
     unavailable: true,
   },
   {
     id: "melody",
-    title: "간단 멜로디 연습",
-    subtitle: "짧은 단음 멜로디를 따라 연주해요",
+    title: "Melody Interval Drill",
+    subtitle: "간단한 멜로디와 음정 간격을 익히는 실전 연결 훈련",
     notes: FIRST_POSITION_NOTES,
     sequence: ["E2", "G2", "A2", "B2", "C3", "B2", "A2", "G2", "E2"],
-    modeLabel: "쉬운 멜로디",
+    modeLabel: "Interval",
     judgmentMode: JUDGMENT_MODES.PITCH.id,
     loop: true,
     unavailable: true,
@@ -579,7 +579,7 @@ const UI_LABELS = {
   "Slightly High": "조금 높음",
   tuner: "튜너",
   curriculum: "연습 목차",
-  practice: "리듬게임",
+  practice: "프렛보드 트레이너",
   shooter: "슈팅게임",
   idle: "대기",
   listening: "감지 중",
@@ -1029,7 +1029,7 @@ function App() {
     if (safeCategory.id !== "scale-block") return safeCategory;
     return {
       ...safeCategory,
-      title: "음계 블록 연습",
+      title: "포지션 기반 지판 훈련",
       subtitle: `${selectedPentatonic.label} 블록을 선택해 연습해요`,
       modeLabel: selectedPentatonic.label,
       notes: selectedPentatonic.notes,
@@ -2370,12 +2370,12 @@ function App() {
     >
       {appMode !== APP_MODES.MENU && <section className="hud">
         <div>
-          <p className="eyebrow">초보자 기타 음계 트레이너</p>
+          <p className="eyebrow">Guitar Fretboard Training</p>
           <h1>
             {appMode === APP_MODES.TUNER
               ? "튜너"
               : appMode === APP_MODES.CURRICULUM
-                ? "리듬게임"
+                ? "프렛보드 트레이너"
               : appMode === APP_MODES.SHOOTER
                 ? "슈팅게임"
                 : selectedCategory.title}
@@ -2394,7 +2394,7 @@ function App() {
             onClick={showCurriculum}
             type="button"
           >
-            리듬게임
+            프렛보드
           </button>
           <button
             className={appMode === APP_MODES.SHOOTER ? "selected" : ""}
@@ -2416,9 +2416,9 @@ function App() {
           </div>
 
           <div className="hubBrand">
-            <span>기타 리듬 & 슈팅게임 트레이너</span>
-            <h1>기타 아티스트</h1>
-            <p>튜닝부터 펜타토닉 연습, 슈팅게임까지 한 곳에서 시작하세요.</p>
+            <span>Guitar Fretboard Training</span>
+            <h1>프렛보드 트레이너</h1>
+            <p>튜닝부터 Open String, Position, Scale, Pentatonic Box까지 단계별로 익혀요.</p>
           </div>
 
           <div className="hubGuitarHead" aria-hidden="true">
@@ -2442,12 +2442,12 @@ function App() {
             <button className="hubMenuButton tuner" onClick={backToTuner} type="button">
               <span>01</span>
               <strong>튜너</strong>
-              <small>기타 줄을 먼저 맞추기</small>
+              <small>Practice Tuner · 기준음 확인</small>
             </button>
             <button className="hubMenuButton rhythm" onClick={showCurriculum} type="button">
               <span>02</span>
-              <strong>리듬게임</strong>
-              <small>음계 블록 중심 연습</small>
+              <strong>프렛보드 트레이너</strong>
+              <small>Position · Scale · Pentatonic Box</small>
             </button>
             <button
               aria-label="슈팅게임"
@@ -2459,7 +2459,7 @@ function App() {
             >
               <span>03</span>
               <strong>슈팅게임</strong>
-              <small>기타 소리로 맞추기</small>
+              <small>Fretboard Recognition · 반응 훈련</small>
             </button>
           </div>
 
@@ -2577,6 +2577,7 @@ function App() {
             >
               <span>{category.tutorial ? "튜토리얼" : `${index}단계`}</span>
               <strong>{category.title}</strong>
+              <small>{category.subtitle}</small>
               <em>{category.modeLabel}</em>
               <b>
                 {category.unavailable
