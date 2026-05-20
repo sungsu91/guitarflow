@@ -2782,9 +2782,11 @@ h1 {
 
 .tunerHeroHeader {
   display: grid;
-  justify-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  justify-items: start;
   gap: 4px;
-  text-align: center;
+  text-align: left;
 }
 
 .tunerHeroHeader span {
@@ -2819,6 +2821,19 @@ h1 {
   color: #cbd5e1;
   font-size: 18px;
   font-weight: 850;
+}
+
+.tunerHeaderControls {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.tunerHeaderControls button {
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
 }
 
 .movingTunerMeter {
@@ -4719,16 +4734,46 @@ button.primary svg {
   }
 
   .tunerStage {
-    min-height: 680px;
-    padding: 14px;
+    min-height: auto;
+    padding: 10px;
+    gap: 8px;
   }
 
   .proTuner {
-    min-height: 520px;
+    min-height: 460px;
+    padding: 12px;
+  }
+
+  .tunerHeroHeader {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+
+  .tunerHeroHeader span {
+    font-size: 11px;
+  }
+
+  .tunerHeroHeader small {
+    font-size: 11px;
+  }
+
+  .tunerHeaderControls {
+    display: flex;
+    gap: 4px;
+  }
+
+  .tunerHeaderControls button {
+    min-height: 30px;
+    padding: 0 8px;
+    font-size: 11px;
   }
 
   .movingTunerMeter {
-    min-height: 360px;
+    min-height: 330px;
+  }
+
+  .tunerDeviceFooter .tunerMicControls {
+    display: none;
   }
 
   .tunerReadout,

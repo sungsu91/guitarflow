@@ -1487,14 +1487,18 @@ function App() {
 
       analyser.getFloatTimeDomainData(buffer);
       const rms = getRms(buffer);
-      const normalizedLevel = Math.min(1, rms * 12);
+      const inputGain = isMobileLayoutRef.current ? 22 : 12;
+      const normalizedLevel = Math.min(1, rms * inputGain);
 
       if (now - lastDebugUpdateRef.current > 45) {
         setSignalLevel(normalizedLevel);
         lastDebugUpdateRef.current = now;
       }
 
-      if (rms < LOW_SIGNAL_LEVEL) {
+      const lowSignalThreshold = isMobileLayoutRef.current ? LOW_SIGNAL_LEVEL * 0.42 : LOW_SIGNAL_LEVEL;
+      const gameNoteTolerance = isMobileLayoutRef.current ? 68 : 45;
+
+      if (rms < lowSignalThreshold) {
         shooterReleaseLockRef.current = null;
         stableGameNoteRef.current = { note: null, count: 0 };
         if (appModeRef.current === APP_MODES.TUNER) {
@@ -1514,7 +1518,7 @@ function App() {
         Array.isArray(activeNotesRef.current) && activeNotesRef.current.length > 0
           ? activeNotesRef.current
           : DEFAULT_CATEGORY.notes;
-      const gameNote = frequencyToNearest(pitch, activeNotes, 45);
+      const gameNote = frequencyToNearest(pitch, activeNotes, gameNoteTolerance);
       if (gameNote) {
         stableGameNoteRef.current =
           stableGameNoteRef.current.note === gameNote.pitch
@@ -1604,7 +1608,7 @@ function App() {
         appModeRef.current === APP_MODES.PRACTICE &&
         gameStateRef.current === GAME_STATES.PLAYING &&
         gameNote &&
-        stableGameNoteRef.current.count >= 2
+        stableGameNoteRef.current.count >= (isMobileLayoutRef.current ? 1 : 2)
       ) {
         judgeNote(gameNote.pitch);
       }
@@ -1612,7 +1616,7 @@ function App() {
         appModeRef.current === APP_MODES.SHOOTER &&
         gameStateRef.current === GAME_STATES.PLAYING &&
         gameNote &&
-        stableGameNoteRef.current.count >= 2
+        stableGameNoteRef.current.count >= (isMobileLayoutRef.current ? 1 : 2)
       ) {
         judgeShooterNote(gameNote.pitch);
       }
@@ -2446,8 +2450,20 @@ function App() {
         <section className="tunerStage" aria-label="Guitar tuner">
           <div className={`proTuner ${tunerReading.tone}`}>
             <div className="tunerHeroHeader">
-              <span>튜너</span>
-              <small>{tunerReading.frequency ? `${tunerReading.frequency.toFixed(1)} Hz` : "소리를 기다리는 중"}</small>
+              <div>
+                <span>튜너</span>
+                <small>{tunerReading.frequency ? `${tunerReading.frequency.toFixed(1)} Hz` : "소리를 기다리는 중"}</small>
+              </div>
+              <div className="tunerHeaderControls buttons">
+                <button className="primary" onClick={startTuner} type="button">
+                  <Mic size={16} />
+                  시작
+                </button>
+                <button onClick={stopMicrophone} type="button" disabled={!hasMic}>
+                  <MicOff size={16} />
+                  정지
+                </button>
+              </div>
             </div>
 
             <div
