@@ -963,6 +963,7 @@ function App() {
   const lastBeatRef = useRef(-1);
   const lastHitRef = useRef({ note: null, time: 0 });
   const lastMissRef = useRef({ note: null, time: 0 });
+  const stableGameNoteRef = useRef({ note: null, count: 0 });
   const hitsRef = useRef(0);
   const lastDebugUpdateRef = useRef(0);
   const lastDetectedDisplayUpdateRef = useRef(0);
@@ -1365,8 +1366,8 @@ function App() {
       const perfect = target.distance <= PERFECT_WINDOW_MS;
       lastHitRef.current = { note: detectedPitchName, time: now };
       enemiesRef.current = enemiesRef.current.filter((enemy) => enemy.id !== target.id);
-      setFeedback(perfect ? "Perfect" : "Good");
-      showLaneFeedback(target.detail, perfect ? "Perfect" : "Good");
+      setFeedback("Hit");
+      showLaneFeedback(target.detail, "Hit");
       if (perfect) setPerfectCount((value) => value + 1);
       setScore((value) => value + (perfect ? 100 : 60));
       setCombo((value) => {
@@ -1387,8 +1388,11 @@ function App() {
   );
 
   const fireProjectile = useCallback((target, noteName) => {
+    const aimShift = clampValue((target.x - 58) * 0.34, -18, 18);
+    const muzzleX = clampValue(52 + aimShift * 0.09, 49, 55);
+    const muzzleY = 84;
     const nextAim = {
-      "--aim-shift": `${clampValue((target.x - 58) * 0.34, -18, 18)}px`,
+      "--aim-shift": `${aimShift}px`,
       "--aim-tilt": `${clampValue((target.x - 58) * 0.1, -6, 6)}deg`,
       "--guitar-aim": `${clampValue((target.x - 50) * 0.18 - (82 - target.y) * 0.04, -14, 12)}deg`,
       "--arm-aim": `${clampValue((target.x - 50) * 0.22 - (82 - target.y) * 0.05, -18, 16)}deg`,
@@ -1400,8 +1404,8 @@ function App() {
       {
         id: projectileIdRef.current++,
         note: noteName,
-        startX: 58,
-        startY: 82,
+        startX: muzzleX,
+        startY: muzzleY,
         endX: target.x,
         endY: target.y,
         bornAt: gameTimeRef.current,
@@ -1492,6 +1496,7 @@ function App() {
 
       if (rms < LOW_SIGNAL_LEVEL) {
         shooterReleaseLockRef.current = null;
+        stableGameNoteRef.current = { note: null, count: 0 };
         if (appModeRef.current === APP_MODES.TUNER) {
           holdLastStableNote(now);
         } else if (now - lastDetectedDisplayUpdateRef.current > 70) {
@@ -1510,6 +1515,14 @@ function App() {
           ? activeNotesRef.current
           : DEFAULT_CATEGORY.notes;
       const gameNote = frequencyToNearest(pitch, activeNotes, 45);
+      if (gameNote) {
+        stableGameNoteRef.current =
+          stableGameNoteRef.current.note === gameNote.pitch
+            ? { note: gameNote.pitch, count: stableGameNoteRef.current.count + 1 }
+            : { note: gameNote.pitch, count: 1 };
+      } else {
+        stableGameNoteRef.current = { note: null, count: 0 };
+      }
       if (now - lastDetectedDisplayUpdateRef.current > 50) {
         lastDetectedDisplayUpdateRef.current = now;
         setDetected(displayNote);
@@ -1590,14 +1603,16 @@ function App() {
       if (
         appModeRef.current === APP_MODES.PRACTICE &&
         gameStateRef.current === GAME_STATES.PLAYING &&
-        gameNote
+        gameNote &&
+        stableGameNoteRef.current.count >= 2
       ) {
         judgeNote(gameNote.pitch);
       }
       if (
         appModeRef.current === APP_MODES.SHOOTER &&
         gameStateRef.current === GAME_STATES.PLAYING &&
-        gameNote
+        gameNote &&
+        stableGameNoteRef.current.count >= 2
       ) {
         judgeShooterNote(gameNote.pitch);
       }
@@ -2308,7 +2323,14 @@ function App() {
   const shooterGuidePositions = shooterGuidePitch ? getFretboardPositionsForPitch(shooterGuidePitch) : [];
   const shooterLevel = getShooterLevel(hits);
   const shooterPreview = getShooterQueue(hits, shooterTarget ? Math.max(0, patternRef.current - 1) : patternRef.current, 5);
-  const shooterMotion = shooterAim;
+  const shooterMotion = shooterTarget
+    ? {
+        "--aim-shift": `${clampValue((shooterTarget.x - 50) * 0.42, -22, 22)}px`,
+        "--aim-tilt": `${clampValue((shooterTarget.x - 50) * 0.09, -6, 6)}deg`,
+        "--guitar-aim": `${clampValue((shooterTarget.x - 50) * 0.2 - (82 - shooterTarget.y) * 0.05, -18, 14)}deg`,
+        "--arm-aim": `${clampValue((shooterTarget.x - 50) * 0.22 - (82 - shooterTarget.y) * 0.05, -20, 18)}deg`,
+      }
+    : shooterAim;
   const hasDirectionPractice = selectedCategory.id === "scale-block" || selectedCategory.id === "first-position";
   const directionGuideSequence =
     selectedCategory.id === "first-position" ? FIRST_POSITION_ASCENDING_SEQUENCE : selectedPentatonic.sequence;
@@ -2605,13 +2627,13 @@ function App() {
                 </div>
               )}
             </div>
-            <div className={`detector mobileShooterDetector ${isSignalActive ? "active" : ""}`}>
+            {!isMobileLayout && <div className={`detector mobileShooterDetector ${isSignalActive ? "active" : ""}`}>
               <Radio size={15} />
               <div>
                 <span>감지음</span>
                 <strong>{detected ? detected.pitch : "--"}</strong>
               </div>
-            </div>
+            </div>}
             <button
               aria-pressed={showShooterFretGuide}
               onClick={() => setShowShooterFretGuide((value) => !value)}
@@ -2681,8 +2703,17 @@ function App() {
               </div>
               <div className="neonGuitar" aria-hidden="true">
                 <i className="guitarBody" />
+                <i className="strumHand" />
                 <i className="guitarNeck" />
-                <i className="guitarHead" />
+                <i className="guitarHead">
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                </i>
+                <i className="guitarMuzzle" />
               </div>
             </div>
             <div className="mobileShooterLives" aria-label={`남은 목숨 ${shooterLives}`}>
@@ -3079,7 +3110,7 @@ function App() {
                   </div>
                   {referenceStrings.map((stringNumber) => (
                     <span
-                      className={`miniString ${referenceDisplayPrompt?.stringNumber === stringNumber ? "active" : ""}`}
+                      className={`miniString ${referenceDisplayPrompt?.stringNumber === stringNumber && !isMobileLayout ? "active" : ""}`}
                       key={stringNumber}
                       style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
                     >
@@ -3136,11 +3167,25 @@ function App() {
                   </div>
                   {referenceStrings.map((stringNumber) => (
                     <span
-                      className={`miniString ${referenceDisplayPrompt?.stringNumber === stringNumber ? "active" : ""}`}
+                      className={`miniString ${referenceDisplayPrompt?.stringNumber === stringNumber && !isMobileLayout ? "active" : ""}`}
                       key={stringNumber}
                       style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
                     >
                       <b>{stringNumber}번줄</b>
+                    </span>
+                  ))}
+                  {isMobileLayout && selectedCategory.id === "first-position" && FIRST_POSITION_NOTES.map((note) => (
+                    <span
+                      className="miniStaticNote"
+                      key={`fixed-${note.octaveNote}-${note.stringNumber}-${note.fretNumber}`}
+                      style={{
+                        left: getReferenceFretLeft(note),
+                        top: `${getReferenceStringTop(note)}%`,
+                        ...getNoteColorStyle(note.octaveNote),
+                      }}
+                    >
+                      <b>{note.solfege ?? getSolfege(note.pitch)}</b>
+                      <small>{note.octaveNote ?? note.pitch}</small>
                     </span>
                   ))}
                   {referenceDisplayPrompt && (
@@ -3272,6 +3317,22 @@ function App() {
                 ))}
               </div>
             </div>
+            {isMobileLayout && (
+              <div className="mobilePracticeMiniStats" aria-label="Mobile practice stats">
+                <span>
+                  <em>Hit</em>
+                  <strong>{hits}</strong>
+                </span>
+                <span>
+                  <em>Miss</em>
+                  <strong>{missCount}</strong>
+                </span>
+                <span>
+                  <em>정확도</em>
+                  <strong>{accuracy}%</strong>
+                </span>
+              </div>
+            )}
             {!isMobileLayout && (
             <aside className="practiceStatsPanel" aria-label="Practice statistics">
               <div className="statsPanelHeader">
