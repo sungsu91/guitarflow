@@ -372,6 +372,7 @@ const NOTE_SIZE = 36;
 const HIT_ZONE_SIZE = NOTE_SIZE;
 const MIN_FREQ = 75;
 const MAX_FREQ = 900;
+const MOBILE_TUNER_MAX_FREQ = 1400;
 const LOW_SIGNAL_LEVEL = 0.012;
 const ACTIVE_SIGNAL_LEVEL = 0.018;
 const TUNING_TOLERANCE_CENTS = 5;
@@ -826,8 +827,7 @@ function getTuningStatus(cents) {
   return { label: cents < 0 ? "Too Low" : "Too High", tone: "bad" };
 }
 
-function detectPitchYin(buffer, sampleRate, minFrequency = MIN_FREQ, maxFrequency = MAX_FREQ) {
-  const threshold = 0.12;
+function detectPitchYin(buffer, sampleRate, minFrequency = MIN_FREQ, maxFrequency = MAX_FREQ, threshold = 0.12) {
   const minTau = Math.floor(sampleRate / maxFrequency);
   const maxTau = Math.floor(sampleRate / minFrequency);
   const yin = new Float32Array(maxTau + 1);
@@ -860,7 +860,13 @@ function detectPitchYin(buffer, sampleRate, minFrequency = MIN_FREQ, maxFrequenc
   return Number.isFinite(frequency) ? frequency : null;
 }
 
-function detectPitchAutocorrelation(buffer, sampleRate, minFrequency = MIN_FREQ, maxFrequency = MAX_FREQ) {
+function detectPitchAutocorrelation(
+  buffer,
+  sampleRate,
+  minFrequency = MIN_FREQ,
+  maxFrequency = MAX_FREQ,
+  minCorrelation = 0.006,
+) {
   const minLag = Math.floor(sampleRate / maxFrequency);
   const maxLag = Math.floor(sampleRate / minFrequency);
   let bestLag = -1;
@@ -879,7 +885,7 @@ function detectPitchAutocorrelation(buffer, sampleRate, minFrequency = MIN_FREQ,
     }
   }
 
-  if (bestLag < 0 || bestCorrelation < 0.006) return null;
+  if (bestLag < 0 || bestCorrelation < minCorrelation) return null;
   return sampleRate / bestLag;
 }
 
@@ -1511,8 +1517,24 @@ function App() {
         return;
       }
 
-      const yinPitch = detectPitchYin(buffer, audio.sampleRate);
-      const pitch = yinPitch ?? detectPitchAutocorrelation(buffer, audio.sampleRate);
+      const isMobileTuner = isMobileLayoutRef.current && appModeRef.current === APP_MODES.TUNER;
+      const maxDetectFrequency = isMobileTuner ? MOBILE_TUNER_MAX_FREQ : MAX_FREQ;
+      const yinPitch = detectPitchYin(
+        buffer,
+        audio.sampleRate,
+        MIN_FREQ,
+        maxDetectFrequency,
+        isMobileTuner ? 0.16 : 0.12,
+      );
+      const pitch =
+        yinPitch ??
+        detectPitchAutocorrelation(
+          buffer,
+          audio.sampleRate,
+          MIN_FREQ,
+          maxDetectFrequency,
+          isMobileTuner ? 0.0038 : 0.006,
+        );
       const displayNote = frequencyToNearest(pitch, DISPLAY_NOTES, 80);
       const activeNotes =
         Array.isArray(activeNotesRef.current) && activeNotesRef.current.length > 0
@@ -1541,7 +1563,7 @@ function App() {
       }
 
       if (appModeRef.current === APP_MODES.TUNER) {
-        const detectedString = frequencyToNearest(pitch, TUNER_STRINGS, 90);
+        const detectedString = frequencyToNearest(pitch, TUNER_STRINGS, isMobileLayoutRef.current ? 145 : 90);
 
         if (detectedString) {
           if (tunerCandidateRef.current.name === detectedString.pitch) {
@@ -1574,7 +1596,7 @@ function App() {
           }
         } else if (pitch) {
           const rawCents = centsBetween(pitch, targetString.frequency);
-          if (Math.abs(rawCents) <= 95) {
+          if (Math.abs(rawCents) <= (isMobileLayoutRef.current ? 150 : 95)) {
             smoothedCentsRef.current += (rawCents - smoothedCentsRef.current) * 0.32;
             const status = getTuningStatus(smoothedCentsRef.current);
             const stableCents = Math.round(smoothedCentsRef.current);
