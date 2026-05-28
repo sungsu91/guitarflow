@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Mic,
   MicOff,
@@ -53,6 +53,14 @@ function midiToPitch(midi) {
 
 function getPitchClass(pitch) {
   return pitch?.replace(/\d+/g, "") ?? "";
+}
+
+function getChordDisplayNoteName(noteName) {
+  return {
+    "A#": "Bb",
+    "D#": "Eb",
+    "G#": "Ab",
+  }[noteName] ?? noteName;
 }
 
 function getFrequencyFromMidi(midi) {
@@ -158,7 +166,7 @@ const DIATONIC_BOX_PATTERNS = {
     {
       box: 2,
       startOffset: 2,
-      stringOffsets: { 6: [0, 2, 3], 5: [0, 2, 4], 4: [0, 2, 4], 3: [1, 2, 4], 2: [2, 3, 5], 1: [2, 3, 5] },
+      stringOffsets: { 6: [0, 2, 3], 5: [0, 2, 4], 4: [0, 2, 4], 3: [0, 2, 4], 2: [2, 3, 5], 1: [2, 3, 5] },
     },
     {
       box: 3,
@@ -341,6 +349,509 @@ const NOTES = GUITAR_NOTES.filter((note) => note.group === "pentatonic");
 
 const ALL_PRACTICE_NOTES = [...OPEN_STRING_NOTES, ...FIRST_POSITION_NOTES, ...NOTES];
 
+function getChordMetaFromLabel(label) {
+  const cleanLabel = label.replace(/\(.*?\)/g, "");
+  const root = cleanLabel[0] ?? "C";
+  const suffix = cleanLabel.slice(1);
+  if (suffix === "m7") return { root, quality: "minor", extension: "m7", displayName: `${root}m7` };
+  if (suffix === "m") return { root, quality: "minor", extension: "none", displayName: `${root}m` };
+  if (suffix === "7") return { root, quality: "major", extension: "7", displayName: `${root}7` };
+  if (suffix === "M7") return { root, quality: "major", extension: "maj7", displayName: `${root}maj7` };
+  if (suffix === "sus4") return { root, quality: "major", extension: "sus4", displayName: `${root}sus4` };
+  if (suffix === "add9") return { root, quality: "major", extension: "add9", displayName: `${root}add9` };
+  return { root, quality: "major", extension: "none", displayName: root };
+}
+
+function makeChordViewOption(id, label, hint, positions, barres = [], meta = {}) {
+  const fretted = positions.map((position) => position.fret).filter((fret) => fret > 0);
+  const lowestFret = Math.min(...fretted);
+  const highestFret = Math.max(...fretted);
+  const isOpenPosition = positions.some((position) => position.fret === 0) || highestFret <= 3;
+  const minFret = isOpenPosition ? 1 : Math.max(1, lowestFret);
+  const maxFret = isOpenPosition ? Math.max(3, highestFret) : Math.max(minFret + 2, highestFret);
+  const labelMeta = getChordMetaFromLabel(label);
+  return {
+    id,
+    label,
+    root: meta.root ?? labelMeta.root,
+    quality: meta.quality ?? labelMeta.quality,
+    extension: meta.extension ?? labelMeta.extension,
+    displayName: meta.displayName ?? labelMeta.displayName,
+    hint,
+    visibleFrets: Array.from({ length: maxFret - minFret + 1 }, (_, index) => minFret + index),
+    notes: positions.map((position) =>
+      ({
+        ...makeGuitarNote({
+          pitch: position.pitch,
+          stringNumber: position.stringNumber,
+          fretNumber: position.fret,
+          group: "viewer-chord",
+        }),
+        finger: position.finger ?? null,
+      }),
+    ),
+    barres,
+  };
+}
+
+const CHORD_FINGER_OVERRIDES = {
+  CM: { "5-3": "3", "4-2": "2", "2-1": "1" },
+  "Cm-barre": { "5-3": "1", "4-5": "3", "3-5": "4", "2-4": "2", "1-3": "1" },
+  C7: { "5-3": "3", "4-2": "2", "3-3": "4", "2-1": "1" },
+  "Cm7-barre": { "5-3": "1", "4-5": "3", "3-3": "1", "2-4": "2", "1-3": "1" },
+  CM7: { "5-3": "3", "4-2": "2" },
+  DM: { "3-2": "1", "2-3": "3", "1-2": "2" },
+  Dm: { "3-2": "2", "2-3": "3", "1-1": "1" },
+  D7: { "3-2": "2", "2-1": "1", "1-2": "3" },
+  Dm7: { "3-2": "2", "2-1": "1", "1-1": "1" },
+  DM7: { "3-2": "1", "2-2": "2", "1-2": "3" },
+  EM: { "5-2": "2", "4-2": "3", "3-1": "1" },
+  Em: { "5-2": "2", "4-2": "3" },
+  E7: { "5-2": "2", "3-1": "1" },
+  Em7: { "5-2": "2" },
+  EM7: { "5-2": "2", "4-1": "1", "3-1": "1" },
+  "FM-barre": { "6-1": "1", "5-3": "3", "4-3": "4", "3-2": "2", "2-1": "1", "1-1": "1" },
+  "Fm-barre": { "6-1": "1", "5-3": "3", "4-3": "4", "3-1": "1", "2-1": "1", "1-1": "1" },
+  "F7-barre": { "6-1": "1", "5-3": "3", "4-1": "1", "3-2": "2", "2-1": "1", "1-1": "1" },
+  "Fm7-barre": { "6-1": "1", "5-3": "3", "4-1": "1", "3-1": "1", "2-1": "1", "1-1": "1" },
+  FM7: { "4-3": "3", "3-2": "2", "2-1": "1" },
+  GM: { "6-3": "3", "5-2": "2", "1-3": "4" },
+  "Gm-barre": { "6-3": "1", "5-5": "3", "4-5": "4", "3-3": "1", "2-3": "1", "1-3": "1" },
+  G7: { "6-3": "3", "5-2": "2", "1-1": "1" },
+  "Gm7-barre": { "6-3": "1", "5-5": "3", "4-3": "1", "3-3": "1", "2-3": "1", "1-3": "1" },
+  GM7: { "6-3": "3", "5-2": "2", "1-2": "1" },
+  AM: { "4-2": "1", "3-2": "2", "2-2": "3" },
+  Am: { "4-2": "2", "3-2": "3", "2-1": "1" },
+  A7: { "4-2": "2", "2-2": "3" },
+  Am7: { "4-2": "2", "2-1": "1" },
+  AM7: { "4-2": "2", "3-1": "1", "2-2": "3" },
+  "BM-barre": { "5-2": "1", "4-4": "3", "3-4": "3", "2-4": "3", "1-2": "1" },
+  Bm: { "5-2": "1", "4-4": "3", "3-4": "4", "2-3": "2", "1-2": "1" },
+  B7: { "5-2": "2", "4-1": "1", "3-2": "3", "1-2": "4" },
+  Bm7: { "5-2": "1", "4-4": "3", "3-2": "1", "2-3": "2", "1-2": "1" },
+  BM7: { "5-2": "1", "4-4": "3", "3-3": "2", "2-4": "4", "1-2": "1" },
+  Csus4: { "5-3": "3", "4-3": "4", "2-1": "1", "1-1": "1" },
+  Cadd9: { "5-3": "3", "4-2": "2", "2-3": "4" },
+  Dsus4: { "3-2": "1", "2-3": "3", "1-3": "4" },
+  Dadd9: { "3-2": "1", "2-3": "3" },
+  Esus4: { "5-2": "2", "4-2": "3", "3-2": "4" },
+  Eadd9: { "5-2": "2", "4-4": "4", "3-1": "1" },
+  "Fsus4-barre": { "6-1": "1", "5-3": "3", "4-3": "4", "3-3": "4", "2-1": "1", "1-1": "1" },
+  Gsus4: { "6-3": "3", "5-3": "4", "2-1": "1", "1-3": "3" },
+  Gadd9: { "6-3": "3", "5-2": "2", "3-2": "1", "2-3": "4", "1-3": "3" },
+  Asus4: { "4-2": "1", "3-2": "2", "2-3": "4" },
+  Aadd9: { "4-2": "1", "3-4": "4", "2-2": "2" },
+  "Bsus4-barre": { "5-2": "1", "4-4": "3", "3-4": "4", "2-5": "4", "1-2": "1" },
+  "Badd9-barre": { "5-2": "1", "4-4": "3", "3-6": "4", "2-4": "3", "1-2": "1" },
+};
+
+function applyStandardChordFingering(chord) {
+  const overrides = CHORD_FINGER_OVERRIDES[chord.id] ?? {};
+  const frettedNotes = chord.notes.filter((note) => Number(note.fretNumber) > 0);
+  const fallbackFingers = new Map(
+    [...new Set(frettedNotes.map((note) => Number(note.fretNumber)).sort((a, b) => a - b))]
+      .map((fret, index) => [fret, String(Math.min(index + 1, 4))]),
+  );
+  return {
+    ...chord,
+    notes: chord.notes.map((note) => {
+      const key = `${note.stringNumber}-${note.fretNumber}`;
+      const barreFinger = chord.barres?.find(
+        (barre) =>
+          Number(barre.fret) === Number(note.fretNumber) &&
+          note.stringNumber <= barre.fromString &&
+          note.stringNumber >= barre.toString,
+      )?.label;
+      return {
+        ...note,
+        finger: note.fretNumber === 0 ? null : overrides[key] ?? note.finger ?? barreFinger ?? fallbackFingers.get(Number(note.fretNumber)) ?? "1",
+      };
+    }),
+  };
+}
+
+const CHORD_VIEW_OPTIONS = [
+  makeChordViewOption("CM", "CM", "CM chord", [
+    { pitch: "C3", stringNumber: 5, fret: 3 },
+    { pitch: "E3", stringNumber: 4, fret: 2 },
+    { pitch: "G3", stringNumber: 3, fret: 0 },
+    { pitch: "C4", stringNumber: 2, fret: 1 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("Cm-barre", "Cm(諛붾젅)", "Cm(諛붾젅) chord", [
+    { pitch: "C3", stringNumber: 5, fret: 3 },
+    { pitch: "G3", stringNumber: 4, fret: 5 },
+    { pitch: "C4", stringNumber: 3, fret: 5 },
+    { pitch: "D#4", stringNumber: 2, fret: 4 },
+    { pitch: "G4", stringNumber: 1, fret: 3 },
+  ], [{ fret: 3, fromString: 5, toString: 1, label: "1" }]),
+  makeChordViewOption("C7", "C7", "C7 chord", [
+    { pitch: "C3", stringNumber: 5, fret: 3 },
+    { pitch: "E3", stringNumber: 4, fret: 2 },
+    { pitch: "A#3", stringNumber: 3, fret: 3 },
+    { pitch: "C4", stringNumber: 2, fret: 1 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("Cm7-barre", "Cm7(諛붾젅)", "Cm7(諛붾젅) chord", [
+    { pitch: "C3", stringNumber: 5, fret: 3 },
+    { pitch: "G3", stringNumber: 4, fret: 5 },
+    { pitch: "A#3", stringNumber: 3, fret: 3 },
+    { pitch: "D#4", stringNumber: 2, fret: 4 },
+    { pitch: "G4", stringNumber: 1, fret: 3 },
+  ], [{ fret: 3, fromString: 5, toString: 1, label: "1" }]),
+  makeChordViewOption("CM7", "CM7", "CM7 chord", [
+    { pitch: "C3", stringNumber: 5, fret: 3 },
+    { pitch: "E3", stringNumber: 4, fret: 2 },
+    { pitch: "G3", stringNumber: 3, fret: 0 },
+    { pitch: "B3", stringNumber: 2, fret: 0 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("DM", "DM", "DM chord", [
+    { pitch: "D3", stringNumber: 4, fret: 0 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "D4", stringNumber: 2, fret: 3 },
+    { pitch: "F#4", stringNumber: 1, fret: 2 },
+  ]),
+  makeChordViewOption("Dm", "Dm", "Dm chord", [
+    { pitch: "D3", stringNumber: 4, fret: 0 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "D4", stringNumber: 2, fret: 3 },
+    { pitch: "F4", stringNumber: 1, fret: 1 },
+  ]),
+  makeChordViewOption("D7", "D7", "D7 chord", [
+    { pitch: "D3", stringNumber: 4, fret: 0 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "C4", stringNumber: 2, fret: 1 },
+    { pitch: "F#4", stringNumber: 1, fret: 2 },
+  ]),
+  makeChordViewOption("Dm7", "Dm7", "Dm7 chord", [
+    { pitch: "D3", stringNumber: 4, fret: 0 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "C4", stringNumber: 2, fret: 1 },
+    { pitch: "F4", stringNumber: 1, fret: 1 },
+  ]),
+  makeChordViewOption("DM7", "DM7", "DM7 chord", [
+    { pitch: "D3", stringNumber: 4, fret: 0 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "C#4", stringNumber: 2, fret: 2 },
+    { pitch: "F#4", stringNumber: 1, fret: 2 },
+  ]),
+  makeChordViewOption("EM", "EM", "EM chord", [
+    { pitch: "E2", stringNumber: 6, fret: 0 },
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "E3", stringNumber: 4, fret: 2 },
+    { pitch: "G#3", stringNumber: 3, fret: 1 },
+    { pitch: "B3", stringNumber: 2, fret: 0 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("Em", "Em", "Em chord", [
+    { pitch: "E2", stringNumber: 6, fret: 0 },
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "E3", stringNumber: 4, fret: 2 },
+    { pitch: "G3", stringNumber: 3, fret: 0 },
+    { pitch: "B3", stringNumber: 2, fret: 0 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("E7", "E7", "E7 chord", [
+    { pitch: "E2", stringNumber: 6, fret: 0 },
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "D3", stringNumber: 4, fret: 0 },
+    { pitch: "G#3", stringNumber: 3, fret: 1 },
+    { pitch: "B3", stringNumber: 2, fret: 0 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("Em7", "Em7", "Em7 chord", [
+    { pitch: "E2", stringNumber: 6, fret: 0 },
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "D3", stringNumber: 4, fret: 0 },
+    { pitch: "G3", stringNumber: 3, fret: 0 },
+    { pitch: "B3", stringNumber: 2, fret: 0 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("EM7", "EM7", "EM7 chord", [
+    { pitch: "E2", stringNumber: 6, fret: 0 },
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "D#3", stringNumber: 4, fret: 1 },
+    { pitch: "G#3", stringNumber: 3, fret: 1 },
+    { pitch: "B3", stringNumber: 2, fret: 0 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("FM-barre", "FM(諛붾젅)", "FM(諛붾젅) chord", [
+    { pitch: "F2", stringNumber: 6, fret: 1 },
+    { pitch: "C3", stringNumber: 5, fret: 3 },
+    { pitch: "F3", stringNumber: 4, fret: 3 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "C4", stringNumber: 2, fret: 1 },
+    { pitch: "F4", stringNumber: 1, fret: 1 },
+  ], [{ fret: 1, fromString: 6, toString: 1, label: "1" }]),
+  makeChordViewOption("Fm-barre", "Fm(諛붾젅)", "Fm(諛붾젅) chord", [
+    { pitch: "F2", stringNumber: 6, fret: 1 },
+    { pitch: "C3", stringNumber: 5, fret: 3 },
+    { pitch: "F3", stringNumber: 4, fret: 3 },
+    { pitch: "G#3", stringNumber: 3, fret: 1 },
+    { pitch: "C4", stringNumber: 2, fret: 1 },
+    { pitch: "F4", stringNumber: 1, fret: 1 },
+  ], [{ fret: 1, fromString: 6, toString: 1, label: "1" }]),
+  makeChordViewOption("F7-barre", "F7(諛붾젅)", "F7(諛붾젅) chord", [
+    { pitch: "F2", stringNumber: 6, fret: 1 },
+    { pitch: "C3", stringNumber: 5, fret: 3 },
+    { pitch: "D#3", stringNumber: 4, fret: 1 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "C4", stringNumber: 2, fret: 1 },
+    { pitch: "F4", stringNumber: 1, fret: 1 },
+  ], [{ fret: 1, fromString: 6, toString: 1, label: "1" }]),
+  makeChordViewOption("Fm7-barre", "Fm7(諛붾젅)", "Fm7(諛붾젅) chord", [
+    { pitch: "F2", stringNumber: 6, fret: 1 },
+    { pitch: "C3", stringNumber: 5, fret: 3 },
+    { pitch: "D#3", stringNumber: 4, fret: 1 },
+    { pitch: "G#3", stringNumber: 3, fret: 1 },
+    { pitch: "C4", stringNumber: 2, fret: 1 },
+    { pitch: "F4", stringNumber: 1, fret: 1 },
+  ], [{ fret: 1, fromString: 6, toString: 1, label: "1" }]),
+  makeChordViewOption("FM7", "FM7", "FM7 chord", [
+    { pitch: "F3", stringNumber: 4, fret: 3 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "C4", stringNumber: 2, fret: 1 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("GM", "GM", "GM chord", [
+    { pitch: "G2", stringNumber: 6, fret: 3 },
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "D3", stringNumber: 4, fret: 0 },
+    { pitch: "G3", stringNumber: 3, fret: 0 },
+    { pitch: "B3", stringNumber: 2, fret: 0 },
+    { pitch: "G4", stringNumber: 1, fret: 3 },
+  ]),
+  makeChordViewOption("Gm-barre", "Gm(諛붾젅)", "Gm(諛붾젅) chord", [
+    { pitch: "G2", stringNumber: 6, fret: 3 },
+    { pitch: "D3", stringNumber: 5, fret: 5 },
+    { pitch: "G3", stringNumber: 4, fret: 5 },
+    { pitch: "A#3", stringNumber: 3, fret: 3 },
+    { pitch: "D4", stringNumber: 2, fret: 3 },
+    { pitch: "G4", stringNumber: 1, fret: 3 },
+  ], [{ fret: 3, fromString: 6, toString: 1, label: "1" }]),
+  makeChordViewOption("G7", "G7", "G7 chord", [
+    { pitch: "G2", stringNumber: 6, fret: 3 },
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "D3", stringNumber: 4, fret: 0 },
+    { pitch: "G3", stringNumber: 3, fret: 0 },
+    { pitch: "B3", stringNumber: 2, fret: 0 },
+    { pitch: "F4", stringNumber: 1, fret: 1 },
+  ]),
+  makeChordViewOption("Gm7-barre", "Gm7(諛붾젅)", "Gm7(諛붾젅) chord", [
+    { pitch: "G2", stringNumber: 6, fret: 3 },
+    { pitch: "D3", stringNumber: 5, fret: 5 },
+    { pitch: "F3", stringNumber: 4, fret: 3 },
+    { pitch: "A#3", stringNumber: 3, fret: 3 },
+    { pitch: "D4", stringNumber: 2, fret: 3 },
+    { pitch: "G4", stringNumber: 1, fret: 3 },
+  ], [{ fret: 3, fromString: 6, toString: 1, label: "1" }]),
+  makeChordViewOption("GM7", "GM7", "GM7 chord", [
+    { pitch: "G2", stringNumber: 6, fret: 3 },
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "D3", stringNumber: 4, fret: 0 },
+    { pitch: "G3", stringNumber: 3, fret: 0 },
+    { pitch: "B3", stringNumber: 2, fret: 0 },
+    { pitch: "F#4", stringNumber: 1, fret: 2 },
+  ]),
+  makeChordViewOption("AM", "AM", "AM chord", [
+    { pitch: "A2", stringNumber: 5, fret: 0 },
+    { pitch: "E3", stringNumber: 4, fret: 2 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "C#4", stringNumber: 2, fret: 2 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("Am", "Am", "Am chord", [
+    { pitch: "A2", stringNumber: 5, fret: 0 },
+    { pitch: "E3", stringNumber: 4, fret: 2 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "C4", stringNumber: 2, fret: 1 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("A7", "A7", "A7 chord", [
+    { pitch: "A2", stringNumber: 5, fret: 0 },
+    { pitch: "E3", stringNumber: 4, fret: 2 },
+    { pitch: "G3", stringNumber: 3, fret: 0 },
+    { pitch: "C#4", stringNumber: 2, fret: 2 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("Am7", "Am7", "Am7 chord", [
+    { pitch: "A2", stringNumber: 5, fret: 0 },
+    { pitch: "E3", stringNumber: 4, fret: 2 },
+    { pitch: "G3", stringNumber: 3, fret: 0 },
+    { pitch: "C4", stringNumber: 2, fret: 1 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("AM7", "AM7", "AM7 chord", [
+    { pitch: "A2", stringNumber: 5, fret: 0 },
+    { pitch: "E3", stringNumber: 4, fret: 2 },
+    { pitch: "G#3", stringNumber: 3, fret: 1 },
+    { pitch: "C#4", stringNumber: 2, fret: 2 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("BM-barre", "BM(諛붾젅)", "BM(諛붾젅) chord", [
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "F#3", stringNumber: 4, fret: 4 },
+    { pitch: "B3", stringNumber: 3, fret: 4 },
+    { pitch: "D#4", stringNumber: 2, fret: 4 },
+    { pitch: "F#4", stringNumber: 1, fret: 2 },
+  ], [{ fret: 2, fromString: 5, toString: 1, label: "1" }]),
+  makeChordViewOption("Bm", "Bm(諛붾젅)", "Bm(諛붾젅) chord", [
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "F#3", stringNumber: 4, fret: 4 },
+    { pitch: "B3", stringNumber: 3, fret: 4 },
+    { pitch: "D4", stringNumber: 2, fret: 3 },
+    { pitch: "F#4", stringNumber: 1, fret: 2 },
+  ], [{ fret: 2, fromString: 5, toString: 1, label: "1" }]),
+  makeChordViewOption("B7", "B7", "B7 chord", [
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "D#3", stringNumber: 4, fret: 1 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "B3", stringNumber: 2, fret: 0 },
+    { pitch: "F#4", stringNumber: 1, fret: 2 },
+  ]),
+  makeChordViewOption("Bm7", "Bm7(諛붾젅)", "Bm7(諛붾젅) chord", [
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "F#3", stringNumber: 4, fret: 4 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "D4", stringNumber: 2, fret: 3 },
+    { pitch: "F#4", stringNumber: 1, fret: 2 },
+  ], [{ fret: 2, fromString: 5, toString: 1, label: "1" }]),
+  makeChordViewOption("BM7", "BM7(諛붾젅)", "BM7(諛붾젅) chord", [
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "F#3", stringNumber: 4, fret: 4 },
+    { pitch: "A#3", stringNumber: 3, fret: 3 },
+    { pitch: "D#4", stringNumber: 2, fret: 4 },
+    { pitch: "F#4", stringNumber: 1, fret: 2 },
+  ], [{ fret: 2, fromString: 5, toString: 1, label: "1" }]),
+  makeChordViewOption("Csus4", "Csus4", "Csus4 chord", [
+    { pitch: "C3", stringNumber: 5, fret: 3 },
+    { pitch: "F3", stringNumber: 4, fret: 3 },
+    { pitch: "G3", stringNumber: 3, fret: 0 },
+    { pitch: "C4", stringNumber: 2, fret: 1 },
+    { pitch: "F4", stringNumber: 1, fret: 1 },
+  ]),
+  makeChordViewOption("Cadd9", "Cadd9", "Cadd9 chord", [
+    { pitch: "C3", stringNumber: 5, fret: 3 },
+    { pitch: "E3", stringNumber: 4, fret: 2 },
+    { pitch: "G3", stringNumber: 3, fret: 0 },
+    { pitch: "D4", stringNumber: 2, fret: 3 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("Dsus4", "Dsus4", "Dsus4 chord", [
+    { pitch: "D3", stringNumber: 4, fret: 0 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "D4", stringNumber: 2, fret: 3 },
+    { pitch: "G4", stringNumber: 1, fret: 3 },
+  ]),
+  makeChordViewOption("Dadd9", "Dadd9", "Dadd9 chord", [
+    { pitch: "D3", stringNumber: 4, fret: 0 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "D4", stringNumber: 2, fret: 3 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("Esus4", "Esus4", "Esus4 chord", [
+    { pitch: "E2", stringNumber: 6, fret: 0 },
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "E3", stringNumber: 4, fret: 2 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "B3", stringNumber: 2, fret: 0 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("Eadd9", "Eadd9", "Eadd9 chord", [
+    { pitch: "E2", stringNumber: 6, fret: 0 },
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "F#3", stringNumber: 4, fret: 4 },
+    { pitch: "G#3", stringNumber: 3, fret: 1 },
+    { pitch: "B3", stringNumber: 2, fret: 0 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("Fsus4-barre", "Fsus4(諛붾젅)", "Fsus4(諛붾젅) chord", [
+    { pitch: "F2", stringNumber: 6, fret: 1 },
+    { pitch: "C3", stringNumber: 5, fret: 3 },
+    { pitch: "F3", stringNumber: 4, fret: 3 },
+    { pitch: "A#3", stringNumber: 3, fret: 3 },
+    { pitch: "C4", stringNumber: 2, fret: 1 },
+    { pitch: "F4", stringNumber: 1, fret: 1 },
+  ], [{ fret: 1, fromString: 6, toString: 1, label: "1" }]),
+  makeChordViewOption("Gsus4", "Gsus4", "Gsus4 chord", [
+    { pitch: "G2", stringNumber: 6, fret: 3 },
+    { pitch: "C3", stringNumber: 5, fret: 3 },
+    { pitch: "D3", stringNumber: 4, fret: 0 },
+    { pitch: "G3", stringNumber: 3, fret: 0 },
+    { pitch: "C4", stringNumber: 2, fret: 1 },
+    { pitch: "G4", stringNumber: 1, fret: 3 },
+  ]),
+  makeChordViewOption("Gadd9", "Gadd9", "Gadd9 chord", [
+    { pitch: "G2", stringNumber: 6, fret: 3 },
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "D3", stringNumber: 4, fret: 0 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "D4", stringNumber: 2, fret: 3 },
+    { pitch: "G4", stringNumber: 1, fret: 3 },
+  ]),
+  makeChordViewOption("Asus4", "Asus4", "Asus4 chord", [
+    { pitch: "A2", stringNumber: 5, fret: 0 },
+    { pitch: "E3", stringNumber: 4, fret: 2 },
+    { pitch: "A3", stringNumber: 3, fret: 2 },
+    { pitch: "D4", stringNumber: 2, fret: 3 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("Aadd9", "Aadd9", "Aadd9 chord", [
+    { pitch: "A2", stringNumber: 5, fret: 0 },
+    { pitch: "E3", stringNumber: 4, fret: 2 },
+    { pitch: "B3", stringNumber: 3, fret: 4 },
+    { pitch: "C#4", stringNumber: 2, fret: 2 },
+    { pitch: "E4", stringNumber: 1, fret: 0 },
+  ]),
+  makeChordViewOption("Bsus4-barre", "Bsus4(諛붾젅)", "Bsus4(諛붾젅) chord", [
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "F#3", stringNumber: 4, fret: 4 },
+    { pitch: "B3", stringNumber: 3, fret: 4 },
+    { pitch: "E4", stringNumber: 2, fret: 5 },
+    { pitch: "F#4", stringNumber: 1, fret: 2 },
+  ], [{ fret: 2, fromString: 5, toString: 1, label: "1" }]),
+  makeChordViewOption("Badd9-barre", "Badd9(諛붾젅)", "Badd9(諛붾젅) chord", [
+    { pitch: "B2", stringNumber: 5, fret: 2 },
+    { pitch: "F#3", stringNumber: 4, fret: 4 },
+    { pitch: "C#4", stringNumber: 3, fret: 6 },
+    { pitch: "D#4", stringNumber: 2, fret: 4 },
+    { pitch: "F#4", stringNumber: 1, fret: 2 },
+  ], [{ fret: 2, fromString: 5, toString: 1, label: "1" }]),
+].map(applyStandardChordFingering);
+
+const CHORD_ROOTS = ["C", "D", "E", "F", "G", "A", "B"];
+
+const CHORD_QUALITY_OPTIONS = [
+  { id: "major", label: "Major", shortLabel: "메이저" },
+  { id: "minor", label: "Minor", shortLabel: "마이너" },
+];
+
+const CHORD_EXTENSION_OPTIONS = [
+  { id: "none", label: "기본", quality: "any" },
+  { id: "7", label: "7", quality: "major" },
+  { id: "maj7", label: "maj7", quality: "major" },
+  { id: "m7", label: "m7", quality: "minor" },
+  { id: "sus4", label: "sus4", quality: "major" },
+  { id: "add9", label: "add9", quality: "major" },
+];
+
+const CHORD_TRANSITION_PRESETS = [
+  { id: "pop-g", label: "G - D - Em - C", chords: ["G", "D", "Em", "C"] },
+  { id: "classic-c", label: "C - G - Am - F", chords: ["C", "G", "Am", "F"] },
+  { id: "turnaround-c", label: "C - Am - Dm - G", chords: ["C", "Am", "Dm", "G"] },
+  { id: "long-g", label: "G - D - Em - Bm - C - G - Am - D", chords: ["G", "D", "Em", "Bm", "C", "G", "Am", "D"] },
+];
+
+function normalizeChordToken(value = "") {
+  return value.trim().replace(/maj7/i, "maj7").replace(/M7$/, "maj7");
+}
+
+function getChordByDisplayName(name) {
+  const normalized = normalizeChordToken(name);
+  return CHORD_VIEW_OPTIONS.find((chord) => chord.displayName === normalized) ?? null;
+}
+
 const TUNER_STRINGS = OPEN_STRING_NOTES;
 
 const EMPTY_TUNER_READING = {
@@ -381,12 +892,12 @@ const PITCH_LOCK_FRAMES = 2;
 const NOTE_SWITCH_FRAMES = 4;
 const RHYTHM_SUBDIVISIONS = {
   One: { label: "1/4", hint: "한 박에 한 음", beats: 6, notesPerBeat: 1 },
-  Two: { label: "1/8", hint: "1 & 2 & 연속", beats: 6, notesPerBeat: 2 },
-  Four: { label: "1/16", hint: "촘촘한 연속 피킹", beats: 6, notesPerBeat: 4 },
-  Pair: { label: "2음/박", hint: "미파 솔라 진행", beats: 6, notesPerBeat: 2, advanceEverySubdivision: true },
+  Two: { label: "1/8", hint: "1 & 2 & ?곗냽", beats: 6, notesPerBeat: 2 },
+  Four: { label: "1/16", hint: "珥섏킌???곗냽 ?쇳궧", beats: 6, notesPerBeat: 4 },
+  Pair: { label: "2음/박", hint: "한 박에 두 음", beats: 6, notesPerBeat: 2, advanceEverySubdivision: true },
   Bounce: {
     label: "Bounce",
-    hint: "퐁당 리듬",
+    hint: "?곷떦 由щ벉",
     beats: 6,
     notesPerBeat: 2,
     advanceEverySubdivision: true,
@@ -396,19 +907,19 @@ const RHYTHM_SUBDIVISIONS = {
 const JUDGMENT_MODES = {
   PITCH: {
     id: "pitch",
-    label: "피치 매치 모드",
-    shortLabel: "피치 매치",
-    description: "같은 높이의 음이면 맞아요.",
+    label: "?쇱튂 留ㅼ튂 紐⑤뱶",
+    shortLabel: "?쇱튂 留ㅼ튂",
+    description: "媛숈? ?믪씠???뚯씠硫?留욎븘??",
   },
   POSITION: {
     id: "position",
-    label: "포지션 연습 모드",
-    shortLabel: "포지션 연습",
-    description: "표시된 줄/프렛 위치로 연습하는 모드예요.",
+    label: "?ъ????곗뒿 紐⑤뱶",
+    shortLabel: "?ъ????곗뒿",
+    description: "?쒖떆??以??꾨젢 ?꾩튂濡??곗뒿?섎뒗 紐⑤뱶?덉슂.",
   },
 };
 const POSITION_MODE_WARNING =
-  "같은 음은 다른 위치에서도 낼 수 있어요. 이 모드는 표시된 위치로 연습하는 것을 권장합니다.";
+  "媛숈? ?뚯? ?ㅻⅨ ?꾩튂?먯꽌???????덉뼱?? ??紐⑤뱶???쒖떆???꾩튂濡??곗뒿?섎뒗 寃껋쓣 沅뚯옣?⑸땲??";
 const BPM_PRESETS = [60, 80, 100, 120];
 const PENTATONIC_FRETS = [5, 6, 7, 8, 9, 10, 11, 12];
 const SCALE_ASCENDING = ["A2", "C3", "D3", "E3", "G3", "A3", "C4", "D4", "E4", "G4", "A4", "C5"];
@@ -433,18 +944,18 @@ const FIRST_POSITION_SEQUENCE = [
   ...FIRST_POSITION_RETURN_SEQUENCE,
 ];
 const FIRST_POSITION_SEQUENCE_GROUPS = [
-  { phase: "왕복", ko: "미파솔", en: "EFG" },
-  { phase: "왕복", ko: "라시도", en: "ABC" },
-  { phase: "왕복", ko: "레미파", en: "DEF" },
-  { phase: "왕복", ko: "솔라", en: "GA" },
-  { phase: "왕복", ko: "시도레", en: "BCD" },
-  { phase: "왕복", ko: "미파솔", en: "EFG" },
-  { phase: "왕복", ko: "파미", en: "FE" },
-  { phase: "왕복", ko: "레도시", en: "DCB" },
-  { phase: "왕복", ko: "라솔", en: "AG" },
-  { phase: "왕복", ko: "파미레", en: "FED" },
-  { phase: "왕복", ko: "도시라", en: "CBA" },
-  { phase: "왕복", ko: "솔파미", en: "GFE" },
+  { phase: "정방", ko: "미파솔", en: "EFG" },
+  { phase: "정방", ko: "라시도", en: "ABC" },
+  { phase: "정방", ko: "레미파", en: "DEF" },
+  { phase: "정방", ko: "솔라", en: "GA" },
+  { phase: "정방", ko: "시도레", en: "BCD" },
+  { phase: "정방", ko: "미파솔", en: "EFG" },
+  { phase: "역방", ko: "파미", en: "FE" },
+  { phase: "역방", ko: "레도시", en: "DCB" },
+  { phase: "역방", ko: "라솔", en: "AG" },
+  { phase: "역방", ko: "파미레", en: "FED" },
+  { phase: "역방", ko: "도시라", en: "CBA" },
+  { phase: "역방", ko: "솔파미", en: "GFE" },
 ];
 
 const PRACTICE_CATEGORIES = [
@@ -472,7 +983,7 @@ const PRACTICE_CATEGORIES = [
   {
     id: "scale-block",
     title: "포지션 기반 지판 훈련",
-    subtitle: "개방현부터 1~3프렛 포지션, 스케일·펜타토닉 Box까지 단계별로 지판 감각을 익혀요.",
+    subtitle: "오픈 스트링, 포지션, 스케일, 펜타토닉 박스 연습",
     notes: NOTES,
     sequence: SCALE_ASCENDING,
     modeLabel: "Box Pattern",
@@ -482,14 +993,13 @@ const PRACTICE_CATEGORIES = [
   },
   {
     id: "rhythm",
-    title: "Rhythm Sync Training",
-    subtitle: "박자에 맞춰 음을 찾아 반응 속도와 타이밍 감각 강화",
+    title: "코드 전환 연습",
+    subtitle: "4/4 메트로놈에 맞춰 코드 전환 타이밍과 운지 이동을 연습",
     notes: OPEN_STRING_NOTES,
     sequence: ["E2", "E2", "A2", "A2", "D3", "D3", "G3", "B3", "E4"],
-    modeLabel: "Beat & Timing",
+    modeLabel: "Chord Switching",
     judgmentMode: JUDGMENT_MODES.PITCH.id,
     loop: true,
-    unavailable: true,
   },
   {
     id: "melody",
@@ -523,7 +1033,14 @@ const APP_MODES = {
   CURRICULUM: "curriculum",
   PRACTICE: "practice",
   SHOOTER: "shooter",
+  FRETBOARD_VIEWER: "fretboard-viewer",
 };
+
+const FRETBOARD_VIEWER_MODES = {
+  SCALE: "scale",
+  CHORD: "chord",
+};
+const CHORD_CATALOG_ALL = "all";
 
 const SCALE_DIRECTIONS = {
   ASC: "ascending",
@@ -532,17 +1049,17 @@ const SCALE_DIRECTIONS = {
 };
 
 const SCALE_DIRECTION_OPTIONS = [
-  { id: SCALE_DIRECTIONS.ASC, label: "상행", hint: "낮은 A부터 위로" },
+  { id: SCALE_DIRECTIONS.ASC, label: "?곹뻾", hint: "??? A遺???꾨줈" },
   { id: SCALE_DIRECTIONS.LOOP, label: "왕복", hint: "상행 후 되돌아오기" },
-  { id: SCALE_DIRECTIONS.DESC, label: "하행", hint: "높은 C부터 아래로" },
+  { id: SCALE_DIRECTIONS.DESC, label: "하행", hint: "높은 음부터 아래로" },
 ];
 
 const SHOOTER_LEVELS = [
-  { name: "레벨 1", unlockAt: 0, poolRatio: 0.34, durationBeats: 24, spawnGapBeats: 5.2, randomness: 0.28, jumpBias: 0.12 },
-  { name: "레벨 2", unlockAt: 8, poolRatio: 0.55, durationBeats: 22, spawnGapBeats: 4.35, randomness: 0.48, jumpBias: 0.28 },
-  { name: "레벨 3", unlockAt: 20, poolRatio: 0.78, durationBeats: 20, spawnGapBeats: 3.55, randomness: 0.66, jumpBias: 0.48 },
-  { name: "레벨 4", unlockAt: 38, poolRatio: 1, durationBeats: 18, spawnGapBeats: 2.85, randomness: 0.82, jumpBias: 0.66 },
-  { name: "레벨 5", unlockAt: 62, poolRatio: 1, durationBeats: 16, spawnGapBeats: 2.25, randomness: 0.94, jumpBias: 0.82 },
+  { name: "?덈꺼 1", unlockAt: 0, poolRatio: 0.34, durationBeats: 24, spawnGapBeats: 5.2, randomness: 0.28, jumpBias: 0.12 },
+  { name: "?덈꺼 2", unlockAt: 8, poolRatio: 0.55, durationBeats: 22, spawnGapBeats: 4.35, randomness: 0.48, jumpBias: 0.28 },
+  { name: "?덈꺼 3", unlockAt: 20, poolRatio: 0.78, durationBeats: 20, spawnGapBeats: 3.55, randomness: 0.66, jumpBias: 0.48 },
+  { name: "?덈꺼 4", unlockAt: 38, poolRatio: 1, durationBeats: 18, spawnGapBeats: 2.85, randomness: 0.82, jumpBias: 0.66 },
+  { name: "?덈꺼 5", unlockAt: 62, poolRatio: 1, durationBeats: 16, spawnGapBeats: 2.25, randomness: 0.94, jumpBias: 0.82 },
 ];
 const SHOOTER_MAX_LIVES = 3;
 
@@ -551,41 +1068,42 @@ function classNameFromLabel(label) {
 }
 
 const UI_LABELS = {
-  Perfect: "완벽",
-  Good: "좋음",
-  Miss: "실패",
+  Perfect: "?꾨꼍",
+  Good: "醫뗭쓬",
+  Miss: "?ㅽ뙣",
   Ready: "준비",
   "Listen and play": "듣고 연주하세요",
   "Shoot the notes": "목표 음을 연주하세요",
-  "Start Shooter": "슈팅게임 시작",
-  "Game Over": "게임 오버",
-  Success: "성공!",
-  Paused: "일시정지",
-  Play: "연주",
-  "Restart Practice": "연습 다시 시작",
-  Complete: "완료",
-  "Mic Stopped": "마이크 꺼짐",
-  "Tune Up": "튜닝 시작",
+  "Start Shooter": "?덊똿寃뚯엫 ?쒖옉",
+  "Game Over": "寃뚯엫 ?ㅻ쾭",
+  Success: "?깃났!",
+  Paused: "?쇱떆?뺤?",
+  Play: "?곗＜",
+  "Restart Practice": "?곗뒿 ?ㅼ떆 ?쒖옉",
+  Complete: "?꾨즺",
+  "Mic Stopped": "留덉씠??爰쇱쭚",
+  "Tune Up": "?쒕떇 ?쒖옉",
   "Choose a practice card": "연습 카드를 선택하세요",
-  "Permission Denied": "마이크 권한 거부",
+  "Permission Denied": "留덉씠??沅뚰븳 嫄곕?",
   "Mic Connected": "마이크 연결됨",
   "Listening...": "감지 중",
-  "No Signal": "신호 없음",
+  "No Signal": "?좏샇 ?놁쓬",
   "Holding last note": "마지막 음 유지 중",
-  "In Tune": "튜닝 완료",
-  "Too Low": "음이 낮음",
-  "Too High": "음이 높음",
-  "Slightly Low": "조금 낮음",
-  "Slightly High": "조금 높음",
-  tuner: "튜너",
-  curriculum: "연습 목차",
-  practice: "프렛보드 트레이너",
-  shooter: "슈팅게임",
+  "In Tune": "?쒕떇 ?꾨즺",
+  "Too Low": "?뚯씠 ??쓬",
+  "Too High": "?뚯씠 ?믪쓬",
+  "Slightly Low": "議곌툑 ??쓬",
+  "Slightly High": "議곌툑 ?믪쓬",
+  tuner: "?쒕꼫",
+  curriculum: "?곗뒿 紐⑹감",
+  practice: "?꾨젢蹂대뱶 ?몃젅?대꼫",
+  shooter: "?덊똿寃뚯엫",
+  "fretboard-viewer": "吏??蹂닿린",
   idle: "대기",
   listening: "감지 중",
   playing: "연습 중",
-  paused: "일시정지",
-  gameover: "종료",
+  paused: "?쇱떆?뺤?",
+  gameover: "醫낅즺",
 };
 
 function t(label) {
@@ -604,7 +1122,7 @@ function getPitch(note) {
 
 function getStringFretLabel(note) {
   if (!note) return "";
-  return `${note.stringNumber}번줄 ${getFretLabel(note)}`;
+  return `${note.stringNumber}踰덉쨪 ${getFretLabel(note)}`;
 }
 
 function getFretboardPositionsForPitch(pitch, maxFret = MAX_FRETBOARD_GUIDE_FRET) {
@@ -919,6 +1437,7 @@ function App() {
   const [feedback, setFeedback] = useState("Ready");
   const [laneFeedback, setLaneFeedback] = useState([]);
   const [beat, setBeat] = useState(0);
+  const [stage3MeasureProgress, setStage3MeasureProgress] = useState(0);
   const [stageFlash, setStageFlash] = useState("");
   const [noteSpeed, setNoteSpeed] = useState(RHYTHM_SUBDIVISIONS.One);
   const [selectedCategoryId, setSelectedCategoryId] = useState(MAIN_DEFAULT_CATEGORY.id);
@@ -927,6 +1446,24 @@ function App() {
   const [selectedScaleFamily, setSelectedScaleFamily] = useState(SCALE_FAMILIES.pentatonic.id);
   const [selectedScaleType, setSelectedScaleType] = useState(PENTATONIC_TYPES.minor.id);
   const [selectedScaleBox, setSelectedScaleBox] = useState(1);
+  const [viewerMode, setViewerMode] = useState(FRETBOARD_VIEWER_MODES.CHORD);
+  const [viewerScaleRoot, setViewerScaleRoot] = useState("A");
+  const [viewerScaleFamily, setViewerScaleFamily] = useState(SCALE_FAMILIES.pentatonic.id);
+  const [viewerScaleType, setViewerScaleType] = useState(PENTATONIC_TYPES.minor.id);
+  const [viewerScaleBox, setViewerScaleBox] = useState(1);
+  const [viewerChordRoot, setViewerChordRoot] = useState("C");
+  const [viewerChordQuality, setViewerChordQuality] = useState("major");
+  const [viewerChordExtension, setViewerChordExtension] = useState("none");
+  const [viewerChordId, setViewerChordId] = useState("CM");
+  const [showChordFingeringGuide, setShowChordFingeringGuide] = useState(false);
+  const [chordProgressionId, setChordProgressionId] = useState("custom");
+  const [stage3ChordRoot, setStage3ChordRoot] = useState("G");
+  const [stage3ChordQuality, setStage3ChordQuality] = useState("major");
+  const [stage3ChordExtension, setStage3ChordExtension] = useState("none");
+  const [stage3ChordIds, setStage3ChordIds] = useState(
+    CHORD_TRANSITION_PRESETS[0].chords.map((name) => getChordByDisplayName(name)?.id).filter(Boolean),
+  );
+  const [chordPracticeIndex, setChordPracticeIndex] = useState(0);
   const [repeatPractice, setRepeatPractice] = useState(false);
   const [repeatCount, setRepeatCount] = useState(1);
   const [bpm, setBpm] = useState(DEFAULT_BPM);
@@ -1024,13 +1561,99 @@ function App() {
     () => buildScaleBlockPractice(selectedScaleRoot, selectedScaleType, selectedScaleFamily, selectedScaleBox),
     [selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType],
   );
+  const viewerScaleTypeOptions =
+    viewerScaleFamily === SCALE_FAMILIES.scale.id ? DIATONIC_SCALE_TYPES : PENTATONIC_TYPES;
+  const viewerScaleBlock = useMemo(
+    () => buildScaleBlockPractice(viewerScaleRoot, viewerScaleType, viewerScaleFamily, viewerScaleBox),
+    [viewerScaleBox, viewerScaleFamily, viewerScaleRoot, viewerScaleType],
+  );
+  const selectedBuiltChord = useMemo(
+    () =>
+      CHORD_VIEW_OPTIONS.find(
+        (chord) =>
+          chord.root === viewerChordRoot &&
+          chord.quality === viewerChordQuality &&
+          chord.extension === viewerChordExtension,
+      ) ?? null,
+    [viewerChordExtension, viewerChordQuality, viewerChordRoot],
+  );
+  const viewerChord = useMemo(
+    () =>
+      viewerChordId === CHORD_CATALOG_ALL
+        ? selectedBuiltChord ?? CHORD_VIEW_OPTIONS[0]
+        : CHORD_VIEW_OPTIONS.find((chord) => chord.id === viewerChordId) ?? selectedBuiltChord ?? CHORD_VIEW_OPTIONS[0],
+    [selectedBuiltChord, viewerChordId],
+  );
+  const isChordCatalogView = viewerMode === FRETBOARD_VIEWER_MODES.CHORD && viewerChordId === CHORD_CATALOG_ALL;
+  const chordCatalogGroups = useMemo(() => {
+    return CHORD_ROOTS
+      .map((root) => ({
+        root,
+        chords: CHORD_VIEW_OPTIONS.filter((chord) => chord.root === root),
+      }))
+      .filter((group) => group.chords.length > 0);
+  }, []);
+  const chordRootOptions = CHORD_ROOTS;
+  const availableChordExtensionOptions = CHORD_EXTENSION_OPTIONS.map((extension) => ({
+    ...extension,
+    disabled: extension.quality !== "any" && extension.quality !== viewerChordQuality,
+    hasDiagram: CHORD_VIEW_OPTIONS.some(
+      (chord) =>
+        chord.root === viewerChordRoot &&
+        chord.quality === viewerChordQuality &&
+        chord.extension === extension.id,
+    ),
+  }));
+  const getChordStringState = useCallback((chord, stringNumber) => {
+    const note = chord?.notes?.find((item) => item.stringNumber === stringNumber);
+    if (!note) return "x";
+    return Number(note.fretNumber ?? note.fret ?? 0) === 0 ? "o" : "";
+  }, []);
+  const viewerVisibleFrets = viewerMode === FRETBOARD_VIEWER_MODES.CHORD
+    ? viewerChord.visibleFrets
+    : viewerScaleBlock.visibleFrets;
+  const viewerNotes = viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? viewerChord.notes : viewerScaleBlock.notes;
+  const viewerTitle = viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? viewerChord.displayName : viewerScaleBlock.label;
+  const viewerHint = viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? viewerChord.hint : "선택한 위치만 참고합니다";
+  const stage3SelectedChord = CHORD_VIEW_OPTIONS.find(
+    (chord) =>
+      chord.root === stage3ChordRoot &&
+      chord.quality === stage3ChordQuality &&
+      chord.extension === stage3ChordExtension,
+  ) ?? null;
+  const stage3AvailableExtensionOptions = CHORD_EXTENSION_OPTIONS.map((extension) => ({
+    ...extension,
+    disabled: extension.quality !== "any" && extension.quality !== stage3ChordQuality,
+    hasDiagram: CHORD_VIEW_OPTIONS.some(
+      (chord) =>
+        chord.root === stage3ChordRoot &&
+        chord.quality === stage3ChordQuality &&
+        chord.extension === extension.id,
+    ),
+  }));
+  const chordTransitionProgression = stage3ChordIds
+    .map((id) => CHORD_VIEW_OPTIONS.find((chord) => chord.id === id))
+    .filter(Boolean);
+  const hasChordTransitionProgression = chordTransitionProgression.length > 0;
+  const chordPracticeCurrent =
+    hasChordTransitionProgression
+      ? chordTransitionProgression[chordPracticeIndex % chordTransitionProgression.length]
+      : stage3SelectedChord ?? CHORD_VIEW_OPTIONS[0];
+  const chordPracticeNext =
+    hasChordTransitionProgression
+      ? chordTransitionProgression[(chordPracticeIndex + 1) % chordTransitionProgression.length]
+      : chordPracticeCurrent;
+  const chordPracticeUpcoming =
+    hasChordTransitionProgression
+      ? chordTransitionProgression[(chordPracticeIndex + 2) % chordTransitionProgression.length]
+      : chordPracticeNext;
   const getPlayableCategory = useCallback((category = selectedCategory) => {
     const safeCategory = normalizePracticeCategory(category);
     if (safeCategory.id !== "scale-block") return safeCategory;
     return {
       ...safeCategory,
       title: "포지션 기반 지판 훈련",
-      subtitle: `${selectedPentatonic.label} 블록을 선택해 연습해요`,
+      subtitle: "선택한 블록을 연습해요",
       modeLabel: selectedPentatonic.label,
       notes: selectedPentatonic.notes,
       sequence: selectedPentatonic.sequence,
@@ -1787,13 +2410,40 @@ function App() {
     [flashStage, playShooterSound, setState, spawnShooterTarget],
   );
 
+  const runChordTransitionFrame = useCallback(
+    (deltaMs) => {
+      gameTimeRef.current += deltaMs;
+      const currentBeatMs = getBeatMs(bpmRef.current);
+      const currentMeasureMs = currentBeatMs * 4;
+      setStage3MeasureProgress((gameTimeRef.current % currentMeasureMs) / currentMeasureMs);
+      const currentBeat = Math.floor(gameTimeRef.current / currentBeatMs);
+      if (currentBeat !== lastBeatRef.current) {
+        lastBeatRef.current = currentBeat;
+        const beatInBar = currentBeat % 4;
+        const measureIndex = chordTransitionProgression.length > 0
+          ? Math.floor(currentBeat / 4) % chordTransitionProgression.length
+          : 0;
+        setBeat(beatInBar);
+        setChordPracticeIndex(measureIndex);
+        playTick(beatInBar === 0);
+      }
+    },
+    [chordTransitionProgression.length, playTick],
+  );
+
   const animationLoop = useCallback(
     (now) => {
       const deltaMs = Math.min(50, now - lastFrameRef.current);
       lastFrameRef.current = now;
 
       if (streamRef.current) readMicrophone(now);
-      if (appModeRef.current === APP_MODES.PRACTICE && gameStateRef.current === GAME_STATES.PLAYING) {
+      if (
+        appModeRef.current === APP_MODES.PRACTICE &&
+        gameStateRef.current === GAME_STATES.PLAYING &&
+        selectedCategory.id === "rhythm"
+      ) {
+        runChordTransitionFrame(deltaMs);
+      } else if (appModeRef.current === APP_MODES.PRACTICE && gameStateRef.current === GAME_STATES.PLAYING) {
         runGameFrame(deltaMs);
       }
       if (appModeRef.current === APP_MODES.SHOOTER && gameStateRef.current === GAME_STATES.PLAYING) {
@@ -1802,7 +2452,7 @@ function App() {
 
       rafRef.current = requestAnimationFrame(animationLoop);
     },
-    [readMicrophone, runGameFrame, runShooterFrame],
+    [readMicrophone, runChordTransitionFrame, runGameFrame, runShooterFrame, selectedCategory.id],
   );
 
   const startMic = useCallback(async () => {
@@ -1862,6 +2512,22 @@ function App() {
       setFeedback("Choose a practice card");
       return;
     }
+    if (safeCategory.id === "rhythm") {
+      await ensureAudioReady();
+      appModeRef.current = APP_MODES.PRACTICE;
+      setAppMode(APP_MODES.PRACTICE);
+      setSelectedCategoryId(safeCategory.id);
+      resetScore();
+      gameTimeRef.current = 0;
+      lastBeatRef.current = -1;
+      setBeat(0);
+      setStage3MeasureProgress(0);
+      setChordPracticeIndex(0);
+      setFeedback("Chord transition");
+      setState(GAME_STATES.PLAYING);
+      lastFrameRef.current = performance.now();
+      return;
+    }
     const microphoneReady = streamRef.current || (await startMic());
     if (!microphoneReady) return;
     await ensureAudioReady();
@@ -1900,6 +2566,7 @@ function App() {
     setIsHitWindowActive(false);
     setLaneFeedback([]);
     setBeat(0);
+    if (safeCategory.id === "rhythm") setChordPracticeIndex(0);
     setFeedback("Ready");
     setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
     lastFrameRef.current = performance.now();
@@ -2149,6 +2816,24 @@ function App() {
     setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
   }, [setState]);
 
+  const showMainMenu = useCallback(() => {
+    appModeRef.current = APP_MODES.MENU;
+    setAppMode(APP_MODES.MENU);
+    enemiesRef.current = [];
+    shooterTargetsRef.current = [];
+    projectilesRef.current = [];
+    particlesRef.current = [];
+    setEnemies([]);
+    setShooterTargets([]);
+    setProjectiles([]);
+    setParticles([]);
+    setHitZoneNote(null);
+    setIsHitWindowActive(false);
+    setBeat(0);
+    setFeedback("Ready");
+    setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
+  }, [setState]);
+
   const backToTuner = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
@@ -2208,6 +2893,24 @@ function App() {
     setShooterLives(SHOOTER_MAX_LIVES);
     setBeat(0);
     setFeedback("Start Shooter");
+    setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
+  }, [setState]);
+
+  const showFretboardViewer = useCallback(() => {
+    appModeRef.current = APP_MODES.FRETBOARD_VIEWER;
+    setAppMode(APP_MODES.FRETBOARD_VIEWER);
+    enemiesRef.current = [];
+    shooterTargetsRef.current = [];
+    projectilesRef.current = [];
+    particlesRef.current = [];
+    setEnemies([]);
+    setShooterTargets([]);
+    setProjectiles([]);
+    setParticles([]);
+    setHitZoneNote(null);
+    setIsHitWindowActive(false);
+    setBeat(0);
+    setFeedback("Ready");
     setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
   }, [setState]);
 
@@ -2290,6 +2993,22 @@ function App() {
     const ratio = ((fretIndex + 0.5) / visibleFrets.length).toFixed(4);
     return `calc(42px + (100% - 52px) * ${ratio})`;
   }, [visibleFrets]);
+  const getViewerFretLeftFromFrets = useCallback((note, frets) => {
+    const fret = Number(note?.fretNumber ?? note?.fret ?? 0);
+    if (fret === 0) return "30px";
+    const exactIndex = frets.indexOf(fret);
+    const fretIndex = exactIndex >= 0
+      ? exactIndex
+      : frets
+          .map((visibleFret, index) => ({ index, distance: Math.abs(visibleFret - fret) }))
+          .sort((a, b) => a.distance - b.distance)[0]?.index ?? 0;
+    const ratio = ((fretIndex + 0.5) / frets.length).toFixed(4);
+    return `calc(42px + (100% - 52px) * ${ratio})`;
+  }, []);
+  const getViewerFretLeft = useCallback(
+    (note) => getViewerFretLeftFromFrets(note, viewerVisibleFrets),
+    [getViewerFretLeftFromFrets, viewerVisibleFrets],
+  );
   const getReferenceStringTop = useCallback((noteOrStringNumber) => {
     const stringNumber = typeof noteOrStringNumber === "number"
       ? noteOrStringNumber
@@ -2376,6 +3095,8 @@ function App() {
               ? "튜너"
               : appMode === APP_MODES.CURRICULUM
                 ? "프렛보드 트레이너"
+              : appMode === APP_MODES.FRETBOARD_VIEWER
+                ? "지판 보기"
               : appMode === APP_MODES.SHOOTER
                 ? "슈팅게임"
                 : selectedCategory.title}
@@ -2383,11 +3104,17 @@ function App() {
         </div>
         <div className="modeSwitch">
           <button
-            className={appMode === APP_MODES.TUNER ? "selected" : ""}
-            onClick={backToTuner}
+            onClick={showMainMenu}
             type="button"
           >
-            튜너
+            메인
+          </button>
+          <button
+            className={appMode === APP_MODES.FRETBOARD_VIEWER ? "selected" : ""}
+            onClick={showFretboardViewer}
+            type="button"
+          >
+            지판 보기
           </button>
           <button
             className={appMode === APP_MODES.CURRICULUM || appMode === APP_MODES.PRACTICE ? "selected" : ""}
@@ -2404,6 +3131,13 @@ function App() {
           >
             슈팅게임
           </button>
+          <button
+            className={appMode === APP_MODES.TUNER ? "selected" : ""}
+            onClick={backToTuner}
+            type="button"
+          >
+            튜너
+          </button>
         </div>
       </section>}
 
@@ -2416,9 +3150,19 @@ function App() {
           </div>
 
           <div className="hubBrand">
-            <span>Guitar Fretboard Training</span>
-            <h1>프렛보드 트레이너</h1>
-            <p>튜닝부터 Open String, Position, Scale, Pentatonic Box까지 단계별로 익혀요.</p>
+            <span>GUITAR FRETBOARD TRAINING</span>
+            <h1>기타 지판 연습</h1>
+            <p>오픈 스트링, 포지션, 스케일, 펜타토닉 박스 연습</p>
+            <a
+              className="developerBadge"
+              href="https://www.instagram.com/sungsu91_/"
+              rel="noreferrer"
+              target="_blank"
+            >
+              <i aria-hidden="true" />
+              <span>Developer</span>
+              <strong>@sungsu91_</strong>
+            </a>
           </div>
 
           <div className="hubGuitarHead" aria-hidden="true">
@@ -2439,15 +3183,15 @@ function App() {
           </div>
 
           <div className="hubMenuPanel">
-            <button className="hubMenuButton tuner" onClick={backToTuner} type="button">
+            <button className="hubMenuButton viewer" onClick={showFretboardViewer} type="button">
               <span>01</span>
-              <strong>튜너</strong>
-              <small>Practice Tuner · 기준음 확인</small>
+              <strong>지판 보기</strong>
+              <small>코드/스케일 기준표</small>
             </button>
             <button className="hubMenuButton rhythm" onClick={showCurriculum} type="button">
               <span>02</span>
               <strong>프렛보드 트레이너</strong>
-              <small>Position · Scale · Pentatonic Box</small>
+              <small>포지션/스케일/펜타토닉 박스</small>
             </button>
             <button
               aria-label="슈팅게임"
@@ -2459,7 +3203,12 @@ function App() {
             >
               <span>03</span>
               <strong>슈팅게임</strong>
-              <small>Fretboard Recognition · 반응 훈련</small>
+              <small>프렛보드 음정 맞추기</small>
+            </button>
+            <button className="hubMenuButton tuner" onClick={backToTuner} type="button">
+              <span>04</span>
+              <strong>튜너</strong>
+              <small>연습용 조율 확인</small>
             </button>
           </div>
 
@@ -2473,17 +3222,17 @@ function App() {
           <div className={`proTuner ${tunerReading.tone}`}>
             <div className="tunerHeroHeader">
               <div>
-                <span>튜너</span>
+                <span>?쒕꼫</span>
                 <small>{tunerReading.frequency ? `${tunerReading.frequency.toFixed(1)} Hz` : "소리를 기다리는 중"}</small>
               </div>
               <div className="tunerHeaderControls buttons">
                 <button className="primary" onClick={startTuner} type="button">
                   <Mic size={16} />
-                  시작
+                  ?쒖옉
                 </button>
                 <button onClick={stopMicrophone} type="button" disabled={!hasMic}>
                   <MicOff size={16} />
-                  정지
+                  ?뺤?
                 </button>
               </div>
             </div>
@@ -2493,9 +3242,9 @@ function App() {
               style={{ "--note-offset": `${tunerNeedle * 2.65}px` }}
             >
               <div className="tunerSideLabels" aria-hidden="true">
-                <span>← 낮음</span>
+                <span>????쓬</span>
                 <strong>OK</strong>
-                <span>높음 →</span>
+                <span></span>
               </div>
               <div className="tunerColorField" aria-hidden="true">
                 <span className="lowField" />
@@ -2524,13 +3273,13 @@ function App() {
           </div>
 
           <div className="modeHelper tunerHelper">
-            이 튜너는 연습과 참고용입니다. 정확한 조율은 전용 클립 튜너를 사용하세요.
+            ???쒕꼫???곗뒿怨?李멸퀬?⑹엯?덈떎. ?뺥솗??議곗쑉? ?꾩슜 ?대┰ ?쒕꼫瑜??ъ슜?섏꽭??
           </div>
 
           <div className="tunerDeviceFooter">
             <div className="tunerSignal">
               <div className="meterHeader">
-                <span>신호 세기</span>
+                <span>?좏샇 ?멸린</span>
                 <strong>{Math.round(signalLevel * 100)}%</strong>
               </div>
               <div className="meter">
@@ -2541,11 +3290,11 @@ function App() {
             <div className="tunerMicControls buttons playbackButtons">
               <button className="primary" onClick={startTuner} type="button">
                 <Mic size={18} />
-                시작
+                ?쒖옉
               </button>
               <button onClick={stopMicrophone} type="button" disabled={!hasMic}>
                 <MicOff size={18} />
-                정지
+                ?뺤?
               </button>
             </div>
           </div>
@@ -2555,7 +3304,7 @@ function App() {
           <div className="curriculumHeader">
             <span>연습 목차</span>
             <strong>{selectedCategory.title}</strong>
-            <small>한 번 클릭은 선택, 선택된 카드를 한 번 더 누르면 연습 화면으로 들어가요.</small>
+            <small>한 번 클릭해 선택하고, 선택된 카드를 한 번 더 누르면 연습 화면으로 들어갑니다.</small>
           </div>
 
           <div className="trainingGrid">
@@ -2610,28 +3359,430 @@ function App() {
             </button>
           </div>
         </section>
+      ) : appMode === APP_MODES.FRETBOARD_VIEWER ? (
+        <section className="fretboardViewerPanel" aria-label="吏??蹂닿린">
+          <div className="viewerControlPanel compactControls">
+            <div className="viewerModeTabs" aria-label="吏??蹂닿린 醫낅쪟">
+              <button
+                className={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "selected" : ""}
+                onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.CHORD)}
+                type="button"
+              >
+                肄붾뱶 ?댁?
+              </button>
+              <button
+                className={viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "selected" : ""}
+                onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.SCALE)}
+                type="button"
+              >
+                ?ㅼ???/ ?쒗??좊땳
+              </button>
+            </div>
+
+            {viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? (
+              <div className="viewerSelectGrid">
+                <label>
+                  <span>키</span>
+                  <select
+                    aria-label="지판 보기 키 선택"
+                    onChange={(event) => setViewerScaleRoot(event.target.value)}
+                    value={viewerScaleRoot}
+                  >
+                    {SCALE_ROOT_OPTIONS.map((root) => (
+                      <option key={root.id} value={root.id}>
+                        {root.label} / {root.solfege}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>醫낅쪟</span>
+                  <select
+                    aria-label="吏??蹂닿린 醫낅쪟"
+                    onChange={(event) => setViewerScaleFamily(event.target.value)}
+                    value={viewerScaleFamily}
+                  >
+                    {Object.values(SCALE_FAMILIES).map((family) => (
+                      <option key={family.id} value={family.id}>
+                        {family.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span></span>
+                  <select
+                    aria-label="지판 보기 타입 선택"
+                    onChange={(event) => setViewerScaleType(event.target.value)}
+                    value={viewerScaleType}
+                  >
+                    {Object.values(viewerScaleTypeOptions).map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>Box</span>
+                  <select
+                    aria-label="吏??蹂닿린 諛뺤뒪"
+                    onChange={(event) => setViewerScaleBox(Number(event.target.value))}
+                    value={viewerScaleBox}
+                  >
+                    {SCALE_BOX_OPTIONS.map((boxNumber) => (
+                      <option key={boxNumber} value={boxNumber}>
+                        Box {boxNumber}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            ) : (
+              <div className="chordBuilderPanel" aria-label="肄붾뱶 ?댁? 議고빀 ?좏깮">
+                <div className="chordBuilderHeader">
+                  <button
+                    className={`viewerAllButton ${isChordCatalogView ? "selected" : ""}`}
+                    onClick={() => setViewerChordId(CHORD_CATALOG_ALL)}
+                    type="button"
+                  >
+                    ?꾩껜
+                  </button>
+                  <div>
+                    <span>?좏깮 肄붾뱶</span>
+                    <strong>{viewerChord.displayName}</strong>
+                  </div>
+                  <button
+                    className={`chordGuideToggle ${showChordFingeringGuide ? "selected" : ""}`}
+                    onClick={() => setShowChordFingeringGuide((current) => !current)}
+                    type="button"
+                  >
+                    Fingering Guide
+                    <b>{showChordFingeringGuide ? "ON" : "OFF"}</b>
+                  </button>
+                </div>
+
+                <div className="chordChipGroup">
+                  <span>猷⑦듃</span>
+                  <div>
+                    {chordRootOptions.map((root) => (
+                      <button
+                        className={viewerChordRoot === root ? "selected" : ""}
+                        key={root}
+                        onClick={() => {
+                          const exactChord = CHORD_VIEW_OPTIONS.find(
+                            (chord) =>
+                              chord.root === root &&
+                              chord.quality === viewerChordQuality &&
+                              chord.extension === viewerChordExtension,
+                          );
+                          const fallbackChord = CHORD_VIEW_OPTIONS.find(
+                            (chord) =>
+                              chord.root === root &&
+                              chord.quality === viewerChordQuality &&
+                              chord.extension === "none",
+                          );
+                          const nextChord = exactChord ?? fallbackChord;
+                          setViewerChordRoot(root);
+                          if (!exactChord) setViewerChordExtension("none");
+                          if (nextChord) setViewerChordId(nextChord.id);
+                        }}
+                        type="button"
+                      >
+                        {root}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="chordChipGroup">
+                  <span>?깃꺽</span>
+                  <div>
+                    {CHORD_QUALITY_OPTIONS.map((quality) => (
+                      <button
+                        className={viewerChordQuality === quality.id ? "selected" : ""}
+                        key={quality.id}
+                        onClick={() => {
+                          const exactChord = CHORD_VIEW_OPTIONS.find(
+                            (chord) =>
+                              chord.root === viewerChordRoot &&
+                              chord.quality === quality.id &&
+                              chord.extension === viewerChordExtension,
+                          );
+                          const fallbackChord = CHORD_VIEW_OPTIONS.find(
+                            (chord) =>
+                              chord.root === viewerChordRoot &&
+                              chord.quality === quality.id &&
+                              chord.extension === "none",
+                          );
+                          const nextChord = exactChord ?? fallbackChord;
+                          setViewerChordQuality(quality.id);
+                          if (!exactChord) setViewerChordExtension("none");
+                          if (nextChord) setViewerChordId(nextChord.id);
+                        }}
+                        type="button"
+                      >
+                        {quality.label}
+                        <small>{quality.shortLabel}</small>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="chordChipGroup">
+                  <span>?듭뀡</span>
+                  <div>
+                    {availableChordExtensionOptions.map((extension) => {
+                      const isDisabled = extension.disabled || !extension.hasDiagram;
+                      return (
+                        <button
+                          className={viewerChordExtension === extension.id ? "selected" : ""}
+                          disabled={isDisabled}
+                          key={extension.id}
+                          onClick={() => {
+                            const nextChord = CHORD_VIEW_OPTIONS.find(
+                              (chord) =>
+                                chord.root === viewerChordRoot &&
+                                chord.quality === viewerChordQuality &&
+                                chord.extension === extension.id,
+                            );
+                            setViewerChordExtension(extension.id);
+                            if (nextChord) setViewerChordId(nextChord.id);
+                          }}
+                          type="button"
+                        >
+                          {extension.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {isChordCatalogView ? (
+            <section className="chordCatalogPanel" aria-label="전체 코드표">
+              <div className="referenceHeader">
+                <span>기타 코드표</span>
+                <strong>?꾩껜 肄붾뱶 ?댁?</strong>
+              </div>
+              <div className="chordCatalogScroll">
+                {chordCatalogGroups.map((group) => (
+                  <div className="chordCatalogRow" key={group.root}>
+                    <strong className="chordRootLabel">{group.root}</strong>
+                    <div className="chordMiniGrid">
+                      {group.chords.map((chord) => (
+                        <button
+                          className="chordMiniCard"
+                          key={chord.id}
+                          onClick={() => {
+                            setViewerChordRoot(chord.root);
+                            setViewerChordQuality(chord.quality);
+                            setViewerChordExtension(chord.extension);
+                            setViewerChordId(chord.id);
+                          }}
+                          type="button"
+                        >
+                          <span>{chord.displayName}</span>
+                          <div className="chordMiniFretboard">
+                            <div
+                              className="chordMiniFretNumbers"
+                              style={{ gridTemplateColumns: `repeat(${chord.visibleFrets.length}, 1fr)` }}
+                            >
+                              {chord.visibleFrets.map((fret) => (
+                                <em key={fret}>{fret}</em>
+                              ))}
+                            </div>
+                            <div
+                              className="chordMiniFrets"
+                              style={{ gridTemplateColumns: `repeat(${chord.visibleFrets.length}, 1fr)` }}
+                            >
+                              {chord.visibleFrets.map((fret) => (
+                                <i key={fret} />
+                              ))}
+                            </div>
+                            {referenceStrings.map((stringNumber) => (
+                              <i
+                                className="chordMiniString"
+                                key={stringNumber}
+                                style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
+                              />
+                            ))}
+                            {referenceStrings.map((stringNumber) => {
+                              const state = getChordStringState(chord, stringNumber);
+                              return state ? (
+                                <em
+                                  className={`chordMiniStringState ${state}`}
+                                  key={`state-${stringNumber}`}
+                                  style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
+                                >
+                                  {state}
+                                </em>
+                              ) : null;
+                            })}
+                            {chord.barres?.map((barre) => {
+                              const top = Math.min(getReferenceStringTop(barre.fromString), getReferenceStringTop(barre.toString));
+                              const bottom = Math.max(getReferenceStringTop(barre.fromString), getReferenceStringTop(barre.toString));
+                              return (
+                                <i
+                                  className="chordMiniBarre"
+                                  key={`${chord.id}-barre-${barre.fret}-${barre.fromString}-${barre.toString}`}
+                                  style={{
+                                    left: getViewerFretLeftFromFrets({ fretNumber: barre.fret }, chord.visibleFrets),
+                                    top: `${(top + bottom) / 2}%`,
+                                    height: `${bottom - top}%`,
+                                  }}
+                                />
+                              );
+                            })}
+                            {chord.notes.map((note, index) => (
+                              Number(note.fretNumber) > 0 ? (
+                              <b
+                                className={index === 0 ? "root" : ""}
+                                key={`${chord.id}-${note.stringNumber}-${note.fretNumber}-${index}`}
+                                style={{
+                                  left: getViewerFretLeftFromFrets(note, chord.visibleFrets),
+                                  top: `${getReferenceStringTop(note)}%`,
+                                  ...getNoteColorStyle(note.octaveNote),
+                                }}
+                              >
+                                {showChordFingeringGuide ? note.finger : getChordDisplayNoteName(note.noteName)}
+                              </b>
+                              ) : null
+                            ))}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p>肄붾뱶瑜??꾨Ⅴ硫??대떦 ?댁??쒕? ?ш쾶 蹂????덉뼱??</p>
+            </section>
+          ) : (
+          <aside className="referenceFretboard viewerReference" aria-label="吏??李멸퀬 ?붾㈃">
+            <div className="referenceHeader">
+              <div>
+                <span>李멸퀬 吏</span>
+                <strong>{viewerTitle}</strong>
+              </div>
+              {viewerMode === FRETBOARD_VIEWER_MODES.CHORD && (
+                <button className="viewerBackButton" onClick={() => setViewerChordId(CHORD_CATALOG_ALL)} type="button">
+                  ?꾩껜 蹂닿린
+                </button>
+              )}
+            </div>
+            <div className="pentatonicFretboard viewerFretboard">
+              <div
+                className="miniFretNumbers"
+                style={{ gridTemplateColumns: `repeat(${viewerVisibleFrets.length}, 1fr)` }}
+              >
+                {viewerVisibleFrets.map((fret) => (
+                  <span key={fret}>{fret}</span>
+                ))}
+              </div>
+              <div
+                className="miniFretNumbers bottom"
+                style={{ gridTemplateColumns: `repeat(${viewerVisibleFrets.length}, 1fr)` }}
+              >
+                {viewerVisibleFrets.map((fret) => (
+                  <span key={fret}>{fret}</span>
+                ))}
+              </div>
+              <div
+                className="miniFretColumns"
+                style={{ gridTemplateColumns: `repeat(${viewerVisibleFrets.length}, 1fr)` }}
+              >
+                {viewerVisibleFrets.map((fret) => (
+                  <span key={fret} />
+                ))}
+              </div>
+              {referenceStrings.map((stringNumber) => (
+                <span
+                  className={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "miniString chordViewerString" : "miniString"}
+                  key={stringNumber}
+                  style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
+                >
+                  <b>{stringNumber}踰덉쨪</b>
+                  {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
+                    <em className={`viewerInlineStringState ${getChordStringState(viewerChord, stringNumber)}`}>
+                      {getChordStringState(viewerChord, stringNumber)}
+                    </em>
+                  ) : null}
+                </span>
+              ))}
+              {viewerMode === FRETBOARD_VIEWER_MODES.CHORD && viewerChord.barres?.map((barre) => {
+                const top = Math.min(getReferenceStringTop(barre.fromString), getReferenceStringTop(barre.toString));
+                const bottom = Math.max(getReferenceStringTop(barre.fromString), getReferenceStringTop(barre.toString));
+                return (
+                  <span
+                    className="viewerBarre"
+                    key={`viewer-barre-${barre.fret}-${barre.fromString}-${barre.toString}`}
+                    style={{
+                      left: getViewerFretLeft({ fretNumber: barre.fret }),
+                      top: `${(top + bottom) / 2}%`,
+                      height: `${bottom - top}%`,
+                    }}
+                  >
+                    {barre.label}
+                  </span>
+                );
+              })}
+              {viewerNotes.map((note, index) => {
+                if (viewerMode === FRETBOARD_VIEWER_MODES.CHORD && Number(note.fretNumber) === 0) return null;
+                const isRoot =
+                  viewerMode === FRETBOARD_VIEWER_MODES.SCALE
+                    ? note.noteName === viewerScaleRoot
+                    : index === 0;
+                return (
+                  <span
+                    className={`scaleNote ${viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "chordFingerNote" : ""} ${isRoot ? "root" : ""}`}
+                    key={`${note.octaveNote}-${note.stringNumber}-${note.fretNumber}-${index}`}
+                    style={{
+                      left: getViewerFretLeft(note),
+                      top: `${getReferenceStringTop(note)}%`,
+                      ...getNoteColorStyle(note.octaveNote),
+                    }}
+                  >
+                    {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
+                      <b>{showChordFingeringGuide ? note.finger : getChordDisplayNoteName(note.noteName)}</b>
+                    ) : (
+                      <>
+                        <b>{note.octaveNote}</b>
+                        <small>{note.solfege}</small>
+                      </>
+                    )}
+                  </span>
+                );
+              })}
+            </div>
+            <p>{viewerHint}</p>
+          </aside>
+          )}
+        </section>
       ) : appMode === APP_MODES.SHOOTER ? (
-        <section className="shooterPanel" aria-label="슈팅게임">
+        <section className="shooterPanel" aria-label="?덊똿寃뚯엫">
           <div className="shooterGameHud">
             <div>
-              <span>성공</span>
+              <span>?깃났</span>
               <strong>{hits}</strong>
             </div>
             <div>
-              <span>점수</span>
+              <span>?먯닔</span>
               <strong>{score}</strong>
             </div>
             <div>
-              <span>목표 음</span>
+              <span>목표음</span>
               <strong>{shooterTarget ? `${getSolfege(shooterTarget.note)} / ${shooterTarget.note}` : "준비"}</strong>
             </div>
             <div>
-              <span>레벨</span>
+              <span>?덈꺼</span>
               <strong>{shooterLevel.name}</strong>
             </div>
             <div className="shooterLivesHud">
-              <span>목숨</span>
-              <strong className="lifeHearts" aria-label={`남은 목숨 ${shooterLives}`}>
+              <span>紐⑹닲</span>
+              <strong className="lifeHearts" aria-label={`?⑥? 紐⑹닲 ${shooterLives}`}>
                 {Array.from({ length: SHOOTER_MAX_LIVES }, (_, index) => (
                   <i className={index < shooterLives ? "active" : ""} key={index}>♥</i>
                 ))}
@@ -2640,28 +3791,28 @@ function App() {
           </div>
 
           <div className="modeHelper shooterHelper">
-            반복 연습으로 지판 인식과 피킹 정확도를 함께 키워보세요.
+            諛섎났 ?곗뒿?쇰줈 吏???몄떇怨??쇳궧 ?뺥솗?꾨? ?④퍡 ?ㅼ썙蹂댁꽭??
           </div>
 
           <div className={`shooterFretGuide ${showShooterFretGuide ? "" : "collapsed"}`}>
             <div>
-              <span>목표음 지판</span>
+              <span>紐⑺몴</span>
               <strong className="guidePitch">
                 {showShooterFretGuide && shooterGuidePitch
-                  ? `${shooterGuidePitch} · ${getSolfege(shooterGuidePitch) || getPitchClass(shooterGuidePitch)}`
-                  : "숨김"}
+                  ? `${shooterGuidePitch} 쨌 ${getSolfege(shooterGuidePitch) || getPitchClass(shooterGuidePitch)}`
+                  : "?④?"}
               </strong>
               {showShooterFretGuide && shooterGuidePitch && (
-                <div className="fretGuideChips" aria-label={`${shooterGuidePitch} 지판 위치`}>
+                <div className="fretGuideChips" aria-label={`${shooterGuidePitch} 吏???꾩튂`}>
                   {shooterGuidePositions.length ? (
                     shooterGuidePositions.map((position) => (
                       <b key={`${position.stringNumber}-${position.fretNumber}`}>
-                        <span>{position.stringNumber}번줄</span>
+                        <span>{position.stringNumber}踰덉쨪</span>
                         <strong>{getFretLabel(position)}</strong>
                       </b>
                     ))
                   ) : (
-                    <em>지판 위치 없음</em>
+                    <em>吏???꾩튂 ?놁쓬</em>
                   )}
                 </div>
               )}
@@ -2669,7 +3820,7 @@ function App() {
             {!isMobileLayout && <div className={`detector mobileShooterDetector ${isSignalActive ? "active" : ""}`}>
               <Radio size={15} />
               <div>
-                <span>감지음</span>
+                <span>媛먯</span>
                 <strong>{detected ? detected.pitch : "--"}</strong>
               </div>
             </div>}
@@ -2678,7 +3829,7 @@ function App() {
               onClick={() => setShowShooterFretGuide((value) => !value)}
               type="button"
             >
-              {showShooterFretGuide ? "안보이게" : "보이게"}
+              {showShooterFretGuide ? "숨기기" : "보이기"}
             </button>
           </div>
 
@@ -2728,7 +3879,7 @@ function App() {
               const distance = age / 34;
               const x = particle.x + Math.cos(particle.angle) * distance;
               const y = particle.y + Math.sin(particle.angle) * distance;
-              return <span className="musicParticle" key={particle.id} style={{ left: `${x}%`, top: `${y}%` }}>♪</span>;
+              return <span className="musicParticle" key={particle.id} style={{ left: `${x}%`, top: `${y}%` }}></span>;
             })}
 
             <div className={`guitarPlayer ${projectiles.length > 0 ? "shooting" : ""}`} style={shooterMotion}>
@@ -2755,33 +3906,372 @@ function App() {
                 <i className="guitarMuzzle" />
               </div>
             </div>
-            <div className="mobileShooterLives" aria-label={`남은 목숨 ${shooterLives}`}>
+            <div className="mobileShooterLives" aria-label={`?⑥? 紐⑹닲 ${shooterLives}`}>
               {Array.from({ length: SHOOTER_MAX_LIVES }, (_, index) => (
                 <i className={index < shooterLives ? "active" : ""} key={index}>♥</i>
               ))}
             </div>
             {gameState !== GAME_STATES.PLAYING && (
               <div className={`shooterCenterStatus ${classNameFromLabel(feedback)} ${gameState === GAME_STATES.GAMEOVER ? "gameOver" : ""}`}>
-                <strong>{gameState === GAME_STATES.GAMEOVER ? "게임 오버" : t(feedback)}</strong>
-                {gameState === GAME_STATES.GAMEOVER && <span>시작을 눌러 다시 연습하세요</span>}
+                <strong>{gameState === GAME_STATES.GAMEOVER ? "寃뚯엫 ?ㅻ쾭" : t(feedback)}</strong>
+                {gameState === GAME_STATES.GAMEOVER && <span></span>}
                 <button className="mobileShooterStartButton primary" onClick={() => startShooter(selectedCategory)} type="button">
                   <Play size={18} />
-                  시작
+                  ?쒖옉
                 </button>
               </div>
             )}
           </div>
 
         </section>
+      ) : selectedCategory.id === "rhythm" ? (
+        <section className="chordTransitionPanel" aria-label="Chord transition practice">
+          <div className="chordTransitionControls">
+            <div>
+              <span>3단계</span>
+              <strong>코드 전환 연습</strong>
+              <small>4/4 메트로놈 기준, 4박마다 다음 코드로 넘어갑니다</small>
+            </div>
+            <div className="chordProgressionPicker">
+              {CHORD_TRANSITION_PRESETS.map((preset) => (
+                <button
+                  className={chordProgressionId === preset.id ? "selected" : ""}
+                  key={preset.id}
+                  onClick={() => {
+                    setChordProgressionId(preset.id);
+                    setStage3ChordIds(preset.chords.map((name) => getChordByDisplayName(name)?.id).filter(Boolean));
+                    setChordPracticeIndex(0);
+                    gameTimeRef.current = 0;
+                    lastBeatRef.current = -1;
+                    setBeat(0);
+                    setStage3MeasureProgress(0);
+                  }}
+                  type="button"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+            <div className="stage3ChordBuilder" aria-label="직접 코드 선택">
+              <div className="chordChipGroup">
+                <span>루트</span>
+                <div>
+                  {chordRootOptions.map((root) => (
+                    <button
+                      className={stage3ChordRoot === root ? "selected" : ""}
+                      key={root}
+                      onClick={() => {
+                        const exactChord = CHORD_VIEW_OPTIONS.find(
+                          (chord) =>
+                            chord.root === root &&
+                            chord.quality === stage3ChordQuality &&
+                            chord.extension === stage3ChordExtension,
+                        );
+                        setStage3ChordRoot(root);
+                        if (!exactChord) setStage3ChordExtension("none");
+                      }}
+                      type="button"
+                    >
+                      {root}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="chordChipGroup">
+                <span>성격</span>
+                <div>
+                  {CHORD_QUALITY_OPTIONS.map((quality) => (
+                    <button
+                      className={stage3ChordQuality === quality.id ? "selected" : ""}
+                      key={quality.id}
+                      onClick={() => {
+                        const exactChord = CHORD_VIEW_OPTIONS.find(
+                          (chord) =>
+                            chord.root === stage3ChordRoot &&
+                            chord.quality === quality.id &&
+                            chord.extension === stage3ChordExtension,
+                        );
+                        setStage3ChordQuality(quality.id);
+                        if (!exactChord) setStage3ChordExtension("none");
+                      }}
+                      type="button"
+                    >
+                      {quality.label}
+                      <small>{quality.shortLabel}</small>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="chordChipGroup">
+                <span>옵션</span>
+                <div>
+                  {stage3AvailableExtensionOptions.map((extension) => {
+                    const isDisabled = extension.disabled || !extension.hasDiagram;
+                    return (
+                      <button
+                        className={stage3ChordExtension === extension.id ? "selected" : ""}
+                        disabled={isDisabled}
+                        key={extension.id}
+                        onClick={() => setStage3ChordExtension(extension.id)}
+                        type="button"
+                      >
+                        {extension.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="stage3AddRow">
+                <strong>{stage3SelectedChord?.displayName ?? "선택 불가"}</strong>
+                <button
+                  className="primary"
+                  disabled={!stage3SelectedChord}
+                  onClick={() => {
+                    if (!stage3SelectedChord) return;
+                    setChordProgressionId("custom");
+                    setStage3ChordIds((ids) => [...ids, stage3SelectedChord.id]);
+                  }}
+                  type="button"
+                >
+                  추가
+                </button>
+                <button
+                  onClick={() => {
+                    setChordProgressionId("custom");
+                    setStage3ChordIds([]);
+                    setChordPracticeIndex(0);
+                    gameTimeRef.current = 0;
+                    lastBeatRef.current = -1;
+                    setBeat(0);
+                    setStage3MeasureProgress(0);
+                  }}
+                  type="button"
+                >
+                  전체 초기화
+                </button>
+              </div>
+            </div>
+            <div className="chordTransitionTempo">
+              <span>메트로놈</span>
+              <button onClick={() => changeBpm(bpm - 1)} type="button">-</button>
+              <input
+                aria-label="Chord transition BPM"
+                max={MAX_BPM}
+                min={MIN_BPM}
+                onChange={(event) => changeBpm(event.target.value)}
+                type="number"
+                value={bpm}
+              />
+              <strong>BPM</strong>
+              <select
+                aria-label="Stage 3 BPM preset"
+                onChange={(event) => {
+                  if (event.target.value) changeBpm(event.target.value);
+                }}
+                value={[60, 80, 100, 120].includes(bpm) ? bpm : ""}
+              >
+                <option value="">Preset</option>
+                {[60, 80, 100, 120].map((preset) => (
+                  <option key={preset} value={preset}>{preset}</option>
+                ))}
+              </select>
+              <button onClick={() => changeBpm(bpm + 1)} type="button">+</button>
+            </div>
+          </div>
+
+          <div className="chordTransitionHud">
+            <div className="chordTimeline" aria-label="4박 코드 전환 진행">
+              <div className="chordTimelineLabels">
+                <strong>{chordPracticeCurrent.displayName}</strong>
+                <span>4박 진행</span>
+                <strong>{chordPracticeNext.displayName}</strong>
+              </div>
+              <div className="chordTimelineTrack">
+                <span
+                  className="chordTimelineFill"
+                  style={{ transform: `scaleX(${stage3MeasureProgress})` }}
+                />
+                <i
+                  className="chordTimelineRunner"
+                  style={{ left: `${stage3MeasureProgress * 100}%` }}
+                >
+                  {chordPracticeCurrent.displayName}
+                </i>
+                {[0, 1, 2, 3, 4].map((beatNumber) => (
+                  <b
+                    className={beat === beatNumber && gameState === GAME_STATES.PLAYING ? "active" : ""}
+                    key={beatNumber}
+                    style={{ left: `${beatNumber * 25}%` }}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="chordNowCard">
+              <span>현재 코드</span>
+              <strong>{chordPracticeCurrent.displayName}</strong>
+              <small>{chordPracticeCurrent.hint}</small>
+            </div>
+            <div className="chordNextCard">
+              <span>다음 코드</span>
+              <strong>{chordPracticeNext.displayName}</strong>
+              <small>다음 마디에 전환</small>
+            </div>
+            <button
+              className={`chordGuideToggle ${showChordFingeringGuide ? "selected" : ""}`}
+              onClick={() => setShowChordFingeringGuide((current) => !current)}
+              type="button"
+            >
+              Fingering Guide
+              <b>{showChordFingeringGuide ? "ON" : "OFF"}</b>
+            </button>
+          </div>
+
+          <div className="chordTransitionBody">
+            <aside className="referenceFretboard chordTransitionChart" aria-label="Current chord fingering">
+              <div className="referenceHeader">
+                <span>코드 운지</span>
+                <strong>{chordPracticeCurrent.displayName}</strong>
+              </div>
+              <div className="pentatonicFretboard viewerFretboard">
+                <div
+                  className="miniFretNumbers"
+                  style={{ gridTemplateColumns: `repeat(${chordPracticeCurrent.visibleFrets.length}, 1fr)` }}
+                >
+                  {chordPracticeCurrent.visibleFrets.map((fret) => (
+                    <span key={fret}>{fret}</span>
+                  ))}
+                </div>
+                <div
+                  className="miniFretNumbers bottom"
+                  style={{ gridTemplateColumns: `repeat(${chordPracticeCurrent.visibleFrets.length}, 1fr)` }}
+                >
+                  {chordPracticeCurrent.visibleFrets.map((fret) => (
+                    <span key={fret}>{fret}</span>
+                  ))}
+                </div>
+                <div
+                  className="miniFretColumns"
+                  style={{ gridTemplateColumns: `repeat(${chordPracticeCurrent.visibleFrets.length}, 1fr)` }}
+                >
+                  {chordPracticeCurrent.visibleFrets.map((fret) => (
+                    <span key={fret} />
+                  ))}
+                </div>
+                {referenceStrings.map((stringNumber) => (
+                  <span
+                    className="miniString chordViewerString"
+                    key={stringNumber}
+                    style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
+                  >
+                    <b>{stringNumber}번줄</b>
+                    <em className={`viewerInlineStringState ${getChordStringState(chordPracticeCurrent, stringNumber)}`}>
+                      {getChordStringState(chordPracticeCurrent, stringNumber)}
+                    </em>
+                  </span>
+                ))}
+                {chordPracticeCurrent.barres?.map((barre) => {
+                  const top = Math.min(getReferenceStringTop(barre.fromString), getReferenceStringTop(barre.toString));
+                  const bottom = Math.max(getReferenceStringTop(barre.fromString), getReferenceStringTop(barre.toString));
+                  return (
+                    <span
+                      className="viewerBarre"
+                      key={`transition-barre-${barre.fret}-${barre.fromString}-${barre.toString}`}
+                      style={{
+                        left: getViewerFretLeftFromFrets({ fretNumber: barre.fret }, chordPracticeCurrent.visibleFrets),
+                        top: `${(top + bottom) / 2}%`,
+                        height: `${bottom - top}%`,
+                      }}
+                    >
+                      {barre.label}
+                    </span>
+                  );
+                })}
+                {chordPracticeCurrent.notes.map((note, index) => {
+                  if (Number(note.fretNumber) === 0) return null;
+                  return (
+                    <span
+                      className={`scaleNote chordFingerNote ${index === 0 ? "root" : ""}`}
+                      key={`transition-${note.octaveNote}-${note.stringNumber}-${note.fretNumber}-${index}`}
+                      style={{
+                        left: getViewerFretLeftFromFrets(note, chordPracticeCurrent.visibleFrets),
+                        top: `${getReferenceStringTop(note)}%`,
+                        ...getNoteColorStyle(note.octaveNote),
+                      }}
+                    >
+                      <b>{showChordFingeringGuide ? note.finger : getChordDisplayNoteName(note.noteName)}</b>
+                    </span>
+                  );
+                })}
+              </div>
+            </aside>
+
+            <div className="chordTransitionSide">
+              <div className="chordPreviewStack">
+                <span>진행 순서</span>
+                <div>
+                  {hasChordTransitionProgression ? chordTransitionProgression.map((chord, index) => (
+                    <strong className={index === chordPracticeIndex ? "active" : ""} key={`${chord.id}-${index}`}>
+                      {chord.displayName}
+                      <button
+                        aria-label={`${chord.displayName} 제거`}
+                        onClick={() => {
+                          setChordProgressionId("custom");
+                          setStage3ChordIds((ids) => {
+                            const next = ids.filter((_, chordIndex) => chordIndex !== index);
+                            if (next.length === 0) setChordPracticeIndex(0);
+                            else setChordPracticeIndex((current) => Math.min(current, next.length - 1));
+                            return next;
+                          });
+                        }}
+                        type="button"
+                      >
+                        ×
+                      </button>
+                    </strong>
+                  )) : (
+                    <small className="chordProgressionEmpty">코드를 선택해서 추가하세요</small>
+                  )}
+                </div>
+              </div>
+              <div className="chordPreviewCard">
+                <span>다음 준비</span>
+                <strong>{chordPracticeNext.displayName}</strong>
+                <small>그 다음: {chordPracticeUpcoming.displayName}</small>
+              </div>
+              <div className="buttons playbackButtons chordTransitionButtons">
+                <button
+                  className="primary"
+                  disabled={!hasChordTransitionProgression}
+                  onClick={() => startPractice(selectedCategory)}
+                  type="button"
+                >
+                  <Play size={18} />
+                  시작
+                </button>
+                <button
+                  onClick={gameState === GAME_STATES.PAUSED ? resumeGame : pauseGame}
+                  type="button"
+                  disabled={gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED}
+                >
+                  <Pause size={18} />
+                  {gameState === GAME_STATES.PAUSED ? "계속" : "일시정지"}
+                </button>
+              </div>
+              <div className="modeHelper">
+                코드를 누른 뒤 4박 안에서 다음 코드로 이동하는 감각을 익혀요.
+              </div>
+            </div>
+          </div>
+        </section>
       ) : (
         <section className="gamePanel" aria-label="Beginner scale block practice">
           <div className="gameToolbar">
             <div className="rhythmSubdivisionHeader">
-              <span>리듬 분할</span>
+              <span>由щ벉 遺꾪븷</span>
               <strong>{noteSpeed.label}</strong>
             </div>
             <div className="judgmentModeBadge">
-              <span>판정 모드</span>
+              <span>?먯젙 紐⑤뱶</span>
               <strong>{currentJudgmentMode.shortLabel}</strong>
             </div>
             <div className="subdivisionButtons" aria-label="Rhythm subdivision">
@@ -2800,9 +4290,9 @@ function App() {
             </div>
             {!hasDirectionPractice && (
             <label className="mobileSelectControl mobileSubdivisionSelect">
-              <span>리듬 분할</span>
+              <span>由щ벉 遺꾪븷</span>
               <select
-                aria-label="리듬 분할 선택"
+                aria-label="由щ벉 遺꾪븷 ?좏깮"
                 onChange={(event) => {
                   const nextSpeed = Object.values(RHYTHM_SUBDIVISIONS).find((speed) => speed.label === event.target.value);
                   if (nextSpeed) changeNoteSpeed(nextSpeed);
@@ -2822,7 +4312,7 @@ function App() {
                 {selectedCategory.id === "scale-block" && (
                   <div className="scalePickerPanel">
                     <label className="scaleKeySelect">
-                      <span>키</span>
+                      <span></span>
                       <select
                         aria-label="Pentatonic root"
                         onChange={(event) => changeScaleRoot(event.target.value)}
@@ -2837,7 +4327,7 @@ function App() {
                     </label>
                     <div className="scaleTypeGroup">
                       <label>
-                        <span>종류</span>
+                        <span>醫낅쪟</span>
                         <select
                           aria-label="Scale family"
                           onChange={(event) => changeScaleFamily(event.target.value)}
@@ -2851,7 +4341,7 @@ function App() {
                         </select>
                       </label>
                       <label>
-                        <span>타입</span>
+                        <span></span>
                         <select
                           aria-label="Scale type"
                           onChange={(event) => changeScaleType(event.target.value)}
@@ -2883,9 +4373,9 @@ function App() {
                   </div>
                 )}
                 <label className="mobileSelectControl mobileDirectionSelect">
-                  <span>진행 방향</span>
+                  <span>吏꾪뻾 諛⑺뼢</span>
                   <select
-                    aria-label="진행 방향 선택"
+                    aria-label="吏꾪뻾 諛⑺뼢 ?좏깮"
                     onChange={(event) => changeScaleDirection(event.target.value)}
                     value={scaleDirection}
                   >
@@ -2897,9 +4387,9 @@ function App() {
                   </select>
                 </label>
                 <label className="mobileSelectControl mobileSubdivisionSelect">
-                  <span>리듬 분할</span>
+                  <span>由щ벉 遺꾪븷</span>
                   <select
-                    aria-label="리듬 분할 선택"
+                    aria-label="由щ벉 遺꾪븷 ?좏깮"
                     onChange={(event) => {
                       const nextSpeed = Object.values(RHYTHM_SUBDIVISIONS).find((speed) => speed.label === event.target.value);
                       if (nextSpeed) changeNoteSpeed(nextSpeed);
@@ -2923,7 +4413,7 @@ function App() {
                     <strong>{option.label}</strong>
                     <span>
                       {option.id === SCALE_DIRECTIONS.ASC
-                        ? `${scaleStartPitch}부터 위로`
+                        ? `${scaleStartPitch}遺???꾨줈`
                         : option.id === SCALE_DIRECTIONS.DESC
                           ? `${scaleEndPitch}부터 아래로`
                           : option.hint}
@@ -2936,11 +4426,11 @@ function App() {
                     onChange={toggleRepeatPractice}
                     type="checkbox"
                   />
-                  <span>반복 연습</span>
-                  <small>{repeatPractice ? `${repeatCount}회 반복 후 멈춤` : "1회 후 멈춤"}</small>
+                  <span>諛섎났 ?곗뒿</span>
+                  <small>{repeatPractice ? `${repeatCount}??諛섎났 ??硫덉땄` : "1????硫덉땄"}</small>
                 </label>
                 <div className="repeatCountControl">
-                  <span>반복</span>
+                  <span>諛섎났</span>
                   <input
                     aria-label="Repeat count"
                     disabled={!repeatPractice && !isMobileLayout}
@@ -2950,25 +4440,23 @@ function App() {
                     type="number"
                     value={repeatCount}
                   />
-                  <div className="repeatStepper" aria-label="반복 횟수 조절">
+                  <div className="repeatStepper" aria-label="諛섎났 ?잛닔 議곗젅">
                     <button
-                      aria-label="반복 횟수 늘리기"
+                      aria-label="반복 횟수 올리기"
                       disabled={repeatCount >= MAX_REPEAT_COUNT}
                       onClick={() => changeRepeatCount(repeatCount + 1)}
                       type="button"
                     >
-                      ▲
-                    </button>
+                      ??                    </button>
                     <button
                       aria-label="반복 횟수 줄이기"
                       disabled={repeatCount <= MIN_REPEAT_COUNT}
                       onClick={() => changeRepeatCount(repeatCount - 1)}
                       type="button"
                     >
-                      ▼
-                    </button>
+                      ??                    </button>
                   </div>
-                  <small>회</small>
+                  <small></small>
                 </div>
               </div>
             )}
@@ -2977,7 +4465,7 @@ function App() {
           <div className="compactControlRow">
           <div className="metronomePanel">
             <div>
-              <span>메트로놈</span>
+              <span>硫뷀듃濡쒕냸</span>
               <strong>{bpm} BPM</strong>
             </div>
             <button onClick={() => changeBpm(bpm - 1)} type="button">-</button>
@@ -2990,13 +4478,13 @@ function App() {
               value={bpm}
             />
             <label className="mobileBpmPresetSelect">
-              <span>빠른 BPM</span>
+              <span>鍮좊Ⅸ BPM</span>
               <select
-                aria-label="빠른 BPM 선택"
+                aria-label="鍮좊Ⅸ BPM ?좏깮"
                 onChange={(event) => changeBpm(event.target.value)}
                 value={BPM_PRESETS.includes(bpm) ? bpm : ""}
               >
-                <option value="">선택</option>
+                <option value="">?좏깮</option>
                 {BPM_PRESETS.map((preset) => (
                   <option key={preset} value={preset}>
                     {preset}
@@ -3022,7 +4510,7 @@ function App() {
               onClick={() => setMetronomeOn((value) => !value)}
               type="button"
             >
-              {metronomeOn ? "메트로놈 켜짐" : "메트로놈 꺼짐"}
+              {metronomeOn ? "硫뷀듃濡쒕냸 耳쒖쭚" : "硫뷀듃濡쒕냸 爰쇱쭚"}
             </button>
           </div>
 
@@ -3030,7 +4518,7 @@ function App() {
             <div className={`detector ${isSignalActive ? "active" : ""}`}>
               <Radio size={20} />
               <div>
-                <span>감지된 음</span>
+                <span>媛먯</span>
                 <strong>{detected ? detected.pitch : "--"}</strong>
               </div>
               <small>
@@ -3043,7 +4531,7 @@ function App() {
             <div className="buttons playbackButtons">
               <button className="primary" onClick={() => startPractice(selectedCategory)} type="button">
                 <Play size={18} />
-                시작
+                ?쒖옉
               </button>
               <button
                 onClick={gameState === GAME_STATES.PAUSED ? resumeGame : pauseGame}
@@ -3051,16 +4539,15 @@ function App() {
                 disabled={gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED}
               >
                 <Pause size={18} />
-                {gameState === GAME_STATES.PAUSED ? "계속" : "일시정지"}
+                {gameState === GAME_STATES.PAUSED ? "怨꾩냽" : "?쇱떆?뺤?"}
               </button>
               <button onClick={stopPracticeSession} type="button">
                 <Square size={18} />
-                정지
+                ?뺤?
               </button>
               <button onClick={startMic} type="button">
                 <Mic size={18} />
-                마이크
-              </button>
+                留덉씠??              </button>
             </div>
           </div>
           </div>
@@ -3068,17 +4555,17 @@ function App() {
             <div className="practiceQueueRow">
               <div className="rhythmHelperStack">
                 <p className="modeHelper">
-                  같은 음은 여러 위치에 있을 수 있어요. 참고지판을 보면서 따라가세요.
+                  媛숈? ?뚯? ?щ윭 ?꾩튂???덉쓣 ???덉뼱?? 李멸퀬吏?먯쓣 蹂대㈃???곕씪媛?몄슂.
                 </p>
                 {selectedCategory.id === "scale-block" && (
                   <p className="modeHelper">
-                    이론 암기보다 리듬과 손가락 컨트롤에 집중하세요.
+                    ?대줎 ?붽린蹂대떎 由щ벉怨??먭???而⑦듃濡ㅼ뿉 吏묒쨷?섏꽭??
                   </p>
                 )}
               </div>
               {currentPrompt && (
                 <div className="practiceHint">
-              <span>연주할 음</span>
+              <span></span>
               <strong>{currentPrompt.solfege ?? getSolfege(currentPrompt.pitch)}</strong>
               <p>
                 {currentPrompt.pitch} / {currentPrompt.hint ?? getStringFretLabel(currentPrompt)}
@@ -3093,7 +4580,7 @@ function App() {
           )}
 
           <div className="nextNotes" aria-label="Next notes">
-            <span>다음 음 순서</span>
+            <span>?ㅼ쓬 ???쒖꽌</span>
             <div>
               {nextNotes.map((note, index) => (
                 <strong
@@ -3112,13 +4599,13 @@ function App() {
           <div className="rhythmWorkbench">
             <aside className="referenceFretboard" aria-label="Reference fretboard">
               <div className="referenceHeader">
-                <span>참고 지판</span>
+                <span>李멸퀬 吏</span>
                 <strong>
                   {selectedCategory.id === "scale-block"
                     ? detectedReferenceScaleNote
                       ? `${detectedReferenceScaleNote.solfege} / ${detectedReferenceScaleNote.pitch}`
                       : selectedPentatonic.label
-                  : referenceDisplayPrompt ? `${referenceDisplayPrompt.solfege ?? getSolfege(referenceDisplayPrompt.pitch)} / ${referenceDisplayPrompt.pitch}` : "준비"}
+                   : referenceDisplayPrompt ? `${referenceDisplayPrompt.solfege ?? getSolfege(referenceDisplayPrompt.pitch)} / ${referenceDisplayPrompt.pitch}` : "준비"}
                 </strong>
               </div>
               {selectedCategory.id === "scale-block" ? (
@@ -3153,7 +4640,7 @@ function App() {
                       key={stringNumber}
                       style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
                     >
-                      <b>{stringNumber}번줄</b>
+                      <b>{stringNumber}踰덉쨪</b>
                     </span>
                   ))}
                   {selectedPentatonic.notes.map((note) => {
@@ -3185,7 +4672,7 @@ function App() {
                     style={{ gridTemplateColumns: `repeat(${visibleFrets.length}, 1fr)` }}
                   >
                     {visibleFrets.map((fret) => (
-                      <span key={fret}>{fret}프렛</span>
+                      <span key={fret}>{fret}?꾨젢</span>
                     ))}
                   </div>
                   <div
@@ -3193,7 +4680,7 @@ function App() {
                     style={{ gridTemplateColumns: `repeat(${visibleFrets.length}, 1fr)` }}
                   >
                     {visibleFrets.map((fret) => (
-                      <span key={fret}>{fret}프렛</span>
+                      <span key={fret}>{fret}?꾨젢</span>
                     ))}
                   </div>
                   <div
@@ -3210,7 +4697,7 @@ function App() {
                       key={stringNumber}
                       style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
                     >
-                      <b>{stringNumber}번줄</b>
+                      <b>{stringNumber}踰덉쨪</b>
                     </span>
                   ))}
                   {isMobileLayout && selectedCategory.id === "first-position" && FIRST_POSITION_NOTES.map((note) => (
@@ -3245,9 +4732,9 @@ function App() {
               <p>
                 {selectedCategory.id === "scale-block"
                   ? detectedReferenceScaleNote
-                    ? "지금 친 음이 선택한 박스에서 빛나고 있어요."
-                    : `${selectedPentatonic.label} 안에서 연주할 줄과 프렛을 확인하세요.`
-                  : referenceDisplayPrompt?.hint ?? "다음 음의 줄과 프렛을 확인하세요."}
+                    ? "吏湲?移??뚯씠 ?좏깮??諛뺤뒪?먯꽌 鍮쏅굹怨??덉뼱??"
+                    : `${selectedPentatonic.label} ?덉뿉???곗＜??以꾧낵 ?꾨젢???뺤씤?섏꽭??`
+                  : referenceDisplayPrompt?.hint ?? "?ㅼ쓬 ?뚯쓽 以꾧낵 ?꾨젢???뺤씤?섏꽭??"}
               </p>
             </aside>
 
@@ -3255,14 +4742,14 @@ function App() {
               <div className={`detector mobileDetector ${isSignalActive ? "active" : ""}`}>
                 <Radio size={16} />
                 <div>
-                  <span>감지음</span>
+                  <span>媛먯</span>
                   <strong>{detected ? detected.pitch : "--"}</strong>
                 </div>
               </div>
               <div className="buttons playbackButtons">
                 <button className="primary" onClick={() => startPractice(selectedCategory)} type="button">
                   <Play size={17} />
-                  시작
+                  ?쒖옉
                 </button>
                 <button
                   disabled={gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED}
@@ -3270,7 +4757,7 @@ function App() {
                   type="button"
                 >
                   <Pause size={17} />
-                  {gameState === GAME_STATES.PAUSED ? "계속" : "일시정지"}
+                  {gameState === GAME_STATES.PAUSED ? "怨꾩냽" : "?쇱떆?뺤?"}
                 </button>
               </div>
             </div>
@@ -3287,7 +4774,7 @@ function App() {
               <div className="laneGrid">
                 {laneStrings.map((stringNumber) => (
                   <div className="laneLabel" key={stringNumber}>
-                    {stringNumber}번줄
+                    {stringNumber}踰덉쨪
                   </div>
                 ))}
               </div>
@@ -3367,7 +4854,7 @@ function App() {
                   <strong>{missCount}</strong>
                 </span>
                 <span>
-                  <em>정확도</em>
+                  <em></em>
                   <strong>{accuracy}%</strong>
                 </span>
               </div>
@@ -3375,48 +4862,48 @@ function App() {
             {!isMobileLayout && (
             <aside className="practiceStatsPanel" aria-label="Practice statistics">
               <div className="statsPanelHeader">
-                <span>연습 현황</span>
+                <span>?곗뒿 ?꾪솴</span>
                 <strong>{selectedCategory.title}</strong>
               </div>
               <div className="statCard">
-                <span>현재 BPM</span>
+                <span>?꾩옱 BPM</span>
                 <strong>{bpm}</strong>
               </div>
               <div className="statCard">
-                <span>현재 콤보</span>
+                <span>?꾩옱 肄ㅻ낫</span>
                 <strong>{combo}</strong>
               </div>
               <div className="statCard">
-                <span>최대 콤보</span>
+                <span>理쒕? 肄ㅻ낫</span>
                 <strong>{maxCombo}</strong>
               </div>
               <div className="statCard">
-                <span>정확도</span>
+                <span></span>
                 <strong>{accuracy}%</strong>
               </div>
               <div className="statCard">
-                <span>박자 정확도</span>
+                <span>諛뺤옄 </span>
                 <strong>{beatAccuracy}%</strong>
               </div>
               <div className="statCard">
-                <span>음 정확도</span>
+                <span></span>
                 <strong>{noteAccuracy}%</strong>
               </div>
               <div className="summaryCards">
                 <div>
-                  <span>총 연주 수</span>
+                  <span>珥</span>
                   <strong>{attempts}</strong>
                 </div>
                 <div>
-                  <span>완벽 판정</span>
+                  <span>?꾨꼍 ?먯젙</span>
                   <strong>{perfectCount}</strong>
                 </div>
                 <div>
-                  <span>실패 수</span>
+                  <span></span>
                   <strong>{missCount}</strong>
                 </div>
                 <div>
-                  <span>가장 많이 틀린 음</span>
+                  <span>媛</span>
                   <strong>{mostMissedNote}</strong>
                 </div>
               </div>
@@ -3430,7 +4917,7 @@ function App() {
         <div className={`detector ${isSignalActive ? "active" : ""}`}>
           <Radio size={20} />
           <div>
-            <span>감지된 음</span>
+            <span>媛먯</span>
             <strong>{detected ? detected.pitch : "--"}</strong>
           </div>
           <small>
@@ -3445,11 +4932,11 @@ function App() {
             <>
               <button className="primary" onClick={startTuner} type="button">
                 <Mic size={18} />
-                시작
+                ?쒖옉
               </button>
               <button onClick={stopMicrophone} type="button" disabled={!hasMic}>
                 <MicOff size={18} />
-                정지
+                ?뺤?
               </button>
             </>
           )}
@@ -3458,7 +4945,7 @@ function App() {
             <>
               <button className="primary" onClick={() => startPractice(selectedCategory)} type="button">
                 <Play size={18} />
-                시작
+                ?쒖옉
               </button>
               <button
                 onClick={gameState === GAME_STATES.PAUSED ? resumeGame : pauseGame}
@@ -3466,16 +4953,15 @@ function App() {
                 disabled={gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED}
               >
                 <Pause size={18} />
-                {gameState === GAME_STATES.PAUSED ? "계속" : "일시정지"}
+                {gameState === GAME_STATES.PAUSED ? "怨꾩냽" : "?쇱떆?뺤?"}
               </button>
               <button onClick={stopPracticeSession} type="button">
                 <Square size={18} />
-                정지
+                ?뺤?
               </button>
               <button onClick={startMic} type="button">
                 <Mic size={18} />
-                마이크
-              </button>
+                留덉씠??              </button>
             </>
           )}
 
@@ -3483,7 +4969,7 @@ function App() {
             <>
               <button className="primary" onClick={() => startShooter(selectedCategory)} type="button">
                 <Play size={18} />
-                시작
+                ?쒖옉
               </button>
               <button
                 onClick={gameState === GAME_STATES.PAUSED ? resumeGame : pauseGame}
@@ -3491,18 +4977,18 @@ function App() {
                 disabled={gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED}
               >
                 <Pause size={18} />
-                {gameState === GAME_STATES.PAUSED ? "계속" : "일시정지"}
+                {gameState === GAME_STATES.PAUSED ? "怨꾩냽" : "?쇱떆?뺤?"}
               </button>
               <button onClick={stopPracticeSession} type="button">
                 <Square size={18} />
-                정지
+                ?뺤?
               </button>
               <button
-                aria-label={shooterSoundOn ? "효과음 끄기" : "효과음 켜기"}
+                aria-label={shooterSoundOn ? "?④낵???꾧린" : "?④낵??耳쒓린"}
                 aria-pressed={shooterSoundOn}
                 className={`iconOnlyButton soundToggle ${shooterSoundOn ? "selected" : "muted"}`}
                 onClick={() => setShooterSoundOn((value) => !value)}
-                title={shooterSoundOn ? "효과음 끄기" : "효과음 켜기"}
+                title={shooterSoundOn ? "?④낵???꾧린" : "?④낵??耳쒓린"}
                 type="button"
               >
                 <Music2 size={18} />
@@ -3519,61 +5005,61 @@ function App() {
         </div>
         <div className="meterBlock">
           <div className="meterHeader">
-            <span>입력 레벨</span>
+            <span>?낅젰 ?덈꺼</span>
             <strong>{Math.round(signalLevel * 100)}%</strong>
           </div>
           <div className="meter">
             <span style={{ width: `${Math.round(signalLevel * 100)}%` }} />
           </div>
-          {showLowSignalWarning && <p>마이크 볼륨이 낮아요. 기타를 조금 더 가까이 하거나 입력 볼륨을 올려보세요.</p>}
+          {showLowSignalWarning && <p>留덉씠??蹂쇰ⅷ????븘?? 湲고?瑜?議곌툑 ??媛源뚯씠 ?섍굅???낅젰 蹂쇰ⅷ???щ젮蹂댁꽭??</p>}
         </div>
         <div className="debugGrid">
           <div>
-            <span>주파수</span>
+            <span>二쇳뙆</span>
             <strong>{detectedPitch ? `${detectedPitch.frequency.toFixed(1)} Hz` : "--"}</strong>
           </div>
           <div>
-            <span>음</span>
+            <span></span>
             <strong>{detectedPitch ? detectedPitch.note : "--"}</strong>
           </div>
           <div>
-            <span>목표 옥타브 음</span>
+            <span>紐⑺몴 </span>
             <strong>{debugTargetNote?.octaveNote ?? debugTargetNote?.name ?? "--"}</strong>
           </div>
           <div>
-            <span>감지 옥타브 음</span>
+            <span>媛먯</span>
             <strong>{detected?.octaveNote ?? detected?.name ?? "--"}</strong>
           </div>
           <div>
-            <span>목표 주파수</span>
+            <span>紐⑺몴 二쇳뙆</span>
             <strong>{debugTargetNote?.frequency ? `${debugTargetNote.frequency.toFixed(2)} Hz` : "--"}</strong>
           </div>
           <div>
-            <span>감지 주파수</span>
+            <span>媛먯</span>
             <strong>{detectedPitch ? `${detectedPitch.frequency.toFixed(2)} Hz` : "--"}</strong>
           </div>
           <div>
-            <span>줄/프렛</span>
-            <strong>{debugTargetNote ? `${debugTargetNote.stringNumber}번줄 ${getFretLabel(debugTargetNote)}` : "--"}</strong>
+            <span>以??꾨젢</span>
+            <strong>{debugTargetNote ? `${debugTargetNote.stringNumber}踰덉쨪 ${getFretLabel(debugTargetNote)}` : "--"}</strong>
           </div>
           <div>
-            <span>판정 모드</span>
+            <span>?먯젙 紐⑤뱶</span>
             <strong>{currentJudgmentMode.shortLabel}</strong>
           </div>
           <div>
-            <span>신호</span>
+            <span>?좏샇</span>
             <strong>{signalLevel.toFixed(3)}</strong>
           </div>
           <div>
-            <span>신뢰도</span>
+            <span></span>
             <strong>{Math.round(tunerReading.confidence * 100)}%</strong>
           </div>
           <div>
-            <span>현재 BPM</span>
+            <span>?꾩옱 BPM</span>
             <strong>{bpm}</strong>
           </div>
           <div>
-            <span>연습 단계</span>
+            <span>?곗뒿 ?④퀎</span>
             <strong>{appMode === APP_MODES.PRACTICE || appMode === APP_MODES.SHOOTER ? selectedCategory.title : t(appMode)}</strong>
           </div>
         </div>
@@ -3583,3 +5069,5 @@ function App() {
 }
 
 export default App;
+
+

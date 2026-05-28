@@ -239,6 +239,85 @@ button:disabled {
   line-height: 1.45;
 }
 
+.developerBadge {
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin-top: 16px;
+  padding: 8px 12px 8px 9px;
+  border: 1px solid rgba(244, 114, 182, 0.34);
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, rgba(244, 114, 182, 0.22), rgba(129, 140, 248, 0.14), rgba(94, 234, 212, 0.08)),
+    rgba(15, 23, 42, 0.78);
+  color: #f8fafc;
+  text-decoration: none;
+  box-shadow:
+    0 0 22px rgba(244, 114, 182, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.developerBadge:hover {
+  transform: translateY(-1px);
+  border-color: rgba(244, 114, 182, 0.7);
+  box-shadow:
+    0 0 28px rgba(244, 114, 182, 0.24),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.developerBadge i {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  position: relative;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 28% 28%, #fef3c7 0 12%, transparent 13%),
+    linear-gradient(135deg, #f97316, #ec4899 48%, #6366f1);
+  color: white;
+  font-style: normal;
+}
+
+.developerBadge i::before {
+  content: "";
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 7px;
+}
+
+.developerBadge i::after {
+  content: "";
+  position: absolute;
+  right: 7px;
+  top: 7px;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.developerBadge span {
+  color: #fbcfe8;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.developerBadge strong {
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 950;
+}
+
 .hubMenuPanel {
   grid-area: menu;
   align-self: start;
@@ -348,8 +427,16 @@ button:disabled {
   border-color: rgba(244, 114, 182, 0.7);
 }
 
+.hubMenuButton.viewer:hover:not(:disabled) {
+  border-color: rgba(129, 140, 248, 0.72);
+}
+
 .hubMenuButton.shooter:hover:not(:disabled) span {
   box-shadow: 0 0 22px rgba(244, 114, 182, 0.48);
+}
+
+.hubMenuButton.viewer:hover:not(:disabled) span {
+  box-shadow: 0 0 22px rgba(129, 140, 248, 0.48);
 }
 
 .hubMenuButton:active:not(:disabled) {
@@ -366,6 +453,14 @@ button:disabled {
 
 .hubMenuButton.rhythm {
   border-color: rgba(94, 234, 212, 0.46);
+}
+
+.hubMenuButton.viewer {
+  border-color: rgba(129, 140, 248, 0.44);
+}
+
+.hubMenuButton.viewer span {
+  background: #818cf8;
 }
 
 .hubMenuButton.shooter {
@@ -999,7 +1094,7 @@ h1 {
 .miniFretNumbers {
   position: absolute;
   top: 8px;
-  left: 42px;
+  left: 62px;
   right: 10px;
   display: grid;
   color: #93c5fd;
@@ -1015,7 +1110,7 @@ h1 {
 
 .miniFretColumns {
   position: absolute;
-  inset: 34px 10px 34px 42px;
+  inset: 34px 10px 34px 62px;
   display: grid;
 }
 
@@ -1031,7 +1126,7 @@ h1 {
 
 .miniString {
   position: absolute;
-  left: 30px;
+  left: 50px;
   right: 10px;
   height: 2px;
   background: rgba(226, 232, 240, 0.7);
@@ -1051,6 +1146,14 @@ h1 {
   font-size: 9px;
   font-weight: 900;
   white-space: nowrap;
+}
+
+.chordViewerString b {
+  left: -54px;
+  width: 44px;
+  color: #f8fafc;
+  font-size: 10px;
+  text-align: right;
 }
 
 .miniNote {
@@ -1164,6 +1267,870 @@ h1 {
   line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.fretboardViewerPanel {
+  width: min(100%, 1280px);
+  margin: 0 auto;
+  display: grid;
+  gap: 10px;
+}
+
+.viewerControlPanel {
+  display: grid;
+  gap: 8px;
+}
+
+.viewerModeTabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.viewerModeTabs button {
+  min-height: 38px;
+  border-color: rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.viewerModeTabs .selected {
+  border-color: rgba(129, 140, 248, 0.86);
+  background:
+    linear-gradient(135deg, rgba(129, 140, 248, 0.32), rgba(20, 184, 166, 0.14)),
+    rgba(15, 23, 42, 0.9);
+  color: #f8fafc;
+  box-shadow:
+    0 0 20px rgba(129, 140, 248, 0.28),
+    inset 0 0 18px rgba(129, 140, 248, 0.12);
+}
+
+.viewerSelectGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.viewerSelectGrid label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.viewerSelectGrid span {
+  color: #a7b0c2;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.viewerSelectGrid select {
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid rgba(94, 234, 212, 0.28);
+  border-radius: 8px;
+  background: rgba(3, 7, 18, 0.92);
+  color: #f8fafc;
+  padding: 0 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.chordSelectGrid {
+  grid-template-columns: auto minmax(90px, 130px) minmax(180px, 320px);
+  align-items: end;
+}
+
+.chordBuilderPanel {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(129, 140, 248, 0.18);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(129, 140, 248, 0.08), rgba(20, 184, 166, 0.04)),
+    rgba(3, 7, 18, 0.42);
+}
+
+.chordBuilderHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.chordBuilderHeader div {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chordBuilderHeader span,
+.chordChipGroup > span {
+  color: #a7b0c2;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.chordBuilderHeader strong {
+  color: #f8fafc;
+  font-size: clamp(22px, 4vw, 34px);
+  font-weight: 950;
+  line-height: 1;
+}
+
+.chordGuideToggle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 10px;
+  border-color: rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.7);
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.chordGuideToggle b {
+  min-width: 34px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(30, 41, 59, 0.9);
+  color: #94a3b8;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.chordGuideToggle.selected {
+  border-color: rgba(94, 234, 212, 0.72);
+  background:
+    linear-gradient(135deg, rgba(94, 234, 212, 0.18), rgba(129, 140, 248, 0.12)),
+    rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  box-shadow: 0 0 16px rgba(94, 234, 212, 0.16);
+}
+
+.chordGuideToggle.selected b {
+  background: rgba(94, 234, 212, 0.22);
+  color: #99f6e4;
+}
+
+.chordChipGroup {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+}
+
+.chordChipGroup div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.chordChipGroup button {
+  min-height: 30px;
+  padding: 0 10px;
+  border-color: rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.chordChipGroup button small {
+  display: block;
+  color: #94a3b8;
+  font-size: 9px;
+  line-height: 1;
+}
+
+.chordChipGroup button.selected {
+  border-color: rgba(94, 234, 212, 0.84);
+  background:
+    linear-gradient(135deg, rgba(94, 234, 212, 0.24), rgba(129, 140, 248, 0.16)),
+    rgba(15, 23, 42, 0.94);
+  color: #f8fafc;
+  box-shadow: 0 0 16px rgba(94, 234, 212, 0.18);
+}
+
+.chordChipGroup button:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
+
+.viewerAllButton {
+  min-height: 34px;
+  padding: 0 12px;
+  border-color: rgba(129, 140, 248, 0.34);
+  background: rgba(15, 23, 42, 0.74);
+  font-size: 12px;
+}
+
+.viewerAllButton.selected {
+  border-color: rgba(129, 140, 248, 0.88);
+  background:
+    linear-gradient(135deg, rgba(129, 140, 248, 0.34), rgba(94, 234, 212, 0.12)),
+    rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  box-shadow: 0 0 20px rgba(129, 140, 248, 0.26);
+}
+
+.viewerReference {
+  min-height: 520px;
+  max-height: none;
+}
+
+.viewerFretboard {
+  min-height: 430px;
+}
+
+.viewerBarre {
+  position: absolute;
+  z-index: 2;
+  width: 22px;
+  min-height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(191, 219, 254, 0.72);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(191, 219, 254, 0.34), rgba(96, 165, 250, 0.18)),
+    rgba(15, 23, 42, 0.26);
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 950;
+  transform: translate(-50%, -50%);
+  box-shadow:
+    0 0 14px rgba(96, 165, 250, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(3px);
+}
+
+.viewerStringState {
+  position: absolute;
+  left: 12px;
+  z-index: 4;
+  color: #cbd5e1;
+  font-size: 16px;
+  font-weight: 950;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: translate(-50%, -50%);
+}
+
+.viewerStringState.x {
+  color: #fca5a5;
+}
+
+.viewerStringState.o {
+  color: #dbeafe;
+}
+
+.viewerInlineStringState {
+  position: absolute;
+  left: -8px;
+  top: -10px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  border: 1px solid rgba(226, 232, 240, 0.34);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.88);
+  color: #cbd5e1;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 950;
+  line-height: 1;
+  text-transform: uppercase;
+  box-shadow: 0 0 9px rgba(148, 163, 184, 0.2);
+}
+
+.viewerInlineStringState.x {
+  border-color: rgba(248, 113, 113, 0.58);
+  color: #fca5a5;
+  box-shadow: 0 0 10px rgba(248, 113, 113, 0.24);
+}
+
+.viewerInlineStringState.o {
+  border-color: rgba(147, 197, 253, 0.54);
+  color: #dbeafe;
+  box-shadow: 0 0 10px rgba(147, 197, 253, 0.22);
+}
+
+.chordFingerNote {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+}
+
+.chordFingerNote b {
+  color: #f8fafc;
+  font-size: 15px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.viewerReference .referenceHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.viewerBackButton {
+  min-height: 30px;
+  padding: 0 12px;
+  border-color: rgba(129, 140, 248, 0.42);
+  background: rgba(15, 23, 42, 0.72);
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.viewerBackButton:hover {
+  border-color: rgba(129, 140, 248, 0.78);
+  box-shadow: 0 0 16px rgba(129, 140, 248, 0.22);
+}
+
+.chordCatalogPanel {
+  display: grid;
+  gap: 8px;
+  min-height: 520px;
+  padding: 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(129, 140, 248, 0.08), rgba(94, 234, 212, 0.025)),
+    var(--panel-bg);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.22),
+    inset 0 0 26px rgba(15, 23, 42, 0.42);
+}
+
+.chordCatalogScroll {
+  display: grid;
+  gap: 8px;
+}
+
+.chordCatalogRow {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  min-height: 178px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 8px;
+  background: rgba(5, 8, 14, 0.62);
+}
+
+.chordRootLabel {
+  display: grid;
+  place-items: center;
+  color: #f8fafc;
+  font-size: 22px;
+  border-right: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.46);
+}
+
+.chordMiniGrid {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.chordMiniCard {
+  flex: 0 0 176px;
+  display: grid;
+  gap: 5px;
+  min-height: 154px;
+  padding: 6px;
+  border-color: rgba(148, 163, 184, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+    rgba(7, 9, 15, 0.74);
+  text-align: center;
+}
+
+.chordMiniCard:hover {
+  border-color: rgba(129, 140, 248, 0.72);
+  transform: translateY(-1px);
+}
+
+.chordMiniCard > span {
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.chordMiniFretboard {
+  position: relative;
+  min-height: 116px;
+  aspect-ratio: 1.82 / 1;
+  overflow: visible;
+  border-radius: 4px;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.026) 0 1px, transparent 1px 12px),
+    linear-gradient(90deg, #2a1715, #4a2a24 46%, #241210);
+  box-shadow:
+    inset 0 0 0 1px rgba(226, 232, 240, 0.16),
+    inset 0 0 18px rgba(0, 0, 0, 0.35);
+}
+
+.chordMiniFretNumbers {
+  position: absolute;
+  left: 24px;
+  right: 8px;
+  bottom: 2px;
+  display: grid;
+  color: rgba(226, 232, 240, 0.72);
+  font-size: 8px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.chordMiniFretNumbers em {
+  font-style: normal;
+}
+
+.chordMiniFrets {
+  position: absolute;
+  inset: 12px 8px 14px 24px;
+  display: grid;
+}
+
+.chordMiniFrets i {
+  border-left: 1px solid rgba(226, 232, 240, 0.36);
+}
+
+.chordMiniFrets i:first-child {
+  border-left-width: 4px;
+  border-left-color: rgba(250, 250, 245, 0.72);
+}
+
+.chordMiniString {
+  position: absolute;
+  left: 22px;
+  right: 8px;
+  height: 1px;
+  background: rgba(226, 232, 240, 0.74);
+}
+
+.chordMiniStringState {
+  position: absolute;
+  left: 8px;
+  z-index: 4;
+  color: #cbd5e1;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 950;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: translate(-50%, -50%);
+}
+
+.chordMiniStringState.x {
+  color: #fca5a5;
+}
+
+.chordMiniStringState.o {
+  color: #dbeafe;
+}
+
+.chordMiniBarre {
+  position: absolute;
+  z-index: 2;
+  width: 10px;
+  min-height: 16px;
+  border: 1px solid rgba(191, 219, 254, 0.64);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(191, 219, 254, 0.34), rgba(96, 165, 250, 0.16)),
+    rgba(15, 23, 42, 0.24);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 8px rgba(96, 165, 250, 0.3);
+  backdrop-filter: blur(2px);
+}
+
+.chordMiniFretboard b {
+  position: absolute;
+  z-index: 2;
+  width: 10px;
+  height: 10px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  border-radius: 999px;
+  background: var(--note-fill, #67e8f9);
+  color: #f8fafc;
+  font-size: 7px;
+  font-weight: 950;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+
+.chordMiniFretboard b.root {
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(248, 113, 113, 0.54);
+}
+
+.chordCatalogPanel p {
+  margin: 0;
+  color: #a7b0c2;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.chordTransitionPanel {
+  width: min(100%, 1280px);
+  margin: 0 auto;
+  display: grid;
+  gap: 10px;
+}
+
+.chordTransitionControls,
+.chordTransitionHud,
+.chordTransitionSide > div,
+.chordTransitionChart {
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(94, 234, 212, 0.07), rgba(129, 140, 248, 0.025)),
+    var(--panel-bg);
+  box-shadow:
+    0 16px 38px rgba(0, 0, 0, 0.2),
+    inset 0 0 24px rgba(15, 23, 42, 0.38);
+}
+
+.chordTransitionControls {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.chordTransitionControls > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.chordTransitionControls span,
+.chordTransitionHud span,
+.chordTransitionSide span {
+  color: #7dd3fc;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.chordTransitionControls strong {
+  color: #f8fafc;
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.chordTransitionControls small,
+.chordTransitionSide small {
+  color: #a7b0c2;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.chordProgressionPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chordProgressionPicker button {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border-color: rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.72);
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.chordProgressionPicker button.selected {
+  border-color: rgba(94, 234, 212, 0.78);
+  background:
+    linear-gradient(135deg, rgba(94, 234, 212, 0.24), rgba(129, 140, 248, 0.14)),
+    rgba(15, 23, 42, 0.94);
+  color: #f8fafc;
+  box-shadow: 0 0 16px rgba(94, 234, 212, 0.18);
+}
+
+.stage3ChordBuilder {
+  display: grid;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid rgba(129, 140, 248, 0.18);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(129, 140, 248, 0.08), rgba(20, 184, 166, 0.04)),
+    rgba(3, 7, 18, 0.34);
+}
+
+.stage3AddRow {
+  display: grid;
+  grid-template-columns: minmax(70px, auto) auto auto;
+  align-items: center;
+  justify-content: start;
+  gap: 6px;
+}
+
+.stage3AddRow strong {
+  color: #f8fafc;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.stage3AddRow button {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+}
+
+.chordTransitionTempo {
+  display: grid;
+  grid-template-columns: auto 34px 72px auto 76px 34px;
+  align-items: center;
+  justify-content: start;
+  gap: 6px;
+}
+
+.chordTransitionTempo button {
+  min-height: 32px;
+  padding: 0;
+  border-radius: 8px;
+}
+
+.chordTransitionTempo input,
+.chordTransitionTempo select {
+  width: 72px;
+  min-height: 32px;
+  border: 1px solid rgba(94, 234, 212, 0.26);
+  border-radius: 8px;
+  background: rgba(3, 7, 18, 0.86);
+  color: #f8fafc;
+  padding: 0 8px;
+  font: inherit;
+  font-weight: 900;
+  text-align: center;
+}
+
+.chordTransitionTempo select {
+  width: 76px;
+  text-align: left;
+}
+
+.chordTransitionTempo strong {
+  color: #dbeafe;
+  font-size: 12px;
+}
+
+.chordTransitionHud {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.25fr) minmax(0, 0.6fr) minmax(150px, 0.45fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+}
+
+.chordTimeline {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.chordTimelineLabels {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.chordTimelineLabels strong {
+  color: #f8fafc;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.chordTimelineLabels span {
+  justify-self: center;
+  color: #7dd3fc;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.chordTimelineTrack {
+  position: relative;
+  height: 20px;
+  overflow: visible;
+  border: 1px solid rgba(94, 234, 212, 0.22);
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.62)),
+    rgba(3, 7, 18, 0.74);
+  box-shadow: inset 0 0 14px rgba(20, 184, 166, 0.12);
+}
+
+.chordTimelineFill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(94, 234, 212, 0.28), rgba(250, 204, 21, 0.3));
+  box-shadow: 0 0 18px rgba(94, 234, 212, 0.18);
+}
+
+.chordTimelineRunner {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  min-width: 42px;
+  padding: 4px 8px;
+  border: 1px solid rgba(250, 204, 21, 0.65);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.96);
+  color: #fef9c3;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 1000;
+  text-align: center;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 14px rgba(250, 204, 21, 0.22);
+}
+
+.chordTimelineTrack b {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  width: 2px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.46);
+  transform: translate(-50%, -50%);
+}
+
+.chordTimelineTrack b.active {
+  background: rgba(250, 204, 21, 0.86);
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.24);
+}
+
+.chordNowCard,
+.chordNextCard,
+.chordPreviewCard {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.chordNowCard strong {
+  color: #f8fafc;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 0.95;
+}
+
+.chordNextCard {
+  opacity: 0.78;
+}
+
+.chordNextCard strong,
+.chordPreviewCard strong {
+  color: #dbeafe;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.chordTransitionBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  gap: 10px;
+}
+
+.chordTransitionChart {
+  min-height: 520px;
+}
+
+.chordTransitionSide {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.chordTransitionSide > div {
+  padding: 10px;
+}
+
+.chordPreviewStack {
+  display: grid;
+  gap: 8px;
+}
+
+.chordPreviewStack div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chordPreviewStack strong {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.chordPreviewStack strong button {
+  width: 18px;
+  min-height: 18px;
+  padding: 0;
+  border-radius: 999px;
+  border-color: rgba(248, 113, 113, 0.34);
+  background: rgba(127, 29, 29, 0.24);
+  color: #fecaca;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.chordPreviewStack strong.active {
+  border-color: rgba(94, 234, 212, 0.78);
+  color: #f8fafc;
+  box-shadow: 0 0 14px rgba(94, 234, 212, 0.2);
+}
+
+.chordProgressionEmpty {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px dashed rgba(148, 163, 184, 0.24);
+  border-radius: 9px;
+  background: rgba(15, 23, 42, 0.46);
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.chordTransitionButtons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .practiceStatsPanel {
@@ -4509,15 +5476,23 @@ button.primary svg {
   }
 
   .modeSwitch button:nth-child(1)::before {
-    content: "01";
+    content: "M";
   }
 
   .modeSwitch button:nth-child(2)::before {
-    content: "02";
+    content: "01";
   }
 
   .modeSwitch button:nth-child(3)::before {
+    content: "02";
+  }
+
+  .modeSwitch button:nth-child(4)::before {
     content: "03";
+  }
+
+  .modeSwitch button:nth-child(5)::before {
+    content: "04";
   }
 
   .modeSwitch .selected {
@@ -4723,6 +5698,25 @@ button.primary svg {
     line-height: 1.35;
   }
 
+  .developerBadge {
+    margin-top: 10px;
+    padding: 6px 10px 6px 7px;
+    gap: 6px;
+  }
+
+  .developerBadge i {
+    width: 24px;
+    height: 24px;
+  }
+
+  .developerBadge span {
+    font-size: 8.5px;
+  }
+
+  .developerBadge strong {
+    font-size: 11px;
+  }
+
   .hubGuitarHead {
     position: absolute;
     left: 50%;
@@ -4785,8 +5779,8 @@ button.primary svg {
   }
 
   .modeSwitch {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 7px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
     padding: 7px;
     border: 1px solid rgba(94, 234, 212, 0.32);
     border-radius: 14px;
@@ -4799,10 +5793,10 @@ button.primary svg {
   .modeSwitch button {
     min-width: 0;
     min-height: 36px;
-    padding: 0 7px;
+    padding: 0 5px;
     gap: 4px;
     border-radius: 10px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 950;
     line-height: 1.05;
     white-space: normal;
@@ -4813,6 +5807,293 @@ button.primary svg {
     box-shadow:
       inset 0 0 0 1px rgba(255, 255, 255, 0.045),
       0 7px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .fretboardViewerPanel {
+    gap: 6px;
+  }
+
+  .viewerControlPanel {
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .viewerModeTabs {
+    gap: 5px;
+  }
+
+  .viewerModeTabs button {
+    min-height: 32px;
+    font-size: 11px;
+  }
+
+  .viewerSelectGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .chordSelectGrid {
+    grid-template-columns: auto 64px minmax(0, 1fr);
+  }
+
+  .viewerAllButton {
+    min-height: 30px;
+    padding: 0 12px;
+    font-size: 11px;
+  }
+
+  .viewerSelectGrid span {
+    display: none;
+  }
+
+  .viewerSelectGrid select {
+    min-height: 30px;
+    padding: 0 5px;
+    font-size: 11px;
+  }
+
+  .chordBuilderPanel {
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .chordBuilderHeader {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+
+  .chordBuilderHeader strong {
+    font-size: 22px;
+  }
+
+  .chordGuideToggle {
+    min-height: 30px;
+    padding: 0 8px;
+    font-size: 10px;
+  }
+
+  .chordGuideToggle b {
+    min-width: 30px;
+    padding: 3px 6px;
+    font-size: 9px;
+  }
+
+  .chordChipGroup {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .chordChipGroup button {
+    min-height: 27px;
+    padding: 0 8px;
+    font-size: 11px;
+  }
+
+  .chordChipGroup button small {
+    font-size: 8px;
+  }
+
+  .viewerReference {
+    min-height: 390px;
+    max-height: none;
+  }
+
+  .viewerFretboard {
+    min-height: 315px;
+  }
+
+  .chordCatalogPanel {
+    min-height: 390px;
+    padding: 7px;
+  }
+
+  .chordCatalogScroll {
+    gap: 6px;
+  }
+
+  .chordCatalogRow {
+    grid-template-columns: 34px minmax(0, 1fr);
+    min-height: 136px;
+  }
+
+  .chordRootLabel {
+    font-size: 17px;
+  }
+
+  .chordMiniGrid {
+    display: flex;
+    gap: 5px;
+    padding: 5px;
+    overflow-x: auto;
+  }
+
+  .chordMiniCard {
+    flex-basis: 132px;
+    min-height: 116px;
+    padding: 5px;
+  }
+
+  .chordMiniCard > span {
+    font-size: 10px;
+  }
+
+  .chordMiniFretboard {
+    min-height: 86px;
+  }
+
+  .chordTransitionPanel {
+    gap: 6px;
+  }
+
+  .chordTransitionControls,
+  .chordTransitionHud,
+  .chordTransitionSide > div,
+  .chordTransitionChart {
+    border-radius: 8px;
+  }
+
+  .chordTransitionControls,
+  .chordTransitionHud {
+    padding: 6px;
+  }
+
+  .chordTransitionControls strong {
+    font-size: 16px;
+  }
+
+  .chordTransitionControls small {
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
+  .chordProgressionPicker {
+    gap: 4px;
+  }
+
+  .chordProgressionPicker button {
+    min-height: 28px;
+    padding: 0 7px;
+    font-size: 10px;
+  }
+
+  .stage3ChordBuilder {
+    gap: 5px;
+    padding: 5px;
+  }
+
+  .stage3ChordBuilder .chordChipGroup {
+    gap: 4px;
+  }
+
+  .stage3ChordBuilder .chordChipGroup > div {
+    gap: 4px;
+  }
+
+  .stage3ChordBuilder .chordChipGroup button {
+    min-height: 27px;
+    padding: 0 7px;
+    font-size: 10px;
+  }
+
+  .stage3AddRow {
+    grid-template-columns: minmax(48px, auto) minmax(0, 1fr) minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .stage3AddRow strong {
+    font-size: 18px;
+  }
+
+  .stage3AddRow button {
+    min-height: 28px;
+    padding: 0 7px;
+    font-size: 10px;
+  }
+
+  .chordTransitionTempo {
+    grid-template-columns: auto 30px 58px auto 68px 30px;
+    gap: 4px;
+  }
+
+  .chordTransitionTempo button,
+  .chordTransitionTempo input,
+  .chordTransitionTempo select {
+    min-height: 28px;
+  }
+
+  .chordTransitionTempo input {
+    width: 58px;
+  }
+
+  .chordTransitionTempo select {
+    width: 68px;
+  }
+
+  .chordTransitionHud {
+    grid-template-columns: minmax(0, 1fr) minmax(92px, auto);
+    gap: 6px;
+  }
+
+  .chordTimeline {
+    grid-column: 1 / -1;
+  }
+
+  .chordTimelineLabels strong {
+    font-size: 17px;
+  }
+
+  .chordTimelineTrack {
+    height: 18px;
+  }
+
+  .chordTimelineRunner {
+    min-width: 36px;
+    padding: 3px 7px;
+    font-size: 11px;
+  }
+
+  .chordTimelineTrack b {
+    height: 22px;
+  }
+
+  .chordNowCard strong {
+    font-size: 30px;
+  }
+
+  .chordNextCard strong,
+  .chordPreviewCard strong {
+    font-size: 18px;
+  }
+
+  .chordTransitionBody {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .chordTransitionChart {
+    min-height: 330px;
+  }
+
+  .chordTransitionSide {
+    gap: 6px;
+  }
+
+  .chordTransitionSide > div {
+    padding: 7px;
+  }
+
+  .chordPreviewStack strong {
+    padding: 5px 7px;
+    font-size: 11px;
+  }
+
+  .chordProgressionEmpty {
+    padding: 7px;
+    font-size: 11px;
+  }
+
+  .chordTransitionButtons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .modeSwitch button::before {
@@ -4832,6 +6113,14 @@ button.primary svg {
 
   .modeSwitch button:nth-child(3) {
     border-color: rgba(250, 204, 21, 0.34);
+  }
+
+  .modeSwitch button:nth-child(4) {
+    border-color: rgba(244, 114, 182, 0.34);
+  }
+
+  .modeSwitch button:nth-child(5) {
+    border-color: rgba(103, 232, 249, 0.34);
   }
 
   .modeSwitch .selected {
@@ -5483,7 +6772,21 @@ button.primary svg {
   }
 
   .miniFretColumns {
-    inset: 20px 10px 20px 42px;
+    inset: 20px 10px 20px 58px;
+  }
+
+  .miniFretNumbers {
+    left: 58px;
+  }
+
+  .miniString {
+    left: 48px;
+  }
+
+  .chordViewerString b {
+    left: -52px;
+    width: 42px;
+    font-size: 9px;
   }
 
   .miniFretColumns span {
@@ -5691,6 +6994,10 @@ button.primary svg {
     font-size: 12px;
   }
 
+  .developerBadge {
+    margin-top: 8px;
+  }
+
   .hubGuitarHead {
     top: 22px;
     bottom: auto;
@@ -5733,21 +7040,73 @@ button.primary svg {
 
   .modeSwitch {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
-    padding: 6px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px;
+    padding: 5px;
   }
 
   .modeSwitch button {
-    min-height: 34px;
-    padding: 0 5px;
-    font-size: 11px;
+    min-height: 32px;
+    padding: 0 2px;
+    font-size: 8.5px;
   }
 
   .modeSwitch button::before {
-    width: 18px;
-    height: 18px;
-    font-size: 8px;
+    width: 16px;
+    height: 16px;
+    font-size: 7px;
+  }
+
+  .viewerSelectGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chordSelectGrid {
+    grid-template-columns: auto 58px minmax(0, 1fr);
+  }
+
+  .chordBuilderHeader {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .chordBuilderHeader div {
+    gap: 5px;
+  }
+
+  .chordGuideToggle {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+
+  .chordBuilderHeader span {
+    display: inline;
+    font-size: 9px;
+  }
+
+  .chordBuilderHeader strong {
+    font-size: 19px;
+  }
+
+  .chordChipGroup {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+
+  .chordChipGroup > span {
+    font-size: 9px;
+  }
+
+  .chordChipGroup div {
+    gap: 4px;
+  }
+
+  .chordChipGroup button {
+    min-height: 25px;
+    padding: 0 7px;
+    font-size: 10px;
+  }
+
+  .viewerFretboard {
+    min-height: 280px;
   }
 
   .curriculumHeader {
