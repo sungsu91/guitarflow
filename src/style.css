@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   color: #f6f7fb;
   background: #07090f;
   --panel-bg: rgba(7, 12, 24, 0.66);
@@ -593,7 +593,7 @@ button:disabled {
     0 0 2px rgba(255, 255, 255, 0.34);
 }
 
-/* Gibson-style 3+3 routing: L3/L2/L1 = 6/5/4번줄, R1/R2/R3 = 3/2/1번줄. */
+/* Gibson-style 3+3 routing: L3/L2/L1 = 6/5/4踰덉쨪, R1/R2/R3 = 3/2/1踰덉쨪. */
 .hubString.s6 {
   left: 31%;
   top: 27.5%;
@@ -1487,7 +1487,27 @@ h1 {
 }
 
 .viewerFretboard {
+  position: relative;
   min-height: 430px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08), rgba(15, 23, 42, 0.35)),
+    rgba(5, 8, 14, 0.82);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.viewerFretboard .miniFretNumbers {
+  z-index: 3;
+}
+
+.viewerFretboard .miniFretColumns {
+  z-index: 1;
+}
+
+.viewerFretboard .miniString {
+  z-index: 2;
 }
 
 .viewerBarre {
@@ -1795,12 +1815,12 @@ h1 {
   width: min(100%, 1280px);
   margin: 0 auto;
   display: grid;
-  gap: 10px;
+  gap: 7px;
 }
 
 .chordTransitionControls,
 .chordTransitionHud,
-.chordTransitionSide > div,
+.chordProgressionOrderPanel,
 .chordTransitionChart {
   border: 1px solid var(--panel-border);
   border-radius: 10px;
@@ -1814,17 +1834,50 @@ h1 {
 
 .chordTransitionControls {
   display: grid;
-  gap: 8px;
-  padding: 10px;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.58fr);
+  grid-template-areas:
+    "intro order"
+    "builder order"
+    "builder playback";
+  align-items: start;
+  gap: 6px;
+  padding: 8px;
 }
 
 .chordTransitionControls > div:first-child {
+  grid-area: intro;
   display: grid;
   gap: 3px;
 }
 
+  .stage3ChordBuilder {
+  grid-area: builder;
+}
+
+.chordTransitionControls > .chordProgressionPicker {
+  grid-area: picker;
+}
+
+.chordProgressionOrderPanel {
+  grid-area: order;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  min-height: 0;
+  padding: 8px;
+}
+
+.stage3PlaybackControls {
+  grid-area: playback;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  align-content: start;
+}
+
 .chordTransitionControls span,
 .chordTransitionHud span,
+.chordProgressionOrderPanel span,
 .chordTransitionSide span {
   color: #7dd3fc;
   font-size: 11px;
@@ -1833,11 +1886,12 @@ h1 {
 
 .chordTransitionControls strong {
   color: #f8fafc;
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1.1;
 }
 
 .chordTransitionControls small,
+.chordProgressionOrderPanel small,
 .chordTransitionSide small {
   color: #a7b0c2;
   font-size: 12px;
@@ -1845,35 +1899,31 @@ h1 {
 }
 
 .chordProgressionPicker {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 6px;
 }
 
-.chordProgressionPicker button {
+.chordProgressionPicker label {
+  display: grid;
+  gap: 4px;
+  max-width: 430px;
+}
+
+.chordProgressionPicker select {
   min-height: 32px;
   padding: 0 10px;
-  border-radius: 999px;
-  border-color: rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(94, 234, 212, 0.26);
+  border-radius: 9px;
   background: rgba(15, 23, 42, 0.72);
   color: #dbeafe;
   font-size: 12px;
   font-weight: 900;
 }
 
-.chordProgressionPicker button.selected {
-  border-color: rgba(94, 234, 212, 0.78);
-  background:
-    linear-gradient(135deg, rgba(94, 234, 212, 0.24), rgba(129, 140, 248, 0.14)),
-    rgba(15, 23, 42, 0.94);
-  color: #f8fafc;
-  box-shadow: 0 0 16px rgba(94, 234, 212, 0.18);
-}
-
 .stage3ChordBuilder {
   display: grid;
-  gap: 7px;
-  padding: 8px;
+  gap: 6px;
+  padding: 7px;
   border: 1px solid rgba(129, 140, 248, 0.18);
   border-radius: 10px;
   background:
@@ -1896,29 +1946,36 @@ h1 {
 }
 
 .stage3AddRow button {
-  min-height: 32px;
+  min-height: 30px;
   padding: 0 10px;
   border-radius: 8px;
 }
 
 .chordTransitionTempo {
   display: grid;
-  grid-template-columns: auto 34px 72px auto 76px 34px;
+  grid-template-columns: auto auto 66px auto 70px;
   align-items: center;
   justify-content: start;
-  gap: 6px;
+  gap: 5px;
 }
 
+.bpmStepButtons {
+  display: grid;
+  grid-template-columns: repeat(2, 30px);
+  gap: 4px;
+}
+
+.bpmStepButtons button,
 .chordTransitionTempo button {
-  min-height: 32px;
+  min-height: 30px;
   padding: 0;
   border-radius: 8px;
 }
 
 .chordTransitionTempo input,
 .chordTransitionTempo select {
-  width: 72px;
-  min-height: 32px;
+  width: 66px;
+  min-height: 30px;
   border: 1px solid rgba(94, 234, 212, 0.26);
   border-radius: 8px;
   background: rgba(3, 7, 18, 0.86);
@@ -1930,7 +1987,7 @@ h1 {
 }
 
 .chordTransitionTempo select {
-  width: 76px;
+  width: 70px;
   text-align: left;
 }
 
@@ -1943,8 +2000,8 @@ h1 {
   display: grid;
   grid-template-columns: minmax(280px, 1.25fr) minmax(0, 0.6fr) minmax(150px, 0.45fr) auto;
   align-items: center;
-  gap: 8px;
-  padding: 10px;
+  gap: 6px;
+  padding: 8px;
 }
 
 .chordTimeline {
@@ -1955,7 +2012,7 @@ h1 {
 
 .chordTimelineLabels {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr;
   align-items: center;
   gap: 8px;
 }
@@ -2016,16 +2073,21 @@ h1 {
   position: absolute;
   top: 50%;
   z-index: 1;
-  width: 2px;
-  height: 24px;
+  width: 4px;
+  height: 30px;
   border-radius: 999px;
-  background: rgba(148, 163, 184, 0.46);
+  background: rgba(226, 232, 240, 0.66);
   transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgba(148, 163, 184, 0.18);
 }
 
 .chordTimelineTrack b.active {
   background: rgba(250, 204, 21, 0.86);
   box-shadow: 0 0 12px rgba(250, 204, 21, 0.24);
+}
+
+.mobileBeatDots {
+  display: none;
 }
 
 .chordNowCard,
@@ -2037,30 +2099,372 @@ h1 {
 }
 
 .chordNowCard strong {
-  color: #f8fafc;
-  font-size: clamp(36px, 5vw, 64px);
-  line-height: 0.95;
+  color: #dbeafe;
+  font-size: 26px;
+  line-height: 1;
 }
 
 .chordNextCard {
-  opacity: 0.78;
+  opacity: 1;
 }
 
-.chordNextCard strong,
+.chordNextCard strong {
+  color: #f8fafc;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 0.95;
+}
+
 .chordPreviewCard strong {
   color: #dbeafe;
   font-size: 26px;
   line-height: 1;
 }
 
+@media (min-width: 769px) {
+  .chordTransitionControls {
+    grid-template-columns: minmax(0, 0.84fr) minmax(360px, 0.82fr);
+    grid-template-areas:
+      "picker order"
+      "builder order"
+      "playback order";
+    gap: 6px 0;
+    padding: 8px 10px;
+  }
+
+  .chordTransitionControls > div:first-child {
+    display: none;
+  }
+
+  .stage3ChordBuilder,
+  .chordProgressionOrderPanel {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .stage3ChordBuilder {
+    grid-template-columns: minmax(0, 0.68fr) auto;
+    grid-template-areas:
+      "root add"
+      "quality quality"
+      "option option";
+    align-items: center;
+    padding: 0;
+    gap: 4px;
+  }
+
+  .stage3ChordBuilder .chordChipGroup:nth-child(1) {
+    grid-area: root;
+  }
+
+  .stage3ChordBuilder .chordChipGroup:nth-child(2) {
+    grid-area: quality;
+  }
+
+  .stage3ChordBuilder .chordChipGroup:nth-child(3) {
+    grid-area: option;
+  }
+
+  .stage3ChordBuilder .chordChipGroup {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .stage3ChordBuilder .chordChipGroup > div {
+    gap: 4px;
+  }
+
+  .stage3ChordBuilder .chordChipGroup button {
+    min-height: 28px;
+    padding: 0 8px;
+    font-size: 11px;
+  }
+
+  .stage3ChordBuilder .chordChipGroup:nth-child(1) button {
+    font-size: 13px;
+  }
+
+  .stage3AddRow {
+    grid-area: add;
+    grid-template-columns: auto auto auto;
+    align-self: stretch;
+    align-items: center;
+    gap: 5px;
+    margin-left: 0;
+    padding-left: 6px;
+    border-left: 1px solid rgba(148, 163, 184, 0.28);
+  }
+
+  .stage3AddRow strong {
+    display: inline-grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+    justify-items: center;
+    gap: 3px;
+    min-width: 92px;
+    min-height: 52px;
+    padding: 6px 13px;
+    border: 1px solid rgba(250, 204, 21, 0.34);
+    border-radius: 10px;
+    background: rgba(250, 204, 21, 0.08);
+    color: #fef9c3;
+    font-size: 30px;
+    line-height: 0.95;
+  }
+
+  .stage3AddRow strong::before {
+    content: "선택 코드";
+    color: #f8fafc;
+    font-size: 11px;
+    font-weight: 850;
+    line-height: 1;
+  }
+
+  .stage3AddRow button {
+    min-height: 28px;
+    padding: 0 8px;
+  }
+
+  .stage3AddRow button:last-child {
+    display: inline-grid;
+    place-items: center;
+    min-width: 58px;
+    font-size: 0;
+  }
+
+  .stage3AddRow button:last-child::after {
+    content: "초기화";
+    position: static;
+    inset: auto;
+    opacity: 1;
+    transform: none;
+    background: none;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .chordProgressionOrderPanel {
+    padding: 0;
+    gap: 4px;
+    transform: translateX(-10px);
+  }
+
+  .stage3PlaybackControls {
+    grid-template-columns: auto minmax(230px, auto) minmax(140px, 1fr);
+    align-items: end;
+    gap: 6px;
+  }
+
+  .chordProgressionPicker label {
+    max-width: 230px;
+    gap: 2px;
+  }
+
+  .chordProgressionPicker select {
+    width: 230px;
+    min-height: 28px;
+    padding: 0 8px;
+    font-size: 11px;
+  }
+
+  .chordTransitionTempo {
+    grid-template-columns: auto auto 58px auto 66px;
+    gap: 4px;
+  }
+
+  .bpmStepButtons {
+    grid-template-columns: repeat(2, 28px);
+    gap: 3px;
+  }
+
+  .chordTransitionTempo button,
+  .chordTransitionTempo input,
+  .chordTransitionTempo select {
+    min-height: 28px;
+  }
+
+  .chordTransitionTempo input {
+    width: 58px;
+  }
+
+  .chordTransitionTempo select {
+    width: 66px;
+  }
+
+  .chordTransitionButtons {
+    order: -1;
+    grid-template-columns: repeat(2, minmax(72px, 84px));
+    align-self: end;
+  }
+
+  .chordPreviewStack {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 4px 8px;
+  }
+
+  .chordPreviewStack div {
+    grid-column: 1 / -1;
+    max-height: none;
+    overflow: visible;
+    padding-right: 2px;
+  }
+
+  .chordPreviewStack > span {
+    font-size: 14px;
+  }
+
+  .stage3DesktopClear {
+    display: none;
+    min-height: 26px;
+    padding: 0 9px;
+    border-color: rgba(248, 113, 113, 0.28);
+    border-radius: 8px;
+    background: rgba(127, 29, 29, 0.18);
+    color: #fecaca;
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  .chordProgressionOrderPanel .modeHelper {
+    display: none;
+  }
+
+  .chordPreviewStack strong {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+
+  .chordTransitionButtons button {
+    min-height: 28px;
+    padding: 0 8px;
+  }
+
+  .chordTransitionHud {
+    grid-template-columns: minmax(150px, 0.42fr) minmax(360px, 1.5fr) minmax(150px, 0.42fr) auto;
+  }
+
+  .chordNowCard {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .chordTimeline {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .chordNextCard {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .chordTransitionHud .chordGuideToggle {
+    grid-column: 4;
+    grid-row: 1;
+  }
+
+  .chordNowCard,
+  .chordNextCard {
+    min-height: 76px;
+    place-content: center;
+    justify-items: center;
+    padding: 8px 12px;
+    border: 1px solid rgba(94, 234, 212, 0.22);
+    border-radius: 10px;
+    background:
+      linear-gradient(180deg, rgba(94, 234, 212, 0.08), rgba(129, 140, 248, 0.035)),
+      rgba(15, 23, 42, 0.7);
+  }
+
+  .chordNowCard strong,
+  .chordNextCard strong {
+    color: #f8fafc;
+    font-size: clamp(34px, 3.4vw, 52px);
+    line-height: 0.95;
+  }
+
+  .chordTimelineLabels {
+    grid-template-columns: 1fr;
+  }
+
+  .chordTimelineLabels strong {
+    display: none;
+  }
+
+  .mobileBeatDots {
+    display: flex;
+    justify-content: center;
+    order: -1;
+    gap: 10px;
+    min-height: 14px;
+    margin-bottom: 2px;
+  }
+
+  .mobileBeatDots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.44);
+  }
+
+  .mobileBeatDots span.active {
+    background: rgba(250, 204, 21, 0.95);
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.32);
+  }
+
+  .chordTimelineTrack {
+    height: 24px;
+  }
+
+  .chordTimelineRunner {
+    min-width: 16px;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    overflow: hidden;
+    color: transparent;
+    font-size: 0;
+  }
+
+  .chordTimelineTrack b {
+    width: 5px;
+    height: 36px;
+    background: rgba(248, 250, 252, 0.78);
+  }
+}
+
 .chordTransitionBody {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 7px;
 }
 
 .chordTransitionChart {
-  min-height: 520px;
+  min-height: 390px;
+}
+
+.chordTransitionChart .referenceHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.chordTransitionChart .referenceHeader > div {
+  min-width: 0;
+}
+
+.chordTransitionChart .chordGuideToggle {
+  justify-self: end;
+  min-width: 74px;
+  min-height: 32px;
+  padding: 0 9px;
+  border-radius: 9px;
+}
+
+.chordTransitionChart .viewerFretboard {
+  min-height: 330px;
 }
 
 .chordTransitionSide {
@@ -2076,6 +2480,10 @@ h1 {
 .chordPreviewStack {
   display: grid;
   gap: 8px;
+}
+
+.stage3DesktopClear {
+  display: none;
 }
 
 .chordPreviewStack div {
@@ -2131,6 +2539,10 @@ h1 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
+}
+
+.chordTransitionButtons button {
+  min-height: 32px;
 }
 
 .practiceStatsPanel {
@@ -2309,25 +2721,26 @@ h1 {
 
 .subdivisionButtons {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(5, minmax(66px, 0.72fr));
+  gap: 4px;
 }
 
 .scaleDirectionPanel {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: minmax(540px, 1fr) repeat(3, minmax(74px, 88px)) minmax(112px, auto) minmax(88px, auto);
+  align-items: center;
+  gap: 5px;
   padding-top: 0;
 }
 
 .scalePickerPanel {
-  grid-column: span 2;
+  grid-column: auto;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: 104px 112px 112px 88px minmax(120px, 1fr);
   align-items: center;
-  gap: 6px;
-  padding: 7px 9px;
+  gap: 5px;
+  padding: 5px 7px;
   border: 1px solid rgba(190, 242, 100, 0.24);
   border-radius: 10px;
   background:
@@ -2337,7 +2750,10 @@ h1 {
 
 .scalePickerPanel label {
   display: grid;
-  gap: 2px;
+  grid-template-rows: 12px 30px;
+  align-items: end;
+  gap: 1px;
+  min-width: 0;
 }
 
 .scaleTypeGroup {
@@ -2351,18 +2767,22 @@ h1 {
 }
 
 .scalePickerPanel select {
-  min-height: 32px;
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  min-height: 30px;
   border: 1px solid rgba(94, 234, 212, 0.34);
   border-radius: 8px;
   background: rgba(3, 7, 18, 0.86);
   color: #f8fafc;
   padding: 0 10px;
   font: inherit;
+  font-size: 12px;
   font-weight: 850;
 }
 
 .scalePickerPanel strong {
-  grid-column: 1 / -1;
+  grid-column: auto;
   justify-self: start;
   color: #f8fafc;
   max-width: 100%;
@@ -2386,16 +2806,16 @@ h1 {
 .subdivisionButtons button {
   display: grid;
   gap: 1px;
-  min-height: 30px;
+  min-height: 28px;
   justify-items: center;
   align-content: center;
-  padding: 5px 8px;
+  padding: 4px 5px;
 }
 
 .subdivisionButtons button strong {
   margin: 0;
   color: #f8fafc;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .subdivisionButtons button span,
@@ -2406,20 +2826,32 @@ h1 {
   text-transform: none;
 }
 
+.subdivisionButtons button span {
+  font-size: 9px;
+}
+
+.stage2HelperText {
+  display: none;
+}
+
 .scaleDirectionPanel button {
   display: grid;
   gap: 1px;
   min-height: 30px;
   justify-items: center;
   align-content: center;
-  padding: 5px 8px;
+  padding: 4px 6px;
   border-radius: 8px;
 }
 
 .scaleDirectionPanel button strong {
   margin: 0;
   color: #f8fafc;
-  font-size: 14px;
+  font-size: 13px;
+}
+
+.scaleDirectionPanel button span {
+  font-size: 9px;
 }
 
 .repeatToggle {
@@ -2803,16 +3235,51 @@ h1 {
 
 .trainingGrid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(120px, 1fr));
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
   gap: 10px;
+  width: min(100%, 900px);
+  margin: 0 auto;
 }
 
-.tutorialCard {
+.tutorialHelpRow {
+  width: min(100%, 900px);
+  margin: -2px auto 0;
+}
+
+.tutorialHelpRow button {
+  width: 100%;
+  min-height: 54px;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  justify-content: start;
+  gap: 10px;
+  padding: 9px 13px;
+  border-color: rgba(190, 242, 100, 0.32);
+  border-radius: 12px;
   border-color: rgba(190, 242, 100, 0.36);
   background:
-    radial-gradient(circle at 14% 0%, rgba(190, 242, 100, 0.18), transparent 36%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.035)),
-    var(--panel-bg-strong);
+    linear-gradient(90deg, rgba(190, 242, 100, 0.14), rgba(94, 234, 212, 0.07), rgba(15, 23, 42, 0.72)),
+    rgba(7, 9, 15, 0.72);
+  box-shadow: var(--soft-glow);
+}
+
+.tutorialHelpRow span {
+  color: #bef264;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.tutorialHelpRow strong {
+  color: #f8fafc;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.tutorialHelpRow small {
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .inlinePlaybackControls {
@@ -2884,7 +3351,7 @@ h1 {
 }
 
 .trainingCard {
-  min-height: 142px;
+  min-height: 156px;
   display: grid;
   align-content: start;
   justify-items: start;
@@ -2956,8 +3423,6 @@ h1 {
 }
 
 .featuredCard {
-  grid-column: span 2;
-  min-height: 168px;
   border-color: rgba(190, 242, 100, 0.52);
   background:
     radial-gradient(circle at 20% 0%, rgba(190, 242, 100, 0.22), transparent 38%),
@@ -2970,7 +3435,7 @@ h1 {
 }
 
 .featuredCard strong {
-  font-size: 25px;
+  font-size: 20px;
 }
 
 .featuredCard em {
@@ -5618,11 +6083,12 @@ button.primary svg {
   }
 
   .trainingGrid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+    width: 100%;
   }
 
   .featuredCard {
-    grid-column: span 2;
+    grid-column: auto;
   }
 
   .curriculumActions {
@@ -5947,7 +6413,7 @@ button.primary svg {
 
   .chordTransitionControls,
   .chordTransitionHud,
-  .chordTransitionSide > div,
+  .chordProgressionOrderPanel,
   .chordTransitionChart {
     border-radius: 8px;
   }
@@ -5955,6 +6421,20 @@ button.primary svg {
   .chordTransitionControls,
   .chordTransitionHud {
     padding: 6px;
+  }
+
+  .chordTransitionControls {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "picker"
+      "builder"
+      "order"
+      "playback";
+    gap: 6px;
+  }
+
+  .chordTransitionControls > div:first-child {
+    display: none;
   }
 
   .chordTransitionControls strong {
@@ -5970,7 +6450,7 @@ button.primary svg {
     gap: 4px;
   }
 
-  .chordProgressionPicker button {
+  .chordProgressionPicker select {
     min-height: 28px;
     padding: 0 7px;
     font-size: 10px;
@@ -5979,6 +6459,34 @@ button.primary svg {
   .stage3ChordBuilder {
     gap: 5px;
     padding: 5px;
+  }
+
+  .chordProgressionOrderPanel {
+    gap: 7px;
+    padding: 8px;
+  }
+
+  .chordPreviewStack {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 6px;
+  }
+
+  .chordPreviewStack > span {
+    white-space: nowrap;
+  }
+
+  .chordPreviewStack > div {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .chordProgressionOrderPanel .modeHelper {
+    display: none;
+  }
+
+  .stage3PlaybackControls {
+    gap: 6px;
   }
 
   .stage3ChordBuilder .chordChipGroup {
@@ -6011,8 +6519,13 @@ button.primary svg {
   }
 
   .chordTransitionTempo {
-    grid-template-columns: auto 30px 58px auto 68px 30px;
+    grid-template-columns: auto auto 58px auto 68px;
     gap: 4px;
+  }
+
+  .bpmStepButtons {
+    grid-template-columns: repeat(2, 30px);
+    gap: 3px;
   }
 
   .chordTransitionTempo button,
@@ -6030,16 +6543,16 @@ button.primary svg {
   }
 
   .chordTransitionHud {
-    grid-template-columns: minmax(0, 1fr) minmax(92px, auto);
-    gap: 6px;
+    grid-template-columns: auto minmax(0, 1.18fr) auto;
+    gap: 5px 5px;
   }
 
   .chordTimeline {
-    grid-column: 1 / -1;
+    grid-column: 2;
   }
 
   .chordTimelineLabels strong {
-    font-size: 17px;
+    display: none;
   }
 
   .chordTimelineTrack {
@@ -6053,14 +6566,102 @@ button.primary svg {
   }
 
   .chordTimelineTrack b {
-    height: 22px;
+    width: 3px;
+    height: 24px;
   }
 
   .chordNowCard strong {
-    font-size: 30px;
+    font-size: 20px;
   }
 
-  .chordNextCard strong,
+  .chordNowCard {
+    display: grid;
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+    justify-self: start;
+    min-width: 68px;
+    text-align: left;
+  }
+
+  .chordNextCard strong {
+    font-size: 34px;
+  }
+
+  .chordNextCard {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: center;
+    justify-self: end;
+    min-width: 68px;
+    text-align: right;
+    padding-right: 0;
+  }
+
+  .mobileBeatDots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    min-height: 12px;
+    margin-top: 2px;
+  }
+
+  .mobileBeatDots span {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.42);
+  }
+
+  .mobileBeatDots span.active {
+    background: rgba(250, 204, 21, 0.95);
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.3);
+  }
+
+  .chordTransitionChart .chordGuideToggle {
+    justify-self: end;
+    align-self: center;
+    z-index: 2;
+    min-width: 0;
+    width: 74px;
+    height: 36px;
+    min-height: 36px;
+    display: grid;
+    grid-template-columns: auto auto;
+    place-items: center;
+    gap: 3px;
+    padding: 0 7px;
+    border-radius: 9px;
+    font-size: 11px;
+    opacity: 0.9;
+    place-items: center;
+  }
+
+  .chordTransitionChart .chordGuideToggle::before {
+    content: none;
+  }
+
+  .chordTransitionChart .chordGuideToggle span {
+    color: #dbeafe;
+    font-size: 11px;
+    font-weight: 950;
+  }
+
+  .chordTransitionChart .chordGuideToggle b {
+    display: inline;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #bef264;
+    font-size: 10px;
+    font-weight: 950;
+  }
+
+  .chordTransitionChart .chordGuideToggle:not(.selected) b {
+    color: #94a3b8;
+  }
+
   .chordPreviewCard strong {
     font-size: 18px;
   }
@@ -6071,20 +6672,47 @@ button.primary svg {
   }
 
   .chordTransitionChart {
-    min-height: 330px;
-  }
-
-  .chordTransitionSide {
-    gap: 6px;
-  }
-
-  .chordTransitionSide > div {
+    min-height: 290px;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 4px;
     padding: 7px;
   }
 
+  .chordTransitionChart .viewerFretboard {
+    min-height: 238px;
+    border: 0;
+    border-radius: 6px;
+    background:
+      linear-gradient(90deg, rgba(148, 163, 184, 0.05), rgba(15, 23, 42, 0.18)),
+      rgba(5, 8, 14, 0.46);
+    box-shadow: none;
+  }
+
+  .chordTransitionChart .referenceHeader {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .chordTransitionChart .referenceHeader strong {
+    margin-top: 0;
+    font-size: 14px;
+  }
+
+  .chordTransitionChart .miniFretNumbers {
+    top: 4px;
+    left: 56px;
+    right: 6px;
+  }
+
+  .chordTransitionChart .miniFretNumbers.bottom {
+    bottom: 4px;
+  }
+
   .chordPreviewStack strong {
-    padding: 5px 7px;
-    font-size: 11px;
+    padding: 6px 8px;
+    font-size: 12px;
   }
 
   .chordProgressionEmpty {
@@ -6094,6 +6722,12 @@ button.primary svg {
 
   .chordTransitionButtons {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chordTransitionButtons button {
+    min-height: 25px;
+    padding: 0 7px;
+    font-size: 10px;
   }
 
   .modeSwitch button::before {
@@ -6159,11 +6793,27 @@ button.primary svg {
   }
 
   .trainingGrid {
+    grid-template-columns: 1fr;
+    width: 100%;
     gap: 8px;
   }
 
+  .tutorialHelpRow button {
+    min-height: 46px;
+    grid-template-columns: auto auto;
+    gap: 5px 8px;
+    padding: 7px 9px;
+  }
+
+  .tutorialHelpRow small {
+    grid-column: 1 / -1;
+    font-size: 10px;
+    line-height: 1.15;
+  }
+
   .trainingCard {
-    min-height: auto;
+    width: 100%;
+    min-height: 112px;
     gap: 5px;
     padding: 10px;
     border-radius: 10px;
@@ -6562,6 +7212,32 @@ button.primary svg {
 
   .compactControlRow .inlinePlaybackControls {
     display: none;
+  }
+
+  .mobileRhythmControls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 3px;
+    width: 100%;
+  }
+
+  .mobileRhythmControls .mobileDetector {
+    display: none;
+  }
+
+  .mobileRhythmControls .playbackButtons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 4px;
+  }
+
+  .mobileRhythmControls .playbackButtons button {
+    width: auto;
+    min-height: 27px;
+    padding: 0 8px;
+    font-size: 11px;
   }
 
   .metronomePanel {
@@ -7073,9 +7749,17 @@ button.primary svg {
     gap: 5px;
   }
 
-  .chordGuideToggle {
+  .chordBuilderHeader .chordGuideToggle {
     grid-column: 1 / -1;
     justify-self: stretch;
+  }
+
+  .chordTransitionChart .chordGuideToggle {
+    justify-self: end;
+    align-self: center;
+    width: 74px;
+    height: 36px;
+    min-height: 36px;
   }
 
   .chordBuilderHeader span {
@@ -7122,6 +7806,7 @@ button.primary svg {
   }
 
   .trainingCard {
+    min-height: 108px;
     gap: 4px;
     padding: 8px;
   }
