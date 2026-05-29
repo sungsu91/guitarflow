@@ -1085,7 +1085,7 @@ const DISPLAY_NOTES = [
 ];
 
 const DEFAULT_BPM = 80;
-const MIN_BPM = 40;
+const MIN_BPM = 30;
 const MAX_BPM = 240;
 const MIN_REPEAT_COUNT = 1;
 const MAX_REPEAT_COUNT = 12;
@@ -2164,10 +2164,17 @@ function App() {
 
   const ensureAudioReady = useCallback(async () => {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
-    const audio = audioRef.current ?? (AudioContext ? new AudioContext() : null);
+    let audio = audioRef.current;
+    if (!audio || audio.state === "closed") {
+      audio = AudioContext ? new AudioContext() : null;
+      if (audio) console.log("[metronome] audio context created");
+    }
     if (!audio) return false;
     audioRef.current = audio;
-    if (audio.state === "suspended") await audio.resume();
+    if (audio.state === "suspended") {
+      await audio.resume();
+      console.log("[metronome] audio context resumed");
+    }
     return audio.state === "running";
   }, []);
 
@@ -2193,6 +2200,7 @@ function App() {
     oscillator.connect(gain);
     gain.connect(audio.destination);
     oscillator.start(audio.currentTime);
+    console.log("[metronome] tick played");
     oscillator.stop(audio.currentTime + 0.06);
   }, []);
 
@@ -2351,7 +2359,7 @@ function App() {
       if (!sequence?.length || !noteList?.length) return;
       if (!practiceLoopRef.current && patternRef.current >= sequence.length) {
         setFeedback("Complete");
-        setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
+        setState(GAME_STATES.IDLE);
         return;
       }
 
@@ -2589,18 +2597,6 @@ function App() {
       }
 
       if (
-        appModeRef.current === APP_MODES.PRACTICE &&
-        gameStateRef.current === GAME_STATES.PLAYING &&
-        gameNote &&
-        stableGameNoteRef.current.count >= (isMobileLayoutRef.current ? 1 : 2)
-      ) {
-        if (LEGACY_PRACTICE_RENDERING_ENABLED || selectedCategory.id === "rhythm") {
-          judgeNote(gameNote.pitch);
-        } else {
-          judgeReferenceNote(gameNote.pitch);
-        }
-      }
-      if (
         appModeRef.current === APP_MODES.SHOOTER &&
         gameStateRef.current === GAME_STATES.PLAYING &&
         gameNote &&
@@ -2609,7 +2605,7 @@ function App() {
         judgeShooterNote(gameNote.pitch);
       }
     },
-    [judgeNote, judgeReferenceNote, judgeShooterNote, selectedCategory.id],
+    [judgeShooterNote],
   );
 
   const runGameFrame = useCallback(
@@ -2689,7 +2685,7 @@ function App() {
 
       if (practiceCompletedRef.current && enemiesRef.current.length === 0) {
         setFeedback("Complete");
-        setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
+        setState(GAME_STATES.IDLE);
       }
     },
     [flashStage, playTick, setState, showLaneFeedback, spawnEnemy],
@@ -2718,7 +2714,7 @@ function App() {
       if (!practiceLoopRef.current && patternRef.current >= sequence.length - 1) {
         practiceCompletedRef.current = true;
         setFeedback("Complete");
-        setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
+        setState(GAME_STATES.IDLE);
         return;
       }
 
@@ -2844,8 +2840,32 @@ function App() {
     [readMicrophone, runChordTransitionFrame, runGameFrame, runReferenceTrainingFrame, runShooterFrame, selectedCategory.id],
   );
 
+  const stopMic = useCallback(() => {
+    if (sourceRef.current) {
+      try {
+        sourceRef.current.disconnect();
+      } catch {
+        // The source may already be disconnected by the browser.
+      }
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      console.log("[mic] stream stopped");
+    }
+    sourceRef.current = null;
+    analyserRef.current = null;
+    bufferRef.current = null;
+    streamRef.current = null;
+    setSignalLevel(0);
+    setDetected(null);
+    setDetectedPitch(null);
+    setMicStatus("No Signal");
+  }, []);
+
   const startMic = useCallback(async () => {
+    if (appModeRef.current !== APP_MODES.SHOOTER) return false;
     try {
+      console.log("[mic] permission requested");
       setMicStatus("Mic Connected");
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -2856,13 +2876,22 @@ function App() {
       });
 
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      const audio = audioRef.current ?? new AudioContext();
-      await audio.resume();
+      if (!AudioContext) throw new Error("Web Audio API is not supported.");
+      let audio = audioRef.current;
+      if (!audio || audio.state === "closed") audio = new AudioContext();
+      if (audio.state === "suspended") await audio.resume();
 
       const analyser = audio.createAnalyser();
       analyser.fftSize = 4096;
       analyser.smoothingTimeConstant = 0;
 
+      if (sourceRef.current) {
+        try {
+          sourceRef.current.disconnect();
+        } catch {
+          // The source may already be disconnected by the browser.
+        }
+      }
       streamRef.current?.getTracks().forEach((track) => track.stop());
       const source = audio.createMediaStreamSource(stream);
       source.connect(analyser);
@@ -2873,6 +2902,7 @@ function App() {
       analyserRef.current = analyser;
       bufferRef.current = new Float32Array(analyser.fftSize);
       setMicStatus("Mic Connected");
+      console.log("[mic] stream active");
       if (gameStateRef.current === GAME_STATES.IDLE) setState(GAME_STATES.LISTENING);
       return true;
     } catch (error) {
@@ -2884,6 +2914,7 @@ function App() {
   }, [setState]);
 
   const startPractice = useCallback(async (category = selectedCategory) => {
+    console.log("[metronome] start clicked");
     const safeCategory = getPlayableCategory(category);
     if (!ACTIVE_PRACTICE_CATEGORY_IDS.has(safeCategory.id)) {
       setSelectedCategoryId(DEFAULT_CATEGORY.id);
@@ -2913,8 +2944,6 @@ function App() {
       lastFrameRef.current = performance.now();
       return;
     }
-    const microphoneReady = streamRef.current || (await startMic());
-    if (!microphoneReady) return;
     await ensureAudioReady();
 
     const sequence = getPracticeSequence(safeCategory);
@@ -2924,11 +2953,17 @@ function App() {
     setAppMode(APP_MODES.PRACTICE);
     setSelectedCategoryId(safeCategory.id);
     resetScore();
+    gameTimeRef.current = 0;
+    lastBeatRef.current = -1;
+    patternRef.current = 0;
+    practiceCompletedRef.current = false;
+    setBeat(0);
+    setStage3MeasureProgress(0);
     practiceLoopRef.current = shouldLoopPractice(safeCategory, repeatPractice);
     setFeedback("Listen and play");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
-  }, [ensureAudioReady, getPlayableCategory, getPracticeSequence, repeatPractice, resetScore, selectedCategory, setState, startMic]);
+  }, [ensureAudioReady, getPlayableCategory, getPracticeSequence, repeatPractice, resetScore, selectedCategory, setState]);
 
   const enterPracticePreview = useCallback((category = selectedCategory) => {
     const safeCategory = getPlayableCategory(category);
@@ -2958,14 +2993,13 @@ function App() {
     setBeat(0);
     if (safeCategory.id === "rhythm") setChordPracticeIndex(0);
     setFeedback("Ready");
-    setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
+    setState(GAME_STATES.IDLE);
     lastFrameRef.current = performance.now();
   }, [getPlayableCategory, getPracticeSequence, repeatPractice, resetScore, selectedCategory, setState]);
 
   const startShooter = useCallback(async (category = SHOOTER_DEFAULT_CATEGORY) => {
+    console.log("[metronome] start clicked");
     const safeCategory = normalizePracticeCategory(category);
-    const microphoneReady = streamRef.current || (await startMic());
-    if (!microphoneReady) return;
     await ensureAudioReady();
 
     activeNotesRef.current = getShooterTrainingNotes(safeCategory, selectedPentatonic);
@@ -2986,7 +3020,13 @@ function App() {
     setFeedback("Start Shooter");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
-  }, [ensureAudioReady, getPracticeSequence, resetScore, selectedPentatonic, setState, spawnShooterTarget, startMic]);
+  }, [ensureAudioReady, getPracticeSequence, resetScore, selectedPentatonic, setState, spawnShooterTarget]);
+
+  const startShooterMic = useCallback(async () => {
+    appModeRef.current = APP_MODES.SHOOTER;
+    setAppMode(APP_MODES.SHOOTER);
+    await startMic();
+  }, [startMic]);
 
   const pauseGame = useCallback(() => {
     if (gameStateRef.current !== GAME_STATES.PLAYING) return;
@@ -2996,6 +3036,7 @@ function App() {
 
   const resumeGame = useCallback(async () => {
     if (gameStateRef.current !== GAME_STATES.PAUSED) return;
+    console.log("[metronome] start clicked");
     await ensureAudioReady();
     lastFrameRef.current = performance.now();
     setState(GAME_STATES.PLAYING);
@@ -3003,8 +3044,7 @@ function App() {
   }, [ensureAudioReady, setState]);
 
   const restartGame = useCallback(async () => {
-    const microphoneReady = streamRef.current || (await startMic());
-    if (!microphoneReady) return;
+    console.log("[metronome] start clicked");
     await ensureAudioReady();
     const safeCategory = getPlayableCategory(selectedCategory);
     const sequence = getPracticeSequence(safeCategory);
@@ -3030,7 +3070,7 @@ function App() {
     setFeedback(modeToRestart === APP_MODES.SHOOTER ? "Shoot the notes" : "Restart Practice");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
-  }, [ensureAudioReady, getPlayableCategory, getPracticeSequence, repeatPractice, resetScore, selectedCategory, selectedPentatonic, setState, spawnShooterTarget, startMic]);
+  }, [ensureAudioReady, getPlayableCategory, getPracticeSequence, repeatPractice, resetScore, selectedCategory, selectedPentatonic, setState, spawnShooterTarget]);
 
   const changeNoteSpeed = useCallback((speed) => {
     if (speed.disabled) return;
@@ -3179,10 +3219,11 @@ function App() {
     setIsHitWindowActive(false);
     setBeat(0);
     setFeedback("Ready");
-    setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
+    setState(GAME_STATES.IDLE);
   }, [setState]);
 
   const showMainMenu = useCallback(() => {
+    stopMic();
     appModeRef.current = APP_MODES.MENU;
     setAppMode(APP_MODES.MENU);
     enemiesRef.current = [];
@@ -3197,10 +3238,11 @@ function App() {
     setIsHitWindowActive(false);
     setBeat(0);
     setFeedback("Ready");
-    setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
-  }, [setState]);
+    setState(GAME_STATES.IDLE);
+  }, [setState, stopMic]);
 
   const showCurriculum = useCallback(() => {
+    stopMic();
     appModeRef.current = APP_MODES.CURRICULUM;
     setAppMode(APP_MODES.CURRICULUM);
     setSelectedCategoryId(MAIN_DEFAULT_CATEGORY.id);
@@ -3208,8 +3250,8 @@ function App() {
     setEnemies([]);
     setBeat(0);
     setFeedback("Choose a practice card");
-    setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
-  }, [setState]);
+    setState(GAME_STATES.IDLE);
+  }, [setState, stopMic]);
 
   const showShooterMode = useCallback(() => {
     appModeRef.current = APP_MODES.SHOOTER;
@@ -3235,6 +3277,7 @@ function App() {
   }, [setState]);
 
   const showFretboardViewer = useCallback(() => {
+    stopMic();
     appModeRef.current = APP_MODES.FRETBOARD_VIEWER;
     setAppMode(APP_MODES.FRETBOARD_VIEWER);
     enemiesRef.current = [];
@@ -3249,8 +3292,8 @@ function App() {
     setIsHitWindowActive(false);
     setBeat(0);
     setFeedback("Ready");
-    setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
-  }, [setState]);
+    setState(GAME_STATES.IDLE);
+  }, [setState, stopMic]);
 
   useEffect(() => {
     gameStateRef.current = gameState;
@@ -3276,6 +3319,7 @@ function App() {
 
     const applyHashRoute = () => {
       const route = getRouteFromHash(window.location.hash);
+      if (route.appMode !== APP_MODES.SHOOTER) stopMic();
       const routeChanged =
         route.appMode !== appModeRef.current ||
         route.categoryId !== selectedCategoryIdRef.current;
@@ -3295,12 +3339,12 @@ function App() {
       setHitZoneNote(null);
       setIsHitWindowActive(false);
       setBeat(0);
-      setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
+      setState(route.appMode === APP_MODES.SHOOTER && streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
     };
 
     window.addEventListener("hashchange", applyHashRoute);
     return () => window.removeEventListener("hashchange", applyHashRoute);
-  }, [setState]);
+  }, [setState, stopMic]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -3407,8 +3451,21 @@ function App() {
     return () => {
       cancelAnimationFrame(rafRef.current);
       window.clearTimeout(flashTimerRef.current);
-      streamRef.current?.getTracks().forEach((track) => track.stop());
-      audioRef.current?.close();
+      if (sourceRef.current) {
+        try {
+          sourceRef.current.disconnect();
+        } catch {
+          // The source may already be disconnected by the browser.
+        }
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        console.log("[mic] stream stopped");
+      }
+      sourceRef.current = null;
+      analyserRef.current = null;
+      bufferRef.current = null;
+      streamRef.current = null;
     };
   }, [animationLoop]);
 
@@ -3724,10 +3781,6 @@ function App() {
             >
               <Play size={18} />
               {selectedCategory.unavailable ? "준비중" : "접속"}
-            </button>
-            <button onClick={startMic} type="button">
-              <Mic size={18} />
-              마이크
             </button>
           </div>
         </section>
@@ -4200,6 +4253,14 @@ function App() {
               type="button"
             >
               {showShooterFretGuide ? "숨기기" : "보이기"}
+            </button>
+            <button
+              className={`shooterMicButton ${streamRef.current ? "selected" : ""}`}
+              onClick={startShooterMic}
+              type="button"
+            >
+              <Mic size={15} />
+              {streamRef.current ? "마이크 연결" : "마이크 시작"}
             </button>
           </div>
 
@@ -5063,19 +5124,6 @@ function App() {
           </div>
 
           <div className="inlinePlaybackControls compactControls">
-            <div className={`detector ${isSignalActive ? "active" : ""}`}>
-              <Radio size={20} />
-              <div>
-                <span>감지음</span>
-                <strong>{detected ? detected.pitch : "--"}</strong>
-              </div>
-              <small>
-                {detectedPitch
-                  ? `${detectedPitch.frequency.toFixed(1)} Hz / ${detected?.cents ?? 0} cents`
-                  : "신호를 기다리는 중"}
-              </small>
-            </div>
-
             <div className="buttons playbackButtons">
               <button className="primary" onClick={() => startPractice(selectedCategory)} type="button">
                 <Play size={18} />
@@ -5092,10 +5140,6 @@ function App() {
               <button onClick={stopPracticeSession} type="button">
                 <Square size={18} />
                 정지
-              </button>
-              <button onClick={startMic} type="button">
-                <Mic size={18} />
-                마이크
               </button>
             </div>
           </div>
@@ -5495,10 +5539,6 @@ function App() {
                 <Square size={18} />
                 정지
               </button>
-              <button onClick={startMic} type="button">
-                <Mic size={18} />
-                마이크
-              </button>
             </>
           )}
 
@@ -5507,6 +5547,14 @@ function App() {
               <button className="primary" onClick={() => startShooter()} type="button">
                 <Play size={18} />
                 시작
+              </button>
+              <button
+                className={streamRef.current ? "selected" : ""}
+                onClick={startShooterMic}
+                type="button"
+              >
+                <Mic size={18} />
+                {streamRef.current ? "마이크 연결" : "마이크 시작"}
               </button>
               <button
                 onClick={gameState === GAME_STATES.PAUSED ? resumeGame : pauseGame}
