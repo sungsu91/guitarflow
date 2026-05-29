@@ -14869,3 +14869,43 @@ button.primary svg {
     font-size: 9px;
   }
 }
+
+/* Stage1/2/Tutorial parent layout: do not squeeze the BPM row into one grid cell. */
+.referenceTrainingActions.buttons.playbackButtons > .referenceBpmControl.metronomeControl {
+  grid-column: 1 / -1;
+  order: 0;
+  flex: 1 1 100%;
+  width: 100%;
+  max-width: 100%;
+}
+
+.referenceTrainingActions.buttons.playbackButtons > .referenceBpmControl .metronomeTopLine {
+  justify-content: flex-start;
+}
+
+.referenceTrainingActions.buttons.playbackButtons > .referenceBpmControl .metronomeToggleRow {
+  display: contents;
+}
+
+.referenceTrainingActions.buttons.playbackButtons > .referenceBpmControl .metronomeToggleRow button {
+  order: 3;
+}
+
+.referenceTrainingActions.buttons.playbackButtons > button:not(.metronomeBpmStep) {
+  order: 4;
+}
+
+@media (max-width: 430px) {
+  .referenceTrainingActions.buttons.playbackButtons > .referenceBpmControl .metronomeBpmInputShell {
+    width: 78px;
+    min-width: 78px;
+    max-width: 78px;
+    grid-template-columns: 54px 24px;
+  }
+
+  .referenceTrainingActions.buttons.playbackButtons > .referenceBpmControl .metronomeBpmInputShell input {
+    width: 54px;
+    min-width: 54px;
+    max-width: 54px;
+  }
+}
