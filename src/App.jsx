@@ -9,6 +9,7 @@ import {
   Sparkles,
   Volume2,
 } from "lucide-react";
+import Fretboard from "./components/Fretboard";
 
 const CHROMATIC_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const NOTE_INDEX = Object.fromEntries(CHROMATIC_NOTES.map((note, index) => [note, index]));
@@ -924,6 +925,86 @@ function getChordByDisplayName(name) {
   return CHORD_VIEW_OPTIONS.find((chord) => chord.displayName === normalized) ?? null;
 }
 
+const CAGED_MAJOR_FORMS_FROM_C = {
+  position2: {
+    frets: [
+      { stringNumber: 5, fret: 3 },
+      { stringNumber: 4, fret: 5 },
+      { stringNumber: 3, fret: 5 },
+      { stringNumber: 2, fret: 5 },
+      { stringNumber: 1, fret: 3 },
+    ],
+    barres: [{ fret: 3, fromString: 5, toString: 1, label: "1" }],
+  },
+  position3: {
+    frets: [
+      { stringNumber: 6, fret: 8 },
+      { stringNumber: 5, fret: 7 },
+      { stringNumber: 4, fret: 5 },
+      { stringNumber: 3, fret: 5 },
+      { stringNumber: 2, fret: 5 },
+      { stringNumber: 1, fret: 8 },
+    ],
+    barres: [{ fret: 5, fromString: 4, toString: 2, label: "1" }],
+  },
+  position4: {
+    frets: [
+      { stringNumber: 6, fret: 8 },
+      { stringNumber: 5, fret: 10 },
+      { stringNumber: 4, fret: 10 },
+      { stringNumber: 3, fret: 9 },
+      { stringNumber: 2, fret: 8 },
+      { stringNumber: 1, fret: 8 },
+    ],
+    barres: [{ fret: 8, fromString: 6, toString: 1, label: "1" }],
+  },
+  position5: {
+    frets: [
+      { stringNumber: 4, fret: 10 },
+      { stringNumber: 3, fret: 12 },
+      { stringNumber: 2, fret: 13 },
+      { stringNumber: 1, fret: 12 },
+    ],
+    barres: [],
+  },
+};
+
+function buildCagedMajorChordPosition(root, positionId) {
+  const form = CAGED_MAJOR_FORMS_FROM_C[positionId];
+  const rootOffset = NOTE_INDEX[root] - NOTE_INDEX.C;
+  if (!form || !Number.isFinite(rootOffset)) return null;
+  const notes = form.frets.map((item, index) => {
+    const stringInfo = STANDARD_TUNING.find((string) => string.stringNumber === item.stringNumber);
+    const fretNumber = item.fret + rootOffset;
+    if (!stringInfo || fretNumber < 0) return null;
+    const pitch = midiToPitch(pitchToMidi(stringInfo.pitch) + fretNumber);
+    const noteName = getPitchClass(pitch);
+    return {
+      id: `caged-${root}-${positionId}-${item.stringNumber}-${fretNumber}-${index}`,
+      stringNumber: item.stringNumber,
+      fretNumber,
+      pitch,
+      noteName,
+      label: getChordDisplayNoteName(noteName),
+      finger: item.finger ?? null,
+      isRoot: noteName === root,
+    };
+  }).filter(Boolean);
+  if (!notes.length) return null;
+  const playedStrings = new Set(notes.map((note) => note.stringNumber));
+  const stringStates = Object.fromEntries(
+    [1, 2, 3, 4, 5, 6]
+      .filter((stringNumber) => !playedStrings.has(stringNumber))
+      .map((stringNumber) => [stringNumber, "x"]),
+  );
+  return {
+    id: `${root}-${positionId}`,
+    notes,
+    barres: form.barres.map((barre) => ({ ...barre, fret: barre.fret + rootOffset })),
+    stringStates,
+  };
+}
+
 function getChordLookupRoot(baseRoot, accidental = "natural") {
   if (accidental === "sharp") return CHORD_SHARP_ROOTS[baseRoot] ?? `${baseRoot}#`;
   if (accidental === "flat") return CHORD_FLAT_ROOTS[baseRoot] ?? `${baseRoot}b`;
@@ -978,74 +1059,238 @@ function getChordEntryLabel(entry, chord) {
   return entry?.label ?? chord?.displayName ?? entry?.id ?? "";
 }
 
-function MetronomeControl({ bpm, className = "", inputId = "metronome-bpm-presets", onBpmChange }) {
+function getCompactFretRange(notes = [], barres = [], fallback = [0, 3]) {
+  const frets = [
+    ...notes.map((note) => Number(note.fretNumber ?? note.fret)),
+    ...barres.map((barre) => Number(barre.fret)),
+  ].filter((fret) => Number.isFinite(fret) && fret > 0);
+  if (!frets.length) return fallback;
+  const min = Math.min(...frets);
+  const max = Math.max(...frets);
+  if (min <= 3) return [0, Math.max(3, max)];
+  return [Math.max(0, min - 1), Math.max(max, min + 3)];
+}
+
+const TIME_SIGNATURE_OPTIONS = [
+  { id: "2/4", label: "2/4", beats: 2 },
+  { id: "3/4", label: "3/4", beats: 3 },
+  { id: "4/4", label: "4/4", beats: 4 },
+  { id: "6/8", label: "6/8", beats: 6 },
+];
+
+const SUBDIVISION_OPTIONS = [
+  { id: "quarter", label: "1박 1클릭", clicksPerBeat: 1 },
+  { id: "eighth", label: "1박 2클릭", clicksPerBeat: 2 },
+  { id: "sixteenth", label: "1박 4클릭", clicksPerBeat: 4 },
+];
+
+const METRONOME_TONE_OPTIONS = [
+  { id: "tick", label: "Tick" },
+  { id: "stick", label: "Stick", src: "/sounds/stick.wav" },
+  { id: "snare", label: "Snare", src: "/sounds/snare.wav" },
+  { id: "kick", label: "Kick", src: "/sounds/kick.wav" },
+  { id: "hihat", label: "Hi-Hat", src: "/sounds/hihat.wav" },
+  { id: "cowbell", label: "Cowbell", src: "/sounds/cowbell.wav" },
+  { id: "clap", label: "Clap", src: "/sounds/clap.wav" },
+];
+
+function getTimeSignatureOption(id) {
+  return TIME_SIGNATURE_OPTIONS.find((option) => option.id === id) ?? TIME_SIGNATURE_OPTIONS[2];
+}
+
+function getSubdivisionOption(id) {
+  return SUBDIVISION_OPTIONS.find((option) => option.id === id) ?? SUBDIVISION_OPTIONS[0];
+}
+
+function getMetronomeToneOption(id) {
+  return METRONOME_TONE_OPTIONS.find((option) => option.id === id) ?? METRONOME_TONE_OPTIONS[0];
+}
+
+function MetronomeSelectControl({ label, options, value, onChange }) {
+  return (
+    <label className="metronomeSelectControl">
+      <span>{label}</span>
+      <select onChange={(event) => onChange(event.target.value)} value={value}>
+        {options.map((option) => (
+          <option key={option.id} value={option.id}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function MetronomeControl({
+  accentEnabled = true,
+  bpm,
+  className = "",
+  countInEnabled = false,
+  inputId = "metronome-bpm-presets",
+  onAccentChange = () => {},
+  onBpmChange,
+  onCountInChange = () => {},
+  onSubdivisionChange = () => {},
+  onTimeSignatureChange = () => {},
+  onToneChange = () => {},
+  onVolumeChange = () => {},
+  subdivision = "quarter",
+  timeSignature = "4/4",
+  tone = "tick",
+  volume = 0.72,
+}) {
   const [draftBpm, setDraftBpm] = useState(String(bpm));
 
   useEffect(() => {
     setDraftBpm(String(bpm));
   }, [bpm]);
 
-  const commitBpm = useCallback((value) => {
+  const applyBpmValue = useCallback((value) => {
     const parsed = Number(value);
     if (!Number.isFinite(parsed) || value === "") {
       setDraftBpm(String(bpm || DEFAULT_BPM));
-      return;
+      return bpm || DEFAULT_BPM;
     }
     const next = Math.min(MAX_BPM, Math.max(MIN_BPM, Math.round(parsed)));
     setDraftBpm(String(next));
     onBpmChange(next);
+    return next;
   }, [bpm, onBpmChange]);
 
+  const commitBpm = useCallback((value) => {
+    applyBpmValue(value);
+  }, [applyBpmValue]);
+
+  const applyBpmPreset = useCallback((value) => {
+    applyBpmValue(value);
+  }, [applyBpmValue]);
+
+  const handleBpmKeyDown = useCallback((event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    commitBpm(draftBpm);
+    event.currentTarget.blur();
+  }, [commitBpm, draftBpm]);
+
+  const stepBpm = useCallback((amount) => {
+    const parsed = Number(draftBpm);
+    const base = Number.isFinite(parsed) && draftBpm !== "" ? parsed : bpm || DEFAULT_BPM;
+    applyBpmValue(base + amount);
+  }, [applyBpmValue, bpm, draftBpm]);
+
+  const applyNextBpmPreset = useCallback(() => {
+    const current = Number(bpm) || DEFAULT_BPM;
+    const nextPreset = BPM_PRESETS.find((preset) => preset > current) ?? BPM_PRESETS[0];
+    applyBpmPreset(nextPreset);
+  }, [applyBpmPreset, bpm]);
+
   return (
-    <label className={`metronomeControl ${className}`}>
-      <span>BPM</span>
-      <div className="metronomeBpmCombo">
-        <input
-          aria-label="BPM"
-          inputMode="numeric"
-          max={MAX_BPM}
-          min={MIN_BPM}
-          onBlur={() => commitBpm(draftBpm)}
-          onChange={(event) => {
-            const nextValue = event.target.value.replace(/\D/g, "");
-            setDraftBpm(nextValue);
-            if (nextValue === "") return;
-            const nextNumber = Number(nextValue);
-            if (nextNumber > MAX_BPM) {
-              setDraftBpm(String(MAX_BPM));
-              onBpmChange(MAX_BPM);
-              return;
-            }
-            if (nextNumber >= MIN_BPM) onBpmChange(nextNumber);
-          }}
-          pattern="[0-9]*"
-          type="text"
-          value={draftBpm}
-        />
-        <select
-          aria-label="BPM 프리셋 선택"
-          onChange={(event) => {
-            if (!event.target.value) return;
-            commitBpm(event.target.value);
-          }}
-          value={BPM_PRESETS.includes(bpm) ? bpm : ""}
-        >
-          <option value="">직접</option>
-          {BPM_PRESETS.map((preset) => (
-            <option key={preset} value={preset}>{preset}</option>
-          ))}
-        </select>
+    <div className={`metronomeControl ${className}`}>
+      <div className="metronomeTopLine">
+        <label className="metronomeBpmLabel" htmlFor={`${inputId}-input`}>BPM</label>
+        <div className="metronomeBpmCombo">
+          <div className="metronomeBpmInputShell">
+            <input
+              aria-label="BPM"
+              id={`${inputId}-input`}
+              inputMode="numeric"
+              max={MAX_BPM}
+              min={MIN_BPM}
+              onBlur={() => commitBpm(draftBpm)}
+              onFocus={(event) => event.target.select()}
+              onChange={(event) => {
+                const nextValue = event.target.value.replace(/[^\d]/g, "");
+                setDraftBpm(nextValue);
+              }}
+              onKeyDown={handleBpmKeyDown}
+              pattern="[0-9]*"
+              step="1"
+              type="number"
+              value={draftBpm}
+            />
+            <div className="metronomeBpmSpinner" aria-label="BPM 미세 조절">
+              <button aria-label="BPM 1 올리기" className="metronomeBpmStep" onClick={() => stepBpm(1)} type="button">
+                +
+              </button>
+              <button aria-label="BPM 1 낮추기" className="metronomeBpmStep" onClick={() => stepBpm(-1)} type="button">
+                -
+              </button>
+            </div>
+          </div>
+          <button
+            aria-label="BPM 빠른 선택"
+            className="metronomeBpmPresetSelect"
+            onClick={applyNextBpmPreset}
+            type="button"
+          >
+            빠른선택
+          </button>
+        </div>
+        <div className="metronomeToggleRow">
+          <button
+            aria-pressed={accentEnabled}
+            className={accentEnabled ? "selected" : ""}
+            onClick={() => onAccentChange(!accentEnabled)}
+            type="button"
+          >
+            강박 {accentEnabled ? "ON" : "OFF"}
+          </button>
+          <button
+            aria-pressed={countInEnabled}
+            className={countInEnabled ? "selected" : ""}
+            onClick={() => onCountInChange(!countInEnabled)}
+            type="button"
+          >
+            카운트인 {countInEnabled ? "ON" : "OFF"}
+          </button>
+        </div>
       </div>
-    </label>
+      <div className="metronomeOptions">
+        <MetronomeSelectControl
+          label="박자"
+          onChange={onTimeSignatureChange}
+          options={TIME_SIGNATURE_OPTIONS}
+          value={timeSignature}
+        />
+        <MetronomeSelectControl
+          label="세분"
+          onChange={onSubdivisionChange}
+          options={SUBDIVISION_OPTIONS}
+          value={subdivision}
+        />
+        <MetronomeSelectControl
+          label="음색"
+          onChange={onToneChange}
+          options={METRONOME_TONE_OPTIONS}
+          value={tone}
+        />
+      </div>
+      <label className="metronomeVolumeControl">
+        <span>볼륨</span>
+        <input
+          aria-label="메트로놈 볼륨"
+          max="1"
+          min="0"
+          onChange={(event) => onVolumeChange(Number(event.target.value))}
+          step="0.01"
+          type="range"
+          value={volume}
+        />
+        <strong>{Math.round(volume * 100)}%</strong>
+      </label>
+    </div>
   );
 }
 
-function MetronomeTimeline({ beat, currentLabel, isPlaying, progress, runnerLabel }) {
+function MetronomeTimeline({ beat, beatsPerMeasure = 4, currentLabel, isPlaying, progress, runnerLabel, timeSignature = "4/4" }) {
+  const markers = Array.from({ length: Math.max(0, beatsPerMeasure - 1) }, (_, index) => index + 1);
+  const dots = Array.from({ length: beatsPerMeasure }, (_, index) => index);
+
   return (
-    <div className="chordTimeline metronomeTimeline" aria-label="4박 메트로놈 진행">
+    <div className="chordTimeline metronomeTimeline" aria-label={`${timeSignature} 메트로놈 진행`}>
       <div className="chordTimelineLabels">
         <strong>{currentLabel}</strong>
-        <span>4박 진행</span>
+        <span>{timeSignature} 진행</span>
       </div>
       <div className="chordTimelineTrack">
         <span
@@ -1058,16 +1303,16 @@ function MetronomeTimeline({ beat, currentLabel, isPlaying, progress, runnerLabe
         >
           {runnerLabel ?? currentLabel}
         </i>
-        {[1, 2, 3].map((beatNumber) => (
+        {markers.map((beatNumber) => (
           <b
-            className={beat + 1 === beatNumber && isPlaying ? "active" : ""}
+            className={beat === beatNumber && isPlaying ? "active" : ""}
             key={beatNumber}
-            style={{ left: `${beatNumber * 25}%` }}
+            style={{ left: `${(beatNumber / beatsPerMeasure) * 100}%` }}
           />
         ))}
       </div>
       <div className="mobileBeatDots" aria-hidden="true">
-        {[0, 1, 2, 3].map((beatNumber) => (
+        {dots.map((beatNumber) => (
           <span
             className={beat === beatNumber && isPlaying ? "active" : ""}
             key={beatNumber}
@@ -1128,7 +1373,7 @@ const JUDGMENT_MODES = {
 };
 const POSITION_MODE_WARNING =
   "같은 음은 다른 위치에도 있을 수 있어요. 이 모드는 표시된 위치로 연습하는 것을 권장합니다.";
-const BPM_PRESETS = [30, 40, 60, 80, 100, 120];
+const BPM_PRESETS = [40, 60, 80, 100, 120];
 const PENTATONIC_FRETS = [5, 6, 7, 8, 9, 10, 11, 12];
 const SCALE_ASCENDING = ["A2", "C3", "D3", "E3", "G3", "A3", "C4", "D4", "E4", "G4", "A4", "C5"];
 const FIRST_POSITION_ASCENDING_SEQUENCE = [
@@ -1169,8 +1414,8 @@ const FIRST_POSITION_SEQUENCE_GROUPS = [
 const LEGACY_PRACTICE_CATEGORIES = [
   {
     id: "open",
-    title: "튜토리얼",
-    subtitle: "간단 개방현 연습",
+    title: "사용법 익히기",
+    subtitle: "개방현과 지판 표시를 확인해요",
     notes: OPEN_STRING_NOTES,
     sequence: ["E2", "A2", "D3", "G3", "B3", "E4"],
     modeLabel: "개방현",
@@ -1180,8 +1425,8 @@ const LEGACY_PRACTICE_CATEGORIES = [
   },
   {
     id: "first-position",
-    title: "1~3F 포지션 트레이닝",
-    subtitle: "개방현과 1~3프렛 기본 음정 연습",
+    title: "저포지션 기본",
+    subtitle: "낮은 프렛 단음 훈련",
     notes: FIRST_POSITION_NOTES,
     sequence: FIRST_POSITION_SEQUENCE,
     modeLabel: "Low Position",
@@ -1190,8 +1435,8 @@ const LEGACY_PRACTICE_CATEGORIES = [
   },
   {
     id: "scale-block",
-    title: "포지션 기반 지판 훈련",
-    subtitle: "포지션, 스케일, 펜타토닉 박스 연습",
+    title: "스케일 · 펜타토닉",
+    subtitle: "박스/스케일 위치 훈련",
     notes: NOTES,
     sequence: SCALE_ASCENDING,
     modeLabel: "Box Pattern",
@@ -1201,22 +1446,22 @@ const LEGACY_PRACTICE_CATEGORIES = [
   },
   {
     id: "rhythm",
-    title: "리듬훈련",
-    subtitle: "코드 전환 타이밍 연습",
+    title: "리듬 · 코드 전환",
+    subtitle: "메트로놈 기반 전환 훈련",
     notes: OPEN_STRING_NOTES,
     sequence: ["E2", "E2", "A2", "A2", "D3", "D3", "G3", "B3", "E4"],
-    modeLabel: "Chord Rhythm",
+    modeLabel: "핵심 리듬",
     judgmentMode: JUDGMENT_MODES.PITCH.id,
     loop: true,
     stageLabel: "3단계",
   },
   {
     id: "melody",
-    title: "멜로디 간격 훈련",
-    subtitle: "음정 간격을 익히는 연결 훈련",
+    title: "준비 중",
+    subtitle: "다음 훈련 모드 준비 중",
     notes: FIRST_POSITION_NOTES,
     sequence: ["E2", "G2", "A2", "B2", "C3", "B2", "A2", "G2", "E2"],
-    modeLabel: "Interval",
+    modeLabel: "미구현",
     judgmentMode: JUDGMENT_MODES.PITCH.id,
     loop: true,
     unavailable: true,
@@ -1253,6 +1498,7 @@ const APP_MODES = {
   MENU: "menu",
   CURRICULUM: "curriculum",
   PRACTICE: "practice",
+  METRONOME: "metronome",
   SHOOTER: "shooter",
   FRETBOARD_VIEWER: "fretboard-viewer",
 };
@@ -1266,6 +1512,7 @@ const APP_ROUTES = {
   STAGE2: "#stage2",
   STAGE3: "#stage3",
   STAGE4: "#stage4",
+  METRONOME: "#metronome",
   SHOOTER: "#shooter",
 };
 
@@ -1286,6 +1533,8 @@ function getRouteFromHash(hash) {
       return { appMode: APP_MODES.PRACTICE, categoryId: "rhythm" };
     case APP_ROUTES.STAGE4:
       return { appMode: APP_MODES.PRACTICE, categoryId: "melody" };
+    case APP_ROUTES.METRONOME:
+      return { appMode: APP_MODES.METRONOME, categoryId: MAIN_DEFAULT_CATEGORY.id };
     case APP_ROUTES.SHOOTER:
       return { appMode: APP_MODES.SHOOTER, categoryId: MAIN_DEFAULT_CATEGORY.id };
     case APP_ROUTES.MAIN:
@@ -1297,6 +1546,7 @@ function getRouteFromHash(hash) {
 function getHashFromRoute(appMode, categoryId = MAIN_DEFAULT_CATEGORY.id) {
   if (appMode === APP_MODES.FRETBOARD_VIEWER) return APP_ROUTES.FRETBOARD_VIEWER;
   if (appMode === APP_MODES.CURRICULUM) return APP_ROUTES.CURRICULUM;
+  if (appMode === APP_MODES.METRONOME) return APP_ROUTES.METRONOME;
   if (appMode === APP_MODES.SHOOTER) return APP_ROUTES.SHOOTER;
   if (appMode === APP_MODES.PRACTICE && categoryId === "open") return APP_ROUTES.TUTORIAL;
   if (appMode === APP_MODES.PRACTICE && categoryId === "first-position") return APP_ROUTES.STAGE1;
@@ -1312,9 +1562,26 @@ function getInitialAppRoute() {
 }
 
 const FRETBOARD_VIEWER_MODES = {
+  NOTE: "note",
   SCALE: "scale",
   CHORD: "chord",
+  INFO: "info",
 };
+const CHORD_VIEWER_POSITIONS = [
+  { id: "position1", label: "1구간" },
+  { id: "position2", label: "2구간" },
+  { id: "position3", label: "3구간" },
+  { id: "position4", label: "4구간" },
+  { id: "position5", label: "5구간" },
+];
+const NOTE_VIEWER_POSITIONS = [
+  { id: "position1", label: "1구간", range: [0, 3] },
+  { id: "position2", label: "2구간", range: [4, 6] },
+  { id: "position3", label: "3구간", range: [7, 9] },
+  { id: "position4", label: "4구간", range: [10, 12] },
+  { id: "position5", label: "5구간", range: [13, 15] },
+  { id: "all", label: "전체", range: [0, 15] },
+];
 const CHORD_CATALOG_ALL = "all";
 const STAGE3_STORAGE_KEY = "guitarTrainer.stage3Settings.v1";
 
@@ -1743,6 +2010,7 @@ function App() {
   const initialRouteRef = useRef(getInitialAppRoute());
   const initialStage3SettingsRef = useRef(getStoredStage3Settings());
   const [appMode, setAppMode] = useState(initialRouteRef.current.appMode);
+  const [utilityMenuOpen, setUtilityMenuOpen] = useState(false);
   const [gameState, setGameState] = useState(GAME_STATES.IDLE);
   const [micStatus, setMicStatus] = useState("No Signal");
   const [detected, setDetected] = useState(null);
@@ -1770,7 +2038,9 @@ function App() {
   const [selectedScaleFamily, setSelectedScaleFamily] = useState(SCALE_FAMILIES.pentatonic.id);
   const [selectedScaleType, setSelectedScaleType] = useState(PENTATONIC_TYPES.minor.id);
   const [selectedScaleBox, setSelectedScaleBox] = useState(1);
-  const [viewerMode, setViewerMode] = useState(FRETBOARD_VIEWER_MODES.CHORD);
+  const [viewerMode, setViewerMode] = useState(FRETBOARD_VIEWER_MODES.NOTE);
+  const [viewerNoteFilter, setViewerNoteFilter] = useState("ALL");
+  const [viewerOctaveRange] = useState("all");
   const [viewerScaleRoot, setViewerScaleRoot] = useState("A");
   const [viewerScaleFamily, setViewerScaleFamily] = useState(SCALE_FAMILIES.pentatonic.id);
   const [viewerScaleType, setViewerScaleType] = useState(PENTATONIC_TYPES.minor.id);
@@ -1781,6 +2051,7 @@ function App() {
   const [viewerChordQuality, setViewerChordQuality] = useState("major");
   const [viewerChordExtension, setViewerChordExtension] = useState("none");
   const [viewerChordId, setViewerChordId] = useState(CHORD_CATALOG_ALL);
+  const [viewerChordPosition, setViewerChordPosition] = useState("position1");
   const [showChordFingeringGuide, setShowChordFingeringGuide] = useState(
     initialStage3SettingsRef.current.showChordFingeringGuide,
   );
@@ -1801,6 +2072,13 @@ function App() {
   const [repeatCount, setRepeatCount] = useState(1);
   const [bpm, setBpm] = useState(initialStage3SettingsRef.current.bpm);
   const [metronomeOn, setMetronomeOn] = useState(true);
+  const [metronomeTimeSignature, setMetronomeTimeSignature] = useState("4/4");
+  const [metronomeAccent, setMetronomeAccent] = useState(true);
+  const [metronomeSubdivision, setMetronomeSubdivision] = useState("quarter");
+  const [metronomeTone, setMetronomeTone] = useState("tick");
+  const [metronomeCountIn, setMetronomeCountIn] = useState(false);
+  const [metronomeVolume, setMetronomeVolume] = useState(0.72);
+  const [stage3SetupCollapsed, setStage3SetupCollapsed] = useState(false);
   const [isMobileLayout, setIsMobileLayout] = useState(false);
   const [hitZoneNote, setHitZoneNote] = useState(null);
   const [isHitWindowActive, setIsHitWindowActive] = useState(false);
@@ -1822,11 +2100,23 @@ function App() {
   const appModeRef = useRef(initialRouteRef.current.appMode);
   const selectedCategoryIdRef = useRef(initialRouteRef.current.categoryId);
   const routeSyncRef = useRef(false);
+  const chordChartRef = useRef(null);
+  const chordViewerRef = useRef(null);
   const gameStateRef = useRef(GAME_STATES.IDLE);
   const isMobileLayoutRef = useRef(false);
   const speedRef = useRef(RHYTHM_SUBDIVISIONS.One);
   const bpmRef = useRef(initialStage3SettingsRef.current.bpm);
   const metronomeOnRef = useRef(true);
+  const metronomeTimeSignatureRef = useRef("4/4");
+  const metronomeAccentRef = useRef(true);
+  const metronomeSubdivisionRef = useRef("quarter");
+  const metronomeToneRef = useRef("tick");
+  const metronomeCountInRef = useRef(false);
+  const metronomeVolumeRef = useRef(0.72);
+  const metronomeSampleBuffersRef = useRef({});
+  const metronomeSampleLoadPromiseRef = useRef(null);
+  const countInActiveRef = useRef(false);
+  const countInTimeRef = useRef(0);
   const activeNotesRef = useRef(MAIN_DEFAULT_CATEGORY.notes);
   const sequenceRef = useRef(MAIN_DEFAULT_CATEGORY.sequence);
   const enemiesRef = useRef([]);
@@ -1984,6 +2274,127 @@ function App() {
   });
   const viewerTitle = viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? viewerChordDebugInfo.generatedChordName : viewerScaleBlock.label;
   const viewerHint = viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? viewerChord.hint : "선택한 위치만 참고합니다";
+  const viewerMapFrets = useMemo(() => Array.from({ length: 16 }, (_, index) => index), []);
+  const viewerNotePositionRange = NOTE_VIEWER_POSITIONS.at(-1).range;
+  const viewerMapStrings = useMemo(() => [...STANDARD_TUNING].sort((a, b) => a.stringNumber - b.stringNumber), []);
+  const viewerMapPitchClasses = useMemo(() => {
+    if (viewerMode === FRETBOARD_VIEWER_MODES.NOTE) {
+      return viewerNoteFilter === "ALL" ? new Set(CHROMATIC_NOTES) : new Set([viewerNoteFilter]);
+    }
+    if (viewerMode === FRETBOARD_VIEWER_MODES.SCALE) {
+      return new Set(viewerScaleBlock.notes.map((note) => note.noteName));
+    }
+    if (viewerMode === FRETBOARD_VIEWER_MODES.CHORD) {
+      return new Set(viewerChord.notes.map((note) => note.noteName));
+    }
+    return new Set(CHROMATIC_NOTES);
+  }, [viewerChord.notes, viewerMode, viewerNoteFilter, viewerScaleBlock.notes]);
+  const viewerMapRootNote = viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? viewerChord.root : viewerScaleRoot;
+  const viewerMapNotes = useMemo(() => {
+    return viewerMapStrings.flatMap((stringInfo) => {
+      const openMidi = pitchToMidi(stringInfo.pitch);
+      return viewerMapFrets.map((fretNumber) => {
+        const pitch = midiToPitch(openMidi + fretNumber);
+        const noteName = getPitchClass(pitch);
+        const octave = Number(pitch.replace(/\D+/g, ""));
+        return {
+          id: `viewer-map-s${stringInfo.stringNumber}-f${fretNumber}`,
+          stringNumber: stringInfo.stringNumber,
+          fretNumber,
+          pitch,
+          noteName,
+          octave,
+          solfege: SOLFEGE[noteName] ?? "",
+        };
+      });
+    }).filter((note) => {
+      if (!viewerMapPitchClasses.has(note.noteName)) return false;
+      if (viewerMode !== FRETBOARD_VIEWER_MODES.NOTE) return note.fretNumber > 0;
+      return true;
+    });
+  }, [viewerMapFrets, viewerMapPitchClasses, viewerMapStrings, viewerMode, viewerNotePositionRange]);
+  const viewerMapTitle =
+    viewerMode === FRETBOARD_VIEWER_MODES.NOTE
+      ? viewerNoteFilter === "ALL" ? "전체 음표" : `${viewerNoteFilter} / ${SOLFEGE[viewerNoteFilter] ?? ""}`
+      : viewerMode === FRETBOARD_VIEWER_MODES.SCALE
+        ? viewerScaleBlock.label
+        : viewerMode === FRETBOARD_VIEWER_MODES.CHORD
+          ? viewerChordDebugInfo.generatedChordName
+          : "기타 지판 정보";
+  const viewerChordPositionData = useMemo(() => {
+    if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return {};
+    const root = viewerChord.root;
+    const position1 = {
+      id: `${viewerChord.id}-position1`,
+      notes: viewerChord.notes
+        .map((note, index) => ({
+          id: `viewer-chord-shape-${viewerChord.id}-${note.stringNumber}-${note.fretNumber}-${index}`,
+          stringNumber: note.stringNumber,
+          fretNumber: Number(note.fretNumber),
+          pitch: note.octaveNote,
+          noteName: note.noteName,
+          label: getChordDisplayNoteName(note.noteName),
+          finger: note.finger ?? null,
+          isRoot: note.noteName === root,
+        }))
+        .filter((note) => Number.isFinite(note.fretNumber) && note.fretNumber > 0),
+      barres: viewerChord.barres ?? [],
+      stringStates: Object.fromEntries(
+        [1, 2, 3, 4, 5, 6]
+          .map((stringNumber) => [stringNumber, getChordStringState(viewerChord, stringNumber)])
+          .filter(([, state]) => state === "x" || state === "o"),
+      ),
+    };
+    const canBuildMajorCaged = viewerChordQuality === "major" && viewerChordExtension === "none" && NOTE_INDEX[root] != null;
+    return {
+      position1,
+      position2: canBuildMajorCaged ? buildCagedMajorChordPosition(root, "position2") : null,
+      position3: canBuildMajorCaged ? buildCagedMajorChordPosition(root, "position3") : null,
+      position4: canBuildMajorCaged ? buildCagedMajorChordPosition(root, "position4") : null,
+      position5: canBuildMajorCaged ? buildCagedMajorChordPosition(root, "position5") : null,
+    };
+  }, [getChordStringState, viewerChord, viewerChordExtension, viewerChordQuality, viewerMode]);
+  const viewerCurrentChordPosition = viewerChordPositionData[viewerChordPosition] ?? viewerChordPositionData.position1;
+  const viewerFretboardNotes = useMemo(() => {
+    if (viewerMode === FRETBOARD_VIEWER_MODES.SCALE) return viewerScaleBlock.notes;
+    if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return viewerMapNotes;
+    return viewerCurrentChordPosition?.notes ?? [];
+  }, [viewerCurrentChordPosition, viewerMapNotes, viewerMode, viewerScaleBlock.notes]);
+  const viewerChordBarres = viewerMode === FRETBOARD_VIEWER_MODES.CHORD
+    ? viewerCurrentChordPosition?.barres ?? []
+    : [];
+  const viewerChordStringStates = viewerMode === FRETBOARD_VIEWER_MODES.CHORD
+    ? viewerCurrentChordPosition?.stringStates ?? {}
+    : {};
+  const viewerFretboardRange = useMemo(() => {
+    if (viewerMode === FRETBOARD_VIEWER_MODES.NOTE) return viewerNotePositionRange;
+    if (viewerMode === FRETBOARD_VIEWER_MODES.SCALE) {
+      const visibleFrets = viewerScaleBlock.visibleFrets ?? [];
+      const minFret = Math.min(...visibleFrets);
+      const maxFret = Math.max(...visibleFrets);
+      if (!Number.isFinite(minFret) || !Number.isFinite(maxFret)) return [0, 12];
+      return [minFret, Math.max(maxFret, minFret + 3)];
+    }
+    if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return [0, 12];
+    const frets = [
+      ...viewerFretboardNotes.map((note) => Number(note.fretNumber)),
+      ...viewerChordBarres.map((barre) => Number(barre.fret)),
+    ].filter((fret) => Number.isFinite(fret) && fret > 0);
+    if (!frets.length) return [1, 3];
+    const minFret = Math.min(...frets);
+    const maxFret = Math.max(...frets);
+    if (minFret <= 3) return [1, Math.max(3, maxFret)];
+    return [minFret, Math.max(maxFret, minFret + 3)];
+  }, [viewerChordBarres, viewerFretboardNotes, viewerMode, viewerNotePositionRange, viewerScaleBlock.visibleFrets]);
+  const viewerShouldFitFretboard =
+    viewerMode === FRETBOARD_VIEWER_MODES.SCALE ||
+    viewerMode === FRETBOARD_VIEWER_MODES.CHORD ||
+    (viewerMode === FRETBOARD_VIEWER_MODES.NOTE && viewerOctaveRange !== "all");
+  useEffect(() => {
+    if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return;
+    if (viewerChordPositionData[viewerChordPosition]) return;
+    setViewerChordPosition("position1");
+  }, [viewerChordPosition, viewerChordPositionData, viewerMode]);
   const stage3SelectedChord = CHORD_VIEW_OPTIONS.find(
     (chord) =>
       chord.root === stage3ChordRoot &&
@@ -2016,6 +2427,27 @@ function App() {
     setViewerChordExtension(nextExtension);
     if (nextChord) setViewerChordId(nextChord.id);
   }, [getChordFromSelector, getFallbackChordFromSelector]);
+  const scrollToChordChart = useCallback(() => {
+    setViewerChordId(CHORD_CATALOG_ALL);
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        chordChartRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    });
+  }, []);
+  const scrollToChordViewer = useCallback(() => {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        chordViewerRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    });
+  }, []);
   const applyStage3ChordSelection = useCallback((baseRoot, accidental, quality, extension) => {
     const exactChord = getChordFromSelector(baseRoot, accidental, quality, extension);
     const nextChord = exactChord ?? getFallbackChordFromSelector(baseRoot, accidental, quality, extension);
@@ -2070,6 +2502,7 @@ function App() {
   );
   const isPositionPracticeMode = currentJudgmentMode.id === JUDGMENT_MODES.POSITION.id;
   const beatMs = getBeatMs(bpm);
+  const metronomeBeatsPerMeasure = getTimeSignatureOption(metronomeTimeSignature).beats;
   const resetScore = useCallback(() => {
     enemiesRef.current = [];
     projectilesRef.current = [];
@@ -2162,6 +2595,33 @@ function App() {
     }, 850);
   }, []);
 
+  const loadMetronomeSamples = useCallback(async (audio) => {
+    if (!audio) return false;
+    const sampleToneOptions = METRONOME_TONE_OPTIONS.filter((toneOption) => toneOption.src);
+    const loadedIds = Object.keys(metronomeSampleBuffersRef.current);
+    if (loadedIds.length === sampleToneOptions.length) return true;
+    if (metronomeSampleLoadPromiseRef.current) {
+      await metronomeSampleLoadPromiseRef.current;
+      return Object.keys(metronomeSampleBuffersRef.current).length > 0;
+    }
+
+    metronomeSampleLoadPromiseRef.current = Promise.all(
+      sampleToneOptions.map(async (toneOption) => {
+        if (metronomeSampleBuffersRef.current[toneOption.id]) return;
+        const response = await fetch(toneOption.src);
+        if (!response.ok) throw new Error(`Failed to load metronome sample: ${toneOption.src}`);
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await audio.decodeAudioData(arrayBuffer);
+        metronomeSampleBuffersRef.current[toneOption.id] = audioBuffer;
+      }),
+    ).finally(() => {
+      metronomeSampleLoadPromiseRef.current = null;
+    });
+
+    await metronomeSampleLoadPromiseRef.current;
+    return true;
+  }, []);
+
   const ensureAudioReady = useCallback(async () => {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audio = audioRef.current;
@@ -2178,30 +2638,52 @@ function App() {
     return audio.state === "running";
   }, []);
 
-  const playTick = useCallback((accent = false) => {
+  const playTick = useCallback((accent = false, subdivisionIndex = 0) => {
     const audio = audioRef.current;
     if (!audio || gameStateRef.current !== GAME_STATES.PLAYING || !metronomeOnRef.current) return;
     if (audio.state === "suspended") {
       audio.resume()
         .then(() => {
-          if (gameStateRef.current === GAME_STATES.PLAYING && metronomeOnRef.current) playTick(accent);
+          if (gameStateRef.current === GAME_STATES.PLAYING && metronomeOnRef.current) playTick(accent, subdivisionIndex);
         })
         .catch(() => {});
       return;
     }
 
-    const oscillator = audio.createOscillator();
+    const now = audio.currentTime;
+    const selectedTone = getMetronomeToneOption(metronomeToneRef.current);
+    const accentOn = metronomeAccentRef.current;
+    const masterLevel = Math.max(0, Math.min(1, metronomeVolumeRef.current ?? 0.72));
+    const tickLevel = (accentOn ? (accent ? 1 : 0.5) : 0.82) * masterLevel;
+
+    if (selectedTone.id === "tick") {
+      const oscillator = audio.createOscillator();
+      const gain = audio.createGain();
+      oscillator.type = "square";
+      oscillator.frequency.setValueAtTime(accentOn ? (accent ? 1840 : 920) : 1180, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(tickLevel * 0.4, now + (accentOn && accent ? 0.003 : 0.008));
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + (accentOn && accent ? 0.07 : 0.05));
+      oscillator.connect(gain);
+      gain.connect(audio.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.07);
+      console.log("[metronome] tick played");
+      return;
+    }
+
+    const buffer = metronomeSampleBuffersRef.current[selectedTone.id];
+    if (!buffer) return;
+
+    const source = audio.createBufferSource();
     const gain = audio.createGain();
-    oscillator.type = "square";
-    oscillator.frequency.value = accent ? 1760 : 1040;
-    gain.gain.setValueAtTime(0.0001, audio.currentTime);
-    gain.gain.exponentialRampToValueAtTime(accent ? 0.42 : 0.3, audio.currentTime + 0.006);
-    gain.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + 0.055);
-    oscillator.connect(gain);
+    source.buffer = buffer;
+    source.playbackRate.setValueAtTime(accentOn ? (accent ? 1.08 : 0.96) : 1, now);
+    gain.gain.setValueAtTime(tickLevel, now);
+    source.connect(gain);
     gain.connect(audio.destination);
-    oscillator.start(audio.currentTime);
+    source.start(now);
     console.log("[metronome] tick played");
-    oscillator.stop(audio.currentTime + 0.06);
   }, []);
 
   const playShooterSound = useCallback((type = "hit") => {
@@ -2693,18 +3175,50 @@ function App() {
 
   const runReferenceTrainingFrame = useCallback(
     (deltaMs) => {
-      gameTimeRef.current += deltaMs;
+      const signature = getTimeSignatureOption(metronomeTimeSignatureRef.current);
+      const subdivision = getSubdivisionOption(metronomeSubdivisionRef.current);
+      const beatsPerMeasure = signature.beats;
+      const clicksPerBeat = subdivision.clicksPerBeat;
       const currentBeatMs = getBeatMs(bpmRef.current);
-      const currentMeasureMs = currentBeatMs * 4;
-      setStage3MeasureProgress((gameTimeRef.current % currentMeasureMs) / currentMeasureMs);
-      const currentBeat = Math.floor(gameTimeRef.current / currentBeatMs);
-      if (currentBeat === lastBeatRef.current) return;
+      const currentTickMs = currentBeatMs / clicksPerBeat;
+      const currentMeasureMs = currentBeatMs * beatsPerMeasure;
 
-      const isFirstBeat = lastBeatRef.current < 0;
-      lastBeatRef.current = currentBeat;
-      const beatInBar = currentBeat % 4;
+      if (countInActiveRef.current) {
+        countInTimeRef.current += deltaMs;
+        setStage3MeasureProgress(Math.min(1, countInTimeRef.current / currentMeasureMs));
+        const countInTick = Math.floor(countInTimeRef.current / currentBeatMs);
+        if (countInTick !== lastBeatRef.current) {
+          lastBeatRef.current = countInTick;
+          const countInBeat = countInTick % beatsPerMeasure;
+          setBeat(countInBeat);
+          playTick(metronomeAccentRef.current && countInBeat === 0, 0);
+        }
+        if (countInTimeRef.current >= currentMeasureMs) {
+          countInActiveRef.current = false;
+          countInTimeRef.current = 0;
+          gameTimeRef.current = 0;
+          lastBeatRef.current = -1;
+          setBeat(0);
+          setStage3MeasureProgress(0);
+          setFeedback("Play");
+        }
+        return;
+      }
+
+      gameTimeRef.current += deltaMs;
+      setStage3MeasureProgress((gameTimeRef.current % currentMeasureMs) / currentMeasureMs);
+      const currentTick = Math.floor(gameTimeRef.current / currentTickMs);
+      if (currentTick === lastBeatRef.current) return;
+
+      lastBeatRef.current = currentTick;
+      const currentBeat = Math.floor(currentTick / clicksPerBeat);
+      const beatInBar = currentBeat % beatsPerMeasure;
+      const subdivisionIndex = currentTick % clicksPerBeat;
+      const isFirstBeat = currentBeat === 0;
       setBeat(beatInBar);
-      playTick(beatInBar === 0);
+      playTick(metronomeAccentRef.current && beatInBar === 0 && subdivisionIndex === 0, subdivisionIndex);
+
+      if (subdivisionIndex !== 0) return;
 
       const sequence = Array.isArray(sequenceRef.current) && sequenceRef.current.length > 0
         ? sequenceRef.current
@@ -2787,23 +3301,100 @@ function App() {
 
   const runChordTransitionFrame = useCallback(
     (deltaMs) => {
-      gameTimeRef.current += deltaMs;
+      const signature = getTimeSignatureOption(metronomeTimeSignatureRef.current);
+      const subdivision = getSubdivisionOption(metronomeSubdivisionRef.current);
+      const beatsPerMeasure = signature.beats;
+      const clicksPerBeat = subdivision.clicksPerBeat;
       const currentBeatMs = getBeatMs(bpmRef.current);
-      const currentMeasureMs = currentBeatMs * 4;
+      const currentTickMs = currentBeatMs / clicksPerBeat;
+      const currentMeasureMs = currentBeatMs * beatsPerMeasure;
+
+      if (countInActiveRef.current) {
+        countInTimeRef.current += deltaMs;
+        setStage3MeasureProgress(Math.min(1, countInTimeRef.current / currentMeasureMs));
+        const countInTick = Math.floor(countInTimeRef.current / currentBeatMs);
+        if (countInTick !== lastBeatRef.current) {
+          lastBeatRef.current = countInTick;
+          const countInBeat = countInTick % beatsPerMeasure;
+          setBeat(countInBeat);
+          playTick(metronomeAccentRef.current && countInBeat === 0, 0);
+        }
+        if (countInTimeRef.current >= currentMeasureMs) {
+          countInActiveRef.current = false;
+          countInTimeRef.current = 0;
+          gameTimeRef.current = 0;
+          lastBeatRef.current = -1;
+          setBeat(0);
+          setStage3MeasureProgress(0);
+          setFeedback("Play");
+        }
+        return;
+      }
+
+      gameTimeRef.current += deltaMs;
       setStage3MeasureProgress((gameTimeRef.current % currentMeasureMs) / currentMeasureMs);
-      const currentBeat = Math.floor(gameTimeRef.current / currentBeatMs);
-      if (currentBeat !== lastBeatRef.current) {
-        lastBeatRef.current = currentBeat;
-        const beatInBar = currentBeat % 4;
+      const currentTick = Math.floor(gameTimeRef.current / currentTickMs);
+      if (currentTick !== lastBeatRef.current) {
+        lastBeatRef.current = currentTick;
+        const currentBeat = Math.floor(currentTick / clicksPerBeat);
+        const beatInBar = currentBeat % beatsPerMeasure;
+        const subdivisionIndex = currentTick % clicksPerBeat;
         const measureIndex = chordTransitionProgression.length > 0
-          ? Math.floor(currentBeat / 4) % chordTransitionProgression.length
+          ? Math.floor(currentBeat / beatsPerMeasure) % chordTransitionProgression.length
           : 0;
         setBeat(beatInBar);
         setChordPracticeIndex(measureIndex);
-        playTick(beatInBar === 0);
+        playTick(metronomeAccentRef.current && beatInBar === 0 && subdivisionIndex === 0, subdivisionIndex);
       }
     },
     [chordTransitionProgression.length, playTick],
+  );
+
+  const runMetronomeFrame = useCallback(
+    (deltaMs) => {
+      const signature = getTimeSignatureOption(metronomeTimeSignatureRef.current);
+      const subdivision = getSubdivisionOption(metronomeSubdivisionRef.current);
+      const beatsPerMeasure = signature.beats;
+      const clicksPerBeat = subdivision.clicksPerBeat;
+      const currentBeatMs = getBeatMs(bpmRef.current);
+      const currentTickMs = currentBeatMs / clicksPerBeat;
+      const currentMeasureMs = currentBeatMs * beatsPerMeasure;
+
+      if (countInActiveRef.current) {
+        countInTimeRef.current += deltaMs;
+        setStage3MeasureProgress(Math.min(1, countInTimeRef.current / currentMeasureMs));
+        const countInTick = Math.floor(countInTimeRef.current / currentBeatMs);
+        if (countInTick !== lastBeatRef.current) {
+          lastBeatRef.current = countInTick;
+          const countInBeat = countInTick % beatsPerMeasure;
+          setBeat(countInBeat);
+          playTick(metronomeAccentRef.current && countInBeat === 0, 0);
+        }
+        if (countInTimeRef.current >= currentMeasureMs) {
+          countInActiveRef.current = false;
+          countInTimeRef.current = 0;
+          gameTimeRef.current = 0;
+          lastBeatRef.current = -1;
+          setBeat(0);
+          setStage3MeasureProgress(0);
+          setFeedback("Play");
+        }
+        return;
+      }
+
+      gameTimeRef.current += deltaMs;
+      setStage3MeasureProgress((gameTimeRef.current % currentMeasureMs) / currentMeasureMs);
+      const currentTick = Math.floor(gameTimeRef.current / currentTickMs);
+      if (currentTick === lastBeatRef.current) return;
+
+      lastBeatRef.current = currentTick;
+      const currentBeat = Math.floor(currentTick / clicksPerBeat);
+      const beatInBar = currentBeat % beatsPerMeasure;
+      const subdivisionIndex = currentTick % clicksPerBeat;
+      setBeat(beatInBar);
+      playTick(metronomeAccentRef.current && beatInBar === 0 && subdivisionIndex === 0, subdivisionIndex);
+    },
+    [playTick],
   );
 
   const animationLoop = useCallback(
@@ -2813,6 +3404,11 @@ function App() {
 
       if (streamRef.current) readMicrophone(now);
       if (
+        appModeRef.current === APP_MODES.METRONOME &&
+        gameStateRef.current === GAME_STATES.PLAYING
+      ) {
+        runMetronomeFrame(deltaMs);
+      } else if (
         appModeRef.current === APP_MODES.PRACTICE &&
         gameStateRef.current === GAME_STATES.PLAYING &&
         selectedCategory.id === "rhythm"
@@ -2837,7 +3433,7 @@ function App() {
 
       rafRef.current = requestAnimationFrame(animationLoop);
     },
-    [readMicrophone, runChordTransitionFrame, runGameFrame, runReferenceTrainingFrame, runShooterFrame, selectedCategory.id],
+    [readMicrophone, runChordTransitionFrame, runGameFrame, runMetronomeFrame, runReferenceTrainingFrame, runShooterFrame, selectedCategory.id],
   );
 
   const stopMic = useCallback(() => {
@@ -2928,6 +3524,7 @@ function App() {
     }
     if (safeCategory.id === "rhythm") {
       await ensureAudioReady();
+      await loadMetronomeSamples(audioRef.current);
       metronomeOnRef.current = true;
       setMetronomeOn(true);
       appModeRef.current = APP_MODES.PRACTICE;
@@ -2936,15 +3533,18 @@ function App() {
       resetScore();
       gameTimeRef.current = 0;
       lastBeatRef.current = -1;
+      countInActiveRef.current = metronomeCountInRef.current;
+      countInTimeRef.current = 0;
       setBeat(0);
       setStage3MeasureProgress(0);
       setChordPracticeIndex(0);
-      setFeedback("Chord transition");
+      setFeedback(metronomeCountInRef.current ? "Count In" : "Chord transition");
       setState(GAME_STATES.PLAYING);
       lastFrameRef.current = performance.now();
       return;
     }
     await ensureAudioReady();
+    await loadMetronomeSamples(audioRef.current);
 
     const sequence = getPracticeSequence(safeCategory);
     activeNotesRef.current = safeCategory.notes;
@@ -2955,15 +3555,17 @@ function App() {
     resetScore();
     gameTimeRef.current = 0;
     lastBeatRef.current = -1;
+    countInActiveRef.current = metronomeCountInRef.current;
+    countInTimeRef.current = 0;
     patternRef.current = 0;
     practiceCompletedRef.current = false;
     setBeat(0);
     setStage3MeasureProgress(0);
     practiceLoopRef.current = shouldLoopPractice(safeCategory, repeatPractice);
-    setFeedback("Listen and play");
+    setFeedback(metronomeCountInRef.current ? "Count In" : "Listen and play");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
-  }, [ensureAudioReady, getPlayableCategory, getPracticeSequence, repeatPractice, resetScore, selectedCategory, setState]);
+  }, [ensureAudioReady, getPlayableCategory, getPracticeSequence, loadMetronomeSamples, repeatPractice, resetScore, selectedCategory, setState]);
 
   const enterPracticePreview = useCallback((category = selectedCategory) => {
     const safeCategory = getPlayableCategory(category);
@@ -2991,6 +3593,8 @@ function App() {
     setIsHitWindowActive(false);
     setLaneFeedback([]);
     setBeat(0);
+    countInActiveRef.current = false;
+    countInTimeRef.current = 0;
     if (safeCategory.id === "rhythm") setChordPracticeIndex(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
@@ -3028,6 +3632,24 @@ function App() {
     await startMic();
   }, [startMic]);
 
+  const startMetronomePractice = useCallback(async () => {
+    console.log("[metronome] start clicked");
+    await ensureAudioReady();
+    await loadMetronomeSamples(audioRef.current);
+    stopMic();
+    appModeRef.current = APP_MODES.METRONOME;
+    setAppMode(APP_MODES.METRONOME);
+    gameTimeRef.current = 0;
+    lastBeatRef.current = -1;
+    countInActiveRef.current = metronomeCountInRef.current;
+    countInTimeRef.current = 0;
+    setBeat(0);
+    setStage3MeasureProgress(0);
+    setFeedback(metronomeCountInRef.current ? "Count In" : "Play");
+    setState(GAME_STATES.PLAYING);
+    lastFrameRef.current = performance.now();
+  }, [ensureAudioReady, loadMetronomeSamples, setState, stopMic]);
+
   const pauseGame = useCallback(() => {
     if (gameStateRef.current !== GAME_STATES.PLAYING) return;
     setState(GAME_STATES.PAUSED);
@@ -3038,10 +3660,13 @@ function App() {
     if (gameStateRef.current !== GAME_STATES.PAUSED) return;
     console.log("[metronome] start clicked");
     await ensureAudioReady();
+    if (appModeRef.current === APP_MODES.PRACTICE || appModeRef.current === APP_MODES.METRONOME) {
+      await loadMetronomeSamples(audioRef.current);
+    }
     lastFrameRef.current = performance.now();
     setState(GAME_STATES.PLAYING);
     setFeedback("Play");
-  }, [ensureAudioReady, setState]);
+  }, [ensureAudioReady, loadMetronomeSamples, setState]);
 
   const restartGame = useCallback(async () => {
     console.log("[metronome] start clicked");
@@ -3049,6 +3674,7 @@ function App() {
     const safeCategory = getPlayableCategory(selectedCategory);
     const sequence = getPracticeSequence(safeCategory);
     const modeToRestart = appModeRef.current === APP_MODES.SHOOTER ? APP_MODES.SHOOTER : APP_MODES.PRACTICE;
+    if (modeToRestart === APP_MODES.PRACTICE) await loadMetronomeSamples(audioRef.current);
     activeNotesRef.current =
       modeToRestart === APP_MODES.SHOOTER
         ? getShooterTrainingNotes(safeCategory, selectedPentatonic)
@@ -3070,7 +3696,7 @@ function App() {
     setFeedback(modeToRestart === APP_MODES.SHOOTER ? "Shoot the notes" : "Restart Practice");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
-  }, [ensureAudioReady, getPlayableCategory, getPracticeSequence, repeatPractice, resetScore, selectedCategory, selectedPentatonic, setState, spawnShooterTarget]);
+  }, [ensureAudioReady, getPlayableCategory, getPracticeSequence, loadMetronomeSamples, repeatPractice, resetScore, selectedCategory, selectedPentatonic, setState, spawnShooterTarget]);
 
   const changeNoteSpeed = useCallback((speed) => {
     if (speed.disabled) return;
@@ -3276,6 +3902,30 @@ function App() {
     setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
   }, [setState]);
 
+  const showMetronomeMode = useCallback(() => {
+    stopMic();
+    appModeRef.current = APP_MODES.METRONOME;
+    setAppMode(APP_MODES.METRONOME);
+    enemiesRef.current = [];
+    shooterTargetsRef.current = [];
+    projectilesRef.current = [];
+    particlesRef.current = [];
+    setEnemies([]);
+    setShooterTargets([]);
+    setProjectiles([]);
+    setParticles([]);
+    setHitZoneNote(null);
+    setIsHitWindowActive(false);
+    gameTimeRef.current = 0;
+    lastBeatRef.current = -1;
+    countInActiveRef.current = false;
+    countInTimeRef.current = 0;
+    setBeat(0);
+    setStage3MeasureProgress(0);
+    setFeedback("Ready");
+    setState(GAME_STATES.IDLE);
+  }, [setState, stopMic]);
+
   const showFretboardViewer = useCallback(() => {
     stopMic();
     appModeRef.current = APP_MODES.FRETBOARD_VIEWER;
@@ -3306,6 +3956,15 @@ function App() {
   useEffect(() => {
     selectedCategoryIdRef.current = selectedCategoryId;
   }, [selectedCategoryId]);
+
+  useEffect(() => {
+    if (!utilityMenuOpen) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setUtilityMenuOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [utilityMenuOpen]);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -3372,6 +4031,30 @@ function App() {
   useEffect(() => {
     bpmRef.current = bpm;
   }, [bpm]);
+
+  useEffect(() => {
+    metronomeTimeSignatureRef.current = metronomeTimeSignature;
+  }, [metronomeTimeSignature]);
+
+  useEffect(() => {
+    metronomeAccentRef.current = metronomeAccent;
+  }, [metronomeAccent]);
+
+  useEffect(() => {
+    metronomeSubdivisionRef.current = metronomeSubdivision;
+  }, [metronomeSubdivision]);
+
+  useEffect(() => {
+    metronomeToneRef.current = metronomeTone;
+  }, [metronomeTone]);
+
+  useEffect(() => {
+    metronomeCountInRef.current = metronomeCountIn;
+  }, [metronomeCountIn]);
+
+  useEffect(() => {
+    metronomeVolumeRef.current = metronomeVolume;
+  }, [metronomeVolume]);
 
   useEffect(() => {
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return;
@@ -3477,7 +4160,7 @@ function App() {
   const referenceStrings = useMemo(() => [1, 2, 3, 4, 5, 6], []);
   const getReferenceFretLeft = useCallback((note) => {
     const fret = Number(note?.fretNumber ?? note?.fret ?? 0);
-    if (fret === 0) return "30px";
+    if (fret === 0) return isMobileLayout ? "18px" : "30px";
     const exactIndex = visibleFrets.indexOf(fret);
     const fretIndex = exactIndex >= 0
       ? exactIndex
@@ -3486,7 +4169,7 @@ function App() {
           .sort((a, b) => a.distance - b.distance)[0]?.index ?? 0;
     const ratio = ((fretIndex + 0.5) / visibleFrets.length).toFixed(4);
     return `calc(42px + (100% - 52px) * ${ratio})`;
-  }, [visibleFrets]);
+  }, [isMobileLayout, visibleFrets]);
   const getViewerFretLeftFromFrets = useCallback((note, frets) => {
     const fret = Number(note?.fretNumber ?? note?.fret ?? 0);
     if (fret === 0) return "30px";
@@ -3561,6 +4244,30 @@ function App() {
     nextNotes.find((note) => !note.ghost) ??
     nextNotes[0] ??
     null;
+  const referenceBoardNotes = useMemo(() => {
+    const sourceNotes = selectedCategory.id === "scale-block" ? selectedPentatonic.notes : selectedCategory.notes;
+    return sourceNotes.map((note) => {
+      const isActive =
+        referenceDisplayPrompt?.pitch === note.pitch &&
+        referenceDisplayPrompt?.stringNumber === note.stringNumber &&
+        referenceDisplayPrompt?.fretNumber === note.fretNumber;
+      return {
+        ...note,
+        label: note.octaveNote ?? note.pitch,
+        isActive,
+        isRoot: selectedCategory.id === "scale-block" && note.noteName === selectedScaleRoot,
+      };
+    });
+  }, [referenceDisplayPrompt, selectedCategory.id, selectedCategory.notes, selectedPentatonic.notes, selectedScaleRoot]);
+  const referenceBoardRange = useMemo(() => {
+    if (selectedCategory.id === "scale-block") {
+      return [
+        Math.max(0, Math.min(...selectedPentatonic.visibleFrets) - 1),
+        Math.max(...selectedPentatonic.visibleFrets),
+      ];
+    }
+    return [0, 3];
+  }, [selectedCategory.id, selectedPentatonic.visibleFrets]);
   const getReferenceStageValue = useCallback((note) => {
     if (!note) return "준비";
     return note.noteName ?? getPitchClass(note.pitch) ?? note.pitch;
@@ -3608,6 +4315,88 @@ function App() {
       className={`app notranslate ${appMode === APP_MODES.MENU ? "menuApp" : ""} ${isSignalActive ? "signalGlow" : ""}`}
       translate="no"
     >
+      <button
+        aria-controls="utility-menu-panel"
+        aria-expanded={utilityMenuOpen}
+        aria-label={utilityMenuOpen ? "부가 메뉴 닫기" : "부가 메뉴 열기"}
+        className="utilityMenuButton"
+        onClick={() => setUtilityMenuOpen((open) => !open)}
+        type="button"
+      >
+        {utilityMenuOpen ? "×" : "☰"}
+      </button>
+
+      {utilityMenuOpen ? (
+        <div className="utilityMenuLayer" role="presentation">
+          <button
+            aria-label="부가 메뉴 닫기"
+            className="utilityMenuDim"
+            onClick={() => setUtilityMenuOpen(false)}
+            type="button"
+          />
+          <aside
+            aria-label="부가 기능 메뉴"
+            className="utilityMenuPanel"
+            id="utility-menu-panel"
+          >
+            <div className="utilityMenuHeader">
+              <div>
+                <span>Menu</span>
+                <strong>부가 기능</strong>
+              </div>
+              <button
+                aria-label="메뉴 닫기"
+                onClick={() => setUtilityMenuOpen(false)}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+            <nav className="utilityMenuList" aria-label="부가 기능 목록">
+              <button
+                onClick={() => {
+                  setUtilityMenuOpen(false);
+                  enterPracticePreview(DEFAULT_CATEGORY);
+                }}
+                type="button"
+              >
+                <span>?</span>
+                <strong>튜토리얼</strong>
+                <small>앱 흐름과 기본 사용법</small>
+              </button>
+              <button type="button">
+                <span>⌁</span>
+                <strong>연습기록</strong>
+                <small>준비 중</small>
+              </button>
+              <button type="button">
+                <span>⚙</span>
+                <strong>앱설정</strong>
+                <small>준비 중</small>
+              </button>
+              <button type="button">
+                <span>♪</span>
+                <strong>사운드설정</strong>
+                <small>메트로놈/효과음 설정</small>
+              </button>
+              <a
+                href="https://www.instagram.com/sungsu91_/"
+                rel="noreferrer"
+                target="_blank"
+              >
+                <span>@</span>
+                <strong>문의하기</strong>
+                <small>@sungsu91_</small>
+              </a>
+              <div className="utilityVersionInfo">
+                <strong>버전정보</strong>
+                <small>Fretboard Training v0.1</small>
+              </div>
+            </nav>
+          </aside>
+        </div>
+      ) : null}
+
       {appMode !== APP_MODES.MENU && <section className="hud">
         <div>
           <p className="eyebrow">Guitar Fretboard Training</p>
@@ -3616,6 +4405,8 @@ function App() {
                 ? "프렛보드 트레이너"
               : appMode === APP_MODES.FRETBOARD_VIEWER
                 ? "지판 보기"
+              : appMode === APP_MODES.METRONOME
+                ? "메트로놈"
               : appMode === APP_MODES.SHOOTER
                 ? "슈팅게임"
                 : selectedCategory.title}
@@ -3643,6 +4434,13 @@ function App() {
             프렛보드
           </button>
           <button
+            className={appMode === APP_MODES.METRONOME ? "selected" : ""}
+            onClick={showMetronomeMode}
+            type="button"
+          >
+            메트로놈
+          </button>
+          <button
             className={appMode === APP_MODES.SHOOTER ? "selected" : ""}
             onClick={showShooterMode}
             translate="no"
@@ -3662,6 +4460,7 @@ function App() {
           </div>
 
           <div className="hubBrand">
+            <img className="appMascotLogo" src="/images/capybara-logo.svg" alt="Fretboard Training" />
             <span>GUITAR FRETBOARD TRAINING</span>
             <h1>기타 지판 연습</h1>
             <p>오픈 스트링, 포지션, 스케일, 펜타토닉 박스 연습</p>
@@ -3677,21 +4476,11 @@ function App() {
             </a>
           </div>
 
-          <div className="hubGuitarHead" aria-hidden="true">
-            <i className="hubHeadBody" />
-            <i className="hubNeck" />
-            <span className="peg pegLeft top" />
-            <span className="peg pegLeft mid" />
-            <span className="peg pegLeft bottom" />
-            <span className="peg pegRight top" />
-            <span className="peg pegRight mid" />
-            <span className="peg pegRight bottom" />
-            <span className="hubString s1" />
-            <span className="hubString s2" />
-            <span className="hubString s3" />
-            <span className="hubString s4" />
-            <span className="hubString s5" />
-            <span className="hubString s6" />
+          <div className="hubGuitarHead homeHeadstockImage" aria-hidden="true">
+            <img className="headstockArtwork" src="/home-headstock.svg" alt="" />
+            <span className="guitar-head-logo">
+              <img src="/images/capybara-logo.svg" alt="" />
+            </span>
           </div>
 
           <div className="hubMenuPanel">
@@ -3717,6 +4506,11 @@ function App() {
               <strong>슈팅게임</strong>
               <small>프렛보드 음정 맞추기</small>
             </button>
+            <button className="hubMenuButton tutorial" onClick={() => enterPracticePreview(DEFAULT_CATEGORY)} type="button">
+              <span>?</span>
+              <strong>튜토리얼</strong>
+              <small>사용법 익히기</small>
+            </button>
           </div>
 
           <div className="hubSecondary">
@@ -3726,28 +4520,11 @@ function App() {
         </section>
       ) : appMode === APP_MODES.CURRICULUM ? (
         <section className="curriculum" aria-label="Beginner curriculum">
-          <div className="curriculumHeader">
-            <span>연습 목차</span>
-            <strong>{selectedCategory.title}</strong>
-            <small>한 번 클릭해 선택하고, 선택된 카드를 한 번 더 누르면 연습 화면으로 들어갑니다.</small>
-          </div>
-
-          <div className="tutorialHelpRow">
-            <button
-              onClick={() => enterPracticePreview(DEFAULT_CATEGORY)}
-              type="button"
-            >
-              <span>처음이면 여기</span>
-              <strong>튜토리얼</strong>
-              <small>개방현 위치 찾기</small>
-            </button>
-          </div>
-
-          <div className="trainingGrid">
+          <div className="trainingGrid stageMenu">
           {PRACTICE_CATEGORIES.filter((category) => !category.tutorial).map((category, index) => (
             <button
               aria-pressed={selectedCategoryId === category.id}
-              className={`trainingCard ${category.featured ? "featuredCard" : ""} ${category.unavailable ? "comingSoonCard" : ""} ${selectedCategoryId === category.id ? "selected" : ""}`}
+              className={`trainingCard stageMenuCard ${category.featured ? "featuredCard" : ""} ${category.id === "rhythm" ? "rhythmCoreCard stageMenuCard--featured" : ""} ${category.unavailable ? "comingSoonCard" : ""} ${selectedCategoryId === category.id ? "selected" : ""}`}
               key={category.id}
               onClick={() => {
                 if (isMobileLayout && selectedCategoryId === category.id && !category.unavailable) {
@@ -3760,12 +4537,35 @@ function App() {
               onDoubleClick={() => enterPracticePreview(category)}
               type="button"
             >
-              <span>{category.stageLabel ?? `${index + 1}단계`}</span>
-              <strong>{category.title}</strong>
-              <small>{category.subtitle}</small>
-              <em>{category.modeLabel}</em>
+              <span className="stageMenuCard__step">{String(category.stageLabel?.replace(/\D/g, "") || index + 1).padStart(2, "0")}</span>
+              <span className="stageMenuCard__content">
+                <strong className="stageMenuCard__title">{category.title}</strong>
+                <small className="stageMenuCard__desc">{category.subtitle}</small>
+                <em className="stageMenuCard__tag">{category.modeLabel}</em>
+              </span>
+              <span className="stageMenuCard__arrow" aria-hidden="true">
+                {selectedCategoryId === category.id ? "›››" : category.unavailable ? category.modeLabel : "›"}
+              </span>
             </button>
           ))}
+          </div>
+
+          <div className="tutorialHelpRow">
+            <button
+              className="stageMenuCard tutorialMenuCard stageMenuCard--compact"
+              onClick={() => enterPracticePreview(DEFAULT_CATEGORY)}
+              type="button"
+            >
+              <span className="stageMenuCard__step">?</span>
+              <span className="stageMenuCard__content">
+                <strong className="stageMenuCard__title">튜토리얼</strong>
+                <small className="stageMenuCard__desc">앱 조작과 기본 흐름 확인</small>
+                <em className="stageMenuCard__tag">처음이면</em>
+              </span>
+              <span className="stageMenuCard__arrow" aria-hidden="true">
+                {selectedCategoryId === DEFAULT_CATEGORY.id ? "›››" : "처음이면"}
+              </span>
+            </button>
           </div>
 
           <div className="curriculumActions">
@@ -3789,22 +4589,79 @@ function App() {
           <div className="viewerControlPanel compactControls">
             <div className="viewerModeTabs" aria-label="지판 보기 종류">
               <button
-                className={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "selected" : ""}
-                onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.CHORD)}
+                className={viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "selected" : ""}
+                onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.NOTE)}
                 type="button"
               >
-                코드 운지
+                음표
               </button>
               <button
                 className={viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "selected" : ""}
                 onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.SCALE)}
                 type="button"
               >
-                스케일 / 펜타토닉
+                스케일
+              </button>
+              <button
+                className={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "selected" : ""}
+                onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.CHORD)}
+                type="button"
+              >
+                코드
               </button>
             </div>
 
-            {viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? (
+            <section className="viewerMapCard" aria-label="전체 지판 음표" ref={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? chordViewerRef : null}>
+              <div className="viewerMapHeader">
+                <div className="viewerMapHeaderTop">
+                  <span>{viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "음표 위치" : viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "스케일 위치" : viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "참고지판" : "기준 지판"}</span>
+                  {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
+                    <button
+                      className={`viewerAllButton ${isChordCatalogView ? "selected" : ""}`}
+                      onClick={scrollToChordChart}
+                      type="button"
+                    >
+                      전체보기
+                    </button>
+                  ) : null}
+                </div>
+                <strong>{viewerMapTitle}</strong>
+              </div>
+              <Fretboard
+                className={`viewerSharedFretboard ${viewerMode === FRETBOARD_VIEWER_MODES.NOTE && viewerNoteFilter === "ALL" ? "allNotes" : ""} ${viewerShouldFitFretboard ? "fitRange" : ""}`}
+                barres={viewerChordBarres}
+                fretRange={viewerFretboardRange}
+                mode={viewerMode}
+                notes={viewerFretboardNotes.map((note) => ({
+                  ...note,
+                  label: viewerMode === FRETBOARD_VIEWER_MODES.CHORD && showChordFingeringGuide && note.finger
+                    ? note.finger
+                    : note.label,
+                  isRoot: note.noteName === viewerMapRootNote || (viewerMode === FRETBOARD_VIEWER_MODES.NOTE && viewerNoteFilter !== "ALL" && note.noteName === viewerNoteFilter),
+                }))}
+                rootNote={viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? (viewerNoteFilter === "ALL" ? "" : viewerNoteFilter) : viewerMapRootNote}
+                selectedNotes={[...viewerMapPitchClasses]}
+                showFretNumbers
+                showFingering={viewerMode === FRETBOARD_VIEWER_MODES.CHORD && showChordFingeringGuide}
+                showOnlySelected
+                showStringNames
+                stringStates={viewerChordStringStates}
+              />
+            </section>
+
+            {viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? (
+              <div className="viewerNotePanel" aria-label="음표 선택">
+                <span>음표 선택</span>
+                <div>
+                  <button className={viewerNoteFilter === "ALL" ? "selected" : ""} onClick={() => setViewerNoteFilter("ALL")} type="button">전체</button>
+                  {CHROMATIC_NOTES.map((note) => (
+                    <button className={viewerNoteFilter === note ? "selected" : ""} key={note} onClick={() => setViewerNoteFilter(note)} type="button">
+                      {note}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? (
               <div className="viewerSelectGrid">
                 <label>
                   <span>키</span>
@@ -3863,28 +4720,41 @@ function App() {
                   </select>
                 </label>
               </div>
-            ) : (
+            ) : viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
               <div className="chordBuilderPanel" aria-label="코드 운지 조합 선택">
-                <div className="chordBuilderHeader">
-                  <button
-                    className={`viewerAllButton ${isChordCatalogView ? "selected" : ""}`}
-                    onClick={() => setViewerChordId(CHORD_CATALOG_ALL)}
-                    type="button"
-                  >
-                    전체
-                  </button>
-                  <div>
+                <div className="viewerChordSummaryRow">
+                  <p className="viewerChordTones">
+                    <span>코드 구성음</span>
+                    <strong>{[...new Set(viewerChord.notes.map((note) => getChordDisplayNoteName(note.noteName)))].join(" · ")}</strong>
+                  </p>
+                  <div className="chordBuilderSelected viewerChordPicked">
                     <span>선택 코드</span>
-                    <strong>{selectedBuiltChord ? viewerSelectedChordName : "운지 준비중"}</strong>
+                    <strong>{selectedBuiltChord ? viewerSelectedChordName : "준비중"}</strong>
                   </div>
                   <button
                     className={`chordGuideToggle ${showChordFingeringGuide ? "selected" : ""}`}
                     onClick={() => setShowChordFingeringGuide((current) => !current)}
                     type="button"
                   >
-                    Fingering Guide
+                    핑거가이드
                     <b>{showChordFingeringGuide ? "ON" : "OFF"}</b>
                   </button>
+                </div>
+                <div className="viewerChordPositionGroup" aria-label="코드 표시 구간">
+                  <span>표시 구간</span>
+                  <div>
+                    {CHORD_VIEWER_POSITIONS.map((position) => (
+                      <button
+                        className={viewerChordPosition === position.id ? "selected" : ""}
+                        disabled={!viewerChordPositionData[position.id]}
+                        key={position.id}
+                        onClick={() => setViewerChordPosition(position.id)}
+                        type="button"
+                      >
+                        {position.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="chordChipGroup">
@@ -3966,11 +4836,15 @@ function App() {
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
+
+            {viewerMode !== FRETBOARD_VIEWER_MODES.NOTE ? (
+              <p className="viewerTuningHint">표준 튜닝: 6번줄 E · 5번줄 A · 4번줄 D · 3번줄 G · 2번줄 B · 1번줄 E</p>
+            ) : null}
           </div>
 
           {isChordCatalogView ? (
-            <section className="chordCatalogPanel" aria-label="전체 코드표">
+            <section className="chordCatalogPanel" aria-label="전체 코드표" ref={chordChartRef}>
               <div className="referenceHeader">
                 <span>기타 코드표</span>
                 <strong>전체 코드 운지</strong>
@@ -3997,77 +4871,38 @@ function App() {
                             setViewerChordQuality(chord.quality);
                             setViewerChordExtension(chord.extension);
                             setViewerChordId(chord.id);
+                            setViewerChordPosition("position1");
+                            scrollToChordViewer();
                           }}
                           type="button"
                         >
                           <span>{chord.displayName}</span>
-                          <div className="chordMiniFretboard">
-                            <div
-                              className="chordMiniFretNumbers"
-                              style={{ gridTemplateColumns: `repeat(${chord.visibleFrets.length}, 1fr)` }}
-                            >
-                              {chord.visibleFrets.map((fret) => (
-                                <em key={fret}>{fret}</em>
-                              ))}
-                            </div>
-                            <div
-                              className="chordMiniFrets"
-                              style={{ gridTemplateColumns: `repeat(${chord.visibleFrets.length}, 1fr)` }}
-                            >
-                              {chord.visibleFrets.map((fret) => (
-                                <i key={fret} />
-                              ))}
-                            </div>
-                            {referenceStrings.map((stringNumber) => (
-                              <i
-                                className="chordMiniString"
-                                key={stringNumber}
-                                style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
-                              />
-                            ))}
-                            {referenceStrings.map((stringNumber) => {
-                              const state = getChordStringState(chord, stringNumber);
-                              return state ? (
-                                <em
-                                  className={`chordMiniStringState ${state}`}
-                                  key={`state-${stringNumber}`}
-                                  style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
-                                >
-                                  {state}
-                                </em>
-                              ) : null;
-                            })}
-                            {chord.barres?.map((barre) => {
-                              const top = Math.min(getReferenceStringTop(barre.fromString), getReferenceStringTop(barre.toString));
-                              const bottom = Math.max(getReferenceStringTop(barre.fromString), getReferenceStringTop(barre.toString));
-                              return (
-                                <i
-                                  className="chordMiniBarre"
-                                  key={`${chord.id}-barre-${barre.fret}-${barre.fromString}-${barre.toString}`}
-                                  style={{
-                                    left: getViewerFretLeftFromFrets({ fretNumber: barre.fret }, chord.visibleFrets),
-                                    top: `${(top + bottom) / 2}%`,
-                                    height: `${bottom - top}%`,
-                                  }}
-                                />
-                              );
-                            })}
-                            {chord.notes.map((note, index) => (
-                              Number(note.fretNumber) > 0 ? (
-                              <b
-                                className={index === 0 ? "root" : ""}
-                                key={`${chord.id}-${note.stringNumber}-${note.fretNumber}-${index}`}
-                                style={{
-                                  left: getViewerFretLeftFromFrets(note, chord.visibleFrets),
-                                  top: `${getReferenceStringTop(note)}%`,
-                                  ...getNoteColorStyle(note.octaveNote),
-                                }}
-                              >
-                                {showChordFingeringGuide ? note.finger : getChordDisplayNoteName(note.noteName)}
-                              </b>
-                              ) : null
-                            ))}
-                          </div>
+                          <Fretboard
+                            barres={chord.barres ?? []}
+                            className="chordMiniSharedFretboard"
+                            fretRange={getCompactFretRange(chord.notes, chord.barres)}
+                            mode="chord"
+                            notes={chord.notes
+                              .filter((note) => Number(note.fretNumber) > 0)
+                              .map((note, index) => ({
+                                ...note,
+                                id: `${chord.id}-mini-${note.stringNumber}-${note.fretNumber}-${index}`,
+                                label: getChordDisplayNoteName(note.noteName),
+                                isRoot: index === 0,
+                              }))}
+                            rootNote={chord.root}
+                            showFingering={showChordFingeringGuide}
+                            showFretNumbers
+                            showStringNames={false}
+                            stringStates={Object.fromEntries(
+                              [1, 2, 3, 4, 5, 6]
+                                .map((stringNumber) => [stringNumber, getChordStringState(chord, stringNumber)])
+                                .filter(([, state]) => state === "x" || state === "o"),
+                            )}
+                          />
+                          <small className="chordMiniTones">
+                            구성음 {[...new Set(chord.notes.map((note) => getChordDisplayNoteName(note.noteName)))].join(" ")}
+                          </small>
                         </button>
                       ))}
                     </div>
@@ -4076,113 +4911,82 @@ function App() {
               </div>
               <p>코드를 누르면 해당 운지를 크게 볼 수 있어요.</p>
             </section>
-          ) : (
-          <aside className="referenceFretboard viewerReference" aria-label="지판 참고 화면">
-            <div className="referenceHeader">
-              <div>
-                <span>참고 지판</span>
-                <strong>{viewerTitle}</strong>
-                {viewerChordDebugInfo.isEnharmonic && (
-                  <small className="enharmonicNotice">
-                    참고 운지: {viewerChordDebugInfo.fretboardChordName} · {viewerChordDebugInfo.generatedChordName} = {viewerChordDebugInfo.fretboardChordName} 동명음
-                  </small>
-                )}
-              </div>
-              {viewerMode === FRETBOARD_VIEWER_MODES.CHORD && (
-                <button className="viewerBackButton" onClick={() => setViewerChordId(CHORD_CATALOG_ALL)} type="button">
-                  전체 보기
-                </button>
-              )}
+          ) : null}
+        </section>
+      ) : appMode === APP_MODES.METRONOME ? (
+        <section className="standaloneMetronomePanel" aria-label="독립 메트로놈">
+          <div className="metronomeHeroCard">
+            <div>
+              <span>BPM</span>
+              <strong>{bpm}</strong>
             </div>
-            <div
-              className={`viewerFretboard ${viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "chordViewerBoard" : "scaleViewerBoard"}`}
+            <div className="metronomeHeroStepper" aria-label="BPM 미세 조절">
+              <button onClick={() => changeBpm(bpm + 1)} type="button">+</button>
+              <button onClick={() => changeBpm(bpm - 1)} type="button">-</button>
+            </div>
+          </div>
+
+          <MetronomeControl
+            accentEnabled={metronomeAccent}
+            bpm={bpm}
+            className="standaloneMetronomeControl"
+            countInEnabled={metronomeCountIn}
+            inputId="standalone-bpm"
+            onAccentChange={setMetronomeAccent}
+            onBpmChange={changeBpm}
+            onCountInChange={setMetronomeCountIn}
+            onSubdivisionChange={setMetronomeSubdivision}
+            onTimeSignatureChange={setMetronomeTimeSignature}
+            onToneChange={setMetronomeTone}
+            onVolumeChange={setMetronomeVolume}
+            subdivision={metronomeSubdivision}
+            timeSignature={metronomeTimeSignature}
+            tone={metronomeTone}
+            volume={metronomeVolume}
+          />
+
+          <div className="metronomeTransport">
+            <button aria-label="이전 박자" className="metronomeSkipButton" disabled type="button">◀</button>
+            <button
+              className="metronomePlayButton"
+              onClick={gameState === GAME_STATES.PLAYING ? pauseGame : gameState === GAME_STATES.PAUSED ? resumeGame : startMetronomePractice}
+              type="button"
             >
-              <div
-                className="miniFretNumbers"
-                style={{ gridTemplateColumns: `repeat(${viewerVisibleFrets.length}, 1fr)` }}
-              >
-                {viewerVisibleFrets.map((fret) => (
-                  <span key={fret}>{fret}</span>
-                ))}
-              </div>
-              <div
-                className="miniFretNumbers bottom"
-                style={{ gridTemplateColumns: `repeat(${viewerVisibleFrets.length}, 1fr)` }}
-              >
-                {viewerVisibleFrets.map((fret) => (
-                  <span key={fret}>{fret}</span>
-                ))}
-              </div>
-              <div
-                className="miniFretColumns"
-                style={{ gridTemplateColumns: `repeat(${viewerVisibleFrets.length}, 1fr)` }}
-              >
-                {viewerVisibleFrets.map((fret) => (
-                  <span key={fret} />
-                ))}
-              </div>
-              {referenceStrings.map((stringNumber) => (
-                <span
-                  className={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "miniString chordViewerString" : "miniString"}
-                  key={stringNumber}
-                  style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
-                >
-                  <b>{stringNumber}번줄</b>
-                  {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
-                    <em className={`viewerInlineStringState ${getChordStringState(viewerChord, stringNumber)}`}>
-                      {getChordStringState(viewerChord, stringNumber)}
-                    </em>
-                  ) : null}
-                </span>
-              ))}
-              {viewerMode === FRETBOARD_VIEWER_MODES.CHORD && viewerChord.barres?.map((barre) => {
-                const top = Math.min(getReferenceStringTop(barre.fromString), getReferenceStringTop(barre.toString));
-                const bottom = Math.max(getReferenceStringTop(barre.fromString), getReferenceStringTop(barre.toString));
-                return (
-                  <span
-                    className="viewerBarre"
-                    key={`viewer-barre-${barre.fret}-${barre.fromString}-${barre.toString}`}
-                    style={{
-                      left: getViewerFretLeft({ fretNumber: barre.fret }),
-                      top: `${(top + bottom) / 2}%`,
-                      height: `${bottom - top}%`,
-                    }}
-                  >
-                    {barre.label}
-                  </span>
-                );
-              })}
-              {viewerNotes.map((note, index) => {
-                if (viewerMode === FRETBOARD_VIEWER_MODES.CHORD && Number(note.fretNumber) === 0) return null;
-                const isRoot =
-                  viewerMode === FRETBOARD_VIEWER_MODES.SCALE
-                    ? note.noteName === viewerScaleRoot
-                    : index === 0;
-                return (
-                  <span
-                    className={`scaleNote ${viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "chordFingerNote" : ""} ${isRoot ? "root" : ""}`}
-                    key={`${note.octaveNote}-${note.stringNumber}-${note.fretNumber}-${index}`}
-                    style={{
-                      left: getViewerFretLeft(note),
-                      top: `${getReferenceStringTop(note)}%`,
-                      ...getNoteColorStyle(note.octaveNote),
-                    }}
-                  >
-                    {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
-                      <b>{showChordFingeringGuide ? note.finger : getChordDisplayNoteName(note.noteName)}</b>
-                    ) : (
-                      <>
-                        <b>{note.octaveNote}</b>
-                        <small>{note.solfege}</small>
-                      </>
-                    )}
-                  </span>
-                );
-              })}
+              {gameState === GAME_STATES.PLAYING ? <Pause size={32} /> : <Play size={34} />}
+            </button>
+            <button aria-label="다음 박자" className="metronomeSkipButton" disabled type="button">▶</button>
+          </div>
+
+          <div className="standaloneMetronomeTimeline">
+            <MetronomeTimeline
+              beat={beat}
+              beatsPerMeasure={metronomeBeatsPerMeasure}
+              currentLabel={`${bpm}`}
+              isPlaying={gameState === GAME_STATES.PLAYING}
+              progress={stage3MeasureProgress}
+              runnerLabel={`${beat + 1}`}
+              timeSignature={metronomeTimeSignature}
+            />
+          </div>
+
+          <div className="metronomeSettingsCard">
+            <div>
+              <span>박자</span>
+              <strong>{metronomeTimeSignature}</strong>
             </div>
-            <p>{viewerHint}</p>
-          </aside>
-          )}
+            <div>
+              <span>템포 분할</span>
+              <strong>{getSubdivisionOption(metronomeSubdivision).label}</strong>
+            </div>
+            <div>
+              <span>음색</span>
+              <strong>{getMetronomeToneOption(metronomeTone).label}</strong>
+            </div>
+            <div>
+              <span>볼륨</span>
+              <strong>{Math.round(metronomeVolume * 100)}%</strong>
+            </div>
+          </div>
         </section>
       ) : appMode === APP_MODES.SHOOTER ? (
         <section className="shooterPanel" aria-label="슈팅게임">
@@ -4363,6 +5167,46 @@ function App() {
               <strong>리듬훈련</strong>
               <small>4/4 메트로놈 기준, 4박마다 다음 코드로 넘어갑니다</small>
             </div>
+            <div className="chordProgressionPicker">
+              <label>
+                <span>추천연습</span>
+                <select
+                  aria-label="추천 코드 진행 선택"
+                  disabled={stage3SetupCollapsed}
+                  onChange={(event) => {
+                    const preset = CHORD_TRANSITION_PRESETS.find((item) => item.id === event.target.value);
+                    if (!preset) return;
+                    setChordProgressionId(preset.id);
+                    setStage3ChordIds(preset.chords.map((name) => getChordByDisplayName(name)?.id).filter(Boolean));
+                    setChordPracticeIndex(0);
+                    gameTimeRef.current = 0;
+                    lastBeatRef.current = -1;
+                    setBeat(0);
+                    setStage3MeasureProgress(0);
+                  }}
+                  value={chordProgressionId === "custom" ? "" : chordProgressionId}
+                >
+                  <option value="">추천 구성 선택</option>
+                  {CHORD_TRANSITION_PRESETS.map((preset) => (
+                    <option key={preset.id} value={preset.id}>
+                      {preset.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                aria-expanded={!stage3SetupCollapsed}
+                aria-label={stage3SetupCollapsed ? "추천연습 펼치기" : "추천연습 접기"}
+                className="stage3SetupToggle"
+                onClick={() => setStage3SetupCollapsed((value) => !value)}
+                type="button"
+              >
+                <span>{stage3SetupCollapsed ? "펼치기" : "접기"}</span>
+                <b aria-hidden="true">{stage3SetupCollapsed ? "˅" : "˄"}</b>
+              </button>
+            </div>
+            {!stage3SetupCollapsed && (
+              <>
             <div className="stage3ChordBuilder" aria-label="직접 코드 선택">
               <div className="chordChipGroup">
                 <span>루트</span>
@@ -4517,39 +5361,26 @@ function App() {
                 코드를 누른 뒤 4박 안에서 다음 코드로 이동하는 감각을 익혀요.
               </div>
             </div>
-            <div className="chordProgressionPicker">
-              <label>
-                <span>추천 연습</span>
-                <select
-                  aria-label="추천 코드 진행 선택"
-                  onChange={(event) => {
-                    const preset = CHORD_TRANSITION_PRESETS.find((item) => item.id === event.target.value);
-                    if (!preset) return;
-                    setChordProgressionId(preset.id);
-                    setStage3ChordIds(preset.chords.map((name) => getChordByDisplayName(name)?.id).filter(Boolean));
-                    setChordPracticeIndex(0);
-                    gameTimeRef.current = 0;
-                    lastBeatRef.current = -1;
-                    setBeat(0);
-                    setStage3MeasureProgress(0);
-                  }}
-                  value={chordProgressionId === "custom" ? "" : chordProgressionId}
-                >
-                  <option value="">추천 구성 선택</option>
-                  {CHORD_TRANSITION_PRESETS.map((preset) => (
-                    <option key={preset.id} value={preset.id}>
-                      {preset.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
+              </>
+            )}
             <div className="stage3PlaybackControls">
               <MetronomeControl
+                accentEnabled={metronomeAccent}
                 bpm={bpm}
                 className="chordTransitionTempo"
+                countInEnabled={metronomeCountIn}
                 inputId="stage3-bpm-presets"
+                onAccentChange={setMetronomeAccent}
                 onBpmChange={changeBpm}
+                onCountInChange={setMetronomeCountIn}
+                onSubdivisionChange={setMetronomeSubdivision}
+                onTimeSignatureChange={setMetronomeTimeSignature}
+                onToneChange={setMetronomeTone}
+                onVolumeChange={setMetronomeVolume}
+                subdivision={metronomeSubdivision}
+                timeSignature={metronomeTimeSignature}
+                tone={metronomeTone}
+                volume={metronomeVolume}
               />
               <div className="buttons playbackButtons chordTransitionButtons">
                 <button
@@ -4576,9 +5407,11 @@ function App() {
           <div className="chordTransitionHud">
             <MetronomeTimeline
               beat={beat}
+              beatsPerMeasure={metronomeBeatsPerMeasure}
               currentLabel={chordPracticeCurrent.displayName}
               isPlaying={gameState === GAME_STATES.PLAYING}
               progress={stage3MeasureProgress}
+              timeSignature={metronomeTimeSignature}
             />
             <div className="chordNextCard">
               <span>다음 코드</span>
@@ -4611,77 +5444,28 @@ function App() {
                   <b>{showChordFingeringGuide ? "ON" : "OFF"}</b>
                 </button>
               </div>
-              <div className="pentatonicFretboard viewerFretboard">
-                <div
-                  className="miniFretNumbers"
-                  style={{ gridTemplateColumns: `repeat(${chordPracticeCurrent.visibleFrets.length}, 1fr)` }}
-                >
-                  {chordPracticeCurrent.visibleFrets.map((fret) => (
-                    <span key={fret}>{fret}</span>
-                  ))}
-                </div>
-                <div
-                  className="miniFretNumbers bottom"
-                  style={{ gridTemplateColumns: `repeat(${chordPracticeCurrent.visibleFrets.length}, 1fr)` }}
-                >
-                  {chordPracticeCurrent.visibleFrets.map((fret) => (
-                    <span key={fret}>{fret}</span>
-                  ))}
-                </div>
-                <div
-                  className="miniFretColumns"
-                  style={{ gridTemplateColumns: `repeat(${chordPracticeCurrent.visibleFrets.length}, 1fr)` }}
-                >
-                  {chordPracticeCurrent.visibleFrets.map((fret) => (
-                    <span key={fret} />
-                  ))}
-                </div>
-                {referenceStrings.map((stringNumber) => (
-                  <span
-                    className="miniString chordViewerString"
-                    key={stringNumber}
-                    style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
-                  >
-                    <b>{stringNumber}번줄</b>
-                    <em className={`viewerInlineStringState ${getChordStringState(chordPracticeCurrent, stringNumber)}`}>
-                      {getChordStringState(chordPracticeCurrent, stringNumber)}
-                    </em>
-                  </span>
-                ))}
-                {chordPracticeCurrent.barres?.map((barre) => {
-                  const top = Math.min(getReferenceStringTop(barre.fromString), getReferenceStringTop(barre.toString));
-                  const bottom = Math.max(getReferenceStringTop(barre.fromString), getReferenceStringTop(barre.toString));
-                  return (
-                    <span
-                      className="viewerBarre"
-                      key={`transition-barre-${barre.fret}-${barre.fromString}-${barre.toString}`}
-                      style={{
-                        left: getViewerFretLeftFromFrets({ fretNumber: barre.fret }, chordPracticeCurrent.visibleFrets),
-                        top: `${(top + bottom) / 2}%`,
-                        height: `${bottom - top}%`,
-                      }}
-                    >
-                      {barre.label}
-                    </span>
-                  );
-                })}
-                {chordPracticeCurrent.notes.map((note, index) => {
-                  if (Number(note.fretNumber) === 0) return null;
-                  return (
-                    <span
-                      className={`scaleNote chordFingerNote ${index === 0 ? "root" : ""}`}
-                      key={`transition-${note.octaveNote}-${note.stringNumber}-${note.fretNumber}-${index}`}
-                      style={{
-                        left: getViewerFretLeftFromFrets(note, chordPracticeCurrent.visibleFrets),
-                        top: `${getReferenceStringTop(note)}%`,
-                        ...getNoteColorStyle(note.octaveNote),
-                      }}
-                    >
-                      <b>{showChordFingeringGuide ? note.finger : getChordDisplayNoteName(note.noteName)}</b>
-                    </span>
-                  );
-                })}
-              </div>
+              <Fretboard
+                barres={chordPracticeCurrent.barres ?? []}
+                className="stageChordSharedFretboard fitRange"
+                fretRange={getCompactFretRange(chordPracticeCurrent.notes, chordPracticeCurrent.barres)}
+                mode="chord"
+                notes={chordPracticeCurrent.notes
+                  .filter((note) => Number(note.fretNumber) > 0)
+                  .map((note, index) => ({
+                    ...note,
+                    id: `transition-${note.octaveNote}-${note.stringNumber}-${note.fretNumber}-${index}`,
+                    label: showChordFingeringGuide ? note.finger : getChordDisplayNoteName(note.noteName),
+                    isRoot: index === 0,
+                  }))}
+                rootNote={chordPracticeCurrent.root}
+                showFretNumbers
+                showStringNames
+                stringStates={Object.fromEntries(
+                  [1, 2, 3, 4, 5, 6]
+                    .map((stringNumber) => [stringNumber, getChordStringState(chordPracticeCurrent, stringNumber)])
+                    .filter(([, state]) => state === "x" || state === "o"),
+                )}
+              />
             </aside>
 
           </div>
@@ -4759,10 +5543,22 @@ function App() {
             )}
             <div className="referenceTrainingActions buttons playbackButtons">
               <MetronomeControl
+                accentEnabled={metronomeAccent}
                 bpm={bpm}
                 className="referenceBpmControl"
+                countInEnabled={metronomeCountIn}
                 inputId="reference-bpm-presets"
+                onAccentChange={setMetronomeAccent}
                 onBpmChange={changeBpm}
+                onCountInChange={setMetronomeCountIn}
+                onSubdivisionChange={setMetronomeSubdivision}
+                onTimeSignatureChange={setMetronomeTimeSignature}
+                onToneChange={setMetronomeTone}
+                onVolumeChange={setMetronomeVolume}
+                subdivision={metronomeSubdivision}
+                timeSignature={metronomeTimeSignature}
+                tone={metronomeTone}
+                volume={metronomeVolume}
               />
               <button className="primary" onClick={() => startPractice(selectedCategory)} type="button">
                 <Play size={18} />
@@ -4782,9 +5578,11 @@ function App() {
           <div className="chordTransitionHud referenceTransitionHud">
             <MetronomeTimeline
               beat={beat}
+              beatsPerMeasure={metronomeBeatsPerMeasure}
               currentLabel={getReferenceStageValue(referenceDisplayPrompt)}
               isPlaying={gameState === GAME_STATES.PLAYING}
               progress={stage3MeasureProgress}
+              timeSignature={metronomeTimeSignature}
             />
             <div className="chordNextCard">
               <span>{referenceNextLabel}</span>
@@ -4807,62 +5605,17 @@ function App() {
                     : "준비"}
               </strong>
             </div>
-            <div className="pentatonicFretboard">
-              <div
-                className="miniFretNumbers"
-                style={{ gridTemplateColumns: `repeat(${visibleFrets.length}, 1fr)` }}
-              >
-                {visibleFrets.map((fret) => (
-                  <span key={fret}>{fret}</span>
-                ))}
-              </div>
-              <div
-                className="miniFretNumbers bottom"
-                style={{ gridTemplateColumns: `repeat(${visibleFrets.length}, 1fr)` }}
-              >
-                {visibleFrets.map((fret) => (
-                  <span key={fret}>{fret}</span>
-                ))}
-              </div>
-              <div
-                className="miniFretColumns"
-                style={{ gridTemplateColumns: `repeat(${visibleFrets.length}, 1fr)` }}
-              >
-                {visibleFrets.map((fret) => (
-                  <span key={fret} />
-                ))}
-              </div>
-              {referenceStrings.map((stringNumber) => (
-                <span
-                  className={`miniString ${referenceDisplayPrompt?.stringNumber === stringNumber ? "active" : ""}`}
-                  key={stringNumber}
-                  style={{ top: `${getReferenceStringTop(stringNumber)}%` }}
-                >
-                  <b>{stringNumber}번줄</b>
-                </span>
-              ))}
-              {(selectedCategory.id === "scale-block" ? selectedPentatonic.notes : selectedCategory.notes).map((note) => {
-                const isRoot = selectedCategory.id === "scale-block" && note.noteName === selectedScaleRoot;
-                const isActive =
-                  referenceDisplayPrompt?.pitch === note.pitch &&
-                  referenceDisplayPrompt?.stringNumber === note.stringNumber &&
-                  referenceDisplayPrompt?.fretNumber === note.fretNumber;
-                return (
-                  <span
-                    className={`scaleNote ${isRoot ? "root" : ""} ${isActive ? "active detectedActive" : ""}`}
-                    key={`${note.octaveNote}-${note.stringNumber}-${note.fretNumber}`}
-                    style={{
-                      left: getReferenceFretLeft(note),
-                      top: `${getReferenceStringTop(note)}%`,
-                      ...getNoteColorStyle(note.octaveNote ?? note.pitch),
-                    }}
-                  >
-                    <b>{note.octaveNote ?? note.pitch}</b>
-                    <small>{note.solfege ?? getSolfege(note.pitch)}</small>
-                  </span>
-                );
-              })}
-            </div>
+            <Fretboard
+              className="trainingSharedFretboard fitRange"
+              fretRange={referenceBoardRange}
+              mode="training"
+              notes={referenceBoardNotes}
+              rootNote={selectedCategory.id === "scale-block" ? selectedScaleRoot : referenceDisplayPrompt?.noteName}
+              selectedNotes={selectedCategory.id === "scale-block" ? selectedPentatonic.notes.map((note) => note.noteName) : []}
+              showFretNumbers
+              showStringNames
+              showOnlySelected={false}
+            />
             <p>
               {gameState === GAME_STATES.PLAYING
                 ? "하이라이트된 음을 지판에서 찾아 연주하세요."

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Capybara Fretboard Training logo">
+  <defs>
+    <radialGradient id="markBg" cx="50%" cy="30%" r="72%">
+      <stop offset="0" stop-color="#25323a"/>
+      <stop offset="0.62" stop-color="#11181d"/>
+      <stop offset="1" stop-color="#070a0d"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f5d582"/>
+      <stop offset="0.52" stop-color="#d9aa55"/>
+      <stop offset="1" stop-color="#8f612d"/>
+    </linearGradient>
+    <linearGradient id="fur" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f1bd62"/>
+      <stop offset="0.55" stop-color="#c88734"/>
+      <stop offset="1" stop-color="#8a5324"/>
+    </linearGradient>
+    <linearGradient id="snout" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c9893e"/>
+      <stop offset="1" stop-color="#7c471d"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#000000" flood-opacity="0.36"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="116" fill="url(#markBg)"/>
+  <g filter="url(#soft)">
+    <path d="M256 56L392 136v176c0 72-49 111-136 166-87-55-136-94-136-166V136z" fill="none" stroke="url(#gold)" stroke-width="15" stroke-linejoin="round"/>
+    <g stroke="url(#gold)" stroke-width="13" stroke-linecap="round">
+      <line x1="180" y1="134" x2="180" y2="60"/>
+      <line x1="218" y1="112" x2="218" y2="40"/>
+      <line x1="256" y1="96" x2="256" y2="30"/>
+      <line x1="294" y1="112" x2="294" y2="40"/>
+      <line x1="332" y1="134" x2="332" y2="60"/>
+    </g>
+
+    <path d="M168 292c-2-73 23-133 88-133s90 60 88 133c-1 58-38 99-88 99s-87-41-88-99z" fill="url(#fur)"/>
+    <circle cx="176" cy="190" r="31" fill="#9a5a24"/>
+    <circle cx="336" cy="190" r="31" fill="#9a5a24"/>
+    <circle cx="176" cy="190" r="17" fill="#5c3518" opacity="0.55"/>
+    <circle cx="336" cy="190" r="17" fill="#5c3518" opacity="0.55"/>
+    <circle cx="211" cy="238" r="10" fill="#1d120b"/>
+    <circle cx="301" cy="238" r="10" fill="#1d120b"/>
+    <ellipse cx="256" cy="292" rx="56" ry="48" fill="url(#snout)"/>
+    <ellipse cx="235" cy="279" rx="10" ry="7" fill="#2a170d" transform="rotate(28 235 279)"/>
+    <ellipse cx="277" cy="279" rx="10" ry="7" fill="#2a170d" transform="rotate(-28 277 279)"/>
+    <path d="M256 292v35M256 327c-11 19-31 20-42 5M256 327c11 19 31 20 42 5" fill="none" stroke="#2a170d" stroke-width="8" stroke-linecap="round"/>
+    <path d="M185 342c21-2 41 14 46 38h-72c-5-20 5-36 26-38zM327 342c-21-2-41 14-46 38h72c5-20-5-36-26-38z" fill="#d69a45"/>
+    <path d="M200 354c7 8 10 18 9 27M313 354c-7 8-10 18-9 27" fill="none" stroke="#6d3f1c" stroke-width="6" stroke-linecap="round" opacity="0.72"/>
+  </g>
+</svg>
