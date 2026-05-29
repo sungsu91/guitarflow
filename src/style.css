@@ -1039,6 +1039,128 @@ h1 {
   align-items: stretch;
 }
 
+.referenceTrainingPanel {
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  display: grid;
+  gap: 10px;
+}
+
+.referenceTrainingToolbar {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.7fr) minmax(420px, 1.3fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.72);
+  box-shadow: inset 0 0 22px rgba(94, 234, 212, 0.06);
+}
+
+.referenceTrainingToolbar > div:first-child span {
+  display: block;
+  color: #5eead4;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.referenceTrainingToolbar > div:first-child strong {
+  display: block;
+  margin-top: 3px;
+  color: #f8fafc;
+  font-size: 18px;
+}
+
+.referenceScalePicker {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: 120px minmax(220px, 1fr) 96px;
+}
+
+.referenceTrainingActions {
+  justify-content: end;
+}
+
+.metronomeControl {
+  display: inline-grid;
+  grid-template-columns: auto minmax(126px, 148px);
+  gap: 6px;
+  align-items: center;
+  min-height: 38px;
+  padding: 5px 8px;
+  border: 1px solid rgba(94, 234, 212, 0.22);
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.42);
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.metronomeBpmCombo {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.metronomeControl input,
+.metronomeControl select {
+  height: 30px;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(94, 234, 212, 0.26);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  font: inherit;
+  font-weight: 900;
+  text-align: center;
+}
+
+.metronomeControl input {
+  padding-right: 42px;
+}
+
+.metronomeControl select {
+  position: absolute;
+  inset: 1px 1px 1px auto;
+  width: 34px;
+  height: auto;
+  padding: 0;
+  color: transparent;
+  text-indent: -999px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  appearance: none;
+}
+
+.metronomeControl select:focus {
+  outline: 1px solid rgba(94, 234, 212, 0.6);
+}
+
+.metronomeBpmCombo::after {
+  content: "▾";
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  pointer-events: none;
+  transform: translateY(-56%);
+  color: #99f6e4;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.referenceTrainingBoard {
+  min-height: 460px;
+  max-height: none;
+}
+
+.referenceTrainingBoard .pentatonicFretboard {
+  min-height: 360px;
+}
+
 .referenceFretboard {
   position: relative;
   display: grid;
@@ -1073,6 +1195,16 @@ h1 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.enharmonicNotice {
+  display: block;
+  margin-top: 4px;
+  color: #93c5fd;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+  opacity: 0.92;
 }
 
 .miniFretboard,
@@ -1464,6 +1596,33 @@ h1 {
   cursor: not-allowed;
 }
 
+.rootPair {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 999px;
+  background: rgba(2, 6, 23, 0.36);
+}
+
+.rootPair.selected {
+  border-color: rgba(94, 234, 212, 0.34);
+  background: rgba(20, 184, 166, 0.08);
+}
+
+.chordChipGroup .rootPair button {
+  min-height: 28px;
+  padding: 0 9px;
+  border-radius: 999px;
+}
+
+.chordChipGroup .rootPair .sharpToggle {
+  min-width: 28px;
+  padding: 0;
+  color: #99f6e4;
+}
+
 .viewerAllButton {
   min-height: 34px;
   padding: 0 12px;
@@ -1654,10 +1813,17 @@ h1 {
 .chordRootLabel {
   display: grid;
   place-items: center;
+  gap: 2px;
   color: #f8fafc;
   font-size: 22px;
   border-right: 1px solid rgba(148, 163, 184, 0.16);
   background: rgba(15, 23, 42, 0.46);
+}
+
+.chordRootLabel small {
+  color: #93c5fd;
+  font-size: 11px;
+  line-height: 1;
 }
 
 .chordMiniGrid {
@@ -1952,11 +2118,7 @@ h1 {
 }
 
 .chordTransitionTempo {
-  display: grid;
-  grid-template-columns: auto auto 66px auto 70px;
-  align-items: center;
-  justify-content: start;
-  gap: 5px;
+  justify-self: start;
 }
 
 .bpmStepButtons {
@@ -1972,9 +2134,8 @@ h1 {
   border-radius: 8px;
 }
 
-.chordTransitionTempo input,
-.chordTransitionTempo select {
-  width: 66px;
+.chordTransitionTempo input {
+  width: 100%;
   min-height: 30px;
   border: 1px solid rgba(94, 234, 212, 0.26);
   border-radius: 8px;
@@ -1986,22 +2147,16 @@ h1 {
   text-align: center;
 }
 
-.chordTransitionTempo select {
-  width: 70px;
-  text-align: left;
-}
-
-.chordTransitionTempo strong {
-  color: #dbeafe;
-  font-size: 12px;
-}
-
 .chordTransitionHud {
   display: grid;
   grid-template-columns: minmax(280px, 1.25fr) minmax(0, 0.6fr) minmax(150px, 0.45fr) auto;
   align-items: center;
   gap: 6px;
   padding: 8px;
+}
+
+.referenceTransitionHud {
+  width: 100%;
 }
 
 .chordTimeline {
@@ -2268,7 +2423,7 @@ h1 {
   }
 
   .chordTransitionTempo {
-    grid-template-columns: auto auto 58px auto 66px;
+    grid-template-columns: auto minmax(126px, 148px);
     gap: 4px;
   }
 
@@ -2277,18 +2432,9 @@ h1 {
     gap: 3px;
   }
 
-  .chordTransitionTempo button,
-  .chordTransitionTempo input,
-  .chordTransitionTempo select {
-    min-height: 28px;
-  }
-
   .chordTransitionTempo input {
-    width: 58px;
-  }
-
-  .chordTransitionTempo select {
-    width: 66px;
+    min-height: 28px;
+    width: 100%;
   }
 
   .chordTransitionButtons {
@@ -6020,6 +6166,33 @@ button.primary svg {
     grid-template-columns: 1fr;
   }
 
+  .referenceTrainingToolbar {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: 1fr;
+  }
+
+  .referenceScalePicker {
+    order: 3;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-self: stretch;
+  }
+
+  .referenceTrainingActions {
+    order: 2;
+    display: grid;
+    grid-template-columns: minmax(132px, 1fr) repeat(2, minmax(70px, 0.7fr));
+    gap: 5px;
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .referenceBpmControl {
+    width: 100%;
+    grid-template-columns: auto 1fr;
+  }
+
   .compactControlRow,
   .practiceQueueRow {
     grid-template-columns: 1fr;
@@ -6519,7 +6692,7 @@ button.primary svg {
   }
 
   .chordTransitionTempo {
-    grid-template-columns: auto auto 58px auto 68px;
+    grid-template-columns: auto minmax(126px, 148px);
     gap: 4px;
   }
 
@@ -6528,18 +6701,9 @@ button.primary svg {
     gap: 3px;
   }
 
-  .chordTransitionTempo button,
-  .chordTransitionTempo input,
-  .chordTransitionTempo select {
-    min-height: 28px;
-  }
-
   .chordTransitionTempo input {
-    width: 58px;
-  }
-
-  .chordTransitionTempo select {
-    width: 68px;
+    min-height: 28px;
+    width: 100%;
   }
 
   .chordTransitionHud {
@@ -7438,6 +7602,72 @@ button.primary svg {
     background: rgba(7, 9, 15, 0.82);
     box-shadow: none;
     backdrop-filter: none;
+  }
+
+  .referenceTrainingPanel {
+    gap: 6px;
+  }
+
+  .referenceTrainingToolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 7px;
+    align-items: stretch;
+  }
+
+  .referenceTrainingToolbar > div:first-child strong {
+    font-size: 14px;
+  }
+
+  .referenceBpmControl {
+    min-height: 34px;
+    padding: 4px 7px;
+  }
+
+  .referenceBpmControl input {
+    height: 28px;
+  }
+
+  .referenceScalePicker {
+    order: 3;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    padding: 6px;
+    align-self: stretch;
+    margin-top: 0;
+  }
+
+  .referenceScalePicker .scaleKeySelect,
+  .referenceScalePicker .scaleBoxSelect {
+    min-width: 0;
+  }
+
+  .referenceScalePicker .scaleTypeGroup {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .referenceTrainingActions {
+    order: 2;
+    display: grid;
+    grid-template-columns: minmax(132px, 1fr) repeat(2, minmax(70px, 0.7fr));
+    gap: 5px;
+    width: 100%;
+  }
+
+  .referenceTrainingActions button {
+    min-width: 0;
+    padding-inline: 7px;
+  }
+
+  .referenceTrainingBoard {
+    min-height: 252px;
+    max-height: none;
+  }
+
+  .referenceTrainingBoard .pentatonicFretboard {
+    min-height: 184px;
   }
 
   .miniFretboard,
