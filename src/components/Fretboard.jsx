@@ -144,7 +144,7 @@ export default function Fretboard({
                     {String(stringState).toUpperCase()}
                   </em>
                 ) : openNote ? (
-                  <em className={`fretboardStringState noteOpen ${openNote.noteName === rootNote || openNote.isRoot ? "root" : ""}`}>
+                  <em className={`fretboardStringState noteOpen ${openNote.noteName === rootNote || openNote.isRoot ? "root" : ""} ${openNote.isActive ? "active" : ""}`}>
                     {openLabel}
                   </em>
                 ) : null}

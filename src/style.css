@@ -13723,24 +13723,28 @@ button.primary,
 }
 
 .fretboardViewerPanel .viewerChordPicked {
-  min-width: 54px;
-  padding-left: 8px;
-  border-left: 1px solid rgba(217, 170, 85, 0.14);
-  text-align: right;
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 6px;
+  padding-left: 0;
+  border-left: 0;
+  text-align: left;
 }
 
 .fretboardViewerPanel .viewerChordPicked span {
   display: inline;
-  margin-right: 4px;
+  margin-right: 0;
+  white-space: nowrap;
 }
 
 .fretboardViewerPanel .viewerChordPicked strong {
-  font-size: 18px;
+  font-size: 17px;
 }
 
 .fretboardViewerPanel .viewerChordSummaryRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   min-width: 0;
@@ -13773,12 +13777,57 @@ button.primary,
   white-space: nowrap;
 }
 
+.fretboardViewerPanel .viewerMapChordTones {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 6px 2px 0;
+  border-top: 1px solid rgba(217, 170, 85, 0.1);
+  color: rgba(226, 211, 185, 0.68);
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.fretboardViewerPanel .viewerMapChordTones span {
+  color: rgba(217, 170, 85, 0.82);
+  font-size: 9.5px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.fretboardViewerPanel .viewerMapChordTones strong {
+  overflow: hidden;
+  color: rgba(247, 241, 227, 0.78);
+  font-size: 11.5px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .fretboardViewerPanel .viewerAllButton {
   flex: 0 0 auto;
   min-height: 28px;
   padding: 0 9px;
-  border-radius: 10px;
-  font-size: 10px;
+  border-color: rgba(217, 170, 85, 0.24);
+  border-radius: 999px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.006)),
+    rgba(11, 15, 20, 0.84);
+  color: rgba(247, 241, 227, 0.82);
+  font-size: 9.5px;
+  font-weight: 900;
+  box-shadow: none;
+}
+
+.fretboardViewerPanel .viewerAllButton.selected {
+  border-color: rgba(241, 202, 122, 0.5);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.18), rgba(93, 67, 31, 0.3)),
+    rgba(18, 20, 22, 0.92);
+  color: #ffe6aa;
+  box-shadow: none;
 }
 
 .fretboardViewerPanel .viewerChordPositionGroup {
@@ -13837,11 +13886,30 @@ button.primary,
 
 .fretboardViewerPanel .chordGuideToggle {
   width: auto;
-  min-width: 72px;
-  min-height: 30px;
-  padding: 0 8px;
-  border-radius: 10px;
-  font-size: 8.5px;
+  min-width: 58px;
+  min-height: 29px;
+  padding: 0 7px;
+  border-color: rgba(217, 170, 85, 0.24);
+  border-radius: 999px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.006)),
+    rgba(11, 15, 20, 0.84);
+  color: rgba(247, 241, 227, 0.82);
+  font-size: 9px;
+  box-shadow: none;
+}
+
+.fretboardViewerPanel .chordGuideToggle b {
+  color: inherit;
+  font-size: 9px;
+}
+
+.fretboardViewerPanel .chordGuideToggle.selected {
+  border-color: rgba(241, 202, 122, 0.5);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.18), rgba(93, 67, 31, 0.3)),
+    rgba(18, 20, 22, 0.92);
+  color: #ffe6aa;
 }
 
 .fretboardViewerPanel .chordCatalogPanel {
@@ -13911,7 +13979,7 @@ button.primary,
   }
 
   .fretboardViewerPanel .viewerChordSummaryRow {
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px;
     padding: 6px 7px;
   }
@@ -13930,8 +13998,8 @@ button.primary,
   }
 
   .fretboardViewerPanel .viewerChordPicked {
-    min-width: 46px;
-    padding-left: 6px;
+    min-width: 0;
+    padding-left: 0;
   }
 
   .fretboardViewerPanel .viewerChordPicked strong {
@@ -14117,6 +14185,16 @@ button.primary:active:not(:disabled),
   border-color: rgba(241, 202, 122, 0.82);
   background: rgba(217, 170, 85, 0.2);
   color: #f8fafc;
+}
+
+.fretboardStringState.noteOpen.active {
+  border-color: rgba(255, 246, 214, 0.9);
+  background: linear-gradient(145deg, rgba(241, 202, 122, 0.94), rgba(141, 96, 48, 0.96));
+  color: #181109;
+  box-shadow:
+    0 0 0 2px rgba(15, 16, 17, 0.48),
+    0 0 0 4px rgba(217, 170, 85, 0.18),
+    0 8px 14px rgba(0, 0, 0, 0.3);
 }
 
 .fretboardStringRow i {
@@ -14908,4 +14986,3870 @@ button.primary svg {
     min-width: 54px;
     max-width: 54px;
   }
+}
+
+/* Readability pass: keep the premium dark tone, but make information easier to scan. */
+:root {
+  --readable-text: rgba(250, 246, 238, 0.94);
+  --readable-muted: rgba(236, 226, 212, 0.78);
+  --readable-soft: rgba(236, 226, 212, 0.66);
+  --readable-border: rgba(214, 167, 85, 0.24);
+  --readable-panel: rgba(19, 23, 28, 0.88);
+  --readable-panel-strong: rgba(27, 31, 36, 0.94);
+}
+
+.appShell,
+.hubScreen,
+.viewerScreen,
+.referenceScreen,
+.metronomeScreen,
+.shootingScreen {
+  color: var(--readable-text);
+}
+
+.hubBrand p,
+.hubMenuButton small,
+.stageMenuCard__desc,
+.referenceHeader p,
+.referenceHint,
+.viewerInfoText,
+.viewerTuningHint,
+.viewerChordTones,
+.viewerScaleSummary,
+.modeHelper,
+.chordTransitionIntro p,
+.chordProgressionOrderPanel small,
+.chordMiniTones,
+.utilityMenuList small,
+.shootingHelperText,
+.developerBadge,
+.infoPanel,
+.helperPanel {
+  color: var(--readable-muted);
+  font-size: max(12px, 0.86rem);
+  line-height: 1.45;
+}
+
+.hubBrand h1,
+.sectionTitle,
+.viewerTitle,
+.referenceTitle,
+.stageMenuCard__title,
+.hubMenuButton strong,
+.referenceHeader strong,
+.viewerMapHeader strong,
+.chordNowCard strong,
+.chordNextCard strong,
+.metronomeTitle {
+  color: var(--readable-text);
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+.hubMenuButton,
+.stageMenuCard,
+.referencePanel,
+.viewerPanel,
+.viewerControls,
+.viewerChordPanel,
+.referenceTrainingBoard,
+.chordTransitionChart,
+.metronomeCard,
+.shootingPanel,
+.utilityMenuPanel {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+    var(--readable-panel);
+  border-color: var(--readable-border);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+}
+
+.hubMenuButton small,
+.stageMenuCard__desc {
+  color: rgba(242, 233, 219, 0.8);
+}
+
+.stageMenuCard__tag,
+.viewerModeTabs button,
+.viewerRangeButton,
+.viewerChordPositionGroup button,
+.chordChipGroup button,
+.quickButton,
+.metronomeBpmPresetSelect,
+.metronomeToggleRow button,
+.referenceTrainingActions button,
+.chordTransitionControls button,
+.shootingButton {
+  min-height: 34px;
+  color: rgba(250, 246, 238, 0.88);
+  background: rgba(18, 24, 30, 0.82);
+  border-color: rgba(214, 167, 85, 0.24);
+  text-shadow: none;
+  box-shadow: none;
+}
+
+.viewerModeTabs button.selected,
+.viewerModeTabs button.active,
+.viewerRangeButton.selected,
+.viewerChordPositionGroup button.selected,
+.chordChipGroup button.selected,
+.quickButton.selected,
+.metronomeBpmPresetSelect:focus,
+.metronomeToggleRow button.selected,
+.referenceTrainingActions button.selected,
+.stageMenuCard.selected,
+.stageMenuCard[aria-pressed="true"] {
+  color: #fff8e8;
+  background: rgba(82, 62, 34, 0.78);
+  border-color: rgba(230, 180, 93, 0.58);
+  box-shadow: 0 0 0 1px rgba(230, 180, 93, 0.18);
+}
+
+.metronomeBpmInputShell input,
+.metronomeBpmInput,
+.viewerSelect,
+.viewerPanel select,
+.referencePanel select,
+.referenceBpmControl .metronomeBpmInputShell input,
+.chordTransitionTempo .metronomeBpmInputShell input {
+  color: var(--readable-text);
+  background: rgba(9, 13, 17, 0.88);
+  border-color: rgba(214, 167, 85, 0.34);
+}
+
+.metronomeBpmInputShell input::placeholder,
+.viewerPanel input::placeholder {
+  color: rgba(236, 226, 212, 0.58);
+}
+
+.sharedFretboard,
+.viewerSharedFretboard,
+.trainingSharedFretboard,
+.stageChordSharedFretboard,
+.chordMiniSharedFretboard {
+  background:
+    linear-gradient(90deg, rgba(78, 49, 27, 0.72), rgba(44, 31, 23, 0.78)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.08));
+}
+
+.sharedFretboard::before,
+.viewerSharedFretboard::before,
+.trainingSharedFretboard::before,
+.stageChordSharedFretboard::before,
+.chordMiniSharedFretboard::before {
+  opacity: 0.16;
+}
+
+.fretboardStringRow i {
+  background: rgba(245, 235, 212, 0.68);
+  box-shadow: 0 0 0 1px rgba(20, 14, 10, 0.22);
+}
+
+.fretboardGrid i,
+.fretboardNut {
+  opacity: 0.88;
+}
+
+.fretboardFretNumbers span,
+.fretboardStringNames span,
+.fretboardStringState span {
+  color: rgba(250, 246, 238, 0.86);
+  font-weight: 800;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.fretboardNoteChip {
+  color: #111820;
+  font-weight: 900;
+  text-shadow: none;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.34), 0 4px 8px rgba(0, 0, 0, 0.28);
+}
+
+.fretboardNoteChip b,
+.fretboardNoteChip small {
+  color: inherit;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.fretboardNoteChip b {
+  font-size: 10px;
+}
+
+.fretboardNoteChip small {
+  font-size: 8px;
+  opacity: 0.9;
+}
+
+.fretboardNoteChip.root {
+  color: #081014;
+  outline: 2px solid rgba(255, 246, 214, 0.8);
+  outline-offset: 1px;
+}
+
+.viewerSharedFretboard.allNotes .fretboardNoteChip b {
+  font-size: 8.5px;
+}
+
+.trainingSharedFretboard.fitRange .fretboardNoteChip b,
+.stageChordSharedFretboard.fitRange .fretboardNoteChip b {
+  font-size: 9.5px;
+}
+
+.modeSwitch {
+  background: rgba(13, 18, 23, 0.92);
+  border-color: rgba(214, 167, 85, 0.22);
+}
+
+.modeSwitch button {
+  color: rgba(236, 226, 212, 0.74);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.modeSwitch button::before {
+  opacity: 0.74;
+}
+
+.modeSwitch .selected {
+  color: #ffe4a6;
+  background: rgba(91, 70, 39, 0.7);
+  border-color: rgba(230, 180, 93, 0.5);
+  box-shadow: 0 0 0 1px rgba(230, 180, 93, 0.14);
+}
+
+.modeSwitch .selected::before {
+  opacity: 1;
+  filter: none;
+}
+
+@media (max-width: 430px) {
+  .hubBrand p,
+  .hubMenuButton small,
+  .stageMenuCard__desc,
+  .referenceHeader p,
+  .viewerInfoText,
+  .viewerTuningHint,
+  .viewerChordTones,
+  .viewerScaleSummary,
+  .modeHelper,
+  .chordProgressionOrderPanel small {
+    font-size: 12px;
+  }
+
+  .hubMenuButton strong,
+  .stageMenuCard__title,
+  .referenceHeader strong,
+  .viewerMapHeader strong {
+    font-size: max(15px, 1rem);
+  }
+
+  .stageMenuCard,
+  .hubMenuButton {
+    padding: 13px 14px;
+  }
+
+  .viewerModeTabs button,
+  .viewerRangeButton,
+  .viewerChordPositionGroup button,
+  .chordChipGroup button {
+    min-height: 34px;
+    font-size: 12px;
+  }
+
+  .modeSwitch button {
+    font-size: 10.5px;
+  }
+}
+
+/* Standalone metronome: one compact BPM control row, no duplicated hero stepper. */
+.standaloneMetronomePanel .metronomeHeroCard {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  min-height: 150px;
+  padding: 20px 18px;
+}
+
+.standaloneMetronomePanel .metronomeHeroCard strong {
+  letter-spacing: -0.04em;
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl {
+  padding: 12px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.006)),
+    rgba(20, 22, 25, 0.9);
+  border-color: rgba(217, 170, 85, 0.18);
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeTopLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeBpmLabel {
+  order: 1;
+  flex: 0 0 auto;
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeBpmCombo {
+  order: 2;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeToggleRow {
+  order: 3;
+  display: contents;
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeToggleRow button {
+  flex: 0 0 auto;
+  min-width: 72px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0 8px 0 18px;
+  font-size: 10px;
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeOptions {
+  order: 4;
+  flex: 1 1 100%;
+  width: 100%;
+  margin-top: 2px;
+  padding: 6px;
+  border: 1px solid rgba(217, 170, 85, 0.12);
+  border-radius: 16px;
+  background: rgba(11, 14, 17, 0.42);
+}
+
+.standaloneMetronomePanel .metronomeSelectControl {
+  gap: 3px;
+}
+
+.standaloneMetronomePanel .metronomeSelectControl span {
+  color: rgba(226, 211, 185, 0.72);
+}
+
+.standaloneMetronomePanel .metronomeSelectControl select {
+  height: 32px;
+  border-color: rgba(217, 170, 85, 0.14);
+  background: rgba(22, 24, 27, 0.78);
+  box-shadow: none;
+}
+
+.standaloneMetronomePanel .metronomeVolumeControl {
+  order: 5;
+  flex: 1 1 100%;
+  width: 100%;
+}
+
+.standaloneMetronomePanel .metronomePlayButton {
+  display: inline-grid;
+  place-items: center;
+  gap: 2px;
+  color: #101010;
+}
+
+.standaloneMetronomePanel .metronomePlayButton span {
+  font-size: 11px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+@media (max-width: 430px) {
+  .standaloneMetronomePanel .metronomeHeroCard {
+    min-height: 138px;
+  }
+
+  .standaloneMetronomePanel .standaloneMetronomeControl {
+    padding: 10px;
+  }
+
+  .standaloneMetronomePanel .standaloneMetronomeControl .metronomeBpmCombo {
+    gap: 5px;
+  }
+
+  .standaloneMetronomePanel .standaloneMetronomeControl .metronomeBpmPresetSelect {
+    min-width: 64px;
+    max-width: 72px;
+    padding: 0 7px;
+    font-size: 9px;
+  }
+
+  .standaloneMetronomePanel .standaloneMetronomeControl .metronomeToggleRow button {
+    min-width: 66px;
+    padding: 0 7px 0 17px;
+    font-size: 9px;
+  }
+}
+
+/* Fretboard stage menu readability: make cards read as simple tappable app buttons. */
+.curriculum .stageMenu {
+  gap: 10px;
+}
+
+.curriculum .stageMenuCard {
+  grid-template-columns: 48px minmax(0, 1fr) 22px;
+  align-items: center;
+  min-height: 74px;
+  padding: 11px 13px;
+  gap: 12px;
+  overflow: hidden;
+  border-color: rgba(217, 170, 85, 0.2);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.006)),
+    rgba(22, 25, 28, 0.92);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+}
+
+.curriculum .stageMenuCard::before,
+.curriculum .stageMenuCard::after {
+  content: none;
+}
+
+.curriculum .stageMenuCard.featuredCard,
+.curriculum .stageMenuCard.stageMenuCard--featured,
+.curriculum .stageMenuCard.rhythmCoreCard {
+  border-color: rgba(217, 170, 85, 0.42);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.08), rgba(255, 255, 255, 0.01)),
+    rgba(24, 26, 29, 0.94);
+}
+
+.curriculum .stageMenuCard.comingSoonCard {
+  opacity: 0.72;
+  border-color: rgba(180, 170, 150, 0.14);
+}
+
+.curriculum .stageMenuCard__content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  text-align: left;
+}
+
+.curriculum .stageMenuCard__title,
+.curriculum .stageMenuCard__desc,
+.curriculum .stageMenuCard__tag {
+  margin: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.curriculum .stageMenuCard__title {
+  color: rgba(250, 246, 238, 0.96);
+  font-size: 15px;
+  line-height: 1.12;
+}
+
+.curriculum .stageMenuCard__desc {
+  color: rgba(236, 226, 212, 0.72);
+  font-size: 11.5px;
+  line-height: 1.25;
+}
+
+.curriculum .stageMenuCard__tag {
+  align-self: flex-start;
+  min-height: 0;
+  padding: 4px 7px;
+  border: 1px solid rgba(217, 170, 85, 0.18);
+  border-radius: 8px;
+  color: rgba(255, 229, 174, 0.9);
+  background: rgba(217, 170, 85, 0.08);
+  font-size: 9px;
+  line-height: 1;
+}
+
+.curriculum .stageMenuCard:not(.rhythmCoreCard):not(.stageMenuCard--featured):not(.featuredCard) .stageMenuCard__tag {
+  color: rgba(236, 226, 212, 0.76);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.curriculum .stageMenuCard__arrow {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 36px;
+  min-width: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: rgba(255, 225, 160, 0.86);
+  background: transparent;
+  box-shadow: none;
+  font-size: 24px;
+  line-height: 1;
+}
+
+@media (max-width: 430px) {
+  .curriculum .stageMenuCard {
+    grid-template-columns: 44px minmax(0, 1fr) 20px;
+    min-height: 72px;
+    padding: 10px 12px;
+    gap: 10px;
+    border-radius: 17px;
+  }
+
+  .curriculum .stageMenuCard__title {
+    font-size: 14px;
+  }
+
+  .curriculum .stageMenuCard__desc {
+    font-size: 11px;
+  }
+
+  .curriculum .stageMenuCard__tag {
+    padding: 3px 6px;
+    font-size: 8.5px;
+  }
+}
+
+/* Main menu cards: make them read as tappable navigation, not decoration. */
+.mainHub .hubMenuPanel {
+  gap: 10px;
+}
+
+.mainHub .hubMenuButton {
+  grid-template-columns: 34px minmax(0, 1fr) 20px;
+  grid-template-areas:
+    "badge icon arrow"
+    "title title arrow"
+    "sub sub arrow";
+  align-content: center;
+  align-items: center;
+  justify-items: start;
+  min-height: 108px;
+  padding: 13px 13px 12px;
+  gap: 5px 9px;
+  cursor: pointer;
+  border-color: rgba(217, 170, 85, 0.24);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.01)),
+    rgba(25, 28, 32, 0.92);
+  transition:
+    transform 0.14s ease,
+    border-color 0.14s ease,
+    background 0.14s ease,
+    box-shadow 0.14s ease;
+}
+
+.mainHub .hubMenuButton::before,
+.mainHub .hubMenuButton::after {
+  opacity: 0.04;
+}
+
+.mainHub .hubMenuButton:hover:not(:disabled),
+.mainHub .hubMenuButton:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(217, 170, 85, 0.44);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.mainHub .hubMenuButton:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+}
+
+.mainHub .hubMenuButton .hubMenuBadge,
+.mainHub .hubMenuButton span:first-child {
+  grid-area: badge;
+  width: 30px;
+  height: 28px;
+  min-width: 30px;
+  padding: 0;
+  border-radius: 11px;
+  font-size: 8.5px;
+  line-height: 1;
+  box-shadow: 0 5px 11px rgba(0, 0, 0, 0.2);
+}
+
+.mainHub .hubMenuButton .hubMenuBadge::before,
+.mainHub .hubMenuButton span:first-child::before {
+  top: -4px;
+  left: 4px;
+  width: 9px;
+  height: 9px;
+}
+
+.mainHub .hubMenuButton .hubMenuBadge::after,
+.mainHub .hubMenuButton span:first-child::after {
+  top: -4px;
+  right: 4px;
+  width: 9px;
+  height: 9px;
+}
+
+.mainHub .hubMenuIcon {
+  grid-area: icon;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #f4c76f;
+  font-size: 25px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.mainHub .hubMenuIcon::before,
+.mainHub .hubMenuIcon::after {
+  content: none;
+}
+
+.mainHub .hubMenuButton strong {
+  grid-area: title;
+  color: rgba(250, 246, 238, 0.98);
+  font-size: 18px;
+  line-height: 1.12;
+  font-weight: 950;
+  letter-spacing: -0.02em;
+}
+
+.mainHub .hubMenuButton small {
+  grid-area: sub;
+  display: block;
+  color: rgba(236, 226, 212, 0.74);
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 760;
+}
+
+.mainHub .hubMenuArrow {
+  grid-area: arrow;
+  align-self: end;
+  justify-self: end;
+  color: rgba(255, 225, 160, 0.88);
+  font-size: 24px;
+  font-style: normal;
+  line-height: 1;
+}
+
+.mainHub .hubMenuButton.metronome {
+  border-color: rgba(217, 170, 85, 0.24);
+}
+
+@media (max-width: 430px) {
+  .mainHub .hubMenuPanel {
+    gap: 9px;
+  }
+
+  .mainHub .hubMenuButton {
+    min-height: 102px;
+    padding: 12px;
+    border-radius: 20px;
+  }
+
+  .mainHub .hubMenuIcon {
+    font-size: 23px;
+  }
+
+  .mainHub .hubMenuButton strong {
+    font-size: 17px;
+  }
+
+  .mainHub .hubMenuButton small {
+    font-size: 10.5px;
+  }
+}
+
+/* Main menu simplification: capybara badge is the icon, remove visual competition. */
+.mainHub .hubMenuButton {
+  grid-template-columns: 34px minmax(0, 1fr) 18px;
+  grid-template-areas:
+    "badge title arrow"
+    "badge sub arrow";
+  min-height: 82px;
+  padding: 11px 12px;
+  gap: 4px 10px;
+}
+
+.mainHub .hubMenuIcon {
+  display: none;
+}
+
+.mainHub .hubMenuButton strong {
+  align-self: end;
+  font-size: 17px;
+}
+
+.mainHub .hubMenuButton small {
+  align-self: start;
+  font-size: 10.5px;
+}
+
+.mainHub .hubMenuArrow {
+  align-self: center;
+  font-size: 22px;
+}
+
+.mainHub .hubGuitarHead.homeHeadstockImage {
+  margin-top: -10px;
+}
+
+@media (max-width: 430px) {
+  .mainHub .hubMenuButton {
+    min-height: 78px;
+    padding: 10px 11px;
+    border-radius: 18px;
+  }
+
+  .mainHub .hubMenuPanel {
+    gap: 8px;
+  }
+
+  .mainHub .hubGuitarHead.homeHeadstockImage {
+    margin-top: -18px;
+  }
+}
+
+/* Main menu affordance: clearer button border and subtle press feedback. */
+.mainHub .hubMenuButton {
+  border-color: rgba(217, 170, 85, 0.36);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+}
+
+.mainHub .hubMenuButton:hover:not(:disabled),
+.mainHub .hubMenuButton:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(236, 190, 103, 0.62);
+  box-shadow:
+    0 15px 28px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.075);
+}
+
+.mainHub .hubMenuButton:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+  border-color: rgba(236, 190, 103, 0.72);
+  box-shadow:
+    0 7px 15px rgba(0, 0, 0, 0.24),
+    inset 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+/* Main screen uses the same fixed bottom navigation as the rest of the app. */
+.mainHub .mainBottomNav {
+  z-index: 45;
+}
+
+@media (max-width: 680px) {
+  .modeSwitch,
+  .mainHub .mainBottomNav {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .mainHub {
+    padding-bottom: 88px;
+  }
+}
+
+@media (max-width: 430px) {
+  .mainHub .mainBottomNav button {
+    min-height: 48px;
+    font-size: 9.5px;
+  }
+}
+
+/* Main-only spacing and bottom-nav active polish. */
+.mainHub .hubGuitarHead.homeHeadstockImage {
+  margin-top: -132px;
+  transform: translateY(-42px);
+}
+
+.mainHub .mainBottomNav .selected,
+.mainHub .mainBottomNav .selected:hover:not(:disabled),
+.mainHub .mainBottomNav .selected:active:not(:disabled) {
+  color: #ffe6aa;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.22), rgba(99, 72, 34, 0.34)),
+    rgba(31, 27, 21, 0.82);
+  border-radius: 15px;
+  border: 1px solid rgba(217, 170, 85, 0.24);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 244, 210, 0.08);
+}
+
+.mainHub .mainBottomNav .selected::before {
+  color: #ffe6aa;
+  filter: none;
+}
+
+@media (max-width: 430px) {
+  .mainHub .hubGuitarHead.homeHeadstockImage {
+    margin-top: -144px;
+    transform: translateY(-48px);
+  }
+}
+
+.mainHub .hubMenuButton,
+.mainHub .hubMenuButton *,
+.mainHub .mainBottomNav button,
+.mainHub .mainBottomNav button * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mainHub .hubMenuButton:focus,
+.mainHub .hubMenuButton:focus-visible,
+.mainHub .hubMenuButton:active,
+.mainHub .hubMenuButton:visited {
+  outline: none;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.008)),
+    rgba(25, 28, 32, 0.94);
+}
+
+.mainHub .hubMenuButton:focus-visible {
+  border-color: rgba(236, 190, 103, 0.66);
+  box-shadow:
+    0 0 0 2px rgba(217, 170, 85, 0.14),
+    0 14px 26px rgba(0, 0, 0, 0.26);
+}
+
+.mainHub .hubMenuButton:active:not(:disabled),
+.mainHub .hubMenuButton:hover:active:not(:disabled) {
+  transform: scale(0.98);
+  border-color: rgba(236, 190, 103, 0.72);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.105), rgba(255, 255, 255, 0.006)),
+    rgba(28, 27, 24, 0.96);
+  box-shadow:
+    0 0 12px rgba(217, 170, 85, 0.12),
+    0 7px 15px rgba(0, 0, 0, 0.22),
+    inset 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Global bottom navigation active state: bronze/gold pill, no cyan block. */
+.modeSwitch .selected,
+.modeSwitch .selected:hover:not(:disabled),
+.modeSwitch .selected:active:not(:disabled),
+.mainHub .mainBottomNav .selected,
+.mainHub .mainBottomNav .selected:hover:not(:disabled),
+.mainHub .mainBottomNav .selected:active:not(:disabled) {
+  color: #ffe7aa !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.24), rgba(88, 63, 30, 0.36)),
+    rgba(30, 26, 20, 0.88) !important;
+  border: 1px solid rgba(220, 180, 95, 0.45) !important;
+  border-radius: 16px !important;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 244, 210, 0.08) !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+.modeSwitch .selected::before,
+.mainHub .mainBottomNav .selected::before {
+  color: #ffe7aa !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* Main screen bottom nav: remove mobile blue tap/focus flash while keeping the bronze pill press. */
+.mainHub .mainBottomNav,
+.mainHub .mainBottomNav *,
+.mainHub .mainBottomNav button {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.mainHub .mainBottomNav button,
+.mainHub .mainBottomNav button:hover,
+.mainHub .mainBottomNav button:focus,
+.mainHub .mainBottomNav button:focus-visible,
+.mainHub .mainBottomNav button:active {
+  outline: none !important;
+  -webkit-focus-ring-color: transparent;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.mainHub .mainBottomNav button:not(.selected):focus,
+.mainHub .mainBottomNav button:not(.selected):focus-visible,
+.mainHub .mainBottomNav button:not(.selected):active {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: rgba(236, 226, 212, 0.74);
+}
+
+.mainHub .mainBottomNav button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.97);
+  transition-duration: 80ms;
+}
+
+.mainHub .mainBottomNav .selected:focus,
+.mainHub .mainBottomNav .selected:focus-visible,
+.mainHub .mainBottomNav .selected:active {
+  color: #ffe7aa !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.22), rgba(88, 63, 30, 0.34)),
+    rgba(30, 26, 20, 0.88) !important;
+  border-color: rgba(220, 180, 95, 0.45) !important;
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.25),
+    inset 0 2px 8px rgba(0, 0, 0, 0.16) !important;
+}
+
+.mainHub .hubGuitarHead.homeHeadstockImage {
+  width: min(58vw, 232px);
+  max-height: 42dvh;
+  margin-top: -146px;
+  transform: translateY(-76px);
+}
+
+.mainHub .hubGuitarHead.homeHeadstockImage .headstockArtwork {
+  display: block;
+  height: auto;
+}
+
+@media (max-width: 430px) {
+  .mainHub .hubGuitarHead.homeHeadstockImage {
+    width: min(56vw, 218px);
+    max-height: 41dvh;
+    margin-top: -152px;
+    transform: translateY(-82px);
+  }
+}
+
+/* Main screen simplification: logo, primary choices, guitar. */
+.mainHub {
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 14px;
+  padding-top: 22px;
+}
+
+.mainHub .hubBrand {
+  display: grid;
+  place-items: center;
+  min-height: 66px;
+  gap: 0;
+}
+
+.mainHub .appMascotLogo {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto;
+}
+
+.mainHub .hubMenuPanel {
+  margin-top: 0;
+}
+
+.mainHub .hubMenuButton {
+  grid-template-columns: 34px minmax(0, 1fr) 18px;
+  grid-template-areas: "badge title arrow";
+  min-height: 72px;
+  padding: 12px;
+  align-content: center;
+}
+
+.mainHub .hubMenuButton strong {
+  align-self: center;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.mainHub .hubMenuButton small {
+  display: none;
+}
+
+.mainHub .hubGuitarHead.homeHeadstockImage {
+  margin-top: -126px;
+  transform: translateY(-70px);
+}
+
+@media (max-width: 430px) {
+  .mainHub {
+    gap: 13px;
+    padding-top: 18px;
+  }
+
+  .mainHub .hubBrand {
+    min-height: 64px;
+  }
+
+  .mainHub .appMascotLogo {
+    width: 66px;
+    height: 66px;
+  }
+
+  .mainHub .hubMenuButton {
+    min-height: 70px;
+    padding: 11px 12px;
+  }
+
+  .mainHub .hubMenuButton strong {
+    font-size: 17px;
+  }
+
+  .mainHub .hubGuitarHead.homeHeadstockImage {
+    margin-top: -132px;
+    transform: translateY(-76px);
+  }
+}
+
+/* Fretboard chapter is the app entry screen. */
+.curriculum {
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.curriculum .trainingGrid.stageMenu {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.curriculum .stageMenuCard {
+  grid-template-columns: 34px minmax(0, 1fr) 18px;
+  grid-template-areas:
+    "badge title arrow"
+    "badge tag arrow";
+  align-content: center;
+  min-height: 74px;
+  padding: 11px 12px;
+  cursor: pointer;
+  border-radius: 18px;
+  border-color: rgba(217, 170, 85, 0.36);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.01)),
+    rgba(25, 28, 32, 0.92);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+}
+
+.curriculum .stageMenuCard.stageMenuCard--featured {
+  grid-column: auto;
+}
+
+.curriculum .stageMenuCard:disabled {
+  cursor: default;
+}
+
+.curriculum .stageMenuCard.selected,
+.curriculum .stageMenuCard[aria-pressed="true"] {
+  border-color: rgba(236, 190, 103, 0.62);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.1), rgba(255, 255, 255, 0.01)),
+    rgba(25, 28, 32, 0.92);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(217, 170, 85, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+}
+
+.curriculum .stageMenuCard:hover:not(:disabled),
+.curriculum .stageMenuCard:focus-visible {
+  border-color: rgba(236, 190, 103, 0.58);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.09), rgba(255, 255, 255, 0.01)),
+    rgba(24, 26, 29, 0.96);
+}
+
+.curriculum .stageMenuCard:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+}
+
+.curriculum .stageMenuCard__step {
+  grid-area: badge;
+  width: 30px;
+  height: 28px;
+  min-width: 30px;
+  border-radius: 11px;
+  border-color: rgba(217, 170, 85, 0.22);
+  background: linear-gradient(145deg, var(--ui-gold-bright), #8d6030);
+  color: #181109;
+  font-size: 8.5px;
+  box-shadow: 0 5px 11px rgba(0, 0, 0, 0.2);
+}
+
+.curriculum .stageMenuCard__content {
+  display: contents;
+}
+
+.curriculum .stageMenuCard__title {
+  grid-area: title;
+  align-self: end;
+  color: rgba(250, 246, 238, 0.98);
+  font-size: 17px;
+  line-height: 1.08;
+  font-weight: 950;
+}
+
+.curriculum .stageMenuCard__desc {
+  display: none;
+}
+
+.curriculum .stageMenuCard__tag {
+  grid-area: tag;
+  align-self: start;
+  margin-top: 2px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  color: rgba(255, 229, 174, 0.9);
+  background: rgba(217, 170, 85, 0.08);
+  font-size: 8.5px;
+}
+
+.curriculum .stageMenuCard__arrow {
+  grid-area: arrow;
+  align-self: center;
+  justify-self: end;
+  width: auto;
+  height: auto;
+  color: rgba(255, 225, 160, 0.88);
+  font-size: 22px;
+}
+
+.curriculumActions {
+  display: none;
+}
+
+@media (max-width: 680px) {
+  .modeSwitch,
+  .mainHub .mainBottomNav {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .curriculum {
+    gap: 12px;
+    padding-top: 0;
+  }
+
+  .curriculum .trainingGrid.stageMenu {
+    gap: 8px;
+  }
+
+  .curriculum .stageMenuCard {
+    min-height: 72px;
+    padding: 10px 11px;
+  }
+
+  .curriculum .stageMenuCard__title {
+    font-size: 16px;
+  }
+
+  .curriculum .stageMenuCard__desc {
+    font-size: 10px;
+  }
+}
+
+/* Bottom navigation icons and compact option popover. */
+.modeSwitch,
+.modeSwitch *,
+.modeSwitch button,
+.modeSwitch button * {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.modeSwitch button {
+  flex-direction: column;
+  gap: 3px;
+  outline: none !important;
+  user-select: none;
+}
+
+.modeSwitch button::before,
+.modeSwitch button::after {
+  content: none !important;
+  display: none !important;
+}
+
+.modeSwitch button:hover:not(:disabled),
+.modeSwitch button:focus,
+.modeSwitch button:focus-visible,
+.modeSwitch button:active:not(:disabled) {
+  outline: none !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.modeSwitch button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.97);
+}
+
+.modeSwitch button.selected,
+.modeSwitch button.selected:hover:not(:disabled),
+.modeSwitch button.selected:focus,
+.modeSwitch button.selected:focus-visible,
+.modeSwitch button.selected:active:not(:disabled),
+.modeSwitch button[aria-expanded="true"],
+.modeSwitch button[aria-expanded="true"]:hover:not(:disabled),
+.modeSwitch button[aria-expanded="true"]:focus,
+.modeSwitch button[aria-expanded="true"]:focus-visible,
+.modeSwitch button[aria-expanded="true"]:active:not(:disabled) {
+  color: #ffe7aa !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.24), rgba(88, 63, 30, 0.36)),
+    rgba(30, 26, 20, 0.88) !important;
+  border-color: rgba(220, 180, 95, 0.45) !important;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 244, 210, 0.08) !important;
+}
+
+.modeSwitch button svg {
+  width: 17px;
+  height: 17px;
+  color: rgba(236, 226, 212, 0.72);
+  stroke-width: 2.2;
+  transition: color 0.14s ease, transform 0.14s ease;
+}
+
+.modeSwitch button.selected svg,
+.modeSwitch button[aria-expanded="true"] svg {
+  color: #ffe7aa;
+  transform: translateY(-1px);
+}
+
+.utilityMenuDim {
+  background: transparent !important;
+}
+
+.utilityMenuPanel {
+  top: auto !important;
+  right: max(12px, calc((100vw - 430px) / 2 + 12px)) !important;
+  bottom: calc(max(10px, env(safe-area-inset-bottom)) + 76px) !important;
+  width: min(72vw, 276px) !important;
+  max-width: 276px !important;
+  height: auto !important;
+  max-height: min(54dvh, 382px) !important;
+  padding: 9px !important;
+  border: 1px solid rgba(217, 170, 85, 0.24) !important;
+  border-radius: 18px !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.012)),
+    rgba(18, 21, 25, 0.96) !important;
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
+}
+
+.utilityMenuHeader {
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.utilityMenuHeader span {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+}
+
+.utilityMenuHeader strong {
+  margin-top: 0;
+  font-size: 15px;
+}
+
+.utilityMenuHeader button {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  border-radius: 10px;
+  font-size: 18px;
+}
+
+.utilityMenuList {
+  gap: 6px;
+}
+
+.utilityMenuList button,
+.utilityMenuList a {
+  grid-template-columns: 28px minmax(0, 1fr);
+  min-height: 40px;
+  padding: 7px;
+  border-radius: 12px;
+}
+
+.utilityMenuList button span,
+.utilityMenuList a span {
+  width: 24px;
+  height: 24px;
+  border-radius: 9px;
+  font-size: 12px;
+}
+
+.utilityMenuList button strong,
+.utilityMenuList a strong,
+.utilityVersionInfo strong {
+  font-size: 12px;
+}
+
+.utilityMenuList button small,
+.utilityMenuList a small,
+.utilityVersionInfo small {
+  margin-top: 2px;
+  font-size: 9px;
+  line-height: 1.15;
+}
+
+.utilityVersionInfo {
+  margin-top: 4px;
+  padding: 8px;
+  border-radius: 12px;
+}
+
+@media (max-width: 430px) {
+  .modeSwitch button {
+    gap: 2px;
+    font-size: 8.7px;
+  }
+
+  .modeSwitch button svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .utilityMenuPanel {
+    right: 12px !important;
+    width: min(72vw, 276px) !important;
+    max-height: 380px !important;
+  }
+}
+
+/* Shared brand header across every primary screen. */
+.brand-header {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  width: 100%;
+  min-width: 0;
+  padding: 18px 20px 12px;
+  margin-bottom: 14px;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(214, 166, 76, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 72%);
+}
+
+.brand-header::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 1px;
+  margin-top: 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(214, 166, 76, 0.82),
+    rgba(214, 166, 76, 0.08)
+  );
+}
+
+.brand-overline {
+  margin: 0;
+  color: #d6a64c;
+  font-size: 10.5px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-shadow: none;
+}
+
+.brand-title {
+  margin: 5px 0 0;
+  color: #f7f1e3;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+@media (max-width: 680px) {
+  .hud {
+    align-items: start;
+  }
+
+  .brand-header {
+    padding: 18px 14px 10px;
+    margin-bottom: 12px;
+  }
+
+  .brand-overline {
+    font-size: 10px;
+  }
+
+  .brand-title {
+    font-size: 24px;
+  }
+}
+
+/* Fretboard stage card final state cleanup: no blue focus, stable readable arrow. */
+.curriculum .stageMenuCard,
+.curriculum .stageMenuCard *,
+.curriculum .stageMenuCard__arrow {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.curriculum .stageMenuCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.curriculum .stageMenuCard::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 0 999px 999px 0;
+  background: transparent;
+  opacity: 0;
+  transition: opacity 140ms ease, background 140ms ease;
+}
+
+.curriculum .stageMenuCard.selected::before {
+  background: linear-gradient(180deg, rgba(241, 202, 122, 0.95), rgba(141, 96, 48, 0.7));
+  opacity: 1;
+}
+
+.curriculum .stageMenuCard:focus,
+.curriculum .stageMenuCard:focus-visible,
+.curriculum .stageMenuCard:active:not(:disabled) {
+  outline: none !important;
+  filter: none !important;
+}
+
+.curriculum .stageMenuCard:not(.selected):focus,
+.curriculum .stageMenuCard:not(.selected):focus-visible,
+.curriculum .stageMenuCard:not(.selected):active:not(:disabled) {
+  border-color: rgba(217, 170, 85, 0.36) !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.01)),
+    rgba(25, 28, 32, 0.92) !important;
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
+}
+
+.curriculum .stageMenuCard.selected,
+.curriculum .stageMenuCard.selected:focus,
+.curriculum .stageMenuCard.selected:focus-visible,
+.curriculum .stageMenuCard.selected:active:not(:disabled) {
+  border-color: rgba(236, 190, 103, 0.62) !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.1), rgba(255, 255, 255, 0.01)),
+    rgba(25, 28, 32, 0.92) !important;
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(217, 170, 85, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
+}
+
+.curriculum .stageMenuCard__arrow,
+.curriculum .stageMenuCard.selected .stageMenuCard__arrow,
+.curriculum .stageMenuCard:focus .stageMenuCard__arrow,
+.curriculum .stageMenuCard:focus-visible .stageMenuCard__arrow,
+.curriculum .stageMenuCard:active:not(:disabled) .stageMenuCard__arrow {
+  display: grid !important;
+  grid-area: arrow;
+  place-items: center !important;
+  align-self: center !important;
+  justify-self: end !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  padding: 0 !important;
+  border: 1px solid rgba(217, 170, 85, 0.2) !important;
+  border-radius: 999px !important;
+  background: rgba(217, 170, 85, 0.08) !important;
+  color: rgba(255, 225, 160, 0.96) !important;
+  box-shadow: none !important;
+  font-family: Arial, "Noto Sans KR", sans-serif !important;
+  font-size: 20px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  transform: none !important;
+}
+
+.curriculum .stageMenuCard__arrow::before,
+.curriculum .stageMenuCard__arrow::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Stage selection should read only through the right arrow, not the whole card. */
+.curriculum .stageMenuCard.selected,
+.curriculum .stageMenuCard.selected:focus,
+.curriculum .stageMenuCard.selected:focus-visible,
+.curriculum .stageMenuCard.selected:active:not(:disabled) {
+  border-color: rgba(217, 170, 85, 0.36) !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.01)),
+    rgba(25, 28, 32, 0.92) !important;
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
+}
+
+.curriculum .stageMenuCard.featuredCard.selected,
+.curriculum .stageMenuCard.stageMenuCard--featured.selected,
+.curriculum .stageMenuCard.rhythmCoreCard.selected {
+  border-color: rgba(217, 170, 85, 0.42) !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.08), rgba(255, 255, 255, 0.01)),
+    rgba(24, 26, 29, 0.94) !important;
+}
+
+.curriculum .stageMenuCard .stageMenuCard__arrow {
+  transition:
+    transform 110ms ease,
+    border-color 110ms ease,
+    background 110ms ease,
+    color 110ms ease,
+    box-shadow 110ms ease;
+}
+
+.curriculum .stageMenuCard.selected .stageMenuCard__arrow {
+  border-color: rgba(236, 190, 103, 0.66) !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.3), rgba(88, 63, 30, 0.26)),
+    rgba(30, 26, 20, 0.88) !important;
+  color: #ffe7aa !important;
+  box-shadow:
+    0 0 0 1px rgba(217, 170, 85, 0.16),
+    0 6px 12px rgba(0, 0, 0, 0.22) !important;
+  font-size: 21px !important;
+  transform: scale(1.06) !important;
+}
+
+.curriculum .stageMenuCard:active:not(:disabled) .stageMenuCard__arrow {
+  transform: translateY(1px) scale(0.94) !important;
+}
+
+.curriculum .stageMenuCard.selected:active:not(:disabled) .stageMenuCard__arrow {
+  transform: translateY(1px) scale(1.0) !important;
+}
+
+/* Stage cards never change to blue; only the arrow confirms selection/click. */
+.curriculum .stageMenuCard:not(.featuredCard):not(.rhythmCoreCard):not(.stageMenuCard--featured),
+.curriculum .stageMenuCard:not(.featuredCard):not(.rhythmCoreCard):not(.stageMenuCard--featured):hover,
+.curriculum .stageMenuCard:not(.featuredCard):not(.rhythmCoreCard):not(.stageMenuCard--featured):focus,
+.curriculum .stageMenuCard:not(.featuredCard):not(.rhythmCoreCard):not(.stageMenuCard--featured):focus-visible,
+.curriculum .stageMenuCard:not(.featuredCard):not(.rhythmCoreCard):not(.stageMenuCard--featured):active,
+.curriculum .stageMenuCard:not(.featuredCard):not(.rhythmCoreCard):not(.stageMenuCard--featured).selected {
+  border-color: rgba(217, 170, 85, 0.36) !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.01)),
+    rgba(25, 28, 32, 0.92) !important;
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
+}
+
+.curriculum .stageMenuCard.featuredCard,
+.curriculum .stageMenuCard.rhythmCoreCard,
+.curriculum .stageMenuCard.stageMenuCard--featured,
+.curriculum .stageMenuCard.featuredCard:hover,
+.curriculum .stageMenuCard.rhythmCoreCard:hover,
+.curriculum .stageMenuCard.stageMenuCard--featured:hover,
+.curriculum .stageMenuCard.featuredCard:focus,
+.curriculum .stageMenuCard.rhythmCoreCard:focus,
+.curriculum .stageMenuCard.stageMenuCard--featured:focus,
+.curriculum .stageMenuCard.featuredCard:focus-visible,
+.curriculum .stageMenuCard.rhythmCoreCard:focus-visible,
+.curriculum .stageMenuCard.stageMenuCard--featured:focus-visible,
+.curriculum .stageMenuCard.featuredCard:active,
+.curriculum .stageMenuCard.rhythmCoreCard:active,
+.curriculum .stageMenuCard.stageMenuCard--featured:active,
+.curriculum .stageMenuCard.featuredCard.selected,
+.curriculum .stageMenuCard.rhythmCoreCard.selected,
+.curriculum .stageMenuCard.stageMenuCard--featured.selected {
+  border-color: rgba(217, 170, 85, 0.42) !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.08), rgba(255, 255, 255, 0.01)),
+    rgba(24, 26, 29, 0.94) !important;
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
+}
+
+.curriculum .stageMenuCard.selected .stageMenuCard__arrow {
+  animation: stageArrowConfirm 520ms ease-out;
+}
+
+.curriculum .stageMenuCard:active:not(:disabled) .stageMenuCard__arrow {
+  animation: stageArrowPress 180ms ease-out;
+}
+
+@keyframes stageArrowConfirm {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  42% {
+    transform: translateX(5px) scale(1.1);
+  }
+  100% {
+    transform: translateX(0) scale(1.06);
+  }
+}
+
+@keyframes stageArrowPress {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  55% {
+    transform: translateX(3px) scale(0.94);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Training screen card visual unification and active arrow micro interaction. */
+.curriculum .stageMenuCard,
+.curriculum .stageMenuCard:hover,
+.curriculum .stageMenuCard:focus,
+.curriculum .stageMenuCard:focus-visible,
+.curriculum .stageMenuCard:active,
+.curriculum .stageMenuCard.selected,
+.curriculum .stageMenuCard.featuredCard,
+.curriculum .stageMenuCard.rhythmCoreCard,
+.curriculum .stageMenuCard.stageMenuCard--featured,
+.curriculum .stageMenuCard.featuredCard:hover,
+.curriculum .stageMenuCard.rhythmCoreCard:hover,
+.curriculum .stageMenuCard.stageMenuCard--featured:hover,
+.curriculum .stageMenuCard.featuredCard:focus,
+.curriculum .stageMenuCard.rhythmCoreCard:focus,
+.curriculum .stageMenuCard.stageMenuCard--featured:focus,
+.curriculum .stageMenuCard.featuredCard:focus-visible,
+.curriculum .stageMenuCard.rhythmCoreCard:focus-visible,
+.curriculum .stageMenuCard.stageMenuCard--featured:focus-visible,
+.curriculum .stageMenuCard.featuredCard:active,
+.curriculum .stageMenuCard.rhythmCoreCard:active,
+.curriculum .stageMenuCard.stageMenuCard--featured:active,
+.curriculum .stageMenuCard.featuredCard.selected,
+.curriculum .stageMenuCard.rhythmCoreCard.selected,
+.curriculum .stageMenuCard.stageMenuCard--featured.selected {
+  border-color: rgba(217, 170, 85, 0.36) !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.01)),
+    rgba(25, 28, 32, 0.92) !important;
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
+}
+
+.curriculum .stageMenuCard .stageMenuCard__tag,
+.curriculum .stageMenuCard.featuredCard .stageMenuCard__tag,
+.curriculum .stageMenuCard.rhythmCoreCard .stageMenuCard__tag,
+.curriculum .stageMenuCard.stageMenuCard--featured .stageMenuCard__tag {
+  color: rgba(255, 229, 174, 0.9) !important;
+  background: rgba(217, 170, 85, 0.08) !important;
+  border-color: rgba(217, 170, 85, 0.18) !important;
+}
+
+.curriculum .stageMenuCard .stageMenuCard__step,
+.curriculum .stageMenuCard.featuredCard .stageMenuCard__step,
+.curriculum .stageMenuCard.rhythmCoreCard .stageMenuCard__step,
+.curriculum .stageMenuCard.stageMenuCard--featured .stageMenuCard__step {
+  border-color: rgba(217, 170, 85, 0.22) !important;
+  background: linear-gradient(145deg, var(--ui-gold-bright), #8d6030) !important;
+  color: #181109 !important;
+}
+
+.curriculum .stageMenuCard .stageMenuCard__arrow {
+  translate: 0 0;
+  animation: none !important;
+}
+
+.curriculum .stageMenuCard.selected .stageMenuCard__arrow {
+  animation: stageArrowNudge 1.25s ease-in-out infinite !important;
+  will-change: translate;
+}
+
+@keyframes stageArrowNudge {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 4px 0;
+  }
+}
+
+/* Fretboard viewer note picker: card panel + bronze/gold controls. */
+.fretboardViewerPanel .viewerNotePanel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(217, 170, 85, 0.18);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(217, 170, 85, 0.1), transparent 36%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.008)),
+    rgba(18, 21, 25, 0.92);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+.fretboardViewerPanel .viewerNotePanel > span {
+  margin: 0;
+  color: rgba(217, 170, 85, 0.92);
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.fretboardViewerPanel .viewerNotePanel > div {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.fretboardViewerPanel .viewerNotePanel button {
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 8px;
+  border: 1px solid rgba(217, 170, 85, 0.16);
+  border-radius: 11px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.006)),
+    rgba(14, 18, 23, 0.86);
+  color: rgba(247, 241, 227, 0.78);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1;
+  text-shadow: none;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fretboardViewerPanel .viewerNotePanel button:hover:not(:disabled),
+.fretboardViewerPanel .viewerNotePanel button:focus,
+.fretboardViewerPanel .viewerNotePanel button:focus-visible,
+.fretboardViewerPanel .viewerNotePanel button:active:not(:disabled) {
+  outline: none;
+  border-color: rgba(217, 170, 85, 0.34);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.08), rgba(255, 255, 255, 0.006)),
+    rgba(18, 21, 25, 0.92);
+  color: #f7f1e3;
+  box-shadow: none;
+}
+
+.fretboardViewerPanel .viewerNotePanel button.selected,
+.fretboardViewerPanel .viewerNotePanel button.selected:hover,
+.fretboardViewerPanel .viewerNotePanel button.selected:focus,
+.fretboardViewerPanel .viewerNotePanel button.selected:focus-visible,
+.fretboardViewerPanel .viewerNotePanel button.selected:active {
+  border-color: rgba(230, 180, 93, 0.58);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.24), rgba(88, 63, 30, 0.34)),
+    rgba(30, 26, 20, 0.9);
+  color: #ffe7aa;
+  box-shadow:
+    0 0 0 1px rgba(217, 170, 85, 0.14),
+    inset 0 1px 0 rgba(255, 244, 210, 0.08);
+}
+
+@media (max-width: 430px) {
+  .fretboardViewerPanel .viewerNotePanel {
+    padding: 10px;
+    gap: 9px;
+  }
+
+  .fretboardViewerPanel .viewerNotePanel > div {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+.fretboardViewerPanel .viewerNotePanel button {
+    min-height: 32px;
+    padding: 0 6px;
+    font-size: 11px;
+  }
+}
+
+/* Standalone metronome transport: simple start/reset actions only. */
+.standaloneMetronomePanel .metronomeTransport {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+  margin: 6px 0 2px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.standaloneMetronomePanel .metronomeTransportButton,
+.standaloneMetronomePanel .metronomeTransportButton:hover:not(:disabled),
+.standaloneMetronomePanel .metronomeTransportButton:focus,
+.standaloneMetronomePanel .metronomeTransportButton:focus-visible,
+.standaloneMetronomePanel .metronomeTransportButton:active:not(:disabled) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(217, 170, 85, 0.28);
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.008)),
+    rgba(18, 21, 25, 0.9);
+  color: rgba(247, 241, 227, 0.88);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: none;
+  box-shadow:
+    0 10px 20px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.standaloneMetronomePanel .metronomeTransportButton.primary,
+.standaloneMetronomePanel .metronomeTransportButton.primary:hover:not(:disabled),
+.standaloneMetronomePanel .metronomeTransportButton.primary:focus,
+.standaloneMetronomePanel .metronomeTransportButton.primary:focus-visible,
+.standaloneMetronomePanel .metronomeTransportButton.primary:active:not(:disabled) {
+  border-color: rgba(241, 202, 122, 0.48);
+  background:
+    linear-gradient(145deg, rgba(241, 202, 122, 0.92), rgba(141, 96, 48, 0.96));
+  color: #181109;
+  box-shadow:
+    0 10px 20px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.standaloneMetronomePanel .metronomeTransportButton.reset,
+.standaloneMetronomePanel .metronomeTransportButton.reset:hover:not(:disabled),
+.standaloneMetronomePanel .metronomeTransportButton.reset:focus,
+.standaloneMetronomePanel .metronomeTransportButton.reset:focus-visible,
+.standaloneMetronomePanel .metronomeTransportButton.reset:active:not(:disabled) {
+  border-color: rgba(217, 170, 85, 0.34);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.14), rgba(255, 255, 255, 0.008)),
+    rgba(18, 21, 25, 0.92);
+  color: var(--ui-gold-bright, #f1ca7a);
+}
+
+.standaloneMetronomePanel .metronomeTransportButton:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+}
+
+.standaloneMetronomePanel .metronomeTransportButton svg {
+  stroke-width: 2.4;
+}
+
+.standaloneMetronomePanel .metronomePlayButton,
+.standaloneMetronomePanel .metronomeSkipButton {
+  display: none !important;
+}
+
+@media (max-width: 430px) {
+  .standaloneMetronomePanel .metronomeTransport {
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .standaloneMetronomePanel .metronomeTransportButton {
+    min-height: 42px;
+    font-size: 12px;
+  }
+}
+
+/* Shooter screen: align the game UI with the current dark navy + bronze system. */
+.shooterPanel {
+  gap: 12px;
+  padding: 2px 8px 4px;
+}
+
+.shooterPanel .shooterHelper {
+  display: none;
+}
+
+.shooterGameHud {
+  width: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(217, 170, 85, 0.2);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(217, 170, 85, 0.11), transparent 42%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.008)),
+    rgba(14, 18, 23, 0.92);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(14px);
+}
+
+.shooterGameHud div,
+.shooterGameHud div:nth-child(3),
+.shooterGameHud .shooterLivesHud {
+  display: grid;
+  min-width: 0;
+  min-height: 64px;
+  padding: 8px 6px;
+  border: 1px solid rgba(217, 170, 85, 0.18);
+  border-radius: 15px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.006)),
+    rgba(9, 13, 18, 0.86);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 8px 16px rgba(0, 0, 0, 0.18);
+}
+
+.shooterGameHud div:nth-child(1) {
+  order: 3;
+}
+
+.shooterGameHud div:nth-child(2) {
+  order: 2;
+}
+
+.shooterGameHud div:nth-child(3) {
+  display: none;
+}
+
+.shooterGameHud div:nth-child(4) {
+  order: 4;
+}
+
+.shooterGameHud .shooterLivesHud {
+  order: 1;
+}
+
+.shooterGameHud span {
+  color: var(--ui-gold, #d9aa55);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.shooterGameHud strong {
+  color: var(--ui-text, #f5f0e8);
+  font-size: 20px;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.34);
+}
+
+.lifeHearts {
+  gap: 3px;
+}
+
+.lifeHearts i,
+.mobileShooterLives i {
+  color: rgba(236, 229, 216, 0.28);
+  text-shadow: none;
+}
+
+.lifeHearts i.active,
+.mobileShooterLives i.active {
+  color: #ff6f7d;
+  text-shadow: 0 0 10px rgba(255, 111, 125, 0.28);
+}
+
+.shooterFretGuide {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(217, 170, 85, 0.2);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(217, 170, 85, 0.1), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.008)),
+    rgba(14, 18, 23, 0.9);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.shooterFretGuide span,
+.fretGuideChips b span,
+.mobileShooterDetector span {
+  color: var(--ui-gold, #d9aa55);
+}
+
+.shooterFretGuide strong,
+.fretGuideChips b strong {
+  color: var(--ui-text, #f5f0e8);
+}
+
+.fretGuideChips b {
+  border-color: rgba(217, 170, 85, 0.18);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.12), rgba(255, 255, 255, 0.006)),
+    rgba(8, 12, 17, 0.72);
+  box-shadow: none;
+}
+
+.shooterFretGuide button,
+.shooterFretGuide .shooterMicButton,
+.shooterFretGuide .shooterMicButton.selected {
+  border: 1px solid rgba(217, 170, 85, 0.24);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.006)),
+    rgba(10, 14, 19, 0.86);
+  color: rgba(247, 241, 227, 0.86);
+  box-shadow: none;
+}
+
+.shooterFretGuide .shooterMicButton.selected {
+  border-color: rgba(241, 202, 122, 0.44);
+  color: var(--ui-gold-bright, #f1ca7a);
+}
+
+.shooterArena {
+  width: 100%;
+  min-height: clamp(500px, 62dvh, 620px);
+  border: 1px solid rgba(217, 170, 85, 0.24);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 50% 92%, rgba(217, 170, 85, 0.22), transparent 28%),
+    radial-gradient(circle at 50% 43%, rgba(217, 170, 85, 0.08), transparent 34%),
+    linear-gradient(rgba(217, 170, 85, 0.045) 1px, transparent 1px) 0 0 / 100% 56px,
+    linear-gradient(90deg, rgba(217, 170, 85, 0.03) 1px, transparent 1px) 0 0 / 24px 100%,
+    rgba(3, 8, 14, 0.96);
+  box-shadow:
+    inset 0 0 82px rgba(0, 0, 0, 0.62),
+    0 18px 36px rgba(0, 0, 0, 0.24);
+}
+
+.shooterArena::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  width: 230px;
+  height: 230px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 0 22%, rgba(217, 170, 85, 0.32) 23% 24%, transparent 25% 47%, rgba(217, 170, 85, 0.16) 48% 49%, transparent 50% 72%, rgba(217, 170, 85, 0.09) 73% 74%, transparent 75%),
+    linear-gradient(90deg, transparent 49.5%, rgba(217, 170, 85, 0.17) 50%, transparent 50.5%),
+    linear-gradient(0deg, transparent 49.5%, rgba(217, 170, 85, 0.17) 50%, transparent 50.5%);
+  opacity: 0.78;
+  pointer-events: none;
+}
+
+.shooterArena::after {
+  bottom: 58px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(217, 170, 85, 0.5), transparent);
+  box-shadow: 0 0 16px rgba(217, 170, 85, 0.18);
+}
+
+.shooterArena.hit {
+  border-color: rgba(241, 202, 122, 0.62);
+}
+
+.shooterArena.miss {
+  border-color: rgba(255, 111, 125, 0.54);
+}
+
+.noteTarget {
+  border: 1px solid rgba(241, 202, 122, 0.62);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(241, 202, 122, 0.2), transparent 54%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.006)),
+    rgba(12, 14, 18, 0.92);
+  box-shadow:
+    0 0 0 1px rgba(217, 170, 85, 0.08),
+    0 14px 24px rgba(0, 0, 0, 0.24);
+}
+
+.noteTarget em {
+  color: var(--ui-gold-bright, #f1ca7a);
+  font-style: normal;
+  font-weight: 950;
+}
+
+.noteTarget span {
+  color: var(--ui-text, #f5f0e8);
+}
+
+.noteTarget small {
+  color: rgba(236, 229, 216, 0.66);
+}
+
+.projectile,
+.musicParticle {
+  color: var(--ui-gold-bright, #f1ca7a);
+  text-shadow: 0 0 14px rgba(241, 202, 122, 0.52);
+}
+
+.laserBeam {
+  height: 4px;
+  background: linear-gradient(90deg, #fff1b8, var(--ui-gold-bright, #f1ca7a), transparent);
+  box-shadow:
+    0 0 10px rgba(241, 202, 122, 0.72),
+    0 0 22px rgba(217, 170, 85, 0.34);
+}
+
+.guitarPlayer {
+  color: var(--ui-gold-bright, #f1ca7a);
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.42));
+}
+
+.riderAura {
+  background:
+    radial-gradient(circle, rgba(241, 202, 122, 0.22), rgba(217, 170, 85, 0.08) 42%, transparent 70%);
+}
+
+.riderHelmet {
+  border-color: rgba(241, 202, 122, 0.58);
+  border-radius: 44% 46% 48% 42%;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 219, 154, 0.22), transparent 22%),
+    linear-gradient(145deg, #9a6234, #4f2d1b 64%, #1a1210);
+  box-shadow:
+    0 0 16px rgba(217, 170, 85, 0.16),
+    inset -8px -6px 16px rgba(37, 20, 12, 0.68);
+}
+
+.riderHelmet::before {
+  left: 4px;
+  top: -8px;
+  width: 10px;
+  height: 12px;
+  border: 1px solid rgba(241, 202, 122, 0.46);
+  border-radius: 55% 50% 45% 50%;
+  background: linear-gradient(145deg, #b77943, #5a3420);
+  box-shadow:
+    22px 0 0 #6f4126,
+    22px 0 0 1px rgba(241, 202, 122, 0.34);
+}
+
+.riderHelmet::after {
+  left: 10px;
+  top: 18px;
+  width: 6px;
+  height: 5px;
+  border-radius: 50%;
+  background: #21130e;
+  box-shadow: 13px 0 0 #21130e;
+}
+
+.riderHelmet span {
+  left: 10px;
+  top: 10px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #111827;
+  box-shadow: 13px 0 0 #111827;
+}
+
+.riderBody {
+  border-color: rgba(217, 170, 85, 0.22);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.16), transparent 40%),
+    linear-gradient(180deg, #191815, #0d1014);
+  box-shadow:
+    inset 0 0 18px rgba(0, 0, 0, 0.68),
+    0 0 18px rgba(217, 170, 85, 0.12);
+}
+
+.guitarBody {
+  border-color: rgba(241, 202, 122, 0.72);
+  background:
+    radial-gradient(circle at 52% 48%, rgba(12, 14, 18, 0.78) 0 9%, transparent 10%),
+    radial-gradient(circle at 25% 36%, rgba(255, 245, 214, 0.28), transparent 15%),
+    linear-gradient(135deg, #f1ca7a, #a76430 58%, #3f2418);
+  box-shadow:
+    0 0 14px rgba(217, 170, 85, 0.3),
+    inset 0 0 12px rgba(48, 25, 12, 0.42);
+}
+
+.guitarNeck {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 9px, rgba(15, 23, 42, 0.42) 9px 10px),
+    linear-gradient(90deg, #f1ca7a, #8d6030);
+  box-shadow:
+    0 0 10px rgba(217, 170, 85, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+
+.guitarHead {
+  border-color: rgba(241, 202, 122, 0.42);
+  background:
+    linear-gradient(90deg, rgba(141, 96, 48, 0.82), rgba(37, 27, 20, 0.9)),
+    rgba(14, 18, 23, 0.88);
+  box-shadow:
+    0 0 10px rgba(217, 170, 85, 0.22),
+    inset 0 0 10px rgba(0, 0, 0, 0.58);
+}
+
+.guitarHead span {
+  background: rgba(241, 202, 122, 0.62);
+}
+
+.guitarMuzzle {
+  background: #fff1b8;
+  box-shadow:
+    0 0 8px rgba(241, 202, 122, 0.84),
+    0 0 14px rgba(217, 170, 85, 0.42);
+}
+
+.mobileShooterLives {
+  border-color: rgba(217, 170, 85, 0.22);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.006)),
+    rgba(8, 12, 17, 0.76);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22);
+}
+
+.shooterCenterStatus {
+  border-color: rgba(217, 170, 85, 0.26);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.008)),
+    rgba(8, 12, 17, 0.78);
+  box-shadow:
+    0 18px 34px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+.shooterCenterStatus strong {
+  color: var(--ui-text, #f5f0e8);
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.48);
+}
+
+.shooterCenterStatus.success strong {
+  color: var(--ui-gold-bright, #f1ca7a);
+  text-shadow: 0 0 16px rgba(241, 202, 122, 0.34);
+}
+
+.shooterCenterStatus.miss strong,
+.shooterCenterStatus.gameOver strong {
+  color: #ff8792;
+  text-shadow: 0 0 16px rgba(255, 111, 125, 0.34);
+}
+
+.mobileShooterStartButton.primary,
+.mobileShooterStartButton.primary:hover:not(:disabled),
+.mobileShooterStartButton.primary:focus,
+.mobileShooterStartButton.primary:focus-visible,
+.mobileShooterStartButton.primary:active:not(:disabled) {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 142px;
+  min-height: 48px;
+  border: 1px solid rgba(241, 202, 122, 0.58);
+  border-radius: 999px;
+  background:
+    linear-gradient(145deg, rgba(241, 202, 122, 0.95), rgba(141, 96, 48, 0.98));
+  color: #181109;
+  font-size: 15px;
+  font-weight: 950;
+  box-shadow:
+    0 14px 24px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobileShooterStartButton.primary:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+}
+
+@media (max-width: 430px) {
+  .shooterPanel {
+    gap: 10px;
+    padding: 0 4px 2px;
+  }
+
+  .shooterGameHud {
+    gap: 6px;
+    padding: 8px;
+    border-radius: 16px;
+  }
+
+  .shooterGameHud div,
+  .shooterGameHud .shooterLivesHud {
+    min-height: 58px;
+    padding: 7px 4px;
+    border-radius: 13px;
+  }
+
+  .shooterGameHud span {
+    font-size: 9px;
+  }
+
+  .shooterGameHud strong {
+    font-size: 17px;
+  }
+
+  .lifeHearts {
+    gap: 1px;
+  }
+
+  .lifeHearts i {
+    font-size: 13px;
+  }
+
+  .shooterFretGuide {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+    padding: 9px;
+    border-radius: 15px;
+  }
+
+  .shooterFretGuide > button {
+    min-height: 30px;
+    padding: 0 9px;
+    font-size: 10px;
+  }
+
+  .shooterFretGuide .shooterMicButton {
+    grid-column: 2;
+  }
+
+  .shooterArena {
+    min-height: clamp(450px, 61dvh, 590px);
+    border-radius: 18px;
+  }
+
+  .shooterArena::before {
+    top: 36%;
+    width: 190px;
+    height: 190px;
+  }
+
+  .guitarPlayer {
+    bottom: 10px;
+  }
+
+  .shooterCenterStatus {
+    min-width: 150px;
+    padding: 10px 12px;
+    border: 1px solid rgba(217, 170, 85, 0.18);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .shooterCenterStatus.gameOver {
+    border-color: rgba(255, 111, 125, 0.28);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.008)),
+      rgba(8, 12, 17, 0.82);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.26);
+  }
+
+  .mobileShooterStartButton.primary {
+    min-width: 132px;
+    min-height: 46px;
+  }
+}
+
+/* Fretboard viewer scale dropdowns: integrated dark custom-select panel. */
+.fretboardViewerPanel .viewerSelectGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(217, 170, 85, 0.18);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(217, 170, 85, 0.1), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.008)),
+    rgba(14, 18, 23, 0.92);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.fretboardViewerPanel .viewerSelectGrid label {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.fretboardViewerPanel .viewerSelectGrid label::after {
+  content: "⌄";
+  position: absolute;
+  right: 11px;
+  bottom: 11px;
+  color: rgba(241, 202, 122, 0.86);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.fretboardViewerPanel .viewerSelectGrid span {
+  color: var(--ui-gold, #d9aa55);
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.fretboardViewerPanel .viewerSelectGrid select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 32px 0 11px;
+  border: 1px solid rgba(217, 170, 85, 0.2);
+  border-radius: 13px;
+  appearance: none;
+  -webkit-appearance: none;
+  color: rgba(247, 241, 227, 0.94);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.006)),
+    rgba(8, 12, 17, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 8px 16px rgba(0, 0, 0, 0.16);
+  color-scheme: dark;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  outline: none;
+}
+
+.fretboardViewerPanel .viewerSelectGrid select:hover,
+.fretboardViewerPanel .viewerSelectGrid select:focus,
+.fretboardViewerPanel .viewerSelectGrid select:focus-visible {
+  border-color: rgba(241, 202, 122, 0.46);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.12), rgba(255, 255, 255, 0.008)),
+    rgba(11, 15, 20, 0.96);
+  box-shadow:
+    0 0 0 1px rgba(217, 170, 85, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+.fretboardViewerPanel .viewerSelectGrid select option,
+.fretboardViewerPanel .viewerSelectGrid select optgroup {
+  color: rgba(247, 241, 227, 0.94);
+  background-color: #0d1117;
+  font-weight: 850;
+}
+
+.fretboardViewerPanel .viewerSelectGrid select option:checked,
+.fretboardViewerPanel .viewerSelectGrid select option:hover,
+.fretboardViewerPanel .viewerSelectGrid select option:focus {
+  color: #181109;
+  background-color: #d9aa55;
+}
+
+@media (max-width: 430px) {
+  .fretboardViewerPanel .viewerSelectGrid {
+    gap: 8px;
+    padding: 9px;
+  }
+
+  .fretboardViewerPanel .viewerSelectGrid select {
+    min-height: 40px;
+    font-size: 11.5px;
+  }
+}
+
+/* Stage2 scale/pentatonic: merge controls and timeline into the current bronze UI system. */
+.scaleBlockTrainingPanel .referenceTrainingToolbar {
+  gap: 10px;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker,
+.scaleBlockTrainingPanel .referenceTrainingActions.buttons.playbackButtons,
+.scaleBlockTrainingPanel .referenceTransitionHud.scaleReferenceTimelineOnly {
+  border: 1px solid rgba(217, 170, 85, 0.18);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(217, 170, 85, 0.1), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.043), rgba(255, 255, 255, 0.008)),
+    rgba(14, 18, 23, 0.92);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker {
+  gap: 8px;
+  padding: 10px;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker label,
+.scaleBlockTrainingPanel .referenceScalePicker .scaleTypeGroup {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker .scaleTypeGroup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker label {
+  display: grid;
+  gap: 6px;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker label span {
+  color: var(--ui-gold, #d9aa55);
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 32px 0 11px;
+  border: 1px solid rgba(217, 170, 85, 0.2);
+  border-radius: 13px;
+  appearance: none;
+  -webkit-appearance: none;
+  color: rgba(247, 241, 227, 0.94);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.006)),
+    rgba(8, 12, 17, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 8px 16px rgba(0, 0, 0, 0.16);
+  color-scheme: dark;
+  font-size: 12px;
+  font-weight: 900;
+  outline: none;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker select:hover,
+.scaleBlockTrainingPanel .referenceScalePicker select:focus,
+.scaleBlockTrainingPanel .referenceScalePicker select:focus-visible {
+  border-color: rgba(241, 202, 122, 0.44);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.12), rgba(255, 255, 255, 0.008)),
+    rgba(11, 15, 20, 0.96);
+  box-shadow:
+    0 0 0 1px rgba(217, 170, 85, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker select option {
+  color: rgba(247, 241, 227, 0.94);
+  background-color: #0d1117;
+}
+
+.scaleBlockTrainingPanel .referenceTrainingActions.buttons.playbackButtons {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  justify-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+.scaleBlockTrainingPanel .referenceTrainingActions.buttons.playbackButtons > .referenceBpmControl.metronomeControl {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeTopLine {
+  display: grid;
+  grid-template-columns: auto auto minmax(68px, 72px);
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+}
+
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeBpmLabel {
+  grid-column: 1;
+}
+
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeBpmCombo {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeBpmPresetSelect {
+  min-width: 58px;
+  max-width: 66px;
+}
+
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeToggleRow {
+  grid-column: 3;
+  display: grid !important;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  min-width: 72px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeToggleRow button {
+  order: initial !important;
+  width: 100%;
+  min-width: 0;
+  min-height: 24px;
+  height: 24px;
+  padding: 0 7px 0 17px;
+  border-radius: 999px;
+  font-size: 8.5px;
+  line-height: 1;
+}
+
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeOptions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid rgba(217, 170, 85, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.026);
+}
+
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeSelectControl {
+  gap: 4px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeSelectControl span,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeVolumeControl span,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeBpmLabel {
+  color: var(--ui-gold, #d9aa55);
+}
+
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeSelectControl select {
+  min-height: 34px;
+  border-color: rgba(217, 170, 85, 0.2);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.036), rgba(255, 255, 255, 0.006)),
+    rgba(8, 12, 17, 0.88);
+  color: rgba(247, 241, 227, 0.9);
+  color-scheme: dark;
+}
+
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeVolumeControl {
+  padding: 0 4px;
+}
+
+.scaleBlockTrainingPanel .referenceTrainingActions.buttons.playbackButtons > button:not(.metronomeBpmStep) {
+  justify-self: center;
+  min-width: 132px;
+  min-height: 42px;
+  margin-top: -2px;
+}
+
+.scaleBlockTrainingPanel .referenceTransitionHud.scaleReferenceTimelineOnly {
+  grid-template-columns: 1fr;
+  gap: 0;
+  min-height: 64px;
+  padding: 10px;
+}
+
+.scaleBlockTrainingPanel .scaleReferenceTimelineOnly .metronomeTimeline {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid rgba(217, 170, 85, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.024);
+  box-shadow: none;
+}
+
+.scaleBlockTrainingPanel .scaleReferenceTimelineOnly .chordTimelineTrack {
+  background: rgba(217, 170, 85, 0.08);
+}
+
+.scaleBlockTrainingPanel .scaleReferenceTimelineOnly .chordTimelineTrack b,
+.scaleBlockTrainingPanel .scaleReferenceTimelineOnly .mobileBeatDots span {
+  border-color: rgba(247, 241, 227, 0.34);
+  background: rgba(247, 241, 227, 0.3);
+}
+
+.scaleBlockTrainingPanel .scaleReferenceTimelineOnly .chordTimelineTrack b.active,
+.scaleBlockTrainingPanel .scaleReferenceTimelineOnly .mobileBeatDots span.active {
+  border-color: rgba(241, 202, 122, 0.8);
+  background: var(--ui-gold-bright, #f1ca7a);
+  box-shadow: none;
+}
+
+@media (max-width: 430px) {
+  .scaleBlockTrainingPanel .referenceScalePicker,
+  .scaleBlockTrainingPanel .referenceTrainingActions.buttons.playbackButtons,
+  .scaleBlockTrainingPanel .referenceTransitionHud.scaleReferenceTimelineOnly {
+    padding: 9px;
+  }
+
+  .scaleBlockTrainingPanel .referenceBpmControl .metronomeTopLine {
+    gap: 5px;
+  }
+
+  .scaleBlockTrainingPanel .referenceBpmControl .metronomeToggleRow {
+    min-width: 68px;
+    gap: 3px;
+  }
+
+  .scaleBlockTrainingPanel .referenceBpmControl .metronomeToggleRow button {
+    min-height: 23px;
+    height: 23px;
+    padding: 0 6px 0 16px;
+    font-size: 8px;
+  }
+
+  .scaleBlockTrainingPanel .referenceBpmControl .metronomeOptions {
+    gap: 6px;
+    padding: 7px;
+  }
+}
+
+/* Training modes 1-3: unified metronome/settings panel and one-button transport. */
+.referenceTrainingPanel .referenceTrainingActions.buttons.playbackButtons,
+.stage3PlaybackControls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(217, 170, 85, 0.18);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(217, 170, 85, 0.1), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.043), rgba(255, 255, 255, 0.008)),
+    rgba(14, 18, 23, 0.92);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.referenceTrainingPanel .referenceTrainingActions.buttons.playbackButtons > .referenceBpmControl.metronomeControl,
+.stage3PlaybackControls > .chordTransitionTempo.metronomeControl {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeTopLine,
+.stage3PlaybackControls .chordTransitionTempo .metronomeTopLine {
+  gap: 7px;
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeOptions,
+.stage3PlaybackControls .chordTransitionTempo .metronomeOptions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid rgba(217, 170, 85, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.026);
+  box-shadow: none;
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeSelectControl,
+.stage3PlaybackControls .chordTransitionTempo .metronomeSelectControl {
+  gap: 4px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeSelectControl span,
+.referenceTrainingPanel .referenceBpmControl .metronomeVolumeControl span,
+.referenceTrainingPanel .referenceBpmControl .metronomeBpmLabel,
+.stage3PlaybackControls .chordTransitionTempo .metronomeSelectControl span,
+.stage3PlaybackControls .chordTransitionTempo .metronomeVolumeControl span,
+.stage3PlaybackControls .chordTransitionTempo .metronomeBpmLabel {
+  color: var(--ui-gold, #d9aa55);
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeSelectControl select,
+.stage3PlaybackControls .chordTransitionTempo .metronomeSelectControl select {
+  min-height: 34px;
+  border-color: rgba(217, 170, 85, 0.2);
+  border-radius: 11px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.036), rgba(255, 255, 255, 0.006)),
+    rgba(8, 12, 17, 0.88);
+  color: rgba(247, 241, 227, 0.9);
+  color-scheme: dark;
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeVolumeControl,
+.stage3PlaybackControls .chordTransitionTempo .metronomeVolumeControl {
+  padding: 0 4px;
+}
+
+.referenceTrainingPanel .referenceTrainingActions.buttons.playbackButtons > button:not(.metronomeBpmStep),
+.stage3PlaybackControls .chordTransitionButtons > button {
+  justify-self: center;
+  min-width: 132px;
+  min-height: 42px;
+  margin-top: -2px;
+}
+
+.stage3PlaybackControls .chordTransitionButtons {
+  display: grid;
+  justify-items: center;
+  gap: 0;
+}
+
+@media (max-width: 430px) {
+  .referenceTrainingPanel .referenceTrainingActions.buttons.playbackButtons,
+  .stage3PlaybackControls {
+    padding: 9px;
+  }
+
+  .referenceTrainingPanel .referenceBpmControl .metronomeOptions,
+  .stage3PlaybackControls .chordTransitionTempo .metronomeOptions {
+    gap: 6px;
+    padding: 7px;
+  }
+}
+
+/* App-wide interaction cleanup: remove browser blue tap/focus highlights. */
+.app,
+.app *,
+.utilityMenuLayer,
+.utilityMenuLayer *,
+button,
+a,
+label,
+select,
+option,
+input,
+textarea,
+[role="button"],
+[tabindex],
+.trainingCard,
+.stageMenuCard,
+.hubMenuButton,
+.viewerModeTabs button,
+.viewerNotePanel button,
+.chordChipGroup button,
+.chordMiniCard,
+.metronomeToggleRow button,
+.metronomeBpmPresetSelect,
+.metronomeBpmStep,
+.modeSwitch button {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.app *::selection {
+  color: #181109;
+  background: rgba(241, 202, 122, 0.82);
+}
+
+.app :where(button, a, select, input, textarea, [role="button"], [tabindex]):focus,
+.app :where(button, a, select, input, textarea, [role="button"], [tabindex]):focus-visible {
+  outline: none !important;
+}
+
+.app :where(button, [role="button"], .trainingCard, .stageMenuCard, .hubMenuButton, .chordMiniCard, .viewerModeTabs button, .viewerNotePanel button, .chordChipGroup button, .metronomeToggleRow button):focus-visible {
+  border-color: rgba(241, 202, 122, 0.48) !important;
+  box-shadow:
+    0 0 0 1px rgba(217, 170, 85, 0.16),
+    inset 0 1px 0 rgba(255, 244, 210, 0.06) !important;
+}
+
+.app :where(select, input, textarea):focus,
+.app :where(select, input, textarea):focus-visible {
+  border-color: rgba(241, 202, 122, 0.46) !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.1), rgba(255, 255, 255, 0.008)),
+    rgba(11, 15, 20, 0.96) !important;
+  box-shadow:
+    0 0 0 1px rgba(217, 170, 85, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
+}
+
+.app :where(button, [role="button"], .trainingCard, .stageMenuCard, .hubMenuButton, .chordMiniCard, .viewerModeTabs button, .viewerNotePanel button, .chordChipGroup button, .metronomeToggleRow button):active:not(:disabled) {
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.13), rgba(255, 255, 255, 0.008)),
+    rgba(18, 21, 25, 0.92) !important;
+  border-color: rgba(217, 170, 85, 0.34) !important;
+  filter: none !important;
+}
+
+.app :where(button.primary, .primaryAction):active:not(:disabled),
+.app :where(button.selected, .viewerModeTabs .selected, .viewerNotePanel button.selected, .chordChipGroup button.selected, .metronomeToggleRow button.selected, .modeSwitch button.selected):active:not(:disabled) {
+  background:
+    linear-gradient(145deg, rgba(241, 202, 122, 0.9), rgba(141, 96, 48, 0.92)) !important;
+  color: #181109 !important;
+}
+
+.app select option,
+.app select optgroup {
+  color: rgba(247, 241, 227, 0.94);
+  background-color: #0d1117;
+}
+
+.app select option:checked {
+  color: #181109;
+  background-color: #d9aa55;
+}
+
+/* Stage1/2 reference training timeline: keep only the metronome panel when note cards are hidden. */
+.referenceTrainingPanel .referenceTransitionHud.scaleReferenceTimelineOnly {
+  grid-template-columns: 1fr !important;
+  gap: 0;
+  min-height: 64px;
+  padding: 10px;
+}
+
+.referenceTrainingPanel .scaleReferenceTimelineOnly .metronomeTimeline {
+  grid-column: 1 !important;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid rgba(217, 170, 85, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.024);
+  box-shadow: none;
+}
+
+/* Stage3 chord-transition setup: one compact bronze settings panel. */
+.chordTransitionPanel .chordTransitionControls {
+  grid-template-areas:
+    "intro order"
+    "picker order"
+    "builder order"
+    "playback order" !important;
+  border: 1px solid rgba(217, 170, 85, 0.2);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(217, 170, 85, 0.12), transparent 36%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.008)),
+    rgba(10, 14, 19, 0.94);
+  box-shadow:
+    0 16px 30px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.chordTransitionPanel .chordTransitionControls > div:first-child {
+  display: grid !important;
+}
+
+.chordTransitionPanel .chordProgressionPicker,
+.chordTransitionPanel .stage3ChordBuilder,
+.chordTransitionPanel .chordProgressionOrderPanel,
+.chordTransitionPanel .stage3PlaybackControls {
+  border: 1px solid rgba(217, 170, 85, 0.14);
+  border-radius: 16px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.006)),
+    rgba(13, 18, 23, 0.88);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.chordTransitionPanel .chordProgressionPicker,
+.chordTransitionPanel .stage3ChordBuilder,
+.chordTransitionPanel .chordProgressionOrderPanel {
+  padding: 9px;
+}
+
+.chordTransitionPanel .chordProgressionPicker {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 58px;
+  align-items: end;
+  gap: 7px;
+}
+
+.chordTransitionPanel .chordProgressionPicker label {
+  max-width: none;
+}
+
+.chordTransitionPanel .chordProgressionPicker span,
+.chordTransitionPanel .stage3ChordBuilder .chordChipGroup > span,
+.chordTransitionPanel .chordProgressionOrderPanel span,
+.chordTransitionPanel .currentProgressionReadout small {
+  color: var(--ui-gold, #d9aa55);
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.chordTransitionPanel .chordProgressionPicker select {
+  min-height: 38px;
+  border-color: rgba(217, 170, 85, 0.24);
+  border-radius: 13px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.006)),
+    rgba(8, 12, 17, 0.92);
+  color: rgba(247, 241, 227, 0.94);
+  color-scheme: dark;
+}
+
+.stage3QuickSlotDelete {
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 9px;
+  border-radius: 13px;
+  color: rgba(247, 241, 227, 0.9);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.stage3QuickSlotDelete:disabled {
+  opacity: 0.42;
+}
+
+.stage3QuickSlotActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(42px, auto));
+  gap: 5px;
+}
+
+.chordTransitionPanel .stage3SetupToggle {
+  min-height: 30px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.chordTransitionPanel .chordTransitionControls > div:first-child .stage3SetupToggle {
+  justify-self: start;
+  margin-top: 5px;
+  border-color: rgba(217, 170, 85, 0.28);
+}
+
+.chordTransitionPanel .stage3ChordBuilder {
+  gap: 0;
+  padding: 2px 9px 9px;
+}
+
+.chordTransitionPanel .stage3ChordBuilder .chordChipGroup {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 9px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(217, 170, 85, 0.12);
+  border-radius: 0;
+  background: transparent;
+}
+
+.chordTransitionPanel .stage3ChordBuilder .chordChipGroup > div {
+  gap: 5px;
+}
+
+.chordTransitionPanel .stage3ChordBuilder .chordChipGroup button {
+  min-height: 28px;
+  border-radius: 999px;
+  font-size: 10px;
+}
+
+.chordTransitionPanel .stage3AddRow {
+  grid-template-columns: minmax(48px, auto) minmax(0, 1fr) minmax(0, 1fr);
+  padding-top: 9px;
+  border-top: 1px solid rgba(217, 170, 85, 0.12);
+}
+
+.chordTransitionPanel .stage3AddRow strong {
+  color: rgba(247, 241, 227, 0.98);
+  font-size: 19px;
+}
+
+.chordTransitionPanel .stage3AddRow button {
+  min-height: 36px;
+  border-radius: 12px;
+}
+
+.stage3SaveProgressionButton {
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.currentProgressionReadout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 9px;
+  padding: 8px;
+  border: 1px solid rgba(217, 170, 85, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.026);
+}
+
+.currentProgressionReadout span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(217, 170, 85, 0.22);
+  border-radius: 999px;
+  color: rgba(247, 241, 227, 0.92);
+  background: rgba(13, 18, 23, 0.9);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.currentProgressionReadout span.active {
+  border-color: rgba(241, 202, 122, 0.64);
+  background: rgba(82, 62, 34, 0.74);
+  color: #fff8e8;
+}
+
+@media (max-width: 430px) {
+  .chordTransitionPanel .chordTransitionControls {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "intro"
+      "picker"
+      "builder"
+      "order"
+      "playback" !important;
+    gap: 8px;
+  }
+
+  .chordTransitionPanel .chordTransitionControls > div:first-child {
+    display: grid !important;
+  }
+
+  .chordTransitionPanel .chordProgressionPicker {
+    grid-template-columns: minmax(0, 1fr) 56px;
+    gap: 7px;
+  }
+
+  .stage3QuickSlotActions {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+
+  .chordTransitionPanel .stage3ChordBuilder .chordChipGroup {
+    grid-template-columns: 38px minmax(0, 1fr);
+    padding: 6px;
+  }
+}
+
+/* Stage3 transport: keep volume and start on the same row. */
+.chordTransitionPanel .stage3PlaybackControls {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(98px, 132px) !important;
+  gap: 9px !important;
+  align-items: center;
+}
+
+.chordTransitionPanel .stage3PlaybackControls > .chordTransitionTempo.metronomeControl {
+  display: contents !important;
+}
+
+.chordTransitionPanel .stage3PlaybackControls .chordTransitionTempo .metronomeTopLine,
+.chordTransitionPanel .stage3PlaybackControls .chordTransitionTempo .metronomeOptions {
+  grid-column: 1 / -1;
+}
+
+.chordTransitionPanel .stage3PlaybackControls .chordTransitionTempo .metronomeVolumeControl {
+  grid-column: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 0 4px;
+}
+
+.chordTransitionPanel .stage3PlaybackControls .chordTransitionButtons {
+  grid-column: 2;
+  align-self: stretch;
+  display: grid;
+  align-items: center;
+  justify-items: stretch;
+}
+
+.chordTransitionPanel .stage3PlaybackControls .chordTransitionButtons > button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  margin: 0;
+  line-height: 1;
+}
+
+@media (max-width: 430px) {
+  .chordTransitionPanel .stage3PlaybackControls {
+    grid-template-columns: minmax(0, 1fr) minmax(98px, 120px) !important;
+    gap: 8px !important;
+  }
+}
+
+/* Training modes 1-2: follow the existing Stage3 metronome settings rhythm. */
+.referenceTrainingPanel .referenceTrainingToolbar {
+  grid-template-columns: 1fr !important;
+  align-items: stretch !important;
+}
+
+.referenceTrainingPanel .referenceScalePicker {
+  width: 100%;
+  max-width: 100%;
+}
+
+.referenceTrainingPanel .referenceTrainingActions.buttons.playbackButtons,
+.scaleBlockTrainingPanel .referenceTrainingActions.buttons.playbackButtons {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(104px, 132px) !important;
+  gap: 9px !important;
+  align-items: center;
+}
+
+.referenceTrainingPanel .referenceTrainingActions.buttons.playbackButtons > .referenceBpmControl.metronomeControl,
+.scaleBlockTrainingPanel .referenceTrainingActions.buttons.playbackButtons > .referenceBpmControl.metronomeControl {
+  display: contents !important;
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeTopLine,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeTopLine {
+  grid-column: 1 / -1;
+  display: grid !important;
+  grid-template-columns: auto minmax(116px, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeBpmLabel,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeBpmLabel {
+  grid-column: 1;
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeBpmCombo,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeBpmCombo {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeBpmInputShell,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeBpmInputShell {
+  min-width: 48px;
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeBpmPresetSelect,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeBpmPresetSelect {
+  min-width: 54px;
+  max-width: 62px;
+  padding: 0 6px;
+  font-size: 8.5px;
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeToggleRow,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeToggleRow {
+  grid-column: 3;
+  display: flex !important;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: 5px;
+  min-width: 0;
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeToggleRow button,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeToggleRow button {
+  width: auto;
+  min-width: 58px;
+  min-height: 32px;
+  height: 32px;
+  padding: 0 7px 0 17px;
+  border-radius: 999px;
+  font-size: 8.5px;
+  white-space: nowrap;
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeOptions,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeOptions {
+  grid-column: 1 / -1;
+}
+
+.referenceTrainingPanel .referenceBpmControl .metronomeVolumeControl,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeVolumeControl {
+  grid-column: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+.referenceTrainingPanel .referenceTrainingActions.buttons.playbackButtons > button:not(.metronomeBpmStep),
+.scaleBlockTrainingPanel .referenceTrainingActions.buttons.playbackButtons > button:not(.metronomeBpmStep) {
+  grid-column: 2;
+  align-self: stretch;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.referenceTrainingPanel .referenceTrainingActions.buttons.playbackButtons > button:not(.metronomeBpmStep),
+.scaleBlockTrainingPanel .referenceTrainingActions.buttons.playbackButtons > button:not(.metronomeBpmStep) {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  margin: 0;
+}
+
+@media (max-width: 430px) {
+  .referenceTrainingPanel .referenceTrainingActions.buttons.playbackButtons,
+  .scaleBlockTrainingPanel .referenceTrainingActions.buttons.playbackButtons {
+    grid-template-columns: minmax(0, 1fr) minmax(98px, 120px) !important;
+    gap: 8px !important;
+  }
+
+  .referenceTrainingPanel .referenceBpmControl .metronomeTopLine,
+  .scaleBlockTrainingPanel .referenceBpmControl .metronomeTopLine {
+    grid-template-columns: auto minmax(106px, 1fr) auto;
+    gap: 5px;
+  }
+
+  .referenceTrainingPanel .referenceBpmControl .metronomeToggleRow,
+  .scaleBlockTrainingPanel .referenceBpmControl .metronomeToggleRow {
+    grid-column: 3;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+
+  .referenceTrainingPanel .referenceBpmControl .metronomeToggleRow button,
+  .scaleBlockTrainingPanel .referenceBpmControl .metronomeToggleRow button {
+    flex: 0 0 auto;
+    min-width: 52px;
+    height: 30px;
+    min-height: 30px;
+    padding: 0 6px 0 15px;
+    font-size: 7.8px;
+  }
+}
+
+/* Training metronome beat indicator: keep the motion, remove the heavy card shell. */
+.referenceTrainingPanel .referenceTransitionHud.scaleReferenceTimelineOnly,
+.scaleBlockTrainingPanel .referenceTransitionHud.scaleReferenceTimelineOnly {
+  min-height: 42px;
+  padding: 2px 6px 8px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.referenceTrainingPanel .metronomeTimeline,
+.scaleBlockTrainingPanel .metronomeTimeline,
+.chordTransitionPanel .metronomeTimeline {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.referenceTrainingPanel .metronomeTimeline .chordTimelineLabels,
+.scaleBlockTrainingPanel .metronomeTimeline .chordTimelineLabels,
+.chordTransitionPanel .metronomeTimeline .chordTimelineLabels {
+  margin-bottom: -1px;
+}
+
+.referenceTrainingPanel .metronomeTimeline .chordTimelineLabels span,
+.scaleBlockTrainingPanel .metronomeTimeline .chordTimelineLabels span,
+.chordTransitionPanel .metronomeTimeline .chordTimelineLabels span {
+  color: rgba(226, 211, 185, 0.42);
+}
+
+.referenceTrainingPanel .metronomeTimeline .chordTimelineTrack,
+.scaleBlockTrainingPanel .metronomeTimeline .chordTimelineTrack,
+.chordTransitionPanel .metronomeTimeline .chordTimelineTrack {
+  height: 22px;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.referenceTrainingPanel .metronomeTimeline .chordTimelineTrack::before,
+.scaleBlockTrainingPanel .metronomeTimeline .chordTimelineTrack::before,
+.chordTransitionPanel .metronomeTimeline .chordTimelineTrack::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  top: 50%;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(68, 76, 86, 0.34);
+  transform: translateY(-50%);
+}
+
+.referenceTrainingPanel .metronomeTimeline .chordTimelineFill,
+.scaleBlockTrainingPanel .metronomeTimeline .chordTimelineFill,
+.chordTransitionPanel .metronomeTimeline .chordTimelineFill {
+  display: none;
+}
+
+.referenceTrainingPanel .metronomeTimeline .chordTimelineRunner,
+.scaleBlockTrainingPanel .metronomeTimeline .chordTimelineRunner,
+.chordTransitionPanel .metronomeTimeline .chordTimelineRunner {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 2px solid rgba(255, 246, 214, 0.78);
+  background: linear-gradient(145deg, rgba(241, 202, 122, 0.96), rgba(161, 111, 54, 0.96));
+  color: transparent;
+  font-size: 0;
+  box-shadow:
+    0 0 0 3px rgba(10, 13, 17, 0.82),
+    0 5px 10px rgba(0, 0, 0, 0.24);
+}
+
+.referenceTrainingPanel .metronomeTimeline .chordTimelineTrack b,
+.scaleBlockTrainingPanel .metronomeTimeline .chordTimelineTrack b,
+.chordTransitionPanel .metronomeTimeline .chordTimelineTrack b {
+  width: 7px;
+  height: 7px;
+  border: 0;
+  background: rgba(78, 88, 100, 0.58);
+  box-shadow: none;
+}
+
+.referenceTrainingPanel .metronomeTimeline .chordTimelineTrack b.active,
+.scaleBlockTrainingPanel .metronomeTimeline .chordTimelineTrack b.active,
+.chordTransitionPanel .metronomeTimeline .chordTimelineTrack b.active,
+.referenceTrainingPanel .metronomeTimeline .mobileBeatDots span.active,
+.scaleBlockTrainingPanel .metronomeTimeline .mobileBeatDots span.active,
+.chordTransitionPanel .metronomeTimeline .mobileBeatDots span.active {
+  background: var(--ui-gold-bright, #f1ca7a);
+  box-shadow: 0 0 0 2px rgba(217, 170, 85, 0.12);
+}
+
+.referenceTrainingPanel .metronomeTimeline .mobileBeatDots span,
+.scaleBlockTrainingPanel .metronomeTimeline .mobileBeatDots span,
+.chordTransitionPanel .metronomeTimeline .mobileBeatDots span {
+  border: 0;
+  background: rgba(78, 88, 100, 0.58);
+  box-shadow: none;
+}
+
+/* Training indicators: dots show beat, sequence shows the actual practice flow. */
+.beatIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.beatIndicator span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(75, 85, 96, 0.62);
+  box-shadow: none;
+}
+
+.beatIndicator span.active {
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(145deg, rgba(241, 202, 122, 0.98), rgba(161, 111, 54, 0.96));
+  box-shadow: 0 0 0 3px rgba(217, 170, 85, 0.1);
+}
+
+.referenceTransitionHud.scaleReferenceTimelineOnly .beatIndicator {
+  justify-content: center;
+  min-height: 24px;
+}
+
+.trainingSequenceTimeline {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 6px 2px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.trainingSequenceTimeline::-webkit-scrollbar {
+  display: none;
+}
+
+.trainingSequenceTimeline span {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  min-width: 34px;
+  padding: 7px 10px;
+  border: 1px solid rgba(217, 170, 85, 0.18);
+  border-radius: 999px;
+  color: rgba(247, 241, 227, 0.78);
+  background: rgba(11, 15, 20, 0.62);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+}
+
+.trainingSequenceTimeline span.active {
+  border-color: rgba(241, 202, 122, 0.62);
+  color: #181109;
+  background: linear-gradient(145deg, rgba(241, 202, 122, 0.96), rgba(180, 126, 58, 0.94));
+  box-shadow: 0 0 0 2px rgba(217, 170, 85, 0.1);
+}
+
+.trainingSequenceTimeline i {
+  flex: 0 0 auto;
+  margin-right: -2px;
+  color: rgba(217, 170, 85, 0.54);
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.trainingSequenceTimeline small {
+  color: rgba(226, 211, 185, 0.58);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.stage3ProgressHud {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  justify-items: center;
+  gap: 0;
+  min-height: 58px;
+  padding: 6px 6px 8px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.stage3ProgressHud .metronomeTimeline {
+  display: grid !important;
+  grid-column: 1 / -1 !important;
+  grid-row: auto !important;
+  justify-self: center;
+  gap: 5px;
+  width: min(100%, 340px) !important;
+  max-width: calc(100vw - 42px);
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.stage3ProgressHud .metronomeTimeline .chordTimelineLabels {
+  display: none;
+}
+
+.stage3ProgressHud .metronomeTimeline .chordTimelineTrack {
+  position: relative;
+  justify-self: center;
+  width: 100% !important;
+  height: 24px;
+  border: 0 !important;
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, rgba(217, 170, 85, 0.1), rgba(75, 85, 96, 0.24)) center / 100% 2px no-repeat !important;
+  box-shadow: none !important;
+}
+
+.stage3ProgressHud .metronomeTimeline .chordTimelineTrack::before {
+  content: none !important;
+}
+
+.stage3ProgressHud .metronomeTimeline .chordTimelineFill {
+  display: block !important;
+  inset: 50% 0 auto 0;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(217, 170, 85, 0.48), rgba(241, 202, 122, 0.26));
+  box-shadow: none;
+  transform-origin: left center;
+}
+
+.stage3ProgressHud .metronomeTimeline .chordTimelineTrack b {
+  width: 2px;
+  height: 22px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(126, 136, 148, 0.54);
+  box-shadow: none;
+}
+
+.stage3ProgressHud .metronomeTimeline .chordTimelineTrack b.active {
+  background: rgba(241, 202, 122, 0.88);
+  box-shadow: none;
+}
+
+.stage3ProgressHud .metronomeTimeline .chordTimelineRunner {
+  display: grid;
+  place-items: center;
+  min-width: 21px;
+  height: 21px;
+  padding: 0 6px;
+  border: 1px solid rgba(241, 202, 122, 0.58);
+  border-radius: 999px;
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 246, 214, 0.12) 0 2px, transparent 2px 5px),
+    linear-gradient(145deg, rgba(241, 202, 122, 0.34), rgba(161, 111, 54, 0.18)),
+    rgba(13, 18, 23, 0.62);
+  color: rgba(255, 235, 188, 0.88);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 950;
+  line-height: 1;
+  box-shadow:
+    0 0 0 2px rgba(10, 13, 17, 0.58),
+    0 4px 8px rgba(0, 0, 0, 0.14);
+}
+
+.stage3ProgressHud .metronomeTimeline .mobileBeatDots {
+  display: flex;
+  justify-content: center;
+  justify-self: center;
+  width: 100%;
+  gap: 7px;
+  padding: 1px 0 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.stage3ProgressHud .metronomeTimeline .mobileBeatDots span {
+  width: 7px;
+  height: 7px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(75, 85, 96, 0.62);
+  box-shadow: none;
+}
+
+.stage3ProgressHud .metronomeTimeline .mobileBeatDots span.active {
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(145deg, rgba(241, 202, 122, 0.98), rgba(161, 111, 54, 0.96));
+  box-shadow: 0 0 0 3px rgba(217, 170, 85, 0.1);
+}
+
+.trainingProgressIndicator {
+  position: relative;
+  min-width: 0;
+  width: calc(100% - 18px);
+  height: 28px;
+  margin: 0 auto;
+  overflow: visible;
+  background:
+    linear-gradient(90deg, transparent 0, transparent 2px, rgba(75, 85, 96, 0.42) 2px, rgba(75, 85, 96, 0.42) calc(100% - 2px), transparent calc(100% - 2px)),
+    linear-gradient(90deg, rgba(217, 170, 85, 0.1), rgba(75, 85, 96, 0.22));
+  background-size: 100% 2px, 100% 2px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.trainingProgressIndicator span {
+  position: absolute;
+  top: 50%;
+  display: block;
+  width: 2px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(126, 136, 148, 0.54);
+  transform: translate(-50%, -50%);
+  box-shadow: none;
+}
+
+.trainingProgressRunner {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  min-width: 23px;
+  height: 23px;
+  padding: 0 7px;
+  border: 2px solid rgba(255, 246, 214, 0.76);
+  border-radius: 999px;
+  background: linear-gradient(145deg, rgba(241, 202, 122, 0.98), rgba(161, 111, 54, 0.96));
+  color: #181109;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 950;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+  box-shadow:
+    0 0 0 3px rgba(10, 13, 17, 0.86),
+    0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 430px) {
+  .stage3ProgressHud {
+    grid-template-columns: 1fr !important;
+    min-height: 56px;
+    padding: 6px 5px 8px !important;
+  }
+
+  .stage3ProgressHud .metronomeTimeline {
+    width: min(100%, 350px) !important;
+    max-width: calc(100vw - 34px);
+  }
+
+  .trainingSequenceTimeline span {
+    min-width: 32px;
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+
+  .trainingProgressIndicator {
+    width: calc(100% - 14px);
+  }
+}
+
+/* Stage3 polish: bronze chips, compact fingering toggle, and header progression preview. */
+.chordTransitionPanel .chordPreviewStack strong {
+  border-color: rgba(217, 170, 85, 0.28) !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.08), rgba(255, 255, 255, 0.01)),
+    rgba(12, 17, 22, 0.88) !important;
+  color: rgba(247, 241, 227, 0.9) !important;
+  box-shadow: none !important;
+}
+
+.chordTransitionPanel .chordPreviewStack strong.active {
+  border-color: rgba(241, 202, 122, 0.64) !important;
+  background:
+    linear-gradient(145deg, rgba(100, 73, 34, 0.74), rgba(34, 27, 19, 0.92)),
+    rgba(12, 17, 22, 0.9) !important;
+  color: #fff8e8 !important;
+}
+
+.chordTransitionPanel .chordPreviewStack strong button {
+  width: 17px;
+  min-width: 17px;
+  min-height: 17px;
+  padding: 0;
+  border: 1px solid rgba(217, 170, 85, 0.22) !important;
+  border-radius: 999px;
+  background: rgba(8, 12, 17, 0.72) !important;
+  color: rgba(241, 202, 122, 0.88) !important;
+  font-size: 11px;
+  line-height: 1;
+  box-shadow: none !important;
+}
+
+.chordTransitionPanel .chordPreviewStack strong button:active:not(:disabled) {
+  background: rgba(82, 62, 34, 0.76) !important;
+}
+
+.chordTransitionChart .chordGuideToggle {
+  min-width: 58px !important;
+  min-height: 29px !important;
+  padding: 0 7px !important;
+  gap: 4px;
+  border-color: rgba(217, 170, 85, 0.24) !important;
+  border-radius: 999px !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.006)),
+    rgba(11, 15, 20, 0.84) !important;
+  color: rgba(247, 241, 227, 0.82) !important;
+  box-shadow: none !important;
+}
+
+.chordTransitionChart .chordGuideToggle span,
+.chordTransitionChart .chordGuideToggle b {
+  color: inherit !important;
+  font-size: 9px !important;
+  line-height: 1;
+}
+
+.chordTransitionChart .chordGuideToggle.selected {
+  border-color: rgba(241, 202, 122, 0.5) !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.18), rgba(93, 67, 31, 0.3)),
+    rgba(18, 20, 22, 0.92) !important;
+  color: #ffe6aa !important;
+}
+
+.chordTransitionChart .referenceHeader {
+  align-items: start;
+}
+
+.chordTransitionChart .currentProgressionReadout {
+  margin: 5px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  gap: 5px;
+}
+
+.chordTransitionChart .currentProgressionReadout span {
+  min-height: 25px;
+  padding: 0 9px;
+  font-size: 11px;
+}
+
+.chordTransitionChart .currentProgressionReadout small {
+  color: rgba(226, 211, 185, 0.58);
+  font-size: 10.5px;
+  font-weight: 850;
 }
