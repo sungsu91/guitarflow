@@ -1184,11 +1184,14 @@ function MetronomeControl({
   onAccentChange = () => {},
   onBpmChange,
   onCountInChange = () => {},
+  onRepeatChange = () => {},
   onSubdivisionChange = () => {},
   onTimeSignatureChange = () => {},
   onToneChange = () => {},
   onVolumeChange = () => {},
+  repeatEnabled = false,
   showCountIn = true,
+  showRepeat = true,
   subdivision = "quarter",
   timeSignature = "4/4",
   tone = "tick",
@@ -1278,7 +1281,7 @@ function MetronomeControl({
             onClick={applyNextBpmPreset}
             type="button"
           >
-            빠른선택
+            빠른
           </button>
         </div>
         <div className="metronomeToggleRow">
@@ -1298,6 +1301,16 @@ function MetronomeControl({
               type="button"
             >
               카운트인 {countInEnabled ? "ON" : "OFF"}
+            </button>
+          ) : null}
+          {showRepeat ? (
+            <button
+              aria-pressed={repeatEnabled}
+              className={repeatEnabled ? "selected" : ""}
+              onClick={() => onRepeatChange(!repeatEnabled)}
+              type="button"
+            >
+              반복 {repeatEnabled ? "ON" : "OFF"}
             </button>
           ) : null}
         </div>
@@ -1449,6 +1462,72 @@ function ContentTitle({ subtitle, title }) {
       {subtitle ? <small>{subtitle}</small> : null}
     </div>
   );
+}
+
+function TrainingCard({ category, index, isSelected, onClick }) {
+  const stageNumber = String(category.stageLabel?.replace(/\D/g, "") || index + 1).padStart(2, "0");
+
+  return (
+    <button
+      aria-label={`${category.title} 연습 시작`}
+      className={`trainingCard stageMenuCard ${isSelected ? "selected" : ""}`}
+      disabled={category.unavailable}
+      onClick={onClick}
+      type="button"
+    >
+      <span className="stageMenuCard__step">{stageNumber}</span>
+      <span className="stageMenuCard__content">
+        <strong className="stageMenuCard__title">{category.title}</strong>
+        <small className="stageMenuCard__desc">{category.subtitle}</small>
+        <em className="stageMenuCard__tag">{category.modeLabel}</em>
+      </span>
+      <span className="stageMenuCard__arrow" aria-hidden="true">❯</span>
+    </button>
+  );
+}
+
+const HEADER_VARIANTS = [
+  { id: "plate-v1", title: "Brand Plate V1", description: "브랜드 명판형" },
+  { id: "plate-v2", title: "Brand Plate V2", description: "심볼 결합형" },
+  { id: "plate-v3", title: "Brand Plate V3", description: "확장 헤더형" },
+  { id: "plate-v4", title: "Brand Plate V4", description: "앰프/장비 플레이트형" },
+  { id: "v4", title: "Header V4", description: "FF 워드마크 + 개선형 [R] 심볼" },
+  { id: "v5", title: "Header V5", description: "LAB Gold" },
+  { id: "v6", title: "Header V6", description: "LAB Underline" },
+  { id: "v7", title: "Header V7", description: "FF to LAB Connection" },
+  { id: "v8", title: "Header V8", description: "LAB Frame" },
+  { id: "v9", title: "Header V9", description: "Dual String" },
+  { id: "v10", title: "Header V10", description: "Symbol + V4 Hybrid" },
+];
+const HEADER_RESTORE_VARIANT = { id: "v1", title: "Header V1", description: "기존 [R] RIFFLAB" };
+const DESIGN_LAB_SECTIONS = [
+  { id: "logo", label: "로고" },
+  { id: "character", label: "캐릭터" },
+  { id: "card", label: "카드" },
+  { id: "button", label: "버튼" },
+  { id: "menu", label: "메뉴" },
+  { id: "fretboard", label: "지판" },
+];
+const CHARACTER_LAB_VARIANTS = [
+  { id: "character-1", title: "캐릭터 1", description: "기본 사격 포커스" },
+  { id: "character-2", title: "캐릭터 2", description: "골드 바이저" },
+  { id: "character-3", title: "캐릭터 3", description: "다크 실루엣" },
+  { id: "character-4", title: "캐릭터 4", description: "라운드 마스코트" },
+];
+const CARD_LAB_VARIANTS = [
+  { id: "card-1", title: "Card V1", description: "현재 훈련장 카드" },
+  { id: "card-2", title: "Card V2", description: "번호 배지 강조" },
+  { id: "card-3", title: "Card V3", description: "라인형 미니멀" },
+];
+
+function getTrainingDetailTitle(category) {
+  const fallbackOrder = {
+    "first-position": 1,
+    "scale-block": 2,
+    rhythm: 3,
+  };
+  const stageNumber = String(category?.stageLabel?.replace(/\D/g, "") || fallbackOrder[category?.id] || 1).padStart(2, "0");
+  return `${stageNumber} ${category?.title ?? ""}`.trim();
 }
 
 function BeatIndicator({ beat, beatsPerMeasure = 4, isPlaying, label = "현재 박자", timeSignature = "4/4" }) {
@@ -1678,6 +1757,7 @@ const APP_MODES = {
   METRONOME: "metronome",
   SHOOTER: "shooter",
   FRETBOARD_VIEWER: "fretboard-viewer",
+  DESIGN_LAB: "design-lab",
 };
 
 const APP_ROUTES = {
@@ -1691,7 +1771,15 @@ const APP_ROUTES = {
   STAGE4: "#stage4",
   METRONOME: "#metronome",
   SHOOTER: "#shooter",
+  DESIGN_LAB: "#design-lab",
 };
+
+function isDesignLabEnabled() {
+  if (import.meta.env.DEV) return true;
+  if (typeof window === "undefined") return false;
+  const params = new URLSearchParams(window.location.search);
+  return params.get("lab") === "1" || window.localStorage?.getItem("rifflab-design-lab") === "1";
+}
 
 function getRouteFromHash(hash) {
   const normalizedHash = hash || APP_ROUTES.MAIN;
@@ -1714,6 +1802,10 @@ function getRouteFromHash(hash) {
       return { appMode: APP_MODES.METRONOME, categoryId: MAIN_DEFAULT_CATEGORY.id };
     case APP_ROUTES.SHOOTER:
       return { appMode: APP_MODES.SHOOTER, categoryId: MAIN_DEFAULT_CATEGORY.id };
+    case APP_ROUTES.DESIGN_LAB:
+      return isDesignLabEnabled()
+        ? { appMode: APP_MODES.DESIGN_LAB, categoryId: MAIN_DEFAULT_CATEGORY.id }
+        : { appMode: APP_MODES.CURRICULUM, categoryId: MAIN_DEFAULT_CATEGORY.id };
     case APP_ROUTES.MAIN:
     default:
       return { appMode: APP_MODES.CURRICULUM, categoryId: MAIN_DEFAULT_CATEGORY.id };
@@ -1725,6 +1817,7 @@ function getHashFromRoute(appMode, categoryId = MAIN_DEFAULT_CATEGORY.id) {
   if (appMode === APP_MODES.CURRICULUM) return APP_ROUTES.CURRICULUM;
   if (appMode === APP_MODES.METRONOME) return APP_ROUTES.METRONOME;
   if (appMode === APP_MODES.SHOOTER) return APP_ROUTES.SHOOTER;
+  if (appMode === APP_MODES.DESIGN_LAB) return APP_ROUTES.DESIGN_LAB;
   if (appMode === APP_MODES.PRACTICE && categoryId === "open") return APP_ROUTES.MAIN;
   if (appMode === APP_MODES.PRACTICE && categoryId === "first-position") return APP_ROUTES.STAGE1;
   if (appMode === APP_MODES.PRACTICE && categoryId === "scale-block") return APP_ROUTES.STAGE2;
@@ -2136,8 +2229,7 @@ function normalizePracticeCategory(category) {
 }
 
 function shouldLoopPractice(category, repeatPractice) {
-  if (category?.id === "scale-block") return true;
-  return category?.id === "first-position" ? false : category?.loop !== false;
+  return Boolean(repeatPractice);
 }
 
 function repeatSequence(sequence, count) {
@@ -2261,6 +2353,9 @@ function App() {
   const initialStage3QuickSlotsRef = useRef(getStoredStage3QuickSlots());
   const [appMode, setAppMode] = useState(initialRouteRef.current.appMode);
   const [utilityMenuOpen, setUtilityMenuOpen] = useState(false);
+  const designLabEnabled = isDesignLabEnabled();
+  const [headerVariant, setHeaderVariant] = useState("v1");
+  const [designLabSection, setDesignLabSection] = useState("logo");
   const [deviceInfo, setDeviceInfo] = useState(getDeviceSnapshot);
   const [gameState, setGameState] = useState(GAME_STATES.IDLE);
   const [micStatus, setMicStatus] = useState("No Signal");
@@ -2768,6 +2863,15 @@ function App() {
     setBeat(0);
     setStage3MeasureProgress(0);
   }, [bpm]);
+  const updateLoadedStage3Memo = useCallback((memo) => {
+    const loadedId = loadedStage3LibraryItem?.id;
+    if (!loadedId) return;
+    setLoadedStage3LibraryItem((item) => (item?.id === loadedId ? { ...item, memo } : item));
+    setStage3QuickSlots((slots) => slots.map((slot) => (slot.id === loadedId ? { ...slot, memo } : slot)));
+    if (stage3StorageEditingId === loadedId) {
+      setStage3StorageMemo(memo);
+    }
+  }, [loadedStage3LibraryItem?.id, stage3StorageEditingId]);
   const setStage3ProgressIndex = useCallback((index) => {
     const progressionLength = Math.max(1, chordTransitionProgression.length);
     const safeIndex = ((Number(index) || 0) % progressionLength + progressionLength) % progressionLength;
@@ -3780,8 +3884,17 @@ function App() {
         const currentBeat = Math.floor(currentTick / clicksPerBeat);
         const beatInBar = currentBeat % beatsPerMeasure;
         const subdivisionIndex = currentTick % clicksPerBeat;
+        const rawMeasureIndex = chordTransitionProgression.length > 0
+          ? Math.floor(currentBeat / beatsPerMeasure)
+          : 0;
+        if (!practiceLoopRef.current && chordTransitionProgression.length > 0 && rawMeasureIndex >= chordTransitionProgression.length) {
+          practiceCompletedRef.current = true;
+          setFeedback("Complete");
+          setState(GAME_STATES.IDLE);
+          return;
+        }
         const measureIndex = chordTransitionProgression.length > 0
-          ? Math.floor(currentBeat / beatsPerMeasure) % chordTransitionProgression.length
+          ? rawMeasureIndex % chordTransitionProgression.length
           : 0;
         setBeat(beatInBar);
         chordPracticeIndexRef.current = measureIndex;
@@ -4447,6 +4560,28 @@ function App() {
     setState(GAME_STATES.IDLE);
   }, [setState, stopMic]);
 
+  const showDesignLab = useCallback(() => {
+    if (!designLabEnabled) return;
+    stopMic();
+    setUtilityMenuOpen(false);
+    setStage3StorageOpen(false);
+    appModeRef.current = APP_MODES.DESIGN_LAB;
+    setAppMode(APP_MODES.DESIGN_LAB);
+    enemiesRef.current = [];
+    shooterTargetsRef.current = [];
+    projectilesRef.current = [];
+    particlesRef.current = [];
+    setEnemies([]);
+    setShooterTargets([]);
+    setProjectiles([]);
+    setParticles([]);
+    setHitZoneNote(null);
+    setIsHitWindowActive(false);
+    setBeat(0);
+    setFeedback("Design Lab");
+    setState(GAME_STATES.IDLE);
+  }, [designLabEnabled, setState, stopMic]);
+
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
@@ -4802,6 +4937,13 @@ function App() {
     if (!note) return "준비";
     return note.noteName ?? getPitchClass(note.pitch) ?? note.pitch;
   }, []);
+  const scaleReferenceTitle = useMemo(() => {
+    const root = SCALE_ROOT_OPTIONS.find((option) => option.id === selectedScaleRoot);
+    const type = selectedScaleTypeOptions[selectedScaleType] ?? selectedScaleTypeOptions.minor;
+    const family = SCALE_FAMILIES[selectedScaleFamily] ?? SCALE_FAMILIES.pentatonic;
+    const rootLabel = `${root?.label ?? selectedScaleRoot}/${root?.solfege ?? SOLFEGE[selectedScaleRoot] ?? ""}`;
+    return `${rootLabel} ${type.label} ${family.label} BOX${selectedScaleBox}`;
+  }, [selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType, selectedScaleTypeOptions]);
   const referenceCurrentLabel = selectedCategory.tutorial
     ? "현재 연습"
     : selectedCategory.id === "scale-block"
@@ -4875,7 +5017,7 @@ function App() {
           >
             <div className="utilityMenuHeader">
               <div>
-                <span>Menu</span>
+                <span>Control Center</span>
                 <strong>부가 기능</strong>
               </div>
               <button
@@ -4887,40 +5029,66 @@ function App() {
               </button>
             </div>
             <nav className="utilityMenuList" aria-label="부가 기능 목록">
-              <button type="button">
-                <span>⌁</span>
-                <strong>연습기록</strong>
-                <small>준비 중</small>
+              <button className="utilityMenuItem utilityMenuItemPrimary" onClick={showStage3StorageRoom} type="button">
+                <span className="utilityMenuIcon" aria-hidden="true">▦</span>
+                <div className="utilityMenuText">
+                  <strong>저장실</strong>
+                  <small>코드 진행 및 주법 관리</small>
+                </div>
+                <span className="utilityMenuChevron" aria-hidden="true">›</span>
               </button>
-              <button type="button">
-                <span>⚙</span>
-                <strong>앱설정</strong>
-                <small>준비 중</small>
+              <button className="utilityMenuItem utilityMenuItemSecondary" type="button">
+                <span className="utilityMenuIcon" aria-hidden="true">⌁</span>
+                <div className="utilityMenuText">
+                  <strong>연습기록</strong>
+                  <small>최근 연습 내역 확인</small>
+                </div>
+                <span className="utilityMenuChevron" aria-hidden="true">›</span>
               </button>
-              <button type="button">
-                <span>♪</span>
-                <strong>사운드설정</strong>
-                <small>메트로놈/효과음 설정</small>
+              <button className="utilityMenuItem utilityMenuItemSecondary" type="button">
+                <span className="utilityMenuIcon" aria-hidden="true">♪</span>
+                <div className="utilityMenuText">
+                  <strong>사운드설정</strong>
+                  <small>메트로놈 및 효과음 설정</small>
+                </div>
+                <span className="utilityMenuChevron" aria-hidden="true">›</span>
               </button>
-              <button onClick={showStage3StorageRoom} type="button">
-                <span>▦</span>
-                <strong>코드 진행 저장실</strong>
-                <small>저장한 리듬훈련 진행 관리</small>
+              <button className="utilityMenuItem utilityMenuItemSecondary" type="button">
+                <span className="utilityMenuIcon" aria-hidden="true">⚙</span>
+                <div className="utilityMenuText">
+                  <strong>환경설정</strong>
+                  <small>화면 및 연습 환경 조정</small>
+                </div>
+                <span className="utilityMenuChevron" aria-hidden="true">›</span>
               </button>
+              {designLabEnabled ? (
+                <button className="utilityMenuItem utilityMenuItemSecondary" onClick={showDesignLab} type="button">
+                  <span className="utilityMenuIcon" aria-hidden="true">R</span>
+                  <div className="utilityMenuText">
+                    <strong>UI 실험실</strong>
+                    <small>헤더 시안 비교 및 적용</small>
+                  </div>
+                  <span className="utilityMenuChevron" aria-hidden="true">›</span>
+                </button>
+              ) : null}
               <a
+                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemExternal"
                 href="https://www.instagram.com/sungsu91_/"
                 rel="noreferrer"
                 target="_blank"
               >
-                <span>@</span>
-                <strong>문의하기</strong>
-                <small>@sungsu91_</small>
+                <span className="utilityMenuIcon" aria-hidden="true">@</span>
+                <div className="utilityMenuText">
+                  <strong>문의하기</strong>
+                  <small>@sungsu91_</small>
+                </div>
+                <span className="utilityMenuChevron" aria-hidden="true">↗</span>
               </a>
-              <div className="utilityVersionInfo">
+              <div className="utilityVersionInfo utilityInfoCard utilityInfoCardTertiary">
                 <strong>버전정보</strong>
                 <small>Fretboard Training v0.1</small>
               </div>
-              <div className="utilityDeviceInfo" aria-label="기기 정보">
+              <div className="utilityDeviceInfo utilityInfoCard utilityInfoCardTertiary" aria-label="기기 정보">
                 <strong>기기 정보</strong>
                 <dl>
                   <div>
@@ -4954,7 +5122,7 @@ function App() {
       ) : null}
 
       {appMode !== APP_MODES.MENU && <section className="hud">
-        <BrandHeader />
+        <BrandHeader variant={headerVariant} />
         <div className="modeSwitch">
           <button
             className={appMode === APP_MODES.CURRICULUM || appMode === APP_MODES.PRACTICE ? "selected" : ""}
@@ -5074,39 +5242,227 @@ function App() {
         <section className="curriculum" aria-label="Beginner curriculum">
           <ContentTitle {...contentHeader} />
           <div className="trainingGrid stageMenu">
-          {PRACTICE_CATEGORIES.filter((category) => !category.tutorial && !category.unavailable).map((category, index) => (
-            <button
-              aria-label={`${category.title} 연습 시작`}
-              className={`trainingCard stageMenuCard ${category.featured ? "featuredCard" : ""} ${category.id === "rhythm" ? "rhythmCoreCard stageMenuCard--featured" : ""} ${category.unavailable ? "comingSoonCard" : ""} ${pendingStageCardId === category.id ? "selected" : ""}`}
-              disabled={category.unavailable}
-              key={category.id}
-              onClick={(event) => {
-                if (category.unavailable) return;
-                if (pendingStageCardId === category.id) {
+            {PRACTICE_CATEGORIES.filter((category) => !category.tutorial && !category.unavailable).map((category, index) => (
+              <TrainingCard
+                category={category}
+                index={index}
+                isSelected={pendingStageCardId === category.id}
+                key={category.id}
+                onClick={(event) => {
+                  if (category.unavailable) return;
+                  if (pendingStageCardId === category.id) {
+                    event.currentTarget.blur();
+                    enterPracticePreview(category);
+                    return;
+                  }
+                  setPendingStageCardId(category.id);
+                  setSelectedCategoryId(category.id);
+                  setFeedback("Choose a practice card");
                   event.currentTarget.blur();
-                  enterPracticePreview(category);
-                  return;
-                }
-                setPendingStageCardId(category.id);
-                setSelectedCategoryId(category.id);
-                setFeedback("Choose a practice card");
-                event.currentTarget.blur();
-              }}
-              type="button"
-            >
-              <span className="stageMenuCard__step">{String(category.stageLabel?.replace(/\D/g, "") || index + 1).padStart(2, "0")}</span>
-              <span className="stageMenuCard__content">
-                <strong className="stageMenuCard__title">{category.title}</strong>
-                <small className="stageMenuCard__desc">{category.subtitle}</small>
-                <em className="stageMenuCard__tag">{category.modeLabel}</em>
-              </span>
-              <span className="stageMenuCard__arrow" aria-hidden="true">
-                {category.unavailable ? "❯" : "❯"}
-              </span>
-            </button>
-          ))}
+                }}
+              />
+            ))}
           </div>
 
+        </section>
+      ) : appMode === APP_MODES.DESIGN_LAB ? (
+        <section className="designLabPanel" aria-label="RIFFLAB UI 실험실">
+          <ContentTitle title="Design Lab" subtitle="제작, 등록, 비교, 채택을 위한 RIFFLAB 전용 테스트 공간" />
+          <div className="designLabActions" aria-label="헤더 복구">
+            <button
+              className={headerVariant === "v1" ? "selected" : ""}
+              onClick={() => setHeaderVariant("v1")}
+              type="button"
+            >
+              Header V1로 복구
+            </button>
+          </div>
+          <div className="designLabStickyPreview" aria-label="현재 적용 헤더 미리보기">
+            <div>
+              <span>Live Header</span>
+              <strong>{[HEADER_RESTORE_VARIANT, ...HEADER_VARIANTS].find((variant) => variant.id === headerVariant)?.title ?? "Header V1"}</strong>
+            </div>
+            <BrandHeader variant={headerVariant} />
+          </div>
+          <nav className="designLabTabs" aria-label="Design Lab categories">
+            {DESIGN_LAB_SECTIONS.map((section) => (
+              <button
+                className={designLabSection === section.id ? "selected" : ""}
+                key={section.id}
+                onClick={() => setDesignLabSection(section.id)}
+                type="button"
+              >
+                {section.label}
+              </button>
+            ))}
+          </nav>
+          <section className="headerPreviewSection" aria-label="Header Preview">
+            <div className="headerPreviewSectionTitle">
+              <span>{DESIGN_LAB_SECTIONS.find((section) => section.id === designLabSection)?.label} Lab</span>
+              <strong>{designLabSection === "logo" ? `현재 적용: ${[HEADER_RESTORE_VARIANT, ...HEADER_VARIANTS].find((variant) => variant.id === headerVariant)?.title ?? "Header V1"}` : "운영 화면에 적용하지 않는 시안 보관 영역"}</strong>
+            </div>
+            {designLabSection === "logo" ? (
+              <>
+                <button
+                  className="headerPreviewRestore"
+                  onClick={() => setHeaderVariant("v1")}
+                  type="button"
+                >
+                  기존 Header V1로 되돌리기
+                </button>
+                <div className="headerPreviewGrid">
+                  {HEADER_VARIANTS.map((variant) => (
+                    <article className={`headerPreviewCard ${headerVariant === variant.id ? "selected" : ""}`} key={variant.id}>
+                      <div className="headerPreviewMeta">
+                        <span>{variant.title}</span>
+                        <small>{variant.description}</small>
+                      </div>
+                      <div className="headerPreviewDevice">
+                        <BrandHeader variant={variant.id} />
+                      </div>
+                      <div className="designLabItemActions">
+                        <button
+                          className={headerVariant === variant.id ? "selected" : ""}
+                          onClick={() => setHeaderVariant(variant.id)}
+                          type="button"
+                        >
+                          {headerVariant === variant.id ? "적용됨" : "적용"}
+                        </button>
+                        <button type="button">보류</button>
+                        <button disabled type="button">삭제</button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </>
+            ) : null}
+            {designLabSection === "character" ? (
+              <div className="headerPreviewGrid designLabCharacterGrid">
+                {CHARACTER_LAB_VARIANTS.map((variant, index) => (
+                  <article className="headerPreviewCard designLabCharacterCard" key={variant.id}>
+                    <div className="headerPreviewMeta">
+                      <span>{variant.title}</span>
+                      <small>{variant.description}</small>
+                    </div>
+                    <div className={`characterPreviewStage characterPreviewStage--${index + 1}`}>
+                      <span className="characterPreviewAvatar">R</span>
+                      <div className="characterPreviewLane">
+                        <i />
+                        <b>Target</b>
+                      </div>
+                    </div>
+                    <div className="designLabItemActions">
+                      <button type="button">적용</button>
+                      <button type="button">보류</button>
+                      <button disabled type="button">삭제</button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+            {designLabSection === "card" ? (
+              <div className="headerPreviewGrid">
+                {CARD_LAB_VARIANTS.map((variant, index) => (
+                  <article className="headerPreviewCard" key={variant.id}>
+                    <div className="headerPreviewMeta">
+                      <span>{variant.title}</span>
+                      <small>{variant.description}</small>
+                    </div>
+                    <button className={`trainingCard stageMenuCard designLabTrainingCardPreview designLabTrainingCardPreview--${index + 1}`} type="button">
+                      <span className="stageMenuCard__step">{String(index + 1).padStart(2, "0")}</span>
+                      <span className="stageMenuCard__content">
+                        <strong className="stageMenuCard__title">스케일 · 펜타토닉</strong>
+                        <small className="stageMenuCard__desc">박스 패턴으로 위치를 반복 학습</small>
+                        <em className="stageMenuCard__tag">BOX PATTERN</em>
+                      </span>
+                      <span className="stageMenuCard__arrow" aria-hidden="true">❯</span>
+                    </button>
+                    <div className="designLabItemActions">
+                      <button type="button">적용</button>
+                      <button type="button">보류</button>
+                      <button disabled type="button">삭제</button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+            {designLabSection === "button" ? (
+              <div className="headerPreviewGrid">
+                <article className="headerPreviewCard">
+                  <div className="headerPreviewMeta">
+                    <span>Button Set V1</span>
+                    <small>START / 설정 / 메트로놈</small>
+                  </div>
+                  <div className="designLabButtonShelf">
+                    <button className="trainingHudStartButton primary" type="button"><Play size={16} /> START</button>
+                    <button className="trainingSettingsToggle" type="button">설정 접기</button>
+                    <button className="selected" type="button">강박 ON</button>
+                  </div>
+                  <div className="designLabItemActions">
+                    <button type="button">적용</button>
+                    <button type="button">보류</button>
+                    <button disabled type="button">삭제</button>
+                  </div>
+                </article>
+              </div>
+            ) : null}
+            {designLabSection === "menu" ? (
+              <div className="headerPreviewGrid">
+                <article className="headerPreviewCard designLabMenuPreview">
+                  <div className="headerPreviewMeta">
+                    <span>Menu V1</span>
+                    <small>Control Center 구조</small>
+                  </div>
+                  <button className="utilityMenuItem utilityMenuItemPrimary" type="button">
+                    <span className="utilityMenuIcon" aria-hidden="true">▦</span>
+                    <div className="utilityMenuText">
+                      <strong>저장실</strong>
+                      <small>코드 진행 및 주법 관리</small>
+                    </div>
+                    <span className="utilityMenuChevron" aria-hidden="true">›</span>
+                  </button>
+                  <button className="utilityMenuItem utilityMenuItemSecondary" type="button">
+                    <span className="utilityMenuIcon" aria-hidden="true">R</span>
+                    <div className="utilityMenuText">
+                      <strong>UI 실험실</strong>
+                      <small>헤더 시안 비교 및 적용</small>
+                    </div>
+                    <span className="utilityMenuChevron" aria-hidden="true">›</span>
+                  </button>
+                  <div className="designLabItemActions">
+                    <button type="button">적용</button>
+                    <button type="button">보류</button>
+                    <button disabled type="button">삭제</button>
+                  </div>
+                </article>
+              </div>
+            ) : null}
+            {designLabSection === "fretboard" ? (
+              <div className="headerPreviewGrid">
+                <article className="headerPreviewCard">
+                  <div className="headerPreviewMeta">
+                    <span>Fretboard V1</span>
+                    <small>공용 지판 컴포넌트</small>
+                  </div>
+                  <Fretboard
+                    className="trainingSharedFretboard fitRange"
+                    fretRange={[4, 8]}
+                    mode="design-lab"
+                    notes={selectedPentatonic.notes}
+                    selectedNotes={["__design-lab-preview__"]}
+                    showFretNumbers
+                    showStringNames
+                    showOnlySelected={false}
+                  />
+                  <div className="designLabItemActions">
+                    <button type="button">적용</button>
+                    <button type="button">보류</button>
+                    <button disabled type="button">삭제</button>
+                  </div>
+                </article>
+              </div>
+            ) : null}
+          </section>
         </section>
       ) : appMode === APP_MODES.FRETBOARD_VIEWER ? (
         <section className="fretboardViewerPanel" aria-label="지판 보기">
@@ -5177,12 +5533,6 @@ function App() {
                 showStringNames
                 stringStates={viewerChordStringStates}
               />
-              {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
-                <p className="viewerMapChordTones">
-                  <span>코드구성음</span>
-                  <strong>{[...new Set(viewerChord.notes.map((note) => getChordDisplayNoteName(note.noteName)))].join(" · ")}</strong>
-                </p>
-              ) : null}
             </section>
 
             {viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? (
@@ -5296,7 +5646,7 @@ function App() {
                       <button
                         className={viewerChordBaseRoot === root ? "selected" : ""}
                         key={root}
-                        onClick={() => applyViewerChordSelection(root, viewerChordAccidental, viewerChordQuality, viewerChordExtension)}
+                        onClick={() => applyViewerChordSelection(root, "natural", "major", "none")}
                         type="button"
                       >
                         {root}
@@ -5370,7 +5720,7 @@ function App() {
               </div>
             ) : null}
 
-            {viewerMode !== FRETBOARD_VIEWER_MODES.NOTE ? (
+            {viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? (
               <p className="viewerTuningHint">표준 튜닝: 6번줄 E · 5번줄 A · 4번줄 D · 3번줄 G · 2번줄 B · 1번줄 E</p>
             ) : null}
           </div>
@@ -5386,9 +5736,6 @@ function App() {
                   <div className="chordCatalogRow" key={group.root}>
                     <strong className="chordRootLabel">
                       {group.root}
-                      {group.sharpRoot && group.chords.some((chord) => chord.root === group.sharpRoot) && (
-                        <small>{group.sharpRoot}</small>
-                      )}
                     </strong>
                     <div className="chordMiniGrid">
                       {group.chords.map((chord) => (
@@ -5433,9 +5780,6 @@ function App() {
                                 .filter(([, state]) => state === "x" || state === "o"),
                             )}
                           />
-                          <small className="chordMiniTones">
-                            구성음 {[...new Set(chord.notes.map((note) => getChordDisplayNoteName(note.noteName)))].join(" ")}
-                          </small>
                         </button>
                       ))}
                     </div>
@@ -5470,6 +5814,7 @@ function App() {
             onToneChange={setMetronomeTone}
             onVolumeChange={setMetronomeVolume}
             showCountIn={false}
+            showRepeat={false}
             subdivision={metronomeSubdivision}
             timeSignature={metronomeTimeSignature}
             tone={metronomeTone}
@@ -5972,11 +6317,34 @@ function App() {
         </section>
       ) : selectedCategory.id === "rhythm" ? (
         <section className="chordTransitionPanel" aria-label="Chord transition practice">
-          <div className="chordTransitionControls">
+          <div className={`chordTransitionControls ${stage3SetupCollapsed ? "collapsed" : ""}`}>
             <div>
-              <strong>리듬훈련</strong>
-              <small>선택한 코드 진행을 메트로놈에 맞춰 반복합니다</small>
+              <div className="trainingDetailHeaderRow">
+                <strong className="trainingDetailTitle">{getTrainingDetailTitle(selectedCategory)}</strong>
+                <button
+                  className="trainingSettingsToggle"
+                  onClick={() => setStage3SetupCollapsed((value) => !value)}
+                  type="button"
+                >
+                  설정 {stage3SetupCollapsed ? "펼치기" : "접기"}
+                </button>
+              </div>
             </div>
+            {stage3SetupCollapsed ? (
+              <div className="stage3CollapsedMemo">
+                <label>
+                  <span>메모</span>
+                  <textarea
+                    aria-label="현재 진행 메모"
+                    disabled={!loadedStage3LibraryItem}
+                    onChange={(event) => updateLoadedStage3Memo(event.target.value)}
+                    placeholder={loadedStage3LibraryItem ? "메모를 입력하세요..." : "저장된 진행을 선택하면 메모가 표시됩니다."}
+                    rows={3}
+                    value={loadedStage3LibraryItem?.memo ?? ""}
+                  />
+                </label>
+              </div>
+            ) : null}
             <div className="chordProgressionPicker">
               <label>
                 <span>저장된 진행</span>
@@ -6004,36 +6372,27 @@ function App() {
                 저장실
               </button>
             </div>
-            <div className="stage3PlaybackControls">
+            <div className="trainingMetronomeShell stage3PlaybackControls">
               <MetronomeControl
                 accentEnabled={metronomeAccent}
                 bpm={bpm}
-                className="chordTransitionTempo"
+                className="trainingMetronomePanel chordTransitionTempo"
                 countInEnabled={metronomeCountIn}
                 inputId="stage3-bpm-presets"
                 onAccentChange={setMetronomeAccent}
                 onBpmChange={changeBpm}
                 onCountInChange={setMetronomeCountIn}
+                onRepeatChange={setRepeatPractice}
                 onSubdivisionChange={setMetronomeSubdivision}
                 onTimeSignatureChange={setMetronomeTimeSignature}
                 onToneChange={setMetronomeTone}
                 onVolumeChange={setMetronomeVolume}
+                repeatEnabled={repeatPractice}
                 subdivision={metronomeSubdivision}
                 timeSignature={metronomeTimeSignature}
                 tone={metronomeTone}
                 volume={metronomeVolume}
               />
-              <div className="buttons playbackButtons chordTransitionButtons">
-                <button
-                  className={gameState === GAME_STATES.PLAYING ? "" : "primary"}
-                  disabled={gameState !== GAME_STATES.PLAYING && !hasChordTransitionProgression}
-                  onClick={gameState === GAME_STATES.PLAYING ? stopPracticeSession : () => startPractice(selectedCategory)}
-                  type="button"
-                >
-                  {gameState === GAME_STATES.PLAYING ? <Square size={18} /> : <Play size={18} />}
-                  {gameState === GAME_STATES.PLAYING ? "정지" : "시작"}
-                </button>
-              </div>
             </div>
           </div>
 
@@ -6047,6 +6406,15 @@ function App() {
               runnerLabel={`${beat + 1}`}
               timeSignature={metronomeTimeSignature}
             />
+            <button
+              className={`trainingHudStartButton ${gameState === GAME_STATES.PLAYING ? "" : "primary"}`}
+              disabled={gameState !== GAME_STATES.PLAYING && !hasChordTransitionProgression}
+              onClick={gameState === GAME_STATES.PLAYING ? stopPracticeSession : () => startPractice(selectedCategory)}
+              type="button"
+            >
+              {gameState === GAME_STATES.PLAYING ? <Square size={16} /> : <Play size={16} />}
+              {gameState === GAME_STATES.PLAYING ? "STOP" : "START"}
+            </button>
           </div>
 
           <div className="chordTransitionBody">
@@ -6122,12 +6490,18 @@ function App() {
           {selectedCategory.id !== "first-position" && selectedCategory.id !== "scale-block" ? (
             <ContentTitle {...contentHeader} />
           ) : null}
-          <div className="referenceTrainingToolbar">
+          <div className={`referenceTrainingToolbar ${stage3SetupCollapsed ? "collapsed" : ""}`}>
             <div>
-              <span>{selectedCategory.tutorial ? "튜토리얼" : selectedCategory.title}</span>
-              <strong>
-                {selectedCategory.id === "scale-block" ? selectedPentatonic.label : selectedCategory.subtitle}
-              </strong>
+              <div className="trainingDetailHeaderRow">
+                <span className="trainingDetailTitle">{getTrainingDetailTitle(selectedCategory)}</span>
+                <button
+                  className="trainingSettingsToggle"
+                  onClick={() => setStage3SetupCollapsed((value) => !value)}
+                  type="button"
+                >
+                  설정 {stage3SetupCollapsed ? "펼치기" : "접기"}
+                </button>
+              </div>
             </div>
             {selectedCategory.id === "scale-block" && (
               <div className="scalePickerPanel referenceScalePicker">
@@ -6191,39 +6565,33 @@ function App() {
                 </label>
               </div>
             )}
-            <div className="referenceTrainingActions buttons playbackButtons">
+            <div className="trainingMetronomeShell referenceTrainingActions buttons playbackButtons">
               <MetronomeControl
                 accentEnabled={metronomeAccent}
                 bpm={bpm}
-                className="referenceBpmControl"
+                className="trainingMetronomePanel referenceBpmControl"
                 countInEnabled={metronomeCountIn}
                 inputId="reference-bpm-presets"
                 onAccentChange={setMetronomeAccent}
                 onBpmChange={changeBpm}
                 onCountInChange={setMetronomeCountIn}
+                onRepeatChange={setRepeatPractice}
                 onSubdivisionChange={setMetronomeSubdivision}
                 onTimeSignatureChange={setMetronomeTimeSignature}
                 onToneChange={setMetronomeTone}
                 onVolumeChange={setMetronomeVolume}
+                repeatEnabled={repeatPractice}
                 subdivision={metronomeSubdivision}
                 timeSignature={metronomeTimeSignature}
                 tone={metronomeTone}
                 volume={metronomeVolume}
               />
-              <button
-                className={gameState === GAME_STATES.PLAYING ? "" : "primary"}
-                onClick={gameState === GAME_STATES.PLAYING ? stopPracticeSession : () => startPractice(selectedCategory)}
-                type="button"
-              >
-                {gameState === GAME_STATES.PLAYING ? <Square size={18} /> : <Play size={18} />}
-                {gameState === GAME_STATES.PLAYING ? "정지" : "시작"}
-              </button>
             </div>
           </div>
 
           <div
             className={`chordTransitionHud referenceTransitionHud ${selectedCategory.id === "scale-block" || selectedCategory.id === "first-position" ? "scaleReferenceTimelineOnly" : ""}`}
-            style={selectedCategory.id === "scale-block" || selectedCategory.id === "first-position" ? { gridTemplateColumns: "1fr" } : undefined}
+            style={selectedCategory.id === "scale-block" || selectedCategory.id === "first-position" ? { gridTemplateColumns: "minmax(0, 1fr) auto" } : undefined}
           >
             {selectedCategory.id === "scale-block" || selectedCategory.id === "first-position" ? (
               <BeatIndicator
@@ -6242,6 +6610,14 @@ function App() {
                 timeSignature={metronomeTimeSignature}
               />
             )}
+            <button
+              className={`trainingHudStartButton ${gameState === GAME_STATES.PLAYING ? "" : "primary"}`}
+              onClick={gameState === GAME_STATES.PLAYING ? stopPracticeSession : () => startPractice(selectedCategory)}
+              type="button"
+            >
+              {gameState === GAME_STATES.PLAYING ? <Square size={16} /> : <Play size={16} />}
+              {gameState === GAME_STATES.PLAYING ? "STOP" : "START"}
+            </button>
             {selectedCategory.id !== "scale-block" && selectedCategory.id !== "first-position" ? (
               <>
                 <div className="chordNextCard">
@@ -6260,10 +6636,10 @@ function App() {
             <div className="referenceHeader">
               <span>참고 지판</span>
               <strong>
-                {referenceDisplayPrompt
-                  ? `${referenceDisplayPrompt.solfege ?? getSolfege(referenceDisplayPrompt.pitch)} / ${referenceDisplayPrompt.pitch}`
-                  : selectedCategory.id === "scale-block"
-                    ? selectedPentatonic.label
+                {selectedCategory.id === "scale-block"
+                  ? scaleReferenceTitle
+                  : referenceDisplayPrompt
+                    ? `${referenceDisplayPrompt.solfege ?? getSolfege(referenceDisplayPrompt.pitch)} / ${referenceDisplayPrompt.pitch}`
                     : "준비"}
               </strong>
             </div>
