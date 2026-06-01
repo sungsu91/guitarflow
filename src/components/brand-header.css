@@ -1,0 +1,168 @@
+.riffBrandHeader {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  min-width: 0;
+  padding: 16px 20px 11px;
+  margin-bottom: 10px;
+  border-radius: 0 0 22px 22px;
+  background:
+    radial-gradient(circle at 15% 4%, rgba(217, 170, 85, 0.12), transparent 34%),
+    radial-gradient(circle at 88% 8%, rgba(68, 91, 100, 0.12), transparent 32%),
+    linear-gradient(180deg, rgba(13, 20, 25, 0.58), rgba(7, 11, 14, 0.14) 66%, rgba(4, 8, 11, 0));
+  box-shadow: none;
+}
+
+.riffBrandHeader::before {
+  content: "";
+  position: absolute;
+  inset: 5px 16px 7px 78px;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(232, 185, 95, 0.07) 1px, transparent 1px),
+    linear-gradient(180deg, transparent 0 18%, rgba(236, 226, 212, 0.045) 18% 19%, transparent 19% 34%, rgba(236, 226, 212, 0.035) 34% 35%, transparent 35% 50%, rgba(236, 226, 212, 0.03) 50% 51%, transparent 51% 66%, rgba(236, 226, 212, 0.025) 66% 67%, transparent 67% 82%, rgba(236, 226, 212, 0.02) 82% 83%, transparent 83%);
+  background-size: 42px 100%, 100% 100%;
+  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 62%, transparent);
+  opacity: 0.62;
+}
+
+.riffBrandHeader::after {
+  content: "";
+  position: absolute;
+  right: 22px;
+  bottom: 0;
+  left: 22px;
+  height: 1px;
+  background:
+    linear-gradient(90deg, transparent, rgba(232, 185, 95, 0.34) 12%, rgba(217, 170, 85, 0.08) 54%, transparent);
+}
+
+.riffBrandIcon {
+  position: relative;
+  overflow: hidden;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 41px;
+  height: 41px;
+  border: 1px solid rgba(232, 185, 95, 0.62);
+  border-radius: 13px;
+  background:
+    linear-gradient(90deg, transparent 18%, rgba(255, 234, 177, 0.14) 19%, transparent 20%, transparent 36%, rgba(255, 234, 177, 0.11) 37%, transparent 38%, transparent 54%, rgba(255, 234, 177, 0.09) 55%, transparent 56%, transparent 72%, rgba(255, 234, 177, 0.07) 73%, transparent 74%),
+    linear-gradient(180deg, transparent 28%, rgba(217, 170, 85, 0.16) 29%, transparent 31%, transparent 48%, rgba(217, 170, 85, 0.12) 49%, transparent 51%, transparent 68%, rgba(217, 170, 85, 0.09) 69%, transparent 71%),
+    radial-gradient(circle at 34% 18%, rgba(255, 242, 196, 0.2), transparent 42%),
+    linear-gradient(145deg, rgba(217, 170, 85, 0.24), rgba(16, 25, 31, 0.72)),
+    rgba(7, 12, 16, 0.96);
+  color: #f5c76d;
+  font-size: 20px;
+  font-weight: 950;
+  line-height: 1;
+  isolation: isolate;
+  box-shadow:
+    0 9px 18px rgba(0, 0, 0, 0.22),
+    0 0 18px rgba(217, 170, 85, 0.08),
+    inset 0 1px 0 rgba(255, 244, 210, 0.14),
+    inset 0 -10px 16px rgba(0, 0, 0, 0.2);
+}
+
+.riffBrandIcon::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 15px;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(255, 226, 164, 0.36), transparent);
+  opacity: 0.8;
+  z-index: -1;
+}
+
+.riffBrandIcon::after {
+  content: "";
+  position: absolute;
+  inset: 8px 10px;
+  border-top: 1px solid rgba(255, 226, 164, 0.2);
+  border-bottom: 1px solid rgba(255, 226, 164, 0.14);
+  opacity: 0.72;
+  z-index: -1;
+}
+
+.riffBrandIcon img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.riffBrandName {
+  color: #fff7e8;
+  font-size: 22px;
+  font-weight: 950;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-shadow: 0 2px 9px rgba(0, 0, 0, 0.32);
+  z-index: 1;
+}
+
+.riffBrandLogo {
+  display: block;
+  width: auto;
+  max-width: 148px;
+  height: 39px;
+  object-fit: contain;
+}
+
+.contentTitle {
+  display: grid;
+  gap: 5px;
+  margin: 0 0 14px;
+}
+
+.contentTitle strong {
+  color: #fff7e8;
+  font-size: 22px;
+  font-weight: 950;
+  line-height: 1.1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+}
+
+.contentTitle small {
+  color: rgba(236, 226, 212, 0.68);
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+@media (max-width: 380px) {
+  .riffBrandHeader {
+    padding-inline: 16px;
+    gap: 11px;
+  }
+
+  .riffBrandHeader::after {
+    right: 16px;
+    left: 16px;
+  }
+
+  .riffBrandHeader::before {
+    inset: 5px 16px 7px 70px;
+  }
+
+  .riffBrandIcon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    font-size: 19px;
+  }
+
+  .riffBrandName {
+    font-size: 20px;
+    letter-spacing: 0.16em;
+  }
+
+  .contentTitle strong {
+    font-size: 20px;
+  }
+}

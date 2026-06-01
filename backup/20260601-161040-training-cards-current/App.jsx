@@ -5506,6 +5506,7 @@ function App() {
         </section>
       ) : appMode === APP_MODES.SHOOTER ? (
         <section className="shooterPanel" aria-label="슈팅게임">
+          <ContentTitle {...contentHeader} />
           <div className="shooterGameHud">
             <div>
               <span>콤보</span>

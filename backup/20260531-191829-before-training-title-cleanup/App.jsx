@@ -1108,7 +1108,7 @@ function makeStage3LibraryItem({
     time_signature: timeSignature,
     subdivision,
     sound,
-    strum_pattern: isPreset ? [] : normalizeStrumPatternGroups(strum_pattern),
+    strum_pattern: isPreset ? [] : normalizeStrumPattern(strum_pattern),
     memo: String(memo || ""),
   };
 }
@@ -1385,42 +1385,20 @@ const DEFAULT_STRUM_PATTERN = [];
 function normalizeStrumPattern(pattern) {
   if (Array.isArray(pattern) && pattern.length > 0) {
     return pattern
-      .flatMap((step) => (Array.isArray(step) ? step : [step]))
       .map((step) => ({
         direction: step?.direction === "up" || step?.dir === "up" ? "up" : "down",
         hit: typeof step?.hit === "boolean" ? step.hit : step?.accent === "strong",
       }))
-      .slice(0, 24);
+      .slice(0, 12);
   }
   return [];
-}
-
-function normalizeStrumPatternGroups(pattern) {
-  if (!Array.isArray(pattern) || !pattern.length) return [];
-  if (Array.isArray(pattern[0])) {
-    return [0, 1].map((index) => normalizeStrumPattern(pattern[index] ?? []));
-  }
-  const normalized = normalizeStrumPattern(pattern);
-  return normalized.length ? [normalized, []] : [];
 }
 
 function StrumPattern({ onStepClick, pattern = DEFAULT_STRUM_PATTERN }) {
   const steps = normalizeStrumPattern(pattern);
   if (!steps.length) return null;
-  const compactStepSize = Math.max(9, Math.min(16, Math.floor(132 / Math.max(steps.length, 1))));
-  const compactFontSize = Math.max(12, Math.min(17, compactStepSize + 2));
-  const compactHitFontSize = Math.max(13, Math.min(20, compactStepSize + 4));
   return (
-    <div
-      className="strumPattern"
-      aria-label="주법 패턴"
-      style={{
-        "--strum-count": steps.length,
-        "--strum-font-size": `${compactFontSize}px`,
-        "--strum-hit-font-size": `${compactHitFontSize}px`,
-        "--strum-step-size": `${compactStepSize}px`,
-      }}
-    >
+    <div className="strumPattern" aria-label="주법 패턴">
       {steps.map((step, index) => (
         onStepClick ? (
           <button
@@ -2320,20 +2298,15 @@ function App() {
   const [stage3ChordExtension, setStage3ChordExtension] = useState(initialStage3SettingsRef.current.chordExtension);
   const [stage3ChordIds, setStage3ChordIds] = useState(initialStage3SettingsRef.current.chordIds);
   const [stage3QuickSlots, setStage3QuickSlots] = useState(initialStage3QuickSlotsRef.current);
-  const [loadedStage3LibraryItem, setLoadedStage3LibraryItem] = useState(
-    initialStage3QuickSlotsRef.current.find((slot) => `slot:${slot.id}` === initialStage3SettingsRef.current.chordProgressionId) ?? null,
-  );
   const [stage3StorageOpen, setStage3StorageOpen] = useState(false);
   const [stage3StorageSelectedId, setStage3StorageSelectedId] = useState(initialStage3QuickSlotsRef.current[0]?.id ?? "");
   const [stage3StorageTitle, setStage3StorageTitle] = useState("내 진행");
   const [stage3StorageMemo, setStage3StorageMemo] = useState("");
   const [stage3StorageEditingId, setStage3StorageEditingId] = useState("");
-  const [stage3StorageChordIds, setStage3StorageChordIds] = useState(initialStage3SettingsRef.current.chordIds);
   const [stage3StorageBpm, setStage3StorageBpm] = useState(initialStage3SettingsRef.current.bpm);
   const [stage3StorageTimeSignature, setStage3StorageTimeSignature] = useState("4/4");
   const [stage3StorageCapo, setStage3StorageCapo] = useState(0);
   const [stage3StorageStrumPattern, setStage3StorageStrumPattern] = useState([]);
-  const [stage3StorageStrumDraftPattern, setStage3StorageStrumDraftPattern] = useState([]);
   const [chordPracticeIndex, setChordPracticeIndex] = useState(0);
   const [repeatPractice, setRepeatPractice] = useState(false);
   const [repeatCount, setRepeatCount] = useState(1);
@@ -2394,7 +2367,6 @@ function App() {
   const patternRef = useRef(0);
   const lastFrameRef = useRef(performance.now());
   const gameTimeRef = useRef(0);
-  const chordPracticeIndexRef = useRef(0);
   const nextSpawnAtRef = useRef(0);
   const lastBeatRef = useRef(-1);
   const lastHitRef = useRef({ note: null, time: 0 });
@@ -2726,7 +2698,7 @@ function App() {
     setStage3ChordQuality(nextQuality);
     setStage3ChordExtension(nextExtension);
   }, [getChordFromSelector, getFallbackChordFromSelector]);
-  const buildStage3Progression = useCallback((entries = []) => entries
+  const chordTransitionProgression = stage3ChordIds
     .map((entry) => {
       const chord = CHORD_VIEW_OPTIONS.find((item) => item.id === getChordEntryId(entry));
       if (!chord) return null;
@@ -2738,16 +2710,10 @@ function App() {
         isEnharmonic: displayName !== chord.displayName,
       };
     })
-    .filter(Boolean), []);
-  const chordTransitionProgression = buildStage3Progression(stage3ChordIds);
+    .filter(Boolean);
   const hasChordTransitionProgression = chordTransitionProgression.length > 0;
-  const stage3StorageProgression = buildStage3Progression(stage3StorageChordIds);
-  const hasStage3StorageProgression = stage3StorageProgression.length > 0;
   const stage3ProgressionLabel = hasChordTransitionProgression
     ? chordTransitionProgression.map((chord) => chord.displayName).join(" - ")
-    : "진행 없음";
-  const stage3StorageProgressionLabel = hasStage3StorageProgression
-    ? stage3StorageProgression.map((chord) => chord.displayName).join(" - ")
     : "진행 없음";
   const selectedStage3LibraryItem = chordProgressionId.startsWith("slot:")
     ? stage3QuickSlots.find((slot) => slot.id === chordProgressionId.slice(5)) ?? null
@@ -2757,7 +2723,6 @@ function App() {
     if (!item?.chordIds?.length) return;
     setChordProgressionId(`slot:${item.id}`);
     setStage3ChordIds(item.chordIds);
-    setLoadedStage3LibraryItem(item);
     setBpm(clampBpm(item.bpm ?? bpm));
     setMetronomeTimeSignature(item.time_signature ?? "4/4");
     setMetronomeSubdivision(item.subdivision ?? "quarter");
@@ -2768,44 +2733,25 @@ function App() {
     setBeat(0);
     setStage3MeasureProgress(0);
   }, [bpm]);
-  const setStage3ProgressIndex = useCallback((index) => {
-    const progressionLength = Math.max(1, chordTransitionProgression.length);
-    const safeIndex = ((Number(index) || 0) % progressionLength + progressionLength) % progressionLength;
-    const signature = getTimeSignatureOption(metronomeTimeSignatureRef.current);
-    const currentMeasureMs = getBeatMs(bpmRef.current) * signature.beats;
-    chordPracticeIndexRef.current = safeIndex;
-    gameTimeRef.current = safeIndex * currentMeasureMs;
-    lastBeatRef.current = -1;
-    setChordPracticeIndex(safeIndex);
-    setBeat(0);
-    setStage3MeasureProgress(0);
-  }, [chordTransitionProgression.length]);
   const openStage3Storage = useCallback(() => {
     const item = selectedStage3LibraryItem ?? stage3QuickSlots[0] ?? null;
     if (item) setStage3StorageSelectedId(item.id);
     setStage3StorageTitle(item?.title ?? (hasChordTransitionProgression ? `내 진행 ${stage3QuickSlots.length + 1}` : "내 진행"));
     setStage3StorageMemo(item?.memo ?? "");
     setStage3StorageEditingId(item?.id ?? "");
-    setStage3StorageChordIds(item?.chordIds ?? stage3ChordIds);
     setStage3StorageBpm(clampBpm(item?.bpm ?? bpm));
     setStage3StorageTimeSignature(item?.time_signature ?? metronomeTimeSignature);
     setStage3StorageCapo(Number.isFinite(Number(item?.capo)) ? Number(item.capo) : 0);
-    {
-      const strumPattern = normalizeStrumPattern(item?.strum_pattern);
-      setStage3StorageStrumPattern(strumPattern);
-      setStage3StorageStrumDraftPattern(strumPattern);
-    }
+    setStage3StorageStrumPattern(normalizeStrumPattern(item?.strum_pattern));
     setStage3StorageOpen(true);
-  }, [bpm, hasChordTransitionProgression, metronomeTimeSignature, selectedStage3LibraryItem, stage3ChordIds, stage3QuickSlots]);
+  }, [bpm, hasChordTransitionProgression, metronomeTimeSignature, selectedStage3LibraryItem, stage3QuickSlots]);
   const saveStage3StorageItem = useCallback((mode = "update") => {
-    if (!hasStage3StorageProgression) return;
-    const id = stage3StorageEditingId && !stage3StorageEditingId.startsWith("preset-")
-      ? stage3StorageEditingId
-      : `slot-${Date.now()}`;
+    if (!hasChordTransitionProgression) return;
+    const id = mode === "new" ? `slot-${Date.now()}` : stage3StorageEditingId || `slot-${Date.now()}`;
     const item = makeStage3LibraryItem({
       id,
       title: stage3StorageTitle,
-      chordIds: stage3StorageChordIds,
+      chordIds: stage3ChordIds,
       bpm: stage3StorageBpm,
       timeSignature: stage3StorageTimeSignature,
       subdivision: metronomeSubdivision,
@@ -2815,39 +2761,22 @@ function App() {
       memo: stage3StorageMemo,
     });
     setStage3QuickSlots((slots) => [item, ...slots.filter((slot) => slot.id !== id)].slice(0, 24));
-    if (loadedStage3LibraryItem?.id === id) {
-      setChordProgressionId("custom");
-    }
+    setChordProgressionId(`slot:${id}`);
     setStage3StorageEditingId(id);
     setStage3StorageSelectedId(id);
-  }, [hasStage3StorageProgression, loadedStage3LibraryItem?.id, metronomeSubdivision, metronomeTone, stage3StorageBpm, stage3StorageCapo, stage3StorageChordIds, stage3StorageEditingId, stage3StorageMemo, stage3StorageStrumPattern, stage3StorageTimeSignature, stage3StorageTitle]);
-  const addStage3StrumPatternDraft = useCallback((slotIndex = 0) => {
-    const normalizedPattern = normalizeStrumPattern(stage3StorageStrumDraftPattern);
-    if (!normalizedPattern.length) return;
-    setStage3StorageStrumPattern((pattern) => {
-      const groups = normalizeStrumPatternGroups(pattern);
-      const nextGroups = [groups[0] ?? [], groups[1] ?? []];
-      nextGroups[slotIndex] = normalizedPattern;
-      return nextGroups;
-    });
-  }, [stage3StorageStrumDraftPattern]);
+  }, [hasChordTransitionProgression, metronomeSubdivision, metronomeTone, stage3ChordIds, stage3StorageBpm, stage3StorageCapo, stage3StorageEditingId, stage3StorageMemo, stage3StorageStrumPattern, stage3StorageTimeSignature, stage3StorageTitle]);
   const editStage3StorageItem = useCallback((item) => {
     if (!item) return;
+    applyStage3LibraryItem(item);
     setStage3StorageSelectedId(item.id);
     setStage3StorageTitle(item.title);
     setStage3StorageMemo(item.memo ?? "");
     setStage3StorageEditingId(item.id);
-    setStage3StorageChordIds(item.chordIds ?? []);
     setStage3StorageBpm(clampBpm(item.bpm ?? bpm));
     setStage3StorageTimeSignature(item.time_signature ?? "4/4");
     setStage3StorageCapo(Number.isFinite(Number(item.capo)) ? Number(item.capo) : 0);
-    {
-      const strumPatternGroups = normalizeStrumPatternGroups(item.strum_pattern);
-      const firstPattern = strumPatternGroups.find((row) => row.length) ?? [];
-      setStage3StorageStrumPattern(strumPatternGroups);
-      setStage3StorageStrumDraftPattern(firstPattern);
-    }
-  }, [bpm]);
+    setStage3StorageStrumPattern(normalizeStrumPattern(item.strum_pattern));
+  }, [applyStage3LibraryItem, bpm]);
   const copyStage3StorageItem = useCallback((item) => {
     if (!item) return;
     const copied = makeStage3LibraryItem({
@@ -2857,29 +2786,26 @@ function App() {
       chordIds: item.chordIds,
     });
     setStage3QuickSlots((slots) => [copied, ...slots].slice(0, 24));
+    applyStage3LibraryItem(copied);
     setStage3StorageSelectedId(copied.id);
     setStage3StorageTitle(copied.title);
     setStage3StorageMemo(copied.memo ?? "");
     setStage3StorageEditingId(copied.id);
-    setStage3StorageChordIds(copied.chordIds ?? []);
     setStage3StorageBpm(clampBpm(copied.bpm));
     setStage3StorageTimeSignature(copied.time_signature ?? "4/4");
     setStage3StorageCapo(copied.capo ?? 0);
-    {
-      const strumPatternGroups = normalizeStrumPatternGroups(copied.strum_pattern);
-      const firstPattern = strumPatternGroups.find((row) => row.length) ?? [];
-      setStage3StorageStrumPattern(strumPatternGroups);
-      setStage3StorageStrumDraftPattern(firstPattern);
-    }
-  }, []);
+    setStage3StorageStrumPattern(normalizeStrumPattern(copied.strum_pattern));
+  }, [applyStage3LibraryItem]);
   const deleteStage3StorageItem = useCallback((id) => {
     const next = stage3QuickSlots.filter((slot) => slot.id !== id);
     setStage3QuickSlots(next);
     const fallback = next[0] ?? null;
     if (chordProgressionId === `slot:${id}`) {
-      setChordProgressionId("custom");
-      setStage3ChordIds(getDefaultStage3ChordIds());
-      setLoadedStage3LibraryItem(null);
+      if (fallback) applyStage3LibraryItem(fallback);
+      else {
+        setChordProgressionId("custom");
+        setStage3ChordIds(getDefaultStage3ChordIds());
+      }
     }
     if (stage3StorageSelectedId === id) {
       setStage3StorageSelectedId(fallback?.id ?? "");
@@ -2888,26 +2814,17 @@ function App() {
       setStage3StorageEditingId("");
       setStage3StorageTitle("내 진행");
       setStage3StorageMemo("");
-      setStage3StorageChordIds([]);
       setStage3StorageStrumPattern([]);
-      setStage3StorageStrumDraftPattern([]);
     }
-  }, [chordProgressionId, stage3QuickSlots, stage3StorageEditingId, stage3StorageSelectedId]);
+  }, [applyStage3LibraryItem, chordProgressionId, stage3QuickSlots, stage3StorageEditingId, stage3StorageSelectedId]);
   const addStage3StrumStep = useCallback((direction, hit) => {
-    setStage3StorageStrumDraftPattern((pattern) => [
+    setStage3StorageStrumPattern((pattern) => [
       ...normalizeStrumPattern(pattern),
       { direction, hit },
     ].slice(0, 12));
   }, []);
-  const addStage3StrumPair = useCallback(() => {
-    setStage3StorageStrumDraftPattern((pattern) => [
-      ...normalizeStrumPattern(pattern),
-      { direction: "down", hit: false },
-      { direction: "up", hit: false },
-    ].slice(0, 12));
-  }, []);
   const toggleStage3StrumHit = useCallback((index) => {
-    setStage3StorageStrumDraftPattern((pattern) =>
+    setStage3StorageStrumPattern((pattern) =>
       normalizeStrumPattern(pattern).map((step, stepIndex) =>
         stepIndex === index ? { ...step, hit: !step.hit } : step,
       ),
@@ -3629,7 +3546,7 @@ function App() {
         if (countInTimeRef.current >= currentMeasureMs) {
           countInActiveRef.current = false;
           countInTimeRef.current = 0;
-          gameTimeRef.current = chordPracticeIndexRef.current * currentMeasureMs;
+          gameTimeRef.current = 0;
           lastBeatRef.current = -1;
           setBeat(0);
           setStage3MeasureProgress(0);
@@ -3763,7 +3680,7 @@ function App() {
         if (countInTimeRef.current >= currentMeasureMs) {
           countInActiveRef.current = false;
           countInTimeRef.current = 0;
-          gameTimeRef.current = chordPracticeIndexRef.current * currentMeasureMs;
+          gameTimeRef.current = 0;
           lastBeatRef.current = -1;
           setBeat(0);
           setStage3MeasureProgress(0);
@@ -3784,7 +3701,6 @@ function App() {
           ? Math.floor(currentBeat / beatsPerMeasure) % chordTransitionProgression.length
           : 0;
         setBeat(beatInBar);
-        chordPracticeIndexRef.current = measureIndex;
         setChordPracticeIndex(measureIndex);
         playTick(metronomeAccentRef.current && beatInBar === 0 && subdivisionIndex === 0, subdivisionIndex);
       }
@@ -3974,21 +3890,13 @@ function App() {
       setAppMode(APP_MODES.PRACTICE);
       setSelectedCategoryId(safeCategory.id);
       resetScore();
-      {
-        const signature = getTimeSignatureOption(metronomeTimeSignatureRef.current);
-        const currentMeasureMs = getBeatMs(bpmRef.current) * signature.beats;
-        const startIndex = hasChordTransitionProgression
-          ? chordPracticeIndexRef.current % chordTransitionProgression.length
-          : 0;
-        chordPracticeIndexRef.current = startIndex;
-        gameTimeRef.current = startIndex * currentMeasureMs;
-        setChordPracticeIndex(startIndex);
-      }
+      gameTimeRef.current = 0;
       lastBeatRef.current = -1;
       countInActiveRef.current = metronomeCountInRef.current;
       countInTimeRef.current = 0;
       setBeat(0);
       setStage3MeasureProgress(0);
+      setChordPracticeIndex(0);
       setFeedback(metronomeCountInRef.current ? "Count In" : "Chord transition");
       setState(GAME_STATES.PLAYING);
       lastFrameRef.current = performance.now();
@@ -4017,7 +3925,7 @@ function App() {
     setFeedback(metronomeCountInRef.current ? "Count In" : "Listen and play");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
-  }, [chordTransitionProgression.length, ensureAudioReady, getPlayableCategory, getPracticeSequence, hasChordTransitionProgression, loadMetronomeSamples, repeatPractice, resetScore, selectedCategory, setState]);
+  }, [ensureAudioReady, getPlayableCategory, getPracticeSequence, loadMetronomeSamples, repeatPractice, resetScore, selectedCategory, setState]);
 
   const enterPracticePreview = useCallback((category = selectedCategory) => {
     const safeCategory = getPlayableCategory(category);
@@ -4469,10 +4377,6 @@ function App() {
   }, [utilityMenuOpen]);
 
   useEffect(() => {
-    chordPracticeIndexRef.current = chordPracticeIndex;
-  }, [chordPracticeIndex]);
-
-  useEffect(() => {
     if (typeof window === "undefined") return undefined;
     if (!window.location.hash) {
       window.history.replaceState(
@@ -4842,11 +4746,11 @@ function App() {
   const contentHeader = appMode === APP_MODES.FRETBOARD_VIEWER
       ? { title: "지판보기", subtitle: "음표와 코드 위치를 빠르게 확인" }
     : appMode === APP_MODES.METRONOME
-      ? { title: "메트로놈", subtitle: "템포와 박자를 빠르게 맞추는 독립 리듬 기준" }
+      ? { title: "메트로놈", subtitle: "박자와 템포를 단순하게 점검" }
     : appMode === APP_MODES.SHOOTER
       ? { title: "슈팅게임", subtitle: "리듬 반응을 게임처럼 반복 훈련" }
     : stage3StorageOpen
-      ? { title: "", subtitle: "" }
+      ? { title: "코드 진행 저장실", subtitle: "저장된 코드 진행을 만들고 관리" }
     : selectedCategory.id === "rhythm" && appMode === APP_MODES.PRACTICE
       ? { title: "리듬 · 코드 전환", subtitle: "메트로놈 기반 코드 전환 훈련" }
     : selectedCategory.id === "scale-block" && appMode === APP_MODES.PRACTICE
@@ -5094,7 +4998,6 @@ function App() {
               }}
               type="button"
             >
-              <span className="stageMenuCard__step">{String(category.stageLabel?.replace(/\D/g, "") || index + 1).padStart(2, "0")}</span>
               <span className="stageMenuCard__content">
                 <strong className="stageMenuCard__title">{category.title}</strong>
                 <small className="stageMenuCard__desc">{category.subtitle}</small>
@@ -5503,9 +5406,29 @@ function App() {
               timeSignature={metronomeTimeSignature}
             />
           </div>
+
+          <div className="metronomeSettingsCard">
+            <div>
+              <span>박자</span>
+              <strong>{metronomeTimeSignature}</strong>
+            </div>
+            <div>
+              <span>템포 분할</span>
+              <strong>{getSubdivisionOption(metronomeSubdivision).label}</strong>
+            </div>
+            <div>
+              <span>음색</span>
+              <strong>{getMetronomeToneOption(metronomeTone).label}</strong>
+            </div>
+            <div>
+              <span>볼륨</span>
+              <strong>{Math.round(metronomeVolume * 100)}%</strong>
+            </div>
+          </div>
         </section>
       ) : appMode === APP_MODES.SHOOTER ? (
         <section className="shooterPanel" aria-label="슈팅게임">
+          <ContentTitle {...contentHeader} />
           <div className="shooterGameHud">
             <div>
               <span>콤보</span>
@@ -5677,9 +5600,12 @@ function App() {
         </section>
       ) : selectedCategory.id === "rhythm" && stage3StorageOpen ? (
         <section className="stage3StorageRoom chordTransitionPanel" aria-label="코드 진행 저장실">
+          <ContentTitle {...contentHeader} />
           <div className="stage3StorageHeader">
             <div>
               <span>저장실</span>
+              <strong>코드 진행 관리</strong>
+              <small>진행을 만들고 저장한 뒤 리듬훈련장으로 불러옵니다.</small>
             </div>
             <button onClick={() => {
               setStage3StorageOpen(false);
@@ -5736,7 +5662,7 @@ function App() {
             </label>
             <label>
               <span>코드 진행</span>
-              <input readOnly type="text" value={stage3StorageProgressionLabel} />
+              <input readOnly type="text" value={stage3ProgressionLabel} />
             </label>
             <label>
               <span>BPM</span>
@@ -5780,11 +5706,6 @@ function App() {
                 value={stage3StorageMemo}
               />
             </label>
-            <div className="stage3StorageActions">
-              <button disabled={!hasStage3StorageProgression} onClick={() => saveStage3StorageItem("update")} type="button">
-                수정 저장
-              </button>
-            </div>
           </div>
 
           <div className="stage3ChordBuilder" aria-label="저장실 코드 선택">
@@ -5859,14 +5780,6 @@ function App() {
                 })}
               </div>
             </div>
-            <div className="chordChipGroup stage3StrumPickRow">
-              <span>주법</span>
-              <div className="stage3StrumChoiceButtons">
-                <button aria-label="다운 업 주법 추가" onClick={addStage3StrumPair} type="button">↓↑</button>
-                <button aria-label="다운 주법 추가" onClick={() => addStage3StrumStep("down", false)} type="button">↓</button>
-                <button aria-label="업 주법 추가" onClick={() => addStage3StrumStep("up", false)} type="button">↑</button>
-              </div>
-            </div>
             <div className="stage3AddRow">
               <strong>
                 <span>선택코드</span>
@@ -5877,7 +5790,8 @@ function App() {
                 disabled={!stage3SelectedChord}
                 onClick={() => {
                   if (!stage3SelectedChord) return;
-                  setStage3StorageChordIds((ids) => [
+                  setChordProgressionId("custom");
+                  setStage3ChordIds((ids) => [
                     ...ids,
                     { id: stage3SelectedChord.id, label: stage3SelectedChordName },
                   ]);
@@ -5888,43 +5802,13 @@ function App() {
               </button>
               <button
                 onClick={() => {
-                  setStage3StorageChordIds([]);
-                }}
-                type="button"
-              >
-                초기화
-              </button>
-            </div>
-            <div className="stage3AddRow stage3StrumAddRow">
-              <strong>
-                <span>선택주법</span>
-                {stage3StorageStrumDraftPattern.length ? (
-                  <StrumPattern onStepClick={toggleStage3StrumHit} pattern={stage3StorageStrumDraftPattern} />
-                ) : (
-                  <small>주법을 선택하세요</small>
-                )}
-              </strong>
-              <button
-                className="primary"
-                disabled={!stage3StorageStrumDraftPattern.length}
-                onClick={() => addStage3StrumPatternDraft(0)}
-                type="button"
-              >
-                추가1
-              </button>
-              <button
-                className="primary"
-                disabled={!stage3StorageStrumDraftPattern.length}
-                onClick={() => addStage3StrumPatternDraft(1)}
-                type="button"
-              >
-                추가2
-              </button>
-              <button
-                disabled={!stage3StorageStrumDraftPattern.length && !stage3StorageStrumPattern.length}
-                onClick={() => {
-                  setStage3StorageStrumDraftPattern([]);
-                  setStage3StorageStrumPattern([]);
+                  setChordProgressionId("custom");
+                  setStage3ChordIds([]);
+                  setChordPracticeIndex(0);
+                  gameTimeRef.current = 0;
+                  lastBeatRef.current = -1;
+                  setBeat(0);
+                  setStage3MeasureProgress(0);
                 }}
                 type="button"
               >
@@ -5936,14 +5820,16 @@ function App() {
           <div className="chordProgressionOrderPanel">
             <div className="chordPreviewStack">
               <span>진행순서</span>
-              <div className="progressionChipList">
-                {hasStage3StorageProgression ? stage3StorageProgression.map((chord, index) => (
+              <div>
+                {hasChordTransitionProgression ? chordTransitionProgression.map((chord, index) => (
                   <strong className={index === chordPracticeIndex ? "active" : ""} key={`${chord.id}-${index}`}>
                     {chord.displayName}
                     <button
                       aria-label={`${chord.displayName} 제거`}
                       onClick={() => {
-                        setStage3StorageChordIds((ids) => ids.filter((_, chordIndex) => chordIndex !== index));
+                        setChordProgressionId("custom");
+                        setStage3ChordIds((ids) => ids.filter((_, chordIndex) => chordIndex !== index));
+                        setChordPracticeIndex(0);
                       }}
                       type="button"
                     >
@@ -5955,25 +5841,52 @@ function App() {
                 )}
               </div>
             </div>
+            <div className="stage3StorageActions">
+              <button disabled={!hasChordTransitionProgression} onClick={() => saveStage3StorageItem("update")} type="button">
+                수정 저장
+              </button>
+              <button disabled={!hasChordTransitionProgression} onClick={() => saveStage3StorageItem("new")} type="button">
+                새 진행 저장
+              </button>
+              <button
+                onClick={() => {
+                  setStage3StorageEditingId("");
+                  setStage3StorageTitle(`내 진행 ${stage3QuickSlots.length + 1}`);
+                  setStage3StorageMemo("");
+                  setStage3StorageBpm(bpm);
+                  setStage3StorageTimeSignature(metronomeTimeSignature);
+                  setStage3StorageCapo(0);
+                  setStage3StorageStrumPattern([]);
+                  setChordProgressionId("custom");
+                  setStage3ChordIds([]);
+                }}
+                type="button"
+              >
+                초기화
+              </button>
+            </div>
           </div>
 
-          <div className="stage3OrderStrum" aria-label="추가된 주법">
-              <span>추가된 주법</span>
-              <div className="strumPreviewList">
-                {stage3StorageStrumPattern.length ? (
-                  normalizeStrumPatternGroups(stage3StorageStrumPattern).filter((row) => row.length).map((row, index) => (
-                    <StrumPattern key={`storage-strum-row-${index}`} pattern={row} />
-                  ))
-                ) : (
-                  <small className="chordProgressionEmpty">주법을 선택해서 추가하세요</small>
-                )}
-              </div>
+          <div className="stage3StrumEditor" aria-label="주법 설정">
+            <div>
+              <span>주법 설정</span>
+              <StrumPattern onStepClick={toggleStage3StrumHit} pattern={stage3StorageStrumPattern} />
             </div>
+            <div className="stage3StrumActions">
+              <button className="ghost" aria-label="헛스트럼 다운 추가" onClick={() => addStage3StrumStep("down", false)} type="button">↓</button>
+              <button className="hit" aria-label="실제 스트럼 다운 추가" onClick={() => addStage3StrumStep("down", true)} type="button">↓</button>
+              <button className="ghost" aria-label="헛스트럼 업 추가" onClick={() => addStage3StrumStep("up", false)} type="button">↑</button>
+              <button className="hit" aria-label="실제 스트럼 업 추가" onClick={() => addStage3StrumStep("up", true)} type="button">↑</button>
+              <button disabled={!stage3StorageStrumPattern.length} onClick={() => setStage3StorageStrumPattern([])} type="button">전체 초기화</button>
+            </div>
+          </div>
         </section>
       ) : selectedCategory.id === "rhythm" ? (
         <section className="chordTransitionPanel" aria-label="Chord transition practice">
+          <ContentTitle {...contentHeader} />
           <div className="chordTransitionControls">
             <div>
+              <span>3단계</span>
               <strong>리듬훈련</strong>
               <small>선택한 코드 진행을 메트로놈에 맞춰 반복합니다</small>
             </div>
@@ -6054,20 +5967,21 @@ function App() {
               <div className="referenceHeader">
                 <div>
                   <div className="stage3ChartTitleRow">
-                    <span className="stage3ChartTitleText">
-                      현재 진행중 지판
-                      {loadedStage3LibraryItem?.title ? ` - ${loadedStage3LibraryItem.title}` : ""}
-                    </span>
-                    <span className="stage3ChartStrumPreview">
-                      <StrumPattern pattern={loadedStage3LibraryItem?.strum_pattern} />
-                    </span>
+                    <span>현재 진행중 지판</span>
+                    <StrumPattern pattern={selectedStage3LibraryItem?.strum_pattern} />
                   </div>
                   <div className="currentProgressionReadout" aria-label="현재 진행중 코드 진행">
                     {hasChordTransitionProgression ? chordTransitionProgression.map((chord, index) => (
                       <button
                         className={index === chordPracticeIndex ? "active" : ""}
                         key={`readonly-${chord.id}-${index}`}
-                        onClick={() => setStage3ProgressIndex(index)}
+                        onClick={() => {
+                          setChordPracticeIndex(index);
+                          gameTimeRef.current = 0;
+                          lastBeatRef.current = -1;
+                          setBeat(0);
+                          setStage3MeasureProgress(0);
+                        }}
                         type="button"
                       >
                         {chord.displayName}
@@ -6083,9 +5997,6 @@ function App() {
                   )}
                 </div>
               </div>
-              {Number(loadedStage3LibraryItem?.capo) > 0 ? (
-                <span className="stage3CapoBadge">{Number(loadedStage3LibraryItem.capo)}Capo</span>
-              ) : null}
               <Fretboard
                 barres={chordPracticeCurrent.barres ?? []}
                 className="stageChordSharedFretboard fitRange"
@@ -6119,9 +6030,7 @@ function App() {
           className={`referenceTrainingPanel ${selectedCategory.id === "scale-block" ? "scaleBlockTrainingPanel" : ""}`}
           aria-label="Reference fretboard training"
         >
-          {selectedCategory.id !== "first-position" && selectedCategory.id !== "scale-block" ? (
-            <ContentTitle {...contentHeader} />
-          ) : null}
+          <ContentTitle {...contentHeader} />
           <div className="referenceTrainingToolbar">
             <div>
               <span>{selectedCategory.tutorial ? "튜토리얼" : selectedCategory.title}</span>
