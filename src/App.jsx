@@ -14,6 +14,7 @@ import {
   Timer,
   Volume2,
 } from "lucide-react";
+import { flushSync } from "react-dom";
 import BrandHeader from "./components/BrandHeader";
 import Fretboard from "./components/Fretboard";
 
@@ -1126,16 +1127,20 @@ function getCompactFretRange(notes = [], barres = [], fallback = [0, 3]) {
 }
 
 const TIME_SIGNATURE_OPTIONS = [
+  { id: "1/4", label: "1/4", beats: 1 },
   { id: "2/4", label: "2/4", beats: 2 },
   { id: "3/4", label: "3/4", beats: 3 },
   { id: "4/4", label: "4/4", beats: 4 },
+  { id: "3/8", label: "3/8", beats: 3 },
   { id: "6/8", label: "6/8", beats: 6 },
+  { id: "9/8", label: "9/8", beats: 9 },
+  { id: "12/8", label: "12/8", beats: 12 },
 ];
 
 const SUBDIVISION_OPTIONS = [
-  { id: "quarter", label: "1박 1클릭", clicksPerBeat: 1 },
-  { id: "eighth", label: "1박 2클릭", clicksPerBeat: 2 },
-  { id: "sixteenth", label: "1박 4클릭", clicksPerBeat: 4 },
+  { id: "quarter", label: "♪", longLabel: "1박 1클릭", clicksPerBeat: 1 },
+  { id: "eighth", label: "♪♪", longLabel: "1박 2클릭", clicksPerBeat: 2 },
+  { id: "sixteenth", label: "♬", longLabel: "1박 4클릭", clicksPerBeat: 4 },
 ];
 
 const METRONOME_TONE_OPTIONS = [
@@ -1147,11 +1152,114 @@ const METRONOME_TONE_OPTIONS = [
   { id: "cowbell", label: "Cowbell", src: "/sounds/cowbell.wav" },
   { id: "clap", label: "Clap", src: "/sounds/clap.wav" },
 ];
+const COUNT_IN_VOICE_WORDS = [
+  "One",
+  "Two",
+  "Three",
+  "Four",
+  "Five",
+  "Six",
+  "Seven",
+  "Eight",
+  "Nine",
+  "Ten",
+  "Eleven",
+  "Twelve",
+];
+
+const COUNT_IN_VOICE_MODES = [
+  { id: "female", label: "여성" },
+  { id: "male", label: "남성" },
+  { id: "off", label: "음성 OFF" },
+];
+
+const TRACKER_COUNT_IN_OPTIONS = [
+  { id: "0", label: "OFF", bars: 0 },
+  { id: "1", label: "1 Bar", bars: 1 },
+  { id: "2", label: "2 Bar", bars: 2 },
+];
+
+const TRACKER_MODE_OPTIONS = [
+  { id: "off", label: "OFF" },
+  { id: "bars", label: "Bar Counter" },
+  { id: "timer", label: "Timer" },
+];
+
+const TRACKER_TIMER_OPTIONS = [
+  { id: "0", label: "0", value: 0 },
+  { id: "1", label: "1", value: 1 },
+  { id: "2", label: "2", value: 2 },
+  { id: "3", label: "3", value: 3 },
+  { id: "5", label: "5", value: 5 },
+  { id: "10", label: "10", value: 10 },
+  { id: "15", label: "15", value: 15 },
+  { id: "30", label: "30", value: 30 },
+];
+
+const TRACKER_TIMER_SECOND_OPTIONS = [
+  { id: "0", label: "0", value: 0 },
+  { id: "10", label: "10", value: 10 },
+  { id: "20", label: "20", value: 20 },
+  { id: "30", label: "30", value: 30 },
+  { id: "40", label: "40", value: 40 },
+  { id: "50", label: "50", value: 50 },
+];
+
+const AUTOMATOR_MODE_OPTIONS = [
+  { id: "off", label: "OFF" },
+  { id: "bars", label: "By Bars" },
+  { id: "time", label: "By Time" },
+];
+
+const AUTOMATOR_TIME_MINUTE_OPTIONS = [
+  { id: "0", label: "0", value: 0 },
+  { id: "1", label: "1", value: 1 },
+  { id: "2", label: "2", value: 2 },
+  { id: "5", label: "5", value: 5 },
+  { id: "10", label: "10", value: 10 },
+  { id: "15", label: "15", value: 15 },
+  { id: "30", label: "30", value: 30 },
+];
+
+const AUTOMATOR_TIME_SECOND_OPTIONS = TRACKER_TIMER_SECOND_OPTIONS;
+const METRONOME_BEAT_STATES = {
+  ACCENT: "accent",
+  NORMAL: "normal",
+  MUTE: "mute",
+};
+const METRONOME_BEAT_STATE_ORDER = [
+  METRONOME_BEAT_STATES.ACCENT,
+  METRONOME_BEAT_STATES.NORMAL,
+  METRONOME_BEAT_STATES.MUTE,
+];
+const METRONOME_BEAT_STATE_LABELS = {
+  [METRONOME_BEAT_STATES.ACCENT]: "연주 Strong",
+  [METRONOME_BEAT_STATES.NORMAL]: "연주 Weak",
+  [METRONOME_BEAT_STATES.MUTE]: "무음",
+};
+const METRONOME_BEAT_STATE_SYMBOLS = {
+  [METRONOME_BEAT_STATES.ACCENT]: "●",
+  [METRONOME_BEAT_STATES.NORMAL]: "●",
+  [METRONOME_BEAT_STATES.MUTE]: "○",
+};
+const METRONOME_BEAT_STATE_MARKERS = {
+  [METRONOME_BEAT_STATES.ACCENT]: "S",
+  [METRONOME_BEAT_STATES.NORMAL]: "W",
+  [METRONOME_BEAT_STATES.MUTE]: "",
+};
+const METRONOME_VISUAL_LAB_MODES = [
+  { id: "dot", label: "Dot", title: "Dot Mode", description: "현재 점자 방식. 점자 자체의 glow만 비교합니다." },
+  { id: "line", label: "Line", title: "Rhythm Line Mode", description: "좌에서 우로 흐르는 박자 위치를 비교합니다." },
+  { id: "circle", label: "Circle", title: "Circle Mode", description: "원형 순환 구조로 박자 흐름을 비교합니다." },
+  { id: "pick", label: "Pick Swing", title: "Pick Swing Mode", description: "기타 피크 스윙으로 스트로크 감각을 비교합니다." },
+];
 const FEEL_RECORDER_STORAGE_KEY = "rifflab-feel-recorder-patterns";
+const METRONOME_PRESET_STORAGE_KEY = "rifflab-metronome-presets-v1";
 const FEEL_RECORDER_LONG_PRESS_MS = 420;
 const FEEL_RECORDER_MAX_EVENTS = 24;
 const FEEL_RECORDER_DEFAULT_NAME = "My Feel";
 const FEEL_RECORDER_MIN_TAP_MS = 60;
+const METRONOME_PRESET_DEFAULT_NAME = "워밍업";
 
 function normalizeFeelRecorderEvents(events) {
   if (!Array.isArray(events)) return [];
@@ -1224,7 +1332,7 @@ function getStoredFeelRecorderPatterns() {
 }
 
 function getTimeSignatureOption(id) {
-  return TIME_SIGNATURE_OPTIONS.find((option) => option.id === id) ?? TIME_SIGNATURE_OPTIONS[2];
+  return TIME_SIGNATURE_OPTIONS.find((option) => option.id === id) ?? TIME_SIGNATURE_OPTIONS.find((option) => option.id === "4/4") ?? TIME_SIGNATURE_OPTIONS[0];
 }
 
 function getSubdivisionOption(id) {
@@ -1235,11 +1343,93 @@ function getMetronomeToneOption(id) {
   return METRONOME_TONE_OPTIONS.find((option) => option.id === id) ?? METRONOME_TONE_OPTIONS[0];
 }
 
+function getDefaultBeatState(index) {
+  return index === 0 ? METRONOME_BEAT_STATES.ACCENT : METRONOME_BEAT_STATES.NORMAL;
+}
+
+function normalizeMetronomeBeatPattern(pattern, beatsPerMeasure = 4) {
+  const count = Math.max(1, Math.min(16, Number(beatsPerMeasure) || 4));
+  return Array.from({ length: count }, (_, index) => {
+    const state = Array.isArray(pattern) ? pattern[index] : undefined;
+    return METRONOME_BEAT_STATE_ORDER.includes(state) ? state : getDefaultBeatState(index);
+  });
+}
+
+function createLocalId(prefix) {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `${prefix}-${crypto.randomUUID()}`;
+  }
+
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function normalizeMetronomePreset(preset, index = 0) {
+  const timeSignature = getTimeSignatureOption(preset?.timeSignature)?.id || "4/4";
+  const beatsPerMeasure = getTimeSignatureOption(timeSignature).beats;
+  const autoBpmMode = AUTOMATOR_MODE_OPTIONS.some((option) => option.id === preset?.autoBpmMode) ? preset.autoBpmMode : "off";
+  const autoBpmDirection = preset?.autoBpmDirection === "decrease" ? "decrease" : "increase";
+  const trackerMode = TRACKER_MODE_OPTIONS.some((option) => option.id === preset?.trackerMode) ? preset.trackerMode : "off";
+  const name = String(preset?.name || `${METRONOME_PRESET_DEFAULT_NAME} ${index + 1}`).trim().slice(0, 24) || METRONOME_PRESET_DEFAULT_NAME;
+
+  return {
+    id: String(preset?.id || createLocalId("metro-preset")),
+    name,
+    createdAt: Number(preset?.createdAt) || Date.now(),
+    updatedAt: Number(preset?.updatedAt) || Number(preset?.createdAt) || Date.now(),
+    bpm: clampBpm(preset?.bpm),
+    timeSignature,
+    subdivision: getSubdivisionOption(preset?.subdivision)?.id || "quarter",
+    tone: getMetronomeToneOption(preset?.tone)?.id || "tick",
+    countInBars: Math.max(0, Math.min(2, Number(preset?.countInBars) || 0)),
+    countInVoiceMode: COUNT_IN_VOICE_MODES.some((option) => option.id === preset?.countInVoiceMode) ? preset.countInVoiceMode : "female",
+    autoBpmMode,
+    autoBpmDirection,
+    autoBpmStep: Math.max(1, Math.min(5, Number(preset?.autoBpmStep) || 1)),
+    autoBpmBars: Math.max(5, Math.min(200, Number(preset?.autoBpmBars) || 50)),
+    autoBpmTimeMinutes: Math.max(0, Math.min(30, Number(preset?.autoBpmTimeMinutes) || 0)),
+    autoBpmTimeSeconds: Math.max(0, Math.min(50, Number(preset?.autoBpmTimeSeconds) || 30)),
+    coachModeEnabled: Boolean(preset?.coachModeEnabled),
+    coachPlayBars: Math.max(1, Math.min(8, Number(preset?.coachPlayBars) || 4)),
+    coachMuteBars: Math.max(1, Math.min(8, Number(preset?.coachMuteBars) || 4)),
+    trackerMode,
+    barLimitEnabled: Boolean(preset?.barLimitEnabled),
+    barLimit: Math.max(1, Math.min(9999, Number(preset?.barLimit) || 100)),
+    barStopWhenReached: Boolean(preset?.barStopWhenReached),
+    barResetWhenReached: Boolean(preset?.barResetWhenReached),
+    barStartFromOne: preset?.barStartFromOne !== false,
+    timerCountdown: Boolean(preset?.timerCountdown),
+    timerStopWhenReached: Boolean(preset?.timerStopWhenReached),
+    timerResetWhenReached: Boolean(preset?.timerResetWhenReached),
+    trackerTimerMinutes: Math.max(0, Math.min(30, Number(preset?.trackerTimerMinutes) || 0)),
+    trackerTimerSeconds: Math.max(0, Math.min(50, Number(preset?.trackerTimerSeconds) || 0)),
+    beatPattern: normalizeMetronomeBeatPattern(preset?.beatPattern, beatsPerMeasure),
+  };
+}
+
+function getStoredMetronomePresets() {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(METRONOME_PRESET_STORAGE_KEY) ?? "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((item, index) => normalizeMetronomePreset(item, index)).slice(0, 24);
+  } catch {
+    return [];
+  }
+}
+
 function MetronomeSelectControl({ label, options, value, onChange }) {
+  const selectedOption = options.find((option) => option.id === value);
+
   return (
     <label className="metronomeSelectControl">
       <span>{label}</span>
-      <select onChange={(event) => onChange(event.target.value)} value={value}>
+      <select
+        aria-label={selectedOption?.longLabel ? `${label}: ${selectedOption.longLabel}` : label}
+        onChange={(event) => onChange(event.target.value)}
+        title={selectedOption?.longLabel || selectedOption?.label || label}
+        value={value}
+      >
         {options.map((option) => (
           <option key={option.id} value={option.id}>
             {option.label}
@@ -1265,12 +1455,15 @@ function MetronomeControl({
   onToneChange = () => {},
   repeatEnabled = false,
   showCountIn = true,
+  showAccent = true,
+  showBpmControls = true,
   showRepeat = true,
   subdivision = "quarter",
   timeSignature = "4/4",
   tone = "tick",
 }) {
   const [draftBpm, setDraftBpm] = useState(String(bpm));
+  const hasToggleControls = showAccent || showCountIn || showRepeat;
 
   useEffect(() => {
     setDraftBpm(String(bpm));
@@ -1317,55 +1510,62 @@ function MetronomeControl({
 
   return (
     <div className={`metronomeControl ${className}`}>
-      <div className="metronomeTopLine">
-        <label className="metronomeBpmLabel" htmlFor={`${inputId}-input`}>BPM</label>
-        <div className="metronomeBpmCombo">
-          <div className="metronomeBpmInputShell">
-            <input
-              aria-label="BPM"
-              id={`${inputId}-input`}
-              inputMode="numeric"
-              max={MAX_BPM}
-              min={MIN_BPM}
-              onBlur={() => commitBpm(draftBpm)}
-              onFocus={(event) => event.target.select()}
-              onChange={(event) => {
-                const nextValue = event.target.value.replace(/[^\d]/g, "");
-                setDraftBpm(nextValue);
-              }}
-              onKeyDown={handleBpmKeyDown}
-              pattern="[0-9]*"
-              step="1"
-              type="number"
-              value={draftBpm}
-            />
-            <div className="metronomeBpmSpinner" aria-label="BPM 미세 조절">
-              <button aria-label="BPM 1 올리기" className="metronomeBpmStep" onClick={() => stepBpm(1)} type="button">
-                +
-              </button>
-              <button aria-label="BPM 1 낮추기" className="metronomeBpmStep" onClick={() => stepBpm(-1)} type="button">
-                -
+      {showBpmControls || hasToggleControls ? (
+      <div className={`metronomeTopLine ${showBpmControls ? "" : "metronomeTopLine--togglesOnly"}`}>
+        {showBpmControls ? (
+          <>
+            <label className="metronomeBpmLabel" htmlFor={`${inputId}-input`}>BPM</label>
+            <div className="metronomeBpmCombo">
+              <div className="metronomeBpmInputShell">
+                <input
+                  aria-label="BPM"
+                  id={`${inputId}-input`}
+                  inputMode="numeric"
+                  max={MAX_BPM}
+                  min={MIN_BPM}
+                  onBlur={() => commitBpm(draftBpm)}
+                  onFocus={(event) => event.target.select()}
+                  onChange={(event) => {
+                    const nextValue = event.target.value.replace(/[^\d]/g, "");
+                    setDraftBpm(nextValue);
+                  }}
+                  onKeyDown={handleBpmKeyDown}
+                  pattern="[0-9]*"
+                  step="1"
+                  type="number"
+                  value={draftBpm}
+                />
+                <div className="metronomeBpmSpinner" aria-label="BPM 미세 조절">
+                  <button aria-label="BPM 1 올리기" className="metronomeBpmStep" onClick={() => stepBpm(1)} type="button">
+                    +
+                  </button>
+                  <button aria-label="BPM 1 낮추기" className="metronomeBpmStep" onClick={() => stepBpm(-1)} type="button">
+                    -
+                  </button>
+                </div>
+              </div>
+              <button
+                aria-label="BPM 빠른 선택"
+                className="metronomeBpmPresetSelect"
+                onClick={applyNextBpmPreset}
+                type="button"
+              >
+                빠른
               </button>
             </div>
-          </div>
-          <button
-            aria-label="BPM 빠른 선택"
-            className="metronomeBpmPresetSelect"
-            onClick={applyNextBpmPreset}
-            type="button"
-          >
-            빠른
-          </button>
-        </div>
+          </>
+        ) : null}
         <div className="metronomeToggleRow">
-          <button
-            aria-pressed={accentEnabled}
-            className={accentEnabled ? "selected" : ""}
-            onClick={() => onAccentChange(!accentEnabled)}
-            type="button"
-          >
-            강박 {accentEnabled ? "ON" : "OFF"}
-          </button>
+          {showAccent ? (
+            <button
+              aria-pressed={accentEnabled}
+              className={accentEnabled ? "selected" : ""}
+              onClick={() => onAccentChange(!accentEnabled)}
+              type="button"
+            >
+              강박 {accentEnabled ? "ON" : "OFF"}
+            </button>
+          ) : null}
           {showCountIn ? (
             <button
               aria-pressed={countInEnabled}
@@ -1388,6 +1588,7 @@ function MetronomeControl({
           ) : null}
         </div>
       </div>
+      ) : null}
       <div className="metronomeOptions">
         <MetronomeSelectControl
           label="박자"
@@ -1449,6 +1650,69 @@ function MetronomeTimeline({ beat, beatsPerMeasure = 4, currentLabel, isPlaying,
           />
         ))}
       </div>
+    </div>
+  );
+}
+
+function WheelPickerColumn({ label, options, value, onChange }) {
+  const listRef = useRef(null);
+  const scrollTimerRef = useRef(null);
+  const selectedIndex = Math.max(0, options.findIndex((option) => Number(option.value) === Number(value)));
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const optionHeight = 34;
+    list.scrollTo({ top: selectedIndex * optionHeight, behavior: "smooth" });
+  }, [selectedIndex]);
+
+  const updateFromScroll = useCallback(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const optionHeight = 34;
+    const nextIndex = Math.max(0, Math.min(options.length - 1, Math.round(list.scrollTop / optionHeight)));
+    const nextValue = options[nextIndex]?.value;
+    if (nextValue != null && Number(nextValue) !== Number(value)) onChange(Number(nextValue));
+  }, [onChange, options, value]);
+
+  return (
+    <label className="metronomeWheelColumn">
+      <span>{label}</span>
+      <div
+        className="metronomeWheelColumnViewport"
+        onScroll={() => {
+          window.clearTimeout(scrollTimerRef.current);
+          scrollTimerRef.current = window.setTimeout(updateFromScroll, 70);
+        }}
+        ref={listRef}
+        role="listbox"
+        tabIndex={0}
+      >
+        <i aria-hidden="true" />
+        <div className="metronomeWheelPadding" aria-hidden="true" />
+        {options.map((option) => (
+          <button
+            aria-selected={Number(option.value) === Number(value)}
+            className={Number(option.value) === Number(value) ? "selected" : ""}
+            key={option.id}
+            onClick={() => onChange(Number(option.value))}
+            role="option"
+            type="button"
+          >
+            {option.label}
+          </button>
+        ))}
+        <div className="metronomeWheelPadding" aria-hidden="true" />
+      </div>
+    </label>
+  );
+}
+
+function MetronomeWheelPicker({ ariaLabel, minuteOptions, minutes, onMinutesChange, onSecondsChange, secondOptions, seconds }) {
+  return (
+    <div className="metronomeTimerWheelPicker" aria-label={ariaLabel}>
+      <WheelPickerColumn label="Minutes" options={minuteOptions} value={minutes} onChange={onMinutesChange} />
+      <WheelPickerColumn label="Seconds" options={secondOptions} value={seconds} onChange={onSecondsChange} />
     </div>
   );
 }
@@ -1546,91 +1810,59 @@ function TrainingCard({ category, index, isSelected, onClick }) {
   );
 }
 
-const ARCHIVED_HEADER_VARIANTS = [
-  { id: "v1", title: "Logo V1", description: "골드 R 포인트 워드마크" },
-  { id: "v2", title: "Logo V2", description: "FF 골드 포인트 워드마크" },
-  { id: "v3", title: "Logo V3", description: "이탤릭 스피드 워드마크" },
-  { id: "v4", title: "Logo V4", description: "라인 아웃라인 워드마크" },
-  { id: "v5", title: "Logo V5", description: "웨이브 + RIFFLAB" },
-  { id: "v6", title: "Logo V6", description: "R 박스 심볼 + 워드마크" },
-  { id: "v7", title: "Logo V7", description: "브러시 R 워드마크" },
-  { id: "v8", title: "Logo V8", description: "넓은 자간 미니멀 워드마크" },
-  { id: "v9", title: "Logo V9", description: "스우시 R 이탤릭 워드마크" },
-  { id: "v10", title: "Logo V10", description: "디스트레스 워드마크" },
-  { id: "v12", title: "Logo V12", description: "Vintage Amp Plate" },
-  { id: "v13", title: "Logo V13", description: "Military Stencil" },
-  { id: "v14", title: "Logo V14", description: "Luxury Watch Style" },
-  { id: "v15", title: "Logo V15", description: "Data Center Industrial" },
-  { id: "v16", title: "Logo V16", description: "Laser Engraving" },
-  { id: "v17", title: "Logo V17", description: "Minimal Single Line" },
-  { id: "v18", title: "Logo V18", description: "Chrome Metal" },
-  { id: "v19", title: "Logo V19", description: "Riff Wave Hybrid" },
-  { id: "v20", title: "Logo V20", description: "Premium Signature" },
-  { id: "v21", title: "Logo V21", description: "Art Deco Stage Spotlight" },
-  { id: "v22", title: "Logo V22", description: "Stencil Stage Spotlight" },
-  { id: "v23", title: "Logo V23", description: "Laser Stage Spotlight" },
-  { id: "v24", title: "Logo V24", description: "Concert Spotlight" },
-  { id: "v25", title: "Logo V25", description: "Theater Stage" },
-  { id: "v26", title: "Logo V26", description: "Luxury Watch Brand" },
-  { id: "v27", title: "Logo V27", description: "Premium Guitar Brand" },
-  { id: "v28", title: "Logo V28", description: "Vintage Amp Plate II" },
-  { id: "v29", title: "Logo V29", description: "Recording Studio" },
-  { id: "v30", title: "Logo V30", description: "Data Center Industrial II" },
-  { id: "v31", title: "Logo V31", description: "Aerospace Industrial" },
-  { id: "v32", title: "Logo V32", description: "Art Deco Premium II" },
-  { id: "v33", title: "Logo V33", description: "Military Stencil Premium II" },
-  { id: "v34", title: "Logo V34", description: "Laser Engraving Premium II" },
-  { id: "v35", title: "Logo V35", description: "Minimal Luxury" },
-  { id: "v36", title: "Logo V36", description: "Museum Signature" },
-  { id: "v37", title: "Logo V37", description: "Retro Music Hardware" },
-  { id: "v38", title: "Logo V38", description: "Analog Equipment" },
-  { id: "v39", title: "Logo V39", description: "Modern Tech Brand" },
-  { id: "v40", title: "Logo V40", description: "Boutique Guitar Shop" },
-  { id: "v41", title: "Logo V41", description: "Heritage Instrument" },
-  { id: "v42", title: "Logo V42", description: "Gold Foil Embossing" },
-  { id: "v43", title: "Logo V43", description: "Black Metal Plate" },
-  { id: "v44", title: "Logo V44", description: "Carbon Fiber Luxury" },
-  { id: "v45", title: "Logo V45", description: "Sound Wave Identity" },
-  { id: "v46", title: "Logo V46", description: "FF Identity Focus" },
-  { id: "v47", title: "Logo V47", description: "RIFF Identity Focus" },
-  { id: "v48", title: "Logo V48", description: "LAB Identity Focus" },
-  { id: "v49", title: "Logo V49", description: "Stage Performer Theme" },
-  { id: "v50", title: "Logo V50", description: "Mastery Theme" },
-  ...["11", "13", "16", "21"].flatMap((parent) =>
-    Array.from({ length: 20 }, (_, index) => {
-      const number = String(index + 1).padStart(2, "0");
-      return {
-        id: `v${parent}-${number}`,
-        title: `Logo V${parent}-${number}`,
-        description: `Legacy V${parent} derivative ${number}`,
-      };
-    }),
-  ),
+const LOGO_V11_VARIANT_DEFINITIONS = [
+  ["001", "R Anchor Plate", "첫 R을 명판의 시작 앵커처럼 디자인한 시안"],
+  ["002", "RI Lockup Plate", "RI를 작은 브랜드 심볼처럼 묶은 구조"],
+  ["003", "RIFF Focus Plate", "RIFF 단어를 훈련 핵심 키워드로 강조"],
+  ["004", "FF String Signature", "FF를 기타 줄 연결부처럼 처리한 시그니처"],
+  ["005", "Opening R Cut", "첫 R의 다리를 절단면처럼 다듬은 고급 명판"],
+  ["006", "Final B Seal", "끝 B를 완성 도장처럼 살린 마스터리 컨셉"],
+  ["007", "Mini R Badge", "좌측 [R] 보조 심볼과 풀네임을 결합"],
+  ["008", "Slogan Rail", "슬로건을 레일처럼 분리해 철학을 강조"],
+  ["009", "Double Frame Plate", "이중 프레임으로 장비 명판감을 강화"],
+  ["010", "Laser Engraved", "레이저 각인처럼 얇고 정밀한 워드마크"],
+  ["011", "Black Metal Plate", "블랙 메탈 플레이트 위 금박 로고"],
+  ["012", "Studio Console", "레코딩 콘솔 라벨과 계측 장비 분위기"],
+  ["013", "Vintage Amp Badge", "빈티지 기타 앰프 명판 방향"],
+  ["014", "Stage Gear Plate", "공연 장비에 붙은 브랜드 플레이트"],
+  ["015", "Boutique Guitar Brand", "프리미엄 악기 브랜드 로고 감각"],
+  ["016", "Headstock Plate", "기타 헤드스톡 비율을 프레임에 반영"],
+  ["017", "Pick Shield Plate", "피크 실루엣을 명판 중심 구조로 활용"],
+  ["018", "Riff Pattern Rail", "리프 반복 패턴을 라인 구조로 표현"],
+  ["019", "Repeat Meter", "반복 훈련을 계기판 눈금처럼 시각화"],
+  ["020", "Mastery Seal", "숙련 인증 마크처럼 완성감 있는 구조"],
+  ["021", "Audio Hardware", "하이엔드 오디오 장비 전면 패널 컨셉"],
+  ["022", "Analog Meter Plate", "아날로그 미터와 정밀 계측 느낌"],
+  ["023", "Instrument Serial", "악기 시리얼 플레이트 같은 정보 구조"],
+  ["024", "Art Deco Corner", "아르데코 코너 구조가 눈에 띄는 시안"],
+  ["025", "Foil Stamp", "고급 인쇄물의 금박 압인 느낌"],
+  ["026", "Engraved Outline", "외곽선 문자와 각인 프레임 중심"],
+  ["027", "Riffline Wordmark", "워드마크를 관통하는 리프 라인"],
+  ["028", "Training Mark", "훈련 체크포인트를 명판 구조에 결합"],
+  ["029", "Focus Aperture", "중앙 집중을 조리개형 프레임으로 표현"],
+  ["030", "Heritage Instrument", "오래 쓰는 악기 브랜드의 헤리티지 감각"],
+  ["031", "Lab Plate", "연구실 라벨과 음악 장비의 결합"],
+  ["032", "String Divider", "글자 사이를 기타 줄 분할선으로 정리"],
+  ["033", "Precision Stamp", "정밀 측정 장비의 스탬프형 로고"],
+  ["034", "Rivet Plate", "리벳 구조가 명확한 하드웨어 명판"],
+  ["035", "Minimal Luxury", "덜어낸 고급 명판과 넓은 여백"],
+  ["036", "Concert Nameplate", "무대 중앙 이름표 같은 구조"],
+  ["037", "Amp Control Label", "앰프 컨트롤 패널 라벨 컨셉"],
+  ["038", "Guitar Shop Sign", "부티크 기타샵 간판 같은 워드마크"],
+  ["039", "Master Line", "숙련을 한 줄의 골드 라인으로 표현"],
+  ["040", "RIFFLAB Seal", "최종 브랜드 도장 후보처럼 구성"],
 ];
-const V11_REFINED_VARIANTS = Array.from({ length: 100 }, (_, index) => {
-  const number = String(index + 1).padStart(3, "0");
-  const directions = [
-    "Proportion Study",
-    "Whitespace Study",
-    "Type Density",
-    "Luxury Plate",
-    "Black Metal",
-    "Gold Foil",
-    "Laser Touch",
-    "Premium Hardware",
-    "Heritage Instrument",
-    "Concert Plate",
-  ];
+const createLogoV11Variants = () =>
+  LOGO_V11_VARIANT_DEFINITIONS.map(([serial, name, description]) => ({
+    id: `v11-${serial}`,
+    title: `V11-${serial} ${name}`,
+    description,
+  }));
 
-  return {
-    id: `v11-${number}`,
-    title: `Logo V11-${number}`,
-    description: directions[index % directions.length],
-  };
-});
+const ARCHIVED_HEADER_VARIANTS = [];
 const HEADER_VARIANTS = [
   { id: "v11", title: "Logo V11", description: "Art Deco Logo Parent" },
-  ...V11_REFINED_VARIANTS,
+  ...createLogoV11Variants(),
 ];
 const HEADER_RESTORE_VARIANT = { id: "v11", title: "Logo V11", description: "Art Deco Logo Parent" };
 const DESIGN_LAB_HEADER_STORAGE_KEY = "rifflab-design-lab-header";
@@ -1641,160 +1873,82 @@ const LEGACY_HEADER_VARIANT_MAP = {
   "plate-v3": "v8",
   "plate-v4": "v10",
 };
-const APP_ICON_BRAND_SYMBOL_VARIANTS = Array.from({ length: 40 }, (_, index) => {
-  const version = index + 61;
-  const directions = [
-    "R Core Symbol",
-    "RIFF Abstract",
-    "Repeat Loop",
-    "Riff Pattern",
-    "Pick Abstract",
-    "Muscle Memory",
-    "Mastery Mark",
-    "Repeat Refine Master",
-    "FF Pattern",
-    "String Symbol",
-  ];
-
-  return {
-    id: `icon-v${version}`,
-    title: `App Icon V${version}`,
-    description: directions[index % directions.length],
-  };
-});
-const APP_ICON_PREMIUM_SYMBOL_VARIANTS = Array.from({ length: 40 }, (_, index) => {
-  const version = index + 101;
-  const directions = [
-    "Premium Black",
-    "Premium White",
-    "Black & Gold",
-    "White & Navy",
-    "Monochrome Luxury",
-    "High Contrast",
-    "Gold Material Study",
-    "Deep Light Study",
-    "Luxury Ratio",
-    "Brand Value Study",
-  ];
-
-  return {
-    id: `icon-v${version}`,
-    title: `App Icon V${version}`,
-    description: directions[index % directions.length],
-  };
-});
-
 const APP_ICON_VARIANTS = [
   { id: "icon-v1", title: "App Icon V1", description: "RIFFLAB 전체 워드마크" },
   { id: "icon-v2", title: "App Icon V2", description: "RIFF 반복 포인트" },
-  ...APP_ICON_BRAND_SYMBOL_VARIANTS,
-  ...APP_ICON_PREMIUM_SYMBOL_VARIANTS,
 ];
-const ARCHIVED_APP_ICON_VARIANTS = [
-  { id: "icon-v3", title: "App Icon V3", description: "R + RIFFLAB 서명" },
-  { id: "icon-v4", title: "App Icon V4", description: "줄무늬 R 시각화" },
-  { id: "icon-v5", title: "App Icon V5", description: "프레임 R 집중형" },
-  { id: "icon-v6", title: "App Icon V6", description: "원형 R 배지" },
-  { id: "icon-v7", title: "App Icon V7", description: "큰 R + 링" },
-  { id: "icon-v8", title: "App Icon V8", description: "기울어진 R 심볼" },
-  { id: "icon-v9", title: "App Icon V9", description: "R 조각 심볼" },
-  { id: "icon-v10", title: "App Icon V10", description: "R + RIFFLAB 하단" },
-  { id: "icon-v11", title: "App Icon V11", description: "Hexagon R" },
-  { id: "icon-v12", title: "App Icon V12", description: "Pick Shape R" },
-  { id: "icon-v13", title: "App Icon V13", description: "Minimal R" },
-  { id: "icon-v14", title: "App Icon V14", description: "Monogram R" },
-  { id: "icon-v15", title: "App Icon V15", description: "Dual String R" },
-  { id: "icon-v16", title: "App Icon V16", description: "R + Soundwave" },
-  { id: "icon-v17", title: "App Icon V17", description: "R + Fret Marker" },
-  { id: "icon-v18", title: "App Icon V18", description: "R Shield" },
-  { id: "icon-v19", title: "App Icon V19", description: "Premium Gold R" },
-  { id: "icon-v20", title: "App Icon V20", description: "Riff Symbol Ultimate" },
-  { id: "icon-v21", title: "App Icon V21", description: "Premium RIFFLAB Wordmark" },
-  { id: "icon-v22", title: "App Icon V22", description: "Editorial RIFF Monogram" },
-  { id: "icon-v23", title: "App Icon V23", description: "Golden RIFF Frequency" },
-  { id: "icon-v24", title: "App Icon V24", description: "Minimal FF String Mark" },
-  { id: "icon-v25", title: "App Icon V25", description: "RIFF Block Identity" },
-  { id: "icon-v26", title: "App Icon V26", description: "Abstract Pick Laboratory" },
-  { id: "icon-v27", title: "App Icon V27", description: "Stage Plate Wordmark" },
-  { id: "icon-v28", title: "App Icon V28", description: "Fret Grid Signature" },
-  { id: "icon-v29", title: "App Icon V29", description: "Riff Pulse Symbol" },
-  { id: "icon-v30", title: "App Icon V30", description: "LAB Seal Minimal" },
-  { id: "icon-v31", title: "App Icon V31", description: "Split RIFF / LAB" },
-  { id: "icon-v32", title: "App Icon V32", description: "Modern Pick Cutout" },
-  { id: "icon-v33", title: "App Icon V33", description: "FF Stage Pillar" },
-  { id: "icon-v34", title: "App Icon V34", description: "Rifflab Crest Abstract" },
-  { id: "icon-v35", title: "App Icon V35", description: "One Stroke Riff Mark" },
-  { id: "icon-v36", title: "App Icon V36", description: "Sound Lab Dot Matrix" },
-  { id: "icon-v37", title: "App Icon V37", description: "Luxury Initial Plate" },
-  { id: "icon-v38", title: "App Icon V38", description: "RIFF Minimal Stack" },
-  { id: "icon-v39", title: "App Icon V39", description: "Concert Spotlight Mark" },
-  { id: "icon-v40", title: "App Icon V40", description: "RIFFLAB Identity Finalist" },
-  { id: "icon-v41", title: "App Icon V41", description: "Ultra Simple R Cut" },
-  { id: "icon-v42", title: "App Icon V42", description: "Repetition Loop Mark" },
-  { id: "icon-v43", title: "App Icon V43", description: "FF Twin Stroke" },
-  { id: "icon-v44", title: "App Icon V44", description: "Pick Negative Space" },
-  { id: "icon-v45", title: "App Icon V45", description: "Riff String Bend" },
-  { id: "icon-v46", title: "App Icon V46", description: "Black White RIFF" },
-  { id: "icon-v47", title: "App Icon V47", description: "Blue Pulse Symbol" },
-  { id: "icon-v48", title: "App Icon V48", description: "Monoline Riff Loop" },
-  { id: "icon-v49", title: "App Icon V49", description: "Four String Identity" },
-  { id: "icon-v50", title: "App Icon V50", description: "Minimal Lab Spark" },
-  { id: "icon-v51", title: "App Icon V51", description: "R Slash Symbol" },
-  { id: "icon-v52", title: "App Icon V52", description: "FF Repeat Tiles" },
-  { id: "icon-v53", title: "App Icon V53", description: "Pick Loop Glyph" },
-  { id: "icon-v54", title: "App Icon V54", description: "Riff Wave Dot" },
-  { id: "icon-v55", title: "App Icon V55", description: "Notion Style R Block" },
-  { id: "icon-v56", title: "App Icon V56", description: "Netflix Style R Bar" },
-  { id: "icon-v57", title: "App Icon V57", description: "Chat Symbol Riff Knot" },
-  { id: "icon-v58", title: "App Icon V58", description: "Gemini Style Riff Star" },
-  { id: "icon-v59", title: "App Icon V59", description: "Instagram Ring Pick" },
-  { id: "icon-v60", title: "App Icon V60", description: "RIFFLAB Core Symbol" },
-];
+const ARCHIVED_APP_ICON_VARIANTS = [];
 const DESIGN_LAB_APP_ICON_STORAGE_KEY = "rifflab-design-lab-app-icon";
 const APP_ICON_VARIANT_IDS = new Set(APP_ICON_VARIANTS.map((variant) => variant.id));
 const DESIGN_LAB_SECTIONS = [
   { id: "logo", label: "로고" },
   { id: "app-icon", label: "앱아이콘" },
-  { id: "character", label: "캐릭터" },
+  { id: "character", label: "Guitar" },
+  { id: "monster", label: "몬스터" },
   { id: "component", label: "컴포넌트" },
+  { id: "test", label: "TEST" },
   { id: "archive", label: "Archive" },
 ];
-const CHARACTER_LAB_VARIANTS = [
-  { id: "character-1", title: "캐릭터 V1", description: "기타 헤드 발사체" },
-  { id: "character-2", title: "캐릭터 V2", description: "로켓 픽 사수" },
-  { id: "character-3", title: "캐릭터 V3", description: "앰프 드론 타겟팅" },
-  { id: "character-4", title: "캐릭터 V4", description: "스피드 스트라이커" },
-  { id: "character-5", title: "캐릭터 V5", description: "기타 실드 캐논" },
-  { id: "character-6", title: "캐릭터 V6", description: "넥 미사일 러너" },
-  { id: "character-7", title: "캐릭터 V7", description: "Bear Guitar Cadet" },
-  { id: "character-8", title: "캐릭터 V8", description: "Guitar Jet Player" },
-  { id: "character-9", title: "캐릭터 V9", description: "Riff Kid Shooter" },
-  { id: "character-10", title: "캐릭터 V10", description: "Amp Rider" },
-  { id: "character-11", title: "캐릭터 V11", description: "Cowboy Guitar Hunter" },
-  { id: "character-12", title: "캐릭터 V12", description: "Cyber Guitar Soldier" },
-  { id: "character-13", title: "캐릭터 V13", description: "Rock Panda Shooter" },
-  { id: "character-14", title: "캐릭터 V14", description: "Wolf Guitar Ranger" },
-  { id: "character-15", title: "캐릭터 V15", description: "Cat Guitar Assassin" },
-  { id: "character-16", title: "캐릭터 V16", description: "Fox Guitar Gunslinger" },
-  { id: "character-17", title: "캐릭터 V17", description: "Robot Guitar Pilot" },
-  { id: "character-18", title: "캐릭터 V18", description: "Dragon Guitar Rider" },
-  { id: "character-19", title: "캐릭터 V19", description: "Living Guitar Weapon" },
-  { id: "character-20", title: "캐릭터 V20", description: "RIFFLAB Hero Character" },
+const GUITAR_LAB_STORAGE_KEY = "rifflab-shooter-guitar-v1";
+const GUITAR_LAB_VARIANTS = [
+  ["acoustic-dreadnought", "Acoustic", "Dreadnought", "큰 바디와 강한 존재감의 기본 어쿠스틱 플레이어", "#b87936", "#2f1a0b", "round"],
+  ["acoustic-om", "Acoustic", "OM", "균형 잡힌 허리선과 민첩한 이동감을 가진 어쿠스틱", "#c98b43", "#332012", "waist"],
+  ["acoustic-000", "Acoustic", "000", "컴팩트한 바디와 선명한 실루엣의 빈티지 어쿠스틱", "#d49a52", "#3a2413", "compact"],
+  ["acoustic-jumbo", "Acoustic", "Jumbo", "넓은 하단 바디로 탄환 발사감이 강한 점보", "#b66d2b", "#25150b", "jumbo"],
+  ["acoustic-mini", "Acoustic", "Mini", "작은 모바일 화면에서 빠르게 읽히는 미니 기타", "#d9aa55", "#2a1b0d", "mini"],
+  ["classical-natural", "Classical", "Natural", "부드러운 나일론 감성의 내추럴 클래식", "#d9a65c", "#3b2512", "classical"],
+  ["classical-cedar", "Classical", "Cedar", "따뜻한 시더 상판과 진한 중앙 사운드홀", "#a86434", "#2a160d", "classical"],
+  ["classical-rosewood", "Classical", "Rosewood", "로즈우드 톤의 깊은 브라운 클래식", "#7a3f2a", "#1c0f0a", "classical"],
+  ["classical-black", "Classical", "Black", "블랙 바디와 골드 구조선의 프리미엄 클래식", "#121212", "#d9aa55", "classical"],
+  ["classical-vintage", "Classical", "Vintage", "오래된 악기점 느낌의 빈티지 클래식", "#c38b45", "#2e1b0d", "classical"],
+  ["electric-strat", "Electric", "Strat", "픽가드와 3픽업 구조가 보이는 스트랫형", "#d8d2bd", "#151515", "strat"],
+  ["electric-tele", "Electric", "Tele", "각진 싱글컷 바디와 브릿지 플레이트가 강한 텔레형", "#d49a37", "#17110a", "tele"],
+  ["electric-lp", "Electric", "LP Style", "두꺼운 싱글컷 바디와 험버커 코어의 LP 스타일", "#8d251d", "#1a0907", "lp"],
+  ["electric-super-strat", "Electric", "Super Strat", "날카로운 컷어웨이와 빠른 슈터 실루엣", "#1c2f48", "#d9aa55", "super"],
+  ["electric-metal", "Electric", "Metal Style", "메탈 리프용 날카로운 바디와 공격형 헤드", "#0c0c0e", "#c7c9d1", "metal"],
+].map(([id, pack, model, description, bodyColor, accentColor, shape], index) => ({
+  id,
+  pack,
+  model,
+  title: `${pack} ${model}`,
+  description,
+  bodyColor,
+  accentColor,
+  shape,
+  index: index + 1,
+}));
+const DEFAULT_GUITAR_LAB_VARIANT_ID = GUITAR_LAB_VARIANTS[0].id;
+const GUITAR_LAB_VARIANT_IDS = new Set(GUITAR_LAB_VARIANTS.map((variant) => variant.id));
+const MONSTER_LAB_GROUPS = [
+  { id: "quarter", title: "4분음표 몬스터", symbol: "♩" },
+  { id: "eighth", title: "8분음표 몬스터", symbol: "♪" },
+  { id: "sixteenth", title: "16분음표 몬스터", symbol: "♬" },
+  { id: "rest", title: "쉼표 몬스터", symbol: "𝄽" },
+  { id: "special", title: "특수 노트 몬스터", symbol: "✦" },
 ];
+const MONSTER_LAB_VARIANTS = MONSTER_LAB_GROUPS.flatMap((group) =>
+  Array.from({ length: 10 }, (_, index) => ({
+    id: `${group.id}-${index + 1}`,
+    groupId: group.id,
+    title: `${group.title} V${index + 1}`,
+    symbol: group.symbol,
+    variant: index + 1,
+  }))
+);
 const CARD_LAB_VARIANTS = [
   { id: "card-1", title: "Legacy Card V1", description: "과거 훈련장 카드 시안" },
   { id: "card-2", title: "Legacy Card V2", description: "번호 배지 강조형" },
   { id: "card-3", title: "Legacy Card V3", description: "라인형 미니멀" },
 ];
 const COMPONENT_LAB_DROPDOWN_OPTIONS = [
-  { id: "4/4", label: "4/4" },
+  { id: "1/4", label: "1/4" },
+  { id: "2/4", label: "2/4" },
   { id: "3/4", label: "3/4" },
+  { id: "4/4", label: "4/4" },
+  { id: "3/8", label: "3/8" },
   { id: "6/8", label: "6/8" },
-  { id: "12/8", label: "12/8" },
-  { id: "5/4", label: "5/4" },
-  { id: "7/4", label: "7/4" },
   { id: "9/8", label: "9/8" },
-  { id: "13/8", label: "13/8" },
+  { id: "12/8", label: "12/8" },
 ];
 const COMPONENT_LAB_SUBDIVISION_OPTIONS = [
   { id: "quarter", label: "4분" },
@@ -1829,6 +1983,231 @@ function ComponentLabDropdownPreview({ description, flow, items, title }) {
       </div>
       <small>{description}</small>
     </div>
+  );
+}
+
+function ComponentLabMetronomeTopControlPreview({ description, variant }) {
+  const items = [
+    { id: "bpm", label: "BPM", value: "120" },
+    { id: "quick", label: "빠른" },
+    { id: "accent", label: "강박", value: "ON" },
+    { id: "count", label: "카운트", value: "ON" },
+    { id: "repeat", label: "반복", value: "OFF" },
+  ];
+
+  return (
+    <div className={`componentLabMetronomeTop componentLabMetronomeTop--${variant}`}>
+      <div className="componentLabMetronomeTop__label">
+        <span>{variant.toUpperCase()}</span>
+        <strong>{description}</strong>
+      </div>
+      <div className="componentLabMetronomeTop__surface">
+        {items.map((item) => (
+          <button key={item.id} type="button">
+            <span>{item.label}</span>
+            {item.value ? <strong>{item.value}</strong> : null}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ComponentLabMetronomeMainPreview({ variant }) {
+  const isBeatFirst = variant === "beat";
+  const beats = isBeatFirst
+    ? [
+      { id: 1, state: "accent", active: true, symbol: "●" },
+      { id: 2, state: "normal", active: false, symbol: "○" },
+      { id: 3, state: "normal", active: false, symbol: "○" },
+      { id: 4, state: "mute", active: false, symbol: "□" },
+    ]
+    : [
+      { id: 1, state: "accent", active: false, symbol: "●" },
+      { id: 2, state: "normal", active: false, symbol: "○" },
+      { id: 3, state: "normal", active: false, symbol: "○" },
+      { id: 4, state: "normal", active: false, symbol: "○" },
+    ];
+
+  return (
+    <div className={`componentLabMetronomeMain componentLabMetronomeMain--${variant}`}>
+      <div className="componentLabMetronomeMain__phone">
+        {isBeatFirst ? (
+          <>
+            <div className="componentLabMetronomeMain__beatHero" aria-label="점자 중심 메트로놈 미리보기">
+              {beats.map((item) => (
+                <span className={`${item.state} ${item.active ? "active" : ""}`} key={item.id}>
+                  {item.symbol}
+                </span>
+              ))}
+            </div>
+            <div className="componentLabMetronomeMain__bpmPlate">
+              <button type="button">-</button>
+              <strong>80 <small>BPM</small></strong>
+              <button type="button">+</button>
+            </div>
+            <div className="componentLabMetronomeMain__options">
+              <span>4/4</span>
+              <span>♪♪</span>
+              <span>Tick</span>
+            </div>
+            <div className="componentLabMetronomeMain__drawer">
+              <span>Auto BPM</span>
+              <span>Coach</span>
+              <span>Count In</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="componentLabMetronomeMain__bpmHero">
+              <span>BPM</span>
+              <strong>80</strong>
+              <small>READY</small>
+            </div>
+            <div className="componentLabMetronomeMain__miniBeat">
+              {beats.map((item) => (
+                <span className={item.state} key={item.id}>{item.id}</span>
+              ))}
+            </div>
+            <div className="componentLabMetronomeMain__options">
+              <span>4/4</span>
+              <span>♪♪</span>
+              <span>Tick</span>
+            </div>
+            <div className="componentLabMetronomeMain__drawer is-open">
+              <span>Auto BPM</span>
+              <span>Coach</span>
+              <span>Beat Edit</span>
+            </div>
+          </>
+        )}
+      </div>
+      <small>
+        {isBeatFirst
+          ? "V2 점자 중심: 박자 흐름을 대표 영역으로 올리고 BPM은 아래 조절 패널로 이동"
+          : "V1 현재 구조: BPM 숫자가 대표 영역이고 박자 시각화는 보조 정보"}
+      </small>
+    </div>
+  );
+}
+
+function MetronomeVisualLabDot({ activeBeat, beatPattern, isPlaying }) {
+  return (
+    <div className="metronomeVisualLabDot" aria-label="Dot Mode visual preview">
+      {beatPattern.map((beatState, index) => (
+        <span
+          className={`metronomeVisualLabBeat metronomeVisualLabBeat--${beatState} ${isPlaying && activeBeat === index ? "active" : ""}`}
+          key={`visual-dot-${index}`}
+        >
+          <span className="metronomeVisualLabBeatGlyph" aria-hidden="true" />
+          {METRONOME_BEAT_STATE_MARKERS[beatState] ? (
+            <i className="metronomeVisualLabBeatMark">{METRONOME_BEAT_STATE_MARKERS[beatState]}</i>
+          ) : null}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function MetronomeVisualLabLine({ activeBeat, beatPattern, isPlaying }) {
+  const beatCount = Math.max(1, beatPattern.length);
+  const activeState = beatPattern[activeBeat] ?? METRONOME_BEAT_STATES.ACCENT;
+  const position = beatCount === 1 ? 50 : (activeBeat / (beatCount - 1)) * 100;
+
+  return (
+    <div className="metronomeVisualLabLine" aria-label="Rhythm Line Mode visual preview">
+      <div className="metronomeVisualLabLineTrack">
+        {beatPattern.map((beatState, index) => (
+          <span
+            className={`metronomeVisualLabLineTick metronomeVisualLabLineTick--${beatState}`}
+            key={`visual-line-tick-${index}`}
+            style={{ left: `${beatCount === 1 ? 50 : (index / (beatCount - 1)) * 100}%` }}
+          />
+        ))}
+        <span
+          className={`metronomeVisualLabLineCursor metronomeVisualLabLineCursor--${activeState} ${isPlaying ? "active" : ""}`}
+          style={{ left: `${position}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function MetronomeVisualLabCircle({ activeBeat, beatPattern, isPlaying }) {
+  const beatCount = Math.max(1, beatPattern.length);
+
+  return (
+    <div className="metronomeVisualLabCircle" aria-label="Circle Mode visual preview">
+      <div className="metronomeVisualLabCircleOrbit">
+        {beatPattern.map((beatState, index) => (
+          <span
+            className={`metronomeVisualLabCircleBeat metronomeVisualLabCircleBeat--${beatState} ${isPlaying && activeBeat === index ? "active" : ""}`}
+            key={`visual-circle-${index}`}
+            style={{ "--beat-angle": `${(360 / beatCount) * index - 90}deg` }}
+          >
+            <span aria-hidden="true" />
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MetronomeVisualLabPickSwing({ activeBeat, beatPattern, isPlaying }) {
+  const beatState = beatPattern[activeBeat] ?? METRONOME_BEAT_STATES.ACCENT;
+  const swingDirection = activeBeat % 2 === 0 ? -1 : 1;
+  const swingSize = beatState === METRONOME_BEAT_STATES.ACCENT ? 28 : beatState === METRONOME_BEAT_STATES.MUTE ? 10 : 18;
+
+  return (
+    <div className="metronomeVisualLabPickSwing" aria-label="Pick Swing Mode visual preview">
+      <div className="metronomeVisualLabStringSet" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+      <div
+        className={`metronomeVisualLabPick metronomeVisualLabPick--${beatState} ${isPlaying ? "active" : ""}`}
+        style={{ "--pick-angle": `${swingDirection * swingSize}deg` }}
+      >
+        <span>R</span>
+      </div>
+      <div className="metronomeVisualLabPickCaption">
+        {beatState === METRONOME_BEAT_STATES.ACCENT ? "Strong Swing" : beatState === METRONOME_BEAT_STATES.MUTE ? "Mute Pass" : "Weak Swing"}
+      </div>
+    </div>
+  );
+}
+
+function MetronomeVisualLabPreview({ activeBeat, beatPattern, bpm, isPlaying, mode, timeSignature }) {
+  const selectedMode = METRONOME_VISUAL_LAB_MODES.find((item) => item.id === mode) ?? METRONOME_VISUAL_LAB_MODES[0];
+
+  return (
+    <article className={`headerPreviewCard metronomeVisualLabPreview metronomeVisualLabPreview--${mode}`}>
+      <div className="headerPreviewMeta">
+        <span>{selectedMode.title}</span>
+        <small>{selectedMode.description}</small>
+        <em className="designLabStatus designLabStatus--draft">Experimental</em>
+      </div>
+      <div className="metronomeVisualLabStage">
+        {mode === "line" ? (
+          <MetronomeVisualLabLine activeBeat={activeBeat} beatPattern={beatPattern} isPlaying={isPlaying} />
+        ) : mode === "circle" ? (
+          <MetronomeVisualLabCircle activeBeat={activeBeat} beatPattern={beatPattern} isPlaying={isPlaying} />
+        ) : mode === "pick" ? (
+          <MetronomeVisualLabPickSwing activeBeat={activeBeat} beatPattern={beatPattern} isPlaying={isPlaying} />
+        ) : (
+          <MetronomeVisualLabDot activeBeat={activeBeat} beatPattern={beatPattern} isPlaying={isPlaying} />
+        )}
+      </div>
+      <div className="metronomeVisualLabReadout">
+        <span>{bpm} BPM</span>
+        <span>{timeSignature}</span>
+        <span>{isPlaying ? `Beat ${activeBeat + 1}` : "Ready"}</span>
+      </div>
+    </article>
   );
 }
 
@@ -1889,6 +2268,12 @@ function getStoredDesignLabAppIconState() {
   }
 }
 
+function getStoredGuitarLabVariantId() {
+  if (typeof window === "undefined") return DEFAULT_GUITAR_LAB_VARIANT_ID;
+  const stored = window.localStorage.getItem(GUITAR_LAB_STORAGE_KEY);
+  return GUITAR_LAB_VARIANT_IDS.has(stored) ? stored : DEFAULT_GUITAR_LAB_VARIANT_ID;
+}
+
 function getHeaderVariantLabel(variantId) {
   return [HEADER_RESTORE_VARIANT, ...HEADER_VARIANTS].find((variant) => variant.id === variantId)?.title ?? HEADER_RESTORE_VARIANT.title;
 }
@@ -1928,6 +2313,134 @@ function AppIconSvgPreview({ variantId }) {
   const isShield = variantId === "icon-v18";
   const isPremium = variantId === "icon-v19";
   const isUltimate = variantId === "icon-v20";
+
+  if (variantNumber >= 3 && variantNumber <= 100) {
+    const conceptIndex = variantNumber - 3;
+    const mode = conceptIndex % 14;
+    const paletteIndex = Math.floor(conceptIndex / 14) % 7;
+    const palettes = [
+      { bg: "#050607", fg: "#fff4d4", accent: "#d8a64e", sub: "#7a5124" },
+      { bg: "#f7f1e6", fg: "#090807", accent: "#111827", sub: "#b8873d" },
+      { bg: "#061329", fg: "#ffffff", accent: "#78aefb", sub: "#d6a64d" },
+      { bg: "#080504", fg: "#f1ca7a", accent: "#ffffff", sub: "#8d5f2c" },
+      { bg: "#0a0d0e", fg: "#f5efe3", accent: "#e55f5f", sub: "#d8a64e" },
+      { bg: "#f9f8f4", fg: "#0b1117", accent: "#c18a35", sub: "#25324b" },
+      { bg: "#030405", fg: "#ffffff", accent: "#f1ca7a", sub: "#6f7b86" },
+    ];
+    const p = palettes[paletteIndex] ?? palettes[0];
+    const goldId = `${uniqueId}-philosophy-gold`;
+    const glowId = `${uniqueId}-philosophy-glow`;
+
+    return (
+      <svg className="appIconSvgPreview appIconSvgPreview--philosophy" viewBox="0 0 120 120" role="img" aria-label={`${getAppIconVariantLabel(variantId)} SVG`}>
+        <defs>
+          <linearGradient id={goldId} x1="20" x2="100" y1="12" y2="108" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor={p.fg} />
+            <stop offset="0.52" stopColor={p.accent} />
+            <stop offset="1" stopColor={p.sub} />
+          </linearGradient>
+          <radialGradient id={glowId} cx="48%" cy="28%" r="70%">
+            <stop offset="0" stopColor={p.accent} stopOpacity="0.34" />
+            <stop offset="1" stopColor={p.bg} stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <rect width="120" height="120" rx={paletteIndex % 3 === 1 ? 19 : 27} fill={p.bg} />
+        <rect width="120" height="120" rx={paletteIndex % 3 === 1 ? 19 : 27} fill={`url(#${glowId})`} />
+        {mode === 0 ? (
+          <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M35 40 C45 24 72 25 84 41 C96 58 84 83 61 84 C47 85 36 78 31 67" stroke={`url(#${goldId})`} strokeWidth="10" />
+            <path d="M80 72 L84 92 L66 83" stroke={p.accent} strokeWidth="9" />
+            <circle cx="60" cy="60" r="6" fill={p.fg} />
+          </g>
+        ) : null}
+        {mode === 1 ? (
+          <g>
+            <path d="M24 78 H94" stroke={p.sub} strokeWidth="6" strokeLinecap="round" opacity="0.52" />
+            {[34, 48, 62, 76].map((x, index) => <rect key={x} x={x} y={74 - index * 9} width="12" height={16 + index * 9} rx="5" fill={index === 3 ? p.accent : p.fg} opacity={index === 3 ? 1 : 0.82} />)}
+            <path d="M84 31 L96 43 L84 55" fill="none" stroke={p.accent} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+          </g>
+        ) : null}
+        {mode === 2 ? (
+          <g>
+            <circle cx="60" cy="60" r="36" fill="none" stroke={p.fg} strokeWidth="7" opacity="0.88" />
+            <circle cx="60" cy="60" r="17" fill="none" stroke={p.accent} strokeWidth="6" />
+            <circle cx="60" cy="60" r="5" fill={p.fg} />
+            <path d="M60 17 V35 M60 85 V103 M17 60 H35 M85 60 H103" stroke={p.sub} strokeWidth="4" strokeLinecap="round" />
+          </g>
+        ) : null}
+        {mode === 3 ? (
+          <path d="M60 16 C88 20 102 41 95 66 C88 88 72 104 60 109 C48 104 32 88 25 66 C18 41 32 20 60 16 Z M43 72 L77 35 H63 L36 72 Z" fill={`url(#${goldId})`} fillRule="evenodd" />
+        ) : null}
+        {mode === 4 ? (
+          <g fill="none" strokeLinecap="round">
+            {[30, 45, 60, 75, 90].map((x) => <line key={x} x1={x} x2={x} y1="20" y2="100" stroke={p.sub} strokeWidth="3" opacity="0.58" />)}
+            <path d="M30 82 C42 45 57 77 69 45 C80 18 91 58 96 34" stroke={`url(#${goldId})`} strokeWidth="8" />
+            <circle cx="69" cy="45" r="8" fill={p.accent} />
+          </g>
+        ) : null}
+        {mode === 5 ? (
+          <g>
+            {[26, 36, 48, 60, 72, 84, 94].map((x, index) => <rect key={x} x={x} y={58 - [8, 18, 30, 42, 30, 18, 8][index] / 2} width="6" height={[8, 18, 30, 42, 30, 18, 8][index]} rx="3" fill={index === 3 ? p.accent : p.fg} opacity={index === 3 ? 1 : 0.82} />)}
+            <text x="60" y="96" textAnchor="middle" fill={p.fg} fontFamily="Arial Black, Arial, sans-serif" fontSize="8" fontWeight="900" letterSpacing="2">RIFF</text>
+          </g>
+        ) : null}
+        {mode === 6 ? (
+          <g fill="none" strokeLinecap="round">
+            <path d="M30 33 H86" stroke={p.fg} strokeWidth="8" />
+            <path d="M30 60 H76" stroke={p.accent} strokeWidth="8" />
+            <path d="M30 87 H95" stroke={p.fg} strokeWidth="8" />
+            <path d="M88 24 L100 33 L88 42 M78 51 L90 60 L78 69 M97 78 L109 87 L97 96" stroke={p.sub} strokeWidth="5" strokeLinejoin="round" />
+          </g>
+        ) : null}
+        {mode === 7 ? (
+          <g>
+            <path d="M28 75 C40 31 76 26 91 45 C104 63 82 80 59 66 L82 94" fill="none" stroke={`url(#${goldId})`} strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M42 91 H96" stroke={p.accent} strokeWidth="5" strokeLinecap="round" />
+          </g>
+        ) : null}
+        {mode === 8 ? (
+          <g>
+            <path d="M27 73 L47 46 L62 62 L82 29 L98 73" fill="none" stroke={`url(#${goldId})`} strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M25 88 H99" stroke={p.sub} strokeWidth="5" strokeLinecap="round" opacity="0.64" />
+            <circle cx="82" cy="29" r="6" fill={p.accent} />
+          </g>
+        ) : null}
+        {mode === 9 ? (
+          <g>
+            <path d="M31 42 C41 27 67 26 81 40 C95 54 91 79 73 88" fill="none" stroke={p.fg} strokeWidth="9" strokeLinecap="round" />
+            <path d="M81 76 L75 94 L62 79" fill={p.accent} />
+            <path d="M38 59 H83" stroke={p.sub} strokeWidth="5" strokeLinecap="round" opacity="0.68" />
+          </g>
+        ) : null}
+        {mode === 10 ? (
+          <g>
+            <circle cx="60" cy="60" r="40" fill="none" stroke={p.sub} strokeWidth="4" opacity="0.7" />
+            <circle cx="60" cy="60" r="25" fill="none" stroke={p.fg} strokeWidth="7" />
+            <path d="M60 28 L69 52 L95 60 L69 68 L60 92 L51 68 L25 60 L51 52 Z" fill={p.accent} />
+          </g>
+        ) : null}
+        {mode === 11 ? (
+          <g>
+            <path d="M38 88 V29 H74 C86 29 94 37 94 48 C94 59 86 66 73 66 H55 V88 Z" fill="none" stroke={`url(#${goldId})`} strokeWidth="9" strokeLinejoin="round" />
+            <path d="M53 70 L83 94" stroke={p.accent} strokeWidth="7" strokeLinecap="round" />
+          </g>
+        ) : null}
+        {mode === 12 ? (
+          <g>
+            {[34, 48, 62, 76, 90].map((x, index) => <circle key={x} cx={x} cy={index % 2 ? 48 : 72} r={index === 2 ? 10 : 7} fill={index === 2 ? p.accent : p.fg} />)}
+            <path d="M34 72 L48 48 L62 72 L76 48 L90 72" fill="none" stroke={p.sub} strokeWidth="4" strokeLinecap="round" opacity="0.7" />
+          </g>
+        ) : null}
+        {mode === 13 ? (
+          <g>
+            <rect x="27" y="25" width="66" height="70" rx="18" fill="none" stroke={`url(#${goldId})`} strokeWidth="5" />
+            <path d="M42 67 L55 80 L82 40" fill="none" stroke={p.accent} strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="84" cy="29" r="5" fill={p.fg} />
+          </g>
+        ) : null}
+      </svg>
+    );
+  }
 
   if (variantNumber >= 101) {
     const family = variantNumber - 101;
@@ -2485,9 +2998,9 @@ function AppIconSvgPreview({ variantId }) {
 function AppIconPreview({ variantId, size = "large" }) {
   const variantNumber = Number(variantId.replace("icon-v", ""));
   const isWordmark = variantId === "icon-v1" || variantId === "icon-v2";
-  const isSignature = variantId === "icon-v3" || variantId === "icon-v10";
-  const isSvg = variantNumber >= 11;
-  const isR = ["icon-v4", "icon-v5", "icon-v6", "icon-v7", "icon-v8", "icon-v9"].includes(variantId);
+  const isSignature = false;
+  const isSvg = variantNumber >= 3;
+  const isR = false;
   const isSymbol = variantNumber >= 41;
 
   return (
@@ -2510,35 +3023,111 @@ function AppIconPreview({ variantId, size = "large" }) {
   );
 }
 
-function CharacterLabPreview({ variantId }) {
+function GuitarAssetSvg({ variant, className = "", compact = false }) {
+  const isElectric = variant.pack === "Electric";
+  const isClassical = variant.pack === "Classical";
+  const uniqueId = `guitar-${variant.id}`;
+  const soundHole = isElectric ? null : <circle cx="104" cy="82" r={isClassical ? 15 : 13} fill="#080807" stroke="#d9aa55" strokeWidth="2.5" />;
+  const pickups = isElectric ? (
+    <>
+      <rect x="90" y="74" width="18" height="9" rx="2" fill="#ece3d0" stroke="#111" strokeWidth="1.5" />
+      <rect x="116" y="76" width="18" height="9" rx="2" fill="#ece3d0" stroke="#111" strokeWidth="1.5" />
+    </>
+  ) : null;
+  const pickguard = isElectric || variant.shape === "round" || variant.shape === "jumbo" ? (
+    <path d="M112 92 C129 91 140 79 142 68 C132 75 121 78 110 78 C115 84 115 88 112 92 Z" fill={isElectric ? "#0b0b0b" : "rgba(18, 13, 8, 0.62)"} opacity="0.9" />
+  ) : null;
+  const bodyPathMap = {
+    round: "M58 82 C58 54 84 48 101 62 C118 46 151 54 154 86 C157 119 123 129 101 112 C78 130 56 114 58 82 Z",
+    waist: "M60 82 C57 59 82 50 101 64 C120 48 147 58 151 85 C154 113 122 126 101 110 C80 127 62 110 60 82 Z",
+    compact: "M65 82 C63 61 83 55 101 66 C118 54 142 62 145 85 C148 109 121 119 101 106 C82 120 66 105 65 82 Z",
+    jumbo: "M52 82 C51 49 83 43 103 62 C124 42 160 50 165 88 C169 124 126 139 103 114 C78 139 51 119 52 82 Z",
+    mini: "M72 83 C71 65 87 60 101 69 C115 60 135 66 137 86 C139 105 118 113 101 102 C85 113 73 102 72 83 Z",
+    classical: "M59 82 C57 58 82 50 101 64 C120 50 146 58 149 84 C152 111 123 126 101 110 C80 126 61 109 59 82 Z",
+    strat: "M64 85 C66 63 83 58 99 66 L113 53 C117 68 131 63 147 69 C140 80 143 96 151 107 C132 114 119 108 104 103 C88 121 63 108 64 85 Z",
+    tele: "M67 80 C68 59 86 54 102 64 C115 54 138 59 145 76 L146 107 C123 114 91 114 68 105 Z",
+    lp: "M61 82 C59 59 81 50 100 64 C115 49 143 58 151 83 C157 111 121 130 101 109 C81 130 63 108 61 82 Z",
+    super: "M63 86 C63 64 82 57 99 66 L113 51 C119 70 133 61 151 70 C141 84 151 98 158 112 C133 112 119 106 104 102 C87 121 62 109 63 86 Z",
+    metal: "M54 84 L83 58 L103 70 L134 50 L126 78 L164 90 L127 99 L141 126 L104 106 L72 123 L82 99 Z",
+  };
+  const bodyPath = bodyPathMap[variant.shape] || bodyPathMap.round;
+  const headPath = variant.shape === "metal"
+    ? "M210 59 L236 47 L231 72 Z"
+    : variant.shape === "tele"
+      ? "M210 56 C228 53 238 58 239 66 C228 72 218 70 210 66 Z"
+      : "M209 54 C222 45 236 50 239 62 C231 72 219 72 209 66 Z";
+
   return (
-    <div className={`characterPreviewStage characterPreviewStage--${variantId}`}>
-      <div className="characterPreviewPlayer" aria-hidden="true">
-        <span className="characterPreviewShadow" />
-        <span className="characterPreviewEar characterPreviewEar--left" />
-        <span className="characterPreviewEar characterPreviewEar--right" />
-        <span className="characterPreviewHat" />
-        <span className="characterPreviewHead">
-          <i />
-          <b />
-        </span>
-        <span className="characterPreviewBody" />
-        <span className="characterPreviewArm" />
-        <span className="characterPreviewLeg characterPreviewLeg--left" />
-        <span className="characterPreviewLeg characterPreviewLeg--right" />
-        <span className="characterPreviewGuitarBody" />
-        <span className="characterPreviewNeck">
-          <i />
-          <i />
-          <i />
-        </span>
-        <span className="characterPreviewFlame" />
+    <svg className={`guitarAssetSvg ${className}`} viewBox="0 0 260 150" role="img" aria-label={`${variant.title} SVG guitar asset`}>
+      <defs>
+        <linearGradient id={`${uniqueId}-body`} x1="60" x2="160" y1="48" y2="126" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#fff1bd" stopOpacity="0.22" />
+          <stop offset="0.42" stopColor={variant.bodyColor} />
+          <stop offset="1" stopColor="#111" stopOpacity="0.95" />
+        </linearGradient>
+        <linearGradient id={`${uniqueId}-neck`} x1="134" x2="214" y1="70" y2="70">
+          <stop offset="0" stopColor="#3a2412" />
+          <stop offset="1" stopColor="#c9904a" />
+        </linearGradient>
+        <filter id={`${uniqueId}-shadow`}>
+          <feDropShadow dx="0" dy="8" stdDeviation="6" floodColor="#000000" floodOpacity="0.45" />
+        </filter>
+      </defs>
+      <ellipse cx="126" cy="124" rx="82" ry="12" fill="#000" opacity="0.28" />
+      <g filter={`url(#${uniqueId}-shadow)`}>
+        <path className="guitarAssetBody" d={bodyPath} fill={`url(#${uniqueId}-body)`} stroke={variant.accentColor} strokeWidth="3" />
+        <rect className="guitarAssetFretboard" x="135" y="64" width="82" height="16" rx="5" fill={`url(#${uniqueId}-neck)`} stroke="#100b06" strokeWidth="2" />
+        <rect className="guitarAssetNut" x="205" y="61" width="5" height="22" rx="2" fill="#ece3d0" />
+        <path className="guitarAssetHead" d={headPath} fill={variant.bodyColor} stroke={variant.accentColor} strokeWidth="2.5" />
+        {[0, 1, 2, 3, 4, 5].map((peg) => (
+          <circle className="guitarAssetPeg" cx={216 + (peg % 3) * 9} cy={peg < 3 ? 53 : 74} r="3.2" fill="#f1ca7a" stroke="#120a04" strokeWidth="1" key={peg} />
+        ))}
+        {[0, 1, 2, 3, 4, 5].map((stringIndex) => (
+          <line className="guitarAssetString" x1="76" x2="224" y1={68 + stringIndex * 2.4} y2={65 + stringIndex * 2.2} stroke="#fff2c8" strokeWidth={stringIndex < 2 ? "0.9" : "0.65"} opacity="0.74" key={stringIndex} />
+        ))}
+        {[151, 164, 177, 190].map((fret) => (
+          <line className="guitarAssetFret" x1={fret} x2={fret} y1="63" y2="82" stroke="#f1ca7a" strokeWidth="1.2" opacity="0.68" key={fret} />
+        ))}
+        {soundHole}
+        {pickups}
+        {pickguard}
+        <rect className="guitarAssetBridge" x={isElectric ? 136 : 72} y={isElectric ? 82 : 94} width={isElectric ? 22 : 28} height={isElectric ? 18 : 9} rx="3" fill="#17100a" stroke="#d9aa55" strokeWidth="2" />
+        <rect className="guitarAssetSaddle" x={isElectric ? 141 : 77} y={isElectric ? 83 : 96} width={isElectric ? 12 : 18} height="3" rx="1.5" fill="#f7e6bd" />
+        {!compact ? <text x="26" y="132" fill="rgba(255,238,202,0.52)" fontSize="9" fontWeight="900" letterSpacing="2">{variant.pack.toUpperCase()}</text> : null}
+      </g>
+    </svg>
+  );
+}
+
+function GuitarLabPreview({ variant, active = false }) {
+  const parts = ["헤드", "페그", "너트", "넥", "프렛보드", variant.pack === "Electric" ? "픽업" : "사운드홀", "픽가드", "브릿지", "새들", "바디"];
+
+  return (
+    <div className={`guitarLabPreview ${active ? "active" : ""}`}>
+      <div className="guitarLabStage">
+        <GuitarAssetSvg variant={variant} />
       </div>
-      <span className="characterPreviewShot" aria-hidden="true" />
-      <div className="characterPreviewTarget" aria-hidden="true">
-        <i />
-        <b />
+      <div className="guitarLabParts" aria-label={`${variant.title} 구조`}>
+        {parts.map((part) => <span key={part}>{part}</span>)}
       </div>
+    </div>
+  );
+}
+
+function MonsterLabPreview({ monster }) {
+  const tone = (monster.variant - 1) % 10;
+  return (
+    <div className={`monsterPreview monsterPreview--${monster.groupId} monsterPreview--v${tone + 1}`} aria-label={`${monster.title} 미리보기`}>
+      <span className="monsterPreviewEar monsterPreviewEar--left" aria-hidden="true" />
+      <span className="monsterPreviewEar monsterPreviewEar--right" aria-hidden="true" />
+      <span className="monsterPreviewHorn monsterPreviewHorn--left" aria-hidden="true" />
+      <span className="monsterPreviewHorn monsterPreviewHorn--right" aria-hidden="true" />
+      <span className="monsterPreviewCore">
+        <i className="monsterPreviewEyes" aria-hidden="true" />
+        <b>{monster.symbol}</b>
+        <small>{monster.groupId === "special" ? "FX" : monster.groupId === "rest" ? "REST" : "NOTE"}</small>
+      </span>
+      <span className="monsterPreviewMouth" aria-hidden="true" />
     </div>
   );
 }
@@ -2893,6 +3482,12 @@ const FRETBOARD_VIEWER_MODES = {
   CHORD: "chord",
   INFO: "info",
 };
+
+const FRETBOARD_VIEWER_MODE_ORDER = [
+  FRETBOARD_VIEWER_MODES.NOTE,
+  FRETBOARD_VIEWER_MODES.SCALE,
+  FRETBOARD_VIEWER_MODES.CHORD,
+];
 
 const CHORD_VIEWER_POSITIONS = [
   { id: "position1", label: "1구간" },
@@ -3381,8 +3976,12 @@ function App() {
   const [designLabAppIconState, setDesignLabAppIconState] = useState(getStoredDesignLabAppIconState);
   const [designLabSection, setDesignLabSection] = useState("logo");
   const [logoPreviewScale, setLogoPreviewScale] = useState(100);
+  const [metronomeVisualLabMode, setMetronomeVisualLabMode] = useState("dot");
+  const [metronomeVisualLabPlaying, setMetronomeVisualLabPlaying] = useState(false);
+  const [metronomeVisualLabBeat, setMetronomeVisualLabBeat] = useState(0);
   const [selectedHeaderCandidateId, setSelectedHeaderCandidateId] = useState(getStoredDesignLabHeaderState().activeHeader);
   const [selectedAppIconCandidateId, setSelectedAppIconCandidateId] = useState(getStoredDesignLabAppIconState().activeIcon);
+  const [selectedGuitarVariantId, setSelectedGuitarVariantId] = useState(getStoredGuitarLabVariantId);
   const [deviceInfo, setDeviceInfo] = useState(getDeviceSnapshot);
   const [gameState, setGameState] = useState(GAME_STATES.IDLE);
   const [micStatus, setMicStatus] = useState("No Signal");
@@ -3413,6 +4012,7 @@ function App() {
   const [selectedScaleType, setSelectedScaleType] = useState(PENTATONIC_TYPES.minor.id);
   const [selectedScaleBox, setSelectedScaleBox] = useState(1);
   const [viewerMode, setViewerMode] = useState(FRETBOARD_VIEWER_MODES.NOTE);
+  const [viewerSwipeFeedback, setViewerSwipeFeedback] = useState("");
   const [viewerNoteFilter, setViewerNoteFilter] = useState("ALL");
   const [viewerOctaveRange] = useState("all");
   const [viewerScaleRoot, setViewerScaleRoot] = useState("A");
@@ -3466,16 +4066,39 @@ function App() {
   const [metronomeSubdivision, setMetronomeSubdivision] = useState("quarter");
   const [metronomeTone, setMetronomeTone] = useState("tick");
   const [metronomeCountIn, setMetronomeCountIn] = useState(false);
+  const [metronomeCountInBars, setMetronomeCountInBars] = useState(0);
+  const [metronomeCountInVoiceMode, setMetronomeCountInVoiceMode] = useState("female");
   const [metronomeRepeat, setMetronomeRepeat] = useState(false);
+  const [autoBpmMode, setAutoBpmMode] = useState("off");
+  const [autoBpmDirection, setAutoBpmDirection] = useState("increase");
   const [autoBpmEnabled, setAutoBpmEnabled] = useState(false);
-  const [autoBpmStep, setAutoBpmStep] = useState(2);
-  const [autoBpmBars, setAutoBpmBars] = useState(10);
+  const [autoBpmStep, setAutoBpmStep] = useState(1);
+  const [autoBpmBars, setAutoBpmBars] = useState(50);
+  const [autoBpmTimeMinutes, setAutoBpmTimeMinutes] = useState(0);
+  const [autoBpmTimeSeconds, setAutoBpmTimeSeconds] = useState(30);
   const [autoBpmIncrements, setAutoBpmIncrements] = useState(0);
   const [coachModeEnabled, setCoachModeEnabled] = useState(false);
   const [coachPlayBars, setCoachPlayBars] = useState(4);
   const [coachMuteBars, setCoachMuteBars] = useState(4);
+  const [metronomeAdvancedPanel, setMetronomeAdvancedPanel] = useState("");
+  const [metronomeTrackerMode, setMetronomeTrackerMode] = useState("off");
+  const [metronomeBarLimitEnabled, setMetronomeBarLimitEnabled] = useState(false);
+  const [metronomeBarLimit, setMetronomeBarLimit] = useState(100);
+  const [metronomeBarStopWhenReached, setMetronomeBarStopWhenReached] = useState(false);
+  const [metronomeBarResetWhenReached, setMetronomeBarResetWhenReached] = useState(false);
+  const [metronomeBarStartFromOne, setMetronomeBarStartFromOne] = useState(true);
+  const [metronomeTimerCountdown, setMetronomeTimerCountdown] = useState(false);
+  const [metronomeTimerStopWhenReached, setMetronomeTimerStopWhenReached] = useState(false);
+  const [metronomeTimerResetWhenReached, setMetronomeTimerResetWhenReached] = useState(false);
+  const [metronomeTrackerTimerMinutes, setMetronomeTrackerTimerMinutes] = useState(0);
+  const [metronomeTrackerTimerSeconds, setMetronomeTrackerTimerSeconds] = useState(0);
   const [metronomeMeasureCount, setMetronomeMeasureCount] = useState(0);
+  const [metronomeTrackerElapsedMs, setMetronomeTrackerElapsedMs] = useState(0);
   const [metronomeIsMutedCycle, setMetronomeIsMutedCycle] = useState(false);
+  const [metronomeBeatPattern, setMetronomeBeatPattern] = useState(() => normalizeMetronomeBeatPattern([], 4));
+  const [metronomePresetName, setMetronomePresetName] = useState(METRONOME_PRESET_DEFAULT_NAME);
+  const [metronomePresetSelectedId, setMetronomePresetSelectedId] = useState("");
+  const [metronomePresets, setMetronomePresets] = useState(getStoredMetronomePresets);
   const [feelRecorderActive, setFeelRecorderActive] = useState(false);
   const [feelRecorderEvents, setFeelRecorderEvents] = useState([]);
   const [feelPatternName, setFeelPatternName] = useState(FEEL_RECORDER_DEFAULT_NAME);
@@ -3504,10 +4127,22 @@ function App() {
     () => APP_ICON_VARIANTS.filter((variant) => !designLabAppIconState.deletedIcons.includes(variant.id)),
     [designLabAppIconState.deletedIcons],
   );
+  const selectedGuitarVariant = useMemo(
+    () => GUITAR_LAB_VARIANTS.find((variant) => variant.id === selectedGuitarVariantId) ?? GUITAR_LAB_VARIANTS[0],
+    [selectedGuitarVariantId],
+  );
   const logoPreviewStyle = useMemo(
     () => ({ "--logo-preview-scale": logoPreviewScale / 100 }),
     [logoPreviewScale],
   );
+
+  const applyGuitarVariant = useCallback((variantId) => {
+    if (!GUITAR_LAB_VARIANT_IDS.has(variantId)) return;
+    setSelectedGuitarVariantId(variantId);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(GUITAR_LAB_STORAGE_KEY, variantId);
+    }
+  }, []);
 
   const updateDesignLabHeaderState = useCallback((updater) => {
     setDesignLabHeaderState((current) => {
@@ -3651,15 +4286,36 @@ function App() {
   const metronomeSubdivisionRef = useRef("quarter");
   const metronomeToneRef = useRef("tick");
   const metronomeCountInRef = useRef(false);
+  const metronomeCountInBarsRef = useRef(0);
+  const metronomeCountInVoiceModeRef = useRef("female");
   const metronomeVolumeRef = useRef(0.72);
+  const metronomeBeatPatternRef = useRef(normalizeMetronomeBeatPattern([], 4));
+  const metronomeVisualLabBeatRef = useRef(0);
+  const metronomeVisualLabTimerRef = useRef(null);
+  const autoBpmModeRef = useRef("off");
+  const autoBpmDirectionRef = useRef("increase");
   const autoBpmEnabledRef = useRef(false);
-  const autoBpmStepRef = useRef(2);
-  const autoBpmBarsRef = useRef(10);
+  const autoBpmStepRef = useRef(1);
+  const autoBpmBarsRef = useRef(50);
+  const autoBpmTimeMsRef = useRef(30000);
   const coachModeEnabledRef = useRef(false);
   const coachPlayBarsRef = useRef(4);
   const coachMuteBarsRef = useRef(4);
+  const metronomeTrackerModeRef = useRef("off");
+  const metronomeTrackerElapsedUpdateRef = useRef(0);
+  const metronomeBarLimitEnabledRef = useRef(false);
+  const metronomeBarLimitRef = useRef(100);
+  const metronomeBarStopWhenReachedRef = useRef(false);
+  const metronomeBarResetWhenReachedRef = useRef(false);
+  const metronomeTimerStopWhenReachedRef = useRef(false);
+  const metronomeTimerResetWhenReachedRef = useRef(false);
+  const metronomeTrackerTimerTotalMsRef = useRef(0);
   const lastAutoBpmMeasureRef = useRef(0);
+  const lastAutoBpmTimeRef = useRef(0);
   const tapTempoTimesRef = useRef([]);
+  const bpmSwipeStartRef = useRef(null);
+  const fretboardSwipeStartRef = useRef(null);
+  const fretboardSwipeFeedbackTimerRef = useRef(null);
   const feelRecordingStartRef = useRef(0);
   const feelPressStartRef = useRef(0);
   const feelLastReleaseRef = useRef(0);
@@ -4237,6 +4893,47 @@ function App() {
   const isPositionPracticeMode = currentJudgmentMode.id === JUDGMENT_MODES.POSITION.id;
   const beatMs = getBeatMs(bpm);
   const metronomeBeatsPerMeasure = getTimeSignatureOption(metronomeTimeSignature).beats;
+  const standaloneBeatPattern = normalizeMetronomeBeatPattern(metronomeBeatPattern, metronomeBeatsPerMeasure);
+  const trackerCountInLabel = TRACKER_COUNT_IN_OPTIONS.find((option) => option.bars === metronomeCountInBars)?.label ?? "OFF";
+  const trackerTimerSecondsTotal = metronomeTrackerTimerMinutes * 60 + metronomeTrackerTimerSeconds;
+  const trackerElapsedSeconds = Math.floor(metronomeTrackerElapsedMs / 1000);
+  const trackerRemainingSeconds = Math.max(0, trackerTimerSecondsTotal - trackerElapsedSeconds);
+  const formatTrackerTime = (seconds) => {
+    const safeSeconds = Math.max(0, Number(seconds) || 0);
+    const minutes = Math.floor(safeSeconds / 60);
+    const restSeconds = safeSeconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(restSeconds).padStart(2, "0")}`;
+  };
+  const trackerTimerLabel = trackerTimerSecondsTotal ? formatTrackerTime(trackerRemainingSeconds) : "Timer";
+  const trackerBarProgressLabel = metronomeBarLimitEnabled
+    ? `${Math.min(metronomeMeasureCount, metronomeBarLimit)} | ${metronomeBarLimit}`
+    : `${metronomeMeasureCount} Bars`;
+  const trackerSummaryLabel = metronomeTrackerMode === "bars"
+    ? trackerBarProgressLabel
+    : metronomeTrackerMode === "timer"
+      ? trackerTimerLabel
+      : "OFF";
+  const trackerDetailLabel = metronomeTrackerMode === "bars"
+    ? (metronomeBarLimitEnabled ? "Bar Counter Progress" : "Bar Counter")
+    : metronomeTrackerMode === "timer"
+      ? (trackerTimerSecondsTotal ? `Timer · ${formatTrackerTime(trackerTimerSecondsTotal)}` : "Timer · 0 mins 0 secs")
+      : `Count In ${trackerCountInLabel}`;
+  const autoBpmSignedStep = autoBpmDirection === "decrease" ? -autoBpmStep : autoBpmStep;
+  const autoBpmSign = autoBpmSignedStep > 0 ? "+" : "-";
+  const autoBpmTimeSecondsTotal = autoBpmTimeMinutes * 60 + autoBpmTimeSeconds;
+  const autoBpmIntervalLabel = autoBpmMode === "time"
+    ? `Every ${autoBpmTimeSecondsTotal >= 60 ? `${autoBpmTimeMinutes}m ${autoBpmTimeSeconds}s` : `${Math.max(1, autoBpmTimeSecondsTotal)}s`}`
+    : `Every ${autoBpmBars} Bars`;
+  const automatorSummaryLabel = autoBpmMode !== "off"
+    ? `${autoBpmSign}${Math.abs(autoBpmSignedStep)} BPM`
+    : coachModeEnabled
+      ? "Coach ON"
+      : "OFF";
+  const automatorDetailLabel = autoBpmMode !== "off"
+    ? autoBpmIntervalLabel
+    : coachModeEnabled
+      ? `${coachPlayBars} / ${coachMuteBars}`
+      : "Automator OFF";
   const resetScore = useCallback(() => {
     enemiesRef.current = [];
     projectilesRef.current = [];
@@ -4372,7 +5069,7 @@ function App() {
     return audio.state === "running";
   }, []);
 
-  const playTick = useCallback((accent = false, subdivisionIndex = 0) => {
+  const playTick = useCallback((accent = false, subdivisionIndex = 0, useAccentSetting = true) => {
     const audio = audioRef.current;
     if (!audio || gameStateRef.current !== GAME_STATES.PLAYING || !metronomeOnRef.current) return;
     if (audio.state === "suspended") {
@@ -4386,7 +5083,7 @@ function App() {
 
     const now = audio.currentTime;
     const selectedTone = getMetronomeToneOption(metronomeToneRef.current);
-    const accentOn = metronomeAccentRef.current;
+    const accentOn = useAccentSetting ? metronomeAccentRef.current : true;
     const masterLevel = Math.max(0, Math.min(1, metronomeVolumeRef.current ?? 0.72));
     const tickLevel = (accentOn ? (accent ? 1 : 0.5) : 0.82) * masterLevel;
 
@@ -4418,6 +5115,144 @@ function App() {
     gain.connect(audio.destination);
     source.start(now);
     console.log("[metronome] tick played");
+  }, []);
+
+  const playVisualLabTick = useCallback((beatState = METRONOME_BEAT_STATES.NORMAL) => {
+    const audio = audioRef.current;
+    if (!audio || beatState === METRONOME_BEAT_STATES.MUTE) return;
+    if (audio.state === "suspended") {
+      audio.resume().catch(() => {});
+      return;
+    }
+
+    const now = audio.currentTime;
+    const selectedTone = getMetronomeToneOption(metronomeToneRef.current);
+    const accent = beatState === METRONOME_BEAT_STATES.ACCENT;
+    const masterLevel = Math.max(0, Math.min(1, metronomeVolumeRef.current ?? 0.72));
+    const tickLevel = (accent ? 1 : 0.5) * masterLevel;
+
+    if (selectedTone.id === "tick") {
+      const oscillator = audio.createOscillator();
+      const gain = audio.createGain();
+      oscillator.type = "square";
+      oscillator.frequency.setValueAtTime(accent ? 1840 : 920, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(tickLevel * 0.4, now + (accent ? 0.003 : 0.008));
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + (accent ? 0.07 : 0.05));
+      oscillator.connect(gain);
+      gain.connect(audio.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.07);
+      return;
+    }
+
+    const buffer = metronomeSampleBuffersRef.current[selectedTone.id];
+    if (!buffer) return;
+
+    const source = audio.createBufferSource();
+    const gain = audio.createGain();
+    source.buffer = buffer;
+    source.playbackRate.setValueAtTime(accent ? 1.08 : 0.96, now);
+    gain.gain.setValueAtTime(tickLevel, now);
+    source.connect(gain);
+    gain.connect(audio.destination);
+    source.start(now);
+  }, []);
+
+  const stopMetronomeVisualLab = useCallback(() => {
+    window.clearInterval(metronomeVisualLabTimerRef.current);
+    metronomeVisualLabTimerRef.current = null;
+    setMetronomeVisualLabPlaying(false);
+  }, []);
+
+  const toggleMetronomeVisualLab = useCallback(async () => {
+    if (metronomeVisualLabPlaying) {
+      stopMetronomeVisualLab();
+      return;
+    }
+
+    const ready = await ensureAudioReady();
+    await loadMetronomeSamples(audioRef.current);
+    if (!ready) return;
+
+    metronomeVisualLabBeatRef.current = 0;
+    flushSync(() => setMetronomeVisualLabBeat(0));
+    playVisualLabTick(standaloneBeatPattern[0] ?? METRONOME_BEAT_STATES.ACCENT);
+    setMetronomeVisualLabPlaying(true);
+  }, [ensureAudioReady, loadMetronomeSamples, metronomeVisualLabPlaying, playVisualLabTick, standaloneBeatPattern, stopMetronomeVisualLab]);
+
+  useEffect(() => {
+    metronomeVisualLabBeatRef.current = metronomeVisualLabBeat;
+  }, [metronomeVisualLabBeat]);
+
+  useEffect(() => {
+    if (appMode !== APP_MODES.DESIGN_LAB || designLabSection !== "test") {
+      stopMetronomeVisualLab();
+    }
+  }, [appMode, designLabSection, stopMetronomeVisualLab]);
+
+  useEffect(() => {
+    if (!metronomeVisualLabPlaying) return undefined;
+
+    window.clearInterval(metronomeVisualLabTimerRef.current);
+    metronomeVisualLabTimerRef.current = window.setInterval(() => {
+      const nextBeat = (metronomeVisualLabBeatRef.current + 1) % metronomeBeatsPerMeasure;
+      metronomeVisualLabBeatRef.current = nextBeat;
+      flushSync(() => setMetronomeVisualLabBeat(nextBeat));
+      playVisualLabTick(standaloneBeatPattern[nextBeat] ?? METRONOME_BEAT_STATES.NORMAL);
+    }, beatMs);
+
+    return () => {
+      window.clearInterval(metronomeVisualLabTimerRef.current);
+      metronomeVisualLabTimerRef.current = null;
+    };
+  }, [beatMs, metronomeBeatsPerMeasure, metronomeVisualLabPlaying, playVisualLabTick, standaloneBeatPattern]);
+
+  useEffect(() => {
+    metronomeVisualLabBeatRef.current = 0;
+    setMetronomeVisualLabBeat(0);
+  }, [metronomeBeatsPerMeasure, metronomeVisualLabMode]);
+
+  const playCountInVoice = useCallback((beatIndex = 0) => {
+    const word = COUNT_IN_VOICE_WORDS[beatIndex] ?? String(beatIndex + 1);
+    const voiceMode = metronomeCountInVoiceModeRef.current;
+    if (voiceMode === "off") {
+      playTick(metronomeAccentRef.current && beatIndex === 0, 0);
+      return;
+    }
+    const canSpeak = typeof window !== "undefined" && "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+    if (!canSpeak) {
+      playTick(metronomeAccentRef.current && beatIndex === 0, 0);
+      return;
+    }
+
+    try {
+      const utterance = new window.SpeechSynthesisUtterance(word);
+      const voices = window.speechSynthesis.getVoices?.() ?? [];
+      const femaleVoice = voices.find((voice) => /^en/i.test(voice.lang) && /female|woman|zira|samantha|victoria|karen|serena|susan|aria|jenny|ava/i.test(voice.name))
+        ?? voices.find((voice) => /^en[-_]?US/i.test(voice.lang) && /zira|samantha|jenny|aria|ava/i.test(voice.name));
+      const maleVoice = voices.find((voice) => /^en/i.test(voice.lang) && /male|man|david|mark|daniel|george|alex|fred|tom|guy/i.test(voice.name))
+        ?? voices.find((voice) => /^en[-_]?US/i.test(voice.lang) && /david|mark|guy/i.test(voice.name));
+      const preferredVoice = voiceMode === "male" ? maleVoice : femaleVoice;
+      const englishVoice = preferredVoice
+        ?? voices.find((voice) => /^en[-_]?US/i.test(voice.lang) && voice.localService)
+        ?? voices.find((voice) => /^en/i.test(voice.lang) && voice.localService)
+        ?? voices.find((voice) => /^en/i.test(voice.lang));
+      if (englishVoice) utterance.voice = englishVoice;
+      utterance.lang = englishVoice?.lang || "en-US";
+      utterance.rate = 1.18;
+      utterance.pitch = voiceMode === "male" ? 0.76 : 0.88;
+      utterance.volume = Math.max(0.25, Math.min(0.9, metronomeVolumeRef.current ?? 0.72));
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      playTick(metronomeAccentRef.current && beatIndex === 0, 0);
+    }
+  }, [playTick]);
+
+  const cancelCountInVoice = useCallback(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
   }, []);
 
   const playFeelRecorderPulse = useCallback(async (type = "tick") => {
@@ -4951,16 +5786,43 @@ function App() {
           return;
         }
         const countInTick = Math.floor(countInTimeRef.current / currentBeatMs);
-        if (countInTick !== lastBeatRef.current) {
+        if (countInTick < beatsPerMeasure && countInTick !== lastBeatRef.current) {
           lastBeatRef.current = countInTick;
           const countInBeat = countInTick % beatsPerMeasure;
           setBeat(countInBeat);
-          playTick(metronomeAccentRef.current && countInBeat === 0, 0);
+          playCountInVoice(countInBeat);
         }
         return;
       }
 
       gameTimeRef.current += deltaMs;
+      if (metronomeTrackerModeRef.current === "timer") {
+        const totalTimerMs = metronomeTrackerTimerTotalMsRef.current;
+        const elapsedMs = totalTimerMs > 0 ? Math.min(gameTimeRef.current, totalTimerMs) : gameTimeRef.current;
+        if (
+          (totalTimerMs > 0 && elapsedMs >= totalTimerMs) ||
+          elapsedMs - metronomeTrackerElapsedUpdateRef.current >= 250
+        ) {
+          metronomeTrackerElapsedUpdateRef.current = elapsedMs;
+          setMetronomeTrackerElapsedMs(elapsedMs);
+        }
+        if (totalTimerMs > 0 && gameTimeRef.current >= totalTimerMs) {
+          setMetronomeTrackerElapsedMs(totalTimerMs);
+          if (metronomeTimerResetWhenReachedRef.current) {
+            gameTimeRef.current = 0;
+            lastBeatRef.current = -1;
+            metronomeTrackerElapsedUpdateRef.current = 0;
+            setBeat(0);
+            setMetronomeTrackerElapsedMs(0);
+            setStage3MeasureProgress(0);
+          }
+          if (metronomeTimerStopWhenReachedRef.current) {
+            setFeedback("Complete");
+            setState(GAME_STATES.IDLE);
+            return;
+          }
+        }
+      }
       setStage3MeasureProgress((gameTimeRef.current % currentMeasureMs) / currentMeasureMs);
       const currentTick = Math.floor(gameTimeRef.current / currentTickMs);
       if (currentTick === lastBeatRef.current) return;
@@ -4970,7 +5832,9 @@ function App() {
       const beatInBar = currentBeat % beatsPerMeasure;
       const subdivisionIndex = currentTick % clicksPerBeat;
       const isFirstBeat = currentBeat === 0;
-      setBeat(beatInBar);
+      flushSync(() => {
+        setBeat(beatInBar);
+      });
       playTick(metronomeAccentRef.current && beatInBar === 0 && subdivisionIndex === 0, subdivisionIndex);
 
       if (subdivisionIndex !== 0) return;
@@ -4993,7 +5857,7 @@ function App() {
       setReferenceStepTick((value) => value + 1);
       setFeedback("다음 음");
     },
-    [playTick, selectedCategory.sequence, setState],
+    [playCountInVoice, playTick, selectedCategory.sequence, setState],
   );
 
   const runShooterFrame = useCallback(
@@ -5065,16 +5929,11 @@ function App() {
       const currentMeasureMs = currentBeatMs * beatsPerMeasure;
 
       if (countInActiveRef.current) {
+        const countInBars = Math.max(1, metronomeCountInBarsRef.current || 1);
+        const countInTotalMs = currentMeasureMs * countInBars;
         countInTimeRef.current += deltaMs;
-        setStage3MeasureProgress(Math.min(1, countInTimeRef.current / currentMeasureMs));
-        const countInTick = Math.floor(countInTimeRef.current / currentBeatMs);
-        if (countInTick !== lastBeatRef.current) {
-          lastBeatRef.current = countInTick;
-          const countInBeat = countInTick % beatsPerMeasure;
-          setBeat(countInBeat);
-          playTick(metronomeAccentRef.current && countInBeat === 0, 0);
-        }
-        if (countInTimeRef.current >= currentMeasureMs) {
+        setStage3MeasureProgress(Math.min(1, countInTimeRef.current / countInTotalMs));
+        if (countInTimeRef.current >= countInTotalMs) {
           countInActiveRef.current = false;
           countInTimeRef.current = 0;
           gameTimeRef.current = chordPracticeIndexRef.current * currentMeasureMs;
@@ -5082,6 +5941,14 @@ function App() {
           setBeat(0);
           setStage3MeasureProgress(0);
           setFeedback("Play");
+          return;
+        }
+        const countInTick = Math.floor(countInTimeRef.current / currentBeatMs);
+        if (countInTick < beatsPerMeasure * countInBars && countInTick !== lastBeatRef.current) {
+          lastBeatRef.current = countInTick;
+          const countInBeat = countInTick % beatsPerMeasure;
+          setBeat(countInBeat);
+          playCountInVoice(countInBeat);
         }
         return;
       }
@@ -5112,7 +5979,7 @@ function App() {
         playTick(metronomeAccentRef.current && beatInBar === 0 && subdivisionIndex === 0, subdivisionIndex);
       }
     },
-    [chordTransitionProgression.length, playTick],
+    [chordTransitionProgression.length, playCountInVoice, playTick],
   );
 
   const runMetronomeFrame = useCallback(
@@ -5126,16 +5993,11 @@ function App() {
       const currentMeasureMs = currentBeatMs * beatsPerMeasure;
 
       if (countInActiveRef.current) {
+        const countInBars = Math.max(1, metronomeCountInBarsRef.current || 1);
+        const countInTotalMs = currentMeasureMs * countInBars;
         countInTimeRef.current += deltaMs;
-        setStage3MeasureProgress(Math.min(1, countInTimeRef.current / currentMeasureMs));
-        const countInTick = Math.floor(countInTimeRef.current / currentBeatMs);
-        if (countInTick !== lastBeatRef.current) {
-          lastBeatRef.current = countInTick;
-          const countInBeat = countInTick % beatsPerMeasure;
-          setBeat(countInBeat);
-          playTick(metronomeAccentRef.current && countInBeat === 0, 0);
-        }
-        if (countInTimeRef.current >= currentMeasureMs) {
+        setStage3MeasureProgress(Math.min(1, countInTimeRef.current / countInTotalMs));
+        if (countInTimeRef.current >= countInTotalMs) {
           countInActiveRef.current = false;
           countInTimeRef.current = 0;
           gameTimeRef.current = 0;
@@ -5143,6 +6005,14 @@ function App() {
           setBeat(0);
           setStage3MeasureProgress(0);
           setFeedback("Play");
+          return;
+        }
+        const countInTick = Math.floor(countInTimeRef.current / currentBeatMs);
+        if (countInTick < beatsPerMeasure * countInBars && countInTick !== lastBeatRef.current) {
+          lastBeatRef.current = countInTick;
+          const countInBeat = countInTick % beatsPerMeasure;
+          setBeat(countInBeat);
+          playCountInVoice(countInBeat);
         }
         return;
       }
@@ -5165,16 +6035,52 @@ function App() {
         coachMuteBarsRef.current > 0 &&
         coachCycleIndex >= coachPlayBarsRef.current;
 
-      setBeat(beatInBar);
-      setMetronomeMeasureCount(measureNumber);
+      flushSync(() => {
+        setBeat(beatInBar);
+      });
+      if (metronomeTrackerModeRef.current === "bars") {
+        const completedBars = Math.floor(gameTimeRef.current / currentMeasureMs);
+        setMetronomeMeasureCount(completedBars);
+        if (
+          metronomeBarLimitEnabledRef.current &&
+          completedBars >= metronomeBarLimitRef.current &&
+          metronomeBarLimitRef.current > 0
+        ) {
+          if (metronomeBarResetWhenReachedRef.current) {
+            gameTimeRef.current = 0;
+            lastBeatRef.current = -1;
+            setBeat(0);
+            setMetronomeMeasureCount(0);
+            setStage3MeasureProgress(0);
+          }
+          if (metronomeBarStopWhenReachedRef.current) {
+            setFeedback("Complete");
+            setState(GAME_STATES.IDLE);
+            return;
+          }
+        }
+      } else if (autoBpmEnabledRef.current) {
+        setMetronomeMeasureCount(measureNumber);
+      }
       setMetronomeIsMutedCycle(isCoachMuted);
 
-      if (!isCoachMuted) {
-        playTick(metronomeAccentRef.current && beatInBar === 0 && subdivisionIndex === 0, subdivisionIndex);
+      const beatPatternState = metronomeBeatPatternRef.current[beatInBar] ?? getDefaultBeatState(beatInBar);
+      const isBeatMuted = beatPatternState === METRONOME_BEAT_STATES.MUTE;
+      const isBeatAccent = beatPatternState === METRONOME_BEAT_STATES.ACCENT && subdivisionIndex === 0;
+      if (!isCoachMuted && !isBeatMuted) {
+        playTick(isBeatAccent, subdivisionIndex, false);
       }
 
+      const applyAutoBpmChange = () => {
+        const direction = autoBpmDirectionRef.current === "decrease" ? -1 : 1;
+        const nextBpm = clampBpm(bpmRef.current + (autoBpmStepRef.current * direction));
+        bpmRef.current = nextBpm;
+        setBpm(nextBpm);
+        setAutoBpmIncrements((value) => value + 1);
+      };
+
       if (
-        autoBpmEnabledRef.current &&
+        autoBpmModeRef.current === "bars" &&
         subdivisionIndex === 0 &&
         beatInBar === 0 &&
         measureNumber > 1 &&
@@ -5182,13 +6088,19 @@ function App() {
         lastAutoBpmMeasureRef.current !== measureNumber
       ) {
         lastAutoBpmMeasureRef.current = measureNumber;
-        const nextBpm = clampBpm(bpmRef.current + autoBpmStepRef.current);
-        bpmRef.current = nextBpm;
-        setBpm(nextBpm);
-        setAutoBpmIncrements((value) => value + 1);
+        applyAutoBpmChange();
+      }
+
+      if (
+        autoBpmModeRef.current === "time" &&
+        gameTimeRef.current >= autoBpmTimeMsRef.current &&
+        gameTimeRef.current - lastAutoBpmTimeRef.current >= autoBpmTimeMsRef.current
+      ) {
+        lastAutoBpmTimeRef.current = gameTimeRef.current;
+        applyAutoBpmChange();
       }
     },
-    [playTick],
+    [playCountInVoice, playTick],
   );
 
   const animationLoop = useCallback(
@@ -5400,11 +6312,12 @@ function App() {
     setBeat(0);
     countInActiveRef.current = false;
     countInTimeRef.current = 0;
+    cancelCountInVoice();
     if (safeCategory.id === "rhythm") setChordPracticeIndex(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
     lastFrameRef.current = performance.now();
-  }, [getPlayableCategory, getPracticeSequence, repeatPractice, resetScore, selectedCategory, setState]);
+  }, [cancelCountInVoice, getPlayableCategory, getPracticeSequence, repeatPractice, resetScore, selectedCategory, setState]);
 
   const startShooter = useCallback(async (category = SHOOTER_DEFAULT_CATEGORY) => {
     console.log("[metronome] start clicked");
@@ -5449,8 +6362,11 @@ function App() {
     countInActiveRef.current = metronomeCountInRef.current;
     countInTimeRef.current = 0;
     lastAutoBpmMeasureRef.current = 0;
+    lastAutoBpmTimeRef.current = 0;
+    metronomeTrackerElapsedUpdateRef.current = 0;
     setBeat(0);
     setMetronomeMeasureCount(0);
+    setMetronomeTrackerElapsedMs(0);
     setAutoBpmIncrements(0);
     setMetronomeIsMutedCycle(false);
     setStage3MeasureProgress(0);
@@ -5461,19 +6377,23 @@ function App() {
 
   const resetMetronomePractice = useCallback(() => {
     if (appModeRef.current !== APP_MODES.METRONOME) return;
+    cancelCountInVoice();
     gameTimeRef.current = 0;
     lastBeatRef.current = -1;
     countInActiveRef.current = false;
     countInTimeRef.current = 0;
     lastAutoBpmMeasureRef.current = 0;
+    lastAutoBpmTimeRef.current = 0;
+    metronomeTrackerElapsedUpdateRef.current = 0;
     setBeat(0);
     setMetronomeMeasureCount(0);
+    setMetronomeTrackerElapsedMs(0);
     setAutoBpmIncrements(0);
     setMetronomeIsMutedCycle(false);
     setStage3MeasureProgress(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
-  }, [setState]);
+  }, [cancelCountInVoice, setState]);
 
   const pauseGame = useCallback(() => {
     if (gameStateRef.current !== GAME_STATES.PLAYING) return;
@@ -5557,6 +6477,136 @@ function App() {
     setLaneFeedback([]);
   }, []);
 
+  const persistMetronomePresets = useCallback((nextPresets) => {
+    const normalized = nextPresets.map((preset, index) => normalizeMetronomePreset(preset, index)).slice(0, 24);
+    setMetronomePresets(normalized);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(METRONOME_PRESET_STORAGE_KEY, JSON.stringify(normalized));
+    }
+    return normalized;
+  }, []);
+
+  const captureCurrentMetronomePreset = useCallback((name) => normalizeMetronomePreset({
+    id: metronomePresetSelectedId || createLocalId("metro-preset"),
+    name,
+    bpm,
+    timeSignature: metronomeTimeSignature,
+    subdivision: metronomeSubdivision,
+    tone: metronomeTone,
+    countInBars: metronomeCountInBars,
+    countInVoiceMode: metronomeCountInVoiceMode,
+    autoBpmMode,
+    autoBpmDirection,
+    autoBpmStep,
+    autoBpmBars,
+    autoBpmTimeMinutes,
+    autoBpmTimeSeconds,
+    coachModeEnabled,
+    coachPlayBars,
+    coachMuteBars,
+    trackerMode: metronomeTrackerMode,
+    barLimitEnabled: metronomeBarLimitEnabled,
+    barLimit: metronomeBarLimit,
+    barStopWhenReached: metronomeBarStopWhenReached,
+    barResetWhenReached: metronomeBarResetWhenReached,
+    barStartFromOne: metronomeBarStartFromOne,
+    timerCountdown: metronomeTimerCountdown,
+    timerStopWhenReached: metronomeTimerStopWhenReached,
+    timerResetWhenReached: metronomeTimerResetWhenReached,
+    trackerTimerMinutes: metronomeTrackerTimerMinutes,
+    trackerTimerSeconds: metronomeTrackerTimerSeconds,
+    beatPattern: normalizeMetronomeBeatPattern(metronomeBeatPattern, metronomeBeatsPerMeasure),
+    updatedAt: Date.now(),
+  }), [
+    autoBpmBars,
+    autoBpmDirection,
+    autoBpmMode,
+    autoBpmStep,
+    autoBpmTimeMinutes,
+    autoBpmTimeSeconds,
+    bpm,
+    coachModeEnabled,
+    coachMuteBars,
+    coachPlayBars,
+    metronomeBarLimit,
+    metronomeBarLimitEnabled,
+    metronomeBarResetWhenReached,
+    metronomeBarStartFromOne,
+    metronomeBarStopWhenReached,
+    metronomeBeatPattern,
+    metronomeBeatsPerMeasure,
+    metronomeCountInBars,
+    metronomeCountInVoiceMode,
+    metronomePresetSelectedId,
+    metronomeSubdivision,
+    metronomeTimeSignature,
+    metronomeTimerCountdown,
+    metronomeTimerResetWhenReached,
+    metronomeTimerStopWhenReached,
+    metronomeTone,
+    metronomeTrackerMode,
+    metronomeTrackerTimerMinutes,
+    metronomeTrackerTimerSeconds,
+  ]);
+
+  const saveMetronomePreset = useCallback(() => {
+    const name = metronomePresetName.trim() || METRONOME_PRESET_DEFAULT_NAME;
+    const savedAt = Date.now();
+    const currentPreset = {
+      ...captureCurrentMetronomePreset(name),
+      updatedAt: savedAt,
+    };
+    const existingIndex = metronomePresets.findIndex((preset) => preset.id === metronomePresetSelectedId || preset.name === name);
+    const nextPresets = existingIndex >= 0
+      ? metronomePresets.map((preset, index) => (index === existingIndex ? { ...currentPreset, id: preset.id, createdAt: preset.createdAt } : preset))
+      : [{ ...currentPreset, id: createLocalId("metro-preset"), createdAt: savedAt }, ...metronomePresets];
+    const normalized = persistMetronomePresets(nextPresets);
+    const savedPreset = existingIndex >= 0 ? normalized[existingIndex] : normalized[0];
+    setMetronomePresetSelectedId(savedPreset?.id || "");
+    setMetronomePresetName(savedPreset?.name || name);
+  }, [captureCurrentMetronomePreset, metronomePresetName, metronomePresetSelectedId, metronomePresets, persistMetronomePresets]);
+
+  const applyMetronomePreset = useCallback((presetId) => {
+    const preset = metronomePresets.find((item) => item.id === presetId);
+    if (!preset) {
+      setMetronomePresetSelectedId("");
+      return;
+    }
+
+    const normalized = normalizeMetronomePreset(preset);
+    changeBpm(normalized.bpm);
+    setMetronomeTimeSignature(normalized.timeSignature);
+    setMetronomeSubdivision(normalized.subdivision);
+    setMetronomeTone(normalized.tone);
+    setMetronomeCountInBars(normalized.countInBars);
+    setMetronomeCountInVoiceMode(normalized.countInVoiceMode);
+    setMetronomeCountIn(normalized.countInBars > 0);
+    setAutoBpmMode(normalized.autoBpmMode);
+    setAutoBpmDirection(normalized.autoBpmDirection);
+    setAutoBpmStep(normalized.autoBpmStep);
+    setAutoBpmBars(normalized.autoBpmBars);
+    setAutoBpmTimeMinutes(normalized.autoBpmTimeMinutes);
+    setAutoBpmTimeSeconds(normalized.autoBpmTimeSeconds);
+    setCoachModeEnabled(normalized.coachModeEnabled);
+    setCoachPlayBars(normalized.coachPlayBars);
+    setCoachMuteBars(normalized.coachMuteBars);
+    setMetronomeTrackerMode(normalized.trackerMode);
+    setMetronomeBarLimitEnabled(normalized.barLimitEnabled);
+    setMetronomeBarLimit(normalized.barLimit);
+    setMetronomeBarStopWhenReached(normalized.barStopWhenReached);
+    setMetronomeBarResetWhenReached(normalized.barResetWhenReached);
+    setMetronomeBarStartFromOne(normalized.barStartFromOne);
+    setMetronomeTimerCountdown(normalized.timerCountdown);
+    setMetronomeTimerStopWhenReached(normalized.timerStopWhenReached);
+    setMetronomeTimerResetWhenReached(normalized.timerResetWhenReached);
+    setMetronomeTrackerTimerMinutes(normalized.trackerTimerMinutes);
+    setMetronomeTrackerTimerSeconds(normalized.trackerTimerSeconds);
+    setMetronomeBeatPattern(normalizeMetronomeBeatPattern(normalized.beatPattern, getTimeSignatureOption(normalized.timeSignature).beats));
+    setMetronomePresetSelectedId(normalized.id);
+    setMetronomePresetName(normalized.name);
+    resetMetronomePractice();
+  }, [changeBpm, metronomePresets, resetMetronomePractice]);
+
   const handleTapTempo = useCallback(() => {
     const now = performance.now();
     const nextTimes = [...tapTempoTimesRef.current.filter((time) => now - time < 2200), now].slice(-6);
@@ -5569,6 +6619,116 @@ function App() {
 
     changeBpm(Math.round(60000 / averageInterval));
   }, [changeBpm]);
+
+  const handleBpmSwipeStart = useCallback((event) => {
+    if (event.target?.closest?.("button, select, input, textarea")) return;
+
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    const now = performance.now();
+    bpmSwipeStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      lastX: event.clientX,
+      lastTime: now,
+      startBpm: bpmRef.current,
+      lastAppliedBpm: bpmRef.current,
+      locked: false,
+      canceled: false,
+      pointerId: event.pointerId,
+    };
+  }, []);
+
+  const handleBpmSwipeMove = useCallback((event) => {
+    const swipe = bpmSwipeStartRef.current;
+    if (!swipe || swipe.canceled) return;
+
+    const deltaX = event.clientX - swipe.x;
+    const deltaY = event.clientY - swipe.y;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+
+    if (!swipe.locked) {
+      if (absX < 10 && absY < 10) return;
+      if (absY > absX * 1.25) {
+        bpmSwipeStartRef.current = { ...swipe, canceled: true };
+        event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+        return;
+      }
+      swipe.locked = true;
+    }
+
+    event.preventDefault();
+
+    const now = performance.now();
+    const elapsed = Math.max(16, now - swipe.lastTime);
+    const velocity = (event.clientX - swipe.lastX) / elapsed;
+    const velocityBoost =
+      Math.sign(velocity) * Math.min(8, Math.max(0, Math.abs(velocity) - 0.25) * 5);
+    const distanceBpm = deltaX / 9;
+    const nextBpm = clampBpm(swipe.startBpm + Math.round(distanceBpm + velocityBoost));
+
+    if (nextBpm !== swipe.lastAppliedBpm) {
+      changeBpm(nextBpm);
+      swipe.lastAppliedBpm = nextBpm;
+    }
+
+    swipe.lastX = event.clientX;
+    swipe.lastTime = now;
+  }, [changeBpm]);
+
+  const handleBpmSwipeEnd = useCallback((event) => {
+    const swipe = bpmSwipeStartRef.current;
+    bpmSwipeStartRef.current = null;
+    if (!swipe) return;
+
+    event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+  }, []);
+
+  const cycleStandaloneBeatState = useCallback((beatIndex) => {
+    setMetronomeBeatPattern((pattern) => {
+      const nextPattern = normalizeMetronomeBeatPattern(pattern, metronomeBeatsPerMeasure);
+      const currentState = nextPattern[beatIndex] ?? getDefaultBeatState(beatIndex);
+      const currentIndex = METRONOME_BEAT_STATE_ORDER.indexOf(currentState);
+      nextPattern[beatIndex] = METRONOME_BEAT_STATE_ORDER[(currentIndex + 1) % METRONOME_BEAT_STATE_ORDER.length];
+      return nextPattern;
+    });
+  }, [metronomeBeatsPerMeasure]);
+
+  const changeFretboardViewerModeBySwipe = useCallback((direction) => {
+    const currentIndex = FRETBOARD_VIEWER_MODE_ORDER.indexOf(viewerMode);
+    if (currentIndex < 0) return;
+
+    const nextIndex = Math.max(0, Math.min(FRETBOARD_VIEWER_MODE_ORDER.length - 1, currentIndex + direction));
+    const nextMode = FRETBOARD_VIEWER_MODE_ORDER[nextIndex];
+    if (!nextMode || nextMode === viewerMode) return;
+
+    setViewerMode(nextMode);
+    setViewerSwipeFeedback(direction > 0 ? "next" : "prev");
+    window.clearTimeout(fretboardSwipeFeedbackTimerRef.current);
+    fretboardSwipeFeedbackTimerRef.current = window.setTimeout(() => {
+      setViewerSwipeFeedback("");
+    }, 220);
+  }, [viewerMode]);
+
+  const handleFretboardSwipeStart = useCallback((event) => {
+    if (event.target?.closest?.("select, input, textarea")) return;
+    fretboardSwipeStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+    };
+  }, []);
+
+  const handleFretboardSwipeEnd = useCallback((event) => {
+    const start = fretboardSwipeStartRef.current;
+    fretboardSwipeStartRef.current = null;
+    if (!start) return;
+
+    const deltaX = event.clientX - start.x;
+    const deltaY = event.clientY - start.y;
+    if (Math.abs(deltaX) < 48 || Math.abs(deltaX) < Math.abs(deltaY) * 1.45) return;
+
+    changeFretboardViewerModeBySwipe(deltaX > 0 ? 1 : -1);
+  }, [changeFretboardViewerModeBySwipe]);
 
   const stopFeelPlayback = useCallback(() => {
     feelPlaybackTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
@@ -5825,6 +6985,7 @@ function App() {
 
   const showMainMenu = useCallback(() => {
     stopMic();
+    cancelCountInVoice();
     setUtilityMenuOpen(false);
     setStage3StorageOpen(false);
     appModeRef.current = APP_MODES.CURRICULUM;
@@ -5844,10 +7005,11 @@ function App() {
     setBeat(0);
     setFeedback("Choose a practice card");
     setState(GAME_STATES.IDLE);
-  }, [setState, stopMic]);
+  }, [cancelCountInVoice, setState, stopMic]);
 
   const showCurriculum = useCallback(() => {
     stopMic();
+    cancelCountInVoice();
     setUtilityMenuOpen(false);
     setStage3StorageOpen(false);
     appModeRef.current = APP_MODES.CURRICULUM;
@@ -5859,10 +7021,11 @@ function App() {
     setBeat(0);
     setFeedback("Choose a practice card");
     setState(GAME_STATES.IDLE);
-  }, [setState, stopMic]);
+  }, [cancelCountInVoice, setState, stopMic]);
 
   const showStage3StorageRoom = useCallback(() => {
     stopMic();
+    cancelCountInVoice();
     setUtilityMenuOpen(false);
     appModeRef.current = APP_MODES.PRACTICE;
     setAppMode(APP_MODES.PRACTICE);
@@ -5874,7 +7037,7 @@ function App() {
     setBeat(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
-  }, [setState, stopMic]);
+  }, [cancelCountInVoice, setState, stopMic]);
 
   const showShooterMode = useCallback(() => {
     setUtilityMenuOpen(false);
@@ -5903,6 +7066,7 @@ function App() {
 
   const showMetronomeMode = useCallback(() => {
     stopMic();
+    cancelCountInVoice();
     setUtilityMenuOpen(false);
     setStage3StorageOpen(false);
     appModeRef.current = APP_MODES.METRONOME;
@@ -5925,7 +7089,7 @@ function App() {
     setStage3MeasureProgress(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
-  }, [setState, stopMic]);
+  }, [cancelCountInVoice, setState, stopMic]);
 
   const showFretboardViewer = useCallback(() => {
     stopMic();
@@ -6091,8 +7255,30 @@ function App() {
   }, [metronomeCountIn]);
 
   useEffect(() => {
-    autoBpmEnabledRef.current = autoBpmEnabled;
-  }, [autoBpmEnabled]);
+    metronomeCountInBarsRef.current = metronomeCountInBars;
+    setMetronomeCountIn(metronomeCountInBars > 0);
+  }, [metronomeCountInBars]);
+
+  useEffect(() => {
+    metronomeCountInVoiceModeRef.current = metronomeCountInVoiceMode;
+  }, [metronomeCountInVoiceMode]);
+
+  useEffect(() => {
+    metronomeBeatPatternRef.current = standaloneBeatPattern;
+  }, [standaloneBeatPattern]);
+
+  useEffect(() => {
+    autoBpmModeRef.current = autoBpmMode;
+    autoBpmEnabledRef.current = autoBpmMode !== "off";
+    setAutoBpmEnabled(autoBpmMode !== "off");
+    if (autoBpmMode === "off" && metronomeTrackerModeRef.current !== "bars") {
+      setMetronomeMeasureCount(0);
+    }
+  }, [autoBpmMode]);
+
+  useEffect(() => {
+    autoBpmDirectionRef.current = autoBpmDirection;
+  }, [autoBpmDirection]);
 
   useEffect(() => {
     autoBpmStepRef.current = autoBpmStep;
@@ -6101,6 +7287,10 @@ function App() {
   useEffect(() => {
     autoBpmBarsRef.current = autoBpmBars;
   }, [autoBpmBars]);
+
+  useEffect(() => {
+    autoBpmTimeMsRef.current = Math.max(1000, ((autoBpmTimeMinutes * 60) + autoBpmTimeSeconds) * 1000);
+  }, [autoBpmTimeMinutes, autoBpmTimeSeconds]);
 
   useEffect(() => {
     coachModeEnabledRef.current = coachModeEnabled;
@@ -6113,6 +7303,47 @@ function App() {
   useEffect(() => {
     coachMuteBarsRef.current = coachMuteBars;
   }, [coachMuteBars]);
+
+  useEffect(() => {
+    metronomeTrackerModeRef.current = metronomeTrackerMode;
+    metronomeTrackerElapsedUpdateRef.current = 0;
+    setMetronomeTrackerElapsedMs(0);
+    if (metronomeTrackerMode !== "bars" && !autoBpmEnabledRef.current) {
+      setMetronomeMeasureCount(0);
+    }
+  }, [metronomeTrackerMode]);
+
+  useEffect(() => {
+    metronomeBarLimitEnabledRef.current = metronomeBarLimitEnabled;
+    setMetronomeMeasureCount(0);
+  }, [metronomeBarLimitEnabled]);
+
+  useEffect(() => {
+    metronomeBarLimitRef.current = metronomeBarLimit;
+    setMetronomeMeasureCount(0);
+  }, [metronomeBarLimit]);
+
+  useEffect(() => {
+    metronomeBarStopWhenReachedRef.current = metronomeBarStopWhenReached;
+  }, [metronomeBarStopWhenReached]);
+
+  useEffect(() => {
+    metronomeBarResetWhenReachedRef.current = metronomeBarResetWhenReached;
+  }, [metronomeBarResetWhenReached]);
+
+  useEffect(() => {
+    metronomeTimerStopWhenReachedRef.current = metronomeTimerStopWhenReached;
+  }, [metronomeTimerStopWhenReached]);
+
+  useEffect(() => {
+    metronomeTimerResetWhenReachedRef.current = metronomeTimerResetWhenReached;
+  }, [metronomeTimerResetWhenReached]);
+
+  useEffect(() => {
+    metronomeTrackerTimerTotalMsRef.current = Math.max(0, ((metronomeTrackerTimerMinutes * 60) + metronomeTrackerTimerSeconds) * 1000);
+    metronomeTrackerElapsedUpdateRef.current = 0;
+    setMetronomeTrackerElapsedMs(0);
+  }, [metronomeTrackerTimerMinutes, metronomeTrackerTimerSeconds]);
 
   useEffect(() => {
     feelPlaybackLoopRef.current = feelPlaybackLoop;
@@ -6724,7 +7955,11 @@ function App() {
                   ? `운영 Header: ${getHeaderVariantLabel(headerVariant)}`
                   : designLabSection === "app-icon"
                     ? `운영 App Icon: ${getAppIconVariantLabel(designLabAppIconState.activeIcon)}`
-                    : "운영 화면에 적용하지 않는 시안 보관 영역"}
+                    : designLabSection === "character"
+                      ? `Shooter Player: ${selectedGuitarVariant.title}`
+                      : designLabSection === "test"
+                        ? "Metronome Visual Lab: 운영 화면 미적용"
+                        : "운영 화면에 적용하지 않는 시안 보관 영역"}
               </strong>
             </div>
             {designLabSection === "logo" ? (
@@ -6890,20 +8125,66 @@ function App() {
               </div>
             ) : null}
             {designLabSection === "character" ? (
-              <div className="headerPreviewGrid designLabCharacterGrid">
-                {CHARACTER_LAB_VARIANTS.map((variant, index) => (
-                  <article className="headerPreviewCard designLabCharacterCard" key={variant.id}>
+              <div className="guitarLab">
+                {["Acoustic", "Classical", "Electric"].map((pack) => (
+                  <section className="guitarLabPack" key={pack} aria-label={`${pack} Guitar Pack`}>
                     <div className="headerPreviewMeta">
-                      <span>{variant.title}</span>
-                      <small>{variant.description}</small>
+                      <span>{pack}</span>
+                      <small>{pack === "Acoustic" ? "어쿠스틱 기타팩 5종" : pack === "Classical" ? "클래식 기타팩 5종" : "일렉 기타팩 5종"}</small>
                     </div>
-                    <CharacterLabPreview variantId={variant.id} />
-                    <div className="designLabItemActions">
-                      <button type="button">적용</button>
-                      <button type="button">잠금</button>
-                      <button disabled type="button">삭제</button>
+                    <div className="headerPreviewGrid guitarLabGrid">
+                      {GUITAR_LAB_VARIANTS.filter((variant) => variant.pack === pack).map((variant) => {
+                        const isActive = selectedGuitarVariant.id === variant.id;
+                        return (
+                          <article className={`headerPreviewCard guitarLabCard ${isActive ? "selected" : ""}`} key={variant.id}>
+                            <div className="headerPreviewMeta">
+                              <span>{variant.model}</span>
+                              <small>{variant.description}</small>
+                              <em className="designLabCharacterSpec">{variant.pack} · SVG Player Asset</em>
+                            </div>
+                            <GuitarLabPreview variant={variant} active={isActive} />
+                            <div className="designLabItemActions">
+                              <button
+                                className={isActive ? "selected" : ""}
+                                onClick={() => applyGuitarVariant(variant.id)}
+                                type="button"
+                              >
+                                {isActive ? "플레이어 적용됨" : "플레이어 적용"}
+                              </button>
+                            </div>
+                          </article>
+                        );
+                      })}
                     </div>
-                  </article>
+                  </section>
+                ))}
+              </div>
+            ) : null}
+            {designLabSection === "monster" ? (
+              <div className="designLabMonsterGroups">
+                {MONSTER_LAB_GROUPS.map((group) => (
+                  <section className="designLabMonsterGroup" key={group.id} aria-label={group.title}>
+                    <div className="headerPreviewMeta">
+                      <span>{group.title}</span>
+                      <small>음표 가독성을 유지한 몬스터 시안 V1~V10</small>
+                    </div>
+                    <div className="designLabMonsterGrid">
+                      {MONSTER_LAB_VARIANTS.filter((monster) => monster.groupId === group.id).map((monster) => (
+                        <article className="headerPreviewCard designLabMonsterCard" key={monster.id}>
+                          <div className="headerPreviewMeta">
+                            <span>V{monster.variant}</span>
+                            <small>{monster.title}</small>
+                          </div>
+                          <MonsterLabPreview monster={monster} />
+                          <div className="designLabItemActions">
+                            <button type="button">선택</button>
+                            <button type="button">잠금</button>
+                            <button disabled type="button">삭제</button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
                 ))}
               </div>
             ) : null}
@@ -6967,30 +8248,68 @@ function App() {
 
                 <article className="headerPreviewCard componentLabCard componentLabCard--wide">
                   <div className="headerPreviewMeta">
-                    <span>Dropdown</span>
-                    <small>박자 / 세분 긴 목록 배치 비교</small>
+                    <span>Time Signature Dropdown</span>
+                    <small>박자 8개 항목 배치 비교</small>
                   </div>
                   <div className="componentLabDropdownComparison">
                     <ComponentLabDropdownPreview
-                      description="1열 리스트: 익숙하지만 항목이 늘면 스크롤이 길어집니다."
+                      description="1열 컴팩트: 익숙하지만 높이가 길어지는 기본 리스트 방식입니다."
                       flow="single"
                       items={COMPONENT_LAB_DROPDOWN_OPTIONS}
                       title="1열 리스트"
                     />
                     <ComponentLabDropdownPreview
-                      description="2열 좌우 순서: 한 화면 정보량은 늘고, 좌우로 빠르게 비교됩니다."
+                      description="2열 행 우선: 좌우로 빠르게 훑는 빠른 선택 패널입니다."
                       flow="row"
-                      items={COMPONENT_LAB_SUBDIVISION_OPTIONS}
-                      title="2열 좌우"
+                      items={COMPONENT_LAB_DROPDOWN_OPTIONS}
+                      title="2열 행 우선"
                     />
                     <ComponentLabDropdownPreview
-                      description="2열 세로 흐름: 왼쪽 열을 위아래로 훑은 뒤 오른쪽으로 넘어갑니다."
+                      description="2열 세로 흐름: 왼쪽 열 4분계, 오른쪽 열 8분계로 훑는 방식입니다."
                       flow="vertical"
                       items={COMPONENT_LAB_DROPDOWN_OPTIONS}
-                      title="2열 세로"
+                      title="2열 세로 흐름"
                     />
                   </div>
-                  <div className="designLabComponentNote">최종 적용 전, 박자와 세분 항목이 늘어나는 상황을 가정한 드롭다운 후보입니다.</div>
+                  <div className="designLabComponentNote">최종 적용 전, 모바일에서 박자 선택 속도와 높이 절약 효과를 비교하는 후보입니다.</div>
+                </article>
+
+                <article className="headerPreviewCard componentLabCard componentLabCard--wide">
+                  <div className="headerPreviewMeta">
+                    <span>Metronome Top Control</span>
+                    <small>공용 메트로놈 상단 컨트롤 V1~V4 비교</small>
+                  </div>
+                  <div className="componentLabMetronomeTopGrid">
+                    <ComponentLabMetronomeTopControlPreview
+                      description="V1 현재 개별 버튼"
+                      variant="v1"
+                    />
+                    <ComponentLabMetronomeTopControlPreview
+                      description="V2 세그먼트 컨트롤"
+                      variant="v2"
+                    />
+                    <ComponentLabMetronomeTopControlPreview
+                      description="V3 장비 컨트롤 패널"
+                      variant="v3"
+                    />
+                    <ComponentLabMetronomeTopControlPreview
+                      description="V4 명판 스타일"
+                      variant="v4"
+                    />
+                  </div>
+                  <div className="designLabComponentNote">실제 공용 매트로놈에는 적용하지 않은 실험용 시안입니다.</div>
+                </article>
+
+                <article className="headerPreviewCard componentLabCard componentLabCard--wide">
+                  <div className="headerPreviewMeta">
+                    <span>Standalone Metronome Main</span>
+                    <small>BPM 중심 vs 점자 중심 메인 화면 비교</small>
+                  </div>
+                  <div className="componentLabMetronomeMainGrid">
+                    <ComponentLabMetronomeMainPreview variant="current" />
+                    <ComponentLabMetronomeMainPreview variant="beat" />
+                  </div>
+                  <div className="designLabComponentNote">운영 화면 반영 전, 단독 메트로놈 대표 영역을 BPM 숫자 중심에서 박자 흐름 중심으로 바꾸는 방향을 비교합니다.</div>
                 </article>
 
                 <article className="headerPreviewCard componentLabCard">
@@ -7016,8 +8335,56 @@ function App() {
                 </article>
               </div>
             ) : null}
+            {designLabSection === "test" ? (
+              <div className="metronomeVisualLab">
+                <article className="headerPreviewCard metronomeVisualLabControlCard">
+                  <div className="headerPreviewMeta">
+                    <span>Metronome Visual Lab</span>
+                    <small>실제 메트로놈 화면에는 적용하지 않고, 같은 BPM과 오디오로 시각화만 비교합니다.</small>
+                    <em className="designLabStatus designLabStatus--draft">Experimental</em>
+                  </div>
+                  <div className="metronomeVisualLabTabs" aria-label="Metronome visual modes">
+                    {METRONOME_VISUAL_LAB_MODES.map((mode) => (
+                      <button
+                        className={metronomeVisualLabMode === mode.id ? "selected" : ""}
+                        key={mode.id}
+                        onClick={() => setMetronomeVisualLabMode(mode.id)}
+                        type="button"
+                      >
+                        {mode.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="metronomeVisualLabToolbar">
+                    <button
+                      className={metronomeVisualLabPlaying ? "selected" : ""}
+                      onClick={toggleMetronomeVisualLab}
+                      type="button"
+                    >
+                      {metronomeVisualLabPlaying ? "정지" : "프리뷰 재생"}
+                    </button>
+                    <span>{bpm} BPM</span>
+                    <span>{metronomeTimeSignature}</span>
+                    <span>{getMetronomeToneOption(metronomeTone).label}</span>
+                  </div>
+                </article>
+
+                <MetronomeVisualLabPreview
+                  activeBeat={metronomeVisualLabBeat}
+                  beatPattern={standaloneBeatPattern}
+                  bpm={bpm}
+                  isPlaying={metronomeVisualLabPlaying}
+                  mode={metronomeVisualLabMode}
+                  timeSignature={metronomeTimeSignature}
+                />
+
+                <div className="designLabComponentNote">
+                  이 영역은 TEST LAB 전용입니다. Dot, Line, Circle, Pick Swing은 사용자 반응 확인 후 정식 채택 여부를 결정합니다.
+                </div>
+              </div>
+            ) : null}
             {designLabSection === "archive" ? (
-              <div className="headerPreviewGrid">
+              <div className="headerPreviewGrid designLabArchiveGrid">
                 {ARCHIVED_HEADER_VARIANTS.map((variant) => (
                   <article className="headerPreviewCard designLabArchiveCard" key={variant.id}>
                     <div className="headerPreviewMeta">
@@ -7085,7 +8452,14 @@ function App() {
         </section>
       ) : appMode === APP_MODES.FRETBOARD_VIEWER ? (
         <section className="fretboardViewerPanel" aria-label="지판 보기">
-          <div className="viewerControlPanel compactControls">
+          <div
+            className={`viewerControlPanel compactControls viewerSwipeSurface ${viewerSwipeFeedback ? `viewerSwipeSurface--${viewerSwipeFeedback}` : ""}`}
+            onPointerCancel={() => {
+              fretboardSwipeStartRef.current = null;
+            }}
+            onPointerDown={handleFretboardSwipeStart}
+            onPointerUp={handleFretboardSwipeEnd}
+          >
             <div className="viewerModeTabs" aria-label="지판 보기 종류">
               <button
                 className={viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "selected" : ""}
@@ -7407,57 +8781,378 @@ function App() {
         </section>
       ) : appMode === APP_MODES.METRONOME ? (
         <section className="standaloneMetronomePanel" aria-label="독립 메트로놈">
-          <div className="metronomeHeroCard">
-            <div>
-              <span>BPM</span>
-              <strong>{bpm}</strong>
-              <small>{gameState === GAME_STATES.PLAYING ? (metronomeIsMutedCycle ? "COACH MUTE" : "PLAY") : "READY"}</small>
-            </div>
-          </div>
+          <div className="metronomeAdvancedDock" aria-label="고급 메트로놈 상태 및 설정">
+            <button
+              className={`metronomeAdvancedSummary ${metronomeAdvancedPanel === "automator" ? "selected" : ""}`}
+              onClick={() => setMetronomeAdvancedPanel((panel) => (panel === "automator" ? "" : "automator"))}
+              type="button"
+            >
+              <span>AUTOMATOR</span>
+              <strong>{automatorSummaryLabel}</strong>
+              <small>{automatorDetailLabel}</small>
+            </button>
+            <button
+              className={`metronomeAdvancedSummary ${metronomeAdvancedPanel === "tracker" ? "selected" : ""}`}
+              onClick={() => setMetronomeAdvancedPanel((panel) => (panel === "tracker" ? "" : "tracker"))}
+              type="button"
+            >
+              <span>TRACKER</span>
+              <strong>{trackerSummaryLabel}</strong>
+              <small>{trackerDetailLabel}</small>
+            </button>
+            <button
+              aria-label="메트로놈 세션 리셋"
+              className="metronomeTrackerResetButton"
+              onClick={resetMetronomePractice}
+              type="button"
+            >
+              ↻
+            </button>
 
-          <div className="metronomeTrainingHud" aria-label="매트로놈 훈련 상태">
-            <div>
-              <span>마디</span>
-              <strong>{metronomeMeasureCount}</strong>
-            </div>
-            <div>
-              <span>Auto BPM</span>
-              <strong>{autoBpmEnabled ? `+${autoBpmStep}/${autoBpmBars}` : "OFF"}</strong>
-            </div>
-            <div>
-              <span>Coach</span>
-              <strong>{coachModeEnabled ? `${coachPlayBars}/${coachMuteBars}` : "OFF"}</strong>
-            </div>
-            <div>
-              <span>상승</span>
-              <strong>{autoBpmIncrements}</strong>
-            </div>
-          </div>
-
-          <div className={`metronomeBeatMatrix ${metronomeIsMutedCycle ? "muted" : ""}`} aria-label="현재 박자 시각화">
-            {Array.from({ length: metronomeBeatsPerMeasure }, (_, index) => (
-              <span
-                className={`${index === 0 ? "accent" : ""} ${beat === index && gameState === GAME_STATES.PLAYING ? "active" : ""}`}
-                key={`beat-dot-${index}`}
+            {metronomeAdvancedPanel ? (
+              <>
+              <button
+                aria-label="메트로놈 설정창 닫기"
+                className="metronomeAdvancedDimOverlay"
+                onClick={() => setMetronomeAdvancedPanel("")}
+                type="button"
+              />
+              <section
+                className={`metronomeAdvancedPopover metronomeAdvancedPopover--${metronomeAdvancedPanel}`}
+                aria-label={`${metronomeAdvancedPanel === "automator" ? "Automator" : "Tracker"} 설정`}
               >
-                {index + 1}
-              </span>
+                <div className="metronomeAdvancedPopoverTopbar">
+                  <span>{metronomeAdvancedPanel === "automator" ? "AUTOMATOR" : "TRACKER"}</span>
+                  <button onClick={() => setMetronomeAdvancedPanel("")} type="button">Done</button>
+                </div>
+                {metronomeAdvancedPanel === "automator" ? (
+                  <>
+                    <div className="metronomeTrackerSettingGroup">
+                      <span>Automate tempo changes</span>
+                      <div className="metronomeTrackerChoiceGrid metronomeTrackerChoiceGrid--mode">
+                        {AUTOMATOR_MODE_OPTIONS.map((option) => (
+                          <button
+                            aria-pressed={autoBpmMode === option.id}
+                            className={autoBpmMode === option.id ? "selected" : ""}
+                            key={option.id}
+                            onClick={() => setAutoBpmMode(option.id)}
+                            type="button"
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {autoBpmMode === "off" ? (
+                      <div className="metronomeAutomatorNotice">
+                        AUTOMATOR OFF
+                      </div>
+                    ) : null}
+
+                    {autoBpmMode !== "off" ? (
+                      <div className="metronomeTrackerSettingGroup">
+                        <span>{autoBpmDirection === "decrease" ? "Decrease BPM by" : "Increase BPM by"}</span>
+                        <div className="metronomeAutomatorDirectionRow">
+                          <button
+                            className={autoBpmDirection === "decrease" ? "selected" : ""}
+                            onClick={() => setAutoBpmDirection("decrease")}
+                            type="button"
+                          >
+                            Decrease
+                          </button>
+                          <button
+                            className={autoBpmDirection === "increase" ? "selected" : ""}
+                            onClick={() => setAutoBpmDirection("increase")}
+                            type="button"
+                          >
+                            Increase
+                          </button>
+                        </div>
+                    <div className="metronomeStepperRow">
+                          <span>BPM</span>
+                      <button disabled={autoBpmStep <= 1} onClick={() => setAutoBpmStep((value) => Math.max(1, value - 1))} type="button">-</button>
+                      <strong>{autoBpmStep}</strong>
+                      <button disabled={autoBpmStep >= 5} onClick={() => setAutoBpmStep((value) => Math.min(5, value + 1))} type="button">+</button>
+                    </div>
+                      </div>
+                    ) : null}
+
+                    {autoBpmMode === "bars" ? (
+                    <div className="metronomeStepperRow">
+                      <span>Every</span>
+                      <button disabled={autoBpmBars <= 5} onClick={() => setAutoBpmBars((value) => Math.max(5, value - 5))} type="button">-</button>
+                      <strong>{autoBpmBars} bars</strong>
+                        <button disabled={autoBpmBars >= 200} onClick={() => setAutoBpmBars((value) => Math.min(200, value + 5))} type="button">+</button>
+                    </div>
+                    ) : null}
+
+                    {autoBpmMode === "time" ? (
+                      <div className="metronomeTrackerSettingGroup">
+                        <span>Every</span>
+                        <MetronomeWheelPicker
+                          ariaLabel="AUTOMATOR 시간 간격 선택"
+                          minuteOptions={AUTOMATOR_TIME_MINUTE_OPTIONS}
+                          minutes={autoBpmTimeMinutes}
+                          onMinutesChange={setAutoBpmTimeMinutes}
+                          onSecondsChange={setAutoBpmTimeSeconds}
+                          secondOptions={AUTOMATOR_TIME_SECOND_OPTIONS}
+                          seconds={autoBpmTimeSeconds}
+                        />
+                        <div className="metronomeTimerWheelReadout">
+                          {`${autoBpmTimeMinutes} mins ${autoBpmTimeSeconds} secs`}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <div className="metronomeAdvancedPopoverHeader">
+                      <span>Coach Mode</span>
+                      <button
+                        className={coachModeEnabled ? "selected" : ""}
+                        onClick={() => setCoachModeEnabled((value) => !value)}
+                        type="button"
+                      >
+                        {coachModeEnabled ? "ON" : "OFF"}
+                      </button>
+                    </div>
+                    <div className="metronomeStepperRow">
+                      <span>Sound</span>
+                      <button disabled={coachPlayBars <= 1} onClick={() => setCoachPlayBars((value) => Math.max(1, value / 2))} type="button">-</button>
+                      <strong>{coachPlayBars} bars</strong>
+                      <button disabled={coachPlayBars >= 8} onClick={() => setCoachPlayBars((value) => Math.min(8, value * 2))} type="button">+</button>
+                    </div>
+                    <div className="metronomeStepperRow">
+                      <span>Mute</span>
+                      <button disabled={coachMuteBars <= 1} onClick={() => setCoachMuteBars((value) => Math.max(1, value / 2))} type="button">-</button>
+                      <strong>{coachMuteBars} bars</strong>
+                      <button disabled={coachMuteBars >= 8} onClick={() => setCoachMuteBars((value) => Math.min(8, value * 2))} type="button">+</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="metronomeTrackerSettingGroup">
+                      <span>Count In</span>
+                      <div className="metronomeTrackerChoiceGrid">
+                        {TRACKER_COUNT_IN_OPTIONS.map((option) => (
+                          <button
+                            aria-pressed={metronomeCountInBars === option.bars}
+                            className={metronomeCountInBars === option.bars ? "selected" : ""}
+                            key={option.id}
+                            onClick={() => setMetronomeCountInBars(option.bars)}
+                            type="button"
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="metronomeTrackerSettingGroup">
+                      <span>Tracker Mode</span>
+                      <div className="metronomeTrackerChoiceGrid metronomeTrackerChoiceGrid--mode">
+                        {TRACKER_MODE_OPTIONS.map((option) => (
+                          <button
+                            aria-pressed={metronomeTrackerMode === option.id}
+                            className={metronomeTrackerMode === option.id ? "selected" : ""}
+                            key={option.id}
+                            onClick={() => setMetronomeTrackerMode(option.id)}
+                            type="button"
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {metronomeTrackerMode === "bars" ? (
+                      <div className="metronomeTrackerSettingGroup">
+                        <label className="metronomeTrackerSwitchRow">
+                          <span>Limit number of bars</span>
+                          <button
+                            className={metronomeBarLimitEnabled ? "selected" : ""}
+                            onClick={() => setMetronomeBarLimitEnabled((value) => !value)}
+                            type="button"
+                          >
+                            {metronomeBarLimitEnabled ? "ON" : "OFF"}
+                          </button>
+                        </label>
+                        <label className="metronomeTrackerCustomInput">
+                          <span>Limit to</span>
+                          <input
+                            disabled={!metronomeBarLimitEnabled}
+                            inputMode="numeric"
+                            min="1"
+                            onChange={(event) => setMetronomeBarLimit(Math.max(1, Math.min(9999, Number(event.target.value) || 1)))}
+                            type="number"
+                            value={metronomeBarLimit}
+                          />
+                          <small>Bars</small>
+                        </label>
+                        <label className="metronomeTrackerSwitchRow">
+                          <span>Stop when reached</span>
+                          <button
+                            className={metronomeBarStopWhenReached ? "selected" : ""}
+                            onClick={() => setMetronomeBarStopWhenReached((value) => !value)}
+                            type="button"
+                          >
+                            {metronomeBarStopWhenReached ? "ON" : "OFF"}
+                          </button>
+                        </label>
+                        <label className="metronomeTrackerSwitchRow">
+                          <span>Reset when reached</span>
+                          <button
+                            className={metronomeBarResetWhenReached ? "selected" : ""}
+                            onClick={() => setMetronomeBarResetWhenReached((value) => !value)}
+                            type="button"
+                          >
+                            {metronomeBarResetWhenReached ? "ON" : "OFF"}
+                          </button>
+                        </label>
+                        <label className="metronomeTrackerSwitchRow">
+                          <span>Start from 1</span>
+                          <button
+                            className={metronomeBarStartFromOne ? "selected" : ""}
+                            onClick={() => setMetronomeBarStartFromOne((value) => !value)}
+                            type="button"
+                          >
+                            {metronomeBarStartFromOne ? "ON" : "OFF"}
+                          </button>
+                        </label>
+                      </div>
+                    ) : null}
+
+                    {metronomeTrackerMode === "timer" ? (
+                      <div className="metronomeTrackerSettingGroup">
+                        <label className="metronomeTrackerSwitchRow">
+                          <span>Countdown</span>
+                          <button
+                            className={metronomeTimerCountdown ? "selected" : ""}
+                            onClick={() => setMetronomeTimerCountdown((value) => !value)}
+                            type="button"
+                          >
+                            {metronomeTimerCountdown ? "ON" : "OFF"}
+                          </button>
+                        </label>
+                        <MetronomeWheelPicker
+                          ariaLabel="TRACKER 타이머 선택"
+                          minuteOptions={TRACKER_TIMER_OPTIONS}
+                          minutes={metronomeTrackerTimerMinutes}
+                          onMinutesChange={setMetronomeTrackerTimerMinutes}
+                          onSecondsChange={setMetronomeTrackerTimerSeconds}
+                          secondOptions={TRACKER_TIMER_SECOND_OPTIONS}
+                          seconds={metronomeTrackerTimerSeconds}
+                        />
+                        <div className="metronomeTimerWheelReadout">
+                          {`${metronomeTrackerTimerMinutes} mins ${metronomeTrackerTimerSeconds} secs`}
+                        </div>
+                        <label className="metronomeTrackerSwitchRow">
+                          <span>Stop when reached</span>
+                          <button
+                            className={metronomeTimerStopWhenReached ? "selected" : ""}
+                            onClick={() => setMetronomeTimerStopWhenReached((value) => !value)}
+                            type="button"
+                          >
+                            {metronomeTimerStopWhenReached ? "ON" : "OFF"}
+                          </button>
+                        </label>
+                        <label className="metronomeTrackerSwitchRow">
+                          <span>Reset when reached</span>
+                          <button
+                            className={metronomeTimerResetWhenReached ? "selected" : ""}
+                            onClick={() => setMetronomeTimerResetWhenReached((value) => !value)}
+                            type="button"
+                          >
+                            {metronomeTimerResetWhenReached ? "ON" : "OFF"}
+                          </button>
+                        </label>
+                      </div>
+                    ) : null}
+                  </>
+                )}
+              </section>
+              </>
+            ) : null}
+          </div>
+
+          <div className={`metronomeBeatMatrix metronomeBeatMatrix--main ${metronomeIsMutedCycle ? "muted" : ""}`} aria-label="박자 패턴 편집">
+            {standaloneBeatPattern.map((beatState, index) => (
+              <button
+                aria-label={`${index + 1}박 ${METRONOME_BEAT_STATE_LABELS[beatState]}, 터치하면 다음 상태로 변경`}
+                className={`${beatState} ${beat === index && gameState === GAME_STATES.PLAYING ? "active" : ""}`}
+                key={`beat-dot-${index}`}
+                onClick={() => cycleStandaloneBeatState(index)}
+                title={`${index + 1}박: ${METRONOME_BEAT_STATE_LABELS[beatState]}`}
+                type="button"
+              >
+                <span className="metronomeBeatGlyph" aria-hidden="true">
+                  {METRONOME_BEAT_STATE_SYMBOLS[beatState]}
+                  {METRONOME_BEAT_STATE_MARKERS[beatState] ? (
+                    <i className="metronomeBeatAccentMark">{METRONOME_BEAT_STATE_MARKERS[beatState]}</i>
+                  ) : null}
+                </span>
+              </button>
             ))}
           </div>
 
-          <div className="metronomeFocusPanel" aria-label="현재 메트로놈 상태">
-            <div>
-              <span>현재 BPM</span>
+          <div
+            className="metronomeHeroCard metronomeHeroCard--interactive"
+            onPointerCancel={(event) => {
+              const swipe = bpmSwipeStartRef.current;
+              bpmSwipeStartRef.current = null;
+              if (swipe) {
+                event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+              }
+            }}
+            onPointerDown={handleBpmSwipeStart}
+            onPointerMove={handleBpmSwipeMove}
+            onPointerUp={handleBpmSwipeEnd}
+          >
+            <button
+              aria-label="BPM 1 낮추기"
+              className="metronomeHeroBpmButton"
+              onClick={(event) => {
+                event.stopPropagation();
+                changeBpm(bpm - 1);
+              }}
+              type="button"
+            >
+              -
+            </button>
+            <div className="metronomeHeroBpmValue">
+              <span>BPM</span>
               <strong>{bpm}</strong>
+              <small>{gameState === GAME_STATES.PLAYING ? (metronomeIsMutedCycle ? "COACH MUTE" : "READY") : "READY"}</small>
             </div>
-            <div>
-              <span>현재 박</span>
-              <strong>{gameState === GAME_STATES.PLAYING ? `${beat + 1}/${metronomeBeatsPerMeasure}` : `1/${metronomeBeatsPerMeasure}`}</strong>
-            </div>
-            <div>
-              <span>소리 상태</span>
-              <strong>{metronomeIsMutedCycle ? "MUTE" : "CLICK"}</strong>
-            </div>
+            <button
+              aria-label="BPM 1 올리기"
+              className="metronomeHeroBpmButton"
+              onClick={(event) => {
+                event.stopPropagation();
+                changeBpm(bpm + 1);
+              }}
+              type="button"
+            >
+              +
+            </button>
+            <button
+              aria-label={gameState === GAME_STATES.PLAYING ? "메트로놈 정지" : "메트로놈 시작"}
+              className={`metronomeHeroPlayButton ${gameState === GAME_STATES.PLAYING ? "reset" : "primary"}`}
+              onClick={(event) => {
+                event.stopPropagation();
+                if (gameState === GAME_STATES.PLAYING) {
+                  resetMetronomePractice();
+                  return;
+                }
+                startMetronomePractice();
+              }}
+              type="button"
+            >
+              {gameState === GAME_STATES.PLAYING ? (
+                <Square size={15} aria-hidden="true" />
+              ) : (
+                <Play size={18} aria-hidden="true" />
+              )}
+            </button>
           </div>
 
           <MetronomeControl
@@ -7474,221 +9169,41 @@ function App() {
             onToneChange={setMetronomeTone}
             onRepeatChange={setMetronomeRepeat}
             repeatEnabled={metronomeRepeat}
-            showCountIn
-            showRepeat
+            showCountIn={false}
+            showAccent={false}
+            showBpmControls={false}
+            showRepeat={false}
             subdivision={metronomeSubdivision}
             timeSignature={metronomeTimeSignature}
             tone={metronomeTone}
           />
 
-          <div className="metronomeTransport">
-            <button
-              aria-label={gameState === GAME_STATES.PLAYING ? "메트로놈 리셋" : "메트로놈 시작"}
-              className={`metronomeTransportButton ${gameState === GAME_STATES.PLAYING ? "reset" : "primary"}`}
-              onClick={gameState === GAME_STATES.PLAYING ? resetMetronomePractice : startMetronomePractice}
-              type="button"
-            >
-              {gameState === GAME_STATES.PLAYING ? (
-                <Square size={15} aria-hidden="true" />
-              ) : (
-                <Play size={17} aria-hidden="true" />
-              )}
-              {gameState === GAME_STATES.PLAYING ? "리셋" : "시작"}
-            </button>
-            <button
-              aria-label="Tap Tempo"
-              className="metronomeTapButton"
-              onClick={handleTapTempo}
-              type="button"
-            >
-              TAP
-            </button>
-          </div>
-
-          <section className="feelRecorderPanel" aria-label="Feel Recorder">
-              <div className="feelRecorderBody">
-                <div className="feelRecorderHeader">
-                  <div>
-                    <span>Feel Recorder</span>
-                    <strong>{feelRecorderActive ? "기록 중" : feelPlaybackActive ? "재생 중" : "대기"}</strong>
-                  </div>
-                  <button
-                    className={feelRecorderActive ? "selected" : ""}
-                    onClick={toggleFeelRecorder}
-                    type="button"
-                  >
-                    {feelRecorderActive ? "기록 종료" : "기록 시작"}
-                  </button>
-                </div>
-
-                <button
-                  aria-label="리듬 입력 패드"
-                  className={`feelRecorderPad ${feelRecorderActive ? "active" : ""}`}
-                  disabled={!feelRecorderActive}
-                  onPointerCancel={handleFeelPressEnd}
-                  onPointerDown={handleFeelPressStart}
-                  onPointerUp={handleFeelPressEnd}
-                  type="button"
-                >
-                  <span>{feelRecorderActive ? "짧게 틱 · 길게 꾹" : "기록 시작 후 입력"}</span>
-                  <strong>{feelRecorderEvents.length ? getFeelRecorderStrokeLine(feelRecorderEvents) : "—"}</strong>
-                </button>
-
-                <div className="feelRecorderOutput" aria-label="생성된 패턴">
-                  <span>기록된 길이</span>
-                  <strong>{feelRecorderEvents.length ? getFeelRecorderPatternLine(feelRecorderEvents) : "아직 기록 없음"}</strong>
-                </div>
-
-                <div
-                  className={`feelPlayheadTrack ${feelRecorderEvents.length ? "" : "empty"}`}
-                  aria-label="Feel Recorder 재생 위치"
-                >
-                  <div className="feelPlayheadPattern">
-                    {feelRecorderEvents.length ? normalizeFeelRecorderEvents(feelRecorderEvents).map((event, index) => {
-                      const totalMs = getFeelRecorderTotalUnits(feelRecorderEvents);
-                      const left = (event.startMs / totalMs) * 100;
-                      const width = Math.max(event.type === "hold" ? 4 : 1.2, ((event.endMs - event.startMs) / totalMs) * 100);
-                      return (
-                        <span
-                          className={`${event.type === "hold" ? "hold" : "tick"} ${feelPlaybackIndex === index ? "active" : ""}`}
-                          key={`feel-track-${index}-${event.type}-${Math.round(event.startMs)}`}
-                          style={{ left: `${Math.min(99, left)}%`, width: `${Math.min(100 - left, width)}%` }}
-                        />
-                      );
-                    }) : <span className="placeholder">패턴을 기록하면 재생선이 표시됩니다.</span>}
-                  </div>
-                  <i
-                    className="feelPlayhead"
-                    style={{ left: `${Math.min(100, Math.max(0, feelPlaybackProgress * 100))}%` }}
-                    aria-hidden="true"
-                  />
-                </div>
-
-                <div className="feelRecorderSaveRow">
-                  <input
-                    aria-label="Feel pattern name"
-                    onChange={(event) => setFeelPatternName(event.target.value)}
-                    placeholder="Blues Feel"
-                    type="text"
-                    value={feelPatternName}
-                  />
-                  <button disabled={!feelRecorderEvents.length} onClick={saveFeelPattern} type="button">
-                    저장
-                  </button>
-                </div>
-
-                <div className="feelRecorderActions">
-                  <button
-                    disabled={!feelRecorderEvents.length}
-                    onClick={() => (feelPlaybackActive ? stopFeelPlayback() : playFeelPattern(feelRecorderEvents, feelPlaybackLoop))}
-                    type="button"
-                  >
-                    {feelPlaybackActive ? "정지" : "재생"}
-                  </button>
-                  <button
-                    className={feelPlaybackLoop ? "selected" : ""}
-                    onClick={() => setFeelPlaybackLoop((value) => !value)}
-                    type="button"
-                  >
-                    루프 {feelPlaybackLoop ? "ON" : "OFF"}
-                  </button>
-                  <button disabled={!feelRecorderEvents.length && !feelRecorderActive} onClick={clearFeelRecorder} type="button">
-                    삭제
-                  </button>
-                </div>
-
-                {savedFeelPatterns.length ? (
-                  <div className="feelPatternList" aria-label="저장된 Feel 패턴">
-                    {savedFeelPatterns.map((pattern) => (
-                      <div className="feelPatternItem" key={pattern.id}>
-                        <button onClick={() => setFeelRecorderEvents(pattern.events)} type="button">
-                          <span>{pattern.name}</span>
-                          <strong>{getFeelRecorderPatternLine(pattern.events)}</strong>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setFeelRecorderEvents(pattern.events);
-                            playFeelPattern(pattern.events, feelPlaybackLoop);
-                          }}
-                          type="button"
-                        >
-                          재생
-                        </button>
-                        <button onClick={() => deleteFeelPattern(pattern.id)} type="button">삭제</button>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-          </section>
-
-          <div className="standaloneMetronomeTimeline">
-            <MetronomeTimeline
-              beat={beat}
-              beatsPerMeasure={metronomeBeatsPerMeasure}
-              currentLabel={`${bpm}`}
-              isPlaying={gameState === GAME_STATES.PLAYING}
-              progress={stage3MeasureProgress}
-              runnerLabel={`${beat + 1}`}
-              timeSignature={metronomeTimeSignature}
+          <div className="metronomePresetStrip" aria-label="메트로놈 설정 저장 및 불러오기">
+            <input
+              aria-label="저장할 메트로놈 설정 이름"
+              maxLength={24}
+              onChange={(event) => setMetronomePresetName(event.target.value)}
+              placeholder="워밍업"
+              type="text"
+              value={metronomePresetName}
             />
+            <button onClick={saveMetronomePreset} type="button">
+              저장
+            </button>
+            <select
+              aria-label="저장된 메트로놈 설정 불러오기"
+              onChange={(event) => applyMetronomePreset(event.target.value)}
+              value={metronomePresetSelectedId}
+            >
+              <option value="">불러오기</option>
+              {metronomePresets.map((preset) => (
+                <option key={preset.id} value={preset.id}>
+                  {preset.name}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div className="metronomeTrainingGrid" aria-label="기타 리듬 훈련 설정">
-            <section className="metronomeTrainingCard">
-              <div className="metronomeTrainingCardHeader">
-                <span>Auto BPM</span>
-                <button
-                  className={autoBpmEnabled ? "selected" : ""}
-                  onClick={() => setAutoBpmEnabled((value) => !value)}
-                  type="button"
-                >
-                  {autoBpmEnabled ? "ON" : "OFF"}
-                </button>
-              </div>
-              <div className="metronomeSegmented">
-                {[1, 2, 5].map((step) => (
-                  <button className={autoBpmStep === step ? "selected" : ""} key={step} onClick={() => setAutoBpmStep(step)} type="button">
-                    +{step}
-                  </button>
-                ))}
-              </div>
-              <div className="metronomeSegmented">
-                {[5, 10, 20].map((bars) => (
-                  <button className={autoBpmBars === bars ? "selected" : ""} key={bars} onClick={() => setAutoBpmBars(bars)} type="button">
-                    {bars}마디
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section className="metronomeTrainingCard">
-              <div className="metronomeTrainingCardHeader">
-                <span>Coach Mode</span>
-                <button
-                  className={coachModeEnabled ? "selected" : ""}
-                  onClick={() => setCoachModeEnabled((value) => !value)}
-                  type="button"
-                >
-                  {coachModeEnabled ? "ON" : "OFF"}
-                </button>
-              </div>
-              <div className="metronomeCoachInputs">
-                <label>
-                  <span>재생</span>
-                  <select value={coachPlayBars} onChange={(event) => setCoachPlayBars(Number(event.target.value))}>
-                    {[1, 2, 4, 8].map((bars) => <option key={bars} value={bars}>{bars}마디</option>)}
-                  </select>
-                </label>
-                <label>
-                  <span>무음</span>
-                  <select value={coachMuteBars} onChange={(event) => setCoachMuteBars(Number(event.target.value))}>
-                    {[1, 2, 4, 8].map((bars) => <option key={bars} value={bars}>{bars}마디</option>)}
-                  </select>
-                </label>
-              </div>
-            </section>
-          </div>
         </section>
       ) : appMode === APP_MODES.SHOOTER ? (
         <section className="shooterPanel" aria-label="슈팅게임">
@@ -7784,6 +9299,9 @@ function App() {
                   ...getNoteColorStyle(target.note),
                 }}
               >
+                <i className="enemyEar enemyEar--left" aria-hidden="true" />
+                <i className="enemyEar enemyEar--right" aria-hidden="true" />
+                <i className="enemyFace" aria-hidden="true" />
                 <em>{targetDetail?.solfege ?? getSolfege(target.note)}</em>
                 <span>{targetDetail?.octaveNote ?? target.note}</span>
                 <small>{getFretLabel(targetDetail)}</small>
@@ -7820,28 +9338,9 @@ function App() {
             })}
 
             <div className={`guitarPlayer ${projectiles.length > 0 ? "shooting" : ""}`} style={shooterMotion}>
-              <div className="riderAura" />
-              <div className="riderHelmet">
-                <span />
-              </div>
-              <div className="riderBody">
-                <i className="riderArm" />
-                <i className="riderJacket" />
-              </div>
-              <div className="neonGuitar" aria-hidden="true">
-                <i className="guitarBody" />
-                <i className="strumHand" />
-                <i className="guitarNeck" />
-                <i className="guitarHead">
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                </i>
-                <i className="guitarMuzzle" />
-              </div>
+              <div className="guitarPlayerAura" aria-hidden="true" />
+              <GuitarAssetSvg variant={selectedGuitarVariant} className="guitarPlayerAsset" compact />
+              <span className="guitarPlayerMuzzle" aria-hidden="true" />
             </div>
             <div className="mobileShooterLives" aria-label={`남은 목숨 ${shooterLives}`}>
               {Array.from({ length: SHOOTER_MAX_LIVES }, (_, index) => (
