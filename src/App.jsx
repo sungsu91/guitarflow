@@ -1147,6 +1147,81 @@ const METRONOME_TONE_OPTIONS = [
   { id: "cowbell", label: "Cowbell", src: "/sounds/cowbell.wav" },
   { id: "clap", label: "Clap", src: "/sounds/clap.wav" },
 ];
+const FEEL_RECORDER_STORAGE_KEY = "rifflab-feel-recorder-patterns";
+const FEEL_RECORDER_LONG_PRESS_MS = 420;
+const FEEL_RECORDER_MAX_EVENTS = 24;
+const FEEL_RECORDER_DEFAULT_NAME = "My Feel";
+const FEEL_RECORDER_MIN_TAP_MS = 60;
+
+function normalizeFeelRecorderEvents(events) {
+  if (!Array.isArray(events)) return [];
+
+  let cursorMs = 0;
+  return events.slice(0, FEEL_RECORDER_MAX_EVENTS).map((event) => {
+    const durationMs = Math.max(FEEL_RECORDER_MIN_TAP_MS, Math.min(3200, Number(event?.durationMs) || 120));
+    const hasTimeline = Number.isFinite(Number(event?.startMs)) && Number.isFinite(Number(event?.endMs));
+    const startMs = hasTimeline
+      ? Math.max(0, Math.min(60000, Number(event.startMs)))
+      : cursorMs + Math.max(0, Math.min(2400, Number(event?.gapMs) || 0));
+    const endMs = hasTimeline
+      ? Math.max(startMs + FEEL_RECORDER_MIN_TAP_MS, Math.min(62000, Number(event.endMs)))
+      : startMs + durationMs;
+    cursorMs = endMs;
+
+    return {
+      type: endMs - startMs >= FEEL_RECORDER_LONG_PRESS_MS ? "hold" : "tick",
+      startMs,
+      endMs,
+      durationMs: endMs - startMs,
+      gapMs: Math.max(0, Math.min(2400, Number(event?.gapMs) || 0)),
+    };
+  });
+}
+
+function getFeelRecorderBlockLabel(event) {
+  if (!event || event.type !== "hold") return "|";
+  const length = Math.max(2, Math.min(12, Math.round((Number(event.durationMs) || 420) / 120)));
+  return `|${"━".repeat(length)}|`;
+}
+
+function getFeelRecorderPatternLine(events) {
+  const normalized = normalizeFeelRecorderEvents(events);
+  return normalized.map((event) => getFeelRecorderBlockLabel(event)).join("");
+}
+
+function getFeelRecorderStrokeLine(events) {
+  const normalized = normalizeFeelRecorderEvents(events);
+  return normalized.map((event) => getFeelRecorderBlockLabel(event)).join("");
+}
+
+function getFeelRecorderEventUnits(event) {
+  return Math.max(FEEL_RECORDER_MIN_TAP_MS, Number(event?.durationMs) || FEEL_RECORDER_MIN_TAP_MS);
+}
+
+function getFeelRecorderTotalUnits(events) {
+  const normalized = normalizeFeelRecorderEvents(events);
+  return Math.max(240, normalized.reduce((max, event) => Math.max(max, event.endMs), 0));
+}
+
+function getStoredFeelRecorderPatterns() {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(FEEL_RECORDER_STORAGE_KEY) ?? "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((item, index) => ({
+        id: String(item?.id || `feel-${index}`),
+        name: String(item?.name || `${FEEL_RECORDER_DEFAULT_NAME} ${index + 1}`).slice(0, 28),
+        events: normalizeFeelRecorderEvents(item?.events),
+        createdAt: Number(item?.createdAt) || Date.now(),
+      }))
+      .filter((item) => item.events.length > 0)
+      .slice(0, 20);
+  } catch {
+    return [];
+  }
+}
 
 function getTimeSignatureOption(id) {
   return TIME_SIGNATURE_OPTIONS.find((option) => option.id === id) ?? TIME_SIGNATURE_OPTIONS[2];
@@ -1188,14 +1263,12 @@ function MetronomeControl({
   onSubdivisionChange = () => {},
   onTimeSignatureChange = () => {},
   onToneChange = () => {},
-  onVolumeChange = () => {},
   repeatEnabled = false,
   showCountIn = true,
   showRepeat = true,
   subdivision = "quarter",
   timeSignature = "4/4",
   tone = "tick",
-  volume = 0.72,
 }) {
   const [draftBpm, setDraftBpm] = useState(String(bpm));
 
@@ -1335,19 +1408,6 @@ function MetronomeControl({
           value={tone}
         />
       </div>
-      <label className="metronomeVolumeControl">
-        <span>볼륨</span>
-        <input
-          aria-label="메트로놈 볼륨"
-          max="1"
-          min="0"
-          onChange={(event) => onVolumeChange(Number(event.target.value))}
-          step="0.01"
-          type="range"
-          value={volume}
-        />
-        <strong>{Math.round(volume * 100)}%</strong>
-      </label>
     </div>
   );
 }
@@ -1486,39 +1546,1002 @@ function TrainingCard({ category, index, isSelected, onClick }) {
   );
 }
 
-const HEADER_VARIANTS = [
-  { id: "plate-v1", title: "Brand Plate V1", description: "브랜드 명판형" },
-  { id: "plate-v2", title: "Brand Plate V2", description: "심볼 결합형" },
-  { id: "plate-v3", title: "Brand Plate V3", description: "확장 헤더형" },
-  { id: "plate-v4", title: "Brand Plate V4", description: "앰프/장비 플레이트형" },
-  { id: "v4", title: "Header V4", description: "FF 워드마크 + 개선형 [R] 심볼" },
-  { id: "v5", title: "Header V5", description: "LAB Gold" },
-  { id: "v6", title: "Header V6", description: "LAB Underline" },
-  { id: "v7", title: "Header V7", description: "FF to LAB Connection" },
-  { id: "v8", title: "Header V8", description: "LAB Frame" },
-  { id: "v9", title: "Header V9", description: "Dual String" },
-  { id: "v10", title: "Header V10", description: "Symbol + V4 Hybrid" },
+const ARCHIVED_HEADER_VARIANTS = [
+  { id: "v1", title: "Logo V1", description: "골드 R 포인트 워드마크" },
+  { id: "v2", title: "Logo V2", description: "FF 골드 포인트 워드마크" },
+  { id: "v3", title: "Logo V3", description: "이탤릭 스피드 워드마크" },
+  { id: "v4", title: "Logo V4", description: "라인 아웃라인 워드마크" },
+  { id: "v5", title: "Logo V5", description: "웨이브 + RIFFLAB" },
+  { id: "v6", title: "Logo V6", description: "R 박스 심볼 + 워드마크" },
+  { id: "v7", title: "Logo V7", description: "브러시 R 워드마크" },
+  { id: "v8", title: "Logo V8", description: "넓은 자간 미니멀 워드마크" },
+  { id: "v9", title: "Logo V9", description: "스우시 R 이탤릭 워드마크" },
+  { id: "v10", title: "Logo V10", description: "디스트레스 워드마크" },
+  { id: "v12", title: "Logo V12", description: "Vintage Amp Plate" },
+  { id: "v13", title: "Logo V13", description: "Military Stencil" },
+  { id: "v14", title: "Logo V14", description: "Luxury Watch Style" },
+  { id: "v15", title: "Logo V15", description: "Data Center Industrial" },
+  { id: "v16", title: "Logo V16", description: "Laser Engraving" },
+  { id: "v17", title: "Logo V17", description: "Minimal Single Line" },
+  { id: "v18", title: "Logo V18", description: "Chrome Metal" },
+  { id: "v19", title: "Logo V19", description: "Riff Wave Hybrid" },
+  { id: "v20", title: "Logo V20", description: "Premium Signature" },
+  { id: "v21", title: "Logo V21", description: "Art Deco Stage Spotlight" },
+  { id: "v22", title: "Logo V22", description: "Stencil Stage Spotlight" },
+  { id: "v23", title: "Logo V23", description: "Laser Stage Spotlight" },
+  { id: "v24", title: "Logo V24", description: "Concert Spotlight" },
+  { id: "v25", title: "Logo V25", description: "Theater Stage" },
+  { id: "v26", title: "Logo V26", description: "Luxury Watch Brand" },
+  { id: "v27", title: "Logo V27", description: "Premium Guitar Brand" },
+  { id: "v28", title: "Logo V28", description: "Vintage Amp Plate II" },
+  { id: "v29", title: "Logo V29", description: "Recording Studio" },
+  { id: "v30", title: "Logo V30", description: "Data Center Industrial II" },
+  { id: "v31", title: "Logo V31", description: "Aerospace Industrial" },
+  { id: "v32", title: "Logo V32", description: "Art Deco Premium II" },
+  { id: "v33", title: "Logo V33", description: "Military Stencil Premium II" },
+  { id: "v34", title: "Logo V34", description: "Laser Engraving Premium II" },
+  { id: "v35", title: "Logo V35", description: "Minimal Luxury" },
+  { id: "v36", title: "Logo V36", description: "Museum Signature" },
+  { id: "v37", title: "Logo V37", description: "Retro Music Hardware" },
+  { id: "v38", title: "Logo V38", description: "Analog Equipment" },
+  { id: "v39", title: "Logo V39", description: "Modern Tech Brand" },
+  { id: "v40", title: "Logo V40", description: "Boutique Guitar Shop" },
+  { id: "v41", title: "Logo V41", description: "Heritage Instrument" },
+  { id: "v42", title: "Logo V42", description: "Gold Foil Embossing" },
+  { id: "v43", title: "Logo V43", description: "Black Metal Plate" },
+  { id: "v44", title: "Logo V44", description: "Carbon Fiber Luxury" },
+  { id: "v45", title: "Logo V45", description: "Sound Wave Identity" },
+  { id: "v46", title: "Logo V46", description: "FF Identity Focus" },
+  { id: "v47", title: "Logo V47", description: "RIFF Identity Focus" },
+  { id: "v48", title: "Logo V48", description: "LAB Identity Focus" },
+  { id: "v49", title: "Logo V49", description: "Stage Performer Theme" },
+  { id: "v50", title: "Logo V50", description: "Mastery Theme" },
+  ...["11", "13", "16", "21"].flatMap((parent) =>
+    Array.from({ length: 20 }, (_, index) => {
+      const number = String(index + 1).padStart(2, "0");
+      return {
+        id: `v${parent}-${number}`,
+        title: `Logo V${parent}-${number}`,
+        description: `Legacy V${parent} derivative ${number}`,
+      };
+    }),
+  ),
 ];
-const HEADER_RESTORE_VARIANT = { id: "v1", title: "Header V1", description: "기존 [R] RIFFLAB" };
+const V11_REFINED_VARIANTS = Array.from({ length: 100 }, (_, index) => {
+  const number = String(index + 1).padStart(3, "0");
+  const directions = [
+    "Proportion Study",
+    "Whitespace Study",
+    "Type Density",
+    "Luxury Plate",
+    "Black Metal",
+    "Gold Foil",
+    "Laser Touch",
+    "Premium Hardware",
+    "Heritage Instrument",
+    "Concert Plate",
+  ];
+
+  return {
+    id: `v11-${number}`,
+    title: `Logo V11-${number}`,
+    description: directions[index % directions.length],
+  };
+});
+const HEADER_VARIANTS = [
+  { id: "v11", title: "Logo V11", description: "Art Deco Logo Parent" },
+  ...V11_REFINED_VARIANTS,
+];
+const HEADER_RESTORE_VARIANT = { id: "v11", title: "Logo V11", description: "Art Deco Logo Parent" };
+const DESIGN_LAB_HEADER_STORAGE_KEY = "rifflab-design-lab-header";
+const HEADER_VARIANT_IDS = new Set([HEADER_RESTORE_VARIANT.id, ...HEADER_VARIANTS.map((variant) => variant.id)]);
+const LEGACY_HEADER_VARIANT_MAP = {
+  "plate-v1": "v4",
+  "plate-v2": "v7",
+  "plate-v3": "v8",
+  "plate-v4": "v10",
+};
+const APP_ICON_BRAND_SYMBOL_VARIANTS = Array.from({ length: 40 }, (_, index) => {
+  const version = index + 61;
+  const directions = [
+    "R Core Symbol",
+    "RIFF Abstract",
+    "Repeat Loop",
+    "Riff Pattern",
+    "Pick Abstract",
+    "Muscle Memory",
+    "Mastery Mark",
+    "Repeat Refine Master",
+    "FF Pattern",
+    "String Symbol",
+  ];
+
+  return {
+    id: `icon-v${version}`,
+    title: `App Icon V${version}`,
+    description: directions[index % directions.length],
+  };
+});
+const APP_ICON_PREMIUM_SYMBOL_VARIANTS = Array.from({ length: 40 }, (_, index) => {
+  const version = index + 101;
+  const directions = [
+    "Premium Black",
+    "Premium White",
+    "Black & Gold",
+    "White & Navy",
+    "Monochrome Luxury",
+    "High Contrast",
+    "Gold Material Study",
+    "Deep Light Study",
+    "Luxury Ratio",
+    "Brand Value Study",
+  ];
+
+  return {
+    id: `icon-v${version}`,
+    title: `App Icon V${version}`,
+    description: directions[index % directions.length],
+  };
+});
+
+const APP_ICON_VARIANTS = [
+  { id: "icon-v1", title: "App Icon V1", description: "RIFFLAB 전체 워드마크" },
+  { id: "icon-v2", title: "App Icon V2", description: "RIFF 반복 포인트" },
+  ...APP_ICON_BRAND_SYMBOL_VARIANTS,
+  ...APP_ICON_PREMIUM_SYMBOL_VARIANTS,
+];
+const ARCHIVED_APP_ICON_VARIANTS = [
+  { id: "icon-v3", title: "App Icon V3", description: "R + RIFFLAB 서명" },
+  { id: "icon-v4", title: "App Icon V4", description: "줄무늬 R 시각화" },
+  { id: "icon-v5", title: "App Icon V5", description: "프레임 R 집중형" },
+  { id: "icon-v6", title: "App Icon V6", description: "원형 R 배지" },
+  { id: "icon-v7", title: "App Icon V7", description: "큰 R + 링" },
+  { id: "icon-v8", title: "App Icon V8", description: "기울어진 R 심볼" },
+  { id: "icon-v9", title: "App Icon V9", description: "R 조각 심볼" },
+  { id: "icon-v10", title: "App Icon V10", description: "R + RIFFLAB 하단" },
+  { id: "icon-v11", title: "App Icon V11", description: "Hexagon R" },
+  { id: "icon-v12", title: "App Icon V12", description: "Pick Shape R" },
+  { id: "icon-v13", title: "App Icon V13", description: "Minimal R" },
+  { id: "icon-v14", title: "App Icon V14", description: "Monogram R" },
+  { id: "icon-v15", title: "App Icon V15", description: "Dual String R" },
+  { id: "icon-v16", title: "App Icon V16", description: "R + Soundwave" },
+  { id: "icon-v17", title: "App Icon V17", description: "R + Fret Marker" },
+  { id: "icon-v18", title: "App Icon V18", description: "R Shield" },
+  { id: "icon-v19", title: "App Icon V19", description: "Premium Gold R" },
+  { id: "icon-v20", title: "App Icon V20", description: "Riff Symbol Ultimate" },
+  { id: "icon-v21", title: "App Icon V21", description: "Premium RIFFLAB Wordmark" },
+  { id: "icon-v22", title: "App Icon V22", description: "Editorial RIFF Monogram" },
+  { id: "icon-v23", title: "App Icon V23", description: "Golden RIFF Frequency" },
+  { id: "icon-v24", title: "App Icon V24", description: "Minimal FF String Mark" },
+  { id: "icon-v25", title: "App Icon V25", description: "RIFF Block Identity" },
+  { id: "icon-v26", title: "App Icon V26", description: "Abstract Pick Laboratory" },
+  { id: "icon-v27", title: "App Icon V27", description: "Stage Plate Wordmark" },
+  { id: "icon-v28", title: "App Icon V28", description: "Fret Grid Signature" },
+  { id: "icon-v29", title: "App Icon V29", description: "Riff Pulse Symbol" },
+  { id: "icon-v30", title: "App Icon V30", description: "LAB Seal Minimal" },
+  { id: "icon-v31", title: "App Icon V31", description: "Split RIFF / LAB" },
+  { id: "icon-v32", title: "App Icon V32", description: "Modern Pick Cutout" },
+  { id: "icon-v33", title: "App Icon V33", description: "FF Stage Pillar" },
+  { id: "icon-v34", title: "App Icon V34", description: "Rifflab Crest Abstract" },
+  { id: "icon-v35", title: "App Icon V35", description: "One Stroke Riff Mark" },
+  { id: "icon-v36", title: "App Icon V36", description: "Sound Lab Dot Matrix" },
+  { id: "icon-v37", title: "App Icon V37", description: "Luxury Initial Plate" },
+  { id: "icon-v38", title: "App Icon V38", description: "RIFF Minimal Stack" },
+  { id: "icon-v39", title: "App Icon V39", description: "Concert Spotlight Mark" },
+  { id: "icon-v40", title: "App Icon V40", description: "RIFFLAB Identity Finalist" },
+  { id: "icon-v41", title: "App Icon V41", description: "Ultra Simple R Cut" },
+  { id: "icon-v42", title: "App Icon V42", description: "Repetition Loop Mark" },
+  { id: "icon-v43", title: "App Icon V43", description: "FF Twin Stroke" },
+  { id: "icon-v44", title: "App Icon V44", description: "Pick Negative Space" },
+  { id: "icon-v45", title: "App Icon V45", description: "Riff String Bend" },
+  { id: "icon-v46", title: "App Icon V46", description: "Black White RIFF" },
+  { id: "icon-v47", title: "App Icon V47", description: "Blue Pulse Symbol" },
+  { id: "icon-v48", title: "App Icon V48", description: "Monoline Riff Loop" },
+  { id: "icon-v49", title: "App Icon V49", description: "Four String Identity" },
+  { id: "icon-v50", title: "App Icon V50", description: "Minimal Lab Spark" },
+  { id: "icon-v51", title: "App Icon V51", description: "R Slash Symbol" },
+  { id: "icon-v52", title: "App Icon V52", description: "FF Repeat Tiles" },
+  { id: "icon-v53", title: "App Icon V53", description: "Pick Loop Glyph" },
+  { id: "icon-v54", title: "App Icon V54", description: "Riff Wave Dot" },
+  { id: "icon-v55", title: "App Icon V55", description: "Notion Style R Block" },
+  { id: "icon-v56", title: "App Icon V56", description: "Netflix Style R Bar" },
+  { id: "icon-v57", title: "App Icon V57", description: "Chat Symbol Riff Knot" },
+  { id: "icon-v58", title: "App Icon V58", description: "Gemini Style Riff Star" },
+  { id: "icon-v59", title: "App Icon V59", description: "Instagram Ring Pick" },
+  { id: "icon-v60", title: "App Icon V60", description: "RIFFLAB Core Symbol" },
+];
+const DESIGN_LAB_APP_ICON_STORAGE_KEY = "rifflab-design-lab-app-icon";
+const APP_ICON_VARIANT_IDS = new Set(APP_ICON_VARIANTS.map((variant) => variant.id));
 const DESIGN_LAB_SECTIONS = [
   { id: "logo", label: "로고" },
+  { id: "app-icon", label: "앱아이콘" },
   { id: "character", label: "캐릭터" },
-  { id: "card", label: "카드" },
-  { id: "button", label: "버튼" },
-  { id: "menu", label: "메뉴" },
-  { id: "fretboard", label: "지판" },
+  { id: "component", label: "컴포넌트" },
+  { id: "archive", label: "Archive" },
 ];
 const CHARACTER_LAB_VARIANTS = [
-  { id: "character-1", title: "캐릭터 1", description: "기본 사격 포커스" },
-  { id: "character-2", title: "캐릭터 2", description: "골드 바이저" },
-  { id: "character-3", title: "캐릭터 3", description: "다크 실루엣" },
-  { id: "character-4", title: "캐릭터 4", description: "라운드 마스코트" },
+  { id: "character-1", title: "캐릭터 V1", description: "기타 헤드 발사체" },
+  { id: "character-2", title: "캐릭터 V2", description: "로켓 픽 사수" },
+  { id: "character-3", title: "캐릭터 V3", description: "앰프 드론 타겟팅" },
+  { id: "character-4", title: "캐릭터 V4", description: "스피드 스트라이커" },
+  { id: "character-5", title: "캐릭터 V5", description: "기타 실드 캐논" },
+  { id: "character-6", title: "캐릭터 V6", description: "넥 미사일 러너" },
+  { id: "character-7", title: "캐릭터 V7", description: "Bear Guitar Cadet" },
+  { id: "character-8", title: "캐릭터 V8", description: "Guitar Jet Player" },
+  { id: "character-9", title: "캐릭터 V9", description: "Riff Kid Shooter" },
+  { id: "character-10", title: "캐릭터 V10", description: "Amp Rider" },
+  { id: "character-11", title: "캐릭터 V11", description: "Cowboy Guitar Hunter" },
+  { id: "character-12", title: "캐릭터 V12", description: "Cyber Guitar Soldier" },
+  { id: "character-13", title: "캐릭터 V13", description: "Rock Panda Shooter" },
+  { id: "character-14", title: "캐릭터 V14", description: "Wolf Guitar Ranger" },
+  { id: "character-15", title: "캐릭터 V15", description: "Cat Guitar Assassin" },
+  { id: "character-16", title: "캐릭터 V16", description: "Fox Guitar Gunslinger" },
+  { id: "character-17", title: "캐릭터 V17", description: "Robot Guitar Pilot" },
+  { id: "character-18", title: "캐릭터 V18", description: "Dragon Guitar Rider" },
+  { id: "character-19", title: "캐릭터 V19", description: "Living Guitar Weapon" },
+  { id: "character-20", title: "캐릭터 V20", description: "RIFFLAB Hero Character" },
 ];
 const CARD_LAB_VARIANTS = [
-  { id: "card-1", title: "Card V1", description: "현재 훈련장 카드" },
-  { id: "card-2", title: "Card V2", description: "번호 배지 강조" },
-  { id: "card-3", title: "Card V3", description: "라인형 미니멀" },
+  { id: "card-1", title: "Legacy Card V1", description: "과거 훈련장 카드 시안" },
+  { id: "card-2", title: "Legacy Card V2", description: "번호 배지 강조형" },
+  { id: "card-3", title: "Legacy Card V3", description: "라인형 미니멀" },
 ];
+const COMPONENT_LAB_DROPDOWN_OPTIONS = [
+  { id: "4/4", label: "4/4" },
+  { id: "3/4", label: "3/4" },
+  { id: "6/8", label: "6/8" },
+  { id: "12/8", label: "12/8" },
+  { id: "5/4", label: "5/4" },
+  { id: "7/4", label: "7/4" },
+  { id: "9/8", label: "9/8" },
+  { id: "13/8", label: "13/8" },
+];
+const COMPONENT_LAB_SUBDIVISION_OPTIONS = [
+  { id: "quarter", label: "4분" },
+  { id: "eighth", label: "8분" },
+  { id: "sixteenth", label: "16분" },
+  { id: "thirty-second", label: "32분" },
+  { id: "eighth-triplet", label: "8분 셋잇단" },
+  { id: "sixteenth-triplet", label: "16분 셋잇단" },
+  { id: "dotted-eighth", label: "점8분" },
+  { id: "shuffle", label: "셔플" },
+];
+
+function ComponentLabDropdownPreview({ description, flow, items, title }) {
+  const rowCount = Math.ceil(items.length / 2);
+
+  return (
+    <div className={`componentLabDropdownPreview componentLabDropdownPreview--${flow}`}>
+      <div className="componentLabDropdownTrigger">
+        <span>{title}</span>
+        <strong>{items[0]?.label}</strong>
+        <em aria-hidden="true">⌄</em>
+      </div>
+      <div
+        className="componentLabDropdownMenu"
+        style={flow === "vertical" ? { gridTemplateRows: `repeat(${rowCount}, minmax(30px, auto))` } : undefined}
+      >
+        {items.map((item, index) => (
+          <button className={index === 0 ? "selected" : ""} key={item.id} type="button">
+            {item.label}
+          </button>
+        ))}
+      </div>
+      <small>{description}</small>
+    </div>
+  );
+}
+
+function normalizeDesignLabHeaderState(value = {}) {
+  const storedActiveHeader = LEGACY_HEADER_VARIANT_MAP[value.activeHeader] ?? value.activeHeader;
+  const activeHeader = HEADER_VARIANT_IDS.has(storedActiveHeader) ? storedActiveHeader : HEADER_RESTORE_VARIANT.id;
+  const heldHeaders = Array.isArray(value.heldHeaders)
+    ? value.heldHeaders
+      .map((id) => LEGACY_HEADER_VARIANT_MAP[id] ?? id)
+      .filter((id, index, list) => HEADER_VARIANT_IDS.has(id) && id !== activeHeader && list.indexOf(id) === index)
+    : [];
+  const deletedHeaders = Array.isArray(value.deletedHeaders)
+    ? value.deletedHeaders
+      .map((id) => LEGACY_HEADER_VARIANT_MAP[id] ?? id)
+      .filter((id, index, list) => HEADER_VARIANT_IDS.has(id) && id !== activeHeader && list.indexOf(id) === index)
+    : [];
+
+  return {
+    activeHeader,
+    heldHeaders,
+    deletedHeaders,
+  };
+}
+
+function getStoredDesignLabHeaderState() {
+  if (typeof window === "undefined") return normalizeDesignLabHeaderState();
+
+  try {
+    return normalizeDesignLabHeaderState(JSON.parse(window.localStorage.getItem(DESIGN_LAB_HEADER_STORAGE_KEY) ?? "{}"));
+  } catch {
+    return normalizeDesignLabHeaderState();
+  }
+}
+
+function normalizeDesignLabAppIconState(value = {}) {
+  const activeIcon = APP_ICON_VARIANT_IDS.has(value.activeIcon) ? value.activeIcon : APP_ICON_VARIANTS[0].id;
+  const heldIcons = Array.isArray(value.heldIcons)
+    ? value.heldIcons.filter((id, index, list) => APP_ICON_VARIANT_IDS.has(id) && id !== activeIcon && list.indexOf(id) === index)
+    : [];
+  const deletedIcons = Array.isArray(value.deletedIcons)
+    ? value.deletedIcons.filter((id, index, list) => APP_ICON_VARIANT_IDS.has(id) && id !== activeIcon && list.indexOf(id) === index)
+    : [];
+
+  return {
+    activeIcon,
+    heldIcons,
+    deletedIcons,
+  };
+}
+
+function getStoredDesignLabAppIconState() {
+  if (typeof window === "undefined") return normalizeDesignLabAppIconState();
+
+  try {
+    return normalizeDesignLabAppIconState(JSON.parse(window.localStorage.getItem(DESIGN_LAB_APP_ICON_STORAGE_KEY) ?? "{}"));
+  } catch {
+    return normalizeDesignLabAppIconState();
+  }
+}
+
+function getHeaderVariantLabel(variantId) {
+  return [HEADER_RESTORE_VARIANT, ...HEADER_VARIANTS].find((variant) => variant.id === variantId)?.title ?? HEADER_RESTORE_VARIANT.title;
+}
+
+function getAppIconVariantLabel(variantId) {
+  return [...APP_ICON_VARIANTS, ...ARCHIVED_APP_ICON_VARIANTS].find((variant) => variant.id === variantId)?.title ?? APP_ICON_VARIANTS[0].title;
+}
+
+function getHeaderLabStatus(variantId, state) {
+  if (variantId === state.activeHeader) return "운영중";
+  if (state.heldHeaders.includes(variantId)) return "잠금";
+  return "실험중";
+}
+
+function getAppIconLabStatus(variantId, state) {
+  if (variantId === state.activeIcon) return "운영중";
+  if (state.heldIcons.includes(variantId)) return "잠금";
+  return "실험중";
+}
+
+function getHeaderLabStatusClass(status) {
+  if (status === "운영중") return "active";
+  if (status === "잠금") return "held";
+  return "draft";
+}
+
+function AppIconSvgPreview({ variantId }) {
+  const uniqueId = variantId.replace(/[^a-z0-9-]/gi, "");
+  const variantNumber = Number(variantId.replace("icon-v", ""));
+  const isHex = variantId === "icon-v11";
+  const isPick = variantId === "icon-v12";
+  const isMinimal = variantId === "icon-v13";
+  const isMono = variantId === "icon-v14";
+  const isDualString = variantId === "icon-v15";
+  const isWave = variantId === "icon-v16";
+  const isFret = variantId === "icon-v17";
+  const isShield = variantId === "icon-v18";
+  const isPremium = variantId === "icon-v19";
+  const isUltimate = variantId === "icon-v20";
+
+  if (variantNumber >= 101) {
+    const family = variantNumber - 101;
+    const mode = family % 10;
+    const palette = Math.floor(family / 10);
+    const palettes = [
+      { bg0: "#010203", bg1: "#131517", fg0: "#ffffff", fg1: "#bfc5c8", accent0: "#d8a64e", accent1: "#fff0b8" },
+      { bg0: "#f9f6ef", bg1: "#d8d2c7", fg0: "#08090a", fg1: "#30343a", accent0: "#0c1f3b", accent1: "#6d7f95" },
+      { bg0: "#030303", bg1: "#15110a", fg0: "#f9e6b0", fg1: "#b78334", accent0: "#ffffff", accent1: "#6c4a1f" },
+      { bg0: "#071326", bg1: "#f8f4ea", fg0: "#ffffff", fg1: "#0b1830", accent0: "#83b8ff", accent1: "#d6a64d" },
+    ];
+    const p = palettes[palette] ?? palettes[0];
+    const symbolId = `${uniqueId}-symbol`;
+    const bgId = `${uniqueId}-premium-bg`;
+    const glowId = `${uniqueId}-premium-glow`;
+
+    const Symbol = () => {
+      if (mode === 0) {
+        return (
+          <g>
+            <path d="M37 93 V24 H67 C84 24 94 34 94 49 C94 61 86 69 75 72 L96 93 H72 L55 75 H54 V93 Z M54 56 H66 C73 56 77 52 77 47 C77 42 73 39 66 39 H54 Z" fill={`url(#${symbolId})`} />
+            <path d="M34 93 L86 24" stroke={p.accent0} strokeWidth="7" strokeLinecap="round" opacity="0.92" />
+          </g>
+        );
+      }
+      if (mode === 1) {
+        return (
+          <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M35 39 C45 24 71 25 82 40 C94 57 82 82 60 84 C46 85 36 78 31 68" stroke={`url(#${symbolId})`} strokeWidth="11" />
+            <path d="M79 73 L82 92 L65 84" stroke={p.accent0} strokeWidth="9" />
+          </g>
+        );
+      }
+      if (mode === 2) {
+        return (
+          <g>
+            <rect x="24" y="25" width="24" height="70" rx="8" fill={`url(#${symbolId})`} />
+            <rect x="54" y="25" width="24" height="70" rx="8" fill={p.accent0} />
+            <rect x="84" y="25" width="12" height="70" rx="6" fill={`url(#${symbolId})`} opacity="0.82" />
+          </g>
+        );
+      }
+      if (mode === 3) return <path d="M20 64 C31 31 43 91 55 58 C67 25 81 89 100 41" fill="none" stroke={`url(#${symbolId})`} strokeWidth="12" strokeLinecap="round" />;
+      if (mode === 4) return <path d="M60 17 C88 20 101 41 94 66 C88 88 72 104 60 109 C48 104 32 88 26 66 C19 41 32 20 60 17 Z M45 75 L80 34 H63 L36 75 Z" fill={`url(#${symbolId})`} fillRule="evenodd" />;
+      if (mode === 5) {
+        return (
+          <g>
+            <circle cx="60" cy="60" r="38" fill="none" stroke={`url(#${symbolId})`} strokeWidth="10" />
+            <path d="M44 66 C50 48 70 48 76 66" fill="none" stroke={p.accent0} strokeWidth="9" strokeLinecap="round" />
+            <circle cx="60" cy="60" r="6" fill={`url(#${symbolId})`} />
+          </g>
+        );
+      }
+      if (mode === 6) {
+        return (
+          <>
+            <path d="M60 17 L72 49 L105 60 L72 71 L60 103 L48 71 L15 60 L48 49 Z" fill={`url(#${symbolId})`} />
+            <path d="M60 41 L66 56 L82 60 L66 66 L60 81 L54 66 L38 60 L54 56 Z" fill={p.accent0} opacity="0.92" />
+          </>
+        );
+      }
+      if (mode === 7) {
+        return (
+          <g fill="none" strokeLinecap="round">
+            <path d="M27 78 C38 36 72 25 90 47" stroke={`url(#${symbolId})`} strokeWidth="10" />
+            <path d="M31 94 C43 52 77 41 98 62" stroke={p.accent0} strokeWidth="9" />
+            <path d="M32 55 H91" stroke={`url(#${symbolId})`} strokeWidth="7" opacity="0.58" />
+          </g>
+        );
+      }
+      if (mode === 8) {
+        return (
+          <g>
+            <rect x="23" y="24" width="30" height="30" rx="9" fill={`url(#${symbolId})`} />
+            <rect x="67" y="24" width="30" height="30" rx="9" fill={p.accent0} />
+            <rect x="23" y="68" width="30" height="30" rx="9" fill={p.accent0} />
+            <rect x="67" y="68" width="30" height="30" rx="9" fill={`url(#${symbolId})`} />
+          </g>
+        );
+      }
+      return (
+        <g>
+          <path d="M29 72 C40 28 75 24 91 43 C106 62 82 78 58 64 L83 96 H64 L44 75 C37 83 31 82 29 72 Z" fill={`url(#${symbolId})`} />
+          <circle cx="85" cy="35" r="7" fill={p.accent0} />
+        </g>
+      );
+    };
+
+    return (
+      <svg className="appIconSvgPreview appIconSvgPreview--premiumSymbol" viewBox="0 0 120 120" role="img" aria-label={`${getAppIconVariantLabel(variantId)} SVG`}>
+        <defs>
+          <linearGradient id={bgId} x1="14" x2="106" y1="9" y2="112" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor={p.bg1} />
+            <stop offset="0.48" stopColor={p.bg0} />
+            <stop offset="1" stopColor={p.bg1} />
+          </linearGradient>
+          <linearGradient id={symbolId} x1="29" x2="92" y1="20" y2="98" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor={p.fg0} />
+            <stop offset="0.5" stopColor={p.fg1} />
+            <stop offset="1" stopColor={p.fg0} />
+          </linearGradient>
+          <radialGradient id={glowId} cx="42%" cy="22%" r="72%">
+            <stop offset="0" stopColor={p.accent1} stopOpacity="0.42" />
+            <stop offset="0.42" stopColor={p.accent0} stopOpacity="0.08" />
+            <stop offset="1" stopColor={p.bg0} stopOpacity="0" />
+          </radialGradient>
+          <filter id={`${uniqueId}-premium-shadow`}>
+            <feDropShadow dx="0" dy="7" stdDeviation="5" floodColor="#000000" floodOpacity="0.38" />
+          </filter>
+        </defs>
+        <rect width="120" height="120" rx="26" fill={`url(#${bgId})`} />
+        <rect x="1" y="1" width="118" height="118" rx="25" fill={`url(#${glowId})`} />
+        <rect x="8" y="8" width="104" height="104" rx="22" fill="none" stroke={p.fg0} strokeOpacity="0.07" />
+        <g filter={`url(#${uniqueId}-premium-shadow)`}>
+          <Symbol />
+        </g>
+      </svg>
+    );
+  }
+
+  if (variantNumber >= 61) {
+    const family = variantNumber - 61;
+    const mode = family % 10;
+    const palette = Math.floor(family / 10);
+    const palettes = [
+      { bg: "#050607", fg: "#ffffff", accent: "#d8a64e" },
+      { bg: "#ffffff", fg: "#050607", accent: "#050607" },
+      { bg: "#07172d", fg: "#ffffff", accent: "#7db7ff" },
+      { bg: "#050607", fg: "#f2c66d", accent: "#ffffff" },
+    ];
+    const { bg, fg, accent } = palettes[palette] ?? palettes[0];
+    const rotate = [-10, 0, 9, -5][palette] ?? 0;
+
+    return (
+      <svg className="appIconSvgPreview appIconSvgPreview--brandSymbol" viewBox="0 0 120 120" role="img" aria-label={`${getAppIconVariantLabel(variantId)} SVG`}>
+        <rect width="120" height="120" rx={palette === 1 ? 18 : 26} fill={bg} />
+        {mode === 0 ? (
+          <g transform={`rotate(${rotate} 60 60)`}>
+            <path d="M37 93 V24 H67 C84 24 94 34 94 49 C94 61 86 69 75 72 L96 93 H72 L55 75 H54 V93 Z M54 56 H66 C73 56 77 52 77 47 C77 42 73 39 66 39 H54 Z" fill={fg} />
+            <path d="M33 93 L87 24" stroke={accent} strokeWidth="8" strokeLinecap="round" />
+          </g>
+        ) : null}
+        {mode === 1 ? (
+          <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M35 39 C45 24 71 25 82 40 C94 57 82 82 60 84 C46 85 36 78 31 68" stroke={fg} strokeWidth="11" />
+            <path d="M79 73 L82 92 L65 84" stroke={accent} strokeWidth="10" />
+          </g>
+        ) : null}
+        {mode === 2 ? (
+          <g transform={`rotate(${rotate} 60 60)`}>
+            <rect x="24" y="25" width="24" height="70" rx="8" fill={fg} />
+            <rect x="54" y="25" width="24" height="70" rx="8" fill={accent} />
+            <rect x="84" y="25" width="12" height="70" rx="6" fill={fg} opacity="0.84" />
+          </g>
+        ) : null}
+        {mode === 3 ? (
+          <path d="M20 64 C31 31 43 91 55 58 C67 25 81 89 100 41" fill="none" stroke={fg} strokeWidth="12" strokeLinecap="round" />
+        ) : null}
+        {mode === 4 ? (
+          <path d="M60 17 C88 20 101 41 94 66 C88 88 72 104 60 109 C48 104 32 88 26 66 C19 41 32 20 60 17 Z M45 75 L80 34 H63 L36 75 Z" fill={fg} fillRule="evenodd" />
+        ) : null}
+        {mode === 5 ? (
+          <g transform={`rotate(${rotate} 60 60)`}>
+            <circle cx="60" cy="60" r="38" fill="none" stroke={fg} strokeWidth="10" />
+            <path d="M44 66 C50 48 70 48 76 66" fill="none" stroke={accent} strokeWidth="10" strokeLinecap="round" />
+            <circle cx="60" cy="60" r="7" fill={fg} />
+          </g>
+        ) : null}
+        {mode === 6 ? (
+          <>
+            <path d="M60 17 L72 49 L105 60 L72 71 L60 103 L48 71 L15 60 L48 49 Z" fill={fg} />
+            <path d="M60 40 L66 56 L82 60 L66 66 L60 82 L54 66 L38 60 L54 56 Z" fill={accent} />
+          </>
+        ) : null}
+        {mode === 7 ? (
+          <g fill="none" strokeLinecap="round">
+            <path d="M27 78 C38 36 72 25 90 47" stroke={fg} strokeWidth="10" />
+            <path d="M31 94 C43 52 77 41 98 62" stroke={accent} strokeWidth="10" />
+            <path d="M32 55 H91" stroke={fg} strokeWidth="8" opacity="0.72" />
+          </g>
+        ) : null}
+        {mode === 8 ? (
+          <g transform={`rotate(${rotate} 60 60)`}>
+            <rect x="23" y="24" width="30" height="30" rx="9" fill={fg} />
+            <rect x="67" y="24" width="30" height="30" rx="9" fill={accent} />
+            <rect x="23" y="68" width="30" height="30" rx="9" fill={accent} />
+            <rect x="67" y="68" width="30" height="30" rx="9" fill={fg} />
+          </g>
+        ) : null}
+        {mode === 9 ? (
+          <g transform={`rotate(${rotate} 60 60)`}>
+            <path d="M29 72 C40 28 75 24 91 43 C106 62 82 78 58 64 L83 96 H64 L44 75 C37 83 31 82 29 72 Z" fill={fg} />
+            <circle cx="85" cy="35" r="7" fill={accent} />
+          </g>
+        ) : null}
+      </svg>
+    );
+  }
+
+  if (variantNumber >= 41) {
+    const light = [44, 46, 55, 59].includes(variantNumber);
+    const blue = [47, 57, 58].includes(variantNumber);
+    const bg = light ? "#f7f3ea" : blue ? "#0b1224" : "#050607";
+    const fg = light ? "#050607" : "#ffffff";
+    const accent = blue ? "#7bb7ff" : light ? "#050607" : "#d9a94f";
+
+    return (
+      <svg className="appIconSvgPreview appIconSvgPreview--symbol" viewBox="0 0 120 120" role="img" aria-label={`${getAppIconVariantLabel(variantId)} SVG`}>
+        <rect width="120" height="120" rx="26" fill={bg} />
+        {variantNumber === 41 ? (
+          <path d="M38 91 V25 H67 C84 25 94 35 94 50 C94 62 87 70 76 73 L95 91 H73 L55 74 H54 V91 Z M54 56 H66 C73 56 77 52 77 47 C77 42 73 39 66 39 H54 Z" fill={fg} />
+        ) : null}
+        {variantNumber === 42 ? (
+          <>
+            <path d="M34 40 C43 25 68 23 82 37 C95 50 93 73 76 85" fill="none" stroke={fg} strokeWidth="11" strokeLinecap="round" />
+            <path d="M86 74 L78 91 L67 75 Z" fill={fg} />
+            <path d="M86 60 C77 75 52 77 38 63 C25 50 27 27 44 15" fill="none" stroke={accent} strokeWidth="11" strokeLinecap="round" opacity="0.92" />
+          </>
+        ) : null}
+        {variantNumber === 43 ? (
+          <>
+            <path d="M33 26 H74 V43 H53 V55 H71 V72 H53 V94 H33 Z" fill={fg} />
+            <path d="M63 26 H101 V43 H83 V57 H97 V74 H83 V94 H63 Z" fill={accent} />
+          </>
+        ) : null}
+        {variantNumber === 44 ? (
+          <path d="M60 18 C87 20 101 40 94 66 C88 88 72 104 60 109 C48 104 32 88 26 66 C19 40 33 20 60 18 Z M47 75 L78 37 H64 L38 75 Z" fill={fg} fillRule="evenodd" />
+        ) : null}
+        {variantNumber === 45 ? (
+          <path d="M21 74 C32 31 56 28 65 49 C72 66 54 76 44 61 L79 31 H98 L58 70 L92 95 H70 L49 78 C36 90 25 86 21 74 Z" fill={fg} />
+        ) : null}
+        {variantNumber === 46 ? (
+          <>
+            <rect x="17" y="26" width="86" height="62" rx="18" fill={fg} />
+            <text x="60" y="68" textAnchor="middle" fill={bg} fontFamily="Arial Black, Arial, sans-serif" fontSize="23" fontWeight="900" letterSpacing="3">RIFF</text>
+          </>
+        ) : null}
+        {variantNumber === 47 ? (
+          <>
+            <circle cx="60" cy="60" r="38" fill="none" stroke={fg} strokeWidth="10" />
+            <path d="M38 70 C51 37 71 37 84 70" fill="none" stroke={accent} strokeWidth="10" strokeLinecap="round" />
+          </>
+        ) : null}
+        {variantNumber === 48 ? (
+          <path d="M31 76 C42 32 76 24 90 43 C103 61 80 76 57 64 L82 91 H62 L43 71 H42 V91 H31 Z" fill="none" stroke={fg} strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" />
+        ) : null}
+        {variantNumber === 49 ? (
+          <>
+            {[35, 48, 61, 74].map((x, index) => <line key={x} x1={x} x2={x} y1="20" y2="100" stroke={index === 1 || index === 2 ? accent : fg} strokeWidth="7" strokeLinecap="round" />)}
+            <circle cx="86" cy="60" r="11" fill={fg} />
+          </>
+        ) : null}
+        {variantNumber === 50 ? (
+          <>
+            <path d="M36 84 L60 22 L84 84 Z" fill="none" stroke={fg} strokeWidth="9" strokeLinejoin="round" />
+            <circle cx="60" cy="64" r="9" fill={accent} />
+          </>
+        ) : null}
+        {variantNumber === 51 ? (
+          <>
+            <path d="M38 91 V25 H68 C84 25 94 35 94 50 C94 62 86 70 75 73 L94 91 H72 L55 74 H54 V91 Z" fill={fg} />
+            <path d="M29 93 L90 20" stroke={accent} strokeWidth="9" strokeLinecap="round" />
+          </>
+        ) : null}
+        {variantNumber === 52 ? (
+          <>
+            <rect x="23" y="24" width="30" height="30" rx="8" fill={fg} />
+            <rect x="67" y="24" width="30" height="30" rx="8" fill={accent} />
+            <rect x="23" y="68" width="30" height="30" rx="8" fill={accent} />
+            <rect x="67" y="68" width="30" height="30" rx="8" fill={fg} />
+          </>
+        ) : null}
+        {variantNumber === 53 ? (
+          <>
+            <path d="M60 17 C88 20 101 41 94 66 C88 88 72 104 60 109 C48 104 32 88 26 66 C19 41 32 20 60 17 Z" fill="none" stroke={fg} strokeWidth="10" />
+            <path d="M43 69 C51 50 65 45 80 52" fill="none" stroke={accent} strokeWidth="9" strokeLinecap="round" />
+          </>
+        ) : null}
+        {variantNumber === 54 ? (
+          <>
+            <path d="M22 64 C33 34 46 89 58 59 C70 29 83 85 98 42" fill="none" stroke={fg} strokeWidth="10" strokeLinecap="round" />
+            <circle cx="60" cy="60" r="8" fill={accent} />
+          </>
+        ) : null}
+        {variantNumber === 55 ? (
+          <>
+            <rect x="25" y="22" width="70" height="76" rx="8" fill="none" stroke={fg} strokeWidth="7" />
+            <path d="M44 84 V36 H62 C76 36 84 44 84 55 C84 64 78 70 69 72 L84 84 H68 L55 73 H54 V84 Z" fill={fg} />
+          </>
+        ) : null}
+        {variantNumber === 56 ? (
+          <>
+            <path d="M36 92 V24 H53 L84 92 H67 L53 59 V92 Z" fill={fg} />
+            <path d="M67 24 H84 V92 H67 Z" fill={accent} />
+          </>
+        ) : null}
+        {variantNumber === 57 ? (
+          <>
+            <path d="M60 21 L91 39 V76 L60 94 L29 76 V39 Z" fill="none" stroke={fg} strokeWidth="8" />
+            <path d="M39 62 C50 43 70 43 81 62 C70 81 50 81 39 62 Z" fill="none" stroke={accent} strokeWidth="8" />
+          </>
+        ) : null}
+        {variantNumber === 58 ? (
+          <>
+            <path d="M60 18 L70 49 L102 60 L70 71 L60 102 L50 71 L18 60 L50 49 Z" fill={fg} />
+            <circle cx="60" cy="60" r="13" fill={accent} />
+          </>
+        ) : null}
+        {variantNumber === 59 ? (
+          <>
+            <circle cx="60" cy="60" r="39" fill="none" stroke={fg} strokeWidth="9" />
+            <path d="M60 23 C84 27 98 44 96 66" fill="none" stroke={accent} strokeWidth="9" strokeLinecap="round" />
+            <path d="M50 76 L78 42 H65 L43 76 Z" fill={fg} />
+          </>
+        ) : null}
+        {variantNumber === 60 ? (
+          <>
+            <path d="M28 72 C40 28 75 24 91 43 C106 62 82 78 57 64 L82 96 H64 L43 75 C36 83 30 82 28 72 Z" fill={fg} />
+            <path d="M38 37 L86 91" stroke={accent} strokeWidth="7" strokeLinecap="round" />
+          </>
+        ) : null}
+      </svg>
+    );
+  }
+
+  if (variantNumber >= 21) {
+    const darkBg = variantNumber === 22 || variantNumber === 24 || variantNumber === 28 || variantNumber === 33 || variantNumber === 35 || variantNumber === 39;
+    const warmBg = variantNumber === 26 || variantNumber === 32 || variantNumber === 38;
+    const bg = warmBg ? "#f4ead8" : darkBg ? "#030607" : "#070b0d";
+    const ink = warmBg ? "#080907" : "#fff3d6";
+    const gold = warmBg ? "#9b6b2f" : "#e6b96b";
+    const muted = warmBg ? "#2b2418" : "rgba(255, 238, 202, 0.78)";
+    const showWord = [21, 23, 25, 27, 31, 38, 40].includes(variantNumber);
+    const showRiff = [22, 24, 29, 33, 35, 36, 39].includes(variantNumber);
+
+    return (
+      <svg className="appIconSvgPreview appIconSvgPreview--nextGen" viewBox="0 0 120 120" role="img" aria-label={`${getAppIconVariantLabel(variantId)} SVG`}>
+        <defs>
+          <linearGradient id={`${uniqueId}-gold`} x1="20" x2="100" y1="14" y2="108" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor={warmBg ? "#5a3b17" : "#fff0bd"} />
+            <stop offset="0.52" stopColor={gold} />
+            <stop offset="1" stopColor={warmBg ? "#1a1209" : "#8d5f2c"} />
+          </linearGradient>
+          <radialGradient id={`${uniqueId}-spot`} cx="50%" cy="28%" r="62%">
+            <stop offset="0" stopColor={warmBg ? "#ffffff" : "#f1ca7a"} stopOpacity={warmBg ? "0.46" : "0.22"} />
+            <stop offset="1" stopColor={bg} stopOpacity="0" />
+          </radialGradient>
+          <filter id={`${uniqueId}-soft`}>
+            <feDropShadow dx="0" dy="5" stdDeviation="5" floodColor="#000000" floodOpacity="0.34" />
+          </filter>
+        </defs>
+        <rect width="120" height="120" rx={variantNumber === 30 ? 18 : 25} fill={bg} />
+        <rect width="120" height="120" rx={variantNumber === 30 ? 18 : 25} fill={`url(#${uniqueId}-spot)`} />
+        {variantNumber === 21 ? (
+          <>
+            <text x="60" y="52" textAnchor="middle" fill={`url(#${uniqueId}-gold)`} fontFamily="Georgia, Times New Roman, serif" fontSize="20" fontWeight="900" letterSpacing="6">RIFF</text>
+            <text x="60" y="74" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="14" fontWeight="900" letterSpacing="5">LAB</text>
+          </>
+        ) : null}
+        {variantNumber === 22 ? (
+          <>
+            <path d="M31 73 C42 40 62 33 88 39" fill="none" stroke={`url(#${uniqueId}-gold)`} strokeWidth="9" strokeLinecap="round" />
+            <text x="60" y="75" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="22" fontWeight="900" letterSpacing="3">RIFF</text>
+          </>
+        ) : null}
+        {variantNumber === 23 ? (
+          <>
+            {[28, 38, 48, 58, 68, 78, 88].map((x, index) => (
+              <rect key={x} x={x} y={58 - [8, 18, 28, 36, 28, 18, 8][index] / 2} width="5" height={[8, 18, 28, 36, 28, 18, 8][index]} rx="3" fill={gold} />
+            ))}
+            <text x="60" y="91" textAnchor="middle" fill={ink} fontFamily="Georgia, Times New Roman, serif" fontSize="13" fontWeight="900" letterSpacing="4">RIFFLAB</text>
+          </>
+        ) : null}
+        {variantNumber === 24 ? (
+          <>
+            <line x1="22" x2="98" y1="43" y2="43" stroke={gold} strokeWidth="3" strokeLinecap="round" />
+            <line x1="22" x2="98" y1="63" y2="63" stroke={gold} strokeWidth="3" strokeLinecap="round" opacity="0.7" />
+            <text x="60" y="72" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="38" fontWeight="900" letterSpacing="2">FF</text>
+          </>
+        ) : null}
+        {variantNumber === 25 ? (
+          <>
+            <rect x="21" y="28" width="78" height="58" rx="14" fill="none" stroke={`url(#${uniqueId}-gold)`} strokeWidth="3" />
+            <text x="60" y="58" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="17" fontWeight="900" letterSpacing="4">RIFF</text>
+            <text x="60" y="78" textAnchor="middle" fill={gold} fontFamily="Arial Black, Arial, sans-serif" fontSize="12" fontWeight="900" letterSpacing="3">LAB</text>
+          </>
+        ) : null}
+        {variantNumber === 26 ? (
+          <>
+            <path d="M60 16 C86 20 101 41 94 66 C88 88 72 103 60 108 C48 103 32 88 26 66 C19 41 34 20 60 16 Z" fill={`url(#${uniqueId}-gold)`} opacity="0.96" filter={`url(#${uniqueId}-soft)`} />
+            <text x="60" y="67" textAnchor="middle" fill="#080907" fontFamily="Georgia, Times New Roman, serif" fontSize="28" fontWeight="900">R</text>
+            <line x1="47" x2="73" y1="75" y2="75" stroke="#080907" strokeWidth="2" opacity="0.5" />
+          </>
+        ) : null}
+        {variantNumber === 27 ? (
+          <>
+            <rect x="17" y="28" width="86" height="58" rx="10" fill="rgba(255,244,210,0.04)" stroke={gold} strokeWidth="2" />
+            <text x="60" y="58" textAnchor="middle" fill={`url(#${uniqueId}-gold)`} fontFamily="Georgia, Times New Roman, serif" fontSize="21" fontWeight="900" letterSpacing="6">RIFF</text>
+            <text x="60" y="75" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="8" fontWeight="900" letterSpacing="3">REPEAT</text>
+          </>
+        ) : null}
+        {variantNumber === 28 ? (
+          <>
+            {[30, 44, 58, 72, 86].map((x) => <line key={x} x1={x} x2={x} y1="22" y2="98" stroke={gold} strokeWidth="1.8" opacity="0.55" />)}
+            {[39, 60, 81].map((y) => <line key={y} x1="23" x2="97" y1={y} y2={y} stroke={gold} strokeWidth="1.4" opacity="0.35" />)}
+            <circle cx="72" cy="60" r="7" fill={gold} />
+            <text x="60" y="33" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="13" fontWeight="900" letterSpacing="3">RIFF</text>
+          </>
+        ) : null}
+        {variantNumber === 29 ? (
+          <>
+            <path d="M22 64 C34 30 48 94 60 58 C72 22 86 94 98 46" fill="none" stroke={`url(#${uniqueId}-gold)`} strokeWidth="8" strokeLinecap="round" />
+            <circle cx="60" cy="60" r="7" fill={ink} />
+          </>
+        ) : null}
+        {variantNumber === 30 ? (
+          <>
+            <path d="M60 21 L88 37 L88 73 L60 91 L32 73 L32 37 Z" fill="none" stroke={gold} strokeWidth="3" />
+            <text x="60" y="62" textAnchor="middle" fill={ink} fontFamily="Georgia, Times New Roman, serif" fontSize="24" fontWeight="900">LAB</text>
+            <text x="60" y="77" textAnchor="middle" fill={gold} fontFamily="Arial Black, Arial, sans-serif" fontSize="8" fontWeight="900" letterSpacing="2">RIFF</text>
+          </>
+        ) : null}
+        {variantNumber === 31 ? (
+          <>
+            <rect x="20" y="24" width="80" height="38" rx="13" fill={gold} />
+            <rect x="20" y="62" width="80" height="30" rx="12" fill="rgba(255,244,210,0.08)" stroke={gold} strokeWidth="1.5" />
+            <text x="60" y="50" textAnchor="middle" fill="#080907" fontFamily="Arial Black, Arial, sans-serif" fontSize="20" fontWeight="900" letterSpacing="4">RIFF</text>
+            <text x="60" y="82" textAnchor="middle" fill={ink} fontFamily="Georgia, Times New Roman, serif" fontSize="16" fontWeight="900" letterSpacing="4">LAB</text>
+          </>
+        ) : null}
+        {variantNumber === 32 ? (
+          <>
+            <path d="M60 17 C87 19 101 40 94 65 C88 88 72 103 60 108 C48 103 32 88 26 65 C19 40 33 19 60 17 Z" fill="#080907" />
+            <path d="M42 71 L74 35 L86 35 L54 78 Z" fill={`url(#${uniqueId}-gold)`} />
+          </>
+        ) : null}
+        {variantNumber === 33 ? (
+          <>
+            <text x="43" y="75" textAnchor="middle" fill={gold} fontFamily="Arial Black, Arial, sans-serif" fontSize="50" fontWeight="900">F</text>
+            <text x="67" y="75" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="50" fontWeight="900">F</text>
+            <line x1="20" x2="100" y1="88" y2="88" stroke={gold} strokeWidth="2" />
+          </>
+        ) : null}
+        {variantNumber === 34 ? (
+          <>
+            <path d="M60 17 L96 36 L89 82 L60 101 L31 82 L24 36 Z" fill="rgba(255,244,210,0.035)" stroke={gold} strokeWidth="3" />
+            <path d="M43 72 C48 47 61 34 82 37" fill="none" stroke={gold} strokeWidth="8" strokeLinecap="round" />
+            <text x="60" y="88" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="9" fontWeight="900" letterSpacing="2">RIFF</text>
+          </>
+        ) : null}
+        {variantNumber === 35 ? (
+          <>
+            <path d="M26 72 C45 21 83 29 91 47 C98 63 73 66 54 63 L81 91" fill="none" stroke={`url(#${uniqueId}-gold)`} strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
+          </>
+        ) : null}
+        {variantNumber === 36 ? (
+          <>
+            {[24, 36, 48, 60, 72, 84, 96].map((x, index) => <circle key={x} cx={x} cy={60 + (index % 2 ? -11 : 9)} r={index === 3 ? 8 : 5} fill={index === 3 ? gold : ink} opacity={index === 3 ? 1 : 0.85} />)}
+            <text x="60" y="92" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="8" fontWeight="900" letterSpacing="2">LAB</text>
+          </>
+        ) : null}
+        {variantNumber === 37 ? (
+          <>
+            <rect x="28" y="24" width="64" height="68" rx="18" fill="rgba(255,244,210,0.045)" stroke={gold} strokeWidth="2" />
+            <text x="60" y="72" textAnchor="middle" fill={`url(#${uniqueId}-gold)`} fontFamily="Georgia, Times New Roman, serif" fontSize="50" fontWeight="900">R</text>
+            <circle cx="86" cy="30" r="4" fill={gold} />
+          </>
+        ) : null}
+        {variantNumber === 38 ? (
+          <>
+            <text x="60" y="47" textAnchor="middle" fill="#080907" fontFamily="Arial Black, Arial, sans-serif" fontSize="20" fontWeight="900" letterSpacing="5">RIFF</text>
+            <line x1="34" x2="86" y1="60" y2="60" stroke={gold} strokeWidth="2" />
+            <text x="60" y="82" textAnchor="middle" fill={gold} fontFamily="Georgia, Times New Roman, serif" fontSize="17" fontWeight="900" letterSpacing="4">LAB</text>
+          </>
+        ) : null}
+        {variantNumber === 39 ? (
+          <>
+            <path d="M22 22 L50 57" stroke={gold} strokeWidth="3" strokeLinecap="round" opacity="0.55" />
+            <path d="M98 22 L70 57" stroke={gold} strokeWidth="3" strokeLinecap="round" opacity="0.55" />
+            <ellipse cx="60" cy="62" rx="30" ry="21" fill="rgba(241,202,122,0.11)" />
+            <text x="60" y="68" textAnchor="middle" fill={ink} fontFamily="Arial Black, Arial, sans-serif" fontSize="22" fontWeight="900" letterSpacing="3">RIFF</text>
+          </>
+        ) : null}
+        {variantNumber === 40 ? (
+          <>
+            <path d="M25 60 C35 34 48 28 60 42 C72 28 86 34 95 60 C86 86 72 92 60 78 C48 92 35 86 25 60 Z" fill={`url(#${uniqueId}-gold)`} opacity="0.94" />
+            <text x="60" y="66" textAnchor="middle" fill="#080907" fontFamily="Arial Black, Arial, sans-serif" fontSize="16" fontWeight="900" letterSpacing="3">RIFF</text>
+          </>
+        ) : null}
+        {showWord ? <text x="60" y="103" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="7" fontWeight="900" letterSpacing="2.5">RIFFLAB</text> : null}
+        {showRiff ? <text x="60" y="103" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="7" fontWeight="900" letterSpacing="2.5">RIFFLAB</text> : null}
+      </svg>
+    );
+  }
+
+  return (
+    <svg className="appIconSvgPreview" viewBox="0 0 120 120" role="img" aria-label={`${getAppIconVariantLabel(variantId)} SVG`}>
+      <defs>
+        <linearGradient id={`${uniqueId}-gold`} x1="22" x2="98" y1="14" y2="106" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#fff1bd" />
+          <stop offset="0.48" stopColor="#d59a45" />
+          <stop offset="1" stopColor="#7d5528" />
+        </linearGradient>
+        <radialGradient id={`${uniqueId}-glow`} cx="50%" cy="35%" r="65%">
+          <stop offset="0" stopColor="#f1ca7a" stopOpacity="0.36" />
+          <stop offset="1" stopColor="#05090b" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <rect width="120" height="120" rx={isMinimal ? 22 : 28} fill="#05090b" />
+      <rect width="120" height="120" rx={isMinimal ? 22 : 28} fill={`url(#${uniqueId}-glow)`} />
+      {isHex ? <polygon points="60 12 98 34 98 78 60 102 22 78 22 34" fill="none" stroke={`url(#${uniqueId}-gold)`} strokeWidth="5" /> : null}
+      {isPick ? <path d="M60 13 C88 17 103 39 96 65 C90 87 72 104 60 109 C48 104 30 87 24 65 C17 39 32 17 60 13 Z" fill="none" stroke={`url(#${uniqueId}-gold)`} strokeWidth="5" /> : null}
+      {isMono ? <circle cx="60" cy="60" r="43" fill="none" stroke={`url(#${uniqueId}-gold)`} strokeWidth="3" opacity="0.72" /> : null}
+      {isDualString ? (
+        <>
+          <line x1="16" x2="104" y1="44" y2="44" stroke="#f1ca7a" strokeWidth="3" strokeLinecap="round" opacity="0.84" />
+          <line x1="16" x2="104" y1="56" y2="56" stroke="#f1ca7a" strokeWidth="3" strokeLinecap="round" opacity="0.5" />
+        </>
+      ) : null}
+      {isWave ? (
+        <path d="M14 72 C24 46 34 92 44 60 C54 28 64 94 74 54 C84 20 96 72 106 44" fill="none" stroke="#f1ca7a" strokeWidth="4" strokeLinecap="round" opacity="0.72" />
+      ) : null}
+      {isFret ? (
+        <>
+          {[28, 44, 60, 76, 92].map((x) => <line key={x} x1={x} x2={x} y1="22" y2="98" stroke="#f1ca7a" strokeWidth="1.5" opacity="0.24" />)}
+          <circle cx="92" cy="60" r="7" fill="#f1ca7a" opacity="0.8" />
+        </>
+      ) : null}
+      {isShield ? <path d="M60 12 L98 28 L90 78 C83 96 70 106 60 111 C50 106 37 96 30 78 L22 28 Z" fill="none" stroke={`url(#${uniqueId}-gold)`} strokeWidth="5" /> : null}
+      {isPremium ? <circle cx="60" cy="60" r="48" fill="none" stroke={`url(#${uniqueId}-gold)`} strokeWidth="5" /> : null}
+      {isUltimate ? (
+        <>
+          <path d="M23 76 C38 54 53 92 68 54 C79 28 94 42 104 25" fill="none" stroke="#f1ca7a" strokeWidth="4" strokeLinecap="round" opacity="0.76" />
+          <polygon points="60 14 94 34 94 78 60 100 26 78 26 34" fill="none" stroke={`url(#${uniqueId}-gold)`} strokeWidth="3" opacity="0.8" />
+        </>
+      ) : null}
+      <text
+        x="60"
+        y={isMinimal ? "76" : "78"}
+        textAnchor="middle"
+        fill={`url(#${uniqueId}-gold)`}
+        fontFamily="Arial Black, Arial, sans-serif"
+        fontSize={isMinimal ? 76 : 70}
+        fontWeight="900"
+        letterSpacing="-3"
+      >
+        R
+      </text>
+      {isMono ? <text x="60" y="91" textAnchor="middle" fill="#fff0bd" fontSize="10" fontWeight="900" letterSpacing="3">RIFF</text> : null}
+      {isPremium || isUltimate ? <circle cx="60" cy="60" r="54" fill="none" stroke="#fff0bd" strokeWidth="1" opacity="0.2" /> : null}
+    </svg>
+  );
+}
+
+function AppIconPreview({ variantId, size = "large" }) {
+  const variantNumber = Number(variantId.replace("icon-v", ""));
+  const isWordmark = variantId === "icon-v1" || variantId === "icon-v2";
+  const isSignature = variantId === "icon-v3" || variantId === "icon-v10";
+  const isSvg = variantNumber >= 11;
+  const isR = ["icon-v4", "icon-v5", "icon-v6", "icon-v7", "icon-v8", "icon-v9"].includes(variantId);
+  const isSymbol = variantNumber >= 41;
+
+  return (
+    <div className={`appIconPreview appIconPreview--${variantId} appIconPreview--${size} ${isSymbol ? "appIconPreview--symbolic" : ""}`} aria-label={`${getAppIconVariantLabel(variantId)} preview`} role="img">
+      {isSvg ? <AppIconSvgPreview variantId={variantId} /> : null}
+      {isWordmark ? (
+        <span className="appIconPreview__wordmark">
+          <b>RIFFLAB</b>
+          {variantId === "icon-v2" ? <i>RIFF</i> : null}
+        </span>
+      ) : null}
+      {isSignature ? (
+        <span className="appIconPreview__signature">
+          <b>R</b>
+          <small>RIFFLAB</small>
+        </span>
+      ) : null}
+      {isR ? <span className="appIconPreview__visualR">R</span> : null}
+    </div>
+  );
+}
+
+function CharacterLabPreview({ variantId }) {
+  return (
+    <div className={`characterPreviewStage characterPreviewStage--${variantId}`}>
+      <div className="characterPreviewPlayer" aria-hidden="true">
+        <span className="characterPreviewShadow" />
+        <span className="characterPreviewEar characterPreviewEar--left" />
+        <span className="characterPreviewEar characterPreviewEar--right" />
+        <span className="characterPreviewHat" />
+        <span className="characterPreviewHead">
+          <i />
+          <b />
+        </span>
+        <span className="characterPreviewBody" />
+        <span className="characterPreviewArm" />
+        <span className="characterPreviewLeg characterPreviewLeg--left" />
+        <span className="characterPreviewLeg characterPreviewLeg--right" />
+        <span className="characterPreviewGuitarBody" />
+        <span className="characterPreviewNeck">
+          <i />
+          <i />
+          <i />
+        </span>
+        <span className="characterPreviewFlame" />
+      </div>
+      <span className="characterPreviewShot" aria-hidden="true" />
+      <div className="characterPreviewTarget" aria-hidden="true">
+        <i />
+        <b />
+      </div>
+    </div>
+  );
+}
 
 function getTrainingDetailTitle(category) {
   const fallbackOrder = {
@@ -2354,8 +3377,12 @@ function App() {
   const [appMode, setAppMode] = useState(initialRouteRef.current.appMode);
   const [utilityMenuOpen, setUtilityMenuOpen] = useState(false);
   const designLabEnabled = isDesignLabEnabled();
-  const [headerVariant, setHeaderVariant] = useState("v1");
+  const [designLabHeaderState, setDesignLabHeaderState] = useState(getStoredDesignLabHeaderState);
+  const [designLabAppIconState, setDesignLabAppIconState] = useState(getStoredDesignLabAppIconState);
   const [designLabSection, setDesignLabSection] = useState("logo");
+  const [logoPreviewScale, setLogoPreviewScale] = useState(100);
+  const [selectedHeaderCandidateId, setSelectedHeaderCandidateId] = useState(getStoredDesignLabHeaderState().activeHeader);
+  const [selectedAppIconCandidateId, setSelectedAppIconCandidateId] = useState(getStoredDesignLabAppIconState().activeIcon);
   const [deviceInfo, setDeviceInfo] = useState(getDeviceSnapshot);
   const [gameState, setGameState] = useState(GAME_STATES.IDLE);
   const [micStatus, setMicStatus] = useState("No Signal");
@@ -2439,7 +3466,24 @@ function App() {
   const [metronomeSubdivision, setMetronomeSubdivision] = useState("quarter");
   const [metronomeTone, setMetronomeTone] = useState("tick");
   const [metronomeCountIn, setMetronomeCountIn] = useState(false);
-  const [metronomeVolume, setMetronomeVolume] = useState(0.72);
+  const [metronomeRepeat, setMetronomeRepeat] = useState(false);
+  const [autoBpmEnabled, setAutoBpmEnabled] = useState(false);
+  const [autoBpmStep, setAutoBpmStep] = useState(2);
+  const [autoBpmBars, setAutoBpmBars] = useState(10);
+  const [autoBpmIncrements, setAutoBpmIncrements] = useState(0);
+  const [coachModeEnabled, setCoachModeEnabled] = useState(false);
+  const [coachPlayBars, setCoachPlayBars] = useState(4);
+  const [coachMuteBars, setCoachMuteBars] = useState(4);
+  const [metronomeMeasureCount, setMetronomeMeasureCount] = useState(0);
+  const [metronomeIsMutedCycle, setMetronomeIsMutedCycle] = useState(false);
+  const [feelRecorderActive, setFeelRecorderActive] = useState(false);
+  const [feelRecorderEvents, setFeelRecorderEvents] = useState([]);
+  const [feelPatternName, setFeelPatternName] = useState(FEEL_RECORDER_DEFAULT_NAME);
+  const [savedFeelPatterns, setSavedFeelPatterns] = useState(getStoredFeelRecorderPatterns);
+  const [feelPlaybackActive, setFeelPlaybackActive] = useState(false);
+  const [feelPlaybackLoop, setFeelPlaybackLoop] = useState(true);
+  const [feelPlaybackIndex, setFeelPlaybackIndex] = useState(-1);
+  const [feelPlaybackProgress, setFeelPlaybackProgress] = useState(0);
   const [stage3SetupCollapsed, setStage3SetupCollapsed] = useState(false);
   const [isMobileLayout, setIsMobileLayout] = useState(false);
   const [hitZoneNote, setHitZoneNote] = useState(null);
@@ -2451,6 +3495,139 @@ function App() {
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
   const [shooterLives, setShooterLives] = useState(SHOOTER_MAX_LIVES);
+  const headerVariant = designLabHeaderState.activeHeader;
+  const visibleHeaderVariants = useMemo(
+    () => HEADER_VARIANTS.filter((variant) => !designLabHeaderState.deletedHeaders.includes(variant.id)),
+    [designLabHeaderState.deletedHeaders],
+  );
+  const visibleAppIconVariants = useMemo(
+    () => APP_ICON_VARIANTS.filter((variant) => !designLabAppIconState.deletedIcons.includes(variant.id)),
+    [designLabAppIconState.deletedIcons],
+  );
+  const logoPreviewStyle = useMemo(
+    () => ({ "--logo-preview-scale": logoPreviewScale / 100 }),
+    [logoPreviewScale],
+  );
+
+  const updateDesignLabHeaderState = useCallback((updater) => {
+    setDesignLabHeaderState((current) => {
+      const next = normalizeDesignLabHeaderState(typeof updater === "function" ? updater(current) : updater);
+
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(DESIGN_LAB_HEADER_STORAGE_KEY, JSON.stringify(next));
+      }
+
+      return next;
+    });
+  }, []);
+
+  const applyHeaderVariant = useCallback((variantId) => {
+    updateDesignLabHeaderState((current) => ({
+      ...current,
+      activeHeader: variantId,
+      heldHeaders: current.heldHeaders.filter((id) => id !== variantId),
+      deletedHeaders: current.deletedHeaders.filter((id) => id !== variantId),
+    }));
+  }, [updateDesignLabHeaderState]);
+
+  const holdHeaderVariant = useCallback((variantId) => {
+    updateDesignLabHeaderState((current) => {
+      if (variantId === current.activeHeader) return current;
+      if (current.heldHeaders.includes(variantId)) {
+        return {
+          ...current,
+          heldHeaders: current.heldHeaders.filter((id) => id !== variantId),
+        };
+      }
+      return {
+        ...current,
+        heldHeaders: [...current.heldHeaders, variantId],
+        deletedHeaders: current.deletedHeaders.filter((id) => id !== variantId),
+      };
+    });
+  }, [updateDesignLabHeaderState]);
+
+  const deleteHeaderVariant = useCallback((variantId) => {
+    if (variantId === designLabHeaderState.activeHeader) {
+      window.alert?.("현재 운영중인 시안은 삭제할 수 없습니다.");
+      return;
+    }
+    if (designLabHeaderState.heldHeaders.includes(variantId)) {
+      window.alert?.("잠금된 시안은 삭제할 수 없습니다. 잠금 해제 후 삭제하세요.");
+      return;
+    }
+
+    const label = getHeaderVariantLabel(variantId);
+    if (!window.confirm?.(`${label} 시안을 Design Lab 목록에서 삭제할까요?`)) return;
+
+    updateDesignLabHeaderState({
+      ...designLabHeaderState,
+      heldHeaders: designLabHeaderState.heldHeaders.filter((id) => id !== variantId),
+      deletedHeaders: designLabHeaderState.deletedHeaders.includes(variantId)
+        ? designLabHeaderState.deletedHeaders
+        : [...designLabHeaderState.deletedHeaders, variantId],
+    });
+  }, [designLabHeaderState, updateDesignLabHeaderState]);
+
+  const updateDesignLabAppIconState = useCallback((updater) => {
+    setDesignLabAppIconState((current) => {
+      const next = normalizeDesignLabAppIconState(typeof updater === "function" ? updater(current) : updater);
+
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(DESIGN_LAB_APP_ICON_STORAGE_KEY, JSON.stringify(next));
+      }
+
+      return next;
+    });
+  }, []);
+
+  const applyAppIconVariant = useCallback((variantId) => {
+    updateDesignLabAppIconState((current) => ({
+      ...current,
+      activeIcon: variantId,
+      heldIcons: current.heldIcons.filter((id) => id !== variantId),
+      deletedIcons: current.deletedIcons.filter((id) => id !== variantId),
+    }));
+  }, [updateDesignLabAppIconState]);
+
+  const holdAppIconVariant = useCallback((variantId) => {
+    updateDesignLabAppIconState((current) => {
+      if (variantId === current.activeIcon) return current;
+      if (current.heldIcons.includes(variantId)) {
+        return {
+          ...current,
+          heldIcons: current.heldIcons.filter((id) => id !== variantId),
+        };
+      }
+      return {
+        ...current,
+        heldIcons: [...current.heldIcons, variantId],
+        deletedIcons: current.deletedIcons.filter((id) => id !== variantId),
+      };
+    });
+  }, [updateDesignLabAppIconState]);
+
+  const deleteAppIconVariant = useCallback((variantId) => {
+    if (variantId === designLabAppIconState.activeIcon) {
+      window.alert?.("현재 운영중인 앱 아이콘은 삭제할 수 없습니다.");
+      return;
+    }
+    if (designLabAppIconState.heldIcons.includes(variantId)) {
+      window.alert?.("잠금된 앱 아이콘은 삭제할 수 없습니다. 잠금 해제 후 삭제하세요.");
+      return;
+    }
+
+    const label = getAppIconVariantLabel(variantId);
+    if (!window.confirm?.(`${label} 시안을 App Icon Lab 목록에서 삭제할까요?`)) return;
+
+    updateDesignLabAppIconState({
+      ...designLabAppIconState,
+      heldIcons: designLabAppIconState.heldIcons.filter((id) => id !== variantId),
+      deletedIcons: designLabAppIconState.deletedIcons.includes(variantId)
+        ? designLabAppIconState.deletedIcons
+        : [...designLabAppIconState.deletedIcons, variantId],
+    });
+  }, [designLabAppIconState, updateDesignLabAppIconState]);
 
   const audioRef = useRef(null);
   const analyserRef = useRef(null);
@@ -2475,6 +3652,19 @@ function App() {
   const metronomeToneRef = useRef("tick");
   const metronomeCountInRef = useRef(false);
   const metronomeVolumeRef = useRef(0.72);
+  const autoBpmEnabledRef = useRef(false);
+  const autoBpmStepRef = useRef(2);
+  const autoBpmBarsRef = useRef(10);
+  const coachModeEnabledRef = useRef(false);
+  const coachPlayBarsRef = useRef(4);
+  const coachMuteBarsRef = useRef(4);
+  const lastAutoBpmMeasureRef = useRef(0);
+  const tapTempoTimesRef = useRef([]);
+  const feelRecordingStartRef = useRef(0);
+  const feelPressStartRef = useRef(0);
+  const feelLastReleaseRef = useRef(0);
+  const feelPlaybackTimersRef = useRef([]);
+  const feelPlaybackLoopRef = useRef(true);
   const metronomeSampleBuffersRef = useRef({});
   const metronomeSampleLoadPromiseRef = useRef(null);
   const countInActiveRef = useRef(false);
@@ -3230,6 +4420,26 @@ function App() {
     console.log("[metronome] tick played");
   }, []);
 
+  const playFeelRecorderPulse = useCallback(async (type = "tick") => {
+    const ready = await ensureAudioReady();
+    const audio = audioRef.current;
+    if (!ready || !audio) return;
+
+    const now = audio.currentTime;
+    const hold = type === "hold";
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+    oscillator.type = hold ? "triangle" : "square";
+    oscillator.frequency.setValueAtTime(hold ? 520 : 960, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime((hold ? 0.34 : 0.22) * metronomeVolumeRef.current, now + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + (hold ? 0.34 : 0.085));
+    oscillator.connect(gain);
+    gain.connect(audio.destination);
+    oscillator.start(now);
+    oscillator.stop(now + (hold ? 0.38 : 0.1));
+  }, [ensureAudioReady]);
+
   const playShooterSound = useCallback((type = "hit") => {
     const audio = audioRef.current;
     if (!audio || appModeRef.current !== APP_MODES.SHOOTER || !shooterSoundOnRef.current) return;
@@ -3946,8 +5156,37 @@ function App() {
       const currentBeat = Math.floor(currentTick / clicksPerBeat);
       const beatInBar = currentBeat % beatsPerMeasure;
       const subdivisionIndex = currentTick % clicksPerBeat;
+      const measureIndex = Math.floor(currentBeat / beatsPerMeasure);
+      const measureNumber = measureIndex + 1;
+      const coachCycleBars = Math.max(1, coachPlayBarsRef.current + coachMuteBarsRef.current);
+      const coachCycleIndex = measureIndex % coachCycleBars;
+      const isCoachMuted =
+        coachModeEnabledRef.current &&
+        coachMuteBarsRef.current > 0 &&
+        coachCycleIndex >= coachPlayBarsRef.current;
+
       setBeat(beatInBar);
-      playTick(metronomeAccentRef.current && beatInBar === 0 && subdivisionIndex === 0, subdivisionIndex);
+      setMetronomeMeasureCount(measureNumber);
+      setMetronomeIsMutedCycle(isCoachMuted);
+
+      if (!isCoachMuted) {
+        playTick(metronomeAccentRef.current && beatInBar === 0 && subdivisionIndex === 0, subdivisionIndex);
+      }
+
+      if (
+        autoBpmEnabledRef.current &&
+        subdivisionIndex === 0 &&
+        beatInBar === 0 &&
+        measureNumber > 1 &&
+        measureNumber % Math.max(1, autoBpmBarsRef.current) === 0 &&
+        lastAutoBpmMeasureRef.current !== measureNumber
+      ) {
+        lastAutoBpmMeasureRef.current = measureNumber;
+        const nextBpm = clampBpm(bpmRef.current + autoBpmStepRef.current);
+        bpmRef.current = nextBpm;
+        setBpm(nextBpm);
+        setAutoBpmIncrements((value) => value + 1);
+      }
     },
     [playTick],
   );
@@ -4207,11 +5446,15 @@ function App() {
     setAppMode(APP_MODES.METRONOME);
     gameTimeRef.current = 0;
     lastBeatRef.current = -1;
-    countInActiveRef.current = false;
+    countInActiveRef.current = metronomeCountInRef.current;
     countInTimeRef.current = 0;
+    lastAutoBpmMeasureRef.current = 0;
     setBeat(0);
+    setMetronomeMeasureCount(0);
+    setAutoBpmIncrements(0);
+    setMetronomeIsMutedCycle(false);
     setStage3MeasureProgress(0);
-    setFeedback("Play");
+    setFeedback(metronomeCountInRef.current ? "Count In" : "Play");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
   }, [ensureAudioReady, loadMetronomeSamples, setState, stopMic]);
@@ -4222,7 +5465,11 @@ function App() {
     lastBeatRef.current = -1;
     countInActiveRef.current = false;
     countInTimeRef.current = 0;
+    lastAutoBpmMeasureRef.current = 0;
     setBeat(0);
+    setMetronomeMeasureCount(0);
+    setAutoBpmIncrements(0);
+    setMetronomeIsMutedCycle(false);
     setStage3MeasureProgress(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
@@ -4309,6 +5556,147 @@ function App() {
     setIsHitWindowActive(false);
     setLaneFeedback([]);
   }, []);
+
+  const handleTapTempo = useCallback(() => {
+    const now = performance.now();
+    const nextTimes = [...tapTempoTimesRef.current.filter((time) => now - time < 2200), now].slice(-6);
+    tapTempoTimesRef.current = nextTimes;
+    if (nextTimes.length < 2) return;
+
+    const intervals = nextTimes.slice(1).map((time, index) => time - nextTimes[index]);
+    const averageInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
+    if (!Number.isFinite(averageInterval) || averageInterval <= 0) return;
+
+    changeBpm(Math.round(60000 / averageInterval));
+  }, [changeBpm]);
+
+  const stopFeelPlayback = useCallback(() => {
+    feelPlaybackTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+    feelPlaybackTimersRef.current = [];
+    setFeelPlaybackActive(false);
+    setFeelPlaybackIndex(-1);
+    setFeelPlaybackProgress(0);
+  }, []);
+
+  const playFeelPattern = useCallback((events, loop = feelPlaybackLoopRef.current) => {
+    const pattern = normalizeFeelRecorderEvents(events);
+    if (!pattern.length) return;
+
+    stopFeelPlayback();
+    setFeelPlaybackActive(true);
+    setFeelPlaybackIndex(0);
+    setFeelPlaybackProgress(0);
+
+    const schedule = () => {
+      const totalMs = getFeelRecorderTotalUnits(pattern);
+      const startedAt = performance.now();
+
+      pattern.forEach((event, index) => {
+        const timerId = window.setTimeout(() => {
+          setFeelPlaybackIndex(index);
+          playFeelRecorderPulse(event.type);
+        }, Math.max(0, event.startMs));
+        feelPlaybackTimersRef.current.push(timerId);
+      });
+
+      const progressTimerId = window.setInterval(() => {
+        const playbackElapsed = performance.now() - startedAt;
+        setFeelPlaybackProgress(Math.min(1, playbackElapsed / totalMs));
+        const activeIndex = pattern.findIndex((event) => playbackElapsed >= event.startMs && playbackElapsed <= event.endMs);
+        setFeelPlaybackIndex(activeIndex);
+      }, 32);
+      feelPlaybackTimersRef.current.push(progressTimerId);
+
+      const endTimerId = window.setTimeout(() => {
+        window.clearInterval(progressTimerId);
+        setFeelPlaybackProgress(1);
+        setFeelPlaybackIndex(-1);
+        if (feelPlaybackLoopRef.current && loop) {
+          const loopTimerId = window.setTimeout(() => {
+            feelPlaybackTimersRef.current = [];
+            setFeelPlaybackProgress(0);
+            schedule();
+          }, Math.max(80, getBeatMs(bpmRef.current) * 0.25));
+          feelPlaybackTimersRef.current.push(loopTimerId);
+          return;
+        }
+
+        setFeelPlaybackActive(false);
+        feelPlaybackTimersRef.current = [];
+      }, Math.max(120, totalMs));
+      feelPlaybackTimersRef.current.push(endTimerId);
+
+    };
+
+    schedule();
+  }, [playFeelRecorderPulse, stopFeelPlayback]);
+
+  const toggleFeelRecorder = useCallback(() => {
+    stopFeelPlayback();
+    setFeelRecorderActive((active) => {
+      const nextActive = !active;
+      if (nextActive) {
+        feelRecordingStartRef.current = performance.now();
+        feelPressStartRef.current = 0;
+        feelLastReleaseRef.current = 0;
+        setFeelRecorderEvents([]);
+      }
+      return nextActive;
+    });
+  }, [stopFeelPlayback]);
+
+  const handleFeelPressStart = useCallback(() => {
+    if (!feelRecorderActive) return;
+    if (!feelRecordingStartRef.current) feelRecordingStartRef.current = performance.now();
+    feelPressStartRef.current = performance.now();
+  }, [feelRecorderActive]);
+
+  const handleFeelPressEnd = useCallback(() => {
+    if (!feelRecorderActive || !feelPressStartRef.current) return;
+    const now = performance.now();
+    const durationMs = now - feelPressStartRef.current;
+    const gapMs = feelLastReleaseRef.current ? feelPressStartRef.current - feelLastReleaseRef.current : 0;
+    const startMs = Math.max(0, feelPressStartRef.current - feelRecordingStartRef.current);
+    const endMs = Math.max(startMs + FEEL_RECORDER_MIN_TAP_MS, now - feelRecordingStartRef.current);
+    const nextEvent = {
+      type: durationMs >= FEEL_RECORDER_LONG_PRESS_MS ? "hold" : "tick",
+      durationMs,
+      startMs,
+      endMs,
+      gapMs,
+    };
+    feelPressStartRef.current = 0;
+    feelLastReleaseRef.current = now;
+    setFeelRecorderEvents((events) => normalizeFeelRecorderEvents([...events, nextEvent]));
+    playFeelRecorderPulse(nextEvent.type);
+  }, [feelRecorderActive, playFeelRecorderPulse]);
+
+  const clearFeelRecorder = useCallback(() => {
+    stopFeelPlayback();
+    setFeelRecorderActive(false);
+    setFeelRecorderEvents([]);
+    feelRecordingStartRef.current = 0;
+    feelPressStartRef.current = 0;
+    feelLastReleaseRef.current = 0;
+  }, [stopFeelPlayback]);
+
+  const saveFeelPattern = useCallback(() => {
+    const events = normalizeFeelRecorderEvents(feelRecorderEvents);
+    if (!events.length) return;
+    const nextPattern = {
+      id: `feel-${Date.now()}`,
+      name: (feelPatternName.trim() || FEEL_RECORDER_DEFAULT_NAME).slice(0, 28),
+      events,
+      createdAt: Date.now(),
+    };
+    setSavedFeelPatterns((patterns) => [nextPattern, ...patterns].slice(0, 20));
+    setFeelPatternName(FEEL_RECORDER_DEFAULT_NAME);
+  }, [feelPatternName, feelRecorderEvents]);
+
+  const deleteFeelPattern = useCallback((patternId) => {
+    setSavedFeelPatterns((patterns) => patterns.filter((pattern) => pattern.id !== patternId));
+  }, []);
+
 
   const changeScaleDirection = useCallback((direction) => {
     setScaleDirection(direction);
@@ -4591,6 +5979,14 @@ function App() {
   }, [appMode]);
 
   useEffect(() => {
+    if (!HEADER_VARIANT_IDS.has(selectedHeaderCandidateId)) setSelectedHeaderCandidateId(headerVariant);
+  }, [headerVariant, selectedHeaderCandidateId]);
+
+  useEffect(() => {
+    if (!APP_ICON_VARIANT_IDS.has(selectedAppIconCandidateId)) setSelectedAppIconCandidateId(designLabAppIconState.activeIcon);
+  }, [designLabAppIconState.activeIcon, selectedAppIconCandidateId]);
+
+  useEffect(() => {
     selectedCategoryIdRef.current = selectedCategoryId;
   }, [selectedCategoryId]);
 
@@ -4695,8 +6091,42 @@ function App() {
   }, [metronomeCountIn]);
 
   useEffect(() => {
-    metronomeVolumeRef.current = metronomeVolume;
-  }, [metronomeVolume]);
+    autoBpmEnabledRef.current = autoBpmEnabled;
+  }, [autoBpmEnabled]);
+
+  useEffect(() => {
+    autoBpmStepRef.current = autoBpmStep;
+  }, [autoBpmStep]);
+
+  useEffect(() => {
+    autoBpmBarsRef.current = autoBpmBars;
+  }, [autoBpmBars]);
+
+  useEffect(() => {
+    coachModeEnabledRef.current = coachModeEnabled;
+  }, [coachModeEnabled]);
+
+  useEffect(() => {
+    coachPlayBarsRef.current = coachPlayBars;
+  }, [coachPlayBars]);
+
+  useEffect(() => {
+    coachMuteBarsRef.current = coachMuteBars;
+  }, [coachMuteBars]);
+
+  useEffect(() => {
+    feelPlaybackLoopRef.current = feelPlaybackLoop;
+  }, [feelPlaybackLoop]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(FEEL_RECORDER_STORAGE_KEY, JSON.stringify(savedFeelPatterns));
+  }, [savedFeelPatterns]);
+
+  useEffect(() => () => {
+    feelPlaybackTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+    feelPlaybackTimersRef.current = [];
+  }, []);
 
   useEffect(() => {
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return;
@@ -5240,7 +6670,6 @@ function App() {
         </section>
       ) : appMode === APP_MODES.CURRICULUM ? (
         <section className="curriculum" aria-label="Beginner curriculum">
-          <ContentTitle {...contentHeader} />
           <div className="trainingGrid stageMenu">
             {PRACTICE_CATEGORIES.filter((category) => !category.tutorial && !category.unavailable).map((category, index) => (
               <TrainingCard
@@ -5266,21 +6695,12 @@ function App() {
 
         </section>
       ) : appMode === APP_MODES.DESIGN_LAB ? (
-        <section className="designLabPanel" aria-label="RIFFLAB UI 실험실">
+        <section className="designLabPanel" aria-label="RIFFLAB UI 실험실" style={logoPreviewStyle}>
           <ContentTitle title="Design Lab" subtitle="제작, 등록, 비교, 채택을 위한 RIFFLAB 전용 테스트 공간" />
-          <div className="designLabActions" aria-label="헤더 복구">
-            <button
-              className={headerVariant === "v1" ? "selected" : ""}
-              onClick={() => setHeaderVariant("v1")}
-              type="button"
-            >
-              Header V1로 복구
-            </button>
-          </div>
           <div className="designLabStickyPreview" aria-label="현재 적용 헤더 미리보기">
             <div>
               <span>Live Header</span>
-              <strong>{[HEADER_RESTORE_VARIANT, ...HEADER_VARIANTS].find((variant) => variant.id === headerVariant)?.title ?? "Header V1"}</strong>
+              <strong>{getHeaderVariantLabel(headerVariant)}</strong>
             </div>
             <BrandHeader variant={headerVariant} />
           </div>
@@ -5299,42 +6719,175 @@ function App() {
           <section className="headerPreviewSection" aria-label="Header Preview">
             <div className="headerPreviewSectionTitle">
               <span>{DESIGN_LAB_SECTIONS.find((section) => section.id === designLabSection)?.label} Lab</span>
-              <strong>{designLabSection === "logo" ? `현재 적용: ${[HEADER_RESTORE_VARIANT, ...HEADER_VARIANTS].find((variant) => variant.id === headerVariant)?.title ?? "Header V1"}` : "운영 화면에 적용하지 않는 시안 보관 영역"}</strong>
+              <strong>
+                {designLabSection === "logo"
+                  ? `운영 Header: ${getHeaderVariantLabel(headerVariant)}`
+                  : designLabSection === "app-icon"
+                    ? `운영 App Icon: ${getAppIconVariantLabel(designLabAppIconState.activeIcon)}`
+                    : "운영 화면에 적용하지 않는 시안 보관 영역"}
+              </strong>
             </div>
             {designLabSection === "logo" ? (
               <>
-                <button
-                  className="headerPreviewRestore"
-                  onClick={() => setHeaderVariant("v1")}
-                  type="button"
-                >
-                  기존 Header V1로 되돌리기
-                </button>
+                <div className="designLabLogoSizeControl" aria-label="Logo Size">
+                  <span>Logo Size</span>
+                  <button
+                    disabled={logoPreviewScale <= 90}
+                    onClick={() => setLogoPreviewScale((current) => Math.max(90, current - 10))}
+                    type="button"
+                  >
+                    -
+                  </button>
+                  <strong>{logoPreviewScale}%</strong>
+                  <button
+                    disabled={logoPreviewScale >= 140}
+                    onClick={() => setLogoPreviewScale((current) => Math.min(140, current + 10))}
+                    type="button"
+                  >
+                    +
+                  </button>
+                </div>
                 <div className="headerPreviewGrid">
-                  {HEADER_VARIANTS.map((variant) => (
-                    <article className={`headerPreviewCard ${headerVariant === variant.id ? "selected" : ""}`} key={variant.id}>
+                  {visibleHeaderVariants.map((variant) => {
+                    const status = getHeaderLabStatus(variant.id, designLabHeaderState);
+                    const isSelectedCandidate = selectedHeaderCandidateId === variant.id;
+                    return (
+                      <article
+                        className={`headerPreviewCard ${headerVariant === variant.id ? "selected" : ""} ${isSelectedCandidate ? "candidateSelected" : ""}`}
+                        key={variant.id}
+                        onClick={() => setSelectedHeaderCandidateId(variant.id)}
+                      >
+                        <div className="headerPreviewMeta">
+                          <span>{variant.title}</span>
+                          <small>{variant.description}</small>
+                          <em className={`designLabStatus designLabStatus--${getHeaderLabStatusClass(status)}`}>{status}</em>
+                        </div>
+                        <div className="headerPreviewDevice">
+                          <BrandHeader variant={variant.id} />
+                        </div>
+                        <div className="designLabItemActions">
+                          <button
+                            className={isSelectedCandidate ? "selected" : ""}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedHeaderCandidateId(variant.id);
+                            }}
+                            type="button"
+                          >
+                            {isSelectedCandidate ? "선택됨" : "선택"}
+                          </button>
+                          <button
+                            className={headerVariant === variant.id ? "selected" : ""}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              applyHeaderVariant(variant.id);
+                              setSelectedHeaderCandidateId(variant.id);
+                            }}
+                            type="button"
+                          >
+                            {headerVariant === variant.id ? "운영중" : "적용"}
+                          </button>
+                          <button
+                            className={status === "잠금" ? "selected" : ""}
+                            disabled={headerVariant === variant.id}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              holdHeaderVariant(variant.id);
+                            }}
+                            type="button"
+                          >
+                            {status === "잠금" ? "잠금 해제" : "잠금"}
+                          </button>
+                          <button
+                            disabled={headerVariant === variant.id || status === "잠금"}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              deleteHeaderVariant(variant.id);
+                            }}
+                            type="button"
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </>
+            ) : null}
+            {designLabSection === "app-icon" ? (
+              <div className="headerPreviewGrid designLabAppIconGrid">
+                {visibleAppIconVariants.map((variant) => {
+                  const status = getAppIconLabStatus(variant.id, designLabAppIconState);
+                  const isActiveIcon = designLabAppIconState.activeIcon === variant.id;
+                  const isSelectedCandidate = selectedAppIconCandidateId === variant.id;
+
+                  return (
+                    <article
+                      className={`headerPreviewCard designLabAppIconCard ${isActiveIcon ? "selected" : ""} ${isSelectedCandidate ? "candidateSelected" : ""}`}
+                      key={variant.id}
+                      onClick={() => setSelectedAppIconCandidateId(variant.id)}
+                    >
                       <div className="headerPreviewMeta">
                         <span>{variant.title}</span>
                         <small>{variant.description}</small>
+                        <em className={`designLabStatus designLabStatus--${getHeaderLabStatusClass(status)}`}>{status}</em>
                       </div>
-                      <div className="headerPreviewDevice">
-                        <BrandHeader variant={variant.id} />
+                      <div className="designLabAppIconPreviewSet" aria-label={`${variant.title} 크기별 미리보기`}>
+                        <AppIconPreview variantId={variant.id} size="large" />
+                        <div className="designLabAppIconSizes">
+                          <AppIconPreview variantId={variant.id} size="medium" />
+                          <AppIconPreview variantId={variant.id} size="small" />
+                        </div>
                       </div>
                       <div className="designLabItemActions">
                         <button
-                          className={headerVariant === variant.id ? "selected" : ""}
-                          onClick={() => setHeaderVariant(variant.id)}
+                          className={isSelectedCandidate ? "selected" : ""}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelectedAppIconCandidateId(variant.id);
+                          }}
                           type="button"
                         >
-                          {headerVariant === variant.id ? "적용됨" : "적용"}
+                          {isSelectedCandidate ? "선택됨" : "선택"}
                         </button>
-                        <button type="button">보류</button>
-                        <button disabled type="button">삭제</button>
+                        <button
+                          className={isActiveIcon ? "selected" : ""}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            applyAppIconVariant(variant.id);
+                            setSelectedAppIconCandidateId(variant.id);
+                          }}
+                          type="button"
+                        >
+                          {isActiveIcon ? "운영중" : "적용"}
+                        </button>
+                        <button
+                          className={status === "잠금" ? "selected" : ""}
+                          disabled={isActiveIcon}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            holdAppIconVariant(variant.id);
+                          }}
+                          type="button"
+                        >
+                          {status === "잠금" ? "잠금 해제" : "잠금"}
+                        </button>
+                        <button
+                          disabled={isActiveIcon || status === "잠금"}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            deleteAppIconVariant(variant.id);
+                          }}
+                          type="button"
+                        >
+                          삭제
+                        </button>
                       </div>
                     </article>
-                  ))}
-                </div>
-              </>
+                  );
+                })}
+              </div>
             ) : null}
             {designLabSection === "character" ? (
               <div className="headerPreviewGrid designLabCharacterGrid">
@@ -5344,29 +6897,171 @@ function App() {
                       <span>{variant.title}</span>
                       <small>{variant.description}</small>
                     </div>
-                    <div className={`characterPreviewStage characterPreviewStage--${index + 1}`}>
-                      <span className="characterPreviewAvatar">R</span>
-                      <div className="characterPreviewLane">
-                        <i />
-                        <b>Target</b>
-                      </div>
-                    </div>
+                    <CharacterLabPreview variantId={variant.id} />
                     <div className="designLabItemActions">
                       <button type="button">적용</button>
-                      <button type="button">보류</button>
+                      <button type="button">잠금</button>
                       <button disabled type="button">삭제</button>
                     </div>
                   </article>
                 ))}
               </div>
             ) : null}
-            {designLabSection === "card" ? (
+            {designLabSection === "component" ? (
+              <div className="componentLabGrid">
+                <article className="headerPreviewCard componentLabCard">
+                  <div className="headerPreviewMeta">
+                    <span>Training Card</span>
+                    <small>훈련장 공용 카드 구조</small>
+                  </div>
+                  <button className="trainingCard stageMenuCard designLabTrainingCardPreview" type="button">
+                    <span className="stageMenuCard__step">02</span>
+                    <span className="stageMenuCard__content">
+                      <strong className="stageMenuCard__title">스케일 · 펜타토닉</strong>
+                      <small className="stageMenuCard__desc">박스 패턴으로 위치를 반복 학습</small>
+                      <em className="stageMenuCard__tag">COMMON CARD</em>
+                    </span>
+                    <span className="stageMenuCard__arrow" aria-hidden="true">❯</span>
+                  </button>
+                  <div className="designLabComponentNote">현재 훈련장 카드의 공용 기준입니다.</div>
+                </article>
+
+                <article className="headerPreviewCard componentLabCard">
+                  <div className="headerPreviewMeta">
+                    <span>Button</span>
+                    <small>START / 설정 / 메트로놈 버튼</small>
+                  </div>
+                  <div className="designLabButtonShelf">
+                    <button className="trainingHudStartButton primary" type="button"><Play size={16} /> START</button>
+                    <button className="trainingSettingsToggle" type="button">설정 접기</button>
+                    <button className="selected" type="button">강박 ON</button>
+                  </div>
+                  <div className="designLabComponentNote">공용 버튼 크기와 텍스트 정렬 확인용입니다.</div>
+                </article>
+
+                <article className="headerPreviewCard componentLabCard">
+                  <div className="headerPreviewMeta">
+                    <span>Tab</span>
+                    <small>화면/모드 전환 탭</small>
+                  </div>
+                  <div className="componentLabTabPreview">
+                    <button className="selected" type="button">로고</button>
+                    <button type="button">앱아이콘</button>
+                    <button type="button">컴포넌트</button>
+                  </div>
+                  <div className="designLabComponentNote">Design Lab과 뷰어 탭의 공용 감각을 관리합니다.</div>
+                </article>
+
+                <article className="headerPreviewCard componentLabCard">
+                  <div className="headerPreviewMeta">
+                    <span>Badge</span>
+                    <small>상태 / 버전 / 모드 표시</small>
+                  </div>
+                  <div className="componentLabBadgePreview">
+                    <span className="designLabStatus designLabStatus--active">운영중</span>
+                    <span className="designLabStatus designLabStatus--held">잠금</span>
+                    <span className="designLabStatus designLabStatus--draft">실험중</span>
+                  </div>
+                  <div className="designLabComponentNote">상태 배지는 채택 흐름의 기준 요소입니다.</div>
+                </article>
+
+                <article className="headerPreviewCard componentLabCard componentLabCard--wide">
+                  <div className="headerPreviewMeta">
+                    <span>Dropdown</span>
+                    <small>박자 / 세분 긴 목록 배치 비교</small>
+                  </div>
+                  <div className="componentLabDropdownComparison">
+                    <ComponentLabDropdownPreview
+                      description="1열 리스트: 익숙하지만 항목이 늘면 스크롤이 길어집니다."
+                      flow="single"
+                      items={COMPONENT_LAB_DROPDOWN_OPTIONS}
+                      title="1열 리스트"
+                    />
+                    <ComponentLabDropdownPreview
+                      description="2열 좌우 순서: 한 화면 정보량은 늘고, 좌우로 빠르게 비교됩니다."
+                      flow="row"
+                      items={COMPONENT_LAB_SUBDIVISION_OPTIONS}
+                      title="2열 좌우"
+                    />
+                    <ComponentLabDropdownPreview
+                      description="2열 세로 흐름: 왼쪽 열을 위아래로 훑은 뒤 오른쪽으로 넘어갑니다."
+                      flow="vertical"
+                      items={COMPONENT_LAB_DROPDOWN_OPTIONS}
+                      title="2열 세로"
+                    />
+                  </div>
+                  <div className="designLabComponentNote">최종 적용 전, 박자와 세분 항목이 늘어나는 상황을 가정한 드롭다운 후보입니다.</div>
+                </article>
+
+                <article className="headerPreviewCard componentLabCard">
+                  <div className="headerPreviewMeta">
+                    <span>Modal</span>
+                    <small>부가기능 / 컨트롤 센터 패널</small>
+                  </div>
+                  <div className="componentLabModalPreview">
+                    <div className="componentLabModalBar">
+                      <span>MENU</span>
+                      <button type="button">×</button>
+                    </div>
+                    <button className="utilityMenuItem utilityMenuItemPrimary" type="button">
+                      <span className="utilityMenuIcon" aria-hidden="true">▦</span>
+                      <div className="utilityMenuText">
+                        <strong>저장실</strong>
+                        <small>코드 진행 및 주법 관리</small>
+                      </div>
+                      <span className="utilityMenuChevron" aria-hidden="true">›</span>
+                    </button>
+                  </div>
+                  <div className="designLabComponentNote">공용 모달/메뉴 패널의 밀도와 계층 확인용입니다.</div>
+                </article>
+              </div>
+            ) : null}
+            {designLabSection === "archive" ? (
               <div className="headerPreviewGrid">
-                {CARD_LAB_VARIANTS.map((variant, index) => (
-                  <article className="headerPreviewCard" key={variant.id}>
+                {ARCHIVED_HEADER_VARIANTS.map((variant) => (
+                  <article className="headerPreviewCard designLabArchiveCard" key={variant.id}>
                     <div className="headerPreviewMeta">
                       <span>{variant.title}</span>
                       <small>{variant.description}</small>
+                      <em className="designLabStatus designLabStatus--legacy">Archive</em>
+                    </div>
+                    <div className="headerPreviewDevice">
+                      <BrandHeader variant={variant.id} />
+                    </div>
+                    <div className="designLabItemActions">
+                      <button disabled type="button">보관됨</button>
+                      <button disabled type="button">잠금</button>
+                      <button disabled type="button">삭제</button>
+                    </div>
+                  </article>
+                ))}
+                {ARCHIVED_APP_ICON_VARIANTS.map((variant) => (
+                  <article className="headerPreviewCard designLabArchiveCard designLabArchivedAppIconCard" key={variant.id}>
+                    <div className="headerPreviewMeta">
+                      <span>{variant.title}</span>
+                      <small>{variant.description}</small>
+                      <em className="designLabStatus designLabStatus--legacy">Archive</em>
+                    </div>
+                    <div className="designLabAppIconPreviewSet" aria-label={`${variant.title} 보관 미리보기`}>
+                      <AppIconPreview variantId={variant.id} size="large" />
+                      <div className="designLabAppIconSizes">
+                        <AppIconPreview variantId={variant.id} size="medium" />
+                        <AppIconPreview variantId={variant.id} size="small" />
+                      </div>
+                    </div>
+                    <div className="designLabItemActions">
+                      <button disabled type="button">보관됨</button>
+                      <button disabled type="button">잠금</button>
+                      <button disabled type="button">삭제</button>
+                    </div>
+                  </article>
+                ))}
+                {CARD_LAB_VARIANTS.map((variant, index) => (
+                  <article className="headerPreviewCard designLabArchiveCard" key={variant.id}>
+                    <div className="headerPreviewMeta">
+                      <span>{variant.title}</span>
+                      <small>{variant.description}</small>
+                      <em className="designLabStatus designLabStatus--legacy">Legacy</em>
                     </div>
                     <button className={`trainingCard stageMenuCard designLabTrainingCardPreview designLabTrainingCardPreview--${index + 1}`} type="button">
                       <span className="stageMenuCard__step">{String(index + 1).padStart(2, "0")}</span>
@@ -5378,95 +7073,18 @@ function App() {
                       <span className="stageMenuCard__arrow" aria-hidden="true">❯</span>
                     </button>
                     <div className="designLabItemActions">
-                      <button type="button">적용</button>
-                      <button type="button">보류</button>
+                      <button disabled type="button">보관됨</button>
+                      <button type="button">잠금</button>
                       <button disabled type="button">삭제</button>
                     </div>
                   </article>
                 ))}
               </div>
             ) : null}
-            {designLabSection === "button" ? (
-              <div className="headerPreviewGrid">
-                <article className="headerPreviewCard">
-                  <div className="headerPreviewMeta">
-                    <span>Button Set V1</span>
-                    <small>START / 설정 / 메트로놈</small>
-                  </div>
-                  <div className="designLabButtonShelf">
-                    <button className="trainingHudStartButton primary" type="button"><Play size={16} /> START</button>
-                    <button className="trainingSettingsToggle" type="button">설정 접기</button>
-                    <button className="selected" type="button">강박 ON</button>
-                  </div>
-                  <div className="designLabItemActions">
-                    <button type="button">적용</button>
-                    <button type="button">보류</button>
-                    <button disabled type="button">삭제</button>
-                  </div>
-                </article>
-              </div>
-            ) : null}
-            {designLabSection === "menu" ? (
-              <div className="headerPreviewGrid">
-                <article className="headerPreviewCard designLabMenuPreview">
-                  <div className="headerPreviewMeta">
-                    <span>Menu V1</span>
-                    <small>Control Center 구조</small>
-                  </div>
-                  <button className="utilityMenuItem utilityMenuItemPrimary" type="button">
-                    <span className="utilityMenuIcon" aria-hidden="true">▦</span>
-                    <div className="utilityMenuText">
-                      <strong>저장실</strong>
-                      <small>코드 진행 및 주법 관리</small>
-                    </div>
-                    <span className="utilityMenuChevron" aria-hidden="true">›</span>
-                  </button>
-                  <button className="utilityMenuItem utilityMenuItemSecondary" type="button">
-                    <span className="utilityMenuIcon" aria-hidden="true">R</span>
-                    <div className="utilityMenuText">
-                      <strong>UI 실험실</strong>
-                      <small>헤더 시안 비교 및 적용</small>
-                    </div>
-                    <span className="utilityMenuChevron" aria-hidden="true">›</span>
-                  </button>
-                  <div className="designLabItemActions">
-                    <button type="button">적용</button>
-                    <button type="button">보류</button>
-                    <button disabled type="button">삭제</button>
-                  </div>
-                </article>
-              </div>
-            ) : null}
-            {designLabSection === "fretboard" ? (
-              <div className="headerPreviewGrid">
-                <article className="headerPreviewCard">
-                  <div className="headerPreviewMeta">
-                    <span>Fretboard V1</span>
-                    <small>공용 지판 컴포넌트</small>
-                  </div>
-                  <Fretboard
-                    className="trainingSharedFretboard fitRange"
-                    fretRange={[4, 8]}
-                    mode="design-lab"
-                    notes={selectedPentatonic.notes}
-                    selectedNotes={["__design-lab-preview__"]}
-                    showFretNumbers
-                    showStringNames
-                    showOnlySelected={false}
-                  />
-                  <div className="designLabItemActions">
-                    <button type="button">적용</button>
-                    <button type="button">보류</button>
-                    <button disabled type="button">삭제</button>
-                  </div>
-                </article>
-              </div>
-            ) : null}
           </section>
         </section>
       ) : appMode === APP_MODES.FRETBOARD_VIEWER ? (
         <section className="fretboardViewerPanel" aria-label="지판 보기">
-          <ContentTitle {...contentHeader} />
           <div className="viewerControlPanel compactControls">
             <div className="viewerModeTabs" aria-label="지판 보기 종류">
               <button
@@ -5720,9 +7338,6 @@ function App() {
               </div>
             ) : null}
 
-            {viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? (
-              <p className="viewerTuningHint">표준 튜닝: 6번줄 E · 5번줄 A · 4번줄 D · 3번줄 G · 2번줄 B · 1번줄 E</p>
-            ) : null}
           </div>
 
           {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
@@ -5792,11 +7407,56 @@ function App() {
         </section>
       ) : appMode === APP_MODES.METRONOME ? (
         <section className="standaloneMetronomePanel" aria-label="독립 메트로놈">
-          <ContentTitle {...contentHeader} />
           <div className="metronomeHeroCard">
             <div>
               <span>BPM</span>
               <strong>{bpm}</strong>
+              <small>{gameState === GAME_STATES.PLAYING ? (metronomeIsMutedCycle ? "COACH MUTE" : "PLAY") : "READY"}</small>
+            </div>
+          </div>
+
+          <div className="metronomeTrainingHud" aria-label="매트로놈 훈련 상태">
+            <div>
+              <span>마디</span>
+              <strong>{metronomeMeasureCount}</strong>
+            </div>
+            <div>
+              <span>Auto BPM</span>
+              <strong>{autoBpmEnabled ? `+${autoBpmStep}/${autoBpmBars}` : "OFF"}</strong>
+            </div>
+            <div>
+              <span>Coach</span>
+              <strong>{coachModeEnabled ? `${coachPlayBars}/${coachMuteBars}` : "OFF"}</strong>
+            </div>
+            <div>
+              <span>상승</span>
+              <strong>{autoBpmIncrements}</strong>
+            </div>
+          </div>
+
+          <div className={`metronomeBeatMatrix ${metronomeIsMutedCycle ? "muted" : ""}`} aria-label="현재 박자 시각화">
+            {Array.from({ length: metronomeBeatsPerMeasure }, (_, index) => (
+              <span
+                className={`${index === 0 ? "accent" : ""} ${beat === index && gameState === GAME_STATES.PLAYING ? "active" : ""}`}
+                key={`beat-dot-${index}`}
+              >
+                {index + 1}
+              </span>
+            ))}
+          </div>
+
+          <div className="metronomeFocusPanel" aria-label="현재 메트로놈 상태">
+            <div>
+              <span>현재 BPM</span>
+              <strong>{bpm}</strong>
+            </div>
+            <div>
+              <span>현재 박</span>
+              <strong>{gameState === GAME_STATES.PLAYING ? `${beat + 1}/${metronomeBeatsPerMeasure}` : `1/${metronomeBeatsPerMeasure}`}</strong>
+            </div>
+            <div>
+              <span>소리 상태</span>
+              <strong>{metronomeIsMutedCycle ? "MUTE" : "CLICK"}</strong>
             </div>
           </div>
 
@@ -5812,13 +7472,13 @@ function App() {
             onSubdivisionChange={setMetronomeSubdivision}
             onTimeSignatureChange={setMetronomeTimeSignature}
             onToneChange={setMetronomeTone}
-            onVolumeChange={setMetronomeVolume}
-            showCountIn={false}
-            showRepeat={false}
+            onRepeatChange={setMetronomeRepeat}
+            repeatEnabled={metronomeRepeat}
+            showCountIn
+            showRepeat
             subdivision={metronomeSubdivision}
             timeSignature={metronomeTimeSignature}
             tone={metronomeTone}
-            volume={metronomeVolume}
           />
 
           <div className="metronomeTransport">
@@ -5835,7 +7495,132 @@ function App() {
               )}
               {gameState === GAME_STATES.PLAYING ? "리셋" : "시작"}
             </button>
+            <button
+              aria-label="Tap Tempo"
+              className="metronomeTapButton"
+              onClick={handleTapTempo}
+              type="button"
+            >
+              TAP
+            </button>
           </div>
+
+          <section className="feelRecorderPanel" aria-label="Feel Recorder">
+              <div className="feelRecorderBody">
+                <div className="feelRecorderHeader">
+                  <div>
+                    <span>Feel Recorder</span>
+                    <strong>{feelRecorderActive ? "기록 중" : feelPlaybackActive ? "재생 중" : "대기"}</strong>
+                  </div>
+                  <button
+                    className={feelRecorderActive ? "selected" : ""}
+                    onClick={toggleFeelRecorder}
+                    type="button"
+                  >
+                    {feelRecorderActive ? "기록 종료" : "기록 시작"}
+                  </button>
+                </div>
+
+                <button
+                  aria-label="리듬 입력 패드"
+                  className={`feelRecorderPad ${feelRecorderActive ? "active" : ""}`}
+                  disabled={!feelRecorderActive}
+                  onPointerCancel={handleFeelPressEnd}
+                  onPointerDown={handleFeelPressStart}
+                  onPointerUp={handleFeelPressEnd}
+                  type="button"
+                >
+                  <span>{feelRecorderActive ? "짧게 틱 · 길게 꾹" : "기록 시작 후 입력"}</span>
+                  <strong>{feelRecorderEvents.length ? getFeelRecorderStrokeLine(feelRecorderEvents) : "—"}</strong>
+                </button>
+
+                <div className="feelRecorderOutput" aria-label="생성된 패턴">
+                  <span>기록된 길이</span>
+                  <strong>{feelRecorderEvents.length ? getFeelRecorderPatternLine(feelRecorderEvents) : "아직 기록 없음"}</strong>
+                </div>
+
+                <div
+                  className={`feelPlayheadTrack ${feelRecorderEvents.length ? "" : "empty"}`}
+                  aria-label="Feel Recorder 재생 위치"
+                >
+                  <div className="feelPlayheadPattern">
+                    {feelRecorderEvents.length ? normalizeFeelRecorderEvents(feelRecorderEvents).map((event, index) => {
+                      const totalMs = getFeelRecorderTotalUnits(feelRecorderEvents);
+                      const left = (event.startMs / totalMs) * 100;
+                      const width = Math.max(event.type === "hold" ? 4 : 1.2, ((event.endMs - event.startMs) / totalMs) * 100);
+                      return (
+                        <span
+                          className={`${event.type === "hold" ? "hold" : "tick"} ${feelPlaybackIndex === index ? "active" : ""}`}
+                          key={`feel-track-${index}-${event.type}-${Math.round(event.startMs)}`}
+                          style={{ left: `${Math.min(99, left)}%`, width: `${Math.min(100 - left, width)}%` }}
+                        />
+                      );
+                    }) : <span className="placeholder">패턴을 기록하면 재생선이 표시됩니다.</span>}
+                  </div>
+                  <i
+                    className="feelPlayhead"
+                    style={{ left: `${Math.min(100, Math.max(0, feelPlaybackProgress * 100))}%` }}
+                    aria-hidden="true"
+                  />
+                </div>
+
+                <div className="feelRecorderSaveRow">
+                  <input
+                    aria-label="Feel pattern name"
+                    onChange={(event) => setFeelPatternName(event.target.value)}
+                    placeholder="Blues Feel"
+                    type="text"
+                    value={feelPatternName}
+                  />
+                  <button disabled={!feelRecorderEvents.length} onClick={saveFeelPattern} type="button">
+                    저장
+                  </button>
+                </div>
+
+                <div className="feelRecorderActions">
+                  <button
+                    disabled={!feelRecorderEvents.length}
+                    onClick={() => (feelPlaybackActive ? stopFeelPlayback() : playFeelPattern(feelRecorderEvents, feelPlaybackLoop))}
+                    type="button"
+                  >
+                    {feelPlaybackActive ? "정지" : "재생"}
+                  </button>
+                  <button
+                    className={feelPlaybackLoop ? "selected" : ""}
+                    onClick={() => setFeelPlaybackLoop((value) => !value)}
+                    type="button"
+                  >
+                    루프 {feelPlaybackLoop ? "ON" : "OFF"}
+                  </button>
+                  <button disabled={!feelRecorderEvents.length && !feelRecorderActive} onClick={clearFeelRecorder} type="button">
+                    삭제
+                  </button>
+                </div>
+
+                {savedFeelPatterns.length ? (
+                  <div className="feelPatternList" aria-label="저장된 Feel 패턴">
+                    {savedFeelPatterns.map((pattern) => (
+                      <div className="feelPatternItem" key={pattern.id}>
+                        <button onClick={() => setFeelRecorderEvents(pattern.events)} type="button">
+                          <span>{pattern.name}</span>
+                          <strong>{getFeelRecorderPatternLine(pattern.events)}</strong>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setFeelRecorderEvents(pattern.events);
+                            playFeelPattern(pattern.events, feelPlaybackLoop);
+                          }}
+                          type="button"
+                        >
+                          재생
+                        </button>
+                        <button onClick={() => deleteFeelPattern(pattern.id)} type="button">삭제</button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+          </section>
 
           <div className="standaloneMetronomeTimeline">
             <MetronomeTimeline
@@ -5847,6 +7632,62 @@ function App() {
               runnerLabel={`${beat + 1}`}
               timeSignature={metronomeTimeSignature}
             />
+          </div>
+
+          <div className="metronomeTrainingGrid" aria-label="기타 리듬 훈련 설정">
+            <section className="metronomeTrainingCard">
+              <div className="metronomeTrainingCardHeader">
+                <span>Auto BPM</span>
+                <button
+                  className={autoBpmEnabled ? "selected" : ""}
+                  onClick={() => setAutoBpmEnabled((value) => !value)}
+                  type="button"
+                >
+                  {autoBpmEnabled ? "ON" : "OFF"}
+                </button>
+              </div>
+              <div className="metronomeSegmented">
+                {[1, 2, 5].map((step) => (
+                  <button className={autoBpmStep === step ? "selected" : ""} key={step} onClick={() => setAutoBpmStep(step)} type="button">
+                    +{step}
+                  </button>
+                ))}
+              </div>
+              <div className="metronomeSegmented">
+                {[5, 10, 20].map((bars) => (
+                  <button className={autoBpmBars === bars ? "selected" : ""} key={bars} onClick={() => setAutoBpmBars(bars)} type="button">
+                    {bars}마디
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="metronomeTrainingCard">
+              <div className="metronomeTrainingCardHeader">
+                <span>Coach Mode</span>
+                <button
+                  className={coachModeEnabled ? "selected" : ""}
+                  onClick={() => setCoachModeEnabled((value) => !value)}
+                  type="button"
+                >
+                  {coachModeEnabled ? "ON" : "OFF"}
+                </button>
+              </div>
+              <div className="metronomeCoachInputs">
+                <label>
+                  <span>재생</span>
+                  <select value={coachPlayBars} onChange={(event) => setCoachPlayBars(Number(event.target.value))}>
+                    {[1, 2, 4, 8].map((bars) => <option key={bars} value={bars}>{bars}마디</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span>무음</span>
+                  <select value={coachMuteBars} onChange={(event) => setCoachMuteBars(Number(event.target.value))}>
+                    {[1, 2, 4, 8].map((bars) => <option key={bars} value={bars}>{bars}마디</option>)}
+                  </select>
+                </label>
+              </div>
+            </section>
           </div>
         </section>
       ) : appMode === APP_MODES.SHOOTER ? (
@@ -6386,12 +8227,10 @@ function App() {
                 onSubdivisionChange={setMetronomeSubdivision}
                 onTimeSignatureChange={setMetronomeTimeSignature}
                 onToneChange={setMetronomeTone}
-                onVolumeChange={setMetronomeVolume}
                 repeatEnabled={repeatPractice}
                 subdivision={metronomeSubdivision}
                 timeSignature={metronomeTimeSignature}
                 tone={metronomeTone}
-                volume={metronomeVolume}
               />
             </div>
           </div>
@@ -6579,12 +8418,10 @@ function App() {
                 onSubdivisionChange={setMetronomeSubdivision}
                 onTimeSignatureChange={setMetronomeTimeSignature}
                 onToneChange={setMetronomeTone}
-                onVolumeChange={setMetronomeVolume}
                 repeatEnabled={repeatPractice}
                 subdivision={metronomeSubdivision}
                 timeSignature={metronomeTimeSignature}
                 tone={metronomeTone}
-                volume={metronomeVolume}
               />
             </div>
           </div>
