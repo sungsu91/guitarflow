@@ -9841,6 +9841,7 @@ button.primary:hover:not(:disabled) {
 }
 
 .metronomeSelectControl {
+  position: relative;
   display: grid;
   gap: 4px;
   min-width: 0;
@@ -9870,6 +9871,97 @@ button.primary:hover:not(:disabled) {
   box-shadow: none;
   appearance: auto;
   cursor: pointer;
+}
+
+.metronomeSelectButton {
+  position: static;
+  inset: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  height: 30px;
+  min-width: 0;
+  padding: 0 9px;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.006)),
+    rgba(4, 11, 20, 0.9);
+  color: #f8fafc;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.metronomeSelectButton b {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metronomeSelectButton i {
+  color: rgba(241, 202, 122, 0.86);
+  font-size: 13px;
+  font-style: normal;
+  line-height: 1;
+}
+
+.metronomeSelectMenu {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  z-index: 80;
+  min-width: min(168px, calc(100vw - 36px));
+  padding: 7px;
+  border: 1px solid rgba(217, 170, 85, 0.28);
+  border-radius: 12px;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.1), rgba(255, 244, 210, 0.01)),
+    rgba(5, 5, 5, 0.98);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.05),
+    0 16px 24px rgba(0, 0, 0, 0.42),
+    0 0 18px rgba(217, 170, 85, 0.08);
+}
+
+.metronomeSelectMenu--twoColumn {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.metronomeSelectOption {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 8px;
+  border: 1px solid rgba(217, 170, 85, 0.2);
+  border-radius: 9px;
+  background:
+    linear-gradient(145deg, rgba(255, 244, 210, 0.03), rgba(217, 170, 85, 0.02)),
+    rgba(0, 0, 0, 0.34);
+  color: rgba(255, 246, 222, 0.9);
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.metronomeSelectOption.selected {
+  border-color: rgba(241, 202, 122, 0.62);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.55), rgba(112, 75, 34, 0.46)),
+    rgba(5, 5, 5, 0.96);
+  color: #fff6da;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.16),
+    0 0 13px rgba(217, 170, 85, 0.13);
 }
 
 .metronomeToggleRow {
@@ -23445,7 +23537,8 @@ body {
   letter-spacing: 0.04em !important;
 }
 
-.standaloneMetronomePanel .metronomeSelectControl select {
+.standaloneMetronomePanel .metronomeSelectControl select,
+.standaloneMetronomePanel .metronomeSelectControl .metronomeSelectButton {
   width: 100% !important;
   min-width: 0 !important;
   height: 38px !important;
@@ -23461,6 +23554,12 @@ body {
   box-shadow:
     inset 0 0 0 1px rgba(217, 170, 85, 0.16),
     inset 0 1px 0 rgba(255, 246, 220, 0.04) !important;
+}
+
+.standaloneMetronomePanel .metronomeSelectControl .metronomeSelectButton b {
+  color: #fff1d5 !important;
+  font-size: 11px !important;
+  text-align: left !important;
 }
 
 .standaloneMetronomePanel .metronomeVolumeControl {
@@ -32211,9 +32310,13 @@ body {
 }
 
 .metronomeControl.trainingMetronomePanel .metronomeSelectControl select,
+.metronomeControl.trainingMetronomePanel .metronomeSelectControl .metronomeSelectButton,
 .referenceTrainingPanel .referenceBpmControl .metronomeSelectControl select,
+.referenceTrainingPanel .referenceBpmControl .metronomeSelectControl .metronomeSelectButton,
 .scaleBlockTrainingPanel .referenceBpmControl .metronomeSelectControl select,
-.chordTransitionPanel .chordTransitionTempo .metronomeSelectControl select {
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeSelectControl .metronomeSelectButton,
+.chordTransitionPanel .chordTransitionTempo .metronomeSelectControl select,
+.chordTransitionPanel .chordTransitionTempo .metronomeSelectControl .metronomeSelectButton {
   height: 32px !important;
   min-height: 32px !important;
   border: 1px solid rgba(217, 170, 85, 0.18) !important;
@@ -32234,6 +32337,13 @@ body {
   font-size: 14px !important;
   font-weight: 950 !important;
   letter-spacing: 0.02em !important;
+  text-align: center !important;
+}
+
+.metronomeControl.trainingMetronomePanel .metronomeSelectControl--grid .metronomeSelectButton b,
+.referenceTrainingPanel .referenceBpmControl .metronomeSelectControl--grid .metronomeSelectButton b,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeSelectControl--grid .metronomeSelectButton b,
+.chordTransitionPanel .chordTransitionTempo .metronomeSelectControl--grid .metronomeSelectButton b {
   text-align: center !important;
 }
 
@@ -32523,6 +32633,14 @@ body {
   animation: viewerSwipeInPrev 180ms ease-out both;
 }
 
+.viewerSwipeSurface--next :where(.viewerModeControlSlot) {
+  animation: viewerSwipeInNext 180ms ease-out both;
+}
+
+.viewerSwipeSurface--prev :where(.viewerModeControlSlot) {
+  animation: viewerSwipeInPrev 180ms ease-out both;
+}
+
 @keyframes viewerSwipeInNext {
   from {
     opacity: 0.86;
@@ -32549,8 +32667,53 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .viewerSwipeSurface--next :where(.viewerMapCard, .viewerNotePanel, .viewerSelectGrid, .chordBuilderPanel),
-  .viewerSwipeSurface--prev :where(.viewerMapCard, .viewerNotePanel, .viewerSelectGrid, .chordBuilderPanel) {
+  .viewerSwipeSurface--next :where(.viewerModeControlSlot),
+  .viewerSwipeSurface--prev :where(.viewerMapCard, .viewerNotePanel, .viewerSelectGrid, .chordBuilderPanel),
+  .viewerSwipeSurface--prev :where(.viewerModeControlSlot) {
     animation: none;
+  }
+}
+
+/* Fretboard viewer alignment: the chord tab defines the shared top rhythm. */
+.fretboardViewerPanel .viewerControlPanel {
+  --viewer-control-slot-min: 226px;
+  --viewer-map-card-min: 306px;
+  display: grid !important;
+  grid-template-rows: auto minmax(var(--viewer-map-card-min), auto) minmax(var(--viewer-control-slot-min), auto) !important;
+  align-content: start !important;
+  gap: 12px !important;
+}
+
+.fretboardViewerPanel .viewerModeTabs,
+.fretboardViewerPanel .viewerMapCard,
+.fretboardViewerPanel .viewerModeControlSlot {
+  width: 100% !important;
+  align-self: start !important;
+}
+
+.fretboardViewerPanel .viewerModeTabs {
+  min-height: 44px !important;
+}
+
+.fretboardViewerPanel .viewerMapCard {
+  min-height: var(--viewer-map-card-min) !important;
+}
+
+.fretboardViewerPanel .viewerModeControlSlot {
+  display: grid !important;
+  min-height: var(--viewer-control-slot-min) !important;
+  align-content: start !important;
+}
+
+.fretboardViewerPanel .viewerModeControlSlot > :where(.viewerNotePanel, .viewerSelectGrid, .chordBuilderPanel) {
+  align-self: start !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 430px) {
+  .fretboardViewerPanel .viewerControlPanel {
+    --viewer-control-slot-min: 236px;
+    --viewer-map-card-min: 306px;
   }
 }
 
@@ -34638,15 +34801,23 @@ body {
 }
 
 .beatDot--weak {
-  --beat-dot-border: rgba(217, 170, 85, 0.86);
-  --beat-dot-fill: rgba(217, 170, 85, 0.055);
+  --beat-dot-border: rgba(217, 170, 85, 0.48);
+  --beat-dot-fill: rgba(217, 170, 85, 0.018);
   --beat-dot-shadow:
-    inset 0 0 10px rgba(217, 170, 85, 0.055),
+    inset 0 0 7px rgba(217, 170, 85, 0.024),
     0 0 0 1px rgba(0, 0, 0, 0.42);
+}
+
+.beatDot--weak .beatDot__glyph {
+  transform: scale(0.86) translateZ(0);
 }
 
 .beatDot--weak .beatDot__innerMark {
   display: block;
+  width: 6px;
+  height: 6px;
+  opacity: 0.72;
+  box-shadow: 0 0 5px rgba(217, 170, 85, 0.18);
 }
 
 .beatDot--mute {
@@ -34663,12 +34834,14 @@ body {
 
 .beatDot.active .beatDot__glyph,
 .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.active .beatDot__glyph {
-  animation: beatDotPulse 145ms ease-out both !important;
+  animation: beatDotPulse 210ms cubic-bezier(0.18, 0.9, 0.2, 1) both !important;
   border-color: rgba(255, 226, 156, 0.98) !important;
   box-shadow:
     var(--beat-dot-shadow),
-    0 0 18px rgba(255, 219, 135, 0.48),
-    0 0 44px rgba(217, 170, 85, 0.22) !important;
+    0 0 0 5px rgba(255, 219, 135, 0.18),
+    0 0 0 10px rgba(217, 170, 85, 0.08),
+    0 0 26px rgba(255, 219, 135, 0.68),
+    0 0 68px rgba(217, 170, 85, 0.32) !important;
   outline: 0 !important;
 }
 
@@ -34677,7 +34850,10 @@ body {
   border-color: rgba(236, 226, 212, 0.52) !important;
   box-shadow:
     var(--beat-dot-shadow),
-    0 0 12px rgba(236, 226, 212, 0.18) !important;
+    0 0 0 5px rgba(255, 219, 135, 0.14),
+    0 0 0 10px rgba(217, 170, 85, 0.06),
+    0 0 22px rgba(255, 219, 135, 0.34),
+    0 0 54px rgba(217, 170, 85, 0.18) !important;
 }
 
 .metronomeVisualLabDot .beatDot {
@@ -34690,15 +34866,113 @@ body {
   --beat-dot-size: clamp(44px, 13vw, 64px);
 }
 
+.standaloneMetronomePanel .metronomeBeatMatrix--main {
+  touch-action: pan-y;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--line,
+.standaloneMetronomePanel .metronomeBeatMatrix--circle {
+  display: grid !important;
+  place-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+}
+
+.metronomeModeLineTrack {
+  position: relative;
+  width: min(278px, 82vw);
+  height: 126px;
+}
+
+.metronomeModeLineTrack::before {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 2px;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, transparent, rgba(217, 170, 85, 0.36), rgba(255, 236, 180, 0.5), rgba(217, 170, 85, 0.36), transparent);
+  box-shadow: 0 0 12px rgba(217, 170, 85, 0.12);
+  content: "";
+  transform: translateY(-50%);
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.metronomeModeLineBeat,
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.metronomeModeLineBeat:hover,
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.metronomeModeLineBeat:focus,
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.metronomeModeLineBeat:active,
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.metronomeModeLineBeat.active {
+  position: absolute !important;
+  top: 50% !important;
+  --beat-dot-touch: clamp(52px, 15vw, 68px);
+  --beat-dot-size: clamp(34px, 10vw, 46px);
+  transform: translate(-50%, -50%) !important;
+}
+
+.metronomeModeCircleOrbit {
+  position: relative;
+  width: min(236px, 64vw);
+  aspect-ratio: 1;
+  border-radius: 999px;
+}
+
+.metronomeModeCircleOrbit::before,
+.metronomeModeCircleOrbit::after {
+  position: absolute;
+  inset: 14%;
+  border: 1px solid rgba(217, 170, 85, 0.1);
+  border-radius: inherit;
+  content: "";
+  pointer-events: none;
+}
+
+.metronomeModeCircleOrbit::after {
+  inset: 28%;
+  border-color: rgba(255, 236, 180, 0.07);
+}
+
+.metronomeModeCircleCore {
+  position: absolute;
+  inset: 42%;
+  border: 1px solid rgba(217, 170, 85, 0.2);
+  border-radius: 999px;
+  background: rgba(217, 170, 85, 0.035);
+  box-shadow: 0 0 20px rgba(217, 170, 85, 0.08);
+  pointer-events: none;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.metronomeModeCircleBeat,
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.metronomeModeCircleBeat:hover,
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.metronomeModeCircleBeat:focus,
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.metronomeModeCircleBeat:active,
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.metronomeModeCircleBeat.active {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  --beat-dot-touch: clamp(50px, 14vw, 66px);
+  --beat-dot-size: clamp(30px, calc(48px - var(--circle-beat-count) * 1.4px), 42px);
+  transform: rotate(var(--beat-angle)) translate(min(92px, 25vw)) rotate(calc(-1 * var(--beat-angle))) translate(-50%, -50%) !important;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--strong.metronomeModeCircleBeat {
+  --beat-dot-size: clamp(38px, calc(58px - var(--circle-beat-count) * 1.2px), 52px);
+}
+
 @keyframes beatDotPulse {
   0% {
-    filter: brightness(1.38);
-    transform: scale(1.16);
+    filter: brightness(1.42);
+    transform: scale(1.48);
+  }
+
+  58% {
+    filter: brightness(1.28);
+    transform: scale(1.34);
   }
 
   100% {
-    filter: brightness(1.08);
-    transform: scale(1.04);
+    filter: brightness(1.18);
+    transform: scale(1.3);
   }
 }
 
@@ -34872,4 +35146,254 @@ body {
   color: rgba(246, 207, 126, 0.88) !important;
   opacity: 0.92 !important;
   transform: translateX(2px) !important;
+}
+
+/* Shooter HUD: keep the playfield dominant and move status into a light overlay. */
+.shooterPanel {
+  gap: 8px !important;
+}
+
+.shooterArena {
+  position: relative !important;
+  min-height: clamp(540px, 66dvh, 660px) !important;
+}
+
+.shooterArena .shooterGameHud,
+.shooterArena .shooterGameHud:hover,
+.shooterArena .shooterGameHud:focus-within {
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  left: auto !important;
+  z-index: 9 !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(42px, auto)) !important;
+  gap: 6px !important;
+  width: auto !important;
+  max-width: calc(100% - 20px) !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  pointer-events: none !important;
+}
+
+.shooterArena .shooterGameHud div,
+.shooterArena .shooterGameHud div:nth-child(1),
+.shooterArena .shooterGameHud div:nth-child(2),
+.shooterArena .shooterGameHud div:nth-child(3),
+.shooterArena .shooterGameHud div:nth-child(4),
+.shooterArena .shooterGameHud .shooterLivesHud {
+  display: grid !important;
+  align-content: center !important;
+  justify-items: end !important;
+  gap: 1px !important;
+  order: initial !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 4px 6px !important;
+  border: 1px solid rgba(217, 170, 85, 0.12) !important;
+  border-radius: 9px !important;
+  background: rgba(4, 6, 8, 0.34) !important;
+  box-shadow: none !important;
+}
+
+.shooterArena .shooterGameHud span {
+  color: rgba(217, 170, 85, 0.72) !important;
+  font-size: 7px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1 !important;
+}
+
+.shooterArena .shooterGameHud strong {
+  color: rgba(248, 244, 235, 0.86) !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.05 !important;
+  text-shadow: none !important;
+}
+
+.shooterArena .shooterGameHud small {
+  max-width: 56px !important;
+  overflow: hidden !important;
+  color: rgba(236, 226, 212, 0.46) !important;
+  font-size: 6.5px !important;
+  font-weight: 800 !important;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.shooterArena .mobileShooterLives {
+  right: 10px !important;
+  bottom: 10px !important;
+  z-index: 9 !important;
+}
+
+/* Fretboard viewer must start directly under the RIFFLAB plate in every tab. */
+.app:has(.fretboardViewerPanel) {
+  align-content: start !important;
+  align-items: start !important;
+  grid-auto-rows: max-content !important;
+}
+
+.app:has(.fretboardViewerPanel) .fretboardViewerPanel {
+  align-self: start !important;
+  justify-self: stretch !important;
+  align-content: start !important;
+  align-items: start !important;
+  grid-auto-rows: max-content !important;
+  width: 100% !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.app:has(.fretboardViewerPanel) .fretboardViewerPanel > .viewerControlPanel {
+  align-self: start !important;
+  margin-top: 0 !important;
+}
+
+.shooterDifficultyPanel {
+  grid-template-columns: minmax(88px, 0.85fr) minmax(0, 1.65fr) !important;
+  gap: 6px !important;
+  padding: 5px !important;
+  border-radius: 13px !important;
+  background: rgba(4, 5, 6, 0.58) !important;
+  box-shadow: none !important;
+}
+
+.shooterDifficultyPanel > div:first-child {
+  min-height: 42px !important;
+  padding: 6px 8px !important;
+  border-radius: 10px !important;
+  gap: 1px !important;
+}
+
+.shooterDifficultyPanel > div:first-child small {
+  display: none !important;
+}
+
+.shooterDifficultyPanel span {
+  font-size: 7.5px !important;
+  letter-spacing: 0.08em !important;
+}
+
+.shooterDifficultyPanel strong {
+  font-size: 12px !important;
+}
+
+.shooterDifficultyButtons {
+  gap: 5px !important;
+}
+
+.shooterDifficultyButtons button {
+  min-height: 42px !important;
+  padding: 6px 8px !important;
+  border-radius: 10px !important;
+  text-align: center !important;
+}
+
+.shooterDifficultyButtons button strong {
+  font-size: 12px !important;
+}
+
+.shooterDifficultyButtons button span {
+  display: none !important;
+}
+
+.shooterRecordsInlineButton {
+  justify-self: start !important;
+  min-height: 18px !important;
+  margin-top: 3px !important;
+  padding: 0 7px !important;
+  border: 1px solid rgba(217, 170, 85, 0.2) !important;
+  border-radius: 999px !important;
+  background: rgba(0, 0, 0, 0.28) !important;
+  color: rgba(241, 202, 122, 0.72) !important;
+  box-shadow: none !important;
+  font-size: 7.5px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.04em !important;
+  line-height: 1 !important;
+}
+
+.shooterRecordsInlineButton.selected {
+  border-color: rgba(241, 202, 122, 0.46) !important;
+  background: rgba(217, 170, 85, 0.12) !important;
+  color: rgba(255, 225, 155, 0.9) !important;
+}
+
+.shooterBestHud {
+  position: absolute !important;
+  top: 10px !important;
+  left: 10px !important;
+  z-index: 9 !important;
+  display: grid !important;
+  gap: 2px !important;
+  pointer-events: none !important;
+}
+
+.shooterBestHud span {
+  color: rgba(217, 170, 85, 0.52) !important;
+  font-size: 8px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.06em !important;
+  line-height: 1.15 !important;
+  text-shadow: none !important;
+}
+
+@media (max-width: 430px) {
+  .shooterPanel {
+    gap: 7px !important;
+  }
+
+  .shooterDifficultyPanel {
+    grid-template-columns: minmax(76px, 0.7fr) minmax(0, 1.6fr) !important;
+    gap: 5px !important;
+    padding: 4px !important;
+  }
+
+  .shooterDifficultyPanel > div:first-child,
+  .shooterDifficultyButtons button {
+    min-height: 38px !important;
+    padding: 5px 6px !important;
+  }
+
+  .shooterArena {
+    min-height: clamp(520px, 68dvh, 650px) !important;
+  }
+
+  .shooterArena .shooterGameHud {
+    top: 8px !important;
+    right: 8px !important;
+    grid-template-columns: repeat(3, minmax(36px, auto)) !important;
+    gap: 4px !important;
+    max-width: calc(100% - 16px) !important;
+  }
+
+  .shooterArena .shooterGameHud div,
+  .shooterArena .shooterGameHud div:nth-child(1),
+  .shooterArena .shooterGameHud div:nth-child(2),
+  .shooterArena .shooterGameHud div:nth-child(3) {
+    padding: 3px 5px !important;
+    border-radius: 8px !important;
+  }
+
+  .shooterArena .shooterGameHud strong {
+    font-size: 11px !important;
+  }
+
+  .shooterBestHud {
+    top: 8px !important;
+    left: 8px !important;
+  }
+
+  .shooterBestHud span {
+    font-size: 7px !important;
+  }
 }
