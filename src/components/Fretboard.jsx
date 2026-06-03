@@ -131,6 +131,7 @@ export default function Fretboard({
             const stringState = stringStates[stringInfo.stringNumber];
             const openNote = openNotesByString.get(stringInfo.stringNumber);
             const openLabel = openNote?.label ?? openNote?.noteName ?? getPitchClass(openNote?.pitch);
+            const isOpenCurrent = Boolean(openNote?.isCurrent || openNote?.current || openNote?.isActive);
             return (
               <div className="fretboardStringRow" key={stringInfo.stringNumber}>
                 {showStringNames && (
@@ -144,7 +145,7 @@ export default function Fretboard({
                     {String(stringState).toUpperCase()}
                   </em>
                 ) : openNote ? (
-                  <em className={`fretboardStringState noteOpen ${openNote.noteName === rootNote || openNote.isRoot ? "root" : ""} ${openNote.isActive ? "active" : ""}`}>
+                  <em className={`fretboardStringState noteOpen ${openNote.noteName === rootNote || openNote.isRoot ? "root" : ""} ${openNote.isActive ? "active" : ""} ${isOpenCurrent ? "current-note" : ""}`}>
                     {openLabel}
                   </em>
                 ) : null}
@@ -182,10 +183,11 @@ export default function Fretboard({
           visibleNoteIds.add(noteId);
           const isRoot = noteName === rootNote || note.isRoot;
           const isSelected = selected.size === 0 || selected.has(noteName);
+          const isCurrent = Boolean(note.isCurrent || note.current || note.isActive);
           const displayLabel = showFingering && note.finger ? note.finger : note.label ?? noteName;
           return (
             <span
-              className={`fretboardNoteChip ${isRoot ? "root" : ""} ${note.isActive ? "active" : ""} ${isSelected ? "selected" : ""}`}
+              className={`fretboardNoteChip ${isRoot ? "root" : ""} ${note.isActive ? "active" : ""} ${isCurrent ? "current-note" : ""} ${isSelected ? "selected" : ""}`}
               key={noteId}
               style={{
                 "--fretboard-x-ratio": getXRatio(Number(note.fretNumber)),

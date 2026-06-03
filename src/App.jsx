@@ -1090,6 +1090,9 @@ function makeStage3LibraryItem({
   sound = "tick",
   capo = 0,
   strum_pattern,
+  strumPattern,
+  strumSlots,
+  selectedStrumSlot = 0,
   memo = "",
 }) {
   const safeChordIds = Array.isArray(chordIds)
@@ -1098,18 +1101,26 @@ function makeStage3LibraryItem({
   const progression = getChordProgressionText(safeChordIds);
   const safeTitle = String(title || "").trim() || progression || "내 진행";
   const isPreset = String(id || "").startsWith("preset-");
+  const normalizedStrumSlots = isPreset
+    ? []
+    : normalizeStrumPatternGroups(strum_pattern ?? strumPattern ?? strumSlots);
+  const safeSelectedStrumSlot = Math.max(0, Math.min(1, Number(selectedStrumSlot) || 0));
   return {
     id: String(id || `slot-${Date.now()}`),
     title: safeTitle,
     label: `${safeTitle} — ${progression}`,
     chord_progression: progression,
     chordIds: safeChordIds,
+    chords: safeChordIds,
     capo: Number.isFinite(Number(capo)) ? Math.max(0, Math.min(12, Number(capo))) : 0,
     bpm: clampBpm(bpm),
     time_signature: timeSignature,
     subdivision,
     sound,
-    strum_pattern: isPreset ? [] : normalizeStrumPatternGroups(strum_pattern),
+    strum_pattern: normalizedStrumSlots,
+    strumPattern: normalizedStrumSlots,
+    strumSlots: normalizedStrumSlots,
+    selectedStrumSlot: safeSelectedStrumSlot,
     memo: String(memo || ""),
   };
 }
@@ -1250,11 +1261,43 @@ const METRONOME_BEAT_STATE_MARKERS = {
 const METRONOME_VISUAL_LAB_MODES = [
   { id: "dot", label: "Dot", title: "Dot Mode", description: "현재 점자 방식. 점자 자체의 glow만 비교합니다." },
   { id: "line", label: "Line", title: "Rhythm Line Mode", description: "좌에서 우로 흐르는 박자 위치를 비교합니다." },
-  { id: "circle", label: "Circle", title: "Circle Mode", description: "원형 순환 구조로 박자 흐름을 비교합니다." },
+  { id: "circle", label: "Circle", title: "Circle Mode", description: "RIFFLAB 정식 후보로 승격한 원형 박자 훈련 시각화입니다." },
   { id: "pick", label: "Pick Swing", title: "Pick Swing Mode", description: "기타 피크 스윙으로 스트로크 감각을 비교합니다." },
 ];
+const METRONOME_VISUAL_LAB_TIME_SIGNATURE_OPTIONS = [
+  { id: "2/4", label: "2/4", beats: 2 },
+  { id: "3/4", label: "3/4", beats: 3 },
+  { id: "4/4", label: "4/4", beats: 4 },
+  { id: "5/4", label: "5/4", beats: 5 },
+  { id: "6/8", label: "6/8", beats: 6 },
+  { id: "7/8", label: "7/8", beats: 7 },
+];
+const SVG_LOGO_LAB_STORAGE_KEY = "rifflab-svg-logo-lab-v1";
+const SVG_LOGO_LAB_CANDIDATES = [
+  ["svg-logo-09-a", "Logo 09-A", "String Priority R", "6현의 존재감을 가장 먼저 읽히게 한 Logo 09 기본 발전형."],
+  ["svg-logo-09-b", "Logo 09-B", "R Priority R", "멀리서 R 실루엣이 더 선명하게 보이도록 Bowl과 다리를 정리한 안."],
+  ["svg-logo-09-c", "Logo 09-C", "Quiet Wave R", "사운드웨이브를 더 절제해 R과 기타현만 남긴 미니멀 안."],
+  ["svg-logo-09-d", "Logo 09-D", "Headstock Engrave R", "헤드스톡 각인에 어울리도록 상단 현과 핀 정렬을 강조한 안."],
+  ["svg-logo-09-e", "Logo 09-E", "Hidden Fret R", "프렛보드 비율선을 은은하게 숨겨 악기 구조를 담은 안."],
+  ["svg-logo-09-f", "Logo 09-F", "App Icon R", "작은 앱 아이콘에서도 버티도록 굵기와 여백을 압축한 안."],
+  ["svg-logo-09-g", "Logo 09-G", "Pick Print R", "피크 인쇄에 맞춰 하단 마감과 실루엣을 단단하게 만든 안."],
+  ["svg-logo-09-h", "Logo 09-H", "Minimal Line R", "최소선으로 R, 6현, 리듬만 남긴 경량 심볼 안."],
+  ["svg-logo-09-i", "Logo 09-I", "Premium Studio R", "블랙 스튜디오 조명과 금속감을 가장 균형 있게 둔 프리미엄 안."],
+  ["svg-logo-09-j", "Logo 09-J", "Lower Grid R", "하단 끝점과 기준선을 가장 엄격하게 맞춘 정렬 중심 안."],
+  ["svg-logo-09-k", "Logo 09-K", "Tall String R", "상하 비례를 길게 잡아 현이 R로 변하는 과정을 강조한 안."],
+  ["svg-logo-09-l", "Logo 09-L", "Compact Badge R", "스티커와 배지 적용을 고려해 전체 폭을 압축한 안."],
+  ["svg-logo-09-m", "Logo 09-M", "Balanced Riff R", "좌우 사운드웨이브와 R 구조의 균형을 맞춘 대표 후보 안."],
+  ["svg-logo-09-n", "Logo 09-N", "Gold Inlay R", "고급 기타 인레이처럼 선 끝과 접합부를 정제한 안."],
+  ["svg-logo-09-o", "Logo 09-O", "Sharp Leg R", "R의 대각 다리를 선명하게 만들어 1차 시선에서 R을 강화한 안."],
+  ["svg-logo-09-p", "Logo 09-P", "Soft Bowl R", "R의 곡선부를 부드럽게 다듬어 현의 자연스러운 휨을 강조한 안."],
+  ["svg-logo-09-q", "Logo 09-Q", "Hardware Plate R", "앰프 명판과 장비 플레이트에 어울리는 수평 기준선 중심 안."],
+  ["svg-logo-09-r", "Logo 09-R", "Monochrome Ready R", "색을 제거해도 R 실루엣이 남도록 대비와 구조를 정리한 안."],
+  ["svg-logo-09-s", "Logo 09-S", "Master Symbol R", "RIFFLAB 공식 심볼 후보로 현, R, 웨이브를 가장 균형 있게 통합한 안."],
+  ["svg-logo-09-t", "Logo 09-T", "Signature String R", "향후 헤더, 피크, 티셔츠까지 확장 가능한 최종 후보형 안."],
+].map(([id, label, title, description], index) => ({ id, label, title, description, index: index + 1 }));
 const FEEL_RECORDER_STORAGE_KEY = "rifflab-feel-recorder-patterns";
 const METRONOME_PRESET_STORAGE_KEY = "rifflab-metronome-presets-v1";
+const METRONOME_TRACKER_PROGRESS_STORAGE_KEY = "rifflab-metronome-tracker-progress-v1";
 const FEEL_RECORDER_LONG_PRESS_MS = 420;
 const FEEL_RECORDER_MAX_EVENTS = 24;
 const FEEL_RECORDER_DEFAULT_NAME = "My Feel";
@@ -1415,6 +1458,37 @@ function getStoredMetronomePresets() {
     return parsed.map((item, index) => normalizeMetronomePreset(item, index)).slice(0, 24);
   } catch {
     return [];
+  }
+}
+
+function getStoredMetronomeTrackerProgress() {
+  const fallback = {
+    trackerMode: "off",
+    barLimitEnabled: false,
+    barLimit: 100,
+    measureCount: 0,
+    trackerTimerMinutes: 0,
+    trackerTimerSeconds: 0,
+    trackerElapsedMs: 0,
+  };
+  if (typeof window === "undefined") return fallback;
+
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(METRONOME_TRACKER_PROGRESS_STORAGE_KEY) ?? "{}");
+    const trackerMode = TRACKER_MODE_OPTIONS.some((option) => option.id === parsed?.trackerMode)
+      ? parsed.trackerMode
+      : fallback.trackerMode;
+    return {
+      trackerMode,
+      barLimitEnabled: Boolean(parsed?.barLimitEnabled),
+      barLimit: Math.max(1, Math.min(9999, Number(parsed?.barLimit) || fallback.barLimit)),
+      measureCount: Math.max(0, Math.min(9999, Number(parsed?.measureCount ?? parsed?.trackerCurrent) || 0)),
+      trackerTimerMinutes: Math.max(0, Math.min(30, Number(parsed?.trackerTimerMinutes) || 0)),
+      trackerTimerSeconds: Math.max(0, Math.min(50, Number(parsed?.trackerTimerSeconds) || 0)),
+      trackerElapsedMs: Math.max(0, Number(parsed?.trackerElapsedMs ?? parsed?.trackerTime) || 0),
+    };
+  } catch {
+    return fallback;
   }
 }
 
@@ -1799,7 +1873,7 @@ function TrainingCard({ category, index, isSelected, onClick }) {
       onClick={onClick}
       type="button"
     >
-      <span className="stageMenuCard__step">{stageNumber}</span>
+      <span className="stageMenuCard__step"><b>{stageNumber}</b></span>
       <span className="stageMenuCard__content">
         <strong className="stageMenuCard__title">{category.title}</strong>
         <small className="stageMenuCard__desc">{category.subtitle}</small>
@@ -1889,7 +1963,11 @@ const DESIGN_LAB_SECTIONS = [
   { id: "test", label: "TEST" },
   { id: "archive", label: "Archive" },
 ];
+const SHOOTER_PLAYER_STORAGE_KEY = "rifflabSelectedPlayer";
+const SHOOTER_GUITAR_STORAGE_KEY = "rifflabSelectedGuitar";
 const GUITAR_LAB_STORAGE_KEY = "rifflab-shooter-guitar-v1";
+const GUITAR_LAB_AVAILABILITY_STORAGE_KEY = "rifflabGuitarLabAvailability";
+const SHOOTER_PLAYER_SLOTS_STORAGE_KEY = "shooterPlayerSlots";
 const GUITAR_LAB_VARIANTS = [
   ["acoustic-dreadnought", "Acoustic", "Dreadnought", "큰 바디와 강한 존재감의 기본 어쿠스틱 플레이어", "#b87936", "#2f1a0b", "round"],
   ["acoustic-om", "Acoustic", "OM", "균형 잡힌 허리선과 민첩한 이동감을 가진 어쿠스틱", "#c98b43", "#332012", "waist"],
@@ -1906,6 +1984,11 @@ const GUITAR_LAB_VARIANTS = [
   ["electric-lp", "Electric", "LP Style", "두꺼운 싱글컷 바디와 험버커 코어의 LP 스타일", "#8d251d", "#1a0907", "lp"],
   ["electric-super-strat", "Electric", "Super Strat", "날카로운 컷어웨이와 빠른 슈터 실루엣", "#1c2f48", "#d9aa55", "super"],
   ["electric-metal", "Electric", "Metal Style", "메탈 리프용 날카로운 바디와 공격형 헤드", "#0c0c0e", "#c7c9d1", "metal"],
+  ["acoustic-riff-scout", "Acoustic", "Riff Scout", "둥근 헤드와 작은 바디 포인트가 귀여운 정찰형 기타 플레이어", "#c77f34", "#f1ca7a", "cute-dread"],
+  ["acoustic-gold-pilot", "Acoustic", "Gold Pilot", "골드 상판과 또렷한 중앙축을 가진 기본 주력 후보", "#d9aa55", "#4a2b12", "stage-dread"],
+  ["acoustic-stage-buddy", "Acoustic", "Stage Buddy", "작은 무대 조명감과 부드러운 어깨선을 가진 버디형", "#b96f2c", "#e6b86a", "buddy-dread"],
+  ["acoustic-pick-guard", "Acoustic", "Pick Guard", "픽가드 실루엣이 캐릭터 표정처럼 읽히는 플레이어 후보", "#a86434", "#f1ca7a", "guard-dread"],
+  ["acoustic-mini-ace", "Acoustic", "Mini Ace", "작지만 헤드와 줄 구조가 선명한 빠른 기동형 후보", "#d39b4d", "#2a1b0d", "ace-mini"],
 ].map(([id, pack, model, description, bodyColor, accentColor, shape], index) => ({
   id,
   pack,
@@ -1919,6 +2002,12 @@ const GUITAR_LAB_VARIANTS = [
 }));
 const DEFAULT_GUITAR_LAB_VARIANT_ID = GUITAR_LAB_VARIANTS[0].id;
 const GUITAR_LAB_VARIANT_IDS = new Set(GUITAR_LAB_VARIANTS.map((variant) => variant.id));
+const DEFAULT_SHOOTER_PLAYER_SLOTS = {
+  slot1: "acoustic-dreadnought",
+  slot2: "classical-black",
+  slot3: "electric-lp",
+};
+const SHOOTER_PLAYER_SLOT_KEYS = ["slot1", "slot2", "slot3"];
 const MONSTER_LAB_GROUPS = [
   { id: "quarter", title: "4분음표 몬스터", symbol: "♩" },
   { id: "eighth", title: "8분음표 몬스터", symbol: "♪" },
@@ -1935,11 +2024,6 @@ const MONSTER_LAB_VARIANTS = MONSTER_LAB_GROUPS.flatMap((group) =>
     variant: index + 1,
   }))
 );
-const CARD_LAB_VARIANTS = [
-  { id: "card-1", title: "Legacy Card V1", description: "과거 훈련장 카드 시안" },
-  { id: "card-2", title: "Legacy Card V2", description: "번호 배지 강조형" },
-  { id: "card-3", title: "Legacy Card V3", description: "라인형 미니멀" },
-];
 const COMPONENT_LAB_DROPDOWN_OPTIONS = [
   { id: "1/4", label: "1/4" },
   { id: "2/4", label: "2/4" },
@@ -2095,39 +2179,61 @@ function MetronomeVisualLabDot({ activeBeat, beatPattern, isPlaying }) {
   return (
     <div className="metronomeVisualLabDot" aria-label="Dot Mode visual preview">
       {beatPattern.map((beatState, index) => (
-        <span
-          className={`metronomeVisualLabBeat metronomeVisualLabBeat--${beatState} ${isPlaying && activeBeat === index ? "active" : ""}`}
+        <BeatDot
+          active={isPlaying && activeBeat === index}
+          className="metronomeVisualLabBeat"
           key={`visual-dot-${index}`}
-        >
-          <span className="metronomeVisualLabBeatGlyph" aria-hidden="true" />
-          {METRONOME_BEAT_STATE_MARKERS[beatState] ? (
-            <i className="metronomeVisualLabBeatMark">{METRONOME_BEAT_STATE_MARKERS[beatState]}</i>
-          ) : null}
-        </span>
+          label={`Beat ${index + 1} ${METRONOME_BEAT_STATE_LABELS[beatState]}`}
+          state={beatState}
+        />
       ))}
     </div>
   );
 }
 
+function getBeatDotState(state) {
+  if (state === "strong" || state === METRONOME_BEAT_STATES.ACCENT) return "strong";
+  if (state === "mute" || state === METRONOME_BEAT_STATES.MUTE) return "mute";
+  return "weak";
+}
+
+function BeatDot({ active = false, className = "", label, onClick, state = "weak", style, title }) {
+  const dotState = getBeatDotState(state);
+  const Component = onClick ? "button" : "span";
+  const stateLabel = dotState === "strong" ? "강" : dotState === "mute" ? "무음" : "약";
+
+  return (
+    <Component
+      aria-label={label ?? stateLabel}
+      className={`beatDot beatDot--${dotState} ${active ? "active" : ""} ${className}`}
+      onClick={onClick}
+      style={style}
+      title={title ?? stateLabel}
+      type={onClick ? "button" : undefined}
+    >
+      <span className="beatDot__glyph" aria-hidden="true">
+        <i className="beatDot__innerMark" />
+      </span>
+    </Component>
+  );
+}
+
 function MetronomeVisualLabLine({ activeBeat, beatPattern, isPlaying }) {
   const beatCount = Math.max(1, beatPattern.length);
-  const activeState = beatPattern[activeBeat] ?? METRONOME_BEAT_STATES.ACCENT;
-  const position = beatCount === 1 ? 50 : (activeBeat / (beatCount - 1)) * 100;
 
   return (
     <div className="metronomeVisualLabLine" aria-label="Rhythm Line Mode visual preview">
       <div className="metronomeVisualLabLineTrack">
         {beatPattern.map((beatState, index) => (
-          <span
-            className={`metronomeVisualLabLineTick metronomeVisualLabLineTick--${beatState}`}
+          <BeatDot
+            active={isPlaying && activeBeat === index}
+            className="metronomeVisualLabLineTick"
             key={`visual-line-tick-${index}`}
+            label={`Beat ${index + 1} ${METRONOME_BEAT_STATE_LABELS[beatState]}`}
+            state={beatState}
             style={{ left: `${beatCount === 1 ? 50 : (index / (beatCount - 1)) * 100}%` }}
           />
         ))}
-        <span
-          className={`metronomeVisualLabLineCursor metronomeVisualLabLineCursor--${activeState} ${isPlaying ? "active" : ""}`}
-          style={{ left: `${position}%` }}
-        />
       </div>
     </div>
   );
@@ -2135,20 +2241,27 @@ function MetronomeVisualLabLine({ activeBeat, beatPattern, isPlaying }) {
 
 function MetronomeVisualLabCircle({ activeBeat, beatPattern, isPlaying }) {
   const beatCount = Math.max(1, beatPattern.length);
+  const orbitRadius = beatCount >= 7 ? 83 : beatCount >= 5 ? 78 : 72;
 
   return (
-    <div className="metronomeVisualLabCircle" aria-label="Circle Mode visual preview">
-      <div className="metronomeVisualLabCircleOrbit">
+    <div className="metronomeVisualLabCircle" aria-label="Circle Mode visual preview" style={{ "--circle-beat-count": beatCount }}>
+      <div className="metronomeVisualLabCircleOrbit" style={{ "--circle-orbit-radius": `${orbitRadius}px` }}>
+        <span className="metronomeVisualLabCircleCenter">
+          <strong>{beatCount}</strong>
+          <small>BEATS</small>
+        </span>
         {beatPattern.map((beatState, index) => (
-          <span
-            className={`metronomeVisualLabCircleBeat metronomeVisualLabCircleBeat--${beatState} ${isPlaying && activeBeat === index ? "active" : ""}`}
+          <BeatDot
+            active={isPlaying && activeBeat === index}
+            className="metronomeVisualLabCircleBeat"
             key={`visual-circle-${index}`}
+            label={`Beat ${index + 1} ${METRONOME_BEAT_STATE_LABELS[beatState]}`}
+            state={beatState}
             style={{ "--beat-angle": `${(360 / beatCount) * index - 90}deg` }}
-          >
-            <span aria-hidden="true" />
-          </span>
+          />
         ))}
       </div>
+      <p className="metronomeVisualLabCircleHint">Circle Mode · official candidate · editable beat states ready</p>
     </div>
   );
 }
@@ -2211,6 +2324,293 @@ function MetronomeVisualLabPreview({ activeBeat, beatPattern, bpm, isPlaying, mo
   );
 }
 
+function RiffLoopLogoSvg({ candidate, compact = false }) {
+  const index = candidate?.index ?? 1;
+  const uid = `riffSymbol${index}`;
+  const fretScale = [0, 5.6, 10.9, 16.0, 20.8, 25.4, 29.8];
+  const stringXs = [34, 38, 42, 46, 50, 54];
+  const configs = [
+    { bowl: 0, leg: 0, stem: 0, wave: 0.2, frets: true },
+    { bowl: 2, leg: -2, stem: -1, wave: 0.12, frets: false },
+    { bowl: -1, leg: 1, stem: 1, wave: 0.08, cap: true },
+    { bowl: 0, leg: 2, stem: 0, wave: 0.28, frets: false },
+    { bowl: 1, leg: -1, stem: 0, wave: 0.1, pickCut: true },
+    { bowl: -2, leg: 0, stem: 1, wave: 0.14, frets: true },
+    { bowl: 3, leg: 5, stem: -1, wave: 0.12, longLeg: true },
+    { bowl: -3, leg: -3, stem: 0, wave: 0.08, compact: true },
+    { bowl: 1, leg: 1, stem: 0, wave: 0.18, studio: true },
+    { bowl: 0, leg: 3, stem: 2, wave: 0.1, bridge: true },
+    { bowl: -1, leg: 2, stem: -2, wave: 0.06, sparse: true },
+    { bowl: 2, leg: -4, stem: 1, wave: 0.12, cut: true },
+    { bowl: 0, leg: 0, stem: -1, wave: 0.22, heavyStem: true },
+    { bowl: 2, leg: 2, stem: 0, wave: 0.1, markers: true },
+    { bowl: -2, leg: 1, stem: 0, wave: 0.16, inlay: true },
+    { bowl: 1, leg: -1, stem: 2, wave: 0.14, meter: true },
+    { bowl: -1, leg: 0, stem: 0, wave: 0.06, stage: true },
+    { bowl: 3, leg: 4, stem: 0, wave: 0.2, current: true },
+    { bowl: -2, leg: -2, stem: -1, wave: 0.1, heritage: true },
+    { bowl: 1, leg: 3, stem: 0, wave: 0.24, master: true },
+  ];
+  const config = configs[(index - 1) % configs.length];
+  const StringBuiltR = ({ cfg = config }) => {
+    const topY = cfg.compact ? 19 : 14;
+    const lowerY = cfg.compact ? 75 : 82;
+    const bowlRight = 72 + cfg.bowl;
+    const bowlLow = 53 + cfg.stem;
+    const legEndX = (cfg.longLeg ? 83 : 75) + cfg.leg;
+    const legEndY = cfg.longLeg ? 87 : lowerY;
+    const width = cfg.heavyStem ? 2.35 : cfg.sparse ? 1.35 : 1.9;
+
+    return (
+      <g className="stringBuiltR" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        {stringXs.map((x, stringIndex) => {
+          const tension = (stringIndex - 2.5) * 0.58;
+          const d = [
+            `M ${x} ${topY}`,
+            `C ${x} ${topY + 8}, ${x + tension} 24, ${x + tension} 31`,
+            `C ${x + 12 + cfg.bowl} 20, ${bowlRight} 22, ${bowlRight} ${37 + tension}`,
+            `C ${bowlRight} ${49 + tension}, ${x + 19 + cfg.bowl} ${bowlLow}, ${x + 4} ${bowlLow}`,
+            `C ${x + 11} ${58 + tension}, ${legEndX - 13} ${72 + tension}, ${legEndX} ${legEndY}`,
+          ].join(" ");
+          return (
+            <path
+              d={d}
+              key={`string-r-${stringIndex}`}
+              opacity={0.74 + stringIndex * 0.035}
+              stroke={`url(#${uid}Gold)`}
+              strokeWidth={width}
+            />
+          );
+        })}
+        {cfg.cut ? (
+          <path d="M31 55 H55" stroke="#050607" strokeWidth="5.8" opacity="0.9" />
+        ) : null}
+        {cfg.pickCut ? (
+          <path d="M59 30 C68 38 70 50 63 58 C58 64 48 64 43 58" stroke="#050607" strokeWidth="5" opacity="0.74" />
+        ) : null}
+        {cfg.cap ? (
+          <path d="M31 15 H57" stroke={`url(#${uid}Edge)`} strokeWidth="2.2" opacity="0.65" />
+        ) : null}
+        {cfg.bridge ? (
+          <path d="M26 77 H80" stroke={`url(#${uid}Edge)`} strokeWidth="1.6" opacity="0.5" />
+        ) : null}
+        {cfg.meter ? (
+          <path d="M25 74 C36 66 58 65 75 72" stroke="#d9aa55" strokeWidth="0.9" opacity="0.38" />
+        ) : null}
+        {cfg.frets ? (
+          <g stroke="#f8e8b0" strokeWidth="0.8" opacity="0.3">
+            {fretScale.slice(1, 6).map((offset, fretIndex) => (
+              <line key={`string-r-fret-${fretIndex}`} x1={32 + offset * 0.42} y1="21" x2={32 + offset * 0.32} y2="69" />
+            ))}
+          </g>
+        ) : null}
+        {cfg.markers ? (
+          <g fill="#f8e8b0" opacity="0.55">
+            <circle cx="42" cy="39" r="1.6" />
+            <circle cx="54" cy="50" r="1.6" />
+            <circle cx="61" cy="68" r="1.6" />
+          </g>
+        ) : null}
+        <g className="stringBuiltR__wave" opacity={cfg.wave}>
+          <path d="M16 53 H22 M25 46 V60 M29 40 V66 M74 53 H80 M70 47 V59 M66 43 V63" stroke="#d9aa55" strokeWidth="1.1" />
+        </g>
+        <g fill={`url(#${uid}Gold)`} opacity="0.88">
+          {stringXs.map((x, stringIndex) => (
+            <circle cx={x} cy={topY - 2} key={`string-r-pin-${stringIndex}`} r="1.15" />
+          ))}
+        </g>
+      </g>
+    );
+  };
+  const studio09Configs = [
+    { spread: 1, topY: 13, bottomY: 88, bowl: 0, leg: 0, wave: 0.24, frets: 0.16, width: 1, rails: 0.48, pins: true },
+    { spread: 1, topY: 13, bottomY: 88, bowl: 1.8, leg: 1.8, wave: 0.22, frets: 0.1, width: 1.12, rails: 0.5, pins: true },
+    { spread: 1, topY: 13, bottomY: 88, bowl: -0.6, leg: -0.8, wave: 0.1, frets: 0.08, width: 0.98, rails: 0.44, pins: true },
+    { spread: 1.08, topY: 11, bottomY: 89, bowl: 0.4, leg: 0.4, wave: 0.18, frets: 0.12, width: 1, rails: 0.54, pins: true, headPins: true },
+    { spread: 1, topY: 13, bottomY: 88, bowl: 0.6, leg: 0.2, wave: 0.16, frets: 0.28, width: 1, rails: 0.48, markers: true },
+    { spread: 0.86, topY: 16, bottomY: 84, bowl: -1.4, leg: -1.6, wave: 0.08, frets: 0.04, width: 1.18, rails: 0.38, pins: false },
+    { spread: 0.94, topY: 14, bottomY: 87, bowl: 0.2, leg: 0.9, wave: 0.12, frets: 0.06, width: 1.08, rails: 0.62, pins: true },
+    { spread: 0.92, topY: 15, bottomY: 86, bowl: -1.2, leg: -1, wave: 0.06, frets: 0, width: 0.82, rails: 0.28, pins: false },
+    { spread: 1.02, topY: 13, bottomY: 88, bowl: 0.8, leg: 0.8, wave: 0.2, frets: 0.14, width: 1.06, rails: 0.5, pins: true, glow: true },
+    { spread: 1, topY: 13, bottomY: 88, bowl: 0, leg: 0, wave: 0.16, frets: 0.12, width: 1, rails: 0.72, pins: true, strictGrid: true },
+    { spread: 0.98, topY: 9, bottomY: 91, bowl: 0.6, leg: 0.9, wave: 0.18, frets: 0.12, width: 0.96, rails: 0.44, pins: true },
+    { spread: 0.82, topY: 15, bottomY: 85, bowl: -1.8, leg: -1.2, wave: 0.1, frets: 0.08, width: 1.08, rails: 0.42, pins: true },
+    { spread: 1, topY: 13, bottomY: 88, bowl: 0.6, leg: 0.6, wave: 0.28, frets: 0.1, width: 1, rails: 0.48, pins: true },
+    { spread: 1.04, topY: 12, bottomY: 89, bowl: 0.2, leg: 0.2, wave: 0.12, frets: 0.16, width: 1.1, rails: 0.5, pins: true, inlay: true },
+    { spread: 1, topY: 13, bottomY: 88, bowl: 0.3, leg: 4.4, wave: 0.16, frets: 0.1, width: 1.04, rails: 0.46, pins: true },
+    { spread: 1.06, topY: 13, bottomY: 88, bowl: 3, leg: 0, wave: 0.14, frets: 0.08, width: 0.98, rails: 0.44, pins: true },
+    { spread: 1, topY: 13, bottomY: 88, bowl: 0, leg: 0, wave: 0.14, frets: 0.12, width: 1, rails: 0.78, pins: true, hardware: true },
+    { spread: 0.96, topY: 13, bottomY: 88, bowl: 0.8, leg: 1.2, wave: 0.08, frets: 0.04, width: 1.2, rails: 0.38, pins: false },
+    { spread: 1.02, topY: 12, bottomY: 89, bowl: 1.2, leg: 1.2, wave: 0.2, frets: 0.14, width: 1.08, rails: 0.52, pins: true, glow: true },
+    { spread: 1, topY: 12, bottomY: 88, bowl: 0.7, leg: 0.7, wave: 0.18, frets: 0.16, width: 1.06, rails: 0.55, pins: true, signature: true },
+  ];
+  const StudioStringR = ({ cfg = studio09Configs[(index - 1) % studio09Configs.length] }) => {
+    const topY = cfg.topY;
+    const bottomY = cfg.bottomY;
+    const topPins = [33, 38, 43, 48, 53, 58].map((x) => 45.5 + (x - 45.5) * cfg.spread);
+    const xAt = (x) => 45.5 + (x - 45.5) * cfg.spread;
+    const bowl = cfg.bowl;
+    const leg = cfg.leg;
+    const strings = [
+      `M${xAt(33)} ${topY} L${xAt(33)} ${bottomY}`,
+      `M${xAt(38)} ${topY} L${xAt(38)} ${bottomY}`,
+      `M${xAt(43)} ${topY} L${xAt(43)} 31 C${xAt(56)} 31 ${70 + bowl} 33 ${75 + bowl} 42 C${82 + bowl} 55 ${67 + bowl * 0.3} 64 ${xAt(45)} 61 L${xAt(45)} ${bottomY}`,
+      `M${xAt(48)} ${topY} L${xAt(48)} 31 C${xAt(63)} 31 ${78 + bowl} 36 ${80 + bowl} 48 C${82 + bowl} 61 ${68 + bowl * 0.4} 70 ${xAt(50)} 67 L${xAt(50)} ${bottomY}`,
+      `M${xAt(53)} ${topY} C${xAt(53)} 23 ${xAt(54)} 29 ${xAt(60)} 32 C${74 + bowl} 36 ${84 + bowl} 45 ${82 + bowl} 56 C${80 + bowl} 68 ${68 + bowl * 0.4} 75 ${xAt(56)} 72 C${63 + leg * 0.3} 78 ${72 + leg * 0.4} 84 ${80 + leg} ${bottomY}`,
+      `M${xAt(58)} ${topY} C${xAt(58)} 24 ${xAt(61)} 30 ${xAt(67)} 34 C${80 + bowl} 42 ${87 + bowl} 53 ${82 + bowl} 64 C${78 + bowl * 0.4} 73 ${67 + bowl * 0.2} 78 ${xAt(58)} 76 C${64 + leg * 0.2} 81 ${72 + leg * 0.4} 85 ${80 + leg} ${bottomY}`,
+    ];
+
+    return (
+      <g className="stringBuiltR stringBuiltR--studio09" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <g opacity={cfg.frets} stroke="#d9aa55" strokeWidth="0.75">
+          {fretScale.slice(1, 6).map((offset, fretIndex) => (
+            <line key={`studio09-fret-${fretIndex}`} x1={30 + offset * 0.42} y1="20" x2={29 + offset * 0.34} y2={bottomY} />
+          ))}
+        </g>
+        {strings.map((d, stringIndex) => (
+          <path
+            d={d}
+            key={`studio09-string-${stringIndex}`}
+            opacity={0.82 + stringIndex * 0.02}
+            stroke={`url(#${uid}Gold)`}
+            strokeWidth={(stringIndex > 3 ? 2.05 : 1.75) * cfg.width}
+          />
+        ))}
+        <path
+          d={`M${xAt(33)} 31 C${49 + bowl * 0.2} 31 ${69 + bowl} 31 ${77 + bowl} 42 C${86 + bowl} 54 ${76 + bowl * 0.4} 68 ${58 + bowl * 0.2} 70 C49 71 42 67 ${xAt(38)} 61`}
+          stroke={`url(#${uid}Edge)`}
+          strokeWidth={3.9 * cfg.width}
+          opacity="0.74"
+        />
+        <path
+          d={`M${xAt(43)} 62 C${55 + leg * 0.2} 70 ${67 + leg * 0.45} 80 ${80 + leg} ${bottomY}`}
+          stroke={`url(#${uid}Edge)`}
+          strokeWidth={3.8 * cfg.width}
+          opacity="0.8"
+        />
+        <path
+          d="M15 53 H21 M25 47 V59 M29 43 V63 M79 53 H85 M89 47 V59 M93 43 V63"
+          stroke="#d9aa55"
+          strokeWidth="1.05"
+          opacity={cfg.wave}
+        />
+        <path
+          d={`M30 31 H${cfg.strictGrid ? 62 : 61} M30 61 H${cfg.strictGrid ? 60 : 58} M28 ${bottomY} H${cfg.strictGrid ? 84 : 82 + leg}`}
+          stroke={`url(#${uid}Gold)`}
+          strokeWidth={cfg.hardware ? 1.65 : 1.25}
+          opacity={cfg.rails}
+        />
+        {cfg.markers ? (
+          <g fill="#f8e8b0" opacity="0.55">
+            <circle cx={xAt(43)} cy="42" r="1.35" />
+            <circle cx={xAt(48)} cy="54" r="1.35" />
+            <circle cx={xAt(53)} cy="66" r="1.35" />
+          </g>
+        ) : null}
+        {cfg.inlay ? <path d="M36 27 C48 23 69 24 78 38" stroke="#f8e8b0" strokeWidth="0.7" opacity="0.55" /> : null}
+        {cfg.signature ? <path d="M35 93 C46 96 68 96 81 92" stroke="#d9aa55" strokeWidth="0.7" opacity="0.38" /> : null}
+        {cfg.pins !== false ? (
+          <g fill={`url(#${uid}Gold)`} opacity="0.9">
+            {topPins.map((x) => (
+              <circle cx={x} cy={topY - 2} key={`studio09-top-${x}`} r={cfg.headPins ? 1.45 : 1.25} />
+            ))}
+            {[xAt(33), xAt(38), xAt(45), xAt(50), xAt(58), 80 + leg].map((x, pointIndex) => (
+              <circle cx={x} cy={bottomY + 2} key={`studio09-end-${pointIndex}`} r="1" opacity={pointIndex > 3 ? 0.68 : 0.76} />
+            ))}
+          </g>
+        ) : null}
+      </g>
+    );
+  };
+  const renderSymbol = () => {
+    return <StudioStringR />;
+  };
+
+  return (
+    <svg
+      className={`riffLoopLogoSvg ${compact ? "riffLoopLogoSvg--compact" : ""}`}
+      role="img"
+      aria-label={`${candidate?.label ?? "Logo"} ${candidate?.title ?? "R Brand Symbol"}`}
+      viewBox="0 0 100 100"
+    >
+      <defs>
+        <radialGradient id={`${uid}Plate`} cx="32%" cy="24%" r="82%">
+          <stop offset="0" stopColor="#171817" />
+          <stop offset="0.46" stopColor="#070808" />
+          <stop offset="1" stopColor="#010203" />
+        </radialGradient>
+        <linearGradient id={`${uid}Gold`} x1="18" y1="22" x2="86" y2="78" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#5f3914" />
+          <stop offset="0.16" stopColor="#c49242" />
+          <stop offset="0.31" stopColor="#fff2c6" />
+          <stop offset="0.43" stopColor="#d9aa55" />
+          <stop offset="0.58" stopColor="#8a541f" />
+          <stop offset="0.73" stopColor="#e7bf72" />
+          <stop offset="1" stopColor="#6f4318" />
+        </linearGradient>
+        <linearGradient id={`${uid}Edge`} x1="20" y1="20" x2="82" y2="82" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#fff4cc" />
+          <stop offset="0.4" stopColor="#d2a14d" />
+          <stop offset="1" stopColor="#3b210b" />
+        </linearGradient>
+        <pattern id={`${uid}BrushPattern`} width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
+          <line x1="0" y1="0" x2="0" y2="7" stroke="#ffffff" strokeWidth="0.32" opacity="0.08" />
+          <line x1="3.5" y1="0" x2="3.5" y2="7" stroke="#d9aa55" strokeWidth="0.18" opacity="0.05" />
+        </pattern>
+        <filter id={`${uid}SoftShadow`} x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="2" stdDeviation="2.1" floodColor="#000000" floodOpacity="0.72" />
+          <feDropShadow dx="-1.1" dy="-1.4" stdDeviation="1.2" floodColor="#f3d18a" floodOpacity="0.22" />
+          <feDropShadow dx="1.2" dy="1.2" stdDeviation="1.8" floodColor="#7a4d1f" floodOpacity="0.26" />
+        </filter>
+      </defs>
+      <rect width="100" height="100" rx="19" fill={`url(#${uid}Plate)`} />
+      <rect width="100" height="100" rx="19" fill={`url(#${uid}BrushPattern)`} opacity="0.44" />
+      <g opacity={0.12} stroke="#ffffff" strokeWidth="0.32">
+        {Array.from({ length: 14 }, (_, lineIndex) => (
+          <line key={`brush-${lineIndex}`} x1={8 + lineIndex * 7} y1="0" x2={lineIndex * 7 - 8} y2="100" opacity="0.12" />
+        ))}
+      </g>
+      <ellipse cx="34" cy="24" rx="42" ry="34" fill="#d9aa55" opacity="0.045" />
+      <ellipse cx="76" cy="78" rx="44" ry="36" fill="#000000" opacity="0.42" />
+      <g filter={`url(#${uid}SoftShadow)`}>{renderSymbol()}</g>
+    </svg>
+  );
+}
+
+function SvgLogoHeaderPreview({ candidate }) {
+  return (
+    <div className="svgLogoHeaderPlate" aria-label="V11 header plate SVG logo preview">
+      <span className="svgLogoHeaderPlate__screw svgLogoHeaderPlate__screw--left" aria-hidden="true" />
+      <span className="svgLogoHeaderPlate__screw svgLogoHeaderPlate__screw--right" aria-hidden="true" />
+      <div className="svgLogoHeaderPlate__mark">
+        <RiffLoopLogoSvg candidate={candidate} compact />
+      </div>
+      <div className="svgLogoHeaderPlate__word">
+        <strong>RIFFLAB</strong>
+        <span>Repeat. Refine. Master.</span>
+      </div>
+    </div>
+  );
+}
+
+function normalizeSvgLogoLabState(value = {}) {
+  const ids = new Set(SVG_LOGO_LAB_CANDIDATES.map((candidate) => candidate.id));
+  const activeLogo = ids.has(value.activeLogo) ? value.activeLogo : SVG_LOGO_LAB_CANDIDATES[0].id;
+  const deletedLogos = Array.isArray(value.deletedLogos)
+    ? value.deletedLogos.filter((id, index, list) => ids.has(id) && id !== activeLogo && list.indexOf(id) === index)
+    : [];
+  return { activeLogo, deletedLogos };
+}
+
+function getStoredSvgLogoLabState() {
+  if (typeof window === "undefined") return normalizeSvgLogoLabState();
+  try {
+    return normalizeSvgLogoLabState(JSON.parse(window.localStorage.getItem(SVG_LOGO_LAB_STORAGE_KEY) ?? "{}"));
+  } catch {
+    return normalizeSvgLogoLabState();
+  }
+}
+
 function normalizeDesignLabHeaderState(value = {}) {
   const storedActiveHeader = LEGACY_HEADER_VARIANT_MAP[value.activeHeader] ?? value.activeHeader;
   const activeHeader = HEADER_VARIANT_IDS.has(storedActiveHeader) ? storedActiveHeader : HEADER_RESTORE_VARIANT.id;
@@ -2270,8 +2670,47 @@ function getStoredDesignLabAppIconState() {
 
 function getStoredGuitarLabVariantId() {
   if (typeof window === "undefined") return DEFAULT_GUITAR_LAB_VARIANT_ID;
-  const stored = window.localStorage.getItem(GUITAR_LAB_STORAGE_KEY);
+  const stored =
+    window.localStorage.getItem(SHOOTER_GUITAR_STORAGE_KEY)
+    || window.localStorage.getItem(SHOOTER_PLAYER_STORAGE_KEY)
+    || window.localStorage.getItem(GUITAR_LAB_STORAGE_KEY);
   return GUITAR_LAB_VARIANT_IDS.has(stored) ? stored : DEFAULT_GUITAR_LAB_VARIANT_ID;
+}
+
+function normalizeShooterPlayerSlots(value = {}) {
+  return SHOOTER_PLAYER_SLOT_KEYS.reduce((slots, key) => {
+    const storedId = value?.[key];
+    const fallbackId = DEFAULT_SHOOTER_PLAYER_SLOTS[key];
+    slots[key] = GUITAR_LAB_VARIANT_IDS.has(storedId) ? storedId : fallbackId;
+    return slots;
+  }, {});
+}
+
+function getStoredShooterPlayerSlots() {
+  if (typeof window === "undefined") return normalizeShooterPlayerSlots(DEFAULT_SHOOTER_PLAYER_SLOTS);
+
+  try {
+    const parsedSlots = JSON.parse(window.localStorage.getItem(SHOOTER_PLAYER_SLOTS_STORAGE_KEY) ?? "null");
+    if (parsedSlots && typeof parsedSlots === "object" && !Array.isArray(parsedSlots)) {
+      return normalizeShooterPlayerSlots(parsedSlots);
+    }
+
+    const legacyAvailability = JSON.parse(window.localStorage.getItem(GUITAR_LAB_AVAILABILITY_STORAGE_KEY) ?? "null");
+    if (Array.isArray(legacyAvailability)) {
+      const validIds = legacyAvailability.filter((id) => GUITAR_LAB_VARIANT_IDS.has(id));
+      if (validIds.length > 0) {
+        return normalizeShooterPlayerSlots({
+          slot1: validIds[0],
+          slot2: validIds[1],
+          slot3: validIds[2],
+        });
+      }
+    }
+
+    return normalizeShooterPlayerSlots(DEFAULT_SHOOTER_PLAYER_SLOTS);
+  } catch {
+    return normalizeShooterPlayerSlots(DEFAULT_SHOOTER_PLAYER_SLOTS);
+  }
 }
 
 function getHeaderVariantLabel(variantId) {
@@ -3027,45 +3466,69 @@ function GuitarAssetSvg({ variant, className = "", compact = false }) {
   const isElectric = variant.pack === "Electric";
   const isClassical = variant.pack === "Classical";
   const uniqueId = `guitar-${variant.id}`;
-  const soundHole = isElectric ? null : <circle cx="104" cy="82" r={isClassical ? 15 : 13} fill="#080807" stroke="#d9aa55" strokeWidth="2.5" />;
+  const soundHoleY = isClassical ? 160 : 158;
+  const soundHoleRadius = isClassical ? 16 : 14;
+  const fretboardTop = 62;
+  const fretboardBottom = isElectric ? 166 : soundHoleY - soundHoleRadius + 2;
+  const saddleY = isElectric ? 206 : 212;
+  const bridgeY = saddleY - 7;
+  const nutY = 58;
+  const soundHole = isElectric ? null : <circle cx="75" cy={soundHoleY} r={soundHoleRadius} fill="#080807" stroke="#d9aa55" strokeWidth="2.7" />;
   const pickups = isElectric ? (
     <>
-      <rect x="90" y="74" width="18" height="9" rx="2" fill="#ece3d0" stroke="#111" strokeWidth="1.5" />
-      <rect x="116" y="76" width="18" height="9" rx="2" fill="#ece3d0" stroke="#111" strokeWidth="1.5" />
+      <rect x="58" y="154" width="34" height="9" rx="2" fill="#ece3d0" stroke="#111" strokeWidth="1.5" />
+      <rect x="58" y="173" width="34" height="9" rx="2" fill="#ece3d0" stroke="#111" strokeWidth="1.5" />
     </>
   ) : null;
   const pickguard = isElectric || variant.shape === "round" || variant.shape === "jumbo" ? (
-    <path d="M112 92 C129 91 140 79 142 68 C132 75 121 78 110 78 C115 84 115 88 112 92 Z" fill={isElectric ? "#0b0b0b" : "rgba(18, 13, 8, 0.62)"} opacity="0.9" />
+    <path d="M91 166 C103 174 104 191 94 202 C90 188 84 178 75 171 C82 171 87 169 91 166 Z" fill={isElectric ? "#0b0b0b" : "rgba(18, 13, 8, 0.62)"} opacity="0.9" />
   ) : null;
   const bodyPathMap = {
-    round: "M58 82 C58 54 84 48 101 62 C118 46 151 54 154 86 C157 119 123 129 101 112 C78 130 56 114 58 82 Z",
-    waist: "M60 82 C57 59 82 50 101 64 C120 48 147 58 151 85 C154 113 122 126 101 110 C80 127 62 110 60 82 Z",
-    compact: "M65 82 C63 61 83 55 101 66 C118 54 142 62 145 85 C148 109 121 119 101 106 C82 120 66 105 65 82 Z",
-    jumbo: "M52 82 C51 49 83 43 103 62 C124 42 160 50 165 88 C169 124 126 139 103 114 C78 139 51 119 52 82 Z",
-    mini: "M72 83 C71 65 87 60 101 69 C115 60 135 66 137 86 C139 105 118 113 101 102 C85 113 73 102 72 83 Z",
-    classical: "M59 82 C57 58 82 50 101 64 C120 50 146 58 149 84 C152 111 123 126 101 110 C80 126 61 109 59 82 Z",
-    strat: "M64 85 C66 63 83 58 99 66 L113 53 C117 68 131 63 147 69 C140 80 143 96 151 107 C132 114 119 108 104 103 C88 121 63 108 64 85 Z",
-    tele: "M67 80 C68 59 86 54 102 64 C115 54 138 59 145 76 L146 107 C123 114 91 114 68 105 Z",
-    lp: "M61 82 C59 59 81 50 100 64 C115 49 143 58 151 83 C157 111 121 130 101 109 C81 130 63 108 61 82 Z",
-    super: "M63 86 C63 64 82 57 99 66 L113 51 C119 70 133 61 151 70 C141 84 151 98 158 112 C133 112 119 106 104 102 C87 121 62 109 63 86 Z",
-    metal: "M54 84 L83 58 L103 70 L134 50 L126 78 L164 90 L127 99 L141 126 L104 106 L72 123 L82 99 Z",
+    round: "M42 154 C29 132 51 116 69 128 C83 116 110 130 108 155 C132 163 128 220 94 235 C84 240 66 240 56 235 C22 220 18 164 42 154 Z",
+    waist: "M43 154 C31 134 51 118 69 130 C83 118 108 132 107 155 C128 164 123 218 93 233 C83 239 67 239 57 233 C27 218 22 164 43 154 Z",
+    compact: "M48 157 C38 138 55 126 70 135 C83 126 103 137 102 158 C119 168 116 211 91 225 C82 231 68 231 59 225 C34 211 31 168 48 157 Z",
+    jumbo: "M37 153 C23 126 50 110 70 126 C85 109 118 126 113 156 C140 164 136 228 96 242 C84 247 66 247 54 242 C14 228 10 164 37 153 Z",
+    mini: "M52 160 C44 144 57 134 70 141 C82 134 97 144 98 161 C111 171 108 204 89 216 C81 221 69 221 61 216 C42 204 39 171 52 160 Z",
+    classical: "M43 154 C30 133 52 117 69 130 C84 117 108 132 107 154 C129 164 124 218 93 233 C83 239 67 239 57 233 C26 218 21 164 43 154 Z",
+    strat: "M44 158 C39 137 56 125 70 134 L58 119 C76 121 83 110 99 126 C94 140 107 146 119 153 C106 164 113 187 119 204 C99 206 94 225 76 231 C62 220 49 229 31 217 C43 199 37 177 44 158 Z",
+    tele: "M45 151 C43 130 59 121 74 132 C87 122 109 132 111 151 L112 220 C91 233 59 233 38 220 Z",
+    lp: "M42 153 C29 132 51 116 69 129 C83 115 108 130 108 153 C132 164 124 223 93 236 C82 243 68 243 57 236 C26 223 18 164 42 153 Z",
+    super: "M42 158 C38 137 55 125 70 134 L58 117 C77 121 83 108 101 125 C94 142 108 146 122 153 C107 166 120 186 127 206 C102 204 96 225 77 231 C60 220 47 232 29 220 C43 199 35 176 42 158 Z",
+    metal: "M38 151 L58 122 L72 139 L96 116 L93 147 L124 162 L98 178 L114 219 L78 204 L45 230 L54 190 L24 174 Z",
+    "cute-dread": "M41 154 C29 133 50 118 68 129 C83 117 109 131 108 154 C130 164 126 218 94 235 C84 240 66 240 56 235 C24 218 20 164 41 154 Z",
+    "stage-dread": "M39 153 C25 128 50 112 70 127 C85 112 115 128 111 156 C136 165 132 225 95 241 C84 246 66 246 55 241 C18 225 14 165 39 153 Z",
+    "buddy-dread": "M43 154 C32 135 51 120 68 131 C82 121 106 133 106 154 C125 165 122 214 93 231 C83 237 67 237 57 231 C28 214 24 165 43 154 Z",
+    "guard-dread": "M40 154 C27 131 50 115 69 128 C84 115 111 130 109 155 C134 164 128 222 94 238 C83 243 67 243 56 238 C22 222 16 164 40 154 Z",
+    "ace-mini": "M50 159 C41 142 56 130 70 138 C83 130 100 142 100 160 C115 170 112 207 90 220 C82 225 68 225 60 220 C38 207 35 170 50 159 Z",
   };
   const bodyPath = bodyPathMap[variant.shape] || bodyPathMap.round;
   const headPath = variant.shape === "metal"
-    ? "M210 59 L236 47 L231 72 Z"
+    ? "M61 16 L75 7 L90 16 L84 57 L66 57 Z"
     : variant.shape === "tele"
-      ? "M210 56 C228 53 238 58 239 66 C228 72 218 70 210 66 Z"
-      : "M209 54 C222 45 236 50 239 62 C231 72 219 72 209 66 Z";
+      ? "M63 17 C74 8 91 16 88 31 C88 48 82 58 66 57 C62 44 62 28 63 17 Z"
+      : "M63 17 L75 10 L87 17 C90 31 87 47 83 57 C77 60 68 60 62 57 C59 47 60 31 63 17 Z";
+  const stringXsAtSaddle = [59, 65.4, 71.8, 78.2, 84.6, 91];
+  const stringXsAtNut = [65.5, 69.3, 73.1, 76.9, 80.7, 84.5];
+  // Front view: fretboard strings run left-to-right as 6(E), 5(A), 4(D), 3(G), 2(B), 1(E).
+  const tunerTargets = [
+    [54, 47],
+    [54, 36],
+    [54, 25],
+    [96, 25],
+    [96, 36],
+    [96, 47],
+  ];
+  const fretYs = [72, 83, 94, 105, 116, 127, 138, 149, 160].filter((fret) => fret < fretboardBottom - 2);
 
   return (
-    <svg className={`guitarAssetSvg ${className}`} viewBox="0 0 260 150" role="img" aria-label={`${variant.title} SVG guitar asset`}>
+    <svg className={`guitarAssetSvg ${className}`} viewBox="0 0 150 260" role="img" aria-label={`${variant.title} vertical SVG guitar asset`}>
       <defs>
-        <linearGradient id={`${uniqueId}-body`} x1="60" x2="160" y1="48" y2="126" gradientUnits="userSpaceOnUse">
+        <linearGradient id={`${uniqueId}-body`} x1="38" x2="104" y1="118" y2="238" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#fff1bd" stopOpacity="0.22" />
           <stop offset="0.42" stopColor={variant.bodyColor} />
           <stop offset="1" stopColor="#111" stopOpacity="0.95" />
         </linearGradient>
-        <linearGradient id={`${uniqueId}-neck`} x1="134" x2="214" y1="70" y2="70">
+        <linearGradient id={`${uniqueId}-neck`} x1="62" x2="88" y1="62" y2="166" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#3a2412" />
           <stop offset="1" stopColor="#c9904a" />
         </linearGradient>
@@ -3073,34 +3536,51 @@ function GuitarAssetSvg({ variant, className = "", compact = false }) {
           <feDropShadow dx="0" dy="8" stdDeviation="6" floodColor="#000000" floodOpacity="0.45" />
         </filter>
       </defs>
-      <ellipse cx="126" cy="124" rx="82" ry="12" fill="#000" opacity="0.28" />
+      <ellipse cx="75" cy="239" rx="48" ry="9" fill="#000" opacity="0.28" />
       <g filter={`url(#${uniqueId}-shadow)`}>
         <path className="guitarAssetBody" d={bodyPath} fill={`url(#${uniqueId}-body)`} stroke={variant.accentColor} strokeWidth="3" />
-        <rect className="guitarAssetFretboard" x="135" y="64" width="82" height="16" rx="5" fill={`url(#${uniqueId}-neck)`} stroke="#100b06" strokeWidth="2" />
-        <rect className="guitarAssetNut" x="205" y="61" width="5" height="22" rx="2" fill="#ece3d0" />
-        <path className="guitarAssetHead" d={headPath} fill={variant.bodyColor} stroke={variant.accentColor} strokeWidth="2.5" />
-        {[0, 1, 2, 3, 4, 5].map((peg) => (
-          <circle className="guitarAssetPeg" cx={216 + (peg % 3) * 9} cy={peg < 3 ? 53 : 74} r="3.2" fill="#f1ca7a" stroke="#120a04" strokeWidth="1" key={peg} />
-        ))}
-        {[0, 1, 2, 3, 4, 5].map((stringIndex) => (
-          <line className="guitarAssetString" x1="76" x2="224" y1={68 + stringIndex * 2.4} y2={65 + stringIndex * 2.2} stroke="#fff2c8" strokeWidth={stringIndex < 2 ? "0.9" : "0.65"} opacity="0.74" key={stringIndex} />
-        ))}
-        {[151, 164, 177, 190].map((fret) => (
-          <line className="guitarAssetFret" x1={fret} x2={fret} y1="63" y2="82" stroke="#f1ca7a" strokeWidth="1.2" opacity="0.68" key={fret} />
-        ))}
         {soundHole}
         {pickups}
         {pickguard}
-        <rect className="guitarAssetBridge" x={isElectric ? 136 : 72} y={isElectric ? 82 : 94} width={isElectric ? 22 : 28} height={isElectric ? 18 : 9} rx="3" fill="#17100a" stroke="#d9aa55" strokeWidth="2" />
-        <rect className="guitarAssetSaddle" x={isElectric ? 141 : 77} y={isElectric ? 83 : 96} width={isElectric ? 12 : 18} height="3" rx="1.5" fill="#f7e6bd" />
-        {!compact ? <text x="26" y="132" fill="rgba(255,238,202,0.52)" fontSize="9" fontWeight="900" letterSpacing="2">{variant.pack.toUpperCase()}</text> : null}
+        <rect className="guitarAssetFretboard" x="62" y={fretboardTop} width="26" height={fretboardBottom - fretboardTop} rx="5" fill={`url(#${uniqueId}-neck)`} stroke="#100b06" strokeWidth="2" />
+        {fretYs.map((fret) => (
+          <line className="guitarAssetFret" x1="61" x2="89" y1={fret} y2={fret} stroke="#f1ca7a" strokeWidth="1.1" opacity="0.68" key={fret} />
+        ))}
+        <path className="guitarAssetHead" d={headPath} fill={variant.bodyColor} stroke={variant.accentColor} strokeWidth="2.5" />
+        <rect className="guitarAssetNut" x="60" y={nutY} width="30" height="5" rx="2" fill="#ece3d0" />
+        {[0, 1, 2, 3, 4, 5].map((peg) => {
+          const leftSide = peg < 3;
+          return (
+            <g key={peg}>
+              <line x1={leftSide ? 63 : 87} x2={leftSide ? 54 : 96} y1={26 + (peg % 3) * 11} y2={25 + (peg % 3) * 11} stroke="#c99448" strokeWidth="1.3" />
+              <circle className="guitarAssetPeg" cx={leftSide ? 52 : 98} cy={25 + (peg % 3) * 11} r="3.2" fill="#f1ca7a" stroke="#120a04" strokeWidth="1" />
+            </g>
+          );
+        })}
+        <rect className="guitarAssetBridge" x={isElectric ? 51 : 50} y={bridgeY} width={isElectric ? 48 : 50} height={isElectric ? 17 : 16} rx="3" fill="#17100a" stroke="#d9aa55" strokeWidth="2" />
+        <rect className="guitarAssetSaddle" x="56" y={saddleY} width="38" height="4" rx="1.5" fill="#f7e6bd" />
+        {stringXsAtSaddle.map((x, stringIndex) => (
+          <circle cx={x} cy={saddleY + 9} r="2.1" fill="#f1ca7a" stroke="#100a05" strokeWidth="0.8" key={`pin-${stringIndex}`} />
+        ))}
+        {stringXsAtSaddle.map((x, stringIndex) => (
+          <path
+            className="guitarAssetString"
+            d={`M ${x} ${saddleY + 1} L ${stringXsAtNut[stringIndex]} ${nutY + 2} L ${tunerTargets[stringIndex][0]} ${tunerTargets[stringIndex][1]}`}
+            fill="none"
+            stroke="#fff2c8"
+            strokeWidth={stringIndex < 2 ? "0.9" : "0.65"}
+            opacity="0.76"
+            key={stringIndex}
+          />
+        ))}
+        {!compact ? <text x="14" y="248" fill="rgba(255,238,202,0.52)" fontSize="8" fontWeight="900" letterSpacing="2">{variant.pack.toUpperCase()}</text> : null}
       </g>
     </svg>
   );
 }
 
 function GuitarLabPreview({ variant, active = false }) {
-  const parts = ["헤드", "페그", "너트", "넥", "프렛보드", variant.pack === "Electric" ? "픽업" : "사운드홀", "픽가드", "브릿지", "새들", "바디"];
+  const parts = ["헤드", "페그", "너트", "프렛보드", variant.pack === "Electric" ? "픽업" : "사운드홀", "브릿지", "새들", "줄", "바디"];
 
   return (
     <div className={`guitarLabPreview ${active ? "active" : ""}`}>
@@ -3595,13 +4075,14 @@ function getStoredStage3QuickSlots() {
       .map((slot, index) => makeStage3LibraryItem({
         id: slot?.id ?? `slot-${Date.now()}-${index}`,
         title: slot?.title ?? slot?.name ?? (slot?.label?.includes("—") ? slot.label.split("—")[0].trim() : `내 진행 ${index + 1}`),
-        chordIds: Array.isArray(slot?.chordIds) ? slot.chordIds : [],
+        chordIds: Array.isArray(slot?.chordIds) ? slot.chordIds : Array.isArray(slot?.chords) ? slot.chords : [],
         capo: slot?.capo,
         bpm: slot?.bpm,
         timeSignature: slot?.time_signature ?? slot?.timeSignature,
         subdivision: slot?.subdivision,
         sound: slot?.sound ?? slot?.tone,
-        strum_pattern: slot?.strum_pattern,
+        strum_pattern: slot?.strum_pattern ?? slot?.strumPattern ?? slot?.strumSlots,
+        selectedStrumSlot: slot?.selectedStrumSlot,
         memo: slot?.memo ?? (typeof slot?.strum_pattern === "string" ? slot.strum_pattern : ""),
       }))
       .filter((slot) => slot.id && slot.title && slot.chordIds.length > 0);
@@ -3631,6 +4112,162 @@ const SHOOTER_LEVELS = [
   { name: "레벨 5", unlockAt: 62, poolRatio: 1, durationBeats: 16, spawnGapBeats: 2.25, randomness: 0.94, jumpBias: 0.82 },
 ];
 const SHOOTER_MAX_LIVES = 3;
+const SHOOTER_DIFFICULTIES = {
+  EASY: "easy",
+  HARD: "hard",
+};
+const SHOOTER_DIFFICULTY_OPTIONS = [
+  { id: SHOOTER_DIFFICULTIES.EASY, label: "Easy", hint: "개방현부터 천천히 확장" },
+  { id: SHOOTER_DIFFICULTIES.HARD, label: "Hard", hint: "넓은 음역과 높은 생성 빈도" },
+];
+const SHOOTER_EASY_PHASES = [
+  { label: "개방현", minMs: 0, maxFret: 0, maxTargets: 3, poolRatioCap: 0.34, spawnGapMultiplier: 1.26, durationMultiplier: 0.94, randomnessBonus: -0.12, jumpBiasBonus: -0.1 },
+  { label: "0~3프렛", minMs: 60_000, maxFret: 3, maxTargets: 4, poolRatioCap: 0.55, spawnGapMultiplier: 1.08, durationMultiplier: 0.92, randomnessBonus: -0.06, jumpBiasBonus: -0.04 },
+  { label: "0~5프렛", minMs: 180_000, maxFret: 5, maxTargets: 5, poolRatioCap: 0.78, spawnGapMultiplier: 0.96, durationMultiplier: 0.9, randomnessBonus: 0, jumpBiasBonus: 0 },
+  { label: "Hard 접근", minMs: 300_000, maxFret: 12, maxTargets: 6, poolRatioCap: 1, spawnGapMultiplier: 0.84, durationMultiplier: 0.88, randomnessBonus: 0.08, jumpBiasBonus: 0.06 },
+];
+const SHOOTER_HARD_PHASE = {
+  label: "전 포지션",
+  maxFret: 12,
+  maxTargets: 8,
+  poolRatioCap: 1,
+  spawnGapMultiplier: 0.72,
+  durationMultiplier: 0.88,
+  randomnessBonus: 0.22,
+  jumpBiasBonus: 0.22,
+};
+const SHOOTER_RECORDS_STORAGE_KEY = "rifflabShooterRecords";
+
+function getDefaultShooterDifficultyRecord() {
+  return {
+    bestScore: 0,
+    bestCombo: 0,
+  };
+}
+
+function getDefaultShooterRecords() {
+  return {
+    version: 1,
+    best: {
+      score: 0,
+      combo: 0,
+      kills: 0,
+      survivalMs: 0,
+      accuracy: 0,
+    },
+    totals: {
+      plays: 0,
+      playTimeMs: 0,
+      kills: 0,
+      shots: 0,
+      hits: 0,
+    },
+    difficulty: {
+      [SHOOTER_DIFFICULTIES.EASY]: getDefaultShooterDifficultyRecord(),
+      [SHOOTER_DIFFICULTIES.HARD]: getDefaultShooterDifficultyRecord(),
+    },
+    recent: [],
+  };
+}
+
+function normalizeShooterRecords(records) {
+  const fallback = getDefaultShooterRecords();
+  const safeRecords = records && typeof records === "object" ? records : fallback;
+  return {
+    version: 1,
+    best: {
+      score: Math.max(0, Number(safeRecords.best?.score) || 0),
+      combo: Math.max(0, Number(safeRecords.best?.combo) || 0),
+      kills: Math.max(0, Number(safeRecords.best?.kills) || 0),
+      survivalMs: Math.max(0, Number(safeRecords.best?.survivalMs) || 0),
+      accuracy: Math.max(0, Math.min(100, Number(safeRecords.best?.accuracy) || 0)),
+    },
+    totals: {
+      plays: Math.max(0, Number(safeRecords.totals?.plays) || 0),
+      playTimeMs: Math.max(0, Number(safeRecords.totals?.playTimeMs) || 0),
+      kills: Math.max(0, Number(safeRecords.totals?.kills) || 0),
+      shots: Math.max(0, Number(safeRecords.totals?.shots) || 0),
+      hits: Math.max(0, Number(safeRecords.totals?.hits) || 0),
+    },
+    difficulty: {
+      [SHOOTER_DIFFICULTIES.EASY]: {
+        ...fallback.difficulty[SHOOTER_DIFFICULTIES.EASY],
+        ...(safeRecords.difficulty?.[SHOOTER_DIFFICULTIES.EASY] ?? {}),
+      },
+      [SHOOTER_DIFFICULTIES.HARD]: {
+        ...fallback.difficulty[SHOOTER_DIFFICULTIES.HARD],
+        ...(safeRecords.difficulty?.[SHOOTER_DIFFICULTIES.HARD] ?? {}),
+      },
+    },
+    recent: Array.isArray(safeRecords.recent) ? safeRecords.recent.slice(0, 10) : [],
+  };
+}
+
+const RecordService = {
+  getShooterRecords() {
+    if (typeof window === "undefined") return getDefaultShooterRecords();
+    try {
+      return normalizeShooterRecords(JSON.parse(window.localStorage.getItem(SHOOTER_RECORDS_STORAGE_KEY) ?? "null"));
+    } catch {
+      return getDefaultShooterRecords();
+    }
+  },
+  saveShooterRecords(records) {
+    const normalized = normalizeShooterRecords(records);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SHOOTER_RECORDS_STORAGE_KEY, JSON.stringify(normalized));
+    }
+    return normalized;
+  },
+  addShooterSession(records, session) {
+    const current = normalizeShooterRecords(records);
+    const accuracy = Math.max(0, Math.min(100, Number(session.accuracy) || 0));
+    const difficulty = SHOOTER_DIFFICULTY_OPTIONS.some((option) => option.id === session.difficulty)
+      ? session.difficulty
+      : SHOOTER_DIFFICULTIES.EASY;
+    const difficultyRecord = current.difficulty[difficulty] ?? getDefaultShooterDifficultyRecord();
+    const next = {
+      ...current,
+      best: {
+        score: Math.max(current.best.score, session.score),
+        combo: Math.max(current.best.combo, session.maxCombo),
+        kills: Math.max(current.best.kills, session.kills),
+        survivalMs: Math.max(current.best.survivalMs, session.survivalMs),
+        accuracy: Math.max(current.best.accuracy, accuracy),
+      },
+      totals: {
+        plays: current.totals.plays + 1,
+        playTimeMs: current.totals.playTimeMs + session.survivalMs,
+        kills: current.totals.kills + session.kills,
+        shots: current.totals.shots + session.shots,
+        hits: current.totals.hits + session.hits,
+      },
+      difficulty: {
+        ...current.difficulty,
+        [difficulty]: {
+          bestScore: Math.max(Number(difficultyRecord.bestScore) || 0, session.score),
+          bestCombo: Math.max(Number(difficultyRecord.bestCombo) || 0, session.maxCombo),
+        },
+      },
+      recent: [
+        {
+          id: `shooter-${Date.now()}`,
+          playedAt: Date.now(),
+          difficulty,
+          score: session.score,
+          maxCombo: session.maxCombo,
+          kills: session.kills,
+          shots: session.shots,
+          hits: session.hits,
+          accuracy,
+          survivalMs: session.survivalMs,
+        },
+        ...current.recent,
+      ].slice(0, 10),
+    };
+    return this.saveShooterRecords(next);
+  },
+};
 
 function classNameFromLabel(label) {
   return label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -3725,6 +4362,46 @@ function getPlayPrompt(note) {
 
 function getShooterLevel(hitCount) {
   return [...SHOOTER_LEVELS].reverse().find((level) => hitCount >= level.unlockAt) ?? SHOOTER_LEVELS[0];
+}
+
+function getShooterDifficultyPhase(difficulty, elapsedMs = 0) {
+  if (difficulty === SHOOTER_DIFFICULTIES.HARD) return SHOOTER_HARD_PHASE;
+  return [...SHOOTER_EASY_PHASES].reverse().find((phase) => elapsedMs >= phase.minMs) ?? SHOOTER_EASY_PHASES[0];
+}
+
+function getShooterEffectiveLevel(level, difficulty, elapsedMs = 0) {
+  const phase = getShooterDifficultyPhase(difficulty, elapsedMs);
+  return {
+    ...level,
+    phaseLabel: phase.label,
+    maxTargets: phase.maxTargets,
+    poolRatio: Math.min(phase.poolRatioCap, level.poolRatio),
+    durationBeats: Math.max(10, level.durationBeats * phase.durationMultiplier),
+    spawnGapBeats: Math.max(1.45, level.spawnGapBeats * phase.spawnGapMultiplier),
+    randomness: clampValue(level.randomness + phase.randomnessBonus, 0.12, 1),
+    jumpBias: clampValue(level.jumpBias + phase.jumpBiasBonus, 0.04, 1),
+  };
+}
+
+function uniqNotesByPitch(notes) {
+  return [...notes]
+    .filter((note, index, list) => note?.pitch && list.findIndex((item) => item.pitch === note.pitch) === index)
+    .sort((a, b) => a.frequency - b.frequency || b.stringNumber - a.stringNumber || a.fretNumber - b.fretNumber);
+}
+
+function getShooterDifficultyNotes(notes, difficulty, elapsedMs = 0, selectedBlock = null) {
+  const phase = getShooterDifficultyPhase(difficulty, elapsedMs);
+  const baseNotes = uniqNotesByPitch(notes?.length ? notes : FIRST_POSITION_NOTES);
+  if (difficulty === SHOOTER_DIFFICULTIES.HARD) {
+    return uniqNotesByPitch([
+      ...ALL_PRACTICE_NOTES,
+      ...(selectedBlock?.notes?.length ? selectedBlock.notes : []),
+      ...baseNotes,
+    ]);
+  }
+  const lowPositionNotes = uniqNotesByPitch([...OPEN_STRING_NOTES, ...FIRST_POSITION_NOTES, ...baseNotes]);
+  const phaseNotes = lowPositionNotes.filter((note) => Number(note.fretNumber ?? 0) <= phase.maxFret);
+  return phaseNotes.length ? phaseNotes : OPEN_STRING_NOTES;
 }
 
 function getShooterQueue(hitCount, startIndex, size = 5) {
@@ -3976,12 +4653,17 @@ function App() {
   const [designLabAppIconState, setDesignLabAppIconState] = useState(getStoredDesignLabAppIconState);
   const [designLabSection, setDesignLabSection] = useState("logo");
   const [logoPreviewScale, setLogoPreviewScale] = useState(100);
-  const [metronomeVisualLabMode, setMetronomeVisualLabMode] = useState("dot");
+  const [metronomeVisualLabMode, setMetronomeVisualLabMode] = useState("circle");
+  const [metronomeVisualLabTimeSignature, setMetronomeVisualLabTimeSignature] = useState("4/4");
   const [metronomeVisualLabPlaying, setMetronomeVisualLabPlaying] = useState(false);
   const [metronomeVisualLabBeat, setMetronomeVisualLabBeat] = useState(0);
+  const [svgLogoLabState, setSvgLogoLabState] = useState(getStoredSvgLogoLabState);
+  const [svgLogoPreviewId, setSvgLogoPreviewId] = useState(() => getStoredSvgLogoLabState().activeLogo);
   const [selectedHeaderCandidateId, setSelectedHeaderCandidateId] = useState(getStoredDesignLabHeaderState().activeHeader);
   const [selectedAppIconCandidateId, setSelectedAppIconCandidateId] = useState(getStoredDesignLabAppIconState().activeIcon);
   const [selectedGuitarVariantId, setSelectedGuitarVariantId] = useState(getStoredGuitarLabVariantId);
+  const [shooterPlayerSlots, setShooterPlayerSlots] = useState(getStoredShooterPlayerSlots);
+  const [shooterGuitarPickerOpen, setShooterGuitarPickerOpen] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState(getDeviceSnapshot);
   const [gameState, setGameState] = useState(GAME_STATES.IDLE);
   const [micStatus, setMicStatus] = useState("No Signal");
@@ -4056,6 +4738,7 @@ function App() {
   const [stage3StorageCapo, setStage3StorageCapo] = useState(0);
   const [stage3StorageStrumPattern, setStage3StorageStrumPattern] = useState([]);
   const [stage3StorageStrumDraftPattern, setStage3StorageStrumDraftPattern] = useState([]);
+  const stage3StorageStrumPatternRef = useRef([]);
   const [chordPracticeIndex, setChordPracticeIndex] = useState(0);
   const [repeatPractice, setRepeatPractice] = useState(false);
   const [repeatCount, setRepeatCount] = useState(1);
@@ -4081,19 +4764,20 @@ function App() {
   const [coachPlayBars, setCoachPlayBars] = useState(4);
   const [coachMuteBars, setCoachMuteBars] = useState(4);
   const [metronomeAdvancedPanel, setMetronomeAdvancedPanel] = useState("");
-  const [metronomeTrackerMode, setMetronomeTrackerMode] = useState("off");
-  const [metronomeBarLimitEnabled, setMetronomeBarLimitEnabled] = useState(false);
-  const [metronomeBarLimit, setMetronomeBarLimit] = useState(100);
+  const initialMetronomeTrackerProgressRef = useRef(getStoredMetronomeTrackerProgress());
+  const [metronomeTrackerMode, setMetronomeTrackerMode] = useState(initialMetronomeTrackerProgressRef.current.trackerMode);
+  const [metronomeBarLimitEnabled, setMetronomeBarLimitEnabled] = useState(initialMetronomeTrackerProgressRef.current.barLimitEnabled);
+  const [metronomeBarLimit, setMetronomeBarLimit] = useState(initialMetronomeTrackerProgressRef.current.barLimit);
   const [metronomeBarStopWhenReached, setMetronomeBarStopWhenReached] = useState(false);
   const [metronomeBarResetWhenReached, setMetronomeBarResetWhenReached] = useState(false);
   const [metronomeBarStartFromOne, setMetronomeBarStartFromOne] = useState(true);
   const [metronomeTimerCountdown, setMetronomeTimerCountdown] = useState(false);
   const [metronomeTimerStopWhenReached, setMetronomeTimerStopWhenReached] = useState(false);
   const [metronomeTimerResetWhenReached, setMetronomeTimerResetWhenReached] = useState(false);
-  const [metronomeTrackerTimerMinutes, setMetronomeTrackerTimerMinutes] = useState(0);
-  const [metronomeTrackerTimerSeconds, setMetronomeTrackerTimerSeconds] = useState(0);
-  const [metronomeMeasureCount, setMetronomeMeasureCount] = useState(0);
-  const [metronomeTrackerElapsedMs, setMetronomeTrackerElapsedMs] = useState(0);
+  const [metronomeTrackerTimerMinutes, setMetronomeTrackerTimerMinutes] = useState(initialMetronomeTrackerProgressRef.current.trackerTimerMinutes);
+  const [metronomeTrackerTimerSeconds, setMetronomeTrackerTimerSeconds] = useState(initialMetronomeTrackerProgressRef.current.trackerTimerSeconds);
+  const [metronomeMeasureCount, setMetronomeMeasureCount] = useState(initialMetronomeTrackerProgressRef.current.measureCount);
+  const [metronomeTrackerElapsedMs, setMetronomeTrackerElapsedMs] = useState(initialMetronomeTrackerProgressRef.current.trackerElapsedMs);
   const [metronomeIsMutedCycle, setMetronomeIsMutedCycle] = useState(false);
   const [metronomeBeatPattern, setMetronomeBeatPattern] = useState(() => normalizeMetronomeBeatPattern([], 4));
   const [metronomePresetName, setMetronomePresetName] = useState(METRONOME_PRESET_DEFAULT_NAME);
@@ -4117,6 +4801,9 @@ function App() {
   const [shooterAim, setShooterAim] = useState(undefined);
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
+  const [shooterDifficulty, setShooterDifficulty] = useState(SHOOTER_DIFFICULTIES.EASY);
+  const [shooterRecords, setShooterRecords] = useState(() => RecordService.getShooterRecords());
+  const [showShooterRecords, setShowShooterRecords] = useState(false);
   const [shooterLives, setShooterLives] = useState(SHOOTER_MAX_LIVES);
   const headerVariant = designLabHeaderState.activeHeader;
   const visibleHeaderVariants = useMemo(
@@ -4131,18 +4818,94 @@ function App() {
     () => GUITAR_LAB_VARIANTS.find((variant) => variant.id === selectedGuitarVariantId) ?? GUITAR_LAB_VARIANTS[0],
     [selectedGuitarVariantId],
   );
+  const shooterPlayerOptions = useMemo(() => {
+    const options = SHOOTER_PLAYER_SLOT_KEYS.map((slotKey, index) => {
+      const variantId = shooterPlayerSlots[slotKey];
+      const variant = GUITAR_LAB_VARIANTS.find((item) => item.id === variantId);
+      if (!variant) return null;
+      return { slotKey, slotNumber: index + 1, variant };
+    }).filter(Boolean);
+    return options.length > 0
+      ? options
+      : [{ slotKey: "slot1", slotNumber: 1, variant: GUITAR_LAB_VARIANTS[0] }];
+  }, [shooterPlayerSlots]);
+  const visibleSvgLogoCandidates = useMemo(
+    () => SVG_LOGO_LAB_CANDIDATES.filter((candidate) => !svgLogoLabState.deletedLogos.includes(candidate.id)),
+    [svgLogoLabState.deletedLogos],
+  );
+  const svgLogoPreviewCandidate = useMemo(
+    () =>
+      SVG_LOGO_LAB_CANDIDATES.find((candidate) => candidate.id === svgLogoPreviewId)
+      ?? SVG_LOGO_LAB_CANDIDATES.find((candidate) => candidate.id === svgLogoLabState.activeLogo)
+      ?? SVG_LOGO_LAB_CANDIDATES[0],
+    [svgLogoLabState.activeLogo, svgLogoPreviewId],
+  );
   const logoPreviewStyle = useMemo(
     () => ({ "--logo-preview-scale": logoPreviewScale / 100 }),
     [logoPreviewScale],
   );
 
+  const updateSvgLogoLabState = useCallback((updater) => {
+    setSvgLogoLabState((current) => {
+      const next = normalizeSvgLogoLabState(typeof updater === "function" ? updater(current) : updater);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(SVG_LOGO_LAB_STORAGE_KEY, JSON.stringify(next));
+      }
+      return next;
+    });
+  }, []);
+
+  const selectSvgLogoCandidate = useCallback((candidateId) => {
+    updateSvgLogoLabState((current) => ({
+      ...current,
+      activeLogo: candidateId,
+      deletedLogos: current.deletedLogos.filter((id) => id !== candidateId),
+    }));
+    setSvgLogoPreviewId(candidateId);
+  }, [updateSvgLogoLabState]);
+
+  const deleteSvgLogoCandidate = useCallback((candidateId) => {
+    if (candidateId === svgLogoLabState.activeLogo) {
+      window.alert?.("현재 선택된 SVG 로고는 삭제할 수 없습니다.");
+      return;
+    }
+    updateSvgLogoLabState((current) => ({
+      ...current,
+      deletedLogos: current.deletedLogos.includes(candidateId)
+        ? current.deletedLogos
+        : [...current.deletedLogos, candidateId],
+    }));
+    if (svgLogoPreviewId === candidateId) {
+      setSvgLogoPreviewId(svgLogoLabState.activeLogo);
+    }
+  }, [svgLogoLabState.activeLogo, svgLogoPreviewId, updateSvgLogoLabState]);
+
   const applyGuitarVariant = useCallback((variantId) => {
     if (!GUITAR_LAB_VARIANT_IDS.has(variantId)) return;
     setSelectedGuitarVariantId(variantId);
     if (typeof window !== "undefined") {
+      window.localStorage.setItem(SHOOTER_GUITAR_STORAGE_KEY, variantId);
+      window.localStorage.setItem(SHOOTER_PLAYER_STORAGE_KEY, variantId);
       window.localStorage.setItem(GUITAR_LAB_STORAGE_KEY, variantId);
     }
   }, []);
+
+  const saveGuitarToShooterSlot = useCallback((variantId, slotKey) => {
+    if (!GUITAR_LAB_VARIANT_IDS.has(variantId) || !SHOOTER_PLAYER_SLOT_KEYS.includes(slotKey)) return;
+    setShooterPlayerSlots((current) => {
+      const next = { ...current, [slotKey]: variantId };
+      const normalized = normalizeShooterPlayerSlots(next);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(SHOOTER_PLAYER_SLOTS_STORAGE_KEY, JSON.stringify(normalized));
+      }
+      return normalized;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (shooterPlayerOptions.some((option) => option.variant.id === selectedGuitarVariantId)) return;
+    applyGuitarVariant(shooterPlayerOptions[0]?.variant.id ?? DEFAULT_GUITAR_LAB_VARIANT_ID);
+  }, [applyGuitarVariant, shooterPlayerOptions, selectedGuitarVariantId]);
 
   const updateDesignLabHeaderState = useCallback((updater) => {
     setDesignLabHeaderState((current) => {
@@ -4301,10 +5064,12 @@ function App() {
   const coachModeEnabledRef = useRef(false);
   const coachPlayBarsRef = useRef(4);
   const coachMuteBarsRef = useRef(4);
-  const metronomeTrackerModeRef = useRef("off");
+  const metronomeTrackerModeRef = useRef(initialMetronomeTrackerProgressRef.current.trackerMode);
+  const metronomeTrackerBaseBarsRef = useRef(initialMetronomeTrackerProgressRef.current.measureCount);
+  const metronomeTrackerBaseElapsedMsRef = useRef(initialMetronomeTrackerProgressRef.current.trackerElapsedMs);
   const metronomeTrackerElapsedUpdateRef = useRef(0);
-  const metronomeBarLimitEnabledRef = useRef(false);
-  const metronomeBarLimitRef = useRef(100);
+  const metronomeBarLimitEnabledRef = useRef(initialMetronomeTrackerProgressRef.current.barLimitEnabled);
+  const metronomeBarLimitRef = useRef(initialMetronomeTrackerProgressRef.current.barLimit);
   const metronomeBarStopWhenReachedRef = useRef(false);
   const metronomeBarResetWhenReachedRef = useRef(false);
   const metronomeTimerStopWhenReachedRef = useRef(false);
@@ -4356,8 +5121,17 @@ function App() {
   const shooterReleaseLockRef = useRef(null);
   const shooterLivesRef = useRef(SHOOTER_MAX_LIVES);
   const shooterSoundOnRef = useRef(true);
+  const shooterDifficultyRef = useRef(SHOOTER_DIFFICULTIES.EASY);
+  const shooterSessionSavedRef = useRef(true);
+  const scoreRef = useRef(0);
+  const maxComboRef = useRef(0);
+  const attemptsRef = useRef(0);
   const lastShotRef = useRef({ note: null, time: 0 });
   const laneFeedbackIdRef = useRef(1);
+  shooterDifficultyRef.current = shooterDifficulty;
+  scoreRef.current = score;
+  maxComboRef.current = maxCombo;
+  attemptsRef.current = attempts;
 
   const accuracy = attempts === 0 ? 100 : Math.round((hits / attempts) * 100);
   const beatAccuracy = hits === 0 ? 100 : Math.round((perfectCount / hits) * 100);
@@ -4386,6 +5160,8 @@ function App() {
     () => buildScaleBlockPractice(selectedScaleRoot, selectedScaleType, selectedScaleFamily, selectedScaleBox),
     [selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType],
   );
+  const selectedPentatonicRef = useRef(selectedPentatonic);
+  selectedPentatonicRef.current = selectedPentatonic;
   const viewerScaleTypeOptions =
     viewerScaleFamily === SCALE_FAMILIES.scale.id ? DIATONIC_SCALE_TYPES : PENTATONIC_TYPES;
   const viewerScaleBlock = useMemo(
@@ -4741,9 +5517,11 @@ function App() {
     setStage3StorageTimeSignature(item?.time_signature ?? metronomeTimeSignature);
     setStage3StorageCapo(Number.isFinite(Number(item?.capo)) ? Number(item.capo) : 0);
     {
-      const strumPattern = normalizeStrumPattern(item?.strum_pattern);
-      setStage3StorageStrumPattern(strumPattern);
-      setStage3StorageStrumDraftPattern(strumPattern);
+      const strumPatternGroups = normalizeStrumPatternGroups(item?.strum_pattern ?? item?.strumPattern ?? item?.strumSlots);
+      const firstPattern = strumPatternGroups.find((row) => row.length) ?? [];
+      stage3StorageStrumPatternRef.current = strumPatternGroups;
+      setStage3StorageStrumPattern(strumPatternGroups);
+      setStage3StorageStrumDraftPattern(firstPattern);
     }
     setStage3StorageOpen(true);
   }, [bpm, hasChordTransitionProgression, metronomeTimeSignature, selectedStage3LibraryItem, stage3ChordIds, stage3QuickSlots]);
@@ -4752,7 +5530,12 @@ function App() {
     const id = stage3StorageEditingId && !stage3StorageEditingId.startsWith("preset-")
       ? stage3StorageEditingId
       : `slot-${Date.now()}`;
-    const item = makeStage3LibraryItem({
+    const currentStrumPattern = normalizeStrumPatternGroups(
+      stage3StorageStrumPatternRef.current.length
+        ? stage3StorageStrumPatternRef.current
+        : stage3StorageStrumPattern,
+    );
+    const saveData = makeStage3LibraryItem({
       id,
       title: stage3StorageTitle,
       chordIds: stage3StorageChordIds,
@@ -4761,10 +5544,26 @@ function App() {
       subdivision: metronomeSubdivision,
       sound: metronomeTone,
       capo: stage3StorageCapo,
-      strum_pattern: stage3StorageStrumPattern,
+      strum_pattern: currentStrumPattern,
+      strumPattern: currentStrumPattern,
+      strumSlots: currentStrumPattern,
+      selectedStrumSlot: currentStrumPattern[1]?.length ? 1 : 0,
       memo: stage3StorageMemo,
     });
-    setStage3QuickSlots((slots) => [item, ...slots.filter((slot) => slot.id !== id)].slice(0, 24));
+    console.log("MANUAL SAVE CURRENT STRUM:", currentStrumPattern);
+    console.log("MANUAL SAVE DATA:", saveData);
+    setStage3QuickSlots((slots) => {
+      const nextSlots = [saveData, ...slots.filter((slot) => slot.id !== id)].slice(0, 24);
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(STAGE3_QUICK_SLOTS_KEY, JSON.stringify(nextSlots));
+          console.log("SAVED STORAGE:", window.localStorage.getItem(STAGE3_QUICK_SLOTS_KEY));
+        } catch (error) {
+          console.warn("SAVED STORAGE FAILED:", error);
+        }
+      }
+      return nextSlots;
+    });
     if (loadedStage3LibraryItem?.id === id) {
       setChordProgressionId("custom");
     }
@@ -4778,6 +5577,7 @@ function App() {
       const groups = normalizeStrumPatternGroups(pattern);
       const nextGroups = [groups[0] ?? [], groups[1] ?? []];
       nextGroups[slotIndex] = normalizedPattern;
+      stage3StorageStrumPatternRef.current = nextGroups;
       return nextGroups;
     });
   }, [stage3StorageStrumDraftPattern]);
@@ -4792,8 +5592,9 @@ function App() {
     setStage3StorageTimeSignature(item.time_signature ?? "4/4");
     setStage3StorageCapo(Number.isFinite(Number(item.capo)) ? Number(item.capo) : 0);
     {
-      const strumPatternGroups = normalizeStrumPatternGroups(item.strum_pattern);
+      const strumPatternGroups = normalizeStrumPatternGroups(item.strum_pattern ?? item.strumPattern ?? item.strumSlots);
       const firstPattern = strumPatternGroups.find((row) => row.length) ?? [];
+      stage3StorageStrumPatternRef.current = strumPatternGroups;
       setStage3StorageStrumPattern(strumPatternGroups);
       setStage3StorageStrumDraftPattern(firstPattern);
     }
@@ -4816,8 +5617,9 @@ function App() {
     setStage3StorageTimeSignature(copied.time_signature ?? "4/4");
     setStage3StorageCapo(copied.capo ?? 0);
     {
-      const strumPatternGroups = normalizeStrumPatternGroups(copied.strum_pattern);
+      const strumPatternGroups = normalizeStrumPatternGroups(copied.strum_pattern ?? copied.strumPattern ?? copied.strumSlots);
       const firstPattern = strumPatternGroups.find((row) => row.length) ?? [];
+      stage3StorageStrumPatternRef.current = strumPatternGroups;
       setStage3StorageStrumPattern(strumPatternGroups);
       setStage3StorageStrumDraftPattern(firstPattern);
     }
@@ -4839,6 +5641,7 @@ function App() {
       setStage3StorageTitle("내 진행");
       setStage3StorageMemo("");
       setStage3StorageChordIds([]);
+      stage3StorageStrumPatternRef.current = [];
       setStage3StorageStrumPattern([]);
       setStage3StorageStrumDraftPattern([]);
     }
@@ -4894,6 +5697,14 @@ function App() {
   const beatMs = getBeatMs(bpm);
   const metronomeBeatsPerMeasure = getTimeSignatureOption(metronomeTimeSignature).beats;
   const standaloneBeatPattern = normalizeMetronomeBeatPattern(metronomeBeatPattern, metronomeBeatsPerMeasure);
+  const metronomeVisualLabTimeSignatureOption =
+    METRONOME_VISUAL_LAB_TIME_SIGNATURE_OPTIONS.find((option) => option.id === metronomeVisualLabTimeSignature)
+    ?? METRONOME_VISUAL_LAB_TIME_SIGNATURE_OPTIONS[2];
+  const metronomeVisualLabBeatsPerMeasure = metronomeVisualLabTimeSignatureOption.beats;
+  const metronomeVisualLabBeatPattern = useMemo(
+    () => normalizeMetronomeBeatPattern([], metronomeVisualLabBeatsPerMeasure),
+    [metronomeVisualLabBeatsPerMeasure],
+  );
   const trackerCountInLabel = TRACKER_COUNT_IN_OPTIONS.find((option) => option.bars === metronomeCountInBars)?.label ?? "OFF";
   const trackerTimerSecondsTotal = metronomeTrackerTimerMinutes * 60 + metronomeTrackerTimerSeconds;
   const trackerElapsedSeconds = Math.floor(metronomeTrackerElapsedMs / 1000);
@@ -4958,6 +5769,9 @@ function App() {
     setMissCount(0);
     setMissedNoteCounts({});
     hitsRef.current = 0;
+    scoreRef.current = 0;
+    maxComboRef.current = 0;
+    attemptsRef.current = 0;
     setBeat(0);
     setStage3MeasureProgress(0);
     setHitZoneNote(null);
@@ -5177,9 +5991,9 @@ function App() {
 
     metronomeVisualLabBeatRef.current = 0;
     flushSync(() => setMetronomeVisualLabBeat(0));
-    playVisualLabTick(standaloneBeatPattern[0] ?? METRONOME_BEAT_STATES.ACCENT);
+    playVisualLabTick(metronomeVisualLabBeatPattern[0] ?? METRONOME_BEAT_STATES.ACCENT);
     setMetronomeVisualLabPlaying(true);
-  }, [ensureAudioReady, loadMetronomeSamples, metronomeVisualLabPlaying, playVisualLabTick, standaloneBeatPattern, stopMetronomeVisualLab]);
+  }, [ensureAudioReady, loadMetronomeSamples, metronomeVisualLabBeatPattern, metronomeVisualLabPlaying, playVisualLabTick, stopMetronomeVisualLab]);
 
   useEffect(() => {
     metronomeVisualLabBeatRef.current = metronomeVisualLabBeat;
@@ -5196,22 +6010,22 @@ function App() {
 
     window.clearInterval(metronomeVisualLabTimerRef.current);
     metronomeVisualLabTimerRef.current = window.setInterval(() => {
-      const nextBeat = (metronomeVisualLabBeatRef.current + 1) % metronomeBeatsPerMeasure;
+      const nextBeat = (metronomeVisualLabBeatRef.current + 1) % metronomeVisualLabBeatsPerMeasure;
       metronomeVisualLabBeatRef.current = nextBeat;
       flushSync(() => setMetronomeVisualLabBeat(nextBeat));
-      playVisualLabTick(standaloneBeatPattern[nextBeat] ?? METRONOME_BEAT_STATES.NORMAL);
+      playVisualLabTick(metronomeVisualLabBeatPattern[nextBeat] ?? METRONOME_BEAT_STATES.NORMAL);
     }, beatMs);
 
     return () => {
       window.clearInterval(metronomeVisualLabTimerRef.current);
       metronomeVisualLabTimerRef.current = null;
     };
-  }, [beatMs, metronomeBeatsPerMeasure, metronomeVisualLabPlaying, playVisualLabTick, standaloneBeatPattern]);
+  }, [beatMs, metronomeVisualLabBeatPattern, metronomeVisualLabBeatsPerMeasure, metronomeVisualLabPlaying, playVisualLabTick]);
 
   useEffect(() => {
     metronomeVisualLabBeatRef.current = 0;
     setMetronomeVisualLabBeat(0);
-  }, [metronomeBeatsPerMeasure, metronomeVisualLabMode]);
+  }, [metronomeVisualLabBeatsPerMeasure, metronomeVisualLabMode]);
 
   const playCountInVoice = useCallback((beatIndex = 0) => {
     const word = COUNT_IN_VOICE_WORDS[beatIndex] ?? String(beatIndex + 1);
@@ -5387,8 +6201,12 @@ function App() {
 
   const spawnShooterTarget = useCallback(() => {
     if (gameStateRef.current === GAME_STATES.GAMEOVER) return false;
-    const level = getShooterLevel(hitsRef.current);
-    const pool = getShooterPool(activeNotesRef.current, level);
+    const difficulty = shooterDifficultyRef.current;
+    const level = getShooterEffectiveLevel(getShooterLevel(hitsRef.current), difficulty, gameTimeRef.current);
+    if (shooterTargetsRef.current.length >= level.maxTargets) return false;
+    const trainingNotes = getShooterDifficultyNotes(activeNotesRef.current, difficulty, gameTimeRef.current, selectedPentatonicRef.current);
+    activeNotesRef.current = trainingNotes;
+    const pool = getShooterPool(trainingNotes, level);
     const detail = pickShooterNote(pool, lastShooterNoteRef.current, level);
     const nextX = getShooterSpawnX(lastShooterXRef.current);
     lastShooterNoteRef.current = detail;
@@ -5405,6 +6223,7 @@ function App() {
         bornAt: gameTimeRef.current,
         duration: getBeatMs(bpmRef.current) * level.durationBeats,
         level: level.name,
+        phaseLabel: level.phaseLabel,
       },
     ];
     shooterNextSpawnAtRef.current =
@@ -5504,7 +6323,7 @@ function App() {
   const fireProjectile = useCallback((target, noteName) => {
     const aimShift = clampValue((target.x - 58) * 0.34, -18, 18);
     const muzzleX = clampValue(52 + aimShift * 0.09, 49, 55);
-    const muzzleY = 84;
+    const muzzleY = 72;
     const nextAim = {
       "--aim-shift": `${aimShift}px`,
       "--aim-tilt": `${clampValue((target.x - 58) * 0.1, -6, 6)}deg`,
@@ -5523,20 +6342,31 @@ function App() {
         endX: target.x,
         endY: target.y,
         bornAt: gameTimeRef.current,
-        duration: 180,
+        duration: 135,
       },
     ];
 
     particlesRef.current = [
       ...particlesRef.current,
+      {
+        id: particleIdRef.current++,
+        type: "shockwave",
+        x: target.x,
+        y: target.y,
+        bornAt: gameTimeRef.current,
+      },
       ...Array.from({ length: 8 }, (_, index) => ({
         id: particleIdRef.current++,
+        type: "spark",
         x: target.x,
         y: target.y,
         angle: (index / 8) * Math.PI * 2,
+        speed: 0.72 + (index % 3) * 0.12,
         bornAt: gameTimeRef.current,
       })),
     ];
+    setProjectiles([...projectilesRef.current]);
+    setParticles([...particlesRef.current]);
   }, []);
 
   const judgeShooterNote = useCallback(
@@ -5569,10 +6399,12 @@ function App() {
       fireProjectile(target, detectedPitchName);
       playShooterSound("hit");
       setFeedback("Success");
+      scoreRef.current += 100;
       setScore((value) => value + 100);
       setCombo((value) => {
         const next = value + 1;
         comboRef.current = next;
+        maxComboRef.current = Math.max(maxComboRef.current, next);
         setMaxCombo((current) => Math.max(current, next));
         return next;
       });
@@ -5581,6 +6413,7 @@ function App() {
         hitsRef.current = next;
         return next;
       });
+      attemptsRef.current += 1;
       setAttempts((value) => value + 1);
       flashStage("hit");
       window.setTimeout(() => {
@@ -5591,6 +6424,32 @@ function App() {
     },
     [fireProjectile, flashStage, playShooterSound, spawnShooterTarget],
   );
+
+  const finalizeShooterRecord = useCallback((reason = "reset") => {
+    if (shooterSessionSavedRef.current) return;
+    const survivalMs = Math.max(0, Math.round(gameTimeRef.current));
+    const shots = Math.max(0, Number(attemptsRef.current) || 0);
+    const sessionHits = Math.max(0, Number(hitsRef.current) || 0);
+    const sessionScore = Math.max(0, Number(scoreRef.current) || 0);
+    const sessionMaxCombo = Math.max(0, Number(maxComboRef.current) || 0);
+    if (survivalMs < 1000 && shots === 0 && sessionHits === 0 && sessionScore === 0) {
+      shooterSessionSavedRef.current = true;
+      return;
+    }
+    const session = {
+      reason,
+      difficulty: shooterDifficultyRef.current,
+      score: sessionScore,
+      maxCombo: sessionMaxCombo,
+      kills: sessionHits,
+      hits: sessionHits,
+      shots,
+      accuracy: shots > 0 ? Math.round((sessionHits / shots) * 100) : 0,
+      survivalMs,
+    };
+    setShooterRecords((records) => RecordService.addShooterSession(records, session));
+    shooterSessionSavedRef.current = true;
+  }, []);
 
   const readMicrophone = useCallback(
     (now) => {
@@ -5865,9 +6724,11 @@ function App() {
       gameTimeRef.current += deltaMs;
       const currentBeatMs = getBeatMs(bpmRef.current);
 
-      const level = getShooterLevel(hitsRef.current);
       if (shooterTargetsRef.current.length === 0 || gameTimeRef.current >= shooterNextSpawnAtRef.current) {
-        spawnShooterTarget();
+        const spawned = spawnShooterTarget();
+        if (!spawned && shooterTargetsRef.current.length > 0) {
+          shooterNextSpawnAtRef.current = gameTimeRef.current + 250;
+        }
       }
 
       const currentBeat = Math.floor(gameTimeRef.current / currentBeatMs);
@@ -5877,9 +6738,9 @@ function App() {
         setBeat(beatInBar);
       }
 
-      shooterTargetsRef.current = shooterTargetsRef.current.map((target) => {
+      shooterTargetsRef.current.forEach((target) => {
         const progress = Math.min(1, (gameTimeRef.current - target.bornAt) / target.duration);
-        return { ...target, y: 8 + progress * 80 };
+        target.y = 8 + progress * 80;
       });
 
       const expiredTargets = shooterTargetsRef.current.filter(
@@ -5890,6 +6751,7 @@ function App() {
         shooterTargetsRef.current = shooterTargetsRef.current.filter((target) => !expiredIds.has(target.id));
         comboRef.current = 0;
         setCombo(0);
+        attemptsRef.current += expiredTargets.length;
         setAttempts((value) => value + expiredTargets.length);
         setMissCount((value) => value + expiredTargets.length);
         const nextLives = Math.max(0, shooterLivesRef.current - expiredTargets.length);
@@ -5899,23 +6761,31 @@ function App() {
         flashStage("miss");
         playShooterSound(nextLives <= 0 ? "gameover" : "miss");
         if (nextLives <= 0) {
+          finalizeShooterRecord("gameover");
           shooterTargetsRef.current = [];
           setState(GAME_STATES.GAMEOVER);
         }
       }
 
-      projectilesRef.current = projectilesRef.current.filter(
+      const nextProjectiles = projectilesRef.current.filter(
         (projectile) => gameTimeRef.current - projectile.bornAt <= projectile.duration,
       );
-      particlesRef.current = particlesRef.current.filter(
-        (particle) => gameTimeRef.current - particle.bornAt <= 520,
+      const nextParticles = particlesRef.current.filter(
+        (particle) => gameTimeRef.current - particle.bornAt <= (particle.type === "shockwave" ? 320 : 360),
       );
-
-      setShooterTargets([...shooterTargetsRef.current]);
-      setProjectiles([...projectilesRef.current]);
-      setParticles([...particlesRef.current]);
+      if (nextProjectiles.length !== projectilesRef.current.length) {
+        projectilesRef.current = nextProjectiles;
+        setProjectiles([...projectilesRef.current]);
+      }
+      if (nextParticles.length !== particlesRef.current.length) {
+        particlesRef.current = nextParticles;
+        setParticles([...particlesRef.current]);
+      }
+      if (expiredTargets.length > 0) {
+        setShooterTargets([...shooterTargetsRef.current]);
+      }
     },
-    [flashStage, playShooterSound, setState, spawnShooterTarget],
+    [finalizeShooterRecord, flashStage, playShooterSound, setState, spawnShooterTarget],
   );
 
   const runChordTransitionFrame = useCallback(
@@ -5954,6 +6824,35 @@ function App() {
       }
 
       gameTimeRef.current += deltaMs;
+      if (metronomeTrackerModeRef.current === "timer") {
+        const totalTimerMs = metronomeTrackerTimerTotalMsRef.current;
+        const elapsedMs = metronomeTrackerBaseElapsedMsRef.current + gameTimeRef.current;
+        const cappedElapsedMs = totalTimerMs > 0 ? Math.min(elapsedMs, totalTimerMs) : elapsedMs;
+        if (
+          (totalTimerMs > 0 && cappedElapsedMs >= totalTimerMs) ||
+          cappedElapsedMs - metronomeTrackerElapsedUpdateRef.current >= 250
+        ) {
+          metronomeTrackerElapsedUpdateRef.current = cappedElapsedMs;
+          setMetronomeTrackerElapsedMs(cappedElapsedMs);
+        }
+        if (totalTimerMs > 0 && elapsedMs >= totalTimerMs) {
+          setMetronomeTrackerElapsedMs(totalTimerMs);
+          if (metronomeTimerResetWhenReachedRef.current) {
+            gameTimeRef.current = 0;
+            lastBeatRef.current = -1;
+            metronomeTrackerBaseElapsedMsRef.current = 0;
+            metronomeTrackerElapsedUpdateRef.current = 0;
+            setBeat(0);
+            setMetronomeTrackerElapsedMs(0);
+            setStage3MeasureProgress(0);
+          }
+          if (metronomeTimerStopWhenReachedRef.current) {
+            setFeedback("Complete");
+            setState(GAME_STATES.IDLE);
+            return;
+          }
+        }
+      }
       setStage3MeasureProgress((gameTimeRef.current % currentMeasureMs) / currentMeasureMs);
       const currentTick = Math.floor(gameTimeRef.current / currentTickMs);
       if (currentTick !== lastBeatRef.current) {
@@ -6039,7 +6938,7 @@ function App() {
         setBeat(beatInBar);
       });
       if (metronomeTrackerModeRef.current === "bars") {
-        const completedBars = Math.floor(gameTimeRef.current / currentMeasureMs);
+        const completedBars = metronomeTrackerBaseBarsRef.current + Math.floor(gameTimeRef.current / currentMeasureMs);
         setMetronomeMeasureCount(completedBars);
         if (
           metronomeBarLimitEnabledRef.current &&
@@ -6049,6 +6948,7 @@ function App() {
           if (metronomeBarResetWhenReachedRef.current) {
             gameTimeRef.current = 0;
             lastBeatRef.current = -1;
+            metronomeTrackerBaseBarsRef.current = 0;
             setBeat(0);
             setMetronomeMeasureCount(0);
             setStage3MeasureProgress(0);
@@ -6205,6 +7105,23 @@ function App() {
       bufferRef.current = new Float32Array(analyser.fftSize);
       setMicStatus("Mic Connected");
       console.log("[mic] stream active");
+      console.log("MIC READY", {
+        active: stream.active,
+        tracks: stream.getAudioTracks().map((track) => ({
+          enabled: track.enabled,
+          muted: track.muted,
+          readyState: track.readyState,
+        })),
+      });
+      console.log("AUDIO READY", {
+        state: audio.state,
+        sampleRate: audio.sampleRate,
+      });
+      console.log("NOTE DETECTOR READY", {
+        analyser: Boolean(analyserRef.current),
+        bufferLength: bufferRef.current?.length ?? 0,
+        fftSize: analyserRef.current?.fftSize ?? 0,
+      });
       if (gameStateRef.current === GAME_STATES.IDLE) setState(GAME_STATES.LISTENING);
       return true;
     } catch (error) {
@@ -6322,15 +7239,72 @@ function App() {
   const startShooter = useCallback(async (category = SHOOTER_DEFAULT_CATEGORY) => {
     console.log("[metronome] start clicked");
     const safeCategory = normalizePracticeCategory(category);
-    await ensureAudioReady();
-
-    activeNotesRef.current = getShooterTrainingNotes(safeCategory, selectedPentatonic);
-    sequenceRef.current = getPracticeSequence(safeCategory);
-    practiceLoopRef.current = true;
     appModeRef.current = APP_MODES.SHOOTER;
     setAppMode(APP_MODES.SHOOTER);
+    await ensureAudioReady();
+
+    if (audioRef.current?.state === "suspended") {
+      await audioRef.current.resume();
+    }
+
+    if (gameStateRef.current === GAME_STATES.PAUSED) {
+      let resumeDetectorReady = Boolean(streamRef.current && analyserRef.current && bufferRef.current && audioRef.current);
+      if (!resumeDetectorReady) {
+        resumeDetectorReady = await startMic();
+      }
+      if (!resumeDetectorReady) {
+        setFeedback("Mic required");
+        setState(GAME_STATES.LISTENING);
+        return;
+      }
+      lastFrameRef.current = performance.now();
+      setFeedback("Continue");
+      setState(GAME_STATES.PLAYING);
+      return;
+    }
+
+    if (gameStateRef.current === GAME_STATES.PLAYING) return;
+
+    let detectorReady = Boolean(streamRef.current && analyserRef.current && bufferRef.current && audioRef.current);
+    if (!detectorReady) {
+      detectorReady = await startMic();
+    }
+
+    console.log("MIC READY", {
+      ready: Boolean(streamRef.current),
+      active: streamRef.current?.active ?? false,
+      tracks: streamRef.current?.getAudioTracks?.().map((track) => ({
+        enabled: track.enabled,
+        muted: track.muted,
+        readyState: track.readyState,
+      })) ?? [],
+    });
+    console.log("AUDIO READY", {
+      ready: Boolean(audioRef.current),
+      state: audioRef.current?.state ?? "missing",
+      sampleRate: audioRef.current?.sampleRate ?? null,
+    });
+    const baseShooterNotes = getShooterTrainingNotes(safeCategory, selectedPentatonic);
+    const initialShooterNotes = getShooterDifficultyNotes(baseShooterNotes, shooterDifficultyRef.current, 0, selectedPentatonic);
+    console.log("NOTE DETECTOR READY", {
+      ready: detectorReady,
+      analyser: Boolean(analyserRef.current),
+      bufferLength: bufferRef.current?.length ?? 0,
+      activeNotes: initialShooterNotes.length,
+    });
+
+    if (!detectorReady) {
+      setFeedback("Mic required");
+      setState(GAME_STATES.LISTENING);
+      return;
+    }
+
+    activeNotesRef.current = initialShooterNotes;
+    sequenceRef.current = getPracticeSequence(safeCategory);
+    practiceLoopRef.current = true;
     setSelectedCategoryId(MAIN_DEFAULT_CATEGORY.id);
     resetScore();
+    shooterSessionSavedRef.current = false;
     shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
@@ -6342,7 +7316,7 @@ function App() {
     setFeedback("Start Shooter");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
-  }, [ensureAudioReady, getPracticeSequence, resetScore, selectedPentatonic, setState, spawnShooterTarget]);
+  }, [ensureAudioReady, getPracticeSequence, resetScore, selectedPentatonic, setState, spawnShooterTarget, startMic]);
 
   const startShooterMic = useCallback(async () => {
     appModeRef.current = APP_MODES.SHOOTER;
@@ -6363,17 +7337,17 @@ function App() {
     countInTimeRef.current = 0;
     lastAutoBpmMeasureRef.current = 0;
     lastAutoBpmTimeRef.current = 0;
-    metronomeTrackerElapsedUpdateRef.current = 0;
+    metronomeTrackerBaseBarsRef.current = metronomeMeasureCount;
+    metronomeTrackerBaseElapsedMsRef.current = metronomeTrackerElapsedMs;
+    metronomeTrackerElapsedUpdateRef.current = metronomeTrackerElapsedMs;
     setBeat(0);
-    setMetronomeMeasureCount(0);
-    setMetronomeTrackerElapsedMs(0);
     setAutoBpmIncrements(0);
     setMetronomeIsMutedCycle(false);
     setStage3MeasureProgress(0);
     setFeedback(metronomeCountInRef.current ? "Count In" : "Play");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
-  }, [ensureAudioReady, loadMetronomeSamples, setState, stopMic]);
+  }, [ensureAudioReady, loadMetronomeSamples, metronomeMeasureCount, metronomeTrackerElapsedMs, setState, stopMic]);
 
   const resetMetronomePractice = useCallback(() => {
     if (appModeRef.current !== APP_MODES.METRONOME) return;
@@ -6384,6 +7358,8 @@ function App() {
     countInTimeRef.current = 0;
     lastAutoBpmMeasureRef.current = 0;
     lastAutoBpmTimeRef.current = 0;
+    metronomeTrackerBaseBarsRef.current = 0;
+    metronomeTrackerBaseElapsedMsRef.current = 0;
     metronomeTrackerElapsedUpdateRef.current = 0;
     setBeat(0);
     setMetronomeMeasureCount(0);
@@ -6394,6 +7370,26 @@ function App() {
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
   }, [cancelCountInVoice, setState]);
+
+  const stopMetronomePlayback = useCallback(() => {
+    if (appModeRef.current !== APP_MODES.METRONOME) return;
+    cancelCountInVoice();
+    gameTimeRef.current = 0;
+    lastBeatRef.current = -1;
+    countInActiveRef.current = false;
+    countInTimeRef.current = 0;
+    lastAutoBpmMeasureRef.current = 0;
+    lastAutoBpmTimeRef.current = 0;
+    metronomeTrackerBaseBarsRef.current = metronomeMeasureCount;
+    metronomeTrackerBaseElapsedMsRef.current = metronomeTrackerElapsedMs;
+    metronomeTrackerElapsedUpdateRef.current = metronomeTrackerElapsedMs;
+    setBeat(0);
+    setAutoBpmIncrements(0);
+    setMetronomeIsMutedCycle(false);
+    setStage3MeasureProgress(0);
+    setFeedback("Ready");
+    setState(GAME_STATES.IDLE);
+  }, [cancelCountInVoice, metronomeMeasureCount, metronomeTrackerElapsedMs, setState]);
 
   const pauseGame = useCallback(() => {
     if (gameStateRef.current !== GAME_STATES.PLAYING) return;
@@ -6412,6 +7408,14 @@ function App() {
     setState(GAME_STATES.PLAYING);
     setFeedback("Play");
   }, [ensureAudioReady, loadMetronomeSamples, setState]);
+
+  const handleShooterArenaClick = useCallback((event) => {
+    if (appModeRef.current !== APP_MODES.SHOOTER || gameStateRef.current !== GAME_STATES.PLAYING) return;
+    if (event.target?.closest?.("button, input, select, textarea, a, .enemy, .guitarPlayer, .mobileShooterLives, .shooterCenterStatus")) {
+      return;
+    }
+    pauseGame();
+  }, [pauseGame]);
 
   const restartGame = useCallback(async () => {
     console.log("[metronome] start clicked");
@@ -6604,8 +7608,7 @@ function App() {
     setMetronomeBeatPattern(normalizeMetronomeBeatPattern(normalized.beatPattern, getTimeSignatureOption(normalized.timeSignature).beats));
     setMetronomePresetSelectedId(normalized.id);
     setMetronomePresetName(normalized.name);
-    resetMetronomePractice();
-  }, [changeBpm, metronomePresets, resetMetronomePractice]);
+  }, [changeBpm, metronomePresets]);
 
   const handleTapTempo = useCallback(() => {
     const now = performance.now();
@@ -6711,7 +7714,17 @@ function App() {
   }, [viewerMode]);
 
   const handleFretboardSwipeStart = useCallback((event) => {
-    if (event.target?.closest?.("select, input, textarea")) return;
+    if (event.target?.closest?.("button, select, input, textarea")) return;
+
+    const bounds = event.currentTarget.getBoundingClientRect?.();
+    const surfaceWidth = bounds?.width ?? window.innerWidth ?? 0;
+    const localX = bounds ? event.clientX - bounds.left : event.clientX;
+    const edgeGuard = Math.max(28, Math.min(48, surfaceWidth * 0.12));
+    if (surfaceWidth > 0 && (localX < edgeGuard || localX > surfaceWidth - edgeGuard)) {
+      fretboardSwipeStartRef.current = null;
+      return;
+    }
+
     fretboardSwipeStartRef.current = {
       x: event.clientX,
       y: event.clientY,
@@ -6727,7 +7740,7 @@ function App() {
     const deltaY = event.clientY - start.y;
     if (Math.abs(deltaX) < 48 || Math.abs(deltaX) < Math.abs(deltaY) * 1.45) return;
 
-    changeFretboardViewerModeBySwipe(deltaX > 0 ? 1 : -1);
+    changeFretboardViewerModeBySwipe(deltaX > 0 ? -1 : 1);
   }, [changeFretboardViewerModeBySwipe]);
 
   const stopFeelPlayback = useCallback(() => {
@@ -6952,6 +7965,9 @@ function App() {
   }, [getPlayableCategory, getPracticeSequence, isMobileLayout, selectedCategory]);
 
   const stopPracticeSession = useCallback(() => {
+    if (appModeRef.current === APP_MODES.SHOOTER) {
+      finalizeShooterRecord("reset");
+    }
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
@@ -6981,9 +7997,12 @@ function App() {
     setStage3MeasureProgress(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
-  }, [setState]);
+  }, [finalizeShooterRecord, setState]);
 
   const showMainMenu = useCallback(() => {
+    if (appModeRef.current === APP_MODES.SHOOTER) {
+      finalizeShooterRecord("exit");
+    }
     stopMic();
     cancelCountInVoice();
     setUtilityMenuOpen(false);
@@ -7005,9 +8024,12 @@ function App() {
     setBeat(0);
     setFeedback("Choose a practice card");
     setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, setState, stopMic]);
+  }, [cancelCountInVoice, finalizeShooterRecord, setState, stopMic]);
 
   const showCurriculum = useCallback(() => {
+    if (appModeRef.current === APP_MODES.SHOOTER) {
+      finalizeShooterRecord("exit");
+    }
     stopMic();
     cancelCountInVoice();
     setUtilityMenuOpen(false);
@@ -7021,7 +8043,7 @@ function App() {
     setBeat(0);
     setFeedback("Choose a practice card");
     setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, setState, stopMic]);
+  }, [cancelCountInVoice, finalizeShooterRecord, setState, stopMic]);
 
   const showStage3StorageRoom = useCallback(() => {
     stopMic();
@@ -7306,21 +8328,14 @@ function App() {
 
   useEffect(() => {
     metronomeTrackerModeRef.current = metronomeTrackerMode;
-    metronomeTrackerElapsedUpdateRef.current = 0;
-    setMetronomeTrackerElapsedMs(0);
-    if (metronomeTrackerMode !== "bars" && !autoBpmEnabledRef.current) {
-      setMetronomeMeasureCount(0);
-    }
   }, [metronomeTrackerMode]);
 
   useEffect(() => {
     metronomeBarLimitEnabledRef.current = metronomeBarLimitEnabled;
-    setMetronomeMeasureCount(0);
   }, [metronomeBarLimitEnabled]);
 
   useEffect(() => {
     metronomeBarLimitRef.current = metronomeBarLimit;
-    setMetronomeMeasureCount(0);
   }, [metronomeBarLimit]);
 
   useEffect(() => {
@@ -7341,9 +8356,33 @@ function App() {
 
   useEffect(() => {
     metronomeTrackerTimerTotalMsRef.current = Math.max(0, ((metronomeTrackerTimerMinutes * 60) + metronomeTrackerTimerSeconds) * 1000);
-    metronomeTrackerElapsedUpdateRef.current = 0;
-    setMetronomeTrackerElapsedMs(0);
   }, [metronomeTrackerTimerMinutes, metronomeTrackerTimerSeconds]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(
+      METRONOME_TRACKER_PROGRESS_STORAGE_KEY,
+      JSON.stringify({
+        trackerMode: metronomeTrackerMode,
+        barLimitEnabled: metronomeBarLimitEnabled,
+        barLimit: metronomeBarLimit,
+        measureCount: metronomeMeasureCount,
+        trackerCurrent: metronomeMeasureCount,
+        trackerTimerMinutes: metronomeTrackerTimerMinutes,
+        trackerTimerSeconds: metronomeTrackerTimerSeconds,
+        trackerElapsedMs: metronomeTrackerElapsedMs,
+        trackerTime: metronomeTrackerElapsedMs,
+      }),
+    );
+  }, [
+    metronomeBarLimit,
+    metronomeBarLimitEnabled,
+    metronomeMeasureCount,
+    metronomeTrackerElapsedMs,
+    metronomeTrackerMode,
+    metronomeTrackerTimerMinutes,
+    metronomeTrackerTimerSeconds,
+  ]);
 
   useEffect(() => {
     feelPlaybackLoopRef.current = feelPlaybackLoop;
@@ -7372,6 +8411,10 @@ function App() {
   useEffect(() => {
     metronomeOnRef.current = metronomeOn;
   }, [metronomeOn]);
+
+  useEffect(() => {
+    stage3StorageStrumPatternRef.current = normalizeStrumPatternGroups(stage3StorageStrumPattern);
+  }, [stage3StorageStrumPattern]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -7581,6 +8624,7 @@ function App() {
         ...note,
         label: note.octaveNote ?? note.pitch,
         isActive,
+        isCurrent: isActive,
         isRoot: false,
       };
     });
@@ -7627,7 +8671,25 @@ function App() {
   const shooterTargetDetail = shooterTarget?.detail ?? (shooterTarget ? getShooterNoteDetail(shooterTarget.note) : null);
   const shooterGuidePitch = shooterTargetDetail?.octaveNote ?? shooterTargetDetail?.pitch;
   const shooterGuidePositions = shooterGuidePitch ? getFretboardPositionsForPitch(shooterGuidePitch) : [];
-  const shooterLevel = getShooterLevel(hits);
+  const shooterDifficultyPhase = getShooterDifficultyPhase(shooterDifficulty, gameTimeRef.current);
+  const shooterLevel = getShooterEffectiveLevel(getShooterLevel(hits), shooterDifficulty, gameTimeRef.current);
+  const shooterDifficultyLabel = SHOOTER_DIFFICULTY_OPTIONS.find((option) => option.id === shooterDifficulty)?.label ?? "Easy";
+  const shooterTotalAccuracy = shooterRecords.totals.shots > 0
+    ? Math.round((shooterRecords.totals.hits / shooterRecords.totals.shots) * 100)
+    : 0;
+  const formatShooterRecordTime = (milliseconds) => {
+    const totalSeconds = Math.max(0, Math.floor((Number(milliseconds) || 0) / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (hours > 0) return `${hours}시간 ${minutes}분`;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  };
+  const formatShooterRecordDate = (timestamp) => {
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return "-";
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  };
   const shooterPreview = getShooterQueue(hits, shooterTarget ? Math.max(0, patternRef.current - 1) : patternRef.current, 5);
   const shooterMotion = shooterTarget
     ? {
@@ -8126,38 +9188,53 @@ function App() {
             ) : null}
             {designLabSection === "character" ? (
               <div className="guitarLab">
-                {["Acoustic", "Classical", "Electric"].map((pack) => (
-                  <section className="guitarLabPack" key={pack} aria-label={`${pack} Guitar Pack`}>
-                    <div className="headerPreviewMeta">
-                      <span>{pack}</span>
-                      <small>{pack === "Acoustic" ? "어쿠스틱 기타팩 5종" : pack === "Classical" ? "클래식 기타팩 5종" : "일렉 기타팩 5종"}</small>
-                    </div>
-                    <div className="headerPreviewGrid guitarLabGrid">
-                      {GUITAR_LAB_VARIANTS.filter((variant) => variant.pack === pack).map((variant) => {
+                {["Acoustic", "Classical", "Electric"].map((pack) => {
+                  const packVariants = GUITAR_LAB_VARIANTS.filter((variant) => variant.pack === pack);
+                  return (
+                    <section className="guitarLabPack" key={pack} aria-label={`${pack} Guitar Pack`}>
+                      <div className="headerPreviewMeta">
+                        <span>{pack}</span>
+                        <small>{pack === "Acoustic" ? `어쿠스틱 기타팩 ${packVariants.length}종` : pack === "Classical" ? `클래식 기타팩 ${packVariants.length}종` : `일렉 기타팩 ${packVariants.length}종`}</small>
+                      </div>
+                      <div className="headerPreviewGrid guitarLabGrid">
+                        {packVariants.map((variant) => {
                         const isActive = selectedGuitarVariant.id === variant.id;
+                        const assignedSlotNumbers = SHOOTER_PLAYER_SLOT_KEYS
+                          .map((slotKey, index) => shooterPlayerSlots[slotKey] === variant.id ? index + 1 : null)
+                          .filter(Boolean);
                         return (
-                          <article className={`headerPreviewCard guitarLabCard ${isActive ? "selected" : ""}`} key={variant.id}>
+                          <article className={`headerPreviewCard guitarLabCard ${assignedSlotNumbers.length ? "selected" : ""}`} key={variant.id}>
                             <div className="headerPreviewMeta">
                               <span>{variant.model}</span>
                               <small>{variant.description}</small>
-                              <em className="designLabCharacterSpec">{variant.pack} · SVG Player Asset</em>
+                              <em className="designLabCharacterSpec">
+                                {variant.pack} · {assignedSlotNumbers.length ? `Shooter Slot ${assignedSlotNumbers.join(", ")}` : "후보 미지정"}
+                              </em>
                             </div>
-                            <GuitarLabPreview variant={variant} active={isActive} />
+                            <GuitarLabPreview variant={variant} active={isActive || assignedSlotNumbers.length > 0} />
                             <div className="designLabItemActions">
-                              <button
-                                className={isActive ? "selected" : ""}
-                                onClick={() => applyGuitarVariant(variant.id)}
-                                type="button"
-                              >
-                                {isActive ? "플레이어 적용됨" : "플레이어 적용"}
-                              </button>
+                              {SHOOTER_PLAYER_SLOT_KEYS.map((slotKey, index) => {
+                                const slotNumber = index + 1;
+                                const isSlotAssigned = shooterPlayerSlots[slotKey] === variant.id;
+                                return (
+                                  <button
+                                    className={isSlotAssigned ? "selected" : ""}
+                                    key={slotKey}
+                                    onClick={() => saveGuitarToShooterSlot(variant.id, slotKey)}
+                                    type="button"
+                                  >
+                                    {slotNumber}로 저장
+                                  </button>
+                                );
+                              })}
                             </div>
                           </article>
                         );
                       })}
-                    </div>
-                  </section>
-                ))}
+                      </div>
+                    </section>
+                  );
+                })}
               </div>
             ) : null}
             {designLabSection === "monster" ? (
@@ -8337,6 +9414,68 @@ function App() {
             ) : null}
             {designLabSection === "test" ? (
               <div className="metronomeVisualLab">
+                <article className="headerPreviewCard svgLogoLabHero">
+                  <div className="headerPreviewMeta">
+                    <span>Logo Lab · R Brand Symbol Candidates</span>
+                    <small>R을 중심으로 피크, 프렛, 헤드스톡, 훈련 상징을 다르게 조합한 1:1 SVG 후보입니다. 기존 V11 명판과 로고는 분리 관리됩니다.</small>
+                    <em className="designLabStatus designLabStatus--draft">Experimental</em>
+                  </div>
+                  <SvgLogoHeaderPreview candidate={svgLogoPreviewCandidate} />
+                  <div className="svgLogoLabHeroMeta">
+                    <span>{svgLogoPreviewCandidate.label}</span>
+                    <strong>{svgLogoPreviewCandidate.title}</strong>
+                    <small>{svgLogoPreviewCandidate.description}</small>
+                  </div>
+                </article>
+
+                <div className="svgLogoLabGrid">
+                  {visibleSvgLogoCandidates.map((candidate) => {
+                    const isPreview = svgLogoPreviewCandidate.id === candidate.id;
+                    const isActive = svgLogoLabState.activeLogo === candidate.id;
+                    return (
+                      <article
+                        className={`headerPreviewCard svgLogoCandidateCard ${isPreview ? "candidateSelected" : ""} ${isActive ? "selected" : ""}`}
+                        key={candidate.id}
+                      >
+                        <div className="headerPreviewMeta">
+                          <span>{candidate.label}</span>
+                          <small>{candidate.title}</small>
+                          <em className={`designLabStatus designLabStatus--${isActive ? "active" : "draft"}`}>
+                            {isActive ? "Active Logo" : "SVG Candidate"}
+                          </em>
+                        </div>
+                        <div className="svgLogoCandidatePreview">
+                          <RiffLoopLogoSvg candidate={candidate} />
+                        </div>
+                        <p>{candidate.description}</p>
+                        <div className="designLabItemActions">
+                          <button
+                            className={isPreview ? "selected" : ""}
+                            onClick={() => setSvgLogoPreviewId(candidate.id)}
+                            type="button"
+                          >
+                            Preview in Header
+                          </button>
+                          <button
+                            className={isActive ? "selected" : ""}
+                            onClick={() => selectSvgLogoCandidate(candidate.id)}
+                            type="button"
+                          >
+                            {isActive ? "Selected" : "Select"}
+                          </button>
+                          <button
+                            disabled={isActive}
+                            onClick={() => deleteSvgLogoCandidate(candidate.id)}
+                            type="button"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+
                 <article className="headerPreviewCard metronomeVisualLabControlCard">
                   <div className="headerPreviewMeta">
                     <span>Metronome Visual Lab</span>
@@ -8364,22 +9503,34 @@ function App() {
                       {metronomeVisualLabPlaying ? "정지" : "프리뷰 재생"}
                     </button>
                     <span>{bpm} BPM</span>
-                    <span>{metronomeTimeSignature}</span>
+                    <span>{metronomeVisualLabTimeSignature}</span>
                     <span>{getMetronomeToneOption(metronomeTone).label}</span>
+                  </div>
+                  <div className="metronomeVisualLabSignaturePicker" aria-label="Circle Mode time signature candidates">
+                    {METRONOME_VISUAL_LAB_TIME_SIGNATURE_OPTIONS.map((option) => (
+                      <button
+                        className={metronomeVisualLabTimeSignature === option.id ? "selected" : ""}
+                        key={option.id}
+                        onClick={() => setMetronomeVisualLabTimeSignature(option.id)}
+                        type="button"
+                      >
+                        {option.label}
+                      </button>
+                    ))}
                   </div>
                 </article>
 
                 <MetronomeVisualLabPreview
                   activeBeat={metronomeVisualLabBeat}
-                  beatPattern={standaloneBeatPattern}
+                  beatPattern={metronomeVisualLabBeatPattern}
                   bpm={bpm}
                   isPlaying={metronomeVisualLabPlaying}
                   mode={metronomeVisualLabMode}
-                  timeSignature={metronomeTimeSignature}
+                  timeSignature={metronomeVisualLabTimeSignature}
                 />
 
                 <div className="designLabComponentNote">
-                  이 영역은 TEST LAB 전용입니다. Dot, Line, Circle, Pick Swing은 사용자 반응 확인 후 정식 채택 여부를 결정합니다.
+                  Circle Mode는 정식 메트로놈 시각화 후보로 승격되었습니다. 현재는 TEST LAB 전용이며, 향후 박자 편집과 코드전환 연동을 검토합니다.
                 </div>
               </div>
             ) : null}
@@ -8419,29 +9570,6 @@ function App() {
                     <div className="designLabItemActions">
                       <button disabled type="button">보관됨</button>
                       <button disabled type="button">잠금</button>
-                      <button disabled type="button">삭제</button>
-                    </div>
-                  </article>
-                ))}
-                {CARD_LAB_VARIANTS.map((variant, index) => (
-                  <article className="headerPreviewCard designLabArchiveCard" key={variant.id}>
-                    <div className="headerPreviewMeta">
-                      <span>{variant.title}</span>
-                      <small>{variant.description}</small>
-                      <em className="designLabStatus designLabStatus--legacy">Legacy</em>
-                    </div>
-                    <button className={`trainingCard stageMenuCard designLabTrainingCardPreview designLabTrainingCardPreview--${index + 1}`} type="button">
-                      <span className="stageMenuCard__step">{String(index + 1).padStart(2, "0")}</span>
-                      <span className="stageMenuCard__content">
-                        <strong className="stageMenuCard__title">스케일 · 펜타토닉</strong>
-                        <small className="stageMenuCard__desc">박스 패턴으로 위치를 반복 학습</small>
-                        <em className="stageMenuCard__tag">BOX PATTERN</em>
-                      </span>
-                      <span className="stageMenuCard__arrow" aria-hidden="true">❯</span>
-                    </button>
-                    <div className="designLabItemActions">
-                      <button disabled type="button">보관됨</button>
-                      <button type="button">잠금</button>
                       <button disabled type="button">삭제</button>
                     </div>
                   </article>
@@ -9076,21 +10204,15 @@ function App() {
 
           <div className={`metronomeBeatMatrix metronomeBeatMatrix--main ${metronomeIsMutedCycle ? "muted" : ""}`} aria-label="박자 패턴 편집">
             {standaloneBeatPattern.map((beatState, index) => (
-              <button
-                aria-label={`${index + 1}박 ${METRONOME_BEAT_STATE_LABELS[beatState]}, 터치하면 다음 상태로 변경`}
-                className={`${beatState} ${beat === index && gameState === GAME_STATES.PLAYING ? "active" : ""}`}
+              <BeatDot
+                active={beat === index && gameState === GAME_STATES.PLAYING}
+                className="metronomeBeatButton"
                 key={`beat-dot-${index}`}
+                label={`${index + 1}박 ${METRONOME_BEAT_STATE_LABELS[beatState]}, 터치하면 다음 상태로 변경`}
                 onClick={() => cycleStandaloneBeatState(index)}
+                state={beatState}
                 title={`${index + 1}박: ${METRONOME_BEAT_STATE_LABELS[beatState]}`}
-                type="button"
-              >
-                <span className="metronomeBeatGlyph" aria-hidden="true">
-                  {METRONOME_BEAT_STATE_SYMBOLS[beatState]}
-                  {METRONOME_BEAT_STATE_MARKERS[beatState] ? (
-                    <i className="metronomeBeatAccentMark">{METRONOME_BEAT_STATE_MARKERS[beatState]}</i>
-                  ) : null}
-                </span>
-              </button>
+              />
             ))}
           </div>
 
@@ -9121,7 +10243,6 @@ function App() {
             <div className="metronomeHeroBpmValue">
               <span>BPM</span>
               <strong>{bpm}</strong>
-              <small>{gameState === GAME_STATES.PLAYING ? (metronomeIsMutedCycle ? "COACH MUTE" : "READY") : "READY"}</small>
             </div>
             <button
               aria-label="BPM 1 올리기"
@@ -9140,7 +10261,7 @@ function App() {
               onClick={(event) => {
                 event.stopPropagation();
                 if (gameState === GAME_STATES.PLAYING) {
-                  resetMetronomePractice();
+                  stopMetronomePlayback();
                   return;
                 }
                 startMetronomePractice();
@@ -9223,6 +10344,7 @@ function App() {
             <div>
               <span>레벨</span>
               <strong>{shooterLevel.name}</strong>
+              <small>{shooterLevel.phaseLabel}</small>
             </div>
             <div className="shooterLivesHud">
               <span>생명</span>
@@ -9237,6 +10359,109 @@ function App() {
           <div className="modeHelper shooterHelper">
             반복 연습으로 지판 인식과 피킹 정확도를 키워보세요.
           </div>
+
+          <div className="shooterDifficultyPanel" aria-label="슈팅게임 난이도">
+            <div>
+              <span>난이도</span>
+              <strong>{shooterDifficultyLabel}</strong>
+              <small>{shooterDifficultyPhase.label} · 최대 {shooterLevel.maxTargets}마리</small>
+            </div>
+            <div className="shooterDifficultyButtons">
+              {SHOOTER_DIFFICULTY_OPTIONS.map((option) => (
+                <button
+                  aria-pressed={shooterDifficulty === option.id}
+                  className={shooterDifficulty === option.id ? "selected" : ""}
+                  disabled={gameState === GAME_STATES.PLAYING}
+                  key={option.id}
+                  onClick={() => setShooterDifficulty(option.id)}
+                  title={option.hint}
+                  type="button"
+                >
+                  <strong>{option.label}</strong>
+                  <span>{option.hint}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="shooterRecordsBar">
+            <button
+              aria-expanded={showShooterRecords}
+              className={showShooterRecords ? "selected" : ""}
+              onClick={() => setShowShooterRecords((value) => !value)}
+              type="button"
+            >
+              Records
+            </button>
+            <span>BEST SCORE {shooterRecords.best.score.toLocaleString()}</span>
+            <span>BEST COMBO {shooterRecords.best.combo}</span>
+          </div>
+
+          {showShooterRecords && (
+            <section className="shooterRecordsPanel" aria-label="슈팅게임 기록">
+              <div className="shooterRecordGrid">
+                <article>
+                  <span>BEST SCORE</span>
+                  <strong>{shooterRecords.best.score.toLocaleString()}</strong>
+                </article>
+                <article>
+                  <span>BEST COMBO</span>
+                  <strong>{shooterRecords.best.combo}</strong>
+                </article>
+                <article>
+                  <span>BEST KILLS</span>
+                  <strong>{shooterRecords.best.kills.toLocaleString()}</strong>
+                </article>
+                <article>
+                  <span>BEST TIME</span>
+                  <strong>{formatShooterRecordTime(shooterRecords.best.survivalMs)}</strong>
+                </article>
+                <article>
+                  <span>BEST ACCURACY</span>
+                  <strong>{shooterRecords.best.accuracy}%</strong>
+                </article>
+                <article>
+                  <span>TOTAL ACCURACY</span>
+                  <strong>{shooterTotalAccuracy}%</strong>
+                </article>
+              </div>
+              <div className="shooterRecordSplit">
+                <article>
+                  <h3>누적 연습기록</h3>
+                  <p><span>총 플레이</span><strong>{shooterRecords.totals.plays.toLocaleString()}회</strong></p>
+                  <p><span>총 연습시간</span><strong>{formatShooterRecordTime(shooterRecords.totals.playTimeMs)}</strong></p>
+                  <p><span>총 처치</span><strong>{shooterRecords.totals.kills.toLocaleString()}</strong></p>
+                  <p><span>총 발사</span><strong>{shooterRecords.totals.shots.toLocaleString()}</strong></p>
+                  <p><span>총 적중</span><strong>{shooterRecords.totals.hits.toLocaleString()}</strong></p>
+                </article>
+                <article>
+                  <h3>난이도별 기록</h3>
+                  {SHOOTER_DIFFICULTY_OPTIONS.map((option) => {
+                    const record = shooterRecords.difficulty[option.id] ?? getDefaultShooterDifficultyRecord();
+                    return (
+                      <p key={option.id}>
+                        <span>{option.label}</span>
+                        <strong>{Number(record.bestScore || 0).toLocaleString()} · C{record.bestCombo || 0}</strong>
+                      </p>
+                    );
+                  })}
+                </article>
+              </div>
+              <article className="shooterRecentRecords">
+                <h3>최근 10회</h3>
+                {shooterRecords.recent.length ? (
+                  shooterRecords.recent.map((record) => (
+                    <p key={record.id}>
+                      <span>{formatShooterRecordDate(record.playedAt)} · {record.difficulty === SHOOTER_DIFFICULTIES.HARD ? "Hard" : "Easy"}</span>
+                      <strong>{Number(record.score || 0).toLocaleString()} · {record.accuracy}% · {formatShooterRecordTime(record.survivalMs)}</strong>
+                    </p>
+                  ))
+                ) : (
+                  <p><span>아직 기록 없음</span><strong>첫 플레이를 시작하세요</strong></p>
+                )}
+              </article>
+            </section>
+          )}
 
           <div className={`shooterFretGuide ${showShooterFretGuide ? "" : "collapsed"}`}>
             <div>
@@ -9285,7 +10510,7 @@ function App() {
             </button>
           </div>
 
-          <div className={`shooterArena ${stageFlash}`}>
+          <div className={`shooterArena ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""}`} onClick={handleShooterArenaClick}>
             {shooterTargets.map((target) => {
               const targetDetail = target.detail ?? getShooterNoteDetail(target.note);
               return (
@@ -9294,8 +10519,9 @@ function App() {
                 key={target.id}
                 style={{
                   left: `${target.x}%`,
-                  top: `${target.y}%`,
+                  top: "8%",
                   "--hit-note-size": `${NOTE_SIZE}px`,
+                  "--target-duration-ms": `${target.duration}ms`,
                   ...getNoteColorStyle(target.note),
                 }}
               >
@@ -9310,7 +10536,6 @@ function App() {
             })}
 
             {projectiles.map((projectile) => {
-              const progress = Math.min(1, (gameTimeRef.current - projectile.bornAt) / projectile.duration);
               const dx = projectile.endX - projectile.startX;
               const dy = projectile.endY - projectile.startY;
               const length = Math.sqrt(dx * dx + dy * dy);
@@ -9322,7 +10547,7 @@ function App() {
                   style={{
                     left: `${projectile.startX}%`,
                     top: `${projectile.startY}%`,
-                    width: `${length * progress}%`,
+                    width: `${length}%`,
                     transform: `translateY(-50%) rotate(${angle}deg)`,
                   }}
                 />
@@ -9331,10 +10556,19 @@ function App() {
 
             {particles.map((particle) => {
               const age = gameTimeRef.current - particle.bornAt;
-              const distance = age / 34;
+              if (particle.type === "shockwave") {
+                return (
+                  <span
+                    className="hitShockwave"
+                    key={particle.id}
+                    style={{ left: `${particle.x}%`, top: `${particle.y}%` }}
+                  />
+                );
+              }
+              const distance = (age / 34) * (particle.speed ?? 1);
               const x = particle.x + Math.cos(particle.angle) * distance;
               const y = particle.y + Math.sin(particle.angle) * distance;
-              return <span className="musicParticle" key={particle.id} style={{ left: `${x}%`, top: `${y}%` }}></span>;
+              return <span className="musicParticle hitSpark" key={particle.id} style={{ left: `${x}%`, top: `${y}%` }}></span>;
             })}
 
             <div className={`guitarPlayer ${projectiles.length > 0 ? "shooting" : ""}`} style={shooterMotion}>
@@ -9349,15 +10583,119 @@ function App() {
             </div>
             {gameState !== GAME_STATES.PLAYING && (
               <div className={`shooterCenterStatus ${classNameFromLabel(feedback)} ${gameState === GAME_STATES.GAMEOVER ? "gameOver" : ""}`}>
-                <strong>{gameState === GAME_STATES.GAMEOVER ? "게임 오버" : t(feedback)}</strong>
+                <strong>
+                  {gameState === GAME_STATES.GAMEOVER
+                    ? "게임 오버"
+                    : gameState === GAME_STATES.PAUSED
+                      ? "일시정지"
+                      : t(feedback)}
+                </strong>
                 {gameState === GAME_STATES.GAMEOVER && <span></span>}
-                <button className="mobileShooterStartButton primary" onClick={() => startShooter()} type="button">
+                {gameState !== GAME_STATES.PAUSED && (
+                  <button
+                    className="mobileShooterStartButton"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setShooterGuitarPickerOpen(true);
+                    }}
+                    type="button"
+                  >
+                    기타 변경
+                  </button>
+                )}
+                {gameState !== GAME_STATES.PAUSED && (
+                  <small className="shooterPlayerSelectedLabel">
+                    {selectedGuitarVariant.title}
+                  </small>
+                )}
+                <button
+                  className="mobileShooterStartButton primary"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    startShooter();
+                  }}
+                  type="button"
+                >
                   <Play size={18} />
-                  시작
+                  {gameState === GAME_STATES.PAUSED ? "계속" : "시작"}
                 </button>
+                {gameState === GAME_STATES.PAUSED && (
+                  <button
+                    className="mobileShooterStartButton"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      stopPracticeSession();
+                    }}
+                    type="button"
+                  >
+                    RESET
+                  </button>
+                )}
+                {gameState === GAME_STATES.GAMEOVER && (
+                  <button
+                    className="mobileShooterStartButton"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      stopPracticeSession();
+                    }}
+                    type="button"
+                  >
+                    RESET
+                  </button>
+                )}
               </div>
             )}
           </div>
+
+          {shooterGuitarPickerOpen && (
+            <div
+              className="shooterGuitarPickerOverlay"
+              onClick={() => setShooterGuitarPickerOpen(false)}
+              role="presentation"
+            >
+              <div
+                aria-label="슈팅게임 기타 선택"
+                aria-modal="true"
+                className="shooterGuitarPickerModal"
+                onClick={(event) => event.stopPropagation()}
+                role="dialog"
+              >
+                <div className="shooterGuitarPickerHeader">
+                  <div>
+                    <span>기타 변경</span>
+                    <strong>{selectedGuitarVariant.title}</strong>
+                  </div>
+                  <button onClick={() => setShooterGuitarPickerOpen(false)} type="button">
+                    닫기
+                  </button>
+                </div>
+                <div className="shooterGuitarPickerList">
+                  {shooterPlayerOptions.map(({ slotNumber, variant }) => {
+                    const isSelected = selectedGuitarVariant.id === variant.id;
+                    return (
+                      <button
+                        className={`shooterGuitarPickerItem ${isSelected ? "selected" : ""}`}
+                        key={`${slotNumber}-${variant.id}`}
+                        onClick={() => {
+                          applyGuitarVariant(variant.id);
+                          setShooterGuitarPickerOpen(false);
+                        }}
+                        type="button"
+                      >
+                        <b className="shooterGuitarPickerSlot">{slotNumber}</b>
+                        <GuitarAssetSvg variant={variant} className="shooterGuitarPickerAsset" compact />
+                        <span>
+                          <strong>{variant.title}</strong>
+                          <small>{variant.pack}</small>
+                        </span>
+                        <em>{isSelected ? "선택됨" : "선택"}</em>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
 
         </section>
       ) : selectedCategory.id === "rhythm" && stage3StorageOpen ? (
@@ -9609,6 +10947,7 @@ function App() {
                 disabled={!stage3StorageStrumDraftPattern.length && !stage3StorageStrumPattern.length}
                 onClick={() => {
                   setStage3StorageStrumDraftPattern([]);
+                  stage3StorageStrumPatternRef.current = [];
                   setStage3StorageStrumPattern([]);
                 }}
                 type="button"
@@ -9804,6 +11143,7 @@ function App() {
                     id: `transition-${note.octaveNote}-${note.stringNumber}-${note.fretNumber}-${index}`,
                     label: showChordFingeringGuide ? note.finger : getChordDisplayNoteName(note.noteName),
                     isActive: false,
+                    isCurrent: Boolean(note.isRoot),
                     isRoot: false,
                   }))}
                 rootNote=""
@@ -10370,7 +11710,7 @@ function App() {
                       referenceDisplayPrompt?.fretNumber === note.fretNumber;
                     return (
                       <span
-                      className={`scaleNote ${isActive ? "active" : ""} ${detectedReferenceScaleNote && isActive ? "detectedActive" : ""}`}
+                      className={`scaleNote ${isActive ? "active current-note" : ""} ${detectedReferenceScaleNote && isActive ? "detectedActive" : ""}`}
                       key={`${note.octaveNote}-${note.stringNumber}-${note.fretNumber}`}
                       style={{
                         left: getReferenceFretLeft(note),
@@ -10435,7 +11775,7 @@ function App() {
                   ))}
                   {referenceDisplayPrompt && (
                     <span
-                      className="miniNote"
+                      className="miniNote current-note"
                       style={{
                         left: getReferenceFretLeft(referenceDisplayPrompt),
                         top: `${getReferenceStringTop(referenceDisplayPrompt)}%`,
@@ -10672,7 +12012,7 @@ function App() {
             <>
               <button className="primary" onClick={() => startShooter()} type="button">
                 <Play size={18} />
-                시작
+                {gameState === GAME_STATES.PAUSED ? "계속" : "시작"}
               </button>
               <button
                 className={streamRef.current ? "selected" : ""}
@@ -10692,7 +12032,7 @@ function App() {
               </button>
               <button onClick={stopPracticeSession} type="button">
                 <Square size={18} />
-                정지
+                RESET
               </button>
               <button
                 aria-label={shooterSoundOn ? "효과음 끄기" : "효과음 켜기"}
