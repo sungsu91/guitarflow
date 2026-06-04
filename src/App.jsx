@@ -1,5 +1,6 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  FolderOpen,
   Gamepad2,
   Grid3X3,
   Guitar,
@@ -1203,8 +1204,8 @@ const createWheelNumberOptions = (start, end) => (
   })
 );
 
-const TRACKER_TIMER_MINUTE_OPTIONS = createWheelNumberOptions(1, 30);
-const TRACKER_TIMER_SECOND_OPTIONS = createWheelNumberOptions(1, 59);
+const TRACKER_TIMER_MINUTE_OPTIONS = createWheelNumberOptions(0, 15);
+const TRACKER_TIMER_SECOND_OPTIONS = createWheelNumberOptions(0, 59);
 
 const AUTOMATOR_MODE_OPTIONS = [
   { id: "off", label: "OFF" },
@@ -1263,7 +1264,6 @@ const METRONOME_VISUAL_LAB_MODES = [
 ];
 const METRONOME_DISPLAY_MODES = [
   { id: "dot", label: "Dot Mode" },
-  { id: "line", label: "Line Mode" },
   { id: "circle", label: "Circle Mode" },
 ];
 const METRONOME_VISUAL_LAB_TIME_SIGNATURE_OPTIONS = [
@@ -1410,15 +1410,33 @@ function createLocalId(prefix) {
 }
 
 function normalizeTrackerTimerMinutes(value) {
-  return Math.max(1, Math.min(30, Number(value) || 1));
+  return Math.max(0, Math.min(15, Number(value) || 0));
 }
 
 function normalizeTrackerTimerSeconds(value) {
-  return Math.max(1, Math.min(59, Number(value) || 1));
+  return Math.max(0, Math.min(59, Number(value) || 0));
+}
+
+function normalizeTrackerBarLimit(value, fallback = 1) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return fallback;
+  return Math.max(1, Math.min(9999, Math.trunc(numericValue)));
 }
 
 function normalizeMetronomeDisplayMode(mode) {
   return METRONOME_DISPLAY_MODES.some((option) => option.id === mode) ? mode : "dot";
+}
+
+function getTwoColumnVerticalFlowOptions(options) {
+  if (!Array.isArray(options) || options.length < 3) return options;
+
+  const midpoint = Math.ceil(options.length / 2);
+  const leftColumn = options.slice(0, midpoint);
+  const rightColumn = options.slice(midpoint);
+
+  return leftColumn.flatMap((option, index) => (
+    rightColumn[index] ? [option, rightColumn[index]] : [option]
+  ));
 }
 
 function getStoredMetronomeDisplayMode() {
@@ -1443,6 +1461,9 @@ function normalizeMetronomePreset(preset, index = 0) {
     timeSignature,
     subdivision: getSubdivisionOption(preset?.subdivision)?.id || "quarter",
     tone: getMetronomeToneOption(preset?.tone)?.id || "tick",
+    accent: preset?.accent !== false,
+    repeat: Boolean(preset?.repeat),
+    displayMode: normalizeMetronomeDisplayMode(preset?.displayMode),
     countInBars: Math.max(0, Math.min(2, Number(preset?.countInBars) || 0)),
     countInVoiceMode: COUNT_IN_VOICE_MODES.some((option) => option.id === preset?.countInVoiceMode) ? preset.countInVoiceMode : "female",
     autoBpmMode,
@@ -1456,7 +1477,7 @@ function normalizeMetronomePreset(preset, index = 0) {
     coachMuteBars: Math.max(1, Math.min(8, Number(preset?.coachMuteBars) || 4)),
     trackerMode,
     barLimitEnabled: Boolean(preset?.barLimitEnabled),
-    barLimit: Math.max(1, Math.min(9999, Number(preset?.barLimit) || 100)),
+    barLimit: normalizeTrackerBarLimit(preset?.barLimit, 100),
     barStopWhenReached: Boolean(preset?.barStopWhenReached),
     barResetWhenReached: Boolean(preset?.barResetWhenReached),
     barStartFromOne: preset?.barStartFromOne !== false,
@@ -1487,8 +1508,8 @@ function getStoredMetronomeTrackerProgress() {
     barLimitEnabled: false,
     barLimit: 100,
     measureCount: 0,
-    trackerTimerMinutes: 1,
-    trackerTimerSeconds: 1,
+    trackerTimerMinutes: 0,
+    trackerTimerSeconds: 0,
     trackerElapsedMs: 0,
   };
   if (typeof window === "undefined") return fallback;
@@ -1501,7 +1522,7 @@ function getStoredMetronomeTrackerProgress() {
     return {
       trackerMode,
       barLimitEnabled: Boolean(parsed?.barLimitEnabled),
-      barLimit: Math.max(1, Math.min(9999, Number(parsed?.barLimit) || fallback.barLimit)),
+      barLimit: normalizeTrackerBarLimit(parsed?.barLimit, fallback.barLimit),
       measureCount: Math.max(0, Math.min(9999, Number(parsed?.measureCount ?? parsed?.trackerCurrent) || 0)),
       trackerTimerMinutes: normalizeTrackerTimerMinutes(parsed?.trackerTimerMinutes),
       trackerTimerSeconds: normalizeTrackerTimerSeconds(parsed?.trackerTimerSeconds),
@@ -1514,11 +1535,24 @@ function getStoredMetronomeTrackerProgress() {
 
 function MetronomeSelectControl({ label, options, value, onChange, layout = "native" }) {
   const [open, setOpen] = useState(false);
+  const [openDirection, setOpenDirection] = useState("up");
   const controlRef = useRef(null);
   const selectedOption = options.find((option) => option.id === value);
+  const gridOptions = layout === "grid" ? getTwoColumnVerticalFlowOptions(options) : options;
+
+  const updateOpenDirection = () => {
+    if (typeof window === "undefined" || !controlRef.current) return;
+    const rect = controlRef.current.getBoundingClientRect();
+    const rows = Math.ceil(gridOptions.length / 2);
+    const estimatedMenuHeight = Math.min(238, 18 + rows * 40);
+    const topSpace = rect.top;
+    const bottomSpace = window.innerHeight - rect.bottom - 92;
+    setOpenDirection(topSpace >= estimatedMenuHeight + 10 || topSpace >= bottomSpace ? "up" : "down");
+  };
 
   useEffect(() => {
     if (!open) return undefined;
+    updateOpenDirection();
 
     const handlePointerDown = (event) => {
       if (controlRef.current?.contains(event.target)) return;
@@ -1538,14 +1572,23 @@ function MetronomeSelectControl({ label, options, value, onChange, layout = "nat
 
   if (layout === "grid") {
     return (
-      <div className={`metronomeSelectControl metronomeSelectControl--grid ${open ? "open" : ""}`} ref={controlRef}>
+      <div
+        className={`metronomeSelectControl metronomeSelectControl--grid metronomeSelectControl--${openDirection} ${open ? "open" : ""}`}
+        ref={controlRef}
+      >
         <span>{label}</span>
         <button
           aria-expanded={open}
           aria-haspopup="listbox"
           aria-label={selectedOption?.longLabel ? `${label}: ${selectedOption.longLabel}` : label}
           className="metronomeSelectButton"
-          onClick={() => setOpen((value) => !value)}
+          onClick={(event) => {
+            event.stopPropagation();
+            updateOpenDirection();
+            setOpen((value) => !value);
+          }}
+          onPointerDown={(event) => event.stopPropagation()}
+          onTouchStart={(event) => event.stopPropagation()}
           title={selectedOption?.longLabel || selectedOption?.label || label}
           type="button"
         >
@@ -1553,13 +1596,20 @@ function MetronomeSelectControl({ label, options, value, onChange, layout = "nat
           <i aria-hidden="true">⌄</i>
         </button>
         {open ? (
-          <div className="metronomeSelectMenu metronomeSelectMenu--twoColumn" role="listbox">
-            {options.map((option) => (
+          <div
+            className="metronomeSelectMenu metronomeSelectMenu--twoColumn"
+            onClick={(event) => event.stopPropagation()}
+            onPointerDown={(event) => event.stopPropagation()}
+            onTouchStart={(event) => event.stopPropagation()}
+            role="listbox"
+          >
+            {gridOptions.map((option) => (
               <button
                 aria-selected={option.id === value}
                 className={`metronomeSelectOption ${option.id === value ? "selected" : ""}`}
                 key={option.id}
-                onClick={() => {
+                onClick={(event) => {
+                  event.stopPropagation();
                   onChange(option.id);
                   setOpen(false);
                 }}
@@ -1768,9 +1818,21 @@ function MetronomeControl({
   );
 }
 
-function MetronomeTimeline({ beat, beatsPerMeasure = 4, currentLabel, isPlaying, progress, runnerLabel, timeSignature = "4/4" }) {
+function MetronomeTimeline({
+  beat,
+  beatPattern,
+  beatsPerMeasure = 4,
+  compact = false,
+  currentLabel,
+  isPlaying,
+  onBeatClick,
+  progress,
+  runnerLabel,
+  timeSignature = "4/4",
+}) {
   const markers = Array.from({ length: Math.max(0, beatsPerMeasure - 1) }, (_, index) => index + 1);
   const dots = Array.from({ length: beatsPerMeasure }, (_, index) => index);
+  const normalizedBeatPattern = normalizeMetronomeBeatPattern(beatPattern, beatsPerMeasure);
 
   return (
     <div className="chordTimeline metronomeTimeline" aria-label={`${timeSignature} 메트로놈 진행`}>
@@ -1797,11 +1859,19 @@ function MetronomeTimeline({ beat, beatsPerMeasure = 4, currentLabel, isPlaying,
           />
         ))}
       </div>
-      <div className="mobileBeatDots" aria-hidden="true">
+      <div className={`mobileBeatDots ${compact ? "mobileBeatDots--compact" : ""}`} aria-label={`${timeSignature} 박자 점자`}>
         {dots.map((beatNumber) => (
-          <span
-            className={beat === beatNumber && isPlaying ? "active" : ""}
+          <BeatDot
+            active={beat === beatNumber && isPlaying}
+            className="trainingBeatDot"
             key={beatNumber}
+            label={`${beatNumber + 1}박 ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
+            onClick={onBeatClick ? (event) => {
+              event.stopPropagation();
+              onBeatClick(beatNumber);
+            } : undefined}
+            state={normalizedBeatPattern[beatNumber]}
+            title={`${beatNumber + 1}박: ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
           />
         ))}
       </div>
@@ -1809,55 +1879,148 @@ function MetronomeTimeline({ beat, beatsPerMeasure = 4, currentLabel, isPlaying,
   );
 }
 
+const WHEEL_PICKER_ITEM_HEIGHT = 34;
+const WHEEL_PICKER_MOMENTUM_MS = 240;
+const WHEEL_PICKER_VELOCITY_POWER = 260;
+
 function WheelPickerColumn({ label, options, value, onChange }) {
-  const listRef = useRef(null);
-  const scrollTimerRef = useRef(null);
+  const frameRef = useRef(null);
+  const selectedIndexRef = useRef(0);
+  const dragRef = useRef(null);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const selectedIndex = Math.max(0, options.findIndex((option) => Number(option.value) === Number(value)));
 
   useEffect(() => {
-    const list = listRef.current;
-    if (!list) return;
-    const optionHeight = 34;
-    list.scrollTo({ top: selectedIndex * optionHeight, behavior: "smooth" });
+    selectedIndexRef.current = selectedIndex;
   }, [selectedIndex]);
 
-  const updateFromScroll = useCallback(() => {
-    const list = listRef.current;
-    if (!list) return;
-    const optionHeight = 34;
-    const nextIndex = Math.max(0, Math.min(options.length - 1, Math.round(list.scrollTop / optionHeight)));
-    const nextValue = options[nextIndex]?.value;
-    if (nextValue != null && Number(nextValue) !== Number(value)) onChange(Number(nextValue));
-  }, [onChange, options, value]);
+  useEffect(() => () => {
+    if (frameRef.current != null) window.cancelAnimationFrame(frameRef.current);
+  }, []);
+
+  const clampIndex = useCallback((index) => Math.max(0, Math.min(options.length - 1, index)), [options.length]);
+
+  const changeToIndex = useCallback((nextIndex) => {
+    const safeIndex = clampIndex(nextIndex);
+    const nextValue = options[safeIndex]?.value;
+    if (nextValue != null && safeIndex !== selectedIndexRef.current) {
+      selectedIndexRef.current = safeIndex;
+      onChange(Number(nextValue));
+    }
+  }, [clampIndex, onChange, options]);
+
+  const animateSnap = useCallback((fromOffset) => {
+    if (frameRef.current != null) window.cancelAnimationFrame(frameRef.current);
+    const startedAt = performance.now();
+    const animate = (now) => {
+      const progress = Math.min(1, (now - startedAt) / WHEEL_PICKER_MOMENTUM_MS);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDragOffset(fromOffset * (1 - eased));
+      if (progress < 1) {
+        frameRef.current = window.requestAnimationFrame(animate);
+        return;
+      }
+      frameRef.current = null;
+      setDragOffset(0);
+      setIsDragging(false);
+    };
+    frameRef.current = window.requestAnimationFrame(animate);
+  }, []);
+
+  const handleOptionClick = useCallback((nextValue) => {
+    const nextIndex = options.findIndex((option) => Number(option.value) === Number(nextValue));
+    if (nextIndex < 0) return;
+    changeToIndex(nextIndex);
+    setDragOffset(0);
+    setIsDragging(false);
+  }, [changeToIndex, options]);
+
+  const handlePointerDown = useCallback((event) => {
+    if (frameRef.current != null) window.cancelAnimationFrame(frameRef.current);
+    frameRef.current = null;
+    const now = performance.now();
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startY: event.clientY,
+      lastY: event.clientY,
+      lastTime: now,
+      startIndex: selectedIndexRef.current,
+      velocity: 0,
+    };
+    setIsDragging(true);
+    setDragOffset(0);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }, []);
+
+  const handlePointerMove = useCallback((event) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const now = performance.now();
+    const deltaY = event.clientY - drag.startY;
+    const elapsed = Math.max(1, now - drag.lastTime);
+    drag.velocity = (event.clientY - drag.lastY) / elapsed;
+    drag.lastY = event.clientY;
+    drag.lastTime = now;
+
+    const virtualIndex = clampIndex(Math.round(drag.startIndex - (deltaY / WHEEL_PICKER_ITEM_HEIGHT)));
+    changeToIndex(virtualIndex);
+    setDragOffset(deltaY + ((virtualIndex - drag.startIndex) * WHEEL_PICKER_ITEM_HEIGHT));
+    event.preventDefault();
+  }, [changeToIndex, clampIndex]);
+
+  const handlePointerUp = useCallback((event) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const deltaY = event.clientY - drag.startY;
+    const projectedDelta = deltaY + (drag.velocity * WHEEL_PICKER_VELOCITY_POWER);
+    const targetIndex = clampIndex(Math.round(drag.startIndex - (projectedDelta / WHEEL_PICKER_ITEM_HEIGHT)));
+    const currentIndex = selectedIndexRef.current;
+    const currentOffset = deltaY + ((currentIndex - drag.startIndex) * WHEEL_PICKER_ITEM_HEIGHT);
+    const snapOffset = currentOffset + ((currentIndex - targetIndex) * WHEEL_PICKER_ITEM_HEIGHT);
+
+    dragRef.current = null;
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    changeToIndex(targetIndex);
+    animateSnap(snapOffset);
+  }, [animateSnap, changeToIndex, clampIndex]);
+
+  const handlePointerCancel = useCallback((event) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    dragRef.current = null;
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    animateSnap(dragOffset);
+  }, [animateSnap, dragOffset]);
 
   return (
     <label className="metronomeWheelColumn">
       <span>{label}</span>
       <div
-        className="metronomeWheelColumnViewport"
-        onScroll={() => {
-          window.clearTimeout(scrollTimerRef.current);
-          scrollTimerRef.current = window.setTimeout(updateFromScroll, 70);
-        }}
-        ref={listRef}
+        className={`metronomeWheelColumnViewport ${isDragging ? "dragging" : ""}`}
+        onPointerCancel={handlePointerCancel}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
         role="listbox"
         tabIndex={0}
       >
         <i aria-hidden="true" />
-        <div className="metronomeWheelPadding" aria-hidden="true" />
-        {options.map((option) => (
+        {options.map((option, optionIndex) => (
           <button
             aria-selected={Number(option.value) === Number(value)}
             className={Number(option.value) === Number(value) ? "selected" : ""}
             key={option.id}
-            onClick={() => onChange(Number(option.value))}
+            onClick={() => handleOptionClick(Number(option.value))}
             role="option"
+            style={{
+              transform: `translate3d(0, ${((optionIndex - selectedIndex) * WHEEL_PICKER_ITEM_HEIGHT) + dragOffset}px, 0)`,
+            }}
             type="button"
           >
             {option.label}
           </button>
         ))}
-        <div className="metronomeWheelPadding" aria-hidden="true" />
       </div>
     </label>
   );
@@ -1872,16 +2035,37 @@ function MetronomeWheelPicker({ ariaLabel, minuteOptions, minutes, onMinutesChan
   );
 }
 
+function TrainingPanelHeader({ collapsed, onToggle, title }) {
+  return (
+    <div className="trainingDetailHeaderRow trainingPanelHeader">
+      <span className="trainingDetailTitle">{title}</span>
+      <button
+        className="trainingSettingsToggle"
+        onClick={onToggle}
+        type="button"
+      >
+        <span>설정 {collapsed ? "펼치기" : "접기"}</span>
+        <b aria-hidden="true">{collapsed ? "⌄" : "⌃"}</b>
+      </button>
+    </div>
+  );
+}
+
 const DEFAULT_STRUM_PATTERN = [];
 
 function normalizeStrumPattern(pattern) {
   if (Array.isArray(pattern) && pattern.length > 0) {
     return pattern
       .flatMap((step) => (Array.isArray(step) ? step : [step]))
-      .map((step) => ({
-        direction: step?.direction === "up" || step?.dir === "up" ? "up" : "down",
-        hit: typeof step?.hit === "boolean" ? step.hit : step?.accent === "strong",
-      }))
+      .map((step) => {
+        if (step?.type === "repeat" || step?.label === "X2") {
+          return { type: "repeat", label: "X2" };
+        }
+        return {
+          direction: step?.direction === "up" || step?.dir === "up" ? "up" : "down",
+          hit: typeof step?.hit === "boolean" ? step.hit : step?.accent === "strong",
+        };
+      })
       .slice(0, 24);
   }
   return [];
@@ -1914,7 +2098,15 @@ function StrumPattern({ onStepClick, pattern = DEFAULT_STRUM_PATTERN }) {
       }}
     >
       {steps.map((step, index) => (
-        onStepClick ? (
+        step.type === "repeat" ? (
+          <span
+            aria-label={`${index + 1}번째 주법 X2`}
+            className="strumPatternStep repeat"
+            key={`repeat-${index}`}
+          >
+            X2
+          </span>
+        ) : onStepClick ? (
           <button
             aria-label={`${index + 1}번째 주법 ${step.hit ? "헛스트럼으로 변경" : "실제 스트럼으로 변경"}`}
             className={`strumPatternStep ${step.hit ? "hit" : "ghost"} editable`}
@@ -1929,6 +2121,18 @@ function StrumPattern({ onStepClick, pattern = DEFAULT_STRUM_PATTERN }) {
             {step.direction === "up" ? "↑" : "↓"}
           </span>
         )
+      ))}
+    </div>
+  );
+}
+
+function StrumPatternRows({ pattern = DEFAULT_STRUM_PATTERN }) {
+  const rows = normalizeStrumPatternGroups(pattern).filter((row) => row.length);
+  if (!rows.length) return null;
+  return (
+    <div className="strumPatternRows">
+      {rows.map((row, index) => (
+        <StrumPattern key={`strum-pattern-row-${index}`} pattern={row} />
       ))}
     </div>
   );
@@ -2040,15 +2244,27 @@ const DESIGN_LAB_SECTIONS = [
   { id: "app-icon", label: "앱아이콘" },
   { id: "character", label: "Guitar" },
   { id: "monster", label: "몬스터" },
-  { id: "component", label: "컴포넌트" },
   { id: "test", label: "TEST" },
-  { id: "archive", label: "Archive" },
+  { id: "archive", label: "아카이브" },
 ];
 const SHOOTER_PLAYER_STORAGE_KEY = "rifflabSelectedPlayer";
 const SHOOTER_GUITAR_STORAGE_KEY = "rifflabSelectedGuitar";
 const GUITAR_LAB_STORAGE_KEY = "rifflab-shooter-guitar-v1";
 const GUITAR_LAB_AVAILABILITY_STORAGE_KEY = "rifflabGuitarLabAvailability";
+const GUITAR_LAB_DELETED_STORAGE_KEY = "rifflabGuitarLabDeletedIds";
+const GUITAR_LAB_PURGED_STORAGE_KEY = "rifflabGuitarLabPurgedIds";
 const SHOOTER_PLAYER_SLOTS_STORAGE_KEY = "shooterPlayerSlots";
+const RIFFLAB_GUITAR_DESIGN_RULES = [
+  "헤드는 전체 길이의 약 16~20% 안에서 위를 향하고, 튜닝 포스트 6개는 헤드 중앙축을 기준으로 정렬한다.",
+  "튜닝 버튼은 헤드 양측에 두되, 줄의 시작점처럼 보이지 않게 포스트와 짧은 암으로 연결한다.",
+  "줄 경로는 튜닝 포스트 -> 너트 -> 지판 -> 새들 -> 브릿지핀 순서로 연결한다.",
+  "너트는 헤드와 지판의 경계이며, 모든 줄은 너트를 통과한 뒤 지판 위를 지나간다.",
+  "지판은 헤드에서 바디까지 정돈된 11자 형태를 유지하고, 프렛은 지판 내부에만 수평으로 배치한다.",
+  "사운드홀은 바디 상단 중앙, 브릿지는 사운드홀 아래, 새들은 브릿지 내부 상단, 브릿지핀 6개는 새들 아래에 둔다.",
+  "픽가드는 사운드홀 우측에 두고, 뾰족한 끝은 사운드홀 외곽을 향해 자연스럽게 붙인다.",
+  "바디는 어깨 -> 허리 -> 하부 바디가 끊기지 않는 연속 곡선이며, 컷어웨이는 우측 어깨에만 부드럽게 적용한다.",
+  "하부 바디는 Martin/Gibson 계열처럼 넓되 과하게 부풀리지 않고, 최하단은 평평함이나 각 없이 하나의 연속 곡률로 닫는다.",
+];
 const GUITAR_LAB_VARIANTS = [
   ["acoustic-dreadnought", "Acoustic", "Dreadnought", "큰 바디와 강한 존재감의 기본 어쿠스틱 플레이어", "#b87936", "#2f1a0b", "round"],
   ["acoustic-om", "Acoustic", "OM", "균형 잡힌 허리선과 민첩한 이동감을 가진 어쿠스틱", "#c98b43", "#332012", "waist"],
@@ -2070,6 +2286,124 @@ const GUITAR_LAB_VARIANTS = [
   ["acoustic-stage-buddy", "Acoustic", "Stage Buddy", "작은 무대 조명감과 부드러운 어깨선을 가진 버디형", "#b96f2c", "#e6b86a", "buddy-dread"],
   ["acoustic-pick-guard", "Acoustic", "Pick Guard", "픽가드 실루엣이 캐릭터 표정처럼 읽히는 플레이어 후보", "#a86434", "#f1ca7a", "guard-dread"],
   ["acoustic-mini-ace", "Acoustic", "Mini Ace", "작지만 헤드와 줄 구조가 선명한 빠른 기동형 후보", "#d39b4d", "#2a1b0d", "ace-mini"],
+  ["acoustic-auditorium", "Acoustic", "Auditorium", "허리선이 정돈된 균형형 오디토리엄 후보", "#c9873e", "#2b190c", "auditorium"],
+  ["acoustic-grand-auditorium", "Acoustic", "Grand Auditorium", "넓은 하단과 얇은 허리선의 그랜드 오디토리엄", "#d39a4b", "#321d0d", "grand-auditorium"],
+  ["acoustic-soft-cutaway", "Acoustic", "Soft Cutaway", "부드러운 상단 컷어웨이가 있는 모던 어쿠스틱", "#be7a34", "#f1ca7a", "soft-cutaway"],
+  ["acoustic-modern-cutaway", "Acoustic", "Modern Cutaway", "날렵한 싱글 컷어웨이와 무대형 실루엣", "#d09a55", "#2a1608", "modern-cutaway"],
+  ["acoustic-slope-shoulder", "Acoustic", "Slope Shoulder", "빈티지 슬로프 숄더 감성의 둥근 어깨형", "#b87533", "#3a2110", "slope-shoulder"],
+  ["acoustic-parlor", "Acoustic", "Parlor", "작고 선명한 실루엣의 팔러 기타 후보", "#d4a15c", "#28170c", "parlor"],
+  ["acoustic-premium-dread", "Acoustic", "Premium Dread", "정통 드레드넛 비율에 골드 엣지를 더한 프리미엄형", "#a85f2b", "#f1ca7a", "premium-dread"],
+  ["acoustic-vintage-amber", "Acoustic", "Vintage Amber", "오래된 앰버 톤과 클래식 픽가드의 빈티지 후보", "#c27a2f", "#2d190b", "vintage-amber"],
+  ["acoustic-black-cutaway", "Acoustic", "Black Cutaway", "블랙 상판과 정교한 컷어웨이를 가진 고급형", "#11100d", "#d9aa55", "soft-cutaway"],
+  ["acoustic-maple-jumbo", "Acoustic", "Maple Jumbo", "밝은 메이플 톤의 넓은 점보 바디", "#e2b76c", "#42240e", "jumbo"],
+  ["classical-premium-black", "Classical", "Premium Black", "블랙 나일론 바디와 정돈된 클래식 헤드", "#0d0d0c", "#d9aa55", "classical-premium"],
+  ["classical-flamenco", "Classical", "Flamenco", "얇고 밝은 바디의 플라멩코 스타일 후보", "#e0b46c", "#2f1b0c", "flamenco"],
+  ["classical-concert", "Classical", "Concert", "콘서트 클래식 비율을 강조한 정갈한 후보", "#c98f4a", "#3b230e", "concert-classical"],
+  ["classical-dark-rose", "Classical", "Dark Rose", "다크 로즈우드 톤의 고급 클래식 후보", "#5f2e24", "#d9aa55", "classical-premium"],
+  ["electric-single-cut-gold", "Electric", "Single Cut Gold", "LP 계열을 더 단순화한 골드 싱글컷", "#c18a35", "#120a06", "lp"],
+  ["electric-offset-blue", "Electric", "Offset Blue", "오프셋 바디와 블루 스테이지 톤의 일렉 후보", "#244c64", "#d9aa55", "offset"],
+  ["electric-arcade-red", "Electric", "Arcade Red", "슈팅게임에서 읽히는 강한 레드 바디 후보", "#9a2c22", "#f1ca7a", "super"],
+  ["electric-hollow-gold", "Electric", "Hollow Gold", "세미할로우 느낌을 줄인 골드 일렉 후보", "#b87936", "#17110a", "hollow"],
+  ["electric-shadow-metal", "Electric", "Shadow Metal", "날렵한 메탈 헤드와 블랙 바디의 공격형", "#101114", "#c7c9d1", "metal"],
+  ["electric-tele-deluxe", "Electric", "Tele Deluxe", "각진 텔레 바디에 더 넓은 픽가드를 더한 후보", "#d0a05a", "#17110a", "tele-deluxe"],
+  ["acoustic-dreadnought-refined", "Acoustic", "Dreadnought Refined", "정통 드레드넛 비율과 정렬된 헤드 구조를 강화한 후보", "#c9843d", "#2a1709", "dreadnought-refined"],
+  ["acoustic-om-refined", "Acoustic", "OM Refined", "작은 허리선과 안정적인 지판 비율의 OM 개선형", "#d19a55", "#301c0d", "om-refined"],
+  ["acoustic-grand-concert", "Acoustic", "Grand Concert", "바디가 작고 균형 잡힌 그랜드 콘서트형", "#d6a15a", "#2b190d", "grand-concert"],
+  ["acoustic-jumbo-balanced", "Acoustic", "Jumbo Balanced", "넓은 하단 바디를 대칭적으로 정리한 점보형", "#b86f2e", "#f1ca7a", "jumbo-balanced"],
+  ["acoustic-venetian-cutaway", "Acoustic", "Venetian Cutaway", "우측 어깨에 부드러운 베네시안 컷어웨이를 적용한 후보", "#c58235", "#f1ca7a", "venetian-cutaway"],
+  ["acoustic-modern-venetian", "Acoustic", "Modern Venetian", "모던 컷어웨이를 과하지 않게 다듬은 무대형 후보", "#d0964f", "#2b1608", "modern-venetian"],
+  ["acoustic-deep-waist", "Acoustic", "Deep Waist", "허리 라인이 선명하지만 전체 대칭이 유지되는 후보", "#b76d32", "#f1ca7a", "deep-waist"],
+  ["acoustic-travel-plus", "Acoustic", "Travel Plus", "작은 바디와 선명한 헤드 디테일을 가진 트래블형", "#d8aa62", "#2a1a0d", "travel-plus"],
+  ["acoustic-12fret-heritage", "Acoustic", "12-Fret Heritage", "빈티지 12프렛 감성의 짧은 넥 비율 후보", "#c28b46", "#2f1c0e", "twelve-fret"],
+  ["acoustic-archtop-gold", "Acoustic", "Archtop Gold", "아치탑 실루엣을 어쿠스틱 플레이어로 재해석한 후보", "#c99448", "#1d1208", "archtop"],
+  ["acoustic-all-solid", "Acoustic", "All Solid", "고급 원목 질감과 정돈된 브릿지 구조를 강조한 후보", "#bf7b35", "#f1ca7a", "all-solid"],
+  ["acoustic-concert-cutaway", "Acoustic", "Concert Cutaway", "콘서트 바디에 작은 컷어웨이를 더한 후보", "#d6a260", "#28170c", "concert-cutaway"],
+  ["acoustic-slope-modern", "Acoustic", "Slope Modern", "슬로프 숄더를 현대적으로 정리한 후보", "#b97939", "#2f1a0c", "slope-modern"],
+  ["acoustic-thin-body", "Acoustic", "Thin Body", "얇은 바디 느낌과 모바일 식별성을 강화한 후보", "#a9672d", "#f1ca7a", "thin-body"],
+  ["acoustic-baritone", "Acoustic", "Baritone", "긴 넥과 안정적인 하단 바디를 가진 바리톤 감성 후보", "#8f5228", "#d9aa55", "baritone"],
+  ["acoustic-rosewood-grand", "Acoustic", "Rosewood Grand", "짙은 로즈우드 톤과 큰 바디의 프리미엄 후보", "#683322", "#d9aa55", "rosewood-grand"],
+  ["acoustic-maple-stage", "Acoustic", "Maple Stage", "밝은 메이플 상판과 무대용 픽가드 배치를 가진 후보", "#e1b96d", "#37200e", "maple-stage"],
+  ["acoustic-cedar-om", "Acoustic", "Cedar OM", "시더 톤 OM 바디와 부드러운 곡선의 후보", "#ad6534", "#f1ca7a", "cedar-om"],
+  ["acoustic-black-bird", "Acoustic", "Black Bird", "블랙 상판 위 새 인레이가 또렷한 프리미엄 후보", "#11100d", "#d9aa55", "black-bird"],
+  ["acoustic-sunburst-cutaway", "Acoustic", "Sunburst Cutaway", "선버스트 톤과 우측 컷어웨이를 결합한 후보", "#c06f24", "#1a0e06", "sunburst-cutaway"],
+  ["acoustic-orchestra-luxe", "Acoustic", "Orchestra Luxe", "작은 허리와 정돈된 상하 비례를 가진 오케스트라형 신규 후보", "#cf9450", "#2b1709", "orchestra-luxe"],
+  ["acoustic-heritage-dread", "Acoustic", "Heritage Dread", "정통 드레드넛을 더 각진 헤드와 안정적인 바디로 다듬은 신규 후보", "#b96f32", "#f1ca7a", "heritage-dread"],
+  ["acoustic-studio-cut", "Acoustic", "Studio Cut", "스튜디오 세션용처럼 얇고 부드러운 우측 컷어웨이 신규 후보", "#d5a05c", "#251409", "studio-cut"],
+  ["acoustic-boutique-cedar", "Acoustic", "Boutique Cedar", "부티크 악기점 감성의 시더 톤과 깊은 허리선을 가진 신규 후보", "#a95f35", "#f1ca7a", "boutique-cedar"],
+  ["acoustic-wide-stage", "Acoustic", "Wide Stage", "무대 위 플레이어처럼 하단이 넓고 중심축이 또렷한 신규 후보", "#d9aa55", "#3b210e", "wide-stage"],
+  ["acoustic-north-dread", "Acoustic", "North Dread", "넓은 어깨와 부드러운 허리 곡선을 정리한 정통 드레드넛 신규 후보", "#c47f37", "#f1ca7a", "north-dread"],
+  ["acoustic-ember-om", "Acoustic", "Ember OM", "작은 허리와 자연스러운 상부 바디 비율의 OM 신규 후보", "#d09248", "#2a1709", "ember-om"],
+  ["acoustic-royal-auditorium", "Acoustic", "Royal Auditorium", "오디토리엄 바디의 연속 곡선과 고급 골드 엣지를 강조한 후보", "#d7a55d", "#3a210f", "royal-auditorium"],
+  ["acoustic-crescent-cutaway", "Acoustic", "Crescent Cutaway", "사운드홀을 향해 열리는 부드러운 우측 컷어웨이 신규 후보", "#b96d31", "#f1ca7a", "crescent-cutaway"],
+  ["acoustic-rose-stage", "Acoustic", "Rose Stage", "로즈 브라운 톤과 실제 픽가드 방향을 강조한 스테이지형 신규 후보", "#7b3f29", "#d9aa55", "rose-stage"],
+  ["real-martin-d28", "Acoustic", "Real D-28 Line", "Martin D-28 계열의 정통 드레드넛 비율을 단순화한 실제 구조 기반 라인", "#c7843c", "#f1ca7a", "real-d28"],
+  ["real-martin-d18", "Acoustic", "Real D-18 Line", "D-18 계열의 단정한 어깨와 선명한 브릿지핀 구조를 반영한 후보", "#d59b4f", "#3a210f", "real-d18"],
+  ["real-martin-hd28", "Acoustic", "Real HD-28 Line", "HD-28 스타일의 넓은 하부 바디와 프리미엄 엣지를 반영한 후보", "#b97834", "#f1ca7a", "real-hd28"],
+  ["real-gibson-j45", "Acoustic", "Real J-45 Slope", "Gibson J-45 계열의 슬로프 숄더와 안정적인 허리선을 참고한 후보", "#9b5428", "#f1ca7a", "real-j45"],
+  ["real-gibson-hummingbird", "Acoustic", "Real Hummingbird", "스퀘어 숄더와 큰 픽가드 영역을 단순화한 허밍버드 방향 후보", "#c66d25", "#2a1608", "real-hummingbird"],
+  ["real-taylor-814ce", "Acoustic", "Real 814ce Cut", "Taylor 814ce 계열의 그랜드 오디토리엄 컷어웨이 비율을 반영한 후보", "#d6a66a", "#2b1709", "real-814ce"],
+  ["real-taylor-314ce", "Acoustic", "Real 314ce Cut", "314ce 계열의 밝은 상판과 부드러운 Venetian 컷어웨이를 참고한 후보", "#d8ac66", "#30200e", "real-314ce"],
+  ["real-taylor-214ce", "Acoustic", "Real 214ce Cut", "214ce 계열의 얇고 읽기 쉬운 컷어웨이 실루엣을 반영한 후보", "#d09a55", "#f1ca7a", "real-214ce"],
+  ["real-yamaha-fg5", "Acoustic", "Real FG5 Dread", "Yamaha FG5 계열의 직관적인 드레드넛 바디와 브릿지 구조 후보", "#c98b43", "#2d190b", "real-fg5"],
+  ["real-yamaha-ll16", "Acoustic", "Real LL16 Jumbo", "Yamaha LL16 계열의 넓은 하부와 긴 라인감을 단순화한 후보", "#d29a50", "#2a1709", "real-ll16"],
+  ["real-vintage-dread", "Acoustic", "Real Vintage Dread", "빈티지 드레드넛의 둥근 어깨와 실제 핀 브릿지를 강조한 후보", "#b56a2d", "#f1ca7a", "real-vintage-dread"],
+  ["real-modern-dread", "Acoustic", "Real Modern Dread", "현대 드레드넛의 정돈된 상하 비율과 직선적인 지판 구조 후보", "#d09a4f", "#2a1709", "real-modern-dread"],
+  ["real-om-rosewood", "Acoustic", "Real OM Rosewood", "OM 계열의 작은 허리와 로즈우드 톤을 반영한 실제 비율 후보", "#70402b", "#d9aa55", "real-om-rosewood"],
+  ["real-auditorium-cedar", "Acoustic", "Real Auditorium Cedar", "오디토리엄 바디와 시더 톤 상판을 참고한 균형형 후보", "#a96737", "#f1ca7a", "real-auditorium-cedar"],
+  ["real-grand-auditorium", "Acoustic", "Real Grand Auditorium", "그랜드 오디토리엄의 하부 볼륨과 사운드홀 위치를 반영한 후보", "#d6a25b", "#30200e", "real-grand-auditorium"],
+  ["real-single-cutaway", "Acoustic", "Real Single Cutaway", "우측 어깨 컷어웨이를 실제 연주기타 비율로 절제한 후보", "#c17a35", "#f1ca7a", "real-single-cutaway"],
+  ["real-soft-cutaway", "Acoustic", "Real Soft Cutaway", "부드러운 컷어웨이와 어쿠스틱 바디 대칭감을 함께 유지한 후보", "#d2a05c", "#2a1709", "real-soft-cutaway"],
+  ["real-modern-cutaway", "Acoustic", "Real Modern Cutaway", "모던 컷어웨이를 과장 없이 정리한 무대용 어쿠스틱 후보", "#b96f34", "#f1ca7a", "real-modern-cutaway"],
+  ["real-jumbo-maple", "Acoustic", "Real Jumbo Maple", "점보 바디의 넓은 하부와 메이플 계열 밝은 상판 후보", "#e1b96d", "#3b210e", "real-jumbo-maple"],
+  ["real-square-shoulder", "Acoustic", "Real Square Shoulder", "Gibson Hummingbird 계열의 스퀘어 숄더를 단순화한 후보", "#b86727", "#f1ca7a", "real-square-shoulder"],
+  ["fresh-d28-bloom", "Acoustic", "D28 Bloom", "상부 어깨와 허리, 하부 바디가 한 흐름으로 이어지는 새 드레드넛 라인", "#c9823a", "#f1ca7a", "fresh-dread"],
+  ["fresh-d18-honey", "Acoustic", "D18 Honey", "꿀빛 상판과 절제된 하단 곡률을 가진 정통 어쿠스틱 후보", "#d79b4d", "#3a210f", "fresh-d18"],
+  ["fresh-fg5-root", "Acoustic", "FG5 Root", "Yamaha FG5 계열의 직관적인 어깨와 둥근 하부를 재해석한 후보", "#c88b43", "#2d190b", "fresh-fg5"],
+  ["fresh-j45-slope", "Acoustic", "J45 Slope", "슬로프 숄더와 자연스러운 허리선을 가진 빈티지 후보", "#a75d2d", "#f1ca7a", "fresh-j45"],
+  ["fresh-humming-gold", "Acoustic", "Humming Gold", "스퀘어 숄더 계열을 부드러운 하부 곡률로 정리한 후보", "#c66e28", "#2a1608", "fresh-humming"],
+  ["fresh-om-clear", "Acoustic", "OM Clear", "작은 허리와 선명한 사운드홀 비율의 OM 후보", "#d39a55", "#2f1b0d", "fresh-om"],
+  ["fresh-000-amber", "Acoustic", "000 Amber", "컴팩트한 바디에 하단 연속 곡선을 강조한 000 후보", "#d49b52", "#332012", "fresh-000"],
+  ["fresh-auditorium-arc", "Acoustic", "Auditorium Arc", "오디토리엄 바디의 상하 균형과 유기적 하단 곡선을 다듬은 후보", "#d2a05b", "#30200e", "fresh-auditorium"],
+  ["fresh-grand-stage", "Acoustic", "Grand Stage", "무대용 그랜드 오디토리엄 비율과 골드 로제트가 돋보이는 후보", "#d9aa55", "#3b210e", "fresh-grand"],
+  ["fresh-soft-cut", "Acoustic", "Soft Cut", "우측 어깨 컷어웨이를 실제 기타처럼 부드럽게 제한한 후보", "#c37a36", "#f1ca7a", "fresh-soft-cut"],
+  ["fresh-venetian", "Acoustic", "Venetian", "사운드홀과 픽가드 방향이 정돈된 베네시안 컷어웨이 후보", "#d29a4f", "#2a1709", "fresh-venetian"],
+  ["fresh-cedar-room", "Acoustic", "Cedar Room", "시더 톤과 차분한 하단 볼륨을 가진 연습실형 후보", "#a96737", "#f1ca7a", "fresh-cedar"],
+  ["fresh-rosewood-room", "Acoustic", "Rosewood Room", "짙은 로즈우드 톤과 자개 로제트를 강조한 고급 후보", "#70402b", "#d9aa55", "fresh-rosewood"],
+  ["fresh-maple-luxe", "Acoustic", "Maple Luxe", "밝은 메이플 톤과 균형 잡힌 하부 바디를 가진 후보", "#e1b96d", "#3b210e", "fresh-maple"],
+  ["fresh-black-pearl", "Acoustic", "Black Pearl", "블랙 바디와 자개 로제트 대비가 강한 프리미엄 후보", "#11100d", "#d9aa55", "fresh-black"],
+  ["fresh-sunburst-dread", "Acoustic", "Sunburst Dread", "선버스트 톤과 실제 드레드넛 실루엣을 조합한 후보", "#c06f24", "#1a0e06", "fresh-sunburst"],
+  ["fresh-boutique-om", "Acoustic", "Boutique OM", "부티크 기타샵 감성의 작고 정교한 OM 후보", "#c88443", "#f1ca7a", "fresh-boutique"],
+  ["fresh-studio-dread", "Acoustic", "Studio Dread", "녹음실용처럼 차분한 바디와 얇은 골드 엣지를 가진 후보", "#b96f32", "#f1ca7a", "fresh-studio"],
+  ["fresh-jumbo-tame", "Acoustic", "Jumbo Tame", "점보 느낌은 남기되 돼지배처럼 부풀지 않게 절제한 후보", "#d0a05c", "#28170c", "fresh-jumbo"],
+  ["fresh-heritage-bird", "Acoustic", "Heritage Bird", "새 인레이와 자개 로제트를 고급스럽게 정리한 헤리티지 후보", "#b86727", "#f1ca7a", "fresh-heritage"],
+  ["fresh-d15m-mahogany", "Acoustic", "D15M Mahogany", "Martin D-15M 참고 비율의 올마호가니 드레드넛 후보", "#8f4f2d", "#f1ca7a", "fresh-d15m-mahogany"],
+  ["fresh-d15m-satin", "Acoustic", "D15M Satin", "새틴 마호가니 질감과 단정한 스퀘어 숄더 실루엣 후보", "#9a5a35", "#d9aa55", "fresh-d15m-satin"],
+  ["fresh-d15m-studio", "Acoustic", "D15M Studio", "상부 어깨와 하부 곡률을 D 바디 기준으로 정리한 스튜디오 후보", "#7b452c", "#f1ca7a", "fresh-d15m-studio"],
+  ["fresh-d15m-shadow", "Acoustic", "D15M Shadow", "어두운 마호가니 바디와 절제된 골드 엣지를 가진 D 바디 후보", "#5f3325", "#d9aa55", "fresh-d15m-shadow"],
+  ["fresh-d15m-stage", "Acoustic", "D15M Stage", "무대용 플레이어로 읽히도록 D-15M 실루엣을 선명하게 다듬은 후보", "#a96537", "#f8e8b0", "fresh-d15m-stage"],
+  ["fresh-cutaway-814ce", "Acoustic", "814ce Flow", "Taylor 814ce 계열의 우측 어깨 컷어웨이 흐름을 참고한 후보", "#d6a15c", "#2a1709", "fresh-cutaway-814ce"],
+  ["fresh-cutaway-314ce", "Acoustic", "314ce Flow", "그랜드 오디토리엄 컷어웨이를 더 담백하게 단순화한 후보", "#c98b43", "#f1ca7a", "fresh-cutaway-314ce"],
+  ["fresh-cutaway-214ce", "Acoustic", "214ce Flow", "부드러운 고음현 컷어웨이와 낮은 하단 곡률을 가진 후보", "#d09a4f", "#2d190b", "fresh-cutaway-214ce"],
+  ["fresh-cutaway-grand", "Acoustic", "Grand Cutaway", "넓은 하부 바디와 유려한 베네시안 컷어웨이를 조합한 후보", "#d9aa55", "#3b210e", "fresh-cutaway-grand"],
+  ["fresh-cutaway-auditorium", "Acoustic", "Auditorium Cut", "오디토리엄 비율에 자연스러운 우측 어깨 파임을 더한 후보", "#c58235", "#f1ca7a", "fresh-cutaway-auditorium"],
+  ["fresh-cutaway-dread", "Acoustic", "Dread Cutaway", "드레드넛 바디를 유지하면서 컷어웨이를 과하지 않게 넣은 후보", "#b96f32", "#f1ca7a", "fresh-cutaway-dread"],
+  ["fresh-cutaway-mahogany", "Acoustic", "Mahogany Cut", "마호가니 톤과 D 바디 컷어웨이를 결합한 후보", "#8f4f2d", "#d9aa55", "fresh-cutaway-mahogany"],
+  ["fresh-cutaway-rosewood", "Acoustic", "Rosewood Cut", "짙은 로즈우드 톤과 자개 로제트가 어울리는 컷어웨이 후보", "#70402b", "#d9aa55", "fresh-cutaway-rosewood"],
+  ["fresh-cutaway-maple", "Acoustic", "Maple Cut", "밝은 메이플 톤과 선명한 고음현 컷어웨이를 가진 후보", "#e1b96d", "#3b210e", "fresh-cutaway-maple"],
+  ["fresh-cutaway-black", "Acoustic", "Black Cut", "블랙 바디에서 컷어웨이 실루엣이 또렷하게 읽히는 후보", "#11100d", "#d9aa55", "fresh-cutaway-black"],
+  ["fresh-cutaway-sunburst", "Acoustic", "Sunburst Cut", "선버스트 바디와 부드러운 우측 어깨 라인의 후보", "#c06f24", "#1a0e06", "fresh-cutaway-sunburst"],
+  ["fresh-cutaway-cedar", "Acoustic", "Cedar Cut", "시더 상판 느낌의 차분한 컷어웨이 후보", "#a96737", "#f1ca7a", "fresh-cutaway-cedar"],
+  ["fresh-cutaway-stage", "Acoustic", "Stage Cut", "슈팅게임 플레이어로 읽히도록 컷어웨이 실루엣을 선명하게 만든 후보", "#c37a36", "#f8e8b0", "fresh-cutaway-stage"],
+  ["fresh-cutaway-venetian", "Acoustic", "Venetian Flow", "급격한 각 없이 둥글게 파인 베네시안 컷어웨이 후보", "#d29a4f", "#2a1709", "fresh-cutaway-venetian"],
+  ["fresh-cutaway-soft", "Acoustic", "Soft Flow", "상부 바디에서 허리까지 한 흐름으로 이어지는 소프트 컷어웨이 후보", "#d2a05b", "#30200e", "fresh-cutaway-soft"],
+  ["fresh-cutaway-modern", "Acoustic", "Modern Flow", "모던한 컷어웨이를 직선 없이 유기적인 곡선으로 정리한 후보", "#b87533", "#f1ca7a", "fresh-cutaway-modern"],
+  ["fresh-cutaway-boutique", "Acoustic", "Boutique Cut", "부티크 기타샵 감성의 얇은 허리와 컷어웨이 후보", "#c88443", "#f1ca7a", "fresh-cutaway-boutique"],
+  ["fresh-cutaway-pearl", "Acoustic", "Pearl Cut", "자개 로제트와 고급 컷어웨이 실루엣을 강조한 후보", "#5f3325", "#f8e8b0", "fresh-cutaway-pearl"],
+  ["fresh-cutaway-honey", "Acoustic", "Honey Cut", "꿀빛 상판과 자연스러운 하단 연속 곡률의 컷어웨이 후보", "#d79b4d", "#3a210f", "fresh-cutaway-honey"],
+  ["fresh-cutaway-reference", "Acoustic", "Reference Cut", "첨부 레퍼런스 라인의 측면 흐름과 하단 곡률을 기준으로 만든 후보", "#c9823a", "#f1ca7a", "fresh-cutaway-reference"],
+  ["acoustic-core-dread-01", "Acoustic", "Core Dread 01", "진한 자개 로제트와 위로 정리된 브릿지 위치를 적용한 기본 드레드넛 후보", "#b97836", "#f1ca7a", "core-dread-01"],
+  ["acoustic-core-dread-02", "Acoustic", "Core Dread 02", "마호가니 톤을 유지하면서 사운드홀과 브릿지 간격을 좁힌 후보", "#8f5230", "#f8e8b0", "core-dread-02"],
+  ["acoustic-core-dread-03", "Acoustic", "Core Dread 03", "선버스트 깊이감과 진한 자개 사운드홀을 더한 스테이지용 후보", "#c06f24", "#1a0e06", "core-dread-03"],
 ].map(([id, pack, model, description, bodyColor, accentColor, shape], index) => ({
   id,
   pack,
@@ -2081,11 +2415,16 @@ const GUITAR_LAB_VARIANTS = [
   shape,
   index: index + 1,
 }));
-const DEFAULT_GUITAR_LAB_VARIANT_ID = GUITAR_LAB_VARIANTS[0].id;
+const DEFAULT_GUITAR_LAB_VARIANT_ID = "acoustic-core-dread-01";
 const GUITAR_LAB_VARIANT_IDS = new Set(GUITAR_LAB_VARIANTS.map((variant) => variant.id));
+const FRESH_ACOUSTIC_GUITAR_IDS = new Set([
+  "acoustic-core-dread-01",
+  "acoustic-core-dread-02",
+  "acoustic-core-dread-03",
+]);
 const DEFAULT_SHOOTER_PLAYER_SLOTS = {
-  slot1: "acoustic-dreadnought",
-  slot2: "classical-black",
+  slot1: "acoustic-core-dread-01",
+  slot2: "acoustic-core-dread-02",
   slot3: "electric-lp",
 };
 const SHOOTER_PLAYER_SLOT_KEYS = ["slot1", "slot2", "slot3"];
@@ -2105,157 +2444,6 @@ const MONSTER_LAB_VARIANTS = MONSTER_LAB_GROUPS.flatMap((group) =>
     variant: index + 1,
   }))
 );
-const COMPONENT_LAB_DROPDOWN_OPTIONS = [
-  { id: "1/4", label: "1/4" },
-  { id: "2/4", label: "2/4" },
-  { id: "3/4", label: "3/4" },
-  { id: "4/4", label: "4/4" },
-  { id: "3/8", label: "3/8" },
-  { id: "6/8", label: "6/8" },
-  { id: "9/8", label: "9/8" },
-  { id: "12/8", label: "12/8" },
-];
-const COMPONENT_LAB_SUBDIVISION_OPTIONS = [
-  { id: "quarter", label: "4분" },
-  { id: "eighth", label: "8분" },
-  { id: "sixteenth", label: "16분" },
-  { id: "thirty-second", label: "32분" },
-  { id: "eighth-triplet", label: "8분 셋잇단" },
-  { id: "sixteenth-triplet", label: "16분 셋잇단" },
-  { id: "dotted-eighth", label: "점8분" },
-  { id: "shuffle", label: "셔플" },
-];
-
-function ComponentLabDropdownPreview({ description, flow, items, title }) {
-  const rowCount = Math.ceil(items.length / 2);
-
-  return (
-    <div className={`componentLabDropdownPreview componentLabDropdownPreview--${flow}`}>
-      <div className="componentLabDropdownTrigger">
-        <span>{title}</span>
-        <strong>{items[0]?.label}</strong>
-        <em aria-hidden="true">⌄</em>
-      </div>
-      <div
-        className="componentLabDropdownMenu"
-        style={flow === "vertical" ? { gridTemplateRows: `repeat(${rowCount}, minmax(30px, auto))` } : undefined}
-      >
-        {items.map((item, index) => (
-          <button className={index === 0 ? "selected" : ""} key={item.id} type="button">
-            {item.label}
-          </button>
-        ))}
-      </div>
-      <small>{description}</small>
-    </div>
-  );
-}
-
-function ComponentLabMetronomeTopControlPreview({ description, variant }) {
-  const items = [
-    { id: "bpm", label: "BPM", value: "120" },
-    { id: "quick", label: "빠른" },
-    { id: "accent", label: "강박", value: "ON" },
-    { id: "count", label: "카운트", value: "ON" },
-    { id: "repeat", label: "반복", value: "OFF" },
-  ];
-
-  return (
-    <div className={`componentLabMetronomeTop componentLabMetronomeTop--${variant}`}>
-      <div className="componentLabMetronomeTop__label">
-        <span>{variant.toUpperCase()}</span>
-        <strong>{description}</strong>
-      </div>
-      <div className="componentLabMetronomeTop__surface">
-        {items.map((item) => (
-          <button key={item.id} type="button">
-            <span>{item.label}</span>
-            {item.value ? <strong>{item.value}</strong> : null}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ComponentLabMetronomeMainPreview({ variant }) {
-  const isBeatFirst = variant === "beat";
-  const beats = isBeatFirst
-    ? [
-      { id: 1, state: "accent", active: true, symbol: "●" },
-      { id: 2, state: "normal", active: false, symbol: "○" },
-      { id: 3, state: "normal", active: false, symbol: "○" },
-      { id: 4, state: "mute", active: false, symbol: "□" },
-    ]
-    : [
-      { id: 1, state: "accent", active: false, symbol: "●" },
-      { id: 2, state: "normal", active: false, symbol: "○" },
-      { id: 3, state: "normal", active: false, symbol: "○" },
-      { id: 4, state: "normal", active: false, symbol: "○" },
-    ];
-
-  return (
-    <div className={`componentLabMetronomeMain componentLabMetronomeMain--${variant}`}>
-      <div className="componentLabMetronomeMain__phone">
-        {isBeatFirst ? (
-          <>
-            <div className="componentLabMetronomeMain__beatHero" aria-label="점자 중심 메트로놈 미리보기">
-              {beats.map((item) => (
-                <span className={`${item.state} ${item.active ? "active" : ""}`} key={item.id}>
-                  {item.symbol}
-                </span>
-              ))}
-            </div>
-            <div className="componentLabMetronomeMain__bpmPlate">
-              <button type="button">-</button>
-              <strong>80 <small>BPM</small></strong>
-              <button type="button">+</button>
-            </div>
-            <div className="componentLabMetronomeMain__options">
-              <span>4/4</span>
-              <span>♪♪</span>
-              <span>Tick</span>
-            </div>
-            <div className="componentLabMetronomeMain__drawer">
-              <span>Auto BPM</span>
-              <span>Coach</span>
-              <span>Count In</span>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="componentLabMetronomeMain__bpmHero">
-              <span>BPM</span>
-              <strong>80</strong>
-              <small>READY</small>
-            </div>
-            <div className="componentLabMetronomeMain__miniBeat">
-              {beats.map((item) => (
-                <span className={item.state} key={item.id}>{item.id}</span>
-              ))}
-            </div>
-            <div className="componentLabMetronomeMain__options">
-              <span>4/4</span>
-              <span>♪♪</span>
-              <span>Tick</span>
-            </div>
-            <div className="componentLabMetronomeMain__drawer is-open">
-              <span>Auto BPM</span>
-              <span>Coach</span>
-              <span>Beat Edit</span>
-            </div>
-          </>
-        )}
-      </div>
-      <small>
-        {isBeatFirst
-          ? "V2 점자 중심: 박자 흐름을 대표 영역으로 올리고 BPM은 아래 조절 패널로 이동"
-          : "V1 현재 구조: BPM 숫자가 대표 영역이고 박자 시각화는 보조 정보"}
-      </small>
-    </div>
-  );
-}
-
 function MetronomeVisualLabDot({ activeBeat, beatPattern, isPlaying }) {
   return (
     <div className="metronomeVisualLabDot" aria-label="Dot Mode visual preview">
@@ -2390,16 +2578,7 @@ function StandaloneMetronomeVisual({
       onTouchMove={onTouchMove}
       onTouchStart={onTouchStart}
     >
-      {selectedMode === "line" ? (
-        <div className="metronomeModeLineTrack">
-          {beatPattern.map((beatState, index) => renderBeat(
-            beatState,
-            index,
-            "metronomeBeatButton metronomeModeLineBeat",
-            { left: `${beatCount === 1 ? 50 : (index / (beatCount - 1)) * 100}%` },
-          ))}
-        </div>
-      ) : selectedMode === "circle" ? (
+      {selectedMode === "circle" ? (
         <div className="metronomeModeCircleOrbit" style={{ "--circle-beat-count": beatCount }}>
           <span className="metronomeModeCircleCore" aria-hidden="true" />
           {beatPattern.map((beatState, index) => renderBeat(
@@ -2860,6 +3039,31 @@ function getStoredShooterPlayerSlots() {
     return normalizeShooterPlayerSlots(DEFAULT_SHOOTER_PLAYER_SLOTS);
   } catch {
     return normalizeShooterPlayerSlots(DEFAULT_SHOOTER_PLAYER_SLOTS);
+  }
+}
+
+function normalizeGuitarLabVariantIds(value = []) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.filter((id) => GUITAR_LAB_VARIANT_IDS.has(id)))];
+}
+
+function getStoredGuitarLabDeletedIds() {
+  if (typeof window === "undefined") return [];
+
+  try {
+    return normalizeGuitarLabVariantIds(JSON.parse(window.localStorage.getItem(GUITAR_LAB_DELETED_STORAGE_KEY) ?? "[]"));
+  } catch {
+    return [];
+  }
+}
+
+function getStoredGuitarLabPurgedIds() {
+  if (typeof window === "undefined") return [];
+
+  try {
+    return normalizeGuitarLabVariantIds(JSON.parse(window.localStorage.getItem(GUITAR_LAB_PURGED_STORAGE_KEY) ?? "[]"));
+  } catch {
+    return [];
   }
 }
 
@@ -3620,26 +3824,69 @@ function GuitarAssetSvg({ variant, className = "", compact = false }) {
   const soundHoleRadius = isClassical ? 16 : 14;
   const fretboardTop = 62;
   const fretboardBottom = isElectric ? 166 : soundHoleY - soundHoleRadius + 2;
-  const saddleY = isElectric ? 206 : 212;
-  const bridgeY = saddleY - 7;
+  const fretboardLeft = 62;
+  const fretboardRight = 88;
+  const fretboardWidth = fretboardRight - fretboardLeft;
+  const saddleY = isElectric ? 206 : 196;
+  const bridgeY = isElectric ? saddleY - 7 : saddleY - 4;
   const nutY = 58;
-  const soundHole = isElectric ? null : <circle cx="75" cy={soundHoleY} r={soundHoleRadius} fill="#080807" stroke="#d9aa55" strokeWidth="2.7" />;
+  const soundHole = isElectric ? null : (
+    <g>
+      <circle cx="75" cy={soundHoleY} r={soundHoleRadius + 3.2} fill="none" stroke="rgba(241,202,122,0.34)" strokeWidth="1.2" />
+      <circle cx="75" cy={soundHoleY} r={soundHoleRadius + 5.35} fill="none" stroke="rgba(246, 231, 189, 0.5)" strokeWidth="1.05" strokeDasharray="1.15 1.65" />
+      <circle cx="75" cy={soundHoleY} r={soundHoleRadius + 4.05} fill="none" stroke="rgba(255, 250, 222, 0.56)" strokeWidth="0.78" strokeDasharray="0.85 1.75" />
+      <circle cx="75" cy={soundHoleY} r={soundHoleRadius} fill="#080807" stroke="#d9aa55" strokeWidth="3" />
+      {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((angle) => {
+        const rad = (angle * Math.PI) / 180;
+        const pearlX = 75 + Math.cos(rad) * (soundHoleRadius + 4.72);
+        const pearlY = soundHoleY + Math.sin(rad) * (soundHoleRadius + 4.72);
+        return (
+          <circle
+            cx={pearlX}
+            cy={pearlY}
+            fill="#fff2c8"
+            key={`pearl-${angle}`}
+            opacity="0.78"
+            r="0.92"
+          />
+        );
+      })}
+      <circle cx="75" cy={soundHoleY} r={soundHoleRadius - 4.5} fill="none" stroke="rgba(255,238,202,0.28)" strokeWidth="1" />
+    </g>
+  );
   const pickups = isElectric ? (
     <>
       <rect x="58" y="154" width="34" height="9" rx="2" fill="#ece3d0" stroke="#111" strokeWidth="1.5" />
       <rect x="58" y="173" width="34" height="9" rx="2" fill="#ece3d0" stroke="#111" strokeWidth="1.5" />
     </>
   ) : null;
-  const pickguard = isElectric || variant.shape === "round" || variant.shape === "jumbo" ? (
-    <path d="M91 166 C103 174 104 191 94 202 C90 188 84 178 75 171 C82 171 87 169 91 166 Z" fill={isElectric ? "#0b0b0b" : "rgba(18, 13, 8, 0.62)"} opacity="0.9" />
+  const hasAcousticPickguard = !isClassical && !isElectric;
+  const pickguard = isElectric ? (
+    <path d="M91 166 C103 174 104 191 94 202 C90 188 84 178 75 171 C82 171 87 169 91 166 Z" fill="#0b0b0b" opacity="0.9" />
+  ) : hasAcousticPickguard ? (
+    <path d="M86 161 C99 158 106 167 104 184 C97 177 90 171 79 166 C83 165 85 163 86 161 Z" fill="rgba(18, 13, 8, 0.62)" opacity="0.92" />
+  ) : null;
+  const birdInlay = !isElectric && !isClassical ? (
+    <g className="guitarAssetBirdInlay" opacity="0.82">
+      <path d="M82 201 C88 199 94 199 101 202" fill="none" stroke={variant.accentColor} strokeWidth="0.8" strokeLinecap="round" opacity="0.58" />
+      {[86, 93, 100].map((birdX, index) => (
+        <path
+          d={`M ${birdX - 1.8} ${201 + index * 1.2} C ${birdX - 0.4} ${199 + index * 1.2}, ${birdX + 1.2} ${199.6 + index * 1.2}, ${birdX + 2.4} ${201 + index * 1.2} C ${birdX + 0.6} ${200.4 + index * 1.2}, ${birdX - 0.6} ${200.4 + index * 1.2}, ${birdX - 1.8} ${201 + index * 1.2} Z`}
+          fill="#10100e"
+          key={birdX}
+          stroke={variant.accentColor}
+          strokeWidth="0.55"
+        />
+      ))}
+    </g>
   ) : null;
   const bodyPathMap = {
-    round: "M42 154 C29 132 51 116 69 128 C83 116 110 130 108 155 C132 163 128 220 94 235 C84 240 66 240 56 235 C22 220 18 164 42 154 Z",
-    waist: "M43 154 C31 134 51 118 69 130 C83 118 108 132 107 155 C128 164 123 218 93 233 C83 239 67 239 57 233 C27 218 22 164 43 154 Z",
-    compact: "M48 157 C38 138 55 126 70 135 C83 126 103 137 102 158 C119 168 116 211 91 225 C82 231 68 231 59 225 C34 211 31 168 48 157 Z",
-    jumbo: "M37 153 C23 126 50 110 70 126 C85 109 118 126 113 156 C140 164 136 228 96 242 C84 247 66 247 54 242 C14 228 10 164 37 153 Z",
-    mini: "M52 160 C44 144 57 134 70 141 C82 134 97 144 98 161 C111 171 108 204 89 216 C81 221 69 221 61 216 C42 204 39 171 52 160 Z",
-    classical: "M43 154 C30 133 52 117 69 130 C84 117 108 132 107 154 C129 164 124 218 93 233 C83 239 67 239 57 233 C26 218 21 164 43 154 Z",
+    round: "M40 154 C27 132 50 116 67 128 C70 130 72 131 75 131 C78 131 80 130 83 128 C100 116 123 132 110 154 C132 165 128 223 95 239 C84 245 66 245 55 239 C22 223 18 165 40 154 Z",
+    waist: "M42 154 C30 134 51 119 68 130 C71 132 73 133 75 133 C77 133 79 132 82 130 C99 119 120 134 108 154 C127 165 123 219 94 235 C83 241 67 241 56 235 C27 219 23 165 42 154 Z",
+    compact: "M49 158 C39 140 56 128 69 136 C72 138 73 139 75 139 C77 139 78 138 81 136 C94 128 111 140 101 158 C116 169 113 210 90 224 C82 229 68 229 60 224 C37 210 34 169 49 158 Z",
+    jumbo: "M36 153 C22 126 49 110 67 126 C70 128 72 129 75 129 C78 129 80 128 83 126 C101 110 128 126 114 153 C141 164 137 229 96 244 C84 250 66 250 54 244 C13 229 9 164 36 153 Z",
+    mini: "M52 160 C44 145 57 135 69 142 C72 144 73 145 75 145 C77 145 78 144 81 142 C93 135 106 145 98 160 C111 171 108 204 89 217 C81 222 69 222 61 217 C42 204 39 171 52 160 Z",
+    classical: "M42 154 C29 133 51 118 68 130 C71 132 73 133 75 133 C77 133 79 132 82 130 C99 118 121 133 108 154 C129 165 125 219 94 235 C83 241 67 241 56 235 C25 219 21 165 42 154 Z",
     strat: "M44 158 C39 137 56 125 70 134 L58 119 C76 121 83 110 99 126 C94 140 107 146 119 153 C106 164 113 187 119 204 C99 206 94 225 76 231 C62 220 49 229 31 217 C43 199 37 177 44 158 Z",
     tele: "M45 151 C43 130 59 121 74 132 C87 122 109 132 111 151 L112 220 C91 233 59 233 38 220 Z",
     lp: "M42 153 C29 132 51 116 69 129 C83 115 108 130 108 153 C132 164 124 223 93 236 C82 243 68 243 57 236 C26 223 18 164 42 153 Z",
@@ -3650,25 +3897,250 @@ function GuitarAssetSvg({ variant, className = "", compact = false }) {
     "buddy-dread": "M43 154 C32 135 51 120 68 131 C82 121 106 133 106 154 C125 165 122 214 93 231 C83 237 67 237 57 231 C28 214 24 165 43 154 Z",
     "guard-dread": "M40 154 C27 131 50 115 69 128 C84 115 111 130 109 155 C134 164 128 222 94 238 C83 243 67 243 56 238 C22 222 16 164 40 154 Z",
     "ace-mini": "M50 159 C41 142 56 130 70 138 C83 130 100 142 100 160 C115 170 112 207 90 220 C82 225 68 225 60 220 C38 207 35 170 50 159 Z",
+    auditorium: "M43 155 C31 134 52 118 70 130 C84 118 108 133 107 155 C126 165 121 218 92 232 C82 238 68 238 58 232 C29 218 24 165 43 155 Z",
+    "grand-auditorium": "M39 154 C27 129 51 113 70 128 C86 113 116 130 111 157 C134 167 130 225 95 239 C84 245 66 245 55 239 C20 225 16 167 39 154 Z",
+    "soft-cutaway": "M41 154 C29 131 51 116 69 128 C84 116 109 132 108 154 C128 162 126 219 93 236 C82 242 67 242 56 236 C23 219 18 164 41 154 M90 139 C100 140 106 146 108 154 C99 151 91 150 86 154 C83 149 84 143 90 139 Z",
+    "modern-cutaway": "M40 153 C27 130 50 116 69 127 C83 115 111 129 109 154 C132 163 128 221 94 238 C83 244 67 244 56 238 C22 221 17 164 40 153 M88 135 C104 133 114 144 109 157 C99 151 88 151 82 159 C79 150 81 141 88 135 Z",
+    "slope-shoulder": "M39 153 C32 135 54 119 70 128 C88 117 111 130 109 154 C130 165 127 220 95 236 C83 242 67 242 55 236 C23 220 18 165 39 153 Z",
+    parlor: "M51 160 C42 143 57 130 70 139 C83 130 99 143 99 161 C112 171 110 207 90 220 C82 225 68 225 60 220 C40 207 38 171 51 160 Z",
+    "premium-dread": "M39 153 C25 128 50 112 70 127 C86 112 116 129 111 156 C136 164 132 226 96 241 C84 247 66 247 54 241 C18 226 14 164 39 153 Z",
+    "vintage-amber": "M42 154 C31 132 51 116 69 129 C84 116 110 131 108 154 C131 164 126 220 94 237 C83 243 67 243 56 237 C24 220 18 164 42 154 Z",
+    "classical-premium": "M44 154 C31 133 52 117 69 130 C84 117 107 132 106 154 C127 164 123 218 93 233 C83 239 67 239 57 233 C27 218 22 164 44 154 Z",
+    flamenco: "M45 155 C34 137 53 122 69 133 C83 122 105 135 105 155 C124 166 120 215 92 229 C82 235 68 235 58 229 C30 215 26 166 45 155 Z",
+    "concert-classical": "M43 154 C30 132 52 116 70 129 C85 116 109 132 108 154 C130 164 125 220 94 235 C83 241 67 241 56 235 C25 220 20 164 43 154 Z",
+    offset: "M43 158 C37 137 58 124 72 135 C89 122 113 135 111 157 C126 165 123 215 97 231 C84 238 68 234 58 226 C40 226 28 213 31 197 C43 185 35 173 43 158 Z",
+    hollow: "M42 153 C29 132 51 116 69 129 C83 115 108 130 108 153 C132 164 124 223 93 236 C82 243 68 243 57 236 C26 223 18 164 42 153 Z",
+    "tele-deluxe": "M44 151 C42 130 58 120 74 132 C88 122 111 132 112 152 L113 220 C91 235 58 235 37 220 L37 163 C39 158 41 154 44 151 Z",
+    "dreadnought-refined": "M39 153 C25 128 50 112 68 127 C71 129 73 130 75 130 C77 130 79 129 82 127 C100 112 125 128 111 153 C135 164 132 226 96 241 C84 247 66 247 54 241 C18 226 15 164 39 153 Z",
+    "om-refined": "M43 155 C32 136 52 121 68 132 C71 134 73 135 75 135 C77 135 79 134 82 132 C98 121 118 136 107 155 C126 166 121 217 93 232 C83 238 67 238 57 232 C29 217 24 166 43 155 Z",
+    "grand-concert": "M46 156 C35 139 54 124 69 134 C72 136 73 137 75 137 C77 137 78 136 81 134 C96 124 115 139 104 156 C122 167 118 214 92 229 C82 235 68 235 58 229 C32 214 28 167 46 156 Z",
+    "jumbo-balanced": "M35 153 C20 126 49 109 67 126 C70 128 72 129 75 129 C78 129 80 128 83 126 C101 109 130 126 115 153 C142 164 138 230 97 245 C84 251 66 251 53 245 C12 230 8 164 35 153 Z",
+    "venetian-cutaway": "M40 154 C28 132 51 116 68 128 C71 130 73 131 75 131 C78 131 80 130 83 128 C96 119 115 127 111 145 C125 148 130 160 116 169 C129 187 122 224 95 238 C84 244 66 244 55 238 C22 224 18 165 40 154 Z",
+    "modern-venetian": "M40 153 C27 130 50 116 68 127 C71 129 73 130 75 130 C78 130 80 129 83 127 C99 116 121 129 111 151 C127 151 133 163 117 174 C130 191 123 224 95 239 C84 245 66 245 55 239 C21 224 17 164 40 153 Z",
+    "deep-waist": "M43 154 C29 131 52 116 68 130 C71 133 73 135 75 135 C77 135 79 133 82 130 C98 116 121 131 107 154 C130 165 124 220 94 237 C83 243 67 243 56 237 C26 220 20 165 43 154 Z",
+    "travel-plus": "M51 159 C41 142 57 131 69 139 C72 141 73 142 75 142 C77 142 78 141 81 139 C93 131 109 142 99 159 C114 170 111 207 90 221 C82 226 68 226 60 221 C39 207 36 170 51 159 Z",
+    "twelve-fret": "M42 151 C29 130 52 115 68 128 C71 130 73 131 75 131 C77 131 79 130 82 128 C98 115 121 130 108 151 C130 162 125 219 94 235 C83 241 67 241 56 235 C25 219 20 162 42 151 Z",
+    archtop: "M39 154 C27 130 50 113 68 127 C71 129 73 130 75 130 C77 130 79 129 82 127 C100 113 123 130 111 154 C135 166 128 227 96 242 C84 248 66 248 54 242 C22 227 15 166 39 154 Z",
+    "all-solid": "M40 154 C27 132 50 116 68 128 C71 130 73 131 75 131 C77 131 79 130 82 128 C100 116 123 132 110 154 C132 165 127 223 95 239 C84 245 66 245 55 239 C23 223 18 165 40 154 Z",
+    "concert-cutaway": "M45 156 C34 138 54 124 69 134 C72 136 73 137 75 137 C77 137 78 136 81 134 C94 125 113 134 106 151 C119 153 124 163 111 171 C121 188 116 215 92 229 C82 235 68 235 58 229 C34 215 29 167 45 156 Z",
+    "slope-modern": "M40 152 C31 136 54 120 69 128 C72 130 73 131 75 131 C77 131 78 130 81 128 C96 120 119 136 110 152 C131 165 127 221 96 237 C84 243 66 243 54 237 C23 221 19 165 40 152 Z",
+    "thin-body": "M43 156 C31 135 52 120 68 131 C71 133 73 134 75 134 C77 134 79 133 82 131 C98 120 119 135 107 156 C128 167 123 216 93 231 C83 237 67 237 57 231 C27 216 22 167 43 156 Z",
+    baritone: "M39 156 C27 132 50 116 68 129 C71 131 73 132 75 132 C77 132 79 131 82 129 C100 116 123 132 111 156 C133 168 128 224 95 240 C84 246 66 246 55 240 C22 224 17 168 39 156 Z",
+    "rosewood-grand": "M37 153 C24 127 49 111 68 127 C71 129 73 130 75 130 C77 130 79 129 82 127 C101 111 126 127 113 153 C138 165 134 228 97 243 C84 249 66 249 53 243 C16 228 12 165 37 153 Z",
+    "maple-stage": "M41 154 C28 132 51 116 68 128 C71 130 73 131 75 131 C77 131 79 130 82 128 C99 116 122 132 109 154 C131 165 127 222 95 238 C84 244 66 244 55 238 C23 222 19 165 41 154 Z",
+    "cedar-om": "M43 155 C32 136 52 121 68 132 C71 134 73 135 75 135 C77 135 79 134 82 132 C98 121 118 136 107 155 C126 166 121 217 93 232 C83 238 67 238 57 232 C29 217 24 166 43 155 Z",
+    "black-bird": "M40 154 C27 132 50 116 68 128 C71 130 73 131 75 131 C77 131 79 130 82 128 C100 116 123 132 110 154 C132 165 127 223 95 239 C84 245 66 245 55 239 C23 223 18 165 40 154 Z",
+    "sunburst-cutaway": "M40 154 C28 132 51 116 68 128 C71 130 73 131 75 131 C78 131 80 130 83 128 C96 119 115 127 111 145 C125 148 130 160 116 169 C129 187 122 224 95 238 C84 244 66 244 55 238 C22 224 18 165 40 154 Z",
+    "orchestra-luxe": "M45 155 C34 137 54 121 69 132 C72 134 73 135 75 135 C77 135 78 134 81 132 C96 121 116 137 105 155 C123 166 119 216 92 231 C82 237 68 237 58 231 C31 216 27 166 45 155 Z",
+    "heritage-dread": "M38 153 C25 127 50 111 68 127 C71 129 73 130 75 130 C77 130 79 129 82 127 C100 111 125 127 112 153 C136 164 132 225 96 241 C84 247 66 247 54 241 C18 225 14 164 38 153 Z",
+    "studio-cut": "M42 154 C30 133 52 118 69 129 C72 131 73 132 75 132 C78 132 80 131 83 129 C97 119 115 128 109 146 C122 149 127 160 114 168 C125 185 120 217 93 234 C83 240 67 240 57 234 C27 217 22 165 42 154 Z",
+    "boutique-cedar": "M44 155 C31 132 53 116 68 131 C71 134 73 136 75 136 C77 136 79 134 82 131 C97 116 120 132 106 155 C130 166 124 221 94 238 C83 244 67 244 56 238 C26 221 20 166 44 155 Z",
+    "wide-stage": "M37 153 C23 126 49 110 68 126 C71 128 73 129 75 129 C77 129 79 128 82 126 C101 110 127 126 113 153 C139 164 136 229 97 244 C84 250 66 250 53 244 C14 229 11 164 37 153 Z",
   };
-  const bodyPath = bodyPathMap[variant.shape] || bodyPathMap.round;
+  const makeAcousticBodyPath = ({
+    upper = 31,
+    waist = 44,
+    lower = 60,
+    top = 128,
+    bottom = 239,
+    cutaway = 0,
+    slope = 0,
+  } = {}) => {
+    const centerX = 75;
+    const leftUpperX = centerX - upper;
+    const rightUpperX = centerX + upper;
+    const leftWaistX = centerX - waist;
+    const rightWaistX = centerX + waist;
+    const lowerWidth = Math.min(lower, 58);
+    const leftLowerX = centerX - lowerWidth;
+    const rightLowerX = centerX + lowerWidth;
+    const leftBottomX = centerX - Math.max(12, Math.min(18, lowerWidth * 0.29));
+    const rightBottomX = centerX + Math.max(12, Math.min(18, lowerWidth * 0.29));
+    const upperY = top + slope;
+    const waistY = 154;
+    const lowerY = 205;
+    const bottomY = bottom;
+    const bottomCenterY = bottomY + 8;
+
+    if (cutaway > 0) {
+      const shoulderX = Math.max(centerX + 20, rightUpperX - cutaway);
+      const cutawayX = centerX + 31 + (cutaway * 0.25);
+      return [
+        `M ${leftWaistX} ${waistY}`,
+        `C ${leftWaistX - 5} ${140 + slope}, ${leftUpperX + 4} ${top - 16 + slope}, ${centerX - 7} ${top - 2 + slope}`,
+        `C ${centerX - 3} ${top + slope}, ${centerX + 3} ${top + slope}, ${centerX + 7} ${top - 2 + slope}`,
+        `C ${shoulderX} ${top - 12 + slope}, ${rightUpperX + 5} ${top + 8 + slope}, ${cutawayX} ${top + 21 + slope}`,
+        `C ${centerX + 31} ${top + 27 + slope}, ${centerX + 31} ${top + 42}, ${rightWaistX} ${waistY + 12}`,
+        `C ${rightLowerX + 1} ${181}, ${rightLowerX - 3} ${211}, ${centerX + 33} ${bottomY - 2}`,
+        `C ${centerX + 25} ${bottomY + 7}, ${centerX + 14} ${bottomCenterY}, ${centerX} ${bottomCenterY}`,
+        `C ${centerX - 14} ${bottomCenterY}, ${centerX - 25} ${bottomY + 7}, ${centerX - 33} ${bottomY - 2}`,
+        `C ${leftLowerX + 3} ${211}, ${leftLowerX - 1} ${181}, ${leftWaistX} ${waistY}`,
+        "Z",
+      ].join(" ");
+    }
+
+    return [
+      `M ${leftWaistX} ${waistY}`,
+      `C ${leftWaistX - 5} ${140 + slope}, ${leftUpperX + 3} ${top - 16 + slope}, ${centerX - 7} ${top - 2 + slope}`,
+      `C ${centerX - 3} ${top + slope}, ${centerX + 3} ${top + slope}, ${centerX + 7} ${top - 2 + slope}`,
+      `C ${rightUpperX - 3} ${top - 16 + slope}, ${rightWaistX + 5} ${140 + slope}, ${rightWaistX} ${waistY}`,
+      `C ${rightLowerX + 1} ${181}, ${rightLowerX - 3} ${211}, ${centerX + 33} ${bottomY - 2}`,
+      `C ${centerX + 25} ${bottomY + 7}, ${centerX + 14} ${bottomCenterY}, ${centerX} ${bottomCenterY}`,
+      `C ${centerX - 14} ${bottomCenterY}, ${centerX - 25} ${bottomY + 7}, ${centerX - 33} ${bottomY - 2}`,
+      `C ${leftLowerX + 3} ${211}, ${leftLowerX - 1} ${181}, ${leftWaistX} ${waistY}`,
+      "Z",
+    ].join(" ");
+  };
+
+  const acousticBodyProfiles = {
+    round: { upper: 31, waist: 43, lower: 59, top: 128, bottom: 239 },
+    waist: { upper: 30, waist: 41, lower: 54, top: 131, bottom: 235 },
+    compact: { upper: 25, waist: 34, lower: 42, top: 138, bottom: 221 },
+    jumbo: { upper: 36, waist: 49, lower: 66, top: 126, bottom: 244 },
+    mini: { upper: 22, waist: 30, lower: 37, top: 145, bottom: 217 },
+    "cute-dread": { upper: 29, waist: 41, lower: 55, top: 130, bottom: 235 },
+    "stage-dread": { upper: 34, waist: 47, lower: 62, top: 127, bottom: 241 },
+    "buddy-dread": { upper: 27, waist: 39, lower: 51, top: 132, bottom: 231 },
+    "guard-dread": { upper: 33, waist: 45, lower: 59, top: 128, bottom: 238 },
+    "ace-mini": { upper: 24, waist: 33, lower: 39, top: 139, bottom: 220 },
+    auditorium: { upper: 29, waist: 42, lower: 53, top: 131, bottom: 232 },
+    "grand-auditorium": { upper: 34, waist: 47, lower: 60, top: 128, bottom: 239 },
+    "soft-cutaway": { upper: 31, waist: 43, lower: 58, top: 128, bottom: 236, cutaway: 12 },
+    "modern-cutaway": { upper: 33, waist: 45, lower: 61, top: 127, bottom: 238, cutaway: 16 },
+    "slope-shoulder": { upper: 34, waist: 44, lower: 59, top: 129, bottom: 236, slope: 2 },
+    parlor: { upper: 22, waist: 31, lower: 37, top: 139, bottom: 220 },
+    "premium-dread": { upper: 34, waist: 47, lower: 62, top: 127, bottom: 241 },
+    "vintage-amber": { upper: 31, waist: 43, lower: 57, top: 129, bottom: 237 },
+    "dreadnought-refined": { upper: 34, waist: 47, lower: 62, top: 127, bottom: 241 },
+    "om-refined": { upper: 28, waist: 40, lower: 52, top: 132, bottom: 232 },
+    "grand-concert": { upper: 26, waist: 37, lower: 47, top: 135, bottom: 229 },
+    "jumbo-balanced": { upper: 37, waist: 50, lower: 67, top: 126, bottom: 245 },
+    "venetian-cutaway": { upper: 31, waist: 43, lower: 58, top: 128, bottom: 238, cutaway: 14 },
+    "modern-venetian": { upper: 33, waist: 45, lower: 60, top: 127, bottom: 239, cutaway: 16 },
+    "deep-waist": { upper: 30, waist: 39, lower: 58, top: 130, bottom: 237 },
+    "travel-plus": { upper: 23, waist: 32, lower: 39, top: 140, bottom: 221 },
+    "twelve-fret": { upper: 31, waist: 43, lower: 57, top: 128, bottom: 235 },
+    archtop: { upper: 34, waist: 46, lower: 61, top: 127, bottom: 242 },
+    "all-solid": { upper: 32, waist: 44, lower: 59, top: 128, bottom: 239 },
+    "concert-cutaway": { upper: 27, waist: 38, lower: 48, top: 134, bottom: 229, cutaway: 12 },
+    "slope-modern": { upper: 35, waist: 44, lower: 60, top: 129, bottom: 237, slope: 3 },
+    "thin-body": { upper: 29, waist: 41, lower: 55, top: 131, bottom: 231 },
+    baritone: { upper: 32, waist: 45, lower: 60, top: 129, bottom: 240 },
+    "rosewood-grand": { upper: 35, waist: 49, lower: 64, top: 127, bottom: 243 },
+    "maple-stage": { upper: 31, waist: 44, lower: 58, top: 128, bottom: 238 },
+    "cedar-om": { upper: 28, waist: 40, lower: 52, top: 132, bottom: 232 },
+    "black-bird": { upper: 32, waist: 44, lower: 59, top: 128, bottom: 239 },
+    "sunburst-cutaway": { upper: 31, waist: 43, lower: 58, top: 128, bottom: 238, cutaway: 14 },
+    "orchestra-luxe": { upper: 27, waist: 38, lower: 50, top: 133, bottom: 231 },
+    "heritage-dread": { upper: 34, waist: 47, lower: 62, top: 127, bottom: 241 },
+    "studio-cut": { upper: 29, waist: 41, lower: 54, top: 130, bottom: 234, cutaway: 13 },
+    "boutique-cedar": { upper: 29, waist: 39, lower: 57, top: 131, bottom: 238 },
+    "wide-stage": { upper: 36, waist: 49, lower: 65, top: 126, bottom: 244 },
+    "north-dread": { upper: 35, waist: 47, lower: 61, top: 126, bottom: 240 },
+    "ember-om": { upper: 28, waist: 40, lower: 51, top: 132, bottom: 232 },
+    "royal-auditorium": { upper: 31, waist: 43, lower: 56, top: 130, bottom: 236 },
+    "crescent-cutaway": { upper: 30, waist: 42, lower: 56, top: 129, bottom: 236, cutaway: 15 },
+    "rose-stage": { upper: 33, waist: 45, lower: 59, top: 128, bottom: 239 },
+    "real-d28": { upper: 35, waist: 47, lower: 61, top: 126, bottom: 240 },
+    "real-d18": { upper: 34, waist: 46, lower: 60, top: 127, bottom: 239 },
+    "real-hd28": { upper: 36, waist: 48, lower: 62, top: 126, bottom: 241 },
+    "real-j45": { upper: 32, waist: 45, lower: 60, top: 129, bottom: 239, slope: 4 },
+    "real-hummingbird": { upper: 36, waist: 47, lower: 61, top: 126, bottom: 239 },
+    "real-814ce": { upper: 32, waist: 43, lower: 57, top: 128, bottom: 237, cutaway: 15 },
+    "real-314ce": { upper: 31, waist: 42, lower: 56, top: 129, bottom: 236, cutaway: 14 },
+    "real-214ce": { upper: 31, waist: 42, lower: 55, top: 130, bottom: 235, cutaway: 13 },
+    "real-fg5": { upper: 35, waist: 47, lower: 60, top: 127, bottom: 239 },
+    "real-ll16": { upper: 37, waist: 49, lower: 64, top: 126, bottom: 243 },
+    "real-vintage-dread": { upper: 34, waist: 46, lower: 60, top: 128, bottom: 239, slope: 1 },
+    "real-modern-dread": { upper: 35, waist: 46, lower: 60, top: 126, bottom: 238 },
+    "real-om-rosewood": { upper: 29, waist: 40, lower: 52, top: 132, bottom: 232 },
+    "real-auditorium-cedar": { upper: 31, waist: 42, lower: 55, top: 130, bottom: 235 },
+    "real-grand-auditorium": { upper: 33, waist: 44, lower: 58, top: 128, bottom: 238 },
+    "real-single-cutaway": { upper: 32, waist: 43, lower: 57, top: 128, bottom: 237, cutaway: 15 },
+    "real-soft-cutaway": { upper: 31, waist: 42, lower: 56, top: 129, bottom: 236, cutaway: 12 },
+    "real-modern-cutaway": { upper: 33, waist: 44, lower: 58, top: 128, bottom: 238, cutaway: 17 },
+    "real-jumbo-maple": { upper: 38, waist: 50, lower: 66, top: 126, bottom: 244 },
+    "real-square-shoulder": { upper: 36, waist: 47, lower: 61, top: 126, bottom: 239 },
+    "fresh-dread": { upper: 34, waist: 45, lower: 57, top: 126, bottom: 239 },
+    "fresh-d18": { upper: 33, waist: 44, lower: 56, top: 127, bottom: 238 },
+    "fresh-fg5": { upper: 34, waist: 45, lower: 56, top: 127, bottom: 238 },
+    "fresh-j45": { upper: 32, waist: 44, lower: 56, top: 129, bottom: 238, slope: 4 },
+    "fresh-humming": { upper: 36, waist: 46, lower: 57, top: 126, bottom: 238 },
+    "fresh-om": { upper: 29, waist: 39, lower: 49, top: 132, bottom: 231 },
+    "fresh-000": { upper: 27, waist: 37, lower: 46, top: 134, bottom: 228 },
+    "fresh-auditorium": { upper: 31, waist: 41, lower: 53, top: 130, bottom: 234 },
+    "fresh-grand": { upper: 33, waist: 43, lower: 56, top: 128, bottom: 237 },
+    "fresh-soft-cut": { upper: 31, waist: 42, lower: 54, top: 129, bottom: 235, cutaway: 12 },
+    "fresh-venetian": { upper: 32, waist: 42, lower: 55, top: 128, bottom: 236, cutaway: 14 },
+    "fresh-cedar": { upper: 30, waist: 40, lower: 52, top: 131, bottom: 234 },
+    "fresh-rosewood": { upper: 32, waist: 42, lower: 54, top: 129, bottom: 236 },
+    "fresh-maple": { upper: 34, waist: 45, lower: 57, top: 127, bottom: 238 },
+    "fresh-black": { upper: 32, waist: 42, lower: 54, top: 129, bottom: 236 },
+    "fresh-sunburst": { upper: 34, waist: 45, lower: 57, top: 127, bottom: 238 },
+    "fresh-boutique": { upper: 30, waist: 39, lower: 50, top: 131, bottom: 233 },
+    "fresh-studio": { upper: 33, waist: 44, lower: 55, top: 127, bottom: 237 },
+    "fresh-jumbo": { upper: 36, waist: 47, lower: 58, top: 126, bottom: 240 },
+    "fresh-heritage": { upper: 35, waist: 45, lower: 56, top: 126, bottom: 238 },
+    "fresh-d15m-mahogany": { upper: 35, waist: 45, lower: 56, top: 126, bottom: 238 },
+    "fresh-d15m-satin": { upper: 34, waist: 44, lower: 55, top: 127, bottom: 237 },
+    "fresh-d15m-studio": { upper: 35, waist: 46, lower: 57, top: 126, bottom: 239 },
+    "fresh-d15m-shadow": { upper: 34, waist: 45, lower: 56, top: 127, bottom: 238 },
+    "fresh-d15m-stage": { upper: 36, waist: 46, lower: 57, top: 126, bottom: 239 },
+    "fresh-cutaway-814ce": { upper: 32, waist: 42, lower: 55, top: 128, bottom: 236, cutaway: 16 },
+    "fresh-cutaway-314ce": { upper: 31, waist: 42, lower: 54, top: 129, bottom: 235, cutaway: 15 },
+    "fresh-cutaway-214ce": { upper: 31, waist: 41, lower: 53, top: 130, bottom: 234, cutaway: 14 },
+    "fresh-cutaway-grand": { upper: 34, waist: 44, lower: 57, top: 128, bottom: 238, cutaway: 16 },
+    "fresh-cutaway-auditorium": { upper: 31, waist: 41, lower: 53, top: 130, bottom: 234, cutaway: 14 },
+    "fresh-cutaway-dread": { upper: 35, waist: 46, lower: 58, top: 127, bottom: 239, cutaway: 13 },
+    "fresh-cutaway-mahogany": { upper: 34, waist: 45, lower: 56, top: 127, bottom: 238, cutaway: 13 },
+    "fresh-cutaway-rosewood": { upper: 32, waist: 42, lower: 55, top: 129, bottom: 236, cutaway: 15 },
+    "fresh-cutaway-maple": { upper: 33, waist: 43, lower: 56, top: 128, bottom: 237, cutaway: 16 },
+    "fresh-cutaway-black": { upper: 32, waist: 42, lower: 54, top: 129, bottom: 236, cutaway: 15 },
+    "fresh-cutaway-sunburst": { upper: 34, waist: 45, lower: 57, top: 128, bottom: 238, cutaway: 14 },
+    "fresh-cutaway-cedar": { upper: 30, waist: 40, lower: 52, top: 131, bottom: 234, cutaway: 13 },
+    "fresh-cutaway-stage": { upper: 33, waist: 43, lower: 56, top: 128, bottom: 237, cutaway: 17 },
+    "fresh-cutaway-venetian": { upper: 32, waist: 42, lower: 55, top: 128, bottom: 236, cutaway: 12 },
+    "fresh-cutaway-soft": { upper: 31, waist: 41, lower: 54, top: 130, bottom: 235, cutaway: 11 },
+    "fresh-cutaway-modern": { upper: 33, waist: 43, lower: 56, top: 128, bottom: 237, cutaway: 18 },
+    "fresh-cutaway-boutique": { upper: 29, waist: 39, lower: 50, top: 132, bottom: 233, cutaway: 14 },
+    "fresh-cutaway-pearl": { upper: 32, waist: 42, lower: 54, top: 129, bottom: 236, cutaway: 15 },
+    "fresh-cutaway-honey": { upper: 33, waist: 44, lower: 56, top: 128, bottom: 237, cutaway: 13 },
+    "fresh-cutaway-reference": { upper: 33, waist: 43, lower: 55, top: 128, bottom: 236, cutaway: 15 },
+    "core-dread-01": { upper: 35, waist: 45, lower: 56, top: 126, bottom: 238 },
+    "core-dread-02": { upper: 34, waist: 44, lower: 55, top: 127, bottom: 237, slope: 1 },
+    "core-dread-03": { upper: 36, waist: 46, lower: 57, top: 126, bottom: 238 },
+  };
+
+  const acousticProfile = !isElectric && !isClassical ? acousticBodyProfiles[variant.shape] : null;
+  const bodyPath = acousticProfile ? makeAcousticBodyPath(acousticProfile) : (bodyPathMap[variant.shape] || bodyPathMap.round);
   const headPath = variant.shape === "metal"
-    ? "M61 16 L75 7 L90 16 L84 57 L66 57 Z"
+    ? "M60 16 L75 7 L91 16 L85 57 L65 57 Z"
     : variant.shape === "tele"
-      ? "M63 17 C74 8 91 16 88 31 C88 48 82 58 66 57 C62 44 62 28 63 17 Z"
-      : "M63 17 L75 10 L87 17 C90 31 87 47 83 57 C77 60 68 60 62 57 C59 47 60 31 63 17 Z";
+      ? "M62 17 L75 10 C88 11 93 19 89 31 C89 47 83 58 66 57 C62 45 60 29 62 17 Z"
+      : isClassical
+        ? "M61 17 L75 9 L89 17 L86 57 C79 60 70 60 64 57 Z"
+        : "M62 17 L75 9 L88 17 L85 57 C78 60 69 60 63 57 Z";
   const stringXsAtSaddle = [59, 65.4, 71.8, 78.2, 84.6, 91];
-  const stringXsAtNut = [65.5, 69.3, 73.1, 76.9, 80.7, 84.5];
+  const stringXsAtNut = [65.4, 69.2, 73, 77, 80.8, 84.6];
   // Front view: fretboard strings run left-to-right as 6(E), 5(A), 4(D), 3(G), 2(B), 1(E).
-  const tunerTargets = [
-    [54, 47],
-    [54, 36],
-    [54, 25],
-    [96, 25],
-    [96, 36],
-    [96, 47],
+  // Head posts keep the visible order left top-to-bottom D/A/E and right top-to-bottom G/B/E.
+  const tunerPosts = [
+    [67, 47],
+    [67, 36],
+    [67, 25],
+    [83, 25],
+    [83, 36],
+    [83, 47],
   ];
-  const fretYs = [72, 83, 94, 105, 116, 127, 138, 149, 160].filter((fret) => fret < fretboardBottom - 2);
+  const tunerKnobs = [
+    [55, 47],
+    [55, 36],
+    [55, 25],
+    [95, 25],
+    [95, 36],
+    [95, 47],
+  ];
+  const fretYs = [72, 82.6, 92.4, 101.5, 110, 117.9, 125.2, 132, 138.3, 144.1, 149.6, 154.7].filter((fret) => fret < fretboardBottom - 2);
 
   return (
     <svg className={`guitarAssetSvg ${className}`} viewBox="0 0 150 260" role="img" aria-label={`${variant.title} vertical SVG guitar asset`}>
@@ -3692,35 +4164,50 @@ function GuitarAssetSvg({ variant, className = "", compact = false }) {
         {soundHole}
         {pickups}
         {pickguard}
-        <rect className="guitarAssetFretboard" x="62" y={fretboardTop} width="26" height={fretboardBottom - fretboardTop} rx="5" fill={`url(#${uniqueId}-neck)`} stroke="#100b06" strokeWidth="2" />
+        <rect className="guitarAssetFretboard" x={fretboardLeft} y={fretboardTop} width={fretboardWidth} height={fretboardBottom - fretboardTop} rx="3.5" fill={`url(#${uniqueId}-neck)`} stroke="#100b06" strokeWidth="2" />
         {fretYs.map((fret) => (
-          <line className="guitarAssetFret" x1="61" x2="89" y1={fret} y2={fret} stroke="#f1ca7a" strokeWidth="1.1" opacity="0.68" key={fret} />
+          <line className="guitarAssetFret" x1={fretboardLeft + 1.4} x2={fretboardRight - 1.4} y1={fret} y2={fret} stroke="#f1ca7a" strokeWidth="1.05" opacity="0.68" key={fret} />
         ))}
         <path className="guitarAssetHead" d={headPath} fill={variant.bodyColor} stroke={variant.accentColor} strokeWidth="2.5" />
-        <rect className="guitarAssetNut" x="60" y={nutY} width="30" height="5" rx="2" fill="#ece3d0" />
-        {[0, 1, 2, 3, 4, 5].map((peg) => {
-          const leftSide = peg < 3;
+        <rect className="guitarAssetNut" x={fretboardLeft} y={nutY} width={fretboardWidth} height="5" rx="1.8" fill={`url(#${uniqueId}-neck)`} stroke="#100b06" strokeWidth="1.2" />
+        {tunerPosts.map(([postX, postY], peg) => {
+          const [knobX, knobY] = tunerKnobs[peg];
           return (
             <g key={peg}>
-              <line x1={leftSide ? 63 : 87} x2={leftSide ? 54 : 96} y1={26 + (peg % 3) * 11} y2={25 + (peg % 3) * 11} stroke="#c99448" strokeWidth="1.3" />
-              <circle className="guitarAssetPeg" cx={leftSide ? 52 : 98} cy={25 + (peg % 3) * 11} r="3.2" fill="#f1ca7a" stroke="#120a04" strokeWidth="1" />
+              <line className="guitarAssetTunerArm" x1={postX} x2={knobX} y1={postY} y2={knobY} stroke="#c99448" strokeWidth="1.25" opacity="0.86" />
+              <circle className="guitarAssetPost" cx={postX} cy={postY} r="2.35" fill="#f6d38a" stroke="#120a04" strokeWidth="0.85" />
+              <circle className="guitarAssetPostCore" cx={postX} cy={postY} r="0.9" fill="#4a2d10" opacity="0.68" />
+              <circle className="guitarAssetPeg" cx={knobX} cy={knobY} r="3.2" fill="#f1ca7a" stroke="#120a04" strokeWidth="1" />
             </g>
           );
         })}
-        <rect className="guitarAssetBridge" x={isElectric ? 51 : 50} y={bridgeY} width={isElectric ? 48 : 50} height={isElectric ? 17 : 16} rx="3" fill="#17100a" stroke="#d9aa55" strokeWidth="2" />
+        <rect className="guitarAssetBridge" x={isElectric ? 51 : 50} y={bridgeY} width={isElectric ? 48 : 50} height={isElectric ? 17 : 18} rx="3" fill="#17100a" stroke="#d9aa55" strokeWidth="2" />
         <rect className="guitarAssetSaddle" x="56" y={saddleY} width="38" height="4" rx="1.5" fill="#f7e6bd" />
+        {birdInlay}
         {stringXsAtSaddle.map((x, stringIndex) => (
           <circle cx={x} cy={saddleY + 9} r="2.1" fill="#f1ca7a" stroke="#100a05" strokeWidth="0.8" key={`pin-${stringIndex}`} />
         ))}
         {stringXsAtSaddle.map((x, stringIndex) => (
           <path
             className="guitarAssetString"
-            d={`M ${x} ${saddleY + 1} L ${stringXsAtNut[stringIndex]} ${nutY + 2} L ${tunerTargets[stringIndex][0]} ${tunerTargets[stringIndex][1]}`}
+            d={`M ${tunerPosts[stringIndex][0]} ${tunerPosts[stringIndex][1]} L ${stringXsAtNut[stringIndex]} ${nutY + 2} L ${x} ${saddleY + 1} L ${x} ${saddleY + 9}`}
             fill="none"
             stroke="#fff2c8"
             strokeWidth={stringIndex < 2 ? "0.9" : "0.65"}
             opacity="0.76"
             key={stringIndex}
+          />
+        ))}
+        {tunerPosts.map(([postX, postY], stringIndex) => (
+          <path
+            className="guitarAssetStringWrap"
+            d={`M ${postX - 2.1} ${postY - 0.2} C ${postX - 0.7} ${postY - 2.1}, ${postX + 2.1} ${postY - 1.2}, ${postX + 1.8} ${postY + 0.6} C ${postX + 1.4} ${postY + 2.2}, ${postX - 1.5} ${postY + 1.8}, ${postX - 1.7} ${postY + 0.2}`}
+            fill="none"
+            key={`wrap-${stringIndex}`}
+            opacity="0.5"
+            stroke="#fff2c8"
+            strokeLinecap="round"
+            strokeWidth={stringIndex < 2 ? "0.75" : "0.55"}
           />
         ))}
         {!compact ? <text x="14" y="248" fill="rgba(255,238,202,0.52)" fontSize="8" fontWeight="900" letterSpacing="2">{variant.pack.toUpperCase()}</text> : null}
@@ -3772,15 +4259,33 @@ function getTrainingDetailTitle(category) {
   return `${stageNumber} ${category?.title ?? ""}`.trim();
 }
 
-function BeatIndicator({ beat, beatsPerMeasure = 4, isPlaying, label = "현재 박자", timeSignature = "4/4" }) {
+function BeatIndicator({
+  beat,
+  beatPattern,
+  beatsPerMeasure = 4,
+  compact = false,
+  isPlaying,
+  label = "현재 박자",
+  onBeatClick,
+  timeSignature = "4/4",
+}) {
   const dots = Array.from({ length: beatsPerMeasure }, (_, index) => index);
+  const normalizedBeatPattern = normalizeMetronomeBeatPattern(beatPattern, beatsPerMeasure);
 
   return (
-    <div className="beatIndicator" aria-label={`${timeSignature} ${label}`}>
+    <div className={`beatIndicator ${compact ? "beatIndicator--compact" : ""}`} aria-label={`${timeSignature} ${label}`}>
       {dots.map((beatNumber) => (
-        <span
-          className={beat === beatNumber && isPlaying ? "active" : ""}
+        <BeatDot
+          active={beat === beatNumber && isPlaying}
+          className="trainingBeatDot"
           key={beatNumber}
+          label={`${beatNumber + 1}박 ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
+          onClick={onBeatClick ? (event) => {
+            event.stopPropagation();
+            onBeatClick(beatNumber);
+          } : undefined}
+          state={normalizedBeatPattern[beatNumber]}
+          title={`${beatNumber + 1}박: ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
         />
       ))}
     </div>
@@ -3835,6 +4340,8 @@ const MAX_REPEAT_COUNT = 12;
 const HIT_WINDOW_MS = 150;
 const PERFECT_WINDOW_MS = 55;
 const HIT_LINE_PERCENT = 88;
+const SHOOTER_TARGET_HIT_EFFECT_MS = 250;
+const SHOOTER_LOCK_MIN_MS = 45;
 const NOTE_SIZE = 36;
 const HIT_ZONE_SIZE = NOTE_SIZE;
 const MIN_FREQ = 75;
@@ -3923,8 +4430,8 @@ const LEGACY_PRACTICE_CATEGORIES = [
   },
   {
     id: "first-position",
-    title: "제로포지션 기본",
-    subtitle: "개방현과 저포지션 음 위치를 익히는 기본 훈련",
+    title: "음 위치 익히기",
+    subtitle: "0~3프렛 음 위치 훈련",
     notes: FIRST_POSITION_NOTES,
     sequence: FIRST_POSITION_SEQUENCE,
     modeLabel: "Low Position",
@@ -3944,8 +4451,8 @@ const LEGACY_PRACTICE_CATEGORIES = [
   },
   {
     id: "rhythm",
-    title: "리듬 · 코드 전환",
-    subtitle: "메트로놈에 맞춰 코드 전환 타이밍을 훈련",
+    title: "코드 전환 훈련",
+    subtitle: "사용자 코드 진행 연습",
     notes: OPEN_STRING_NOTES,
     sequence: ["E2", "E2", "A2", "A2", "D3", "D3", "G3", "B3", "E4"],
     modeLabel: "핵심 리듬",
@@ -3963,6 +4470,136 @@ const LEGACY_PRACTICE_CATEGORIES = [
     judgmentMode: JUDGMENT_MODES.PITCH.id,
     loop: true,
     unavailable: true,
+  },
+];
+
+const HELP_GUIDE_SECTIONS = [
+  {
+    id: "hello",
+    title: "안녕하세요",
+    content: (
+      <>
+        <p>안녕하세요.</p>
+        <p>RIFFLAB은 기타를 연습하면서 "조금 더 쉽고, 조금 더 재미있게" 실력을 쌓을 수 있도록 만들고 있는 기타 훈련 앱입니다.</p>
+        <p>저 역시 기타를 배우는 입장이라 실제 연습하면서 불편했던 점, 있었으면 좋겠다고 생각했던 기능들을 하나씩 추가하고 있습니다.</p>
+        <p>아직 부족한 부분도 많지만, 많은 분들이 쉽고 유익하게 사용할 수 있었으면 하는 바람으로 만들고 있습니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "stage1",
+    title: "훈련장 01 - 음 찾기 훈련",
+    content: (
+      <>
+        <p>개방현과 0~3프렛 구간에서 미 · 파 · 솔 · 라 · 시 · 도 · 레 · 미 음 위치를 반복적으로 익히는 훈련입니다.</p>
+        <p>기타 지판에 익숙하지 않은 분들에게 추천합니다.</p>
+        <p>모든 훈련은 <span className="helpGoldText">메트로놈</span> 박자에 맞춰 진행하는 것을 권장합니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "stage2",
+    title: "훈련장 02 - 스케일 · 펜타토닉",
+    content: (
+      <>
+        <p>기타 연습에서 가장 많이 사용하는 메이저 스케일, 마이너 스케일, 펜타토닉 패턴을 연습하는 훈련입니다.</p>
+        <p>각 스케일은 Box 단위로 구성되어 있습니다.</p>
+        <strong>왜 연습하나요?</strong>
+        <ul>
+          <li>솔로 연주</li>
+          <li>애드리브</li>
+          <li>프레이즈 만들기</li>
+          <li>지판 이동 감각 향상</li>
+        </ul>
+        <p>상행 / 하행 / 왕복 방식으로 반복 연습할 수 있습니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "stage3",
+    title: "훈련장 03 - 리듬 코드 훈련",
+    content: (
+      <>
+        <p>개인적으로 가장 추천하는 훈련입니다.</p>
+        <p>평소 어려웠던 코드 전환을 <span className="helpGoldText">저장실</span>에 입력한 뒤 반복적으로 연습할 수 있습니다.</p>
+        <strong>예시</strong>
+        <ul>
+          <li>G → D → Em → C</li>
+          <li>C → Am → Dm → G</li>
+        </ul>
+        <p>원하는 코드 진행을 저장하고 <span className="helpGoldText">메트로놈</span> 박자에 맞춰 반복 훈련할 수 있습니다.</p>
+        <p>리듬과 코드 전환을 동시에 연습하기 위한 공간입니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "fretboard",
+    title: "지판보기",
+    content: (
+      <>
+        <p>기타 지판을 자유롭게 탐색할 수 있습니다.</p>
+        <strong>기능</strong>
+        <ul>
+          <li>단일음 보기</li>
+          <li>코드 보기</li>
+          <li>스케일 보기</li>
+          <li>펜타토닉 보기</li>
+          <li>개방현 보기</li>
+        </ul>
+        <p>특정 음이나 패턴이 지판 어디에 있는지 확인할 수 있습니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "metronome",
+    title: "메트로놈",
+    content: (
+      <>
+        <p><span className="helpGoldText">메트로놈</span>만 단독으로 사용할 수 있는 기능입니다.</p>
+        <strong>기본 기능</strong>
+        <ul>
+          <li>BPM 설정</li>
+          <li>강박 설정</li>
+          <li>박자 설정</li>
+        </ul>
+        <strong>추가 기능</strong>
+        <p>좌우 스와이프를 통해 점자 모드와 메트로놈 표시 방식을 변경할 수 있습니다.</p>
+        <p>또한 Tracker 설정을 통해 Timer 모드와 Bar Counter 모드를 사용할 수 있습니다.</p>
+        <p>연습 시간을 정하거나 특정 마디 수만큼 반복 연습할 때 활용할 수 있습니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "shooter",
+    title: "슈팅게임",
+    content: (
+      <>
+        <p>지판 암기를 게임처럼 연습할 수 있는 모드입니다.</p>
+        <p>화면 위에서 단일음 몬스터가 내려오며 가장 우선되는 음을 찾아 연주해야 합니다.</p>
+        <p>정확하게 맞히면 목표물을 제거할 수 있습니다.</p>
+        <p>게임처럼 즐기면서 지판 암기 능력을 향상시키기 위한 모드입니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "feedback",
+    title: "피드백 보내기",
+    content: (
+      <>
+        <p>RIFFLAB은 아직 개발 중인 프로젝트입니다.</p>
+        <p>부족한 점이 정말 많고, 앞으로 추가할 기능도 많습니다.</p>
+        <p>사용 중 불편한 점, 추가되었으면 하는 기능, 개선 아이디어가 있다면 언제든지 알려주세요.</p>
+        <p>여러분의 피드백이 RIFFLAB을 더 좋은 앱으로 만드는 데 큰 도움이 됩니다.</p>
+        <a className="helpInstagramLink" href="https://www.instagram.com/sungsu91_/" rel="noreferrer" target="_blank">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <rect x="4" y="4" width="16" height="16" rx="5" />
+            <circle cx="12" cy="12" r="4" />
+            <circle cx="17" cy="7" r="1.2" />
+          </svg>
+          <span>@sungsu91_</span>
+        </a>
+      </>
+    ),
   },
 ];
 // Legacy backup:
@@ -4798,6 +5435,8 @@ function App() {
   const initialStage3QuickSlotsRef = useRef(getStoredStage3QuickSlots());
   const [appMode, setAppMode] = useState(initialRouteRef.current.appMode);
   const [utilityMenuOpen, setUtilityMenuOpen] = useState(false);
+  const [helpGuideOpen, setHelpGuideOpen] = useState(false);
+  const [openHelpSectionId, setOpenHelpSectionId] = useState("");
   const designLabEnabled = isDesignLabEnabled();
   const [designLabHeaderState, setDesignLabHeaderState] = useState(getStoredDesignLabHeaderState);
   const [designLabAppIconState, setDesignLabAppIconState] = useState(getStoredDesignLabAppIconState);
@@ -4814,6 +5453,9 @@ function App() {
   const [selectedAppIconCandidateId, setSelectedAppIconCandidateId] = useState(getStoredDesignLabAppIconState().activeIcon);
   const [selectedGuitarVariantId, setSelectedGuitarVariantId] = useState(getStoredGuitarLabVariantId);
   const [shooterPlayerSlots, setShooterPlayerSlots] = useState(getStoredShooterPlayerSlots);
+  const [guitarLabDeletedIds, setGuitarLabDeletedIds] = useState(getStoredGuitarLabDeletedIds);
+  const [guitarLabPurgedIds, setGuitarLabPurgedIds] = useState(getStoredGuitarLabPurgedIds);
+  const [guitarLabSelectedDeleteIds, setGuitarLabSelectedDeleteIds] = useState([]);
   const [shooterGuitarPickerOpen, setShooterGuitarPickerOpen] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState(getDeviceSnapshot);
   const [gameState, setGameState] = useState(GAME_STATES.IDLE);
@@ -4879,6 +5521,8 @@ function App() {
     initialStage3QuickSlotsRef.current.find((slot) => `slot:${slot.id}` === initialStage3SettingsRef.current.chordProgressionId) ?? null,
   );
   const [stage3StorageOpen, setStage3StorageOpen] = useState(false);
+  const [stage3StorageSwipeOffset, setStage3StorageSwipeOffset] = useState(0);
+  const [stage3StorageSwipeActive, setStage3StorageSwipeActive] = useState(false);
   const [stage3StorageSelectedId, setStage3StorageSelectedId] = useState(initialStage3QuickSlotsRef.current[0]?.id ?? "");
   const [stage3StorageTitle, setStage3StorageTitle] = useState("내 진행");
   const [stage3StorageMemo, setStage3StorageMemo] = useState("");
@@ -4919,6 +5563,7 @@ function App() {
   const [metronomeTrackerMode, setMetronomeTrackerMode] = useState(initialMetronomeTrackerProgressRef.current.trackerMode);
   const [metronomeBarLimitEnabled, setMetronomeBarLimitEnabled] = useState(initialMetronomeTrackerProgressRef.current.barLimitEnabled);
   const [metronomeBarLimit, setMetronomeBarLimit] = useState(initialMetronomeTrackerProgressRef.current.barLimit);
+  const [metronomeBarLimitDraft, setMetronomeBarLimitDraft] = useState(String(initialMetronomeTrackerProgressRef.current.barLimit));
   const [metronomeBarStopWhenReached, setMetronomeBarStopWhenReached] = useState(false);
   const [metronomeBarResetWhenReached, setMetronomeBarResetWhenReached] = useState(false);
   const [metronomeBarStartFromOne, setMetronomeBarStartFromOne] = useState(true);
@@ -4942,7 +5587,7 @@ function App() {
   const [feelPlaybackLoop, setFeelPlaybackLoop] = useState(true);
   const [feelPlaybackIndex, setFeelPlaybackIndex] = useState(-1);
   const [feelPlaybackProgress, setFeelPlaybackProgress] = useState(0);
-  const [stage3SetupCollapsed, setStage3SetupCollapsed] = useState(false);
+  const [stage3SetupCollapsed, setStage3SetupCollapsed] = useState(true);
   const [isMobileLayout, setIsMobileLayout] = useState(false);
   const [hitZoneNote, setHitZoneNote] = useState(null);
   const [isHitWindowActive, setIsHitWindowActive] = useState(false);
@@ -4966,20 +5611,42 @@ function App() {
     [designLabAppIconState.deletedIcons],
   );
   const selectedGuitarVariant = useMemo(
-    () => GUITAR_LAB_VARIANTS.find((variant) => variant.id === selectedGuitarVariantId) ?? GUITAR_LAB_VARIANTS[0],
-    [selectedGuitarVariantId],
+    () =>
+      GUITAR_LAB_VARIANTS.find((variant) => variant.id === selectedGuitarVariantId && !guitarLabPurgedIds.includes(variant.id))
+      ?? GUITAR_LAB_VARIANTS.find((variant) => !guitarLabPurgedIds.includes(variant.id))
+      ?? GUITAR_LAB_VARIANTS[0],
+    [guitarLabPurgedIds, selectedGuitarVariantId],
+  );
+  const assignedGuitarVariantIds = useMemo(
+    () => new Set(Object.values(shooterPlayerSlots).filter((variantId) => GUITAR_LAB_VARIANT_IDS.has(variantId))),
+    [shooterPlayerSlots],
+  );
+  const visibleGuitarLabVariants = useMemo(
+    () => {
+      const protectedIds = new Set([...assignedGuitarVariantIds, selectedGuitarVariantId]);
+      return GUITAR_LAB_VARIANTS.filter((variant) => {
+        if (guitarLabDeletedIds.includes(variant.id) || guitarLabPurgedIds.includes(variant.id)) return false;
+        if (protectedIds.has(variant.id)) return true;
+        return variant.pack === "Electric" || FRESH_ACOUSTIC_GUITAR_IDS.has(variant.id);
+      });
+    },
+    [assignedGuitarVariantIds, guitarLabDeletedIds, guitarLabPurgedIds, selectedGuitarVariantId],
+  );
+  const archivedGuitarLabVariants = useMemo(
+    () => GUITAR_LAB_VARIANTS.filter((variant) => guitarLabDeletedIds.includes(variant.id) && !guitarLabPurgedIds.includes(variant.id)),
+    [guitarLabDeletedIds, guitarLabPurgedIds],
   );
   const shooterPlayerOptions = useMemo(() => {
     const options = SHOOTER_PLAYER_SLOT_KEYS.map((slotKey, index) => {
       const variantId = shooterPlayerSlots[slotKey];
-      const variant = GUITAR_LAB_VARIANTS.find((item) => item.id === variantId);
+      const variant = GUITAR_LAB_VARIANTS.find((item) => item.id === variantId && !guitarLabPurgedIds.includes(item.id));
       if (!variant) return null;
       return { slotKey, slotNumber: index + 1, variant };
     }).filter(Boolean);
     return options.length > 0
       ? options
-      : [{ slotKey: "slot1", slotNumber: 1, variant: GUITAR_LAB_VARIANTS[0] }];
-  }, [shooterPlayerSlots]);
+      : [{ slotKey: "slot1", slotNumber: 1, variant: GUITAR_LAB_VARIANTS.find((variant) => !guitarLabPurgedIds.includes(variant.id)) ?? GUITAR_LAB_VARIANTS[0] }];
+  }, [guitarLabPurgedIds, shooterPlayerSlots]);
   const visibleSvgLogoCandidates = useMemo(
     () => SVG_LOGO_LAB_CANDIDATES.filter((candidate) => !svgLogoLabState.deletedLogos.includes(candidate.id)),
     [svgLogoLabState.deletedLogos],
@@ -5033,16 +5700,139 @@ function App() {
 
   const applyGuitarVariant = useCallback((variantId) => {
     if (!GUITAR_LAB_VARIANT_IDS.has(variantId)) return;
+    if (guitarLabPurgedIds.includes(variantId)) return;
     setSelectedGuitarVariantId(variantId);
     if (typeof window !== "undefined") {
       window.localStorage.setItem(SHOOTER_GUITAR_STORAGE_KEY, variantId);
       window.localStorage.setItem(SHOOTER_PLAYER_STORAGE_KEY, variantId);
       window.localStorage.setItem(GUITAR_LAB_STORAGE_KEY, variantId);
     }
+  }, [guitarLabPurgedIds]);
+
+  const persistGuitarLabDeletedIds = useCallback((nextIds) => {
+    const normalized = normalizeGuitarLabVariantIds(nextIds).filter((id) => !guitarLabPurgedIds.includes(id));
+    setGuitarLabDeletedIds(normalized);
+    setGuitarLabSelectedDeleteIds((current) => current.filter((id) => !normalized.includes(id)));
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(GUITAR_LAB_DELETED_STORAGE_KEY, JSON.stringify(normalized));
+    }
+    return normalized;
+  }, [guitarLabPurgedIds]);
+
+  const persistGuitarLabPurgedIds = useCallback((nextIds) => {
+    const normalized = normalizeGuitarLabVariantIds(nextIds);
+    setGuitarLabPurgedIds(normalized);
+    setGuitarLabDeletedIds((current) => {
+      const archived = current.filter((id) => !normalized.includes(id));
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(GUITAR_LAB_DELETED_STORAGE_KEY, JSON.stringify(archived));
+      }
+      return archived;
+    });
+    setGuitarLabSelectedDeleteIds((current) => current.filter((id) => !normalized.includes(id)));
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(GUITAR_LAB_PURGED_STORAGE_KEY, JSON.stringify(normalized));
+    }
+    return normalized;
   }, []);
+
+  useEffect(() => {
+    const protectedIds = new Set([...assignedGuitarVariantIds, selectedGuitarVariantId]);
+    const obsoleteIds = GUITAR_LAB_VARIANTS
+      .filter((variant) => {
+        if (protectedIds.has(variant.id)) return false;
+        if (variant.pack === "Electric") return false;
+        if (FRESH_ACOUSTIC_GUITAR_IDS.has(variant.id)) return false;
+        return true;
+      })
+      .map((variant) => variant.id);
+    const nextPurgedIds = Array.from(new Set([...guitarLabPurgedIds, ...obsoleteIds]));
+    if (nextPurgedIds.length === guitarLabPurgedIds.length) return;
+    persistGuitarLabPurgedIds(nextPurgedIds);
+  }, [assignedGuitarVariantIds, guitarLabPurgedIds, persistGuitarLabPurgedIds, selectedGuitarVariantId]);
+
+  const deleteGuitarLabVariant = useCallback((variantId) => {
+    if (!GUITAR_LAB_VARIANT_IDS.has(variantId)) return;
+    if (assignedGuitarVariantIds.has(variantId) || selectedGuitarVariantId === variantId) {
+      window.alert?.("현재 적용 중이거나 슈팅게임 슬롯에 저장된 기타는 삭제할 수 없습니다.");
+      return;
+    }
+    if (!window.confirm?.("삭제하시겠습니까?\n삭제한 디자인은 아카이브(휴지통)로 이동합니다.")) return;
+    persistGuitarLabDeletedIds([...guitarLabDeletedIds, variantId]);
+  }, [assignedGuitarVariantIds, guitarLabDeletedIds, persistGuitarLabDeletedIds, selectedGuitarVariantId]);
+
+  const toggleGuitarLabDeleteSelection = useCallback((variantId) => {
+    if (!GUITAR_LAB_VARIANT_IDS.has(variantId)) return;
+    if (assignedGuitarVariantIds.has(variantId) || selectedGuitarVariantId === variantId) return;
+    setGuitarLabSelectedDeleteIds((current) => (
+      current.includes(variantId)
+        ? current.filter((id) => id !== variantId)
+        : [...current, variantId]
+    ));
+  }, [assignedGuitarVariantIds, selectedGuitarVariantId]);
+
+  const deleteSelectedGuitarLabVariants = useCallback(() => {
+    const deletableIds = guitarLabSelectedDeleteIds.filter(
+      (variantId) => !assignedGuitarVariantIds.has(variantId) && selectedGuitarVariantId !== variantId,
+    );
+    if (!deletableIds.length) return;
+    if (!window.confirm?.("선택한 디자인을 삭제하시겠습니까?\n삭제한 디자인은 아카이브(휴지통)로 이동합니다.")) return;
+    persistGuitarLabDeletedIds([...guitarLabDeletedIds, ...deletableIds]);
+  }, [assignedGuitarVariantIds, guitarLabDeletedIds, guitarLabSelectedDeleteIds, persistGuitarLabDeletedIds, selectedGuitarVariantId]);
+
+  const deleteAllGuitarLabVariants = useCallback(() => {
+    const deletableIds = visibleGuitarLabVariants
+      .map((variant) => variant.id)
+      .filter((variantId) => !assignedGuitarVariantIds.has(variantId) && selectedGuitarVariantId !== variantId);
+    if (!deletableIds.length) return;
+    if (!window.confirm?.("전체 디자인을 삭제하시겠습니까?\n적용 중인 디자인과 슈팅게임 슬롯에 저장된 디자인은 유지됩니다.")) return;
+    persistGuitarLabDeletedIds([...guitarLabDeletedIds, ...deletableIds]);
+  }, [assignedGuitarVariantIds, guitarLabDeletedIds, persistGuitarLabDeletedIds, selectedGuitarVariantId, visibleGuitarLabVariants]);
+
+  const restoreGuitarLabVariant = useCallback((variantId) => {
+    if (!GUITAR_LAB_VARIANT_IDS.has(variantId)) return;
+    persistGuitarLabDeletedIds(guitarLabDeletedIds.filter((id) => id !== variantId));
+  }, [guitarLabDeletedIds, persistGuitarLabDeletedIds]);
+
+  const permanentlyDeleteGuitarLabVariant = useCallback((variantId) => {
+    if (!GUITAR_LAB_VARIANT_IDS.has(variantId)) return;
+    if (!window.confirm?.("영구 삭제하시겠습니까?\n이 작업은 복원할 수 없습니다.")) return;
+    persistGuitarLabPurgedIds([...guitarLabPurgedIds, variantId]);
+  }, [guitarLabPurgedIds, persistGuitarLabPurgedIds]);
+
+  const emptyGuitarLabArchive = useCallback(() => {
+    const archiveIds = archivedGuitarLabVariants.map((variant) => variant.id);
+    if (!archiveIds.length) return;
+    if (!window.confirm?.("휴지통을 비우고 영구 삭제하시겠습니까?\n이 작업은 복원할 수 없습니다.")) return;
+    persistGuitarLabPurgedIds([...guitarLabPurgedIds, ...archiveIds]);
+  }, [archivedGuitarLabVariants, guitarLabPurgedIds, persistGuitarLabPurgedIds]);
+
+  const openGuitarLabArchive = useCallback(() => {
+    setDesignLabSection("archive");
+  }, []);
+
+  const showGuitarLabArchiveButton = useMemo(
+    () => archivedGuitarLabVariants.length > 0,
+    [archivedGuitarLabVariants.length],
+  );
+
+  const getDesignLabSectionLabel = useCallback((section) => (
+    section.id === "archive" ? `아카이브 (${archivedGuitarLabVariants.length})` : section.label
+  ), [archivedGuitarLabVariants.length]);
+
+  const selectedDesignLabSectionLabel = useMemo(
+    () => getDesignLabSectionLabel(DESIGN_LAB_SECTIONS.find((section) => section.id === designLabSection) ?? DESIGN_LAB_SECTIONS[0]),
+    [designLabSection, getDesignLabSectionLabel],
+  );
+
+  useEffect(() => {
+    if (DESIGN_LAB_SECTIONS.some((section) => section.id === designLabSection)) return;
+    setDesignLabSection("logo");
+  }, [designLabSection]);
 
   const saveGuitarToShooterSlot = useCallback((variantId, slotKey) => {
     if (!GUITAR_LAB_VARIANT_IDS.has(variantId) || !SHOOTER_PLAYER_SLOT_KEYS.includes(slotKey)) return;
+    if (guitarLabPurgedIds.includes(variantId)) return;
     setShooterPlayerSlots((current) => {
       const next = { ...current, [slotKey]: variantId };
       const normalized = normalizeShooterPlayerSlots(next);
@@ -5051,7 +5841,7 @@ function App() {
       }
       return normalized;
     });
-  }, []);
+  }, [guitarLabPurgedIds]);
 
   useEffect(() => {
     if (shooterPlayerOptions.some((option) => option.variant.id === selectedGuitarVariantId)) return;
@@ -5234,6 +6024,7 @@ function App() {
   const metronomeModeSwipeChangedAtRef = useRef(0);
   const fretboardSwipeStartRef = useRef(null);
   const fretboardSwipeFeedbackTimerRef = useRef(null);
+  const stage3StorageSwipeStartRef = useRef(null);
   const feelRecordingStartRef = useRef(0);
   const feelPressStartRef = useRef(0);
   const feelLastReleaseRef = useRef(0);
@@ -5277,6 +6068,7 @@ function App() {
   const shooterSoundOnRef = useRef(true);
   const shooterDifficultyRef = useRef(SHOOTER_DIFFICULTIES.EASY);
   const shooterSessionSavedRef = useRef(true);
+  const shooterAimResetTimerRef = useRef(null);
   const scoreRef = useRef(0);
   const maxComboRef = useRef(0);
   const attemptsRef = useRef(0);
@@ -5813,10 +6605,16 @@ function App() {
       { direction: "up", hit: false },
     ].slice(0, 12));
   }, []);
+  const addStage3StrumRepeat = useCallback(() => {
+    setStage3StorageStrumDraftPattern((pattern) => [
+      ...normalizeStrumPattern(pattern),
+      { type: "repeat", label: "X2" },
+    ].slice(0, 12));
+  }, []);
   const toggleStage3StrumHit = useCallback((index) => {
     setStage3StorageStrumDraftPattern((pattern) =>
       normalizeStrumPattern(pattern).map((step, stepIndex) =>
-        stepIndex === index ? { ...step, hit: !step.hit } : step,
+        stepIndex === index && step.type !== "repeat" ? { ...step, hit: !step.hit } : step,
       ),
     );
   }, []);
@@ -6040,7 +6838,7 @@ function App() {
   const playMetronomeDialClick = useCallback(async () => {
     if (typeof window === "undefined") return;
     const nowMs = performance.now();
-    if (nowMs - metronomeDialClickLastAtRef.current < 45) return;
+    if (nowMs - metronomeDialClickLastAtRef.current < 42) return;
     metronomeDialClickLastAtRef.current = nowMs;
 
     const ready = await ensureAudioReady();
@@ -6049,27 +6847,73 @@ function App() {
 
     const now = audio.currentTime;
     const oscillator = audio.createOscillator();
+    const overtone = audio.createOscillator();
+    const noise = audio.createBufferSource();
+    const noiseBuffer = audio.createBuffer(1, Math.max(1, Math.floor(audio.sampleRate * 0.018)), audio.sampleRate);
+    const noiseData = noiseBuffer.getChannelData(0);
     const filter = audio.createBiquadFilter();
+    const noiseFilter = audio.createBiquadFilter();
     const gain = audio.createGain();
+    const noiseGain = audio.createGain();
 
-    oscillator.type = "square";
-    oscillator.frequency.setValueAtTime(1680, now);
-    oscillator.frequency.exponentialRampToValueAtTime(920, now + 0.026);
+    for (let index = 0; index < noiseData.length; index += 1) {
+      const decay = 1 - index / noiseData.length;
+      noiseData[index] = (Math.random() * 2 - 1) * decay * decay;
+    }
+
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(1450, now);
+    oscillator.frequency.exponentialRampToValueAtTime(980, now + 0.018);
+
+    overtone.type = "square";
+    overtone.frequency.setValueAtTime(2550, now);
+    overtone.frequency.exponentialRampToValueAtTime(1900, now + 0.012);
 
     filter.type = "bandpass";
-    filter.frequency.setValueAtTime(1850, now);
-    filter.Q.setValueAtTime(8.5, now);
+    filter.frequency.setValueAtTime(1800, now);
+    filter.Q.setValueAtTime(9, now);
+
+    noise.buffer = noiseBuffer;
+    noiseFilter.type = "highpass";
+    noiseFilter.frequency.setValueAtTime(2100, now);
+    noiseFilter.Q.setValueAtTime(0.8, now);
 
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.026, now + 0.005);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.034);
+    gain.gain.exponentialRampToValueAtTime(0.014, now + 0.003);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.024);
+
+    noiseGain.gain.setValueAtTime(0.0001, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.006, now + 0.002);
+    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.012);
 
     oscillator.connect(filter);
+    overtone.connect(filter);
     filter.connect(gain);
     gain.connect(audio.destination);
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(audio.destination);
     oscillator.start(now);
-    oscillator.stop(now + 0.04);
+    overtone.start(now + 0.001);
+    noise.start(now);
+    oscillator.stop(now + 0.024);
+    overtone.stop(now + 0.02);
+    noise.stop(now + 0.018);
   }, [ensureAudioReady]);
+
+  const triggerMetronomeHardwareToggle = useCallback(() => {
+    playMetronomeDialClick();
+    if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+      navigator.vibrate(8);
+    }
+  }, [playMetronomeDialClick]);
+
+  const triggerMetronomeWheelDetent = useCallback(() => {
+    playMetronomeDialClick();
+    if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+      navigator.vibrate(3);
+    }
+  }, [playMetronomeDialClick]);
 
   const playTick = useCallback((accent = false, subdivisionIndex = 0, useAccentSetting = true) => {
     const audio = audioRef.current;
@@ -6160,6 +7004,13 @@ function App() {
     gain.connect(audio.destination);
     source.start(now);
   }, []);
+
+  const playPatternTick = useCallback((beatInBar = 0, subdivisionIndex = 0) => {
+    const beatPatternState = metronomeBeatPatternRef.current[beatInBar] ?? getDefaultBeatState(beatInBar);
+    if (beatPatternState === METRONOME_BEAT_STATES.MUTE) return;
+    const isAccentBeat = subdivisionIndex === 0 && beatPatternState === METRONOME_BEAT_STATES.ACCENT;
+    playTick(isAccentBeat, subdivisionIndex, false);
+  }, [playTick]);
 
   const stopMetronomeVisualLab = useCallback(() => {
     window.clearInterval(metronomeVisualLabTimerRef.current);
@@ -6391,7 +7242,8 @@ function App() {
     if (gameStateRef.current === GAME_STATES.GAMEOVER) return false;
     const difficulty = shooterDifficultyRef.current;
     const level = getShooterEffectiveLevel(getShooterLevel(hitsRef.current), difficulty, gameTimeRef.current);
-    if (shooterTargetsRef.current.length >= level.maxTargets) return false;
+    const activeTargetCount = shooterTargetsRef.current.filter((target) => !target.defeated).length;
+    if (activeTargetCount >= level.maxTargets) return false;
     const trainingNotes = getShooterDifficultyNotes(activeNotesRef.current, difficulty, gameTimeRef.current, selectedPentatonicRef.current);
     activeNotesRef.current = trainingNotes;
     const pool = getShooterPool(trainingNotes, level);
@@ -6508,17 +7360,39 @@ function App() {
     [flashStage, showLaneFeedback],
   );
 
-  const fireProjectile = useCallback((target, noteName) => {
-    const aimShift = clampValue((target.x - 58) * 0.34, -18, 18);
-    const muzzleX = clampValue(52 + aimShift * 0.09, 49, 55);
-    const muzzleY = 72;
+  const aimShooterAtTarget = useCallback((target, holdMs = 190) => {
     const nextAim = {
-      "--aim-shift": `${aimShift}px`,
-      "--aim-tilt": `${clampValue((target.x - 58) * 0.1, -6, 6)}deg`,
-      "--guitar-aim": `${clampValue((target.x - 50) * 0.18 - (82 - target.y) * 0.04, -14, 12)}deg`,
+      "--aim-shift": "0px",
+      "--aim-tilt": "0deg",
+      "--guitar-aim": `${clampValue((target.x - 50) * 0.28 - (84 - target.y) * 0.025, -16, 16)}deg`,
       "--arm-aim": `${clampValue((target.x - 50) * 0.22 - (82 - target.y) * 0.05, -18, 16)}deg`,
     };
     setShooterAim(nextAim);
+    window.clearTimeout(shooterAimResetTimerRef.current);
+    shooterAimResetTimerRef.current = window.setTimeout(() => {
+      setShooterAim(undefined);
+    }, holdMs);
+  }, []);
+
+  const getShooterLockDelayMs = useCallback((target, now) => {
+    const y = Number(target?.y) || 8;
+    let delay = 960;
+    if (y >= 84) delay = 55;
+    else if (y >= 76) delay = 120 + Math.random() * 90;
+    else if (y >= 62) delay = 250 + Math.random() * 120;
+    else if (y >= 42) delay = 480 + Math.random() * 170;
+    else delay = 820 + Math.random() * 220;
+
+    const bottomAt = (target?.bornAt ?? now) + (target?.duration ?? 0);
+    const timeUntilBottom = Math.max(0, bottomAt - now);
+    if (timeUntilBottom <= 180) return SHOOTER_LOCK_MIN_MS;
+    return Math.max(SHOOTER_LOCK_MIN_MS, Math.min(delay, timeUntilBottom - 120));
+  }, []);
+
+  const fireProjectile = useCallback((target, noteName) => {
+    const muzzleX = 50;
+    const muzzleY = 75;
+    aimShooterAtTarget(target, 190);
 
     projectilesRef.current = [
       ...projectilesRef.current,
@@ -6552,10 +7426,20 @@ function App() {
         speed: 0.72 + (index % 3) * 0.12,
         bornAt: gameTimeRef.current,
       })),
+      ...Array.from({ length: 5 }, (_, index) => ({
+        id: particleIdRef.current++,
+        type: "noteShard",
+        symbol: ["♪", "♩", "♫", "♪", "♬"][index],
+        x: target.x,
+        y: target.y,
+        angle: -Math.PI * 0.82 + index * (Math.PI * 0.41),
+        speed: 0.62 + (index % 2) * 0.16,
+        bornAt: gameTimeRef.current,
+      })),
     ];
     setProjectiles([...projectilesRef.current]);
     setParticles([...particlesRef.current]);
-  }, []);
+  }, [aimShooterAtTarget]);
 
   const judgeShooterNote = useCallback(
     (detectedPitchName) => {
@@ -6565,6 +7449,7 @@ function App() {
 
       const orderedTargets = shooterTargetsRef.current
         .map((target, index) => ({ target, index }))
+        .filter(({ target }) => !target.defeated && target.lockedAt == null)
         .sort((a, b) => b.target.y - a.target.y || a.target.bornAt - b.target.bornAt);
       const frontTarget = orderedTargets[0] ?? null;
       const target = frontTarget?.target ?? null;
@@ -6582,11 +7467,20 @@ function App() {
         return;
       }
 
-      shooterTargetsRef.current = shooterTargetsRef.current.filter((_, index) => index !== targetIndex);
+      const lockDelayMs = getShooterLockDelayMs(target, now);
+      shooterTargetsRef.current = shooterTargetsRef.current.map((currentTarget, index) => (
+        index === targetIndex
+          ? {
+              ...currentTarget,
+              lockedAt: now,
+              lockFireAt: now + lockDelayMs,
+              lockedNote: detectedPitchName,
+            }
+          : currentTarget
+      ));
       setShooterTargets([...shooterTargetsRef.current]);
-      fireProjectile(target, detectedPitchName);
-      playShooterSound("hit");
-      setFeedback("Success");
+      aimShooterAtTarget(target, lockDelayMs + 180);
+      setFeedback("Lock");
       scoreRef.current += 100;
       setScore((value) => value + 100);
       setCombo((value) => {
@@ -6603,14 +7497,8 @@ function App() {
       });
       attemptsRef.current += 1;
       setAttempts((value) => value + 1);
-      flashStage("hit");
-      window.setTimeout(() => {
-        if (appModeRef.current === APP_MODES.SHOOTER && gameStateRef.current === GAME_STATES.PLAYING) {
-          spawnShooterTarget();
-        }
-      }, 70);
     },
-    [fireProjectile, flashStage, playShooterSound, spawnShooterTarget],
+    [aimShooterAtTarget, flashStage, getShooterLockDelayMs, playShooterSound],
   );
 
   const finalizeShooterRecord = useCallback((reason = "reset") => {
@@ -6693,11 +7581,32 @@ function App() {
           ? activeNotesRef.current
           : DEFAULT_CATEGORY.notes;
       const gameNote = frequencyToNearest(pitch, activeNotes, gameNoteTolerance);
-      if (gameNote) {
+      let judgePitchName = gameNote?.pitch ?? null;
+
+      if (appModeRef.current === APP_MODES.SHOOTER && gameStateRef.current === GAME_STATES.PLAYING) {
+        const frontTarget =
+          [...shooterTargetsRef.current].sort((a, b) => b.y - a.y || a.bornAt - b.bornAt)[0] ?? null;
+        const frontTargetDetail = frontTarget?.detail ?? (frontTarget ? getShooterNoteDetail(frontTarget.note) : null);
+        const frontTargetMatch =
+          frontTargetDetail && pitch
+            ? frequencyToNearest(pitch, [frontTargetDetail], isMobileLayoutRef.current ? 110 : 90)
+            : null;
+        const detectedPitchClass = getPitchClass(displayNote?.pitch ?? gameNote?.pitch);
+        const targetPitchClass = getPitchClass(frontTargetDetail?.pitch ?? frontTarget?.note);
+        const samePitchClass = Boolean(frontTargetDetail && detectedPitchClass && detectedPitchClass === targetPitchClass);
+
+        if (frontTargetMatch || samePitchClass) {
+          judgePitchName = frontTargetDetail.pitch;
+        } else {
+          judgePitchName = gameNote?.pitch ?? displayNote?.pitch ?? null;
+        }
+      }
+
+      if (judgePitchName) {
         stableGameNoteRef.current =
-          stableGameNoteRef.current.note === gameNote.pitch
-            ? { note: gameNote.pitch, count: stableGameNoteRef.current.count + 1 }
-            : { note: gameNote.pitch, count: 1 };
+          stableGameNoteRef.current.note === judgePitchName
+            ? { note: judgePitchName, count: stableGameNoteRef.current.count + 1 }
+            : { note: judgePitchName, count: 1 };
       } else {
         stableGameNoteRef.current = { note: null, count: 0 };
       }
@@ -6717,10 +7626,10 @@ function App() {
       if (
         appModeRef.current === APP_MODES.SHOOTER &&
         gameStateRef.current === GAME_STATES.PLAYING &&
-        gameNote &&
+        judgePitchName &&
         stableGameNoteRef.current.count >= (isMobileLayoutRef.current ? 1 : 2)
       ) {
-        judgeShooterNote(gameNote.pitch);
+        judgeShooterNote(judgePitchName);
       }
     },
     [judgeShooterNote],
@@ -6882,7 +7791,7 @@ function App() {
       flushSync(() => {
         setBeat(beatInBar);
       });
-      playTick(metronomeAccentRef.current && beatInBar === 0 && subdivisionIndex === 0, subdivisionIndex);
+      playPatternTick(beatInBar, subdivisionIndex);
 
       if (subdivisionIndex !== 0) return;
 
@@ -6904,7 +7813,7 @@ function App() {
       setReferenceStepTick((value) => value + 1);
       setFeedback("다음 음");
     },
-    [playCountInVoice, playTick, selectedCategory.sequence, setState],
+    [playCountInVoice, playPatternTick, selectedCategory.sequence, setState],
   );
 
   const runShooterFrame = useCallback(
@@ -6926,23 +7835,59 @@ function App() {
         setBeat(beatInBar);
       }
 
+      let targetsMoved = false;
       shooterTargetsRef.current.forEach((target) => {
+        if (target.defeated) return;
         const progress = Math.min(1, (gameTimeRef.current - target.bornAt) / target.duration);
-        target.y = 8 + progress * 80;
+        const nextY = 8 + progress * 80;
+        if (target.y !== nextY) {
+          target.y = nextY;
+          targetsMoved = true;
+        }
       });
 
-      const expiredTargets = shooterTargetsRef.current.filter(
-        (target) => gameTimeRef.current - target.bornAt >= target.duration,
+      const readyLockedTargets = shooterTargetsRef.current.filter(
+        (target) => target.lockedAt != null && !target.defeated && gameTimeRef.current >= (target.lockFireAt ?? target.lockedAt),
       );
-      if (expiredTargets.length > 0) {
-        const expiredIds = new Set(expiredTargets.map((target) => target.id));
-        shooterTargetsRef.current = shooterTargetsRef.current.filter((target) => !expiredIds.has(target.id));
+      if (readyLockedTargets.length > 0) {
+        readyLockedTargets.forEach((target) => {
+          fireProjectile(target, target.lockedNote ?? target.note);
+        });
+        const readyLockedIds = new Set(readyLockedTargets.map((target) => target.id));
+        shooterTargetsRef.current = shooterTargetsRef.current.map((target) => (
+          readyLockedIds.has(target.id)
+            ? {
+                ...target,
+                defeated: true,
+                hitAt: gameTimeRef.current,
+                lockedAt: undefined,
+                lockFireAt: undefined,
+              }
+            : target
+        ));
+        setFeedback("Success");
+        flashStage("hit");
+        playShooterSound("hit");
+        targetsMoved = true;
+      }
+
+      const defeatedExpiredTargets = shooterTargetsRef.current.filter(
+        (target) => target.defeated && gameTimeRef.current - (target.hitAt ?? target.bornAt) >= SHOOTER_TARGET_HIT_EFFECT_MS,
+      );
+      const missedTargets = shooterTargetsRef.current.filter(
+        (target) => !target.defeated && target.lockedAt == null && (gameTimeRef.current - target.bornAt >= target.duration || target.y >= 88),
+      );
+      const removedTargetIds = new Set([...defeatedExpiredTargets, ...missedTargets].map((target) => target.id));
+      if (removedTargetIds.size > 0) {
+        shooterTargetsRef.current = shooterTargetsRef.current.filter((target) => !removedTargetIds.has(target.id));
+      }
+      if (missedTargets.length > 0) {
         comboRef.current = 0;
         setCombo(0);
-        attemptsRef.current += expiredTargets.length;
-        setAttempts((value) => value + expiredTargets.length);
-        setMissCount((value) => value + expiredTargets.length);
-        const nextLives = Math.max(0, shooterLivesRef.current - expiredTargets.length);
+        attemptsRef.current += missedTargets.length;
+        setAttempts((value) => value + missedTargets.length);
+        setMissCount((value) => value + missedTargets.length);
+        const nextLives = Math.max(0, shooterLivesRef.current - missedTargets.length);
         shooterLivesRef.current = nextLives;
         setShooterLives(nextLives);
         setFeedback(nextLives <= 0 ? "Game Over" : "Miss");
@@ -6958,9 +7903,10 @@ function App() {
       const nextProjectiles = projectilesRef.current.filter(
         (projectile) => gameTimeRef.current - projectile.bornAt <= projectile.duration,
       );
-      const nextParticles = particlesRef.current.filter(
-        (particle) => gameTimeRef.current - particle.bornAt <= (particle.type === "shockwave" ? 320 : 360),
-      );
+      const nextParticles = particlesRef.current.filter((particle) => {
+        const lifetime = particle.type === "shockwave" ? 320 : particle.type === "noteShard" ? 360 : 360;
+        return gameTimeRef.current - particle.bornAt <= lifetime;
+      });
       if (nextProjectiles.length !== projectilesRef.current.length) {
         projectilesRef.current = nextProjectiles;
         setProjectiles([...projectilesRef.current]);
@@ -6969,11 +7915,13 @@ function App() {
         particlesRef.current = nextParticles;
         setParticles([...particlesRef.current]);
       }
-      if (expiredTargets.length > 0) {
+      if (removedTargetIds.size > 0) {
+        setShooterTargets([...shooterTargetsRef.current]);
+      } else if (targetsMoved) {
         setShooterTargets([...shooterTargetsRef.current]);
       }
     },
-    [finalizeShooterRecord, flashStage, playShooterSound, setState, spawnShooterTarget],
+    [finalizeShooterRecord, fireProjectile, flashStage, playShooterSound, setState, spawnShooterTarget],
   );
 
   const runChordTransitionFrame = useCallback(
@@ -7063,10 +8011,10 @@ function App() {
         setBeat(beatInBar);
         chordPracticeIndexRef.current = measureIndex;
         setChordPracticeIndex(measureIndex);
-        playTick(metronomeAccentRef.current && beatInBar === 0 && subdivisionIndex === 0, subdivisionIndex);
+        playPatternTick(beatInBar, subdivisionIndex);
       }
     },
-    [chordTransitionProgression.length, playCountInVoice, playTick],
+    [chordTransitionProgression.length, playCountInVoice, playPatternTick],
   );
 
   const runMetronomeFrame = useCallback(
@@ -7106,6 +8054,38 @@ function App() {
 
       gameTimeRef.current += deltaMs;
       setStage3MeasureProgress((gameTimeRef.current % currentMeasureMs) / currentMeasureMs);
+
+      if (metronomeTrackerModeRef.current === "timer") {
+        const totalTimerMs = metronomeTrackerTimerTotalMsRef.current;
+        const elapsedMs = metronomeTrackerBaseElapsedMsRef.current + gameTimeRef.current;
+        const cappedElapsedMs = totalTimerMs > 0 ? Math.min(elapsedMs, totalTimerMs) : elapsedMs;
+        if (
+          (totalTimerMs > 0 && cappedElapsedMs >= totalTimerMs) ||
+          cappedElapsedMs - metronomeTrackerElapsedUpdateRef.current >= 250
+        ) {
+          metronomeTrackerElapsedUpdateRef.current = cappedElapsedMs;
+          setMetronomeTrackerElapsedMs(cappedElapsedMs);
+        }
+
+        if (totalTimerMs > 0 && elapsedMs >= totalTimerMs) {
+          setMetronomeTrackerElapsedMs(totalTimerMs);
+          if (metronomeTimerResetWhenReachedRef.current) {
+            gameTimeRef.current = 0;
+            lastBeatRef.current = -1;
+            metronomeTrackerBaseElapsedMsRef.current = 0;
+            metronomeTrackerElapsedUpdateRef.current = 0;
+            setBeat(0);
+            setMetronomeTrackerElapsedMs(0);
+            setStage3MeasureProgress(0);
+          }
+          if (metronomeTimerStopWhenReachedRef.current) {
+            setFeedback("Complete");
+            setState(GAME_STATES.IDLE);
+            return;
+          }
+        }
+      }
+
       const currentTick = Math.floor(gameTimeRef.current / currentTickMs);
       if (currentTick === lastBeatRef.current) return;
 
@@ -7671,11 +8651,13 @@ function App() {
 
   const persistMetronomePresets = useCallback((nextPresets) => {
     const normalized = nextPresets.map((preset, index) => normalizeMetronomePreset(preset, index)).slice(0, 24);
-    setMetronomePresets(normalized);
     if (typeof window !== "undefined") {
       window.localStorage.setItem(METRONOME_PRESET_STORAGE_KEY, JSON.stringify(normalized));
     }
-    return normalized;
+    const stored = getStoredMetronomePresets();
+    const confirmed = stored.length || normalized;
+    setMetronomePresets(confirmed);
+    return confirmed;
   }, []);
 
   const captureCurrentMetronomePreset = useCallback((name) => normalizeMetronomePreset({
@@ -7685,6 +8667,9 @@ function App() {
     timeSignature: metronomeTimeSignature,
     subdivision: metronomeSubdivision,
     tone: metronomeTone,
+    accent: metronomeAccent,
+    repeat: metronomeRepeat,
+    displayMode: metronomeDisplayMode,
     countInBars: metronomeCountInBars,
     countInVoiceMode: metronomeCountInVoiceMode,
     autoBpmMode,
@@ -7727,9 +8712,12 @@ function App() {
     metronomeBarStopWhenReached,
     metronomeBeatPattern,
     metronomeBeatsPerMeasure,
+    metronomeAccent,
     metronomeCountInBars,
     metronomeCountInVoiceMode,
+    metronomeDisplayMode,
     metronomePresetSelectedId,
+    metronomeRepeat,
     metronomeSubdivision,
     metronomeTimeSignature,
     metronomeTimerCountdown,
@@ -7742,24 +8730,44 @@ function App() {
   ]);
 
   const saveMetronomePreset = useCallback(() => {
-    const name = metronomePresetName.trim() || METRONOME_PRESET_DEFAULT_NAME;
+    const baseName = metronomePresetName.trim() || METRONOME_PRESET_DEFAULT_NAME;
     const savedAt = Date.now();
+    const storedPresets = getStoredMetronomePresets();
+    const presetMap = new Map();
+    [...storedPresets, ...metronomePresets].forEach((preset) => {
+      if (preset?.id) presetMap.set(preset.id, preset);
+    });
+    const latestPresets = Array.from(presetMap.values());
+    const existingIndex = metronomePresetSelectedId
+      ? latestPresets.findIndex((preset) => preset.id === metronomePresetSelectedId)
+      : -1;
+    const isUpdatingSelectedPreset = existingIndex >= 0;
+    const timestamp = new Date(savedAt).toLocaleTimeString("ko-KR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+    const name = isUpdatingSelectedPreset ? baseName.slice(0, 24) : `${baseName.slice(0, 15)} ${timestamp}`.trim().slice(0, 24);
     const currentPreset = {
       ...captureCurrentMetronomePreset(name),
       updatedAt: savedAt,
     };
-    const existingIndex = metronomePresets.findIndex((preset) => preset.id === metronomePresetSelectedId || preset.name === name);
-    const nextPresets = existingIndex >= 0
-      ? metronomePresets.map((preset, index) => (index === existingIndex ? { ...currentPreset, id: preset.id, createdAt: preset.createdAt } : preset))
-      : [{ ...currentPreset, id: createLocalId("metro-preset"), createdAt: savedAt }, ...metronomePresets];
+    const nextPresets = isUpdatingSelectedPreset
+      ? latestPresets.map((preset, index) => (index === existingIndex ? { ...currentPreset, id: preset.id, createdAt: preset.createdAt } : preset))
+      : [{ ...currentPreset, id: createLocalId("metro-preset"), createdAt: savedAt }, ...latestPresets];
     const normalized = persistMetronomePresets(nextPresets);
-    const savedPreset = existingIndex >= 0 ? normalized[existingIndex] : normalized[0];
+    const savedPreset = isUpdatingSelectedPreset
+      ? normalized.find((preset) => preset.id === metronomePresetSelectedId)
+      : normalized[0];
     setMetronomePresetSelectedId(savedPreset?.id || "");
-    setMetronomePresetName(savedPreset?.name || name);
+    setMetronomePresetName(savedPreset?.name || baseName);
   }, [captureCurrentMetronomePreset, metronomePresetName, metronomePresetSelectedId, metronomePresets, persistMetronomePresets]);
 
   const applyMetronomePreset = useCallback((presetId) => {
-    const preset = metronomePresets.find((item) => item.id === presetId);
+    const storedPresets = getStoredMetronomePresets();
+    if (storedPresets.length) setMetronomePresets(storedPresets);
+    const preset = [...metronomePresets, ...storedPresets].find((item) => item.id === presetId);
     if (!preset) {
       setMetronomePresetSelectedId("");
       return;
@@ -7770,6 +8778,9 @@ function App() {
     setMetronomeTimeSignature(normalized.timeSignature);
     setMetronomeSubdivision(normalized.subdivision);
     setMetronomeTone(normalized.tone);
+    setMetronomeAccent(normalized.accent);
+    setMetronomeRepeat(normalized.repeat);
+    setMetronomeDisplayMode(normalized.displayMode);
     setMetronomeCountInBars(normalized.countInBars);
     setMetronomeCountInVoiceMode(normalized.countInVoiceMode);
     setMetronomeCountIn(normalized.countInBars > 0);
@@ -7785,6 +8796,7 @@ function App() {
     setMetronomeTrackerMode(normalized.trackerMode);
     setMetronomeBarLimitEnabled(normalized.barLimitEnabled);
     setMetronomeBarLimit(normalized.barLimit);
+    setMetronomeBarLimitDraft(String(normalized.barLimit));
     setMetronomeBarStopWhenReached(normalized.barStopWhenReached);
     setMetronomeBarResetWhenReached(normalized.barResetWhenReached);
     setMetronomeBarStartFromOne(normalized.barStartFromOne);
@@ -7793,22 +8805,42 @@ function App() {
     setMetronomeTimerResetWhenReached(normalized.timerResetWhenReached);
     setMetronomeTrackerTimerMinutes(normalized.trackerTimerMinutes);
     setMetronomeTrackerTimerSeconds(normalized.trackerTimerSeconds);
-    setMetronomeBeatPattern(normalizeMetronomeBeatPattern(normalized.beatPattern, getTimeSignatureOption(normalized.timeSignature).beats));
+    const nextBeatPattern = normalizeMetronomeBeatPattern(normalized.beatPattern, getTimeSignatureOption(normalized.timeSignature).beats);
+    metronomeBeatPatternRef.current = nextBeatPattern;
+    setMetronomeBeatPattern(nextBeatPattern);
     setMetronomePresetSelectedId(normalized.id);
     setMetronomePresetName(normalized.name);
   }, [changeBpm, metronomePresets]);
 
   const handleTrackerTimerMinutesChange = useCallback((nextValue) => {
     const nextMinutes = normalizeTrackerTimerMinutes(nextValue);
-    if (nextMinutes !== metronomeTrackerTimerMinutes) playMetronomeDialClick();
+    if (nextMinutes !== metronomeTrackerTimerMinutes) triggerMetronomeWheelDetent();
     setMetronomeTrackerTimerMinutes(nextMinutes);
-  }, [metronomeTrackerTimerMinutes, playMetronomeDialClick]);
+  }, [metronomeTrackerTimerMinutes, triggerMetronomeWheelDetent]);
 
   const handleTrackerTimerSecondsChange = useCallback((nextValue) => {
     const nextSeconds = normalizeTrackerTimerSeconds(nextValue);
-    if (nextSeconds !== metronomeTrackerTimerSeconds) playMetronomeDialClick();
+    if (nextSeconds !== metronomeTrackerTimerSeconds) triggerMetronomeWheelDetent();
     setMetronomeTrackerTimerSeconds(nextSeconds);
-  }, [metronomeTrackerTimerSeconds, playMetronomeDialClick]);
+  }, [metronomeTrackerTimerSeconds, triggerMetronomeWheelDetent]);
+
+  useEffect(() => {
+    setMetronomeBarLimitDraft(String(metronomeBarLimit));
+  }, [metronomeBarLimit]);
+
+  const handleMetronomeBarLimitChange = useCallback((event) => {
+    const rawValue = event.target.value.replace(/[^\d]/g, "");
+    setMetronomeBarLimitDraft(rawValue);
+    if (!rawValue) return;
+
+    setMetronomeBarLimit(normalizeTrackerBarLimit(rawValue, metronomeBarLimit));
+  }, [metronomeBarLimit]);
+
+  const commitMetronomeBarLimit = useCallback(() => {
+    const nextLimit = normalizeTrackerBarLimit(metronomeBarLimitDraft, metronomeBarLimit);
+    setMetronomeBarLimit(nextLimit);
+    setMetronomeBarLimitDraft(String(nextLimit));
+  }, [metronomeBarLimit, metronomeBarLimitDraft]);
 
   const handleTapTempo = useCallback(() => {
     const now = performance.now();
@@ -8025,6 +9057,7 @@ function App() {
       const currentState = nextPattern[beatIndex] ?? getDefaultBeatState(beatIndex);
       const currentIndex = METRONOME_BEAT_STATE_ORDER.indexOf(currentState);
       nextPattern[beatIndex] = METRONOME_BEAT_STATE_ORDER[(currentIndex + 1) % METRONOME_BEAT_STATE_ORDER.length];
+      metronomeBeatPatternRef.current = nextPattern;
       return nextPattern;
     });
   }, [metronomeBeatsPerMeasure]);
@@ -8393,6 +9426,97 @@ function App() {
     setState(GAME_STATES.IDLE);
   }, [cancelCountInVoice, setState, stopMic]);
 
+  const closeStage3StorageRoom = useCallback(() => {
+    stage3StorageSwipeStartRef.current = null;
+    setStage3StorageSwipeActive(false);
+    setStage3StorageSwipeOffset(0);
+    setStage3StorageOpen(false);
+    appModeRef.current = APP_MODES.PRACTICE;
+    setAppMode(APP_MODES.PRACTICE);
+    setSelectedCategoryId("rhythm");
+  }, []);
+
+  const handleStage3StorageSwipeStart = useCallback((event) => {
+    if (event.button != null && event.button !== 0) return;
+    if (event.target?.closest?.("button, input, select, textarea, a, [role='button']")) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const localX = event.clientX - bounds.left;
+    if (localX > 28) {
+      stage3StorageSwipeStartRef.current = null;
+      return;
+    }
+    stage3StorageSwipeStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      pointerId: event.pointerId,
+      width: bounds.width,
+      canceled: false,
+      locked: false,
+    };
+    setStage3StorageSwipeActive(true);
+    setStage3StorageSwipeOffset(0);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }, []);
+
+  const handleStage3StorageSwipeMove = useCallback((event) => {
+    const start = stage3StorageSwipeStartRef.current;
+    if (!start || start.canceled) return;
+    const deltaX = event.clientX - start.x;
+    const deltaY = event.clientY - start.y;
+    if (!start.locked) {
+      if (Math.abs(deltaY) > 36 && Math.abs(deltaY) > Math.abs(deltaX) * 0.85) {
+        stage3StorageSwipeStartRef.current = { ...start, canceled: true };
+        setStage3StorageSwipeActive(false);
+        setStage3StorageSwipeOffset(0);
+        event.currentTarget.releasePointerCapture?.(start.pointerId);
+        return;
+      }
+      if (deltaX < 0 || Math.abs(deltaX) < 10) return;
+      if (deltaX > Math.abs(deltaY) * 1.25) {
+        start.locked = true;
+      }
+    }
+    if (deltaX < 0) {
+      stage3StorageSwipeStartRef.current = { ...start, canceled: true };
+      setStage3StorageSwipeActive(false);
+      setStage3StorageSwipeOffset(0);
+      event.currentTarget.releasePointerCapture?.(start.pointerId);
+      return;
+    }
+    const maxPreview = Math.max(90, start.width * 0.34);
+    const easedOffset = Math.min(deltaX, maxPreview);
+    setStage3StorageSwipeOffset(easedOffset);
+  }, []);
+
+  const handleStage3StorageSwipeEnd = useCallback((event) => {
+    const start = stage3StorageSwipeStartRef.current;
+    stage3StorageSwipeStartRef.current = null;
+    if (!start) return;
+    event.currentTarget.releasePointerCapture?.(start.pointerId);
+    if (start.canceled) {
+      setStage3StorageSwipeActive(false);
+      setStage3StorageSwipeOffset(0);
+      return;
+    }
+    const deltaX = event.clientX - start.x;
+    const deltaY = Math.abs(event.clientY - start.y);
+    const threshold = Math.max(96, (start.width || window.innerWidth || 390) * 0.28);
+    if (deltaX >= threshold && deltaX > deltaY * 1.6) {
+      closeStage3StorageRoom();
+    } else {
+      setStage3StorageSwipeActive(false);
+      setStage3StorageSwipeOffset(0);
+    }
+  }, [closeStage3StorageRoom]);
+
+  const handleStage3StorageSwipeCancel = useCallback((event) => {
+    const start = stage3StorageSwipeStartRef.current;
+    stage3StorageSwipeStartRef.current = null;
+    if (start) event.currentTarget.releasePointerCapture?.(start.pointerId);
+    setStage3StorageSwipeActive(false);
+    setStage3StorageSwipeOffset(0);
+  }, []);
+
   const showShooterMode = useCallback(() => {
     setUtilityMenuOpen(false);
     setStage3StorageOpen(false);
@@ -8497,6 +9621,12 @@ function App() {
   }, [appMode]);
 
   useEffect(() => {
+    if (appMode !== APP_MODES.METRONOME && metronomeAdvancedPanel) {
+      setMetronomeAdvancedPanel("");
+    }
+  }, [appMode, metronomeAdvancedPanel]);
+
+  useEffect(() => {
     if (!HEADER_VARIANT_IDS.has(selectedHeaderCandidateId)) setSelectedHeaderCandidateId(headerVariant);
   }, [headerVariant, selectedHeaderCandidateId]);
 
@@ -8559,6 +9689,7 @@ function App() {
       setIsHitWindowActive(false);
       setBeat(0);
       setUtilityMenuOpen(false);
+      if (route.appMode !== APP_MODES.METRONOME) setMetronomeAdvancedPanel("");
       setState(route.appMode === APP_MODES.SHOOTER && streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
     };
 
@@ -9028,14 +10159,7 @@ function App() {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
   };
   const shooterPreview = getShooterQueue(hits, shooterTarget ? Math.max(0, patternRef.current - 1) : patternRef.current, 5);
-  const shooterMotion = shooterTarget
-    ? {
-        "--aim-shift": `${clampValue((shooterTarget.x - 50) * 0.42, -22, 22)}px`,
-        "--aim-tilt": `${clampValue((shooterTarget.x - 50) * 0.09, -6, 6)}deg`,
-        "--guitar-aim": `${clampValue((shooterTarget.x - 50) * 0.2 - (82 - shooterTarget.y) * 0.05, -18, 14)}deg`,
-        "--arm-aim": `${clampValue((shooterTarget.x - 50) * 0.22 - (82 - shooterTarget.y) * 0.05, -20, 18)}deg`,
-      }
-    : shooterAim;
+  const shooterMotion = shooterAim;
   const hasDirectionPractice = selectedCategory.id === "scale-block" || selectedCategory.id === "first-position";
   const directionGuideSequence =
     selectedCategory.id === "first-position" ? FIRST_POSITION_ASCENDING_SEQUENCE : selectedPentatonic.sequence;
@@ -9097,29 +10221,45 @@ function App() {
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true">›</span>
               </button>
-              <button className="utilityMenuItem utilityMenuItemSecondary" type="button">
+              <button
+                className="utilityMenuItem utilityMenuItemSecondary"
+                onClick={() => {
+                  setUtilityMenuOpen(false);
+                  setHelpGuideOpen(true);
+                  setOpenHelpSectionId("");
+                }}
+                type="button"
+              >
+                <span className="utilityMenuIcon" aria-hidden="true">?</span>
+                <div className="utilityMenuText">
+                  <strong>사용설명서 & 도움말</strong>
+                  <small>훈련 기능과 사용 방법 안내</small>
+                </div>
+                <span className="utilityMenuChevron" aria-hidden="true">›</span>
+              </button>
+              <button className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemDisabled" disabled type="button">
                 <span className="utilityMenuIcon" aria-hidden="true">⌁</span>
                 <div className="utilityMenuText">
                   <strong>연습기록</strong>
                   <small>최근 연습 내역 확인</small>
                 </div>
-                <span className="utilityMenuChevron" aria-hidden="true">›</span>
+                <span className="utilityMenuBadge" aria-label="미구현">미구현</span>
               </button>
-              <button className="utilityMenuItem utilityMenuItemSecondary" type="button">
+              <button className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemDisabled" disabled type="button">
                 <span className="utilityMenuIcon" aria-hidden="true">♪</span>
                 <div className="utilityMenuText">
                   <strong>사운드설정</strong>
                   <small>메트로놈 및 효과음 설정</small>
                 </div>
-                <span className="utilityMenuChevron" aria-hidden="true">›</span>
+                <span className="utilityMenuBadge" aria-label="미구현">미구현</span>
               </button>
-              <button className="utilityMenuItem utilityMenuItemSecondary" type="button">
+              <button className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemDisabled" disabled type="button">
                 <span className="utilityMenuIcon" aria-hidden="true">⚙</span>
                 <div className="utilityMenuText">
                   <strong>환경설정</strong>
                   <small>화면 및 연습 환경 조정</small>
                 </div>
-                <span className="utilityMenuChevron" aria-hidden="true">›</span>
+                <span className="utilityMenuBadge" aria-label="미구현">미구현</span>
               </button>
               {designLabEnabled ? (
                 <button className="utilityMenuItem utilityMenuItemSecondary" onClick={showDesignLab} type="button">
@@ -9178,6 +10318,61 @@ function App() {
               </div>
             </nav>
           </aside>
+        </div>
+      ) : null}
+
+      {helpGuideOpen ? (
+        <div className="helpGuideLayer" role="presentation">
+          <button
+            aria-label="사용설명서 닫기"
+            className="helpGuideDim"
+            onClick={() => {
+              setHelpGuideOpen(false);
+              setOpenHelpSectionId("");
+            }}
+            type="button"
+          />
+          <section className="helpGuidePanel" aria-label="사용설명서 및 도움말">
+            <div className="helpGuideHeader">
+              <div>
+                <span>RIFFLAB Guide</span>
+                <strong>사용설명서 & 도움말</strong>
+              </div>
+              <button
+                aria-label="닫기"
+                onClick={() => {
+                  setHelpGuideOpen(false);
+                  setOpenHelpSectionId("");
+                }}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+            <div className="helpAccordion">
+              {HELP_GUIDE_SECTIONS.map((section) => {
+                const expanded = openHelpSectionId === section.id;
+                return (
+                  <article className={`helpAccordionItem ${expanded ? "open" : ""}`} key={section.id}>
+                    <button
+                      aria-expanded={expanded}
+                      className="helpAccordionTrigger"
+                      onClick={() => setOpenHelpSectionId(expanded ? "" : section.id)}
+                      type="button"
+                    >
+                      <span aria-hidden="true">{expanded ? "▾" : "▸"}</span>
+                      <strong>{section.title}</strong>
+                    </button>
+                    {expanded ? (
+                      <div className="helpAccordionContent">
+                        {section.content}
+                      </div>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+          </section>
         </div>
       ) : null}
 
@@ -9342,13 +10537,13 @@ function App() {
                 onClick={() => setDesignLabSection(section.id)}
                 type="button"
               >
-                {section.label}
+                {getDesignLabSectionLabel(section)}
               </button>
             ))}
           </nav>
           <section className="headerPreviewSection" aria-label="Header Preview">
             <div className="headerPreviewSectionTitle">
-              <span>{DESIGN_LAB_SECTIONS.find((section) => section.id === designLabSection)?.label} Lab</span>
+              <span>{selectedDesignLabSectionLabel} Lab</span>
               <strong>
                 {designLabSection === "logo"
                   ? `운영 Header: ${getHeaderVariantLabel(headerVariant)}`
@@ -9525,8 +10720,40 @@ function App() {
             ) : null}
             {designLabSection === "character" ? (
               <div className="guitarLab">
+                <article className="headerPreviewCard guitarLabRulesCard">
+                  <div className="headerPreviewMeta">
+                    <span>RIFFLAB 기타 디자인 규칙</span>
+                    <small>Martin, Gibson, Taylor, Yamaha 계열 정면 구조를 참고한 신규 실제 비율 라인 기준</small>
+                  </div>
+                  <ul>
+                    {RIFFLAB_GUITAR_DESIGN_RULES.map((rule) => (
+                      <li key={rule}>{rule}</li>
+                    ))}
+                  </ul>
+                </article>
+                <div className="guitarLabToolbar">
+                  <div>
+                    <strong>Guitar Lab</strong>
+                    <span>디자인 {visibleGuitarLabVariants.length}개 · 아카이브 {archivedGuitarLabVariants.length}개</span>
+                  </div>
+                  <div className="guitarLabToolbarActions">
+                    <button disabled={!guitarLabSelectedDeleteIds.length} onClick={deleteSelectedGuitarLabVariants} type="button">
+                      선택 삭제
+                    </button>
+                    <button
+                      disabled={!visibleGuitarLabVariants.some((variant) => !assignedGuitarVariantIds.has(variant.id) && selectedGuitarVariant.id !== variant.id)}
+                      onClick={deleteAllGuitarLabVariants}
+                      type="button"
+                    >
+                      전체 삭제
+                    </button>
+                    <button disabled={!showGuitarLabArchiveButton} onClick={openGuitarLabArchive} type="button">
+                      아카이브 보기
+                    </button>
+                  </div>
+                </div>
                 {["Acoustic", "Classical", "Electric"].map((pack) => {
-                  const packVariants = GUITAR_LAB_VARIANTS.filter((variant) => variant.pack === pack);
+                  const packVariants = visibleGuitarLabVariants.filter((variant) => variant.pack === pack);
                   return (
                     <section className="guitarLabPack" key={pack} aria-label={`${pack} Guitar Pack`}>
                       <div className="headerPreviewMeta">
@@ -9539,10 +10766,25 @@ function App() {
                         const assignedSlotNumbers = SHOOTER_PLAYER_SLOT_KEYS
                           .map((slotKey, index) => shooterPlayerSlots[slotKey] === variant.id ? index + 1 : null)
                           .filter(Boolean);
+                        const variantLabel = `V${String(variant.index).padStart(2, "0")}`;
+                        const isProtected = isActive || assignedSlotNumbers.length > 0;
+                        const isDeleteSelected = guitarLabSelectedDeleteIds.includes(variant.id);
                         return (
-                          <article className={`headerPreviewCard guitarLabCard ${assignedSlotNumbers.length ? "selected" : ""}`} key={variant.id}>
+                          <article className={`headerPreviewCard guitarLabCard ${assignedSlotNumbers.length ? "selected" : ""} ${isDeleteSelected ? "candidateSelected" : ""}`} key={variant.id}>
+                            <div className="guitarLabCardTop">
+                              <b>{variantLabel}</b>
+                              <label className={`guitarLabSelectCheck ${isProtected ? "disabled" : ""}`}>
+                                <input
+                                  checked={isDeleteSelected}
+                                  disabled={isProtected}
+                                  onChange={() => toggleGuitarLabDeleteSelection(variant.id)}
+                                  type="checkbox"
+                                />
+                                선택
+                              </label>
+                            </div>
                             <div className="headerPreviewMeta">
-                              <span>{variant.model}</span>
+                              <span>{variantLabel} · {variant.model}</span>
                               <small>{variant.description}</small>
                               <em className="designLabCharacterSpec">
                                 {variant.pack} · {assignedSlotNumbers.length ? `Shooter Slot ${assignedSlotNumbers.join(", ")}` : "후보 미지정"}
@@ -9564,6 +10806,14 @@ function App() {
                                   </button>
                                 );
                               })}
+                              <button
+                                className="danger"
+                                disabled={isProtected}
+                                onClick={() => deleteGuitarLabVariant(variant.id)}
+                                type="button"
+                              >
+                                삭제
+                              </button>
                             </div>
                           </article>
                         );
@@ -9600,153 +10850,6 @@ function App() {
                     </div>
                   </section>
                 ))}
-              </div>
-            ) : null}
-            {designLabSection === "component" ? (
-              <div className="componentLabGrid">
-                <article className="headerPreviewCard componentLabCard">
-                  <div className="headerPreviewMeta">
-                    <span>Training Card</span>
-                    <small>훈련장 공용 카드 구조</small>
-                  </div>
-                  <button className="trainingCard stageMenuCard designLabTrainingCardPreview" type="button">
-                    <span className="stageMenuCard__step">02</span>
-                    <span className="stageMenuCard__content">
-                      <strong className="stageMenuCard__title">스케일 · 펜타토닉</strong>
-                      <small className="stageMenuCard__desc">박스 패턴으로 위치를 반복 학습</small>
-                      <em className="stageMenuCard__tag">COMMON CARD</em>
-                    </span>
-                    <span className="stageMenuCard__arrow" aria-hidden="true">❯</span>
-                  </button>
-                  <div className="designLabComponentNote">현재 훈련장 카드의 공용 기준입니다.</div>
-                </article>
-
-                <article className="headerPreviewCard componentLabCard">
-                  <div className="headerPreviewMeta">
-                    <span>Button</span>
-                    <small>START / 설정 / 메트로놈 버튼</small>
-                  </div>
-                  <div className="designLabButtonShelf">
-                    <button className="trainingHudStartButton primary" type="button"><Play size={16} /> START</button>
-                    <button className="trainingSettingsToggle" type="button">설정 접기</button>
-                    <button className="selected" type="button">강박 ON</button>
-                  </div>
-                  <div className="designLabComponentNote">공용 버튼 크기와 텍스트 정렬 확인용입니다.</div>
-                </article>
-
-                <article className="headerPreviewCard componentLabCard">
-                  <div className="headerPreviewMeta">
-                    <span>Tab</span>
-                    <small>화면/모드 전환 탭</small>
-                  </div>
-                  <div className="componentLabTabPreview">
-                    <button className="selected" type="button">로고</button>
-                    <button type="button">앱아이콘</button>
-                    <button type="button">컴포넌트</button>
-                  </div>
-                  <div className="designLabComponentNote">Design Lab과 뷰어 탭의 공용 감각을 관리합니다.</div>
-                </article>
-
-                <article className="headerPreviewCard componentLabCard">
-                  <div className="headerPreviewMeta">
-                    <span>Badge</span>
-                    <small>상태 / 버전 / 모드 표시</small>
-                  </div>
-                  <div className="componentLabBadgePreview">
-                    <span className="designLabStatus designLabStatus--active">운영중</span>
-                    <span className="designLabStatus designLabStatus--held">잠금</span>
-                    <span className="designLabStatus designLabStatus--draft">실험중</span>
-                  </div>
-                  <div className="designLabComponentNote">상태 배지는 채택 흐름의 기준 요소입니다.</div>
-                </article>
-
-                <article className="headerPreviewCard componentLabCard componentLabCard--wide">
-                  <div className="headerPreviewMeta">
-                    <span>Time Signature Dropdown</span>
-                    <small>박자 8개 항목 배치 비교</small>
-                  </div>
-                  <div className="componentLabDropdownComparison">
-                    <ComponentLabDropdownPreview
-                      description="1열 컴팩트: 익숙하지만 높이가 길어지는 기본 리스트 방식입니다."
-                      flow="single"
-                      items={COMPONENT_LAB_DROPDOWN_OPTIONS}
-                      title="1열 리스트"
-                    />
-                    <ComponentLabDropdownPreview
-                      description="2열 행 우선: 좌우로 빠르게 훑는 빠른 선택 패널입니다."
-                      flow="row"
-                      items={COMPONENT_LAB_DROPDOWN_OPTIONS}
-                      title="2열 행 우선"
-                    />
-                    <ComponentLabDropdownPreview
-                      description="2열 세로 흐름: 왼쪽 열 4분계, 오른쪽 열 8분계로 훑는 방식입니다."
-                      flow="vertical"
-                      items={COMPONENT_LAB_DROPDOWN_OPTIONS}
-                      title="2열 세로 흐름"
-                    />
-                  </div>
-                  <div className="designLabComponentNote">최종 적용 전, 모바일에서 박자 선택 속도와 높이 절약 효과를 비교하는 후보입니다.</div>
-                </article>
-
-                <article className="headerPreviewCard componentLabCard componentLabCard--wide">
-                  <div className="headerPreviewMeta">
-                    <span>Metronome Top Control</span>
-                    <small>공용 메트로놈 상단 컨트롤 V1~V4 비교</small>
-                  </div>
-                  <div className="componentLabMetronomeTopGrid">
-                    <ComponentLabMetronomeTopControlPreview
-                      description="V1 현재 개별 버튼"
-                      variant="v1"
-                    />
-                    <ComponentLabMetronomeTopControlPreview
-                      description="V2 세그먼트 컨트롤"
-                      variant="v2"
-                    />
-                    <ComponentLabMetronomeTopControlPreview
-                      description="V3 장비 컨트롤 패널"
-                      variant="v3"
-                    />
-                    <ComponentLabMetronomeTopControlPreview
-                      description="V4 명판 스타일"
-                      variant="v4"
-                    />
-                  </div>
-                  <div className="designLabComponentNote">실제 공용 매트로놈에는 적용하지 않은 실험용 시안입니다.</div>
-                </article>
-
-                <article className="headerPreviewCard componentLabCard componentLabCard--wide">
-                  <div className="headerPreviewMeta">
-                    <span>Standalone Metronome Main</span>
-                    <small>BPM 중심 vs 점자 중심 메인 화면 비교</small>
-                  </div>
-                  <div className="componentLabMetronomeMainGrid">
-                    <ComponentLabMetronomeMainPreview variant="current" />
-                    <ComponentLabMetronomeMainPreview variant="beat" />
-                  </div>
-                  <div className="designLabComponentNote">운영 화면 반영 전, 단독 메트로놈 대표 영역을 BPM 숫자 중심에서 박자 흐름 중심으로 바꾸는 방향을 비교합니다.</div>
-                </article>
-
-                <article className="headerPreviewCard componentLabCard">
-                  <div className="headerPreviewMeta">
-                    <span>Modal</span>
-                    <small>부가기능 / 컨트롤 센터 패널</small>
-                  </div>
-                  <div className="componentLabModalPreview">
-                    <div className="componentLabModalBar">
-                      <span>MENU</span>
-                      <button type="button">×</button>
-                    </div>
-                    <button className="utilityMenuItem utilityMenuItemPrimary" type="button">
-                      <span className="utilityMenuIcon" aria-hidden="true">▦</span>
-                      <div className="utilityMenuText">
-                        <strong>저장실</strong>
-                        <small>코드 진행 및 주법 관리</small>
-                      </div>
-                      <span className="utilityMenuChevron" aria-hidden="true">›</span>
-                    </button>
-                  </div>
-                  <div className="designLabComponentNote">공용 모달/메뉴 패널의 밀도와 계층 확인용입니다.</div>
-                </article>
               </div>
             ) : null}
             {designLabSection === "test" ? (
@@ -9865,52 +10968,86 @@ function App() {
                   mode={metronomeVisualLabMode}
                   timeSignature={metronomeVisualLabTimeSignature}
                 />
-
-                <div className="designLabComponentNote">
-                  Circle Mode는 정식 메트로놈 시각화 후보로 승격되었습니다. 현재는 TEST LAB 전용이며, 향후 박자 편집과 코드전환 연동을 검토합니다.
-                </div>
               </div>
             ) : null}
             {designLabSection === "archive" ? (
-              <div className="headerPreviewGrid designLabArchiveGrid">
-                {ARCHIVED_HEADER_VARIANTS.map((variant) => (
-                  <article className="headerPreviewCard designLabArchiveCard" key={variant.id}>
-                    <div className="headerPreviewMeta">
-                      <span>{variant.title}</span>
-                      <small>{variant.description}</small>
-                      <em className="designLabStatus designLabStatus--legacy">Archive</em>
-                    </div>
-                    <div className="headerPreviewDevice">
-                      <BrandHeader variant={variant.id} />
-                    </div>
-                    <div className="designLabItemActions">
-                      <button disabled type="button">보관됨</button>
-                      <button disabled type="button">잠금</button>
-                      <button disabled type="button">삭제</button>
-                    </div>
-                  </article>
-                ))}
-                {ARCHIVED_APP_ICON_VARIANTS.map((variant) => (
-                  <article className="headerPreviewCard designLabArchiveCard designLabArchivedAppIconCard" key={variant.id}>
-                    <div className="headerPreviewMeta">
-                      <span>{variant.title}</span>
-                      <small>{variant.description}</small>
-                      <em className="designLabStatus designLabStatus--legacy">Archive</em>
-                    </div>
-                    <div className="designLabAppIconPreviewSet" aria-label={`${variant.title} 보관 미리보기`}>
-                      <AppIconPreview variantId={variant.id} size="large" />
-                      <div className="designLabAppIconSizes">
-                        <AppIconPreview variantId={variant.id} size="medium" />
-                        <AppIconPreview variantId={variant.id} size="small" />
-                      </div>
-                    </div>
-                    <div className="designLabItemActions">
-                      <button disabled type="button">보관됨</button>
-                      <button disabled type="button">잠금</button>
-                      <button disabled type="button">삭제</button>
-                    </div>
-                  </article>
-                ))}
+              <div className="designLabArchive">
+                <div className="guitarLabToolbar">
+                  <div>
+                    <strong>아카이브(휴지통)</strong>
+                    <span>디자인 {visibleGuitarLabVariants.length}개 · 아카이브 {archivedGuitarLabVariants.length}개</span>
+                  </div>
+                  <div className="guitarLabToolbarActions">
+                    <button className="danger" disabled={!archivedGuitarLabVariants.length} onClick={emptyGuitarLabArchive} type="button">
+                      휴지통 비우기
+                    </button>
+                  </div>
+                </div>
+
+                {archivedGuitarLabVariants.length ? (
+                  <div className="headerPreviewGrid designLabArchiveGrid guitarLabArchiveGrid">
+                    {archivedGuitarLabVariants.map((variant) => {
+                      const variantLabel = `V${String(variant.index).padStart(2, "0")}`;
+                      return (
+                        <article className="headerPreviewCard designLabArchiveCard guitarLabCard" key={variant.id}>
+                          <b className="guitarLabArchiveBadge">{variantLabel}</b>
+                          <GuitarLabPreview variant={variant} />
+                          <div className="designLabItemActions">
+                            <button onClick={() => restoreGuitarLabVariant(variant.id)} type="button">
+                              복원
+                            </button>
+                            <button className="danger" onClick={() => permanentlyDeleteGuitarLabVariant(variant.id)} type="button">
+                              영구 삭제
+                            </button>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                ) : null}
+
+                {(ARCHIVED_HEADER_VARIANTS.length || ARCHIVED_APP_ICON_VARIANTS.length) ? (
+                  <div className="headerPreviewGrid designLabArchiveGrid">
+                    {ARCHIVED_HEADER_VARIANTS.map((variant) => (
+                      <article className="headerPreviewCard designLabArchiveCard" key={variant.id}>
+                        <div className="headerPreviewMeta">
+                          <span>{variant.title}</span>
+                          <small>{variant.description}</small>
+                          <em className="designLabStatus designLabStatus--legacy">Legacy</em>
+                        </div>
+                        <div className="headerPreviewDevice">
+                          <BrandHeader variant={variant.id} />
+                        </div>
+                        <div className="designLabItemActions">
+                          <button disabled type="button">보관됨</button>
+                          <button disabled type="button">잠금</button>
+                          <button disabled type="button">삭제</button>
+                        </div>
+                      </article>
+                    ))}
+                    {ARCHIVED_APP_ICON_VARIANTS.map((variant) => (
+                      <article className="headerPreviewCard designLabArchiveCard designLabArchivedAppIconCard" key={variant.id}>
+                        <div className="headerPreviewMeta">
+                          <span>{variant.title}</span>
+                          <small>{variant.description}</small>
+                          <em className="designLabStatus designLabStatus--legacy">Legacy</em>
+                        </div>
+                        <div className="designLabAppIconPreviewSet" aria-label={`${variant.title} 보관 미리보기`}>
+                          <AppIconPreview variantId={variant.id} size="large" />
+                          <div className="designLabAppIconSizes">
+                            <AppIconPreview variantId={variant.id} size="medium" />
+                            <AppIconPreview variantId={variant.id} size="small" />
+                          </div>
+                        </div>
+                        <div className="designLabItemActions">
+                          <button disabled type="button">보관됨</button>
+                          <button disabled type="button">잠금</button>
+                          <button disabled type="button">삭제</button>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </section>
@@ -10375,11 +11512,15 @@ function App() {
                     <div className="metronomeAdvancedPopoverHeader">
                       <span>Coach Mode</span>
                       <button
-                        className={coachModeEnabled ? "selected" : ""}
-                        onClick={() => setCoachModeEnabled((value) => !value)}
+                        className={`metronomeHardwareToggle ${coachModeEnabled ? "selected" : ""}`}
+                        onClick={() => {
+                          triggerMetronomeHardwareToggle();
+                          setCoachModeEnabled((value) => !value);
+                        }}
                         type="button"
                       >
-                        {coachModeEnabled ? "ON" : "OFF"}
+                        <span className="metronomeHardwareToggleText">{coachModeEnabled ? "ON" : "OFF"}</span>
+                        <span className="metronomeHardwareToggleKnob" aria-hidden="true" />
                       </button>
                     </div>
                     <div className="metronomeStepperRow">
@@ -10436,11 +11577,15 @@ function App() {
                         <label className="metronomeTrackerSwitchRow">
                           <span>Limit number of bars</span>
                           <button
-                            className={metronomeBarLimitEnabled ? "selected" : ""}
-                            onClick={() => setMetronomeBarLimitEnabled((value) => !value)}
+                            className={`metronomeHardwareToggle ${metronomeBarLimitEnabled ? "selected" : ""}`}
+                            onClick={() => {
+                              triggerMetronomeHardwareToggle();
+                              setMetronomeBarLimitEnabled((value) => !value);
+                            }}
                             type="button"
                           >
-                            {metronomeBarLimitEnabled ? "ON" : "OFF"}
+                            <span className="metronomeHardwareToggleText">{metronomeBarLimitEnabled ? "ON" : "OFF"}</span>
+                            <span className="metronomeHardwareToggleKnob" aria-hidden="true" />
                           </button>
                         </label>
                         <label className="metronomeTrackerCustomInput">
@@ -10448,41 +11593,60 @@ function App() {
                           <input
                             disabled={!metronomeBarLimitEnabled}
                             inputMode="numeric"
-                            min="1"
-                            onChange={(event) => setMetronomeBarLimit(Math.max(1, Math.min(9999, Number(event.target.value) || 1)))}
-                            type="number"
-                            value={metronomeBarLimit}
+                            maxLength={4}
+                            onBlur={commitMetronomeBarLimit}
+                            onChange={handleMetronomeBarLimitChange}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter") {
+                                event.currentTarget.blur();
+                              }
+                            }}
+                            pattern="[0-9]*"
+                            type="text"
+                            value={metronomeBarLimitDraft}
                           />
                           <small>Bars</small>
                         </label>
                         <label className="metronomeTrackerSwitchRow">
                           <span>Stop when reached</span>
                           <button
-                            className={metronomeBarStopWhenReached ? "selected" : ""}
-                            onClick={() => setMetronomeBarStopWhenReached((value) => !value)}
+                            className={`metronomeHardwareToggle ${metronomeBarStopWhenReached ? "selected" : ""}`}
+                            onClick={() => {
+                              triggerMetronomeHardwareToggle();
+                              setMetronomeBarStopWhenReached((value) => !value);
+                            }}
                             type="button"
                           >
-                            {metronomeBarStopWhenReached ? "ON" : "OFF"}
+                            <span className="metronomeHardwareToggleText">{metronomeBarStopWhenReached ? "ON" : "OFF"}</span>
+                            <span className="metronomeHardwareToggleKnob" aria-hidden="true" />
                           </button>
                         </label>
                         <label className="metronomeTrackerSwitchRow">
                           <span>Reset when reached</span>
                           <button
-                            className={metronomeBarResetWhenReached ? "selected" : ""}
-                            onClick={() => setMetronomeBarResetWhenReached((value) => !value)}
+                            className={`metronomeHardwareToggle ${metronomeBarResetWhenReached ? "selected" : ""}`}
+                            onClick={() => {
+                              triggerMetronomeHardwareToggle();
+                              setMetronomeBarResetWhenReached((value) => !value);
+                            }}
                             type="button"
                           >
-                            {metronomeBarResetWhenReached ? "ON" : "OFF"}
+                            <span className="metronomeHardwareToggleText">{metronomeBarResetWhenReached ? "ON" : "OFF"}</span>
+                            <span className="metronomeHardwareToggleKnob" aria-hidden="true" />
                           </button>
                         </label>
                         <label className="metronomeTrackerSwitchRow">
                           <span>Start from 1</span>
                           <button
-                            className={metronomeBarStartFromOne ? "selected" : ""}
-                            onClick={() => setMetronomeBarStartFromOne((value) => !value)}
+                            className={`metronomeHardwareToggle ${metronomeBarStartFromOne ? "selected" : ""}`}
+                            onClick={() => {
+                              triggerMetronomeHardwareToggle();
+                              setMetronomeBarStartFromOne((value) => !value);
+                            }}
                             type="button"
                           >
-                            {metronomeBarStartFromOne ? "ON" : "OFF"}
+                            <span className="metronomeHardwareToggleText">{metronomeBarStartFromOne ? "ON" : "OFF"}</span>
+                            <span className="metronomeHardwareToggleKnob" aria-hidden="true" />
                           </button>
                         </label>
                       </div>
@@ -10493,11 +11657,15 @@ function App() {
                         <label className="metronomeTrackerSwitchRow">
                           <span>Countdown</span>
                           <button
-                            className={metronomeTimerCountdown ? "selected" : ""}
-                            onClick={() => setMetronomeTimerCountdown((value) => !value)}
+                            className={`metronomeHardwareToggle ${metronomeTimerCountdown ? "selected" : ""}`}
+                            onClick={() => {
+                              triggerMetronomeHardwareToggle();
+                              setMetronomeTimerCountdown((value) => !value);
+                            }}
                             type="button"
                           >
-                            {metronomeTimerCountdown ? "ON" : "OFF"}
+                            <span className="metronomeHardwareToggleText">{metronomeTimerCountdown ? "ON" : "OFF"}</span>
+                            <span className="metronomeHardwareToggleKnob" aria-hidden="true" />
                           </button>
                         </label>
                         <MetronomeWheelPicker
@@ -10515,21 +11683,29 @@ function App() {
                         <label className="metronomeTrackerSwitchRow">
                           <span>Stop when reached</span>
                           <button
-                            className={metronomeTimerStopWhenReached ? "selected" : ""}
-                            onClick={() => setMetronomeTimerStopWhenReached((value) => !value)}
+                            className={`metronomeHardwareToggle ${metronomeTimerStopWhenReached ? "selected" : ""}`}
+                            onClick={() => {
+                              triggerMetronomeHardwareToggle();
+                              setMetronomeTimerStopWhenReached((value) => !value);
+                            }}
                             type="button"
                           >
-                            {metronomeTimerStopWhenReached ? "ON" : "OFF"}
+                            <span className="metronomeHardwareToggleText">{metronomeTimerStopWhenReached ? "ON" : "OFF"}</span>
+                            <span className="metronomeHardwareToggleKnob" aria-hidden="true" />
                           </button>
                         </label>
                         <label className="metronomeTrackerSwitchRow">
                           <span>Reset when reached</span>
                           <button
-                            className={metronomeTimerResetWhenReached ? "selected" : ""}
-                            onClick={() => setMetronomeTimerResetWhenReached((value) => !value)}
+                            className={`metronomeHardwareToggle ${metronomeTimerResetWhenReached ? "selected" : ""}`}
+                            onClick={() => {
+                              triggerMetronomeHardwareToggle();
+                              setMetronomeTimerResetWhenReached((value) => !value);
+                            }}
                             type="button"
                           >
-                            {metronomeTimerResetWhenReached ? "ON" : "OFF"}
+                            <span className="metronomeHardwareToggleText">{metronomeTimerResetWhenReached ? "ON" : "OFF"}</span>
+                            <span className="metronomeHardwareToggleKnob" aria-hidden="true" />
                           </button>
                         </label>
                       </div>
@@ -10655,6 +11831,8 @@ function App() {
             <select
               aria-label="저장된 메트로놈 설정 불러오기"
               onChange={(event) => applyMetronomePreset(event.target.value)}
+              onFocus={() => setMetronomePresets(getStoredMetronomePresets())}
+              onMouseDown={() => setMetronomePresets(getStoredMetronomePresets())}
               value={metronomePresetSelectedId}
             >
               <option value="">불러오기</option>
@@ -10844,11 +12022,11 @@ function App() {
               const targetDetail = target.detail ?? getShooterNoteDetail(target.note);
               return (
               <div
-                className="enemy shooterEnemy fallingTarget"
+                className={`enemy shooterEnemy ${target.lockedAt != null && !target.defeated ? "locked" : ""} ${target.defeated ? "defeated" : ""}`}
                 key={target.id}
                 style={{
                   left: `${target.x}%`,
-                  top: "8%",
+                  top: `${target.y}%`,
                   "--hit-note-size": `${NOTE_SIZE}px`,
                   "--target-duration-ms": `${target.duration}ms`,
                   ...getNoteColorStyle(target.note),
@@ -10863,6 +12041,29 @@ function App() {
               </div>
               );
             })}
+
+            {shooterTargets
+              .filter((target) => target.lockedAt != null && !target.defeated)
+              .map((target) => {
+                const startX = 50;
+                const startY = 75;
+                const dx = target.x - startX;
+                const dy = target.y - startY;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                return (
+                  <div
+                    className="lockOnBeam"
+                    key={`lock-${target.id}`}
+                    style={{
+                      left: `${startX}%`,
+                      top: `${startY}%`,
+                      width: `${length}%`,
+                      transform: `translateY(-50%) rotate(${angle}deg)`,
+                    }}
+                  />
+                );
+              })}
 
             {projectiles.map((projectile) => {
               const dx = projectile.endX - projectile.startX;
@@ -10897,6 +12098,13 @@ function App() {
               const distance = (age / 34) * (particle.speed ?? 1);
               const x = particle.x + Math.cos(particle.angle) * distance;
               const y = particle.y + Math.sin(particle.angle) * distance;
+              if (particle.type === "noteShard") {
+                return (
+                  <span className="hitNoteShard" key={particle.id} style={{ left: `${x}%`, top: `${y}%` }}>
+                    {particle.symbol}
+                  </span>
+                );
+              }
               return <span className="musicParticle hitSpark" key={particle.id} style={{ left: `${x}%`, top: `${y}%` }}></span>;
             })}
 
@@ -11028,16 +12236,23 @@ function App() {
 
         </section>
       ) : selectedCategory.id === "rhythm" && stage3StorageOpen ? (
-        <section className="stage3StorageRoom chordTransitionPanel" aria-label="코드 진행 저장실">
+        <section
+          className="stage3StorageRoom chordTransitionPanel"
+          aria-label="코드 진행 보관함"
+          onPointerCancel={handleStage3StorageSwipeCancel}
+          onPointerDown={handleStage3StorageSwipeStart}
+          onPointerMove={handleStage3StorageSwipeMove}
+          onPointerUp={handleStage3StorageSwipeEnd}
+          style={{
+            "--storage-swipe-x": `${stage3StorageSwipeOffset}px`,
+            "--storage-swipe-transition": stage3StorageSwipeActive ? "none" : "transform 180ms cubic-bezier(0.2, 0.85, 0.24, 1)",
+          }}
+        >
           <div className="stage3StorageHeader">
             <div>
-              <span>저장실</span>
+              <span>진행 보관함</span>
             </div>
-            <button onClick={() => {
-              setStage3StorageOpen(false);
-              setAppMode(APP_MODES.PRACTICE);
-              setSelectedCategoryId("rhythm");
-            }} type="button">
+            <button onClick={closeStage3StorageRoom} type="button">
               뒤로가기
             </button>
           </div>
@@ -11217,6 +12432,7 @@ function App() {
                 <button aria-label="다운 업 주법 추가" onClick={addStage3StrumPair} type="button">↓↑</button>
                 <button aria-label="다운 주법 추가" onClick={() => addStage3StrumStep("down", false)} type="button">↓</button>
                 <button aria-label="업 주법 추가" onClick={() => addStage3StrumStep("up", false)} type="button">↑</button>
+                <button aria-label="X2 주법 표시 추가" onClick={addStage3StrumRepeat} type="button">X2</button>
               </div>
             </div>
             <div className="stage3AddRow">
@@ -11325,104 +12541,6 @@ function App() {
         </section>
       ) : selectedCategory.id === "rhythm" ? (
         <section className="chordTransitionPanel" aria-label="Chord transition practice">
-          <div className={`chordTransitionControls ${stage3SetupCollapsed ? "collapsed" : ""}`}>
-            <div>
-              <div className="trainingDetailHeaderRow">
-                <strong className="trainingDetailTitle">{getTrainingDetailTitle(selectedCategory)}</strong>
-                <button
-                  className="trainingSettingsToggle"
-                  onClick={() => setStage3SetupCollapsed((value) => !value)}
-                  type="button"
-                >
-                  설정 {stage3SetupCollapsed ? "펼치기" : "접기"}
-                </button>
-              </div>
-            </div>
-            {stage3SetupCollapsed ? (
-              <div className="stage3CollapsedMemo">
-                <label>
-                  <span>메모</span>
-                  <textarea
-                    aria-label="현재 진행 메모"
-                    disabled={!loadedStage3LibraryItem}
-                    onChange={(event) => updateLoadedStage3Memo(event.target.value)}
-                    placeholder={loadedStage3LibraryItem ? "메모를 입력하세요..." : "저장된 진행을 선택하면 메모가 표시됩니다."}
-                    rows={3}
-                    value={loadedStage3LibraryItem?.memo ?? ""}
-                  />
-                </label>
-              </div>
-            ) : null}
-            <div className="chordProgressionPicker">
-              <label>
-                <span>저장된 진행</span>
-                <select
-                  aria-label="저장된 코드 진행 선택"
-                  onChange={(event) => {
-                    const selected = stage3QuickSlots.find((slot) => slot.id === event.target.value);
-                    if (selected) applyStage3LibraryItem(selected);
-                  }}
-                  value={selectedStage3LibraryItem?.id ?? ""}
-                >
-                  <option value="">저장된 진행 선택</option>
-                  {stage3QuickSlots.map((slot) => (
-                    <option key={slot.id} value={slot.id}>
-                      {slot.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button
-                className="stage3StorageOpenButton"
-                onClick={openStage3Storage}
-                type="button"
-              >
-                저장실
-              </button>
-            </div>
-            <div className="trainingMetronomeShell stage3PlaybackControls">
-              <MetronomeControl
-                accentEnabled={metronomeAccent}
-                bpm={bpm}
-                className="trainingMetronomePanel chordTransitionTempo"
-                countInEnabled={metronomeCountIn}
-                inputId="stage3-bpm-presets"
-                onAccentChange={setMetronomeAccent}
-                onBpmChange={changeBpm}
-                onCountInChange={setMetronomeCountIn}
-                onRepeatChange={setRepeatPractice}
-                onSubdivisionChange={setMetronomeSubdivision}
-                onTimeSignatureChange={setMetronomeTimeSignature}
-                onToneChange={setMetronomeTone}
-                repeatEnabled={repeatPractice}
-                subdivision={metronomeSubdivision}
-                timeSignature={metronomeTimeSignature}
-                tone={metronomeTone}
-              />
-            </div>
-          </div>
-
-          <div className="chordTransitionHud stage3ProgressHud">
-            <MetronomeTimeline
-              beat={beat}
-              beatsPerMeasure={metronomeBeatsPerMeasure}
-              currentLabel={`${bpm}`}
-              isPlaying={gameState === GAME_STATES.PLAYING}
-              progress={stage3MeasureProgress}
-              runnerLabel={`${beat + 1}`}
-              timeSignature={metronomeTimeSignature}
-            />
-            <button
-              className={`trainingHudStartButton ${gameState === GAME_STATES.PLAYING ? "" : "primary"}`}
-              disabled={gameState !== GAME_STATES.PLAYING && !hasChordTransitionProgression}
-              onClick={gameState === GAME_STATES.PLAYING ? stopPracticeSession : () => startPractice(selectedCategory)}
-              type="button"
-            >
-              {gameState === GAME_STATES.PLAYING ? <Square size={16} /> : <Play size={16} />}
-              {gameState === GAME_STATES.PLAYING ? "STOP" : "START"}
-            </button>
-          </div>
-
           <div className="chordTransitionBody">
             <aside className="referenceFretboard chordTransitionChart" aria-label="Current chord fingering">
               <div className="referenceHeader">
@@ -11433,7 +12551,7 @@ function App() {
                       {loadedStage3LibraryItem?.title ? ` - ${loadedStage3LibraryItem.title}` : ""}
                     </span>
                     <span className="stage3ChartStrumPreview">
-                      <StrumPattern pattern={loadedStage3LibraryItem?.strum_pattern} />
+                      <StrumPatternRows pattern={loadedStage3LibraryItem?.strum_pattern} />
                     </span>
                   </div>
                   <div className="currentProgressionReadout" aria-label="현재 진행중 코드 진행">
@@ -11488,97 +12606,90 @@ function App() {
             </aside>
 
           </div>
-        </section>
-      ) : !LEGACY_PRACTICE_RENDERING_ENABLED ? (
-        <section
-          className={`referenceTrainingPanel ${selectedCategory.id === "scale-block" ? "scaleBlockTrainingPanel" : ""}`}
-          aria-label="Reference fretboard training"
-        >
-          {selectedCategory.id !== "first-position" && selectedCategory.id !== "scale-block" ? (
-            <ContentTitle {...contentHeader} />
-          ) : null}
-          <div className={`referenceTrainingToolbar ${stage3SetupCollapsed ? "collapsed" : ""}`}>
-            <div>
-              <div className="trainingDetailHeaderRow">
-                <span className="trainingDetailTitle">{getTrainingDetailTitle(selectedCategory)}</span>
-                <button
-                  className="trainingSettingsToggle"
-                  onClick={() => setStage3SetupCollapsed((value) => !value)}
-                  type="button"
-                >
-                  설정 {stage3SetupCollapsed ? "펼치기" : "접기"}
-                </button>
+
+          <div className="chordTransitionHud stage3ProgressHud">
+            <MetronomeTimeline
+              beat={beat}
+              beatPattern={standaloneBeatPattern}
+              beatsPerMeasure={metronomeBeatsPerMeasure}
+              compact
+              currentLabel={`${bpm}`}
+              isPlaying={gameState === GAME_STATES.PLAYING}
+              onBeatClick={cycleStandaloneBeatState}
+              progress={stage3MeasureProgress}
+              runnerLabel={`${beat + 1}`}
+              timeSignature={metronomeTimeSignature}
+            />
+            <button
+              className={`trainingHudStartButton ${gameState === GAME_STATES.PLAYING ? "" : "primary"}`}
+              disabled={gameState !== GAME_STATES.PLAYING && !hasChordTransitionProgression}
+              onClick={gameState === GAME_STATES.PLAYING ? stopPracticeSession : () => startPractice(selectedCategory)}
+              type="button"
+            >
+              {gameState === GAME_STATES.PLAYING ? <Square size={16} /> : <Play size={16} />}
+              {gameState === GAME_STATES.PLAYING ? "STOP" : "START"}
+            </button>
+          </div>
+
+          <div className="stage3PracticeUtilityPanel">
+            <TrainingPanelHeader
+              collapsed={stage3SetupCollapsed}
+              onToggle={() => setStage3SetupCollapsed((value) => !value)}
+              title="메모"
+            />
+            <div className="stage3MemoToggleRow">
+              <div className="stage3CollapsedMemo">
+                <label>
+                  <textarea
+                    aria-label="현재 진행 메모"
+                    disabled={!loadedStage3LibraryItem}
+                    onChange={(event) => updateLoadedStage3Memo(event.target.value)}
+                    placeholder={loadedStage3LibraryItem ? "메모를 입력하세요..." : "저장된 진행을 선택하면 메모가 표시됩니다."}
+                    rows={3}
+                    value={loadedStage3LibraryItem?.memo ?? ""}
+                  />
+                </label>
               </div>
             </div>
-            {selectedCategory.id === "scale-block" && (
-              <div className="scalePickerPanel referenceScalePicker">
-                <label className="scaleKeySelect">
-                  <span>키</span>
-                  <select
-                    aria-label="Scale root"
-                    onChange={(event) => changeScaleRoot(event.target.value)}
-                    value={selectedScaleRoot}
-                  >
-                    {SCALE_ROOT_OPTIONS.map((root) => (
-                      <option key={root.id} value={root.id}>
-                        {root.label} / {root.solfege}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <div className="scaleTypeGroup">
-                  <label>
-                    <span>종류</span>
-                    <select
-                      aria-label="Scale family"
-                      onChange={(event) => changeScaleFamily(event.target.value)}
-                      value={selectedScaleFamily}
-                    >
-                      {Object.values(SCALE_FAMILIES).map((family) => (
-                        <option key={family.id} value={family.id}>
-                          {family.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span>타입</span>
-                    <select
-                      aria-label="Scale type"
-                      onChange={(event) => changeScaleType(event.target.value)}
-                      value={selectedScaleType}
-                    >
-                      {Object.values(selectedScaleTypeOptions).map((type) => (
-                        <option key={type.id} value={type.id}>
-                          {type.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                <label className="scaleBoxSelect">
-                  <span>BOX</span>
-                  <select
-                    aria-label="Scale box"
-                    onChange={(event) => changeScaleBox(event.target.value)}
-                    value={selectedScaleBox}
-                  >
-                    {[1, 2, 3, 4, 5].map((box) => (
-                      <option key={box} value={box}>
-                        BOX{box}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-            )}
-            <div className="trainingMetronomeShell referenceTrainingActions buttons playbackButtons">
+            <div className="chordProgressionPicker">
+              <label>
+                <span>저장된 진행</span>
+                <select
+                  aria-label="저장된 코드 진행 선택"
+                  onChange={(event) => {
+                    const selected = stage3QuickSlots.find((slot) => slot.id === event.target.value);
+                    if (selected) applyStage3LibraryItem(selected);
+                  }}
+                  value={selectedStage3LibraryItem?.id ?? ""}
+                >
+                  <option value="">저장된 진행 선택</option>
+                  {stage3QuickSlots.map((slot) => (
+                    <option key={slot.id} value={slot.id}>
+                      {slot.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                className="stage3StorageOpenButton"
+                aria-label="진행 보관함 열기"
+                onClick={openStage3Storage}
+                type="button"
+              >
+                <FolderOpen aria-hidden="true" size={14} />
+                <span>Library</span>
+              </button>
+            </div>
+          </div>
+
+          <div className={`chordTransitionControls trainingSettingsPanel stage3MetronomeSettingsPanel ${stage3SetupCollapsed ? "collapsed" : ""}`}>
+            {!stage3SetupCollapsed ? (
               <MetronomeControl
                 accentEnabled={metronomeAccent}
                 bpm={bpm}
-                className="trainingMetronomePanel referenceBpmControl"
+                className="trainingMetronomePanel chordTransitionTempo"
                 countInEnabled={metronomeCountIn}
-                inputId="reference-bpm-presets"
+                inputId="stage3-bpm-presets"
                 onAccentChange={setMetronomeAccent}
                 onBpmChange={changeBpm}
                 onCountInChange={setMetronomeCountIn}
@@ -11591,6 +12702,162 @@ function App() {
                 timeSignature={metronomeTimeSignature}
                 tone={metronomeTone}
               />
+            ) : null}
+          </div>
+        </section>
+      ) : !LEGACY_PRACTICE_RENDERING_ENABLED ? (
+        <section
+          className={`referenceTrainingPanel ${selectedCategory.id === "first-position" ? "firstPositionTrainingPanel" : ""} ${selectedCategory.id === "scale-block" ? "scaleBlockTrainingPanel" : ""}`}
+          aria-label="Reference fretboard training"
+        >
+          {selectedCategory.id !== "first-position" && selectedCategory.id !== "scale-block" ? (
+            <ContentTitle {...contentHeader} />
+          ) : null}
+          {selectedCategory.id === "first-position" || selectedCategory.id === "scale-block" ? null : (
+            <div className="trainingDetailHeaderRow">
+              <span className="trainingDetailTitle">{getTrainingDetailTitle(selectedCategory)}</span>
+              <button
+                className="trainingSettingsToggle"
+                onClick={() => setStage3SetupCollapsed((value) => !value)}
+                type="button"
+              >
+                <span>설정 {stage3SetupCollapsed ? "펼치기" : "접기"}</span>
+                <b aria-hidden="true">{stage3SetupCollapsed ? "⌄" : "⌃"}</b>
+              </button>
+            </div>
+          )}
+
+          <div className="referenceTrainingMainRow">
+            <aside className="referenceFretboard referenceTrainingBoard" aria-label="Reference fretboard">
+              {selectedCategory.id === "first-position" || selectedCategory.id === "scale-block" ? (
+                <TrainingPanelHeader
+                  collapsed={stage3SetupCollapsed}
+                  onToggle={() => setStage3SetupCollapsed((value) => !value)}
+                  title={
+                    selectedCategory.id === "scale-block"
+                      ? scaleReferenceTitle
+                      : referenceDisplayPrompt
+                        ? `${referenceDisplayPrompt.solfege ?? getSolfege(referenceDisplayPrompt.pitch)} / ${referenceDisplayPrompt.pitch}`
+                        : "준비"
+                  }
+                />
+              ) : (
+                <div className="referenceHeader">
+                  <span>참고 지판</span>
+                  <strong>
+                    {selectedCategory.id === "scale-block"
+                      ? scaleReferenceTitle
+                      : referenceDisplayPrompt
+                        ? `${referenceDisplayPrompt.solfege ?? getSolfege(referenceDisplayPrompt.pitch)} / ${referenceDisplayPrompt.pitch}`
+                        : "준비"}
+                  </strong>
+                </div>
+              )}
+              <Fretboard
+                className="trainingSharedFretboard fitRange"
+                fretRange={referenceBoardRange}
+                mode="training"
+                notes={referenceBoardNotes}
+                rootNote={selectedCategory.id === "scale-block" || selectedCategory.id === "first-position" ? "" : referenceDisplayPrompt?.noteName}
+                selectedNotes={selectedCategory.id === "scale-block" || selectedCategory.id === "first-position" ? ["__active-note-only__"] : []}
+                showFretNumbers
+                showStringNames
+                showOnlySelected={false}
+              />
+              <p>
+                {gameState === GAME_STATES.PLAYING
+                  ? "하이라이트된 음을 지판에서 찾아 연주하세요."
+                  : "시작을 누르면 참고지판 중심으로 위치 찾기 연습을 진행합니다."}
+              </p>
+            </aside>
+
+            <div className={`referenceTrainingToolbar trainingSettingsPanel ${stage3SetupCollapsed ? "collapsed" : ""}`}>
+              {!stage3SetupCollapsed ? (
+                <>
+                  {selectedCategory.id === "scale-block" && (
+                    <div className="scalePickerPanel referenceScalePicker">
+                      <label className="scaleKeySelect">
+                        <span>키</span>
+                        <select
+                          aria-label="Scale root"
+                          onChange={(event) => changeScaleRoot(event.target.value)}
+                          value={selectedScaleRoot}
+                        >
+                          {SCALE_ROOT_OPTIONS.map((root) => (
+                            <option key={root.id} value={root.id}>
+                              {root.label} / {root.solfege}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <div className="scaleTypeGroup">
+                        <label>
+                          <span>종류</span>
+                          <select
+                            aria-label="Scale family"
+                            onChange={(event) => changeScaleFamily(event.target.value)}
+                            value={selectedScaleFamily}
+                          >
+                            {Object.values(SCALE_FAMILIES).map((family) => (
+                              <option key={family.id} value={family.id}>
+                                {family.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          <span>타입</span>
+                          <select
+                            aria-label="Scale type"
+                            onChange={(event) => changeScaleType(event.target.value)}
+                            value={selectedScaleType}
+                          >
+                            {Object.values(selectedScaleTypeOptions).map((type) => (
+                              <option key={type.id} value={type.id}>
+                                {type.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+                      <label className="scaleBoxSelect">
+                        <span>BOX</span>
+                        <select
+                          aria-label="Scale box"
+                          onChange={(event) => changeScaleBox(event.target.value)}
+                          value={selectedScaleBox}
+                        >
+                          {[1, 2, 3, 4, 5].map((box) => (
+                            <option key={box} value={box}>
+                              BOX{box}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                  )}
+                  <div className="trainingMetronomeShell referenceTrainingActions buttons playbackButtons">
+                    <MetronomeControl
+                      accentEnabled={metronomeAccent}
+                      bpm={bpm}
+                      className="trainingMetronomePanel referenceBpmControl"
+                      countInEnabled={metronomeCountIn}
+                      inputId="reference-bpm-presets"
+                      onAccentChange={setMetronomeAccent}
+                      onBpmChange={changeBpm}
+                      onCountInChange={setMetronomeCountIn}
+                      onRepeatChange={setRepeatPractice}
+                      onSubdivisionChange={setMetronomeSubdivision}
+                      onTimeSignatureChange={setMetronomeTimeSignature}
+                      onToneChange={setMetronomeTone}
+                      repeatEnabled={repeatPractice}
+                      subdivision={metronomeSubdivision}
+                      timeSignature={metronomeTimeSignature}
+                      tone={metronomeTone}
+                    />
+                  </div>
+                </>
+              ) : null}
             </div>
           </div>
 
@@ -11601,16 +12868,22 @@ function App() {
             {selectedCategory.id === "scale-block" || selectedCategory.id === "first-position" ? (
               <BeatIndicator
                 beat={beat}
+                beatPattern={standaloneBeatPattern}
                 beatsPerMeasure={metronomeBeatsPerMeasure}
+                compact
                 isPlaying={gameState === GAME_STATES.PLAYING}
+                onBeatClick={cycleStandaloneBeatState}
                 timeSignature={metronomeTimeSignature}
               />
             ) : (
               <MetronomeTimeline
                 beat={beat}
+                beatPattern={standaloneBeatPattern}
                 beatsPerMeasure={metronomeBeatsPerMeasure}
+                compact
                 currentLabel={getReferenceStageValue(referenceDisplayPrompt)}
                 isPlaying={gameState === GAME_STATES.PLAYING}
+                onBeatClick={cycleStandaloneBeatState}
                 progress={stage3MeasureProgress}
                 timeSignature={metronomeTimeSignature}
               />
@@ -11636,35 +12909,6 @@ function App() {
               </>
             ) : null}
           </div>
-
-          <aside className="referenceFretboard referenceTrainingBoard" aria-label="Reference fretboard">
-            <div className="referenceHeader">
-              <span>참고 지판</span>
-              <strong>
-                {selectedCategory.id === "scale-block"
-                  ? scaleReferenceTitle
-                  : referenceDisplayPrompt
-                    ? `${referenceDisplayPrompt.solfege ?? getSolfege(referenceDisplayPrompt.pitch)} / ${referenceDisplayPrompt.pitch}`
-                    : "준비"}
-              </strong>
-            </div>
-            <Fretboard
-              className="trainingSharedFretboard fitRange"
-              fretRange={referenceBoardRange}
-              mode="training"
-              notes={referenceBoardNotes}
-              rootNote={selectedCategory.id === "scale-block" || selectedCategory.id === "first-position" ? "" : referenceDisplayPrompt?.noteName}
-              selectedNotes={selectedCategory.id === "scale-block" || selectedCategory.id === "first-position" ? ["__active-note-only__"] : []}
-              showFretNumbers
-              showStringNames
-              showOnlySelected={false}
-            />
-            <p>
-              {gameState === GAME_STATES.PLAYING
-                ? "하이라이트된 음을 지판에서 찾아 연주하세요."
-                : "시작을 누르면 참고지판 중심으로 위치 찾기 연습을 진행합니다."}
-            </p>
-          </aside>
         </section>
       ) : LEGACY_PRACTICE_RENDERING_ENABLED ? (
         <section className="gamePanel" aria-label="Beginner scale block practice">
