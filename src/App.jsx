@@ -1533,21 +1533,54 @@ function getStoredMetronomeTrackerProgress() {
   }
 }
 
-function MetronomeSelectControl({ label, options, value, onChange, layout = "native" }) {
+function MetronomeSelectControl({ className = "", label, options, value, onChange, layout = "native" }) {
   const [open, setOpen] = useState(false);
   const [openDirection, setOpenDirection] = useState("up");
+  const [menuStyle, setMenuStyle] = useState({});
   const controlRef = useRef(null);
-  const selectedOption = options.find((option) => option.id === value);
+  const dropdownIdRef = useRef(createLocalId("riff-dropdown"));
+  const selectedOption = options.find((option) => String(option.id) === String(value));
   const gridOptions = layout === "grid" ? getTwoColumnVerticalFlowOptions(options) : options;
+  const getOptionTextUnits = (option) => {
+    const text = String(option?.label || option?.id || "");
+    return Array.from(text).reduce((total, char) => {
+      if (/\s/.test(char)) return total + 0.45;
+      return total + (char.charCodeAt(0) > 127 ? 1.35 : 1);
+    }, 0);
+  };
 
   const updateOpenDirection = () => {
     if (typeof window === "undefined" || !controlRef.current) return;
     const rect = controlRef.current.getBoundingClientRect();
-    const rows = Math.ceil(gridOptions.length / 2);
-    const estimatedMenuHeight = Math.min(238, 18 + rows * 40);
+    const rows = layout === "grid" ? Math.ceil(gridOptions.length / 2) : gridOptions.length;
+    const estimatedMenuHeight = Math.min(216, 14 + rows * 32);
     const topSpace = rect.top;
     const bottomSpace = window.innerHeight - rect.bottom - 92;
-    setOpenDirection(topSpace >= estimatedMenuHeight + 10 || topSpace >= bottomSpace ? "up" : "down");
+    const nextDirection = topSpace >= estimatedMenuHeight + 10 || topSpace >= bottomSpace ? "up" : "down";
+    const viewportPadding = 12;
+    const viewportWidth = window.innerWidth || 390;
+    const maxOptionUnits = Math.max(1, ...gridOptions.map(getOptionTextUnits));
+    const visibleOptionCount = layout === "grid" ? 2 : 1;
+    const basePadding = layout === "grid" ? 24 : 30;
+    const minContentWidth = layout === "grid" ? 58 : 52;
+    const contentWidth = layout === "grid"
+      ? Math.ceil(maxOptionUnits * 7.4) * visibleOptionCount + basePadding
+      : Math.ceil(maxOptionUnits * 7.8) + basePadding;
+    const desiredWidth = Math.min(Math.max(minContentWidth, contentWidth), viewportWidth - viewportPadding * 2);
+    const left = Math.max(viewportPadding, Math.min(rect.left, viewportWidth - desiredWidth - viewportPadding));
+    const maxHeight = nextDirection === "up"
+      ? Math.max(96, Math.min(216, rect.top - viewportPadding - 6))
+      : Math.max(96, Math.min(216, window.innerHeight - rect.bottom - 104));
+    setOpenDirection(nextDirection);
+    setMenuStyle({
+      "--riff-dropdown-left": `${left}px`,
+      "--riff-dropdown-width": `${desiredWidth}px`,
+      "--riff-dropdown-trigger-width": `${rect.width}px`,
+      "--riff-dropdown-max-height": `${maxHeight}px`,
+      ...(nextDirection === "up"
+        ? { "--riff-dropdown-bottom": `${window.innerHeight - rect.top + 6}px`, "--riff-dropdown-top": "auto" }
+        : { "--riff-dropdown-top": `${rect.bottom + 6}px`, "--riff-dropdown-bottom": "auto" }),
+    });
   };
 
   useEffect(() => {
@@ -1561,86 +1594,84 @@ function MetronomeSelectControl({ label, options, value, onChange, layout = "nat
     const handleKeyDown = (event) => {
       if (event.key === "Escape") setOpen(false);
     };
+    const handleDropdownOpen = (event) => {
+      if (event.detail !== dropdownIdRef.current) setOpen(false);
+    };
+    const handleViewportChange = () => updateOpenDirection();
 
     window.addEventListener("pointerdown", handlePointerDown);
     window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("riffDropdownOpen", handleDropdownOpen);
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("scroll", handleViewportChange, true);
     return () => {
       window.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("riffDropdownOpen", handleDropdownOpen);
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("scroll", handleViewportChange, true);
     };
   }, [open]);
 
-  if (layout === "grid") {
-    return (
-      <div
-        className={`metronomeSelectControl metronomeSelectControl--grid metronomeSelectControl--${openDirection} ${open ? "open" : ""}`}
-        ref={controlRef}
+  return (
+    <div
+      className={`metronomeSelectControl ${className} ${layout === "grid" ? "metronomeSelectControl--grid" : "metronomeSelectControl--list"} metronomeSelectControl--${openDirection} ${open ? "open" : ""}`}
+      ref={controlRef}
+    >
+      <span>{label}</span>
+      <button
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-label={selectedOption?.longLabel ? `${label}: ${selectedOption.longLabel}` : label}
+        className="metronomeSelectButton"
+        onClick={(event) => {
+          event.stopPropagation();
+          updateOpenDirection();
+          setOpen((current) => {
+            if (!current && typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("riffDropdownOpen", { detail: dropdownIdRef.current }));
+            }
+            return !current;
+          });
+        }}
+        onPointerDown={(event) => event.stopPropagation()}
+        onTouchStart={(event) => event.stopPropagation()}
+        title={selectedOption?.longLabel || selectedOption?.label || label}
+        type="button"
       >
-        <span>{label}</span>
-        <button
-          aria-expanded={open}
-          aria-haspopup="listbox"
-          aria-label={selectedOption?.longLabel ? `${label}: ${selectedOption.longLabel}` : label}
-          className="metronomeSelectButton"
-          onClick={(event) => {
-            event.stopPropagation();
-            updateOpenDirection();
-            setOpen((value) => !value);
-          }}
+        <b>{selectedOption?.label || value || label}</b>
+        <i aria-hidden="true">⌄</i>
+      </button>
+      {open ? (
+        <div
+          className={`metronomeSelectMenu ${layout === "grid" ? "metronomeSelectMenu--twoColumn" : ""}`}
+          onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
           onTouchStart={(event) => event.stopPropagation()}
-          title={selectedOption?.longLabel || selectedOption?.label || label}
-          type="button"
+          role="listbox"
+          style={menuStyle}
         >
-          <b>{selectedOption?.label || value}</b>
-          <i aria-hidden="true">⌄</i>
-        </button>
-        {open ? (
-          <div
-            className="metronomeSelectMenu metronomeSelectMenu--twoColumn"
-            onClick={(event) => event.stopPropagation()}
-            onPointerDown={(event) => event.stopPropagation()}
-            onTouchStart={(event) => event.stopPropagation()}
-            role="listbox"
-          >
-            {gridOptions.map((option) => (
-              <button
-                aria-selected={option.id === value}
-                className={`metronomeSelectOption ${option.id === value ? "selected" : ""}`}
-                key={option.id}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onChange(option.id);
-                  setOpen(false);
-                }}
-                role="option"
-                type="button"
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </div>
-    );
-  }
-
-  return (
-    <label className="metronomeSelectControl">
-      <span>{label}</span>
-      <select
-        aria-label={selectedOption?.longLabel ? `${label}: ${selectedOption.longLabel}` : label}
-        onChange={(event) => onChange(event.target.value)}
-        title={selectedOption?.longLabel || selectedOption?.label || label}
-        value={value}
-      >
-        {options.map((option) => (
-          <option key={option.id} value={option.id}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
+          {gridOptions.map((option) => (
+            <button
+              aria-selected={String(option.id) === String(value)}
+              className={`metronomeSelectOption ${String(option.id) === String(value) ? "selected" : ""}`}
+              disabled={option.disabled}
+              key={option.id}
+              onClick={(event) => {
+                event.stopPropagation();
+                if (option.disabled) return;
+                onChange(option.id);
+                setOpen(false);
+              }}
+              role="option"
+              type="button"
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -4340,8 +4371,9 @@ const MAX_REPEAT_COUNT = 12;
 const HIT_WINDOW_MS = 150;
 const PERFECT_WINDOW_MS = 55;
 const HIT_LINE_PERCENT = 88;
+const SHOOTER_LIFE_LINE_PERCENT = 86;
 const SHOOTER_TARGET_HIT_EFFECT_MS = 250;
-const SHOOTER_LOCK_MIN_MS = 45;
+const SHOOTER_PROJECTILE_MS = 190;
 const NOTE_SIZE = 36;
 const HIT_ZONE_SIZE = NOTE_SIZE;
 const MIN_FREQ = 75;
@@ -4488,7 +4520,7 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "stage1",
-    title: "훈련장 01 - 음 찾기 훈련",
+    title: "🎯 음 찾기 훈련",
     content: (
       <>
         <p>개방현과 0~3프렛 구간에서 미 · 파 · 솔 · 라 · 시 · 도 · 레 · 미 음 위치를 반복적으로 익히는 훈련입니다.</p>
@@ -4499,7 +4531,7 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "stage2",
-    title: "훈련장 02 - 스케일 · 펜타토닉",
+    title: "🎸 스케일 · 펜타토닉",
     content: (
       <>
         <p>기타 연습에서 가장 많이 사용하는 메이저 스케일, 마이너 스케일, 펜타토닉 패턴을 연습하는 훈련입니다.</p>
@@ -4517,9 +4549,10 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "stage3",
-    title: "훈련장 03 - 리듬 코드 훈련",
+    title: "🔥 리듬 코드 훈련 (맛도리)",
     content: (
       <>
+        <p>개인적으로 가장 추천하는 맛도리 훈련장입니다.</p>
         <p>개인적으로 가장 추천하는 훈련입니다.</p>
         <p>평소 어려웠던 코드 전환을 <span className="helpGoldText">저장실</span>에 입력한 뒤 반복적으로 연습할 수 있습니다.</p>
         <strong>예시</strong>
@@ -4529,12 +4562,16 @@ const HELP_GUIDE_SECTIONS = [
         </ul>
         <p>원하는 코드 진행을 저장하고 <span className="helpGoldText">메트로놈</span> 박자에 맞춰 반복 훈련할 수 있습니다.</p>
         <p>리듬과 코드 전환을 동시에 연습하기 위한 공간입니다.</p>
+        <p>훈련장 03에서는 코드 진행뿐 아니라 주법도 함께 입력할 수 있습니다.</p>
+        <p><span className="helpGoldText">저장실</span>에서 코드 진행과 주법 패턴을 입력하고 저장하면, 훈련장에서 해당 저장 코드를 불러와 반복 연습할 수 있습니다.</p>
+        <p>불러온 뒤에는 지판 영역에 현재 진행할 코드와 저장해둔 주법이 함께 표시됩니다.</p>
+        <p>즉, 내가 만든 코드 진행과 주법을 보면서 <span className="helpGoldText">메트로놈</span> 박자에 맞춰 반복 훈련할 수 있습니다.</p>
       </>
     ),
   },
   {
     id: "fretboard",
-    title: "지판보기",
+    title: "🗺️ 지판보기",
     content: (
       <>
         <p>기타 지판을 자유롭게 탐색할 수 있습니다.</p>
@@ -4552,7 +4589,7 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "metronome",
-    title: "메트로놈",
+    title: "⏱️ 메트로놈",
     content: (
       <>
         <p><span className="helpGoldText">메트로놈</span>만 단독으로 사용할 수 있는 기능입니다.</p>
@@ -4571,7 +4608,7 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "shooter",
-    title: "슈팅게임",
+    title: "👾 슈팅게임",
     content: (
       <>
         <p>지판 암기를 게임처럼 연습할 수 있는 모드입니다.</p>
@@ -4583,7 +4620,7 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "feedback",
-    title: "피드백 보내기",
+    title: "💬 피드백 보내기",
     content: (
       <>
         <p>RIFFLAB은 아직 개발 중인 프로젝트입니다.</p>
@@ -4751,9 +4788,9 @@ const FRETBOARD_VIEWER_MODES = {
 };
 
 const FRETBOARD_VIEWER_MODE_ORDER = [
-  FRETBOARD_VIEWER_MODES.NOTE,
-  FRETBOARD_VIEWER_MODES.SCALE,
   FRETBOARD_VIEWER_MODES.CHORD,
+  FRETBOARD_VIEWER_MODES.SCALE,
+  FRETBOARD_VIEWER_MODES.NOTE,
 ];
 
 const CHORD_VIEWER_POSITIONS = [
@@ -4908,7 +4945,7 @@ const SHOOTER_DIFFICULTY_OPTIONS = [
   { id: SHOOTER_DIFFICULTIES.HARD, label: "Hard", hint: "넓은 음역과 높은 생성 빈도" },
 ];
 const SHOOTER_EASY_PHASES = [
-  { label: "개방현", minMs: 0, maxFret: 0, maxTargets: 3, poolRatioCap: 0.34, spawnGapMultiplier: 1.26, durationMultiplier: 0.94, randomnessBonus: -0.12, jumpBiasBonus: -0.1 },
+  { label: "개방현", minMs: 0, maxFret: 0, maxTargets: 1, poolRatioCap: 0.34, spawnGapMultiplier: 1.26, durationMultiplier: 0.94, randomnessBonus: -0.12, jumpBiasBonus: -0.1 },
   { label: "0~3프렛", minMs: 60_000, maxFret: 3, maxTargets: 4, poolRatioCap: 0.55, spawnGapMultiplier: 1.08, durationMultiplier: 0.92, randomnessBonus: -0.06, jumpBiasBonus: -0.04 },
   { label: "0~5프렛", minMs: 180_000, maxFret: 5, maxTargets: 5, poolRatioCap: 0.78, spawnGapMultiplier: 0.96, durationMultiplier: 0.9, randomnessBonus: 0, jumpBiasBonus: 0 },
   { label: "Hard 접근", minMs: 300_000, maxFret: 12, maxTargets: 6, poolRatioCap: 1, spawnGapMultiplier: 0.84, durationMultiplier: 0.88, randomnessBonus: 0.08, jumpBiasBonus: 0.06 },
@@ -5154,6 +5191,14 @@ function getShooterLevel(hitCount) {
 function getShooterDifficultyPhase(difficulty, elapsedMs = 0) {
   if (difficulty === SHOOTER_DIFFICULTIES.HARD) return SHOOTER_HARD_PHASE;
   return [...SHOOTER_EASY_PHASES].reverse().find((phase) => elapsedMs >= phase.minMs) ?? SHOOTER_EASY_PHASES[0];
+}
+
+function getShooterTargetYAt(target, now = 0) {
+  if (!target) return 8;
+  if (target.defeated) return Number(target.y) || 8;
+  const duration = Math.max(1, Number(target.duration) || 1);
+  const progress = Math.max(0, Math.min(1, (now - (Number(target.bornAt) || 0)) / duration));
+  return 8 + progress * 80;
 }
 
 function getShooterEffectiveLevel(level, difficulty, elapsedMs = 0) {
@@ -5486,7 +5531,7 @@ function App() {
   const [selectedScaleFamily, setSelectedScaleFamily] = useState(SCALE_FAMILIES.pentatonic.id);
   const [selectedScaleType, setSelectedScaleType] = useState(PENTATONIC_TYPES.minor.id);
   const [selectedScaleBox, setSelectedScaleBox] = useState(1);
-  const [viewerMode, setViewerMode] = useState(FRETBOARD_VIEWER_MODES.NOTE);
+  const [viewerMode, setViewerMode] = useState(FRETBOARD_VIEWER_MODES.CHORD);
   const [viewerSwipeFeedback, setViewerSwipeFeedback] = useState("");
   const [viewerNoteFilter, setViewerNoteFilter] = useState("ALL");
   const [viewerOctaveRange] = useState("all");
@@ -7364,8 +7409,8 @@ function App() {
     const nextAim = {
       "--aim-shift": "0px",
       "--aim-tilt": "0deg",
-      "--guitar-aim": `${clampValue((target.x - 50) * 0.28 - (84 - target.y) * 0.025, -16, 16)}deg`,
-      "--arm-aim": `${clampValue((target.x - 50) * 0.22 - (82 - target.y) * 0.05, -18, 16)}deg`,
+      "--guitar-aim": `${clampValue((target.x - 50) * 0.055 - (84 - target.y) * 0.006, -3.2, 3.2)}deg`,
+      "--arm-aim": `${clampValue((target.x - 50) * 0.08 - (82 - target.y) * 0.015, -5, 5)}deg`,
     };
     setShooterAim(nextAim);
     window.clearTimeout(shooterAimResetTimerRef.current);
@@ -7374,25 +7419,14 @@ function App() {
     }, holdMs);
   }, []);
 
-  const getShooterLockDelayMs = useCallback((target, now) => {
-    const y = Number(target?.y) || 8;
-    let delay = 960;
-    if (y >= 84) delay = 55;
-    else if (y >= 76) delay = 120 + Math.random() * 90;
-    else if (y >= 62) delay = 250 + Math.random() * 120;
-    else if (y >= 42) delay = 480 + Math.random() * 170;
-    else delay = 820 + Math.random() * 220;
-
-    const bottomAt = (target?.bornAt ?? now) + (target?.duration ?? 0);
-    const timeUntilBottom = Math.max(0, bottomAt - now);
-    if (timeUntilBottom <= 180) return SHOOTER_LOCK_MIN_MS;
-    return Math.max(SHOOTER_LOCK_MIN_MS, Math.min(delay, timeUntilBottom - 120));
-  }, []);
-
   const fireProjectile = useCallback((target, noteName) => {
+    const targetY = getShooterTargetYAt(target, gameTimeRef.current);
     const muzzleX = 50;
-    const muzzleY = 75;
-    aimShooterAtTarget(target, 190);
+    const muzzleY = 66;
+    const angle = Math.atan2(targetY - muzzleY, target.x - muzzleX) * (180 / Math.PI);
+    const projectileDuration = SHOOTER_PROJECTILE_MS;
+    const impactAt = gameTimeRef.current + projectileDuration;
+    aimShooterAtTarget(target, 105);
 
     projectilesRef.current = [
       ...projectilesRef.current,
@@ -7402,9 +7436,10 @@ function App() {
         startX: muzzleX,
         startY: muzzleY,
         endX: target.x,
-        endY: target.y,
+        endY: targetY,
         bornAt: gameTimeRef.current,
-        duration: 135,
+        duration: projectileDuration,
+        angle,
       },
     ];
 
@@ -7414,31 +7449,32 @@ function App() {
         id: particleIdRef.current++,
         type: "shockwave",
         x: target.x,
-        y: target.y,
-        bornAt: gameTimeRef.current,
+        y: targetY,
+        bornAt: impactAt,
       },
       ...Array.from({ length: 8 }, (_, index) => ({
         id: particleIdRef.current++,
         type: "spark",
         x: target.x,
-        y: target.y,
+        y: targetY,
         angle: (index / 8) * Math.PI * 2,
         speed: 0.72 + (index % 3) * 0.12,
-        bornAt: gameTimeRef.current,
+        bornAt: impactAt,
       })),
       ...Array.from({ length: 5 }, (_, index) => ({
         id: particleIdRef.current++,
         type: "noteShard",
         symbol: ["♪", "♩", "♫", "♪", "♬"][index],
         x: target.x,
-        y: target.y,
+        y: targetY,
         angle: -Math.PI * 0.82 + index * (Math.PI * 0.41),
         speed: 0.62 + (index % 2) * 0.16,
-        bornAt: gameTimeRef.current,
+        bornAt: impactAt,
       })),
     ];
     setProjectiles([...projectilesRef.current]);
     setParticles([...particlesRef.current]);
+    return projectileDuration;
   }, [aimShooterAtTarget]);
 
   const judgeShooterNote = useCallback(
@@ -7449,7 +7485,7 @@ function App() {
 
       const orderedTargets = shooterTargetsRef.current
         .map((target, index) => ({ target, index }))
-        .filter(({ target }) => !target.defeated && target.lockedAt == null)
+        .filter(({ target }) => !target.defeated && target.impactAt == null)
         .sort((a, b) => b.target.y - a.target.y || a.target.bornAt - b.target.bornAt);
       const frontTarget = orderedTargets[0] ?? null;
       const target = frontTarget?.target ?? null;
@@ -7467,20 +7503,19 @@ function App() {
         return;
       }
 
-      const lockDelayMs = getShooterLockDelayMs(target, now);
+      const projectileDuration = fireProjectile(target, detectedPitchName);
+      const targetY = getShooterTargetYAt(target, now);
       shooterTargetsRef.current = shooterTargetsRef.current.map((currentTarget, index) => (
         index === targetIndex
           ? {
               ...currentTarget,
-              lockedAt: now,
-              lockFireAt: now + lockDelayMs,
-              lockedNote: detectedPitchName,
+              y: targetY,
+              impactAt: now + projectileDuration,
             }
           : currentTarget
       ));
       setShooterTargets([...shooterTargetsRef.current]);
-      aimShooterAtTarget(target, lockDelayMs + 180);
-      setFeedback("Lock");
+      setFeedback("Fire");
       scoreRef.current += 100;
       setScore((value) => value + 100);
       setCombo((value) => {
@@ -7498,7 +7533,7 @@ function App() {
       attemptsRef.current += 1;
       setAttempts((value) => value + 1);
     },
-    [aimShooterAtTarget, flashStage, getShooterLockDelayMs, playShooterSound],
+    [fireProjectile, flashStage, playShooterSound],
   );
 
   const finalizeShooterRecord = useCallback((reason = "reset") => {
@@ -7835,48 +7870,48 @@ function App() {
         setBeat(beatInBar);
       }
 
-      let targetsMoved = false;
+      let targetsChanged = false;
       shooterTargetsRef.current.forEach((target) => {
-        if (target.defeated) return;
+        if (target.defeated || target.impactAt != null) return;
         const progress = Math.min(1, (gameTimeRef.current - target.bornAt) / target.duration);
         const nextY = 8 + progress * 80;
         if (target.y !== nextY) {
           target.y = nextY;
-          targetsMoved = true;
         }
       });
 
-      const readyLockedTargets = shooterTargetsRef.current.filter(
-        (target) => target.lockedAt != null && !target.defeated && gameTimeRef.current >= (target.lockFireAt ?? target.lockedAt),
+      const defeatedExpiredTargets = shooterTargetsRef.current.filter(
+        (target) => target.defeated && gameTimeRef.current - (target.hitAt ?? target.bornAt) >= SHOOTER_TARGET_HIT_EFFECT_MS,
       );
-      if (readyLockedTargets.length > 0) {
-        readyLockedTargets.forEach((target) => {
-          fireProjectile(target, target.lockedNote ?? target.note);
-        });
-        const readyLockedIds = new Set(readyLockedTargets.map((target) => target.id));
+      const impactedTargets = shooterTargetsRef.current.filter(
+        (target) => target.impactAt != null && !target.defeated && gameTimeRef.current >= target.impactAt,
+      );
+      if (impactedTargets.length > 0) {
+        const impactedTargetIds = new Set(impactedTargets.map((target) => target.id));
         shooterTargetsRef.current = shooterTargetsRef.current.map((target) => (
-          readyLockedIds.has(target.id)
+          impactedTargetIds.has(target.id)
             ? {
                 ...target,
+                y: getShooterTargetYAt(target, gameTimeRef.current),
                 defeated: true,
                 hitAt: gameTimeRef.current,
-                lockedAt: undefined,
-                lockFireAt: undefined,
+                impactAt: undefined,
               }
             : target
         ));
         setFeedback("Success");
         flashStage("hit");
         playShooterSound("hit");
-        targetsMoved = true;
+        targetsChanged = true;
       }
-
-      const defeatedExpiredTargets = shooterTargetsRef.current.filter(
-        (target) => target.defeated && gameTimeRef.current - (target.hitAt ?? target.bornAt) >= SHOOTER_TARGET_HIT_EFFECT_MS,
-      );
-      const missedTargets = shooterTargetsRef.current.filter(
-        (target) => !target.defeated && target.lockedAt == null && (gameTimeRef.current - target.bornAt >= target.duration || target.y >= 88),
-      );
+      const missedTargets = shooterTargetsRef.current.filter((target) => (
+        !target.defeated
+        && target.impactAt == null
+        && (
+          gameTimeRef.current - target.bornAt >= target.duration
+          || getShooterTargetYAt(target, gameTimeRef.current) >= SHOOTER_LIFE_LINE_PERCENT
+        )
+      ));
       const removedTargetIds = new Set([...defeatedExpiredTargets, ...missedTargets].map((target) => target.id));
       if (removedTargetIds.size > 0) {
         shooterTargetsRef.current = shooterTargetsRef.current.filter((target) => !removedTargetIds.has(target.id));
@@ -7915,9 +7950,7 @@ function App() {
         particlesRef.current = nextParticles;
         setParticles([...particlesRef.current]);
       }
-      if (removedTargetIds.size > 0) {
-        setShooterTargets([...shooterTargetsRef.current]);
-      } else if (targetsMoved) {
+      if (removedTargetIds.size > 0 || targetsChanged) {
         setShooterTargets([...shooterTargetsRef.current]);
       }
     },
@@ -9030,7 +9063,7 @@ function App() {
       swipe.locked = true;
     }
 
-    event.preventDefault();
+    if (event.cancelable) event.preventDefault();
   }, []);
 
   const handleMetronomeModeTouchEnd = useCallback((event) => {
@@ -9041,7 +9074,7 @@ function App() {
 
     const deltaX = touch.clientX - swipe.x;
     const deltaY = touch.clientY - swipe.y;
-    if (Math.abs(deltaX) < 54 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) return;
+    if (Math.abs(deltaX) < 36 || Math.abs(deltaX) < Math.abs(deltaY) * 1.1) return;
 
     changeMetronomeDisplayModeBySwipe(deltaX < 0 ? 1 : -1);
   }, [changeMetronomeDisplayModeBySwipe]);
@@ -9080,6 +9113,7 @@ function App() {
 
   const handleFretboardSwipeStart = useCallback((event) => {
     if (event.target?.closest?.("button, select, input, textarea")) return;
+    if (event.target?.closest?.(".fretboardComponent")) return;
 
     const bounds = event.currentTarget.getBoundingClientRect?.();
     const surfaceWidth = bounds?.width ?? window.innerWidth ?? 0;
@@ -10974,7 +11008,8 @@ function App() {
               <div className="designLabArchive">
                 <div className="guitarLabToolbar">
                   <div>
-                    <strong>아카이브(휴지통)</strong>
+                    <strong>삭제 후보 보관함 🗑️</strong>
+                    <span>삭제한 항목은 여기에서 복원하거나 영구 삭제할 수 있어요.</span>
                     <span>디자인 {visibleGuitarLabVariants.length}개 · 아카이브 {archivedGuitarLabVariants.length}개</span>
                   </div>
                   <div className="guitarLabToolbarActions">
@@ -11064,11 +11099,11 @@ function App() {
           >
             <div className="viewerModeTabs" aria-label="지판 보기 종류">
               <button
-                className={viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "selected" : ""}
-                onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.NOTE)}
+                className={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "selected" : ""}
+                onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.CHORD)}
                 type="button"
               >
-                음표
+                코드
               </button>
               <button
                 className={viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "selected" : ""}
@@ -11078,11 +11113,11 @@ function App() {
                 스케일
               </button>
               <button
-                className={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "selected" : ""}
-                onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.CHORD)}
+                className={viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "selected" : ""}
+                onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.NOTE)}
                 type="button"
               >
-                코드
+                음표
               </button>
             </div>
 
@@ -11109,9 +11144,12 @@ function App() {
                 mode={viewerMode}
                 notes={viewerFretboardNotes.map((note) => ({
                   ...note,
-                  label: viewerMode === FRETBOARD_VIEWER_MODES.CHORD && showChordFingeringGuide && note.finger
-                    ? note.finger
-                    : note.label,
+                  label:
+                    viewerMode === FRETBOARD_VIEWER_MODES.NOTE
+                      ? note.pitch ?? note.octaveNote ?? note.label ?? note.noteName
+                      : viewerMode === FRETBOARD_VIEWER_MODES.CHORD && showChordFingeringGuide && note.finger
+                        ? note.finger
+                        : note.label,
                   isRoot:
                     viewerMode === FRETBOARD_VIEWER_MODES.CHORD
                       ? false
@@ -11144,62 +11182,30 @@ function App() {
                 </div>
               ) : viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? (
                 <div className="viewerSelectGrid">
-                  <label>
-                    <span>키</span>
-                    <select
-                      aria-label="지판 보기 키 선택"
-                      onChange={(event) => setViewerScaleRoot(event.target.value)}
-                      value={viewerScaleRoot}
-                    >
-                      {SCALE_ROOT_OPTIONS.map((root) => (
-                        <option key={root.id} value={root.id}>
-                          {root.label} / {root.solfege}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span>종류</span>
-                    <select
-                      aria-label="지판 보기 종류"
-                      onChange={(event) => setViewerScaleFamily(event.target.value)}
-                      value={viewerScaleFamily}
-                    >
-                      {Object.values(SCALE_FAMILIES).map((family) => (
-                        <option key={family.id} value={family.id}>
-                          {family.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span></span>
-                    <select
-                      aria-label="지판 보기 타입 선택"
-                      onChange={(event) => setViewerScaleType(event.target.value)}
-                      value={viewerScaleType}
-                    >
-                      {Object.values(viewerScaleTypeOptions).map((type) => (
-                        <option key={type.id} value={type.id}>
-                          {type.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span>Box</span>
-                    <select
-                      aria-label="지판 보기 박스"
-                      onChange={(event) => setViewerScaleBox(Number(event.target.value))}
-                      value={viewerScaleBox}
-                    >
-                      {SCALE_BOX_OPTIONS.map((boxNumber) => (
-                        <option key={boxNumber} value={boxNumber}>
-                          Box {boxNumber}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <MetronomeSelectControl
+                    label="키"
+                    onChange={setViewerScaleRoot}
+                    options={SCALE_ROOT_OPTIONS.map((root) => ({ id: root.id, label: `${root.label} / ${root.solfege}` }))}
+                    value={viewerScaleRoot}
+                  />
+                  <MetronomeSelectControl
+                    label="종류"
+                    onChange={setViewerScaleFamily}
+                    options={Object.values(SCALE_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
+                    value={viewerScaleFamily}
+                  />
+                  <MetronomeSelectControl
+                    label="타입"
+                    onChange={setViewerScaleType}
+                    options={Object.values(viewerScaleTypeOptions).map((type) => ({ id: type.id, label: type.label }))}
+                    value={viewerScaleType}
+                  />
+                  <MetronomeSelectControl
+                    label="Box"
+                    onChange={(nextBox) => setViewerScaleBox(Number(nextBox))}
+                    options={SCALE_BOX_OPTIONS.map((boxNumber) => ({ id: boxNumber, label: `Box ${boxNumber}` }))}
+                    value={viewerScaleBox}
+                  />
                 </div>
               ) : viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
                 <div className="chordBuilderPanel" aria-label="코드 운지 조합 선택">
@@ -12022,7 +12028,7 @@ function App() {
               const targetDetail = target.detail ?? getShooterNoteDetail(target.note);
               return (
               <div
-                className={`enemy shooterEnemy ${target.lockedAt != null && !target.defeated ? "locked" : ""} ${target.defeated ? "defeated" : ""}`}
+                className={`enemy shooterEnemy ${target.impactAt == null && !target.defeated ? "fallingTarget" : ""} ${target.impactAt != null && !target.defeated ? "impact-pending" : ""} ${target.defeated ? "defeated" : ""}`}
                 key={target.id}
                 style={{
                   left: `${target.x}%`,
@@ -12042,7 +12048,7 @@ function App() {
               );
             })}
 
-            {shooterTargets
+            {false && shooterTargets
               .filter((target) => target.lockedAt != null && !target.defeated)
               .map((target) => {
                 const startX = 50;
@@ -12066,19 +12072,17 @@ function App() {
               })}
 
             {projectiles.map((projectile) => {
-              const dx = projectile.endX - projectile.startX;
-              const dy = projectile.endY - projectile.startY;
-              const length = Math.sqrt(dx * dx + dy * dy);
-              const angle = Math.atan2(dy, dx) * (180 / Math.PI);
               return (
                 <div
-                  className="laserBeam"
+                  className="energyProjectile"
                   key={projectile.id}
                   style={{
-                    left: `${projectile.startX}%`,
-                    top: `${projectile.startY}%`,
-                    width: `${length}%`,
-                    transform: `translateY(-50%) rotate(${angle}deg)`,
+                    "--projectile-start-x": `${projectile.startX}%`,
+                    "--projectile-start-y": `${projectile.startY}%`,
+                    "--projectile-end-x": `${projectile.endX}%`,
+                    "--projectile-end-y": `${projectile.endY}%`,
+                    "--projectile-duration-ms": `${projectile.duration}ms`,
+                    "--projectile-angle": `${projectile.angle ?? 0}deg`,
                   }}
                 />
               );
@@ -12086,6 +12090,7 @@ function App() {
 
             {particles.map((particle) => {
               const age = gameTimeRef.current - particle.bornAt;
+              if (age < 0) return null;
               if (particle.type === "shockwave") {
                 return (
                   <span
@@ -12258,21 +12263,15 @@ function App() {
           </div>
 
           <div className="stage3StorageSelectPanel">
-            <label>
-              <span>저장된 진행 선택</span>
-              <select
-                aria-label="저장된 코드 진행 선택"
-                onChange={(event) => setStage3StorageSelectedId(event.target.value)}
-                value={stage3StorageSelectedId}
-              >
-                <option value="">저장된 진행 선택</option>
-                {stage3QuickSlots.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <MetronomeSelectControl
+              label="저장된 진행 선택"
+              onChange={setStage3StorageSelectedId}
+              options={[
+                { id: "", label: "저장된 진행 선택" },
+                ...stage3QuickSlots.map((item) => ({ id: item.id, label: item.label })),
+              ]}
+              value={stage3StorageSelectedId}
+            />
             <div className="stage3StorageSelectActions">
               <button disabled={!selectedStage3StorageItem} onClick={() => editStage3StorageItem(selectedStage3StorageItem)} type="button">
                 불러오기
@@ -12316,17 +12315,14 @@ function App() {
                 value={stage3StorageBpm}
               />
             </label>
-            <label>
-              <span>박자</span>
-              <select
-                onChange={(event) => setStage3StorageTimeSignature(event.target.value)}
+            <div className="stage3StorageField">
+              <MetronomeSelectControl
+                label="박자"
+                onChange={setStage3StorageTimeSignature}
+                options={TIME_SIGNATURE_OPTIONS}
                 value={stage3StorageTimeSignature}
-              >
-                {TIME_SIGNATURE_OPTIONS.map((option) => (
-                  <option key={option.id} value={option.id}>{option.label}</option>
-                ))}
-              </select>
-            </label>
+              />
+            </div>
             <label>
               <span>카포</span>
               <input
@@ -12652,24 +12648,18 @@ function App() {
               </div>
             </div>
             <div className="chordProgressionPicker">
-              <label>
-                <span>저장된 진행</span>
-                <select
-                  aria-label="저장된 코드 진행 선택"
-                  onChange={(event) => {
-                    const selected = stage3QuickSlots.find((slot) => slot.id === event.target.value);
-                    if (selected) applyStage3LibraryItem(selected);
-                  }}
-                  value={selectedStage3LibraryItem?.id ?? ""}
-                >
-                  <option value="">저장된 진행 선택</option>
-                  {stage3QuickSlots.map((slot) => (
-                    <option key={slot.id} value={slot.id}>
-                      {slot.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <MetronomeSelectControl
+                label="저장된 진행"
+                onChange={(nextId) => {
+                  const selected = stage3QuickSlots.find((slot) => slot.id === nextId);
+                  if (selected) applyStage3LibraryItem(selected);
+                }}
+                options={[
+                  { id: "", label: "저장된 진행 선택" },
+                  ...stage3QuickSlots.map((slot) => ({ id: slot.id, label: slot.label })),
+                ]}
+                value={selectedStage3LibraryItem?.id ?? ""}
+              />
               <button
                 className="stage3StorageOpenButton"
                 aria-label="진행 보관함 열기"
@@ -12776,64 +12766,34 @@ function App() {
                 <>
                   {selectedCategory.id === "scale-block" && (
                     <div className="scalePickerPanel referenceScalePicker">
-                      <label className="scaleKeySelect">
-                        <span>키</span>
-                        <select
-                          aria-label="Scale root"
-                          onChange={(event) => changeScaleRoot(event.target.value)}
-                          value={selectedScaleRoot}
-                        >
-                          {SCALE_ROOT_OPTIONS.map((root) => (
-                            <option key={root.id} value={root.id}>
-                              {root.label} / {root.solfege}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                      <MetronomeSelectControl
+                        className="scaleKeySelect"
+                        label="키"
+                        onChange={changeScaleRoot}
+                        options={SCALE_ROOT_OPTIONS.map((root) => ({ id: root.id, label: `${root.label} / ${root.solfege}` }))}
+                        value={selectedScaleRoot}
+                      />
                       <div className="scaleTypeGroup">
-                        <label>
-                          <span>종류</span>
-                          <select
-                            aria-label="Scale family"
-                            onChange={(event) => changeScaleFamily(event.target.value)}
-                            value={selectedScaleFamily}
-                          >
-                            {Object.values(SCALE_FAMILIES).map((family) => (
-                              <option key={family.id} value={family.id}>
-                                {family.label}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label>
-                          <span>타입</span>
-                          <select
-                            aria-label="Scale type"
-                            onChange={(event) => changeScaleType(event.target.value)}
-                            value={selectedScaleType}
-                          >
-                            {Object.values(selectedScaleTypeOptions).map((type) => (
-                              <option key={type.id} value={type.id}>
-                                {type.label}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
+                        <MetronomeSelectControl
+                          label="종류"
+                          onChange={changeScaleFamily}
+                          options={Object.values(SCALE_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
+                          value={selectedScaleFamily}
+                        />
+                        <MetronomeSelectControl
+                          label="타입"
+                          onChange={changeScaleType}
+                          options={Object.values(selectedScaleTypeOptions).map((type) => ({ id: type.id, label: type.label }))}
+                          value={selectedScaleType}
+                        />
                       </div>
-                      <label className="scaleBoxSelect">
-                        <span>BOX</span>
-                        <select
-                          aria-label="Scale box"
-                          onChange={(event) => changeScaleBox(event.target.value)}
-                          value={selectedScaleBox}
-                        >
-                          {[1, 2, 3, 4, 5].map((box) => (
-                            <option key={box} value={box}>
-                              BOX{box}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                      <MetronomeSelectControl
+                        className="scaleBoxSelect"
+                        label="BOX"
+                        onChange={changeScaleBox}
+                        options={[1, 2, 3, 4, 5].map((box) => ({ id: box, label: `BOX${box}` }))}
+                        value={selectedScaleBox}
+                      />
                     </div>
                   )}
                   <div className="trainingMetronomeShell referenceTrainingActions buttons playbackButtons">
@@ -12958,64 +12918,34 @@ function App() {
               <div className="scaleDirectionPanel" aria-label="Scale direction">
                 {selectedCategory.id === "scale-block" && (
                   <div className="scalePickerPanel">
-                    <label className="scaleKeySelect">
-                      <span></span>
-                      <select
-                        aria-label="Pentatonic root"
-                        onChange={(event) => changeScaleRoot(event.target.value)}
-                        value={selectedScaleRoot}
-                      >
-                        {SCALE_ROOT_OPTIONS.map((root) => (
-                          <option key={root.id} value={root.id}>
-                            {root.label} / {root.solfege}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                    <MetronomeSelectControl
+                      className="scaleKeySelect"
+                      label="키"
+                      onChange={changeScaleRoot}
+                      options={SCALE_ROOT_OPTIONS.map((root) => ({ id: root.id, label: `${root.label} / ${root.solfege}` }))}
+                      value={selectedScaleRoot}
+                    />
                     <div className="scaleTypeGroup">
-                      <label>
-                        <span>종류</span>
-                        <select
-                          aria-label="Scale family"
-                          onChange={(event) => changeScaleFamily(event.target.value)}
-                          value={selectedScaleFamily}
-                        >
-                          {Object.values(SCALE_FAMILIES).map((family) => (
-                            <option key={family.id} value={family.id}>
-                              {family.label}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        <span></span>
-                        <select
-                          aria-label="Scale type"
-                          onChange={(event) => changeScaleType(event.target.value)}
-                          value={selectedScaleType}
-                        >
-                          {Object.values(selectedScaleTypeOptions).map((type) => (
-                            <option key={type.id} value={type.id}>
-                              {type.label}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                      <MetronomeSelectControl
+                        label="종류"
+                        onChange={changeScaleFamily}
+                        options={Object.values(SCALE_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
+                        value={selectedScaleFamily}
+                      />
+                      <MetronomeSelectControl
+                        label="타입"
+                        onChange={changeScaleType}
+                        options={Object.values(selectedScaleTypeOptions).map((type) => ({ id: type.id, label: type.label }))}
+                        value={selectedScaleType}
+                      />
                     </div>
-                    <label className="scaleBoxSelect">
-                      <span>Box</span>
-                      <select
-                        aria-label="Scale box"
-                        onChange={(event) => changeScaleBox(event.target.value)}
-                        value={selectedScaleBox}
-                      >
-                        {SCALE_BOX_OPTIONS.map((boxNumber) => (
-                          <option key={boxNumber} value={boxNumber}>
-                            Box {boxNumber}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                    <MetronomeSelectControl
+                      className="scaleBoxSelect"
+                      label="Box"
+                      onChange={changeScaleBox}
+                      options={SCALE_BOX_OPTIONS.map((boxNumber) => ({ id: boxNumber, label: `Box ${boxNumber}` }))}
+                      value={selectedScaleBox}
+                    />
                     <strong>{selectedPentatonic.label}</strong>
                   </div>
                 )}

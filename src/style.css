@@ -6351,6 +6351,7 @@ h1 {
 .shooterArena.paused .enemy.shooterEnemy.fallingTarget,
 .shooterArena.paused .enemy.shooterEnemy.locked,
 .shooterArena.paused .lockOnBeam,
+.shooterArena.paused .energyProjectile,
 .shooterArena.paused .laserBeam,
 .shooterArena.paused .hitShockwave,
 .shooterArena.paused .hitSpark,
@@ -12647,6 +12648,17 @@ button::after {
 
 .viewerSharedFretboard .fretboardComponentScroller {
   min-width: 620px;
+}
+
+.fretboardViewerPanel .viewerSharedFretboard:not(.fitRange) {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  touch-action: pan-x pan-y !important;
+  overscroll-behavior-x: contain !important;
+}
+
+.fretboardViewerPanel .viewerSharedFretboard:not(.fitRange) .fretboardComponentScroller {
+  min-width: max(620px, calc(var(--fret-slot-count) * 42px + var(--fretboard-label-left) + var(--fretboard-label-right))) !important;
 }
 
 .viewerSharedFretboard.fitRange {
@@ -21730,7 +21742,8 @@ textarea,
 
 .stage3StorageRoom .stage3StorageEditor label:nth-child(1),
 .stage3StorageRoom .stage3StorageEditor label:nth-child(2),
-.stage3StorageRoom .stage3StorageEditor label:nth-child(6) {
+.stage3StorageRoom .stage3StorageEditor label:nth-child(6),
+.stage3StorageRoom .stage3StorageEditor .stage3StorageField {
   grid-column: 1 / -1;
 }
 
@@ -33292,7 +33305,7 @@ body {
 }
 
 .shooterArena .guitarPlayer.shooting .guitarPlayerAsset {
-  animation: guitarAssetRecoil 170ms ease-out both;
+  animation: guitarAssetRecoil 115ms ease-out both;
 }
 
 .shooterArena .guitarPlayerAura {
@@ -33309,50 +33322,104 @@ body {
 .shooterArena .guitarPlayerMuzzle {
   position: absolute;
   left: 50%;
-  top: 2px;
+  top: 54px;
   z-index: 3;
-  width: 15px;
-  height: 36px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: radial-gradient(ellipse at 50% 100%, #fff2bd, #ff8a2f 44%, transparent 76%);
+  background: radial-gradient(circle, #fffaf0 0 18%, #f1ca7a 24% 56%, rgba(241, 202, 122, 0) 74%);
   opacity: 0;
-  transform: translateX(-50%) rotate(var(--guitar-aim, -4deg));
-  transform-origin: 50% 100%;
-  filter: drop-shadow(0 0 9px rgba(255, 132, 45, 0.62));
+  transform: translate(-50%, -50%) scale(0.82);
+  transform-origin: 50% 50%;
+  filter:
+    drop-shadow(0 0 8px rgba(255, 244, 210, 0.8))
+    drop-shadow(0 0 14px rgba(241, 202, 122, 0.42));
   transition:
     opacity 70ms ease-out,
-    transform 130ms cubic-bezier(0.2, 0.9, 0.24, 1.08);
+    transform 115ms cubic-bezier(0.2, 0.9, 0.24, 1.08);
 }
 
 .shooterArena .guitarPlayer.shooting .guitarPlayerMuzzle {
   opacity: 1;
+  transform: translate(-50%, -50%) scale(1.12);
 }
 
 @keyframes guitarAssetRecoil {
   0% {
     transform: translateX(-50%) rotate(var(--guitar-aim, -4deg)) translateY(0) scale(1);
   }
-  38% {
-    transform: translateX(-50%) rotate(calc(var(--guitar-aim, -4deg) - 2.5deg)) translateY(5px) scale(0.985);
+  42% {
+    transform: translateX(-50%) rotate(calc(var(--guitar-aim, -4deg) - 0.65deg)) translateY(0) scale(0.992);
   }
   100% {
     transform: translateX(-50%) rotate(var(--guitar-aim, -4deg)) translateY(0) scale(1);
   }
 }
 
+.shooterArena .energyProjectile {
+  position: absolute;
+  z-index: 14;
+  left: var(--projectile-start-x);
+  top: var(--projectile-start-y);
+  width: 17px;
+  height: 17px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 28%, #fffaf0 0 15%, #ffe8ad 19% 43%, #d9aa55 56%, rgba(217, 170, 85, 0.16) 75%);
+  box-shadow:
+    0 0 10px rgba(255, 247, 214, 0.98),
+    0 0 22px rgba(241, 202, 122, 0.62),
+    0 0 38px rgba(217, 170, 85, 0.24);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(var(--projectile-angle, 0deg)) scale(0.82);
+  will-change: left, top, transform, opacity;
+  animation: shooterEnergyProjectile var(--projectile-duration-ms, 240ms) cubic-bezier(0.18, 0.82, 0.24, 1) both;
+}
+
+.shooterArena .energyProjectile::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 55%;
+  width: 38px;
+  height: 8px;
+  border-radius: 999px;
+  background:
+    radial-gradient(ellipse at 18% 50%, rgba(255, 244, 210, 0.08), transparent 58%),
+    linear-gradient(90deg, rgba(217, 170, 85, 0), rgba(217, 170, 85, 0.26) 42%, rgba(255, 244, 210, 0.82));
+  box-shadow:
+    0 0 12px rgba(241, 202, 122, 0.34),
+    0 0 20px rgba(255, 244, 210, 0.14);
+  filter: blur(0.4px);
+  transform: translateY(-50%);
+}
+
+.shooterArena .energyProjectile::after {
+  content: "♪";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  color: rgba(25, 17, 7, 0.72);
+  font-size: 8px;
+  font-weight: 1000;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+
 .shooterArena .laserBeam {
-  z-index: 8;
-  height: 6px !important;
+  z-index: 13;
+  height: 12px !important;
   min-width: 18px;
   border-radius: 999px;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.98) 0 8%, #fff2bd 22%, #f1ca7a 62%, rgba(217, 170, 85, 0) 100%),
-    linear-gradient(90deg, rgba(241, 202, 122, 0), rgba(241, 202, 122, 0.64), rgba(241, 202, 122, 0));
+    linear-gradient(90deg, rgba(241, 202, 122, 0), rgba(241, 202, 122, 0.22) 58%, rgba(255, 244, 210, 0.92) 86%, #fffaf0 100%);
   box-shadow:
     0 0 7px rgba(255, 244, 196, 0.82),
     0 0 16px rgba(241, 202, 122, 0.42) !important;
   opacity: 0;
-  animation: shooterBeamStrike 135ms ease-out both;
+  transform-origin: 0 50%;
+  animation: shooterBeamStrike var(--projectile-duration-ms, 240ms) cubic-bezier(0.18, 0.86, 0.28, 1) both;
 }
 
 .shooterArena .lockOnBeam {
@@ -33384,9 +33451,17 @@ body {
 .shooterArena .laserBeam::before {
   content: "";
   position: absolute;
-  inset: 2px 0;
+  top: 50%;
+  right: -2px;
+  width: 18px;
+  height: 18px;
   border-radius: inherit;
-  background: linear-gradient(90deg, #fffaf0, rgba(255, 245, 205, 0.86), transparent);
+  background:
+    radial-gradient(circle, #fffaf0 0 18%, #ffe3a0 20% 48%, rgba(241, 202, 122, 0) 72%);
+  box-shadow:
+    0 0 10px rgba(255, 247, 214, 0.94),
+    0 0 20px rgba(241, 202, 122, 0.58);
+  transform: translate(50%, -50%);
 }
 
 .shooterArena .enemy.shooterEnemy.defeated {
@@ -33400,17 +33475,21 @@ body {
   content: "";
   position: absolute;
   top: 50%;
-  left: 0;
-  width: 15px;
-  height: 15px;
+  right: 10px;
+  width: 26px;
+  height: 4px;
   border-radius: 999px;
-  background:
-    radial-gradient(circle, #fffaf0 0 18%, #ffe3a0 20% 45%, rgba(241, 202, 122, 0) 72%);
+  background: linear-gradient(90deg, rgba(241, 202, 122, 0), rgba(255, 244, 210, 0.9));
   box-shadow:
-    0 0 8px rgba(255, 247, 214, 0.88),
-    0 0 16px rgba(241, 202, 122, 0.52);
-  transform: translate(-50%, -50%);
-  animation: shooterEnergyBolt 135ms ease-out both;
+    0 0 8px rgba(255, 247, 214, 0.72),
+    0 0 14px rgba(241, 202, 122, 0.42);
+  transform: translateY(-50%);
+}
+
+.shooterArena .enemy.shooterEnemy.impact-pending {
+  z-index: 11;
+  filter: brightness(1.18) saturate(1.08);
+  animation: shooterImpactPending 180ms ease-in-out infinite alternate;
 }
 
 .shooterArena .hitShockwave,
@@ -33425,38 +33504,39 @@ body {
 }
 
 .shooterArena .hitShockwave {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 238, 183, 0.9);
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 238, 183, 0.95);
   border-radius: 50%;
   background:
     radial-gradient(circle, rgba(255, 255, 255, 0.84) 0 15%, rgba(241, 202, 122, 0.34) 16% 38%, transparent 40%);
   box-shadow:
-    0 0 10px rgba(255, 243, 200, 0.7),
-    0 0 20px rgba(217, 170, 85, 0.34);
-  animation: shooterHitShockwave 320ms ease-out both;
+    0 0 14px rgba(255, 243, 200, 0.82),
+    0 0 30px rgba(217, 170, 85, 0.44),
+    0 0 48px rgba(241, 202, 122, 0.18);
+  animation: shooterHitShockwave 420ms ease-out both;
 }
 
 .shooterArena .hitSpark {
-  width: 7px;
-  height: 7px;
+  width: 9px;
+  height: 9px;
   border-radius: 999px;
   background: #fff4c8;
   box-shadow:
-    0 0 5px rgba(255, 248, 220, 0.9),
-    0 0 12px rgba(241, 202, 122, 0.5);
-  animation: shooterHitSpark 360ms ease-out both;
+    0 0 7px rgba(255, 248, 220, 0.95),
+    0 0 18px rgba(241, 202, 122, 0.62);
+  animation: shooterHitSpark 430ms ease-out both;
 }
 
 .shooterArena .hitNoteShard {
   color: rgba(255, 232, 158, 0.94);
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 900;
   line-height: 1;
   text-shadow:
     0 0 5px rgba(255, 246, 213, 0.72),
     0 0 10px rgba(217, 170, 85, 0.36);
-  animation: shooterHitNoteShard 360ms ease-out both;
+  animation: shooterHitNoteShard 460ms ease-out both;
 }
 
 @keyframes shooterLockBeam {
@@ -33502,29 +33582,49 @@ body {
     opacity: 0;
     clip-path: inset(0 100% 0 0);
   }
-  18% {
+  12% {
+    opacity: 1;
+    clip-path: inset(0 78% 0 0);
+  }
+  72% {
     opacity: 1;
     clip-path: inset(0 0 0 0);
   }
   100% {
     opacity: 0;
-    clip-path: inset(0 0 0 28%);
+    clip-path: inset(0 0 0 68%);
   }
 }
 
-@keyframes shooterEnergyBolt {
+@keyframes shooterEnergyProjectile {
   0% {
+    left: var(--projectile-start-x);
+    top: var(--projectile-start-y);
     opacity: 0;
-    left: 0;
-    transform: translate(-50%, -50%) scale(0.62);
+    transform: translate(-50%, -50%) rotate(var(--projectile-angle, 0deg)) scale(0.72);
   }
-  18% {
+  12% {
     opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--projectile-angle, 0deg)) scale(1);
+  }
+  78% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--projectile-angle, 0deg)) scale(1.03);
   }
   100% {
+    left: var(--projectile-end-x);
+    top: var(--projectile-end-y);
     opacity: 0;
-    left: 100%;
-    transform: translate(-50%, -50%) scale(0.92);
+    transform: translate(-50%, -50%) rotate(var(--projectile-angle, 0deg)) scale(1.22);
+  }
+}
+
+@keyframes shooterImpactPending {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.06);
   }
 }
 
@@ -33538,18 +33638,18 @@ body {
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(2.45);
+    transform: translate(-50%, -50%) scale(3.35);
   }
 }
 
 @keyframes shooterHitSpark {
   0% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.15);
+    transform: translate(-50%, -50%) scale(1.35);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.34);
+    transform: translate(-50%, -50%) scale(0.18);
   }
 }
 
@@ -33563,7 +33663,7 @@ body {
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -70%) scale(1.08) rotate(18deg);
+    transform: translate(-50%, -92%) scale(1.22) rotate(24deg);
   }
 }
 
@@ -34997,7 +35097,8 @@ body {
 }
 
 .standaloneMetronomePanel .metronomeBeatMatrix--main {
-  touch-action: pan-y;
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 
 .standaloneMetronomePanel .metronomeBeatMatrix--line,
@@ -35815,6 +35916,332 @@ body {
   isolation: isolate !important;
 }
 
+/* RIFFLAB common dropdown/select skin: match the beat dropdown across app selectors. */
+.app {
+  --riff-select-border: rgba(217, 170, 85, 0.34);
+  --riff-select-border-active: rgba(241, 202, 122, 0.68);
+  --riff-select-bg:
+    radial-gradient(circle at 100% 0%, rgba(217, 170, 85, 0.13), transparent 42%),
+    linear-gradient(180deg, rgba(255, 244, 210, 0.045), rgba(0, 0, 0, 0.08)),
+    linear-gradient(145deg, rgba(16, 14, 11, 0.96), rgba(1, 2, 3, 0.98));
+  --riff-select-bg-active:
+    radial-gradient(circle at 100% 0%, rgba(241, 202, 122, 0.18), transparent 42%),
+    linear-gradient(180deg, rgba(241, 202, 122, 0.08), rgba(0, 0, 0, 0.08)),
+    linear-gradient(145deg, rgba(27, 19, 9, 0.98), rgba(2, 3, 3, 0.99));
+  --riff-select-text: rgba(255, 246, 222, 0.94);
+  --riff-select-muted: rgba(241, 202, 122, 0.72);
+  --riff-select-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.07),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.62),
+    0 7px 14px rgba(0, 0, 0, 0.22);
+}
+
+.app :where(
+  .metronomeSelectControl,
+  .viewerSelectGrid label,
+  .scalePickerPanel label,
+  .referenceScalePicker label,
+  .chordProgressionPicker label,
+  .stage3StorageSelectPanel label,
+  .stage3StorageEditor label
+):has(select) {
+  position: relative !important;
+  min-width: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.app :where(
+  .metronomeSelectControl select,
+  .metronomeSelectButton,
+  .viewerSelectGrid select,
+  .scalePickerPanel select,
+  .referenceScalePicker select,
+  .chordProgressionPicker select,
+  .stage3StorageSelectPanel select,
+  .stage3StorageEditor select
+) {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 34px !important;
+  border: 1px solid var(--riff-select-border) !important;
+  border-radius: 10px !important;
+  background: var(--riff-select-bg) !important;
+  color: var(--riff-select-text) !important;
+  box-shadow: var(--riff-select-shadow) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.72) !important;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    color 150ms ease,
+    filter 150ms ease,
+    transform 150ms ease !important;
+}
+
+.app :where(
+  .metronomeSelectControl select,
+  .viewerSelectGrid select,
+  .scalePickerPanel select,
+  .referenceScalePicker select,
+  .chordProgressionPicker select,
+  .stage3StorageSelectPanel select,
+  .stage3StorageEditor select
+) {
+  padding: 0 24px 0 10px !important;
+}
+
+.app :where(
+  .metronomeSelectButton:hover,
+  .metronomeSelectButton:focus,
+  .metronomeSelectButton:focus-visible,
+  .metronomeSelectControl select:hover,
+  .metronomeSelectControl select:focus,
+  .viewerSelectGrid select:hover,
+  .viewerSelectGrid select:focus,
+  .scalePickerPanel select:hover,
+  .scalePickerPanel select:focus,
+  .referenceScalePicker select:hover,
+  .referenceScalePicker select:focus,
+  .chordProgressionPicker select:hover,
+  .chordProgressionPicker select:focus,
+  .stage3StorageSelectPanel select:hover,
+  .stage3StorageSelectPanel select:focus,
+  .stage3StorageEditor select:hover,
+  .stage3StorageEditor select:focus
+) {
+  border-color: var(--riff-select-border-active) !important;
+  background: var(--riff-select-bg-active) !important;
+  color: #ffe0a3 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.09),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.64),
+    0 0 0 1px rgba(217, 170, 85, 0.08),
+    0 0 13px rgba(217, 170, 85, 0.16),
+    0 8px 15px rgba(0, 0, 0, 0.25) !important;
+  outline: none !important;
+}
+
+.app :where(
+  .viewerSelectGrid label,
+  .scalePickerPanel label,
+  .referenceScalePicker label,
+  .chordProgressionPicker label,
+  .stage3StorageSelectPanel label,
+  .stage3StorageEditor label
+):has(select)::after {
+  content: "⌄" !important;
+  position: absolute !important;
+  right: 8px !important;
+  bottom: 10px !important;
+  z-index: 3 !important;
+  color: var(--riff-select-muted) !important;
+  font-size: 10px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
+  transform: none !important;
+}
+
+.app :where(
+  .viewerSelectGrid span,
+  .scalePickerPanel label span,
+  .referenceScalePicker label span,
+  .chordProgressionPicker span,
+  .stage3StorageSelectPanel span,
+  .stage3StorageEditor label > span,
+  .metronomeSelectControl > span
+) {
+  color: rgba(241, 202, 122, 0.78) !important;
+  font-size: 8.5px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.035em !important;
+  text-transform: none !important;
+}
+
+.app :where(select option, select optgroup) {
+  background: #090806 !important;
+  color: rgba(255, 246, 222, 0.94) !important;
+  font-weight: 900 !important;
+}
+
+.app :where(select option:checked) {
+  background: #d9aa55 !important;
+  color: #151008 !important;
+}
+
+.metronomeSelectMenu,
+.metronomeSelectMenu--twoColumn {
+  border: 1px solid rgba(241, 202, 122, 0.4) !important;
+  border-radius: 12px !important;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(241, 202, 122, 0.12), transparent 34%),
+    linear-gradient(145deg, rgba(16, 13, 9, 0.98), rgba(1, 2, 3, 0.99)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.07),
+    0 18px 34px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(0, 0, 0, 0.46) !important;
+  animation: riffDropdownOpen 150ms cubic-bezier(0.2, 0.85, 0.24, 1) both !important;
+}
+
+.metronomeSelectOption {
+  min-height: 34px !important;
+  border: 1px solid rgba(217, 170, 85, 0.14) !important;
+  border-radius: 9px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 210, 0.025), transparent),
+    rgba(0, 0, 0, 0.2) !important;
+  color: rgba(255, 246, 222, 0.82) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    color 140ms ease,
+    transform 140ms ease !important;
+}
+
+.metronomeSelectOption:hover,
+.metronomeSelectOption:focus,
+.metronomeSelectOption:focus-visible,
+.metronomeSelectOption.selected,
+.metronomeSelectOption[aria-selected="true"] {
+  border-color: rgba(241, 202, 122, 0.54) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 244, 210, 0.17), transparent 42%),
+    linear-gradient(145deg, rgba(217, 170, 85, 0.86), rgba(126, 84, 36, 0.88)) !important;
+  color: #160f07 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 221, 0.36),
+    0 0 12px rgba(217, 170, 85, 0.16) !important;
+  outline: none !important;
+}
+
+.app :where(
+  .chordChipGroup button,
+  .viewerChordPositionGroup button,
+  .viewerAllButton,
+  .viewerNotePanel button,
+  .stage3StrumChoiceButtons button,
+  .stage3StrumActions button
+) {
+  border-color: var(--riff-select-border) !important;
+  border-radius: 999px !important;
+  background: var(--riff-select-bg) !important;
+  color: var(--riff-select-text) !important;
+  box-shadow: var(--riff-select-shadow) !important;
+}
+
+.app :where(
+  .chordChipGroup button.selected,
+  .viewerChordPositionGroup button.selected,
+  .viewerAllButton.selected,
+  .viewerNotePanel button.selected,
+  .stage3StrumChoiceButtons button.hit,
+  .stage3StrumActions button.hit
+) {
+  border-color: var(--riff-select-border-active) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 244, 210, 0.24), transparent 42%),
+    linear-gradient(145deg, #d9aa55, #8d6030) !important;
+  color: #17110a !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 221, 0.36),
+    0 0 13px rgba(217, 170, 85, 0.2) !important;
+}
+
+@keyframes riffDropdownOpen {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Compact mobile-safe dropdown menus: one open panel, clamped by JS vars. */
+.metronomeSelectMenu,
+.metronomeSelectMenu--twoColumn,
+.metronomeControl.trainingMetronomePanel .metronomeSelectControl--grid .metronomeSelectMenu,
+.referenceTrainingPanel .referenceBpmControl .metronomeSelectControl--grid .metronomeSelectMenu,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeSelectControl--grid .metronomeSelectMenu,
+.chordTransitionPanel .chordTransitionTempo .metronomeSelectControl--grid .metronomeSelectMenu,
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeSelectControl--grid .metronomeSelectMenu {
+  position: fixed !important;
+  top: var(--riff-dropdown-top, auto) !important;
+  right: auto !important;
+  bottom: var(--riff-dropdown-bottom, auto) !important;
+  left: var(--riff-dropdown-left, 12px) !important;
+  width: var(--riff-dropdown-width, min(168px, calc(100vw - 24px))) !important;
+  min-width: 0 !important;
+  max-width: calc(100vw - 24px) !important;
+  max-height: var(--riff-dropdown-max-height, min(216px, calc(100dvh - 124px))) !important;
+  padding: 5px !important;
+  gap: 4px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-width: thin !important;
+  transform-origin: center bottom !important;
+}
+
+.metronomeSelectControl--down .metronomeSelectMenu {
+  transform-origin: center top !important;
+}
+
+.metronomeSelectMenu--twoColumn {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.metronomeSelectOption,
+.metronomeSelectMenu .metronomeSelectOption {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  min-width: 0 !important;
+  min-height: 30px !important;
+  padding: 0 10px !important;
+  border-radius: 8px !important;
+  font-size: 10.8px !important;
+  line-height: 1.12 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.metronomeSelectMenu--twoColumn .metronomeSelectOption {
+  min-height: 29px !important;
+  padding-inline: 9px !important;
+  font-size: 10.4px !important;
+}
+
+.metronomeSelectOption.selected,
+.metronomeSelectOption[aria-selected="true"] {
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
+.metronomeSelectButton {
+  min-height: 32px !important;
+}
+
+.metronomeSelectButton b {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  text-align: left !important;
+}
+
 /* Stage 3 memo panel: header stays inside the memo card, content starts below it. */
 .chordTransitionPanel .stage3PracticeUtilityPanel > .trainingPanelHeader {
   margin: 0 0 8px !important;
@@ -35956,6 +36383,7 @@ body {
   grid-template-rows: auto minmax(0, 1fr);
   width: min(368px, calc(100vw - 28px));
   max-height: min(760px, calc(100dvh - 42px));
+  min-height: 0;
   overflow: hidden;
   border: 1px solid rgba(217, 170, 85, 0.34);
   border-radius: 20px;
@@ -36025,16 +36453,19 @@ body {
 .helpAccordion {
   display: grid;
   gap: 8px;
+  align-content: start;
+  min-height: 0;
   padding: 10px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .helpAccordionItem {
   border: 1px solid rgba(217, 170, 85, 0.14);
   border-radius: 15px;
   background: rgba(255, 255, 255, 0.025);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .helpAccordionItem.open {
@@ -36072,11 +36503,16 @@ body {
 }
 
 .helpAccordionContent {
+  max-height: none;
   padding: 0 14px 14px 41px;
   color: rgba(246, 238, 225, 0.82);
   font-size: 12px;
   font-weight: 700;
   line-height: 1.72;
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
 }
 
 .helpAccordionContent p {
@@ -36197,11 +36633,11 @@ body {
   box-shadow: none !important;
 }
 
-.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker .scaleTypeGroup label:first-child {
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker .scaleTypeGroup .metronomeSelectControl:first-child {
   order: 3 !important;
 }
 
-.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker .scaleTypeGroup label:last-child {
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker .scaleTypeGroup .metronomeSelectControl:last-child {
   order: 2 !important;
 }
 
@@ -36213,8 +36649,8 @@ body {
   order: 4 !important;
 }
 
-.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker label,
-.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker .scaleTypeGroup label {
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker .metronomeSelectControl,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker .scaleTypeGroup .metronomeSelectControl {
   min-width: 0 !important;
   padding: 0 !important;
   border: 0 !important;
@@ -36223,7 +36659,7 @@ body {
   box-shadow: none !important;
 }
 
-.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker select {
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker .metronomeSelectButton {
   width: 100% !important;
   min-height: 34px !important;
   border-radius: 10px !important;
@@ -36232,8 +36668,8 @@ body {
   line-height: 34px !important;
 }
 
-.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker .scaleKeySelect select,
-.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker .scaleBoxSelect select {
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker .scaleKeySelect .metronomeSelectButton,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceScalePicker .scaleBoxSelect .metronomeSelectButton {
   padding: 0 16px 0 8px !important;
   font-size: 9.2px !important;
   text-align: center !important;
@@ -36542,6 +36978,31 @@ body {
   top: calc(100% + 8px) !important;
   bottom: auto !important;
   transform-origin: top center !important;
+}
+
+.metronomeControl.trainingMetronomePanel .metronomeSelectControl .metronomeSelectMenu,
+.referenceTrainingPanel .referenceBpmControl .metronomeSelectControl .metronomeSelectMenu,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeSelectControl .metronomeSelectMenu,
+.chordTransitionPanel .chordTransitionTempo .metronomeSelectControl .metronomeSelectMenu,
+.chordTransitionPanel .chordProgressionPicker .metronomeSelectControl .metronomeSelectMenu,
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeSelectControl .metronomeSelectMenu {
+  position: fixed !important;
+  top: var(--riff-dropdown-top, auto) !important;
+  right: auto !important;
+  bottom: var(--riff-dropdown-bottom, auto) !important;
+  left: var(--riff-dropdown-left, 12px) !important;
+  width: var(--riff-dropdown-width, min(168px, calc(100vw - 24px))) !important;
+  max-width: calc(100vw - 24px) !important;
+  max-height: var(--riff-dropdown-max-height, min(216px, calc(100dvh - 124px))) !important;
+  z-index: 4400 !important;
+}
+
+.chordTransitionPanel .chordProgressionPicker .metronomeSelectOption,
+.stage3PlaybackControls .chordTransitionTempo .metronomeSelectOption,
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeSelectOption {
+  min-height: 31px !important;
+  padding-inline: 10px !important;
+  font-size: 11px !important;
 }
 
 .modeSwitch,
