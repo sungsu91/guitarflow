@@ -9286,10 +9286,18 @@ function App() {
   }, [changeMetronomeDisplayModeBySwipe]);
 
   const handleMetronomeModeTouchCancel = useCallback(() => {
+    const swipe = metronomeModeSwipeStartRef.current;
     metronomeModeSwipeStartRef.current = null;
     setMetronomeModeSwipeActive(false);
     setMetronomeModeSwipeOffset(0);
-  }, []);
+    if (!swipe || swipe.canceled) return;
+
+    const deltaX = (swipe.lastX ?? swipe.x) - swipe.x;
+    const deltaY = (swipe.lastY ?? swipe.y) - swipe.y;
+    if (Math.abs(deltaX) < 30 || Math.abs(deltaX) < Math.abs(deltaY) * 1.02) return;
+
+    changeMetronomeDisplayModeBySwipe(deltaX < 0 ? 1 : -1);
+  }, [changeMetronomeDisplayModeBySwipe]);
 
   const cycleStandaloneBeatState = useCallback((beatIndex) => {
     if (performance.now() - metronomeModeSwipeChangedAtRef.current < 260) return;
