@@ -38539,3 +38539,30 @@ body {
     height: 23px !important;
   }
 }
+
+/* Options menu disabled rows: keep "미구현" as a small right badge, not the title column. */
+.utilityMenuList .utilityMenuItem.utilityMenuItemDisabled {
+  grid-template-columns: 34px minmax(0, 1fr) auto !important;
+  grid-template-areas: "icon text badge" !important;
+  align-items: center !important;
+  column-gap: 9px !important;
+}
+
+.utilityMenuList .utilityMenuItem.utilityMenuItemDisabled .utilityMenuIcon {
+  grid-area: icon !important;
+}
+
+.utilityMenuList .utilityMenuItem.utilityMenuItemDisabled .utilityMenuText {
+  grid-area: text !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  justify-self: stretch !important;
+}
+
+.utilityMenuList .utilityMenuItem.utilityMenuItemDisabled .utilityMenuBadge {
+  grid-area: badge !important;
+  justify-self: end !important;
+  align-self: center !important;
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+}
