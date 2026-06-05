@@ -20252,10 +20252,11 @@ textarea,
 
 .stage3ProgressHud {
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto !important;
+  grid-template-columns: auto auto !important;
   align-items: center;
-  justify-items: stretch;
-  gap: 10px;
+  justify-content: center;
+  justify-items: center;
+  gap: 8px;
   min-height: 50px;
   padding: 4px 8px 6px !important;
   border: 0 !important;
@@ -25414,9 +25415,11 @@ body {
 .fretboardComponent .fretboardNoteChip.active,
 .fretboardViewerPanel .viewerMapNote,
 .fretboardViewerPanel .viewerMapNote.root {
+  display: grid !important;
+  place-items: center !important;
   color: #15100a !important;
   -webkit-text-fill-color: #15100a !important;
-  text-shadow: none !important;
+  text-shadow: 0 1px 0 rgba(255, 246, 220, 0.42) !important;
 }
 
 .fretboardComponent .fretboardNoteChip b,
@@ -25425,8 +25428,27 @@ body {
 .fretboardViewerPanel .viewerMapNote small {
   color: inherit !important;
   -webkit-text-fill-color: inherit !important;
-  text-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-align: center !important;
+  text-shadow: 0 1px 0 rgba(255, 246, 220, 0.42) !important;
   filter: none !important;
+}
+
+.viewerSharedFretboard.allNotes .fretboardNoteChip b,
+.stageChordSharedFretboard .fretboardNoteChip b,
+.viewerChordSharedFretboard .fretboardNoteChip b,
+.trainingSharedFretboard .fretboardNoteChip b,
+.stageChordSharedFretboard.fitRange .fretboardNoteChip b,
+.trainingSharedFretboard.fitRange .fretboardNoteChip b {
+  font-size: 12.5px !important;
+}
+
+.chordMiniSharedFretboard .fretboardNoteChip b,
+.fretboardViewerPanel .chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip b {
+  font-size: 10.5px !important;
 }
 
 .fretboardComponent .fretboardNoteChip.active {
@@ -29588,16 +29610,7 @@ body {
 }
 
 .metronomeWheelColumnViewport > i {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 39px;
-  z-index: 3;
-  height: 34px;
-  margin: 0;
-  border: 0;
-  border-radius: 0;
-  background: radial-gradient(ellipse at 50% 50%, rgba(241, 202, 122, 0.08), transparent 62%);
+  display: none;
   pointer-events: none;
 }
 
@@ -29628,10 +29641,42 @@ body {
   will-change: transform, opacity;
 }
 
+.metronomeWheelColumnViewport button,
+.metronomeWheelColumnViewport button:hover,
+.metronomeWheelColumnViewport button:focus,
+.metronomeWheelColumnViewport button:focus-visible,
+.metronomeWheelColumnViewport button:active,
+.metronomeWheelColumnViewport button.selected,
+.metronomeWheelColumnViewport button[aria-selected="true"] {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.metronomeWheelColumnViewport button::before,
+.metronomeWheelColumnViewport button::after,
+.metronomeWheelColumnViewport button:hover::before,
+.metronomeWheelColumnViewport button:hover::after,
+.metronomeWheelColumnViewport button:focus::before,
+.metronomeWheelColumnViewport button:focus::after,
+.metronomeWheelColumnViewport button:active::before,
+.metronomeWheelColumnViewport button:active::after,
+.metronomeWheelColumnViewport button.selected::before,
+.metronomeWheelColumnViewport button.selected::after {
+  display: none !important;
+  content: none !important;
+}
+
 .metronomeWheelColumnViewport.dragging button {
   transition:
     color 60ms ease,
     opacity 60ms ease;
+}
+
+.metronomeWheelColumnViewport.dragging button,
+.metronomeWheelColumnViewport.dragging button.selected {
+  transition-property: color, opacity !important;
 }
 
 .metronomeWheelColumnViewport button[aria-selected="true"],
@@ -29639,10 +29684,7 @@ body {
   color: #f6cf83;
   background: transparent;
   opacity: 1;
-  text-shadow:
-    0 0 10px rgba(241, 202, 122, 0.22),
-    0 1px 0 rgba(0, 0, 0, 0.8);
-  transform: scale(1.14);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.82);
 }
 
 .metronomeWheelColumnViewport button:not(.selected) {
@@ -35097,8 +35139,15 @@ body {
 }
 
 .standaloneMetronomePanel .metronomeBeatMatrix--main {
-  touch-action: none;
+  touch-action: pan-y;
   overscroll-behavior: contain;
+  transform: translate3d(var(--metronome-mode-swipe-x, 0px), 0, 0);
+  transition: transform 180ms ease-out;
+  will-change: transform;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--main.metronomeBeatMatrix--swiping {
+  transition: none;
 }
 
 .standaloneMetronomePanel .metronomeBeatMatrix--line,
@@ -35707,16 +35756,16 @@ body {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 5px !important;
-  min-width: 82px !important;
-  min-height: 29px !important;
-  padding: 0 9px 0 11px !important;
-  border: 1px solid rgba(217, 170, 85, 0.42) !important;
+  gap: 6px !important;
+  min-width: 96px !important;
+  min-height: 34px !important;
+  padding: 0 12px 0 14px !important;
+  border: 1px solid rgba(217, 170, 85, 0.56) !important;
   border-radius: 999px !important;
   background:
     linear-gradient(145deg, rgba(217, 170, 85, 0.055), rgba(255, 255, 255, 0.01)),
     rgba(4, 5, 5, 0.86) !important;
-  color: rgba(255, 232, 178, 0.86) !important;
+  color: rgba(255, 238, 196, 0.96) !important;
   box-shadow:
     inset 0 0 0 1px rgba(255, 244, 210, 0.025),
     0 4px 10px rgba(0, 0, 0, 0.18) !important;
@@ -35726,7 +35775,7 @@ body {
 .referenceTrainingPanel .trainingSettingsToggle span,
 .chordTransitionPanel .trainingSettingsToggle span {
   color: inherit !important;
-  font-size: 9px !important;
+  font-size: 11px !important;
   font-weight: 900 !important;
   line-height: 1 !important;
 }
@@ -35736,10 +35785,10 @@ body {
 .chordTransitionPanel .trainingSettingsToggle b {
   display: inline-grid !important;
   place-items: center !important;
-  width: 13px !important;
-  height: 13px !important;
-  color: rgba(241, 202, 122, 0.9) !important;
-  font-size: 11px !important;
+  width: 15px !important;
+  height: 15px !important;
+  color: rgba(255, 215, 132, 0.98) !important;
+  font-size: 13px !important;
   font-weight: 950 !important;
   line-height: 1 !important;
   transform: translateY(-0.5px);
@@ -35762,17 +35811,17 @@ body {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 6px !important;
-  min-width: 72px !important;
-  min-height: 36px !important;
-  padding: 0 10px !important;
-  border: 1px solid rgba(217, 170, 85, 0.26) !important;
+  gap: 7px !important;
+  min-width: 86px !important;
+  min-height: 38px !important;
+  padding: 0 12px !important;
+  border: 1px solid rgba(217, 170, 85, 0.48) !important;
   border-radius: 12px !important;
   background:
     linear-gradient(180deg, rgba(255, 244, 210, 0.045), rgba(0, 0, 0, 0.02)),
     linear-gradient(145deg, rgba(8, 8, 7, 0.96), rgba(1, 2, 3, 0.96)) !important;
-  color: rgba(255, 232, 178, 0.82) !important;
-  font-size: 9px !important;
+  color: rgba(255, 238, 196, 0.96) !important;
+  font-size: 11px !important;
   font-weight: 950 !important;
   letter-spacing: 0.02em !important;
   text-transform: uppercase !important;
@@ -35785,9 +35834,9 @@ body {
 .chordTransitionPanel .stage3StorageOpenButton svg,
 .stage3StorageOpenButton svg {
   flex: 0 0 auto !important;
-  width: 13px !important;
-  height: 13px !important;
-  color: rgba(241, 202, 122, 0.78) !important;
+  width: 15px !important;
+  height: 15px !important;
+  color: rgba(255, 215, 132, 0.92) !important;
   stroke-width: 2.1 !important;
 }
 
@@ -35916,6 +35965,646 @@ body {
   isolation: isolate !important;
 }
 
+/* RIFFLAB glow balance: keep the gold identity, reduce long-range bloom. */
+.app {
+  --riff-reflect-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.055),
+    0 8px 16px rgba(0, 0, 0, 0.24);
+  --riff-selected-glow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.16),
+    0 0 0 1px rgba(217, 170, 85, 0.12),
+    0 0 10px rgba(217, 170, 85, 0.11);
+}
+
+.app :where(
+  .trainingCard,
+  .stageMenuCard,
+  .hubMenuButton,
+  .trainingSettingsPanel,
+  .referenceTrainingPanel,
+  .scaleBlockTrainingPanel,
+  .chordTransitionPanel,
+  .referenceFretboard,
+  .fretboardViewerPanel .viewerMapCard,
+  .fretboardViewerPanel .viewerSelectGrid,
+  .chordBuilderPanel,
+  .stage3StorageSelectPanel,
+  .stage3StorageEditor,
+  .stage3StorageList,
+  .standaloneMetronomePanel .standaloneMetronomeControl,
+  .metronomeControl,
+  .helpGuidePanel
+) {
+  box-shadow: var(--riff-reflect-shadow) !important;
+}
+
+.app :where(
+  button,
+  .metronomeSelectButton,
+  .viewerAllButton,
+  .viewerNotePanel button,
+  .chordChipGroup button,
+  .viewerChordPositionGroup button,
+  .stage3StorageOpenButton,
+  .stage3StrumChoiceButtons button,
+  .stage3StrumActions button
+) {
+  text-shadow: none !important;
+}
+
+.app :where(
+  button.selected,
+  button[aria-pressed="true"],
+  .viewerModeTabs .selected,
+  .viewerNotePanel button.selected,
+  .viewerAllButton.selected,
+  .chordChipGroup button.selected,
+  .viewerChordPositionGroup button.selected,
+  .metronomeToggleRow button.selected,
+  .metronomeToggleRow button[aria-pressed="true"],
+  .modeSwitch button.selected,
+  .stage3StrumChoiceButtons button.hit,
+  .stage3StrumActions button.hit
+) {
+  box-shadow: var(--riff-selected-glow) !important;
+  text-shadow: none !important;
+}
+
+.metronomeSelectMenu,
+.metronomeSelectMenu--twoColumn {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.045),
+    0 12px 22px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(0, 0, 0, 0.42) !important;
+}
+
+.metronomeSelectOption.selected,
+.metronomeSelectOption[aria-selected="true"] {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 221, 0.24),
+    0 0 7px rgba(217, 170, 85, 0.1) !important;
+}
+
+.fretboardComponent .fretboardNoteChip,
+.fretboardComponent .fretboardNoteChip.selected,
+.fretboardComponent .fretboardNoteChip.root {
+  box-shadow:
+    0 0 0 1px rgba(15, 16, 17, 0.28),
+    0 5px 10px rgba(0, 0, 0, 0.24) !important;
+}
+
+.fretboardComponent .fretboardNoteChip.active,
+.referenceFretboard :where(.fretboardNoteChip.current-note, .scaleNote.current-note, .miniNote.current-note) {
+  box-shadow:
+    0 0 0 2px rgba(15, 16, 17, 0.42),
+    0 0 8px rgba(255, 59, 48, 0.48),
+    0 6px 12px rgba(0, 0, 0, 0.28) !important;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot,
+.standaloneMetronomePanel .metronomeBeatMatrix--main button,
+.mobileBeatDots span {
+  --beat-dot-shadow: 0 0 0 1px rgba(0, 0, 0, 0.44) !important;
+  box-shadow: var(--beat-dot-shadow) !important;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.active,
+.standaloneMetronomePanel .metronomeBeatMatrix--main button.active,
+.mobileBeatDots span.active {
+  box-shadow:
+    0 0 0 4px rgba(255, 219, 135, 0.1),
+    0 0 16px rgba(255, 219, 135, 0.32),
+    0 0 34px rgba(217, 170, 85, 0.14) !important;
+}
+
+.shooterArena .guitarPlayer,
+.shooterArena .guitarPlayerAsset {
+  filter:
+    drop-shadow(0 10px 16px rgba(0, 0, 0, 0.46))
+    drop-shadow(0 0 8px rgba(217, 170, 85, 0.12)) !important;
+}
+
+.shooterArena .energyProjectile {
+  box-shadow:
+    0 0 7px rgba(255, 247, 214, 0.72),
+    0 0 14px rgba(241, 202, 122, 0.34),
+    0 0 22px rgba(217, 170, 85, 0.12) !important;
+}
+
+.shooterArena .hitShockwave,
+.shooterArena .hitSpark {
+  box-shadow:
+    0 0 8px rgba(255, 243, 200, 0.5),
+    0 0 18px rgba(217, 170, 85, 0.24) !important;
+}
+
+/* Final marker contrast: gold marker with ink-black text for instant readability. */
+.fretboardComponent .fretboardNoteChip,
+.fretboardComponent .fretboardNoteChip.active,
+.fretboardComponent .fretboardNoteChip.selected,
+.fretboardComponent .fretboardNoteChip.root,
+.stageChordSharedFretboard .fretboardNoteChip,
+.viewerChordSharedFretboard .fretboardNoteChip,
+.trainingSharedFretboard .fretboardNoteChip,
+.viewerSharedFretboard .fretboardNoteChip,
+.chordMiniSharedFretboard .fretboardNoteChip,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip {
+  color: #050403 !important;
+  -webkit-text-fill-color: #050403 !important;
+}
+
+.fretboardComponent .fretboardNoteChip b,
+.fretboardComponent .fretboardNoteChip small,
+.stageChordSharedFretboard .fretboardNoteChip b,
+.viewerChordSharedFretboard .fretboardNoteChip b,
+.trainingSharedFretboard .fretboardNoteChip b,
+.viewerSharedFretboard .fretboardNoteChip b,
+.chordMiniSharedFretboard .fretboardNoteChip b,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip b {
+  color: #050403 !important;
+  -webkit-text-fill-color: #050403 !important;
+  font-weight: 1000 !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* Fretboard marker text readability: keep marker size, make the note name lead. */
+.fretboardComponent .fretboardNoteChip,
+.fretboardComponent .fretboardNoteChip.active,
+.fretboardComponent .fretboardNoteChip.selected,
+.fretboardComponent .fretboardNoteChip.root,
+.stageChordSharedFretboard .fretboardNoteChip,
+.viewerChordSharedFretboard .fretboardNoteChip,
+.trainingSharedFretboard .fretboardNoteChip,
+.viewerSharedFretboard .fretboardNoteChip,
+.chordMiniSharedFretboard .fretboardNoteChip,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip {
+  color: #17110a !important;
+  -webkit-text-fill-color: #17110a !important;
+}
+
+.fretboardComponent .fretboardNoteChip b,
+.fretboardComponent .fretboardNoteChip small,
+.stageChordSharedFretboard .fretboardNoteChip b,
+.viewerChordSharedFretboard .fretboardNoteChip b,
+.trainingSharedFretboard .fretboardNoteChip b,
+.viewerSharedFretboard .fretboardNoteChip b,
+.chordMiniSharedFretboard .fretboardNoteChip b,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip b {
+  color: #17110a !important;
+  -webkit-text-fill-color: #17110a !important;
+  font-size: clamp(14.5px, 4.2vw, 16.5px) !important;
+  font-weight: 1000 !important;
+  line-height: 0.92 !important;
+  letter-spacing: 0 !important;
+  text-shadow:
+    0 1px 0 rgba(255, 246, 220, 0.34),
+    0 0 1px rgba(255, 255, 255, 0.18) !important;
+}
+
+.chordMiniSharedFretboard .fretboardNoteChip b,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip b {
+  font-size: clamp(12.8px, 3.6vw, 14.2px) !important;
+}
+
+/* Chord/fretboard note marker readability: text should lead inside the marker. */
+.fretboardComponent .fretboardNoteChip b,
+.fretboardComponent .fretboardNoteChip small,
+.stageChordSharedFretboard .fretboardNoteChip b,
+.viewerChordSharedFretboard .fretboardNoteChip b,
+.trainingSharedFretboard .fretboardNoteChip b,
+.viewerSharedFretboard .fretboardNoteChip b,
+.chordMiniSharedFretboard .fretboardNoteChip b,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip b {
+  color: #fff7df !important;
+  -webkit-text-fill-color: #fff7df !important;
+  font-size: clamp(13px, 3.8vw, 15px) !important;
+  font-weight: 1000 !important;
+  line-height: 0.95 !important;
+  letter-spacing: 0 !important;
+  text-shadow:
+    -1px -1px 0 rgba(0, 0, 0, 0.86),
+    1px -1px 0 rgba(0, 0, 0, 0.86),
+    -1px 1px 0 rgba(0, 0, 0, 0.86),
+    1px 1px 0 rgba(0, 0, 0, 0.86),
+    0 2px 3px rgba(0, 0, 0, 0.72) !important;
+}
+
+.chordMiniSharedFretboard .fretboardNoteChip b,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip b {
+  font-size: clamp(11.5px, 3.2vw, 13px) !important;
+}
+
+.fretboardComponent .fretboardNoteChip,
+.stageChordSharedFretboard .fretboardNoteChip,
+.viewerChordSharedFretboard .fretboardNoteChip,
+.trainingSharedFretboard .fretboardNoteChip,
+.viewerSharedFretboard .fretboardNoteChip {
+  color: #fff7df !important;
+  -webkit-text-fill-color: #fff7df !important;
+}
+
+/* Training boards: make the fretboard the hero while keeping controls clear. */
+.referenceTrainingBoard,
+.chordTransitionChart {
+  padding: 8px !important;
+}
+
+.trainingSharedFretboard.fitRange,
+.stageChordSharedFretboard.fitRange {
+  --fretboard-label-left: 60px;
+  --fretboard-label-right: 6px;
+  --fretboard-board-top: 24px;
+  --fretboard-board-bottom: 14px;
+  --fretboard-board-height: 164px;
+}
+
+.trainingSharedFretboard.fitRange .fretboardComponentScroller,
+.stageChordSharedFretboard.fitRange .fretboardComponentScroller {
+  min-height: 204px !important;
+}
+
+.trainingSharedFretboard.fitRange .fretboardNoteChip,
+.stageChordSharedFretboard.fitRange .fretboardNoteChip {
+  width: clamp(23px, 6.3vw, 27px) !important;
+  height: clamp(23px, 6.3vw, 27px) !important;
+  min-width: clamp(23px, 6.3vw, 27px) !important;
+  min-height: clamp(23px, 6.3vw, 27px) !important;
+}
+
+.trainingSharedFretboard.fitRange .fretboardNoteChip.root,
+.stageChordSharedFretboard.fitRange .fretboardNoteChip.root {
+  width: clamp(27px, 7.2vw, 31px) !important;
+  height: clamp(27px, 7.2vw, 31px) !important;
+  min-width: clamp(27px, 7.2vw, 31px) !important;
+  min-height: clamp(27px, 7.2vw, 31px) !important;
+}
+
+/* Chord charts: increase marker/text ratio without changing positions. */
+.stageChordSharedFretboard .fretboardNoteChip,
+.viewerChordSharedFretboard .fretboardNoteChip,
+.chordMiniSharedFretboard .fretboardNoteChip,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip {
+  width: clamp(24px, 6.4vw, 28px) !important;
+  height: clamp(24px, 6.4vw, 28px) !important;
+  min-width: clamp(24px, 6.4vw, 28px) !important;
+  min-height: clamp(24px, 6.4vw, 28px) !important;
+}
+
+.stageChordSharedFretboard .fretboardNoteChip.root,
+.viewerChordSharedFretboard .fretboardNoteChip.root,
+.chordMiniSharedFretboard .fretboardNoteChip.root,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip.root {
+  width: clamp(27px, 7.1vw, 31px) !important;
+  height: clamp(27px, 7.1vw, 31px) !important;
+  min-width: clamp(27px, 7.1vw, 31px) !important;
+  min-height: clamp(27px, 7.1vw, 31px) !important;
+}
+
+.stageChordSharedFretboard .fretboardNoteChip b,
+.viewerChordSharedFretboard .fretboardNoteChip b,
+.trainingSharedFretboard .fretboardNoteChip b,
+.viewerSharedFretboard .fretboardNoteChip b {
+  font-size: clamp(13.5px, 3.9vw, 15.5px) !important;
+}
+
+.chordMiniSharedFretboard .fretboardNoteChip b,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip b {
+  font-size: clamp(12px, 3.3vw, 13.5px) !important;
+}
+
+/* Training metronome: keep every beat visible and align dots with timeline rhythm. */
+.referenceTransitionHud.scaleReferenceTimelineOnly .beatIndicator.beatIndicator--compact {
+  display: grid !important;
+  grid-template-columns: repeat(var(--beat-count, 4), minmax(24px, 32px)) !important;
+  width: max-content !important;
+  max-width: 100% !important;
+  justify-self: center !important;
+  justify-content: center !important;
+  justify-items: center !important;
+  align-items: center !important;
+  column-gap: clamp(3px, 1.5vw, 8px) !important;
+  row-gap: 4px !important;
+  overflow: visible !important;
+}
+
+.referenceTransitionHud.scaleReferenceTimelineOnly .beatIndicator--beats-9 {
+  grid-template-columns: repeat(5, minmax(24px, 32px)) !important;
+  width: min(100%, 184px) !important;
+}
+
+.referenceTransitionHud.scaleReferenceTimelineOnly .beatIndicator--beats-9 .beatDot:nth-child(6) {
+  grid-column: 2;
+  transform: translateX(-50%);
+}
+
+.referenceTransitionHud.scaleReferenceTimelineOnly .beatIndicator--beats-9 .beatDot:nth-child(n + 7) {
+  transform: translateX(-50%);
+}
+
+.referenceTransitionHud.scaleReferenceTimelineOnly .beatIndicator--beats-12 {
+  grid-template-columns: repeat(6, minmax(24px, 32px)) !important;
+  width: min(100%, 222px) !important;
+}
+
+.referenceTransitionHud.scaleReferenceTimelineOnly .beatIndicator.beatIndicator--compact .beatDot {
+  --beat-dot-touch: clamp(27px, 7.5vw, 33px);
+  --beat-dot-size: clamp(16px, 4.6vw, 20px);
+}
+
+.stage3ProgressHud .metronomeTimeline {
+  width: min(100%, 318px) !important;
+  overflow: visible !important;
+}
+
+.stage3ProgressHud .metronomeTimeline .chordTimelineTrack {
+  width: 100% !important;
+  height: 22px !important;
+  background:
+    linear-gradient(90deg, rgba(217, 170, 85, 0.1), rgba(75, 85, 96, 0.24)) center / 100% 1px no-repeat !important;
+}
+
+.stage3ProgressHud .metronomeTimeline.metronomeTimeline--compound .chordTimelineTrack {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent calc(33.333% - 1px),
+      rgba(217, 170, 85, 0.18) calc(33.333% - 1px),
+      rgba(217, 170, 85, 0.18) 33.333%
+    ),
+    linear-gradient(90deg, rgba(217, 170, 85, 0.1), rgba(75, 85, 96, 0.24)) center / 100% 1px no-repeat !important;
+}
+
+.stage3ProgressHud .metronomeTimeline .chordTimelineTrack b {
+  width: 2px !important;
+  height: 18px !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+.stage3ProgressHud .metronomeTimeline .chordTimelineRunner {
+  min-width: 19px !important;
+  height: 19px !important;
+  padding: 0 5px !important;
+  font-size: 9px !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+.stage3ProgressHud .metronomeTimeline .mobileBeatDots.mobileBeatDots--compact {
+  display: grid !important;
+  grid-template-columns: repeat(var(--beat-count, 4), minmax(22px, 1fr)) !important;
+  justify-content: stretch !important;
+  justify-items: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  column-gap: 0 !important;
+  row-gap: 3px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.stage3ProgressHud .metronomeTimeline .mobileBeatDots--beats-9 {
+  grid-template-columns: repeat(5, minmax(24px, 1fr)) !important;
+}
+
+.stage3ProgressHud .metronomeTimeline .mobileBeatDots--beats-9 .beatDot:nth-child(6) {
+  grid-column: 2;
+}
+
+.stage3ProgressHud .metronomeTimeline .mobileBeatDots--beats-12 {
+  grid-template-columns: repeat(6, minmax(22px, 1fr)) !important;
+}
+
+.stage3ProgressHud .metronomeTimeline .mobileBeatDots.mobileBeatDots--compact .beatDot {
+  --beat-dot-touch: clamp(25px, 7vw, 31px);
+  --beat-dot-size: clamp(14px, 4.2vw, 18px);
+}
+
+.stage3ProgressHud .beatIndicator.beatIndicator--compact {
+  display: grid !important;
+  grid-column: 1 !important;
+  justify-self: center !important;
+  justify-content: center !important;
+  justify-items: center !important;
+  align-items: center !important;
+  width: max-content !important;
+  max-width: 100% !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  grid-template-columns: repeat(var(--beat-count, 4), minmax(24px, 32px)) !important;
+  column-gap: clamp(3px, 1.5vw, 8px) !important;
+  row-gap: 4px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.stage3ProgressHud > .trainingHudStartButton {
+  grid-column: 2 !important;
+  justify-self: start !important;
+}
+
+.stage3ProgressHud .beatIndicator--beats-9 {
+  grid-template-columns: repeat(5, minmax(24px, 32px)) !important;
+  width: min(100%, 184px) !important;
+}
+
+.stage3ProgressHud .beatIndicator--beats-9 .beatDot:nth-child(6) {
+  grid-column: 2;
+  transform: translateX(-50%);
+}
+
+.stage3ProgressHud .beatIndicator--beats-9 .beatDot:nth-child(n + 7) {
+  transform: translateX(-50%);
+}
+
+.stage3ProgressHud .beatIndicator--beats-12 {
+  grid-template-columns: repeat(6, minmax(22px, 32px)) !important;
+  width: min(100%, 222px) !important;
+}
+
+.stage3ProgressHud .beatIndicator.beatIndicator--compact .beatDot {
+  --beat-dot-touch: clamp(27px, 7.5vw, 33px);
+  --beat-dot-size: clamp(16px, 4.6vw, 20px);
+}
+
+.referenceTransitionHud.scaleReferenceTimelineOnly .beatIndicator.beatIndicator--compact,
+.stage3ProgressHud .beatIndicator.beatIndicator--compact {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: max-content !important;
+  max-width: 100% !important;
+  gap: 4px !important;
+}
+
+.beatIndicatorRow {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: clamp(3px, 1.5vw, 8px) !important;
+  width: max-content !important;
+  max-width: 100% !important;
+}
+
+.referenceTransitionHud.scaleReferenceTimelineOnly .beatIndicator--beats-9 .beatDot:nth-child(6),
+.referenceTransitionHud.scaleReferenceTimelineOnly .beatIndicator--beats-9 .beatDot:nth-child(n + 7),
+.stage3ProgressHud .beatIndicator--beats-9 .beatDot:nth-child(6),
+.stage3ProgressHud .beatIndicator--beats-9 .beatDot:nth-child(n + 7) {
+  grid-column: auto !important;
+  transform: none !important;
+}
+
+/* Training panel header action: make setup toggle feel embedded, not floating. */
+.trainingPanelHeader .trainingSettingsToggle,
+.chordTransitionPanel .stage3PracticeUtilityPanel > .trainingPanelHeader .trainingSettingsToggle {
+  min-width: auto !important;
+  min-height: 28px !important;
+  padding: 0 6px 0 8px !important;
+  border-color: rgba(217, 170, 85, 0.18) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 210, 0.018), rgba(0, 0, 0, 0.02)),
+    rgba(6, 7, 7, 0.24) !important;
+  color: rgba(255, 232, 178, 0.9) !important;
+  box-shadow: none !important;
+}
+
+.trainingPanelHeader .trainingSettingsToggle span,
+.chordTransitionPanel .stage3PracticeUtilityPanel > .trainingPanelHeader .trainingSettingsToggle span {
+  font-size: 11px !important;
+  font-weight: 900 !important;
+}
+
+.trainingPanelHeader .trainingSettingsToggle b,
+.chordTransitionPanel .stage3PracticeUtilityPanel > .trainingPanelHeader .trainingSettingsToggle b {
+  width: 13px !important;
+  height: 13px !important;
+  color: rgba(241, 202, 122, 0.82) !important;
+  font-size: 12px !important;
+}
+
+.trainingPanelHeader .trainingSettingsToggle:hover,
+.trainingPanelHeader .trainingSettingsToggle:focus-visible,
+.chordTransitionPanel .stage3PracticeUtilityPanel > .trainingPanelHeader .trainingSettingsToggle:hover,
+.chordTransitionPanel .stage3PracticeUtilityPanel > .trainingPanelHeader .trainingSettingsToggle:focus-visible {
+  border-color: rgba(241, 202, 122, 0.32) !important;
+  background: rgba(217, 170, 85, 0.07) !important;
+  box-shadow: none !important;
+}
+
+/* Training setup toggle: connected corner tab instead of a floating pill. */
+.referenceTrainingPanel .trainingPanelHeader,
+.chordTransitionPanel .stage3PracticeUtilityPanel > .trainingPanelHeader {
+  position: relative !important;
+  align-items: stretch !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+}
+
+.referenceTrainingPanel .trainingPanelHeader .trainingDetailTitle,
+.chordTransitionPanel .stage3PracticeUtilityPanel > .trainingPanelHeader .trainingDetailTitle {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 34px !important;
+  padding: 0 0 0 2px !important;
+}
+
+.referenceTrainingPanel .trainingPanelHeader .trainingSettingsToggle,
+.chordTransitionPanel .stage3PracticeUtilityPanel > .trainingPanelHeader .trainingSettingsToggle {
+  align-self: stretch !important;
+  min-width: 82px !important;
+  min-height: 34px !important;
+  margin: -1px -1px -1px 8px !important;
+  padding: 0 9px 0 10px !important;
+  border-color: rgba(217, 170, 85, 0.34) !important;
+  border-radius: 0 12px 0 12px !important;
+  border-right-color: rgba(217, 170, 85, 0.48) !important;
+  border-top-color: rgba(217, 170, 85, 0.48) !important;
+  background:
+    linear-gradient(180deg, rgba(217, 170, 85, 0.08), rgba(217, 170, 85, 0.025)),
+    rgba(8, 7, 5, 0.58) !important;
+  box-shadow:
+    inset 1px 0 0 rgba(255, 244, 210, 0.035) !important;
+}
+
+.referenceTrainingPanel .trainingPanelHeader .trainingSettingsToggle::after,
+.chordTransitionPanel .stage3PracticeUtilityPanel > .trainingPanelHeader .trainingSettingsToggle::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 18px;
+  height: 1px;
+  background: rgba(217, 170, 85, 0.34);
+  content: "" !important;
+}
+
+.referenceTrainingPanel .trainingPanelHeader .trainingSettingsToggle:hover,
+.referenceTrainingPanel .trainingPanelHeader .trainingSettingsToggle:focus-visible,
+.chordTransitionPanel .stage3PracticeUtilityPanel > .trainingPanelHeader .trainingSettingsToggle:hover,
+.chordTransitionPanel .stage3PracticeUtilityPanel > .trainingPanelHeader .trainingSettingsToggle:focus-visible {
+  border-color: rgba(241, 202, 122, 0.44) !important;
+  background:
+    linear-gradient(180deg, rgba(217, 170, 85, 0.12), rgba(217, 170, 85, 0.035)),
+    rgba(10, 8, 5, 0.68) !important;
+}
+
+/* Fretboard viewer selection density: text leads, button chrome recedes. */
+.fretboardViewerPanel .viewerNotePanel button,
+.fretboardViewerPanel .viewerChordPositionGroup button,
+.fretboardViewerPanel .chordChipGroup button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 30px !important;
+  padding: 0 7px !important;
+  border-radius: 9px !important;
+  font-size: 13.2px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-align: center !important;
+  text-shadow: none !important;
+}
+
+.fretboardViewerPanel .viewerNotePanel button {
+  min-height: 31px !important;
+  padding-inline: 6px !important;
+  font-size: 13.8px !important;
+}
+
+.fretboardViewerPanel .viewerNotePanel button.selected,
+.fretboardViewerPanel .viewerChordPositionGroup button.selected,
+.fretboardViewerPanel .chordChipGroup button.selected {
+  color: #fff1c8 !important;
+  font-weight: 1000 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.14),
+    0 0 0 1px rgba(217, 170, 85, 0.18) !important;
+}
+
+.fretboardViewerPanel .viewerNotePanel > div {
+  gap: 5px !important;
+}
+
+.fretboardViewerPanel .viewerChordPositionGroup div,
+.fretboardViewerPanel .chordChipGroup div {
+  gap: 4px !important;
+}
+
+@media (max-width: 380px) {
+  .fretboardViewerPanel .viewerNotePanel button,
+  .fretboardViewerPanel .viewerChordPositionGroup button,
+  .fretboardViewerPanel .chordChipGroup button {
+    font-size: 12.6px !important;
+  }
+
+  .fretboardViewerPanel .viewerNotePanel button {
+    font-size: 13px !important;
+  }
+}
+
 /* RIFFLAB common dropdown/select skin: match the beat dropdown across app selectors. */
 .app {
   --riff-select-border: rgba(217, 170, 85, 0.34);
@@ -35972,7 +36661,7 @@ body {
   background: var(--riff-select-bg) !important;
   color: var(--riff-select-text) !important;
   box-shadow: var(--riff-select-shadow) !important;
-  font-size: 10px !important;
+  font-size: 12px !important;
   font-weight: 950 !important;
   letter-spacing: 0 !important;
   line-height: 1 !important;
@@ -36207,11 +36896,11 @@ body {
   align-items: center !important;
   justify-content: flex-start !important;
   min-width: 0 !important;
-  min-height: 30px !important;
-  padding: 0 10px !important;
+  min-height: 34px !important;
+  padding: 0 12px !important;
   border-radius: 8px !important;
-  font-size: 10.8px !important;
-  line-height: 1.12 !important;
+  font-size: 12.2px !important;
+  line-height: 1.16 !important;
   text-align: left !important;
   white-space: nowrap !important;
   overflow: hidden !important;
@@ -36219,23 +36908,27 @@ body {
 }
 
 .metronomeSelectMenu--twoColumn .metronomeSelectOption {
-  min-height: 29px !important;
-  padding-inline: 9px !important;
-  font-size: 10.4px !important;
+  min-height: 33px !important;
+  padding-inline: 10px !important;
+  font-size: 11.8px !important;
 }
 
 .metronomeSelectOption.selected,
 .metronomeSelectOption[aria-selected="true"] {
   justify-content: flex-start !important;
+  color: #170f07 !important;
+  font-weight: 1000 !important;
   text-align: left !important;
 }
 
 .metronomeSelectButton {
-  min-height: 32px !important;
+  min-height: 36px !important;
 }
 
 .metronomeSelectButton b {
   min-width: 0 !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
@@ -37000,13 +37693,849 @@ body {
 .chordTransitionPanel .chordProgressionPicker .metronomeSelectOption,
 .stage3PlaybackControls .chordTransitionTempo .metronomeSelectOption,
 .standaloneMetronomePanel .standaloneMetronomeControl .metronomeSelectOption {
-  min-height: 31px !important;
-  padding-inline: 10px !important;
-  font-size: 11px !important;
+  min-height: 35px !important;
+  padding-inline: 12px !important;
+  font-size: 12.4px !important;
 }
 
 .modeSwitch,
 .mainHub .mainBottomNav {
   z-index: 5000 !important;
   isolation: isolate !important;
+}
+
+/* RIFFLAB glow balance: final override. Gold stays, long-range bloom is reduced. */
+.app {
+  --riff-reflect-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.055),
+    0 8px 16px rgba(0, 0, 0, 0.24);
+  --riff-selected-glow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.16),
+    0 0 0 1px rgba(217, 170, 85, 0.12),
+    0 0 10px rgba(217, 170, 85, 0.11);
+}
+
+.app :where(
+  .trainingCard,
+  .stageMenuCard,
+  .hubMenuButton,
+  .trainingSettingsPanel,
+  .referenceTrainingPanel,
+  .scaleBlockTrainingPanel,
+  .chordTransitionPanel,
+  .referenceFretboard,
+  .fretboardViewerPanel .viewerMapCard,
+  .fretboardViewerPanel .viewerSelectGrid,
+  .chordBuilderPanel,
+  .stage3StorageSelectPanel,
+  .stage3StorageEditor,
+  .stage3StorageList,
+  .standaloneMetronomePanel .standaloneMetronomeControl,
+  .metronomeControl,
+  .helpGuidePanel
+) {
+  box-shadow: var(--riff-reflect-shadow) !important;
+}
+
+.app :where(
+  button,
+  .metronomeSelectButton,
+  .viewerAllButton,
+  .viewerNotePanel button,
+  .chordChipGroup button,
+  .viewerChordPositionGroup button,
+  .stage3StorageOpenButton,
+  .stage3StrumChoiceButtons button,
+  .stage3StrumActions button
+) {
+  text-shadow: none !important;
+}
+
+.app :where(
+  button.selected,
+  button[aria-pressed="true"],
+  .viewerModeTabs .selected,
+  .viewerNotePanel button.selected,
+  .viewerAllButton.selected,
+  .chordChipGroup button.selected,
+  .viewerChordPositionGroup button.selected,
+  .metronomeToggleRow button.selected,
+  .metronomeToggleRow button[aria-pressed="true"],
+  .modeSwitch button.selected,
+  .stage3StrumChoiceButtons button.hit,
+  .stage3StrumActions button.hit
+) {
+  box-shadow: var(--riff-selected-glow) !important;
+  text-shadow: none !important;
+}
+
+.metronomeSelectMenu,
+.metronomeSelectMenu--twoColumn {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.045),
+    0 12px 22px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(0, 0, 0, 0.42) !important;
+}
+
+.metronomeSelectOption.selected,
+.metronomeSelectOption[aria-selected="true"] {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 221, 0.24),
+    0 0 7px rgba(217, 170, 85, 0.1) !important;
+}
+
+.fretboardComponent .fretboardNoteChip,
+.fretboardComponent .fretboardNoteChip.selected,
+.fretboardComponent .fretboardNoteChip.root {
+  box-shadow:
+    0 0 0 1px rgba(15, 16, 17, 0.28),
+    0 5px 10px rgba(0, 0, 0, 0.24) !important;
+}
+
+.fretboardComponent .fretboardNoteChip.active,
+.referenceFretboard :where(.fretboardNoteChip.current-note, .scaleNote.current-note, .miniNote.current-note) {
+  box-shadow:
+    0 0 0 2px rgba(15, 16, 17, 0.42),
+    0 0 8px rgba(255, 59, 48, 0.48),
+    0 6px 12px rgba(0, 0, 0, 0.28) !important;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot,
+.standaloneMetronomePanel .metronomeBeatMatrix--main button,
+.mobileBeatDots span {
+  --beat-dot-shadow: 0 0 0 1px rgba(0, 0, 0, 0.44) !important;
+  box-shadow: var(--beat-dot-shadow) !important;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.active,
+.standaloneMetronomePanel .metronomeBeatMatrix--main button.active,
+.mobileBeatDots span.active {
+  box-shadow:
+    0 0 0 4px rgba(255, 219, 135, 0.1),
+    0 0 16px rgba(255, 219, 135, 0.32),
+    0 0 34px rgba(217, 170, 85, 0.14) !important;
+}
+
+.shooterArena .guitarPlayer,
+.shooterArena .guitarPlayerAsset {
+  filter:
+    drop-shadow(0 10px 16px rgba(0, 0, 0, 0.46))
+    drop-shadow(0 0 8px rgba(217, 170, 85, 0.12)) !important;
+}
+
+.shooterArena .energyProjectile {
+  box-shadow:
+    0 0 7px rgba(255, 247, 214, 0.72),
+    0 0 14px rgba(241, 202, 122, 0.34),
+    0 0 22px rgba(217, 170, 85, 0.12) !important;
+}
+
+.shooterArena .hitShockwave,
+.shooterArena .hitSpark {
+  box-shadow:
+    0 0 8px rgba(255, 243, 200, 0.5),
+    0 0 18px rgba(217, 170, 85, 0.24) !important;
+}
+
+/* Final marker contrast: gold marker with ink-black text for instant readability. */
+.fretboardComponent .fretboardNoteChip,
+.fretboardComponent .fretboardNoteChip.active,
+.fretboardComponent .fretboardNoteChip.selected,
+.fretboardComponent .fretboardNoteChip.root,
+.stageChordSharedFretboard .fretboardNoteChip,
+.viewerChordSharedFretboard .fretboardNoteChip,
+.trainingSharedFretboard .fretboardNoteChip,
+.viewerSharedFretboard .fretboardNoteChip,
+.chordMiniSharedFretboard .fretboardNoteChip,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip {
+  color: #050403 !important;
+  -webkit-text-fill-color: #050403 !important;
+}
+
+.fretboardComponent .fretboardNoteChip b,
+.fretboardComponent .fretboardNoteChip small,
+.stageChordSharedFretboard .fretboardNoteChip b,
+.viewerChordSharedFretboard .fretboardNoteChip b,
+.trainingSharedFretboard .fretboardNoteChip b,
+.viewerSharedFretboard .fretboardNoteChip b,
+.chordMiniSharedFretboard .fretboardNoteChip b,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip b {
+  color: #050403 !important;
+  -webkit-text-fill-color: #050403 !important;
+  font-weight: 1000 !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* Training bottom readability: larger labels without changing the app flow. */
+.mainHub .mainBottomNav {
+  min-height: 72px !important;
+  padding: 7px 8px calc(7px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.mainHub .mainBottomNav button {
+  min-height: 56px !important;
+  padding: 7px 8px !important;
+  gap: 5px !important;
+}
+
+.mainHub .mainBottomNav button svg,
+.mainHub .mainBottomNav button img {
+  width: 21px !important;
+  height: 21px !important;
+}
+
+.mainHub .mainBottomNav button span,
+.mainHub .mainBottomNav button b {
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  line-height: 1.05 !important;
+}
+
+.metronomeControl.trainingMetronomePanel .metronomeTopLine,
+.referenceTrainingPanel .referenceBpmControl .metronomeTopLine,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeTopLine,
+.chordTransitionPanel .chordTransitionTempo .metronomeTopLine {
+  grid-template-columns: minmax(54px, 0.72fr) minmax(0, 1.28fr) !important;
+  gap: 5px !important;
+}
+
+.metronomeControl.trainingMetronomePanel .metronomeBpmCombo,
+.referenceTrainingPanel .referenceBpmControl .metronomeBpmCombo,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeBpmCombo,
+.chordTransitionPanel .chordTransitionTempo .metronomeBpmCombo {
+  justify-self: start !important;
+  min-width: 54px !important;
+}
+
+.metronomeControl.trainingMetronomePanel .metronomeBpmInputShell,
+.referenceTrainingPanel .referenceBpmControl .metronomeBpmInputShell,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeBpmInputShell,
+.chordTransitionPanel .chordTransitionTempo .metronomeBpmInputShell {
+  min-width: 46px !important;
+  padding-inline: 3px !important;
+}
+
+.metronomeControl.trainingMetronomePanel .metronomeBpmInputShell input,
+.referenceTrainingPanel .referenceBpmControl .metronomeBpmInputShell input,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeBpmInputShell input,
+.chordTransitionPanel .chordTransitionTempo .metronomeBpmInputShell input {
+  font-size: 18px !important;
+  font-weight: 1000 !important;
+}
+
+.metronomeControl.trainingMetronomePanel .metronomeBpmInputShell::before,
+.referenceTrainingPanel .referenceBpmControl .metronomeBpmInputShell::before,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeBpmInputShell::before,
+.chordTransitionPanel .chordTransitionTempo .metronomeBpmInputShell::before {
+  font-size: 8px !important;
+  font-weight: 950 !important;
+}
+
+.metronomeControl.trainingMetronomePanel .metronomeBpmPresetSelect,
+.metronomeControl.trainingMetronomePanel .metronomeToggleRow button,
+.referenceTrainingPanel .referenceBpmControl .metronomeBpmPresetSelect,
+.referenceTrainingPanel .referenceBpmControl .metronomeToggleRow button,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeBpmPresetSelect,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeToggleRow button,
+.chordTransitionPanel .chordTransitionTempo .metronomeBpmPresetSelect,
+.chordTransitionPanel .chordTransitionTempo .metronomeToggleRow button {
+  font-size: 10.8px !important;
+  font-weight: 1000 !important;
+  line-height: 1.08 !important;
+  padding-inline: 6px !important;
+}
+
+.metronomeControl.trainingMetronomePanel .metronomeSelectControl span,
+.referenceTrainingPanel .referenceBpmControl .metronomeSelectControl span,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeSelectControl span,
+.chordTransitionPanel .chordTransitionTempo .metronomeSelectControl span {
+  font-size: 9.4px !important;
+  font-weight: 950 !important;
+}
+
+.metronomeControl.trainingMetronomePanel .metronomeSelectButton b,
+.referenceTrainingPanel .referenceBpmControl .metronomeSelectButton b,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeSelectButton b,
+.chordTransitionPanel .chordTransitionTempo .metronomeSelectButton b {
+  font-size: 12.8px !important;
+  font-weight: 1000 !important;
+}
+
+.metronomeControl.trainingMetronomePanel .metronomeSelectOption,
+.referenceTrainingPanel .referenceBpmControl .metronomeSelectOption,
+.scaleBlockTrainingPanel .referenceBpmControl .metronomeSelectOption,
+.chordTransitionPanel .chordTransitionTempo .metronomeSelectOption {
+  font-size: 12.8px !important;
+  font-weight: 950 !important;
+}
+
+.stage3StorageOpenButton span,
+.chordTransitionPanel .stage3StorageOpenButton span {
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+}
+
+.stage3StorageOpenButton svg,
+.chordTransitionPanel .stage3StorageOpenButton svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* Fretboard viewer reference board: larger inside its own card, no layout spill. */
+.fretboardViewerPanel .viewerMapCard {
+  overflow: hidden !important;
+}
+
+.fretboardViewerPanel .viewerMapHeader {
+  gap: 5px !important;
+  margin-bottom: 8px !important;
+}
+
+.fretboardViewerPanel .viewerMapHeader strong {
+  display: block !important;
+  max-width: 100% !important;
+  min-height: 18px !important;
+  overflow: hidden !important;
+  color: rgba(255, 246, 222, 0.96) !important;
+  font-size: clamp(16px, 4.8vw, 19px) !important;
+  font-weight: 1000 !important;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.fretboardViewerPanel .viewerSharedFretboard.fitRange {
+  --fretboard-label-left: 62px;
+  --fretboard-label-right: 7px;
+  --fretboard-board-top: 25px;
+  --fretboard-board-bottom: 12px;
+  --fretboard-board-height: 176px;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.fretboardViewerPanel .viewerSharedFretboard.fitRange .fretboardComponentScroller {
+  width: 100% !important;
+  min-width: 100% !important;
+  min-height: 214px !important;
+}
+
+.fretboardViewerPanel .viewerSharedFretboard.fitRange .fretboardNoteChip {
+  width: clamp(24px, 6.4vw, 28px) !important;
+  height: clamp(24px, 6.4vw, 28px) !important;
+  min-width: clamp(24px, 6.4vw, 28px) !important;
+  min-height: clamp(24px, 6.4vw, 28px) !important;
+}
+
+.fretboardViewerPanel .viewerSharedFretboard.fitRange .fretboardNoteChip.root {
+  width: clamp(28px, 7.4vw, 32px) !important;
+  height: clamp(28px, 7.4vw, 32px) !important;
+  min-width: clamp(28px, 7.4vw, 32px) !important;
+  min-height: clamp(28px, 7.4vw, 32px) !important;
+}
+
+.fretboardViewerPanel .viewerSharedFretboard.fitRange .fretboardNoteChip b {
+  font-size: clamp(15px, 4.3vw, 17px) !important;
+  line-height: 0.9 !important;
+}
+
+.fretboardViewerPanel .chordMiniSharedFretboard .fretboardNoteChip b,
+.fretboardViewerPanel .chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip b,
+.chordMiniSharedFretboard .fretboardNoteChip b,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip b {
+  font-size: clamp(13.8px, 3.9vw, 15.2px) !important;
+  font-weight: 1000 !important;
+  line-height: 0.9 !important;
+  letter-spacing: 0 !important;
+}
+
+/* Final gold-marker text contrast: ink text plus soft paper highlight. */
+.fretboardComponent .fretboardNoteChip,
+.fretboardComponent .fretboardNoteChip.active,
+.fretboardComponent .fretboardNoteChip.selected,
+.fretboardComponent .fretboardNoteChip.root,
+.viewerMapNote,
+.viewerMapNote.root,
+.scaleNote,
+.scaleNote.root,
+.chordFingerNote,
+.chordFingerNote.root,
+.stageChordSharedFretboard .fretboardNoteChip,
+.viewerChordSharedFretboard .fretboardNoteChip,
+.trainingSharedFretboard .fretboardNoteChip,
+.viewerSharedFretboard .fretboardNoteChip,
+.chordMiniSharedFretboard .fretboardNoteChip,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip {
+  color: #020100 !important;
+  -webkit-text-fill-color: #020100 !important;
+}
+
+.fretboardComponent .fretboardNoteChip b,
+.fretboardComponent .fretboardNoteChip small,
+.viewerMapNote b,
+.viewerMapNote small,
+.scaleNote b,
+.scaleNote small,
+.chordFingerNote b,
+.chordFingerNote small,
+.stageChordSharedFretboard .fretboardNoteChip b,
+.viewerChordSharedFretboard .fretboardNoteChip b,
+.trainingSharedFretboard .fretboardNoteChip b,
+.viewerSharedFretboard .fretboardNoteChip b,
+.chordMiniSharedFretboard .fretboardNoteChip b,
+.chordCatalogPanel .chordMiniSharedFretboard .fretboardNoteChip b {
+  color: #020100 !important;
+  -webkit-text-fill-color: #020100 !important;
+  font-weight: 1000 !important;
+  text-shadow:
+    0 1px 0 rgba(255, 249, 225, 0.48),
+    0 0 1px rgba(255, 255, 255, 0.26) !important;
+  filter: none !important;
+}
+
+/* Stage 3 readability pass: lift progression chips and enlarge fretboard note text. */
+.chordTransitionPanel .chordTransitionChart {
+  min-height: 262px !important;
+  padding: 10px !important;
+  overflow: hidden !important;
+}
+
+.chordTransitionPanel .chordTransitionChart .referenceHeader {
+  margin-bottom: 1px !important;
+}
+
+.chordTransitionPanel .stage3ChartTitleRow {
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  min-height: 18px !important;
+  margin: 0 !important;
+}
+
+.chordTransitionPanel .stage3ChartTitleText {
+  display: block !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: rgba(255, 214, 134, 0.98) !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.chordTransitionPanel .stage3ChartStrumPreview {
+  flex: 0 1 auto !important;
+  min-height: 0 !important;
+}
+
+.chordTransitionPanel .currentProgressionReadout {
+  margin-top: 1px !important;
+  margin-bottom: 1px !important;
+  padding: 0 !important;
+  transform: none !important;
+}
+
+.chordTransitionPanel .currentProgressionReadout button,
+.chordTransitionPanel .currentProgressionReadout span {
+  min-height: 25px !important;
+  padding: 0 9px !important;
+  font-size: 12.6px !important;
+  font-weight: 1000 !important;
+}
+
+.chordTransitionPanel .stageChordSharedFretboard.fitRange {
+  --fretboard-board-top: 24px;
+  --fretboard-board-bottom: 12px;
+  --fretboard-board-height: 176px;
+}
+
+.chordTransitionPanel .stageChordSharedFretboard.fitRange .fretboardComponentScroller {
+  min-height: 216px !important;
+}
+
+.chordTransitionPanel .stageChordSharedFretboard.fitRange .fretboardNoteChip b,
+.chordTransitionPanel .stageChordSharedFretboard.fitRange .fretboardNoteChip small {
+  font-size: clamp(16px, 4.7vw, 18px) !important;
+  line-height: 0.88 !important;
+  letter-spacing: 0 !important;
+}
+
+/* Fretboard viewer code tab: make the selected chord name read like a large cue. */
+.fretboardViewerPanel .viewerMapCard--chord .viewerMapHeader {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  column-gap: 12px !important;
+  row-gap: 0 !important;
+  min-height: 42px !important;
+}
+
+.fretboardViewerPanel .viewerMapCard--chord .viewerMapHeaderTop {
+  display: contents !important;
+}
+
+.fretboardViewerPanel .viewerMapCard--chord .viewerMapHeaderTop > span {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  align-self: start !important;
+  padding-top: 2px !important;
+}
+
+.fretboardViewerPanel .viewerMapCard--chord .viewerAllButton {
+  grid-column: 3 !important;
+  grid-row: 1 / span 2 !important;
+  align-self: start !important;
+  justify-self: end !important;
+}
+
+.fretboardViewerPanel .viewerMapCard--chord .viewerMapHeader strong {
+  grid-column: 2 !important;
+  grid-row: 1 / span 2 !important;
+  align-self: center !important;
+  justify-self: start !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  color: #fff8e8 !important;
+  font-size: clamp(34px, 10.5vw, 44px) !important;
+  font-weight: 1000 !important;
+  line-height: 0.86 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  text-shadow:
+    0 1px 0 rgba(217, 170, 85, 0.5),
+    0 8px 16px rgba(0, 0, 0, 0.34) !important;
+}
+
+/* Stage 2 picker fit: trim roomy controls so BOX text is never squeezed. */
+.scaleBlockTrainingPanel .referenceScalePicker {
+  grid-template-columns: minmax(68px, 0.82fr) minmax(0, 1.75fr) minmax(64px, 0.72fr) !important;
+  gap: 4px !important;
+  padding-inline: 7px !important;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker .scaleTypeGroup {
+  grid-template-columns: minmax(60px, 0.72fr) minmax(72px, 1fr) !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker .metronomeSelectControl {
+  min-width: 0 !important;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker .scaleKeySelect {
+  min-width: 68px !important;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker .scaleBoxSelect {
+  min-width: 64px !important;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker .metronomeSelectButton {
+  min-height: 31px !important;
+  padding: 0 7px !important;
+  border-radius: 9px !important;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker .metronomeSelectButton b {
+  font-size: 11.4px !important;
+  line-height: 1 !important;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker .scaleBoxSelect .metronomeSelectButton b {
+  font-size: 12px !important;
+  text-overflow: clip !important;
+}
+
+/* Stage 2 picker caret fix: the arrow gets only arrow-sized space. */
+.scaleBlockTrainingPanel .referenceScalePicker .metronomeSelectButton {
+  grid-template-columns: minmax(0, 1fr) 8px !important;
+  gap: 2px !important;
+  padding: 0 5px 0 7px !important;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker .metronomeSelectButton b {
+  max-width: 100% !important;
+  padding-right: 0 !important;
+}
+
+.scaleBlockTrainingPanel .referenceScalePicker .metronomeSelectButton i {
+  display: grid !important;
+  place-items: center !important;
+  width: 8px !important;
+  min-width: 8px !important;
+  max-width: 8px !important;
+  overflow: hidden !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+}
+
+/* Bottom nav readability: use the existing button space more aggressively. */
+.mainHub .mainBottomNav button {
+  grid-template-rows: 20px minmax(14px, auto) !important;
+  justify-items: center !important;
+  align-content: center !important;
+  row-gap: 3px !important;
+}
+
+.mainHub .mainBottomNav button svg,
+.mainHub .mainBottomNav button img {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.mainHub .mainBottomNav button span,
+.mainHub .mainBottomNav button b {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+  color: inherit !important;
+  font-size: clamp(12px, 3.35vw, 13px) !important;
+  font-weight: 1000 !important;
+  line-height: 1.02 !important;
+  letter-spacing: 0 !important;
+  text-align: center !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+
+.mainHub .mainBottomNav button.selected span,
+.mainHub .mainBottomNav button.selected b {
+  color: #fff0c2 !important;
+}
+
+/* Bottom nav final density pass: fill the existing button area, do not widen items. */
+.mainHub .modeSwitch.mainBottomNav button,
+.mainHub .mainBottomNav button {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 3px 3px !important;
+  gap: 1px !important;
+}
+
+.mainHub .modeSwitch.mainBottomNav button svg,
+.mainHub .mainBottomNav button svg,
+.mainHub .modeSwitch.mainBottomNav button img,
+.mainHub .mainBottomNav button img {
+  flex: 0 0 auto !important;
+  width: 24px !important;
+  height: 24px !important;
+  margin: 0 !important;
+}
+
+.mainHub .modeSwitch.mainBottomNav button span,
+.mainHub .mainBottomNav button span,
+.mainHub .modeSwitch.mainBottomNav button b,
+.mainHub .mainBottomNav button b {
+  flex: 0 0 auto !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  font-size: clamp(12.8px, 3.65vw, 14px) !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-align: center !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+
+.mainHub .modeSwitch.mainBottomNav button.selected svg,
+.mainHub .mainBottomNav button.selected svg {
+  width: 25px !important;
+  height: 25px !important;
+}
+
+/* Stage 3 storage readability: text-first controls and obvious selected state. */
+.stage3StorageRoom {
+  --storage-selected-bg:
+    radial-gradient(circle at 50% 0%, rgba(255, 248, 221, 0.28), transparent 44%),
+    linear-gradient(145deg, #d9aa55, #9a672f);
+  --storage-selected-text: #080503;
+  --storage-idle-bg:
+    linear-gradient(145deg, rgba(255, 244, 210, 0.045), rgba(255, 255, 255, 0.004)),
+    rgba(6, 8, 10, 0.9);
+}
+
+.stage3StorageRoom :where(
+  .stage3StorageHeader span,
+  .stage3StorageSelectPanel span,
+  .stage3StorageEditor span,
+  .stage3StorageList > span,
+  .stage3ChordBuilder .chordChipGroup > span,
+  .chordProgressionOrderPanel span,
+  .stage3OrderStrum > span,
+  .stage3StrumEditor span,
+  .stage3AddRow strong span,
+  .stage3StrumAddRow strong > span
+) {
+  color: rgba(255, 218, 146, 0.96) !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+  line-height: 1.05 !important;
+  letter-spacing: 0 !important;
+}
+
+.stage3StorageRoom :where(
+  .stage3StorageHeader strong,
+  .stage3StorageEditor input,
+  .stage3StorageEditor select,
+  .stage3StorageSelectPanel select,
+  .stage3StorageLoad strong,
+  .stage3StorageLoad small,
+  .stage3AddRow strong,
+  .chordProgressionEmpty
+) {
+  font-size: 13.2px !important;
+  font-weight: 950 !important;
+  line-height: 1.12 !important;
+}
+
+.stage3StorageRoom :where(
+  .chordChipGroup button,
+  .stage3StrumChoiceButtons button,
+  .stage3StrumActions button,
+  .stage3AddRow button,
+  .stage3StorageActions button,
+  .stage3StorageSelectActions button,
+  .stage3StorageList article > div button,
+  .chordPreviewStack strong
+) {
+  min-height: 30px !important;
+  padding: 0 8px !important;
+  border-color: rgba(217, 170, 85, 0.36) !important;
+  background: var(--storage-idle-bg) !important;
+  color: rgba(255, 246, 222, 0.94) !important;
+  font-size: 12.8px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-align: center !important;
+  text-shadow: none !important;
+}
+
+.stage3StorageRoom .chordChipGroup button small {
+  margin-left: 4px !important;
+  color: rgba(255, 232, 178, 0.72) !important;
+  font-size: 9.8px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+}
+
+.stage3StorageRoom :where(
+  .chordChipGroup button.selected,
+  .chordChipGroup button[aria-pressed="true"],
+  .stage3StrumChoiceButtons button.hit,
+  .stage3StrumActions button.hit,
+  .chordPreviewStack strong.active
+) {
+  border-color: rgba(255, 232, 178, 0.82) !important;
+  background: var(--storage-selected-bg) !important;
+  color: var(--storage-selected-text) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 221, 0.42),
+    0 0 0 1px rgba(12, 8, 3, 0.42),
+    0 5px 12px rgba(0, 0, 0, 0.26) !important;
+}
+
+.stage3StorageRoom :where(
+  .chordChipGroup button.selected small,
+  .chordChipGroup button[aria-pressed="true"] small
+) {
+  color: rgba(8, 5, 3, 0.72) !important;
+}
+
+.stage3StorageRoom .stage3AddRow {
+  gap: 6px !important;
+}
+
+.stage3StorageRoom .stage3AddRow strong {
+  min-height: 34px !important;
+  padding: 4px 6px !important;
+}
+
+.stage3StorageRoom .stage3AddRow button,
+.stage3StorageRoom .stage3StorageActions button,
+.stage3StorageRoom .stage3StorageSelectActions button {
+  min-height: 32px !important;
+  padding-inline: 9px !important;
+  font-size: 12.6px !important;
+}
+
+.stage3StorageRoom .stage3StorageActions button:first-child,
+.stage3StorageRoom .stage3StorageSelectActions button:first-child,
+.stage3StorageRoom .stage3AddRow button.primary {
+  border-color: rgba(255, 232, 178, 0.72) !important;
+  background: var(--storage-selected-bg) !important;
+  color: var(--storage-selected-text) !important;
+  font-weight: 1000 !important;
+}
+
+.stage3StorageRoom .stage3StrumAddRow .strumPatternStep,
+.stage3StorageRoom .stage3OrderStrum .strumPatternStep {
+  min-width: 24px !important;
+  height: 24px !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+}
+
+/* Active app bottom nav density: icons/text are direct button content. */
+.hud > .modeSwitch button {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 0 !important;
+  padding: 2px 3px !important;
+  gap: 0 !important;
+  color: rgba(236, 226, 212, 0.86) !important;
+  font-size: clamp(13px, 3.7vw, 14.2px) !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+
+.hud > .modeSwitch button svg {
+  flex: 0 0 auto !important;
+  width: 24px !important;
+  height: 24px !important;
+  margin: 0 0 1px !important;
+  stroke-width: 2.35 !important;
+}
+
+.hud > .modeSwitch button.selected,
+.hud > .modeSwitch button[aria-expanded="true"] {
+  color: #fff0c2 !important;
+}
+
+.hud > .modeSwitch button.selected svg,
+.hud > .modeSwitch button[aria-expanded="true"] svg {
+  width: 25px !important;
+  height: 25px !important;
+  margin-bottom: 0 !important;
+}
+
+@media (max-width: 380px) {
+  .hud > .modeSwitch button {
+    font-size: 12.4px !important;
+  }
+
+  .hud > .modeSwitch button svg {
+    width: 23px !important;
+    height: 23px !important;
+  }
 }

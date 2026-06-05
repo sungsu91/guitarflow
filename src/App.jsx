@@ -1553,7 +1553,7 @@ function MetronomeSelectControl({ className = "", label, options, value, onChang
     if (typeof window === "undefined" || !controlRef.current) return;
     const rect = controlRef.current.getBoundingClientRect();
     const rows = layout === "grid" ? Math.ceil(gridOptions.length / 2) : gridOptions.length;
-    const estimatedMenuHeight = Math.min(216, 14 + rows * 32);
+    const estimatedMenuHeight = Math.min(244, 14 + rows * 36);
     const topSpace = rect.top;
     const bottomSpace = window.innerHeight - rect.bottom - 92;
     const nextDirection = topSpace >= estimatedMenuHeight + 10 || topSpace >= bottomSpace ? "up" : "down";
@@ -1561,16 +1561,16 @@ function MetronomeSelectControl({ className = "", label, options, value, onChang
     const viewportWidth = window.innerWidth || 390;
     const maxOptionUnits = Math.max(1, ...gridOptions.map(getOptionTextUnits));
     const visibleOptionCount = layout === "grid" ? 2 : 1;
-    const basePadding = layout === "grid" ? 24 : 30;
-    const minContentWidth = layout === "grid" ? 58 : 52;
+    const basePadding = layout === "grid" ? 28 : 34;
+    const minContentWidth = layout === "grid" ? 66 : 60;
     const contentWidth = layout === "grid"
-      ? Math.ceil(maxOptionUnits * 7.4) * visibleOptionCount + basePadding
-      : Math.ceil(maxOptionUnits * 7.8) + basePadding;
+      ? Math.ceil(maxOptionUnits * 8.5) * visibleOptionCount + basePadding
+      : Math.ceil(maxOptionUnits * 8.8) + basePadding;
     const desiredWidth = Math.min(Math.max(minContentWidth, contentWidth), viewportWidth - viewportPadding * 2);
     const left = Math.max(viewportPadding, Math.min(rect.left, viewportWidth - desiredWidth - viewportPadding));
     const maxHeight = nextDirection === "up"
-      ? Math.max(96, Math.min(216, rect.top - viewportPadding - 6))
-      : Math.max(96, Math.min(216, window.innerHeight - rect.bottom - 104));
+      ? Math.max(108, Math.min(244, rect.top - viewportPadding - 6))
+      : Math.max(108, Math.min(244, window.innerHeight - rect.bottom - 104));
     setOpenDirection(nextDirection);
     setMenuStyle({
       "--riff-dropdown-left": `${left}px`,
@@ -1861,12 +1861,25 @@ function MetronomeTimeline({
   runnerLabel,
   timeSignature = "4/4",
 }) {
-  const markers = Array.from({ length: Math.max(0, beatsPerMeasure - 1) }, (_, index) => index + 1);
+  const markers = Array.from({ length: beatsPerMeasure }, (_, index) => index);
   const dots = Array.from({ length: beatsPerMeasure }, (_, index) => index);
   const normalizedBeatPattern = normalizeMetronomeBeatPattern(beatPattern, beatsPerMeasure);
+  const isCompoundTimeline = beatsPerMeasure >= 6 && beatsPerMeasure % 3 === 0;
+  const groupGapUnits = isCompoundTimeline ? 0.55 : 0;
+  const groupSize = isCompoundTimeline ? 3 : 1;
+  const groupCount = isCompoundTimeline ? Math.ceil(beatsPerMeasure / groupSize) : 1;
+  const timelineUnits = beatsPerMeasure + Math.max(0, groupCount - 1) * groupGapUnits;
+  const getBeatTimelineLeft = (beatNumber) => {
+    const gapBefore = isCompoundTimeline ? Math.floor(beatNumber / groupSize) * groupGapUnits : 0;
+    return ((beatNumber + gapBefore + 0.5) / timelineUnits) * 100;
+  };
 
   return (
-    <div className="chordTimeline metronomeTimeline" aria-label={`${timeSignature} 메트로놈 진행`}>
+    <div
+      className={`chordTimeline metronomeTimeline metronomeTimeline--beats-${beatsPerMeasure} ${isCompoundTimeline ? "metronomeTimeline--compound" : ""}`}
+      aria-label={`${timeSignature} 메트로놈 진행`}
+      style={{ "--beat-count": beatsPerMeasure }}
+    >
       <div className="chordTimelineLabels">
         <strong>{currentLabel}</strong>
         <span>{timeSignature} 진행</span>
@@ -1886,11 +1899,11 @@ function MetronomeTimeline({
           <b
             className={beat === beatNumber && isPlaying ? "active" : ""}
             key={beatNumber}
-            style={{ left: `${(beatNumber / beatsPerMeasure) * 100}%` }}
+            style={{ left: `${getBeatTimelineLeft(beatNumber)}%` }}
           />
         ))}
       </div>
-      <div className={`mobileBeatDots ${compact ? "mobileBeatDots--compact" : ""}`} aria-label={`${timeSignature} 박자 점자`}>
+      <div className={`mobileBeatDots mobileBeatDots--beats-${beatsPerMeasure} ${compact ? "mobileBeatDots--compact" : ""}`} aria-label={`${timeSignature} 박자 점자`}>
         {dots.map((beatNumber) => (
           <BeatDot
             active={beat === beatNumber && isPlaying}
@@ -1911,26 +1924,30 @@ function MetronomeTimeline({
 }
 
 const WHEEL_PICKER_ITEM_HEIGHT = 34;
-const WHEEL_PICKER_MOMENTUM_MS = 240;
-const WHEEL_PICKER_VELOCITY_POWER = 260;
+const WHEEL_PICKER_MOMENTUM_MS = 420;
+const WHEEL_PICKER_VELOCITY_POWER = 420;
+const WHEEL_PICKER_DETENT_THROTTLE_MS = 58;
 
 function WheelPickerColumn({ label, options, value, onChange }) {
   const frameRef = useRef(null);
   const selectedIndexRef = useRef(0);
   const dragRef = useRef(null);
-  const [dragOffset, setDragOffset] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
+  const detentRef = useRef({ index: -1, time: 0 });
   const selectedIndex = Math.max(0, options.findIndex((option) => Number(option.value) === Number(value)));
+  const [scrollPosition, setScrollPosition] = useState(selectedIndex);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     selectedIndexRef.current = selectedIndex;
-  }, [selectedIndex]);
+    if (!isDragging && !dragRef.current) setScrollPosition(selectedIndex);
+  }, [isDragging, selectedIndex]);
 
   useEffect(() => () => {
     if (frameRef.current != null) window.cancelAnimationFrame(frameRef.current);
   }, []);
 
   const clampIndex = useCallback((index) => Math.max(0, Math.min(options.length - 1, index)), [options.length]);
+  const visualSelectedIndex = clampIndex(Math.round(scrollPosition));
 
   const changeToIndex = useCallback((nextIndex) => {
     const safeIndex = clampIndex(nextIndex);
@@ -1941,29 +1958,47 @@ function WheelPickerColumn({ label, options, value, onChange }) {
     }
   }, [clampIndex, onChange, options]);
 
-  const animateSnap = useCallback((fromOffset) => {
+  const notifyIndex = useCallback((nextIndex, force = false) => {
+    const safeIndex = clampIndex(nextIndex);
+    const now = performance.now();
+    if (
+      !force &&
+      detentRef.current.index === safeIndex &&
+      now - detentRef.current.time < WHEEL_PICKER_DETENT_THROTTLE_MS
+    ) return;
+    if (!force && now - detentRef.current.time < WHEEL_PICKER_DETENT_THROTTLE_MS) return;
+    detentRef.current = { index: safeIndex, time: now };
+    changeToIndex(safeIndex);
+  }, [changeToIndex, clampIndex]);
+
+  const animateToIndex = useCallback((fromPosition, targetIndex) => {
     if (frameRef.current != null) window.cancelAnimationFrame(frameRef.current);
     const startedAt = performance.now();
+    const distance = targetIndex - fromPosition;
+    const duration = Math.min(620, Math.max(240, WHEEL_PICKER_MOMENTUM_MS + Math.abs(distance) * 34));
     const animate = (now) => {
-      const progress = Math.min(1, (now - startedAt) / WHEEL_PICKER_MOMENTUM_MS);
+      const progress = Math.min(1, (now - startedAt) / duration);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setDragOffset(fromOffset * (1 - eased));
+      const nextPosition = fromPosition + distance * eased;
+      setScrollPosition(nextPosition);
+      notifyIndex(Math.round(nextPosition));
       if (progress < 1) {
         frameRef.current = window.requestAnimationFrame(animate);
         return;
       }
       frameRef.current = null;
-      setDragOffset(0);
+      setScrollPosition(targetIndex);
+      notifyIndex(targetIndex, true);
       setIsDragging(false);
     };
     frameRef.current = window.requestAnimationFrame(animate);
-  }, []);
+  }, [notifyIndex]);
 
   const handleOptionClick = useCallback((nextValue) => {
     const nextIndex = options.findIndex((option) => Number(option.value) === Number(nextValue));
     if (nextIndex < 0) return;
     changeToIndex(nextIndex);
-    setDragOffset(0);
+    setScrollPosition(nextIndex);
     setIsDragging(false);
   }, [changeToIndex, options]);
 
@@ -1978,9 +2013,10 @@ function WheelPickerColumn({ label, options, value, onChange }) {
       lastTime: now,
       startIndex: selectedIndexRef.current,
       velocity: 0,
+      samples: [{ y: event.clientY, time: now }],
     };
     setIsDragging(true);
-    setDragOffset(0);
+    setScrollPosition(selectedIndexRef.current);
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }, []);
 
@@ -1993,36 +2029,41 @@ function WheelPickerColumn({ label, options, value, onChange }) {
     drag.velocity = (event.clientY - drag.lastY) / elapsed;
     drag.lastY = event.clientY;
     drag.lastTime = now;
+    drag.samples = [...(drag.samples ?? []), { y: event.clientY, time: now }].filter((sample) => now - sample.time <= 120);
 
-    const virtualIndex = clampIndex(Math.round(drag.startIndex - (deltaY / WHEEL_PICKER_ITEM_HEIGHT)));
-    changeToIndex(virtualIndex);
-    setDragOffset(deltaY + ((virtualIndex - drag.startIndex) * WHEEL_PICKER_ITEM_HEIGHT));
-    event.preventDefault();
-  }, [changeToIndex, clampIndex]);
+    const nextPosition = clampIndex(drag.startIndex - (deltaY / WHEEL_PICKER_ITEM_HEIGHT));
+    setScrollPosition(nextPosition);
+    notifyIndex(Math.round(nextPosition));
+    if (event.cancelable) event.preventDefault();
+  }, [clampIndex, notifyIndex]);
 
   const handlePointerUp = useCallback((event) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     const deltaY = event.clientY - drag.startY;
-    const projectedDelta = deltaY + (drag.velocity * WHEEL_PICKER_VELOCITY_POWER);
-    const targetIndex = clampIndex(Math.round(drag.startIndex - (projectedDelta / WHEEL_PICKER_ITEM_HEIGHT)));
-    const currentIndex = selectedIndexRef.current;
-    const currentOffset = deltaY + ((currentIndex - drag.startIndex) * WHEEL_PICKER_ITEM_HEIGHT);
-    const snapOffset = currentOffset + ((currentIndex - targetIndex) * WHEEL_PICKER_ITEM_HEIGHT);
+    const samples = drag.samples ?? [];
+    const firstSample = samples[0];
+    const lastSample = samples[samples.length - 1];
+    const sampleVelocity = firstSample && lastSample && lastSample.time > firstSample.time
+      ? (lastSample.y - firstSample.y) / (lastSample.time - firstSample.time)
+      : drag.velocity;
+    const velocity = Number.isFinite(sampleVelocity) ? sampleVelocity : drag.velocity;
+    const currentPosition = clampIndex(drag.startIndex - (deltaY / WHEEL_PICKER_ITEM_HEIGHT));
+    const projectedPosition = clampIndex(currentPosition - ((velocity * WHEEL_PICKER_VELOCITY_POWER) / WHEEL_PICKER_ITEM_HEIGHT));
+    const targetIndex = clampIndex(Math.round(projectedPosition));
 
     dragRef.current = null;
     event.currentTarget.releasePointerCapture?.(event.pointerId);
-    changeToIndex(targetIndex);
-    animateSnap(snapOffset);
-  }, [animateSnap, changeToIndex, clampIndex]);
+    animateToIndex(currentPosition, targetIndex);
+  }, [animateToIndex, clampIndex]);
 
   const handlePointerCancel = useCallback((event) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     dragRef.current = null;
     event.currentTarget.releasePointerCapture?.(event.pointerId);
-    animateSnap(dragOffset);
-  }, [animateSnap, dragOffset]);
+    animateToIndex(scrollPosition, Math.round(scrollPosition));
+  }, [animateToIndex, scrollPosition]);
 
   return (
     <label className="metronomeWheelColumn">
@@ -2039,13 +2080,13 @@ function WheelPickerColumn({ label, options, value, onChange }) {
         <i aria-hidden="true" />
         {options.map((option, optionIndex) => (
           <button
-            aria-selected={Number(option.value) === Number(value)}
-            className={Number(option.value) === Number(value) ? "selected" : ""}
+            aria-selected={optionIndex === visualSelectedIndex}
+            className={optionIndex === visualSelectedIndex ? "selected" : ""}
             key={option.id}
             onClick={() => handleOptionClick(Number(option.value))}
             role="option"
             style={{
-              transform: `translate3d(0, ${((optionIndex - selectedIndex) * WHEEL_PICKER_ITEM_HEIGHT) + dragOffset}px, 0)`,
+              transform: `translate3d(0, ${(optionIndex - scrollPosition) * WHEEL_PICKER_ITEM_HEIGHT}px, 0)`,
             }}
             type="button"
           >
@@ -2580,6 +2621,8 @@ function StandaloneMetronomeVisual({
   onTouchEnd,
   onTouchMove,
   onTouchStart,
+  swipeActive = false,
+  swipeOffset = 0,
 }) {
   const beatCount = Math.max(1, beatPattern.length);
   const selectedMode = normalizeMetronomeDisplayMode(mode);
@@ -2599,7 +2642,7 @@ function StandaloneMetronomeVisual({
   return (
     <div
       aria-label={`${METRONOME_DISPLAY_MODES.find((item) => item.id === selectedMode)?.label ?? "Metronome Mode"} 박자 표시. 좌우 스와이프로 모드 전환`}
-      className={`metronomeBeatMatrix metronomeBeatMatrix--main metronomeBeatMatrix--${selectedMode}`}
+      className={`metronomeBeatMatrix metronomeBeatMatrix--main metronomeBeatMatrix--${selectedMode} ${swipeActive ? "metronomeBeatMatrix--swiping" : ""}`}
       onPointerCancel={onPointerCancel}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -2608,6 +2651,7 @@ function StandaloneMetronomeVisual({
       onTouchEnd={onTouchEnd}
       onTouchMove={onTouchMove}
       onTouchStart={onTouchStart}
+      style={{ "--metronome-mode-swipe-x": `${swipeOffset}px` }}
     >
       {selectedMode === "circle" ? (
         <div className="metronomeModeCircleOrbit" style={{ "--circle-beat-count": beatCount }}>
@@ -4302,22 +4346,36 @@ function BeatIndicator({
 }) {
   const dots = Array.from({ length: beatsPerMeasure }, (_, index) => index);
   const normalizedBeatPattern = normalizeMetronomeBeatPattern(beatPattern, beatsPerMeasure);
+  const dotRows = beatsPerMeasure === 12
+    ? [dots.slice(0, 6), dots.slice(6)]
+    : beatsPerMeasure === 9
+      ? [dots.slice(0, 5), dots.slice(5)]
+      : [dots];
+  const renderDot = (beatNumber) => (
+    <BeatDot
+      active={beat === beatNumber && isPlaying}
+      className="trainingBeatDot"
+      key={beatNumber}
+      label={`${beatNumber + 1}박 ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
+      onClick={onBeatClick ? (event) => {
+        event.stopPropagation();
+        onBeatClick(beatNumber);
+      } : undefined}
+      state={normalizedBeatPattern[beatNumber]}
+      title={`${beatNumber + 1}박: ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
+    />
+  );
 
   return (
-    <div className={`beatIndicator ${compact ? "beatIndicator--compact" : ""}`} aria-label={`${timeSignature} ${label}`}>
-      {dots.map((beatNumber) => (
-        <BeatDot
-          active={beat === beatNumber && isPlaying}
-          className="trainingBeatDot"
-          key={beatNumber}
-          label={`${beatNumber + 1}박 ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
-          onClick={onBeatClick ? (event) => {
-            event.stopPropagation();
-            onBeatClick(beatNumber);
-          } : undefined}
-          state={normalizedBeatPattern[beatNumber]}
-          title={`${beatNumber + 1}박: ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
-        />
+    <div
+      className={`beatIndicator beatIndicator--beats-${beatsPerMeasure} ${compact ? "beatIndicator--compact" : ""}`}
+      aria-label={`${timeSignature} ${label}`}
+      style={{ "--beat-count": beatsPerMeasure }}
+    >
+      {dotRows.map((row, rowIndex) => (
+        <div className="beatIndicatorRow" key={`beat-row-${rowIndex}`}>
+          {row.map(renderDot)}
+        </div>
       ))}
     </div>
   );
@@ -4366,6 +4424,22 @@ const DISPLAY_NOTES = [
 const DEFAULT_BPM = 80;
 const MIN_BPM = 30;
 const MAX_BPM = 240;
+const METRONOME_SETTING_SCOPES = {
+  STANDALONE: "standalone",
+  STAGE1: "stage1",
+  STAGE2: "stage2",
+  STAGE3: "stage3",
+};
+const createDefaultMetronomeSettings = () => ({
+  bpm: DEFAULT_BPM,
+  timeSignature: "4/4",
+  subdivision: "quarter",
+  tone: "tick",
+  accent: true,
+  countIn: false,
+  countInBars: 0,
+  beatPattern: normalizeMetronomeBeatPattern([], 4),
+});
 const MIN_REPEAT_COUNT = 1;
 const MAX_REPEAT_COUNT = 12;
 const HIT_WINDOW_MS = 150;
@@ -5489,6 +5563,8 @@ function App() {
   const [logoPreviewScale, setLogoPreviewScale] = useState(100);
   const [metronomeVisualLabMode, setMetronomeVisualLabMode] = useState("circle");
   const [metronomeDisplayMode, setMetronomeDisplayMode] = useState(getStoredMetronomeDisplayMode);
+  const [metronomeModeSwipeOffset, setMetronomeModeSwipeOffset] = useState(0);
+  const [metronomeModeSwipeActive, setMetronomeModeSwipeActive] = useState(false);
   const [metronomeVisualLabTimeSignature, setMetronomeVisualLabTimeSignature] = useState("4/4");
   const [metronomeVisualLabPlaying, setMetronomeVisualLabPlaying] = useState(false);
   const [metronomeVisualLabBeat, setMetronomeVisualLabBeat] = useState(0);
@@ -6039,6 +6115,21 @@ function App() {
   const metronomeCountInVoiceModeRef = useRef("female");
   const metronomeVolumeRef = useRef(0.72);
   const metronomeBeatPatternRef = useRef(normalizeMetronomeBeatPattern([], 4));
+  const activeMetronomeScopeRef = useRef(
+    initialRouteRef.current.appMode === APP_MODES.METRONOME
+      ? METRONOME_SETTING_SCOPES.STANDALONE
+      : initialRouteRef.current.categoryId === "scale-block"
+        ? METRONOME_SETTING_SCOPES.STAGE2
+        : initialRouteRef.current.categoryId === "rhythm"
+          ? METRONOME_SETTING_SCOPES.STAGE3
+          : METRONOME_SETTING_SCOPES.STAGE1,
+  );
+  const scopedMetronomeSettingsRef = useRef({
+    [METRONOME_SETTING_SCOPES.STANDALONE]: createDefaultMetronomeSettings(),
+    [METRONOME_SETTING_SCOPES.STAGE1]: createDefaultMetronomeSettings(),
+    [METRONOME_SETTING_SCOPES.STAGE2]: createDefaultMetronomeSettings(),
+    [METRONOME_SETTING_SCOPES.STAGE3]: createDefaultMetronomeSettings(),
+  });
   const metronomeVisualLabBeatRef = useRef(0);
   const metronomeVisualLabTimerRef = useRef(null);
   const autoBpmModeRef = useRef("off");
@@ -6070,6 +6161,7 @@ function App() {
   const fretboardSwipeStartRef = useRef(null);
   const fretboardSwipeFeedbackTimerRef = useRef(null);
   const stage3StorageSwipeStartRef = useRef(null);
+  const stage3StorageOpenRef = useRef(false);
   const feelRecordingStartRef = useRef(0);
   const feelPressStartRef = useRef(0);
   const feelLastReleaseRef = useRef(0);
@@ -6390,6 +6482,61 @@ function App() {
     extension: stage3ChordExtension,
     chord: stage3SelectedChord,
   });
+  const getMetronomeScopeForCategory = useCallback((categoryId) => {
+    if (categoryId === "scale-block") return METRONOME_SETTING_SCOPES.STAGE2;
+    if (categoryId === "rhythm") return METRONOME_SETTING_SCOPES.STAGE3;
+    return METRONOME_SETTING_SCOPES.STAGE1;
+  }, []);
+  const captureActiveMetronomeSettings = useCallback(() => ({
+    bpm,
+    timeSignature: metronomeTimeSignature,
+    subdivision: metronomeSubdivision,
+    tone: metronomeTone,
+    accent: metronomeAccent,
+    countIn: metronomeCountIn,
+    countInBars: metronomeCountInBars,
+    beatPattern: normalizeMetronomeBeatPattern(metronomeBeatPatternRef.current, getTimeSignatureOption(metronomeTimeSignature).beats),
+  }), [bpm, metronomeAccent, metronomeCountIn, metronomeCountInBars, metronomeSubdivision, metronomeTimeSignature, metronomeTone]);
+  const applyScopedMetronomeSettings = useCallback((settings) => {
+    const normalized = settings ?? createDefaultMetronomeSettings();
+    const timeSignature = getTimeSignatureOption(normalized.timeSignature).id;
+    const beats = getTimeSignatureOption(timeSignature).beats;
+    const nextBpm = clampBpm(normalized.bpm);
+    const nextAccent = normalized.accent !== false;
+    const nextPattern = nextAccent
+      ? normalizeMetronomeBeatPattern(normalized.beatPattern, beats)
+      : Array.from({ length: beats }, () => METRONOME_BEAT_STATES.NORMAL);
+
+    bpmRef.current = nextBpm;
+    metronomeTimeSignatureRef.current = timeSignature;
+    metronomeAccentRef.current = nextAccent;
+    metronomeSubdivisionRef.current = normalized.subdivision ?? "quarter";
+    metronomeToneRef.current = normalized.tone ?? "tick";
+    metronomeCountInRef.current = Boolean(normalized.countIn);
+    metronomeCountInBarsRef.current = Number(normalized.countInBars) || 0;
+    metronomeBeatPatternRef.current = nextPattern;
+
+    setBpm(nextBpm);
+    setMetronomeTimeSignature(timeSignature);
+    setMetronomeAccent(nextAccent);
+    setMetronomeSubdivision(normalized.subdivision ?? "quarter");
+    setMetronomeTone(normalized.tone ?? "tick");
+    setMetronomeCountIn(Boolean(normalized.countIn));
+    setMetronomeCountInBars(Number(normalized.countInBars) || 0);
+    setMetronomeBeatPattern(nextPattern);
+    setBeat(0);
+    setStage3MeasureProgress(0);
+  }, []);
+  const switchMetronomeScope = useCallback((nextScope, resetToDefault = false) => {
+    const currentScope = activeMetronomeScopeRef.current;
+    scopedMetronomeSettingsRef.current[currentScope] = captureActiveMetronomeSettings();
+    activeMetronomeScopeRef.current = nextScope;
+    const nextSettings = resetToDefault
+      ? createDefaultMetronomeSettings()
+      : scopedMetronomeSettingsRef.current[nextScope] ?? createDefaultMetronomeSettings();
+    scopedMetronomeSettingsRef.current[nextScope] = nextSettings;
+    applyScopedMetronomeSettings(nextSettings);
+  }, [applyScopedMetronomeSettings, captureActiveMetronomeSettings]);
   const applyViewerChordSelection = useCallback((baseRoot, accidental, quality, extension) => {
     const exactChord = getChordFromSelector(baseRoot, accidental, quality, extension);
     const nextChord = exactChord ?? getFallbackChordFromSelector(baseRoot, accidental, quality, extension);
@@ -6515,6 +6662,13 @@ function App() {
       setStage3StorageStrumDraftPattern(firstPattern);
     }
     setStage3StorageOpen(true);
+    if (typeof window !== "undefined") {
+      window.history.pushState(
+        { appRoute: APP_ROUTES.STAGE3, stage3StorageOpen: true },
+        "",
+        `${window.location.pathname}${window.location.search}${APP_ROUTES.STAGE3}`,
+      );
+    }
   }, [bpm, hasChordTransitionProgression, metronomeTimeSignature, selectedStage3LibraryItem, stage3ChordIds, stage3QuickSlots]);
   const saveStage3StorageItem = useCallback((mode = "update") => {
     if (!hasStage3StorageProgression) return;
@@ -6694,6 +6848,36 @@ function App() {
   const beatMs = getBeatMs(bpm);
   const metronomeBeatsPerMeasure = getTimeSignatureOption(metronomeTimeSignature).beats;
   const standaloneBeatPattern = normalizeMetronomeBeatPattern(metronomeBeatPattern, metronomeBeatsPerMeasure);
+  const applyDefaultMetronomeBeatPattern = useCallback((timeSignature = metronomeTimeSignature) => {
+    const beatsPerMeasure = getTimeSignatureOption(timeSignature).beats;
+    const nextPattern = normalizeMetronomeBeatPattern([], beatsPerMeasure);
+    metronomeBeatPatternRef.current = nextPattern;
+    setMetronomeBeatPattern(nextPattern);
+  }, [metronomeTimeSignature]);
+  const applyWeakMetronomeBeatPattern = useCallback((timeSignature = metronomeTimeSignature) => {
+    const beatsPerMeasure = getTimeSignatureOption(timeSignature).beats;
+    const nextPattern = Array.from({ length: beatsPerMeasure }, () => METRONOME_BEAT_STATES.NORMAL);
+    metronomeBeatPatternRef.current = nextPattern;
+    setMetronomeBeatPattern(nextPattern);
+  }, [metronomeTimeSignature]);
+  const changeTrainingMetronomeTimeSignature = useCallback((nextTimeSignature) => {
+    metronomeTimeSignatureRef.current = nextTimeSignature;
+    setMetronomeTimeSignature(nextTimeSignature);
+    if (metronomeAccentRef.current) {
+      applyDefaultMetronomeBeatPattern(nextTimeSignature);
+    } else {
+      applyWeakMetronomeBeatPattern(nextTimeSignature);
+    }
+  }, [applyDefaultMetronomeBeatPattern, applyWeakMetronomeBeatPattern]);
+  const changeTrainingMetronomeAccent = useCallback((nextAccentEnabled) => {
+    metronomeAccentRef.current = nextAccentEnabled;
+    setMetronomeAccent(nextAccentEnabled);
+    if (nextAccentEnabled) {
+      applyDefaultMetronomeBeatPattern(metronomeTimeSignatureRef.current);
+    } else {
+      applyWeakMetronomeBeatPattern(metronomeTimeSignatureRef.current);
+    }
+  }, [applyDefaultMetronomeBeatPattern, applyWeakMetronomeBeatPattern]);
   const metronomeVisualLabTimeSignatureOption =
     METRONOME_VISUAL_LAB_TIME_SIGNATURE_OPTIONS.find((option) => option.id === metronomeVisualLabTimeSignature)
     ?? METRONOME_VISUAL_LAB_TIME_SIGNATURE_OPTIONS[2];
@@ -8421,6 +8605,7 @@ function App() {
     appModeRef.current = APP_MODES.PRACTICE;
     setAppMode(APP_MODES.PRACTICE);
     setSelectedCategoryId(safeCategory.id);
+    switchMetronomeScope(getMetronomeScopeForCategory(safeCategory.id));
     resetScore();
     setEnemies([]);
     enemiesRef.current = [];
@@ -8435,7 +8620,7 @@ function App() {
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
     lastFrameRef.current = performance.now();
-  }, [cancelCountInVoice, getPlayableCategory, getPracticeSequence, repeatPractice, resetScore, selectedCategory, setState]);
+  }, [cancelCountInVoice, getMetronomeScopeForCategory, getPlayableCategory, getPracticeSequence, repeatPractice, resetScore, selectedCategory, setState, switchMetronomeScope]);
 
   const startShooter = useCallback(async (category = SHOOTER_DEFAULT_CATEGORY) => {
     console.log("[metronome] start clicked");
@@ -8956,7 +9141,8 @@ function App() {
     setMetronomeDisplayMode((currentMode) => {
       const currentIndex = METRONOME_DISPLAY_MODES.findIndex((option) => option.id === currentMode);
       const safeIndex = currentIndex >= 0 ? currentIndex : 0;
-      const nextIndex = Math.max(0, Math.min(METRONOME_DISPLAY_MODES.length - 1, safeIndex + direction));
+      const modeCount = METRONOME_DISPLAY_MODES.length;
+      const nextIndex = modeCount > 0 ? (safeIndex + direction + modeCount) % modeCount : safeIndex;
       const nextMode = METRONOME_DISPLAY_MODES[nextIndex]?.id ?? currentMode;
       if (nextMode === currentMode) return currentMode;
       metronomeModeSwipeChangedAtRef.current = performance.now();
@@ -8965,13 +9151,9 @@ function App() {
   }, []);
 
   const handleMetronomeModeSwipeStart = useCallback((event) => {
-    const bounds = event.currentTarget.getBoundingClientRect?.();
-    const surfaceWidth = bounds?.width ?? window.innerWidth ?? 0;
-    const localX = bounds ? event.clientX - bounds.left : event.clientX;
-    const edgeGuard = Math.max(24, surfaceWidth * 0.12);
-    if (localX < edgeGuard || localX > surfaceWidth - edgeGuard) return;
-
     event.currentTarget.setPointerCapture?.(event.pointerId);
+    setMetronomeModeSwipeActive(true);
+    setMetronomeModeSwipeOffset(0);
     metronomeModeSwipeStartRef.current = {
       x: event.clientX,
       y: event.clientY,
@@ -8995,17 +9177,22 @@ function App() {
       if (absY > absX * 1.18) {
         metronomeModeSwipeStartRef.current = { ...swipe, canceled: true };
         event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+        setMetronomeModeSwipeActive(false);
+        setMetronomeModeSwipeOffset(0);
         return;
       }
       swipe.locked = true;
     }
 
-    event.preventDefault();
+    if (event.cancelable) event.preventDefault();
+    setMetronomeModeSwipeOffset(Math.max(-34, Math.min(34, deltaX * 0.34)));
   }, []);
 
   const handleMetronomeModeSwipeEnd = useCallback((event) => {
     const swipe = metronomeModeSwipeStartRef.current;
     metronomeModeSwipeStartRef.current = null;
+    setMetronomeModeSwipeActive(false);
+    setMetronomeModeSwipeOffset(0);
     if (!swipe) return;
 
     event.currentTarget.releasePointerCapture?.(swipe.pointerId);
@@ -9013,7 +9200,7 @@ function App() {
 
     const deltaX = event.clientX - swipe.x;
     const deltaY = event.clientY - swipe.y;
-    if (Math.abs(deltaX) < 54 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) return;
+    if (Math.abs(deltaX) < 38 || Math.abs(deltaX) < Math.abs(deltaY) * 1.08) return;
 
     changeMetronomeDisplayModeBySwipe(deltaX < 0 ? 1 : -1);
   }, [changeMetronomeDisplayModeBySwipe]);
@@ -9021,6 +9208,8 @@ function App() {
   const handleMetronomeModeSwipeCancel = useCallback((event) => {
     const swipe = metronomeModeSwipeStartRef.current;
     metronomeModeSwipeStartRef.current = null;
+    setMetronomeModeSwipeActive(false);
+    setMetronomeModeSwipeOffset(0);
     if (!swipe) return;
     event.currentTarget.releasePointerCapture?.(swipe.pointerId);
   }, []);
@@ -9029,12 +9218,8 @@ function App() {
     const touch = event.touches?.[0];
     if (!touch) return;
 
-    const bounds = event.currentTarget.getBoundingClientRect?.();
-    const surfaceWidth = bounds?.width ?? window.innerWidth ?? 0;
-    const localX = bounds ? touch.clientX - bounds.left : touch.clientX;
-    const edgeGuard = Math.max(24, surfaceWidth * 0.12);
-    if (localX < edgeGuard || localX > surfaceWidth - edgeGuard) return;
-
+    setMetronomeModeSwipeActive(true);
+    setMetronomeModeSwipeOffset(0);
     metronomeModeSwipeStartRef.current = {
       x: touch.clientX,
       y: touch.clientY,
@@ -9058,29 +9243,36 @@ function App() {
       if (absX < 10 && absY < 10) return;
       if (absY > absX * 1.18) {
         metronomeModeSwipeStartRef.current = { ...swipe, canceled: true };
+        setMetronomeModeSwipeActive(false);
+        setMetronomeModeSwipeOffset(0);
         return;
       }
       swipe.locked = true;
     }
 
     if (event.cancelable) event.preventDefault();
+    setMetronomeModeSwipeOffset(Math.max(-34, Math.min(34, deltaX * 0.34)));
   }, []);
 
   const handleMetronomeModeTouchEnd = useCallback((event) => {
     const touch = event.changedTouches?.[0];
     const swipe = metronomeModeSwipeStartRef.current;
     metronomeModeSwipeStartRef.current = null;
+    setMetronomeModeSwipeActive(false);
+    setMetronomeModeSwipeOffset(0);
     if (!touch || !swipe || swipe.canceled) return;
 
     const deltaX = touch.clientX - swipe.x;
     const deltaY = touch.clientY - swipe.y;
-    if (Math.abs(deltaX) < 36 || Math.abs(deltaX) < Math.abs(deltaY) * 1.1) return;
+    if (Math.abs(deltaX) < 38 || Math.abs(deltaX) < Math.abs(deltaY) * 1.08) return;
 
     changeMetronomeDisplayModeBySwipe(deltaX < 0 ? 1 : -1);
   }, [changeMetronomeDisplayModeBySwipe]);
 
   const handleMetronomeModeTouchCancel = useCallback(() => {
     metronomeModeSwipeStartRef.current = null;
+    setMetronomeModeSwipeActive(false);
+    setMetronomeModeSwipeOffset(0);
   }, []);
 
   const cycleStandaloneBeatState = useCallback((beatIndex) => {
@@ -9451,14 +9643,22 @@ function App() {
     appModeRef.current = APP_MODES.PRACTICE;
     setAppMode(APP_MODES.PRACTICE);
     setSelectedCategoryId("rhythm");
-    setPendingStageCardId(null);
+    setPendingStageCardId("rhythm");
+    switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
     setStage3StorageOpen(true);
+    if (typeof window !== "undefined") {
+      window.history.pushState(
+        { appRoute: APP_ROUTES.STAGE3, stage3StorageOpen: true },
+        "",
+        `${window.location.pathname}${window.location.search}${APP_ROUTES.STAGE3}`,
+      );
+    }
     enemiesRef.current = [];
     setEnemies([]);
     setBeat(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, setState, stopMic]);
+  }, [cancelCountInVoice, setState, stopMic, switchMetronomeScope]);
 
   const closeStage3StorageRoom = useCallback(() => {
     stage3StorageSwipeStartRef.current = null;
@@ -9468,7 +9668,8 @@ function App() {
     appModeRef.current = APP_MODES.PRACTICE;
     setAppMode(APP_MODES.PRACTICE);
     setSelectedCategoryId("rhythm");
-  }, []);
+    switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
+  }, [switchMetronomeScope]);
 
   const handleStage3StorageSwipeStart = useCallback((event) => {
     if (event.button != null && event.button !== 0) return;
@@ -9583,6 +9784,7 @@ function App() {
     setStage3StorageOpen(false);
     appModeRef.current = APP_MODES.METRONOME;
     setAppMode(APP_MODES.METRONOME);
+    switchMetronomeScope(METRONOME_SETTING_SCOPES.STANDALONE);
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
@@ -9601,7 +9803,7 @@ function App() {
     setStage3MeasureProgress(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, setState, stopMic]);
+  }, [cancelCountInVoice, setState, stopMic, switchMetronomeScope]);
 
   const showFretboardViewer = useCallback(() => {
     stopMic();
@@ -9673,6 +9875,23 @@ function App() {
   }, [selectedCategoryId]);
 
   useEffect(() => {
+    scopedMetronomeSettingsRef.current[activeMetronomeScopeRef.current] = {
+      bpm,
+      timeSignature: metronomeTimeSignature,
+      subdivision: metronomeSubdivision,
+      tone: metronomeTone,
+      accent: metronomeAccent,
+      countIn: metronomeCountIn,
+      countInBars: metronomeCountInBars,
+      beatPattern: normalizeMetronomeBeatPattern(metronomeBeatPattern, getTimeSignatureOption(metronomeTimeSignature).beats),
+    };
+  }, [bpm, metronomeAccent, metronomeBeatPattern, metronomeCountIn, metronomeCountInBars, metronomeSubdivision, metronomeTimeSignature, metronomeTone]);
+
+  useEffect(() => {
+    stage3StorageOpenRef.current = stage3StorageOpen;
+  }, [stage3StorageOpen]);
+
+  useEffect(() => {
     if (!utilityMenuOpen) return undefined;
     const handleKeyDown = (event) => {
       if (event.key === "Escape") setUtilityMenuOpen(false);
@@ -9711,6 +9930,11 @@ function App() {
       selectedCategoryIdRef.current = route.categoryId;
       setAppMode(route.appMode);
       setSelectedCategoryId(route.categoryId);
+      if (route.appMode === APP_MODES.METRONOME) {
+        switchMetronomeScope(METRONOME_SETTING_SCOPES.STANDALONE);
+      } else if (route.appMode === APP_MODES.PRACTICE) {
+        switchMetronomeScope(getMetronomeScopeForCategory(route.categoryId));
+      }
       setEnemies([]);
       enemiesRef.current = [];
       setShooterTargets([]);
@@ -9727,9 +9951,28 @@ function App() {
       setState(route.appMode === APP_MODES.SHOOTER && streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
     };
 
+    const handlePopState = () => {
+      if (!stage3StorageOpenRef.current) return;
+      stage3StorageSwipeStartRef.current = null;
+      stage3StorageOpenRef.current = false;
+      setStage3StorageSwipeActive(false);
+      setStage3StorageSwipeOffset(0);
+      setStage3StorageOpen(false);
+      appModeRef.current = APP_MODES.PRACTICE;
+      selectedCategoryIdRef.current = "rhythm";
+      setAppMode(APP_MODES.PRACTICE);
+      setSelectedCategoryId("rhythm");
+      setPendingStageCardId("rhythm");
+      switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
+    };
+
     window.addEventListener("hashchange", applyHashRoute);
-    return () => window.removeEventListener("hashchange", applyHashRoute);
-  }, [setState, stopMic]);
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("hashchange", applyHashRoute);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [getMetronomeScopeForCategory, setState, stopMic, switchMetronomeScope]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -11121,7 +11364,7 @@ function App() {
               </button>
             </div>
 
-            <section className="viewerMapCard" aria-label="전체 지판 음표" ref={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? chordViewerRef : null}>
+            <section className={`viewerMapCard viewerMapCard--${viewerMode}`} aria-label="전체 지판 음표" ref={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? chordViewerRef : null}>
               <div className="viewerMapHeader">
                 <div className="viewerMapHeaderTop">
                   <span>{viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "음표 위치" : viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "스케일 위치" : viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "참고지판" : "기준 지판"}</span>
@@ -11146,7 +11389,9 @@ function App() {
                   ...note,
                   label:
                     viewerMode === FRETBOARD_VIEWER_MODES.NOTE
-                      ? note.pitch ?? note.octaveNote ?? note.label ?? note.noteName
+                      ? viewerNoteFilter === "ALL"
+                        ? note.noteName ?? getPitchClass(note.pitch) ?? note.label
+                        : note.pitch ?? note.octaveNote ?? note.label ?? note.noteName
                       : viewerMode === FRETBOARD_VIEWER_MODES.CHORD && showChordFingeringGuide && note.finger
                         ? note.finger
                         : note.label,
@@ -11737,6 +11982,8 @@ function App() {
             onTouchEnd={handleMetronomeModeTouchEnd}
             onTouchMove={handleMetronomeModeTouchMove}
             onTouchStart={handleMetronomeModeTouchStart}
+            swipeActive={metronomeModeSwipeActive}
+            swipeOffset={metronomeModeSwipeOffset}
           />
 
           <div
@@ -12543,8 +12790,7 @@ function App() {
                 <div>
                   <div className="stage3ChartTitleRow">
                     <span className="stage3ChartTitleText">
-                      현재 진행중 지판
-                      {loadedStage3LibraryItem?.title ? ` - ${loadedStage3LibraryItem.title}` : ""}
+                      {loadedStage3LibraryItem?.title ?? selectedStage3LibraryItem?.title ?? "저장된 진행"}
                     </span>
                     <span className="stage3ChartStrumPreview">
                       <StrumPatternRows pattern={loadedStage3LibraryItem?.strum_pattern} />
@@ -12604,16 +12850,14 @@ function App() {
           </div>
 
           <div className="chordTransitionHud stage3ProgressHud">
-            <MetronomeTimeline
+            <BeatIndicator
               beat={beat}
               beatPattern={standaloneBeatPattern}
               beatsPerMeasure={metronomeBeatsPerMeasure}
               compact
-              currentLabel={`${bpm}`}
               isPlaying={gameState === GAME_STATES.PLAYING}
               onBeatClick={cycleStandaloneBeatState}
-              progress={stage3MeasureProgress}
-              runnerLabel={`${beat + 1}`}
+              label="리듬 코드 훈련 점자 메트로놈"
               timeSignature={metronomeTimeSignature}
             />
             <button
@@ -12667,7 +12911,7 @@ function App() {
                 type="button"
               >
                 <FolderOpen aria-hidden="true" size={14} />
-                <span>Library</span>
+                <span>저장실</span>
               </button>
             </div>
           </div>
@@ -12680,12 +12924,12 @@ function App() {
                 className="trainingMetronomePanel chordTransitionTempo"
                 countInEnabled={metronomeCountIn}
                 inputId="stage3-bpm-presets"
-                onAccentChange={setMetronomeAccent}
+                onAccentChange={changeTrainingMetronomeAccent}
                 onBpmChange={changeBpm}
                 onCountInChange={setMetronomeCountIn}
                 onRepeatChange={setRepeatPractice}
                 onSubdivisionChange={setMetronomeSubdivision}
-                onTimeSignatureChange={setMetronomeTimeSignature}
+                onTimeSignatureChange={changeTrainingMetronomeTimeSignature}
                 onToneChange={setMetronomeTone}
                 repeatEnabled={repeatPractice}
                 subdivision={metronomeSubdivision}
@@ -12803,12 +13047,12 @@ function App() {
                       className="trainingMetronomePanel referenceBpmControl"
                       countInEnabled={metronomeCountIn}
                       inputId="reference-bpm-presets"
-                      onAccentChange={setMetronomeAccent}
+                      onAccentChange={changeTrainingMetronomeAccent}
                       onBpmChange={changeBpm}
                       onCountInChange={setMetronomeCountIn}
                       onRepeatChange={setRepeatPractice}
                       onSubdivisionChange={setMetronomeSubdivision}
-                      onTimeSignatureChange={setMetronomeTimeSignature}
+                      onTimeSignatureChange={changeTrainingMetronomeTimeSignature}
                       onToneChange={setMetronomeTone}
                       repeatEnabled={repeatPractice}
                       subdivision={metronomeSubdivision}
