@@ -9151,13 +9151,18 @@ function App() {
   }, []);
 
   const handleMetronomeModeSwipeStart = useCallback((event) => {
+    if (event.pointerType === "touch") return;
+
     event.currentTarget.setPointerCapture?.(event.pointerId);
     setMetronomeModeSwipeActive(true);
     setMetronomeModeSwipeOffset(0);
     metronomeModeSwipeStartRef.current = {
       x: event.clientX,
       y: event.clientY,
+      lastX: event.clientX,
+      lastY: event.clientY,
       pointerId: event.pointerId,
+      source: "pointer",
       locked: false,
       canceled: false,
     };
@@ -9185,6 +9190,8 @@ function App() {
     }
 
     if (event.cancelable) event.preventDefault();
+    swipe.lastX = event.clientX;
+    swipe.lastY = event.clientY;
     setMetronomeModeSwipeOffset(Math.max(-34, Math.min(34, deltaX * 0.34)));
   }, []);
 
@@ -9198,9 +9205,11 @@ function App() {
     event.currentTarget.releasePointerCapture?.(swipe.pointerId);
     if (swipe.canceled) return;
 
-    const deltaX = event.clientX - swipe.x;
-    const deltaY = event.clientY - swipe.y;
-    if (Math.abs(deltaX) < 38 || Math.abs(deltaX) < Math.abs(deltaY) * 1.08) return;
+    const endX = typeof event.clientX === "number" ? event.clientX : swipe.lastX;
+    const endY = typeof event.clientY === "number" ? event.clientY : swipe.lastY;
+    const deltaX = endX - swipe.x;
+    const deltaY = endY - swipe.y;
+    if (Math.abs(deltaX) < 30 || Math.abs(deltaX) < Math.abs(deltaY) * 1.02) return;
 
     changeMetronomeDisplayModeBySwipe(deltaX < 0 ? 1 : -1);
   }, [changeMetronomeDisplayModeBySwipe]);
@@ -9223,7 +9232,10 @@ function App() {
     metronomeModeSwipeStartRef.current = {
       x: touch.clientX,
       y: touch.clientY,
+      lastX: touch.clientX,
+      lastY: touch.clientY,
       pointerId: null,
+      source: "touch",
       locked: false,
       canceled: false,
     };
@@ -9251,6 +9263,8 @@ function App() {
     }
 
     if (event.cancelable) event.preventDefault();
+    swipe.lastX = touch.clientX;
+    swipe.lastY = touch.clientY;
     setMetronomeModeSwipeOffset(Math.max(-34, Math.min(34, deltaX * 0.34)));
   }, []);
 
@@ -9262,9 +9276,11 @@ function App() {
     setMetronomeModeSwipeOffset(0);
     if (!touch || !swipe || swipe.canceled) return;
 
-    const deltaX = touch.clientX - swipe.x;
-    const deltaY = touch.clientY - swipe.y;
-    if (Math.abs(deltaX) < 38 || Math.abs(deltaX) < Math.abs(deltaY) * 1.08) return;
+    const endX = touch.clientX || swipe.lastX;
+    const endY = touch.clientY || swipe.lastY;
+    const deltaX = endX - swipe.x;
+    const deltaY = endY - swipe.y;
+    if (Math.abs(deltaX) < 30 || Math.abs(deltaX) < Math.abs(deltaY) * 1.02) return;
 
     changeMetronomeDisplayModeBySwipe(deltaX < 0 ? 1 : -1);
   }, [changeMetronomeDisplayModeBySwipe]);
