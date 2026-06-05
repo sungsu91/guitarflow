@@ -4536,7 +4536,7 @@ const LEGACY_PRACTICE_CATEGORIES = [
   },
   {
     id: "first-position",
-    title: "음 위치 익히기",
+    title: "단일 음 위치 익히기",
     subtitle: "0~3프렛 음 위치 훈련",
     notes: FIRST_POSITION_NOTES,
     sequence: FIRST_POSITION_SEQUENCE,
@@ -4558,7 +4558,7 @@ const LEGACY_PRACTICE_CATEGORIES = [
   {
     id: "rhythm",
     title: "코드 전환 훈련",
-    subtitle: "사용자 코드 진행 연습",
+    subtitle: "직접 설정한 코드 전환 훈련.",
     notes: OPEN_STRING_NOTES,
     sequence: ["E2", "E2", "A2", "A2", "D3", "D3", "G3", "B3", "E4"],
     modeLabel: "핵심 리듬",

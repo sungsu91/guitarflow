@@ -38566,3 +38566,83 @@ body {
   flex: 0 0 auto !important;
   white-space: nowrap !important;
 }
+
+/* Fretboard scale tab: keep custom dropdown panels anchored to their trigger buttons. */
+.fretboardViewerPanel .viewerModeControlSlot--scale,
+.fretboardViewerPanel .viewerModeControlSlot--scale .viewerSelectGrid,
+.fretboardViewerPanel .viewerModeControlSlot--scale .metronomeSelectControl {
+  overflow: visible !important;
+}
+
+.fretboardViewerPanel .viewerModeControlSlot--scale .metronomeSelectControl {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.fretboardViewerPanel .viewerModeControlSlot--scale .metronomeSelectControl.open {
+  z-index: 4700 !important;
+}
+
+.fretboardViewerPanel .viewerModeControlSlot--scale .metronomeSelectMenu,
+.fretboardViewerPanel .viewerModeControlSlot--scale .metronomeSelectMenu--twoColumn {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 0 !important;
+  width: fit-content !important;
+  min-width: 0 !important;
+  max-width: min(220px, calc(100vw - 36px)) !important;
+  max-height: 180px !important;
+  transform-origin: top center !important;
+  z-index: 4800 !important;
+}
+
+.fretboardViewerPanel .viewerModeControlSlot--scale .metronomeSelectMenu .metronomeSelectOption {
+  width: auto !important;
+  min-width: max-content !important;
+  padding-inline: 12px !important;
+}
+
+/* Options menu focus balance: storage a touch calmer, help guide more discoverable. */
+.utilityMenuPanel .utilityMenuList .utilityMenuItemPrimary {
+  border-color: rgba(217, 170, 85, 0.34) !important;
+  background:
+    radial-gradient(circle at 8% 20%, rgba(217, 170, 85, 0.14), transparent 34%),
+    linear-gradient(145deg, rgba(168, 116, 48, 0.18), rgba(12, 10, 8, 0.76)),
+    rgba(11, 13, 13, 0.94) !important;
+  box-shadow:
+    0 9px 18px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 244, 210, 0.08) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItemPrimary .utilityMenuIcon {
+  background: rgba(217, 170, 85, 0.12) !important;
+  box-shadow: 0 0 13px rgba(217, 170, 85, 0.12) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItem:nth-child(2) {
+  border-color: rgba(217, 170, 85, 0.34) !important;
+  background:
+    radial-gradient(circle at 8% 20%, rgba(217, 170, 85, 0.14), transparent 34%),
+    linear-gradient(145deg, rgba(168, 116, 48, 0.18), rgba(12, 10, 8, 0.76)),
+    rgba(11, 13, 13, 0.94) !important;
+  box-shadow:
+    0 9px 18px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 244, 210, 0.08) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItem:nth-child(2) .utilityMenuIcon {
+  border-color: rgba(217, 170, 85, 0.26) !important;
+  background: rgba(217, 170, 85, 0.12) !important;
+  color: rgba(241, 202, 122, 0.96) !important;
+  box-shadow: 0 0 13px rgba(217, 170, 85, 0.12) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItem:nth-child(2) .utilityMenuText strong {
+  color: rgba(255, 248, 232, 0.98) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItem:nth-child(2) .utilityMenuText small {
+  color: rgba(255, 237, 191, 0.78) !important;
+}
