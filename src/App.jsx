@@ -2617,10 +2617,6 @@ function StandaloneMetronomeVisual({
   onPointerDown,
   onPointerMove,
   onPointerUp,
-  onTouchCancel,
-  onTouchEnd,
-  onTouchMove,
-  onTouchStart,
   swipeActive = false,
   swipeOffset = 0,
 }) {
@@ -2647,10 +2643,6 @@ function StandaloneMetronomeVisual({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-      onTouchCancel={onTouchCancel}
-      onTouchEnd={onTouchEnd}
-      onTouchMove={onTouchMove}
-      onTouchStart={onTouchStart}
       style={{ "--metronome-mode-swipe-x": `${swipeOffset}px` }}
     >
       {selectedMode === "circle" ? (
@@ -9151,16 +9143,17 @@ function App() {
   }, []);
 
   const handleMetronomeModeSwipeStart = useCallback((event) => {
-    if (event.pointerType === "touch") return;
-
     event.currentTarget.setPointerCapture?.(event.pointerId);
     setMetronomeModeSwipeActive(true);
     setMetronomeModeSwipeOffset(0);
+    const now = performance.now();
     metronomeModeSwipeStartRef.current = {
       x: event.clientX,
       y: event.clientY,
       lastX: event.clientX,
       lastY: event.clientY,
+      startTime: now,
+      lastTime: now,
       pointerId: event.pointerId,
       source: "pointer",
       locked: false,
@@ -9192,6 +9185,7 @@ function App() {
     if (event.cancelable) event.preventDefault();
     swipe.lastX = event.clientX;
     swipe.lastY = event.clientY;
+    swipe.lastTime = performance.now();
     setMetronomeModeSwipeOffset(Math.max(-34, Math.min(34, deltaX * 0.34)));
   }, []);
 
@@ -9209,7 +9203,11 @@ function App() {
     const endY = typeof event.clientY === "number" ? event.clientY : swipe.lastY;
     const deltaX = endX - swipe.x;
     const deltaY = endY - swipe.y;
-    if (Math.abs(deltaX) < 30 || Math.abs(deltaX) < Math.abs(deltaY) * 1.02) return;
+    const elapsed = Math.max(1, performance.now() - (swipe.startTime ?? performance.now()));
+    const velocityX = Math.abs(deltaX) / elapsed;
+    const hasSwipeDistance = Math.abs(deltaX) >= 24;
+    const hasSwipeVelocity = Math.abs(deltaX) >= 16 && velocityX >= 0.28;
+    if ((!hasSwipeDistance && !hasSwipeVelocity) || Math.abs(deltaX) < Math.abs(deltaY) * 0.92) return;
 
     changeMetronomeDisplayModeBySwipe(deltaX < 0 ? 1 : -1);
   }, [changeMetronomeDisplayModeBySwipe]);
@@ -9221,80 +9219,15 @@ function App() {
     setMetronomeModeSwipeOffset(0);
     if (!swipe) return;
     event.currentTarget.releasePointerCapture?.(swipe.pointerId);
-  }, []);
-
-  const handleMetronomeModeTouchStart = useCallback((event) => {
-    const touch = event.touches?.[0];
-    if (!touch) return;
-
-    setMetronomeModeSwipeActive(true);
-    setMetronomeModeSwipeOffset(0);
-    metronomeModeSwipeStartRef.current = {
-      x: touch.clientX,
-      y: touch.clientY,
-      lastX: touch.clientX,
-      lastY: touch.clientY,
-      pointerId: null,
-      source: "touch",
-      locked: false,
-      canceled: false,
-    };
-  }, []);
-
-  const handleMetronomeModeTouchMove = useCallback((event) => {
-    const touch = event.touches?.[0];
-    const swipe = metronomeModeSwipeStartRef.current;
-    if (!touch || !swipe || swipe.canceled) return;
-
-    const deltaX = touch.clientX - swipe.x;
-    const deltaY = touch.clientY - swipe.y;
-    const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
-
-    if (!swipe.locked) {
-      if (absX < 10 && absY < 10) return;
-      if (absY > absX * 1.18) {
-        metronomeModeSwipeStartRef.current = { ...swipe, canceled: true };
-        setMetronomeModeSwipeActive(false);
-        setMetronomeModeSwipeOffset(0);
-        return;
-      }
-      swipe.locked = true;
-    }
-
-    if (event.cancelable) event.preventDefault();
-    swipe.lastX = touch.clientX;
-    swipe.lastY = touch.clientY;
-    setMetronomeModeSwipeOffset(Math.max(-34, Math.min(34, deltaX * 0.34)));
-  }, []);
-
-  const handleMetronomeModeTouchEnd = useCallback((event) => {
-    const touch = event.changedTouches?.[0];
-    const swipe = metronomeModeSwipeStartRef.current;
-    metronomeModeSwipeStartRef.current = null;
-    setMetronomeModeSwipeActive(false);
-    setMetronomeModeSwipeOffset(0);
-    if (!touch || !swipe || swipe.canceled) return;
-
-    const endX = touch.clientX || swipe.lastX;
-    const endY = touch.clientY || swipe.lastY;
-    const deltaX = endX - swipe.x;
-    const deltaY = endY - swipe.y;
-    if (Math.abs(deltaX) < 30 || Math.abs(deltaX) < Math.abs(deltaY) * 1.02) return;
-
-    changeMetronomeDisplayModeBySwipe(deltaX < 0 ? 1 : -1);
-  }, [changeMetronomeDisplayModeBySwipe]);
-
-  const handleMetronomeModeTouchCancel = useCallback(() => {
-    const swipe = metronomeModeSwipeStartRef.current;
-    metronomeModeSwipeStartRef.current = null;
-    setMetronomeModeSwipeActive(false);
-    setMetronomeModeSwipeOffset(0);
     if (!swipe || swipe.canceled) return;
 
     const deltaX = (swipe.lastX ?? swipe.x) - swipe.x;
     const deltaY = (swipe.lastY ?? swipe.y) - swipe.y;
-    if (Math.abs(deltaX) < 30 || Math.abs(deltaX) < Math.abs(deltaY) * 1.02) return;
+    const elapsed = Math.max(1, (swipe.lastTime ?? performance.now()) - (swipe.startTime ?? performance.now()));
+    const velocityX = Math.abs(deltaX) / elapsed;
+    const hasSwipeDistance = Math.abs(deltaX) >= 24;
+    const hasSwipeVelocity = Math.abs(deltaX) >= 16 && velocityX >= 0.28;
+    if ((!hasSwipeDistance && !hasSwipeVelocity) || Math.abs(deltaX) < Math.abs(deltaY) * 0.92) return;
 
     changeMetronomeDisplayModeBySwipe(deltaX < 0 ? 1 : -1);
   }, [changeMetronomeDisplayModeBySwipe]);
@@ -12002,10 +11935,6 @@ function App() {
             onPointerDown={handleMetronomeModeSwipeStart}
             onPointerMove={handleMetronomeModeSwipeMove}
             onPointerUp={handleMetronomeModeSwipeEnd}
-            onTouchCancel={handleMetronomeModeTouchCancel}
-            onTouchEnd={handleMetronomeModeTouchEnd}
-            onTouchMove={handleMetronomeModeTouchMove}
-            onTouchStart={handleMetronomeModeTouchStart}
             swipeActive={metronomeModeSwipeActive}
             swipeOffset={metronomeModeSwipeOffset}
           />
