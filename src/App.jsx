@@ -9137,9 +9137,42 @@ function App() {
       const nextIndex = modeCount > 0 ? (safeIndex + direction + modeCount) % modeCount : safeIndex;
       const nextMode = METRONOME_DISPLAY_MODES[nextIndex]?.id ?? currentMode;
       if (nextMode === currentMode) return currentMode;
+      console.log("[metro swipe:commit]", {
+        from: currentMode,
+        to: nextMode,
+        direction,
+      });
       metronomeModeSwipeChangedAtRef.current = performance.now();
       return nextMode;
     });
+  }, []);
+
+  const getMetronomeModeSwipeResult = useCallback((swipe, event, source) => {
+    const now = performance.now();
+    const eventX = typeof event.clientX === "number" ? event.clientX : swipe.lastX;
+    const eventY = typeof event.clientY === "number" ? event.clientY : swipe.lastY;
+    const eventDeltaX = eventX - swipe.x;
+    const lastDeltaX = (swipe.lastX ?? eventX) - swipe.x;
+    const finalDeltaX = Math.abs(lastDeltaX) > Math.abs(eventDeltaX) ? lastDeltaX : eventDeltaX;
+    const finalDeltaY = ((swipe.lastY ?? eventY) - swipe.y) || (eventY - swipe.y);
+    const elapsed = Math.max(1, (swipe.lastTime ?? now) - (swipe.startTime ?? now));
+    const finalVelocity = Math.abs(finalDeltaX) / elapsed;
+    const threshold = 36;
+    const rawPass =
+      (Math.abs(finalDeltaX) >= threshold || (Math.abs(finalDeltaX) >= 22 && finalVelocity >= 0.28)) &&
+      Math.abs(finalDeltaX) >= Math.abs(finalDeltaY) * 0.92;
+    const pass = !swipe.canceled && rawPass;
+
+    console.log(`[metro swipe:${source}]`, {
+      finalDeltaX,
+      finalVelocity,
+      threshold,
+      pass,
+      canceled: swipe.canceled,
+      pointerType: event.pointerType,
+    });
+
+    return { finalDeltaX, pass };
   }, []);
 
   const handleMetronomeModeSwipeStart = useCallback((event) => {
@@ -9159,6 +9192,10 @@ function App() {
       locked: false,
       canceled: false,
     };
+    console.log("[metro swipe:start]", {
+      pointerType: event.pointerType,
+      startX: event.clientX,
+    });
   }, []);
 
   const handleMetronomeModeSwipeMove = useCallback((event) => {
@@ -9174,6 +9211,12 @@ function App() {
       if (absX < 10 && absY < 10) return;
       if (absY > absX * 1.18) {
         metronomeModeSwipeStartRef.current = { ...swipe, canceled: true };
+        console.log("[metro swipe:cancel]", {
+          reason: "vertical",
+          deltaX,
+          deltaY,
+          pointerType: event.pointerType,
+        });
         event.currentTarget.releasePointerCapture?.(swipe.pointerId);
         setMetronomeModeSwipeActive(false);
         setMetronomeModeSwipeOffset(0);
@@ -9187,50 +9230,44 @@ function App() {
     swipe.lastY = event.clientY;
     swipe.lastTime = performance.now();
     setMetronomeModeSwipeOffset(Math.max(-34, Math.min(34, deltaX * 0.34)));
+    console.log("[metro swipe:move]", {
+      deltaX,
+      velocity: Math.abs(deltaX) / Math.max(1, swipe.lastTime - (swipe.startTime ?? swipe.lastTime)),
+      threshold: 36,
+      pointerType: event.pointerType,
+    });
   }, []);
 
   const handleMetronomeModeSwipeEnd = useCallback((event) => {
     const swipe = metronomeModeSwipeStartRef.current;
-    metronomeModeSwipeStartRef.current = null;
-    setMetronomeModeSwipeActive(false);
-    setMetronomeModeSwipeOffset(0);
     if (!swipe) return;
 
     event.currentTarget.releasePointerCapture?.(swipe.pointerId);
-    if (swipe.canceled) return;
+    const result = getMetronomeModeSwipeResult(swipe, event, "end");
+    metronomeModeSwipeStartRef.current = null;
+    setMetronomeModeSwipeActive(false);
+    setMetronomeModeSwipeOffset(0);
+    if (!result.pass) return;
 
-    const endX = typeof event.clientX === "number" ? event.clientX : swipe.lastX;
-    const endY = typeof event.clientY === "number" ? event.clientY : swipe.lastY;
-    const deltaX = endX - swipe.x;
-    const deltaY = endY - swipe.y;
-    const elapsed = Math.max(1, performance.now() - (swipe.startTime ?? performance.now()));
-    const velocityX = Math.abs(deltaX) / elapsed;
-    const hasSwipeDistance = Math.abs(deltaX) >= 24;
-    const hasSwipeVelocity = Math.abs(deltaX) >= 16 && velocityX >= 0.28;
-    if ((!hasSwipeDistance && !hasSwipeVelocity) || Math.abs(deltaX) < Math.abs(deltaY) * 0.92) return;
-
-    changeMetronomeDisplayModeBySwipe(deltaX < 0 ? 1 : -1);
-  }, [changeMetronomeDisplayModeBySwipe]);
+    changeMetronomeDisplayModeBySwipe(result.finalDeltaX < 0 ? 1 : -1);
+  }, [changeMetronomeDisplayModeBySwipe, getMetronomeModeSwipeResult]);
 
   const handleMetronomeModeSwipeCancel = useCallback((event) => {
     const swipe = metronomeModeSwipeStartRef.current;
+    if (!swipe) return;
+    event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+    const result = getMetronomeModeSwipeResult(swipe, event, "cancel");
+    console.log("[metro swipe:pointercancel]", {
+      pass: result.pass,
+      pointerType: event.pointerType,
+    });
     metronomeModeSwipeStartRef.current = null;
     setMetronomeModeSwipeActive(false);
     setMetronomeModeSwipeOffset(0);
-    if (!swipe) return;
-    event.currentTarget.releasePointerCapture?.(swipe.pointerId);
-    if (!swipe || swipe.canceled) return;
+    if (!result.pass) return;
 
-    const deltaX = (swipe.lastX ?? swipe.x) - swipe.x;
-    const deltaY = (swipe.lastY ?? swipe.y) - swipe.y;
-    const elapsed = Math.max(1, (swipe.lastTime ?? performance.now()) - (swipe.startTime ?? performance.now()));
-    const velocityX = Math.abs(deltaX) / elapsed;
-    const hasSwipeDistance = Math.abs(deltaX) >= 24;
-    const hasSwipeVelocity = Math.abs(deltaX) >= 16 && velocityX >= 0.28;
-    if ((!hasSwipeDistance && !hasSwipeVelocity) || Math.abs(deltaX) < Math.abs(deltaY) * 0.92) return;
-
-    changeMetronomeDisplayModeBySwipe(deltaX < 0 ? 1 : -1);
-  }, [changeMetronomeDisplayModeBySwipe]);
+    changeMetronomeDisplayModeBySwipe(result.finalDeltaX < 0 ? 1 : -1);
+  }, [changeMetronomeDisplayModeBySwipe, getMetronomeModeSwipeResult]);
 
   const cycleStandaloneBeatState = useCallback((beatIndex) => {
     if (performance.now() - metronomeModeSwipeChangedAtRef.current < 260) return;
