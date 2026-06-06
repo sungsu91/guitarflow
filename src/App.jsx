@@ -63,6 +63,17 @@ function getPitchClass(pitch) {
   return pitch?.replace(/\d+/g, "") ?? "";
 }
 
+function getPitchOctave(pitch) {
+  const match = /\d+/.exec(pitch ?? "");
+  return match ? Number(match[0]) : null;
+}
+
+function isSamePitchClass(a, b) {
+  const pitchClassA = getPitchClass(a);
+  const pitchClassB = getPitchClass(b);
+  return Boolean(pitchClassA && pitchClassB && pitchClassA === pitchClassB);
+}
+
 function getChordDisplayNoteName(noteName) {
   return {
     "A#": "Bb",
@@ -1301,6 +1312,29 @@ const FEEL_RECORDER_STORAGE_KEY = "rifflab-feel-recorder-patterns";
 const METRONOME_PRESET_STORAGE_KEY = "rifflab-metronome-presets-v1";
 const METRONOME_TRACKER_PROGRESS_STORAGE_KEY = "rifflab-metronome-tracker-progress-v1";
 const METRONOME_DISPLAY_MODE_STORAGE_KEY = "rifflabMetronomeMode";
+const APP_THEME_STORAGE_KEY = "rifflabThemeMode";
+const APP_THEMES = {
+  BRAND: "brand",
+  DARK: "dark",
+  LIGHT: "light",
+};
+const APP_THEME_OPTIONS = [
+  {
+    id: APP_THEMES.BRAND,
+    label: "브랜드",
+    description: "RIFFLAB 기본 테마 · 골드/브론즈 기반 · 브랜드 감성과 몰입감 중심",
+  },
+  {
+    id: APP_THEMES.DARK,
+    label: "다크",
+    description: "검정 배경 · 흰색 텍스트 · 가독성 중심",
+  },
+  {
+    id: APP_THEMES.LIGHT,
+    label: "화이트",
+    description: "흰색 배경 · 검정 텍스트 · 가독성 중심",
+  },
+];
 const FEEL_RECORDER_LONG_PRESS_MS = 420;
 const FEEL_RECORDER_MAX_EVENTS = 24;
 const FEEL_RECORDER_DEFAULT_NAME = "My Feel";
@@ -1442,6 +1476,14 @@ function getTwoColumnVerticalFlowOptions(options) {
 function getStoredMetronomeDisplayMode() {
   if (typeof window === "undefined") return "dot";
   return normalizeMetronomeDisplayMode(window.localStorage.getItem(METRONOME_DISPLAY_MODE_STORAGE_KEY));
+}
+
+function normalizeAppTheme(value) {
+  return APP_THEME_OPTIONS.some((option) => option.id === value) ? value : APP_THEMES.BRAND;
+}
+
+function getStoredAppTheme() {
+  return APP_THEMES.BRAND;
 }
 
 function normalizeMetronomePreset(preset, index = 0) {
@@ -2315,9 +2357,71 @@ const DESIGN_LAB_SECTIONS = [
   { id: "logo", label: "로고" },
   { id: "app-icon", label: "앱아이콘" },
   { id: "character", label: "Guitar" },
-  { id: "monster", label: "몬스터" },
   { id: "test", label: "TEST" },
   { id: "archive", label: "아카이브" },
+];
+const SHOOTER_HIT_SOUND_CANDIDATES = [
+  {
+    id: "chime-crash-clean",
+    label: "챙 A",
+    title: "챙-팍",
+    description: "밝은 금속성 + 짧은 클랩 조합",
+    chime: [2850, 4150, 6120],
+    clap: 3300,
+    hat: 8400,
+    sparkle: 10400,
+    tail: 0.055,
+    chimeLevel: 0.22,
+    clapLevel: 0.34,
+    hatLevel: 0.18,
+    sparkleLevel: 0.08,
+  },
+  {
+    id: "chime-crash-bright",
+    label: "챙 B",
+    title: "쨍그랑",
+    description: "하이햇과 스파클이 더 화려한 후보",
+    chime: [3200, 5200, 7600],
+    clap: 3800,
+    hat: 9600,
+    sparkle: 11800,
+    tail: 0.065,
+    chimeLevel: 0.24,
+    clapLevel: 0.28,
+    hatLevel: 0.24,
+    sparkleLevel: 0.12,
+  },
+  {
+    id: "chime-crash-clap",
+    label: "챙 C",
+    title: "클랩 챙",
+    description: "클랩을 중심으로 금속음을 얹은 후보",
+    chime: [2450, 3900, 6900],
+    clap: 3000,
+    hat: 7200,
+    sparkle: 9800,
+    tail: 0.052,
+    chimeLevel: 0.18,
+    clapLevel: 0.46,
+    hatLevel: 0.14,
+    sparkleLevel: 0.07,
+  },
+  {
+    id: "chime-crash-combo",
+    label: "챙 D",
+    title: "콤보 챙그랑",
+    description: "콤보용으로 더 넓고 화려한 후보",
+    chime: [2800, 4700, 8100, 12400],
+    clap: 3600,
+    hat: 10200,
+    sparkle: 13200,
+    tail: 0.07,
+    chimeLevel: 0.26,
+    clapLevel: 0.34,
+    hatLevel: 0.24,
+    sparkleLevel: 0.14,
+    accent: true,
+  },
 ];
 const SHOOTER_PLAYER_STORAGE_KEY = "rifflabSelectedPlayer";
 const SHOOTER_GUITAR_STORAGE_KEY = "rifflabSelectedGuitar";
@@ -2500,22 +2604,6 @@ const DEFAULT_SHOOTER_PLAYER_SLOTS = {
   slot3: "electric-lp",
 };
 const SHOOTER_PLAYER_SLOT_KEYS = ["slot1", "slot2", "slot3"];
-const MONSTER_LAB_GROUPS = [
-  { id: "quarter", title: "4분음표 몬스터", symbol: "♩" },
-  { id: "eighth", title: "8분음표 몬스터", symbol: "♪" },
-  { id: "sixteenth", title: "16분음표 몬스터", symbol: "♬" },
-  { id: "rest", title: "쉼표 몬스터", symbol: "𝄽" },
-  { id: "special", title: "특수 노트 몬스터", symbol: "✦" },
-];
-const MONSTER_LAB_VARIANTS = MONSTER_LAB_GROUPS.flatMap((group) =>
-  Array.from({ length: 10 }, (_, index) => ({
-    id: `${group.id}-${index + 1}`,
-    groupId: group.id,
-    title: `${group.title} V${index + 1}`,
-    symbol: group.symbol,
-    variant: index + 1,
-  }))
-);
 function MetronomeVisualLabDot({ activeBeat, beatPattern, isPlaying }) {
   return (
     <div className="metronomeVisualLabDot" aria-label="Dot Mode visual preview">
@@ -4298,24 +4386,6 @@ function GuitarLabPreview({ variant, active = false }) {
   );
 }
 
-function MonsterLabPreview({ monster }) {
-  const tone = (monster.variant - 1) % 10;
-  return (
-    <div className={`monsterPreview monsterPreview--${monster.groupId} monsterPreview--v${tone + 1}`} aria-label={`${monster.title} 미리보기`}>
-      <span className="monsterPreviewEar monsterPreviewEar--left" aria-hidden="true" />
-      <span className="monsterPreviewEar monsterPreviewEar--right" aria-hidden="true" />
-      <span className="monsterPreviewHorn monsterPreviewHorn--left" aria-hidden="true" />
-      <span className="monsterPreviewHorn monsterPreviewHorn--right" aria-hidden="true" />
-      <span className="monsterPreviewCore">
-        <i className="monsterPreviewEyes" aria-hidden="true" />
-        <b>{monster.symbol}</b>
-        <small>{monster.groupId === "special" ? "FX" : monster.groupId === "rest" ? "REST" : "NOTE"}</small>
-      </span>
-      <span className="monsterPreviewMouth" aria-hidden="true" />
-    </div>
-  );
-}
-
 function getTrainingDetailTitle(category) {
   const fallbackOrder = {
     "first-position": 1,
@@ -4439,7 +4509,17 @@ const PERFECT_WINDOW_MS = 55;
 const HIT_LINE_PERCENT = 88;
 const SHOOTER_LIFE_LINE_PERCENT = 86;
 const SHOOTER_TARGET_HIT_EFFECT_MS = 250;
-const SHOOTER_PROJECTILE_MS = 190;
+const SHOOTER_PROJECTILE_MS = 540;
+const SHOOTER_PROJECTILE_CONTACT_HOLD_MS = 58;
+const SHOOTER_EMPTY_REFILL_MS = 420;
+const SHOOTER_TARGET_HITBOX = { width: 10.6, height: 8.8 };
+const SHOOTER_PROJECTILE_HITBOX = { width: 6.4, height: 7.2 };
+const MIC_READ_INTERVAL_MS = 33;
+const MIC_ANALYSIS_INTERVAL_MS = 34;
+const MIC_DISPLAY_UPDATE_MS = 100;
+const MIC_LOW_SIGNAL_DISPLAY_UPDATE_MS = 120;
+const MIC_FFT_SIZE_DESKTOP = 4096;
+const MIC_FFT_SIZE_MOBILE = 2048;
 const NOTE_SIZE = 36;
 const HIT_ZONE_SIZE = NOTE_SIZE;
 const MIN_FREQ = 75;
@@ -4995,37 +5075,34 @@ const SCALE_DIRECTION_OPTIONS = [
 ];
 
 const SHOOTER_LEVELS = [
-  { name: "레벨 1", unlockAt: 0, poolRatio: 0.34, durationBeats: 24, spawnGapBeats: 5.2, randomness: 0.28, jumpBias: 0.12 },
-  { name: "레벨 2", unlockAt: 8, poolRatio: 0.55, durationBeats: 22, spawnGapBeats: 4.35, randomness: 0.48, jumpBias: 0.28 },
-  { name: "레벨 3", unlockAt: 20, poolRatio: 0.78, durationBeats: 20, spawnGapBeats: 3.55, randomness: 0.66, jumpBias: 0.48 },
-  { name: "레벨 4", unlockAt: 38, poolRatio: 1, durationBeats: 18, spawnGapBeats: 2.85, randomness: 0.82, jumpBias: 0.66 },
-  { name: "레벨 5", unlockAt: 62, poolRatio: 1, durationBeats: 16, spawnGapBeats: 2.25, randomness: 0.94, jumpBias: 0.82 },
+  { name: "레벨 1", unlockAt: 0, poolRatio: 0.34, randomness: 0.28, jumpBias: 0.12 },
+  { name: "레벨 2", unlockAt: 8, poolRatio: 0.55, randomness: 0.48, jumpBias: 0.28 },
+  { name: "레벨 3", unlockAt: 20, poolRatio: 0.78, randomness: 0.66, jumpBias: 0.48 },
+  { name: "레벨 4", unlockAt: 38, poolRatio: 1, randomness: 0.82, jumpBias: 0.66 },
+  { name: "레벨 5", unlockAt: 62, poolRatio: 1, randomness: 0.94, jumpBias: 0.82 },
 ];
 const SHOOTER_MAX_LIVES = 3;
 const SHOOTER_DIFFICULTIES = {
   EASY: "easy",
-  HARD: "hard",
+  NORMAL: "normal",
+  DIFFICULT: "difficult",
 };
 const SHOOTER_DIFFICULTY_OPTIONS = [
-  { id: SHOOTER_DIFFICULTIES.EASY, label: "Easy", hint: "개방현부터 천천히 확장" },
-  { id: SHOOTER_DIFFICULTIES.HARD, label: "Hard", hint: "넓은 음역과 높은 생성 빈도" },
+  { id: SHOOTER_DIFFICULTIES.EASY, label: "쉬움", hint: "7.2초 낙하 · 1.8초 생성" },
+  { id: SHOOTER_DIFFICULTIES.NORMAL, label: "보통", hint: "5.8초 낙하 · 1.4초 생성" },
+  { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "4.3초 낙하 · 1.0초 생성" },
 ];
-const SHOOTER_EASY_PHASES = [
-  { label: "개방현", minMs: 0, maxFret: 0, maxTargets: 1, poolRatioCap: 0.34, spawnGapMultiplier: 1.26, durationMultiplier: 0.94, randomnessBonus: -0.12, jumpBiasBonus: -0.1 },
-  { label: "0~3프렛", minMs: 60_000, maxFret: 3, maxTargets: 4, poolRatioCap: 0.55, spawnGapMultiplier: 1.08, durationMultiplier: 0.92, randomnessBonus: -0.06, jumpBiasBonus: -0.04 },
-  { label: "0~5프렛", minMs: 180_000, maxFret: 5, maxTargets: 5, poolRatioCap: 0.78, spawnGapMultiplier: 0.96, durationMultiplier: 0.9, randomnessBonus: 0, jumpBiasBonus: 0 },
-  { label: "Hard 접근", minMs: 300_000, maxFret: 12, maxTargets: 6, poolRatioCap: 1, spawnGapMultiplier: 0.84, durationMultiplier: 0.88, randomnessBonus: 0.08, jumpBiasBonus: 0.06 },
-];
-const SHOOTER_HARD_PHASE = {
-  label: "전 포지션",
-  maxFret: 12,
-  maxTargets: 8,
-  poolRatioCap: 1,
-  spawnGapMultiplier: 0.72,
-  durationMultiplier: 0.88,
-  randomnessBonus: 0.22,
-  jumpBiasBonus: 0.22,
+const SHOOTER_DIFFICULTY_PACING = {
+  [SHOOTER_DIFFICULTIES.EASY]: { durationMs: 7200, spawnGapMinMs: 1800, spawnGapMaxMs: 1800, maxTargets: 3 },
+  [SHOOTER_DIFFICULTIES.NORMAL]: { durationMs: 5760, spawnGapMinMs: 1400, spawnGapMaxMs: 1400, maxTargets: 4 },
+  [SHOOTER_DIFFICULTIES.DIFFICULT]: { durationMs: 4320, spawnGapMinMs: 1000, spawnGapMaxMs: 1000, maxTargets: 4 },
 };
+const SHOOTER_EASY_PHASES = [
+  { label: "개방현", minMs: 0, maxFret: 0, poolRatioCap: 0.34, randomnessBonus: -0.12, jumpBiasBonus: -0.1 },
+  { label: "0~3프렛", minMs: 60_000, maxFret: 3, poolRatioCap: 0.55, randomnessBonus: -0.06, jumpBiasBonus: -0.04 },
+  { label: "0~5프렛", minMs: 180_000, maxFret: 5, poolRatioCap: 0.78, randomnessBonus: 0, jumpBiasBonus: 0 },
+  { label: "전 포지션", minMs: 300_000, maxFret: 12, poolRatioCap: 1, randomnessBonus: 0.08, jumpBiasBonus: 0.06 },
+];
 const SHOOTER_RECORDS_STORAGE_KEY = "rifflabShooterRecords";
 
 function getDefaultShooterDifficultyRecord() {
@@ -5052,10 +5129,9 @@ function getDefaultShooterRecords() {
       shots: 0,
       hits: 0,
     },
-    difficulty: {
-      [SHOOTER_DIFFICULTIES.EASY]: getDefaultShooterDifficultyRecord(),
-      [SHOOTER_DIFFICULTIES.HARD]: getDefaultShooterDifficultyRecord(),
-    },
+    difficulty: Object.fromEntries(
+      SHOOTER_DIFFICULTY_OPTIONS.map((option) => [option.id, getDefaultShooterDifficultyRecord()]),
+    ),
     recent: [],
   };
 }
@@ -5079,16 +5155,15 @@ function normalizeShooterRecords(records) {
       shots: Math.max(0, Number(safeRecords.totals?.shots) || 0),
       hits: Math.max(0, Number(safeRecords.totals?.hits) || 0),
     },
-    difficulty: {
-      [SHOOTER_DIFFICULTIES.EASY]: {
-        ...fallback.difficulty[SHOOTER_DIFFICULTIES.EASY],
-        ...(safeRecords.difficulty?.[SHOOTER_DIFFICULTIES.EASY] ?? {}),
-      },
-      [SHOOTER_DIFFICULTIES.HARD]: {
-        ...fallback.difficulty[SHOOTER_DIFFICULTIES.HARD],
-        ...(safeRecords.difficulty?.[SHOOTER_DIFFICULTIES.HARD] ?? {}),
-      },
-    },
+    difficulty: Object.fromEntries(
+      SHOOTER_DIFFICULTY_OPTIONS.map((option) => [
+        option.id,
+        {
+          ...fallback.difficulty[option.id],
+          ...(safeRecords.difficulty?.[option.id] ?? {}),
+        },
+      ]),
+    ),
     recent: Array.isArray(safeRecords.recent) ? safeRecords.recent.slice(0, 10) : [],
   };
 }
@@ -5255,8 +5330,24 @@ function getShooterLevel(hitCount) {
 }
 
 function getShooterDifficultyPhase(difficulty, elapsedMs = 0) {
-  if (difficulty === SHOOTER_DIFFICULTIES.HARD) return SHOOTER_HARD_PHASE;
   return [...SHOOTER_EASY_PHASES].reverse().find((phase) => elapsedMs >= phase.minMs) ?? SHOOTER_EASY_PHASES[0];
+}
+
+function getShooterDifficultyPacing(difficulty) {
+  return SHOOTER_DIFFICULTY_PACING[difficulty] ?? SHOOTER_DIFFICULTY_PACING[SHOOTER_DIFFICULTIES.EASY];
+}
+
+function getShooterTargetDuration(difficulty) {
+  const pacing = getShooterDifficultyPacing(difficulty);
+  if (pacing.durationMsMin && pacing.durationMsMax) {
+    return pacing.durationMsMin + Math.random() * (pacing.durationMsMax - pacing.durationMsMin);
+  }
+  return pacing.durationMs;
+}
+
+function getShooterSpawnGap(difficulty) {
+  const pacing = getShooterDifficultyPacing(difficulty);
+  return pacing.spawnGapMinMs + Math.random() * (pacing.spawnGapMaxMs - pacing.spawnGapMinMs);
 }
 
 function getShooterTargetYAt(target, now = 0) {
@@ -5267,15 +5358,31 @@ function getShooterTargetYAt(target, now = 0) {
   return 8 + progress * 80;
 }
 
+function getShooterHitboxContact(target, startX, startY, targetY) {
+  const targetHitbox = target?.hitbox ?? SHOOTER_TARGET_HITBOX;
+  const combinedRadiusX = (Number(targetHitbox.width) + SHOOTER_PROJECTILE_HITBOX.width) / 2;
+  const combinedRadiusY = (Number(targetHitbox.height) + SHOOTER_PROJECTILE_HITBOX.height) / 2;
+  const dx = startX - target.x;
+  const dy = startY - targetY;
+  const centerDistance = Math.hypot(dx, dy) || 1;
+  const ellipseDistance = Math.sqrt((dx / combinedRadiusX) ** 2 + (dy / combinedRadiusY) ** 2) || 1;
+  const edgeScale = Math.min(1, 1 / ellipseDistance);
+  const contactX = target.x + dx * edgeScale;
+  const contactY = targetY + dy * edgeScale;
+  return {
+    x: contactX,
+    y: contactY,
+    durationRatio: Math.max(0.36, Math.min(1, Math.hypot(startX - contactX, startY - contactY) / centerDistance)),
+  };
+}
+
 function getShooterEffectiveLevel(level, difficulty, elapsedMs = 0) {
   const phase = getShooterDifficultyPhase(difficulty, elapsedMs);
   return {
     ...level,
     phaseLabel: phase.label,
-    maxTargets: phase.maxTargets,
+    maxTargets: getShooterDifficultyPacing(difficulty).maxTargets,
     poolRatio: Math.min(phase.poolRatioCap, level.poolRatio),
-    durationBeats: Math.max(10, level.durationBeats * phase.durationMultiplier),
-    spawnGapBeats: Math.max(1.45, level.spawnGapBeats * phase.spawnGapMultiplier),
     randomness: clampValue(level.randomness + phase.randomnessBonus, 0.12, 1),
     jumpBias: clampValue(level.jumpBias + phase.jumpBiasBonus, 0.04, 1),
   };
@@ -5287,17 +5394,23 @@ function uniqNotesByPitch(notes) {
     .sort((a, b) => a.frequency - b.frequency || b.stringNumber - a.stringNumber || a.fretNumber - b.fretNumber);
 }
 
-function getShooterDifficultyNotes(notes, difficulty, elapsedMs = 0, selectedBlock = null) {
+function getShooterDifficultyNotes(notes, difficulty, elapsedMs = 0, selectedBlock = null, spawnedCount = 0) {
   const phase = getShooterDifficultyPhase(difficulty, elapsedMs);
   const baseNotes = uniqNotesByPitch(notes?.length ? notes : FIRST_POSITION_NOTES);
-  if (difficulty === SHOOTER_DIFFICULTIES.HARD) {
-    return uniqNotesByPitch([
-      ...ALL_PRACTICE_NOTES,
-      ...(selectedBlock?.notes?.length ? selectedBlock.notes : []),
-      ...baseNotes,
-    ]);
-  }
   const lowPositionNotes = uniqNotesByPitch([...OPEN_STRING_NOTES, ...FIRST_POSITION_NOTES, ...baseNotes]);
+  if (difficulty === SHOOTER_DIFFICULTIES.EASY) {
+    const maxFret = spawnedCount >= 5 ? 3 : 1;
+    const easyNotes = lowPositionNotes.filter((note) => Number(note.fretNumber ?? 0) <= maxFret);
+    return easyNotes.length ? easyNotes : OPEN_STRING_NOTES;
+  }
+  if (difficulty === SHOOTER_DIFFICULTIES.NORMAL) {
+    const normalNotes = uniqNotesByPitch([...lowPositionNotes, ...baseNotes]);
+    return normalNotes.length ? normalNotes : lowPositionNotes;
+  }
+  if (difficulty === SHOOTER_DIFFICULTIES.DIFFICULT) {
+    const hardNotes = uniqNotesByPitch([...lowPositionNotes, ...baseNotes, ...NOTES]);
+    return hardNotes.length ? hardNotes : lowPositionNotes;
+  }
   const phaseNotes = lowPositionNotes.filter((note) => Number(note.fretNumber ?? 0) <= phase.maxFret);
   return phaseNotes.length ? phaseNotes : OPEN_STRING_NOTES;
 }
@@ -5348,9 +5461,13 @@ function pickShooterNote(pool, previousNote, level) {
     const easyWeight = Math.max(0.25, usablePool.length - index);
     const jumpWeight = 1 + movementScore * level.jumpBias;
     const randomWeight = 0.5 + level.randomness;
+    const samePitchClassPenalty = getPitchClass(note.pitch) === getPitchClass(previousNote?.pitch) ? 0.58 : 1;
+    const noteOctave = note.octave ?? getPitchOctave(note.pitch);
+    const previousOctave = previousNote?.octave ?? getPitchOctave(previousNote?.pitch);
+    const sameOctavePenalty = noteOctave != null && noteOctave === previousOctave ? 0.78 : 1.12;
     return {
       note,
-      weight: easyWeight * (1 - level.randomness) + jumpWeight * randomWeight,
+      weight: (easyWeight * (1 - level.randomness) + jumpWeight * randomWeight) * samePitchClassPenalty * sameOctavePenalty,
     };
   });
   const totalWeight = weightedPool.reduce((sum, item) => sum + item.weight, 0);
@@ -5548,6 +5665,7 @@ function App() {
   const [utilityMenuOpen, setUtilityMenuOpen] = useState(false);
   const [helpGuideOpen, setHelpGuideOpen] = useState(false);
   const [openHelpSectionId, setOpenHelpSectionId] = useState("");
+  const [appTheme, setAppTheme] = useState(getStoredAppTheme);
   const designLabEnabled = isDesignLabEnabled();
   const [designLabHeaderState, setDesignLabHeaderState] = useState(getStoredDesignLabHeaderState);
   const [designLabAppIconState, setDesignLabAppIconState] = useState(getStoredDesignLabAppIconState);
@@ -6186,6 +6304,9 @@ function App() {
   const shooterTargetsRef = useRef([]);
   const projectilesRef = useRef([]);
   const particlesRef = useRef([]);
+  const shooterArenaRef = useRef(null);
+  const shooterTargetNodesRef = useRef(new Map());
+  const projectileNodesRef = useRef(new Map());
   const shooterTargetIdRef = useRef(1);
   const projectileIdRef = useRef(1);
   const particleIdRef = useRef(1);
@@ -6198,6 +6319,8 @@ function App() {
   const shooterDifficultyRef = useRef(SHOOTER_DIFFICULTIES.EASY);
   const shooterSessionSavedRef = useRef(true);
   const shooterAimResetTimerRef = useRef(null);
+  const lastMicReadAtRef = useRef(0);
+  const lastMicAnalysisAtRef = useRef(0);
   const scoreRef = useRef(0);
   const maxComboRef = useRef(0);
   const attemptsRef = useRef(0);
@@ -6205,7 +6328,6 @@ function App() {
   const laneFeedbackIdRef = useRef(1);
   shooterDifficultyRef.current = shooterDifficulty;
   scoreRef.current = score;
-  maxComboRef.current = maxCombo;
   attemptsRef.current = attempts;
 
   const accuracy = attempts === 0 ? 100 : Math.round((hits / attempts) * 100);
@@ -6955,6 +7077,8 @@ function App() {
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
     particlesRef.current = [];
+    shooterTargetNodesRef.current.clear();
+    projectileNodesRef.current.clear();
     shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
@@ -7349,18 +7473,16 @@ function App() {
     oscillator.stop(now + (hold ? 0.38 : 0.1));
   }, [ensureAudioReady]);
 
-  const playShooterSound = useCallback((type = "hit") => {
+  const playShooterSound = useCallback(async (type = "hit", options = {}) => {
+    const preview = Boolean(options.preview);
+    if (!preview && (appModeRef.current !== APP_MODES.SHOOTER || !shooterSoundOnRef.current)) return;
+    const ready = await ensureAudioReady();
     const audio = audioRef.current;
-    if (!audio || appModeRef.current !== APP_MODES.SHOOTER || !shooterSoundOnRef.current) return;
-    if (audio.state === "suspended") {
-      audio.resume().catch(() => {});
-    }
+    if (!ready || !audio) return;
 
     const now = audio.currentTime;
     const master = audio.createGain();
-    master.gain.setValueAtTime(0.0001, now);
-    master.gain.exponentialRampToValueAtTime(0.18, now + 0.018);
-    master.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+    master.gain.setValueAtTime(1, now);
     master.connect(audio.destination);
 
     const playTone = ({ wave = "sine", from = 440, to = from, start = 0, length = 0.2, level = 0.45 }) => {
@@ -7385,31 +7507,112 @@ function App() {
       oscillator.stop(end + 0.02);
     };
 
+    const playNoiseHit = ({ start = 0, length = 0.06, level = 0.38, frequency = 1400, q = 4 }) => {
+      const sampleRate = audio.sampleRate;
+      const frameCount = Math.max(1, Math.floor(sampleRate * length));
+      const buffer = audio.createBuffer(1, frameCount, sampleRate);
+      const data = buffer.getChannelData(0);
+      let seed = 22222;
+      for (let index = 0; index < frameCount; index += 1) {
+        const fade = 1 - index / frameCount;
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        const grain = (seed / 2147483648) - 1;
+        data[index] = grain * fade * fade;
+      }
+
+      const source = audio.createBufferSource();
+      const filter = audio.createBiquadFilter();
+      const gain = audio.createGain();
+      const begin = now + start;
+      const end = begin + length;
+      source.buffer = buffer;
+      filter.type = "bandpass";
+      filter.frequency.setValueAtTime(frequency, begin);
+      filter.Q.setValueAtTime(q, begin);
+      gain.gain.setValueAtTime(0.0001, begin);
+      gain.gain.exponentialRampToValueAtTime(level, begin + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(master);
+      source.start(begin);
+      source.stop(end + 0.01);
+    };
+
+    const playHitClick = ({ start = 0, frequency = 980, length = 0.032, level = 0.24 }) => {
+      playTone({ wave: "square", from: frequency, to: frequency * 0.72, start, length, level });
+    };
+
+    const playCrack = (candidateId = "chime-crash-clean", combo = 1) => {
+      const candidate =
+        SHOOTER_HIT_SOUND_CANDIDATES.find((item) => item.id === candidateId)
+        ?? SHOOTER_HIT_SOUND_CANDIDATES[0];
+      const comboBoost = combo >= 20 ? 1.18 : combo >= 10 ? 1.08 : 1;
+      master.gain.setValueAtTime(1.55 * comboBoost, now);
+      (candidate.chime ?? []).forEach((frequency, index) => {
+        playTone({
+          wave: index % 2 === 0 ? "triangle" : "sine",
+          from: frequency,
+          to: frequency,
+          start: index * 0.003,
+          length: candidate.tail * (index === 0 ? 0.82 : 0.58),
+          level: ((candidate.chimeLevel * 1.5) / Math.max(1, candidate.chime.length)) * comboBoost,
+        });
+      });
+      if (candidate.clap && candidate.clapLevel) {
+        playNoiseHit({
+          start: 0,
+          length: Math.max(0.032, candidate.tail * 0.68),
+          level: candidate.clapLevel * 1.42 * comboBoost,
+          frequency: candidate.clap,
+          q: 2.8,
+        });
+      }
+      if (candidate.hat && candidate.hatLevel) {
+        playNoiseHit({
+          start: 0.006,
+          length: 0.034,
+          level: (candidate.accent || combo >= 20 ? candidate.hatLevel * 1.58 : candidate.hatLevel * 1.34) * comboBoost,
+          frequency: candidate.hat,
+          q: 9,
+        });
+      }
+      if (candidate.sparkle && candidate.sparkleLevel) {
+        playNoiseHit({
+          start: 0.018,
+          length: 0.038,
+          level: candidate.sparkleLevel * 1.52 * comboBoost,
+          frequency: candidate.sparkle,
+          q: 12,
+        });
+      }
+    };
+
     if (type === "spawn") {
-      master.gain.exponentialRampToValueAtTime(0.13, now + 0.012);
+      master.gain.setValueAtTime(0.13, now);
       playTone({ wave: "triangle", from: 620, to: 920, length: 0.11, level: 0.42 });
       playTone({ wave: "sine", from: 1240, to: 980, start: 0.035, length: 0.08, level: 0.18 });
       return;
     }
 
     if (type === "miss") {
-      master.gain.exponentialRampToValueAtTime(0.1, now + 0.018);
+      master.gain.setValueAtTime(0.1, now);
       playTone({ wave: "triangle", from: 220, to: 110, length: 0.26, level: 0.34 });
       playTone({ wave: "sine", from: 165, to: 82, start: 0.08, length: 0.22, level: 0.2 });
       return;
     }
 
     if (type === "gameover") {
-      master.gain.exponentialRampToValueAtTime(0.12, now + 0.018);
+      master.gain.setValueAtTime(0.12, now);
       playTone({ wave: "sine", from: 330, to: 220, length: 0.24, level: 0.38 });
       playTone({ wave: "sine", from: 247, to: 123, start: 0.14, length: 0.3, level: 0.3 });
       return;
     }
 
-    master.gain.exponentialRampToValueAtTime(0.2, now + 0.012);
-    playTone({ wave: "triangle", from: 330, to: 660, length: 0.12, level: 0.52 });
-    playTone({ wave: "sine", from: 990, to: 1320, start: 0.045, length: 0.1, level: 0.28 });
-  }, []);
+    const hitCombo = Math.max(1, Number(options.combo) || 1);
+    const candidateId = options.candidateId ?? (hitCombo >= 20 ? "chime-crash-combo" : "chime-crash-clean");
+    playCrack(candidateId, hitCombo);
+  }, [ensureAudioReady]);
 
   const createTargetPosition = useCallback((index) => {
     const positions = [
@@ -7465,7 +7668,7 @@ function App() {
     const level = getShooterEffectiveLevel(getShooterLevel(hitsRef.current), difficulty, gameTimeRef.current);
     const activeTargetCount = shooterTargetsRef.current.filter((target) => !target.defeated).length;
     if (activeTargetCount >= level.maxTargets) return false;
-    const trainingNotes = getShooterDifficultyNotes(activeNotesRef.current, difficulty, gameTimeRef.current, selectedPentatonicRef.current);
+    const trainingNotes = getShooterDifficultyNotes(activeNotesRef.current, difficulty, gameTimeRef.current, selectedPentatonicRef.current, patternRef.current);
     activeNotesRef.current = trainingNotes;
     const pool = getShooterPool(trainingNotes, level);
     const detail = pickShooterNote(pool, lastShooterNoteRef.current, level);
@@ -7482,13 +7685,13 @@ function App() {
         x: nextX,
         y: 8,
         bornAt: gameTimeRef.current,
-        duration: getBeatMs(bpmRef.current) * level.durationBeats,
+        duration: getShooterTargetDuration(difficulty),
+        hitbox: SHOOTER_TARGET_HITBOX,
         level: level.name,
         phaseLabel: level.phaseLabel,
       },
     ];
-    shooterNextSpawnAtRef.current =
-      gameTimeRef.current + getBeatMs(bpmRef.current) * level.spawnGapBeats * (0.72 + Math.random() * 0.56);
+    shooterNextSpawnAtRef.current = gameTimeRef.current + getShooterSpawnGap(difficulty);
     setShooterTargets([...shooterTargetsRef.current]);
     playShooterSound("spawn");
     return true;
@@ -7595,63 +7798,82 @@ function App() {
     }, holdMs);
   }, []);
 
+  const getShooterArenaPoint = useCallback((x, y) => {
+    const rect = shooterArenaRef.current?.getBoundingClientRect?.();
+    if (!rect?.width || !rect?.height) return null;
+    return {
+      x: (rect.width * x) / 100,
+      y: (rect.height * y) / 100,
+    };
+  }, []);
+
+  const applyShooterTargetTransform = useCallback((target, y = getShooterTargetYAt(target, gameTimeRef.current)) => {
+    const node = shooterTargetNodesRef.current.get(target?.id);
+    if (!node || !target) return;
+    const point = getShooterArenaPoint(target.x, y);
+    if (!point) return;
+    node.style.setProperty("--target-x-px", `${point.x}px`);
+    node.style.setProperty("--target-y-px", `${point.y}px`);
+    node.style.transform = `translate3d(${point.x}px, ${point.y}px, 0) translate(-50%, -50%)`;
+  }, [getShooterArenaPoint]);
+
+  const showImmediateProjectile = useCallback((projectile) => {
+    const arena = shooterArenaRef.current;
+    if (!arena || !projectile) return;
+    const node = document.createElement("div");
+    const startPoint = getShooterArenaPoint(projectile.startX, projectile.startY);
+    const endPoint = getShooterArenaPoint(projectile.endX, projectile.endY);
+    node.className = "energyProjectile energyProjectile--immediate";
+    node.style.setProperty("--projectile-start-x", `${projectile.startX}%`);
+    node.style.setProperty("--projectile-start-y", `${projectile.startY}%`);
+    node.style.setProperty("--projectile-end-x", `${projectile.endX}%`);
+    node.style.setProperty("--projectile-end-y", `${projectile.endY}%`);
+    node.style.setProperty("--projectile-start-x-px", `${startPoint?.x ?? 0}px`);
+    node.style.setProperty("--projectile-start-y-px", `${startPoint?.y ?? 0}px`);
+    node.style.setProperty("--projectile-end-x-px", `${endPoint?.x ?? 0}px`);
+    node.style.setProperty("--projectile-end-y-px", `${endPoint?.y ?? 0}px`);
+    node.style.setProperty("--projectile-duration-ms", `${projectile.duration}ms`);
+    node.style.setProperty("--projectile-angle", `${projectile.angle ?? 0}deg`);
+    node.style.setProperty("--projectile-spin", `${projectile.spin ?? 10}deg`);
+    arena.appendChild(node);
+    window.setTimeout(() => node.remove(), projectile.duration + SHOOTER_PROJECTILE_CONTACT_HOLD_MS);
+  }, [getShooterArenaPoint]);
+
   const fireProjectile = useCallback((target, noteName) => {
-    const targetY = getShooterTargetYAt(target, gameTimeRef.current);
     const muzzleX = 50;
-    const muzzleY = 66;
-    const angle = Math.atan2(targetY - muzzleY, target.x - muzzleX) * (180 / Math.PI);
-    const projectileDuration = SHOOTER_PROJECTILE_MS;
+    const muzzleY = 79;
+    const targetY = getShooterTargetYAt(target, gameTimeRef.current);
+    const firstContact = getShooterHitboxContact(target, muzzleX, muzzleY, targetY);
+    const estimatedDuration = Math.round(SHOOTER_PROJECTILE_MS * firstContact.durationRatio);
+    const impactY = getShooterTargetYAt(target, gameTimeRef.current + estimatedDuration);
+    const contact = getShooterHitboxContact(target, muzzleX, muzzleY, impactY);
+    const angle = Math.atan2(contact.y - muzzleY, contact.x - muzzleX) * (180 / Math.PI);
+    const projectileDuration = Math.round(SHOOTER_PROJECTILE_MS * contact.durationRatio);
     const impactAt = gameTimeRef.current + projectileDuration;
     aimShooterAtTarget(target, 105);
+    const projectile = {
+      id: projectileIdRef.current++,
+      note: noteName,
+      startX: muzzleX,
+      startY: muzzleY,
+      endX: contact.x,
+      endY: contact.y,
+      bornAt: gameTimeRef.current,
+      duration: projectileDuration,
+      angle,
+      spin: Math.random() < 0.5 ? -4 - Math.random() * 5 : 4 + Math.random() * 5,
+      renderedByDom: true,
+    };
+    showImmediateProjectile(projectile);
 
     projectilesRef.current = [
       ...projectilesRef.current,
-      {
-        id: projectileIdRef.current++,
-        note: noteName,
-        startX: muzzleX,
-        startY: muzzleY,
-        endX: target.x,
-        endY: targetY,
-        bornAt: gameTimeRef.current,
-        duration: projectileDuration,
-        angle,
-      },
+      projectile,
     ];
 
-    particlesRef.current = [
-      ...particlesRef.current,
-      {
-        id: particleIdRef.current++,
-        type: "shockwave",
-        x: target.x,
-        y: targetY,
-        bornAt: impactAt,
-      },
-      ...Array.from({ length: 8 }, (_, index) => ({
-        id: particleIdRef.current++,
-        type: "spark",
-        x: target.x,
-        y: targetY,
-        angle: (index / 8) * Math.PI * 2,
-        speed: 0.72 + (index % 3) * 0.12,
-        bornAt: impactAt,
-      })),
-      ...Array.from({ length: 5 }, (_, index) => ({
-        id: particleIdRef.current++,
-        type: "noteShard",
-        symbol: ["♪", "♩", "♫", "♪", "♬"][index],
-        x: target.x,
-        y: targetY,
-        angle: -Math.PI * 0.82 + index * (Math.PI * 0.41),
-        speed: 0.62 + (index % 2) * 0.16,
-        bornAt: impactAt,
-      })),
-    ];
     setProjectiles([...projectilesRef.current]);
-    setParticles([...particlesRef.current]);
     return projectileDuration;
-  }, [aimShooterAtTarget]);
+  }, [aimShooterAtTarget, showImmediateProjectile]);
 
   const judgeShooterNote = useCallback(
     (detectedPitchName) => {
@@ -7666,27 +7888,25 @@ function App() {
       const frontTarget = orderedTargets[0] ?? null;
       const target = frontTarget?.target ?? null;
       const targetIndex = frontTarget?.index ?? -1;
-      const matchesFrontTarget = target?.note === detectedPitchName;
+      const matchesFrontTarget = isSamePitchClass(target?.note, detectedPitchName);
       lastShotRef.current = { note: detectedPitchName, time: now };
       shooterReleaseLockRef.current = detectedPitchName;
 
       if (!target || !matchesFrontTarget) {
         setFeedback("Miss");
-        comboRef.current = 0;
-        setCombo(0);
         flashStage("miss");
         playShooterSound("miss");
         return;
       }
 
       const projectileDuration = fireProjectile(target, detectedPitchName);
-      const targetY = getShooterTargetYAt(target, now);
+      const nextCombo = comboRef.current + 1;
       shooterTargetsRef.current = shooterTargetsRef.current.map((currentTarget, index) => (
         index === targetIndex
           ? {
               ...currentTarget,
-              y: targetY,
               impactAt: now + projectileDuration,
+              hitCombo: nextCombo,
             }
           : currentTarget
       ));
@@ -7694,13 +7914,10 @@ function App() {
       setFeedback("Fire");
       scoreRef.current += 100;
       setScore((value) => value + 100);
-      setCombo((value) => {
-        const next = value + 1;
-        comboRef.current = next;
-        maxComboRef.current = Math.max(maxComboRef.current, next);
-        setMaxCombo((current) => Math.max(current, next));
-        return next;
-      });
+      comboRef.current = nextCombo;
+      maxComboRef.current = Math.max(maxComboRef.current, nextCombo);
+      setMaxCombo((current) => Math.max(current, nextCombo));
+      setCombo(nextCombo);
       setHits((value) => {
         const next = value + 1;
         hitsRef.current = next;
@@ -7709,7 +7926,7 @@ function App() {
       attemptsRef.current += 1;
       setAttempts((value) => value + 1);
     },
-    [fireProjectile, flashStage, playShooterSound],
+    [applyShooterTargetTransform, fireProjectile, flashStage, playShooterSound],
   );
 
   const finalizeShooterRecord = useCallback((reason = "reset") => {
@@ -7744,30 +7961,35 @@ function App() {
       const buffer = bufferRef.current;
       const audio = audioRef.current;
       if (!analyser || !buffer || !audio) return;
+      if (now - lastMicReadAtRef.current < MIC_READ_INTERVAL_MS) return;
+      lastMicReadAtRef.current = now;
 
       analyser.getFloatTimeDomainData(buffer);
       const rms = getRms(buffer);
       const inputGain = isMobileLayoutRef.current ? 22 : 12;
       const normalizedLevel = Math.min(1, rms * inputGain);
 
-      if (now - lastDebugUpdateRef.current > 45) {
+      if (now - lastDebugUpdateRef.current > MIC_DISPLAY_UPDATE_MS) {
         setSignalLevel(normalizedLevel);
         lastDebugUpdateRef.current = now;
       }
 
-      const lowSignalThreshold = isMobileLayoutRef.current ? LOW_SIGNAL_LEVEL * 0.42 : LOW_SIGNAL_LEVEL;
+      const minVolume = isMobileLayoutRef.current ? LOW_SIGNAL_LEVEL * 0.42 : LOW_SIGNAL_LEVEL;
       const gameNoteTolerance = isMobileLayoutRef.current ? 68 : 45;
 
-      if (rms < lowSignalThreshold) {
+      if (rms < minVolume) {
         shooterReleaseLockRef.current = null;
         stableGameNoteRef.current = { note: null, count: 0 };
-        if (now - lastDetectedDisplayUpdateRef.current > 70) {
+        if (now - lastDetectedDisplayUpdateRef.current > MIC_LOW_SIGNAL_DISPLAY_UPDATE_MS) {
           lastDetectedDisplayUpdateRef.current = now;
           setDetected(null);
           setDetectedPitch(null);
         }
         return;
       }
+
+      if (now - lastMicAnalysisAtRef.current < MIC_ANALYSIS_INTERVAL_MS) return;
+      lastMicAnalysisAtRef.current = now;
 
       const maxDetectFrequency = MAX_FREQ;
       const yinPitch = detectPitchYin(
@@ -7798,16 +8020,12 @@ function App() {
         const frontTarget =
           [...shooterTargetsRef.current].sort((a, b) => b.y - a.y || a.bornAt - b.bornAt)[0] ?? null;
         const frontTargetDetail = frontTarget?.detail ?? (frontTarget ? getShooterNoteDetail(frontTarget.note) : null);
-        const frontTargetMatch =
-          frontTargetDetail && pitch
-            ? frequencyToNearest(pitch, [frontTargetDetail], isMobileLayoutRef.current ? 110 : 90)
-            : null;
         const detectedPitchClass = getPitchClass(displayNote?.pitch ?? gameNote?.pitch);
         const targetPitchClass = getPitchClass(frontTargetDetail?.pitch ?? frontTarget?.note);
         const samePitchClass = Boolean(frontTargetDetail && detectedPitchClass && detectedPitchClass === targetPitchClass);
 
-        if (frontTargetMatch || samePitchClass) {
-          judgePitchName = frontTargetDetail.pitch;
+        if (samePitchClass) {
+          judgePitchName = detectedPitchClass;
         } else {
           judgePitchName = gameNote?.pitch ?? displayNote?.pitch ?? null;
         }
@@ -7821,7 +8039,7 @@ function App() {
       } else {
         stableGameNoteRef.current = { note: null, count: 0 };
       }
-      if (now - lastDetectedDisplayUpdateRef.current > 50) {
+      if (now - lastDetectedDisplayUpdateRef.current > MIC_DISPLAY_UPDATE_MS) {
         lastDetectedDisplayUpdateRef.current = now;
         setDetected(displayNote);
         setDetectedPitch(
@@ -7838,7 +8056,7 @@ function App() {
         appModeRef.current === APP_MODES.SHOOTER &&
         gameStateRef.current === GAME_STATES.PLAYING &&
         judgePitchName &&
-        stableGameNoteRef.current.count >= (isMobileLayoutRef.current ? 1 : 2)
+        stableGameNoteRef.current.count >= 1
       ) {
         judgeShooterNote(judgePitchName);
       }
@@ -8032,7 +8250,14 @@ function App() {
       gameTimeRef.current += deltaMs;
       const currentBeatMs = getBeatMs(bpmRef.current);
 
-      if (shooterTargetsRef.current.length === 0 || gameTimeRef.current >= shooterNextSpawnAtRef.current) {
+      if (
+        shooterTargetsRef.current.length === 0
+        && shooterNextSpawnAtRef.current - gameTimeRef.current > SHOOTER_EMPTY_REFILL_MS
+      ) {
+        shooterNextSpawnAtRef.current = gameTimeRef.current + SHOOTER_EMPTY_REFILL_MS;
+      }
+
+      if (gameTimeRef.current >= shooterNextSpawnAtRef.current) {
         const spawned = spawnShooterTarget();
         if (!spawned && shooterTargetsRef.current.length > 0) {
           shooterNextSpawnAtRef.current = gameTimeRef.current + 250;
@@ -8048,12 +8273,13 @@ function App() {
 
       let targetsChanged = false;
       shooterTargetsRef.current.forEach((target) => {
-        if (target.defeated || target.impactAt != null) return;
+        if (target.defeated) return;
         const progress = Math.min(1, (gameTimeRef.current - target.bornAt) / target.duration);
         const nextY = 8 + progress * 80;
         if (target.y !== nextY) {
           target.y = nextY;
         }
+        applyShooterTargetTransform(target, nextY);
       });
 
       const defeatedExpiredTargets = shooterTargetsRef.current.filter(
@@ -8077,7 +8303,14 @@ function App() {
         ));
         setFeedback("Success");
         flashStage("hit");
-        playShooterSound("hit");
+        playShooterSound("hit", { combo: Math.max(...impactedTargets.map((target) => Number(target.hitCombo) || 1)) });
+        impactedTargets.forEach((target) => {
+          const y = Number(target.y) || getShooterTargetYAt(target, gameTimeRef.current);
+          applyShooterTargetTransform(target, y);
+          const node = shooterTargetNodesRef.current.get(target.id);
+          node?.classList.remove("fallingTarget");
+          node?.classList.add("defeated");
+        });
         targetsChanged = true;
       }
       const missedTargets = shooterTargetsRef.current.filter((target) => (
@@ -8112,7 +8345,7 @@ function App() {
       }
 
       const nextProjectiles = projectilesRef.current.filter(
-        (projectile) => gameTimeRef.current - projectile.bornAt <= projectile.duration,
+        (projectile) => gameTimeRef.current - projectile.bornAt <= projectile.duration + SHOOTER_PROJECTILE_CONTACT_HOLD_MS,
       );
       const nextParticles = particlesRef.current.filter((particle) => {
         const lifetime = particle.type === "shockwave" ? 320 : particle.type === "noteShard" ? 360 : 360;
@@ -8130,7 +8363,7 @@ function App() {
         setShooterTargets([...shooterTargetsRef.current]);
       }
     },
-    [finalizeShooterRecord, fireProjectile, flashStage, playShooterSound, setState, spawnShooterTarget],
+    [applyShooterTargetTransform, finalizeShooterRecord, fireProjectile, flashStage, playShooterSound, setState, spawnShooterTarget],
   );
 
   const runChordTransitionFrame = useCallback(
@@ -8443,9 +8676,27 @@ function App() {
 
   const startMic = useCallback(async () => {
     if (appModeRef.current !== APP_MODES.SHOOTER) return false;
+    const showPermissionGuide = () => {
+      window.alert("마이크 권한이 꺼져 있습니다.\n\n새로고침 후 다시 시도하거나,\n브라우저 설정에서 마이크 권한을 허용해주세요.");
+    };
+
     try {
+      if (navigator.permissions?.query) {
+        try {
+          const permission = await navigator.permissions.query({ name: "microphone" });
+          if (permission.state === "denied") {
+            setMicStatus("Permission Denied");
+            setFeedback("마이크 권한 필요");
+            showPermissionGuide();
+            return false;
+          }
+        } catch {
+          // Some browsers do not expose microphone permission querying.
+        }
+      }
+
       console.log("[mic] permission requested");
-      setMicStatus("Mic Connected");
+      setMicStatus("No Signal");
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: false,
@@ -8461,7 +8712,7 @@ function App() {
       if (audio.state === "suspended") await audio.resume();
 
       const analyser = audio.createAnalyser();
-      analyser.fftSize = 4096;
+      analyser.fftSize = isMobileLayoutRef.current ? MIC_FFT_SIZE_MOBILE : MIC_FFT_SIZE_DESKTOP;
       analyser.smoothingTimeConstant = 0;
 
       if (sourceRef.current) {
@@ -8503,7 +8754,12 @@ function App() {
       return true;
     } catch (error) {
       setMicStatus("Permission Denied");
-      setFeedback("Permission Denied");
+      setFeedback("마이크 권한 필요");
+      if (error?.name === "NotAllowedError" || error?.name === "PermissionDeniedError") {
+        showPermissionGuide();
+      } else {
+        window.alert("마이크를 시작할 수 없습니다.\n\n새로고침 후 다시 시도해주세요.");
+      }
       console.error(error);
       return false;
     }
@@ -9842,6 +10098,10 @@ function App() {
     setState(GAME_STATES.IDLE);
   }, [designLabEnabled, setState, stopMic]);
 
+  const selectAppTheme = useCallback(() => {
+    setAppTheme(APP_THEMES.BRAND);
+  }, []);
+
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
@@ -10412,7 +10672,7 @@ function App() {
   const shooterGuidePositions = shooterGuidePitch ? getFretboardPositionsForPitch(shooterGuidePitch) : [];
   const shooterDifficultyPhase = getShooterDifficultyPhase(shooterDifficulty, gameTimeRef.current);
   const shooterLevel = getShooterEffectiveLevel(getShooterLevel(hits), shooterDifficulty, gameTimeRef.current);
-  const shooterDifficultyLabel = SHOOTER_DIFFICULTY_OPTIONS.find((option) => option.id === shooterDifficulty)?.label ?? "Easy";
+  const shooterDifficultyLabel = SHOOTER_DIFFICULTY_OPTIONS.find((option) => option.id === shooterDifficulty)?.label ?? "쉬움";
   const shooterTotalAccuracy = shooterRecords.totals.shots > 0
     ? Math.round((shooterRecords.totals.hits / shooterRecords.totals.shots) * 100)
     : 0;
@@ -10454,7 +10714,7 @@ function App() {
 
   return (
     <main
-      className={`app notranslate ${appMode === APP_MODES.MENU ? "menuApp" : ""} ${isSignalActive ? "signalGlow" : ""}`}
+      className={`app notranslate theme-${appTheme} ${appMode === APP_MODES.MENU ? "menuApp" : ""} ${isSignalActive ? "signalGlow" : ""}`}
       translate="no"
     >
       {utilityMenuOpen ? (
@@ -10483,6 +10743,32 @@ function App() {
                 ×
               </button>
             </div>
+            <section className="utilityThemePanel" aria-label="테마 설정">
+              <div className="utilityThemeHeader">
+                <div>
+                  <strong>테마</strong>
+                  <p>테마 전환은 준비 중입니다. 현재는 RIFFLAB 브랜드 모드만 사용할 수 있습니다.</p>
+                </div>
+                <span className="utilityThemeStatus">미구현</span>
+              </div>
+              <div className="utilityThemeOptions" role="radiogroup" aria-label="테마">
+                {APP_THEME_OPTIONS.map((option) => (
+                  <button
+                    aria-checked={appTheme === option.id}
+                    aria-disabled="true"
+                    className={appTheme === option.id ? "selected" : ""}
+                    disabled
+                    key={option.id}
+                    onClick={() => selectAppTheme(option.id)}
+                    role="radio"
+                    type="button"
+                  >
+                    <strong>{option.label}</strong>
+                    <small>{option.description}</small>
+                  </button>
+                ))}
+              </div>
+            </section>
             <nav className="utilityMenuList" aria-label="부가 기능 목록">
               <button className="utilityMenuItem utilityMenuItemPrimary" onClick={showStage3StorageRoom} type="button">
                 <span className="utilityMenuIcon" aria-hidden="true">▦</span>
@@ -11095,34 +11381,6 @@ function App() {
                 })}
               </div>
             ) : null}
-            {designLabSection === "monster" ? (
-              <div className="designLabMonsterGroups">
-                {MONSTER_LAB_GROUPS.map((group) => (
-                  <section className="designLabMonsterGroup" key={group.id} aria-label={group.title}>
-                    <div className="headerPreviewMeta">
-                      <span>{group.title}</span>
-                      <small>음표 가독성을 유지한 몬스터 시안 V1~V10</small>
-                    </div>
-                    <div className="designLabMonsterGrid">
-                      {MONSTER_LAB_VARIANTS.filter((monster) => monster.groupId === group.id).map((monster) => (
-                        <article className="headerPreviewCard designLabMonsterCard" key={monster.id}>
-                          <div className="headerPreviewMeta">
-                            <span>V{monster.variant}</span>
-                            <small>{monster.title}</small>
-                          </div>
-                          <MonsterLabPreview monster={monster} />
-                          <div className="designLabItemActions">
-                            <button type="button">선택</button>
-                            <button type="button">잠금</button>
-                            <button disabled type="button">삭제</button>
-                          </div>
-                        </article>
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            ) : null}
             {designLabSection === "test" ? (
               <div className="metronomeVisualLab">
                 <article className="headerPreviewCard svgLogoLabHero">
@@ -11136,6 +11394,28 @@ function App() {
                     <span>{svgLogoPreviewCandidate.label}</span>
                     <strong>{svgLogoPreviewCandidate.title}</strong>
                     <small>{svgLogoPreviewCandidate.description}</small>
+                  </div>
+                </article>
+
+                <article className="headerPreviewCard shooterHitSoundLabCard">
+                  <div className="headerPreviewMeta">
+                    <span>Shooter Hit Sound Lab</span>
+                    <small>몹이 깨질 때 들릴 짧은 "빠각!" 후보입니다. 게임에는 현재 A 후보가 기본 적용됩니다.</small>
+                    <em className="designLabStatus designLabStatus--draft">Preview</em>
+                  </div>
+                  <div className="shooterHitSoundCandidates">
+                    {SHOOTER_HIT_SOUND_CANDIDATES.map((candidate) => (
+                      <button
+                        key={candidate.id}
+                        onClick={() => playShooterSound("hit", { candidateId: candidate.id, combo: candidate.id === "chime-crash-combo" ? 20 : 1, preview: true })}
+                        type="button"
+                      >
+                        <Play size={15} />
+                        <span>{candidate.label}</span>
+                        <strong>{candidate.title}</strong>
+                        <small>{candidate.description}</small>
+                      </button>
+                    ))}
                   </div>
                 </article>
 
@@ -11372,7 +11652,12 @@ function App() {
                     </button>
                   ) : null}
                 </div>
-                <strong>{viewerMapTitle}</strong>
+                <div className="viewerMapTitleRow">
+                  <strong>{viewerMapTitle}</strong>
+                  {viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? (
+                    <small className="viewerSwipeHint">↔ Swipe</small>
+                  ) : null}
+                </div>
               </div>
               <Fretboard
                 className={`viewerSharedFretboard ${viewerMode === FRETBOARD_VIEWER_MODES.NOTE && viewerNoteFilter === "ALL" ? "allNotes" : ""} ${viewerShouldFitFretboard ? "fitRange" : ""}`}
@@ -11566,8 +11851,13 @@ function App() {
           {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
             <section className="chordCatalogPanel" aria-label="전체 코드표" ref={chordChartRef}>
               <div className="referenceHeader">
-                <span>기타 코드표</span>
-                <strong>전체 코드 운지</strong>
+                <div className="chordCatalogCopy">
+                  <strong className="chordCatalogTitle">전체 코드 운지</strong>
+                </div>
+                <div className="chordCatalogHints">
+                  <p className="chordCatalogHint">해당 코드를 누르면 크게 볼 수 있어요</p>
+                  <p className="chordCatalogHint">↔ 좌우 스와이프로 다른 코드 보기</p>
+                </div>
               </div>
               <div className="chordCatalogScroll">
                 {chordCatalogGroups.map((group) => (
@@ -11624,7 +11914,6 @@ function App() {
                   </div>
                 ))}
               </div>
-              <p>코드를 누르면 해당 운지를 크게 볼 수 있어요.</p>
             </section>
           ) : null}
         </section>
@@ -12097,16 +12386,8 @@ function App() {
           <div className="shooterDifficultyPanel" aria-label="슈팅게임 난이도">
             <div>
               <span>난이도</span>
-              <strong>{shooterDifficultyLabel}</strong>
+              <strong>현재 {shooterDifficultyLabel}</strong>
               <small>{shooterDifficultyPhase.label} · 최대 {shooterLevel.maxTargets}마리</small>
-              <button
-                aria-expanded={showShooterRecords}
-                className={`shooterRecordsInlineButton ${showShooterRecords ? "selected" : ""}`}
-                onClick={() => setShowShooterRecords((value) => !value)}
-                type="button"
-              >
-                Records
-              </button>
             </div>
             <div className="shooterDifficultyButtons">
               {SHOOTER_DIFFICULTY_OPTIONS.map((option) => (
@@ -12181,7 +12462,9 @@ function App() {
                 {shooterRecords.recent.length ? (
                   shooterRecords.recent.map((record) => (
                     <p key={record.id}>
-                      <span>{formatShooterRecordDate(record.playedAt)} · {record.difficulty === SHOOTER_DIFFICULTIES.HARD ? "Hard" : "Easy"}</span>
+                      <span>
+                        {formatShooterRecordDate(record.playedAt)} · {SHOOTER_DIFFICULTY_OPTIONS.find((option) => option.id === record.difficulty)?.label ?? "쉬움"}
+                      </span>
                       <strong>{Number(record.score || 0).toLocaleString()} · {record.accuracy}% · {formatShooterRecordTime(record.survivalMs)}</strong>
                     </p>
                   ))
@@ -12192,28 +12475,24 @@ function App() {
             </section>
           )}
 
-          <div className={`shooterFretGuide ${showShooterFretGuide ? "" : "collapsed"}`}>
+          <div className="shooterFretGuide">
             <div>
               <span>목표</span>
               <strong className="guidePitch">
-                {showShooterFretGuide && shooterGuidePitch
+                {shooterGuidePitch
                   ? `${shooterGuidePitch} · ${getSolfege(shooterGuidePitch) || getPitchClass(shooterGuidePitch)}`
                   : "대기"}
               </strong>
-              {showShooterFretGuide && shooterGuidePitch && (
-                <div className="fretGuideChips" aria-label={`${shooterGuidePitch} 지판 위치`}>
-                  {shooterGuidePositions.length ? (
-                    shooterGuidePositions.map((position) => (
-                      <b key={`${position.stringNumber}-${position.fretNumber}`}>
-                        <span>{position.stringNumber}번줄</span>
-                        <strong>{getFretLabel(position)}</strong>
-                      </b>
-                    ))
-                  ) : (
-                    <em>지판 위치 없음</em>
-                  )}
-                </div>
-              )}
+              <span className="guidePositionLine">
+                {shooterGuidePitch
+                  ? shooterGuidePositions.length
+                    ? shooterGuidePositions
+                        .slice(0, 3)
+                        .map((position) => `${position.stringNumber}번줄 ${getFretLabel(position)}`)
+                        .join(" · ")
+                    : "지판 위치 없음"
+                  : "목표 음을 기다리는 중"}
+              </span>
             </div>
             {!isMobileLayout && <div className={`detector mobileShooterDetector ${isSignalActive ? "active" : ""}`}>
               <Radio size={15} />
@@ -12223,23 +12502,20 @@ function App() {
               </div>
             </div>}
             <button
-              aria-pressed={showShooterFretGuide}
-              onClick={() => setShowShooterFretGuide((value) => !value)}
-              type="button"
-            >
-              {showShooterFretGuide ? "숨기기" : "보이기"}
-            </button>
-            <button
               className={`shooterMicButton ${streamRef.current ? "selected" : ""}`}
               onClick={startShooterMic}
               type="button"
             >
               <Mic size={15} />
-              {streamRef.current ? "마이크 연결" : "마이크 시작"}
+              마이크
             </button>
           </div>
 
-          <div className={`shooterArena ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""}`} onClick={handleShooterArenaClick}>
+          <div
+            className={`shooterArena ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""}`}
+            onClick={handleShooterArenaClick}
+            ref={shooterArenaRef}
+          >
             <div className="shooterBestHud" aria-label="슈팅게임 최고 기록">
               <span>BEST SCORE {shooterRecords.best.score.toLocaleString()}</span>
               <span>BEST COMBO {shooterRecords.best.combo}</span>
@@ -12265,11 +12541,21 @@ function App() {
               const targetDetail = target.detail ?? getShooterNoteDetail(target.note);
               return (
               <div
-                className={`enemy shooterEnemy ${target.impactAt == null && !target.defeated ? "fallingTarget" : ""} ${target.impactAt != null && !target.defeated ? "impact-pending" : ""} ${target.defeated ? "defeated" : ""}`}
+                className={`enemy shooterEnemy ${!target.defeated ? "fallingTarget" : ""} ${target.defeated ? "defeated" : ""}`}
                 key={target.id}
+                ref={(node) => {
+                  if (node) {
+                    shooterTargetNodesRef.current.set(target.id, node);
+                    window.requestAnimationFrame(() => applyShooterTargetTransform(target, target.y));
+                  } else {
+                    shooterTargetNodesRef.current.delete(target.id);
+                  }
+                }}
                 style={{
-                  left: `${target.x}%`,
-                  top: `${target.y}%`,
+                  left: 0,
+                  top: 0,
+                  "--target-x": `${target.x}%`,
+                  "--target-y": `${target.y}%`,
                   "--hit-note-size": `${NOTE_SIZE}px`,
                   "--target-duration-ms": `${target.duration}ms`,
                   ...getNoteColorStyle(target.note),
@@ -12309,6 +12595,7 @@ function App() {
               })}
 
             {projectiles.map((projectile) => {
+              if (projectile.renderedByDom) return null;
               return (
                 <div
                   className="energyProjectile"
@@ -12320,6 +12607,7 @@ function App() {
                     "--projectile-end-y": `${projectile.endY}%`,
                     "--projectile-duration-ms": `${projectile.duration}ms`,
                     "--projectile-angle": `${projectile.angle ?? 0}deg`,
+                    "--projectile-spin": `${projectile.spin ?? 10}deg`,
                   }}
                 />
               );
@@ -13752,12 +14040,12 @@ function App() {
                 {gameState === GAME_STATES.PAUSED ? "계속" : "시작"}
               </button>
               <button
-                className={streamRef.current ? "selected" : ""}
+                className={`shooterControlMicButton ${streamRef.current ? "selected" : ""}`}
                 onClick={startShooterMic}
                 type="button"
               >
                 <Mic size={18} />
-                {streamRef.current ? "마이크 연결" : "마이크 시작"}
+                마이크
               </button>
               <button
                 onClick={gameState === GAME_STATES.PAUSED ? resumeGame : pauseGame}
