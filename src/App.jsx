@@ -1202,6 +1202,11 @@ const BACKING_FIXED_PART_GAINS = {
   bass: 0.55,
   piano: 0.48,
 };
+const BACKING_PART_TIMING_COMPENSATION_SECONDS = {
+  drum: 0.012,
+  bass: 0.006,
+  piano: 0.016,
+};
 
 const BACKING_NOTE_MIDI = {
   B3: 59,
@@ -1353,7 +1358,7 @@ const createBackingTimelineEvents = ({
       if (shouldPlayPiano) {
         const pianoDuration = pianoBeat === "8beat" ? Math.min(0.28, eighthOffset * 0.92) : Math.min(0.52, beatSeconds * 0.9);
         const addPianoVoicing = (offset = 0, level = 0.38) => getBackingPianoVoicing(chord).forEach((midi, index) => {
-          addEvent(beatOffset + offset + index * 0.018, "piano", "piano", level, 2 ** ((midi - 67) / 12), pianoDuration, beatInBar, chordIndex);
+          addEvent(beatOffset + offset + index * 0.004, "piano", "piano", level, 2 ** ((midi - 67) / 12), pianoDuration, beatInBar, chordIndex);
         });
         addPianoVoicing(0, 0.32);
         if (pianoBeat === "8beat") addPianoVoicing(eighthOffset, 0.22);
@@ -8129,9 +8134,9 @@ function App() {
       return;
     }
     if (part === "drum" && (shape === "round-kick" || shape === "kick")) {
-      const kickAttack = shape === "round-kick" ? 0.012 : 0.006;
-      const kickRelease = shape === "round-kick" ? 0.07 : 0.045;
-      const kickVolume = shape === "round-kick" ? safeVolume * 0.88 : safeVolume * 0.94;
+      const kickAttack = shape === "round-kick" ? 0.004 : 0.003;
+      const kickRelease = shape === "round-kick" ? 0.055 : 0.04;
+      const kickVolume = shape === "round-kick" ? safeVolume * 0.92 : safeVolume * 0.96;
       const end = when + (Number.isFinite(duration) && duration > 0 ? duration : 0.16);
       gain.gain.setValueAtTime(0.0001, when);
       gain.gain.linearRampToValueAtTime(kickVolume, when + kickAttack);
@@ -8163,9 +8168,14 @@ function App() {
     if (event.instrument === "drum" && !backingDrumEnabledRef.current) return;
     if (event.instrument === "bass" && !backingBassEnabledRef.current) return;
     if (event.instrument === "piano" && !backingPianoEnabledRef.current) return;
+    const audio = audioRef.current;
+    const compensation = BACKING_PART_TIMING_COMPENSATION_SECONDS[event.instrument] ?? 0;
+    const compensatedWhen = audio
+      ? Math.max(audio.currentTime + 0.002, when - compensation)
+      : when;
     playBackingSample(
       event.sample,
-      when,
+      compensatedWhen,
       event.volume,
       event.playbackRate,
       event.duration,
