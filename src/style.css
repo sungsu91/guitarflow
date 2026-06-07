@@ -12592,6 +12592,75 @@ button::after {
   cursor: not-allowed;
 }
 
+.viewerChordPositionGroup .stage3SegmentControl,
+.chordBuilderPanel .chordChipGroup > div {
+  display: inline-flex !important;
+  flex-flow: row nowrap !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(217, 170, 85, 0.34) !important;
+  border-radius: 10px !important;
+  background: rgba(3, 5, 6, 0.86) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.045) !important;
+}
+
+.viewerChordPositionGroup .stage3SegmentControl {
+  display: flex !important;
+  width: 100% !important;
+}
+
+.viewerChordPositionGroup .stage3SegmentControl > button,
+.chordBuilderPanel .chordChipGroup > div > button {
+  appearance: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 30px !important;
+  margin: 0 !important;
+  padding: 0 9px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(217, 170, 85, 0.22) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: rgba(255, 238, 196, 0.92) !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.viewerChordPositionGroup .stage3SegmentControl > button {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+}
+
+.viewerChordPositionGroup .stage3SegmentControl > button:last-child,
+.chordBuilderPanel .chordChipGroup > div > button:last-child {
+  border-right: 0 !important;
+}
+
+.viewerChordPositionGroup .stage3SegmentControl > button.selected,
+.chordBuilderPanel .chordChipGroup > div > button.selected {
+  background:
+    linear-gradient(180deg, rgba(241, 202, 122, 0.92), rgba(178, 121, 46, 0.88)) !important;
+  color: #100904 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.38),
+    inset 0 -1px 0 rgba(65, 35, 7, 0.28) !important;
+}
+
+.viewerChordPositionGroup .stage3SegmentControl > button:disabled,
+.chordBuilderPanel .chordChipGroup > div > button:disabled {
+  background: rgba(255, 255, 255, 0.025) !important;
+  color: rgba(255, 238, 196, 0.34) !important;
+  opacity: 1 !important;
+}
+
 .viewerTuningHint {
   margin: 0;
   color: rgba(226, 232, 240, 0.58);
@@ -21478,10 +21547,10 @@ textarea,
   gap: 12px !important;
   width: 100% !important;
   padding-bottom: 112px !important;
-  transform: translate3d(var(--storage-swipe-x, 0px), 0, 0);
-  transition: var(--storage-swipe-transition, transform 180ms cubic-bezier(0.2, 0.85, 0.24, 1));
+  transform: none !important;
+  transition: none !important;
   touch-action: pan-y;
-  will-change: transform;
+  will-change: auto;
 }
 
 .stage3StorageRoom > * {
@@ -22048,6 +22117,76 @@ textarea,
     rgba(7, 10, 13, 0.9);
 }
 
+.stage3PracticeUtilityPanel > .trainingPanelHeader .trainingDetailTitle {
+  display: none !important;
+}
+
+.stage3CollapsedBpmControl {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  min-height: 58px;
+  cursor: ew-resize;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.stage3CollapsedBpmButton {
+  display: grid !important;
+  place-items: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  border: 1px solid rgba(217, 170, 85, 0.28) !important;
+  border-radius: 999px !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.11), rgba(255, 244, 210, 0.004)),
+    rgba(5, 5, 5, 0.76) !important;
+  color: rgba(255, 235, 190, 0.95) !important;
+  font-size: 19px !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.045),
+    0 8px 14px rgba(0, 0, 0, 0.16) !important;
+}
+
+.stage3CollapsedBpmButton:active {
+  transform: scale(0.96) !important;
+  border-color: rgba(241, 202, 122, 0.58) !important;
+}
+
+.stage3CollapsedBpmValue {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 0;
+  pointer-events: none;
+}
+
+.stage3CollapsedBpmValue span {
+  color: rgba(239, 198, 119, 0.92);
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.stage3CollapsedBpmValue strong {
+  color: #fffaf0;
+  font-size: clamp(30px, 10vw, 42px);
+  font-weight: 950;
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  text-shadow:
+    0 2px 0 rgba(217, 170, 85, 0.15),
+    0 12px 28px rgba(0, 0, 0, 0.4);
+}
+
 .stage3MemoToggleRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -22078,10 +22217,907 @@ textarea,
   margin-top: 0 !important;
 }
 
+.stage3InlineSettings {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.stage3InlineMeta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 74px;
+  gap: 8px;
+  min-width: 0;
+}
+
+.stage3InlineMeta label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.stage3InlineMeta label > span {
+  color: rgba(241, 202, 122, 0.92);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.stage3InlineMeta input {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  border: 1px solid rgba(217, 170, 85, 0.24);
+  border-radius: 10px;
+  background: rgba(1, 3, 5, 0.7);
+  color: rgba(255, 238, 196, 0.96);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.stage3PracticeUtilityPanel .stage3ChordBuilder {
+  min-width: 0;
+}
+
+.stage3PracticeUtilityPanel .stage3ChordBuilder .stage3OptionRow {
+  min-width: 0;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineChordBox {
+  display: grid;
+  gap: 0;
+  padding: 6px 8px !important;
+  border-radius: 12px !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.004)),
+    rgba(5, 8, 11, 0.88) !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineChordBox .stage3OptionRow {
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 5px 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(217, 170, 85, 0.12) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineChordBox .stage3RootPickRow {
+  grid-template-columns: 42px minmax(0, 1fr) minmax(84px, auto) !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineCollapseButton {
+  min-width: 84px !important;
+  min-height: 36px !important;
+  padding: 0 12px !important;
+  border: 1px solid rgba(241, 202, 122, 0.54) !important;
+  border-radius: 12px !important;
+  background:
+    linear-gradient(180deg, rgba(241, 202, 122, 0.26), rgba(166, 113, 43, 0.17)),
+    rgba(13, 10, 5, 0.86) !important;
+  color: rgba(255, 244, 210, 0.98) !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  white-space: nowrap !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.14),
+    0 8px 14px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(217, 170, 85, 0.07) !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineCollapseButton:hover,
+.stage3PracticeUtilityPanel .stage3InlineCollapseButton:focus-visible {
+  border-color: rgba(255, 218, 143, 0.72) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 214, 137, 0.33), rgba(177, 121, 45, 0.22)),
+    rgba(17, 12, 5, 0.9) !important;
+}
+
+.stage3PracticeUtilityPanel .stage3LoadToolbar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: end !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  margin: 0 0 6px !important;
+}
+
+.stage3PracticeUtilityPanel .stage3LoadToolbar .metronomeSelectControl {
+  min-width: 0 !important;
+}
+
+.stage3PracticeUtilityPanel .stage3LoadToolbar .metronomeSelectControl > span {
+  display: none !important;
+}
+
+.stage3PracticeUtilityPanel .stage3LoadToolbar .metronomeSelectButton {
+  min-height: 36px !important;
+  border-radius: 12px !important;
+}
+
+.stage3PracticeUtilityPanel .stage3StorageMoveButton {
+  align-self: stretch !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  min-width: 76px !important;
+  padding: 0 8px !important;
+  border: 1px solid rgba(217, 170, 85, 0.22) !important;
+  border-radius: 12px !important;
+  background: rgba(4, 7, 9, 0.78) !important;
+  color: rgba(255, 238, 196, 0.88) !important;
+  font-size: 9px !important;
+  font-weight: 950 !important;
+  line-height: 1.15 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+
+.stage3PracticeUtilityPanel .stage3StorageMoveButton:active {
+  border-color: rgba(217, 170, 85, 0.45) !important;
+  background: rgba(137, 93, 34, 0.42) !important;
+}
+
+.stage3PracticeUtilityPanel .stage3LoadToolbar .stage3LoadCollapseButton {
+  margin: 0 !important;
+}
+
+.chordTransitionPanel .stage3PracticeUtilityPanel .stage3LoadToolbar {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 58px !important;
+  gap: 5px !important;
+  align-items: stretch !important;
+}
+
+.chordTransitionPanel .stage3PracticeUtilityPanel .stage3LoadToolbar .stage3LoadSelect {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.chordTransitionPanel .stage3PracticeUtilityPanel .stage3LoadToolbar .stage3LoadSelect .metronomeSelectButton {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 36px !important;
+  padding: 0 7px !important;
+}
+
+.chordTransitionPanel .stage3PracticeUtilityPanel .stage3LoadToolbar .stage3LoadSelect .metronomeSelectButton b {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 10px !important;
+}
+
+.chordTransitionPanel .stage3PracticeUtilityPanel .stage3StorageMoveButton {
+  min-width: 58px !important;
+  width: 58px !important;
+  padding: 0 4px !important;
+  font-size: 9px !important;
+}
+
+.chordTransitionPanel .rhythmCodeHeader {
+  position: relative !important;
+  z-index: 120 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin: 0 0 8px !important;
+  padding: 0 1px !important;
+}
+
+.chordTransitionPanel .rhythmCodeHeader > div:first-child {
+  display: grid !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+}
+
+.chordTransitionPanel .rhythmCodeHeader span {
+  color: rgba(241, 202, 122, 0.86) !important;
+  font-size: 9px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+}
+
+.chordTransitionPanel .rhythmCodeHeader strong {
+  color: rgba(255, 248, 232, 0.96) !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+  line-height: 1.1 !important;
+}
+
+.stage3BackingBandPanel {
+  display: grid;
+  gap: 7px;
+  margin: 8px 0 96px;
+  padding: 10px 12px;
+  border: 1px solid rgba(217, 170, 85, 0.18);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(217, 170, 85, 0.08), transparent 42%),
+    rgba(4, 7, 9, 0.82);
+}
+
+.stage3BackingPatternGrid {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 72px;
+  align-items: center;
+  gap: 7px 8px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba(217, 170, 85, 0.14);
+}
+
+.stage3BackingPatternGrid > span {
+  color: rgba(241, 202, 122, 0.92);
+  font-size: 9px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.stage3BackingSelectRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
+}
+
+.stage3BackingSelectRow button {
+  min-height: 29px;
+  padding: 0 10px;
+  border: 1px solid rgba(217, 170, 85, 0.24);
+  border-radius: 8px;
+  background: rgba(3, 5, 6, 0.9);
+  color: rgba(255, 238, 196, 0.74);
+  font-size: 10px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.stage3BackingSelectRow button.selected {
+  border-color: rgba(217, 170, 85, 0.62);
+  background: rgba(137, 93, 34, 0.56);
+  color: rgba(255, 238, 196, 0.96);
+}
+
+.stage3BackingSelectRow button:disabled {
+  border-color: rgba(255, 238, 196, 0.08);
+  background: rgba(2, 4, 5, 0.58);
+  color: rgba(255, 238, 196, 0.28);
+  opacity: 1;
+}
+
+.stage3BackingShortRow button {
+  min-width: 46px;
+}
+
+.stage3BackingPartSegment {
+  grid-column: 3;
+  grid-row: 1 / span 3;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(217, 170, 85, 0.28);
+  border-radius: 10px;
+  background: rgba(3, 5, 6, 0.9);
+}
+
+.stage3BackingPartSegment button {
+  flex: 1 1 0;
+  min-height: 30px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 238, 196, 0.78);
+  font-size: 10px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.stage3BackingPartSegment button + button {
+  border-top: 1px solid rgba(217, 170, 85, 0.18);
+}
+
+.stage3BackingPartSegment button.selected {
+  background: rgba(137, 93, 34, 0.56);
+  color: rgba(255, 238, 196, 0.96);
+}
+
+.stage3BackingBandRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.stage3BackingBandRow button {
+  min-height: 30px;
+  padding: 0 7px;
+  border: 1px solid rgba(217, 170, 85, 0.3);
+  border-radius: 10px;
+  background: rgba(3, 5, 6, 0.9);
+  color: rgba(255, 238, 196, 0.9);
+  font-size: 10px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.stage3BackingBandRow button.selected {
+  border-color: rgba(217, 170, 85, 0.62);
+  background: rgba(137, 93, 34, 0.56);
+  color: rgba(255, 238, 196, 0.96);
+}
+
+.stage3BackingBandRow input[type="range"] {
+  width: 100%;
+  min-width: 0;
+  accent-color: #d9aa55;
+}
+
+.stage3BackingBandRow span {
+  color: rgba(255, 238, 196, 0.72);
+  font-size: 10px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineChordBox .stage3OptionRow > span,
+.stage3PracticeUtilityPanel .stage3InlineChordBox .stage3AddRow strong span {
+  color: rgba(241, 202, 122, 0.95) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+}
+
+.chordTransitionPanel .stage3PracticeUtilityPanel .stage3InlineChordBox .stage3SegmentControl {
+  display: inline-flex !important;
+  flex-flow: row nowrap !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  min-width: 0 !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  border: 1px solid rgba(217, 170, 85, 0.34) !important;
+  border-radius: 10px !important;
+  background: rgba(3, 5, 6, 0.86) !important;
+  overflow: hidden !important;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.045) !important;
+}
+
+.chordTransitionPanel .stage3PracticeUtilityPanel .stage3InlineChordBox .stage3SegmentControl > button {
+  appearance: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+  min-height: 28px !important;
+  margin: 0 !important;
+  padding: 0 9px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(217, 170, 85, 0.22) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: rgba(255, 238, 196, 0.96) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+}
+
+.chordTransitionPanel .stage3PracticeUtilityPanel .stage3InlineChordBox .stage3SegmentControl > button:last-child {
+  border-right: 0 !important;
+}
+
+.chordTransitionPanel .stage3PracticeUtilityPanel .stage3InlineChordBox .stage3SegmentControl > button.selected,
+.chordTransitionPanel .stage3PracticeUtilityPanel .stage3InlineChordBox .stage3SegmentControl > button[aria-pressed="true"] {
+  background:
+    linear-gradient(180deg, rgba(241, 202, 122, 0.94), rgba(178, 121, 46, 0.9)) !important;
+  color: #100904 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.38),
+    inset 0 -1px 0 rgba(65, 35, 7, 0.28) !important;
+}
+
+.chordTransitionPanel .stage3PracticeUtilityPanel .stage3InlineChordBox .stage3SegmentControl > button:disabled {
+  color: rgba(255, 238, 196, 0.36) !important;
+  background: rgba(255, 255, 255, 0.025) !important;
+  opacity: 1 !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineChordBox .stage3OptionRow button small {
+  margin-left: 3px !important;
+  font-size: 8px !important;
+}
+
+.stage3PracticeUtilityPanel .stage3CompactOptionRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineChordBox .stage3AddRow {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 6px 0 0 !important;
+  border-top: 0 !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineChordBox .stage3AddRow strong {
+  min-width: 0 !important;
+  color: rgba(255, 238, 196, 0.98) !important;
+  font-size: 15px !important;
+  line-height: 1.05 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineChordBox .stage3ActionSegment {
+  width: fit-content !important;
+  flex: 0 0 auto !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineChordBox .stage3ActionSegment > button {
+  min-width: 38px !important;
+  min-height: 28px !important;
+  padding: 0 8px !important;
+  font-size: 10px !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineProgressionRow {
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  padding: 6px 0 2px !important;
+  border-top: 1px solid rgba(217, 170, 85, 0.12) !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineProgressionRow > span {
+  color: rgba(241, 202, 122, 0.95) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineProgressionRow .progressionChipList {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineProgressionRow .progressionChipList strong {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+  min-height: 26px !important;
+  padding: 0 6px 0 8px !important;
+  border-radius: 999px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineProgressionRow .progressionChipList strong button {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 15px !important;
+  min-width: 15px !important;
+  height: 15px !important;
+  min-height: 15px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineChordBox .stage3StrumAddRow strong {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineChordBox .stage3StrumAddRow .strumPattern {
+  min-width: 0 !important;
+  overflow-x: auto !important;
+}
+
+.stage3PracticeUtilityPanel .stage3StrumInlineControl {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: start !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.stage3PracticeUtilityPanel .stage3StrumDraftInline {
+  display: grid !important;
+  grid-column: 1 / -1 !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 0 !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+.stage3PracticeUtilityPanel .stage3StrumActionSegment {
+  justify-self: end !important;
+  max-width: 100% !important;
+}
+
+.stage3PracticeUtilityPanel .stage3StrumDraftInline strong {
+  display: block !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  color: rgba(255, 238, 196, 0.92) !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
+
+.stage3PracticeUtilityPanel .stage3StrumDraftInline .strumPattern {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+}
+
+.stage3PracticeUtilityPanel .stage3StrumDraftInline .strumPattern::-webkit-scrollbar {
+  display: none !important;
+}
+
+.stage3PracticeUtilityPanel .strumPatternStep.repeat,
+.stage3PracticeUtilityPanel .strumPatternStep.editable.repeat {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  min-width: 24px !important;
+  max-width: none !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  line-height: 1 !important;
+}
+
+.stage3PracticeUtilityPanel .stage3StrumDraftInline .strumPatternStep,
+.stage3PracticeUtilityPanel .stage3StrumDraftInline .strumPatternStep.editable {
+  flex: 0 0 20px !important;
+  width: 20px !important;
+  min-width: 20px !important;
+  max-width: 20px !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  max-height: 24px !important;
+  font-size: 17px !important;
+  touch-action: manipulation !important;
+}
+
+.stage3PracticeUtilityPanel .stage3StrumDraftInline .strumPatternStep.hit,
+.stage3PracticeUtilityPanel .stage3StrumDraftInline .strumPatternStep.editable.hit {
+  font-size: 18px !important;
+}
+
+.stage3PracticeUtilityPanel .stage3StrumDraftInline .strumPatternStep.repeat,
+.stage3PracticeUtilityPanel .stage3StrumDraftInline .strumPatternStep.editable.repeat {
+  flex-basis: 24px !important;
+  width: 24px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
+  font-size: 11px !important;
+}
+
+.stage3PracticeUtilityPanel .stage3StrumDraftInline button {
+  min-width: 0 !important;
+  min-height: 28px !important;
+  padding: 0 7px !important;
+  border-radius: 0 !important;
+  font-size: 10px !important;
+}
+
+.stage3PracticeUtilityPanel .stage3ChordBuilder .stage3OptionRow > div,
+.stage3PracticeUtilityPanel .stage3InlineOrder .progressionChipList,
+.stage3PracticeUtilityPanel .stage3InlineStrum .strumPreviewList {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineOrder,
+.stage3PracticeUtilityPanel .stage3InlineStrum {
+  min-width: 0;
+  margin: 0;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineStrum {
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 6px 0 2px !important;
+  border-top: 1px solid rgba(217, 170, 85, 0.12) !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineStrum > span {
+  color: rgba(241, 202, 122, 0.95) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineStrum .strumPreviewList {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+.stage3PracticeUtilityPanel .stage3SaveProgressionButton {
+  min-width: 64px;
+  min-height: 38px;
+  border-radius: 12px;
+}
+
+.stage3PracticeUtilityPanel > .chordProgressionPicker {
+  display: none !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineSettings > .stage3ChordBuilder,
+.stage3PracticeUtilityPanel .stage3InlineSettings > .stage3InlineOrder,
+.stage3PracticeUtilityPanel .stage3InlineSettings > .stage3InlineStrum {
+  grid-column: 1 / -1;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineSettings > .stage3InlineChordBox {
+  order: 1 !important;
+}
+
+.stage3StorageRoom .stage3InlineChordBox {
+  width: 100% !important;
+  max-width: 100% !important;
+  justify-self: stretch !important;
+  align-self: stretch !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.stage3StorageRoom .stage3InlineChordBox .stage3OptionRow {
+  grid-template-columns: 48px minmax(0, 1fr) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.stage3StorageRoom .stage3InlineChordBox .stage3SegmentControl {
+  max-width: 100% !important;
+}
+
+.stage3StorageComposer {
+  display: grid;
+  gap: 8px;
+  padding: 10px 0;
+  width: 100%;
+  max-width: 100%;
+  justify-items: stretch;
+  box-sizing: border-box;
+}
+
+.stage3StorageTopBar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.stage3StorageTopBar .metronomeSelectControl {
+  min-width: 0;
+}
+
+.stage3StorageTopBar .metronomeSelectControl > span {
+  display: none;
+}
+
+.stage3StorageTopBar .metronomeSelectButton,
+.stage3StorageBackButton {
+  min-height: 36px !important;
+  border-radius: 12px !important;
+}
+
+.stage3StorageBackButton {
+  min-width: 76px;
+  padding: 0 10px;
+  border: 1px solid rgba(217, 170, 85, 0.28);
+  background: rgba(4, 7, 9, 0.82);
+  color: rgba(255, 238, 196, 0.9);
+  font-size: 10px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.stage3StorageComposerActions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid rgba(217, 170, 85, 0.12);
+}
+
+.stage3StorageActionSegment {
+  display: inline-flex;
+  justify-self: end;
+  overflow: hidden;
+  border: 1px solid rgba(217, 170, 85, 0.45);
+  border-radius: 10px;
+}
+
+.stage3StorageComposerActions button {
+  min-width: 72px;
+  min-height: 34px;
+  border: 0;
+  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(241, 202, 122, 0.96), rgba(178, 121, 46, 0.9)),
+    rgba(217, 170, 85, 0.88);
+  color: #100904;
+  font-size: 12px;
+  font-weight: 1000;
+}
+
+.stage3StorageActionSegment button + button {
+  border-left: 1px solid rgba(16, 9, 4, 0.42);
+}
+
+.stage3StorageActionSegment button:first-child {
+  background: rgba(4, 7, 9, 0.82);
+  color: rgba(255, 238, 196, 0.86);
+}
+
+.stage3StorageComposerActions.stage3StorageActionSegment button:first-child {
+  background:
+    linear-gradient(180deg, rgba(241, 202, 122, 0.96), rgba(178, 121, 46, 0.9)),
+    rgba(217, 170, 85, 0.88) !important;
+  color: #100904 !important;
+}
+
+.stage3StorageComposerActions.stage3StorageActionSegment button:last-child {
+  background: rgba(4, 7, 9, 0.82) !important;
+  color: rgba(255, 238, 196, 0.86) !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineSettings > .stage3InlineOrder {
+  order: 2 !important;
+}
+
+.stage3PracticeUtilityPanel .stage3InlineSettings > .stage3InlineStrum {
+  order: 3 !important;
+}
+
+@media (max-width: 430px) {
+  .stage3PracticeUtilityPanel .stage3InlineSettings {
+    gap: 9px;
+  }
+}
+
 .stage3ChartTitleRow {
   height: auto !important;
   min-height: 20px !important;
   align-items: flex-start !important;
+}
+
+.scaleBlockTrainingPanel .stage2HeaderScalePicker {
+  display: block !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.scaleBlockTrainingPanel .stage2HeaderScalePicker .referenceScalePicker {
+  display: grid !important;
+  grid-template-columns: minmax(58px, 0.9fr) minmax(116px, 1.8fr) minmax(58px, 0.9fr) !important;
+  gap: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 1px solid rgba(217, 170, 85, 0.22) !important;
+  border-radius: 12px !important;
+  background: rgba(5, 8, 11, 0.72) !important;
+  overflow: hidden !important;
+  box-shadow: none !important;
+}
+
+.scaleBlockTrainingPanel .stage2HeaderScalePicker .scaleTypeGroup {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 0 !important;
+  min-width: 0 !important;
+}
+
+.scaleBlockTrainingPanel .stage2HeaderScalePicker .metronomeSelectControl,
+.scaleBlockTrainingPanel .stage2HeaderScalePicker .scaleTypeGroup .metronomeSelectControl {
+  display: block !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  margin: 0 !important;
+  border-right: 1px solid rgba(217, 170, 85, 0.16) !important;
+}
+
+.scaleBlockTrainingPanel .stage2HeaderScalePicker .scaleBoxSelect {
+  border-right: 0 !important;
+}
+
+.scaleBlockTrainingPanel .stage2HeaderScalePicker .metronomeSelectControl > span {
+  display: none !important;
+}
+
+.scaleBlockTrainingPanel .stage2HeaderScalePicker .metronomeSelectButton {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 34px !important;
+  padding: 0 7px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: rgba(255, 238, 196, 0.96) !important;
+}
+
+.scaleBlockTrainingPanel .stage2HeaderScalePicker .metronomeSelectButton b {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+}
+
+.scaleBlockTrainingPanel .stage2HeaderScalePicker .metronomeSelectButton i {
+  margin-left: 4px !important;
+  color: rgba(241, 202, 122, 0.8) !important;
+  font-size: 9px !important;
+}
+
+.scaleBlockTrainingPanel .stage2HeaderScalePicker .metronomeSelectButton:hover,
+.scaleBlockTrainingPanel .stage2HeaderScalePicker .metronomeSelectButton:focus-visible {
+  background: rgba(217, 170, 85, 0.08) !important;
 }
 
 .stage3ChartStrumPreview {
@@ -37940,6 +38976,21 @@ body {
   line-height: 1 !important;
 }
 
+.scaleBlockTrainingPanel .stage2HeaderScalePicker,
+.scaleBlockTrainingPanel .referenceScalePicker,
+.scaleBlockTrainingPanel .referenceScalePicker .metronomeSelectControl.open {
+  position: relative !important;
+  z-index: 9500 !important;
+  overflow: visible !important;
+}
+
+.scaleBlockTrainingPanel .stage2HeaderScalePicker .metronomeSelectControl--down .metronomeSelectMenu {
+  top: var(--riff-dropdown-top, calc(100% + 6px)) !important;
+  bottom: auto !important;
+  z-index: 9600 !important;
+  transform-origin: top center !important;
+}
+
 /* Bottom nav readability: use the existing button space more aggressively. */
 .mainHub .mainBottomNav button {
   grid-template-rows: 20px minmax(14px, auto) !important;
@@ -38269,7 +39320,8 @@ body {
   padding-inline: 12px !important;
 }
 
-/* Options menu focus balance: storage a touch calmer, help guide more discoverable. */
+/* Menu active entries share the same enabled visual treatment. */
+.utilityMenuPanel .utilityMenuList .utilityMenuItemActive,
 .utilityMenuPanel .utilityMenuList .utilityMenuItemPrimary {
   border-color: rgba(217, 170, 85, 0.34) !important;
   background:
@@ -38281,34 +39333,24 @@ body {
     inset 0 1px 0 rgba(255, 244, 210, 0.08) !important;
 }
 
+.utilityMenuPanel .utilityMenuList .utilityMenuItemActive .utilityMenuIcon,
 .utilityMenuPanel .utilityMenuList .utilityMenuItemPrimary .utilityMenuIcon {
   background: rgba(217, 170, 85, 0.12) !important;
   box-shadow: 0 0 13px rgba(217, 170, 85, 0.12) !important;
 }
 
-.utilityMenuPanel .utilityMenuList .utilityMenuItem:nth-child(2) {
-  border-color: rgba(217, 170, 85, 0.34) !important;
-  background:
-    radial-gradient(circle at 8% 20%, rgba(217, 170, 85, 0.14), transparent 34%),
-    linear-gradient(145deg, rgba(168, 116, 48, 0.18), rgba(12, 10, 8, 0.76)),
-    rgba(11, 13, 13, 0.94) !important;
-  box-shadow:
-    0 9px 18px rgba(0, 0, 0, 0.24),
-    inset 0 1px 0 rgba(255, 244, 210, 0.08) !important;
-}
-
-.utilityMenuPanel .utilityMenuList .utilityMenuItem:nth-child(2) .utilityMenuIcon {
+.utilityMenuPanel .utilityMenuList .utilityMenuItemActive .utilityMenuIcon {
   border-color: rgba(217, 170, 85, 0.26) !important;
   background: rgba(217, 170, 85, 0.12) !important;
   color: rgba(241, 202, 122, 0.96) !important;
   box-shadow: 0 0 13px rgba(217, 170, 85, 0.12) !important;
 }
 
-.utilityMenuPanel .utilityMenuList .utilityMenuItem:nth-child(2) .utilityMenuText strong {
+.utilityMenuPanel .utilityMenuList .utilityMenuItemActive .utilityMenuText strong {
   color: rgba(255, 248, 232, 0.98) !important;
 }
 
-.utilityMenuPanel .utilityMenuList .utilityMenuItem:nth-child(2) .utilityMenuText small {
+.utilityMenuPanel .utilityMenuList .utilityMenuItemActive .utilityMenuText small {
   color: rgba(255, 237, 191, 0.78) !important;
 }
 
@@ -39342,4 +40384,992 @@ body:has(.app.theme-light),
 
 .shooterArena .enemy.shooterEnemy small {
   display: none !important;
+}
+
+/* Final lock: training cards 1/2/3 metronome dots stay simple and non-interactive. */
+.referenceTransitionHud .beatIndicator,
+.chordTransitionHud .beatIndicator,
+.referenceTransitionHud .mobileBeatDots,
+.chordTransitionHud .mobileBeatDots {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 14px !important;
+  min-height: 36px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.referenceTransitionHud .beatIndicatorRow,
+.chordTransitionHud .beatIndicatorRow {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 14px !important;
+}
+
+.referenceTransitionHud .trainingBeatDot,
+.chordTransitionHud .trainingBeatDot,
+.referenceTransitionHud .mobileBeatDots .trainingBeatDot,
+.chordTransitionHud .mobileBeatDots .trainingBeatDot {
+  display: inline-grid !important;
+  width: 18px !important;
+  min-width: 18px !important;
+  height: 18px !important;
+  min-height: 18px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.trainingBeatDot .beatDot__glyph,
+.referenceTransitionHud .trainingBeatDot .beatDot__glyph,
+.chordTransitionHud .trainingBeatDot .beatDot__glyph,
+.referenceTransitionHud .mobileBeatDots .trainingBeatDot .beatDot__glyph,
+.chordTransitionHud .mobileBeatDots .trainingBeatDot .beatDot__glyph {
+  width: 10px !important;
+  min-width: 10px !important;
+  height: 10px !important;
+  min-height: 10px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: rgba(241, 202, 122, 0.34) !important;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.trainingBeatDot.active .beatDot__glyph,
+.referenceTransitionHud .trainingBeatDot.active .beatDot__glyph,
+.chordTransitionHud .trainingBeatDot.active .beatDot__glyph,
+.referenceTransitionHud .mobileBeatDots .trainingBeatDot.active .beatDot__glyph,
+.chordTransitionHud .mobileBeatDots .trainingBeatDot.active .beatDot__glyph {
+  width: 16px !important;
+  min-width: 16px !important;
+  height: 16px !important;
+  min-height: 16px !important;
+  background: #f1ca7a !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.referenceTransitionHud .trainingBeatDot .beatDot__innerMark,
+.chordTransitionHud .trainingBeatDot .beatDot__innerMark,
+.referenceTransitionHud .trainingBeatDot::before,
+.referenceTransitionHud .trainingBeatDot::after,
+.chordTransitionHud .trainingBeatDot::before,
+.chordTransitionHud .trainingBeatDot::after {
+  display: none !important;
+  content: none !important;
+}
+/* Final lock: stage 1/2 visible beat buttons use the same plain dot row as stage 3. */
+.referenceTransitionHud .trainingBeatDot,
+.chordTransitionHud .trainingBeatDot,
+.referenceTransitionHud .mobileBeatDots .trainingBeatDot,
+.chordTransitionHud .mobileBeatDots .trainingBeatDot {
+  width: 22px !important;
+  min-width: 22px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  pointer-events: none !important;
+}
+
+.referenceTransitionHud .trainingBeatDot::before,
+.referenceTransitionHud .trainingBeatDot::after,
+.chordTransitionHud .trainingBeatDot::before,
+.chordTransitionHud .trainingBeatDot::after,
+.referenceTransitionHud .mobileBeatDots .trainingBeatDot::before,
+.referenceTransitionHud .mobileBeatDots .trainingBeatDot::after,
+.chordTransitionHud .mobileBeatDots .trainingBeatDot::before,
+.chordTransitionHud .mobileBeatDots .trainingBeatDot::after {
+  display: none !important;
+  content: none !important;
+}
+
+.referenceTransitionHud .trainingBeatDot .beatDot__glyph,
+.chordTransitionHud .trainingBeatDot .beatDot__glyph,
+.referenceTransitionHud .mobileBeatDots .trainingBeatDot .beatDot__glyph,
+.chordTransitionHud .mobileBeatDots .trainingBeatDot .beatDot__glyph {
+  width: 10px !important;
+  min-width: 10px !important;
+  height: 10px !important;
+  min-height: 10px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: rgba(241, 202, 122, 0.36) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+.referenceTransitionHud .trainingBeatDot.active .beatDot__glyph,
+.chordTransitionHud .trainingBeatDot.active .beatDot__glyph,
+.referenceTransitionHud .mobileBeatDots .trainingBeatDot.active .beatDot__glyph,
+.chordTransitionHud .mobileBeatDots .trainingBeatDot.active .beatDot__glyph {
+  width: 12px !important;
+  min-width: 12px !important;
+  height: 12px !important;
+  min-height: 12px !important;
+  background: #f1ca7a !important;
+  box-shadow: none !important;
+}
+html body .referenceTransitionHud .trainingBeatDot,
+html body .chordTransitionHud .trainingBeatDot,
+html body .referenceTransitionHud .mobileBeatDots .trainingBeatDot,
+html body .chordTransitionHud .mobileBeatDots .trainingBeatDot,
+html body .referenceTransitionHud .beatDot,
+html body .chordTransitionHud .beatDot,
+html body .referenceTransitionHud .metronomeDot,
+html body .chordTransitionHud .metronomeDot {
+  width: 22px !important;
+  min-width: 22px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  pointer-events: none !important;
+}
+
+html body .referenceTransitionHud .trainingBeatDot .beatDot__glyph,
+html body .chordTransitionHud .trainingBeatDot .beatDot__glyph,
+html body .referenceTransitionHud .mobileBeatDots .trainingBeatDot .beatDot__glyph,
+html body .chordTransitionHud .mobileBeatDots .trainingBeatDot .beatDot__glyph,
+html body .referenceTransitionHud .beatDot__glyph,
+html body .chordTransitionHud .beatDot__glyph {
+  width: 10px !important;
+  min-width: 10px !important;
+  height: 10px !important;
+  min-height: 10px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: rgba(241, 202, 122, 0.36) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+html body .referenceTransitionHud .trainingBeatDot.active .beatDot__glyph,
+html body .chordTransitionHud .trainingBeatDot.active .beatDot__glyph,
+html body .referenceTransitionHud .mobileBeatDots .trainingBeatDot.active .beatDot__glyph,
+html body .chordTransitionHud .mobileBeatDots .trainingBeatDot.active .beatDot__glyph,
+html body .referenceTransitionHud .beatDot.active .beatDot__glyph,
+html body .chordTransitionHud .beatDot.active .beatDot__glyph {
+  width: 12px !important;
+  min-width: 12px !important;
+  height: 12px !important;
+  min-height: 12px !important;
+  background: #f1ca7a !important;
+  box-shadow: none !important;
+}
+
+/* Final lock: training-card metronome dots are plain display dots, not beat-state buttons. */
+.trainingBeatDotPlain,
+.trainingBeatDotPlain:hover,
+.trainingBeatDotPlain:focus,
+.trainingBeatDotPlain:active,
+.trainingBeatDotPlain.active {
+  appearance: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 22px !important;
+  min-width: 22px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  transform: none !important;
+  pointer-events: none !important;
+}
+
+.trainingBeatDotPlain::before,
+.trainingBeatDotPlain::after {
+  display: none !important;
+  content: none !important;
+}
+
+.trainingBeatDotPlain__dot {
+  display: block !important;
+  width: 10px !important;
+  min-width: 10px !important;
+  height: 10px !important;
+  min-height: 10px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: rgba(241, 202, 122, 0.36) !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.trainingBeatDotPlain.active .trainingBeatDotPlain__dot {
+  width: 12px !important;
+  min-width: 12px !important;
+  height: 12px !important;
+  min-height: 12px !important;
+  background: #f1ca7a !important;
+  box-shadow: none !important;
+}
+
+/* Final lock: storage composer options stay on the left side under the load bar. */
+.stage3StorageRoom .stage3StorageComposer,
+.stage3StorageRoom .stage3PracticeUtilityPanel,
+.stage3StorageRoom .stage3InlineSettings {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  justify-items: stretch !important;
+  align-items: start !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  transform: none !important;
+}
+
+.stage3StorageRoom .stage3ChordBuilder.stage3InlineChordBox,
+.stage3StorageRoom .stage3InlineChordBox {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  justify-self: start !important;
+  align-self: start !important;
+  justify-items: stretch !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  transform: none !important;
+  box-sizing: border-box !important;
+}
+
+.stage3StorageRoom .stage3InlineChordBox .stage3OptionRow,
+.stage3StorageRoom .stage3InlineChordBox .stage3CompactOptionRow,
+.stage3StorageRoom .stage3InlineChordBox .stage3AddRow,
+.stage3StorageRoom .stage3InlineChordBox .stage3InlineProgressionRow,
+.stage3StorageRoom .stage3InlineChordBox .stage3InlineStrum {
+  justify-self: start !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  transform: none !important;
+  box-sizing: border-box !important;
+}
+
+.stage3StorageRoom .stage3InlineChordBox .stage3OptionRow {
+  display: grid !important;
+  grid-template-columns: 48px minmax(0, 1fr) !important;
+  justify-content: stretch !important;
+}
+
+.stage3StorageRoom .stage3InlineChordBox .stage3SegmentControl,
+.stage3StorageRoom .stage3InlineChordBox .stage3StrumInlineControl,
+.stage3StorageRoom .stage3InlineChordBox .progressionChipList,
+.stage3StorageRoom .stage3InlineChordBox .strumPreviewList {
+  justify-self: start !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  transform: none !important;
+}
+
+/* Final lock: storage room top bar and option rows align cleanly. */
+.stage3StorageRoom .stage3StorageTopBar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: stretch !important;
+  column-gap: 6px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 0 8px !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.stage3StorageRoom .stage3StorageTopBar .metronomeSelectControl,
+.stage3StorageRoom .stage3StorageTopBar .stage3StorageLoadSelect {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+.stage3StorageRoom .stage3StorageTopBar .metronomeSelectButton {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.stage3StorageRoom .stage3StorageBackButton {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  justify-self: end !important;
+  align-self: stretch !important;
+  min-width: 78px !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+.stage3StorageRoom .stage3ChordBuilder.stage3InlineChordBox,
+.stage3StorageRoom .stage3InlineChordBox {
+  padding-left: 6px !important;
+  padding-right: 8px !important;
+}
+
+.stage3StorageRoom .stage3InlineChordBox .stage3OptionRow {
+  grid-template-columns: 34px minmax(0, 1fr) !important;
+  gap: 4px !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.stage3StorageRoom .stage3InlineChordBox .stage3OptionRow > span,
+.stage3StorageRoom .stage3InlineChordBox .stage3AddRow strong span,
+.stage3StorageRoom .stage3InlineProgressionRow > span,
+.stage3StorageRoom .stage3InlineStrum > span {
+  justify-self: start !important;
+  min-width: 0 !important;
+  width: 34px !important;
+  max-width: 34px !important;
+  text-align: left !important;
+}
+
+.stage3StorageRoom .stage3InlineChordBox .stage3SegmentControl,
+.stage3StorageRoom .stage3StrumInlineControl,
+.stage3StorageRoom .stage3AddRow,
+.stage3StorageRoom .stage3InlineProgressionRow,
+.stage3StorageRoom .stage3InlineStrum {
+  margin-left: 0 !important;
+  transform: none !important;
+}
+
+.stage3StorageRoom .stage3InlineProgressionRow,
+.stage3StorageRoom .stage3InlineStrum {
+  display: grid !important;
+  grid-template-columns: 48px minmax(0, 1fr) !important;
+  gap: 4px !important;
+}
+
+.stage3StorageRoom .stage3InlineChordBox .stage3AddRow {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  padding-left: 0 !important;
+}
+
+/* Storage room dedicated layout: independent from stage3 inline settings. */
+.stage3StorageRoom .stage3StorageTopBar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 78px !important;
+  gap: 6px !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  margin: 0 0 8px !important;
+  padding: 0 !important;
+}
+
+.stage3StorageRoom .stage3StorageGroupPanel {
+  display: grid !important;
+  grid-template-columns: 74px minmax(0, 1fr) !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.stage3StorageRoom .stage3StorageGroupTabs {
+  display: inline-flex !important;
+  align-items: stretch !important;
+  width: 74px !important;
+  min-width: 74px !important;
+  height: 36px !important;
+  border: 1px solid rgba(217, 170, 85, 0.34) !important;
+  border-radius: 11px !important;
+  background: rgba(3, 5, 6, 0.86) !important;
+  overflow: hidden !important;
+}
+
+.stage3StorageRoom .stage3StorageGroupTabs button {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 4px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(217, 170, 85, 0.22) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: rgba(255, 238, 196, 0.86) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  box-shadow: none !important;
+}
+
+.stage3StorageRoom .stage3StorageGroupTabs button:last-child {
+  border-right: 0 !important;
+}
+
+.stage3StorageRoom .stage3StorageGroupTabs button.selected,
+.stage3StorageRoom .stage3StorageGroupTabs button[aria-pressed="true"] {
+  background: linear-gradient(180deg, rgba(241, 202, 122, 0.94), rgba(178, 121, 46, 0.9)) !important;
+  color: #100904 !important;
+}
+
+.stage3StorageRoom .stage3StorageNativeSelect {
+  grid-column: 1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 36px !important;
+  padding: 0 26px 0 10px !important;
+  border: 1px solid rgba(217, 170, 85, 0.42) !important;
+  border-radius: 12px !important;
+  background: rgba(4, 7, 9, 0.9) !important;
+  color: rgba(255, 238, 196, 0.96) !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  box-sizing: border-box !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.stage3StorageRoom .stage3StorageGroupPanel .stage3StorageNativeSelect {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+}
+
+.stage3StorageRoom .stage3StorageBackButton {
+  grid-column: 2 !important;
+  justify-self: stretch !important;
+  width: 78px !important;
+  min-width: 78px !important;
+  height: 36px !important;
+}
+
+.stage3StorageRoom .stage3StorageChordBuilder {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 4px 8px 12px 8px !important;
+  border-radius: 12px !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.004)),
+    rgba(5, 8, 11, 0.88) !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.stage3StorageRoom .stage3StorageChordBuilder .stage3OptionRow {
+  display: grid !important;
+  grid-template-columns: 32px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 4px !important;
+  width: 100% !important;
+  padding: 5px 0 !important;
+  border-bottom: 1px solid rgba(217, 170, 85, 0.12) !important;
+}
+
+.stage3StorageRoom .stage3StorageChordBuilder .stage3CompactOptionRow {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 0 !important;
+  width: 100% !important;
+}
+
+.stage3StorageRoom .stage3StorageChordBuilder .stage3OptionRow > span,
+.stage3StorageRoom .stage3StorageChordBuilder .stage3AddRow strong span,
+.stage3StorageRoom .stage3StorageChordBuilder .stage3InlineProgressionRow > span,
+.stage3StorageRoom .stage3StorageChordBuilder .stage3InlineStrum > span {
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  color: rgba(241, 202, 122, 0.95) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  white-space: nowrap !important;
+  text-align: left !important;
+}
+
+.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl {
+  display: inline-flex !important;
+  flex-flow: row nowrap !important;
+  align-items: stretch !important;
+  justify-self: start !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  border: 1px solid rgba(217, 170, 85, 0.34) !important;
+  border-radius: 10px !important;
+  background: rgba(3, 5, 6, 0.86) !important;
+  overflow: hidden !important;
+}
+
+.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button {
+  min-width: 0 !important;
+  min-height: 28px !important;
+  margin: 0 !important;
+  padding: 0 8px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(217, 170, 85, 0.22) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: rgba(255, 238, 196, 0.96) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  box-shadow: none !important;
+}
+
+.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button:last-child {
+  border-right: 0 !important;
+}
+
+.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button.selected,
+.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button.primary,
+.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button[aria-pressed="true"] {
+  background: linear-gradient(180deg, rgba(241, 202, 122, 0.94), rgba(178, 121, 46, 0.9)) !important;
+  color: #100904 !important;
+}
+
+.stage3StorageRoom .stage3StorageChordBuilder .stage3StrumInlineControl {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 4px !important;
+  align-items: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.stage3StorageRoom .stage3StorageChordBuilder .stage3StrumDraftInline {
+  grid-column: 1 / -1 !important;
+  min-width: 0 !important;
+}
+
+.stage3StorageRoom .stage3StorageChordBuilder .stage3AddRow,
+.stage3StorageRoom .stage3StorageChordBuilder .stage3InlineProgressionRow,
+.stage3StorageRoom .stage3StorageChordBuilder .stage3InlineStrum {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 4px !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding: 6px 0 !important;
+  border-bottom: 1px solid rgba(217, 170, 85, 0.12) !important;
+}
+
+.stage3StorageRoom .stage3StorageChordBuilder .stage3InlineProgressionRow,
+.stage3StorageRoom .stage3StorageChordBuilder .stage3InlineStrum {
+  grid-template-columns: 48px minmax(0, 1fr) !important;
+}
+
+.stage3StorageRoom .stage3StorageChordBuilder .stage3InlineProgressionRow > span,
+.stage3StorageRoom .stage3StorageChordBuilder .stage3InlineStrum > span {
+  width: 48px !important;
+  max-width: 48px !important;
+}
+
+/* Storage room: trim the empty pocket above the save/delete segment. */
+.stage3StorageRoom .stage3StorageChordBuilder {
+  padding-bottom: 6px !important;
+}
+
+.stage3StorageRoom .stage3StorageChordBuilder .stage3InlineStrum {
+  padding-bottom: 3px !important;
+  border-bottom: 0 !important;
+}
+
+.stage3StorageRoom .stage3StorageComposerActions,
+.stage3StorageRoom .stage3StorageComposerActions.stage3StorageActionSegment {
+  justify-self: end !important;
+  margin-top: 2px !important;
+  padding-top: 0 !important;
+  border-top: 0 !important;
+}
+
+.stage3StorageRoom .stage3StorageComposerActions button {
+  min-height: 32px !important;
+}
+
+/* Training card 1/2 metronome: match the sketched wide BPM + right toggle layout. */
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl {
+  gap: 7px !important;
+  padding: 8px !important;
+  border-radius: 12px !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeTopLine,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeTopLine {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 58px !important;
+  grid-template-rows: repeat(2, 36px) !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  border-radius: 9px !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmLabel,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmLabel,
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmPresetSelect,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmPresetSelect {
+  display: none !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmCombo,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmCombo {
+  grid-column: 1 !important;
+  grid-row: 1 / 3 !important;
+  display: grid !important;
+  justify-self: stretch !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmInputShell,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmInputShell {
+  display: grid !important;
+  grid-template-columns: 50px minmax(0, 1fr) 50px !important;
+  grid-template-rows: 72px !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: 72px !important;
+  min-height: 72px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(217, 170, 85, 0.28) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmInputShell::before,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmInputShell::before {
+  content: "" !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmInputShell input,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmInputShell input {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  width: 100% !important;
+  height: 72px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #ffe8b3 !important;
+  font-size: 30px !important;
+  font-weight: 1000 !important;
+  line-height: 72px !important;
+  text-align: center !important;
+  box-shadow: none !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmSpinner,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmSpinner {
+  display: contents !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep {
+  width: 50px !important;
+  height: 72px !important;
+  min-height: 72px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: rgba(255, 82, 68, 0.95) !important;
+  font-size: 26px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep:first-child,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep:first-child {
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep:last-child,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep:last-child {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow {
+  grid-column: 2 !important;
+  grid-row: 1 / 3 !important;
+  display: grid !important;
+  grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  gap: 0 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 0 2px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(217, 170, 85, 0.28) !important;
+  border-radius: 0 !important;
+  background: rgba(7, 7, 7, 0.64) !important;
+  color: rgba(255, 232, 186, 0.88) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  line-height: 1.05 !important;
+  text-align: center !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: clip !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button:last-child,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button:last-child {
+  border-bottom: 0 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button:nth-child(2),
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button:nth-child(2) {
+  border-bottom: 0 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button:nth-child(n + 3),
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button:nth-child(n + 3) {
+  display: none !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button.selected,
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button[aria-pressed="true"],
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button.selected,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button[aria-pressed="true"] {
+  background:
+    linear-gradient(180deg, rgba(241, 202, 122, 0.92), rgba(178, 121, 46, 0.9)) !important;
+  color: #100904 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 248, 221, 0.26) !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeOptions,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeOptions {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid rgba(217, 170, 85, 0.3) !important;
+  border-radius: 9px !important;
+  background: rgba(4, 4, 4, 0.5) !important;
+  overflow: visible !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeSelectControl,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeSelectControl {
+  min-width: 0 !important;
+  padding: 5px 6px !important;
+  border-right: 1px solid rgba(217, 170, 85, 0.24) !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeSelectControl:last-child,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeSelectControl:last-child {
+  border-right: 0 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeSelectControl span,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeSelectControl span {
+  color: rgba(241, 202, 122, 0.9) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeSelectButton,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeSelectButton {
+  height: 28px !important;
+  min-height: 28px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #ffe8b3 !important;
+  box-shadow: none !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeSelectButton b,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeSelectButton b {
+  font-size: 16px !important;
+  font-weight: 1000 !important;
+}
+
+/* Training card 1/2 metronome final lock: BPM fills left, toggles stack right. */
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeTopLine,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeTopLine {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 56px !important;
+  grid-template-rows: 36px 36px !important;
+  column-gap: 0 !important;
+  row-gap: 0 !important;
+  align-items: stretch !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmCombo,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmCombo {
+  grid-column: 1 / 2 !important;
+  grid-row: 1 / 3 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 72px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmInputShell,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmInputShell {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  height: 72px !important;
+  min-width: 0 !important;
+  min-height: 72px !important;
+  border-right: 1px solid rgba(217, 170, 85, 0.3) !important;
+  touch-action: pan-y !important;
+  user-select: none !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep--down,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep--down {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 50px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  z-index: 2 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmInputShell input,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmInputShell input {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 72px !important;
+  padding: 0 56px !important;
+  text-align: center !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep--up,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep--up {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  width: 50px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  z-index: 2 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep--downTen,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep--downTen {
+  position: absolute !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: 58px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  z-index: 2 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep--upTen,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep--upTen {
+  position: absolute !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 58px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  z-index: 2 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep--downTen,
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep--upTen,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep--downTen,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeBpmStep--upTen {
+  color: rgba(255, 232, 186, 0.9) !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow {
+  grid-column: 2 / 3 !important;
+  grid-row: 1 / 3 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: 36px 36px !important;
+  width: 56px !important;
+  height: 72px !important;
+  min-width: 56px !important;
+  min-height: 72px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button,
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button {
+  position: static !important;
+  inset: auto !important;
+  display: flex !important;
+  width: 56px !important;
+  height: 36px !important;
+  min-width: 56px !important;
+  min-height: 36px !important;
+  max-width: 56px !important;
+  margin: 0 !important;
+  padding: 0 2px !important;
+  transform: none !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button:nth-child(1),
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button:nth-child(1) {
+  grid-column: 1 / 2 !important;
+  grid-row: 1 / 2 !important;
+}
+
+.firstPositionTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button:nth-child(2),
+.scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button:nth-child(2) {
+  grid-column: 1 / 2 !important;
+  grid-row: 2 / 3 !important;
 }
