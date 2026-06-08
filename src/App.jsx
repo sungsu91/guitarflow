@@ -1240,9 +1240,9 @@ function warmCoreAudioSampleFiles() {
 }
 
 const BACKING_FIXED_PART_GAINS = {
-  drum: 0.7,
-  bass: 0.66,
-  piano: 0.48,
+  drum: 0.62,
+  bass: 0.58,
+  piano: 0.4,
 };
 const BACKING_PART_TIMING_COMPENSATION_SECONDS = {
   bass: 0.006,
@@ -14141,6 +14141,18 @@ function App() {
               <strong>코드 전환 훈련</strong>
             </div>
           </div>
+          {hasChordTransitionProgression &&
+          gameState !== GAME_STATES.PLAYING &&
+          stage3BackingPrepareStatus !== "ready" ? (
+            <div className="stage3AudioWarmToast" role="status" aria-live="polite">
+              <span>반주 준비중</span>
+              <i aria-hidden="true">
+                <b />
+                <b />
+                <b />
+              </i>
+            </div>
+          ) : null}
           <div className="chordTransitionBody">
             <aside className="referenceFretboard chordTransitionChart" aria-label="Current chord fingering">
               <div className="referenceHeader">
