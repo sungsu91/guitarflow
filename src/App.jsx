@@ -1241,14 +1241,23 @@ function warmCoreAudioSampleFiles() {
 
 const BACKING_FIXED_PART_GAINS = {
   drum: 0.7,
-  bass: 0.55,
+  bass: 0.66,
   piano: 0.48,
 };
 const BACKING_PART_TIMING_COMPENSATION_SECONDS = {
-  drum: 0.012,
   bass: 0.006,
   piano: 0.016,
 };
+
+function getBackingEventTimingCompensation(event) {
+  if (!event) return 0;
+  if (event.instrument === "drum") {
+    if (event.sample === "kick") return event.shape === "round-kick" ? 0.006 : 0.004;
+    if (event.sample === "hihat") return 0.002;
+    return 0;
+  }
+  return BACKING_PART_TIMING_COMPENSATION_SECONDS[event.instrument] ?? 0;
+}
 
 const BACKING_NOTE_MIDI = {
   B3: 59,
@@ -8298,7 +8307,7 @@ function App() {
     if (event.instrument === "bass" && !backingBassEnabledRef.current) return;
     if (event.instrument === "piano" && !backingPianoEnabledRef.current) return;
     const audio = audioRef.current;
-    const compensation = BACKING_PART_TIMING_COMPENSATION_SECONDS[event.instrument] ?? 0;
+    const compensation = getBackingEventTimingCompensation(event);
     const compensatedWhen = audio
       ? Math.max(audio.currentTime + 0.002, when - compensation)
       : when;
