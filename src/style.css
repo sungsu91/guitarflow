@@ -13520,6 +13520,45 @@ body {
   --fretboard-board-height: 120px;
 }
 
+.stage3EmptyFretboardPrompt {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 24px);
+  z-index: 12;
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  width: min(78%, 260px);
+  min-height: 72px;
+  padding: 12px 14px;
+  border: 1px solid rgba(217, 170, 85, 0.28);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(241, 202, 122, 0.14), transparent 62%),
+    linear-gradient(145deg, rgba(11, 13, 15, 0.94), rgba(4, 7, 9, 0.9));
+  color: rgba(247, 241, 227, 0.94);
+  text-align: center;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 246, 214, 0.08);
+}
+
+.stage3EmptyFretboardPrompt strong {
+  color: #f1ca7a;
+  font-size: 15px;
+  font-weight: 950;
+  line-height: 1.1;
+}
+
+.stage3EmptyFretboardPrompt span {
+  color: rgba(245, 232, 201, 0.74);
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
 .stageChordSharedFretboard .fretboardComponentScroller,
 .viewerChordSharedFretboard .fretboardComponentScroller {
   min-width: 700px;

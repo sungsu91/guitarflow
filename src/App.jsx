@@ -5461,7 +5461,7 @@ function normalizeStage3BackingSettings({
 }
 
 function getDefaultStage3ChordIds() {
-  return STAGE3_RECOMMENDED_PROGRESSIONS[0].chords.map((name) => getChordByDisplayName(name)?.id).filter(Boolean);
+  return [];
 }
 
 function getDefaultStage3QuickSlots() {
@@ -5471,7 +5471,7 @@ function getDefaultStage3QuickSlots() {
 function getStoredStage3Settings() {
   const fallback = {
     bpm: DEFAULT_BPM,
-    chordProgressionId: `slot:${STAGE3_RECOMMENDED_PROGRESSIONS[0].id}`,
+    chordProgressionId: "custom",
     chordIds: getDefaultStage3ChordIds(),
     showChordFingeringGuide: false,
     chordBaseRoot: "G",
@@ -5484,18 +5484,8 @@ function getStoredStage3Settings() {
 
   try {
     const parsed = JSON.parse(window.localStorage.getItem(STAGE3_STORAGE_KEY) ?? "{}");
-    const chordIds = Array.isArray(parsed.chordIds)
-      ? parsed.chordIds.filter((entry) => CHORD_VIEW_OPTION_BY_ID.has(getChordEntryId(entry)))
-      : fallback.chordIds;
-    const parsedProgressionId = String(parsed.chordProgressionId ?? "");
-    const validProgressionId =
-      parsedProgressionId === "custom" || parsedProgressionId.startsWith("slot:")
-        ? parsedProgressionId.startsWith("slot:preset-")
-          ? fallback.chordProgressionId
-          : parsedProgressionId
-        : CHORD_TRANSITION_PRESETS.some((preset) => preset.id === parsedProgressionId)
-          ? `slot:${STAGE3_RECOMMENDED_PROGRESSIONS[0].id}`
-          : fallback.chordProgressionId;
+    const chordIds = fallback.chordIds;
+    const validProgressionId = fallback.chordProgressionId;
     const validRoot = CHORD_ROOTS.includes(parsed.chordRoot) ? parsed.chordRoot : fallback.chordRoot;
     const fallbackRootParts = splitChordRootForSelector(validRoot);
     const validBaseRoot = CHORD_NATURAL_ROOTS.includes(parsed.chordBaseRoot)
@@ -7287,6 +7277,9 @@ function App() {
     ? stage3LibraryItems.find((slot) => slot.id === chordProgressionId.slice(5)) ?? null
     : null;
   const selectedStage3StorageItem = stage3QuickSlots.find((slot) => slot.id === stage3StorageSelectedId) ?? null;
+  const stage3CurrentProgressionTitle = hasChordTransitionProgression
+    ? loadedStage3LibraryItem?.title || selectedStage3LibraryItem?.title || "사용자 진행"
+    : "진행을 선택해주세요";
   const isStage3RecommendedItem = useCallback((itemOrId) => {
     const id = typeof itemOrId === "string" ? itemOrId : itemOrId?.id;
     return stage3RecommendedSlots.some((item) => item.id === id);
@@ -14211,17 +14204,19 @@ function App() {
                 <div>
                   <div className="stage3ChartTitleRow">
                     <span className="stage3ChartTitleText">
-                      {stage3StorageTitle || loadedStage3LibraryItem?.title || selectedStage3LibraryItem?.title || "훈련 진행"}
+                      {stage3CurrentProgressionTitle}
                     </span>
-                    <span className="stage3ChartStrumPreview">
-                      <StrumPatternRows
-                        pattern={
-                          stage3LiveStrumPattern.length
-                            ? stage3LiveStrumPattern
-                            : normalizeStrumPatternGroups(loadedStage3LibraryItem?.strum_pattern ?? loadedStage3LibraryItem?.strumPattern ?? loadedStage3LibraryItem?.strumSlots)
-                        }
-                      />
-                    </span>
+                    {hasChordTransitionProgression ? (
+                      <span className="stage3ChartStrumPreview">
+                        <StrumPatternRows
+                          pattern={
+                            stage3LiveStrumPattern.length
+                              ? stage3LiveStrumPattern
+                              : normalizeStrumPatternGroups(loadedStage3LibraryItem?.strum_pattern ?? loadedStage3LibraryItem?.strumPattern ?? loadedStage3LibraryItem?.strumSlots)
+                          }
+                        />
+                      </span>
+                    ) : null}
                   </div>
                   <div className="currentProgressionReadout" aria-label="현재 진행중 코드 진행">
                     {hasChordTransitionProgression ? chordTransitionProgression.map((chord, index) => (
@@ -14234,10 +14229,10 @@ function App() {
                         {chord.displayName}
                       </button>
                     )) : (
-                      <small>진행순서를 추가하세요</small>
+                      <small>추천 또는 사용자 진행을 선택해주세요</small>
                     )}
                   </div>
-                  {chordPracticeCurrent.isEnharmonic && (
+                  {hasChordTransitionProgression && chordPracticeCurrent.isEnharmonic && (
                     <small className="enharmonicNotice">
                       참고 운지: {chordPracticeCurrent.fretboardDisplayName} · {chordPracticeCurrent.displayName} = {chordPracticeCurrent.fretboardDisplayName} 동명음
                     </small>
@@ -14248,30 +14243,48 @@ function App() {
                 <span className="stage3CapoBadge">{Number(loadedStage3LibraryItem.capo)}Capo</span>
               ) : null}
               <Fretboard
-                barres={chordPracticeCurrent.barres ?? []}
+                barres={hasChordTransitionProgression ? chordPracticeCurrent.barres ?? [] : []}
                 className="stageChordSharedFretboard fitRange"
-                fretRange={getCompactFretRange(chordPracticeCurrent.notes, chordPracticeCurrent.barres)}
+                fretRange={
+                  hasChordTransitionProgression
+                    ? getCompactFretRange(chordPracticeCurrent.notes, chordPracticeCurrent.barres)
+                    : getCompactFretRange([], [])
+                }
                 mode="chord"
-                notes={chordPracticeCurrent.notes
-                  .filter((note) => Number(note.fretNumber) > 0)
-                  .map((note, index) => ({
-                    ...note,
-                    id: `transition-${note.octaveNote}-${note.stringNumber}-${note.fretNumber}-${index}`,
-                    label: showChordFingeringGuide ? note.finger : getChordDisplayNoteName(note.noteName),
-                    isActive: false,
-                    isCurrent: Boolean(note.isRoot),
-                    isRoot: false,
-                  }))}
+                notes={
+                  hasChordTransitionProgression
+                    ? chordPracticeCurrent.notes
+                      .filter((note) => Number(note.fretNumber) > 0)
+                      .map((note, index) => ({
+                        ...note,
+                        id: `transition-${note.octaveNote}-${note.stringNumber}-${note.fretNumber}-${index}`,
+                        label: showChordFingeringGuide ? note.finger : getChordDisplayNoteName(note.noteName),
+                        isActive: false,
+                        isCurrent: Boolean(note.isRoot),
+                        isRoot: false,
+                      }))
+                    : []
+                }
                 rootNote=""
                 selectedNotes={["__active-note-only__"]}
                 showFretNumbers
                 showStringNames
-                stringStates={Object.fromEntries(
-                  [1, 2, 3, 4, 5, 6]
-                    .map((stringNumber) => [stringNumber, getChordStringState(chordPracticeCurrent, stringNumber)])
-                    .filter(([, state]) => state === "x" || state === "o"),
-                )}
+                stringStates={
+                  hasChordTransitionProgression
+                    ? Object.fromEntries(
+                      [1, 2, 3, 4, 5, 6]
+                        .map((stringNumber) => [stringNumber, getChordStringState(chordPracticeCurrent, stringNumber)])
+                        .filter(([, state]) => state === "x" || state === "o"),
+                    )
+                    : {}
+                }
               />
+              {!hasChordTransitionProgression ? (
+                <div className="stage3EmptyFretboardPrompt" role="status" aria-live="polite">
+                  <strong>진행을 선택해주세요</strong>
+                  <span>추천진행 또는 사용자 진행을 고르면 운지가 표시됩니다</span>
+                </div>
+              ) : null}
             </aside>
 
           </div>
