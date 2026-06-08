@@ -1094,6 +1094,12 @@ function getChordProgressionText(chordIds = []) {
     .join(" - ");
 }
 
+const STAGE3_DEFAULT_BACKING_SETTINGS = {
+  rhythmPattern: "4beat",
+  bassBeat: "4beat",
+  pianoBeat: "4beat",
+};
+
 function makeStage3LibraryItem({
   id,
   title,
@@ -1103,9 +1109,9 @@ function makeStage3LibraryItem({
   subdivision = "quarter",
   sound = "tick",
   capo = 0,
-  backingRhythmPattern = "8beat",
-  backingBassBeat = "basic",
-  backingPianoBeat = "2beat",
+  backingRhythmPattern = STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern,
+  backingBassBeat = STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat,
+  backingPianoBeat = STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat,
   strum_pattern,
   strumPattern,
   strumSlots,
@@ -1240,9 +1246,9 @@ function warmCoreAudioSampleFiles() {
 }
 
 const BACKING_FIXED_PART_GAINS = {
-  drum: 0.62,
-  bass: 0.58,
-  piano: 0.4,
+  drum: 0.58,
+  bass: 0.55,
+  piano: 0.36,
 };
 const BACKING_PART_TIMING_COMPENSATION_SECONDS = {
   bass: 0.006,
@@ -1309,9 +1315,9 @@ const getBackingSessionKey = ({
   progression = [],
   bpmValue = DEFAULT_BPM,
   timeSignatureValue = "4/4",
-  rhythmPattern = "8beat",
-  bassBeat = "basic",
-  pianoBeat = "2beat",
+  rhythmPattern = STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern,
+  bassBeat = STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat,
+  pianoBeat = STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat,
 } = {}) => [
   clampBpm(bpmValue),
   timeSignatureValue,
@@ -1325,9 +1331,9 @@ const createBackingTimelineEvents = ({
   progression = [],
   bpm = DEFAULT_BPM,
   timeSignature = "4/4",
-  rhythmPattern = "8beat",
-  bassBeat = "basic",
-  pianoBeat = "2beat",
+  rhythmPattern = STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern,
+  bassBeat = STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat,
+  pianoBeat = STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat,
 }) => {
   const signature = getTimeSignatureOption(timeSignature);
   const beatsPerMeasure = signature.beats;
@@ -5435,10 +5441,14 @@ function getStage3RecommendedSlots() {
   })).filter((slot) => slot.chordIds.length > 0);
 }
 
-function normalizeStage3BackingSettings({ rhythmPattern = "8beat", bassBeat = "basic", pianoBeat = "2beat" } = {}) {
-  const safeRhythmPattern = ["4beat", "8beat", "16beat", "shuffle"].includes(rhythmPattern) ? rhythmPattern : "8beat";
-  let safeBassBeat = ["basic", "4beat", "8beat", "16beat"].includes(bassBeat) ? bassBeat : "basic";
-  let safePianoBeat = ["2beat", "4beat", "8beat"].includes(pianoBeat) ? pianoBeat : "2beat";
+function normalizeStage3BackingSettings({
+  rhythmPattern = STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern,
+  bassBeat = STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat,
+  pianoBeat = STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat,
+} = {}) {
+  const safeRhythmPattern = ["4beat", "8beat", "16beat", "shuffle"].includes(rhythmPattern) ? rhythmPattern : STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern;
+  let safeBassBeat = ["basic", "4beat", "8beat", "16beat"].includes(bassBeat) ? bassBeat : STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat;
+  let safePianoBeat = ["2beat", "4beat", "8beat"].includes(pianoBeat) ? pianoBeat : STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat;
   if (safeRhythmPattern === "4beat" && (safeBassBeat === "8beat" || safeBassBeat === "16beat")) safeBassBeat = "4beat";
   if (safeRhythmPattern === "8beat" && safeBassBeat === "16beat") safeBassBeat = "8beat";
   if (safeRhythmPattern === "4beat" && safePianoBeat === "8beat") safePianoBeat = "4beat";
@@ -6238,6 +6248,7 @@ function App() {
     [...getStage3RecommendedSlots(), ...initialStage3QuickSlotsRef.current]
       .find((slot) => `slot:${slot.id}` === initialStage3SettingsRef.current.chordProgressionId) ?? null,
   );
+  const [stage3RecommendedSelectValue, setStage3RecommendedSelectValue] = useState("");
   const [stage3StorageOpen, setStage3StorageOpen] = useState(false);
   const [stage3StorageSwipeOffset, setStage3StorageSwipeOffset] = useState(0);
   const [stage3StorageSwipeActive, setStage3StorageSwipeActive] = useState(false);
@@ -6276,9 +6287,9 @@ function App() {
   const [backingDrumVolume] = useState(70);
   const [backingBassVolume] = useState(55);
   const [backingPianoVolume] = useState(60);
-  const [backingRhythmPattern, setBackingRhythmPattern] = useState("8beat");
-  const [backingBassBeat, setBackingBassBeat] = useState("basic");
-  const [backingPianoBeat, setBackingPianoBeat] = useState("2beat");
+  const [backingRhythmPattern, setBackingRhythmPattern] = useState(STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern);
+  const [backingBassBeat, setBackingBassBeat] = useState(STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat);
+  const [backingPianoBeat, setBackingPianoBeat] = useState(STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat);
   const [stage3BackingPrepareStatus, setStage3BackingPrepareStatus] = useState("idle");
   const [metronomeRepeat, setMetronomeRepeat] = useState(false);
   const [autoBpmMode, setAutoBpmMode] = useState("off");
@@ -6768,6 +6779,7 @@ function App() {
   const backingDrumGainRef = useRef(null);
   const backingBassGainRef = useRef(null);
   const backingPianoGainRef = useRef(null);
+  const backingActiveSourcesRef = useRef(new Set());
   const backingSchedulerTimerRef = useRef(null);
   const backingSchedulerRunningRef = useRef(false);
   const backingNextBeatTimeRef = useRef(0);
@@ -6792,9 +6804,9 @@ function App() {
   const backingDrumVolumeRef = useRef(70);
   const backingBassVolumeRef = useRef(55);
   const backingPianoVolumeRef = useRef(60);
-  const backingRhythmPatternRef = useRef("8beat");
-  const backingBassBeatRef = useRef("basic");
-  const backingPianoBeatRef = useRef("2beat");
+  const backingRhythmPatternRef = useRef(STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern);
+  const backingBassBeatRef = useRef(STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat);
+  const backingPianoBeatRef = useRef(STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat);
   const metronomeBarLimitRef = useRef(initialMetronomeTrackerProgressRef.current.barLimit);
   const metronomeBarStopWhenReachedRef = useRef(false);
   const metronomeBarResetWhenReachedRef = useRef(false);
@@ -8251,6 +8263,21 @@ function App() {
       : part === "piano"
         ? backingPianoGainRef.current
         : backingDrumGainRef.current;
+    const activeSource = { source, gain };
+    backingActiveSourcesRef.current.add(activeSource);
+    source.onended = () => {
+      backingActiveSourcesRef.current.delete(activeSource);
+      try {
+        source.disconnect();
+      } catch {
+        // Source may already be disconnected after an explicit stop.
+      }
+      try {
+        gain.disconnect();
+      } catch {
+        // Gain may already be disconnected after an explicit stop.
+      }
+    };
     source.buffer = buffer;
     source.playbackRate.setValueAtTime(Math.max(0.25, Math.min(4, playbackRate)), when);
     if (part === "piano") {
@@ -8322,15 +8349,41 @@ function App() {
     );
   }, [playBackingSample]);
 
+  const fadeOutActiveBackingSources = useCallback((fadeSeconds = 0.04) => {
+    const audio = audioRef.current;
+    const now = audio?.currentTime ?? 0;
+    const stopAt = audio ? now + fadeSeconds : 0;
+    backingActiveSourcesRef.current.forEach(({ source, gain }) => {
+      try {
+        if (audio && gain?.gain) {
+          if (typeof gain.gain.cancelAndHoldAtTime === "function") {
+            gain.gain.cancelAndHoldAtTime(now);
+          } else {
+            gain.gain.cancelScheduledValues(now);
+          }
+          gain.gain.setTargetAtTime(0.0001, now, Math.max(0.006, fadeSeconds / 3));
+        }
+      } catch {
+        // Gain automation can fail if the node has already ended.
+      }
+      try {
+        source.stop(stopAt);
+      } catch {
+        // Source may have already ended or already been stopped.
+      }
+    });
+  }, []);
+
   const stopBackingScheduler = useCallback(() => {
     backingSchedulerRunningRef.current = false;
     backingPendingSessionRef.current = null;
     backingPendingSessionKeyRef.current = "";
+    fadeOutActiveBackingSources();
     if (backingSchedulerTimerRef.current) {
       window.clearInterval(backingSchedulerTimerRef.current);
       backingSchedulerTimerRef.current = null;
     }
-  }, []);
+  }, [fadeOutActiveBackingSources]);
 
   const runBackingScheduler = useCallback(() => {
     const audio = audioRef.current;
@@ -11567,6 +11620,14 @@ function App() {
   }, [warmCoreAudioEngine]);
 
   useEffect(() => {
+    const isRhythmPracticeScreen =
+      appMode === APP_MODES.PRACTICE &&
+      selectedCategoryId === "rhythm" &&
+      !stage3StorageOpen;
+    if (!isRhythmPracticeScreen) setStage3RecommendedSelectValue("");
+  }, [appMode, selectedCategoryId, stage3StorageOpen]);
+
+  useEffect(() => {
     if (selectedCategoryId !== "rhythm" || stage3StorageOpen) return undefined;
     if (gameStateRef.current === GAME_STATES.PLAYING) return undefined;
     const timerId = window.setTimeout(() => {
@@ -14135,24 +14196,6 @@ function App() {
         </section>
       ) : selectedCategory.id === "rhythm" ? (
         <section className="chordTransitionPanel" aria-label="Chord transition practice">
-          <div className="rhythmCodeHeader">
-            <div>
-              <span>리듬 & 코드</span>
-              <strong>코드 전환 훈련</strong>
-            </div>
-          </div>
-          {hasChordTransitionProgression &&
-          gameState !== GAME_STATES.PLAYING &&
-          stage3BackingPrepareStatus !== "ready" ? (
-            <div className="stage3AudioWarmToast" role="status" aria-live="polite">
-              <span>반주 준비중</span>
-              <i aria-hidden="true">
-                <b />
-                <b />
-                <b />
-              </i>
-            </div>
-          ) : null}
           <div className="chordTransitionBody">
             <aside className="referenceFretboard chordTransitionChart" aria-label="Current chord fingering">
               <div className="referenceHeader">
@@ -14234,18 +14277,32 @@ function App() {
               label="리듬 코드 훈련 점자 메트로놈"
               timeSignature="4/4"
             />
-            <button
-              className={`trainingHudStartButton ${gameState === GAME_STATES.PLAYING ? "" : "primary"}`}
-              disabled={
-                gameState !== GAME_STATES.PLAYING &&
-                (!hasChordTransitionProgression || stage3BackingPrepareStatus !== "ready")
-              }
-              onClick={gameState === GAME_STATES.PLAYING ? stopPracticeSession : () => startPractice(selectedCategory)}
-              type="button"
-            >
-              {gameState === GAME_STATES.PLAYING ? <Square size={16} /> : <Play size={16} />}
-              {gameState === GAME_STATES.PLAYING ? "STOP" : "START"}
-            </button>
+            <div className="stage3StartControlCluster">
+              <button
+                className={`trainingHudStartButton ${gameState === GAME_STATES.PLAYING ? "" : "primary"}`}
+                disabled={
+                  gameState !== GAME_STATES.PLAYING &&
+                  (!hasChordTransitionProgression || stage3BackingPrepareStatus !== "ready")
+                }
+                onClick={gameState === GAME_STATES.PLAYING ? stopPracticeSession : () => startPractice(selectedCategory)}
+                type="button"
+              >
+                {gameState === GAME_STATES.PLAYING ? <Square size={16} /> : <Play size={16} />}
+                {gameState === GAME_STATES.PLAYING ? "STOP" : "START"}
+              </button>
+              {hasChordTransitionProgression &&
+              gameState !== GAME_STATES.PLAYING &&
+              stage3BackingPrepareStatus !== "ready" ? (
+                <div className="stage3AudioWarmToast" role="status" aria-live="polite">
+                  <span>준비중</span>
+                  <i aria-hidden="true">
+                    <b />
+                    <b />
+                    <b />
+                  </i>
+                </div>
+              ) : null}
+            </div>
           </div>
 
           <div className="stage3PracticeUtilityPanel">
@@ -14256,6 +14313,7 @@ function App() {
                 onChange={(slotId) => {
                   const item = stage3RecommendedSlots.find((slot) => slot.id === slotId);
                   if (!item) return;
+                  setStage3RecommendedSelectValue(item.id);
                   setStage3StorageSelectedId(item.id);
                   applyStage3LibraryItem(item);
                   const nextBacking = normalizeStage3BackingSettings({
@@ -14274,10 +14332,10 @@ function App() {
                   });
                 }}
                 options={[
-                  { id: "", label: "추천 진행 선택", disabled: true },
+                  { id: "", label: "추천진행선택", disabled: true },
                   ...stage3RecommendedSlots.map((item) => ({ id: item.id, label: getStage3DropdownLabel(item) })),
                 ]}
-                value={isStage3RecommendedItem(selectedStage3LibraryItem) ? selectedStage3LibraryItem?.id ?? "" : ""}
+                value={stage3RecommendedSelectValue}
               />
               <MetronomeSelectControl
                 className="stage3LoadSelect stage3UserLoadSelect"
@@ -14285,6 +14343,7 @@ function App() {
                 onChange={(slotId) => {
                   const item = stage3QuickSlots.find((slot) => slot.id === slotId);
                   if (!item) return;
+                  setStage3RecommendedSelectValue("");
                   setStage3StorageSelectedId(item.id);
                   applyStage3LibraryItem(item);
                   const nextBacking = normalizeStage3BackingSettings({
