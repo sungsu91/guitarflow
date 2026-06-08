@@ -890,6 +890,8 @@ const CHORD_VIEW_OPTIONS = [
     { pitch: "F#4", stringNumber: 1, fret: 2 },
   ], [{ fret: 2, fromString: 5, toString: 1, label: "1" }]),
 ].map(applyStandardChordFingering);
+const CHORD_VIEW_OPTION_BY_ID = new Map(CHORD_VIEW_OPTIONS.map((chord) => [chord.id, chord]));
+const CHORD_VIEW_OPTION_BY_DISPLAY_NAME = new Map(CHORD_VIEW_OPTIONS.map((chord) => [chord.displayName, chord]));
 
 const CHORD_NATURAL_ROOTS = ["C", "D", "E", "F", "G", "A", "B"];
 const CHORD_SHARP_ROOTS = {
@@ -941,7 +943,7 @@ function normalizeChordToken(value = "") {
 
 function getChordByDisplayName(name) {
   const normalized = normalizeChordToken(name);
-  return CHORD_VIEW_OPTIONS.find((chord) => chord.displayName === normalized) ?? null;
+  return CHORD_VIEW_OPTION_BY_DISPLAY_NAME.get(normalized) ?? null;
 }
 
 const CAGED_MAJOR_FORMS_FROM_C = {
@@ -1086,7 +1088,7 @@ function getChordProgressionText(chordIds = []) {
   return chordIds
     .map((entry) => {
       const id = getChordEntryId(entry);
-      return CHORD_VIEW_OPTIONS.find((chord) => chord.id === id)?.displayName ?? getChordEntryLabel(entry, null);
+      return CHORD_VIEW_OPTION_BY_ID.get(id)?.displayName ?? getChordEntryLabel(entry, null);
     })
     .filter(Boolean)
     .join(" - ");
@@ -1111,7 +1113,7 @@ function makeStage3LibraryItem({
   memo = "",
 }) {
   const safeChordIds = Array.isArray(chordIds)
-    ? chordIds.filter((entry) => CHORD_VIEW_OPTIONS.some((chord) => chord.id === getChordEntryId(entry)))
+    ? chordIds.filter((entry) => CHORD_VIEW_OPTION_BY_ID.has(getChordEntryId(entry)))
     : [];
   const progression = getChordProgressionText(safeChordIds);
   const safeTitle = String(title || "").trim() || progression || "내 진행";
@@ -1196,6 +1198,46 @@ const BACKING_SAMPLE_SOURCES = {
   bass_f: "/sounds/bass_f.wav",
   bass_g: "/sounds/bass_g.wav",
 };
+const CORE_AUDIO_SAMPLE_SOURCES = Array.from(new Set([
+  ...METRONOME_TONE_OPTIONS.map((toneOption) => toneOption.src).filter(Boolean),
+  ...Object.values(BACKING_SAMPLE_SOURCES),
+]));
+const audioSampleArrayBufferCache = new Map();
+const audioSampleFetchPromiseCache = new Map();
+
+function fetchCachedAudioArrayBuffer(src) {
+  if (!src || typeof fetch !== "function") return Promise.resolve(null);
+  const cachedBuffer = audioSampleArrayBufferCache.get(src);
+  if (cachedBuffer) return Promise.resolve(cachedBuffer.slice(0));
+
+  let fetchPromise = audioSampleFetchPromiseCache.get(src);
+  if (!fetchPromise) {
+    fetchPromise = fetch(src)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Failed to load audio sample: ${src}`);
+        return response.arrayBuffer();
+      })
+      .then((arrayBuffer) => {
+        audioSampleArrayBufferCache.set(src, arrayBuffer);
+        return arrayBuffer;
+      })
+      .finally(() => {
+        audioSampleFetchPromiseCache.delete(src);
+      });
+    audioSampleFetchPromiseCache.set(src, fetchPromise);
+  }
+
+  return fetchPromise.then((arrayBuffer) => arrayBuffer.slice(0));
+}
+
+function warmCoreAudioSampleFiles() {
+  if (typeof window === "undefined") return;
+  CORE_AUDIO_SAMPLE_SOURCES.forEach((src) => {
+    fetchCachedAudioArrayBuffer(src).catch((error) => {
+      console.warn("Audio sample warmup skipped.", error);
+    });
+  });
+}
 
 const BACKING_FIXED_PART_GAINS = {
   drum: 0.7,
@@ -1253,6 +1295,22 @@ const getBackingPianoVoicing = (chord) => {
     ...(isSeventh ? [rootMidi + 10] : []),
   ];
 };
+
+const getBackingSessionKey = ({
+  progression = [],
+  bpmValue = DEFAULT_BPM,
+  timeSignatureValue = "4/4",
+  rhythmPattern = "8beat",
+  bassBeat = "basic",
+  pianoBeat = "2beat",
+} = {}) => [
+  clampBpm(bpmValue),
+  timeSignatureValue,
+  rhythmPattern,
+  bassBeat,
+  pianoBeat,
+  progression.map((chord) => `${chord?.id ?? ""}:${chord?.displayName ?? chord?.fretboardDisplayName ?? ""}`).join("|"),
+].join("::");
 
 const createBackingTimelineEvents = ({
   progression = [],
@@ -5407,7 +5465,7 @@ function getStoredStage3Settings() {
   try {
     const parsed = JSON.parse(window.localStorage.getItem(STAGE3_STORAGE_KEY) ?? "{}");
     const chordIds = Array.isArray(parsed.chordIds)
-      ? parsed.chordIds.filter((entry) => CHORD_VIEW_OPTIONS.some((chord) => chord.id === getChordEntryId(entry)))
+      ? parsed.chordIds.filter((entry) => CHORD_VIEW_OPTION_BY_ID.has(getChordEntryId(entry)))
       : fallback.chordIds;
     const parsedProgressionId = String(parsed.chordProgressionId ?? "");
     const validProgressionId =
@@ -6706,7 +6764,9 @@ function App() {
   const backingNextBeatTimeRef = useRef(0);
   const backingNextBeatIndexRef = useRef(0);
   const backingPreparedSessionRef = useRef(null);
+  const backingPreparedSessionKeyRef = useRef("");
   const backingPendingSessionRef = useRef(null);
+  const backingPendingSessionKeyRef = useRef("");
   const backingNextEventIndexRef = useRef(0);
   const backingCycleStartTimeRef = useRef(0);
   const backingDisplayStartTimeRef = useRef(0);
@@ -6714,6 +6774,8 @@ function App() {
   const backingEngineReadyRef = useRef(false);
   const backingEngineLoadPromiseRef = useRef(null);
   const backingCompiledPatternCacheRef = useRef({});
+  const coreAudioWarmReadyRef = useRef(false);
+  const coreAudioWarmPromiseRef = useRef(null);
   const lastStage3ProgressUiAtRef = useRef(0);
   const backingDrumEnabledRef = useRef(true);
   const backingBassEnabledRef = useRef(true);
@@ -7161,7 +7223,7 @@ function App() {
   }, [getChordFromSelector, getFallbackChordFromSelector]);
   const buildStage3Progression = useCallback((entries = []) => entries
     .map((entry) => {
-      const chord = CHORD_VIEW_OPTIONS.find((item) => item.id === getChordEntryId(entry));
+      const chord = CHORD_VIEW_OPTION_BY_ID.get(getChordEntryId(entry));
       if (!chord) return null;
       const displayName = getChordEntryLabel(entry, chord);
       return {
@@ -7661,9 +7723,8 @@ function App() {
     metronomeSampleLoadPromiseRef.current = Promise.all(
       sampleToneOptions.map(async (toneOption) => {
         if (metronomeSampleBuffersRef.current[toneOption.id]) return;
-        const response = await fetch(toneOption.src);
-        if (!response.ok) throw new Error(`Failed to load metronome sample: ${toneOption.src}`);
-        const arrayBuffer = await response.arrayBuffer();
+        const arrayBuffer = await fetchCachedAudioArrayBuffer(toneOption.src);
+        if (!arrayBuffer) throw new Error(`Failed to load metronome sample: ${toneOption.src}`);
         const audioBuffer = await audio.decodeAudioData(arrayBuffer);
         metronomeSampleBuffersRef.current[toneOption.id] = audioBuffer;
       }),
@@ -7687,9 +7748,8 @@ function App() {
     backingSampleLoadPromiseRef.current = Promise.all(
       sampleEntries.map(async ([id, src]) => {
         if (backingSampleBuffersRef.current[id]) return;
-        const response = await fetch(src);
-        if (!response.ok) throw new Error(`Failed to load backing sample: ${src}`);
-        const arrayBuffer = await response.arrayBuffer();
+        const arrayBuffer = await fetchCachedAudioArrayBuffer(src);
+        if (!arrayBuffer) throw new Error(`Failed to load backing sample: ${src}`);
         const audioBuffer = await audio.decodeAudioData(arrayBuffer);
         backingSampleBuffersRef.current[id] = audioBuffer;
       }),
@@ -7752,8 +7812,21 @@ function App() {
   } = {}) => {
     const token = backingPrepareTokenRef.current + 1;
     backingPrepareTokenRef.current = token;
+    const sessionKey = getBackingSessionKey({
+      progression,
+      bpmValue,
+      timeSignatureValue,
+      rhythmPattern,
+      bassBeat,
+      pianoBeat,
+    });
+    if (backingPreparedSessionKeyRef.current === sessionKey && backingPreparedSessionRef.current?.events?.length) {
+      setStage3BackingPrepareStatus("ready");
+      return backingPreparedSessionRef.current;
+    }
     if (!progression?.length) {
       backingPreparedSessionRef.current = null;
+      backingPreparedSessionKeyRef.current = "";
       setStage3BackingPrepareStatus("empty");
       return null;
     }
@@ -7779,6 +7852,7 @@ function App() {
 
     if (backingPrepareTokenRef.current !== token) return null;
     backingPreparedSessionRef.current = session;
+    backingPreparedSessionKeyRef.current = sessionKey;
     setStage3BackingPrepareStatus(session.events.length ? "ready" : "empty");
     return session;
   }, [chordTransitionProgression, ensureAudioReady, loadBackingBandSamples]);
@@ -7871,9 +7945,18 @@ function App() {
       bassBeat: nextBassBeat,
       pianoBeat: nextPianoBeat,
     });
+    const sessionKey = getBackingSessionKey({
+      progression: chordTransitionProgression,
+      bpmValue: bpmRef.current,
+      timeSignatureValue: "4/4",
+      rhythmPattern: nextRhythmPattern,
+      bassBeat: nextBassBeat,
+      pianoBeat: nextPianoBeat,
+    });
 
     if (gameStateRef.current === GAME_STATES.PLAYING && backingSchedulerRunningRef.current) {
       backingPendingSessionRef.current = session;
+      backingPendingSessionKeyRef.current = sessionKey;
       return;
     }
 
@@ -7881,6 +7964,7 @@ function App() {
     backingBassBeatRef.current = nextBassBeat;
     backingPianoBeatRef.current = nextPianoBeat;
     backingPreparedSessionRef.current = session;
+    backingPreparedSessionKeyRef.current = sessionKey;
     setStage3BackingPrepareStatus(session.events.length ? "ready" : "empty");
   }, [backingBassBeat, backingPianoBeat, backingRhythmPattern, chordTransitionProgression]);
 
@@ -8100,6 +8184,51 @@ function App() {
     return true;
   }, []);
 
+  const warmCoreAudioEngine = useCallback(async ({ resumeAudio = false } = {}) => {
+    warmCoreAudioSampleFiles();
+    if (coreAudioWarmReadyRef.current && backingPreparedSessionRef.current) return true;
+    if (coreAudioWarmPromiseRef.current) return coreAudioWarmPromiseRef.current;
+
+    coreAudioWarmPromiseRef.current = (async () => {
+      const audioReady = resumeAudio ? await ensureAudioReady() : Boolean(ensureAudioContext());
+      const audio = audioRef.current;
+      if (!audio || (resumeAudio && !audioReady)) return false;
+
+      await Promise.all([
+        loadMetronomeSamples(audio),
+        loadBackingBandSamples(audio),
+      ]);
+      ensureMetronomeOutput(audio);
+      ensureBackingOutput(audio);
+      await prepareStage3BackingSession({
+        progression: chordTransitionProgression,
+        bpmValue: bpmRef.current,
+        timeSignatureValue: metronomeTimeSignatureRef.current,
+        preloadAudio: false,
+      });
+      coreAudioWarmReadyRef.current = true;
+      return true;
+    })()
+      .catch((error) => {
+        console.warn("Core audio engine warmup skipped.", error);
+        return false;
+      })
+      .finally(() => {
+        coreAudioWarmPromiseRef.current = null;
+      });
+
+    return coreAudioWarmPromiseRef.current;
+  }, [
+    chordTransitionProgression,
+    ensureAudioContext,
+    ensureAudioReady,
+    ensureBackingOutput,
+    ensureMetronomeOutput,
+    loadBackingBandSamples,
+    loadMetronomeSamples,
+    prepareStage3BackingSession,
+  ]);
+
   const playBackingSample = useCallback((sampleId, when, volume = 0.6, playbackRate = 1, duration = null, part = "drum", shape = "") => {
     const audio = audioRef.current;
     const buffer = backingSampleBuffersRef.current[sampleId];
@@ -8186,6 +8315,8 @@ function App() {
 
   const stopBackingScheduler = useCallback(() => {
     backingSchedulerRunningRef.current = false;
+    backingPendingSessionRef.current = null;
+    backingPendingSessionKeyRef.current = "";
     if (backingSchedulerTimerRef.current) {
       window.clearInterval(backingSchedulerTimerRef.current);
       backingSchedulerTimerRef.current = null;
@@ -8220,7 +8351,9 @@ function App() {
     }
     if (pendingSession && nextMeasureTime < audio.currentTime + scheduleAheadSeconds) {
       backingPreparedSessionRef.current = pendingSession;
+      backingPreparedSessionKeyRef.current = backingPendingSessionKeyRef.current;
       backingPendingSessionRef.current = null;
+      backingPendingSessionKeyRef.current = "";
       session = pendingSession;
       const nextMeasureIndex = Math.floor((nextMeasureTime - backingCycleStartTimeRef.current) / measureSeconds);
       const nextMeasureOffset = (nextMeasureIndex % session.cycleMeasures) * session.beatsPerMeasure * session.beatSeconds;
@@ -9712,9 +9845,12 @@ function App() {
       return;
     }
     if (safeCategory.id === "rhythm") {
-      await ensureAudioReady();
-      await loadBackingBandSamples(audioRef.current);
-      const preparedSession = await prepareStage3BackingSession();
+      const audioReady = await warmCoreAudioEngine({ resumeAudio: true });
+      if (!audioReady) {
+        setFeedback("오디오 준비 필요");
+        return;
+      }
+      const preparedSession = await prepareStage3BackingSession({ preloadAudio: false });
       if (!preparedSession?.events?.length) {
         setFeedback("반주 준비 필요");
         return;
@@ -9772,7 +9908,7 @@ function App() {
     setFeedback(metronomeCountInRef.current ? "Count In" : "Listen and play");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
-  }, [chordTransitionProgression.length, ensureAudioReady, getPlayableCategory, getPracticeSequence, hasChordTransitionProgression, loadBackingBandSamples, prepareStage3BackingSession, repeatPractice, resetScore, selectedCategory, setState, startBackingScheduler]);
+  }, [chordTransitionProgression.length, ensureAudioReady, getPlayableCategory, getPracticeSequence, hasChordTransitionProgression, prepareStage3BackingSession, repeatPractice, resetScore, selectedCategory, setState, startBackingScheduler, warmCoreAudioEngine]);
 
   const enterPracticePreview = useCallback((category = selectedCategory) => {
     const safeCategory = getPlayableCategory(category);
@@ -9953,20 +10089,23 @@ function App() {
 
   const resumeGame = useCallback(async () => {
     if (gameStateRef.current !== GAME_STATES.PAUSED) return;
-    await ensureAudioReady();
-    if (appModeRef.current === APP_MODES.PRACTICE || appModeRef.current === APP_MODES.METRONOME) {
-      await loadMetronomeSamples(audioRef.current);
-    }
-    if (appModeRef.current === APP_MODES.PRACTICE && selectedCategoryIdRef.current === "rhythm") {
-      await loadBackingBandSamples(audioRef.current);
+    const isRhythmPractice = appModeRef.current === APP_MODES.PRACTICE && selectedCategoryIdRef.current === "rhythm";
+    if (isRhythmPractice) {
+      const audioReady = await warmCoreAudioEngine({ resumeAudio: true });
+      if (!audioReady) return;
+    } else {
+      await ensureAudioReady();
+      if (appModeRef.current === APP_MODES.PRACTICE || appModeRef.current === APP_MODES.METRONOME) {
+        await loadMetronomeSamples(audioRef.current);
+      }
     }
     lastFrameRef.current = performance.now();
     setState(GAME_STATES.PLAYING);
-    if (appModeRef.current === APP_MODES.PRACTICE && selectedCategoryIdRef.current === "rhythm" && !countInActiveRef.current) {
+    if (isRhythmPractice && !countInActiveRef.current) {
       startBackingScheduler(chordPracticeIndexRef.current);
     }
     setFeedback("Play");
-  }, [ensureAudioReady, loadBackingBandSamples, loadMetronomeSamples, setState, startBackingScheduler]);
+  }, [ensureAudioReady, loadMetronomeSamples, setState, startBackingScheduler, warmCoreAudioEngine]);
 
   const handleShooterArenaClick = useCallback((event) => {
     if (appModeRef.current !== APP_MODES.SHOOTER || gameStateRef.current !== GAME_STATES.PLAYING) return;
@@ -11385,13 +11524,48 @@ function App() {
   }, [backingBassBeat, backingPianoBeat, backingRhythmPattern]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    let idleId = null;
+    let timerId = null;
+    if (typeof window.requestIdleCallback === "function") {
+      idleId = window.requestIdleCallback(warmCoreAudioSampleFiles, { timeout: 1200 });
+    } else {
+      timerId = window.setTimeout(warmCoreAudioSampleFiles, 600);
+    }
+    return () => {
+      if (idleId !== null && typeof window.cancelIdleCallback === "function") {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timerId !== null) window.clearTimeout(timerId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    let started = false;
+    const warmOnInteraction = () => {
+      if (started) return;
+      started = true;
+      warmCoreAudioEngine({ resumeAudio: true });
+    };
+    const options = { capture: true, passive: true };
+    window.addEventListener("pointerdown", warmOnInteraction, options);
+    window.addEventListener("keydown", warmOnInteraction, { capture: true });
+    return () => {
+      window.removeEventListener("pointerdown", warmOnInteraction, options);
+      window.removeEventListener("keydown", warmOnInteraction, { capture: true });
+    };
+  }, [warmCoreAudioEngine]);
+
+  useEffect(() => {
     if (selectedCategoryId !== "rhythm" || stage3StorageOpen) return undefined;
     if (gameStateRef.current === GAME_STATES.PLAYING) return undefined;
     const timerId = window.setTimeout(() => {
-      preloadStage3BackingEngine({
+      prepareStage3BackingSession({
         progression: chordTransitionProgression,
         bpmValue: bpm,
         timeSignatureValue: metronomeTimeSignature,
+        preloadAudio: false,
       });
     }, 80);
     return () => window.clearTimeout(timerId);
@@ -11402,7 +11576,7 @@ function App() {
     bpm,
     chordTransitionProgression,
     metronomeTimeSignature,
-    preloadStage3BackingEngine,
+    prepareStage3BackingSession,
     selectedCategoryId,
     stage3StorageOpen,
   ]);
