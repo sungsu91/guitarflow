@@ -4,6 +4,7 @@ import {
   Gamepad2,
   Grid3X3,
   Guitar,
+  LoaderCircle,
   Mic,
   Music2,
   Pause,
@@ -11941,6 +11942,14 @@ function App() {
       ? { title: "제로포지션 기본", subtitle: "개방현과 저포지션 음 위치 훈련" }
     : { title: "리듬 & 코드", subtitle: "메트로놈 기반 기타 리듬 트레이닝" };
 
+  const isStage3AudioPreparing =
+    selectedCategory.id === "rhythm" &&
+    appMode === APP_MODES.PRACTICE &&
+    !stage3StorageOpen &&
+    hasChordTransitionProgression &&
+    gameState !== GAME_STATES.PLAYING &&
+    stage3BackingPrepareStatus !== "ready";
+
   return (
     <main
       className={`app notranslate theme-${appTheme} ${appMode === APP_MODES.MENU ? "menuApp" : ""} ${isSignalActive ? "signalGlow" : ""}`}
@@ -14279,29 +14288,26 @@ function App() {
             />
             <div className="stage3StartControlCluster">
               <button
-                className={`trainingHudStartButton ${gameState === GAME_STATES.PLAYING ? "" : "primary"}`}
+                className={`trainingHudStartButton ${gameState === GAME_STATES.PLAYING ? "" : "primary"} ${
+                  isStage3AudioPreparing ? "preparing" : ""
+                }`}
+                aria-busy={isStage3AudioPreparing}
                 disabled={
                   gameState !== GAME_STATES.PLAYING &&
-                  (!hasChordTransitionProgression || stage3BackingPrepareStatus !== "ready")
+                  (!hasChordTransitionProgression || isStage3AudioPreparing)
                 }
                 onClick={gameState === GAME_STATES.PLAYING ? stopPracticeSession : () => startPractice(selectedCategory)}
                 type="button"
               >
-                {gameState === GAME_STATES.PLAYING ? <Square size={16} /> : <Play size={16} />}
-                {gameState === GAME_STATES.PLAYING ? "STOP" : "START"}
+                {gameState === GAME_STATES.PLAYING ? (
+                  <Square size={16} />
+                ) : isStage3AudioPreparing ? (
+                  <LoaderCircle className="stage3StartLoadingIcon" size={16} />
+                ) : (
+                  <Play size={16} />
+                )}
+                {gameState === GAME_STATES.PLAYING ? "STOP" : isStage3AudioPreparing ? "준비중" : "START"}
               </button>
-              {hasChordTransitionProgression &&
-              gameState !== GAME_STATES.PLAYING &&
-              stage3BackingPrepareStatus !== "ready" ? (
-                <div className="stage3AudioWarmToast" role="status" aria-live="polite">
-                  <span>준비중</span>
-                  <i aria-hidden="true">
-                    <b />
-                    <b />
-                    <b />
-                  </i>
-                </div>
-              ) : null}
             </div>
           </div>
 
