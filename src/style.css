@@ -894,6 +894,160 @@ button:disabled {
   transform: translateX(2px) !important;
 }
 
+.utilitySoundPanel {
+  min-width: 0 !important;
+}
+
+.utilitySoundDetails {
+  min-width: 0 !important;
+}
+
+.utilitySoundDetails summary {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 34px minmax(0, 1fr) 20px !important;
+  align-items: center !important;
+  gap: 9px !important;
+  min-height: 52px !important;
+  padding: 9px 10px !important;
+  border: 1px solid rgba(238, 195, 112, 0.38) !important;
+  border-radius: 12px !important;
+  background:
+    radial-gradient(circle at 8% 20%, rgba(247, 206, 128, 0.18), transparent 34%),
+    linear-gradient(145deg, rgba(217, 170, 85, 0.18), rgba(18, 15, 10, 0.74)),
+    rgba(12, 13, 11, 0.96) !important;
+  color: rgba(255, 248, 232, 0.96) !important;
+  cursor: pointer !important;
+  list-style: none !important;
+  box-shadow:
+    0 9px 18px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 244, 210, 0.1) !important;
+}
+
+.utilitySoundDetails summary::-webkit-details-marker {
+  display: none !important;
+}
+
+.utilitySoundDetails summary:hover,
+.utilitySoundDetails summary:focus-visible {
+  border-color: rgba(247, 206, 128, 0.62) !important;
+  background:
+    radial-gradient(circle at 8% 20%, rgba(247, 206, 128, 0.24), transparent 34%),
+    linear-gradient(145deg, rgba(217, 170, 85, 0.24), rgba(20, 16, 10, 0.8)),
+    rgba(14, 14, 12, 0.98) !important;
+  outline: none !important;
+  box-shadow:
+    0 11px 20px rgba(0, 0, 0, 0.26),
+    0 0 0 1px rgba(217, 170, 85, 0.08),
+    0 0 18px rgba(217, 170, 85, 0.14) !important;
+}
+
+.utilitySoundDetails[open] summary {
+  border-color: rgba(247, 206, 128, 0.58) !important;
+  border-bottom-right-radius: 8px !important;
+  border-bottom-left-radius: 8px !important;
+}
+
+.utilitySoundDetails[open] summary .utilityMenuChevron {
+  transform: rotate(180deg) !important;
+}
+
+.utilitySoundSliders {
+  display: grid !important;
+  gap: 8px !important;
+  margin-top: 6px !important;
+  padding: 10px !important;
+  border: 1px solid rgba(217, 170, 85, 0.18) !important;
+  border-radius: 12px !important;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(217, 170, 85, 0.055), transparent 42%),
+    rgba(5, 7, 9, 0.9) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.04) !important;
+}
+
+.utilitySoundSliderRow {
+  display: grid !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+}
+
+.utilitySoundSliderRow > span {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+}
+
+.utilitySoundSliderRow strong {
+  color: rgba(255, 248, 232, 0.92) !important;
+  font-size: 10.5px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+}
+
+.utilitySoundSliderRow b {
+  display: grid !important;
+  place-items: center !important;
+  min-width: 30px !important;
+  height: 20px !important;
+  border: 1px solid rgba(217, 170, 85, 0.26) !important;
+  border-radius: 999px !important;
+  background: rgba(217, 170, 85, 0.1) !important;
+  color: rgba(241, 202, 122, 0.98) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+}
+
+.utilitySoundSliderRow input[type="range"] {
+  width: 100% !important;
+  height: 28px !important;
+  margin: 0 !important;
+  accent-color: #d9aa55 !important;
+  cursor: pointer !important;
+}
+
+.utilitySoundSliderRow input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(90deg, rgba(217, 170, 85, 0.9), rgba(247, 206, 128, 0.52)) !important;
+}
+
+.utilitySoundSliderRow input[type="range"]::-webkit-slider-thumb {
+  width: 20px !important;
+  height: 20px !important;
+  margin-top: -7px !important;
+  border: 1px solid rgba(255, 239, 199, 0.72) !important;
+  border-radius: 999px !important;
+  background: #f1ca7a !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.34) !important;
+}
+
+.utilitySoundResetButton {
+  display: block !important;
+  grid-template-columns: none !important;
+  width: 100% !important;
+  min-height: 34px !important;
+  padding: 0 10px !important;
+  border: 1px solid rgba(217, 170, 85, 0.2) !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.008)),
+    rgba(8, 12, 14, 0.9) !important;
+  color: rgba(255, 248, 232, 0.86) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  text-align: center !important;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.045) !important;
+}
+
+.utilitySoundResetButton:hover,
+.utilitySoundResetButton:focus-visible {
+  border-color: rgba(238, 195, 112, 0.44) !important;
+  color: rgba(255, 248, 232, 0.98) !important;
+  outline: none !important;
+}
+
 .utilityInfoCard {
   display: grid !important;
   gap: 4px !important;
@@ -41418,4 +41572,2429 @@ html body .chordTransitionHud .beatDot.active .beatDot__glyph {
 .scaleBlockTrainingPanel .referenceTrainingMainRow .referenceBpmControl .metronomeToggleRow button:nth-child(2) {
   grid-column: 1 / 2 !important;
   grid-row: 2 / 3 !important;
+}
+
+/* Mini chord maker: desktop-first tool, isolated from the mobile rhythm screen. */
+.miniChordMakerPanel {
+  width: 100%;
+  display: grid;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid rgba(217, 170, 85, 0.24);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(15, 15, 13, 0.9), rgba(4, 8, 12, 0.94)),
+    rgba(5, 8, 12, 0.94);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+}
+
+.miniChordHeader,
+.miniChordWorkspace,
+.miniChordControlPanel,
+.miniChordTimelinePanel,
+.miniChordEditorPanel {
+  min-width: 0;
+}
+
+.miniChordHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(217, 170, 85, 0.22);
+  border-radius: 12px;
+  background: rgba(2, 5, 7, 0.74);
+}
+
+.miniChordHeader > div:first-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.miniChordHeader span,
+.miniChordField > span,
+.miniChordTimelineTop span,
+.miniChordEditorHeader span,
+.miniChordRepeatSummary span {
+  color: rgba(241, 202, 122, 0.82);
+  font-size: 10px;
+  font-weight: 950;
+}
+
+.miniChordHeader strong {
+  color: #fff2ca;
+  font-size: 20px;
+  font-weight: 1000;
+}
+
+.miniChordHeader small {
+  color: rgba(245, 231, 201, 0.72);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.miniChordTransport {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.miniChordTransport button,
+.miniChordStorageTools button,
+.miniChordStorageTools select,
+.miniChordClearSlot {
+  min-height: 38px;
+  border-color: rgba(217, 170, 85, 0.34);
+  background:
+    linear-gradient(180deg, rgba(27, 20, 9, 0.92), rgba(7, 7, 6, 0.92)),
+    rgba(9, 8, 6, 0.95);
+  color: #ffe8b3;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 209, 0.1);
+}
+
+.miniChordTransport button.selected,
+.miniChordSegment button.selected,
+.miniChordBarHeader button.selected,
+.miniChordQuickChords button:hover,
+.miniChordStorageTools button:hover {
+  border-color: rgba(255, 222, 150, 0.72);
+  background:
+    linear-gradient(180deg, rgba(241, 202, 122, 0.96), rgba(150, 96, 30, 0.96));
+  color: #120b04;
+  box-shadow: 0 0 18px rgba(217, 170, 85, 0.24);
+}
+
+.miniChordWorkspace {
+  display: grid;
+  gap: 12px;
+}
+
+.miniChordControlPanel,
+.miniChordTimelinePanel,
+.miniChordEditorPanel {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 12px;
+  border: 1px solid rgba(217, 170, 85, 0.22);
+  border-radius: 12px;
+  background: rgba(1, 4, 7, 0.72);
+}
+
+.miniChordField {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.miniChordField input,
+.miniChordStorageTools select {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  border: 1px solid rgba(217, 170, 85, 0.28);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.58);
+  color: #fff0c7;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 850;
+  outline: none;
+  padding: 0 12px;
+}
+
+.miniChordField input:focus,
+.miniChordStorageTools select:focus {
+  border-color: rgba(255, 222, 150, 0.72);
+  box-shadow: 0 0 0 2px rgba(217, 170, 85, 0.16);
+}
+
+.miniChordSegment {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.miniChordSegment button,
+.miniChordBarHeader button,
+.miniChordQuickChords button {
+  min-height: 36px;
+  min-width: 0;
+  padding: 0 8px;
+  border-color: rgba(217, 170, 85, 0.25);
+  border-radius: 10px;
+  background: rgba(5, 6, 7, 0.88);
+  color: #ffe8b3;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.miniChordNumberGrid,
+.miniChordStorageTools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.miniChordSwitch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(217, 170, 85, 0.22);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.42);
+  color: #ffe8b3;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.miniChordSwitch input {
+  width: 18px;
+  height: 18px;
+  accent-color: #d9aa55;
+}
+
+.miniChordRepeatSummary {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(217, 170, 85, 0.2);
+  border-radius: 10px;
+  background: rgba(217, 170, 85, 0.07);
+}
+
+.miniChordRepeatSummary strong {
+  color: #fff0c7;
+  font-size: 13px;
+}
+
+.miniChordTimelineTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.miniChordTimelineTop strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #fff2ca;
+  font-size: 15px;
+  font-weight: 1000;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.miniChordTimeline {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.miniChordBar {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid rgba(217, 170, 85, 0.22);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(41, 26, 11, 0.58), rgba(8, 8, 8, 0.82));
+}
+
+.miniChordBar.repeatRange {
+  border-color: rgba(241, 202, 122, 0.48);
+  box-shadow: inset 0 0 0 1px rgba(241, 202, 122, 0.12);
+}
+
+.miniChordBar.repeatStart {
+  border-left-color: rgba(255, 224, 156, 0.86);
+  border-left-width: 3px;
+}
+
+.miniChordBar.repeatEnd {
+  border-right-color: rgba(255, 224, 156, 0.86);
+  border-right-width: 3px;
+}
+
+.miniChordBarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.miniChordBarHeader span {
+  color: #ffe8b3;
+  font-size: 12px;
+  font-weight: 1000;
+}
+
+.miniChordBarHeader div {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.miniChordBarHeader button {
+  width: 34px;
+  min-height: 28px;
+  padding: 0;
+  font-size: 15px;
+}
+
+.miniChordSlots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.miniChordSlot {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  min-width: 0;
+  min-height: 64px;
+  padding: 8px;
+  border-color: rgba(217, 170, 85, 0.2);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.46);
+  color: rgba(255, 232, 179, 0.7);
+  text-align: left;
+  white-space: normal;
+}
+
+.miniChordSlot small {
+  color: rgba(241, 202, 122, 0.62);
+  font-size: 10px;
+  font-weight: 950;
+}
+
+.miniChordSlot strong {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 20px;
+  font-weight: 1000;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.miniChordSlot.filled {
+  color: #fff4cf;
+}
+
+.miniChordSlot.active {
+  border-color: rgba(255, 222, 150, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(255, 222, 150, 0.2);
+}
+
+.miniChordSlot.playing {
+  background:
+    linear-gradient(180deg, rgba(241, 202, 122, 0.92), rgba(126, 78, 24, 0.92));
+  color: #130b04;
+  box-shadow: 0 0 22px rgba(217, 170, 85, 0.28);
+}
+
+.miniChordSlot.playing small {
+  color: rgba(19, 11, 4, 0.7);
+}
+
+.miniChordEditorHeader {
+  display: grid;
+  gap: 4px;
+}
+
+.miniChordEditorHeader strong {
+  color: #fff2ca;
+  font-size: 18px;
+}
+
+.miniChordQuickChords {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.miniChordClearSlot {
+  width: 100%;
+  justify-self: stretch;
+}
+
+.miniChordEditorNote {
+  margin: 0;
+  color: rgba(245, 231, 201, 0.58);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+@media (max-width: 680px) {
+  .miniChordDesktopMenuItem {
+    display: none !important;
+  }
+}
+
+@media (min-width: 900px) {
+  body:has(.miniChordMakerMode) {
+    align-items: stretch;
+    justify-content: stretch;
+    overflow-x: auto;
+  }
+
+  #root:has(.miniChordMakerMode) {
+    max-width: none;
+    border-inline: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .app.miniChordMakerMode {
+    width: min(100%, 1440px);
+    max-width: none;
+    min-height: 100dvh;
+    margin: 0 auto;
+    padding: 18px 22px 28px;
+    overflow-x: visible;
+    grid-template-rows: auto auto 1fr auto;
+    background:
+      linear-gradient(180deg, rgba(6, 8, 10, 0.94), rgba(8, 10, 12, 0.98)),
+      #050607;
+  }
+
+  .app.miniChordMakerMode .brandHeader {
+    width: min(430px, 100%);
+    justify-self: center;
+  }
+
+  .app.miniChordMakerMode .contentHeader {
+    max-width: 1180px;
+    width: 100%;
+    justify-self: center;
+  }
+
+  .miniChordMakerPanel {
+    width: min(1180px, 100%);
+    justify-self: center;
+    padding: 14px;
+  }
+
+  .miniChordWorkspace {
+    grid-template-columns: 240px minmax(0, 1fr) 280px;
+    align-items: start;
+  }
+
+  .miniChordTimeline {
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1399px) {
+  .miniChordWorkspace {
+    grid-template-columns: 190px minmax(0, 1fr) 220px;
+  }
+
+  .miniChordControlPanel,
+  .miniChordEditorPanel {
+    padding: 10px;
+  }
+
+  .miniChordQuickChords {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.miniChordMakerPanelCompact {
+  width: min(430px, 100%);
+  justify-self: center;
+  gap: 10px;
+  padding: 10px;
+}
+
+.miniChordHeaderCompact {
+  padding: 10px;
+}
+
+.miniChordHeaderCompact strong {
+  font-size: 18px;
+}
+
+.miniChordQuickBar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 92px 62px;
+  gap: 6px;
+  align-items: center;
+  padding: 9px;
+  border: 1px solid rgba(217, 170, 85, 0.22);
+  border-radius: 12px;
+  background: rgba(2, 5, 7, 0.74);
+}
+
+.miniChordSearchField {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  min-width: 0;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid rgba(217, 170, 85, 0.26);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.54);
+  color: rgba(241, 202, 122, 0.9);
+}
+
+.miniChordSearchField input,
+.miniChordQuickBar select {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: #fff0c7;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  outline: none;
+}
+
+.miniChordSearchField input::placeholder {
+  color: rgba(245, 231, 201, 0.5);
+}
+
+.miniChordQuickBar select,
+.miniChordQuickBar button,
+.miniChordPageStepper button,
+.miniChordCompactSettings summary {
+  min-height: 38px;
+  border: 1px solid rgba(217, 170, 85, 0.28);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(27, 20, 9, 0.92), rgba(7, 7, 6, 0.92)),
+    rgba(9, 8, 6, 0.95);
+  color: #ffe8b3;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 950;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 209, 0.08);
+}
+
+.miniChordQuickBar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 7px;
+}
+
+.miniChordQuickBar select {
+  padding: 0 8px;
+}
+
+.miniChordQuickBar select:disabled,
+.miniChordPageStepper button:disabled {
+  color: rgba(245, 231, 201, 0.38);
+  opacity: 0.58;
+}
+
+.miniChordMeasureStrip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 7px;
+  align-items: center;
+  padding: 0 2px;
+}
+
+.miniChordMeasureStrip > span {
+  color: rgba(241, 202, 122, 0.82);
+  font-size: 12px;
+  font-weight: 1000;
+}
+
+.miniChordMeasureStrip .miniChordSegment {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.miniChordPageStepper {
+  display: grid;
+  grid-template-columns: 32px 38px 32px;
+  gap: 4px;
+  align-items: center;
+}
+
+.miniChordPageStepper button {
+  min-height: 32px;
+  padding: 0;
+  font-size: 16px;
+}
+
+.miniChordPageStepper strong {
+  color: #fff0c7;
+  font-size: 11px;
+  font-weight: 950;
+  text-align: center;
+}
+
+.miniChordCompactSettings {
+  border: 1px solid rgba(217, 170, 85, 0.2);
+  border-radius: 12px;
+  background: rgba(1, 4, 7, 0.68);
+  overflow: hidden;
+}
+
+.miniChordCompactSettings summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 0 11px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.miniChordCompactSettings summary::-webkit-details-marker {
+  display: none;
+}
+
+.miniChordCompactSettings summary span {
+  color: rgba(241, 202, 122, 0.86);
+  font-size: 12px;
+  font-weight: 1000;
+}
+
+.miniChordCompactSettings summary b {
+  overflow: hidden;
+  color: #fff0c7;
+  font-size: 12px;
+  font-weight: 950;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.miniChordSettingsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+}
+
+.miniChordSettingsGrid .miniChordSwitch,
+.miniChordSettingsGrid .miniChordRepeatSummary {
+  min-height: 40px;
+}
+
+.miniChordTimelinePanelCompact {
+  padding: 10px;
+}
+
+.miniChordTimelineFour {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.miniChordTimelineFour .miniChordBar {
+  min-height: 106px;
+  padding: 8px;
+}
+
+.miniChordTimelineFour .miniChordBarHeader span {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: rgba(241, 202, 122, 0.12);
+}
+
+.miniChordTimelineFour .miniChordBarHeader button {
+  width: 28px;
+  min-height: 26px;
+  font-size: 13px;
+}
+
+.miniChordTimelineFour .miniChordSlot {
+  min-height: 56px;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+.miniChordTimelineFour .miniChordSlot strong {
+  font-size: 19px;
+}
+
+.miniChordEditorPanelCompact {
+  padding: 10px;
+}
+
+.miniChordEditorPanelCompact .miniChordEditorHeader {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.miniChordEditorPanelCompact .miniChordEditorHeader strong {
+  overflow: hidden;
+  font-size: 15px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.miniChordEditorPanelCompact .miniChordQuickChords {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (min-width: 900px) {
+  .miniChordMakerPanelCompact {
+    width: min(430px, 100%);
+    max-width: 430px;
+    padding: 10px;
+  }
+
+  .miniChordMakerPanelCompact .miniChordTimeline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.miniChordMakerPanelCompact .miniChordTimelinePanelCompact {
+  overflow: visible;
+  padding: 8px;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour {
+  position: relative;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  overflow: visible;
+  border: 1px solid rgba(217, 170, 85, 0.28);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(41, 26, 11, 0.32), rgba(6, 7, 8, 0.88)),
+    rgba(2, 5, 7, 0.82);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar {
+  position: relative;
+  display: grid;
+  align-content: stretch;
+  min-height: 96px;
+  padding: 18px 0 0;
+  border: 0;
+  border-right: 1px solid rgba(217, 170, 85, 0.2);
+  border-bottom: 1px solid rgba(217, 170, 85, 0.2);
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar:nth-child(2n) {
+  border-right: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatRange {
+  background: rgba(241, 202, 122, 0.045);
+  box-shadow: inset 0 0 0 1px rgba(241, 202, 122, 0.11);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.is-editing {
+  background: rgba(217, 170, 85, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 222, 150, 0.32);
+}
+
+.miniChordBarNumber {
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  z-index: 2;
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 7px;
+  background: rgba(241, 202, 122, 0.13);
+  color: rgba(255, 232, 179, 0.86);
+  font-size: 10px;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.barEndingLabel {
+  position: absolute;
+  top: 4px;
+  left: 30px;
+  z-index: 3;
+  min-width: 30px;
+  padding: 1px 6px 0;
+  border-top: 1px solid currentColor;
+  color: #ffe7ad;
+  font-size: 11px;
+  font-weight: 1000;
+  line-height: 1.15;
+  pointer-events: none;
+}
+
+.repeatMark {
+  position: absolute;
+  top: 56%;
+  z-index: 3;
+  transform: translateY(-50%);
+  color: #ffe7ad;
+  font-size: 24px;
+  font-weight: 1000;
+  line-height: 1;
+  pointer-events: none;
+  text-shadow: 0 0 10px rgba(217, 170, 85, 0.28);
+}
+
+.repeatMark--start {
+  left: 3px;
+}
+
+.repeatMark--end {
+  right: 3px;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  height: 100%;
+  min-height: 74px;
+  padding: 8px 18px 9px;
+}
+
+.miniChordSlotWrap {
+  position: relative;
+  display: grid;
+  min-width: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotWrap + .miniChordSlotWrap {
+  border-left: 1px solid rgba(217, 170, 85, 0.16);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 58px;
+  min-width: 0;
+  padding: 0 5px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 232, 179, 0.72);
+  box-shadow: none;
+  text-align: center;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot strong {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 20px;
+  font-weight: 1000;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot.filled {
+  color: #fff4cf;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot.active {
+  background: rgba(255, 222, 150, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 222, 150, 0.22);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot.playing {
+  background:
+    linear-gradient(180deg, rgba(241, 202, 122, 0.9), rgba(126, 78, 24, 0.9));
+  color: #130b04;
+  box-shadow: 0 0 18px rgba(217, 170, 85, 0.24);
+}
+
+.miniChordChordPopover {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: -12px;
+  z-index: 95;
+  display: grid;
+  width: 224px;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(217, 170, 85, 0.36);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(19, 21, 18, 0.98), rgba(7, 10, 11, 0.98)),
+    rgba(10, 12, 14, 0.98);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.46);
+}
+
+.miniChordChordPopover.alignEnd {
+  right: -12px;
+  left: auto;
+}
+
+.miniChordPickerSegment {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid rgba(217, 170, 85, 0.2);
+  border-radius: 999px;
+  background: rgba(217, 170, 85, 0.08);
+}
+
+.miniChordPickerSegment button,
+.miniChordPickerExtensions button,
+.miniChordPickerRoots button,
+.miniChordPickerActions button {
+  min-height: 30px;
+  min-width: 0;
+  border: 1px solid rgba(217, 170, 85, 0.2);
+  border-radius: 9px;
+  background: rgba(4, 8, 9, 0.8);
+  color: #ffe8b3;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.miniChordPickerSegment button {
+  border-radius: 999px;
+}
+
+.miniChordPickerSegment button.selected,
+.miniChordPickerExtensions button.selected {
+  border-color: rgba(255, 230, 171, 0.7);
+  background:
+    linear-gradient(180deg, rgba(241, 202, 122, 0.98), rgba(143, 91, 29, 0.98));
+  color: #130b04;
+  box-shadow: 0 0 14px rgba(217, 170, 85, 0.18);
+}
+
+.miniChordPickerExtensions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.miniChordPickerExtensions button {
+  flex: 1 0 46px;
+  min-height: 28px;
+  padding: 0 7px;
+  color: rgba(255, 232, 179, 0.86);
+  font-size: 11px;
+}
+
+.miniChordPickerRoots {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.miniChordPickerRoots button {
+  min-height: 34px;
+  border-color: rgba(217, 170, 85, 0.26);
+  background: rgba(255, 238, 198, 0.08);
+  color: #fff0c7;
+  font-size: 15px;
+}
+
+.miniChordPickerRoots button:hover,
+.miniChordPickerActions button:hover {
+  border-color: rgba(255, 222, 150, 0.64);
+  background:
+    linear-gradient(180deg, rgba(241, 202, 122, 0.94), rgba(150, 96, 30, 0.94));
+  color: #130b04;
+}
+
+.miniChordPickerActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.miniChordPickerActions button {
+  min-height: 34px;
+  background: rgba(217, 170, 85, 0.08);
+  color: rgba(255, 232, 179, 0.82);
+}
+
+.barMarkPopover {
+  position: absolute;
+  top: calc(100% - 4px);
+  left: 8px;
+  z-index: 80;
+  display: grid;
+  width: 132px;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid rgba(217, 170, 85, 0.38);
+  border-radius: 8px;
+  background: rgba(10, 12, 14, 0.97);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.42);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar:nth-child(2n) .barMarkPopover {
+  right: 8px;
+  left: auto;
+}
+
+.barMarkPopover button {
+  min-height: 30px;
+  min-width: 0;
+  padding: 0 8px;
+  border: 1px solid rgba(217, 170, 85, 0.24);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.54);
+  color: #ffe8b3;
+  font-size: 11px;
+  font-weight: 950;
+  text-align: left;
+}
+
+.barMarkPopover button:hover {
+  border-color: rgba(255, 222, 150, 0.64);
+  background:
+    linear-gradient(180deg, rgba(241, 202, 122, 0.94), rgba(150, 96, 30, 0.94));
+  color: #130b04;
+}
+
+/* Mini chord clean draft: keep this isolated from rhythm-code training. */
+.miniChordMakerPanelCompact {
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(190, 222, 203, 0.9);
+  border-radius: 14px;
+  background: #f8fbf8;
+  color: #244637;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.18);
+}
+
+.miniChordMakerPanelCompact .miniChordHeaderCompact {
+  min-height: 0;
+  padding: 0 2px 4px;
+  border: 0;
+  background: transparent;
+}
+
+.miniChordMakerPanelCompact .miniChordHeaderCompact span {
+  display: none;
+}
+
+.miniChordMakerPanelCompact .miniChordHeaderCompact strong {
+  color: #246b49;
+  font-size: 16px;
+}
+
+.miniChordMakerPanelCompact .miniChordHeaderCompact small {
+  color: #739482;
+  font-size: 11px;
+}
+
+.miniChordMakerPanelCompact .miniChordTransport {
+  gap: 6px;
+}
+
+.miniChordMakerPanelCompact .miniChordTransport button {
+  min-height: 34px;
+  border: 1px solid #bddcc8;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #286c4b;
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordTransport button.selected,
+.miniChordMakerPanelCompact .miniChordTransport button:hover {
+  background: #52ad78;
+  color: #ffffff;
+}
+
+.miniChordMakerPanelCompact .miniChordQuickBar {
+  grid-template-columns: minmax(0, 1fr) 40px 40px;
+  gap: 7px;
+  padding: 8px 10px;
+  border-color: #cfe6d8;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordSearchField {
+  height: 36px;
+  padding: 0 9px;
+  border-color: #d5e8dd;
+  border-radius: 10px;
+  background: #f7fbf8;
+  color: #4aa06e;
+}
+
+.miniChordMakerPanelCompact .miniChordSearchField input,
+.miniChordMakerPanelCompact .miniChordQuickBar select {
+  color: #2f5b46;
+  font-size: 12px;
+}
+
+.miniChordMakerPanelCompact .miniChordQuickBar select,
+.miniChordMakerPanelCompact .miniChordQuickBar button {
+  min-height: 36px;
+  border-color: #cfe6d8;
+  border-radius: 10px;
+  background: #f7fbf8;
+  color: #2d7450;
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordQuickBar button {
+  font-size: 0;
+  padding: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordMeasureStrip {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.miniChordMakerPanelCompact .miniChordMeasureStrip > span {
+  color: #537463;
+  font-size: 12px;
+}
+
+.miniChordMakerPanelCompact .miniChordSegment {
+  gap: 5px;
+}
+
+.miniChordMakerPanelCompact .miniChordSegment button,
+.miniChordMakerPanelCompact .miniChordPageStepper button {
+  min-height: 32px;
+  border: 1px solid #cfe6d8;
+  border-radius: 8px;
+  background: #f7fbf8;
+  color: #486a59;
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordSegment button.selected,
+.miniChordMakerPanelCompact .miniChordPageStepper button:not(:disabled):hover {
+  border-color: #46a36e;
+  background: #dff3e7;
+  color: #236a49;
+}
+
+.miniChordMakerPanelCompact .miniChordPageStepper {
+  grid-template-columns: 30px 34px 30px;
+}
+
+.miniChordMakerPanelCompact .miniChordPageStepper strong {
+  color: #4c705d;
+}
+
+.miniChordMakerPanelCompact .miniChordCompactSettings {
+  border-color: #d5e8dd;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.miniChordMakerPanelCompact .miniChordCompactSettings summary {
+  min-height: 34px;
+  border: 0;
+  background: transparent;
+  color: #486a59;
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordCompactSettings summary span {
+  color: #4d7a61;
+}
+
+.miniChordMakerPanelCompact .miniChordCompactSettings summary b {
+  color: #2e6a4b;
+}
+
+.miniChordMakerPanelCompact .miniChordSettingsGrid {
+  background: #ffffff;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelinePanelCompact {
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid #cfe6d8;
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelinePanelCompact .miniChordTimelineTop {
+  display: none;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-color: #d5e8dd;
+  border-radius: 8px;
+  background: #f8fbf8;
+}
+
+@media (min-width: 900px) {
+  .miniChordMakerPanelCompact .miniChordTimeline {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar {
+  min-height: 66px;
+  padding: 20px 0 0;
+  border-right-color: #dbece2;
+  border-bottom: 0;
+  background: transparent;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar:nth-child(2n) {
+  border-right: 1px solid #dbece2;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar:nth-child(4n) {
+  border-right: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.is-editing,
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatRange {
+  background: #edf8f1;
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordBarNumber {
+  top: 7px;
+  left: 9px;
+  min-width: auto;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+  color: #9ab0a2;
+  font-size: 11px;
+}
+
+.miniChordMakerPanelCompact .barEndingLabel {
+  top: 6px;
+  left: 23px;
+  color: #2b7953;
+}
+
+.miniChordMakerPanelCompact .repeatMark {
+  color: #26724e;
+  font-size: 20px;
+  text-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlots {
+  min-height: 42px;
+  padding: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotWrap + .miniChordSlotWrap {
+  border-left-color: #dbece2;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot {
+  min-height: 42px;
+  padding: 0 2px;
+  color: #9aaea2;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot strong {
+  color: inherit;
+  font-size: 15px;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot.filled {
+  color: #214f3b;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot.active {
+  background: #d9f1e2;
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot.playing {
+  background: #4fac74;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordChordPopover {
+  width: 218px;
+  gap: 7px;
+  padding: 10px;
+  border-color: #bfe0cb;
+  border-radius: 13px;
+  background: #f8fcf9;
+  box-shadow: 0 16px 34px rgba(39, 86, 59, 0.2);
+}
+
+.miniChordMakerPanelCompact .miniChordPickerSegment {
+  border-color: #cfe6d8;
+  background: #eaf6ef;
+}
+
+.miniChordMakerPanelCompact .miniChordPickerSegment button,
+.miniChordMakerPanelCompact .miniChordPickerRoots button,
+.miniChordMakerPanelCompact .miniChordPickerActions button {
+  border: 1px solid #cfe6d8;
+  background: #ffffff;
+  color: #416a55;
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordPickerSegment button.selected {
+  background: #2f7d55;
+  color: #ffffff;
+}
+
+.miniChordMakerPanelCompact .miniChordPickerRoots {
+  gap: 5px;
+}
+
+.miniChordMakerPanelCompact .miniChordPickerRoots button {
+  min-height: 36px;
+  color: #2e4d3f;
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.miniChordMakerPanelCompact .miniChordPickerActions button {
+  min-height: 34px;
+  background: #edf6f1;
+  color: #6a8173;
+}
+
+.miniChordMakerPanelCompact .miniChordPickerRoots button:hover,
+.miniChordMakerPanelCompact .miniChordPickerActions button:hover {
+  border-color: #4fac74;
+  background: #dff3e7;
+  color: #236a49;
+}
+
+.miniChordMakerPanelCompact .barMarkPopover {
+  border-color: #bfe0cb;
+  background: #ffffff;
+  box-shadow: 0 14px 28px rgba(39, 86, 59, 0.18);
+}
+
+.miniChordMakerPanelCompact .barMarkPopover button {
+  border-color: #d5e8dd;
+  background: #f7fbf8;
+  color: #416a55;
+}
+
+.miniChordMakerPanelCompact .barMarkPopover button:hover {
+  border-color: #4fac74;
+  background: #dff3e7;
+  color: #236a49;
+}
+
+.miniChordMakerPanelCompact .miniChordMeasureStrip .miniChordSegment {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.miniChordMakerPanelCompact .miniChordPageStepper {
+  grid-template-columns: 30px 30px 30px;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelinePanelCompact {
+  max-height: min(500px, calc(100dvh - 320px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  scrollbar-color: rgba(79, 172, 116, 0.45) transparent;
+  scrollbar-width: thin;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelinePanelCompact::-webkit-scrollbar {
+  width: 6px;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelinePanelCompact::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(79, 172, 116, 0.42);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: visible;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar {
+  min-height: 66px;
+  padding: 20px 0 0;
+  border-right: 1px solid #dbece2;
+  border-bottom: 1px solid #dbece2;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar:nth-child(2n) {
+  border-right: 1px solid #dbece2;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar:nth-child(4n) {
+  border-right: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar:nth-last-child(-n + 4) {
+  border-bottom: 0;
+}
+
+.miniChordMakerPanelCompact .loop-cell-edge {
+  position: absolute;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #2d7a55;
+  opacity: 0.24;
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .loop-cell-edge:hover,
+.miniChordMakerPanelCompact .loop-cell-edge.active {
+  opacity: 1;
+}
+
+.miniChordMakerPanelCompact .loop-cell-edge.left,
+.miniChordMakerPanelCompact .loop-cell-edge.right {
+  top: 7px;
+  bottom: 7px;
+  width: 16px;
+  gap: 2px;
+}
+
+.miniChordMakerPanelCompact .loop-cell-edge.left {
+  left: 1px;
+}
+
+.miniChordMakerPanelCompact .loop-cell-edge.right {
+  right: 1px;
+}
+
+.miniChordMakerPanelCompact .loop-repeat-bars {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 1px;
+  height: 46px;
+}
+
+.miniChordMakerPanelCompact .loop-repeat-bars span {
+  display: block;
+  align-self: stretch;
+  border-radius: 99px;
+  background: currentColor;
+}
+
+.miniChordMakerPanelCompact .loop-repeat-bars .thick {
+  width: 3px;
+}
+
+.miniChordMakerPanelCompact .loop-repeat-bars .thin {
+  width: 1px;
+}
+
+.miniChordMakerPanelCompact .loop-repeat-dots {
+  display: grid;
+  gap: 7px;
+}
+
+.miniChordMakerPanelCompact .loop-repeat-dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.miniChordMakerPanelCompact .loop-cell-edge.top {
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 17px;
+}
+
+.miniChordMakerPanelCompact .loop-cell-edge.top.active::before {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: #2d7a55;
+  content: "";
+}
+
+.miniChordMakerPanelCompact .loop-cell-edge.top .barEndingLabel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  min-width: 18px;
+  padding: 0 3px;
+  border: 0;
+  background: #f8fbf8;
+  color: #236a49;
+  font-size: 11px;
+  font-weight: 1000;
+  line-height: 1.2;
+}
+
+.miniChordMakerPanelCompact .barEndingPopover {
+  position: absolute;
+  top: 18px;
+  left: 7px;
+  z-index: 100;
+  display: grid;
+  width: 150px;
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid #bfe0cb;
+  border-radius: 11px;
+  background: #ffffff;
+  box-shadow: 0 14px 28px rgba(39, 86, 59, 0.18);
+}
+
+.miniChordMakerPanelCompact .miniChordBar:nth-child(4n) .barEndingPopover {
+  right: 7px;
+  left: auto;
+}
+
+.miniChordMakerPanelCompact .barEndingOptions {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.miniChordMakerPanelCompact .barEndingOptions button,
+.miniChordMakerPanelCompact .barEndingClear {
+  min-height: 30px;
+  min-width: 0;
+  border: 1px solid #cfe6d8;
+  border-radius: 8px;
+  background: #f7fbf8;
+  color: #416a55;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.miniChordMakerPanelCompact .barEndingOptions button.selected,
+.miniChordMakerPanelCompact .barEndingOptions button:hover,
+.miniChordMakerPanelCompact .barEndingClear:hover {
+  border-color: #4fac74;
+  background: #2f7d55;
+  color: #ffffff;
+}
+
+/* Mini chord dark-gold compact pass. Keeps controls hidden until a mark is actually set. */
+.miniChordMakerPanelCompact {
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(207, 157, 73, 0.46);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(160, 105, 37, 0.16), transparent 32%),
+    linear-gradient(180deg, #14100a 0%, #060707 100%);
+  color: #f4d79a;
+  box-shadow: 0 20px 42px rgba(0, 0, 0, 0.42);
+}
+
+.miniChordMakerPanelCompact .miniChordHeaderCompact,
+.miniChordMakerPanelCompact .miniChordQuickBar,
+.miniChordMakerPanelCompact .miniChordMeasureStrip,
+.miniChordMakerPanelCompact .miniChordCompactSettings,
+.miniChordMakerPanelCompact .miniChordTimelinePanelCompact {
+  border-color: rgba(207, 157, 73, 0.3);
+  background: rgba(5, 7, 8, 0.82);
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordHeaderCompact {
+  padding: 12px 14px;
+}
+
+.miniChordMakerPanelCompact .miniChordHeaderCompact span,
+.miniChordMakerPanelCompact .miniChordHeaderCompact small,
+.miniChordMakerPanelCompact .miniChordMeasureStrip span,
+.miniChordMakerPanelCompact .miniChordTimelineTop span {
+  color: rgba(244, 215, 154, 0.72);
+}
+
+.miniChordMakerPanelCompact .miniChordHeaderCompact strong,
+.miniChordMakerPanelCompact .miniChordTimelineTop strong {
+  color: #ffe7aa;
+}
+
+.miniChordMakerPanelCompact .miniChordTransport button,
+.miniChordMakerPanelCompact .miniChordQuickBar button,
+.miniChordMakerPanelCompact .miniChordSegment button,
+.miniChordMakerPanelCompact .miniChordPageStepper button {
+  border-color: rgba(207, 157, 73, 0.35);
+  background: rgba(8, 8, 7, 0.84);
+  color: #f2d28d;
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordTransport button:hover,
+.miniChordMakerPanelCompact .miniChordQuickBar button:hover,
+.miniChordMakerPanelCompact .miniChordSegment button:hover,
+.miniChordMakerPanelCompact .miniChordPageStepper button:hover {
+  border-color: rgba(255, 212, 126, 0.72);
+  background: rgba(115, 74, 24, 0.38);
+}
+
+.miniChordMakerPanelCompact .miniChordTransport button.selected,
+.miniChordMakerPanelCompact .miniChordSegment button.selected {
+  border-color: rgba(255, 218, 137, 0.88);
+  background: linear-gradient(180deg, #d8a94e 0%, #7b521d 100%);
+  color: #090806;
+}
+
+.miniChordMakerPanelCompact .miniChordPageStepper strong,
+.miniChordMakerPanelCompact .miniChordCompactSettings summary b {
+  color: #ffe7aa;
+}
+
+.miniChordMakerPanelCompact .miniChordSearchField,
+.miniChordMakerPanelCompact .miniChordQuickBar select,
+.miniChordMakerPanelCompact .miniChordField,
+.miniChordMakerPanelCompact .miniChordSwitch,
+.miniChordMakerPanelCompact .miniChordRepeatSummary {
+  border-color: rgba(207, 157, 73, 0.28);
+  background: rgba(0, 0, 0, 0.22);
+  color: #f4d79a;
+}
+
+.miniChordMakerPanelCompact .miniChordSearchField input,
+.miniChordMakerPanelCompact .miniChordQuickBar select,
+.miniChordMakerPanelCompact .miniChordField input {
+  color: #ffe7aa;
+}
+
+.miniChordMakerPanelCompact .miniChordSearchField input::placeholder {
+  color: rgba(244, 215, 154, 0.54);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelinePanelCompact {
+  max-height: min(500px, calc(100dvh - 320px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px;
+  scrollbar-color: rgba(207, 157, 73, 0.48) transparent;
+  scrollbar-width: thin;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelinePanelCompact::-webkit-scrollbar {
+  width: 6px;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelinePanelCompact::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(207, 157, 73, 0.48);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  overflow: visible;
+  border: 1px solid rgba(207, 157, 73, 0.28);
+  border-radius: 8px;
+  background: rgba(9, 9, 8, 0.94);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar {
+  position: relative;
+  min-width: 0;
+  min-height: 58px;
+  padding: 18px 0 0;
+  border: 0;
+  border-right: 1px solid rgba(207, 157, 73, 0.2);
+  border-bottom: 1px solid rgba(207, 157, 73, 0.2);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  contain: layout paint;
+  transition: none;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar:nth-child(2n) {
+  border-right: 1px solid rgba(207, 157, 73, 0.2);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar:nth-child(4n) {
+  border-right: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar:nth-last-child(-n + 4) {
+  border-bottom: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatRange {
+  background: rgba(207, 157, 73, 0.06);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.is-editing {
+  background: rgba(207, 157, 73, 0.12);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatStart::before,
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatEnd::after {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  color: #e8b65c;
+  font-size: 18px;
+  font-weight: 1000;
+  line-height: 1;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatStart::before {
+  left: 2px;
+  content: "|:";
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatEnd::after {
+  right: 2px;
+  content: ":|";
+}
+
+.miniChordMakerPanelCompact .loop-cell-edge,
+.miniChordMakerPanelCompact .loop-repeat-bars,
+.miniChordMakerPanelCompact .loop-repeat-dots {
+  display: none;
+}
+
+.miniChordMakerPanelCompact .miniChordBarNumber {
+  position: absolute;
+  top: 5px;
+  left: 6px;
+  z-index: 3;
+  color: rgba(244, 215, 154, 0.52);
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.miniChordMakerPanelCompact .miniChordBarNumber.has-ending {
+  opacity: 0;
+}
+
+.miniChordMakerPanelCompact .barEndingLabel {
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  z-index: 5;
+  min-width: 24px;
+  padding: 1px 0 0 2px;
+  border: 0;
+  border-top: 2px solid rgba(255, 223, 149, 0.92);
+  border-radius: 0;
+  background: transparent;
+  color: #ffe7aa;
+  font-size: 11px;
+  font-weight: 1000;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-height: 39px;
+  padding: 0 12px 0;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotWrap {
+  position: relative;
+  min-width: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotWrap + .miniChordSlotWrap {
+  border-left: 1px solid rgba(207, 157, 73, 0.16);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 39px;
+  padding: 0 3px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(244, 215, 154, 0.56);
+  box-shadow: none;
+  overflow: hidden;
+  transition: none;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot strong {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  color: currentColor;
+  font-size: 13px;
+  font-weight: 1000;
+  line-height: 1;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot.filled {
+  color: #ffe7aa;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot.active,
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot:hover {
+  background: rgba(207, 157, 73, 0.12);
+  color: #fff0c3;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot.playing {
+  background: linear-gradient(180deg, rgba(232, 182, 92, 0.92), rgba(132, 86, 28, 0.82));
+  color: #080705;
+}
+
+.miniChordMakerPanelCompact .barEndingPopover,
+.miniChordMakerPanelCompact .miniChordChordPopover {
+  border: 1px solid rgba(207, 157, 73, 0.42);
+  background: rgba(9, 9, 8, 0.98);
+  color: #ffe7aa;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.42);
+}
+
+.miniChordMakerPanelCompact .barEndingPopover {
+  top: 19px;
+  left: 6px;
+  width: 148px;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.miniChordMakerPanelCompact .miniChordBar:nth-child(4n) .barEndingPopover {
+  right: 6px;
+  left: auto;
+}
+
+.miniChordMakerPanelCompact .barEndingOptions button,
+.miniChordMakerPanelCompact .barEndingClear,
+.miniChordMakerPanelCompact .miniChordPickerSegment button,
+.miniChordMakerPanelCompact .miniChordPickerRoots button,
+.miniChordMakerPanelCompact .miniChordPickerActions button {
+  border-color: rgba(207, 157, 73, 0.3);
+  background: rgba(0, 0, 0, 0.2);
+  color: #f2d28d;
+}
+
+.miniChordMakerPanelCompact .barEndingOptions button.selected,
+.miniChordMakerPanelCompact .barEndingOptions button:hover,
+.miniChordMakerPanelCompact .barEndingClear:hover,
+.miniChordMakerPanelCompact .miniChordPickerSegment button.selected,
+.miniChordMakerPanelCompact .miniChordPickerSegment button:hover,
+.miniChordMakerPanelCompact .miniChordPickerRoots button:hover,
+.miniChordMakerPanelCompact .miniChordPickerActions button:hover {
+  border-color: rgba(255, 218, 137, 0.86);
+  background: linear-gradient(180deg, #d8a94e 0%, #7b521d 100%);
+  color: #080705;
+}
+
+.miniChordMakerPanelCompact .miniChordChordPopover {
+  width: min(218px, calc(100vw - 26px));
+  border-radius: 10px;
+}
+
+/* Mini chord space-first pass: no stacked panels, larger grid, fixed popovers. */
+.miniChordMakerPanelCompact {
+  gap: 6px;
+  padding: 6px;
+  border-color: rgba(207, 157, 73, 0.32);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(13, 10, 6, 0.98), rgba(3, 5, 6, 0.98));
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordHeaderCompact,
+.miniChordMakerPanelCompact .miniChordQuickBar,
+.miniChordMakerPanelCompact .miniChordMeasureStrip,
+.miniChordMakerPanelCompact .miniChordCompactSettings,
+.miniChordMakerPanelCompact .miniChordTimelinePanelCompact {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.miniChordMakerPanelCompact .miniChordHeaderCompact {
+  min-height: 0;
+  padding: 0 2px 4px;
+}
+
+.miniChordMakerPanelCompact .miniChordHeaderCompact span,
+.miniChordMakerPanelCompact .miniChordHeaderCompact small {
+  display: none;
+}
+
+.miniChordMakerPanelCompact .miniChordHeaderCompact strong {
+  font-size: 15px;
+  line-height: 1.1;
+}
+
+.miniChordMakerPanelCompact .miniChordTransport {
+  gap: 5px;
+}
+
+.miniChordMakerPanelCompact .miniChordTransport button {
+  min-height: 32px;
+  padding: 0 12px;
+}
+
+.miniChordMakerPanelCompact .miniChordQuickBar {
+  grid-template-columns: minmax(0, 1fr) 78px 46px;
+  gap: 5px;
+  padding: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordSearchField,
+.miniChordMakerPanelCompact .miniChordQuickBar select,
+.miniChordMakerPanelCompact .miniChordQuickBar button {
+  min-height: 34px;
+  border-radius: 7px;
+}
+
+.miniChordMakerPanelCompact .miniChordMeasureStrip {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 5px;
+  padding: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordMeasureStrip .miniChordSegment {
+  gap: 4px;
+}
+
+.miniChordMakerPanelCompact .miniChordSegment button,
+.miniChordMakerPanelCompact .miniChordPageStepper button {
+  min-height: 32px;
+  border-radius: 7px;
+}
+
+.miniChordMakerPanelCompact .miniChordCompactSettings {
+  padding: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordCompactSettings summary {
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid rgba(207, 157, 73, 0.28);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineTop {
+  display: none;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelinePanelCompact {
+  max-height: min(590px, calc(100dvh - 250px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour {
+  border-color: rgba(207, 157, 73, 0.38);
+  border-radius: 7px;
+  background: rgba(7, 7, 6, 0.98);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar {
+  min-height: 68px;
+  padding: 20px 0 0;
+  border-color: rgba(207, 157, 73, 0.24);
+  contain: none;
+  overflow: visible;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar:nth-child(2n) {
+  border-right-color: rgba(207, 157, 73, 0.24);
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlots {
+  min-height: 48px;
+  padding: 0 10px;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot {
+  min-height: 48px;
+  position: relative;
+  z-index: 2;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot strong {
+  font-size: 14px;
+}
+
+.miniChordMakerPanelCompact .miniChordMarkHotspot {
+  position: absolute;
+  z-index: 5;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  touch-action: manipulation;
+}
+
+.miniChordMakerPanelCompact .miniChordMarkHotspotStart {
+  top: 20px;
+  bottom: 0;
+  left: 0;
+  width: 12px;
+}
+
+.miniChordMakerPanelCompact .miniChordMarkHotspotEnd {
+  top: 20px;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+}
+
+.miniChordMakerPanelCompact .miniChordMarkHotspotEnding {
+  top: 0;
+  right: 12px;
+  left: 12px;
+  height: 20px;
+}
+
+.miniChordMakerPanelCompact .miniChordMarkHotspot:focus-visible {
+  outline: 1px solid rgba(255, 223, 149, 0.8);
+  outline-offset: -2px;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatStart::before,
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatEnd::after {
+  z-index: 6;
+  font-size: 19px;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatStart::before {
+  left: 1px;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatEnd::after {
+  right: 1px;
+}
+
+.miniChordMakerPanelCompact .barEndingPopover,
+.miniChordMakerPanelCompact .miniChordChordPopover {
+  position: fixed;
+  z-index: 1000;
+  max-width: calc(100vw - 16px);
+  border-color: rgba(231, 183, 96, 0.52);
+  background: rgba(8, 8, 7, 0.98);
+}
+
+.miniChordMakerPanelCompact .barEndingPopover {
+  width: 156px;
+  padding: 7px;
+}
+
+.miniChordMakerPanelCompact .miniChordBar:nth-child(4n) .barEndingPopover {
+  right: auto;
+}
+
+.miniChordMakerPanelCompact .barEndingOptions {
+  gap: 4px;
+}
+
+.miniChordMakerPanelCompact .barEndingOptions button,
+.miniChordMakerPanelCompact .barEndingClear {
+  min-height: 28px;
+  border-radius: 7px;
+}
+
+.miniChordMakerPanelCompact .miniChordChordPopover {
+  width: min(218px, calc(100vw - 16px));
+  padding: 10px;
+}
+
+/* Mini chord backing plate: one main surface under sparse 4-bar content. */
+.miniChordMakerPanelCompact {
+  position: relative;
+  min-height: min(680px, calc(100dvh - 160px));
+  align-content: start;
+  padding-bottom: 76px;
+}
+
+/* Utility menu deploy polish: calmer tabs, no lone sound marker, Instagram pink contact. */
+.utilityMenuPanel .utilityMenuList .utilityMenuItemActive,
+.utilityMenuPanel .utilityMenuList .utilityMenuItemPrimary,
+.utilitySoundDetails summary {
+  border-color: rgba(217, 170, 85, 0.22) !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.105), rgba(10, 9, 8, 0.76)),
+    rgba(9, 11, 12, 0.94) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.055) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItem:hover,
+.utilityMenuPanel .utilityMenuList .utilityMenuItem:focus-visible,
+.utilitySoundDetails summary:hover,
+.utilitySoundDetails summary:focus-visible {
+  transform: none !important;
+  border-color: rgba(238, 195, 112, 0.34) !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.13), rgba(10, 9, 8, 0.8)),
+    rgba(10, 12, 13, 0.96) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.07) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItemActive .utilityMenuIcon,
+.utilityMenuPanel .utilityMenuList .utilityMenuItemPrimary .utilityMenuIcon,
+.utilityMenuList .utilityMenuItem:hover .utilityMenuIcon,
+.utilityMenuList .utilityMenuItem:focus-visible .utilityMenuIcon {
+  box-shadow: none !important;
+}
+
+.utilitySoundDetails summary {
+  grid-template-columns: 34px minmax(0, 1fr) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram {
+  border-color: rgba(241, 126, 184, 0.34) !important;
+  background:
+    linear-gradient(145deg, rgba(241, 126, 184, 0.13), rgba(10, 9, 8, 0.78)),
+    rgba(11, 12, 13, 0.94) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram .utilityMenuIcon {
+  border-color: rgba(241, 126, 184, 0.46) !important;
+  background: rgba(241, 126, 184, 0.13) !important;
+  color: #ffafd2 !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram .utilityMenuText strong {
+  color: #ffe5f2 !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram .utilityMenuText small,
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram .utilityMenuChevron {
+  color: #ffafd2 !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram:hover,
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram:focus-visible {
+  border-color: rgba(255, 175, 210, 0.52) !important;
+  background:
+    linear-gradient(145deg, rgba(241, 126, 184, 0.18), rgba(10, 9, 8, 0.8)),
+    rgba(12, 12, 13, 0.96) !important;
+}
+
+.helpInstagramLink {
+  border-color: rgba(241, 126, 184, 0.42) !important;
+  background:
+    linear-gradient(135deg, rgba(241, 126, 184, 0.18), rgba(140, 62, 112, 0.12)),
+    rgba(255, 255, 255, 0.035) !important;
+  color: #ffafd2 !important;
+}
+
+.modeSwitch button[aria-controls="utility-menu-panel"].selected {
+  border-color: rgba(217, 170, 85, 0.34) !important;
+  background:
+    linear-gradient(180deg, rgba(78, 54, 24, 0.88), rgba(16, 14, 11, 0.94)),
+    rgba(12, 13, 12, 0.94) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.09),
+    0 0 0 1px rgba(0, 0, 0, 0.22) !important;
+}
+
+/* Instagram polish: only the mark is pink; the menu row stays in RIFFLAB gold. */
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram {
+  border-color: rgba(217, 170, 85, 0.22) !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.105), rgba(10, 9, 8, 0.76)),
+    rgba(9, 11, 12, 0.94) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram:hover,
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram:focus-visible {
+  border-color: rgba(238, 195, 112, 0.34) !important;
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.13), rgba(10, 9, 8, 0.8)),
+    rgba(10, 12, 13, 0.96) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram .utilityMenuIcon {
+  border-color: rgba(241, 126, 184, 0.5) !important;
+  background: rgba(241, 126, 184, 0.12) !important;
+  color: #ffafd2 !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram .utilityMenuText strong {
+  color: rgba(255, 248, 232, 0.98) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram .utilityMenuText small {
+  color: rgba(255, 237, 191, 0.78) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram .utilityMenuChevron {
+  color: rgba(241, 202, 122, 0.78) !important;
+}
+
+.helpInstagramLink {
+  border-color: rgba(217, 170, 85, 0.22) !important;
+  background:
+    linear-gradient(135deg, rgba(217, 170, 85, 0.1), rgba(10, 9, 8, 0.12)),
+    rgba(255, 255, 255, 0.035) !important;
+  color: rgba(255, 237, 191, 0.88) !important;
+}
+
+.helpInstagramLink svg {
+  color: #ffafd2 !important;
+}
+
+/* Metronome dot/circle modes: active beat must match the current dot size, even in 9/8 or 12/8. */
+.standaloneMetronomePanel .metronomeBeatMatrix--dot .beatDot.active,
+.standaloneMetronomePanel .metronomeBeatMatrix--dot .beatDot.active:hover,
+.standaloneMetronomePanel .metronomeBeatMatrix--dot .beatDot.active:focus,
+.standaloneMetronomePanel .metronomeBeatMatrix--dot .beatDot.active:active,
+.standaloneMetronomePanel .metronomeBeatMatrix--circle .beatDot.metronomeModeCircleBeat.active,
+.standaloneMetronomePanel .metronomeBeatMatrix--circle .beatDot.metronomeModeCircleBeat.active:hover,
+.standaloneMetronomePanel .metronomeBeatMatrix--circle .beatDot.metronomeModeCircleBeat.active:focus,
+.standaloneMetronomePanel .metronomeBeatMatrix--circle .beatDot.metronomeModeCircleBeat.active:active {
+  box-shadow: none !important;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--circle .beatDot--strong.metronomeModeCircleBeat.active {
+  --beat-dot-size: clamp(32px, calc(50px - var(--circle-beat-count) * 1.4px), 44px);
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--dot .beatDot.active .beatDot__glyph,
+.standaloneMetronomePanel .metronomeBeatMatrix--circle .beatDot.metronomeModeCircleBeat.active .beatDot__glyph {
+  animation: none !important;
+  box-shadow:
+    var(--beat-dot-shadow),
+    0 0 11px rgba(255, 219, 135, 0.42) !important;
+  transform: translateZ(0) !important;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--dot .beatDot--weak.active .beatDot__glyph,
+.standaloneMetronomePanel .metronomeBeatMatrix--circle .beatDot--weak.metronomeModeCircleBeat.active .beatDot__glyph {
+  transform: scale(0.86) translateZ(0) !important;
+}
+
+/* Independent metronome split tone controls: 1st beat and remaining beats. */
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeOptions {
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr) !important;
+  align-items: stretch;
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeOptions--splitTone {
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr) !important;
+  gap: 6px;
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeOptions--splitTone .metronomeSelectControl {
+  min-width: 0;
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeOptions--splitTone .metronomeSelectControl--toneSlot {
+  border-color: rgba(217, 170, 85, 0.24);
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.06), rgba(0, 0, 0, 0.08)),
+    rgba(7, 8, 8, 0.86);
+}
+
+.metronomeSelectLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.metronomeSelectLabelDot {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border: 2px solid rgba(217, 170, 85, 0.78);
+  border-radius: 999px;
+  box-shadow: 0 0 7px rgba(217, 170, 85, 0.12);
+}
+
+.metronomeSelectLabelDot--strong {
+  background: linear-gradient(145deg, #f7d990, #b98235);
+}
+
+.metronomeSelectLabelDot--weak {
+  background: transparent;
+  border-color: rgba(217, 170, 85, 0.58);
+  box-shadow: inset 0 0 5px rgba(217, 170, 85, 0.08);
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeOptions--splitTone .metronomeSelectLabel {
+  color: rgba(255, 231, 170, 0.74) !important;
+  font-size: 8.5px !important;
+  line-height: 1;
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeOptions--splitTone .metronomeSelectButton {
+  height: 32px;
+  min-height: 32px;
+  border-radius: 9px;
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeOptions--splitTone .metronomeSelectButton b {
+  font-size: 11px;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--dot .beatDot--weak .beatDot__innerMark,
+.standaloneMetronomePanel .metronomeBeatMatrix--circle .beatDot--weak .beatDot__innerMark {
+  display: none !important;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--dot .beatDot--mute .beatDot__glyph,
+.standaloneMetronomePanel .metronomeBeatMatrix--circle .beatDot--mute .beatDot__glyph {
+  border-style: dotted !important;
+  opacity: 0.56;
+}
+
+/* Tone dropdowns have many samples: use one shared two-column wall. */
+.metronomeSelectControl--tonePicker.open .metronomeSelectMenu--twoColumn,
+.metronomeSelectControl--tonePicker .metronomeSelectMenu--twoColumn {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  min-width: min(326px, calc(100vw - 24px)) !important;
+  padding: 0 !important;
+  overflow: hidden auto !important;
+  border: 1px solid rgba(217, 170, 85, 0.34) !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(145deg, rgba(12, 10, 7, 0.98), rgba(3, 4, 4, 0.98)),
+    rgba(7, 8, 8, 0.98) !important;
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 244, 210, 0.06) !important;
+}
+
+.metronomeSelectControl--tonePicker .metronomeSelectMenu--twoColumn .metronomeSelectOption {
+  min-height: 34px !important;
+  margin: 0 !important;
+  padding: 0 9px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(217, 170, 85, 0.16) !important;
+  border-bottom: 1px solid rgba(217, 170, 85, 0.14) !important;
+  border-radius: 0 !important;
+  background: rgba(255, 255, 255, 0.012) !important;
+  font-size: 10.5px !important;
+  line-height: 1.08 !important;
+  text-align: center !important;
+  white-space: normal !important;
+}
+
+.metronomeSelectControl--tonePicker .metronomeSelectMenu--twoColumn .metronomeSelectOption:nth-child(2n) {
+  border-right: 0 !important;
+}
+
+.metronomeSelectControl--tonePicker .metronomeSelectMenu--twoColumn .metronomeSelectOption:nth-last-child(-n + 2) {
+  border-bottom: 0 !important;
+}
+
+.metronomeSelectControl--tonePicker .metronomeSelectMenu--twoColumn .metronomeSelectOption:hover,
+.metronomeSelectControl--tonePicker .metronomeSelectMenu--twoColumn .metronomeSelectOption:focus-visible {
+  background: rgba(217, 170, 85, 0.12) !important;
+}
+
+.metronomeSelectControl--tonePicker .metronomeSelectMenu--twoColumn .metronomeSelectOption.selected,
+.metronomeSelectControl--tonePicker .metronomeSelectMenu--twoColumn .metronomeSelectOption[aria-selected="true"] {
+  background:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.34), rgba(112, 75, 34, 0.38)),
+    rgba(31, 23, 12, 0.95) !important;
+  color: #fff2c7 !important;
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeSelectControl--tonePicker.open .metronomeSelectMenu--twoColumn,
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeSelectControl--tonePicker .metronomeSelectMenu--twoColumn,
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeSelectControl--wallPicker.open .metronomeSelectMenu--twoColumn,
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeSelectControl--wallPicker .metronomeSelectMenu--twoColumn,
+.metronomeControl.trainingMetronomePanel .metronomeSelectControl--tonePicker.open .metronomeSelectMenu--twoColumn,
+.metronomeControl.trainingMetronomePanel .metronomeSelectControl--tonePicker .metronomeSelectMenu--twoColumn,
+.metronomeControl.trainingMetronomePanel .metronomeSelectControl--wallPicker.open .metronomeSelectMenu--twoColumn,
+.metronomeControl.trainingMetronomePanel .metronomeSelectControl--wallPicker .metronomeSelectMenu--twoColumn {
+  gap: 0 !important;
+  padding: 0 !important;
+}
+
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeSelectControl--tonePicker .metronomeSelectMenu--twoColumn .metronomeSelectOption,
+.standaloneMetronomePanel .standaloneMetronomeControl .metronomeSelectControl--wallPicker .metronomeSelectMenu--twoColumn .metronomeSelectOption,
+.metronomeControl.trainingMetronomePanel .metronomeSelectControl--tonePicker .metronomeSelectMenu--twoColumn .metronomeSelectOption,
+.metronomeControl.trainingMetronomePanel .metronomeSelectControl--wallPicker .metronomeSelectMenu--twoColumn .metronomeSelectOption {
+  border-radius: 0 !important;
+}
+
+.metronomeSelectControl--wallPicker.open .metronomeSelectMenu--twoColumn,
+.metronomeSelectControl--wallPicker .metronomeSelectMenu--twoColumn {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  overflow: hidden auto !important;
+  border: 1px solid rgba(217, 170, 85, 0.34) !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(145deg, rgba(12, 10, 7, 0.98), rgba(3, 4, 4, 0.98)),
+    rgba(7, 8, 8, 0.98) !important;
+}
+
+.metronomeSelectControl--wallPicker .metronomeSelectMenu--twoColumn .metronomeSelectOption {
+  min-height: 34px !important;
+  margin: 0 !important;
+  padding: 0 9px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(217, 170, 85, 0.16) !important;
+  border-bottom: 1px solid rgba(217, 170, 85, 0.14) !important;
+  border-radius: 0 !important;
+  background: rgba(255, 255, 255, 0.012) !important;
+  text-align: center !important;
+}
+
+.metronomeSelectControl--wallPicker .metronomeSelectMenu--twoColumn .metronomeSelectOption:nth-child(2n) {
+  border-right: 0 !important;
+}
+
+.metronomeSelectControl--wallPicker .metronomeSelectMenu--twoColumn .metronomeSelectOption:nth-last-child(-n + 2) {
+  border-bottom: 0 !important;
 }

@@ -1,0 +1,31 @@
+{
+  "name": "RIFFLAB",
+  "short_name": "RIFFLAB",
+  "description": "RIFFLAB 기타 리듬 & 코드 훈련",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050607",
+  "theme_color": "#050607",
+  "icons": [
+    {
+      "src": "/icons/rifflab-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
