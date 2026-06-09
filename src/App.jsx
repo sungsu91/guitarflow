@@ -373,11 +373,21 @@ function getChordMetaFromLabel(label) {
   const cleanLabel = label.replace(/\(.*?\)/g, "");
   const root = cleanLabel[1] === "#" ? cleanLabel.slice(0, 2) : cleanLabel[0] ?? "C";
   const suffix = cleanLabel.slice(root.length);
+  if (suffix === "dim") return { root, quality: "dim", extension: "none", displayName: `${root}dim` };
+  if (suffix === "aug") return { root, quality: "aug", extension: "none", displayName: `${root}aug` };
+  if (suffix === "madd9") return { root, quality: "minor", extension: "add9", displayName: `${root}madd9` };
+  if (suffix === "m9") return { root, quality: "minor", extension: "m9", displayName: `${root}m9` };
+  if (suffix === "m6") return { root, quality: "minor", extension: "m6", displayName: `${root}m6` };
   if (suffix === "m7") return { root, quality: "minor", extension: "m7", displayName: `${root}m7` };
   if (suffix === "m") return { root, quality: "minor", extension: "none", displayName: `${root}m` };
+  if (suffix === "7sus4") return { root, quality: "major", extension: "7sus4", displayName: `${root}7sus4` };
   if (suffix === "7") return { root, quality: "major", extension: "7", displayName: `${root}7` };
+  if (suffix === "maj7") return { root, quality: "major", extension: "maj7", displayName: `${root}maj7` };
+  if (suffix === "maj9") return { root, quality: "major", extension: "maj9", displayName: `${root}maj9` };
   if (suffix === "M7") return { root, quality: "major", extension: "maj7", displayName: `${root}maj7` };
+  if (suffix === "sus2") return { root, quality: "major", extension: "sus2", displayName: `${root}sus2` };
   if (suffix === "sus4") return { root, quality: "major", extension: "sus4", displayName: `${root}sus4` };
+  if (suffix === "6") return { root, quality: "major", extension: "6", displayName: `${root}6` };
   if (suffix === "add9") return { root, quality: "major", extension: "add9", displayName: `${root}add9` };
   return { root, quality: "major", extension: "none", displayName: root };
 }
@@ -921,15 +931,40 @@ const CHORD_ACCIDENTAL_OPTIONS = [
 const CHORD_QUALITY_OPTIONS = [
   { id: "major", label: "Major", shortLabel: "" },
   { id: "minor", label: "Minor", shortLabel: "" },
+  { id: "dim", label: "Dim", shortLabel: "" },
+  { id: "aug", label: "Aug", shortLabel: "" },
 ];
+const STAGE3_STORAGE_CHORD_QUALITY_OPTIONS = CHORD_QUALITY_OPTIONS.filter((quality) => (
+  quality.id === "major" || quality.id === "minor"
+));
 
 const CHORD_EXTENSION_OPTIONS = [
   { id: "none", label: "기본", quality: "any" },
   { id: "7", label: "7", quality: "major" },
   { id: "maj7", label: "maj7", quality: "major" },
   { id: "m7", label: "7", quality: "minor" },
+  { id: "sus2", label: "sus2", quality: "major" },
   { id: "sus4", label: "sus4", quality: "major" },
+  { id: "7sus4", label: "7sus4", quality: "major" },
+  { id: "6", label: "6", quality: "major" },
+  { id: "m6", label: "6", quality: "minor" },
+  { id: "add9", label: "add9", quality: ["major", "minor"] },
+  { id: "m9", label: "9", quality: "minor" },
+  { id: "maj9", label: "maj9", quality: "major" },
 ];
+
+function isChordExtensionAvailableForQuality(option, quality) {
+  if (!option) return false;
+  if (option.quality === "any") return true;
+  if (Array.isArray(option.quality)) return option.quality.includes(quality);
+  return option.quality === quality;
+}
+
+function normalizeChordExtensionForQuality(quality, extension) {
+  const option = CHORD_EXTENSION_OPTIONS.find((item) => item.id === extension);
+  if (isChordExtensionAvailableForQuality(option, quality)) return extension;
+  return "none";
+}
 
 const CHORD_TRANSITION_PRESETS = [
   { id: "turnaround-c", title: "1625 기본", label: "C - Am - Dm - G", chords: ["C", "Am", "Dm", "G"], memo: "기본 1625 진행" },
@@ -1040,11 +1075,268 @@ function getChordDisplayRoot(baseRoot, accidental = "natural") {
 
 function getChordNameFromParts(baseRoot, accidental, quality, extension) {
   const root = getChordDisplayRoot(baseRoot, accidental);
-  if (quality === "minor") return extension === "m7" ? `${root}m7` : `${root}m`;
+  if (quality === "dim") return `${root}dim`;
+  if (quality === "aug") return `${root}aug`;
+  if (quality === "minor") {
+    if (extension === "m7") return `${root}m7`;
+    if (extension === "m6") return `${root}m6`;
+    if (extension === "m9") return `${root}m9`;
+    if (extension === "add9") return `${root}madd9`;
+    return `${root}m`;
+  }
   if (extension === "7") return `${root}7`;
   if (extension === "maj7") return `${root}maj7`;
+  if (extension === "maj9") return `${root}maj9`;
+  if (extension === "sus2") return `${root}sus2`;
   if (extension === "sus4") return `${root}sus4`;
+  if (extension === "7sus4") return `${root}7sus4`;
+  if (extension === "6") return `${root}6`;
+  if (extension === "add9") return `${root}add9`;
   return root;
+}
+
+const CHORD_TONE_INTERVALS = {
+  major: {
+    none: [0, 4, 7],
+    "7": [0, 4, 7, 10],
+    maj7: [0, 4, 7, 11],
+    maj9: [0, 4, 7, 11, 14],
+    sus2: [0, 2, 7],
+    sus4: [0, 5, 7],
+    "7sus4": [0, 5, 7, 10],
+    "6": [0, 4, 7, 9],
+    add9: [0, 4, 7, 14],
+  },
+  minor: {
+    none: [0, 3, 7],
+    m7: [0, 3, 7, 10],
+    m6: [0, 3, 7, 9],
+    m9: [0, 3, 7, 10, 14],
+    add9: [0, 3, 7, 14],
+  },
+  dim: {
+    none: [0, 3, 6],
+  },
+  aug: {
+    none: [0, 4, 8],
+  },
+};
+const CHORD_TONE_DEGREE_OFFSETS = {
+  major: {
+    none: [0, 2, 4],
+    "7": [0, 2, 4, 6],
+    maj7: [0, 2, 4, 6],
+    maj9: [0, 2, 4, 6, 1],
+    sus2: [0, 1, 4],
+    sus4: [0, 3, 4],
+    "7sus4": [0, 3, 4, 6],
+    "6": [0, 2, 4, 5],
+    add9: [0, 2, 4, 1],
+  },
+  minor: {
+    none: [0, 2, 4],
+    m7: [0, 2, 4, 6],
+    m6: [0, 2, 4, 5],
+    m9: [0, 2, 4, 6, 1],
+    add9: [0, 2, 4, 1],
+  },
+  dim: {
+    none: [0, 2, 4],
+  },
+  aug: {
+    none: [0, 2, 4],
+  },
+};
+const NOTE_LETTERS = ["C", "D", "E", "F", "G", "A", "B"];
+const NATURAL_NOTE_INDEX = {
+  C: 0,
+  D: 2,
+  E: 4,
+  F: 5,
+  G: 7,
+  A: 9,
+  B: 11,
+};
+
+function getChordToneDescriptors(root, quality = "major", extension = "none") {
+  const rootIndex = NOTE_INDEX[root] ?? NOTE_INDEX.C;
+  const qualityIntervals = CHORD_TONE_INTERVALS[quality] ?? CHORD_TONE_INTERVALS.major;
+  const qualityDegreeOffsets = CHORD_TONE_DEGREE_OFFSETS[quality] ?? CHORD_TONE_DEGREE_OFFSETS.major;
+  const intervals = qualityIntervals[extension] ?? qualityIntervals.none;
+  const degreeOffsets = qualityDegreeOffsets[extension] ?? qualityDegreeOffsets.none;
+  return intervals.map((interval, index) => ({
+    degreeOffset: degreeOffsets[index] ?? index,
+    interval,
+    noteName: CHROMATIC_NOTES[(rootIndex + interval) % CHROMATIC_NOTES.length],
+  }));
+}
+
+function getChordToneNames(root, quality = "major", extension = "none") {
+  return [...new Set(getChordToneDescriptors(root, quality, extension).map((descriptor) => descriptor.noteName))];
+}
+
+function getAccidentalLabel(offset) {
+  if (offset === -2) return "bb";
+  if (offset === -1) return "b";
+  if (offset === 1) return "#";
+  if (offset === 2) return "##";
+  return "";
+}
+
+function formatChordToneLabel(noteName, displayRoot, descriptor) {
+  const rootMatch = /^([A-G])([#b]?)/.exec(displayRoot ?? "");
+  const rootLetter = rootMatch?.[1];
+  const rootLetterIndex = NOTE_LETTERS.indexOf(rootLetter);
+  const targetPitchIndex = NOTE_INDEX[noteName];
+  if (rootLetterIndex < 0 || targetPitchIndex == null || !descriptor) return noteName;
+  const targetLetter = NOTE_LETTERS[(rootLetterIndex + descriptor.degreeOffset) % NOTE_LETTERS.length];
+  const naturalIndex = NATURAL_NOTE_INDEX[targetLetter];
+  let accidentalOffset = targetPitchIndex - naturalIndex;
+  if (accidentalOffset > 6) accidentalOffset -= 12;
+  if (accidentalOffset < -6) accidentalOffset += 12;
+  if (Math.abs(accidentalOffset) > 2) return noteName;
+  return `${targetLetter}${getAccidentalLabel(accidentalOffset)}`;
+}
+
+function getChordViewerPositionRange(positionId) {
+  const fallbackRange = [0, 15];
+  if (positionId === CHORD_VIEWER_POSITION_ALL) return fallbackRange;
+  return NOTE_VIEWER_POSITIONS.find((position) => position.id === positionId)?.range ?? fallbackRange;
+}
+
+function buildChordToneNotes({ root, displayRoot = root, quality, extension, positionId = "position1", idPrefix = "viewer-chord-tone" }) {
+  const [startFret, endFret] = getChordViewerPositionRange(positionId);
+  const toneDescriptors = getChordToneDescriptors(root, quality, extension);
+  const toneByName = new Map(toneDescriptors.map((descriptor) => [descriptor.noteName, descriptor]));
+  return STANDARD_TUNING.flatMap((stringInfo) => {
+    const openMidi = pitchToMidi(stringInfo.pitch);
+    return Array.from({ length: endFret - startFret + 1 }, (_, index) => startFret + index)
+      .map((fretNumber) => {
+        const pitch = midiToPitch(openMidi + fretNumber);
+        const noteName = getPitchClass(pitch);
+        const descriptor = toneByName.get(noteName);
+        if (!descriptor) return null;
+        return {
+          id: `${idPrefix}-${root}-${quality}-${extension}-${positionId}-s${stringInfo.stringNumber}-f${fretNumber}`,
+          stringNumber: stringInfo.stringNumber,
+          fretNumber,
+          pitch,
+          octaveNote: pitch,
+          noteName,
+          label: formatChordToneLabel(noteName, displayRoot, descriptor),
+          finger: null,
+          isRoot: noteName === root,
+        };
+      })
+      .filter(Boolean);
+  });
+}
+
+function getChordShapeStringState(chord, stringNumber) {
+  const note = chord?.notes?.find((item) => item.stringNumber === stringNumber);
+  if (!note) return "x";
+  return Number(note.fretNumber ?? note.fret ?? 0) === 0 ? "o" : "";
+}
+
+function buildStoredChordReferencePosition(chord) {
+  if (!chord) return null;
+  const frettedNotes = chord.notes
+    .filter((note) => Number(note.fretNumber ?? note.fret ?? 0) > 0)
+    .map((note, index) => ({
+      ...note,
+      id: `${chord.id}-position1-${note.stringNumber}-${note.fretNumber}-${index}`,
+      label: getChordDisplayNoteName(note.noteName),
+      isRoot: note.noteName === chord.root,
+    }));
+  const visibleFrets = chord.visibleFrets?.length
+    ? chord.visibleFrets
+    : getCompactFretRange(frettedNotes, chord.barres);
+  return {
+    id: `${chord.id}-position1`,
+    notes: frettedNotes,
+    barres: chord.barres ?? [],
+    stringStates: Object.fromEntries(
+      [1, 2, 3, 4, 5, 6]
+        .map((stringNumber) => [stringNumber, getChordShapeStringState(chord, stringNumber)])
+        .filter(([, state]) => state === "x" || state === "o"),
+    ),
+    visibleFrets,
+  };
+}
+
+function buildCompactChordToneNotes({ root, displayRoot = root, quality, extension, positionId }) {
+  const [startFret, endFret] = getChordViewerPositionRange(positionId);
+  const centerFret = (startFret + endFret) / 2;
+  const allToneNotes = buildChordToneNotes({
+    root,
+    displayRoot,
+    quality,
+    extension,
+    positionId,
+    idPrefix: "viewer-chord-compact",
+  });
+  const usedStrings = new Set();
+  return getChordToneDescriptors(root, quality, extension)
+    .map((descriptor, descriptorIndex) => {
+      const candidates = allToneNotes
+        .filter((note) => note.noteName === descriptor.noteName)
+        .sort((a, b) => {
+          const aFret = Number(a.fretNumber) || 0;
+          const bFret = Number(b.fretNumber) || 0;
+          const aScore =
+            Math.abs(aFret - centerFret) * 3 +
+            (usedStrings.has(a.stringNumber) ? 18 : 0) +
+            (aFret === 0 ? 2 : 0) +
+            Math.abs(Number(a.stringNumber) - 3.5) * 0.35;
+          const bScore =
+            Math.abs(bFret - centerFret) * 3 +
+            (usedStrings.has(b.stringNumber) ? 18 : 0) +
+            (bFret === 0 ? 2 : 0) +
+            Math.abs(Number(b.stringNumber) - 3.5) * 0.35;
+          return aScore - bScore;
+        });
+      const chosen = candidates[0];
+      if (!chosen) return null;
+      usedStrings.add(chosen.stringNumber);
+      return {
+        ...chosen,
+        id: `${chosen.id}-tone${descriptorIndex}`,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.stringNumber - a.stringNumber || a.fretNumber - b.fretNumber);
+}
+
+function buildChordToneReferencePosition({ root, displayRoot = root, quality, extension, positionId, storedChord = null }) {
+  if (positionId === "position1" && storedChord) {
+    return buildStoredChordReferencePosition(storedChord);
+  }
+  const [startFret, endFret] = getChordViewerPositionRange(positionId);
+  const isFullView = positionId === CHORD_VIEWER_POSITION_ALL;
+  return {
+    id: `${root}-${quality}-${extension}-${positionId}`,
+    notes: isFullView
+      ? buildChordToneNotes({ root, displayRoot, quality, extension, positionId })
+      : buildCompactChordToneNotes({ root, displayRoot, quality, extension, positionId }),
+    barres: [],
+    stringStates: {},
+    visibleFrets: Array.from({ length: endFret - Math.max(1, startFret) + 1 }, (_, index) => Math.max(1, startFret) + index),
+  };
+}
+
+function buildChordToneReferenceOption({ root, displayRoot = root, quality, extension, displayName, hint = "선택 코드 구성음을 구간별로 표시합니다", storedChord = null }) {
+  const position1 = buildChordToneReferencePosition({ root, displayRoot, quality, extension, positionId: "position1", storedChord });
+  return {
+    id: `generated-${root}-${quality}-${extension}`,
+    root,
+    quality,
+    extension,
+    displayName,
+    hint,
+    visibleFrets: position1.visibleFrets,
+    notes: position1.notes,
+    barres: [],
+  };
 }
 
 function splitChordRootForSelector(root = "C") {
@@ -1623,8 +1915,8 @@ const METRONOME_DISPLAY_MODE_STORAGE_KEY = "rifflabMetronomeMode";
 const APP_THEME_STORAGE_KEY = "rifflabThemeMode";
 const APP_THEMES = {
   BRAND: "brand",
-  DARK: "dark",
   LIGHT: "light",
+  ECO: "dark",
 };
 const APP_THEME_OPTIONS = [
   {
@@ -1633,14 +1925,14 @@ const APP_THEME_OPTIONS = [
     description: "RIFFLAB 기본 테마 · 골드/브론즈 기반 · 브랜드 감성과 몰입감 중심",
   },
   {
-    id: APP_THEMES.DARK,
-    label: "다크",
-    description: "검정 배경 · 흰색 텍스트 · 가독성 중심",
-  },
-  {
     id: APP_THEMES.LIGHT,
     label: "화이트",
     description: "흰색 배경 · 검정 텍스트 · 가독성 중심",
+  },
+  {
+    id: APP_THEMES.ECO,
+    label: "다크",
+    description: "차콜 그레이 · 샴페인 골드 · 프리미엄 스튜디오",
   },
 ];
 const FEEL_RECORDER_LONG_PRESS_MS = 420;
@@ -1791,7 +2083,8 @@ function normalizeAppTheme(value) {
 }
 
 function getStoredAppTheme() {
-  return APP_THEMES.BRAND;
+  if (typeof window === "undefined") return APP_THEMES.BRAND;
+  return normalizeAppTheme(window.localStorage.getItem(APP_THEME_STORAGE_KEY));
 }
 
 function normalizeMetronomePreset(preset, index = 0) {
@@ -4980,11 +5273,21 @@ const PERFECT_WINDOW_MS = 55;
 const HIT_LINE_PERCENT = 88;
 const SHOOTER_LIFE_LINE_PERCENT = 86;
 const SHOOTER_TARGET_HIT_EFFECT_MS = 250;
-const SHOOTER_PROJECTILE_MS = 540;
+const SHOOTER_PROJECTILE_MS = 640;
+const SHOOTER_PROJECTILE_IMPACT_RATIO = 1;
+const SHOOTER_PROJECTILE_IMPACT_SYNC_MS = 0;
 const SHOOTER_PROJECTILE_CONTACT_HOLD_MS = 58;
 const SHOOTER_EMPTY_REFILL_MS = 420;
 const SHOOTER_TARGET_HITBOX = { width: 10.6, height: 8.8 };
 const SHOOTER_PROJECTILE_HITBOX = { width: 6.4, height: 7.2 };
+const SHOOTER_TARGET_BREAK_PIECES = [
+  { clip: "polygon(0 0, 47% 0, 42% 36%, 0 46%)", dx: "-12px", dy: "-10px", rotate: "-22deg", origin: "72% 68%" },
+  { clip: "polygon(47% 0, 100% 0, 100% 38%, 58% 33%)", dx: "13px", dy: "-9px", rotate: "21deg", origin: "22% 72%" },
+  { clip: "polygon(0 46%, 42% 36%, 49% 54%, 24% 100%, 0 100%)", dx: "-11px", dy: "7px", rotate: "16deg", origin: "72% 20%" },
+  { clip: "polygon(42% 36%, 58% 33%, 67% 62%, 49% 54%)", dx: "0px", dy: "-3px", rotate: "-11deg", origin: "50% 50%" },
+  { clip: "polygon(58% 33%, 100% 38%, 100% 100%, 75% 100%, 67% 62%)", dx: "12px", dy: "8px", rotate: "-18deg", origin: "28% 28%" },
+  { clip: "polygon(24% 100%, 49% 54%, 67% 62%, 75% 100%)", dx: "1px", dy: "13px", rotate: "14deg", origin: "50% 18%" },
+];
 const MIC_READ_INTERVAL_MS = 33;
 const MIC_ANALYSIS_INTERVAL_MS = 34;
 const MIC_DISPLAY_UPDATE_MS = 100;
@@ -5136,17 +5439,17 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "stage1",
-    title: "🎯 음 찾기 훈련",
+    title: "🎯 단일 음 위치 익히기",
     content: (
       <>
-        <p>기타 지판의 기본 음 위치를 익히는 훈련입니다.</p>
-        <p>화면에 표시되는 목표 음을 보고 지판에서 해당 위치를 찾아 연습합니다.</p>
+        <p>0~3프렛 기본 음 위치를 지판에서 빠르게 찾는 훈련입니다.</p>
+        <p>화면에 표시되는 목표 음을 보고 같은 줄과 프렛 위치를 반복해서 익힙니다.</p>
         <strong>사용 방법</strong>
         <ul>
           <li>START를 누르면 훈련이 시작됩니다.</li>
-          <li>BPM 영역을 좌우로 스와이프하면 속도를 부드럽게 조절할 수 있습니다.</li>
-          <li>- / +는 1 BPM, 10- / 10+는 10 BPM 단위로 조절합니다.</li>
-          <li>1박 강조와 Count는 BPM 오른쪽 보조 버튼에서 켜고 끕니다.</li>
+          <li>지판 아래 점자 메트로놈을 보며 박자에 맞춰 음 위치를 확인합니다.</li>
+          <li>박자, 세분, 1박 음색, 나머지 박 음색을 선택해 연습감을 맞춥니다.</li>
+          <li>BPM의 - / + 버튼으로 속도를 조절합니다.</li>
         </ul>
       </>
     ),
@@ -5162,7 +5465,8 @@ const HELP_GUIDE_SECTIONS = [
         <ul>
           <li>Box별 음 위치를 반복해서 익힙니다.</li>
           <li>상행, 하행, 왕복 흐름으로 지판 이동 감각을 만듭니다.</li>
-          <li>BPM, 1박 강조, Count를 함께 사용해 박자에 맞춰 연습합니다.</li>
+          <li>점자 메트로놈의 1박, 나머지 박, 무음 표시를 보며 박자에 맞춰 연습합니다.</li>
+          <li>박자, 세분, 1박 음색, 나머지 박 음색을 바꿔 원하는 연습 흐름을 만들 수 있습니다.</li>
         </ul>
       </>
     ),
@@ -5221,7 +5525,9 @@ const HELP_GUIDE_SECTIONS = [
         <p>단독 메트로놈으로 사용할 수 있는 모드입니다.</p>
         <strong>주요 기능</strong>
         <ul>
-          <li>BPM, 박자, 세분, 1박/나머지 박 음색 설정</li>
+          <li>BPM, 박자, 세분 설정</li>
+          <li>1박 음색과 나머지 박 음색을 각각 선택</li>
+          <li>점자 표시에서 1박, 나머지 박, 무음 박을 직접 확인</li>
           <li>무음 박, Count In, 반복 연습 설정</li>
           <li>Timer와 Bar Counter 기반 연습</li>
           <li>좌우 스와이프로 표시 모드 전환</li>
@@ -5422,6 +5728,7 @@ const FRETBOARD_VIEWER_MODE_ORDER = [
   FRETBOARD_VIEWER_MODES.NOTE,
 ];
 
+const CHORD_VIEWER_POSITION_ALL = "all";
 const CHORD_VIEWER_POSITIONS = [
   { id: "position1", label: "1구간" },
   { id: "position2", label: "2구간" },
@@ -6399,7 +6706,7 @@ function App() {
   const [openHelpSectionId, setOpenHelpSectionId] = useState("");
   const [appTheme, setAppTheme] = useState(getStoredAppTheme);
   const designLabEnabled = isDesignLabEnabled();
-  const themeMenuVisible = import.meta.env.DEV;
+  const themeMenuVisible = designLabEnabled || import.meta.env.DEV;
   const miniChordMenuVisible = import.meta.env.DEV === true;
   const [designLabHeaderState, setDesignLabHeaderState] = useState(getStoredDesignLabHeaderState);
   const [designLabAppIconState, setDesignLabAppIconState] = useState(getStoredDesignLabAppIconState);
@@ -6589,7 +6896,6 @@ function App() {
   const [isHitWindowActive, setIsHitWindowActive] = useState(false);
   const [shooterTargets, setShooterTargets] = useState([]);
   const [projectiles, setProjectiles] = useState([]);
-  const [particles, setParticles] = useState([]);
   const [shooterAim, setShooterAim] = useState(undefined);
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
@@ -7110,13 +7416,11 @@ function App() {
   const lastDetectedDisplayUpdateRef = useRef(0);
   const shooterTargetsRef = useRef([]);
   const projectilesRef = useRef([]);
-  const particlesRef = useRef([]);
   const shooterArenaRef = useRef(null);
   const shooterTargetNodesRef = useRef(new Map());
   const projectileNodesRef = useRef(new Map());
   const shooterTargetIdRef = useRef(1);
   const projectileIdRef = useRef(1);
-  const particleIdRef = useRef(1);
   const shooterNextSpawnAtRef = useRef(0);
   const lastShooterNoteRef = useRef(null);
   const lastShooterXRef = useRef(50);
@@ -7172,15 +7476,34 @@ function App() {
     () => buildScaleBlockPractice(viewerScaleRoot, viewerScaleType, viewerScaleFamily, viewerScaleBox),
     [viewerScaleBox, viewerScaleFamily, viewerScaleRoot, viewerScaleType],
   );
-  const selectedBuiltChord = useMemo(
-    () =>
-      CHORD_VIEW_OPTIONS.find(
-        (chord) =>
-          chord.root === viewerChordRoot &&
-          chord.quality === viewerChordQuality &&
-          chord.extension === viewerChordExtension,
-      ) ?? null,
+  const viewerSelectedChordName = getChordNameFromParts(
+    viewerChordBaseRoot,
+    viewerChordAccidental,
+    viewerChordQuality,
+    viewerChordExtension,
+  );
+  const selectedStoredChord = useMemo(
+    () => CHORD_VIEW_OPTIONS.find(
+      (chord) =>
+        chord.root === viewerChordRoot &&
+        chord.quality === viewerChordQuality &&
+        chord.extension === viewerChordExtension,
+    ) ?? null,
     [viewerChordExtension, viewerChordQuality, viewerChordRoot],
+  );
+  const selectedBuiltChord = useMemo(
+    () => {
+      return buildChordToneReferenceOption({
+        root: viewerChordRoot,
+        displayRoot: getChordDisplayRoot(viewerChordBaseRoot, viewerChordAccidental),
+        quality: viewerChordQuality,
+        extension: viewerChordExtension,
+        displayName: viewerSelectedChordName,
+        hint: selectedStoredChord?.hint,
+        storedChord: selectedStoredChord,
+      });
+    },
+    [selectedStoredChord, viewerChordAccidental, viewerChordBaseRoot, viewerChordExtension, viewerChordQuality, viewerChordRoot, viewerSelectedChordName],
   );
   const viewerChord = useMemo(
     () =>
@@ -7189,7 +7512,6 @@ function App() {
         : CHORD_VIEW_OPTIONS.find((chord) => chord.id === viewerChordId) ?? selectedBuiltChord ?? CHORD_VIEW_OPTIONS[0],
     [selectedBuiltChord, viewerChordId],
   );
-  const isChordCatalogView = viewerMode === FRETBOARD_VIEWER_MODES.CHORD && viewerChordId === CHORD_CATALOG_ALL;
   const chordCatalogGroups = useMemo(() => {
     return CHORD_NATURAL_ROOTS
       .map((root) => {
@@ -7209,12 +7531,22 @@ function App() {
   );
   const getChordFromSelector = useCallback((baseRoot, accidental, quality, extension) => {
     const lookupRoot = getChordLookupRoot(baseRoot, accidental);
-    return CHORD_VIEW_OPTIONS.find(
+    const safeExtension = normalizeChordExtensionForQuality(quality, extension);
+    const exactChord = CHORD_VIEW_OPTIONS.find(
       (chord) =>
         chord.root === lookupRoot &&
         chord.quality === quality &&
-        chord.extension === extension,
-    ) ?? null;
+        chord.extension === safeExtension,
+    );
+    return buildChordToneReferenceOption({
+      root: lookupRoot,
+      displayRoot: getChordDisplayRoot(baseRoot, accidental),
+      quality,
+      extension: safeExtension,
+      displayName: getChordNameFromParts(baseRoot, accidental, quality, safeExtension),
+      hint: exactChord?.hint,
+      storedChord: exactChord,
+    });
   }, []);
   const getFallbackChordFromSelector = useCallback((baseRoot, accidental, quality, extension) => {
     const lookupRoot = getChordLookupRoot(baseRoot, accidental);
@@ -7226,14 +7558,28 @@ function App() {
       null
     );
   }, [getChordFromSelector]);
-  const viewerSelectedChordName = getChordNameFromParts(
-    viewerChordBaseRoot,
-    viewerChordAccidental,
-    viewerChordQuality,
-    viewerChordExtension,
-  );
+  const getStoredChordFromSelector = useCallback((baseRoot, accidental, quality, extension) => {
+    const lookupRoot = getChordLookupRoot(baseRoot, accidental);
+    const safeExtension = normalizeChordExtensionForQuality(quality, extension);
+    return CHORD_VIEW_OPTIONS.find(
+      (chord) =>
+        chord.root === lookupRoot &&
+        chord.quality === quality &&
+        chord.extension === safeExtension,
+    ) ?? null;
+  }, []);
+  const getStoredFallbackChordFromSelector = useCallback((baseRoot, accidental, quality, extension) => {
+    const lookupRoot = getChordLookupRoot(baseRoot, accidental);
+    return (
+      getStoredChordFromSelector(baseRoot, accidental, quality, extension) ??
+      getStoredChordFromSelector(baseRoot, accidental, quality, "none") ??
+      CHORD_VIEW_OPTIONS.find((chord) => chord.root === lookupRoot && chord.extension === "none") ??
+      CHORD_VIEW_OPTIONS.find((chord) => chord.root === lookupRoot) ??
+      null
+    );
+  }, [getStoredChordFromSelector]);
   const availableChordExtensionOptions = CHORD_EXTENSION_OPTIONS
-    .filter((extension) => extension.quality === "any" || extension.quality === viewerChordQuality)
+    .filter((extension) => isChordExtensionAvailableForQuality(extension, viewerChordQuality))
     .map((extension) => ({
       ...extension,
       disabled: !getChordFromSelector(viewerChordBaseRoot, viewerChordAccidental, viewerChordQuality, extension.id),
@@ -7244,10 +7590,6 @@ function App() {
     if (!note) return "x";
     return Number(note.fretNumber ?? note.fret ?? 0) === 0 ? "o" : "";
   }, []);
-  const viewerVisibleFrets = viewerMode === FRETBOARD_VIEWER_MODES.CHORD
-    ? viewerChord.visibleFrets
-    : viewerScaleBlock.visibleFrets;
-  const viewerNotes = viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? viewerChord.notes : viewerScaleBlock.notes;
   const viewerChordDebugInfo = getChordDebugInfo({
     baseRoot: viewerChordBaseRoot,
     accidental: viewerChordAccidental,
@@ -7260,6 +7602,10 @@ function App() {
   const viewerMapFrets = useMemo(() => Array.from({ length: 16 }, (_, index) => index), []);
   const viewerNotePositionRange = NOTE_VIEWER_POSITIONS.at(-1).range;
   const viewerMapStrings = useMemo(() => [...STANDARD_TUNING].sort((a, b) => a.stringNumber - b.stringNumber), []);
+  const viewerChordToneNames = useMemo(
+    () => getChordToneNames(viewerChordRoot, viewerChordQuality, viewerChordExtension),
+    [viewerChordExtension, viewerChordQuality, viewerChordRoot],
+  );
   const viewerMapPitchClasses = useMemo(() => {
     if (viewerMode === FRETBOARD_VIEWER_MODES.NOTE) {
       return viewerNoteFilter === "ALL" ? new Set(CHROMATIC_NOTES) : new Set([viewerNoteFilter]);
@@ -7268,10 +7614,10 @@ function App() {
       return new Set(viewerScaleBlock.notes.map((note) => note.noteName));
     }
     if (viewerMode === FRETBOARD_VIEWER_MODES.CHORD) {
-      return new Set(viewerChord.notes.map((note) => note.noteName));
+      return new Set(viewerChordToneNames);
     }
     return new Set(CHROMATIC_NOTES);
-  }, [viewerChord.notes, viewerMode, viewerNoteFilter, viewerScaleBlock.notes]);
+  }, [viewerChordToneNames, viewerMode, viewerNoteFilter, viewerScaleBlock.notes]);
   const viewerMapNotes = useMemo(() => {
     return viewerMapStrings.flatMap((stringInfo) => {
       const openMidi = pitchToMidi(stringInfo.pitch);
@@ -7291,10 +7637,15 @@ function App() {
       });
     }).filter((note) => {
       if (!viewerMapPitchClasses.has(note.noteName)) return false;
+      if (viewerMode === FRETBOARD_VIEWER_MODES.CHORD) {
+        if (viewerChordPosition === CHORD_VIEWER_POSITION_ALL) return true;
+        const [startFret, endFret] = getChordViewerPositionRange(viewerChordPosition);
+        return note.fretNumber >= startFret && note.fretNumber <= endFret;
+      }
       if (viewerMode !== FRETBOARD_VIEWER_MODES.NOTE) return note.fretNumber > 0;
       return true;
     });
-  }, [viewerMapFrets, viewerMapPitchClasses, viewerMapStrings, viewerMode, viewerNotePositionRange]);
+  }, [viewerChordPosition, viewerMapFrets, viewerMapPitchClasses, viewerMapStrings, viewerMode, viewerNotePositionRange]);
   const viewerMapTitle =
     viewerMode === FRETBOARD_VIEWER_MODES.NOTE
       ? viewerNoteFilter === "ALL" ? "전체 음표" : `${viewerNoteFilter} / ${SOLFEGE[viewerNoteFilter] ?? ""}`
@@ -7305,38 +7656,31 @@ function App() {
           : "기타 지판 정보";
   const viewerChordPositionData = useMemo(() => {
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return {};
-    const root = viewerChord.root;
-    const position1 = {
-      id: `${viewerChord.id}-position1`,
-      notes: viewerChord.notes
-        .map((note, index) => ({
-          id: `viewer-chord-shape-${viewerChord.id}-${note.stringNumber}-${note.fretNumber}-${index}`,
-          stringNumber: note.stringNumber,
-          fretNumber: Number(note.fretNumber),
-          pitch: note.octaveNote,
-          noteName: note.noteName,
-          label: getChordDisplayNoteName(note.noteName),
-          finger: note.finger ?? null,
-          isRoot: false,
-        }))
-        .filter((note) => Number.isFinite(note.fretNumber) && note.fretNumber > 0),
-      barres: viewerChord.barres ?? [],
-      stringStates: Object.fromEntries(
-        [1, 2, 3, 4, 5, 6]
-          .map((stringNumber) => [stringNumber, getChordStringState(viewerChord, stringNumber)])
-          .filter(([, state]) => state === "x" || state === "o"),
-      ),
-    };
-    const canBuildMajorCaged = viewerChordQuality === "major" && viewerChordExtension === "none" && NOTE_INDEX[root] != null;
-    return {
-      position1,
-      position2: canBuildMajorCaged ? buildCagedMajorChordPosition(root, "position2") : null,
-      position3: canBuildMajorCaged ? buildCagedMajorChordPosition(root, "position3") : null,
-      position4: canBuildMajorCaged ? buildCagedMajorChordPosition(root, "position4") : null,
-      position5: canBuildMajorCaged ? buildCagedMajorChordPosition(root, "position5") : null,
-    };
-  }, [getChordStringState, viewerChord, viewerChordExtension, viewerChordQuality, viewerMode]);
-  const viewerCurrentChordPosition = viewerChordPositionData[viewerChordPosition] ?? viewerChordPositionData.position1;
+    const positions = [
+      ...CHORD_VIEWER_POSITIONS,
+      { id: CHORD_VIEWER_POSITION_ALL, label: "전체" },
+    ];
+    return Object.fromEntries(
+      positions.map((position) => [
+        position.id,
+        buildChordToneReferencePosition({
+          root: viewerChordRoot,
+          displayRoot: getChordDisplayRoot(viewerChordBaseRoot, viewerChordAccidental),
+          quality: viewerChordQuality,
+          extension: viewerChordExtension,
+          positionId: position.id,
+          storedChord: selectedStoredChord,
+        }),
+      ]),
+    );
+  }, [selectedStoredChord, viewerChordAccidental, viewerChordBaseRoot, viewerChordExtension, viewerChordQuality, viewerChordRoot, viewerMode]);
+  const viewerCurrentChordPosition =
+    viewerChordPosition === CHORD_VIEWER_POSITION_ALL
+      ? viewerChordPositionData.position1
+      : viewerChordPositionData[viewerChordPosition] ?? viewerChordPositionData.position1;
+  const viewerVisibleFrets = viewerMode === FRETBOARD_VIEWER_MODES.CHORD
+    ? viewerCurrentChordPosition?.visibleFrets ?? viewerChord.visibleFrets
+    : viewerScaleBlock.visibleFrets;
   const viewerFretboardNotes = useMemo(() => {
     if (viewerMode === FRETBOARD_VIEWER_MODES.SCALE) return viewerScaleBlock.notes;
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return viewerMapNotes;
@@ -7358,16 +7702,8 @@ function App() {
       return [minFret, Math.max(maxFret, minFret + 3)];
     }
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return [0, 12];
-    const frets = [
-      ...viewerFretboardNotes.map((note) => Number(note.fretNumber)),
-      ...viewerChordBarres.map((barre) => Number(barre.fret)),
-    ].filter((fret) => Number.isFinite(fret) && fret > 0);
-    if (!frets.length) return [1, 3];
-    const minFret = Math.min(...frets);
-    const maxFret = Math.max(...frets);
-    if (minFret <= 3) return [1, Math.max(3, maxFret)];
-    return [minFret, Math.max(maxFret, minFret + 3)];
-  }, [viewerChordBarres, viewerFretboardNotes, viewerMode, viewerNotePositionRange, viewerScaleBlock.visibleFrets]);
+    return getChordViewerPositionRange(viewerChordPosition);
+  }, [viewerChordPosition, viewerMode, viewerNotePositionRange, viewerScaleBlock.visibleFrets]);
   const viewerShouldFitFretboard =
     viewerMode === FRETBOARD_VIEWER_MODES.SCALE ||
     viewerMode === FRETBOARD_VIEWER_MODES.CHORD ||
@@ -7385,20 +7721,21 @@ function App() {
   ) ?? null, [stage3StorageChordExtension, stage3StorageChordQuality, stage3StorageChordRoot]);
   const stage3StorageSelectedChordName = stage3StorageSelectedChord?.displayName ?? "준비중";
   const stage3StorageAvailableExtensionOptions = useMemo(() => CHORD_EXTENSION_OPTIONS
-    .filter((extension) => extension.quality === "any" || extension.quality === stage3StorageChordQuality)
+    .filter((extension) => isChordExtensionAvailableForQuality(extension, stage3StorageChordQuality))
     .map((extension) => {
-      const hasDiagram = Boolean(getChordFromSelector(
-        stage3StorageChordBaseRoot,
-        stage3StorageChordAccidental,
-        stage3StorageChordQuality,
-        extension.id,
-      ));
+      const lookupRoot = getChordLookupRoot(stage3StorageChordBaseRoot, stage3StorageChordAccidental);
+      const hasDiagram = CHORD_VIEW_OPTIONS.some(
+        (chord) =>
+          chord.root === lookupRoot &&
+          chord.quality === stage3StorageChordQuality &&
+          chord.extension === extension.id,
+      );
       return {
         ...extension,
         disabled: !hasDiagram,
         hasDiagram,
       };
-    }), [getChordFromSelector, stage3StorageChordAccidental, stage3StorageChordBaseRoot, stage3StorageChordQuality]);
+    }), [stage3StorageChordAccidental, stage3StorageChordBaseRoot, stage3StorageChordQuality]);
   const getMetronomeScopeForCategory = useCallback((categoryId) => {
     if (categoryId === "scale-block") return METRONOME_SETTING_SCOPES.STAGE2;
     if (categoryId === "rhythm") return METRONOME_SETTING_SCOPES.STAGE3;
@@ -7468,19 +7805,20 @@ function App() {
     applyScopedMetronomeSettings(nextSettings);
   }, [applyScopedMetronomeSettings, captureActiveMetronomeSettings]);
   const applyViewerChordSelection = useCallback((baseRoot, accidental, quality, extension) => {
-    const exactChord = getChordFromSelector(baseRoot, accidental, quality, extension);
-    const nextChord = exactChord ?? getFallbackChordFromSelector(baseRoot, accidental, quality, extension);
+    const safeExtension = normalizeChordExtensionForQuality(quality, extension);
+    const exactChord = getChordFromSelector(baseRoot, accidental, quality, safeExtension);
+    const nextChord = exactChord ?? getFallbackChordFromSelector(baseRoot, accidental, quality, safeExtension);
     const nextQuality = exactChord ? quality : nextChord?.quality ?? quality;
-    const nextExtension = exactChord ? extension : nextChord?.extension ?? "none";
+    const nextExtension = exactChord ? safeExtension : nextChord?.extension ?? "none";
     setViewerChordBaseRoot(baseRoot);
     setViewerChordAccidental(accidental);
     setViewerChordRoot(getChordLookupRoot(baseRoot, accidental));
     setViewerChordQuality(nextQuality);
     setViewerChordExtension(nextExtension);
+    setViewerChordPosition("position1");
     if (nextChord) setViewerChordId(nextChord.id);
   }, [getChordFromSelector, getFallbackChordFromSelector]);
   const scrollToChordChart = useCallback(() => {
-    setViewerChordId(CHORD_CATALOG_ALL);
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
         chordChartRef.current?.scrollIntoView({
@@ -7501,16 +7839,18 @@ function App() {
     });
   }, []);
   const applyStage3StorageChordSelection = useCallback((baseRoot, accidental, quality, extension) => {
-    const exactChord = getChordFromSelector(baseRoot, accidental, quality, extension);
-    const nextChord = exactChord ?? getFallbackChordFromSelector(baseRoot, accidental, quality, extension);
-    const nextQuality = exactChord ? quality : nextChord?.quality ?? quality;
-    const nextExtension = exactChord ? extension : nextChord?.extension ?? "none";
+    const safeQuality = STAGE3_STORAGE_CHORD_QUALITY_OPTIONS.some((option) => option.id === quality) ? quality : "major";
+    const safeExtension = normalizeChordExtensionForQuality(safeQuality, extension);
+    const exactChord = getStoredChordFromSelector(baseRoot, accidental, safeQuality, safeExtension);
+    const nextChord = exactChord ?? getStoredFallbackChordFromSelector(baseRoot, accidental, safeQuality, safeExtension);
+    const nextQuality = exactChord ? safeQuality : nextChord?.quality ?? safeQuality;
+    const nextExtension = exactChord ? safeExtension : nextChord?.extension ?? "none";
     setStage3StorageChordBaseRoot(baseRoot);
     setStage3StorageChordAccidental(accidental);
     setStage3StorageChordRoot(getChordLookupRoot(baseRoot, accidental));
     setStage3StorageChordQuality(nextQuality);
     setStage3StorageChordExtension(nextExtension);
-  }, [getChordFromSelector, getFallbackChordFromSelector]);
+  }, [getStoredChordFromSelector, getStoredFallbackChordFromSelector]);
   const buildStage3Progression = useCallback((entries = []) => entries
     .map((entry) => {
       const chord = CHORD_VIEW_OPTION_BY_ID.get(getChordEntryId(entry));
@@ -7913,9 +8253,7 @@ function App() {
       : "Automator OFF";
   const resetScore = useCallback(() => {
     enemiesRef.current = [];
-    projectilesRef.current = [];
-    particlesRef.current = [];
-    comboRef.current = 0;
+    projectilesRef.current = [];    comboRef.current = 0;
     enemyIdRef.current = 1;
     patternRef.current = 0;
     practiceCompletedRef.current = false;
@@ -7924,9 +8262,7 @@ function App() {
     lastBeatRef.current = -1;
     lastHitRef.current = { note: null, time: 0 };
     setEnemies([]);
-    setProjectiles([]);
-    setParticles([]);
-    setScore(0);
+    setProjectiles([]);    setScore(0);
     setCombo(0);
     setMaxCombo(0);
     setHits(0);
@@ -7947,7 +8283,6 @@ function App() {
     setReferenceStepTick((value) => value + 1);
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
-    particlesRef.current = [];
     shooterTargetNodesRef.current.clear();
     projectileNodesRef.current.clear();
     shooterNextSpawnAtRef.current = 0;
@@ -7957,9 +8292,7 @@ function App() {
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     lastShotRef.current = { note: null, time: 0 };
     setShooterTargets([]);
-    setProjectiles([]);
-    setParticles([]);
-    setShooterAim(undefined);
+    setProjectiles([]);    setShooterAim(undefined);
     setShooterLives(SHOOTER_MAX_LIVES);
     setFeedback("Ready");
   }, []);
@@ -9263,8 +9596,49 @@ function App() {
     node.style.setProperty("--projectile-angle", `${projectile.angle ?? 0}deg`);
     node.style.setProperty("--projectile-spin", `${projectile.spin ?? 10}deg`);
     arena.appendChild(node);
-    window.setTimeout(() => node.remove(), projectile.duration + SHOOTER_PROJECTILE_CONTACT_HOLD_MS);
+    projectileNodesRef.current.set(projectile.id, node);
+    window.setTimeout(() => {
+      node.classList.add("energyProjectile--impacting");
+    }, Math.max(0, Math.round(projectile.duration * SHOOTER_PROJECTILE_IMPACT_RATIO) - SHOOTER_PROJECTILE_IMPACT_SYNC_MS));
+    window.setTimeout(() => {
+      projectileNodesRef.current.delete(projectile.id);
+      node.remove();
+    }, projectile.duration + SHOOTER_PROJECTILE_CONTACT_HOLD_MS);
   }, [getShooterArenaPoint]);
+
+  const completeShooterTargetImpact = useCallback((targetId) => {
+    const target = shooterTargetsRef.current.find((item) => item.id === targetId);
+    if (!target || target.defeated) return;
+
+    const y = Number(target.y) || getShooterTargetYAt(target, gameTimeRef.current);
+    applyShooterTargetTransform(target, y);
+
+    const node = shooterTargetNodesRef.current.get(target.id);
+    const arenaHeight = shooterArenaRef.current?.getBoundingClientRect?.()?.height ?? 0;
+    const fallDistancePx = arenaHeight && target.duration
+      ? Math.max(2, Math.min(18, ((arenaHeight * 0.8) / target.duration) * SHOOTER_TARGET_HIT_EFFECT_MS))
+      : 8;
+    node?.style.setProperty("--target-break-fall-px", `${fallDistancePx}px`);
+    node?.classList.remove("fallingTarget");
+    node?.classList.add("impacting", "defeated");
+
+    shooterTargetsRef.current = shooterTargetsRef.current.map((currentTarget) => (
+      currentTarget.id === target.id
+        ? {
+            ...currentTarget,
+            y,
+            defeated: true,
+            hitAt: gameTimeRef.current,
+            impactAt: undefined,
+          }
+        : currentTarget
+    ));
+
+    setFeedback("Success");
+    flashStage("hit");
+    playShooterSound("hit", { combo: Number(target.hitCombo) || 1 });
+    setShooterTargets([...shooterTargetsRef.current]);
+  }, [applyShooterTargetTransform, flashStage, playShooterSound]);
 
   const fireProjectile = useCallback((target, noteName) => {
     const muzzleX = 50;
@@ -9276,7 +9650,6 @@ function App() {
     const contact = getShooterHitboxContact(target, muzzleX, muzzleY, impactY);
     const angle = Math.atan2(contact.y - muzzleY, contact.x - muzzleX) * (180 / Math.PI);
     const projectileDuration = Math.round(SHOOTER_PROJECTILE_MS * contact.durationRatio);
-    const impactAt = gameTimeRef.current + projectileDuration;
     aimShooterAtTarget(target, 105);
     const projectile = {
       id: projectileIdRef.current++,
@@ -9299,7 +9672,7 @@ function App() {
     ];
 
     setProjectiles([...projectilesRef.current]);
-    return projectileDuration;
+    return projectile;
   }, [aimShooterAtTarget, showImmediateProjectile]);
 
   const judgeShooterNote = useCallback(
@@ -9315,7 +9688,8 @@ function App() {
       const frontTarget = orderedTargets[0] ?? null;
       const target = frontTarget?.target ?? null;
       const targetIndex = frontTarget?.index ?? -1;
-      const matchesFrontTarget = isSamePitchClass(target?.note, detectedPitchName);
+      const targetPitchName = target?.detail?.pitch ?? target?.note ?? null;
+      const matchesFrontTarget = Boolean(targetPitchName && detectedPitchName && targetPitchName === detectedPitchName);
       lastShotRef.current = { note: detectedPitchName, time: now };
       shooterReleaseLockRef.current = detectedPitchName;
 
@@ -9326,13 +9700,23 @@ function App() {
         return;
       }
 
-      const projectileDuration = fireProjectile(target, detectedPitchName);
+      const projectile = fireProjectile(target, detectedPitchName);
+      const projectileDuration = projectile?.duration ?? 0;
+      const impactDelay = Math.max(
+        0,
+        Math.round(projectileDuration * SHOOTER_PROJECTILE_IMPACT_RATIO) - SHOOTER_PROJECTILE_IMPACT_SYNC_MS,
+      );
+      window.setTimeout(() => {
+        completeShooterTargetImpact(target.id);
+      }, impactDelay);
       const nextCombo = comboRef.current + 1;
       shooterTargetsRef.current = shooterTargetsRef.current.map((currentTarget, index) => (
         index === targetIndex
           ? {
               ...currentTarget,
-              impactAt: now + projectileDuration,
+              impactAt: now + impactDelay,
+              impactX: projectile?.endX ?? currentTarget.x,
+              impactY: projectile?.endY ?? currentTarget.y,
               hitCombo: nextCombo,
             }
           : currentTarget
@@ -9353,7 +9737,7 @@ function App() {
       attemptsRef.current += 1;
       setAttempts((value) => value + 1);
     },
-    [applyShooterTargetTransform, fireProjectile, flashStage, playShooterSound],
+    [completeShooterTargetImpact, fireProjectile, flashStage, playShooterSound],
   );
 
   const finalizeShooterRecord = useCallback((reason = "reset") => {
@@ -9444,18 +9828,7 @@ function App() {
       let judgePitchName = gameNote?.pitch ?? null;
 
       if (appModeRef.current === APP_MODES.SHOOTER && gameStateRef.current === GAME_STATES.PLAYING) {
-        const frontTarget =
-          [...shooterTargetsRef.current].sort((a, b) => b.y - a.y || a.bornAt - b.bornAt)[0] ?? null;
-        const frontTargetDetail = frontTarget?.detail ?? (frontTarget ? getShooterNoteDetail(frontTarget.note) : null);
-        const detectedPitchClass = getPitchClass(displayNote?.pitch ?? gameNote?.pitch);
-        const targetPitchClass = getPitchClass(frontTargetDetail?.pitch ?? frontTarget?.note);
-        const samePitchClass = Boolean(frontTargetDetail && detectedPitchClass && detectedPitchClass === targetPitchClass);
-
-        if (samePitchClass) {
-          judgePitchName = detectedPitchClass;
-        } else {
-          judgePitchName = gameNote?.pitch ?? displayNote?.pitch ?? null;
-        }
+        judgePitchName = gameNote?.pitch ?? displayNote?.pitch ?? null;
       }
 
       if (judgePitchName) {
@@ -9718,27 +10091,8 @@ function App() {
         (target) => target.impactAt != null && !target.defeated && gameTimeRef.current >= target.impactAt,
       );
       if (impactedTargets.length > 0) {
-        const impactedTargetIds = new Set(impactedTargets.map((target) => target.id));
-        shooterTargetsRef.current = shooterTargetsRef.current.map((target) => (
-          impactedTargetIds.has(target.id)
-            ? {
-                ...target,
-                y: getShooterTargetYAt(target, gameTimeRef.current),
-                defeated: true,
-                hitAt: gameTimeRef.current,
-                impactAt: undefined,
-              }
-            : target
-        ));
-        setFeedback("Success");
-        flashStage("hit");
-        playShooterSound("hit", { combo: Math.max(...impactedTargets.map((target) => Number(target.hitCombo) || 1)) });
         impactedTargets.forEach((target) => {
-          const y = Number(target.y) || getShooterTargetYAt(target, gameTimeRef.current);
-          applyShooterTargetTransform(target, y);
-          const node = shooterTargetNodesRef.current.get(target.id);
-          node?.classList.remove("fallingTarget");
-          node?.classList.add("defeated");
+          completeShooterTargetImpact(target.id);
         });
         targetsChanged = true;
       }
@@ -9776,23 +10130,15 @@ function App() {
       const nextProjectiles = projectilesRef.current.filter(
         (projectile) => gameTimeRef.current - projectile.bornAt <= projectile.duration + SHOOTER_PROJECTILE_CONTACT_HOLD_MS,
       );
-      const nextParticles = particlesRef.current.filter((particle) => {
-        const lifetime = particle.type === "shockwave" ? 320 : particle.type === "noteShard" ? 360 : 360;
-        return gameTimeRef.current - particle.bornAt <= lifetime;
-      });
       if (nextProjectiles.length !== projectilesRef.current.length) {
         projectilesRef.current = nextProjectiles;
         setProjectiles([...projectilesRef.current]);
-      }
-      if (nextParticles.length !== particlesRef.current.length) {
-        particlesRef.current = nextParticles;
-        setParticles([...particlesRef.current]);
       }
       if (removedTargetIds.size > 0 || targetsChanged) {
         setShooterTargets([...shooterTargetsRef.current]);
       }
     },
-    [applyShooterTargetTransform, finalizeShooterRecord, fireProjectile, flashStage, playShooterSound, setState, spawnShooterTarget],
+    [applyShooterTargetTransform, completeShooterTargetImpact, finalizeShooterRecord, flashStage, playShooterSound, setState, spawnShooterTarget],
   );
 
   const runChordTransitionFrame = useCallback(
@@ -11271,18 +11617,14 @@ function App() {
     }
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
-    projectilesRef.current = [];
-    particlesRef.current = [];
-    shooterNextSpawnAtRef.current = 0;
+    projectilesRef.current = [];    shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
     shooterReleaseLockRef.current = null;
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     setEnemies([]);
     setShooterTargets([]);
-    setProjectiles([]);
-    setParticles([]);
-    setShooterAim(undefined);
+    setProjectiles([]);    setShooterAim(undefined);
     setShooterLives(SHOOTER_MAX_LIVES);
     setHitZoneNote(null);
     setIsHitWindowActive(false);
@@ -11316,13 +11658,9 @@ function App() {
     setPendingStageCardId(null);
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
-    projectilesRef.current = [];
-    particlesRef.current = [];
-    setEnemies([]);
+    projectilesRef.current = [];    setEnemies([]);
     setShooterTargets([]);
-    setProjectiles([]);
-    setParticles([]);
-    setHitZoneNote(null);
+    setProjectiles([]);    setHitZoneNote(null);
     setIsHitWindowActive(false);
     setBeat(0);
     setFeedback("Ready");
@@ -11507,18 +11845,14 @@ function App() {
     setAppMode(APP_MODES.SHOOTER);
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
-    projectilesRef.current = [];
-    particlesRef.current = [];
-    shooterNextSpawnAtRef.current = 0;
+    projectilesRef.current = [];    shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
     shooterReleaseLockRef.current = null;
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     setEnemies([]);
     setShooterTargets([]);
-    setProjectiles([]);
-    setParticles([]);
-    setShooterAim(undefined);
+    setProjectiles([]);    setShooterAim(undefined);
     setShooterLives(SHOOTER_MAX_LIVES);
     setBeat(0);
     setFeedback("Start Shooter");
@@ -11537,11 +11871,9 @@ function App() {
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
-    particlesRef.current = [];
     setEnemies([]);
     setShooterTargets([]);
     setProjectiles([]);
-    setParticles([]);
     setHitZoneNote(null);
     setIsHitWindowActive(false);
     gameTimeRef.current = 0;
@@ -11562,13 +11894,9 @@ function App() {
     setAppMode(APP_MODES.FRETBOARD_VIEWER);
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
-    projectilesRef.current = [];
-    particlesRef.current = [];
-    setEnemies([]);
+    projectilesRef.current = [];    setEnemies([]);
     setShooterTargets([]);
-    setProjectiles([]);
-    setParticles([]);
-    setHitZoneNote(null);
+    setProjectiles([]);    setHitZoneNote(null);
     setIsHitWindowActive(false);
     setBeat(0);
     setFeedback("Ready");
@@ -11585,11 +11913,9 @@ function App() {
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
-    particlesRef.current = [];
     setEnemies([]);
     setShooterTargets([]);
     setProjectiles([]);
-    setParticles([]);
     setHitZoneNote(null);
     setIsHitWindowActive(false);
     setBeat(0);
@@ -11597,13 +11923,30 @@ function App() {
     setState(GAME_STATES.IDLE);
   }, [designLabEnabled, setState, stopMic]);
 
-  const selectAppTheme = useCallback(() => {
-    setAppTheme(APP_THEMES.BRAND);
+  const selectAppTheme = useCallback((nextTheme) => {
+    const normalizedTheme = normalizeAppTheme(nextTheme);
+    setAppTheme(normalizedTheme);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(APP_THEME_STORAGE_KEY, normalizedTheme);
+    }
   }, []);
 
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    const root = document.documentElement;
+    const nextDatasetTheme =
+      appTheme === APP_THEMES.LIGHT ? "light" : appTheme === APP_THEMES.ECO ? "dark" : "classic-gold";
+    root.dataset.theme = nextDatasetTheme;
+    return () => {
+      if (root.dataset.theme === nextDatasetTheme) {
+        root.dataset.theme = "classic-gold";
+      }
+    };
+  }, [appTheme]);
 
   useEffect(() => {
     appModeRef.current = appMode;
@@ -11698,8 +12041,6 @@ function App() {
       shooterTargetsRef.current = [];
       setProjectiles([]);
       projectilesRef.current = [];
-      setParticles([]);
-      particlesRef.current = [];
       setHitZoneNote(null);
       setIsHitWindowActive(false);
       setBeat(0);
@@ -12696,7 +13037,7 @@ function App() {
                 <div className="utilityThemeHeader">
                   <div>
                     <strong>테마</strong>
-                    <p>개발 중 확인용 메뉴입니다. 배포 화면에서는 표시되지 않습니다.</p>
+                    <p>운영자 전용 화면 색상 선택</p>
                   </div>
                   <span className="utilityThemeStatus">운영자</span>
                 </div>
@@ -12704,9 +13045,7 @@ function App() {
                   {APP_THEME_OPTIONS.map((option) => (
                     <button
                       aria-checked={appTheme === option.id}
-                      aria-disabled="true"
                       className={appTheme === option.id ? "selected" : ""}
-                      disabled
                       key={option.id}
                       onClick={() => selectAppTheme(option.id)}
                       role="radio"
@@ -13985,7 +14324,7 @@ function App() {
                   <span>{viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "음표 위치" : viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "스케일 위치" : viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "참고지판" : "기준 지판"}</span>
                   {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
                     <button
-                      className={`viewerAllButton ${isChordCatalogView ? "selected" : ""}`}
+                      className="viewerAllButton"
                       onClick={scrollToChordChart}
                       type="button"
                     >
@@ -14017,7 +14356,7 @@ function App() {
                         : note.label,
                   isRoot:
                     viewerMode === FRETBOARD_VIEWER_MODES.CHORD
-                      ? false
+                      ? Boolean(note.isRoot)
                       : viewerMode === FRETBOARD_VIEWER_MODES.SCALE
                         ? false
                         : viewerNoteFilter !== "ALL" && note.noteName === viewerNoteFilter,
@@ -14913,6 +15252,21 @@ function App() {
                 <em>{targetDetail?.solfege ?? getSolfege(target.note)}</em>
                 <span>{targetDetail?.octaveNote ?? target.note}</span>
                 <small>{getFretLabel(targetDetail)}</small>
+                <div className="targetBreakLayer" aria-hidden="true">
+                  {SHOOTER_TARGET_BREAK_PIECES.map((piece, pieceIndex) => (
+                    <i
+                      className="targetBreakShard"
+                      key={pieceIndex}
+                      style={{
+                        clipPath: piece.clip,
+                        "--break-dx": piece.dx,
+                        "--break-dy": piece.dy,
+                        "--break-rotate": piece.rotate,
+                        "--break-origin": piece.origin,
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
               );
             })}
@@ -14957,31 +15311,6 @@ function App() {
                   }}
                 />
               );
-            })}
-
-            {particles.map((particle) => {
-              const age = gameTimeRef.current - particle.bornAt;
-              if (age < 0) return null;
-              if (particle.type === "shockwave") {
-                return (
-                  <span
-                    className="hitShockwave"
-                    key={particle.id}
-                    style={{ left: `${particle.x}%`, top: `${particle.y}%` }}
-                  />
-                );
-              }
-              const distance = (age / 34) * (particle.speed ?? 1);
-              const x = particle.x + Math.cos(particle.angle) * distance;
-              const y = particle.y + Math.sin(particle.angle) * distance;
-              if (particle.type === "noteShard") {
-                return (
-                  <span className="hitNoteShard" key={particle.id} style={{ left: `${x}%`, top: `${y}%` }}>
-                    {particle.symbol}
-                  </span>
-                );
-              }
-              return <span className="musicParticle hitSpark" key={particle.id} style={{ left: `${x}%`, top: `${y}%` }}></span>;
             })}
 
             <div className={`guitarPlayer ${projectiles.length > 0 ? "shooting" : ""}`} style={shooterMotion}>
@@ -15164,11 +15493,11 @@ function App() {
               <div className="stage3OptionRow">
                 <span>변화표</span>
                 <div className="stage3SegmentControl">
-                  {CHORD_ACCIDENTAL_OPTIONS.map((accidental) => {
-                    const hasDiagram = Boolean(
-                      getChordFromSelector(stage3StorageChordBaseRoot, accidental.id, stage3StorageChordQuality, stage3StorageChordExtension),
-                    );
-                    return (
+                      {CHORD_ACCIDENTAL_OPTIONS.map((accidental) => {
+                        const hasDiagram = Boolean(
+                          getStoredChordFromSelector(stage3StorageChordBaseRoot, accidental.id, stage3StorageChordQuality, stage3StorageChordExtension),
+                        );
+                        return (
                       <button
                         className={stage3StorageChordAccidental === accidental.id ? "selected" : ""}
                         disabled={!hasDiagram}
@@ -15186,7 +15515,7 @@ function App() {
                 <div className="stage3OptionRow">
                   <span>성격</span>
                   <div className="stage3SegmentControl">
-                    {CHORD_QUALITY_OPTIONS.map((quality) => (
+                    {STAGE3_STORAGE_CHORD_QUALITY_OPTIONS.map((quality) => (
                       <button
                         className={stage3StorageChordQuality === quality.id ? "selected" : ""}
                         key={`storage-quality-${quality.id}`}
