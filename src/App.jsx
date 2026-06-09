@@ -1204,6 +1204,7 @@ const METRONOME_TONE_OPTIONS = [
   { id: "triangle", label: "Triangle", src: "/sounds/trangle.wav" },
   { id: "woodblock", label: "Woodblock", src: "/sounds/woodblock.wav" },
 ];
+const STAGE3_FIXED_METRONOME_TONE_ID = "tick";
 
 const BACKING_SAMPLE_SOURCES = {
   piano: "/sounds/gpg4.wav",
@@ -2384,11 +2385,11 @@ function MetronomeTimeline({
       </div>
       <div className={`mobileBeatDots mobileBeatDots--beats-${beatsPerMeasure} ${compact ? "mobileBeatDots--compact" : ""}`} aria-label={`${timeSignature} 박자 점자`}>
         {dots.map((beatNumber) => (
-          <BeatDot
-            active={beat === beatNumber && isPlaying}
-            className="trainingBeatDot"
-            key={beatNumber}
-            label={`${beatNumber + 1}박 ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
+      <BeatDot
+        active={beat === beatNumber && isPlaying}
+        className={dotClassName}
+        key={beatNumber}
+        label={`${beatNumber + 1}박 ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
             onClick={onBeatClick ? (event) => {
               event.stopPropagation();
               onBeatClick(beatNumber);
@@ -4856,6 +4857,7 @@ function BeatIndicator({
   beatPattern,
   beatsPerMeasure = 4,
   compact = false,
+  dotClassName = "trainingBeatDot",
   isPlaying,
   label = "현재 박자",
   onBeatClick,
@@ -4871,7 +4873,7 @@ function BeatIndicator({
   const renderDot = (beatNumber) => (
     <BeatDot
       active={beat === beatNumber && isPlaying}
-      className="trainingBeatDot"
+      className={dotClassName}
       key={beatNumber}
       label={`${beatNumber + 1}박 ${METRONOME_BEAT_STATE_LABELS[normalizedBeatPattern[beatNumber]]}`}
       onClick={onBeatClick ? (event) => {
@@ -4959,6 +4961,18 @@ const createDefaultMetronomeSettings = () => ({
   countInBars: 0,
   beatPattern: normalizeMetronomeBeatPattern([], 4),
 });
+const DEFAULT_ONLY_TRAINING_METRONOME_SCOPES = new Set([
+  METRONOME_SETTING_SCOPES.STAGE1,
+  METRONOME_SETTING_SCOPES.STAGE2,
+]);
+function keepOnlyTrainingMetronomeRuntimeSettings(scope, settings) {
+  const normalized = settings ?? createDefaultMetronomeSettings();
+  if (!DEFAULT_ONLY_TRAINING_METRONOME_SCOPES.has(scope)) return normalized;
+  return {
+    ...createDefaultMetronomeSettings(),
+    bpm: clampBpm(normalized.bpm),
+  };
+}
 const MIN_REPEAT_COUNT = 1;
 const MAX_REPEAT_COUNT = 12;
 const HIT_WINDOW_MS = 150;
@@ -7441,11 +7455,15 @@ function App() {
   }, []);
   const switchMetronomeScope = useCallback((nextScope, resetToDefault = false) => {
     const currentScope = activeMetronomeScopeRef.current;
-    scopedMetronomeSettingsRef.current[currentScope] = captureActiveMetronomeSettings();
+    scopedMetronomeSettingsRef.current[currentScope] = keepOnlyTrainingMetronomeRuntimeSettings(
+      currentScope,
+      captureActiveMetronomeSettings(),
+    );
     activeMetronomeScopeRef.current = nextScope;
-    const nextSettings = resetToDefault
+    const rawNextSettings = resetToDefault
       ? createDefaultMetronomeSettings()
       : scopedMetronomeSettingsRef.current[nextScope] ?? createDefaultMetronomeSettings();
+    const nextSettings = keepOnlyTrainingMetronomeRuntimeSettings(nextScope, rawNextSettings);
     scopedMetronomeSettingsRef.current[nextScope] = nextSettings;
     applyScopedMetronomeSettings(nextSettings);
   }, [applyScopedMetronomeSettings, captureActiveMetronomeSettings]);
@@ -7554,8 +7572,15 @@ function App() {
     backingPianoBeatRef.current = next.pianoBeat;
     return next;
   }, []);
-  const applyStage3LibraryItem = useCallback((item) => {
+  const applyStage3LibraryItem = useCallback((item, options = {}) => {
     if (!item?.chordIds?.length) return;
+    const backingSettings = options.useDefaultBacking
+      ? STAGE3_DEFAULT_BACKING_SETTINGS
+      : {
+        rhythmPattern: item.backingRhythmPattern,
+        bassBeat: item.backingBassBeat,
+        pianoBeat: item.backingPianoBeat,
+      };
     setChordProgressionId(`slot:${item.id}`);
     setStage3ChordIds(item.chordIds);
     setLoadedStage3LibraryItem(item);
@@ -7563,11 +7588,7 @@ function App() {
     setMetronomeTimeSignature(item.time_signature ?? "4/4");
     setMetronomeSubdivision(item.subdivision ?? "quarter");
     setMetronomeTone(item.sound ?? "tick");
-    applyStage3BackingSettings({
-      rhythmPattern: item.backingRhythmPattern,
-      bassBeat: item.backingBassBeat,
-      pianoBeat: item.backingPianoBeat,
-    });
+    applyStage3BackingSettings(backingSettings);
     {
       const strumPatternGroups = normalizeStrumPatternGroups(item.strum_pattern ?? item.strumPattern ?? item.strumSlots);
       setStage3LiveStrumPattern(strumPatternGroups);
@@ -7644,9 +7665,9 @@ function App() {
       timeSignature: stage3StorageTimeSignature,
       subdivision: metronomeSubdivision,
       sound: metronomeTone,
-      backingRhythmPattern,
-      backingBassBeat,
-      backingPianoBeat,
+      backingRhythmPattern: STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern,
+      backingBassBeat: STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat,
+      backingPianoBeat: STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat,
       capo: stage3StorageCapo,
       strum_pattern: currentStrumPattern,
       strumPattern: currentStrumPattern,
@@ -7667,7 +7688,7 @@ function App() {
     });
     setStage3StorageEditingId(id);
     setStage3StorageSelectedId(id);
-  }, [backingBassBeat, backingPianoBeat, backingRhythmPattern, hasStage3StorageProgression, metronomeSubdivision, metronomeTone, stage3StorageBpm, stage3StorageCapo, stage3StorageChordIds, stage3StorageEditingId, stage3StorageProgressionLabel, stage3StorageStrumPattern, stage3StorageTimeSignature]);
+  }, [hasStage3StorageProgression, metronomeSubdivision, metronomeTone, stage3StorageBpm, stage3StorageCapo, stage3StorageChordIds, stage3StorageEditingId, stage3StorageProgressionLabel, stage3StorageStrumPattern, stage3StorageTimeSignature]);
   const addStage3StrumPatternDraft = useCallback((slotIndex = 0) => {
     const normalizedPattern = normalizeStrumPattern(stage3StorageStrumDraftPattern);
     if (!normalizedPattern.length) return;
@@ -7689,11 +7710,13 @@ function App() {
     setStage3StorageChordIds(item.chordIds ?? []);
     setStage3StorageBpm(clampBpm(item.bpm ?? bpm));
     setStage3StorageTimeSignature(item.time_signature ?? "4/4");
-    applyStage3BackingSettings({
-      rhythmPattern: item.backingRhythmPattern,
-      bassBeat: item.backingBassBeat,
-      pianoBeat: item.backingPianoBeat,
-    });
+    applyStage3BackingSettings(isRecommended
+      ? {
+        rhythmPattern: item.backingRhythmPattern,
+        bassBeat: item.backingBassBeat,
+        pianoBeat: item.backingPianoBeat,
+      }
+      : STAGE3_DEFAULT_BACKING_SETTINGS);
     setStage3StorageCapo(Number.isFinite(Number(item.capo)) ? Number(item.capo) : 0);
     {
       const strumPatternGroups = normalizeStrumPatternGroups(item.strum_pattern ?? item.strumPattern ?? item.strumSlots);
@@ -8344,11 +8367,16 @@ function App() {
     }
 
     const now = audio.currentTime;
-    const accentOn = useAccentSetting ? metronomeAccentRef.current : true;
-    const useSplitTone = activeMetronomeScopeRef.current === METRONOME_SETTING_SCOPES.STANDALONE && accentOn;
-    const selectedTone = getMetronomeToneOption(useSplitTone
+    const scope = activeMetronomeScopeRef.current;
+    const usesTrainingTonePair = scope !== METRONOME_SETTING_SCOPES.STAGE3;
+    const accentOn = usesTrainingTonePair ? true : (useAccentSetting ? metronomeAccentRef.current : true);
+    const useSplitTone = usesTrainingTonePair && accentOn;
+    const toneId = useSplitTone
       ? (accent ? metronomeAccentToneRef.current : metronomeWeakToneRef.current)
-      : metronomeToneRef.current);
+      : scope === METRONOME_SETTING_SCOPES.STAGE3
+        ? STAGE3_FIXED_METRONOME_TONE_ID
+        : metronomeToneRef.current;
+    const selectedTone = getMetronomeToneOption(toneId);
     if (!ensureMetronomeOutput(audio)) return;
     const output = accentOn
       ? (accent ? metronomeAccentGainRef.current : metronomeWeakGainRef.current)
@@ -8406,10 +8434,14 @@ function App() {
 
     const now = audio.currentTime;
     const accent = beatState === METRONOME_BEAT_STATES.ACCENT;
-    const useSplitTone = activeMetronomeScopeRef.current === METRONOME_SETTING_SCOPES.STANDALONE;
-    const selectedTone = getMetronomeToneOption(useSplitTone
+    const scope = activeMetronomeScopeRef.current;
+    const useSplitTone = scope === METRONOME_SETTING_SCOPES.STANDALONE;
+    const toneId = useSplitTone
       ? (accent ? metronomeAccentToneRef.current : metronomeWeakToneRef.current)
-      : metronomeToneRef.current);
+      : scope === METRONOME_SETTING_SCOPES.STAGE3
+        ? STAGE3_FIXED_METRONOME_TONE_ID
+        : metronomeToneRef.current;
+    const selectedTone = getMetronomeToneOption(toneId);
     const masterLevel = Math.max(0, Math.min(1, metronomeVolumeRef.current ?? 0.72));
     const tickLevel = (accent ? 1 : 0.5) * masterLevel;
 
@@ -8509,10 +8541,7 @@ function App() {
       const audio = audioRef.current;
       if (!audio || (resumeAudio && !audioReady)) return false;
 
-      await Promise.all([
-        loadMetronomeSamples(audio),
-        loadBackingBandSamples(audio),
-      ]);
+      await loadBackingBandSamples(audio);
       ensureMetronomeOutput(audio);
       ensureBackingOutput(audio);
       await prepareStage3BackingSession({
@@ -8540,7 +8569,6 @@ function App() {
     ensureBackingOutput,
     ensureMetronomeOutput,
     loadBackingBandSamples,
-    loadMetronomeSamples,
     prepareStage3BackingSession,
   ]);
 
@@ -9548,7 +9576,7 @@ function App() {
 
   const runReferenceTrainingFrame = useCallback(
     (deltaMs) => {
-      const signature = getTimeSignatureOption("4/4");
+      const signature = getTimeSignatureOption(metronomeTimeSignatureRef.current);
       const subdivision = getSubdivisionOption(metronomeSubdivisionRef.current);
       const beatsPerMeasure = signature.beats;
       const clicksPerBeat = subdivision.clicksPerBeat;
@@ -9621,7 +9649,7 @@ function App() {
       flushSync(() => {
         setBeat(beatInBar);
       });
-      playTick(subdivisionIndex === 0 && beatInBar === 0, subdivisionIndex, false);
+      playPatternTick(beatInBar, subdivisionIndex);
 
       if (subdivisionIndex !== 0) return;
 
@@ -9643,7 +9671,7 @@ function App() {
       setReferenceStepTick((value) => value + 1);
       setFeedback("다음 음");
     },
-    [playCountInVoice, playTick, selectedCategory.sequence, setState],
+    [playCountInVoice, playPatternTick, selectedCategory.sequence, setState],
   );
 
   const runShooterFrame = useCallback(
@@ -10247,8 +10275,18 @@ function App() {
       lastFrameRef.current = performance.now();
       return;
     }
-    await ensureAudioReady();
-    await loadMetronomeSamples(audioRef.current);
+    const audio = ensureAudioContext();
+    if (!audio) {
+      setFeedback("오디오 준비 필요");
+      return;
+    }
+    ensureMetronomeOutput(audio);
+    void ensureAudioReady()
+      .then((audioReady) => {
+        if (!audioReady) return false;
+        return loadMetronomeSamples(audioRef.current);
+      })
+      .catch(() => false);
 
     const sequence = getPracticeSequence(safeCategory);
     activeNotesRef.current = safeCategory.notes;
@@ -10270,7 +10308,7 @@ function App() {
     setFeedback(metronomeCountInRef.current ? "Count In" : "Listen and play");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
-  }, [chordTransitionProgression.length, ensureAudioReady, getPlayableCategory, getPracticeSequence, hasChordTransitionProgression, prepareStage3BackingSession, repeatPractice, resetScore, selectedCategory, setState, startBackingScheduler, warmCoreAudioEngine]);
+  }, [chordTransitionProgression.length, ensureAudioContext, ensureAudioReady, ensureMetronomeOutput, getPlayableCategory, getPracticeSequence, hasChordTransitionProgression, loadMetronomeSamples, prepareStage3BackingSession, repeatPractice, resetScore, selectedCategory, setState, startBackingScheduler, warmCoreAudioEngine]);
 
   const enterPracticePreview = useCallback((category = selectedCategory) => {
     const safeCategory = getPlayableCategory(category);
@@ -10489,7 +10527,9 @@ function App() {
     const safeCategory = getPlayableCategory(selectedCategory);
     const sequence = getPracticeSequence(safeCategory);
     const modeToRestart = appModeRef.current === APP_MODES.SHOOTER ? APP_MODES.SHOOTER : APP_MODES.PRACTICE;
-    if (modeToRestart === APP_MODES.PRACTICE) await loadMetronomeSamples(audioRef.current);
+    if (modeToRestart === APP_MODES.PRACTICE && safeCategory.id !== "rhythm") {
+      await loadMetronomeSamples(audioRef.current);
+    }
     activeNotesRef.current =
       modeToRestart === APP_MODES.SHOOTER
         ? getShooterTrainingNotes(safeCategory, selectedPentatonic)
@@ -10550,9 +10590,7 @@ function App() {
   const changeMetronomeAccentTone = useCallback((toneId) => {
     const nextTone = getMetronomeToneOption(toneId).id;
     metronomeAccentToneRef.current = nextTone;
-    metronomeToneRef.current = nextTone;
     setMetronomeAccentTone(nextTone);
-    setMetronomeTone(nextTone);
   }, []);
 
   const changeMetronomeWeakTone = useCallback((toneId) => {
@@ -15470,12 +15508,8 @@ function App() {
                   if (!item) return;
                   setStage3RecommendedSelectValue("");
                   setStage3StorageSelectedId(item.id);
-                  applyStage3LibraryItem(item);
-                  const nextBacking = normalizeStage3BackingSettings({
-                    rhythmPattern: item.backingRhythmPattern,
-                    bassBeat: item.backingBassBeat,
-                    pianoBeat: item.backingPianoBeat,
-                  });
+                  applyStage3LibraryItem(item, { useDefaultBacking: true });
+                  const nextBacking = normalizeStage3BackingSettings(STAGE3_DEFAULT_BACKING_SETTINGS);
                   prepareStage3BackingSession({
                     progression: buildStage3Progression(item.chordIds),
                     bpmValue: item.bpm ?? bpm,
@@ -15735,48 +15769,138 @@ function App() {
               </p>
             </aside>
 
-            <div className="referenceTrainingToolbar trainingSettingsPanel">
-              <>
-                  <div className="trainingMetronomeShell referenceTrainingActions buttons playbackButtons">
-                    <MetronomeControl
-                      accentEnabled={metronomeAccent}
-                      bpm={bpm}
-                      className="trainingMetronomePanel referenceBpmControl"
-                      compactToggleLabels={selectedCategory.id === "scale-block" || selectedCategory.id === "first-position"}
-                      countInEnabled={metronomeCountIn}
-                      inputId="reference-bpm-presets"
-                      onAccentChange={changeTrainingMetronomeAccent}
-                      onBpmChange={changeBpm}
-                      onCountInChange={setMetronomeCountIn}
-                      onRepeatChange={setRepeatPractice}
-                      onSubdivisionChange={setMetronomeSubdivision}
-                      onTimeSignatureChange={changeTrainingMetronomeTimeSignature}
-                      onToneChange={setMetronomeTone}
-                      repeatEnabled={repeatPractice}
-                      showRepeat={selectedCategory.id !== "scale-block" && selectedCategory.id !== "first-position"}
-                      subdivision={metronomeSubdivision}
+            <div className={`referenceTrainingToolbar trainingSettingsPanel ${hasDirectionPractice ? "referenceTrainingToolbar--standalone" : ""}`}>
+              {hasDirectionPractice ? (
+                <div className="referenceStandaloneMetronomeDeck standaloneMetronomePanel">
+                  <div className="referenceBeatMetronomeStrip" aria-label="점자 메트로놈">
+                    <BeatIndicator
+                      beat={beat}
+                      beatPattern={standaloneBeatPattern}
+                      beatsPerMeasure={metronomeBeatsPerMeasure}
+                      compact
+                      dotClassName="referenceBeatMetronomeDot"
+                      isPlaying={gameState === GAME_STATES.PLAYING}
+                      label="점자 메트로놈"
+                      onBeatClick={cycleStandaloneBeatState}
                       timeSignature={metronomeTimeSignature}
-                      tone={metronomeTone}
                     />
                   </div>
-              </>
+                  <div
+                    className="metronomeHeroCard metronomeHeroCard--interactive referenceMetronomeHeroCard"
+                    onPointerCancel={(event) => {
+                      const swipe = bpmSwipeStartRef.current;
+                      bpmSwipeStartRef.current = null;
+                      if (swipe) {
+                        event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+                      }
+                    }}
+                    onPointerDown={handleBpmSwipeStart}
+                    onPointerMove={handleBpmSwipeMove}
+                    onPointerUp={handleBpmSwipeEnd}
+                  >
+                    <button
+                      aria-label="BPM 1 낮추기"
+                      className="metronomeHeroBpmButton"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        changeBpm(bpm - 1);
+                      }}
+                      type="button"
+                    >
+                      -
+                    </button>
+                    <div className="metronomeHeroBpmValue">
+                      <span>BPM</span>
+                      <strong>{bpm}</strong>
+                    </div>
+                    <button
+                      aria-label="BPM 1 올리기"
+                      className="metronomeHeroBpmButton"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        changeBpm(bpm + 1);
+                      }}
+                      type="button"
+                    >
+                      +
+                    </button>
+                    <button
+                      aria-label={gameState === GAME_STATES.PLAYING ? "연습 정지" : "연습 시작"}
+                      className={`metronomeHeroPlayButton ${gameState === GAME_STATES.PLAYING ? "reset" : "primary"}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (gameState === GAME_STATES.PLAYING) {
+                          stopPracticeSession();
+                          return;
+                        }
+                        startPractice(selectedCategory);
+                      }}
+                      type="button"
+                    >
+                      {gameState === GAME_STATES.PLAYING ? (
+                        <Square size={15} aria-hidden="true" />
+                      ) : (
+                        <Play size={18} aria-hidden="true" />
+                      )}
+                    </button>
+                  </div>
+                  <MetronomeControl
+                    accentEnabled={metronomeAccent}
+                    accentTone={metronomeAccentTone}
+                    bpm={bpm}
+                    className="standaloneMetronomeControl referenceStandaloneMetronomeControl"
+                    countInEnabled={metronomeCountIn}
+                    inputId={`reference-${selectedCategory.id}-bpm`}
+                    onAccentChange={changeTrainingMetronomeAccent}
+                    onAccentToneChange={changeMetronomeAccentTone}
+                    onBpmChange={changeBpm}
+                    onCountInChange={setMetronomeCountIn}
+                    onRepeatChange={setRepeatPractice}
+                    onSubdivisionChange={setMetronomeSubdivision}
+                    onTimeSignatureChange={changeTrainingMetronomeTimeSignature}
+                    onToneChange={setMetronomeTone}
+                    onWeakToneChange={changeMetronomeWeakTone}
+                    repeatEnabled={repeatPractice}
+                    showAccent={false}
+                    showBpmControls={false}
+                    showCountIn={false}
+                    showRepeat={false}
+                    splitToneControls
+                    subdivision={metronomeSubdivision}
+                    timeSignature={metronomeTimeSignature}
+                    tone={metronomeTone}
+                    weakTone={metronomeWeakTone}
+                  />
+                </div>
+              ) : (
+                <div className="trainingMetronomeShell referenceTrainingActions buttons playbackButtons">
+                  <MetronomeControl
+                    accentEnabled={metronomeAccent}
+                    bpm={bpm}
+                    className="trainingMetronomePanel referenceBpmControl"
+                    compactToggleLabels={false}
+                    countInEnabled={metronomeCountIn}
+                    inputId="reference-bpm-presets"
+                    onAccentChange={changeTrainingMetronomeAccent}
+                    onBpmChange={changeBpm}
+                    onCountInChange={setMetronomeCountIn}
+                    onRepeatChange={setRepeatPractice}
+                    onSubdivisionChange={setMetronomeSubdivision}
+                    onTimeSignatureChange={changeTrainingMetronomeTimeSignature}
+                    onToneChange={setMetronomeTone}
+                    repeatEnabled={repeatPractice}
+                    showRepeat
+                    subdivision={metronomeSubdivision}
+                    timeSignature={metronomeTimeSignature}
+                    tone={metronomeTone}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
-          <div
-            className={`chordTransitionHud referenceTransitionHud ${selectedCategory.id === "scale-block" || selectedCategory.id === "first-position" ? "scaleReferenceTimelineOnly" : ""}`}
-            style={selectedCategory.id === "scale-block" || selectedCategory.id === "first-position" ? { gridTemplateColumns: "minmax(0, 1fr) auto" } : undefined}
-          >
-            {selectedCategory.id === "scale-block" || selectedCategory.id === "first-position" ? (
-              <BeatIndicator
-                beat={beat}
-                beatPattern={trainingBeatPattern}
-                beatsPerMeasure={trainingBeatsPerMeasure}
-                compact
-                isPlaying={gameState === GAME_STATES.PLAYING}
-                timeSignature="4/4"
-              />
-            ) : (
+          {!hasDirectionPractice ? (
+            <div className="chordTransitionHud referenceTransitionHud">
               <MetronomeTimeline
                 beat={beat}
                 beatPattern={trainingBeatPattern}
@@ -15787,16 +15911,14 @@ function App() {
                 progress={stage3MeasureProgress}
                 timeSignature="4/4"
               />
-            )}
-            <button
-              className={`trainingHudStartButton ${gameState === GAME_STATES.PLAYING ? "" : "primary"}`}
-              onClick={gameState === GAME_STATES.PLAYING ? stopPracticeSession : () => startPractice(selectedCategory)}
-              type="button"
-            >
-              {gameState === GAME_STATES.PLAYING ? <Square size={16} /> : <Play size={16} />}
-              {gameState === GAME_STATES.PLAYING ? "STOP" : "START"}
-            </button>
-            {selectedCategory.id !== "scale-block" && selectedCategory.id !== "first-position" ? (
+              <button
+                className={`trainingHudStartButton ${gameState === GAME_STATES.PLAYING ? "" : "primary"}`}
+                onClick={gameState === GAME_STATES.PLAYING ? stopPracticeSession : () => startPractice(selectedCategory)}
+                type="button"
+              >
+                {gameState === GAME_STATES.PLAYING ? <Square size={16} /> : <Play size={16} />}
+                {gameState === GAME_STATES.PLAYING ? "STOP" : "START"}
+              </button>
               <>
                 <div className="chordNextCard">
                   <span>{referenceNextLabel}</span>
@@ -15807,8 +15929,8 @@ function App() {
                   <strong>{getReferenceStageValue(referenceDisplayPrompt)}</strong>
                 </div>
               </>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </section>
       ) : LEGACY_PRACTICE_RENDERING_ENABLED ? (
         <section className="gamePanel" aria-label="Beginner scale block practice">

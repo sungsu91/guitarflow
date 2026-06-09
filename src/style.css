@@ -20270,6 +20270,69 @@ textarea,
   transform: scale(1.35) translateZ(0) !important;
 }
 
+.firstPositionTrainingPanel .referenceBeatMetronomeStrip,
+.scaleBlockTrainingPanel .referenceBeatMetronomeStrip {
+  display: grid;
+  width: 100%;
+  min-height: 34px;
+  place-items: center;
+  padding: 0 8px;
+  margin: -2px 0 1px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.firstPositionTrainingPanel .referenceBeatMetronomeStrip .beatIndicator,
+.scaleBlockTrainingPanel .referenceBeatMetronomeStrip .beatIndicator {
+  display: grid;
+  width: 100%;
+  min-height: 32px;
+  padding: 0;
+  gap: 2px;
+  place-items: center;
+}
+
+.firstPositionTrainingPanel .referenceBeatMetronomeStrip .beatIndicatorRow,
+.scaleBlockTrainingPanel .referenceBeatMetronomeStrip .beatIndicatorRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 2.5vw, 12px);
+  min-width: 0;
+}
+
+.firstPositionTrainingPanel .referenceBeatMetronomeDot,
+.scaleBlockTrainingPanel .referenceBeatMetronomeDot {
+  --beat-dot-touch: 28px;
+  --beat-dot-size: 12px;
+}
+
+.firstPositionTrainingPanel .referenceBeatMetronomeDot .beatDot__glyph,
+.scaleBlockTrainingPanel .referenceBeatMetronomeDot .beatDot__glyph {
+  border-width: 2px !important;
+}
+
+.firstPositionTrainingPanel .referenceBeatMetronomeDot.beatDot--weak,
+.scaleBlockTrainingPanel .referenceBeatMetronomeDot.beatDot--weak {
+  --beat-dot-fill: transparent;
+}
+
+.firstPositionTrainingPanel .referenceBeatMetronomeDot.beatDot--weak .beatDot__innerMark,
+.scaleBlockTrainingPanel .referenceBeatMetronomeDot.beatDot--weak .beatDot__innerMark {
+  display: none !important;
+}
+
+.firstPositionTrainingPanel .referenceBeatMetronomeDot.active .beatDot__glyph,
+.scaleBlockTrainingPanel .referenceBeatMetronomeDot.active .beatDot__glyph {
+  animation: none !important;
+  transform: scale(1.18) translateZ(0) !important;
+  box-shadow:
+    var(--beat-dot-shadow),
+    0 0 0 3px rgba(255, 219, 135, 0.15),
+    0 0 15px rgba(217, 170, 85, 0.34) !important;
+}
+
 .trainingSequenceTimeline {
   display: flex;
   min-width: 0;
