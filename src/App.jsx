@@ -1339,6 +1339,54 @@ function buildChordToneReferenceOption({ root, displayRoot = root, quality, exte
   };
 }
 
+function getChordCatalogOptionKey(chord) {
+  return `${chord.root}-${chord.quality}-${chord.extension}`;
+}
+
+function buildSelectableChordCatalogOptions(baseRoot, accidental = "natural") {
+  const lookupRoot = getChordLookupRoot(baseRoot, accidental);
+  const displayRoot = getChordDisplayRoot(baseRoot, accidental);
+  return CHORD_QUALITY_OPTIONS.flatMap((qualityOption) => {
+    const quality = qualityOption.id;
+    return CHORD_EXTENSION_OPTIONS
+      .filter((extensionOption) => isChordExtensionAvailableForQuality(extensionOption, quality))
+      .map((extensionOption) => {
+        const extension = normalizeChordExtensionForQuality(quality, extensionOption.id);
+        const storedChord = CHORD_VIEW_OPTIONS.find(
+          (chord) =>
+            chord.root === lookupRoot &&
+            chord.quality === quality &&
+            chord.extension === extension,
+        ) ?? null;
+        return storedChord ?? buildChordToneReferenceOption({
+          root: lookupRoot,
+          displayRoot,
+          quality,
+          extension,
+          displayName: getChordNameFromParts(baseRoot, accidental, quality, extension),
+        });
+      });
+  });
+}
+
+function mergeChordCatalogOptions(storedChords, generatedChords) {
+  const storedByKey = new Map(storedChords.map((chord) => [getChordCatalogOptionKey(chord), chord]));
+  const usedKeys = new Set();
+  const orderedChords = generatedChords.map((chord) => {
+    const key = getChordCatalogOptionKey(chord);
+    usedKeys.add(key);
+    return storedByKey.get(key) ?? chord;
+  });
+  storedChords.forEach((chord) => {
+    const key = getChordCatalogOptionKey(chord);
+    if (!usedKeys.has(key)) {
+      usedKeys.add(key);
+      orderedChords.push(chord);
+    }
+  });
+  return orderedChords;
+}
+
 function splitChordRootForSelector(root = "C") {
   if (root.includes("#")) {
     const baseRoot = root[0];
@@ -1911,6 +1959,7 @@ const SVG_LOGO_LAB_CANDIDATES = [
 const FEEL_RECORDER_STORAGE_KEY = "rifflab-feel-recorder-patterns";
 const METRONOME_PRESET_STORAGE_KEY = "rifflab-metronome-presets-v1";
 const METRONOME_TRACKER_PROGRESS_STORAGE_KEY = "rifflab-metronome-tracker-progress-v1";
+const METRONOME_TRACKER_STORAGE_DEBOUNCE_MS = 360;
 const METRONOME_DISPLAY_MODE_STORAGE_KEY = "rifflabMetronomeMode";
 const APP_THEME_STORAGE_KEY = "rifflabThemeMode";
 const APP_THEMES = {
@@ -2356,11 +2405,29 @@ function MetronomeControl({
 }) {
   const [draftBpm, setDraftBpm] = useState(String(bpm));
   const bpmSwipeStartRef = useRef(null);
+  const bpmSwipeFrameRef = useRef(null);
+  const bpmSwipePreviewValueRef = useRef(bpm);
+  const bpmInputRef = useRef(null);
   const hasToggleControls = showAccent || showCountIn || showRepeat;
 
   useEffect(() => {
     setDraftBpm(String(bpm));
+    if (bpmInputRef.current) bpmInputRef.current.value = String(bpm);
   }, [bpm]);
+
+  useEffect(() => () => {
+    if (bpmSwipeFrameRef.current != null) window.cancelAnimationFrame(bpmSwipeFrameRef.current);
+  }, []);
+
+  const renderBpmSwipePreview = useCallback((nextBpm) => {
+    const safeBpm = Math.min(MAX_BPM, Math.max(MIN_BPM, Math.round(nextBpm)));
+    bpmSwipePreviewValueRef.current = safeBpm;
+    if (bpmSwipeFrameRef.current != null) return;
+    bpmSwipeFrameRef.current = window.requestAnimationFrame(() => {
+      bpmSwipeFrameRef.current = null;
+      if (bpmInputRef.current) bpmInputRef.current.value = String(bpmSwipePreviewValueRef.current);
+    });
+  }, []);
 
   const applyBpmValue = useCallback((value) => {
     const parsed = Number(value);
@@ -2410,6 +2477,7 @@ function MetronomeControl({
       lastTime: now,
       startBpm,
       lastAppliedBpm: startBpm,
+      previewBpm: startBpm,
       locked: false,
       canceled: false,
     };
@@ -2428,6 +2496,7 @@ function MetronomeControl({
       if (absX < 10 && absY < 10) return;
       if (absY > absX * 1.25) {
         swipe.canceled = true;
+        if (bpmInputRef.current) bpmInputRef.current.value = draftBpm;
         event.currentTarget.releasePointerCapture?.(swipe.pointerId);
         return;
       }
@@ -2445,20 +2514,32 @@ function MetronomeControl({
     const nextBpm = Math.min(MAX_BPM, Math.max(MIN_BPM, Math.round(swipe.startBpm + distanceBpm + velocityBoost)));
 
     if (nextBpm !== swipe.lastAppliedBpm) {
-      applyBpmValue(nextBpm);
+      swipe.previewBpm = nextBpm;
+      renderBpmSwipePreview(nextBpm);
       swipe.lastAppliedBpm = nextBpm;
     }
 
     swipe.lastX = event.clientX;
     swipe.lastTime = now;
-  }, [applyBpmValue, compactToggleLabels]);
+  }, [compactToggleLabels, draftBpm, renderBpmSwipePreview]);
 
   const handleBpmPointerEnd = useCallback((event) => {
     const swipe = bpmSwipeStartRef.current;
     bpmSwipeStartRef.current = null;
     if (!swipe) return;
     event.currentTarget.releasePointerCapture?.(swipe.pointerId);
-  }, []);
+    if (!swipe.canceled && swipe.previewBpm !== undefined) {
+      applyBpmValue(swipe.previewBpm);
+    }
+  }, [applyBpmValue]);
+
+  const handleBpmPointerCancel = useCallback((event) => {
+    const swipe = bpmSwipeStartRef.current;
+    bpmSwipeStartRef.current = null;
+    if (!swipe) return;
+    event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+    if (bpmInputRef.current) bpmInputRef.current.value = draftBpm;
+  }, [draftBpm]);
 
   const applyNextBpmPreset = useCallback(() => {
     const current = Number(bpm) || DEFAULT_BPM;
@@ -2476,11 +2557,7 @@ function MetronomeControl({
             <div className="metronomeBpmCombo">
               <div
                 className="metronomeBpmInputShell"
-                onPointerCancel={(event) => {
-                  const swipe = bpmSwipeStartRef.current;
-                  bpmSwipeStartRef.current = null;
-                  if (swipe) event.currentTarget.releasePointerCapture?.(swipe.pointerId);
-                }}
+                onPointerCancel={handleBpmPointerCancel}
                 onPointerDown={handleBpmPointerDown}
                 onPointerMove={handleBpmPointerMove}
                 onPointerUp={handleBpmPointerEnd}
@@ -2499,6 +2576,7 @@ function MetronomeControl({
                   }}
                   onKeyDown={handleBpmKeyDown}
                   pattern="[0-9]*"
+                  ref={bpmInputRef}
                   step="1"
                   type="number"
                   value={draftBpm}
@@ -2697,101 +2775,208 @@ function MetronomeTimeline({
 }
 
 const WHEEL_PICKER_ITEM_HEIGHT = 34;
-const WHEEL_PICKER_MOMENTUM_MS = 420;
-const WHEEL_PICKER_VELOCITY_POWER = 420;
-const WHEEL_PICKER_DETENT_THROTTLE_MS = 58;
+const WHEEL_PICKER_MOMENTUM_DISTANCE_MS = 680;
+const WHEEL_PICKER_MAX_MOMENTUM_ITEMS = 18;
+const WHEEL_PICKER_MIN_ANIMATION_MS = 260;
+const WHEEL_PICKER_MAX_ANIMATION_MS = 980;
+const WHEEL_PICKER_DRAG_CLICK_CANCEL_PX = 5;
+
+function easeOutPickerWheel(progress) {
+  return 1 - Math.pow(1 - progress, 4);
+}
 
 function WheelPickerColumn({ label, options, value, onChange }) {
-  const frameRef = useRef(null);
-  const selectedIndexRef = useRef(0);
-  const dragRef = useRef(null);
-  const detentRef = useRef({ index: -1, time: 0 });
   const selectedIndex = Math.max(0, options.findIndex((option) => Number(option.value) === Number(value)));
-  const [scrollPosition, setScrollPosition] = useState(selectedIndex);
-  const [isDragging, setIsDragging] = useState(false);
-
-  useEffect(() => {
-    selectedIndexRef.current = selectedIndex;
-    if (!isDragging && !dragRef.current) setScrollPosition(selectedIndex);
-  }, [isDragging, selectedIndex]);
+  const frameRef = useRef(null);
+  const dragFrameRef = useRef(null);
+  const optionRefs = useRef([]);
+  const trackRef = useRef(null);
+  const committedIndexRef = useRef(selectedIndex);
+  const previewIndexRef = useRef(selectedIndex);
+  const scrollPositionRef = useRef(selectedIndex);
+  const pendingScrollPositionRef = useRef(selectedIndex);
+  const dragRef = useRef(null);
+  const interactingRef = useRef(false);
+  const suppressClickRef = useRef(false);
+  const [isInteracting, setIsInteracting] = useState(false);
 
   useEffect(() => () => {
     if (frameRef.current != null) window.cancelAnimationFrame(frameRef.current);
+    if (dragFrameRef.current != null) window.cancelAnimationFrame(dragFrameRef.current);
   }, []);
 
   const clampIndex = useCallback((index) => Math.max(0, Math.min(options.length - 1, index)), [options.length]);
-  const visualSelectedIndex = clampIndex(Math.round(scrollPosition));
+  const clampPosition = useCallback((position) => Math.max(0, Math.min(options.length - 1, position)), [options.length]);
 
-  const changeToIndex = useCallback((nextIndex) => {
+  const updatePreviewIndex = useCallback((nextIndex, force = false) => {
+    const safeIndex = clampIndex(nextIndex);
+    if (!force && previewIndexRef.current === safeIndex) return;
+
+    if (force) {
+      optionRefs.current.forEach((node, optionIndex) => {
+        if (!node) return;
+        const selected = optionIndex === safeIndex;
+        node.classList.toggle("selected", selected);
+        node.setAttribute("aria-selected", selected ? "true" : "false");
+      });
+    } else {
+      const previousNode = optionRefs.current[previewIndexRef.current];
+      if (previousNode) {
+        previousNode.classList.remove("selected");
+        previousNode.setAttribute("aria-selected", "false");
+      }
+      const nextNode = optionRefs.current[safeIndex];
+      if (nextNode) {
+        nextNode.classList.add("selected");
+        nextNode.setAttribute("aria-selected", "true");
+      }
+    }
+
+    previewIndexRef.current = safeIndex;
+  }, [clampIndex]);
+
+  const renderWheelPosition = useCallback((nextPosition, syncSelection = false) => {
+    const safePosition = clampPosition(nextPosition);
+    scrollPositionRef.current = safePosition;
+    pendingScrollPositionRef.current = safePosition;
+
+    if (trackRef.current) {
+      trackRef.current.style.transform = `translate3d(0, ${-safePosition * WHEEL_PICKER_ITEM_HEIGHT}px, 0)`;
+    }
+
+    if (syncSelection) {
+      updatePreviewIndex(Math.round(safePosition), true);
+    }
+  }, [clampPosition, updatePreviewIndex]);
+
+  const scheduleWheelPosition = useCallback((nextPosition) => {
+    pendingScrollPositionRef.current = clampPosition(nextPosition);
+    if (dragFrameRef.current != null) return;
+    dragFrameRef.current = window.requestAnimationFrame(() => {
+      dragFrameRef.current = null;
+      renderWheelPosition(pendingScrollPositionRef.current);
+    });
+  }, [clampPosition, renderWheelPosition]);
+
+  const syncWheelToIndex = useCallback((nextIndex) => {
+    const safeIndex = clampIndex(nextIndex);
+    committedIndexRef.current = safeIndex;
+    previewIndexRef.current = safeIndex;
+    renderWheelPosition(safeIndex, true);
+  }, [clampIndex, renderWheelPosition]);
+
+  useEffect(() => {
+    if (interactingRef.current) return;
+    syncWheelToIndex(selectedIndex);
+  }, [selectedIndex, syncWheelToIndex]);
+
+  const commitIndex = useCallback((nextIndex) => {
     const safeIndex = clampIndex(nextIndex);
     const nextValue = options[safeIndex]?.value;
-    if (nextValue != null && safeIndex !== selectedIndexRef.current) {
-      selectedIndexRef.current = safeIndex;
+    const previousValue = options[committedIndexRef.current]?.value;
+    syncWheelToIndex(safeIndex);
+
+    if (nextValue != null && Number(nextValue) !== Number(previousValue)) {
       onChange(Number(nextValue));
     }
-  }, [clampIndex, onChange, options]);
+  }, [clampIndex, onChange, options, syncWheelToIndex]);
 
-  const notifyIndex = useCallback((nextIndex, force = false) => {
-    const safeIndex = clampIndex(nextIndex);
-    const now = performance.now();
-    if (
-      !force &&
-      detentRef.current.index === safeIndex &&
-      now - detentRef.current.time < WHEEL_PICKER_DETENT_THROTTLE_MS
-    ) return;
-    if (!force && now - detentRef.current.time < WHEEL_PICKER_DETENT_THROTTLE_MS) return;
-    detentRef.current = { index: safeIndex, time: now };
-    changeToIndex(safeIndex);
-  }, [changeToIndex, clampIndex]);
+  const finishInteraction = useCallback(() => {
+    interactingRef.current = false;
+    setIsInteracting(false);
+  }, []);
 
-  const animateToIndex = useCallback((fromPosition, targetIndex) => {
+  const animateToIndex = useCallback((fromPosition, targetIndex, releaseVelocity = 0) => {
+    if (dragFrameRef.current != null) {
+      window.cancelAnimationFrame(dragFrameRef.current);
+      dragFrameRef.current = null;
+    }
     if (frameRef.current != null) window.cancelAnimationFrame(frameRef.current);
+    const safeFromPosition = clampPosition(fromPosition);
+    const safeTargetIndex = clampIndex(targetIndex);
+    const distance = safeTargetIndex - safeFromPosition;
+
+    if (Math.abs(distance) < 0.001) {
+      renderWheelPosition(safeTargetIndex, true);
+      commitIndex(safeTargetIndex);
+      finishInteraction();
+      return;
+    }
+
     const startedAt = performance.now();
-    const distance = targetIndex - fromPosition;
-    const duration = Math.min(620, Math.max(240, WHEEL_PICKER_MOMENTUM_MS + Math.abs(distance) * 34));
+    const duration = Math.min(
+      WHEEL_PICKER_MAX_ANIMATION_MS,
+      Math.max(
+        WHEEL_PICKER_MIN_ANIMATION_MS,
+        220 + (Math.abs(distance) * 46) + Math.min(240, Math.abs(releaseVelocity) * 120),
+      ),
+    );
+
     const animate = (now) => {
       const progress = Math.min(1, (now - startedAt) / duration);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const nextPosition = fromPosition + distance * eased;
-      setScrollPosition(nextPosition);
-      notifyIndex(Math.round(nextPosition));
+      const eased = easeOutPickerWheel(progress);
+      const nextPosition = safeFromPosition + distance * eased;
+      renderWheelPosition(nextPosition);
+
       if (progress < 1) {
         frameRef.current = window.requestAnimationFrame(animate);
         return;
       }
-      frameRef.current = null;
-      setScrollPosition(targetIndex);
-      notifyIndex(targetIndex, true);
-      setIsDragging(false);
-    };
-    frameRef.current = window.requestAnimationFrame(animate);
-  }, [notifyIndex]);
 
-  const handleOptionClick = useCallback((nextValue) => {
+      frameRef.current = null;
+      renderWheelPosition(safeTargetIndex, true);
+      commitIndex(safeTargetIndex);
+      finishInteraction();
+    };
+
+    frameRef.current = window.requestAnimationFrame(animate);
+  }, [clampIndex, clampPosition, commitIndex, finishInteraction, renderWheelPosition]);
+
+  const handleOptionClick = useCallback((nextValue, event) => {
+    if (suppressClickRef.current) {
+      event?.preventDefault?.();
+      event?.stopPropagation?.();
+      suppressClickRef.current = false;
+      return;
+    }
+
     const nextIndex = options.findIndex((option) => Number(option.value) === Number(nextValue));
     if (nextIndex < 0) return;
-    changeToIndex(nextIndex);
-    setScrollPosition(nextIndex);
-    setIsDragging(false);
-  }, [changeToIndex, options]);
+    if (frameRef.current != null) {
+      window.cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+    interactingRef.current = false;
+    commitIndex(nextIndex);
+    setIsInteracting(false);
+  }, [commitIndex, options]);
 
   const handlePointerDown = useCallback((event) => {
     if (frameRef.current != null) window.cancelAnimationFrame(frameRef.current);
     frameRef.current = null;
+    if (dragFrameRef.current != null) {
+      window.cancelAnimationFrame(dragFrameRef.current);
+      dragFrameRef.current = null;
+    }
+
     const now = performance.now();
+    const startPosition = scrollPositionRef.current;
+    interactingRef.current = true;
+    suppressClickRef.current = false;
     dragRef.current = {
       pointerId: event.pointerId,
       startY: event.clientY,
       lastY: event.clientY,
       lastTime: now,
-      startIndex: selectedIndexRef.current,
+      startPosition,
       velocity: 0,
+      moved: false,
       samples: [{ y: event.clientY, time: now }],
     };
-    setIsDragging(true);
-    setScrollPosition(selectedIndexRef.current);
+    setIsInteracting(true);
+    renderWheelPosition(startPosition);
     event.currentTarget.setPointerCapture?.(event.pointerId);
-  }, []);
+  }, [renderWheelPosition]);
 
   const handlePointerMove = useCallback((event) => {
     const drag = dragRef.current;
@@ -2802,13 +2987,19 @@ function WheelPickerColumn({ label, options, value, onChange }) {
     drag.velocity = (event.clientY - drag.lastY) / elapsed;
     drag.lastY = event.clientY;
     drag.lastTime = now;
-    drag.samples = [...(drag.samples ?? []), { y: event.clientY, time: now }].filter((sample) => now - sample.time <= 120);
+    drag.samples ??= [];
+    drag.samples.push({ y: event.clientY, time: now });
+    while (drag.samples.length > 1 && now - drag.samples[0].time > 120) drag.samples.shift();
 
-    const nextPosition = clampIndex(drag.startIndex - (deltaY / WHEEL_PICKER_ITEM_HEIGHT));
-    setScrollPosition(nextPosition);
-    notifyIndex(Math.round(nextPosition));
+    if (Math.abs(deltaY) > WHEEL_PICKER_DRAG_CLICK_CANCEL_PX) {
+      drag.moved = true;
+      suppressClickRef.current = true;
+    }
+
+    const nextPosition = clampPosition(drag.startPosition - (deltaY / WHEEL_PICKER_ITEM_HEIGHT));
+    scheduleWheelPosition(nextPosition);
     if (event.cancelable) event.preventDefault();
-  }, [clampIndex, notifyIndex]);
+  }, [clampPosition, scheduleWheelPosition]);
 
   const handlePointerUp = useCallback((event) => {
     const drag = dragRef.current;
@@ -2821,28 +3012,36 @@ function WheelPickerColumn({ label, options, value, onChange }) {
       ? (lastSample.y - firstSample.y) / (lastSample.time - firstSample.time)
       : drag.velocity;
     const velocity = Number.isFinite(sampleVelocity) ? sampleVelocity : drag.velocity;
-    const currentPosition = clampIndex(drag.startIndex - (deltaY / WHEEL_PICKER_ITEM_HEIGHT));
-    const projectedPosition = clampIndex(currentPosition - ((velocity * WHEEL_PICKER_VELOCITY_POWER) / WHEEL_PICKER_ITEM_HEIGHT));
+    const currentPosition = clampPosition(drag.startPosition - (deltaY / WHEEL_PICKER_ITEM_HEIGHT));
+    const rawMomentumItems = (velocity * WHEEL_PICKER_MOMENTUM_DISTANCE_MS) / WHEEL_PICKER_ITEM_HEIGHT;
+    const momentumItems = Math.sign(rawMomentumItems) * Math.min(WHEEL_PICKER_MAX_MOMENTUM_ITEMS, Math.abs(rawMomentumItems));
+    const projectedPosition = clampPosition(currentPosition - momentumItems);
     const targetIndex = clampIndex(Math.round(projectedPosition));
 
     dragRef.current = null;
     event.currentTarget.releasePointerCapture?.(event.pointerId);
-    animateToIndex(currentPosition, targetIndex);
-  }, [animateToIndex, clampIndex]);
+    if (drag.moved) {
+      window.setTimeout(() => {
+        suppressClickRef.current = false;
+      }, 180);
+    }
+    animateToIndex(currentPosition, targetIndex, velocity);
+  }, [animateToIndex, clampIndex, clampPosition]);
 
   const handlePointerCancel = useCallback((event) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     dragRef.current = null;
     event.currentTarget.releasePointerCapture?.(event.pointerId);
-    animateToIndex(scrollPosition, Math.round(scrollPosition));
-  }, [animateToIndex, scrollPosition]);
+    suppressClickRef.current = false;
+    animateToIndex(scrollPositionRef.current, Math.round(scrollPositionRef.current));
+  }, [animateToIndex]);
 
   return (
     <label className="metronomeWheelColumn">
       <span>{label}</span>
       <div
-        className={`metronomeWheelColumnViewport ${isDragging ? "dragging" : ""}`}
+        className={`metronomeWheelColumnViewport ${isInteracting ? "dragging" : ""}`}
         onPointerCancel={handlePointerCancel}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -2851,31 +3050,46 @@ function WheelPickerColumn({ label, options, value, onChange }) {
         tabIndex={0}
       >
         <i aria-hidden="true" />
-        {options.map((option, optionIndex) => (
-          <button
-            aria-selected={optionIndex === visualSelectedIndex}
-            className={optionIndex === visualSelectedIndex ? "selected" : ""}
-            key={option.id}
-            onClick={() => handleOptionClick(Number(option.value))}
-            role="option"
-            style={{
-              transform: `translate3d(0, ${(optionIndex - scrollPosition) * WHEEL_PICKER_ITEM_HEIGHT}px, 0)`,
-            }}
-            type="button"
-          >
-            {option.label}
-          </button>
-        ))}
+        <div
+          className="metronomeWheelOptionTrack"
+          ref={trackRef}
+          style={{ transform: `translate3d(0, ${-selectedIndex * WHEEL_PICKER_ITEM_HEIGHT}px, 0)` }}
+        >
+          {options.map((option, optionIndex) => (
+            <button
+              aria-selected={optionIndex === selectedIndex}
+              className={optionIndex === selectedIndex ? "selected" : ""}
+              key={option.id}
+              onClick={(event) => handleOptionClick(Number(option.value), event)}
+              ref={(node) => {
+                optionRefs.current[optionIndex] = node;
+              }}
+              role="option"
+              style={{ transform: `translate3d(0, ${optionIndex * WHEEL_PICKER_ITEM_HEIGHT}px, 0)` }}
+              type="button"
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
       </div>
     </label>
   );
 }
 
 function MetronomeWheelPicker({ ariaLabel, minuteOptions, minutes, onMinutesChange, onSecondsChange, secondOptions, seconds }) {
+  const handleMinutesPreviewChange = useCallback((nextMinutes) => {
+    onMinutesChange(nextMinutes);
+  }, [onMinutesChange]);
+
+  const handleSecondsPreviewChange = useCallback((nextSeconds) => {
+    onSecondsChange(nextSeconds);
+  }, [onSecondsChange]);
+
   return (
     <div className="metronomeTimerWheelPicker" aria-label={ariaLabel}>
-      <WheelPickerColumn label="Minutes" options={minuteOptions} value={minutes} onChange={onMinutesChange} />
-      <WheelPickerColumn label="Seconds" options={secondOptions} value={seconds} onChange={onSecondsChange} />
+      <WheelPickerColumn label="Minutes" options={minuteOptions} value={minutes} onChange={handleMinutesPreviewChange} />
+      <WheelPickerColumn label="Seconds" options={secondOptions} value={seconds} onChange={handleSecondsPreviewChange} />
     </div>
   );
 }
@@ -6876,6 +7090,11 @@ function App() {
   const [metronomeTimerResetWhenReached, setMetronomeTimerResetWhenReached] = useState(false);
   const [metronomeTrackerTimerMinutes, setMetronomeTrackerTimerMinutes] = useState(initialMetronomeTrackerProgressRef.current.trackerTimerMinutes);
   const [metronomeTrackerTimerSeconds, setMetronomeTrackerTimerSeconds] = useState(initialMetronomeTrackerProgressRef.current.trackerTimerSeconds);
+  const autoBpmTimeDraftRef = useRef({ minutes: autoBpmTimeMinutes, seconds: autoBpmTimeSeconds });
+  const metronomeTrackerTimerDraftRef = useRef({
+    minutes: metronomeTrackerTimerMinutes,
+    seconds: metronomeTrackerTimerSeconds,
+  });
   const [metronomeMeasureCount, setMetronomeMeasureCount] = useState(initialMetronomeTrackerProgressRef.current.measureCount);
   const [metronomeTrackerElapsedMs, setMetronomeTrackerElapsedMs] = useState(initialMetronomeTrackerProgressRef.current.trackerElapsedMs);
   const [metronomeIsMutedCycle, setMetronomeIsMutedCycle] = useState(false);
@@ -7374,10 +7593,13 @@ function App() {
   const metronomeTimerStopWhenReachedRef = useRef(false);
   const metronomeTimerResetWhenReachedRef = useRef(false);
   const metronomeTrackerTimerTotalMsRef = useRef(0);
+  const metronomeTrackerStorageTimerRef = useRef(null);
   const lastAutoBpmMeasureRef = useRef(0);
   const lastAutoBpmTimeRef = useRef(0);
   const tapTempoTimesRef = useRef([]);
   const bpmSwipeStartRef = useRef(null);
+  const bpmSwipeFrameRef = useRef(null);
+  const bpmSwipePreviewValueRef = useRef(DEFAULT_BPM);
   const metronomeModeSwipeStartRef = useRef(null);
   const metronomeModeSwipeChangedAtRef = useRef(0);
   const fretboardSwipeStartRef = useRef(null);
@@ -7515,15 +7737,26 @@ function App() {
   const chordCatalogGroups = useMemo(() => {
     return CHORD_NATURAL_ROOTS
       .map((root) => {
-        const rootSet = new Set([root, CHORD_SHARP_ROOTS[root]].filter(Boolean));
+        const sharpRoot = CHORD_SHARP_ROOTS[root] ?? null;
+        const rootSet = new Set([root, sharpRoot].filter(Boolean));
+        const storedChords = CHORD_VIEW_OPTIONS.filter((chord) => rootSet.has(chord.root));
+        const shouldExpandGenerated = rootSet.has(viewerChordRoot);
+        const generatedChords = shouldExpandGenerated
+          ? [
+              ...buildSelectableChordCatalogOptions(root, "natural"),
+              ...(sharpRoot ? buildSelectableChordCatalogOptions(root, "sharp") : []),
+            ]
+          : [];
         return {
           root,
-          sharpRoot: CHORD_SHARP_ROOTS[root] ?? null,
-          chords: CHORD_VIEW_OPTIONS.filter((chord) => rootSet.has(chord.root)),
+          sharpRoot,
+          chords: shouldExpandGenerated
+            ? mergeChordCatalogOptions(storedChords, generatedChords)
+            : storedChords,
         };
       })
       .filter((group) => group.chords.length > 0);
-  }, []);
+  }, [viewerChordRoot]);
   const chordRootOptions = CHORD_NATURAL_ROOTS;
   const chordRootHasDiagram = useCallback(
     (root) => CHORD_VIEW_OPTIONS.some((chord) => chord.root === root),
@@ -8221,19 +8454,21 @@ function App() {
     const restSeconds = safeSeconds % 60;
     return `${String(minutes).padStart(2, "0")}:${String(restSeconds).padStart(2, "0")}`;
   };
-  const trackerTimerLabel = trackerTimerSecondsTotal ? formatTrackerTime(trackerRemainingSeconds) : "Timer";
+  const trackerTimerLabel = metronomeTimerCountdown && trackerTimerSecondsTotal ? formatTrackerTime(trackerRemainingSeconds) : "OFF";
   const trackerBarProgressLabel = metronomeBarLimitEnabled
     ? `${Math.min(metronomeMeasureCount, metronomeBarLimit)} | ${metronomeBarLimit}`
     : `${metronomeMeasureCount} Bars`;
   const trackerSummaryLabel = metronomeTrackerMode === "bars"
     ? trackerBarProgressLabel
-    : metronomeTrackerMode === "timer"
+    : metronomeTrackerMode === "timer" && metronomeTimerCountdown
       ? trackerTimerLabel
       : "OFF";
   const trackerDetailLabel = metronomeTrackerMode === "bars"
     ? (metronomeBarLimitEnabled ? "Bar Counter Progress" : "Bar Counter")
-    : metronomeTrackerMode === "timer"
+    : metronomeTrackerMode === "timer" && metronomeTimerCountdown
       ? (trackerTimerSecondsTotal ? `Timer · ${formatTrackerTime(trackerTimerSecondsTotal)}` : "Timer · 0 mins 0 secs")
+      : metronomeTrackerMode === "timer"
+        ? "Timer OFF"
       : `Count In ${trackerCountInLabel}`;
   const autoBpmSignedStep = autoBpmDirection === "decrease" ? -autoBpmStep : autoBpmStep;
   const autoBpmSign = autoBpmSignedStep > 0 ? "+" : "-";
@@ -11117,17 +11352,103 @@ function App() {
     setMetronomePresetName(normalized.name);
   }, [changeBpm, metronomePresets]);
 
-  const handleTrackerTimerMinutesChange = useCallback((nextValue) => {
-    const nextMinutes = normalizeTrackerTimerMinutes(nextValue);
-    if (nextMinutes !== metronomeTrackerTimerMinutes) triggerMetronomeWheelDetent();
-    setMetronomeTrackerTimerMinutes(nextMinutes);
-  }, [metronomeTrackerTimerMinutes, triggerMetronomeWheelDetent]);
+  const primeMetronomeAdvancedDraft = useCallback((panelId) => {
+    if (panelId === "automator") {
+      autoBpmTimeDraftRef.current = { minutes: autoBpmTimeMinutes, seconds: autoBpmTimeSeconds };
+    }
+    if (panelId === "tracker") {
+      metronomeTrackerTimerDraftRef.current = {
+        minutes: metronomeTrackerTimerMinutes,
+        seconds: metronomeTrackerTimerSeconds,
+      };
+    }
+  }, [autoBpmTimeMinutes, autoBpmTimeSeconds, metronomeTrackerTimerMinutes, metronomeTrackerTimerSeconds]);
 
-  const handleTrackerTimerSecondsChange = useCallback((nextValue) => {
-    const nextSeconds = normalizeTrackerTimerSeconds(nextValue);
-    if (nextSeconds !== metronomeTrackerTimerSeconds) triggerMetronomeWheelDetent();
-    setMetronomeTrackerTimerSeconds(nextSeconds);
-  }, [metronomeTrackerTimerSeconds, triggerMetronomeWheelDetent]);
+  const handleAutoBpmDraftMinutesChange = useCallback((nextValue) => {
+    autoBpmTimeDraftRef.current = {
+      ...autoBpmTimeDraftRef.current,
+      minutes: Number(nextValue) || 0,
+    };
+  }, []);
+
+  const handleAutoBpmDraftSecondsChange = useCallback((nextValue) => {
+    autoBpmTimeDraftRef.current = {
+      ...autoBpmTimeDraftRef.current,
+      seconds: Number(nextValue) || 0,
+    };
+  }, []);
+
+  const handleTrackerTimerDraftMinutesChange = useCallback((nextValue) => {
+    metronomeTrackerTimerDraftRef.current = {
+      ...metronomeTrackerTimerDraftRef.current,
+      minutes: normalizeTrackerTimerMinutes(nextValue),
+    };
+  }, []);
+
+  const handleTrackerTimerDraftSecondsChange = useCallback((nextValue) => {
+    metronomeTrackerTimerDraftRef.current = {
+      ...metronomeTrackerTimerDraftRef.current,
+      seconds: normalizeTrackerTimerSeconds(nextValue),
+    };
+  }, []);
+
+  const commitMetronomeAdvancedDraft = useCallback((panelId = metronomeAdvancedPanel) => {
+    if (panelId === "automator") {
+      const nextMinutes = Number(autoBpmTimeDraftRef.current.minutes) || 0;
+      const nextSeconds = Number(autoBpmTimeDraftRef.current.seconds) || 0;
+      if (nextMinutes !== autoBpmTimeMinutes) setAutoBpmTimeMinutes(nextMinutes);
+      if (nextSeconds !== autoBpmTimeSeconds) setAutoBpmTimeSeconds(nextSeconds);
+      return;
+    }
+
+    if (panelId === "tracker") {
+      const nextMinutes = normalizeTrackerTimerMinutes(metronomeTrackerTimerDraftRef.current.minutes);
+      const nextSeconds = normalizeTrackerTimerSeconds(metronomeTrackerTimerDraftRef.current.seconds);
+      const changed = nextMinutes !== metronomeTrackerTimerMinutes || nextSeconds !== metronomeTrackerTimerSeconds;
+      if (changed) triggerMetronomeWheelDetent();
+      if (nextMinutes !== metronomeTrackerTimerMinutes) setMetronomeTrackerTimerMinutes(nextMinutes);
+      if (nextSeconds !== metronomeTrackerTimerSeconds) setMetronomeTrackerTimerSeconds(nextSeconds);
+    }
+  }, [
+    autoBpmTimeMinutes,
+    autoBpmTimeSeconds,
+    metronomeAdvancedPanel,
+    metronomeTrackerTimerMinutes,
+    metronomeTrackerTimerSeconds,
+    triggerMetronomeWheelDetent,
+  ]);
+
+  const closeMetronomeAdvancedPanel = useCallback(() => {
+    commitMetronomeAdvancedDraft(metronomeAdvancedPanel);
+    setMetronomeAdvancedPanel("");
+  }, [commitMetronomeAdvancedDraft, metronomeAdvancedPanel]);
+
+  const toggleMetronomeAdvancedPanel = useCallback((panelId) => {
+    if (metronomeAdvancedPanel === panelId) {
+      closeMetronomeAdvancedPanel();
+      return;
+    }
+    if (metronomeAdvancedPanel) {
+      commitMetronomeAdvancedDraft(metronomeAdvancedPanel);
+    }
+    primeMetronomeAdvancedDraft(panelId);
+    setMetronomeAdvancedPanel(panelId);
+  }, [closeMetronomeAdvancedPanel, commitMetronomeAdvancedDraft, metronomeAdvancedPanel, primeMetronomeAdvancedDraft]);
+
+  useEffect(() => {
+    if (metronomeAdvancedPanel !== "automator") {
+      autoBpmTimeDraftRef.current = { minutes: autoBpmTimeMinutes, seconds: autoBpmTimeSeconds };
+    }
+  }, [autoBpmTimeMinutes, autoBpmTimeSeconds, metronomeAdvancedPanel]);
+
+  useEffect(() => {
+    if (metronomeAdvancedPanel !== "tracker") {
+      metronomeTrackerTimerDraftRef.current = {
+        minutes: metronomeTrackerTimerMinutes,
+        seconds: metronomeTrackerTimerSeconds,
+      };
+    }
+  }, [metronomeAdvancedPanel, metronomeTrackerTimerMinutes, metronomeTrackerTimerSeconds]);
 
   useEffect(() => {
     setMetronomeBarLimitDraft(String(metronomeBarLimit));
@@ -11160,6 +11481,31 @@ function App() {
     changeBpm(Math.round(60000 / averageInterval));
   }, [changeBpm]);
 
+  useEffect(() => () => {
+    if (bpmSwipeFrameRef.current != null) window.cancelAnimationFrame(bpmSwipeFrameRef.current);
+  }, []);
+
+  const renderBpmSwipePreview = useCallback((nextBpm) => {
+    const safeBpm = clampBpm(nextBpm);
+    bpmSwipePreviewValueRef.current = safeBpm;
+    if (bpmSwipeFrameRef.current != null) return;
+    bpmSwipeFrameRef.current = window.requestAnimationFrame(() => {
+      bpmSwipeFrameRef.current = null;
+      if (typeof document === "undefined") return;
+      document.querySelectorAll("[data-bpm-preview-value=\"true\"]").forEach((node) => {
+        node.textContent = String(bpmSwipePreviewValueRef.current);
+      });
+    });
+  }, []);
+
+  const resetBpmSwipePreview = useCallback(() => {
+    renderBpmSwipePreview(bpmRef.current);
+  }, [renderBpmSwipePreview]);
+
+  useEffect(() => {
+    resetBpmSwipePreview();
+  }, [bpm, resetBpmSwipePreview]);
+
   const handleBpmSwipeStart = useCallback((event) => {
     if (event.target?.closest?.("button, select, input, textarea")) return;
 
@@ -11172,6 +11518,7 @@ function App() {
       lastTime: now,
       startBpm: bpmRef.current,
       lastAppliedBpm: bpmRef.current,
+      previewBpm: bpmRef.current,
       locked: false,
       canceled: false,
       pointerId: event.pointerId,
@@ -11191,6 +11538,7 @@ function App() {
       if (absX < 10 && absY < 10) return;
       if (absY > absX * 1.25) {
         bpmSwipeStartRef.current = { ...swipe, canceled: true };
+        resetBpmSwipePreview();
         event.currentTarget.releasePointerCapture?.(swipe.pointerId);
         return;
       }
@@ -11208,13 +11556,14 @@ function App() {
     const nextBpm = clampBpm(swipe.startBpm + Math.round(distanceBpm + velocityBoost));
 
     if (nextBpm !== swipe.lastAppliedBpm) {
-      changeBpm(nextBpm);
+      swipe.previewBpm = nextBpm;
+      renderBpmSwipePreview(nextBpm);
       swipe.lastAppliedBpm = nextBpm;
     }
 
     swipe.lastX = event.clientX;
     swipe.lastTime = now;
-  }, [changeBpm]);
+  }, [renderBpmSwipePreview, resetBpmSwipePreview]);
 
   const handleBpmSwipeEnd = useCallback((event) => {
     const swipe = bpmSwipeStartRef.current;
@@ -11222,7 +11571,20 @@ function App() {
     if (!swipe) return;
 
     event.currentTarget.releasePointerCapture?.(swipe.pointerId);
-  }, []);
+    if (!swipe.canceled && swipe.previewBpm !== undefined && swipe.previewBpm !== bpmRef.current) {
+      changeBpm(swipe.previewBpm);
+      return;
+    }
+    resetBpmSwipePreview();
+  }, [changeBpm, resetBpmSwipePreview]);
+
+  const handleBpmSwipeCancel = useCallback((event) => {
+    const swipe = bpmSwipeStartRef.current;
+    bpmSwipeStartRef.current = null;
+    if (!swipe) return;
+    event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+    resetBpmSwipePreview();
+  }, [resetBpmSwipePreview]);
 
   const changeMetronomeDisplayModeBySwipe = useCallback((direction) => {
     setMetronomeDisplayMode((currentMode) => {
@@ -12211,20 +12573,33 @@ function App() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    window.localStorage.setItem(
-      METRONOME_TRACKER_PROGRESS_STORAGE_KEY,
-      JSON.stringify({
-        trackerMode: metronomeTrackerMode,
-        barLimitEnabled: metronomeBarLimitEnabled,
-        barLimit: metronomeBarLimit,
-        measureCount: metronomeMeasureCount,
-        trackerCurrent: metronomeMeasureCount,
-        trackerTimerMinutes: metronomeTrackerTimerMinutes,
-        trackerTimerSeconds: metronomeTrackerTimerSeconds,
-        trackerElapsedMs: metronomeTrackerElapsedMs,
-        trackerTime: metronomeTrackerElapsedMs,
-      }),
-    );
+    const nextPayload = JSON.stringify({
+      trackerMode: metronomeTrackerMode,
+      barLimitEnabled: metronomeBarLimitEnabled,
+      barLimit: metronomeBarLimit,
+      measureCount: metronomeMeasureCount,
+      trackerCurrent: metronomeMeasureCount,
+      trackerTimerMinutes: metronomeTrackerTimerMinutes,
+      trackerTimerSeconds: metronomeTrackerTimerSeconds,
+      trackerElapsedMs: metronomeTrackerElapsedMs,
+      trackerTime: metronomeTrackerElapsedMs,
+    });
+
+    if (metronomeTrackerStorageTimerRef.current != null) {
+      window.clearTimeout(metronomeTrackerStorageTimerRef.current);
+    }
+
+    metronomeTrackerStorageTimerRef.current = window.setTimeout(() => {
+      metronomeTrackerStorageTimerRef.current = null;
+      window.localStorage.setItem(METRONOME_TRACKER_PROGRESS_STORAGE_KEY, nextPayload);
+    }, METRONOME_TRACKER_STORAGE_DEBOUNCE_MS);
+
+    return () => {
+      if (metronomeTrackerStorageTimerRef.current != null) {
+        window.clearTimeout(metronomeTrackerStorageTimerRef.current);
+        metronomeTrackerStorageTimerRef.current = null;
+      }
+    };
   }, [
     metronomeBarLimit,
     metronomeBarLimitEnabled,
@@ -14602,7 +14977,7 @@ function App() {
           <div className="metronomeAdvancedDock" aria-label="고급 메트로놈 상태 및 설정">
             <button
               className={`metronomeAdvancedSummary ${metronomeAdvancedPanel === "automator" ? "selected" : ""}`}
-              onClick={() => setMetronomeAdvancedPanel((panel) => (panel === "automator" ? "" : "automator"))}
+              onClick={() => toggleMetronomeAdvancedPanel("automator")}
               type="button"
             >
               <span>AUTOMATOR</span>
@@ -14611,7 +14986,7 @@ function App() {
             </button>
             <button
               className={`metronomeAdvancedSummary ${metronomeAdvancedPanel === "tracker" ? "selected" : ""}`}
-              onClick={() => setMetronomeAdvancedPanel((panel) => (panel === "tracker" ? "" : "tracker"))}
+              onClick={() => toggleMetronomeAdvancedPanel("tracker")}
               type="button"
             >
               <span>TRACKER</span>
@@ -14632,7 +15007,7 @@ function App() {
               <button
                 aria-label="메트로놈 설정창 닫기"
                 className="metronomeAdvancedDimOverlay"
-                onClick={() => setMetronomeAdvancedPanel("")}
+                onClick={closeMetronomeAdvancedPanel}
                 type="button"
               />
               <section
@@ -14641,7 +15016,7 @@ function App() {
               >
                 <div className="metronomeAdvancedPopoverTopbar">
                   <span>{metronomeAdvancedPanel === "automator" ? "AUTOMATOR" : "TRACKER"}</span>
-                  <button onClick={() => setMetronomeAdvancedPanel("")} type="button">Done</button>
+                  <button onClick={closeMetronomeAdvancedPanel} type="button">Done</button>
                 </div>
                 {metronomeAdvancedPanel === "automator" ? (
                   <>
@@ -14712,14 +15087,11 @@ function App() {
                           ariaLabel="AUTOMATOR 시간 간격 선택"
                           minuteOptions={AUTOMATOR_TIME_MINUTE_OPTIONS}
                           minutes={autoBpmTimeMinutes}
-                          onMinutesChange={setAutoBpmTimeMinutes}
-                          onSecondsChange={setAutoBpmTimeSeconds}
+                          onMinutesChange={handleAutoBpmDraftMinutesChange}
+                          onSecondsChange={handleAutoBpmDraftSecondsChange}
                           secondOptions={AUTOMATOR_TIME_SECOND_OPTIONS}
                           seconds={autoBpmTimeSeconds}
                         />
-                        <div className="metronomeTimerWheelReadout">
-                          {`${autoBpmTimeMinutes} mins ${autoBpmTimeSeconds} secs`}
-                        </div>
                       </div>
                     ) : null}
 
@@ -14886,14 +15258,11 @@ function App() {
                           ariaLabel="TRACKER 타이머 선택"
                           minuteOptions={TRACKER_TIMER_MINUTE_OPTIONS}
                           minutes={metronomeTrackerTimerMinutes}
-                          onMinutesChange={handleTrackerTimerMinutesChange}
-                          onSecondsChange={handleTrackerTimerSecondsChange}
+                          onMinutesChange={handleTrackerTimerDraftMinutesChange}
+                          onSecondsChange={handleTrackerTimerDraftSecondsChange}
                           secondOptions={TRACKER_TIMER_SECOND_OPTIONS}
                           seconds={metronomeTrackerTimerSeconds}
                         />
-                        <div className="metronomeTimerWheelReadout">
-                          {`${metronomeTrackerTimerMinutes} mins ${metronomeTrackerTimerSeconds} secs`}
-                        </div>
                         <label className="metronomeTrackerSwitchRow">
                           <span>Stop when reached</span>
                           <button
@@ -14947,13 +15316,7 @@ function App() {
 
           <div
             className="metronomeHeroCard metronomeHeroCard--interactive"
-            onPointerCancel={(event) => {
-              const swipe = bpmSwipeStartRef.current;
-              bpmSwipeStartRef.current = null;
-              if (swipe) {
-                event.currentTarget.releasePointerCapture?.(swipe.pointerId);
-              }
-            }}
+            onPointerCancel={handleBpmSwipeCancel}
             onPointerDown={handleBpmSwipeStart}
             onPointerMove={handleBpmSwipeMove}
             onPointerUp={handleBpmSwipeEnd}
@@ -14971,7 +15334,7 @@ function App() {
             </button>
             <div className="metronomeHeroBpmValue">
               <span>BPM</span>
-              <strong>{bpm}</strong>
+              <strong data-bpm-preview-value="true">{bpm}</strong>
             </div>
             <button
               aria-label="BPM 1 올리기"
@@ -15801,6 +16164,7 @@ function App() {
             <div className="stage3LoadToolbar">
               <MetronomeSelectControl
                 className="stage3LoadSelect stage3RecommendedLoadSelect"
+                dropdownDirection="up"
                 label="추천"
                 onChange={(slotId) => {
                   const item = stage3RecommendedSlots.find((slot) => slot.id === slotId);
@@ -15831,6 +16195,7 @@ function App() {
               />
               <MetronomeSelectControl
                 className="stage3LoadSelect stage3UserLoadSelect"
+                dropdownDirection="up"
                 label="사용자"
                 onChange={(slotId) => {
                   const item = stage3QuickSlots.find((slot) => slot.id === slotId);
@@ -15868,13 +16233,7 @@ function App() {
               content={(<div
                 className="stage3CollapsedBpmControl"
                 aria-label="훈련장 BPM 조절"
-                onPointerCancel={(event) => {
-                  const swipe = bpmSwipeStartRef.current;
-                  bpmSwipeStartRef.current = null;
-                  if (swipe) {
-                    event.currentTarget.releasePointerCapture?.(swipe.pointerId);
-                  }
-                }}
+                onPointerCancel={handleBpmSwipeCancel}
                 onPointerDown={handleBpmSwipeStart}
                 onPointerMove={handleBpmSwipeMove}
                 onPointerUp={handleBpmSwipeEnd}
@@ -15892,7 +16251,7 @@ function App() {
                 </button>
                 <div className="stage3CollapsedBpmValue">
                   <span>BPM</span>
-                  <strong>{bpm}</strong>
+                  <strong data-bpm-preview-value="true">{bpm}</strong>
                 </div>
                 <button
                   aria-label="BPM 1 올리기"
@@ -16116,13 +16475,7 @@ function App() {
                   </div>
                   <div
                     className="metronomeHeroCard metronomeHeroCard--interactive referenceMetronomeHeroCard"
-                    onPointerCancel={(event) => {
-                      const swipe = bpmSwipeStartRef.current;
-                      bpmSwipeStartRef.current = null;
-                      if (swipe) {
-                        event.currentTarget.releasePointerCapture?.(swipe.pointerId);
-                      }
-                    }}
+                    onPointerCancel={handleBpmSwipeCancel}
                     onPointerDown={handleBpmSwipeStart}
                     onPointerMove={handleBpmSwipeMove}
                     onPointerUp={handleBpmSwipeEnd}
@@ -16140,7 +16493,7 @@ function App() {
                     </button>
                     <div className="metronomeHeroBpmValue">
                       <span>BPM</span>
-                      <strong>{bpm}</strong>
+                      <strong data-bpm-preview-value="true">{bpm}</strong>
                     </div>
                     <button
                       aria-label="BPM 1 올리기"
