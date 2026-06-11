@@ -75,6 +75,43 @@ function isSamePitchClass(a, b) {
   return Boolean(pitchClassA && pitchClassB && pitchClassA === pitchClassB);
 }
 
+function ChordBuilderOptionSection({ children, layout = "wrap", title }) {
+  return (
+    <section className={`chordBuilderOptionSection chordBuilderOptionSection--${layout}`}>
+      <h3 className="chordBuilderOptionTitle">{title}</h3>
+      <div className="chordBuilderChipGrid">{children}</div>
+    </section>
+  );
+}
+
+function ChordBuilderChip({
+  children,
+  className = "",
+  disabled = false,
+  onClick,
+  selected = false,
+}) {
+  const chipClassName = [
+    "chordBuilderChip",
+    selected ? "selected" : "",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <button
+      aria-pressed={selected}
+      className={chipClassName}
+      disabled={disabled}
+      onClick={onClick}
+      type="button"
+    >
+      {children}
+    </button>
+  );
+}
+
 function getChordDisplayNoteName(noteName) {
   return {
     "A#": "Bb",
@@ -1863,7 +1900,14 @@ const createWheelNumberOptions = (start, end) => (
   })
 );
 
-const TRACKER_TIMER_MINUTE_OPTIONS = createWheelNumberOptions(0, 15);
+const AUTOMATOR_TIME_MINUTE_MIN = 1;
+const AUTOMATOR_TIME_MINUTE_MAX = 30;
+const AUTOMATOR_TIME_SECOND_MIN = 1;
+const AUTOMATOR_TIME_SECOND_MAX = 59;
+const TRACKER_TIMER_MINUTE_MIN = 1;
+const TRACKER_TIMER_MINUTE_MAX = 30;
+
+const TRACKER_TIMER_MINUTE_OPTIONS = createWheelNumberOptions(TRACKER_TIMER_MINUTE_MIN, TRACKER_TIMER_MINUTE_MAX);
 const TRACKER_TIMER_SECOND_OPTIONS = createWheelNumberOptions(0, 59);
 
 const AUTOMATOR_MODE_OPTIONS = [
@@ -1872,24 +1916,8 @@ const AUTOMATOR_MODE_OPTIONS = [
   { id: "time", label: "By Time" },
 ];
 
-const AUTOMATOR_TIME_MINUTE_OPTIONS = [
-  { id: "0", label: "0", value: 0 },
-  { id: "1", label: "1", value: 1 },
-  { id: "2", label: "2", value: 2 },
-  { id: "5", label: "5", value: 5 },
-  { id: "10", label: "10", value: 10 },
-  { id: "15", label: "15", value: 15 },
-  { id: "30", label: "30", value: 30 },
-];
-
-const AUTOMATOR_TIME_SECOND_OPTIONS = [
-  { id: "0", label: "0", value: 0 },
-  { id: "10", label: "10", value: 10 },
-  { id: "20", label: "20", value: 20 },
-  { id: "30", label: "30", value: 30 },
-  { id: "40", label: "40", value: 40 },
-  { id: "50", label: "50", value: 50 },
-];
+const AUTOMATOR_TIME_MINUTE_OPTIONS = createWheelNumberOptions(AUTOMATOR_TIME_MINUTE_MIN, AUTOMATOR_TIME_MINUTE_MAX);
+const AUTOMATOR_TIME_SECOND_OPTIONS = createWheelNumberOptions(AUTOMATOR_TIME_SECOND_MIN, AUTOMATOR_TIME_SECOND_MAX);
 const METRONOME_BEAT_STATES = {
   ACCENT: "accent",
   NORMAL: "normal",
@@ -1925,6 +1953,7 @@ const METRONOME_DISPLAY_MODES = [
   { id: "dot", label: "Dot Mode" },
   { id: "circle", label: "Circle Mode" },
 ];
+const METRONOME_MODE_SWIPE_STEP_THRESHOLD = 40;
 const METRONOME_VISUAL_LAB_TIME_SIGNATURE_OPTIONS = [
   { id: "2/4", label: "2/4", beats: 2 },
   { id: "3/4", label: "3/4", beats: 3 },
@@ -2092,12 +2121,26 @@ function createLocalId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function normalizeNumberRange(value, min, max, fallback = min) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return fallback;
+  return Math.max(min, Math.min(max, Math.round(numericValue)));
+}
+
+function normalizeAutoBpmTimeMinutes(value) {
+  return normalizeNumberRange(value, AUTOMATOR_TIME_MINUTE_MIN, AUTOMATOR_TIME_MINUTE_MAX, AUTOMATOR_TIME_MINUTE_MIN);
+}
+
+function normalizeAutoBpmTimeSeconds(value) {
+  return normalizeNumberRange(value, AUTOMATOR_TIME_SECOND_MIN, AUTOMATOR_TIME_SECOND_MAX, 30);
+}
+
 function normalizeTrackerTimerMinutes(value) {
-  return Math.max(0, Math.min(15, Number(value) || 0));
+  return normalizeNumberRange(value, TRACKER_TIMER_MINUTE_MIN, TRACKER_TIMER_MINUTE_MAX, TRACKER_TIMER_MINUTE_MIN);
 }
 
 function normalizeTrackerTimerSeconds(value) {
-  return Math.max(0, Math.min(59, Number(value) || 0));
+  return Math.max(0, Math.min(59, Math.round(Number(value) || 0)));
 }
 
 function normalizeTrackerBarLimit(value, fallback = 1) {
@@ -2167,8 +2210,8 @@ function normalizeMetronomePreset(preset, index = 0) {
     autoBpmDirection,
     autoBpmStep: Math.max(1, Math.min(5, Number(preset?.autoBpmStep) || 1)),
     autoBpmBars: Math.max(5, Math.min(200, Number(preset?.autoBpmBars) || 50)),
-    autoBpmTimeMinutes: Math.max(0, Math.min(30, Number(preset?.autoBpmTimeMinutes) || 0)),
-    autoBpmTimeSeconds: Math.max(0, Math.min(50, Number(preset?.autoBpmTimeSeconds) || 30)),
+    autoBpmTimeMinutes: normalizeAutoBpmTimeMinutes(preset?.autoBpmTimeMinutes),
+    autoBpmTimeSeconds: normalizeAutoBpmTimeSeconds(preset?.autoBpmTimeSeconds),
     coachModeEnabled: Boolean(preset?.coachModeEnabled),
     coachPlayBars: Math.max(1, Math.min(8, Number(preset?.coachPlayBars) || 4)),
     coachMuteBars: Math.max(1, Math.min(8, Number(preset?.coachMuteBars) || 4)),
@@ -2205,7 +2248,7 @@ function getStoredMetronomeTrackerProgress() {
     barLimitEnabled: false,
     barLimit: 100,
     measureCount: 0,
-    trackerTimerMinutes: 0,
+    trackerTimerMinutes: TRACKER_TIMER_MINUTE_MIN,
     trackerTimerSeconds: 0,
     trackerElapsedMs: 0,
   };
@@ -2404,16 +2447,28 @@ function MetronomeControl({
   weakTone = "tick",
 }) {
   const [draftBpm, setDraftBpm] = useState(String(bpm));
+  const [swipePreviewBpm, setSwipePreviewBpm] = useState(null);
   const bpmSwipeStartRef = useRef(null);
   const bpmSwipeFrameRef = useRef(null);
   const bpmSwipePreviewValueRef = useRef(bpm);
   const bpmInputRef = useRef(null);
+  const bpmPreviewDisplayRef = useRef(null);
+  const enableBpmSwipePreview = compactToggleLabels || className.includes("standaloneMetronomeControl");
   const hasToggleControls = showAccent || showCountIn || showRepeat;
+
+  const syncBpmVisualValue = useCallback((value) => {
+    const text = String(value ?? "");
+    if (bpmInputRef.current) bpmInputRef.current.value = text;
+    if (bpmPreviewDisplayRef.current) bpmPreviewDisplayRef.current.textContent = text;
+  }, []);
 
   useEffect(() => {
     setDraftBpm(String(bpm));
-    if (bpmInputRef.current) bpmInputRef.current.value = String(bpm);
-  }, [bpm]);
+    if (!bpmSwipeStartRef.current) {
+      setSwipePreviewBpm(null);
+      syncBpmVisualValue(bpm);
+    }
+  }, [bpm, syncBpmVisualValue]);
 
   useEffect(() => () => {
     if (bpmSwipeFrameRef.current != null) window.cancelAnimationFrame(bpmSwipeFrameRef.current);
@@ -2422,24 +2477,30 @@ function MetronomeControl({
   const renderBpmSwipePreview = useCallback((nextBpm) => {
     const safeBpm = Math.min(MAX_BPM, Math.max(MIN_BPM, Math.round(nextBpm)));
     bpmSwipePreviewValueRef.current = safeBpm;
+    syncBpmVisualValue(safeBpm);
     if (bpmSwipeFrameRef.current != null) return;
     bpmSwipeFrameRef.current = window.requestAnimationFrame(() => {
       bpmSwipeFrameRef.current = null;
-      if (bpmInputRef.current) bpmInputRef.current.value = String(bpmSwipePreviewValueRef.current);
+      setSwipePreviewBpm(bpmSwipePreviewValueRef.current);
     });
-  }, []);
+  }, [syncBpmVisualValue]);
 
   const applyBpmValue = useCallback((value) => {
     const parsed = Number(value);
     if (!Number.isFinite(parsed) || value === "") {
-      setDraftBpm(String(bpm || DEFAULT_BPM));
-      return bpm || DEFAULT_BPM;
+      const fallback = bpm || DEFAULT_BPM;
+      setSwipePreviewBpm(null);
+      setDraftBpm(String(fallback));
+      syncBpmVisualValue(fallback);
+      return fallback;
     }
     const next = Math.min(MAX_BPM, Math.max(MIN_BPM, Math.round(parsed)));
+    setSwipePreviewBpm(null);
     setDraftBpm(String(next));
+    syncBpmVisualValue(next);
     onBpmChange(next);
     return next;
-  }, [bpm, onBpmChange]);
+  }, [bpm, onBpmChange, syncBpmVisualValue]);
 
   const commitBpm = useCallback((value) => {
     applyBpmValue(value);
@@ -2463,12 +2524,15 @@ function MetronomeControl({
   }, [applyBpmValue, bpm, draftBpm]);
 
   const handleBpmPointerDown = useCallback((event) => {
-    if (!compactToggleLabels) return;
+    if (!enableBpmSwipePreview) return;
     if (event.target?.closest?.("button")) return;
 
     event.currentTarget.setPointerCapture?.(event.pointerId);
     const now = performance.now();
     const startBpm = Number(bpm) || DEFAULT_BPM;
+    bpmSwipePreviewValueRef.current = startBpm;
+    syncBpmVisualValue(startBpm);
+    setSwipePreviewBpm(startBpm);
     bpmSwipeStartRef.current = {
       pointerId: event.pointerId,
       x: event.clientX,
@@ -2481,11 +2545,11 @@ function MetronomeControl({
       locked: false,
       canceled: false,
     };
-  }, [bpm, compactToggleLabels]);
+  }, [bpm, enableBpmSwipePreview, syncBpmVisualValue]);
 
   const handleBpmPointerMove = useCallback((event) => {
     const swipe = bpmSwipeStartRef.current;
-    if (!compactToggleLabels || !swipe || swipe.canceled || swipe.pointerId !== event.pointerId) return;
+    if (!enableBpmSwipePreview || !swipe || swipe.canceled || swipe.pointerId !== event.pointerId) return;
 
     const deltaX = event.clientX - swipe.x;
     const deltaY = event.clientY - swipe.y;
@@ -2493,10 +2557,11 @@ function MetronomeControl({
     const absY = Math.abs(deltaY);
 
     if (!swipe.locked) {
-      if (absX < 10 && absY < 10) return;
-      if (absY > absX * 1.25) {
+      if (absX < 1 && absY < 1) return;
+      if (absY > 12 && absY > absX * 1.25) {
         swipe.canceled = true;
-        if (bpmInputRef.current) bpmInputRef.current.value = draftBpm;
+        setSwipePreviewBpm(null);
+        syncBpmVisualValue(draftBpm);
         event.currentTarget.releasePointerCapture?.(swipe.pointerId);
         return;
       }
@@ -2505,13 +2570,8 @@ function MetronomeControl({
 
     event.preventDefault();
 
-    const now = performance.now();
-    const elapsed = Math.max(16, now - swipe.lastTime);
-    const velocity = (event.clientX - swipe.lastX) / elapsed;
-    const velocityBoost =
-      Math.sign(velocity) * Math.min(8, Math.max(0, Math.abs(velocity) - 0.25) * 5);
-    const distanceBpm = deltaX / 9;
-    const nextBpm = Math.min(MAX_BPM, Math.max(MIN_BPM, Math.round(swipe.startBpm + distanceBpm + velocityBoost)));
+    const distanceBpm = deltaX;
+    const nextBpm = Math.min(MAX_BPM, Math.max(MIN_BPM, Math.round(swipe.startBpm + distanceBpm)));
 
     if (nextBpm !== swipe.lastAppliedBpm) {
       swipe.previewBpm = nextBpm;
@@ -2520,8 +2580,8 @@ function MetronomeControl({
     }
 
     swipe.lastX = event.clientX;
-    swipe.lastTime = now;
-  }, [compactToggleLabels, draftBpm, renderBpmSwipePreview]);
+    swipe.lastTime = performance.now();
+  }, [enableBpmSwipePreview, draftBpm, renderBpmSwipePreview, syncBpmVisualValue]);
 
   const handleBpmPointerEnd = useCallback((event) => {
     const swipe = bpmSwipeStartRef.current;
@@ -2538,14 +2598,17 @@ function MetronomeControl({
     bpmSwipeStartRef.current = null;
     if (!swipe) return;
     event.currentTarget.releasePointerCapture?.(swipe.pointerId);
-    if (bpmInputRef.current) bpmInputRef.current.value = draftBpm;
-  }, [draftBpm]);
+    setSwipePreviewBpm(null);
+    syncBpmVisualValue(draftBpm);
+  }, [draftBpm, syncBpmVisualValue]);
 
   const applyNextBpmPreset = useCallback(() => {
     const current = Number(bpm) || DEFAULT_BPM;
     const nextPreset = BPM_PRESETS.find((preset) => preset > current) ?? BPM_PRESETS[0];
     applyBpmPreset(nextPreset);
   }, [applyBpmPreset, bpm]);
+
+  const visibleBpmValue = swipePreviewBpm ?? draftBpm;
 
   return (
     <div className={`metronomeControl ${className}`}>
@@ -2555,8 +2618,8 @@ function MetronomeControl({
           <>
             <label className="metronomeBpmLabel" htmlFor={`${inputId}-input`}>BPM</label>
             <div className="metronomeBpmCombo">
-              <div
-                className="metronomeBpmInputShell"
+      <div
+        className={`metronomeBpmInputShell ${enableBpmSwipePreview ? "metronomeBpmInputShell--liveSwipe" : ""}`}
                 onPointerCancel={handleBpmPointerCancel}
                 onPointerDown={handleBpmPointerDown}
                 onPointerMove={handleBpmPointerMove}
@@ -2568,19 +2631,24 @@ function MetronomeControl({
                   inputMode="numeric"
                   max={MAX_BPM}
                   min={MIN_BPM}
-                  onBlur={() => commitBpm(draftBpm)}
+                  onBlur={() => commitBpm(bpmInputRef.current?.value ?? draftBpm)}
                   onFocus={(event) => event.target.select()}
                   onChange={(event) => {
                     const nextValue = event.target.value.replace(/[^\d]/g, "");
+                    setSwipePreviewBpm(null);
                     setDraftBpm(nextValue);
+                    syncBpmVisualValue(nextValue);
                   }}
                   onKeyDown={handleBpmKeyDown}
                   pattern="[0-9]*"
                   ref={bpmInputRef}
                   step="1"
                   type="number"
-                  value={draftBpm}
+                  value={visibleBpmValue}
                 />
+                <span aria-hidden="true" className="metronomeBpmLiveValue" ref={bpmPreviewDisplayRef}>
+                  {visibleBpmValue}
+                </span>
                 <div className="metronomeBpmSpinner" aria-label="BPM 미세 조절">
                   <button aria-label="BPM 1 올리기" className="metronomeBpmStep metronomeBpmStep--up" onClick={() => stepBpm(1)} type="button">
                     +
@@ -7070,7 +7138,7 @@ function App() {
   const [autoBpmEnabled, setAutoBpmEnabled] = useState(false);
   const [autoBpmStep, setAutoBpmStep] = useState(1);
   const [autoBpmBars, setAutoBpmBars] = useState(50);
-  const [autoBpmTimeMinutes, setAutoBpmTimeMinutes] = useState(0);
+  const [autoBpmTimeMinutes, setAutoBpmTimeMinutes] = useState(AUTOMATOR_TIME_MINUTE_MIN);
   const [autoBpmTimeSeconds, setAutoBpmTimeSeconds] = useState(30);
   const [autoBpmIncrements, setAutoBpmIncrements] = useState(0);
   const [coachModeEnabled, setCoachModeEnabled] = useState(false);
@@ -11354,12 +11422,15 @@ function App() {
 
   const primeMetronomeAdvancedDraft = useCallback((panelId) => {
     if (panelId === "automator") {
-      autoBpmTimeDraftRef.current = { minutes: autoBpmTimeMinutes, seconds: autoBpmTimeSeconds };
+      autoBpmTimeDraftRef.current = {
+        minutes: normalizeAutoBpmTimeMinutes(autoBpmTimeMinutes),
+        seconds: normalizeAutoBpmTimeSeconds(autoBpmTimeSeconds),
+      };
     }
     if (panelId === "tracker") {
       metronomeTrackerTimerDraftRef.current = {
-        minutes: metronomeTrackerTimerMinutes,
-        seconds: metronomeTrackerTimerSeconds,
+        minutes: normalizeTrackerTimerMinutes(metronomeTrackerTimerMinutes),
+        seconds: normalizeTrackerTimerSeconds(metronomeTrackerTimerSeconds),
       };
     }
   }, [autoBpmTimeMinutes, autoBpmTimeSeconds, metronomeTrackerTimerMinutes, metronomeTrackerTimerSeconds]);
@@ -11367,14 +11438,14 @@ function App() {
   const handleAutoBpmDraftMinutesChange = useCallback((nextValue) => {
     autoBpmTimeDraftRef.current = {
       ...autoBpmTimeDraftRef.current,
-      minutes: Number(nextValue) || 0,
+      minutes: normalizeAutoBpmTimeMinutes(nextValue),
     };
   }, []);
 
   const handleAutoBpmDraftSecondsChange = useCallback((nextValue) => {
     autoBpmTimeDraftRef.current = {
       ...autoBpmTimeDraftRef.current,
-      seconds: Number(nextValue) || 0,
+      seconds: normalizeAutoBpmTimeSeconds(nextValue),
     };
   }, []);
 
@@ -11394,8 +11465,8 @@ function App() {
 
   const commitMetronomeAdvancedDraft = useCallback((panelId = metronomeAdvancedPanel) => {
     if (panelId === "automator") {
-      const nextMinutes = Number(autoBpmTimeDraftRef.current.minutes) || 0;
-      const nextSeconds = Number(autoBpmTimeDraftRef.current.seconds) || 0;
+      const nextMinutes = normalizeAutoBpmTimeMinutes(autoBpmTimeDraftRef.current.minutes);
+      const nextSeconds = normalizeAutoBpmTimeSeconds(autoBpmTimeDraftRef.current.seconds);
       if (nextMinutes !== autoBpmTimeMinutes) setAutoBpmTimeMinutes(nextMinutes);
       if (nextSeconds !== autoBpmTimeSeconds) setAutoBpmTimeSeconds(nextSeconds);
       return;
@@ -11437,15 +11508,18 @@ function App() {
 
   useEffect(() => {
     if (metronomeAdvancedPanel !== "automator") {
-      autoBpmTimeDraftRef.current = { minutes: autoBpmTimeMinutes, seconds: autoBpmTimeSeconds };
+      autoBpmTimeDraftRef.current = {
+        minutes: normalizeAutoBpmTimeMinutes(autoBpmTimeMinutes),
+        seconds: normalizeAutoBpmTimeSeconds(autoBpmTimeSeconds),
+      };
     }
   }, [autoBpmTimeMinutes, autoBpmTimeSeconds, metronomeAdvancedPanel]);
 
   useEffect(() => {
     if (metronomeAdvancedPanel !== "tracker") {
       metronomeTrackerTimerDraftRef.current = {
-        minutes: metronomeTrackerTimerMinutes,
-        seconds: metronomeTrackerTimerSeconds,
+        minutes: normalizeTrackerTimerMinutes(metronomeTrackerTimerMinutes),
+        seconds: normalizeTrackerTimerSeconds(metronomeTrackerTimerSeconds),
       };
     }
   }, [metronomeAdvancedPanel, metronomeTrackerTimerMinutes, metronomeTrackerTimerSeconds]);
@@ -11587,35 +11661,17 @@ function App() {
   }, [resetBpmSwipePreview]);
 
   const changeMetronomeDisplayModeBySwipe = useCallback((direction) => {
+    if (!Number.isFinite(direction) || direction === 0) return;
     setMetronomeDisplayMode((currentMode) => {
       const currentIndex = METRONOME_DISPLAY_MODES.findIndex((option) => option.id === currentMode);
       const safeIndex = currentIndex >= 0 ? currentIndex : 0;
       const modeCount = METRONOME_DISPLAY_MODES.length;
-      const nextIndex = modeCount > 0 ? (safeIndex + direction + modeCount) % modeCount : safeIndex;
+      const nextIndex = modeCount > 0 ? ((safeIndex + direction) % modeCount + modeCount) % modeCount : safeIndex;
       const nextMode = METRONOME_DISPLAY_MODES[nextIndex]?.id ?? currentMode;
       if (nextMode === currentMode) return currentMode;
       metronomeModeSwipeChangedAtRef.current = performance.now();
       return nextMode;
     });
-  }, []);
-
-  const getMetronomeModeSwipeResult = useCallback((swipe, event, source) => {
-    const now = performance.now();
-    const eventX = typeof event.clientX === "number" ? event.clientX : swipe.lastX;
-    const eventY = typeof event.clientY === "number" ? event.clientY : swipe.lastY;
-    const eventDeltaX = eventX - swipe.x;
-    const lastDeltaX = (swipe.lastX ?? eventX) - swipe.x;
-    const finalDeltaX = Math.abs(lastDeltaX) > Math.abs(eventDeltaX) ? lastDeltaX : eventDeltaX;
-    const finalDeltaY = ((swipe.lastY ?? eventY) - swipe.y) || (eventY - swipe.y);
-    const elapsed = Math.max(1, (swipe.lastTime ?? now) - (swipe.startTime ?? now));
-    const finalVelocity = Math.abs(finalDeltaX) / elapsed;
-    const threshold = 36;
-    const rawPass =
-      (Math.abs(finalDeltaX) >= threshold || (Math.abs(finalDeltaX) >= 22 && finalVelocity >= 0.28)) &&
-      Math.abs(finalDeltaX) >= Math.abs(finalDeltaY) * 0.92;
-    const pass = !swipe.canceled && rawPass;
-
-    return { finalDeltaX, pass };
   }, []);
 
   const handleMetronomeModeSwipeStart = useCallback((event) => {
@@ -11626,6 +11682,7 @@ function App() {
     metronomeModeSwipeStartRef.current = {
       x: event.clientX,
       y: event.clientY,
+      stepX: event.clientX,
       lastX: event.clientX,
       lastY: event.clientY,
       startTime: now,
@@ -11659,38 +11716,44 @@ function App() {
     }
 
     if (event.cancelable) event.preventDefault();
+    const stepDeltaX = event.clientX - swipe.stepX;
+    const stepCount = Math.trunc(stepDeltaX / METRONOME_MODE_SWIPE_STEP_THRESHOLD);
+    if (stepCount !== 0) {
+      changeMetronomeDisplayModeBySwipe(stepCount);
+      swipe.stepX = event.clientX;
+      setMetronomeModeSwipeOffset(0);
+    } else {
+      setMetronomeModeSwipeOffset(
+        Math.max(
+          -METRONOME_MODE_SWIPE_STEP_THRESHOLD,
+          Math.min(METRONOME_MODE_SWIPE_STEP_THRESHOLD, stepDeltaX * 0.34),
+        ),
+      );
+    }
+
     swipe.lastX = event.clientX;
     swipe.lastY = event.clientY;
     swipe.lastTime = performance.now();
-    setMetronomeModeSwipeOffset(Math.max(-34, Math.min(34, deltaX * 0.34)));
-  }, []);
+  }, [changeMetronomeDisplayModeBySwipe]);
 
   const handleMetronomeModeSwipeEnd = useCallback((event) => {
     const swipe = metronomeModeSwipeStartRef.current;
     if (!swipe) return;
 
     event.currentTarget.releasePointerCapture?.(swipe.pointerId);
-    const result = getMetronomeModeSwipeResult(swipe, event, "end");
     metronomeModeSwipeStartRef.current = null;
     setMetronomeModeSwipeActive(false);
     setMetronomeModeSwipeOffset(0);
-    if (!result.pass) return;
-
-    changeMetronomeDisplayModeBySwipe(result.finalDeltaX < 0 ? 1 : -1);
-  }, [changeMetronomeDisplayModeBySwipe, getMetronomeModeSwipeResult]);
+  }, []);
 
   const handleMetronomeModeSwipeCancel = useCallback((event) => {
     const swipe = metronomeModeSwipeStartRef.current;
     if (!swipe) return;
     event.currentTarget.releasePointerCapture?.(swipe.pointerId);
-    const result = getMetronomeModeSwipeResult(swipe, event, "cancel");
     metronomeModeSwipeStartRef.current = null;
     setMetronomeModeSwipeActive(false);
     setMetronomeModeSwipeOffset(0);
-    if (!result.pass) return;
-
-    changeMetronomeDisplayModeBySwipe(result.finalDeltaX < 0 ? 1 : -1);
-  }, [changeMetronomeDisplayModeBySwipe, getMetronomeModeSwipeResult]);
+  }, []);
 
   const cycleStandaloneBeatState = useCallback((beatIndex) => {
     if (performance.now() - metronomeModeSwipeChangedAtRef.current < 260) return;
@@ -14787,116 +14850,81 @@ function App() {
                   />
                 </div>
               ) : viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
-                <div className="chordBuilderPanel" aria-label="코드 운지 조합 선택">
-                  <div className="viewerChordSummaryRow">
-                    <div className="chordBuilderSelected viewerChordPicked">
-                      <span>선택 코드</span>
-                      <strong>{selectedBuiltChord ? viewerSelectedChordName : "준비중"}</strong>
-                    </div>
-                    <button
-                      className={`chordGuideToggle ${showChordFingeringGuide ? "selected" : ""}`}
-                      onClick={() => setShowChordFingeringGuide((current) => !current)}
-                      type="button"
-                    >
-                      운지
-                      <b>{showChordFingeringGuide ? "ON" : "OFF"}</b>
-                    </button>
-                  </div>
-                  <div className="viewerChordPositionGroup" aria-label="코드 표시 구간">
-                    <span>표시 구간</span>
-                    <div className="stage3SegmentControl">
-                      {CHORD_VIEWER_POSITIONS.map((position) => (
-                        <button
-                          className={viewerChordPosition === position.id ? "selected" : ""}
-                          disabled={!viewerChordPositionData[position.id]}
-                          key={position.id}
-                          onClick={() => setViewerChordPosition(position.id)}
-                          type="button"
+                <div className="chordBuilderPanel chordBuilderPanel--composer" aria-label="코드 빌더">
+                  <ChordBuilderOptionSection layout="cols-5" title="프렛 구간">
+                    {CHORD_VIEWER_POSITIONS.map((position) => (
+                      <ChordBuilderChip
+                        disabled={!viewerChordPositionData[position.id]}
+                        key={position.id}
+                        onClick={() => setViewerChordPosition(position.id)}
+                        selected={viewerChordPosition === position.id}
+                      >
+                        {position.label}
+                      </ChordBuilderChip>
+                    ))}
+                  </ChordBuilderOptionSection>
+
+                  <ChordBuilderOptionSection layout="cols-7" title="루트음">
+                    {chordRootOptions.map((root) => (
+                      <ChordBuilderChip
+                        key={root}
+                        onClick={() => applyViewerChordSelection(root, "natural", "major", "none")}
+                        selected={viewerChordBaseRoot === root}
+                      >
+                        {root}
+                      </ChordBuilderChip>
+                    ))}
+                  </ChordBuilderOptionSection>
+
+                  <ChordBuilderOptionSection layout="cols-3" title="변화표">
+                    {CHORD_ACCIDENTAL_OPTIONS.map((accidental) => {
+                      const hasDiagram = Boolean(
+                        getChordFromSelector(viewerChordBaseRoot, accidental.id, viewerChordQuality, viewerChordExtension),
+                      );
+                      return (
+                        <ChordBuilderChip
+                          disabled={!hasDiagram}
+                          key={accidental.id}
+                          onClick={() => applyViewerChordSelection(viewerChordBaseRoot, accidental.id, viewerChordQuality, viewerChordExtension)}
+                          selected={viewerChordAccidental === accidental.id}
                         >
-                          {position.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                          {accidental.id === "flat" ? "♭" : accidental.label}
+                        </ChordBuilderChip>
+                      );
+                    })}
+                  </ChordBuilderOptionSection>
 
-                  <div className="chordChipGroup">
-                    <span>루트</span>
-                    <div className="stage3SegmentControl">
-                      {chordRootOptions.map((root) => (
-                        <button
-                          className={viewerChordBaseRoot === root ? "selected" : ""}
-                          key={root}
-                          onClick={() => applyViewerChordSelection(root, "natural", "major", "none")}
-                          type="button"
-                        >
-                          {root}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  <ChordBuilderOptionSection layout="cols-4" title="코드 타입">
+                    {CHORD_QUALITY_OPTIONS.map((quality) => (
+                      <ChordBuilderChip
+                        key={quality.id}
+                        onClick={() => {
+                          applyViewerChordSelection(viewerChordBaseRoot, viewerChordAccidental, quality.id, viewerChordExtension);
+                        }}
+                        selected={viewerChordQuality === quality.id}
+                      >
+                        {quality.label}
+                      </ChordBuilderChip>
+                    ))}
+                  </ChordBuilderOptionSection>
 
-                  <div className="chordChipGroup">
-                    <span>변화표</span>
-                    <div>
-                      {CHORD_ACCIDENTAL_OPTIONS.map((accidental) => {
-                        const hasDiagram = Boolean(
-                          getChordFromSelector(viewerChordBaseRoot, accidental.id, viewerChordQuality, viewerChordExtension),
-                        );
-                        return (
-                          <button
-                            className={viewerChordAccidental === accidental.id ? "selected" : ""}
-                            disabled={!hasDiagram}
-                            key={accidental.id}
-                            onClick={() => applyViewerChordSelection(viewerChordBaseRoot, accidental.id, viewerChordQuality, viewerChordExtension)}
-                            type="button"
-                          >
-                            {accidental.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="chordChipGroup">
-                    <span>성격</span>
-                    <div>
-                      {CHORD_QUALITY_OPTIONS.map((quality) => (
-                        <button
-                          className={viewerChordQuality === quality.id ? "selected" : ""}
-                          key={quality.id}
+                  <ChordBuilderOptionSection layout="tensions-2row" title="확장/텐션">
+                    {availableChordExtensionOptions.map((extension) => {
+                      const isDisabled = extension.disabled || !extension.hasDiagram;
+                      return (
+                        <ChordBuilderChip
+                          disabled={isDisabled}
+                          key={extension.id}
                           onClick={() => {
-                            applyViewerChordSelection(viewerChordBaseRoot, viewerChordAccidental, quality.id, viewerChordExtension);
+                            applyViewerChordSelection(viewerChordBaseRoot, viewerChordAccidental, viewerChordQuality, extension.id);
                           }}
-                          type="button"
+                          selected={viewerChordExtension === extension.id}
                         >
-                          {quality.label}
-                          <small>{quality.shortLabel}</small>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="chordChipGroup">
-                    <span>옵션</span>
-                    <div>
-                      {availableChordExtensionOptions.map((extension) => {
-                        const isDisabled = extension.disabled || !extension.hasDiagram;
-                        return (
-                          <button
-                            className={viewerChordExtension === extension.id ? "selected" : ""}
-                            disabled={isDisabled}
-                            key={extension.id}
-                            onClick={() => {
-                              applyViewerChordSelection(viewerChordBaseRoot, viewerChordAccidental, viewerChordQuality, extension.id);
-                            }}
-                            type="button"
-                          >
-                            {extension.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+                          {extension.label}
+                        </ChordBuilderChip>
+                      );
+                    })}
+                  </ChordBuilderOptionSection>
                 </div>
               ) : null}
             </div>
