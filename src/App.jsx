@@ -1366,6 +1366,7 @@ function buildChordToneReferenceOption({ root, displayRoot = root, quality, exte
   return {
     id: `generated-${root}-${quality}-${extension}`,
     root,
+    displayRoot,
     quality,
     extension,
     displayName,
@@ -1377,7 +1378,7 @@ function buildChordToneReferenceOption({ root, displayRoot = root, quality, exte
 }
 
 function getChordCatalogOptionKey(chord) {
-  return `${chord.root}-${chord.quality}-${chord.extension}`;
+  return `${chord.displayName}-${chord.quality}-${chord.extension}`;
 }
 
 function buildSelectableChordCatalogOptions(baseRoot, accidental = "natural") {
@@ -1395,12 +1396,21 @@ function buildSelectableChordCatalogOptions(baseRoot, accidental = "natural") {
             chord.quality === quality &&
             chord.extension === extension,
         ) ?? null;
-        return storedChord ?? buildChordToneReferenceOption({
-          root: lookupRoot,
+        const displayName = getChordNameFromParts(baseRoot, accidental, quality, extension);
+if (
+  storedChord?.displayName === displayName &&
+  storedChord.root === baseRoot
+) {
+          return storedChord;
+        }
+        return buildChordToneReferenceOption({
+          root: baseRoot,
           displayRoot,
           quality,
           extension,
-          displayName: getChordNameFromParts(baseRoot, accidental, quality, extension),
+          displayName,
+          hint: storedChord?.hint,
+          storedChord,
         });
       });
   });
@@ -1999,7 +2009,7 @@ const APP_THEMES = {
 const APP_THEME_OPTIONS = [
   {
     id: APP_THEMES.BRAND,
-    label: "브랜드",
+    label: "골드다크",
     description: "RIFFLAB 기본 테마 · 골드/브론즈 기반 · 브랜드 감성과 몰입감 중심",
   },
   {
@@ -2013,6 +2023,11 @@ const APP_THEME_OPTIONS = [
     description: "차콜 그레이 · 샴페인 골드 · 프리미엄 스튜디오",
   },
 ];
+function getSelectableAppThemeOptions() {
+  return isDesignLabEnabled()
+    ? APP_THEME_OPTIONS
+    : APP_THEME_OPTIONS.filter((option) => option.id !== APP_THEMES.ECO);
+}
 const FEEL_RECORDER_LONG_PRESS_MS = 420;
 const FEEL_RECORDER_MAX_EVENTS = 24;
 const FEEL_RECORDER_DEFAULT_NAME = "My Feel";
@@ -2171,7 +2186,7 @@ function getStoredMetronomeDisplayMode() {
 }
 
 function normalizeAppTheme(value) {
-  return APP_THEME_OPTIONS.some((option) => option.id === value) ? value : APP_THEMES.BRAND;
+  return getSelectableAppThemeOptions().some((option) => option.id === value) ? value : APP_THEMES.BRAND;
 }
 
 function getStoredAppTheme() {
@@ -5554,7 +5569,8 @@ const HIT_WINDOW_MS = 150;
 const PERFECT_WINDOW_MS = 55;
 const HIT_LINE_PERCENT = 88;
 const SHOOTER_LIFE_LINE_PERCENT = 86;
-const SHOOTER_TARGET_HIT_EFFECT_MS = 250;
+const SHOOTER_TARGET_HIT_EFFECT_MS = 220;
+const SHOOTER_TARGET_BREAK_EFFECT_MS = 450;
 const SHOOTER_PROJECTILE_MS = 640;
 const SHOOTER_PROJECTILE_IMPACT_RATIO = 1;
 const SHOOTER_PROJECTILE_IMPACT_SYNC_MS = 0;
@@ -6416,10 +6432,11 @@ const SHOOTER_DIFFICULTY_PACING = {
   [SHOOTER_DIFFICULTIES.DIFFICULT]: { durationMs: 4320, spawnGapMinMs: 1000, spawnGapMaxMs: 1000, maxTargets: 4 },
 };
 const SHOOTER_EASY_PHASES = [
-  { label: "개방현", minMs: 0, maxFret: 0, poolRatioCap: 0.34, randomnessBonus: -0.12, jumpBiasBonus: -0.1 },
-  { label: "0~3프렛", minMs: 60_000, maxFret: 3, poolRatioCap: 0.55, randomnessBonus: -0.06, jumpBiasBonus: -0.04 },
-  { label: "0~5프렛", minMs: 180_000, maxFret: 5, poolRatioCap: 0.78, randomnessBonus: 0, jumpBiasBonus: 0 },
-  { label: "전 포지션", minMs: 300_000, maxFret: 12, poolRatioCap: 1, randomnessBonus: 0.08, jumpBiasBonus: 0.06 },
+  { label: "0~1프렛", minMs: 0, minSpawn: 0, maxFret: 1, poolRatioCap: 0.34, randomnessBonus: -0.12, jumpBiasBonus: -0.1 },
+  { label: "0~3프렛", minMs: 0, minSpawn: 5, maxFret: 3, poolRatioCap: 0.48, randomnessBonus: -0.08, jumpBiasBonus: -0.06 },
+  { label: "0~5프렛", minMs: 45_000, minSpawn: 12, maxFret: 5, poolRatioCap: 0.66, randomnessBonus: -0.03, jumpBiasBonus: -0.02 },
+  { label: "0~7프렛", minMs: 90_000, minSpawn: 22, maxFret: 7, poolRatioCap: 0.84, randomnessBonus: 0.02, jumpBiasBonus: 0.02 },
+  { label: "전 포지션", minMs: 150_000, minSpawn: 36, maxFret: 12, poolRatioCap: 1, randomnessBonus: 0.08, jumpBiasBonus: 0.06 },
 ];
 const SHOOTER_RECORDS_STORAGE_KEY = "rifflabShooterRecords";
 
@@ -6647,8 +6664,16 @@ function getShooterLevel(hitCount) {
   return [...SHOOTER_LEVELS].reverse().find((level) => hitCount >= level.unlockAt) ?? SHOOTER_LEVELS[0];
 }
 
-function getShooterDifficultyPhase(difficulty, elapsedMs = 0) {
-  return [...SHOOTER_EASY_PHASES].reverse().find((phase) => elapsedMs >= phase.minMs) ?? SHOOTER_EASY_PHASES[0];
+function getShooterDifficultyPhase(difficulty, elapsedMs = 0, spawnedCount = 0) {
+  if (difficulty !== SHOOTER_DIFFICULTIES.EASY) {
+    return SHOOTER_EASY_PHASES[SHOOTER_EASY_PHASES.length - 1];
+  }
+  return (
+    [...SHOOTER_EASY_PHASES]
+      .reverse()
+      .find((phase) => elapsedMs >= phase.minMs || spawnedCount >= (phase.minSpawn ?? Number.POSITIVE_INFINITY)) ??
+    SHOOTER_EASY_PHASES[0]
+  );
 }
 
 function getShooterDifficultyPacing(difficulty) {
@@ -6696,10 +6721,31 @@ function getShooterHitboxContact(target, startX, startY, targetY) {
 
 function getShooterEffectiveLevel(level, difficulty, elapsedMs = 0) {
   const phase = getShooterDifficultyPhase(difficulty, elapsedMs);
+  const pacing = getShooterDifficultyPacing(difficulty);
+  if (difficulty === SHOOTER_DIFFICULTIES.NORMAL) {
+    return {
+      ...level,
+      phaseLabel: "전 음역",
+      maxTargets: pacing.maxTargets,
+      poolRatio: 1,
+      randomness: clampValue(Math.max(level.randomness, 0.74), 0.12, 1),
+      jumpBias: clampValue(Math.max(level.jumpBias, 0.46), 0.04, 1),
+    };
+  }
+  if (difficulty === SHOOTER_DIFFICULTIES.DIFFICULT) {
+    return {
+      ...level,
+      phaseLabel: "전 음역 + 샵",
+      maxTargets: pacing.maxTargets,
+      poolRatio: 1,
+      randomness: clampValue(Math.max(level.randomness, 0.86), 0.12, 1),
+      jumpBias: clampValue(Math.max(level.jumpBias, 0.62), 0.04, 1),
+    };
+  }
   return {
     ...level,
     phaseLabel: phase.label,
-    maxTargets: getShooterDifficultyPacing(difficulty).maxTargets,
+    maxTargets: pacing.maxTargets,
     poolRatio: Math.min(phase.poolRatioCap, level.poolRatio),
     randomness: clampValue(level.randomness + phase.randomnessBonus, 0.12, 1),
     jumpBias: clampValue(level.jumpBias + phase.jumpBiasBonus, 0.04, 1),
@@ -6712,22 +6758,29 @@ function uniqNotesByPitch(notes) {
     .sort((a, b) => a.frequency - b.frequency || b.stringNumber - a.stringNumber || a.fretNumber - b.fretNumber);
 }
 
+function getShooterFullRangeNotes(includeSharps = false) {
+  const fullRangeNotes = uniqNotesByPitch([...ALL_PRACTICE_NOTES, ...DISPLAY_NOTES]);
+  const filteredNotes = includeSharps
+    ? fullRangeNotes
+    : fullRangeNotes.filter((note) => !getPitchClass(note.pitch)?.includes("#"));
+  return filteredNotes.length ? filteredNotes : FIRST_POSITION_NOTES;
+}
+
 function getShooterDifficultyNotes(notes, difficulty, elapsedMs = 0, selectedBlock = null, spawnedCount = 0) {
-  const phase = getShooterDifficultyPhase(difficulty, elapsedMs);
+  const phase = getShooterDifficultyPhase(difficulty, elapsedMs, spawnedCount);
   const baseNotes = uniqNotesByPitch(notes?.length ? notes : FIRST_POSITION_NOTES);
   const lowPositionNotes = uniqNotesByPitch([...OPEN_STRING_NOTES, ...FIRST_POSITION_NOTES, ...baseNotes]);
   if (difficulty === SHOOTER_DIFFICULTIES.EASY) {
-    const maxFret = spawnedCount >= 5 ? 3 : 1;
-    const easyNotes = lowPositionNotes.filter((note) => Number(note.fretNumber ?? 0) <= maxFret);
+    const easyNotes = uniqNotesByPitch([...lowPositionNotes, ...NOTES]).filter(
+      (note) => Number(note.fretNumber ?? 0) <= phase.maxFret,
+    );
     return easyNotes.length ? easyNotes : OPEN_STRING_NOTES;
   }
   if (difficulty === SHOOTER_DIFFICULTIES.NORMAL) {
-    const normalNotes = uniqNotesByPitch([...lowPositionNotes, ...baseNotes]);
-    return normalNotes.length ? normalNotes : lowPositionNotes;
+    return getShooterFullRangeNotes(false);
   }
   if (difficulty === SHOOTER_DIFFICULTIES.DIFFICULT) {
-    const hardNotes = uniqNotesByPitch([...lowPositionNotes, ...baseNotes, ...NOTES]);
-    return hardNotes.length ? hardNotes : lowPositionNotes;
+    return getShooterFullRangeNotes(true);
   }
   const phaseNotes = lowPositionNotes.filter((note) => Number(note.fretNumber ?? 0) <= phase.maxFret);
   return phaseNotes.length ? phaseNotes : OPEN_STRING_NOTES;
@@ -6988,7 +7041,9 @@ function App() {
   const [openHelpSectionId, setOpenHelpSectionId] = useState("");
   const [appTheme, setAppTheme] = useState(getStoredAppTheme);
   const designLabEnabled = isDesignLabEnabled();
-  const themeMenuVisible = designLabEnabled || import.meta.env.DEV;
+  const themeOptions = useMemo(() => getSelectableAppThemeOptions(), [designLabEnabled]);
+  const darkThemeSelectable = themeOptions.some((option) => option.id === APP_THEMES.ECO);
+  const themeMenuVisible = true;
   const miniChordMenuVisible = import.meta.env.DEV === true;
   const [designLabHeaderState, setDesignLabHeaderState] = useState(getStoredDesignLabHeaderState);
   const [designLabAppIconState, setDesignLabAppIconState] = useState(getStoredDesignLabAppIconState);
@@ -7183,6 +7238,7 @@ function App() {
   const [isHitWindowActive, setIsHitWindowActive] = useState(false);
   const [shooterTargets, setShooterTargets] = useState([]);
   const [projectiles, setProjectiles] = useState([]);
+  const [shooterBreakEffects, setShooterBreakEffects] = useState([]);
   const [shooterAim, setShooterAim] = useState(undefined);
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
@@ -7706,11 +7762,13 @@ function App() {
   const lastDetectedDisplayUpdateRef = useRef(0);
   const shooterTargetsRef = useRef([]);
   const projectilesRef = useRef([]);
+  const shooterBreakEffectsRef = useRef([]);
   const shooterArenaRef = useRef(null);
   const shooterTargetNodesRef = useRef(new Map());
   const projectileNodesRef = useRef(new Map());
   const shooterTargetIdRef = useRef(1);
   const projectileIdRef = useRef(1);
+  const shooterBreakEffectIdRef = useRef(1);
   const shooterNextSpawnAtRef = useRef(0);
   const lastShooterNoteRef = useRef(null);
   const lastShooterXRef = useRef(50);
@@ -7806,25 +7864,24 @@ function App() {
     return CHORD_NATURAL_ROOTS
       .map((root) => {
         const sharpRoot = CHORD_SHARP_ROOTS[root] ?? null;
-        const rootSet = new Set([root, sharpRoot].filter(Boolean));
+        const catalogAccidentals = CHORD_ACCIDENTAL_OPTIONS
+          .map((option) => option.id)
+          .filter((accidental) => CHORD_ROOTS.includes(getChordLookupRoot(root, accidental)));
+        const rootSet = new Set(
+          catalogAccidentals.map((accidental) => getChordLookupRoot(root, accidental)),
+        );
         const storedChords = CHORD_VIEW_OPTIONS.filter((chord) => rootSet.has(chord.root));
-        const shouldExpandGenerated = rootSet.has(viewerChordRoot);
-        const generatedChords = shouldExpandGenerated
-          ? [
-              ...buildSelectableChordCatalogOptions(root, "natural"),
-              ...(sharpRoot ? buildSelectableChordCatalogOptions(root, "sharp") : []),
-            ]
-          : [];
+        const generatedChords = catalogAccidentals.flatMap((accidental) =>
+          buildSelectableChordCatalogOptions(root, accidental),
+        );
         return {
           root,
           sharpRoot,
-          chords: shouldExpandGenerated
-            ? mergeChordCatalogOptions(storedChords, generatedChords)
-            : storedChords,
+          chords: mergeChordCatalogOptions(storedChords, generatedChords),
         };
       })
       .filter((group) => group.chords.length > 0);
-  }, [viewerChordRoot]);
+  }, []);
   const chordRootOptions = CHORD_NATURAL_ROOTS;
   const chordRootHasDiagram = useCallback(
     (root) => CHORD_VIEW_OPTIONS.some((chord) => chord.root === root),
@@ -8556,7 +8613,8 @@ function App() {
       : "Automator OFF";
   const resetScore = useCallback(() => {
     enemiesRef.current = [];
-    projectilesRef.current = [];    comboRef.current = 0;
+    projectilesRef.current = [];
+    comboRef.current = 0;
     enemyIdRef.current = 1;
     patternRef.current = 0;
     practiceCompletedRef.current = false;
@@ -8565,7 +8623,8 @@ function App() {
     lastBeatRef.current = -1;
     lastHitRef.current = { note: null, time: 0 };
     setEnemies([]);
-    setProjectiles([]);    setScore(0);
+    setProjectiles([]);
+    setScore(0);
     setCombo(0);
     setMaxCombo(0);
     setHits(0);
@@ -8586,6 +8645,7 @@ function App() {
     setReferenceStepTick((value) => value + 1);
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
+    shooterBreakEffectsRef.current = [];
     shooterTargetNodesRef.current.clear();
     projectileNodesRef.current.clear();
     shooterNextSpawnAtRef.current = 0;
@@ -8595,7 +8655,9 @@ function App() {
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     lastShotRef.current = { note: null, time: 0 };
     setShooterTargets([]);
-    setProjectiles([]);    setShooterAim(undefined);
+    setProjectiles([]);
+    setShooterBreakEffects([]);
+    setShooterAim(undefined);
     setShooterLives(SHOOTER_MAX_LIVES);
     setFeedback("Ready");
   }, []);
@@ -9925,6 +9987,17 @@ function App() {
     node?.classList.remove("fallingTarget");
     node?.classList.add("impacting", "defeated");
 
+  const breakEffect = {
+    id: shooterBreakEffectIdRef.current++,
+    targetId: target.id,
+    note: target.note,
+    x: target.x,
+    y,
+    bornAt: gameTimeRef.current,
+  };
+  shooterBreakEffectsRef.current = [...shooterBreakEffectsRef.current, breakEffect].slice(-12);
+  setShooterBreakEffects([...shooterBreakEffectsRef.current]);
+
     shooterTargetsRef.current = shooterTargetsRef.current.map((currentTarget) => (
       currentTarget.id === target.id
         ? {
@@ -10437,6 +10510,13 @@ function App() {
         projectilesRef.current = nextProjectiles;
         setProjectiles([...projectilesRef.current]);
       }
+  const nextBreakEffects = shooterBreakEffectsRef.current.filter(
+    (effect) => gameTimeRef.current - effect.bornAt <= SHOOTER_TARGET_BREAK_EFFECT_MS,
+  );
+  if (nextBreakEffects.length !== shooterBreakEffectsRef.current.length) {
+    shooterBreakEffectsRef.current = nextBreakEffects;
+    setShooterBreakEffects([...shooterBreakEffectsRef.current]);
+  }
       if (removedTargetIds.size > 0 || targetsChanged) {
         setShooterTargets([...shooterTargetsRef.current]);
       }
@@ -12042,14 +12122,18 @@ function App() {
     }
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
-    projectilesRef.current = [];    shooterNextSpawnAtRef.current = 0;
+    projectilesRef.current = [];
+    shooterBreakEffectsRef.current = [];
+    shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
     shooterReleaseLockRef.current = null;
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     setEnemies([]);
     setShooterTargets([]);
-    setProjectiles([]);    setShooterAim(undefined);
+    setProjectiles([]);
+    setShooterBreakEffects([]);
+    setShooterAim(undefined);
     setShooterLives(SHOOTER_MAX_LIVES);
     setHitZoneNote(null);
     setIsHitWindowActive(false);
@@ -12083,9 +12167,13 @@ function App() {
     setPendingStageCardId(null);
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
-    projectilesRef.current = [];    setEnemies([]);
+    projectilesRef.current = [];
+    shooterBreakEffectsRef.current = [];
+    setEnemies([]);
     setShooterTargets([]);
-    setProjectiles([]);    setHitZoneNote(null);
+    setProjectiles([]);
+    setShooterBreakEffects([]);
+    setHitZoneNote(null);
     setIsHitWindowActive(false);
     setBeat(0);
     setFeedback("Ready");
@@ -12270,14 +12358,18 @@ function App() {
     setAppMode(APP_MODES.SHOOTER);
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
-    projectilesRef.current = [];    shooterNextSpawnAtRef.current = 0;
+    projectilesRef.current = [];
+    shooterBreakEffectsRef.current = [];
+    shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
     shooterReleaseLockRef.current = null;
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     setEnemies([]);
     setShooterTargets([]);
-    setProjectiles([]);    setShooterAim(undefined);
+    setProjectiles([]);
+    setShooterBreakEffects([]);
+    setShooterAim(undefined);
     setShooterLives(SHOOTER_MAX_LIVES);
     setBeat(0);
     setFeedback("Start Shooter");
@@ -12296,9 +12388,11 @@ function App() {
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
+    shooterBreakEffectsRef.current = [];
     setEnemies([]);
     setShooterTargets([]);
     setProjectiles([]);
+    setShooterBreakEffects([]);
     setHitZoneNote(null);
     setIsHitWindowActive(false);
     gameTimeRef.current = 0;
@@ -12319,9 +12413,13 @@ function App() {
     setAppMode(APP_MODES.FRETBOARD_VIEWER);
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
-    projectilesRef.current = [];    setEnemies([]);
+    projectilesRef.current = [];
+    shooterBreakEffectsRef.current = [];
+    setEnemies([]);
     setShooterTargets([]);
-    setProjectiles([]);    setHitZoneNote(null);
+    setProjectiles([]);
+    setShooterBreakEffects([]);
+    setHitZoneNote(null);
     setIsHitWindowActive(false);
     setBeat(0);
     setFeedback("Ready");
@@ -12338,9 +12436,11 @@ function App() {
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
+    shooterBreakEffectsRef.current = [];
     setEnemies([]);
     setShooterTargets([]);
     setProjectiles([]);
+    setShooterBreakEffects([]);
     setHitZoneNote(null);
     setIsHitWindowActive(false);
     setBeat(0);
@@ -13475,12 +13575,12 @@ function App() {
                 <div className="utilityThemeHeader">
                   <div>
                     <strong>테마</strong>
-                    <p>운영자 전용 화면 색상 선택</p>
+                    <p>화면 색상 선택</p>
                   </div>
-                  <span className="utilityThemeStatus">운영자</span>
+                  {darkThemeSelectable ? <span className="utilityThemeStatus">운영자</span> : null}
                 </div>
                 <div className="utilityThemeOptions" role="radiogroup" aria-label="테마">
-                  {APP_THEME_OPTIONS.map((option) => (
+                  {themeOptions.map((option) => (
                     <button
                       aria-checked={appTheme === option.id}
                       className={appTheme === option.id ? "selected" : ""}
@@ -15661,6 +15761,37 @@ function App() {
               </div>
               );
             })}
+
+
+            {shooterBreakEffects.map((effect) => (
+              <div
+                className="targetBreakEffect"
+                key={`break-${effect.id}`}
+                style={{
+                  left: `${effect.x}%`,
+                  top: `${effect.y}%`,
+                  "--hit-note-size": `${NOTE_SIZE}px`,
+                  "--target-break-duration-ms": `${SHOOTER_TARGET_BREAK_EFFECT_MS}ms`,
+                  ...getNoteColorStyle(effect.note),
+                }}
+              >
+                <div className="targetBreakLayer" aria-hidden="true">
+                  {SHOOTER_TARGET_BREAK_PIECES.map((piece, pieceIndex) => (
+                    <i
+                      className="targetBreakShard"
+                      key={pieceIndex}
+                      style={{
+                        clipPath: piece.clip,
+                        "--break-dx": piece.dx,
+                        "--break-dy": piece.dy,
+                        "--break-rotate": piece.rotate,
+                        "--break-origin": piece.origin,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
 
             {false && shooterTargets
               .filter((target) => target.lockedAt != null && !target.defeated)
