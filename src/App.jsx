@@ -4,7 +4,6 @@ import {
   Gamepad2,
   Grid3X3,
   Guitar,
-  Instagram,
   LoaderCircle,
   Mic,
   Music2,
@@ -13580,7 +13579,11 @@ function App() {
                 target="_blank"
               >
                 <span className="utilityMenuIcon utilityMenuInstagramIcon" aria-hidden="true">
-                  <Instagram size={18} strokeWidth={2.3} />
+                  <svg viewBox="0 0 24 24">
+                    <rect x="4" y="4" width="16" height="16" rx="5" />
+                    <circle cx="12" cy="12" r="4" />
+                    <circle cx="17" cy="7" r="1.2" />
+                  </svg>
                 </span>
                 <div className="utilityMenuText">
                   <strong>문의하기</strong>

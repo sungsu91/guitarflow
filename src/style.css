@@ -36887,6 +36887,40 @@ html body .chordTransitionHud .beatDot.active .beatDot__glyph {
   color: #ffafd2 !important;
 }
 
+/* Menu contact: make the Instagram mark read like the real app icon. */
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram .utilityMenuInstagramIcon {
+  border-color: rgba(255, 255, 255, 0.34) !important;
+  background:
+    radial-gradient(circle at 30% 107%, #fdf497 0 12%, #fdf497 13%, #fd5949 34%, #d6249f 58%, #285aeb 100%) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 8px 18px rgba(214, 36, 159, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.36) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram .utilityMenuInstagramIcon svg {
+  width: 18px !important;
+  height: 18px !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.9 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  color: #ffffff !important;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18)) !important;
+}
+
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram:hover .utilityMenuInstagramIcon,
+.utilityMenuPanel .utilityMenuList .utilityMenuItemInstagram:focus-visible .utilityMenuInstagramIcon {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.14),
+    0 10px 22px rgba(214, 36, 159, 0.3),
+    0 0 18px rgba(253, 89, 73, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42) !important;
+}
+
 /* Metronome dot/circle modes: active beat must match the current dot size, even in 9/8 or 12/8. */
 .standaloneMetronomePanel .metronomeBeatMatrix--dot .beatDot.active,
 .standaloneMetronomePanel .metronomeBeatMatrix--dot .beatDot.active:hover,
@@ -44789,6 +44823,13 @@ html body .app.theme-brand.theme-brand
   letter-spacing: 0 !important;
 }
 
+html body .app.theme-light.theme-light
+  .fretboardViewerPanel.fretboardViewerPanel
+  .chordBuilderPanelTitle {
+  color: #b57a24 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+}
+
 .chordBuilderPanel--composer .chordBuilderSummaryCard {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
@@ -45730,4 +45771,31 @@ html body main.app.theme-light.theme-light
   box-shadow:
     0 0 0 5px rgba(226, 150, 166, 0.16),
     0 0 15px rgba(190, 93, 116, 0.24) !important;
+}
+
+/* Final contact icon override: keep Instagram color visible in the white rose-pearl menu. */
+html body .app.theme-light.theme-light
+  .utilityMenuPanel.utilityMenuPanel
+  .utilityMenuList
+  .utilityMenuItemInstagram.utilityMenuItemInstagram
+  .utilityMenuIcon.utilityMenuInstagramIcon {
+  border-color: rgba(255, 255, 255, 0.42) !important;
+  background-color: transparent !important;
+  background-image:
+    radial-gradient(circle at 30% 105%, #fdf497 0 12%, #fd5949 36%, #d6249f 62%, #285aeb 100%) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 8px 18px rgba(214, 36, 159, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42) !important;
+}
+
+html body .app.theme-light.theme-light
+  .utilityMenuPanel.utilityMenuPanel
+  .utilityMenuList
+  .utilityMenuItemInstagram.utilityMenuItemInstagram
+  .utilityMenuIcon.utilityMenuInstagramIcon svg {
+  color: #ffffff !important;
+  fill: none !important;
+  stroke: currentColor !important;
 }
