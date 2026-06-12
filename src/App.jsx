@@ -3553,10 +3553,13 @@ const GUITAR_LAB_VARIANTS = [
   ["fresh-cutaway-pearl", "Acoustic", "Pearl Cut", "자개 로제트와 고급 컷어웨이 실루엣을 강조한 후보", "#5f3325", "#f8e8b0", "fresh-cutaway-pearl"],
   ["fresh-cutaway-honey", "Acoustic", "Honey Cut", "꿀빛 상판과 자연스러운 하단 연속 곡률의 컷어웨이 후보", "#d79b4d", "#3a210f", "fresh-cutaway-honey"],
   ["fresh-cutaway-reference", "Acoustic", "Reference Cut", "첨부 레퍼런스 라인의 측면 흐름과 하단 곡률을 기준으로 만든 후보", "#c9823a", "#f1ca7a", "fresh-cutaway-reference"],
+  ["acoustic-real-trace", "Acoustic", "Normal", "실제 통기타 누끼 라인을 기준으로 만든 노말 등급 정면 PNG 후보", "#d79b4d", "#3a210f", "image-real-trace", "/images/shooter-acoustic-real-trace.png"],
+  ["acoustic-epic-trace", "Acoustic", "Epic", "같은 통기타 라인에 레드 선버스트와 에픽 외곽광을 입힌 PNG 후보", "#c74323", "#ff8a2a", "image-epic-trace", "/images/shooter-acoustic-epic-trace.png"],
+  ["acoustic-legendary-trace", "Acoustic", "Legendary", "같은 통기타 라인에 화이트 골드 펄과 레전더리 외곽광을 입힌 PNG 후보", "#f4d58a", "#ffcf52", "image-legendary-trace", "/images/shooter-acoustic-legendary-trace.png"],
   ["acoustic-core-dread-01", "Acoustic", "Core Dread 01", "진한 자개 로제트와 위로 정리된 브릿지 위치를 적용한 기본 드레드넛 후보", "#b97836", "#f1ca7a", "core-dread-01"],
   ["acoustic-core-dread-02", "Acoustic", "Core Dread 02", "마호가니 톤을 유지하면서 사운드홀과 브릿지 간격을 좁힌 후보", "#8f5230", "#f8e8b0", "core-dread-02"],
   ["acoustic-core-dread-03", "Acoustic", "Core Dread 03", "선버스트 깊이감과 진한 자개 사운드홀을 더한 스테이지용 후보", "#c06f24", "#1a0e06", "core-dread-03"],
-].map(([id, pack, model, description, bodyColor, accentColor, shape], index) => ({
+].map(([id, pack, model, description, bodyColor, accentColor, shape, assetSrc], index) => ({
   id,
   pack,
   model,
@@ -3565,11 +3568,20 @@ const GUITAR_LAB_VARIANTS = [
   bodyColor,
   accentColor,
   shape,
+  assetSrc,
   index: index + 1,
 }));
 const DEFAULT_GUITAR_LAB_VARIANT_ID = "acoustic-core-dread-01";
 const GUITAR_LAB_VARIANT_IDS = new Set(GUITAR_LAB_VARIANTS.map((variant) => variant.id));
+const SHOOTER_TRACE_GUITAR_VARIANT_ID = "acoustic-real-trace";
+const SHOOTER_RARITY_GUITAR_VARIANT_IDS = [
+  SHOOTER_TRACE_GUITAR_VARIANT_ID,
+  "acoustic-epic-trace",
+  "acoustic-legendary-trace",
+];
+const SHOOTER_RARITY_GUITAR_SLOT_LABELS = ["N", "E", "L"];
 const FRESH_ACOUSTIC_GUITAR_IDS = new Set([
+  ...SHOOTER_RARITY_GUITAR_VARIANT_IDS,
   "acoustic-core-dread-01",
   "acoustic-core-dread-02",
   "acoustic-core-dread-03",
@@ -4964,6 +4976,17 @@ function AppIconPreview({ variantId, size = "large" }) {
 }
 
 function GuitarAssetSvg({ variant, className = "", compact = false }) {
+  if (variant.assetSrc) {
+    return (
+      <img
+        alt={`${variant.title} guitar asset`}
+        className={`guitarAssetSvg guitarAssetImage ${className}`}
+        draggable="false"
+        src={variant.assetSrc}
+      />
+    );
+  }
+
   const isElectric = variant.pack === "Electric";
   const isClassical = variant.pack === "Classical";
   const uniqueId = `guitar-${variant.id}`;
@@ -7156,8 +7179,18 @@ function App() {
       if (!variant) return null;
       return { slotKey, slotNumber: index + 1, variant };
     }).filter(Boolean);
-    return options.length > 0
-      ? options
+    const rarityCandidates = SHOOTER_RARITY_GUITAR_VARIANT_IDS.map((variantId, index) => {
+      const variant = GUITAR_LAB_VARIANTS.find((item) => item.id === variantId);
+      if (!variant || options.some((option) => option.variant.id === variant.id)) return null;
+      return {
+        slotKey: `rarity-candidate-${variant.id}`,
+        slotNumber: SHOOTER_RARITY_GUITAR_SLOT_LABELS[index] ?? index + 1,
+        variant,
+      };
+    }).filter(Boolean);
+    const visibleOptions = [...rarityCandidates, ...options];
+    return visibleOptions.length > 0
+      ? visibleOptions
       : [{ slotKey: "slot1", slotNumber: 1, variant: GUITAR_LAB_VARIANTS.find((variant) => !guitarLabPurgedIds.includes(variant.id)) ?? GUITAR_LAB_VARIANTS[0] }];
   }, [guitarLabPurgedIds, shooterPlayerSlots]);
   const visibleSvgLogoCandidates = useMemo(
@@ -7248,6 +7281,12 @@ function App() {
     }
     return normalized;
   }, []);
+
+  useEffect(() => {
+    const restoredIds = guitarLabPurgedIds.filter((id) => !SHOOTER_RARITY_GUITAR_VARIANT_IDS.includes(id));
+    if (restoredIds.length === guitarLabPurgedIds.length) return;
+    persistGuitarLabPurgedIds(restoredIds);
+  }, [guitarLabPurgedIds, persistGuitarLabPurgedIds]);
 
   useEffect(() => {
     const protectedIds = new Set([...assignedGuitarVariantIds, selectedGuitarVariantId]);
@@ -10264,9 +10303,11 @@ function App() {
       const beatInBar = currentBeat % beatsPerMeasure;
       const subdivisionIndex = currentTick % clicksPerBeat;
       const isFirstBeat = currentBeat === 0;
-      flushSync(() => {
-        setBeat(beatInBar);
-      });
+      if (subdivisionIndex === 0) {
+        flushSync(() => {
+          setBeat(beatInBar);
+        });
+      }
       playPatternTick(beatInBar, subdivisionIndex);
 
       if (subdivisionIndex !== 0) return;
@@ -10517,13 +10558,16 @@ function App() {
         lastBeatRef.current = currentTick;
         const currentBeat = Math.floor(currentTick / clicksPerBeat);
         const beatInBar = currentBeat % beatsPerMeasure;
+        const subdivisionIndex = currentTick % clicksPerBeat;
         const rawMeasureIndex = chordTransitionProgression.length > 0
           ? Math.floor(currentBeat / beatsPerMeasure)
           : 0;
         const measureIndex = chordTransitionProgression.length > 0
           ? rawMeasureIndex % chordTransitionProgression.length
           : 0;
-        setBeat(beatInBar);
+        if (subdivisionIndex === 0) {
+          setBeat(beatInBar);
+        }
         if (chordPracticeIndexRef.current !== measureIndex) {
           chordPracticeIndexRef.current = measureIndex;
           setChordPracticeIndex(measureIndex);
@@ -10620,9 +10664,11 @@ function App() {
         coachMuteBarsRef.current > 0 &&
         coachCycleIndex >= coachPlayBarsRef.current;
 
-      flushSync(() => {
-        setBeat(beatInBar);
-      });
+      if (subdivisionIndex === 0) {
+        flushSync(() => {
+          setBeat(beatInBar);
+        });
+      }
       if (metronomeTrackerModeRef.current === "bars") {
         const completedBars = metronomeTrackerBaseBarsRef.current + Math.floor(gameTimeRef.current / currentMeasureMs);
         setMetronomeMeasureCount(completedBars);

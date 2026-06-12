@@ -15327,6 +15327,11 @@ button.primary svg {
   max-height: 124px;
 }
 
+.shooterGuitarPickerAsset.guitarAssetImage {
+  width: auto;
+  height: 124px;
+}
+
 .shooterGuitarPickerItem span {
   display: grid;
   gap: 2px;
@@ -15459,6 +15464,11 @@ button.primary svg {
   .shooterGuitarPickerAsset {
     max-height: 112px;
   }
+
+  .shooterGuitarPickerAsset.guitarAssetImage {
+    height: 112px;
+  }
+
 }
 
 /* Fretboard viewer scale dropdowns: integrated dark custom-select panel. */
@@ -27181,6 +27191,49 @@ body {
   transform: scale(1.08) !important;
 }
 
+/* Metronome beat visual lock: only the incoming beat pulses; the previous beat resets without a shrink effect. */
+.standaloneMetronomePanel .metronomeBeatMatrix--main .metronomeBeatGlyph,
+.standaloneMetronomePanel .standaloneMetronomeTimeline .mobileBeatDots span {
+  transition:
+    border-color 120ms ease,
+    color 120ms ease,
+    filter 120ms ease,
+    opacity 120ms ease,
+    outline-color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease !important;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--main button.active .metronomeBeatGlyph,
+.standaloneMetronomePanel .standaloneMetronomeTimeline .mobileBeatDots span.active {
+  --metronome-beat-pulse-scale: 1.24;
+  animation: metronomeSingleBeatPulse 120ms ease-out both !important;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--main button.accent.active .metronomeBeatGlyph {
+  --metronome-beat-pulse-scale: 1.28;
+}
+
+.standaloneMetronomePanel .metronomeBeatMatrix--main button.mute.active .metronomeBeatGlyph {
+  --metronome-beat-pulse-scale: 1.08;
+}
+
+.standaloneMetronomePanel .standaloneMetronomeTimeline .mobileBeatDots span.active {
+  --metronome-beat-pulse-scale: 1.35;
+}
+
+@keyframes metronomeSingleBeatPulse {
+  0% {
+    transform: scale(1);
+  }
+  70% {
+    transform: scale(var(--metronome-beat-pulse-scale, 1.24));
+  }
+  100% {
+    transform: scale(var(--metronome-beat-pulse-scale, 1.24));
+  }
+}
+
 /* Shooter redesign: arcade character pass. */
 .shooterArena .guitarPlayer {
   bottom: 10px !important;
@@ -27559,6 +27612,17 @@ body {
   overflow: visible;
 }
 
+.guitarAssetImage {
+  max-width: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+
+.guitarLabStage .guitarAssetImage {
+  width: auto;
+  max-height: 226px;
+}
+
 .guitarAssetSvg .guitarAssetBody,
 .guitarAssetSvg .guitarAssetHead,
 .guitarAssetSvg .guitarAssetFretboard,
@@ -27621,6 +27685,12 @@ body {
     drop-shadow(0 0 12px rgba(217, 170, 85, 0.22));
   transition: transform 145ms cubic-bezier(0.2, 0.9, 0.24, 1.08);
   will-change: transform;
+}
+
+.shooterArena .guitarPlayerAsset.guitarAssetImage {
+  width: auto;
+  height: 96px;
+  max-height: 96px;
 }
 
 .shooterArena .guitarPlayer.shooting .guitarPlayerAsset {
@@ -28033,6 +28103,12 @@ body {
 
   .shooterArena .guitarPlayerAsset {
     width: 56px;
+  }
+
+  .shooterArena .guitarPlayerAsset.guitarAssetImage {
+    width: auto;
+    height: 88px;
+    max-height: 88px;
   }
 }
 
@@ -45611,6 +45687,37 @@ html body .app.theme-light.theme-light .standaloneMetronomePanel .metronomeBeatM
     rgba(112, 196, 226, 0.28) !important;
 }
 
+/* Brand dark metronome performance lock: keep beat motion on transform only for real mobile browsers. */
+html body .app.theme-brand.theme-brand .standaloneMetronomePanel .metronomeBeatMatrix--main {
+  contain: layout paint style !important;
+}
+
+html body .app.theme-brand.theme-brand .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot,
+html body .app.theme-brand.theme-brand .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot .beatDot__glyph {
+  backface-visibility: hidden !important;
+  transform: translateZ(0);
+  transition:
+    border-color 90ms linear,
+    color 90ms linear,
+    opacity 90ms linear,
+    background-color 90ms linear !important;
+  will-change: transform;
+}
+
+html body .app.theme-brand.theme-brand .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.active .beatDot__glyph {
+  box-shadow:
+    0 0 0 4px var(--riff-dot-active-soft),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42) !important;
+  filter: none !important;
+}
+
+html body .app.theme-brand.theme-brand .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--mute.active .beatDot__glyph {
+  box-shadow:
+    0 0 0 3px rgba(255, 212, 124, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+  filter: none !important;
+}
+
 /* 3. Single position & scale: minimal off states, clear active pass. */
 html body .app.app.app :is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel) .referenceBeatMetronomeDot .beatDot__glyph {
   width: 15px !important;
@@ -45653,6 +45760,21 @@ html body .app.app.app :is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel
     0 0 0 3px var(--riff-dot-active-soft),
     0 0 12px var(--riff-dot-active-glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.48) !important;
+}
+
+/* Single-note and scale practice metronomes: the beat change itself is the action; no delayed pulse. */
+html body .app.app.app :is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel) .referenceBeatMetronomeDot,
+html body .app.app.app :is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel) .referenceBeatMetronomeDot .beatDot__glyph,
+html body .app.app.app :is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel) .referenceBeatMetronomeDot .beatDot__innerMark {
+  animation: none !important;
+  transition: none !important;
+}
+
+html body .app.app.app :is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel) .referenceBeatMetronomeDot.active .beatDot__glyph,
+html body .app.app.app :is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel) .referenceBeatMetronomeDot.beatDot--mute.active .beatDot__glyph {
+  animation: none !important;
+  filter: none !important;
+  transform: none !important;
 }
 
 /* White standalone metronome: force active beat to true ice blue, above legacy gold rules. */
