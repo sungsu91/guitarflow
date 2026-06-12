@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 const CHROMATIC_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const NOTE_INDEX = Object.fromEntries(CHROMATIC_NOTES.map((note, index) => [note, index]));
 
@@ -74,7 +76,7 @@ function buildGeneratedNotes({ fretRange, selectedNotes, showOnlySelected }) {
   }).filter((note) => !showOnlySelected || selected.size === 0 || selected.has(note.noteName));
 }
 
-export default function Fretboard({
+function Fretboard({
   barres = [],
   className = "",
   fretRange = [0, 12],
@@ -204,3 +206,5 @@ export default function Fretboard({
     </div>
   );
 }
+
+export default memo(Fretboard);

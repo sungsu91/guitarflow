@@ -1,9 +1,10 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FolderOpen,
   Gamepad2,
   Grid3X3,
   Guitar,
+  Instagram,
   LoaderCircle,
   Mic,
   Music2,
@@ -12,7 +13,6 @@ import {
   Radio,
   Settings,
   Square,
-  Sparkles,
   Timer,
   Volume2,
 } from "lucide-react";
@@ -69,16 +69,9 @@ function getPitchOctave(pitch) {
   return match ? Number(match[0]) : null;
 }
 
-function isSamePitchClass(a, b) {
-  const pitchClassA = getPitchClass(a);
-  const pitchClassB = getPitchClass(b);
-  return Boolean(pitchClassA && pitchClassB && pitchClassA === pitchClassB);
-}
-
 function ChordBuilderOptionSection({ children, layout = "wrap", title }) {
   return (
     <section className={`chordBuilderOptionSection chordBuilderOptionSection--${layout}`}>
-      <h3 className="chordBuilderOptionTitle">{title}</h3>
       <div className="chordBuilderChipGrid">{children}</div>
     </section>
   );
@@ -360,10 +353,6 @@ function buildScaleBlockPractice(root = "A", typeId = "minor", familyId = SCALE_
   return { label, notes, sequence, visibleFrets, root, type, family, pattern };
 }
 
-function buildPentatonicPractice(root = "A", typeId = "minor") {
-  return buildScaleBlockPractice(root, typeId, SCALE_FAMILIES.pentatonic.id, 1);
-}
-
 const GUITAR_NOTES = [
   makeGuitarNote({ pitch: "E2", stringNumber: 6, fretNumber: 0, group: "open", hint: "6번줄 개방현을 연주하세요" }),
   makeGuitarNote({ pitch: "A2", stringNumber: 5, fretNumber: 0, group: "open", hint: "5번줄 개방현을 연주하세요" }),
@@ -396,7 +385,6 @@ const GUITAR_NOTES = [
   makeGuitarNote({ pitch: "C5", stringNumber: 1, fretNumber: 8, group: "pentatonic" }),
 ];
 
-const NOTE_LIBRARY = GUITAR_NOTES;
 const OPEN_STRING_NOTES = GUITAR_NOTES.filter((note) => note.group === "open");
 const FIRST_POSITION_NOTES = [
   ...OPEN_STRING_NOTES,
@@ -1003,13 +991,6 @@ function normalizeChordExtensionForQuality(quality, extension) {
   return "none";
 }
 
-const CHORD_TRANSITION_PRESETS = [
-  { id: "turnaround-c", title: "1625 기본", label: "C - Am - Dm - G", chords: ["C", "Am", "Dm", "G"], memo: "기본 1625 진행" },
-  { id: "six-four-one-five", title: "6415 진행", label: "Am - F - C - G", chords: ["Am", "F", "C", "G"], memo: "훈련용 6415 진행" },
-  { id: "k-ballad-basic", title: "K-Ballad 기본", label: "G - D - Em - C", chords: ["G", "D", "Em", "C"], memo: "발라드 스타일 훈련 진행" },
-  { id: "two-chord-switch", title: "2코드 전환", label: "C - F", chords: ["C", "F"], memo: "두 코드 전환 집중 훈련" },
-];
-
 function normalizeChordToken(value = "") {
   return value.trim().replace(/maj7/i, "maj7").replace(/M7$/, "maj7");
 }
@@ -1017,86 +998,6 @@ function normalizeChordToken(value = "") {
 function getChordByDisplayName(name) {
   const normalized = normalizeChordToken(name);
   return CHORD_VIEW_OPTION_BY_DISPLAY_NAME.get(normalized) ?? null;
-}
-
-const CAGED_MAJOR_FORMS_FROM_C = {
-  position2: {
-    frets: [
-      { stringNumber: 5, fret: 3 },
-      { stringNumber: 4, fret: 5 },
-      { stringNumber: 3, fret: 5 },
-      { stringNumber: 2, fret: 5 },
-      { stringNumber: 1, fret: 3 },
-    ],
-    barres: [{ fret: 3, fromString: 5, toString: 1, label: "1" }],
-  },
-  position3: {
-    frets: [
-      { stringNumber: 6, fret: 8 },
-      { stringNumber: 5, fret: 7 },
-      { stringNumber: 4, fret: 5 },
-      { stringNumber: 3, fret: 5 },
-      { stringNumber: 2, fret: 5 },
-      { stringNumber: 1, fret: 8 },
-    ],
-    barres: [{ fret: 5, fromString: 4, toString: 2, label: "1" }],
-  },
-  position4: {
-    frets: [
-      { stringNumber: 6, fret: 8 },
-      { stringNumber: 5, fret: 10 },
-      { stringNumber: 4, fret: 10 },
-      { stringNumber: 3, fret: 9 },
-      { stringNumber: 2, fret: 8 },
-      { stringNumber: 1, fret: 8 },
-    ],
-    barres: [{ fret: 8, fromString: 6, toString: 1, label: "1" }],
-  },
-  position5: {
-    frets: [
-      { stringNumber: 4, fret: 10 },
-      { stringNumber: 3, fret: 12 },
-      { stringNumber: 2, fret: 13 },
-      { stringNumber: 1, fret: 12 },
-    ],
-    barres: [],
-  },
-};
-
-function buildCagedMajorChordPosition(root, positionId) {
-  const form = CAGED_MAJOR_FORMS_FROM_C[positionId];
-  const rootOffset = NOTE_INDEX[root] - NOTE_INDEX.C;
-  if (!form || !Number.isFinite(rootOffset)) return null;
-  const notes = form.frets.map((item, index) => {
-    const stringInfo = STANDARD_TUNING.find((string) => string.stringNumber === item.stringNumber);
-    const fretNumber = item.fret + rootOffset;
-    if (!stringInfo || fretNumber < 0) return null;
-    const pitch = midiToPitch(pitchToMidi(stringInfo.pitch) + fretNumber);
-    const noteName = getPitchClass(pitch);
-    return {
-      id: `caged-${root}-${positionId}-${item.stringNumber}-${fretNumber}-${index}`,
-      stringNumber: item.stringNumber,
-      fretNumber,
-      pitch,
-      noteName,
-      label: getChordDisplayNoteName(noteName),
-      finger: item.finger ?? null,
-      isRoot: noteName === root,
-    };
-  }).filter(Boolean);
-  if (!notes.length) return null;
-  const playedStrings = new Set(notes.map((note) => note.stringNumber));
-  const stringStates = Object.fromEntries(
-    [1, 2, 3, 4, 5, 6]
-      .filter((stringNumber) => !playedStrings.has(stringNumber))
-      .map((stringNumber) => [stringNumber, "x"]),
-  );
-  return {
-    id: `${root}-${positionId}`,
-    notes,
-    barres: form.barres.map((barre) => ({ ...barre, fret: barre.fret + rootOffset })),
-    stringStates,
-  };
 }
 
 function getChordLookupRoot(baseRoot, accidental = "natural") {
@@ -1484,8 +1385,8 @@ function getChordProgressionText(chordIds = []) {
 
 const STAGE3_DEFAULT_BACKING_SETTINGS = {
   rhythmPattern: "4beat",
-  bassBeat: "4beat",
-  pianoBeat: "4beat",
+  bassBeat: "basic",
+  pianoBeat: "2beat",
 };
 
 function makeStage3LibraryItem({
@@ -1550,6 +1451,89 @@ function getCompactFretRange(notes = [], barres = [], fallback = [0, 3]) {
   if (min <= 3) return [0, Math.max(3, max)];
   return [Math.max(0, min - 1), Math.max(max, min + 3)];
 }
+
+const ChordMiniCard = memo(function ChordMiniCard({
+  chord,
+  getChordStringState,
+  onSelect,
+  showChordFingeringGuide,
+}) {
+  const miniNotes = useMemo(
+    () => chord.notes
+      .filter((note) => Number(note.fretNumber) > 0)
+      .map((note, index) => ({
+        ...note,
+        id: `${chord.id}-mini-${note.stringNumber}-${note.fretNumber}-${index}`,
+        label: getChordDisplayNoteName(note.noteName),
+        isRoot: false,
+      })),
+    [chord],
+  );
+  const miniFretRange = useMemo(
+    () => getCompactFretRange(chord.notes, chord.barres),
+    [chord],
+  );
+  const stringStates = useMemo(
+    () => Object.fromEntries(
+      [1, 2, 3, 4, 5, 6]
+        .map((stringNumber) => [stringNumber, getChordStringState(chord, stringNumber)])
+        .filter(([, state]) => state === "x" || state === "o"),
+    ),
+    [chord, getChordStringState],
+  );
+  const handleClick = useCallback(() => {
+    onSelect(chord);
+  }, [chord, onSelect]);
+
+  return (
+    <button
+      className="chordMiniCard"
+      onClick={handleClick}
+      type="button"
+    >
+      <span>{chord.displayName}</span>
+      <Fretboard
+        barres={chord.barres ?? []}
+        className="chordMiniSharedFretboard"
+        fretRange={miniFretRange}
+        mode="chord"
+        notes={miniNotes}
+        rootNote=""
+        selectedNotes={["__chord-shape-only__"]}
+        showFingering={showChordFingeringGuide}
+        showFretNumbers
+        showStringNames={false}
+        stringStates={stringStates}
+      />
+    </button>
+  );
+});
+
+const ChordCatalogRow = memo(function ChordCatalogRow({
+  getChordStringState,
+  group,
+  onSelectChord,
+  showChordFingeringGuide,
+}) {
+  return (
+    <div className="chordCatalogRow">
+      <strong className="chordRootLabel">
+        {group.root}
+      </strong>
+      <div className="chordMiniGrid">
+        {group.chords.map((chord) => (
+          <ChordMiniCard
+            chord={chord}
+            getChordStringState={getChordStringState}
+            key={chord.id}
+            onSelect={onSelectChord}
+            showChordFingeringGuide={showChordFingeringGuide}
+          />
+        ))}
+      </div>
+    </div>
+  );
+});
 
 const TIME_SIGNATURE_OPTIONS = [
   { id: "1/4", label: "1/4", beats: 1 },
@@ -1943,16 +1927,6 @@ const METRONOME_BEAT_STATE_LABELS = {
   [METRONOME_BEAT_STATES.NORMAL]: "나머지 박",
   [METRONOME_BEAT_STATES.MUTE]: "무음",
 };
-const METRONOME_BEAT_STATE_SYMBOLS = {
-  [METRONOME_BEAT_STATES.ACCENT]: "●",
-  [METRONOME_BEAT_STATES.NORMAL]: "○",
-  [METRONOME_BEAT_STATES.MUTE]: "◌",
-};
-const METRONOME_BEAT_STATE_MARKERS = {
-  [METRONOME_BEAT_STATES.ACCENT]: "1",
-  [METRONOME_BEAT_STATES.NORMAL]: "○",
-  [METRONOME_BEAT_STATES.MUTE]: "",
-};
 const METRONOME_VISUAL_LAB_MODES = [
   { id: "dot", label: "Dot", title: "Dot Mode", description: "현재 점자 방식. 점자 자체의 glow만 비교합니다." },
   { id: "line", label: "Line", title: "Rhythm Line Mode", description: "좌에서 우로 흐르는 박자 위치를 비교합니다." },
@@ -2004,29 +1978,22 @@ const APP_THEME_STORAGE_KEY = "rifflabThemeMode";
 const APP_THEMES = {
   BRAND: "brand",
   LIGHT: "light",
-  ECO: "dark",
 };
+const APP_DEFAULT_THEME = APP_THEMES.LIGHT;
 const APP_THEME_OPTIONS = [
-  {
-    id: APP_THEMES.BRAND,
-    label: "골드다크",
-    description: "RIFFLAB 기본 테마 · 골드/브론즈 기반 · 브랜드 감성과 몰입감 중심",
-  },
   {
     id: APP_THEMES.LIGHT,
     label: "화이트",
-    description: "흰색 배경 · 검정 텍스트 · 가독성 중심",
+    description: "RIFFLAB 기본 테마 · 흰색 배경 · 검정 텍스트 · 가독성 중심",
   },
   {
-    id: APP_THEMES.ECO,
-    label: "다크",
-    description: "차콜 그레이 · 샴페인 골드 · 프리미엄 스튜디오",
+    id: APP_THEMES.BRAND,
+    label: "골드다크",
+    description: "골드/브론즈 기반 · 브랜드 감성과 몰입감 중심",
   },
 ];
 function getSelectableAppThemeOptions() {
-  return isDesignLabEnabled()
-    ? APP_THEME_OPTIONS
-    : APP_THEME_OPTIONS.filter((option) => option.id !== APP_THEMES.ECO);
+  return APP_THEME_OPTIONS;
 }
 const FEEL_RECORDER_LONG_PRESS_MS = 420;
 const FEEL_RECORDER_MAX_EVENTS = 24;
@@ -2057,26 +2024,6 @@ function normalizeFeelRecorderEvents(events) {
       gapMs: Math.max(0, Math.min(2400, Number(event?.gapMs) || 0)),
     };
   });
-}
-
-function getFeelRecorderBlockLabel(event) {
-  if (!event || event.type !== "hold") return "|";
-  const length = Math.max(2, Math.min(12, Math.round((Number(event.durationMs) || 420) / 120)));
-  return `|${"━".repeat(length)}|`;
-}
-
-function getFeelRecorderPatternLine(events) {
-  const normalized = normalizeFeelRecorderEvents(events);
-  return normalized.map((event) => getFeelRecorderBlockLabel(event)).join("");
-}
-
-function getFeelRecorderStrokeLine(events) {
-  const normalized = normalizeFeelRecorderEvents(events);
-  return normalized.map((event) => getFeelRecorderBlockLabel(event)).join("");
-}
-
-function getFeelRecorderEventUnits(event) {
-  return Math.max(FEEL_RECORDER_MIN_TAP_MS, Number(event?.durationMs) || FEEL_RECORDER_MIN_TAP_MS);
 }
 
 function getFeelRecorderTotalUnits(events) {
@@ -2186,11 +2133,11 @@ function getStoredMetronomeDisplayMode() {
 }
 
 function normalizeAppTheme(value) {
-  return getSelectableAppThemeOptions().some((option) => option.id === value) ? value : APP_THEMES.BRAND;
+  return getSelectableAppThemeOptions().some((option) => option.id === value) ? value : APP_DEFAULT_THEME;
 }
 
 function getStoredAppTheme() {
-  if (typeof window === "undefined") return APP_THEMES.BRAND;
+  if (typeof window === "undefined") return APP_DEFAULT_THEME;
   return normalizeAppTheme(window.localStorage.getItem(APP_THEME_STORAGE_KEY));
 }
 
@@ -5490,40 +5437,6 @@ function BeatIndicator({
   );
 }
 
-function ChordProgressionSequence({ chords, currentIndex }) {
-  return (
-    <div className="trainingSequenceTimeline" aria-label="코드 진행 시퀀스">
-      {chords.length > 0 ? chords.map((chord, index) => (
-        <span className={index === currentIndex ? "active" : ""} key={`sequence-${chord.id}-${index}`}>
-          {chord.displayName}
-          {index < chords.length - 1 ? <i aria-hidden="true">›</i> : null}
-        </span>
-      )) : (
-        <small>진행순서를 추가하세요</small>
-      )}
-    </div>
-  );
-}
-
-function TrainingProgressIndicator({ beat = 0, beatsPerMeasure = 4, progress = 0, timeSignature = "4/4" }) {
-  const walls = Array.from({ length: beatsPerMeasure }, (_, index) => index);
-  const clampedProgress = Math.min(1, Math.max(0, Number(progress) || 0));
-
-  return (
-    <div className="trainingProgressIndicator" aria-label={`${timeSignature} 마디 진행`}>
-      <i
-        className="trainingProgressRunner"
-        style={{ left: `${clampedProgress * 100}%` }}
-      >
-        {beat + 1}
-      </i>
-      {walls.map((index) => (
-        <span key={index} style={{ left: `${(index / beatsPerMeasure) * 100}%` }} />
-      ))}
-    </div>
-  );
-}
-
 const DISPLAY_NOTES = [
   ...Object.entries(NOTE_FREQUENCIES).map(([pitch, frequency]) =>
     makeGuitarNote({ pitch, frequency, stringNumber: 0, fretNumber: 0, lane: 0, group: "display" }),
@@ -5629,7 +5542,6 @@ const JUDGMENT_MODES = {
 const POSITION_MODE_WARNING =
   "같은 음은 다른 위치에도 있을 수 있어요. 이 모드는 표시된 위치로 연습하는 것을 권장합니다.";
 const BPM_PRESETS = [40, 60, 80, 100, 120, 140, 160, 180];
-const PENTATONIC_FRETS = [5, 6, 7, 8, 9, 10, 11, 12];
 const SCALE_ASCENDING = ["A2", "C3", "D3", "E3", "G3", "A3", "C4", "D4", "E4", "G4", "A4", "C5"];
 const FIRST_POSITION_ASCENDING_SEQUENCE = [
   "E2", "F2", "G2",
@@ -5651,21 +5563,6 @@ const FIRST_POSITION_SEQUENCE = [
   ...FIRST_POSITION_ASCENDING_SEQUENCE,
   ...FIRST_POSITION_RETURN_SEQUENCE,
 ];
-const FIRST_POSITION_SEQUENCE_GROUPS = [
-  { phase: "정방", ko: "미파솔", en: "EFG" },
-  { phase: "정방", ko: "라시도", en: "ABC" },
-  { phase: "정방", ko: "레미파", en: "DEF" },
-  { phase: "정방", ko: "솔라", en: "GA" },
-  { phase: "정방", ko: "시도레", en: "BCD" },
-  { phase: "정방", ko: "미파솔", en: "EFG" },
-  { phase: "역방", ko: "파미", en: "FE" },
-  { phase: "역방", ko: "레도시", en: "DCB" },
-  { phase: "역방", ko: "라솔", en: "AG" },
-  { phase: "역방", ko: "파미레", en: "FED" },
-  { phase: "역방", ko: "도시라", en: "CBA" },
-  { phase: "역방", ko: "솔파미", en: "GFE" },
-];
-
 const LEGACY_PRACTICE_CATEGORIES = [
   {
     id: "open",
@@ -6267,15 +6164,6 @@ const MINI_CHORD_SLOTS_PER_BAR = 2;
 const MINI_CHORD_BARS_PER_PAGE = 4;
 const MINI_CHORD_PICKER_SHARP_ROOTS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const MINI_CHORD_PICKER_FLAT_ROOTS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
-const MINI_CHORD_PICKER_EXTENSIONS = [
-  { id: "triad", label: "삼화음" },
-  { id: "seven", label: "7" },
-  { id: "minor7", label: "m7" },
-  { id: "major7", label: "M7" },
-  { id: "minor7Flat5", label: "m7 b5" },
-  { id: "dim7", label: "dim7" },
-  { id: "aug", label: "aug" },
-];
 
 function getMiniChordPickerSuffix(quality, extension) {
   if (extension === "seven") return quality === "minor" ? "m7" : "7";
@@ -6614,10 +6502,6 @@ function getFretLabel(note) {
   return fretNumber === 0 ? "개방현" : `${fretNumber}프렛`;
 }
 
-function getPitch(note) {
-  return note?.pitch ?? note?.octaveNote ?? note?.name ?? "";
-}
-
 function getStringFretLabel(note) {
   if (!note) return "";
   return `${note.stringNumber}번줄 ${getFretLabel(note)}`;
@@ -6641,11 +6525,6 @@ function getFretboardPositionsForPitch(pitch, maxFret = MAX_FRETBOARD_GUIDE_FRET
   }).sort((a, b) => a.fretNumber - b.fretNumber || b.stringNumber - a.stringNumber);
 }
 
-function getNoteDisplay(noteName) {
-  const solfege = getSolfege(noteName);
-  return solfege ? `${solfege}(${noteName?.[0]})` : noteName;
-}
-
 function getNoteColorStyle(noteName) {
   const color = NOTE_COLORS[noteName?.[0]] ?? NOTE_COLORS.C;
   return {
@@ -6653,11 +6532,6 @@ function getNoteColorStyle(noteName) {
     "--note-text": color.text,
     "--note-glow": color.glow,
   };
-}
-
-function getPlayPrompt(note) {
-  if (!note) return "";
-  return `${note.solfege ?? getSolfege(getPitch(note))}(${getPitch(note)}) 음을 연주하세요`;
 }
 
 function getShooterLevel(hitCount) {
@@ -6955,10 +6829,6 @@ function frequencyToNearest(frequency, noteList, maxCents = Infinity) {
     : null;
 }
 
-function frequencyToGameNote(frequency) {
-  return frequencyToNearest(frequency, ALL_PRACTICE_NOTES, 45);
-}
-
 function detectPitchYin(buffer, sampleRate, minFrequency = MIN_FREQ, maxFrequency = MAX_FREQ, threshold = 0.12) {
   const minTau = Math.floor(sampleRate / maxFrequency);
   const maxTau = Math.floor(sampleRate / minFrequency);
@@ -7042,7 +6912,6 @@ function App() {
   const [appTheme, setAppTheme] = useState(getStoredAppTheme);
   const designLabEnabled = isDesignLabEnabled();
   const themeOptions = useMemo(() => getSelectableAppThemeOptions(), [designLabEnabled]);
-  const darkThemeSelectable = themeOptions.some((option) => option.id === APP_THEMES.ECO);
   const themeMenuVisible = true;
   const miniChordMenuVisible = import.meta.env.DEV === true;
   const [designLabHeaderState, setDesignLabHeaderState] = useState(getStoredDesignLabHeaderState);
@@ -7863,20 +7732,10 @@ function App() {
   const chordCatalogGroups = useMemo(() => {
     return CHORD_NATURAL_ROOTS
       .map((root) => {
-        const sharpRoot = CHORD_SHARP_ROOTS[root] ?? null;
-        const catalogAccidentals = CHORD_ACCIDENTAL_OPTIONS
-          .map((option) => option.id)
-          .filter((accidental) => CHORD_ROOTS.includes(getChordLookupRoot(root, accidental)));
-        const rootSet = new Set(
-          catalogAccidentals.map((accidental) => getChordLookupRoot(root, accidental)),
-        );
-        const storedChords = CHORD_VIEW_OPTIONS.filter((chord) => rootSet.has(chord.root));
-        const generatedChords = catalogAccidentals.flatMap((accidental) =>
-          buildSelectableChordCatalogOptions(root, accidental),
-        );
+        const storedChords = CHORD_VIEW_OPTIONS.filter((chord) => chord.root === root);
+        const generatedChords = buildSelectableChordCatalogOptions(root, "natural");
         return {
           root,
-          sharpRoot,
           chords: mergeChordCatalogOptions(storedChords, generatedChords),
         };
       })
@@ -8196,6 +8055,17 @@ function App() {
       });
     });
   }, []);
+  const handleChordCatalogSelect = useCallback((chord) => {
+    const rootParts = splitChordRootForSelector(chord.root);
+    setViewerChordBaseRoot(rootParts.baseRoot);
+    setViewerChordAccidental(rootParts.accidental);
+    setViewerChordRoot(chord.root);
+    setViewerChordQuality(chord.quality);
+    setViewerChordExtension(chord.extension);
+    setViewerChordId(chord.id);
+    setViewerChordPosition("position1");
+    scrollToChordViewer();
+  }, [scrollToChordViewer]);
   const applyStage3StorageChordSelection = useCallback((baseRoot, accidental, quality, extension) => {
     const safeQuality = STAGE3_STORAGE_CHORD_QUALITY_OPTIONS.some((option) => option.id === quality) ? quality : "major";
     const safeExtension = normalizeChordExtensionForQuality(safeQuality, extension);
@@ -12463,8 +12333,7 @@ function App() {
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
     const root = document.documentElement;
-    const nextDatasetTheme =
-      appTheme === APP_THEMES.LIGHT ? "light" : appTheme === APP_THEMES.ECO ? "dark" : "classic-gold";
+    const nextDatasetTheme = appTheme === APP_THEMES.LIGHT ? "light" : "classic-gold";
     root.dataset.theme = nextDatasetTheme;
     return () => {
       if (root.dataset.theme === nextDatasetTheme) {
@@ -13577,7 +13446,6 @@ function App() {
                     <strong>테마</strong>
                     <p>화면 색상 선택</p>
                   </div>
-                  {darkThemeSelectable ? <span className="utilityThemeStatus">운영자</span> : null}
                 </div>
                 <div className="utilityThemeOptions" role="radiogroup" aria-label="테마">
                   {themeOptions.map((option) => (
@@ -13711,7 +13579,9 @@ function App() {
                 rel="noreferrer"
                 target="_blank"
               >
-                <span className="utilityMenuIcon" aria-hidden="true">@</span>
+                <span className="utilityMenuIcon utilityMenuInstagramIcon" aria-hidden="true">
+                  <Instagram size={18} strokeWidth={2.3} />
+                </span>
                 <div className="utilityMenuText">
                   <strong>문의하기</strong>
                   <small>Instagram @sungsu91_</small>
@@ -14845,7 +14715,10 @@ function App() {
                 onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.SCALE)}
                 type="button"
               >
-                스케일
+                <span className="viewerModeTabStack">
+                  <span>스케일</span>
+                  <span>펜타토닉</span>
+                </span>
               </button>
               <button
                 className={viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "selected" : ""}
@@ -14951,6 +14824,8 @@ function App() {
                 </div>
               ) : viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
                 <div className="chordBuilderPanel chordBuilderPanel--composer" aria-label="코드 빌더">
+                  <div className="chordBuilderPanelTitle">코드 빌더</div>
+
                   <ChordBuilderOptionSection layout="cols-5" title="프렛 구간">
                     {CHORD_VIEWER_POSITIONS.map((position) => (
                       <ChordBuilderChip
@@ -15044,57 +14919,13 @@ function App() {
               </div>
               <div className="chordCatalogScroll">
                 {chordCatalogGroups.map((group) => (
-                  <div className="chordCatalogRow" key={group.root}>
-                    <strong className="chordRootLabel">
-                      {group.root}
-                    </strong>
-                    <div className="chordMiniGrid">
-                      {group.chords.map((chord) => (
-                        <button
-                          className="chordMiniCard"
-                          key={chord.id}
-                          onClick={() => {
-                            const rootParts = splitChordRootForSelector(chord.root);
-                            setViewerChordBaseRoot(rootParts.baseRoot);
-                            setViewerChordAccidental(rootParts.accidental);
-                            setViewerChordRoot(chord.root);
-                            setViewerChordQuality(chord.quality);
-                            setViewerChordExtension(chord.extension);
-                            setViewerChordId(chord.id);
-                            setViewerChordPosition("position1");
-                            scrollToChordViewer();
-                          }}
-                          type="button"
-                        >
-                          <span>{chord.displayName}</span>
-                          <Fretboard
-                            barres={chord.barres ?? []}
-                            className="chordMiniSharedFretboard"
-                            fretRange={getCompactFretRange(chord.notes, chord.barres)}
-                            mode="chord"
-                            notes={chord.notes
-                              .filter((note) => Number(note.fretNumber) > 0)
-                              .map((note, index) => ({
-                                ...note,
-                                id: `${chord.id}-mini-${note.stringNumber}-${note.fretNumber}-${index}`,
-                                label: getChordDisplayNoteName(note.noteName),
-                                isRoot: false,
-                              }))}
-                            rootNote=""
-                            selectedNotes={["__chord-shape-only__"]}
-                            showFingering={showChordFingeringGuide}
-                            showFretNumbers
-                            showStringNames={false}
-                            stringStates={Object.fromEntries(
-                              [1, 2, 3, 4, 5, 6]
-                                .map((stringNumber) => [stringNumber, getChordStringState(chord, stringNumber)])
-                                .filter(([, state]) => state === "x" || state === "o"),
-                            )}
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  <ChordCatalogRow
+                    getChordStringState={getChordStringState}
+                    group={group}
+                    key={group.root}
+                    onSelectChord={handleChordCatalogSelect}
+                    showChordFingeringGuide={showChordFingeringGuide}
+                  />
                 ))}
               </div>
             </section>
@@ -16214,16 +16045,20 @@ function App() {
                     ) : null}
                   </div>
                   <div className="currentProgressionReadout" aria-label="현재 진행중 코드 진행">
-                    {hasChordTransitionProgression ? chordTransitionProgression.map((chord, index) => (
-                      <button
-                        className={index === chordPracticeIndex ? "active" : ""}
-                        key={`readonly-${chord.id}-${index}`}
-                        onClick={() => setStage3ProgressIndex(index)}
-                        type="button"
-                      >
-                        {chord.displayName}
-                      </button>
-                    )) : (
+                    {hasChordTransitionProgression ? chordTransitionProgression.map((chord, index) => {
+                      const isCurrentChord = index === (chordPracticeIndex % chordTransitionProgression.length);
+                      return (
+                        <button
+                          aria-current={isCurrentChord ? "step" : undefined}
+                          className={isCurrentChord ? "active" : ""}
+                          key={`readonly-${chord.id}-${index}`}
+                          onClick={() => setStage3ProgressIndex(index)}
+                          type="button"
+                        >
+                          {chord.displayName}
+                        </button>
+                      );
+                    }) : (
                       <small>추천 또는 사용자 진행을 선택해주세요</small>
                     )}
                   </div>
@@ -17522,5 +17357,3 @@ function App() {
 }
 
 export default App;
-
-
