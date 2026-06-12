@@ -4187,53 +4187,6 @@ h1 {
   opacity: 0.88;
 }
 
-.shooterArena .enemy.shooterEnemy.shooterEnemy--imageTarget {
-  width: calc(var(--hit-note-size, 54px) * 0.92);
-  height: calc(var(--hit-note-size, 54px) * 1.72);
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  overflow: visible;
-}
-
-.shooterEnemyAsset {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 0;
-  width: 150%;
-  height: 188%;
-  max-width: none;
-  object-fit: contain;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  filter:
-    drop-shadow(0 0 8px rgba(255, 199, 74, 0.42))
-    drop-shadow(0 8px 14px rgba(0, 0, 0, 0.34));
-}
-
-.shooterArena .enemy.shooterEnemy.shooterEnemy--imageTarget em,
-.shooterArena .enemy.shooterEnemy.shooterEnemy--imageTarget span {
-  color: #fff2c0;
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.86),
-    0 0 8px rgba(255, 191, 64, 0.38);
-}
-
-.shooterArena .enemy.shooterEnemy.shooterEnemy--imageTarget em {
-  padding: 1px 5px;
-  border: 1px solid rgba(255, 226, 143, 0.26);
-  border-radius: 999px;
-  background: rgba(18, 10, 4, 0.54);
-  font-size: 12px;
-}
-
-.shooterArena .enemy.shooterEnemy.shooterEnemy--imageTarget span {
-  margin-top: 2px;
-  font-size: 7px;
-}
-
 .hitZone {
   position: absolute;
   left: 50%;
@@ -7853,8 +7806,9 @@ button.primary:hover:not(:disabled) {
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 24px;
+  min-width: 24px;
   height: 24px;
+  padding: 0 5px;
   border-radius: 999px;
   color: rgba(224, 242, 254, 0.7);
   font-size: 24px;
@@ -21067,9 +21021,6 @@ body {
   background: rgba(91, 104, 113, 0.38) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055) !important;
   opacity: 1 !important;
-  transition:
-    background-color 140ms ease,
-    box-shadow 140ms ease !important;
 }
 
 .standaloneMetronomePanel .standaloneMetronomeTimeline .mobileBeatDots span.active {
@@ -23821,12 +23772,6 @@ body {
   line-height: 1;
   color: rgba(236, 226, 212, 0.58);
   text-shadow: 0 0 0 rgba(0, 0, 0, 0);
-  transition:
-    border-color 120ms ease,
-    color 120ms ease,
-    filter 120ms ease,
-    opacity 120ms ease,
-    outline-color 120ms ease;
 }
 
 .standaloneMetronomePanel .metronomeBeatMatrix--main button.accent .metronomeBeatGlyph {
@@ -27782,6 +27727,37 @@ body {
   opacity: 0.72;
 }
 
+.shooterArena .energyProjectile.energyProjectile--imageProjectile {
+  width: clamp(24px, 6.8vw, 31px);
+  height: clamp(58px, 16vw, 76px);
+  border: 0;
+  border-radius: 0;
+  clip-path: none;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.shooterArena .energyProjectile.energyProjectile--imageProjectile::before,
+.shooterArena .energyProjectile.energyProjectile--imageProjectile::after {
+  display: none;
+}
+
+.energyProjectileAsset {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 145%;
+  height: 145%;
+  max-width: none;
+  object-fit: contain;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  filter:
+    drop-shadow(0 0 9px rgba(255, 199, 74, 0.52))
+    drop-shadow(0 0 18px rgba(255, 147, 32, 0.28));
+}
+
 .shooterArena .laserBeam {
   z-index: 13;
   height: 12px !important;
@@ -29133,10 +29109,6 @@ body {
   overflow: visible !important;
   text-shadow: none !important;
   transform: none !important;
-  transition:
-    border-color 80ms ease,
-    box-shadow 80ms ease,
-    filter 80ms ease !important;
 }
 
 .standaloneMetronomePanel .metronomeBeatMatrix--main button.accent .metronomeBeatGlyph {
@@ -29280,11 +29252,6 @@ body {
   overflow: visible !important;
   text-shadow: none !important;
   transform: translateZ(0);
-  transition:
-    box-shadow 90ms ease,
-    border-color 90ms ease,
-    background 90ms ease,
-    filter 90ms ease !important;
 }
 
 .beatDot__glyph::before,
@@ -29337,24 +29304,12 @@ body {
 .beatDot.active .beatDot__glyph,
 .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.active .beatDot__glyph {
   border-color: rgba(255, 226, 156, 0.98) !important;
-  box-shadow:
-    var(--beat-dot-shadow),
-    0 0 0 5px rgba(255, 219, 135, 0.18),
-    0 0 0 10px rgba(217, 170, 85, 0.08),
-    0 0 26px rgba(255, 219, 135, 0.68),
-    0 0 68px rgba(217, 170, 85, 0.32) !important;
   outline: 0 !important;
 }
 
 .beatDot--mute.active .beatDot__glyph,
 .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--mute.active .beatDot__glyph {
   border-color: rgba(236, 226, 212, 0.52) !important;
-  box-shadow:
-    var(--beat-dot-shadow),
-    0 0 0 5px rgba(255, 219, 135, 0.14),
-    0 0 0 10px rgba(217, 170, 85, 0.06),
-    0 0 22px rgba(255, 219, 135, 0.34),
-    0 0 54px rgba(217, 170, 85, 0.18) !important;
 }
 
 .metronomeVisualLabDot .beatDot {
@@ -30480,12 +30435,6 @@ body {
 .theme-pearl .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.active .beatDot__glyph,
 .theme-white .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.active .beatDot__glyph {
   border-color: rgba(126, 75, 18, 0.92) !important;
-  box-shadow:
-    var(--beat-dot-shadow),
-    0 0 0 5px rgba(221, 170, 73, 0.24),
-    0 0 0 10px rgba(157, 108, 44, 0.12),
-    0 0 24px rgba(196, 134, 42, 0.34),
-    0 0 54px rgba(137, 86, 25, 0.16) !important;
 }
 
 .appFrame.theme-pearl .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--mute.active .beatDot__glyph,
@@ -30493,12 +30442,6 @@ body {
 .theme-pearl .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--mute.active .beatDot__glyph,
 .theme-white .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--mute.active .beatDot__glyph {
   border-color: rgba(122, 109, 91, 0.58) !important;
-  box-shadow:
-    var(--beat-dot-shadow),
-    0 0 0 5px rgba(145, 118, 78, 0.18),
-    0 0 0 10px rgba(112, 91, 66, 0.08),
-    0 0 20px rgba(130, 104, 70, 0.22),
-    0 0 46px rgba(108, 82, 48, 0.1) !important;
 }
 
 /* Final marker contrast: gold marker with ink-black text for instant readability. */
@@ -36919,9 +36862,6 @@ html body .chordTransitionHud .beatDot.active .beatDot__glyph {
 
 .standaloneMetronomePanel .metronomeBeatMatrix--dot .beatDot.active .beatDot__glyph,
 .standaloneMetronomePanel .metronomeBeatMatrix--circle .beatDot.metronomeModeCircleBeat.active .beatDot__glyph {
-  box-shadow:
-    var(--beat-dot-shadow),
-    0 0 11px rgba(255, 219, 135, 0.42) !important;
 }
 
 /* Independent metronome split tone controls: 1st beat and remaining beats. */
@@ -38564,7 +38504,6 @@ html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main 
 html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot__glyph {
   box-sizing: border-box;
   border-radius: 999px;
-  transition: background-color 0.08s linear, border-color 0.08s linear, box-shadow 0.08s linear, opacity 0.08s linear;
 }
 
 html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--strong .beatDot__glyph {
@@ -38595,33 +38534,6 @@ html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main 
   background: transparent !important;
   opacity: 0.48 !important;
   box-shadow: none !important;
-}
-
-html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--strong.active .beatDot__glyph {
-  border-color: #8f6326 !important;
-  background:
-    radial-gradient(circle at 35% 24%, rgba(255, 247, 212, 0.86), transparent 40%),
-    linear-gradient(145deg, #f0d18a, #ad782f) !important;
-  box-shadow:
-    0 0 0 5px rgba(173, 122, 49, 0.18),
-    0 0 18px rgba(173, 122, 49, 0.32),
-    inset 0 1px 0 rgba(255, 251, 232, 0.72) !important;
-}
-
-html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--weak.active .beatDot__glyph {
-  border-color: #6f5d48 !important;
-  background: #fff8e9 !important;
-  box-shadow:
-    0 0 0 5px rgba(91, 77, 58, 0.12),
-    0 0 12px rgba(91, 77, 58, 0.16),
-    inset 0 0 0 6px rgba(255, 255, 255, 0.62) !important;
-}
-
-html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--mute.active .beatDot__glyph {
-  border-color: #81776a !important;
-  background: rgba(176, 166, 151, 0.16) !important;
-  opacity: 0.68 !important;
-  box-shadow: 0 0 0 4px rgba(95, 84, 70, 0.08) !important;
 }
 
 html body .app.theme-light .standaloneMetronomePanel .metronomeSelectLabel {
@@ -39025,36 +38937,6 @@ html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main 
   border: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
-}
-
-html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--strong.active .beatDot__glyph {
-  background:
-    radial-gradient(circle at 35% 27%, rgba(255, 239, 196, 0.78), transparent 42%),
-    linear-gradient(145deg, #e7c77e, #9b6b2e) !important;
-  border-color: #8f6326 !important;
-  box-shadow:
-    0 0 0 6px rgba(173, 122, 49, 0.16),
-    0 0 0 1px rgba(112, 76, 24, 0.24),
-    0 7px 16px rgba(77, 55, 24, 0.18),
-    inset 0 1px 0 rgba(255, 251, 232, 0.56) !important;
-}
-
-html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--weak.active .beatDot__glyph {
-  background: rgba(255, 251, 242, 0.74) !important;
-  border-color: #7d6a4d !important;
-  box-shadow:
-    0 0 0 6px rgba(125, 106, 77, 0.14),
-    0 0 0 1px rgba(96, 76, 44, 0.2),
-    inset 0 0 0 5px rgba(255, 255, 255, 0.46) !important;
-}
-
-html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--mute.active .beatDot__glyph {
-  background: transparent !important;
-  border-color: #81776a !important;
-  opacity: 0.58 !important;
-  box-shadow:
-    0 0 0 6px rgba(95, 84, 70, 0.1),
-    0 0 0 1px rgba(95, 84, 70, 0.16) !important;
 }
 
 html body .app.theme-light .utilityMenuDim {
@@ -40456,65 +40338,8 @@ html body .app.theme-light .referenceBeatMetronomeDot.active .beatDot__glyph {
     0 0 14px rgba(168, 118, 61, 0.28) !important;
 }
 
-html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--strong.active .beatDot__glyph {
-  border-color: #7d5127 !important;
-  background:
-    radial-gradient(circle at 35% 24%, rgba(255, 246, 216, 0.94), transparent 42%),
-    linear-gradient(145deg, #f2cf84, #a46a2e) !important;
-  box-shadow:
-    0 0 0 7px rgba(168, 118, 61, 0.22),
-    0 0 24px rgba(168, 118, 61, 0.42),
-    inset 0 1px 0 rgba(255, 251, 232, 0.78) !important;
-}
-
-html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--weak.active .beatDot__glyph {
-  border-color: #8d6d4f !important;
-  background: rgba(255, 248, 239, 0.76) !important;
-  box-shadow:
-    0 0 0 6px rgba(126, 88, 50, 0.16),
-    0 0 16px rgba(126, 88, 50, 0.22),
-    inset 0 0 0 5px rgba(255, 255, 255, 0.56) !important;
-}
-
-html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--mute.active .beatDot__glyph {
-  border-color: #6f6259 !important;
-  border-style: dotted !important;
-  background: rgba(122, 110, 100, 0.1) !important;
-  opacity: 0.86 !important;
-  box-shadow:
-    0 0 0 6px rgba(93, 82, 73, 0.12),
-    0 0 16px rgba(93, 82, 73, 0.18) !important;
-}
-
-/* Main metronome active dots: slimmer rim, stronger color signal. */
 html body .app .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.active .beatDot__glyph {
   border-width: 2px !important;
-}
-
-html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--strong.active .beatDot__glyph {
-  border-color: #9a641f !important;
-  box-shadow:
-    0 0 0 3px rgba(192, 128, 43, 0.2),
-    0 0 22px rgba(192, 128, 43, 0.42),
-    inset 0 1px 0 rgba(255, 251, 232, 0.78) !important;
-}
-
-html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--weak.active .beatDot__glyph {
-  border-color: #2f8f58 !important;
-  background:
-    radial-gradient(circle at 35% 24%, rgba(239, 255, 244, 0.82), transparent 40%),
-    linear-gradient(145deg, rgba(131, 213, 153, 0.7), rgba(47, 143, 88, 0.78)) !important;
-  box-shadow:
-    0 0 0 3px rgba(47, 143, 88, 0.16),
-    0 0 17px rgba(47, 143, 88, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.68) !important;
-}
-
-html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--mute.active .beatDot__glyph {
-  border-width: 2px !important;
-  box-shadow:
-    0 0 0 3px rgba(93, 82, 73, 0.1),
-    0 0 13px rgba(93, 82, 73, 0.16) !important;
 }
 
 /* Pearl Mode final contrast pass: guide, controls, training boards, and beat dots. */
@@ -40703,18 +40528,6 @@ html body .app.theme-light :is(
     inset 0 1px 0 rgba(255, 248, 224, 0.82) !important;
 }
 
-html body .app.theme-light :is(
-  .referenceBeatMetronomeDot.beatDot--strong,
-  .referenceBeatMetronomeDot.beatDot--weak,
-  .referenceBeatMetronomeDot.beatDot--mute,
-  .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot
-) .beatDot__glyph {
-  transition:
-    box-shadow 150ms ease,
-    border-color 150ms ease,
-    background 150ms ease !important;
-}
-
 html body .app.theme-light .referenceBeatMetronomeDot.beatDot--strong .beatDot__glyph,
 html body .app.theme-light .metronomeSelectLabelDot--strong {
   border-color: #8a5b2d !important;
@@ -40747,30 +40560,6 @@ html body .app.theme-light .referenceBeatMetronomeDot.beatDot--mute .beatDot__gl
 
 html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--strong.active .beatDot__glyph {
   border-color: #72451e !important;
-  box-shadow:
-    0 0 0 9px rgba(168, 118, 61, 0.26),
-    0 0 26px rgba(168, 118, 61, 0.46),
-    inset 0 1px 0 rgba(255, 251, 232, 0.86) !important;
-}
-
-html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--weak.active .beatDot__glyph {
-  border-color: #6c5141 !important;
-  background: rgba(255, 250, 246, 0.76) !important;
-  box-shadow:
-    0 0 0 8px rgba(108, 81, 65, 0.2),
-    0 0 19px rgba(108, 81, 65, 0.24),
-    inset 0 0 0 7px rgba(255, 255, 255, 0.66) !important;
-}
-
-html body .app.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--mute.active .beatDot__glyph {
-  border-color: #4f453e !important;
-  border-style: dotted !important;
-  background: rgba(79, 69, 62, 0.08) !important;
-  opacity: 0.94 !important;
-  box-shadow:
-    0 0 0 8px rgba(79, 69, 62, 0.16),
-    0 0 18px rgba(79, 69, 62, 0.2),
-    inset 0 0 0 5px rgba(255, 255, 255, 0.42) !important;
 }
 
 /* Pearl Mode hard overrides for legacy high-specificity controls. */
@@ -40997,65 +40786,6 @@ html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetro
     inset 0 0 0 5px rgba(255, 255, 255, 0.44) !important;
 }
 
-html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix.metronomeBeatMatrix--main .beatDot.beatDot--strong.active .beatDot__glyph {
-  border-color: #70441f !important;
-  box-shadow:
-    0 0 0 10px rgba(168, 118, 61, 0.28),
-    0 0 29px rgba(168, 118, 61, 0.48),
-    0 8px 18px rgba(92, 58, 44, 0.22),
-    inset 0 1px 0 rgba(255, 251, 232, 0.88) !important;
-}
-
-html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix.metronomeBeatMatrix--main .beatDot.beatDot--weak.active .beatDot__glyph {
-  box-shadow:
-    0 0 0 9px rgba(110, 85, 69, 0.22),
-    0 0 21px rgba(110, 85, 69, 0.28),
-    inset 0 0 0 8px rgba(255, 255, 255, 0.7) !important;
-}
-
-html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix.metronomeBeatMatrix--main .beatDot.beatDot--mute.active .beatDot__glyph {
-  border-style: dotted !important;
-  opacity: 1 !important;
-  box-shadow:
-    0 0 0 9px rgba(86, 75, 67, 0.18),
-    0 0 20px rgba(86, 75, 67, 0.22),
-    inset 0 0 0 6px rgba(255, 255, 255, 0.48) !important;
-}
-
-html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix.metronomeBeatMatrix--main .beatDot.active .beatDot__glyph {
-  border-width: 2px !important;
-}
-
-html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix.metronomeBeatMatrix--main .beatDot.beatDot--strong.active .beatDot__glyph {
-  border-color: #9a641f !important;
-  background:
-    radial-gradient(circle at 35% 24%, rgba(255, 248, 222, 0.96), transparent 38%),
-    linear-gradient(145deg, #f5cf79, #b9772f) !important;
-  box-shadow:
-    0 0 0 3px rgba(192, 128, 43, 0.2),
-    0 0 22px rgba(192, 128, 43, 0.42),
-    inset 0 1px 0 rgba(255, 251, 232, 0.78) !important;
-}
-
-html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix.metronomeBeatMatrix--main .beatDot.beatDot--weak.active .beatDot__glyph {
-  border-color: #2f8f58 !important;
-  background:
-    radial-gradient(circle at 35% 24%, rgba(239, 255, 244, 0.82), transparent 40%),
-    linear-gradient(145deg, rgba(131, 213, 153, 0.72), rgba(47, 143, 88, 0.8)) !important;
-  box-shadow:
-    0 0 0 3px rgba(47, 143, 88, 0.16),
-    0 0 17px rgba(47, 143, 88, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.68) !important;
-}
-
-html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix.metronomeBeatMatrix--main .beatDot.beatDot--mute.active .beatDot__glyph {
-  border-width: 2px !important;
-  box-shadow:
-    0 0 0 3px rgba(86, 75, 67, 0.12),
-    0 0 13px rgba(86, 75, 67, 0.16),
-    inset 0 0 0 4px rgba(255, 255, 255, 0.4) !important;
-}
-
 /* Pearl standalone metronome advanced panels: Automator / Tracker. */
 html body .app.theme-light .standaloneMetronomePanel .metronomeAdvancedSummary,
 html body .app.theme-light .standaloneMetronomePanel .metronomeTrackerResetButton {
@@ -41266,47 +40996,6 @@ html body .app .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.act
   border-width: 2px !important;
 }
 
-html body .app .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--strong.active .beatDot__glyph {
-  border-color: rgba(255, 230, 163, 0.98) !important;
-  background:
-    radial-gradient(circle at 36% 24%, rgba(255, 251, 226, 0.96), transparent 39%),
-    linear-gradient(145deg, #ffe7a0 0%, #d7a24a 52%, #6b411e 100%) !important;
-  box-shadow:
-    0 0 0 3px rgba(255, 226, 156, 0.18),
-    0 0 22px rgba(255, 219, 135, 0.46),
-    0 0 54px rgba(217, 170, 85, 0.24),
-    inset 0 1px 0 rgba(255, 251, 232, 0.7),
-    inset 0 -8px 14px rgba(58, 33, 10, 0.34) !important;
-  filter: none !important;
-}
-
-html body .app .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--weak.active .beatDot__glyph {
-  border-color: rgba(255, 228, 166, 0.92) !important;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(255, 222, 150, 0.1), transparent 48%),
-    rgba(4, 5, 5, 0.26) !important;
-  box-shadow:
-    0 0 0 3px rgba(255, 226, 156, 0.14),
-    0 0 18px rgba(255, 219, 135, 0.3),
-    0 0 42px rgba(217, 170, 85, 0.14),
-    inset 0 0 0 1px rgba(255, 244, 210, 0.08) !important;
-  filter: none !important;
-}
-
-html body .app .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--mute.active .beatDot__glyph {
-  border-color: rgba(219, 205, 178, 0.5) !important;
-  border-style: dotted !important;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(236, 226, 212, 0.06), transparent 52%),
-    transparent !important;
-  opacity: 0.82 !important;
-  box-shadow:
-    0 0 0 2px rgba(236, 226, 212, 0.07),
-    0 0 15px rgba(236, 226, 212, 0.12),
-    0 0 34px rgba(217, 170, 85, 0.08) !important;
-  filter: none !important;
-}
-
 /* Timer wheel selector: one shared glass plate for minutes and seconds. */
 html body .app .standaloneMetronomePanel .metronomeTimerWheelPicker::after {
   position: absolute !important;
@@ -41435,52 +41124,6 @@ html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metro
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix--main.metronomeBeatMatrix--main .beatDot.beatDot.active .beatDot__glyph {
   border-width: 2px !important;
   filter: none !important;
-}
-
-html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix--main.metronomeBeatMatrix--main .beatDot.beatDot--strong.active .beatDot__glyph {
-  border-color: rgba(255, 230, 163, 0.98) !important;
-  background:
-    radial-gradient(circle at 36% 24%, rgba(255, 251, 226, 0.96), transparent 39%),
-    linear-gradient(145deg, #ffe7a0 0%, #d7a24a 52%, #6b411e 100%) !important;
-  background-color: transparent !important;
-  box-shadow:
-    0 0 0 3px rgba(255, 226, 156, 0.18),
-    0 0 22px rgba(255, 219, 135, 0.46),
-    0 0 54px rgba(217, 170, 85, 0.24),
-    inset 0 1px 0 rgba(255, 251, 232, 0.7),
-    inset 0 -8px 14px rgba(58, 33, 10, 0.34) !important;
-}
-
-html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix--main.metronomeBeatMatrix--main .beatDot.beatDot--weak.active .beatDot__glyph {
-  border-color: rgba(255, 228, 166, 0.96) !important;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(255, 226, 156, 0.1), transparent 48%),
-    rgba(4, 5, 5, 0.28) !important;
-  background-color: rgba(4, 5, 5, 0.28) !important;
-  box-shadow:
-    0 0 0 2px rgba(255, 226, 156, 0.16),
-    0 0 20px rgba(255, 219, 135, 0.34),
-    0 0 46px rgba(217, 170, 85, 0.16),
-    inset 0 0 0 1px rgba(255, 244, 210, 0.08) !important;
-}
-
-html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix--main.metronomeBeatMatrix--main .beatDot.beatDot--weak.active .beatDot__innerMark {
-  background: #e7c16d !important;
-  box-shadow: 0 0 7px rgba(255, 219, 135, 0.34) !important;
-}
-
-html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix--main.metronomeBeatMatrix--main .beatDot.beatDot--mute.active .beatDot__glyph {
-  border-color: rgba(219, 205, 178, 0.52) !important;
-  border-style: dotted !important;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(236, 226, 212, 0.06), transparent 52%),
-    transparent !important;
-  background-color: transparent !important;
-  opacity: 0.82 !important;
-  box-shadow:
-    0 0 0 2px rgba(236, 226, 212, 0.08),
-    0 0 16px rgba(236, 226, 212, 0.13),
-    0 0 34px rgba(217, 170, 85, 0.08) !important;
 }
 
 /* Dark theme overlay correction: keep the current screen visible behind menus/popovers. */
@@ -45469,7 +45112,7 @@ html body .app.app.app .chordTransitionHud .trainingBeatDotPlain.trainingBeatDot
     inset 0 1px 0 rgba(255, 255, 255, 0.48) !important;
 }
 
-/* 2. Standalone metronome: strong filled, weak outlined, mute crossed; active still passes visibly. */
+/* 2. Standalone metronome: active keeps the dot shape and only brightens the rim. */
 html body .app.app.app .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot .beatDot__glyph {
   background: transparent !important;
   box-shadow: none !important;
@@ -45495,39 +45138,21 @@ html body .app.app.app .standaloneMetronomePanel .metronomeBeatMatrix--main .bea
 
 html body .app.app.app .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.active .beatDot__glyph {
   border-color: var(--riff-dot-active) !important;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.78), transparent 44%),
-    var(--riff-dot-active) !important;
-  box-shadow:
-    0 0 0 5px var(--riff-dot-active-soft),
-    0 0 16px var(--riff-dot-active-glow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
 }
 
 html body .app.app.app .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--mute.active .beatDot__glyph {
   border-style: dotted !important;
   border-color: var(--riff-dot-active) !important;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.6), transparent 44%),
-    var(--riff-dot-active-soft) !important;
+  background: transparent !important;
 }
 
 html body .app.theme-light.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.active .beatDot__glyph {
   border-color: rgba(92, 178, 215, 0.96) !important;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.82), transparent 44%),
-    rgba(112, 196, 226, 0.96) !important;
-  box-shadow:
-    0 0 0 5px rgba(112, 196, 226, 0.3),
-    0 0 16px rgba(92, 178, 215, 0.46),
-    inset 0 1px 0 rgba(255, 255, 255, 0.58) !important;
 }
 
 html body .app.theme-light.theme-light .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot--mute.active .beatDot__glyph {
   border-color: rgba(92, 178, 215, 0.96) !important;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.64), transparent 44%),
-    rgba(112, 196, 226, 0.28) !important;
+  background: transparent !important;
 }
 
 /* 3. Single position & scale: minimal off states, clear active pass. */
@@ -45581,13 +45206,6 @@ html body main.app.theme-light.theme-light
   .beatDot.beatDot.active
   .beatDot__glyph {
   border-color: rgba(56, 189, 248, 0.98) !important;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.92), transparent 42%),
-    linear-gradient(180deg, rgba(166, 232, 255, 0.98), rgba(94, 204, 242, 0.96)) !important;
-  box-shadow:
-    0 0 0 5px rgba(125, 220, 255, 0.36),
-    0 0 18px rgba(56, 189, 248, 0.58),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
 }
 
 html body main.app.theme-light.theme-light
@@ -45606,9 +45224,7 @@ html body main.app.theme-light.theme-light
   .beatDot__glyph {
   border-style: dotted !important;
   border-color: rgba(56, 189, 248, 0.98) !important;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.72), transparent 42%),
-    rgba(125, 220, 255, 0.34) !important;
+  background: transparent !important;
 }
 
 /* White standalone metronome only: keep every beat ring in the pink-pearl family. */
@@ -45657,13 +45273,6 @@ html body main.app.theme-light.theme-light
   .beatDot.beatDot.active
   .beatDot__glyph {
   border-color: rgba(190, 93, 116, 1) !important;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.92), transparent 42%),
-    linear-gradient(180deg, rgba(255, 230, 236, 0.98), rgba(224, 132, 152, 0.94)) !important;
-  box-shadow:
-    0 0 0 6px rgba(226, 150, 166, 0.36),
-    0 0 22px rgba(190, 93, 116, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
 }
 
 html body main.app.theme-light.theme-light
@@ -45673,10 +45282,6 @@ html body main.app.theme-light.theme-light
   .beatDot__glyph {
   border-color: rgba(190, 93, 116, 0.98) !important;
   background: transparent !important;
-  box-shadow:
-    0 0 0 6px rgba(226, 150, 166, 0.2),
-    0 0 18px rgba(190, 93, 116, 0.34),
-    inset 0 0 0 2px rgba(255, 255, 255, 0.72) !important;
 }
 
 html body main.app.theme-light.theme-light
@@ -45686,10 +45291,7 @@ html body main.app.theme-light.theme-light
   .beatDot__glyph {
   border-color: rgba(190, 93, 116, 0.95) !important;
   border-style: dotted !important;
-  background: rgba(226, 150, 166, 0.14) !important;
-  box-shadow:
-    0 0 0 5px rgba(226, 150, 166, 0.16),
-    0 0 15px rgba(190, 93, 116, 0.24) !important;
+  background: transparent !important;
 }
 
 /* Final contact icon override: keep Instagram color visible in the white rose-pearl menu. */

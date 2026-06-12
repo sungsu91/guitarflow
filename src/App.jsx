@@ -3556,10 +3556,11 @@ const GUITAR_LAB_VARIANTS = [
   ["acoustic-real-trace", "Acoustic", "Normal", "실제 통기타 누끼 라인을 기준으로 만든 노말 등급 정면 PNG 후보", "#d79b4d", "#3a210f", "image-real-trace", "/images/shooter-acoustic-real-trace.png"],
   ["acoustic-epic-trace", "Acoustic", "Epic", "같은 통기타 라인에 레드 선버스트와 에픽 외곽광을 입힌 PNG 후보", "#c74323", "#ff8a2a", "image-epic-trace", "/images/shooter-acoustic-epic-trace.png"],
   ["acoustic-legendary-trace", "Acoustic", "Legendary", "화이트 바디와 골드 장식을 입힌 레전더리 기타 PNG 후보", "#f4d58a", "#ffcf52", "image-legendary-trace", "/images/shooter-guitar-legendary-ornate.png", "/images/shooter-pick-legendary-ornate.png"],
+  ["acoustic-legendary-core-trace", "Acoustic", "Legendary Core", "기존 화이트 골드 펄 레전더리 기타 PNG 후보", "#f4d58a", "#ffcf52", "image-legendary-core-trace", "/images/shooter-acoustic-legendary-trace.png"],
   ["acoustic-core-dread-01", "Acoustic", "Core Dread 01", "진한 자개 로제트와 위로 정리된 브릿지 위치를 적용한 기본 드레드넛 후보", "#b97836", "#f1ca7a", "core-dread-01"],
   ["acoustic-core-dread-02", "Acoustic", "Core Dread 02", "마호가니 톤을 유지하면서 사운드홀과 브릿지 간격을 좁힌 후보", "#8f5230", "#f8e8b0", "core-dread-02"],
   ["acoustic-core-dread-03", "Acoustic", "Core Dread 03", "선버스트 깊이감과 진한 자개 사운드홀을 더한 스테이지용 후보", "#c06f24", "#1a0e06", "core-dread-03"],
-].map(([id, pack, model, description, bodyColor, accentColor, shape, assetSrc, targetAssetSrc], index) => ({
+].map(([id, pack, model, description, bodyColor, accentColor, shape, assetSrc, projectileAssetSrc], index) => ({
   id,
   pack,
   model,
@@ -3569,7 +3570,7 @@ const GUITAR_LAB_VARIANTS = [
   accentColor,
   shape,
   assetSrc,
-  targetAssetSrc,
+  projectileAssetSrc,
   index: index + 1,
 }));
 const DEFAULT_GUITAR_LAB_VARIANT_ID = "acoustic-core-dread-01";
@@ -3579,8 +3580,9 @@ const SHOOTER_RARITY_GUITAR_VARIANT_IDS = [
   SHOOTER_TRACE_GUITAR_VARIANT_ID,
   "acoustic-epic-trace",
   "acoustic-legendary-trace",
+  "acoustic-legendary-core-trace",
 ];
-const SHOOTER_RARITY_GUITAR_SLOT_LABELS = ["N", "E", "L"];
+const SHOOTER_RARITY_GUITAR_SLOT_LABELS = ["N", "E", "L", "L2"];
 const FRESH_ACOUSTIC_GUITAR_IDS = new Set([
   ...SHOOTER_RARITY_GUITAR_VARIANT_IDS,
   "acoustic-core-dread-01",
@@ -9855,9 +9857,19 @@ function App() {
     const arena = shooterArenaRef.current;
     if (!arena || !projectile) return;
     const node = document.createElement("div");
+    const projectileAssetSrc = projectile.projectileAssetSrc;
     const startPoint = getShooterArenaPoint(projectile.startX, projectile.startY);
     const endPoint = getShooterArenaPoint(projectile.endX, projectile.endY);
-    node.className = "energyProjectile energyProjectile--immediate";
+    node.className = `energyProjectile energyProjectile--immediate ${projectileAssetSrc ? "energyProjectile--imageProjectile" : ""}`;
+    if (projectileAssetSrc) {
+      const asset = document.createElement("img");
+      asset.alt = "";
+      asset.setAttribute("aria-hidden", "true");
+      asset.className = "energyProjectileAsset";
+      asset.draggable = false;
+      asset.src = projectileAssetSrc;
+      node.appendChild(asset);
+    }
     node.style.setProperty("--projectile-start-x", `${projectile.startX}%`);
     node.style.setProperty("--projectile-start-y", `${projectile.startY}%`);
     node.style.setProperty("--projectile-end-x", `${projectile.endX}%`);
@@ -15596,10 +15608,9 @@ function App() {
 
             {shooterTargets.map((target) => {
               const targetDetail = target.detail ?? getShooterNoteDetail(target.note);
-              const targetAssetSrc = selectedGuitarVariant.targetAssetSrc;
               return (
               <div
-                className={`enemy shooterEnemy ${targetAssetSrc ? "shooterEnemy--imageTarget" : ""} ${!target.defeated ? "fallingTarget" : ""} ${target.defeated ? "defeated" : ""}`}
+                className={`enemy shooterEnemy ${!target.defeated ? "fallingTarget" : ""} ${target.defeated ? "defeated" : ""}`}
                 key={target.id}
                 ref={(node) => {
                   if (node) {
@@ -15619,15 +15630,6 @@ function App() {
                   ...getNoteColorStyle(target.note),
                 }}
               >
-                {targetAssetSrc ? (
-                  <img
-                    alt=""
-                    aria-hidden="true"
-                    className="shooterEnemyAsset"
-                    draggable="false"
-                    src={targetAssetSrc}
-                  />
-                ) : null}
                 <i className="enemyEar enemyEar--left" aria-hidden="true" />
                 <i className="enemyEar enemyEar--right" aria-hidden="true" />
                 <i className="enemyFace" aria-hidden="true" />
@@ -15709,9 +15711,10 @@ function App() {
 
             {projectiles.map((projectile) => {
               if (projectile.renderedByDom) return null;
+              const projectileAssetSrc = selectedGuitarVariant.projectileAssetSrc;
               return (
                 <div
-                  className="energyProjectile"
+                  className={`energyProjectile ${projectileAssetSrc ? "energyProjectile--imageProjectile" : ""}`}
                   key={projectile.id}
                   style={{
                     "--projectile-start-x": `${projectile.startX}%`,
@@ -15722,7 +15725,17 @@ function App() {
                     "--projectile-angle": `${projectile.angle ?? 0}deg`,
                     "--projectile-spin": `${projectile.spin ?? 10}deg`,
                   }}
-                />
+                >
+                  {projectileAssetSrc ? (
+                    <img
+                      alt=""
+                      aria-hidden="true"
+                      className="energyProjectileAsset"
+                      draggable="false"
+                      src={projectileAssetSrc}
+                    />
+                  ) : null}
+                </div>
               );
             })}
 
