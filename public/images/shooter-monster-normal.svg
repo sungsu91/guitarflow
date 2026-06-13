@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Normal note monster">
+  <defs>
+    <radialGradient id="normalBody" cx="34%" cy="24%" r="78%">
+      <stop offset="0" stop-color="#8ee8ff"/>
+      <stop offset="0.28" stop-color="#1f93e5"/>
+      <stop offset="0.72" stop-color="#07569d"/>
+      <stop offset="1" stop-color="#033060"/>
+    </radialGradient>
+    <linearGradient id="normalHorn" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="0.48" stop-color="#b9c6d8"/>
+      <stop offset="1" stop-color="#57677c"/>
+    </linearGradient>
+    <filter id="normalGlow" x="-42%" y="-42%" width="184%" height="184%">
+      <feGaussianBlur stdDeviation="4.5" result="blur"/>
+      <feColorMatrix in="blur" values="0 0 0 0 0.02 0 0 0 0 0.46 0 0 0 0 1 0 0 0 0.82 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#normalGlow)">
+    <path d="M27 83c-18 4-26 16-21 34 13-11 22-13 35-11z" fill="#0b68bd" stroke="#7fd6ff" stroke-width="3"/>
+    <path d="M133 83c18 4 26 16 21 34-13-11-22-13-35-11z" fill="#0b68bd" stroke="#7fd6ff" stroke-width="3"/>
+    <path d="M58 23 47 2c22 3 29 12 25 31z" fill="url(#normalHorn)" stroke="#dce8f6" stroke-width="2.5"/>
+    <path d="M102 23 113 2c-22 3-29 12-25 31z" fill="url(#normalHorn)" stroke="#dce8f6" stroke-width="2.5"/>
+    <circle cx="80" cy="84" r="58" fill="url(#normalBody)" stroke="#5ccaff" stroke-width="4"/>
+    <circle cx="80" cy="74" r="29" fill="#f7fbff" stroke="#1d4f83" stroke-width="4"/>
+    <circle cx="82" cy="75" r="13" fill="#0b74c9"/>
+    <circle cx="86" cy="71" r="5" fill="#e8fbff"/>
+    <path d="M55 110c16 11 36 11 51 0" fill="none" stroke="#052747" stroke-width="6" stroke-linecap="round"/>
+    <path d="M60 111 66 125 73 111" fill="#fff" stroke="#0b2d4d" stroke-width="2"/>
+    <path d="M100 111 94 125 87 111" fill="#fff" stroke="#0b2d4d" stroke-width="2"/>
+    <g fill="#07569d" stroke="#5ccaff" stroke-width="1.5">
+      <path d="M80 21 87 35 73 35z"/>
+      <circle cx="45" cy="58" r="4"/>
+      <circle cx="118" cy="61" r="4"/>
+      <circle cx="39" cy="91" r="3.5"/>
+      <circle cx="121" cy="93" r="3.5"/>
+    </g>
+  </g>
+</svg>

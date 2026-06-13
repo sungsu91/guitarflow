@@ -4187,6 +4187,157 @@ h1 {
   opacity: 0.88;
 }
 
+.shooterArena .enemy.shooterEnemy.shooterEnemy--monster {
+  width: calc(var(--hit-note-size, 36px) * 1.14) !important;
+  height: calc(var(--hit-note-size, 36px) * 1.14) !important;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.shooterArena .enemy.shooterEnemy.shooterEnemy--easy {
+  width: calc(var(--hit-note-size, 36px) * 1.46) !important;
+  height: calc(var(--hit-note-size, 36px) * 1.46) !important;
+}
+
+.shooterEnemyMonsterAsset {
+  position: absolute;
+  inset: -17%;
+  z-index: 0;
+  width: 134%;
+  height: 134%;
+  max-width: none;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.shooterArena .enemy.shooterEnemy.shooterEnemy--easy .shooterEnemyMonsterAsset {
+  inset: -8%;
+  width: 116%;
+  height: 116%;
+}
+
+.shooterArena .enemy.shooterEnemy.shooterEnemy--monster em,
+.shooterArena .enemy.shooterEnemy.shooterEnemy--monster span {
+  position: relative !important;
+  z-index: 3;
+  color: #ffffff !important;
+  letter-spacing: 0;
+  text-align: center;
+  text-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.94),
+    0 0 4px rgba(0, 0, 0, 0.84),
+    0 0 10px var(--note-glow, rgba(255, 255, 255, 0.54));
+}
+
+.shooterArena .enemy.shooterEnemy.shooterEnemy--monster em {
+  margin-top: 8px !important;
+  font-size: 17px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+}
+
+.shooterArena .enemy.shooterEnemy.shooterEnemy--monster span {
+  margin-top: 1px !important;
+  font-size: 16px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  opacity: 1 !important;
+}
+
+.shooterArena .enemy.shooterEnemy.shooterEnemy--easy em {
+  margin-top: 7px !important;
+  color: #fffff2 !important;
+  font-size: 18px !important;
+  text-shadow:
+    0 2px 5px rgba(0, 55, 0, 0.84),
+    0 0 9px rgba(194, 255, 91, 0.86),
+    0 0 16px rgba(85, 255, 33, 0.62) !important;
+  -webkit-text-stroke: 0.35px rgba(16, 78, 0, 0.54);
+}
+
+.shooterArena .enemy.shooterEnemy.shooterEnemy--easy span {
+  margin-top: 3px !important;
+  color: #fffff2 !important;
+  font-size: 17px !important;
+  text-shadow:
+    0 2px 5px rgba(0, 55, 0, 0.84),
+    0 0 9px rgba(194, 255, 91, 0.86),
+    0 0 16px rgba(85, 255, 33, 0.62) !important;
+  -webkit-text-stroke: 0.3px rgba(16, 78, 0, 0.52);
+}
+
+.shooterArena .enemy.shooterEnemy.shooterEnemy--normal span,
+.shooterArena .enemy.shooterEnemy.shooterEnemy--difficult span {
+  position: absolute !important;
+  left: 50%;
+  bottom: 4px;
+  min-width: 0;
+  margin-top: 0 !important;
+  padding: 0;
+  transform: translateX(-50%);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: clamp(14px, calc(var(--hit-note-size, 36px) * 0.48), 19px) !important;
+  font-weight: 1000 !important;
+  line-height: 0.9 !important;
+  color: #ffffff !important;
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.92),
+    0 0 5px rgba(0, 0, 0, 0.82),
+    0 0 10px var(--note-glow, rgba(255, 255, 255, 0.46)) !important;
+  white-space: nowrap;
+  -webkit-text-stroke: 0.56px rgba(0, 0, 0, 0.86);
+}
+
+.shooterArena .enemy.shooterEnemy.shooterEnemy--normal span::before,
+.shooterArena .enemy.shooterEnemy.shooterEnemy--difficult span::before {
+  content: none;
+}
+
+.shooterArena .enemy.shooterEnemy.shooterEnemy--normal span {
+  bottom: 5px;
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.94),
+    0 0 5px rgba(0, 0, 0, 0.86),
+    0 0 10px rgba(88, 190, 255, 0.9),
+    0 0 16px rgba(48, 134, 255, 0.56) !important;
+}
+
+.shooterArena .enemy.shooterEnemy.shooterEnemy--difficult span {
+  bottom: -2px;
+  font-size: clamp(14px, calc(var(--hit-note-size, 36px) * 0.48), 18px) !important;
+  -webkit-text-stroke: 0.72px rgba(31, 0, 50, 0.95);
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.94),
+    0 0 5px rgba(0, 0, 0, 0.86),
+    0 0 9px rgba(255, 236, 255, 0.82),
+    0 0 13px rgba(218, 142, 255, 0.9),
+    0 0 20px rgba(142, 73, 255, 0.64) !important;
+}
+
+.shooterArena .enemy.shooterEnemy.shooterEnemy--easy {
+  filter:
+    drop-shadow(0 0 12px rgba(122, 255, 54, 0.42))
+    drop-shadow(0 10px 16px rgba(0, 0, 0, 0.28));
+}
+
+.shooterArena .enemy.shooterEnemy.shooterEnemy--normal {
+  filter:
+    drop-shadow(0 0 12px rgba(45, 156, 255, 0.42))
+    drop-shadow(0 10px 16px rgba(0, 0, 0, 0.3));
+}
+
+.shooterArena .enemy.shooterEnemy.shooterEnemy--difficult {
+  filter:
+    drop-shadow(0 0 14px rgba(186, 89, 255, 0.46))
+    drop-shadow(0 12px 18px rgba(0, 0, 0, 0.34));
+}
+
 .hitZone {
   position: absolute;
   left: 50%;
@@ -14720,7 +14871,7 @@ button.primary svg {
 }
 
 .standaloneMetronomePanel .metronomeTransportButton:active:not(:disabled) {
-  transform: translateY(1px) scale(0.985);
+  transform: translateY(1px);
 }
 
 .standaloneMetronomePanel .metronomeTransportButton svg {
@@ -14962,6 +15113,8 @@ button.primary svg {
 .shooterDifficultyButtons button:disabled {
   cursor: not-allowed;
   opacity: 0.72;
+  pointer-events: none;
+  filter: grayscale(0.18);
 }
 
 .shooterRecordsBar button.selected {
@@ -15211,6 +15364,7 @@ button.primary svg {
 
 .shooterGuitarPickerModal {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 12px;
   width: min(360px, calc(100vw - 32px));
   max-height: min(680px, calc(100dvh - 34px));
@@ -15271,9 +15425,16 @@ button.primary svg {
 .shooterGuitarPickerList {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
   gap: 9px;
-  overflow: auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding-right: 2px;
+  padding-bottom: 8px;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 .shooterGuitarPickerItem {
@@ -15297,29 +15458,6 @@ button.primary svg {
   box-shadow:
     inset 0 0 0 1px rgba(241, 202, 122, 0.16),
     0 0 18px rgba(217, 170, 85, 0.16);
-}
-
-.shooterGuitarPickerSlot {
-  position: absolute;
-  top: 9px;
-  left: 9px;
-  z-index: 2;
-  display: inline-grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  border: 1px solid rgba(241, 202, 122, 0.48);
-  border-radius: 8px;
-  background:
-    linear-gradient(145deg, rgba(217, 170, 85, 0.34), rgba(55, 34, 10, 0.72)),
-    rgba(0, 0, 0, 0.58);
-  color: #fff0bf;
-  font-size: 11px;
-  font-weight: 950;
-  line-height: 1;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 246, 220, 0.14),
-    0 8px 16px rgba(0, 0, 0, 0.26);
 }
 
 .shooterGuitarPickerAsset {
@@ -16766,15 +16904,9 @@ textarea,
 .referenceTrainingPanel .metronomeTimeline .mobileBeatDots.mobileBeatDots--compact .beatDot.active .beatDot__glyph,
 .scaleBlockTrainingPanel .metronomeTimeline .mobileBeatDots.mobileBeatDots--compact .beatDot.active .beatDot__glyph {
   border-color: rgba(255, 236, 174, 0.98) !important;
-  background:
-    radial-gradient(circle at 38% 30%, rgba(255, 252, 226, 0.92) 0 15%, transparent 16%),
-    linear-gradient(145deg, #ffe8a8 0%, #d9aa55 48%, #8b5527 100%) !important;
-  box-shadow:
-    var(--beat-dot-shadow),
-    0 0 0 4px rgba(255, 226, 156, 0.2),
-    0 0 19px rgba(255, 219, 135, 0.5),
-    0 0 34px rgba(217, 170, 85, 0.2) !important;
-  filter: brightness(1.12) saturate(1.12) !important;
+  background: #f1ca7a !important;
+  box-shadow: none !important;
+  filter: none !important;
 }
 
 .firstPositionTrainingPanel .referenceBeatMetronomeStrip,
@@ -16818,30 +16950,27 @@ textarea,
 .firstPositionTrainingPanel .referenceBeatMetronomeDot .beatDot__glyph,
 .scaleBlockTrainingPanel .referenceBeatMetronomeDot .beatDot__glyph {
   border-width: 2px !important;
+  background: rgba(217, 170, 85, 0.22) !important;
+  box-shadow: none !important;
+  filter: none !important;
 }
 
 .firstPositionTrainingPanel .referenceBeatMetronomeDot.beatDot--weak,
 .scaleBlockTrainingPanel .referenceBeatMetronomeDot.beatDot--weak {
-  --beat-dot-fill: transparent;
+  --beat-dot-fill: rgba(217, 170, 85, 0.22);
 }
 
-.firstPositionTrainingPanel .referenceBeatMetronomeDot.beatDot--weak .beatDot__innerMark,
-.scaleBlockTrainingPanel .referenceBeatMetronomeDot.beatDot--weak .beatDot__innerMark {
+.firstPositionTrainingPanel .referenceBeatMetronomeDot .beatDot__innerMark,
+.scaleBlockTrainingPanel .referenceBeatMetronomeDot .beatDot__innerMark {
   display: none !important;
 }
 
 .firstPositionTrainingPanel .referenceBeatMetronomeDot.active .beatDot__glyph,
 .scaleBlockTrainingPanel .referenceBeatMetronomeDot.active .beatDot__glyph {
   border-color: rgba(255, 236, 174, 0.98) !important;
-  background:
-    radial-gradient(circle at 38% 30%, rgba(255, 252, 226, 0.92) 0 15%, transparent 16%),
-    linear-gradient(145deg, #ffe8a8 0%, #d9aa55 48%, #8b5527 100%) !important;
-  box-shadow:
-    var(--beat-dot-shadow),
-    0 0 0 4px rgba(255, 226, 156, 0.24),
-    0 0 18px rgba(255, 219, 135, 0.55),
-    0 0 32px rgba(217, 170, 85, 0.22) !important;
-  filter: brightness(1.14) saturate(1.12) !important;
+  background: #f1ca7a !important;
+  box-shadow: none !important;
+  filter: none !important;
 }
 
 .trainingSequenceTimeline span.active {
@@ -20800,7 +20929,6 @@ body {
 }
 
 .standaloneMetronomePanel .metronomeHeroBpmButton:active {
-  transform: scale(0.96) !important;
   border-color: rgba(241, 202, 122, 0.58) !important;
   background:
     linear-gradient(145deg, rgba(217, 170, 85, 0.24), rgba(116, 78, 36, 0.48)),
@@ -27607,8 +27735,8 @@ body {
   bottom: 0;
   z-index: 2;
   width: 61px;
-  transform: translateX(-50%) rotate(var(--guitar-aim, -4deg));
-  transform-origin: 50% 88%;
+  transform: translateX(-50%) rotate(var(--guitar-aim, 0deg));
+  transform-origin: 50% 94%;
   filter:
     drop-shadow(0 12px 16px rgba(0, 0, 0, 0.55))
     drop-shadow(0 0 12px rgba(217, 170, 85, 0.22));
@@ -27664,13 +27792,13 @@ body {
 
 @keyframes guitarAssetRecoil {
   0% {
-    transform: translateX(-50%) rotate(var(--guitar-aim, -4deg)) translateY(0) scale(1);
+    transform: translateX(-50%) rotate(var(--guitar-aim, 0deg)) translateY(0) scale(1);
   }
   42% {
-    transform: translateX(-50%) rotate(calc(var(--guitar-aim, -4deg) - 0.65deg)) translateY(0) scale(0.992);
+    transform: translateX(-50%) rotate(calc(var(--guitar-aim, 0deg) - 0.65deg)) translateY(0) scale(0.992);
   }
   100% {
-    transform: translateX(-50%) rotate(var(--guitar-aim, -4deg)) translateY(0) scale(1);
+    transform: translateX(-50%) rotate(var(--guitar-aim, 0deg)) translateY(0) scale(1);
   }
 }
 
@@ -27728,8 +27856,8 @@ body {
 }
 
 .shooterArena .energyProjectile.energyProjectile--imageProjectile {
-  width: clamp(24px, 6.8vw, 31px);
-  height: clamp(58px, 16vw, 76px);
+  width: clamp(30px, 8vw, 40px);
+  height: clamp(38px, 10vw, 52px);
   border: 0;
   border-radius: 0;
   clip-path: none;
@@ -27747,8 +27875,8 @@ body {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 145%;
-  height: 145%;
+  width: 132%;
+  height: 132%;
   max-width: none;
   object-fit: contain;
   pointer-events: none;
@@ -28134,7 +28262,6 @@ body {
   font-size: 0 !important;
   overflow: visible !important;
   text-shadow: none !important;
-  transition: color 55ms linear, outline-color 55ms linear !important;
 }
 
 .standaloneMetronomePanel .metronomeBeatMatrix--main button.accent .metronomeBeatGlyph,
@@ -28240,7 +28367,6 @@ body {
   overflow: visible !important;
   outline: 0 !important;
   text-shadow: none !important;
-  transition: color 120ms ease, filter 120ms ease, outline-color 120ms ease;
 }
 
 .standaloneMetronomePanel .metronomeBeatMatrix--main button.accent .metronomeBeatGlyph,
@@ -31206,11 +31332,11 @@ body {
 @keyframes riffDropdownOpen {
   from {
     opacity: 0;
-    transform: translateY(4px) scale(0.985);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
@@ -40314,9 +40440,7 @@ html body .app.theme-light .referenceBeatMetronomeDot.beatDot--strong .beatDot__
 html body .app.theme-light .referenceBeatMetronomeDot.beatDot--weak .beatDot__glyph {
   border-color: #7f6b59 !important;
   background: rgba(255, 250, 246, 0.64) !important;
-  box-shadow:
-    inset 0 0 0 2px rgba(255, 255, 255, 0.46),
-    0 0 0 1px rgba(82, 56, 38, 0.1) !important;
+  box-shadow: none !important;
 }
 
 html body .app.theme-light .referenceBeatMetronomeDot.beatDot--weak .beatDot__innerMark {
@@ -40332,10 +40456,9 @@ html body .app.theme-light .referenceBeatMetronomeDot.beatDot--mute .beatDot__gl
 }
 
 html body .app.theme-light .referenceBeatMetronomeDot.active .beatDot__glyph {
-  box-shadow:
-    var(--beat-dot-shadow),
-    0 0 0 4px rgba(168, 118, 61, 0.18),
-    0 0 14px rgba(168, 118, 61, 0.28) !important;
+  background: #d69e2e !important;
+  box-shadow: none !important;
+  filter: none !important;
 }
 
 html body .app .standaloneMetronomePanel .metronomeBeatMatrix--main .beatDot.active .beatDot__glyph {
@@ -40543,9 +40666,7 @@ html body .app.theme-light .referenceBeatMetronomeDot.beatDot--weak .beatDot__gl
 html body .app.theme-light .metronomeSelectLabelDot--weak {
   border-color: #6c5141 !important;
   background: rgba(255, 250, 246, 0.72) !important;
-  box-shadow:
-    inset 0 0 0 4px rgba(255, 255, 255, 0.62),
-    0 0 0 2px rgba(108, 81, 65, 0.16) !important;
+  box-shadow: none !important;
 }
 
 html body .app.theme-light .referenceBeatMetronomeDot.beatDot--mute .beatDot__glyph {
@@ -41059,7 +41180,7 @@ html body .app .standaloneMetronomePanel .metronomeHardwareToggleKnob {
     0 1px 2px rgba(0, 0, 0, 0.52),
     0 0 0 1px rgba(255, 244, 210, 0.06) !important;
   filter: none !important;
-  transform: rotate(-28deg) scale(0.96) !important;
+  transform: rotate(-28deg) !important;
 }
 
 html body .app .standaloneMetronomePanel .metronomeHardwareToggleKnob::before {
@@ -41096,7 +41217,7 @@ html body .app .standaloneMetronomePanel .metronomeTrackerSwitchRow button.selec
     0 0 0 1px rgba(255, 231, 174, 0.16),
     0 0 8px rgba(255, 221, 154, 0.14),
     0 1px 3px rgba(0, 0, 0, 0.48) !important;
-  transform: rotate(35deg) scale(0.98) !important;
+  transform: rotate(35deg) !important;
 }
 
 html body .app.theme-light .standaloneMetronomePanel .metronomeHardwareToggleKnob {
@@ -41622,12 +41743,113 @@ html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metro
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix--main.metronomeBeatMatrix--main {
   min-height: 206px !important;
   padding: 28px 18px 34px !important;
+  border-top: 4px solid rgba(217, 170, 85, 0.42) !important;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 244, 210, 0.1),
+    0 -1px 0 rgba(0, 0, 0, 0.28) !important;
+}
+
+html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix--main.metronomeBeatMatrix--swiping {
+  cursor: grabbing;
 }
 
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroCard.metronomeHeroCard {
   min-height: 124px !important;
   margin: 0 !important;
-  padding: 16px 0 12px !important;
+  padding: 7px 0 21px !important;
+  border-top: 4px solid rgba(217, 170, 85, 0.42) !important;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 244, 210, 0.1),
+    0 -1px 0 rgba(0, 0, 0, 0.28) !important;
+}
+
+html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroBpmValue.metronomeHeroBpmValue {
+  align-self: start !important;
+  gap: 0 !important;
+  padding-top: 3px !important;
+}
+
+html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroBpmValue.metronomeHeroBpmValue > span {
+  display: none !important;
+}
+
+html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroCard.metronomeHeroCard .metronomeHeroBpmValue strong {
+  font-size: clamp(62px, 20vw, 84px) !important;
+  line-height: 0.88 !important;
+  letter-spacing: 0 !important;
+}
+
+html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroTapTempoButton {
+  position: absolute;
+  right: 0;
+  bottom: -22px;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 82px;
+  height: 38px;
+  min-width: 82px;
+  min-height: 38px;
+  padding: 0;
+  border: 2px solid rgba(217, 170, 85, 0.36);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 210, 0.1), rgba(217, 170, 85, 0.06)),
+    rgba(8, 7, 5, 0.62);
+  color: rgba(255, 238, 202, 0.96);
+  font-size: 19px;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.1),
+    0 8px 18px rgba(0, 0, 0, 0.2);
+}
+
+html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroTapTempoButton:active {
+  transform: translateY(1px);
+  border-color: rgba(241, 202, 122, 0.62);
+}
+
+html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroCard.metronomeHeroCard {
+  border-top-color: rgba(190, 93, 116, 0.38) !important;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.56),
+    0 -1px 0 rgba(116, 72, 82, 0.18) !important;
+}
+
+html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroTapTempoButton {
+  border-color: rgba(190, 93, 116, 0.42);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(239, 217, 211, 0.42)),
+    rgba(255, 247, 244, 0.78);
+  color: #7f3d50;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 8px 16px rgba(116, 72, 82, 0.12);
+}
+
+html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroTapTempoButton:active {
+  border-color: rgba(56, 189, 248, 0.68);
+  color: #1f5e78;
+}
+
+@media (max-width: 374px) {
+  html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroTapTempoButton {
+    width: 68px;
+    min-width: 68px;
+    font-size: 17px;
+  }
+}
+
+html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix--main.metronomeBeatMatrix--main {
+  border-top-color: rgba(190, 93, 116, 0.38) !important;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.56),
+    0 -1px 0 rgba(116, 72, 82, 0.18) !important;
 }
 
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .standaloneMetronomeControl.standaloneMetronomeControl {
@@ -45058,11 +45280,7 @@ html body .app.theme-light.theme-light
   :is(.trainingBeatDot.active, .trainingBeatDotPlain.active, .beatDot.active)
   :is(.beatDot__glyph, .trainingBeatDotPlain__dot) {
   border-color: rgba(214, 158, 46, 0.86) !important;
-  box-shadow:
-    0 0 0 3px rgba(255, 214, 120, 0.46),
-    0 0 12px rgba(236, 176, 48, 0.34),
-    0 2px 7px rgba(124, 82, 24, 0.18),
-    inset 0 1px 0 rgba(255, 252, 224, 0.78) !important;
+  box-shadow: none !important;
 }
 
 /* Beat dots final model: rhythm / standalone / single-scale share behavior, themes only swap color. */
@@ -45159,15 +45377,14 @@ html body .app.theme-light.theme-light .standaloneMetronomePanel .metronomeBeatM
 html body .app.app.app :is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel) .referenceBeatMetronomeDot .beatDot__glyph {
   width: 15px !important;
   height: 15px !important;
-  background: transparent !important;
+  background: var(--riff-dot-surface) !important;
   box-shadow: none !important;
+  filter: none !important;
 }
 
 html body .app.app.app :is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel) .referenceBeatMetronomeDot.beatDot--strong .beatDot__glyph {
   border: 2px solid var(--riff-dot-off-strong) !important;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.44), transparent 42%),
-    var(--riff-dot-off-strong) !important;
+  background: var(--riff-dot-surface) !important;
 }
 
 html body .app.app.app :is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel) .referenceBeatMetronomeDot.beatDot--weak .beatDot__glyph {
@@ -45183,20 +45400,14 @@ html body .app.app.app :is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel
 html body .app.app.app :is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel) .referenceBeatMetronomeDot.beatDot--mute.active .beatDot__glyph {
   border-style: dotted !important;
   border-color: var(--riff-dot-active) !important;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.6), transparent 44%),
-    var(--riff-dot-active-soft) !important;
+  background: var(--riff-dot-active) !important;
 }
 
 html body .app.app.app :is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel) .referenceBeatMetronomeDot.active .beatDot__glyph {
   border-color: var(--riff-dot-active) !important;
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.78), transparent 44%),
-    var(--riff-dot-active) !important;
-  box-shadow:
-    0 0 0 3px var(--riff-dot-active-soft),
-    0 0 12px var(--riff-dot-active-glow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.48) !important;
+  background: var(--riff-dot-active) !important;
+  box-shadow: none !important;
+  filter: none !important;
 }
 
 /* White standalone metronome: force active beat to true ice blue, above legacy gold rules. */
@@ -45272,7 +45483,7 @@ html body main.app.theme-light.theme-light
   .metronomeBeatMatrix.metronomeBeatMatrix--main
   .beatDot.beatDot.active
   .beatDot__glyph {
-  border-color: rgba(190, 93, 116, 1) !important;
+  border-color: rgba(56, 189, 248, 0.98) !important;
 }
 
 html body main.app.theme-light.theme-light
@@ -45280,7 +45491,7 @@ html body main.app.theme-light.theme-light
   .metronomeBeatMatrix.metronomeBeatMatrix--main
   .beatDot.beatDot--weak.active
   .beatDot__glyph {
-  border-color: rgba(190, 93, 116, 0.98) !important;
+  border-color: rgba(56, 189, 248, 0.98) !important;
   background: transparent !important;
 }
 
@@ -45289,7 +45500,7 @@ html body main.app.theme-light.theme-light
   .metronomeBeatMatrix.metronomeBeatMatrix--main
   .beatDot.beatDot--mute.active
   .beatDot__glyph {
-  border-color: rgba(190, 93, 116, 0.95) !important;
+  border-color: rgba(56, 189, 248, 0.98) !important;
   border-style: dotted !important;
   background: transparent !important;
 }

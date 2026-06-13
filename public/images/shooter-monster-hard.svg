@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 190" role="img" aria-label="Hard note monster">
+  <defs>
+    <radialGradient id="hardBody" cx="38%" cy="24%" r="78%">
+      <stop offset="0" stop-color="#ffb1ff"/>
+      <stop offset="0.22" stop-color="#b956f1"/>
+      <stop offset="0.55" stop-color="#7130bd"/>
+      <stop offset="0.82" stop-color="#351268"/>
+      <stop offset="1" stop-color="#180526"/>
+    </radialGradient>
+    <linearGradient id="hardHorn" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff0ff"/>
+      <stop offset="0.34" stop-color="#8b56c9"/>
+      <stop offset="0.68" stop-color="#3a145f"/>
+      <stop offset="1" stop-color="#12051f"/>
+    </linearGradient>
+    <linearGradient id="hardSpike" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ff9cff"/>
+      <stop offset="0.52" stop-color="#8931d7"/>
+      <stop offset="1" stop-color="#24083f"/>
+    </linearGradient>
+    <linearGradient id="hardGemGold" x1="69" x2="122" y1="24" y2="78">
+      <stop offset="0" stop-color="#fff0a4"/>
+      <stop offset="0.48" stop-color="#ffba28"/>
+      <stop offset="1" stop-color="#8c4d00"/>
+    </linearGradient>
+    <linearGradient id="hardGemPurple" x1="82" x2="110" y1="36" y2="68">
+      <stop offset="0" stop-color="#ffd4ff"/>
+      <stop offset="0.5" stop-color="#a744ff"/>
+      <stop offset="1" stop-color="#421081"/>
+    </linearGradient>
+    <filter id="hardGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feColorMatrix in="blur" values="0 0 0 0 0.56 0 0 0 0 0.05 0 0 0 0 1 0 0 0 0.95 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#hardGlow)">
+    <path d="M24 60c-10-10-16-24-13-37 17 6 26 18 29 36z" fill="#1c0736" opacity="0.5"/>
+    <path d="M166 60c10-10 16-24 13-37-17 6-26 18-29 36z" fill="#1c0736" opacity="0.5"/>
+    <path d="M57 48C41 26 45 9 60 3c2 22 10 35 25 47z" fill="url(#hardHorn)" stroke="#e49cff" stroke-width="3"/>
+    <path d="M133 48c16-22 12-39-3-45-2 22-10 35-25 47z" fill="url(#hardHorn)" stroke="#e49cff" stroke-width="3"/>
+    <path d="M61 22c5 6 9 12 12 19" fill="none" stroke="#f7ccff" stroke-width="1.5" opacity="0.66"/>
+    <path d="M129 22c-5 6-9 12-12 19" fill="none" stroke="#f7ccff" stroke-width="1.5" opacity="0.66"/>
+    <circle cx="95" cy="100" r="66" fill="url(#hardBody)" stroke="#de72ff" stroke-width="4"/>
+    <circle cx="95" cy="100" r="58" fill="none" stroke="#f2b9ff" stroke-width="1.2" opacity="0.28"/>
+    <g fill="url(#hardSpike)" stroke="#330b58" stroke-width="2">
+      <path d="M94 18 105 45 83 45z"/>
+      <path d="M32 72 8 60 35 48z"/>
+      <path d="M158 72 182 60 155 48z"/>
+      <path d="M35 112 11 117 28 94z"/>
+      <path d="M155 112 179 117 162 94z"/>
+      <path d="M52 37 33 24 59 18z"/>
+      <path d="M138 37 157 24 131 18z"/>
+      <path d="M47 145 24 155 35 128z"/>
+      <path d="M143 145 166 155 155 128z"/>
+    </g>
+    <g fill="#b64cff" stroke="#4c156e" stroke-width="1.8" opacity="0.9">
+      <path d="M60 68 66 76 56 78z"/>
+      <path d="M128 68 134 76 124 78z"/>
+      <path d="M42 91 49 97 39 101z"/>
+      <path d="M148 91 141 97 151 101z"/>
+      <path d="M66 126 73 132 63 136z"/>
+      <path d="M124 126 117 132 127 136z"/>
+    </g>
+    <path d="M95 29 118 59 95 86 72 59z" fill="url(#hardGemGold)" stroke="#421060" stroke-width="3.5"/>
+    <path d="M95 40 108 59 95 76 82 59z" fill="url(#hardGemPurple)" stroke="#fff0a1" stroke-width="2"/>
+    <path d="M48 88c17-13 76-14 94 0-7 25-25 38-47 38S55 113 48 88z" fill="#f8efff" stroke="#4a0f68" stroke-width="4.5"/>
+    <path d="M51 89c18-5 69-6 88 0-11 15-28 21-44 21S62 104 51 89z" fill="#fff8ff" opacity="0.68"/>
+    <circle cx="96" cy="98" r="17" fill="#b1181d"/>
+    <circle cx="101" cy="92" r="5.5" fill="#fff2eb"/>
+    <path d="M47 90c16-15 78-17 96-1-8-22-83-24-96 1z" fill="#3c0a57" opacity="0.42"/>
+    <path d="M57 132c8 5 20 7 38 7s30-2 38-7" fill="none" stroke="#2b083e" stroke-width="4" stroke-linecap="round" opacity="0.72"/>
+    <path d="M60 127 68 145 78 127" fill="#fff7ff" stroke="#2c083f" stroke-width="2.5"/>
+    <path d="M130 127 122 145 112 127" fill="#fff7ff" stroke="#2c083f" stroke-width="2.5"/>
+    <ellipse cx="74" cy="71" rx="7" ry="4" fill="#ffbd4f" opacity="0.5" transform="rotate(-21 74 71)"/>
+    <ellipse cx="116" cy="72" rx="7" ry="4" fill="#ffbd4f" opacity="0.5" transform="rotate(21 116 72)"/>
+    <path d="M32 154c21 10 104 10 126 0" fill="none" stroke="#c145ff" stroke-width="5" opacity="0.35"/>
+  </g>
+</svg>

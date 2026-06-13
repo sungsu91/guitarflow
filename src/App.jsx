@@ -1937,6 +1937,7 @@ const METRONOME_DISPLAY_MODES = [
   { id: "circle", label: "Circle Mode" },
 ];
 const METRONOME_MODE_SWIPE_STEP_THRESHOLD = 40;
+const METRONOME_MODE_SWIPE_COMMIT_RATIO = 0.5;
 const METRONOME_VISUAL_LAB_TIME_SIGNATURE_OPTIONS = [
   { id: "2/4", label: "2/4", beats: 2 },
   { id: "3/4", label: "3/4", beats: 3 },
@@ -3582,7 +3583,6 @@ const SHOOTER_RARITY_GUITAR_VARIANT_IDS = [
   "acoustic-legendary-trace",
   "acoustic-legendary-core-trace",
 ];
-const SHOOTER_RARITY_GUITAR_SLOT_LABELS = ["N", "E", "L", "L2"];
 const FRESH_ACOUSTIC_GUITAR_IDS = new Set([
   ...SHOOTER_RARITY_GUITAR_VARIANT_IDS,
   "acoustic-core-dread-01",
@@ -3732,12 +3732,14 @@ function StandaloneMetronomeVisual({
 
   return (
     <div
-      aria-label={`${METRONOME_DISPLAY_MODES.find((item) => item.id === selectedMode)?.label ?? "Metronome Mode"} 박자 표시. 좌우 스와이프로 모드 전환`}
+      aria-label={`${METRONOME_DISPLAY_MODES.find((item) => item.id === selectedMode)?.label ?? "Metronome Mode"} 박자 표시 영역. 좌우 스와이프는 표시 모드만 전환합니다`}
       className={`metronomeBeatMatrix metronomeBeatMatrix--main metronomeBeatMatrix--${selectedMode} ${swipeActive ? "metronomeBeatMatrix--swiping" : ""}`}
+      data-metronome-mode-swipe-zone="true"
       onPointerCancel={onPointerCancel}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      role="group"
       style={{ "--metronome-mode-swipe-x": `${swipeOffset}px` }}
     >
       {selectedMode === "circle" ? (
@@ -6337,21 +6339,30 @@ const SHOOTER_DIFFICULTIES = {
 const SHOOTER_DIFFICULTY_OPTIONS = [
   { id: SHOOTER_DIFFICULTIES.EASY, label: "쉬움", hint: "7.2초 낙하 · 1.8초 생성" },
   { id: SHOOTER_DIFFICULTIES.NORMAL, label: "보통", hint: "5.8초 낙하 · 1.4초 생성" },
-  { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "4.3초 낙하 · 1.0초 생성" },
+  { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "4.8초 낙하 · 1.1초 생성" },
 ];
 const SHOOTER_DIFFICULTY_PACING = {
   [SHOOTER_DIFFICULTIES.EASY]: { durationMs: 7200, spawnGapMinMs: 1800, spawnGapMaxMs: 1800, maxTargets: 3 },
   [SHOOTER_DIFFICULTIES.NORMAL]: { durationMs: 5760, spawnGapMinMs: 1400, spawnGapMaxMs: 1400, maxTargets: 4 },
-  [SHOOTER_DIFFICULTIES.DIFFICULT]: { durationMs: 4320, spawnGapMinMs: 1000, spawnGapMaxMs: 1000, maxTargets: 4 },
+  [SHOOTER_DIFFICULTIES.DIFFICULT]: { durationMs: 4752, spawnGapMinMs: 1100, spawnGapMaxMs: 1100, maxTargets: 4 },
 };
 const SHOOTER_EASY_PHASES = [
-  { label: "0~1프렛", minMs: 0, minSpawn: 0, maxFret: 1, poolRatioCap: 0.34, randomnessBonus: -0.12, jumpBiasBonus: -0.1 },
-  { label: "0~3프렛", minMs: 0, minSpawn: 5, maxFret: 3, poolRatioCap: 0.48, randomnessBonus: -0.08, jumpBiasBonus: -0.06 },
-  { label: "0~5프렛", minMs: 45_000, minSpawn: 12, maxFret: 5, poolRatioCap: 0.66, randomnessBonus: -0.03, jumpBiasBonus: -0.02 },
-  { label: "0~7프렛", minMs: 90_000, minSpawn: 22, maxFret: 7, poolRatioCap: 0.84, randomnessBonus: 0.02, jumpBiasBonus: 0.02 },
-  { label: "전 포지션", minMs: 150_000, minSpawn: 36, maxFret: 12, poolRatioCap: 1, randomnessBonus: 0.08, jumpBiasBonus: 0.06 },
+  { label: "1~3프렛", minMs: 0, minSpawn: 0, minFret: 1, maxFret: 3, poolRatioCap: 0.48, randomnessBonus: -0.14, jumpBiasBonus: -0.12 },
+  { label: "1~5프렛", minMs: 0, minSpawn: 8, minFret: 1, maxFret: 5, poolRatioCap: 0.62, randomnessBonus: -0.08, jumpBiasBonus: -0.06 },
+  { label: "1~7프렛", minMs: 45_000, minSpawn: 18, minFret: 1, maxFret: 7, poolRatioCap: 0.76, randomnessBonus: -0.03, jumpBiasBonus: -0.02 },
+  { label: "1~9프렛", minMs: 90_000, minSpawn: 30, minFret: 1, maxFret: 9, poolRatioCap: 0.9, randomnessBonus: 0.02, jumpBiasBonus: 0.02 },
+  { label: "1~11프렛", minMs: 150_000, minSpawn: 44, minFret: 1, maxFret: 11, poolRatioCap: 1, randomnessBonus: 0.08, jumpBiasBonus: 0.06 },
 ];
+const SHOOTER_NORMAL_MAX_FRET = 11;
+const SHOOTER_ENEMY_ASSETS = {
+  [SHOOTER_DIFFICULTIES.EASY]: "/images/shooter-monster-easy.svg",
+  [SHOOTER_DIFFICULTIES.NORMAL]: "/images/shooter-monster-normal.svg",
+  [SHOOTER_DIFFICULTIES.DIFFICULT]: "/images/shooter-monster-hard.svg",
+};
 const SHOOTER_RECORDS_STORAGE_KEY = "rifflabShooterRecords";
+const SHOOTER_GUITAR_PIVOT_PERCENT = { x: 50, y: 91.5 };
+const SHOOTER_GUITAR_AIM_LIMIT_DEG = 34;
+const SHOOTER_GUITAR_AIM_MIN_DELTA_DEG = 0.18;
 
 function getDefaultShooterDifficultyRecord() {
   return {
@@ -6592,6 +6603,16 @@ function getShooterSpawnGap(difficulty) {
   return pacing.spawnGapMinMs + Math.random() * (pacing.spawnGapMaxMs - pacing.spawnGapMinMs);
 }
 
+function getShooterEnemyAssetSrc(difficulty) {
+  return SHOOTER_ENEMY_ASSETS[difficulty] ?? SHOOTER_ENEMY_ASSETS[SHOOTER_DIFFICULTIES.EASY];
+}
+
+function getShooterEnemyDifficultyClass(difficulty) {
+  if (difficulty === SHOOTER_DIFFICULTIES.DIFFICULT) return "shooterEnemy--difficult";
+  if (difficulty === SHOOTER_DIFFICULTIES.NORMAL) return "shooterEnemy--normal";
+  return "shooterEnemy--easy";
+}
+
 function getShooterTargetYAt(target, now = 0) {
   if (!target) return 8;
   if (target.defeated) return Number(target.y) || 8;
@@ -6657,30 +6678,61 @@ function uniqNotesByPitch(notes) {
     .sort((a, b) => a.frequency - b.frequency || b.stringNumber - a.stringNumber || a.fretNumber - b.fretNumber);
 }
 
-function getShooterFullRangeNotes(includeSharps = false) {
-  const fullRangeNotes = uniqNotesByPitch([...ALL_PRACTICE_NOTES, ...DISPLAY_NOTES]);
-  const filteredNotes = includeSharps
-    ? fullRangeNotes
-    : fullRangeNotes.filter((note) => !getPitchClass(note.pitch)?.includes("#"));
-  return filteredNotes.length ? filteredNotes : FIRST_POSITION_NOTES;
+function getShooterFretboardRangeNotes({ includeSharps = false, maxFret = SHOOTER_NORMAL_MAX_FRET, minFret = 0 } = {}) {
+  const safeMinFret = Math.max(0, Number(minFret) || 0);
+  const safeMaxFret = Math.max(safeMinFret, Math.min(MAX_FRETBOARD_GUIDE_FRET, Number(maxFret) || SHOOTER_NORMAL_MAX_FRET));
+  const rangeNotes = STANDARD_TUNING.flatMap((tuning) => {
+    const openMidi = pitchToMidi(tuning.pitch);
+    if (openMidi == null) return [];
+    return Array.from({ length: safeMaxFret - safeMinFret + 1 }, (_, index) => {
+      const fretNumber = safeMinFret + index;
+      const pitch = midiToPitch(openMidi + fretNumber);
+      return makeGuitarNote({
+        pitch,
+        stringNumber: tuning.stringNumber,
+        fretNumber,
+        group: "shooter-range",
+      });
+    });
+  }).filter((note) => (
+    note.frequency
+    && note.frequency <= MAX_FREQ
+    && (includeSharps || !getPitchClass(note.pitch)?.includes("#"))
+  ));
+  return uniqNotesByPitch(rangeNotes);
+}
+
+function getShooterFullRangeNotes(includeSharps = false, maxFret = MAX_FRETBOARD_GUIDE_FRET) {
+  const fullRangeNotes = getShooterFretboardRangeNotes({ includeSharps, maxFret, minFret: 0 });
+  return fullRangeNotes.length ? fullRangeNotes : FIRST_POSITION_NOTES;
+}
+
+function getShooterPrimaryAimTarget(targets) {
+  return [...(targets ?? [])]
+    .filter((target) => target && !target.defeated && target.impactAt == null)
+    .sort((a, b) => (b.y ?? 0) - (a.y ?? 0))[0] ?? null;
 }
 
 function getShooterDifficultyNotes(notes, difficulty, elapsedMs = 0, selectedBlock = null, spawnedCount = 0) {
   const phase = getShooterDifficultyPhase(difficulty, elapsedMs, spawnedCount);
-  const baseNotes = uniqNotesByPitch(notes?.length ? notes : FIRST_POSITION_NOTES);
-  const lowPositionNotes = uniqNotesByPitch([...OPEN_STRING_NOTES, ...FIRST_POSITION_NOTES, ...baseNotes]);
   if (difficulty === SHOOTER_DIFFICULTIES.EASY) {
-    const easyNotes = uniqNotesByPitch([...lowPositionNotes, ...NOTES]).filter(
-      (note) => Number(note.fretNumber ?? 0) <= phase.maxFret,
-    );
-    return easyNotes.length ? easyNotes : OPEN_STRING_NOTES;
+    const easyNotes = getShooterFretboardRangeNotes({
+      includeSharps: false,
+      minFret: phase.minFret ?? 1,
+      maxFret: phase.maxFret,
+    });
+    return easyNotes.length
+      ? easyNotes
+      : FIRST_POSITION_NOTES.filter((note) => Number(note.fretNumber ?? 0) > 0 && !getPitchClass(note.pitch)?.includes("#"));
   }
   if (difficulty === SHOOTER_DIFFICULTIES.NORMAL) {
-    return getShooterFullRangeNotes(false);
+    return getShooterFullRangeNotes(false, SHOOTER_NORMAL_MAX_FRET);
   }
   if (difficulty === SHOOTER_DIFFICULTIES.DIFFICULT) {
-    return getShooterFullRangeNotes(true);
+    return getShooterFullRangeNotes(true, MAX_FRETBOARD_GUIDE_FRET);
   }
+  const baseNotes = uniqNotesByPitch(notes?.length ? notes : FIRST_POSITION_NOTES);
+  const lowPositionNotes = uniqNotesByPitch([...OPEN_STRING_NOTES, ...FIRST_POSITION_NOTES, ...baseNotes]);
   const phaseNotes = lowPositionNotes.filter((note) => Number(note.fretNumber ?? 0) <= phase.maxFret);
   return phaseNotes.length ? phaseNotes : OPEN_STRING_NOTES;
 }
@@ -7176,26 +7228,18 @@ function App() {
     [guitarLabDeletedIds, guitarLabPurgedIds],
   );
   const shooterPlayerOptions = useMemo(() => {
-    const options = SHOOTER_PLAYER_SLOT_KEYS.map((slotKey, index) => {
-      const variantId = shooterPlayerSlots[slotKey];
-      const variant = GUITAR_LAB_VARIANTS.find((item) => item.id === variantId && !guitarLabPurgedIds.includes(item.id));
-      if (!variant) return null;
-      return { slotKey, slotNumber: index + 1, variant };
-    }).filter(Boolean);
-    const rarityCandidates = SHOOTER_RARITY_GUITAR_VARIANT_IDS.map((variantId, index) => {
+    const rarityCandidates = SHOOTER_RARITY_GUITAR_VARIANT_IDS.map((variantId) => {
       const variant = GUITAR_LAB_VARIANTS.find((item) => item.id === variantId);
-      if (!variant || options.some((option) => option.variant.id === variant.id)) return null;
+      if (!variant) return null;
       return {
         slotKey: `rarity-candidate-${variant.id}`,
-        slotNumber: SHOOTER_RARITY_GUITAR_SLOT_LABELS[index] ?? index + 1,
         variant,
       };
     }).filter(Boolean);
-    const visibleOptions = [...rarityCandidates, ...options];
-    return visibleOptions.length > 0
-      ? visibleOptions
-      : [{ slotKey: "slot1", slotNumber: 1, variant: GUITAR_LAB_VARIANTS.find((variant) => !guitarLabPurgedIds.includes(variant.id)) ?? GUITAR_LAB_VARIANTS[0] }];
-  }, [guitarLabPurgedIds, shooterPlayerSlots]);
+    return rarityCandidates.length > 0
+      ? rarityCandidates
+      : [{ slotKey: "rarity-fallback", variant: GUITAR_LAB_VARIANTS.find((variant) => variant.id === SHOOTER_TRACE_GUITAR_VARIANT_ID) ?? GUITAR_LAB_VARIANTS[0] }];
+  }, []);
   const visibleSvgLogoCandidates = useMemo(
     () => SVG_LOGO_LAB_CANDIDATES.filter((candidate) => !svgLogoLabState.deletedLogos.includes(candidate.id)),
     [svgLogoLabState.deletedLogos],
@@ -7674,6 +7718,7 @@ function App() {
   const projectilesRef = useRef([]);
   const shooterBreakEffectsRef = useRef([]);
   const shooterArenaRef = useRef(null);
+  const shooterGuitarPlayerRef = useRef(null);
   const shooterTargetNodesRef = useRef(new Map());
   const projectileNodesRef = useRef(new Map());
   const shooterTargetIdRef = useRef(1);
@@ -7688,6 +7733,7 @@ function App() {
   const shooterDifficultyRef = useRef(SHOOTER_DIFFICULTIES.EASY);
   const shooterSessionSavedRef = useRef(true);
   const shooterAimResetTimerRef = useRef(null);
+  const lastShooterGuitarAimRef = useRef({ targetId: null, angle: null });
   const lastMicReadAtRef = useRef(0);
   const lastMicAnalysisAtRef = useRef(0);
   const scoreRef = useRef(0);
@@ -9722,6 +9768,7 @@ function App() {
         y: 8,
         bornAt: gameTimeRef.current,
         duration: getShooterTargetDuration(difficulty),
+        difficulty,
         hitbox: SHOOTER_TARGET_HITBOX,
         level: level.name,
         phaseLabel: level.phaseLabel,
@@ -9820,19 +9867,51 @@ function App() {
     [flashStage, showLaneFeedback],
   );
 
+  const getShooterGuitarAimAngle = useCallback((target) => {
+    if (!target) return 0;
+    const rect = shooterArenaRef.current?.getBoundingClientRect?.();
+    if (rect?.width && rect?.height) {
+      const targetX = (rect.width * (Number(target.x) || 50)) / 100;
+      const targetY = (rect.height * (Number(target.y) || 8)) / 100;
+      const pivotX = (rect.width * SHOOTER_GUITAR_PIVOT_PERCENT.x) / 100;
+      const pivotY = (rect.height * SHOOTER_GUITAR_PIVOT_PERCENT.y) / 100;
+      const dx = targetX - pivotX;
+      const dy = Math.max(6, pivotY - targetY);
+      return clampValue(Math.atan2(dx, dy) * (180 / Math.PI), -SHOOTER_GUITAR_AIM_LIMIT_DEG, SHOOTER_GUITAR_AIM_LIMIT_DEG);
+    }
+    const dx = (Number(target.x) || 50) - SHOOTER_GUITAR_PIVOT_PERCENT.x;
+    const dy = Math.max(1.2, SHOOTER_GUITAR_PIVOT_PERCENT.y - (Number(target.y) || 8));
+    return clampValue(Math.atan2(dx, dy) * (180 / Math.PI), -SHOOTER_GUITAR_AIM_LIMIT_DEG, SHOOTER_GUITAR_AIM_LIMIT_DEG);
+  }, []);
+
+  const applyShooterGuitarAim = useCallback((target, force = false) => {
+    const node = shooterGuitarPlayerRef.current;
+    if (!node) return;
+    const angle = getShooterGuitarAimAngle(target);
+    const targetId = target?.id ?? null;
+    const lastAim = lastShooterGuitarAimRef.current;
+    if (
+      !force
+      && lastAim.targetId === targetId
+      && lastAim.angle != null
+      && Math.abs(lastAim.angle - angle) < SHOOTER_GUITAR_AIM_MIN_DELTA_DEG
+    ) {
+      return;
+    }
+    lastShooterGuitarAimRef.current = { targetId, angle };
+    node.style.setProperty("--aim-shift", "0px");
+    node.style.setProperty("--aim-tilt", "0deg");
+    node.style.setProperty("--guitar-aim", `${angle.toFixed(2)}deg`);
+    node.style.setProperty("--arm-aim", `${clampValue(angle * 0.22, -5, 5).toFixed(2)}deg`);
+  }, [getShooterGuitarAimAngle]);
+
   const aimShooterAtTarget = useCallback((target, holdMs = 190) => {
-    const nextAim = {
-      "--aim-shift": "0px",
-      "--aim-tilt": "0deg",
-      "--guitar-aim": `${clampValue((target.x - 50) * 0.055 - (84 - target.y) * 0.006, -3.2, 3.2)}deg`,
-      "--arm-aim": `${clampValue((target.x - 50) * 0.08 - (82 - target.y) * 0.015, -5, 5)}deg`,
-    };
-    setShooterAim(nextAim);
+    applyShooterGuitarAim(target, true);
     window.clearTimeout(shooterAimResetTimerRef.current);
     shooterAimResetTimerRef.current = window.setTimeout(() => {
-      setShooterAim(undefined);
+      applyShooterGuitarAim(getShooterPrimaryAimTarget(shooterTargetsRef.current), true);
     }, holdMs);
-  }, []);
+  }, [applyShooterGuitarAim]);
 
   const getShooterArenaPoint = useCallback((x, y) => {
     const rect = shooterArenaRef.current?.getBoundingClientRect?.();
@@ -9959,6 +10038,7 @@ function App() {
       duration: projectileDuration,
       angle,
       spin: Math.random() < 0.5 ? -4 - Math.random() * 5 : 4 + Math.random() * 5,
+      projectileAssetSrc: selectedGuitarVariant.projectileAssetSrc,
       renderedByDom: true,
     };
     showImmediateProjectile(projectile);
@@ -9970,7 +10050,7 @@ function App() {
 
     setProjectiles([...projectilesRef.current]);
     return projectile;
-  }, [aimShooterAtTarget, showImmediateProjectile]);
+  }, [aimShooterAtTarget, selectedGuitarVariant.projectileAssetSrc, showImmediateProjectile]);
 
   const judgeShooterNote = useCallback(
     (detectedPitchName) => {
@@ -10382,6 +10462,7 @@ function App() {
         }
         applyShooterTargetTransform(target, nextY);
       });
+      applyShooterGuitarAim(getShooterPrimaryAimTarget(shooterTargetsRef.current));
 
       const defeatedExpiredTargets = shooterTargetsRef.current.filter(
         (target) => target.defeated && gameTimeRef.current - (target.hitAt ?? target.bornAt) >= SHOOTER_TARGET_HIT_EFFECT_MS,
@@ -10444,7 +10525,7 @@ function App() {
         setShooterTargets([...shooterTargetsRef.current]);
       }
     },
-    [applyShooterTargetTransform, completeShooterTargetImpact, finalizeShooterRecord, flashStage, playShooterSound, setState, spawnShooterTarget],
+    [applyShooterGuitarAim, applyShooterTargetTransform, completeShooterTargetImpact, finalizeShooterRecord, flashStage, playShooterSound, setState, spawnShooterTarget],
   );
 
   const runChordTransitionFrame = useCallback(
@@ -11591,6 +11672,7 @@ function App() {
   const handleBpmSwipeStart = useCallback((event) => {
     if (event.target?.closest?.("button, select, input, textarea")) return;
 
+    event.stopPropagation();
     event.currentTarget.setPointerCapture?.(event.pointerId);
     const now = performance.now();
     bpmSwipeStartRef.current = {
@@ -11683,6 +11765,7 @@ function App() {
   }, []);
 
   const handleMetronomeModeSwipeStart = useCallback((event) => {
+    event.stopPropagation();
     event.currentTarget.setPointerCapture?.(event.pointerId);
     setMetronomeModeSwipeActive(true);
     setMetronomeModeSwipeOffset(0);
@@ -11724,20 +11807,16 @@ function App() {
     }
 
     if (event.cancelable) event.preventDefault();
-    const stepDeltaX = event.clientX - swipe.stepX;
-    const stepCount = Math.trunc(stepDeltaX / METRONOME_MODE_SWIPE_STEP_THRESHOLD);
-    if (stepCount !== 0) {
-      changeMetronomeDisplayModeBySwipe(stepCount);
-      swipe.stepX = event.clientX;
-      setMetronomeModeSwipeOffset(0);
-    } else {
-      setMetronomeModeSwipeOffset(
-        Math.max(
-          -METRONOME_MODE_SWIPE_STEP_THRESHOLD,
-          Math.min(METRONOME_MODE_SWIPE_STEP_THRESHOLD, stepDeltaX * 0.34),
-        ),
-      );
-    }
+    const commitDistance = Math.max(
+      METRONOME_MODE_SWIPE_STEP_THRESHOLD,
+      (event.currentTarget?.clientWidth || window.innerWidth || 1) * METRONOME_MODE_SWIPE_COMMIT_RATIO,
+    );
+    setMetronomeModeSwipeOffset(
+      Math.max(
+        -METRONOME_MODE_SWIPE_STEP_THRESHOLD,
+        Math.min(METRONOME_MODE_SWIPE_STEP_THRESHOLD, (deltaX / commitDistance) * METRONOME_MODE_SWIPE_STEP_THRESHOLD),
+      ),
+    );
 
     swipe.lastX = event.clientX;
     swipe.lastY = event.clientY;
@@ -11752,7 +11831,16 @@ function App() {
     metronomeModeSwipeStartRef.current = null;
     setMetronomeModeSwipeActive(false);
     setMetronomeModeSwipeOffset(0);
-  }, []);
+    if (swipe.canceled || !swipe.locked) return;
+
+    const commitDistance = Math.max(
+      METRONOME_MODE_SWIPE_STEP_THRESHOLD,
+      (event.currentTarget?.clientWidth || window.innerWidth || 1) * METRONOME_MODE_SWIPE_COMMIT_RATIO,
+    );
+    const deltaX = event.clientX - swipe.x;
+    if (Math.abs(deltaX) < commitDistance) return;
+    changeMetronomeDisplayModeBySwipe(deltaX > 0 ? 1 : -1);
+  }, [changeMetronomeDisplayModeBySwipe]);
 
   const handleMetronomeModeSwipeCancel = useCallback((event) => {
     const swipe = metronomeModeSwipeStartRef.current;
@@ -13134,6 +13222,7 @@ function App() {
   };
   const shooterPreview = getShooterQueue(hits, shooterTarget ? Math.max(0, patternRef.current - 1) : patternRef.current, 5);
   const shooterMotion = shooterAim;
+  const isShooterDifficultyLocked = gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.PAUSED;
   const hasDirectionPractice = selectedCategory.id === "scale-block" || selectedCategory.id === "first-position";
   const directionGuideSequence =
     selectedCategory.id === "first-position" ? FIRST_POSITION_ASCENDING_SEQUENCE : selectedPentatonic.sequence;
@@ -15336,11 +15425,14 @@ function App() {
           />
 
           <div
+            aria-label="BPM 조절 영역. 좌우 스와이프는 BPM만 변경합니다"
             className="metronomeHeroCard metronomeHeroCard--interactive"
+            data-bpm-swipe-zone="true"
             onPointerCancel={handleBpmSwipeCancel}
             onPointerDown={handleBpmSwipeStart}
             onPointerMove={handleBpmSwipeMove}
             onPointerUp={handleBpmSwipeEnd}
+            role="group"
           >
             <button
               aria-label="BPM 1 낮추기"
@@ -15386,6 +15478,17 @@ function App() {
               ) : (
                 <Play size={18} aria-hidden="true" />
               )}
+            </button>
+            <button
+              aria-label="탭 템포로 BPM 설정"
+              className="metronomeHeroTapTempoButton"
+              onClick={(event) => {
+                event.stopPropagation();
+                handleTapTempo();
+              }}
+              type="button"
+            >
+              TAP
             </button>
           </div>
 
@@ -15461,11 +15564,18 @@ function App() {
             <div className="shooterDifficultyButtons">
               {SHOOTER_DIFFICULTY_OPTIONS.map((option) => (
                 <button
+                  aria-disabled={isShooterDifficultyLocked}
                   aria-pressed={shooterDifficulty === option.id}
-                  className={shooterDifficulty === option.id ? "selected" : ""}
-                  disabled={gameState === GAME_STATES.PLAYING}
+                  className={`${shooterDifficulty === option.id ? "selected" : ""} ${isShooterDifficultyLocked ? "locked" : ""}`}
+                  disabled={isShooterDifficultyLocked}
                   key={option.id}
-                  onClick={() => setShooterDifficulty(option.id)}
+                  onClick={(event) => {
+                    if (isShooterDifficultyLocked) {
+                      event.preventDefault();
+                      return;
+                    }
+                    setShooterDifficulty(option.id);
+                  }}
                   title={option.hint}
                   type="button"
                 >
@@ -15608,9 +15718,11 @@ function App() {
 
             {shooterTargets.map((target) => {
               const targetDetail = target.detail ?? getShooterNoteDetail(target.note);
+              const targetDifficulty = target.difficulty ?? shooterDifficulty;
+              const showKoreanNoteName = targetDifficulty === SHOOTER_DIFFICULTIES.EASY;
               return (
               <div
-                className={`enemy shooterEnemy ${!target.defeated ? "fallingTarget" : ""} ${target.defeated ? "defeated" : ""}`}
+                className={`enemy shooterEnemy shooterEnemy--monster ${getShooterEnemyDifficultyClass(targetDifficulty)} ${!target.defeated ? "fallingTarget" : ""} ${target.defeated ? "defeated" : ""}`}
                 key={target.id}
                 ref={(node) => {
                   if (node) {
@@ -15630,10 +15742,17 @@ function App() {
                   ...getNoteColorStyle(target.note),
                 }}
               >
+                <img
+                  alt=""
+                  aria-hidden="true"
+                  className="shooterEnemyMonsterAsset"
+                  draggable="false"
+                  src={getShooterEnemyAssetSrc(targetDifficulty)}
+                />
                 <i className="enemyEar enemyEar--left" aria-hidden="true" />
                 <i className="enemyEar enemyEar--right" aria-hidden="true" />
                 <i className="enemyFace" aria-hidden="true" />
-                <em>{targetDetail?.solfege ?? getSolfege(target.note)}</em>
+                {showKoreanNoteName ? <em>{targetDetail?.solfege ?? getSolfege(target.note)}</em> : null}
                 <span>{targetDetail?.octaveNote ?? target.note}</span>
                 <small>{getFretLabel(targetDetail)}</small>
                 <div className="targetBreakLayer" aria-hidden="true">
@@ -15711,7 +15830,7 @@ function App() {
 
             {projectiles.map((projectile) => {
               if (projectile.renderedByDom) return null;
-              const projectileAssetSrc = selectedGuitarVariant.projectileAssetSrc;
+              const projectileAssetSrc = projectile.projectileAssetSrc ?? selectedGuitarVariant.projectileAssetSrc;
               return (
                 <div
                   className={`energyProjectile ${projectileAssetSrc ? "energyProjectile--imageProjectile" : ""}`}
@@ -15739,7 +15858,7 @@ function App() {
               );
             })}
 
-            <div className={`guitarPlayer ${projectiles.length > 0 ? "shooting" : ""}`} style={shooterMotion}>
+            <div className={`guitarPlayer ${projectiles.length > 0 ? "shooting" : ""}`} ref={shooterGuitarPlayerRef} style={shooterMotion}>
               <div className="guitarPlayerAura" aria-hidden="true" />
               <GuitarAssetSvg variant={selectedGuitarVariant} className="guitarPlayerAsset" compact />
               <span className="guitarPlayerMuzzle" aria-hidden="true" />
@@ -15838,19 +15957,18 @@ function App() {
                   </button>
                 </div>
                 <div className="shooterGuitarPickerList">
-                  {shooterPlayerOptions.map(({ slotNumber, variant }) => {
+                  {shooterPlayerOptions.map(({ slotKey, variant }) => {
                     const isSelected = selectedGuitarVariant.id === variant.id;
                     return (
                       <button
                         className={`shooterGuitarPickerItem ${isSelected ? "selected" : ""}`}
-                        key={`${slotNumber}-${variant.id}`}
+                        key={`${slotKey}-${variant.id}`}
                         onClick={() => {
                           applyGuitarVariant(variant.id);
                           setShooterGuitarPickerOpen(false);
                         }}
                         type="button"
                       >
-                        <b className="shooterGuitarPickerSlot">{slotNumber}</b>
                         <GuitarAssetSvg variant={variant} className="shooterGuitarPickerAsset" compact />
                         <span>
                           <strong>{variant.title}</strong>
