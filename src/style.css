@@ -27783,7 +27783,10 @@ body {
 }
 
 .shooterArena .guitarPlayer.guitarPlayer--rifflab-legendary-cutaway,
-.shooterArena .guitarPlayer.guitarPlayer--rifflab-epic-cutaway {
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-epic-cutaway,
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-astral-relic-cutaway,
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-temple-grace-cutaway,
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-frost-spirit-cutaway {
   width: 60px !important;
   height: 137px !important;
 }
@@ -27860,7 +27863,10 @@ body {
 }
 
 .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-legendary-cutaway,
-.shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-epic-cutaway {
+.shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-epic-cutaway,
+.shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-astral-relic-cutaway,
+.shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-temple-grace-cutaway,
+.shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-frost-spirit-cutaway {
   bottom: 0;
   height: 137px;
   max-height: 137px;
@@ -28311,7 +28317,10 @@ body {
   }
 
   .shooterArena .guitarPlayer.guitarPlayer--rifflab-legendary-cutaway,
-  .shooterArena .guitarPlayer.guitarPlayer--rifflab-epic-cutaway {
+  .shooterArena .guitarPlayer.guitarPlayer--rifflab-epic-cutaway,
+  .shooterArena .guitarPlayer.guitarPlayer--rifflab-astral-relic-cutaway,
+  .shooterArena .guitarPlayer.guitarPlayer--rifflab-temple-grace-cutaway,
+  .shooterArena .guitarPlayer.guitarPlayer--rifflab-frost-spirit-cutaway {
     width: 57px !important;
     height: 127px !important;
   }
@@ -28327,7 +28336,10 @@ body {
   }
 
   .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-legendary-cutaway,
-  .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-epic-cutaway {
+  .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-epic-cutaway,
+  .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-astral-relic-cutaway,
+  .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-temple-grace-cutaway,
+  .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-frost-spirit-cutaway {
     bottom: 0;
     height: 127px;
     max-height: 127px;

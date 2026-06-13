@@ -3559,6 +3559,9 @@ const GUITAR_LAB_VARIANTS = [
   ["acoustic-legendary-core-trace", "Acoustic", "Pearl Clean", "기존 화이트 골드 펄 톤의 기본 PNG 후보", "#f4d58a", "#ffcf52", "image-legendary-core-trace", "/images/shooter-acoustic-legendary-trace.png"],
   ["rifflab-legendary-cutaway", "Acoustic", "Phoenix Harmony", "피닉스 금장 문양을 가진 컷어웨이 슈팅 기타 PNG", "#7c241b", "#d8a64a", "image-rifflab-legendary-cutaway", "/images/rifflab-legendary-cutaway-sprite-tight.png"],
   ["rifflab-epic-cutaway", "Acoustic", "Azure Bloom", "내추럴 우드와 블루 골드 장식을 가진 컷어웨이 슈팅 기타 PNG", "#d8aa66", "#2f63b8", "image-rifflab-epic-cutaway", "/images/rifflab-epic-cutaway-sprite-tight.png"],
+  ["rifflab-astral-relic-cutaway", "Acoustic", "Astral Relic", "블랙 바디와 금장 별 문양을 가진 고대 유물풍 컷어웨이 슈팅 기타 PNG", "#0f0d09", "#d8a64a", "image-rifflab-astral-relic-cutaway", "/images/rifflab-astral-relic-cutaway-sprite-tight.png"],
+  ["rifflab-temple-grace-cutaway", "Acoustic", "Temple Grace", "아이보리 화이트 바디와 골드 문양을 가진 성역풍 컷어웨이 슈팅 기타 PNG", "#f4efe2", "#d6a13b", "image-rifflab-temple-grace-cutaway", "/images/rifflab-temple-grace-cutaway-sprite-tight.png"],
+  ["rifflab-frost-spirit-cutaway", "Acoustic", "Frost Spirit", "겨울밤과 달빛 서리 문양을 가진 얼음 정령풍 컷어웨이 슈팅 기타 PNG", "#082c3f", "#bdefff", "image-rifflab-frost-spirit-cutaway", "/images/rifflab-frost-spirit-cutaway-sprite-tight.png"],
   ["acoustic-core-dread-01", "Acoustic", "Core Dread 01", "진한 자개 로제트와 위로 정리된 브릿지 위치를 적용한 기본 드레드넛 후보", "#b97836", "#f1ca7a", "core-dread-01"],
   ["acoustic-core-dread-02", "Acoustic", "Core Dread 02", "마호가니 톤을 유지하면서 사운드홀과 브릿지 간격을 좁힌 후보", "#8f5230", "#f8e8b0", "core-dread-02"],
   ["acoustic-core-dread-03", "Acoustic", "Core Dread 03", "선버스트 깊이감과 진한 자개 사운드홀을 더한 스테이지용 후보", "#c06f24", "#1a0e06", "core-dread-03"],
@@ -3584,6 +3587,9 @@ const SHOOTER_RARITY_GUITAR_VARIANT_IDS = [
   "acoustic-legendary-core-trace",
   "rifflab-legendary-cutaway",
   "rifflab-epic-cutaway",
+  "rifflab-astral-relic-cutaway",
+  "rifflab-temple-grace-cutaway",
+  "rifflab-frost-spirit-cutaway",
 ];
 const SHOOTER_GUITAR_RARITIES = {
   NORMAL: "normal",
@@ -3593,7 +3599,6 @@ const SHOOTER_GUITAR_RARITIES = {
 };
 const SHOOTER_GUITAR_RARITY_OPTIONS = [
   { id: SHOOTER_GUITAR_RARITIES.NORMAL, label: "일반" },
-  { id: SHOOTER_GUITAR_RARITIES.RARE, label: "레어" },
   { id: SHOOTER_GUITAR_RARITIES.EPIC, label: "에픽" },
   { id: SHOOTER_GUITAR_RARITIES.LEGENDARY, label: "레전더리" },
 ];
@@ -3603,6 +3608,9 @@ const SHOOTER_GUITAR_RARITY_BY_VARIANT_ID = {
   "acoustic-legendary-core-trace": SHOOTER_GUITAR_RARITIES.NORMAL,
   "rifflab-legendary-cutaway": SHOOTER_GUITAR_RARITIES.LEGENDARY,
   "rifflab-epic-cutaway": SHOOTER_GUITAR_RARITIES.EPIC,
+  "rifflab-astral-relic-cutaway": SHOOTER_GUITAR_RARITIES.LEGENDARY,
+  "rifflab-temple-grace-cutaway": SHOOTER_GUITAR_RARITIES.LEGENDARY,
+  "rifflab-frost-spirit-cutaway": SHOOTER_GUITAR_RARITIES.LEGENDARY,
 };
 const FRESH_ACOUSTIC_GUITAR_IDS = new Set([
   ...SHOOTER_RARITY_GUITAR_VARIANT_IDS,
@@ -15910,6 +15918,22 @@ function App() {
                       : t(feedback)}
                 </strong>
                 {gameState === GAME_STATES.GAMEOVER && <span></span>}
+                <button
+                  className="mobileShooterStartButton primary"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    startShooter();
+                  }}
+                  type="button"
+                >
+                  <Play size={18} />
+                  {gameState === GAME_STATES.PAUSED ? "계속" : "시작"}
+                </button>
+                {gameState !== GAME_STATES.PAUSED && (
+                  <small className="shooterPlayerSelectedLabel">
+                    {selectedGuitarVariant.title}
+                  </small>
+                )}
                 {gameState !== GAME_STATES.PAUSED && (
                   <button
                     className="mobileShooterStartButton"
@@ -15923,22 +15947,6 @@ function App() {
                     기타 변경
                   </button>
                 )}
-                {gameState !== GAME_STATES.PAUSED && (
-                  <small className="shooterPlayerSelectedLabel">
-                    {selectedGuitarVariant.title}
-                  </small>
-                )}
-                <button
-                  className="mobileShooterStartButton primary"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    startShooter();
-                  }}
-                  type="button"
-                >
-                  <Play size={18} />
-                  {gameState === GAME_STATES.PAUSED ? "계속" : "시작"}
-                </button>
                 {gameState === GAME_STATES.PAUSED && (
                   <button
                     className="mobileShooterStartButton"
