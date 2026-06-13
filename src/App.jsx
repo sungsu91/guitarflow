@@ -3554,10 +3554,11 @@ const GUITAR_LAB_VARIANTS = [
   ["fresh-cutaway-pearl", "Acoustic", "Pearl Cut", "자개 로제트와 고급 컷어웨이 실루엣을 강조한 후보", "#5f3325", "#f8e8b0", "fresh-cutaway-pearl"],
   ["fresh-cutaway-honey", "Acoustic", "Honey Cut", "꿀빛 상판과 자연스러운 하단 연속 곡률의 컷어웨이 후보", "#d79b4d", "#3a210f", "fresh-cutaway-honey"],
   ["fresh-cutaway-reference", "Acoustic", "Reference Cut", "첨부 레퍼런스 라인의 측면 흐름과 하단 곡률을 기준으로 만든 후보", "#c9823a", "#f1ca7a", "fresh-cutaway-reference"],
-  ["acoustic-real-trace", "Acoustic", "Normal", "실제 통기타 누끼 라인을 기준으로 만든 노말 등급 정면 PNG 후보", "#d79b4d", "#3a210f", "image-real-trace", "/images/shooter-acoustic-real-trace.png"],
-  ["acoustic-epic-trace", "Acoustic", "Epic", "같은 통기타 라인에 레드 선버스트와 에픽 외곽광을 입힌 PNG 후보", "#c74323", "#ff8a2a", "image-epic-trace", "/images/shooter-acoustic-epic-trace.png"],
-  ["acoustic-legendary-trace", "Acoustic", "Legendary", "화이트 바디와 골드 장식을 입힌 레전더리 기타 PNG 후보", "#f4d58a", "#ffcf52", "image-legendary-trace", "/images/shooter-guitar-legendary-ornate.png", "/images/shooter-pick-legendary-ornate.png"],
-  ["acoustic-legendary-core-trace", "Acoustic", "Legendary Core", "기존 화이트 골드 펄 레전더리 기타 PNG 후보", "#f4d58a", "#ffcf52", "image-legendary-core-trace", "/images/shooter-acoustic-legendary-trace.png"],
+  ["acoustic-real-trace", "Acoustic", "Natural", "실제 통기타 누끼 라인을 기준으로 만든 기본 내추럴 정면 PNG 후보", "#d79b4d", "#3a210f", "image-real-trace", "/images/shooter-acoustic-real-trace.png"],
+  ["acoustic-epic-trace", "Acoustic", "Sunburst", "같은 통기타 라인에 레드 선버스트 톤을 입힌 기본 PNG 후보", "#c74323", "#ff8a2a", "image-epic-trace", "/images/shooter-acoustic-epic-trace.png"],
+  ["acoustic-legendary-core-trace", "Acoustic", "Pearl Clean", "기존 화이트 골드 펄 톤의 기본 PNG 후보", "#f4d58a", "#ffcf52", "image-legendary-core-trace", "/images/shooter-acoustic-legendary-trace.png"],
+  ["rifflab-legendary-cutaway", "Acoustic", "Phoenix Harmony", "피닉스 금장 문양을 가진 컷어웨이 슈팅 기타 PNG", "#7c241b", "#d8a64a", "image-rifflab-legendary-cutaway", "/images/rifflab-legendary-cutaway-sprite-tight.png"],
+  ["rifflab-epic-cutaway", "Acoustic", "Azure Bloom", "내추럴 우드와 블루 골드 장식을 가진 컷어웨이 슈팅 기타 PNG", "#d8aa66", "#2f63b8", "image-rifflab-epic-cutaway", "/images/rifflab-epic-cutaway-sprite-tight.png"],
   ["acoustic-core-dread-01", "Acoustic", "Core Dread 01", "진한 자개 로제트와 위로 정리된 브릿지 위치를 적용한 기본 드레드넛 후보", "#b97836", "#f1ca7a", "core-dread-01"],
   ["acoustic-core-dread-02", "Acoustic", "Core Dread 02", "마호가니 톤을 유지하면서 사운드홀과 브릿지 간격을 좁힌 후보", "#8f5230", "#f8e8b0", "core-dread-02"],
   ["acoustic-core-dread-03", "Acoustic", "Core Dread 03", "선버스트 깊이감과 진한 자개 사운드홀을 더한 스테이지용 후보", "#c06f24", "#1a0e06", "core-dread-03"],
@@ -3565,7 +3566,7 @@ const GUITAR_LAB_VARIANTS = [
   id,
   pack,
   model,
-  title: `${pack} ${model}`,
+  title: model,
   description,
   bodyColor,
   accentColor,
@@ -3580,15 +3581,40 @@ const SHOOTER_TRACE_GUITAR_VARIANT_ID = "acoustic-real-trace";
 const SHOOTER_RARITY_GUITAR_VARIANT_IDS = [
   SHOOTER_TRACE_GUITAR_VARIANT_ID,
   "acoustic-epic-trace",
-  "acoustic-legendary-trace",
   "acoustic-legendary-core-trace",
+  "rifflab-legendary-cutaway",
+  "rifflab-epic-cutaway",
 ];
+const SHOOTER_GUITAR_RARITIES = {
+  NORMAL: "normal",
+  RARE: "rare",
+  EPIC: "epic",
+  LEGENDARY: "legendary",
+};
+const SHOOTER_GUITAR_RARITY_OPTIONS = [
+  { id: SHOOTER_GUITAR_RARITIES.NORMAL, label: "일반" },
+  { id: SHOOTER_GUITAR_RARITIES.RARE, label: "레어" },
+  { id: SHOOTER_GUITAR_RARITIES.EPIC, label: "에픽" },
+  { id: SHOOTER_GUITAR_RARITIES.LEGENDARY, label: "레전더리" },
+];
+const SHOOTER_GUITAR_RARITY_BY_VARIANT_ID = {
+  [SHOOTER_TRACE_GUITAR_VARIANT_ID]: SHOOTER_GUITAR_RARITIES.NORMAL,
+  "acoustic-epic-trace": SHOOTER_GUITAR_RARITIES.NORMAL,
+  "acoustic-legendary-core-trace": SHOOTER_GUITAR_RARITIES.NORMAL,
+  "rifflab-legendary-cutaway": SHOOTER_GUITAR_RARITIES.LEGENDARY,
+  "rifflab-epic-cutaway": SHOOTER_GUITAR_RARITIES.EPIC,
+};
 const FRESH_ACOUSTIC_GUITAR_IDS = new Set([
   ...SHOOTER_RARITY_GUITAR_VARIANT_IDS,
   "acoustic-core-dread-01",
   "acoustic-core-dread-02",
   "acoustic-core-dread-03",
 ]);
+
+function getShooterGuitarRarityId(variantId) {
+  return SHOOTER_GUITAR_RARITY_BY_VARIANT_ID[variantId] ?? SHOOTER_GUITAR_RARITIES.NORMAL;
+}
+
 const DEFAULT_SHOOTER_PLAYER_SLOTS = {
   slot1: "acoustic-core-dread-01",
   slot2: "acoustic-core-dread-02",
@@ -4985,7 +5011,7 @@ function GuitarAssetSvg({ variant, className = "", compact = false }) {
     return (
       <img
         alt={`${variant.title} guitar asset`}
-        className={`guitarAssetSvg guitarAssetImage ${className}`}
+        className={`guitarAssetSvg guitarAssetImage guitarAssetImage--${variant.id} ${className}`}
         draggable="false"
         src={variant.assetSrc}
       />
@@ -7189,6 +7215,7 @@ function App() {
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
   const [shooterDifficulty, setShooterDifficulty] = useState(SHOOTER_DIFFICULTIES.EASY);
+  const [shooterGuitarRarityFilter, setShooterGuitarRarityFilter] = useState(SHOOTER_GUITAR_RARITIES.NORMAL);
   const [shooterRecords, setShooterRecords] = useState(() => RecordService.getShooterRecords());
   const [showShooterRecords, setShowShooterRecords] = useState(false);
   const [shooterLives, setShooterLives] = useState(SHOOTER_MAX_LIVES);
@@ -7230,16 +7257,14 @@ function App() {
   const shooterPlayerOptions = useMemo(() => {
     const rarityCandidates = SHOOTER_RARITY_GUITAR_VARIANT_IDS.map((variantId) => {
       const variant = GUITAR_LAB_VARIANTS.find((item) => item.id === variantId);
-      if (!variant) return null;
+      if (!variant || getShooterGuitarRarityId(variant.id) !== shooterGuitarRarityFilter) return null;
       return {
         slotKey: `rarity-candidate-${variant.id}`,
         variant,
       };
     }).filter(Boolean);
-    return rarityCandidates.length > 0
-      ? rarityCandidates
-      : [{ slotKey: "rarity-fallback", variant: GUITAR_LAB_VARIANTS.find((variant) => variant.id === SHOOTER_TRACE_GUITAR_VARIANT_ID) ?? GUITAR_LAB_VARIANTS[0] }];
-  }, []);
+    return rarityCandidates;
+  }, [shooterGuitarRarityFilter]);
   const visibleSvgLogoCandidates = useMemo(
     () => SVG_LOGO_LAB_CANDIDATES.filter((candidate) => !svgLogoLabState.deletedLogos.includes(candidate.id)),
     [svgLogoLabState.deletedLogos],
@@ -13221,7 +13246,14 @@ function App() {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
   };
   const shooterPreview = getShooterQueue(hits, shooterTarget ? Math.max(0, patternRef.current - 1) : patternRef.current, 5);
-  const shooterMotion = shooterAim;
+  const shooterMotion = gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.PAUSED
+    ? shooterAim
+    : {
+        "--aim-shift": "0px",
+        "--aim-tilt": "0deg",
+        "--guitar-aim": "0deg",
+        "--arm-aim": "0deg",
+      };
   const isShooterDifficultyLocked = gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.PAUSED;
   const hasDirectionPractice = selectedCategory.id === "scale-block" || selectedCategory.id === "first-position";
   const directionGuideSequence =
@@ -15858,7 +15890,7 @@ function App() {
               );
             })}
 
-            <div className={`guitarPlayer ${projectiles.length > 0 ? "shooting" : ""}`} ref={shooterGuitarPlayerRef} style={shooterMotion}>
+            <div className={`guitarPlayer guitarPlayer--${selectedGuitarVariant.id} ${projectiles.length > 0 ? "shooting" : ""}`} ref={shooterGuitarPlayerRef} style={shooterMotion}>
               <div className="guitarPlayerAura" aria-hidden="true" />
               <GuitarAssetSvg variant={selectedGuitarVariant} className="guitarPlayerAsset" compact />
               <span className="guitarPlayerMuzzle" aria-hidden="true" />
@@ -15883,6 +15915,7 @@ function App() {
                     className="mobileShooterStartButton"
                     onClick={(event) => {
                       event.stopPropagation();
+                      setShooterGuitarRarityFilter(getShooterGuitarRarityId(selectedGuitarVariant.id));
                       setShooterGuitarPickerOpen(true);
                     }}
                     type="button"
@@ -15956,8 +15989,21 @@ function App() {
                     닫기
                   </button>
                 </div>
+                <div className="shooterGuitarRarityTabs" aria-label="기타 등급">
+                  {SHOOTER_GUITAR_RARITY_OPTIONS.map((option) => (
+                    <button
+                      aria-pressed={shooterGuitarRarityFilter === option.id}
+                      className={shooterGuitarRarityFilter === option.id ? "selected" : ""}
+                      key={option.id}
+                      onClick={() => setShooterGuitarRarityFilter(option.id)}
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
                 <div className="shooterGuitarPickerList">
-                  {shooterPlayerOptions.map(({ slotKey, variant }) => {
+                  {shooterPlayerOptions.length > 0 ? shooterPlayerOptions.map(({ slotKey, variant }) => {
                     const isSelected = selectedGuitarVariant.id === variant.id;
                     return (
                       <button
@@ -15977,7 +16023,12 @@ function App() {
                         <em>{isSelected ? "선택됨" : "선택"}</em>
                       </button>
                     );
-                  })}
+                  }) : (
+                    <div className="shooterGuitarPickerEmpty">
+                      <strong>준비중</strong>
+                      <span>새 기타가 추가되면 여기에 표시됩니다.</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

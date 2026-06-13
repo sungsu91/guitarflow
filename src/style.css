@@ -4248,25 +4248,25 @@ h1 {
 }
 
 .shooterArena .enemy.shooterEnemy.shooterEnemy--easy em {
-  margin-top: 7px !important;
-  color: #fffff2 !important;
-  font-size: 18px !important;
+  margin-top: 5px !important;
+  color: #10220a !important;
+  font-size: 15px !important;
+  line-height: 0.9 !important;
   text-shadow:
-    0 2px 5px rgba(0, 55, 0, 0.84),
-    0 0 9px rgba(194, 255, 91, 0.86),
-    0 0 16px rgba(85, 255, 33, 0.62) !important;
-  -webkit-text-stroke: 0.35px rgba(16, 78, 0, 0.54);
+    0 1px 0 rgba(255, 255, 220, 0.46),
+    0 0 5px rgba(196, 255, 86, 0.38) !important;
+  -webkit-text-stroke: 0.18px rgba(255, 255, 220, 0.24);
 }
 
 .shooterArena .enemy.shooterEnemy.shooterEnemy--easy span {
-  margin-top: 3px !important;
-  color: #fffff2 !important;
-  font-size: 17px !important;
+  margin-top: 0 !important;
+  color: #10220a !important;
+  font-size: 14px !important;
+  line-height: 0.9 !important;
   text-shadow:
-    0 2px 5px rgba(0, 55, 0, 0.84),
-    0 0 9px rgba(194, 255, 91, 0.86),
-    0 0 16px rgba(85, 255, 33, 0.62) !important;
-  -webkit-text-stroke: 0.3px rgba(16, 78, 0, 0.52);
+    0 1px 0 rgba(255, 255, 220, 0.46),
+    0 0 5px rgba(196, 255, 86, 0.38) !important;
+  -webkit-text-stroke: 0.16px rgba(255, 255, 220, 0.22);
 }
 
 .shooterArena .enemy.shooterEnemy.shooterEnemy--normal span,
@@ -15364,7 +15364,7 @@ button.primary svg {
 
 .shooterGuitarPickerModal {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: 12px;
   width: min(360px, calc(100vw - 32px));
   max-height: min(680px, calc(100dvh - 34px));
@@ -15422,6 +15422,41 @@ button.primary svg {
   font-weight: 900;
 }
 
+.shooterGuitarRarityTabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.shooterGuitarRarityTabs button {
+  display: inline-grid;
+  place-items: center;
+  min-height: 34px;
+  padding: 0 6px;
+  border: 1px solid rgba(217, 170, 85, 0.24);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 210, 0.06), transparent 62%),
+    rgba(0, 0, 0, 0.28);
+  color: rgba(255, 244, 210, 0.76);
+  font-size: 11px;
+  font-weight: 950;
+  line-height: 1;
+  box-shadow: none;
+}
+
+.shooterGuitarRarityTabs button.selected {
+  border-color: rgba(241, 202, 122, 0.68);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 226, 154, 0.18), transparent 64%),
+    linear-gradient(180deg, rgba(217, 170, 85, 0.24), rgba(0, 0, 0, 0.48));
+  color: #ffe2a0;
+  box-shadow:
+    inset 0 0 0 1px rgba(241, 202, 122, 0.12),
+    0 0 14px rgba(217, 170, 85, 0.12);
+}
+
 .shooterGuitarPickerList {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -15435,6 +15470,31 @@ button.primary svg {
   padding-bottom: 8px;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
+}
+
+.shooterGuitarPickerEmpty {
+  grid-column: 1 / -1;
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  min-height: 150px;
+  border: 1px dashed rgba(217, 170, 85, 0.24);
+  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.18);
+  color: rgba(255, 248, 232, 0.7);
+  text-align: center;
+}
+
+.shooterGuitarPickerEmpty strong {
+  color: rgba(255, 226, 160, 0.92);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.shooterGuitarPickerEmpty span {
+  color: rgba(245, 232, 201, 0.58);
+  font-size: 11px;
+  font-weight: 850;
 }
 
 .shooterGuitarPickerItem {
@@ -27722,6 +27782,55 @@ body {
     filter 120ms ease-out !important;
 }
 
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-legendary-cutaway,
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-epic-cutaway {
+  width: 60px !important;
+  height: 137px !important;
+}
+
+.shooterArena::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 7%;
+  z-index: 4;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(217, 170, 85, 0.34), rgba(255, 238, 202, 0.24), rgba(217, 170, 85, 0.34), transparent);
+  box-shadow:
+    0 0 8px rgba(217, 170, 85, 0.18);
+  pointer-events: none;
+}
+
+.shooterArena .guitarPlayerAura {
+  left: -18px;
+  right: -18px;
+  bottom: -2px;
+  z-index: 1;
+  height: 18px;
+  background:
+    radial-gradient(ellipse at center, rgba(255, 238, 202, 0.28) 0 9%, rgba(217, 170, 85, 0.2) 12% 34%, rgba(217, 170, 85, 0.08) 48%, transparent 72%),
+    linear-gradient(90deg, transparent, rgba(217, 170, 85, 0.22), transparent);
+  box-shadow:
+    0 0 12px rgba(217, 170, 85, 0.18);
+}
+
+.shooterArena .guitarPlayerAura::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 244, 210, 0.82);
+  box-shadow:
+    0 0 8px rgba(255, 238, 202, 0.52),
+    0 0 15px rgba(217, 170, 85, 0.36);
+  transform: translateX(-50%);
+}
+
 .shooterArena .guitarPlayer.shooting {
   animation: none;
   filter:
@@ -27736,7 +27845,7 @@ body {
   z-index: 2;
   width: 61px;
   transform: translateX(-50%) rotate(var(--guitar-aim, 0deg));
-  transform-origin: 50% 94%;
+  transform-origin: 50% 100%;
   filter:
     drop-shadow(0 12px 16px rgba(0, 0, 0, 0.55))
     drop-shadow(0 0 12px rgba(217, 170, 85, 0.22));
@@ -27750,18 +27859,30 @@ body {
   max-height: 96px;
 }
 
+.shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-legendary-cutaway,
+.shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-epic-cutaway {
+  bottom: 0;
+  height: 137px;
+  max-height: 137px;
+}
+
 .shooterArena .guitarPlayer.shooting .guitarPlayerAsset {
   animation: guitarAssetRecoil 115ms ease-out both;
 }
 
 .shooterArena .guitarPlayerAura {
   position: absolute;
-  left: 5px;
-  right: 5px;
-  bottom: 4px;
-  height: 14px;
+  left: -18px;
+  right: -18px;
+  bottom: -2px;
+  z-index: 1;
+  height: 18px;
   border-radius: 999px;
-  background: radial-gradient(ellipse at center, rgba(217, 170, 85, 0.24), transparent 68%);
+  background:
+    radial-gradient(ellipse at center, rgba(255, 238, 202, 0.28) 0 9%, rgba(217, 170, 85, 0.2) 12% 34%, rgba(217, 170, 85, 0.08) 48%, transparent 72%),
+    linear-gradient(90deg, transparent, rgba(217, 170, 85, 0.22), transparent);
+  box-shadow:
+    0 0 12px rgba(217, 170, 85, 0.18);
   filter: blur(1px);
 }
 
@@ -28189,6 +28310,12 @@ body {
     height: 83px !important;
   }
 
+  .shooterArena .guitarPlayer.guitarPlayer--rifflab-legendary-cutaway,
+  .shooterArena .guitarPlayer.guitarPlayer--rifflab-epic-cutaway {
+    width: 57px !important;
+    height: 127px !important;
+  }
+
   .shooterArena .guitarPlayerAsset {
     width: 56px;
   }
@@ -28197,6 +28324,13 @@ body {
     width: auto;
     height: 88px;
     max-height: 88px;
+  }
+
+  .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-legendary-cutaway,
+  .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-epic-cutaway {
+    bottom: 0;
+    height: 127px;
+    max-height: 127px;
   }
 }
 
