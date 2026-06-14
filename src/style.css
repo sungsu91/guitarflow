@@ -15531,6 +15531,13 @@ button.primary svg {
   height: 124px;
 }
 
+.shooterGuitarPickerAsset.guitarAssetImage--acoustic-real-trace,
+.shooterGuitarPickerAsset.guitarAssetImage--acoustic-epic-trace,
+.shooterGuitarPickerAsset.guitarAssetImage--acoustic-legendary-core-trace {
+  height: 132px;
+  max-height: 132px;
+}
+
 .shooterGuitarPickerItem span {
   display: grid;
   gap: 2px;
@@ -15666,6 +15673,13 @@ button.primary svg {
 
   .shooterGuitarPickerAsset.guitarAssetImage {
     height: 112px;
+  }
+
+  .shooterGuitarPickerAsset.guitarAssetImage--acoustic-real-trace,
+  .shooterGuitarPickerAsset.guitarAssetImage--acoustic-epic-trace,
+  .shooterGuitarPickerAsset.guitarAssetImage--acoustic-legendary-core-trace {
+    height: 120px;
+    max-height: 120px;
   }
 
 }
@@ -27783,7 +27797,9 @@ body {
 }
 
 .shooterArena .guitarPlayer.guitarPlayer--rifflab-legendary-cutaway,
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-common-cutaway,
 .shooterArena .guitarPlayer.guitarPlayer--rifflab-epic-cutaway,
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-onyx-pearl-dreadnought,
 .shooterArena .guitarPlayer.guitarPlayer--rifflab-astral-relic-cutaway,
 .shooterArena .guitarPlayer.guitarPlayer--rifflab-temple-grace-cutaway,
 .shooterArena .guitarPlayer.guitarPlayer--rifflab-frost-spirit-cutaway {
@@ -27863,13 +27879,29 @@ body {
 }
 
 .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-legendary-cutaway,
+.shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-common-cutaway,
 .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-epic-cutaway,
+.shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-onyx-pearl-dreadnought,
 .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-astral-relic-cutaway,
 .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-temple-grace-cutaway,
 .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-frost-spirit-cutaway {
   bottom: 0;
   height: 137px;
   max-height: 137px;
+}
+
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-common-cutaway,
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-common-cutaway.shooting,
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-common-cutaway .guitarPlayerAsset,
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-temple-grace-cutaway,
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-temple-grace-cutaway.shooting,
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-temple-grace-cutaway .guitarPlayerAsset {
+  filter: none !important;
+}
+
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-common-cutaway .guitarPlayerAura,
+.shooterArena .guitarPlayer.guitarPlayer--rifflab-temple-grace-cutaway .guitarPlayerAura {
+  display: none;
 }
 
 .shooterArena .guitarPlayer.shooting .guitarPlayerAsset {
@@ -28317,7 +28349,9 @@ body {
   }
 
   .shooterArena .guitarPlayer.guitarPlayer--rifflab-legendary-cutaway,
+  .shooterArena .guitarPlayer.guitarPlayer--rifflab-common-cutaway,
   .shooterArena .guitarPlayer.guitarPlayer--rifflab-epic-cutaway,
+  .shooterArena .guitarPlayer.guitarPlayer--rifflab-onyx-pearl-dreadnought,
   .shooterArena .guitarPlayer.guitarPlayer--rifflab-astral-relic-cutaway,
   .shooterArena .guitarPlayer.guitarPlayer--rifflab-temple-grace-cutaway,
   .shooterArena .guitarPlayer.guitarPlayer--rifflab-frost-spirit-cutaway {
@@ -28336,7 +28370,9 @@ body {
   }
 
   .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-legendary-cutaway,
+  .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-common-cutaway,
   .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-epic-cutaway,
+  .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-onyx-pearl-dreadnought,
   .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-astral-relic-cutaway,
   .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-temple-grace-cutaway,
   .shooterArena .guitarPlayerAsset.guitarAssetImage--rifflab-frost-spirit-cutaway {

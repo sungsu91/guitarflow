@@ -18,6 +18,7 @@ import {
 import { flushSync } from "react-dom";
 import BrandHeader from "./components/BrandHeader";
 import Fretboard from "./components/Fretboard";
+import { RIFFLAB_COMMON_CUTAWAY_SPRITE_SRC } from "./assets/rifflabCommonCutawaySprite";
 
 const CHROMATIC_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const NOTE_INDEX = Object.fromEntries(CHROMATIC_NOTES.map((note, index) => [note, index]));
@@ -3555,10 +3556,12 @@ const GUITAR_LAB_VARIANTS = [
   ["fresh-cutaway-honey", "Acoustic", "Honey Cut", "꿀빛 상판과 자연스러운 하단 연속 곡률의 컷어웨이 후보", "#d79b4d", "#3a210f", "fresh-cutaway-honey"],
   ["fresh-cutaway-reference", "Acoustic", "Reference Cut", "첨부 레퍼런스 라인의 측면 흐름과 하단 곡률을 기준으로 만든 후보", "#c9823a", "#f1ca7a", "fresh-cutaway-reference"],
   ["acoustic-real-trace", "Acoustic", "Natural", "실제 통기타 누끼 라인을 기준으로 만든 기본 내추럴 정면 PNG 후보", "#d79b4d", "#3a210f", "image-real-trace", "/images/shooter-acoustic-real-trace.png"],
+  ["rifflab-common-cutaway", "Acoustic", "Common Cutaway", "RIFFLAB 로고를 헤드와 사운드홀 라벨에 넣은 일반 컷어웨이 슈팅 기타", "#9b4c24", "#f1ca7a", "image-rifflab-common-cutaway", RIFFLAB_COMMON_CUTAWAY_SPRITE_SRC],
   ["acoustic-epic-trace", "Acoustic", "Sunburst", "같은 통기타 라인에 레드 선버스트 톤을 입힌 기본 PNG 후보", "#c74323", "#ff8a2a", "image-epic-trace", "/images/shooter-acoustic-epic-trace.png"],
   ["acoustic-legendary-core-trace", "Acoustic", "Pearl Clean", "기존 화이트 골드 펄 톤의 기본 PNG 후보", "#f4d58a", "#ffcf52", "image-legendary-core-trace", "/images/shooter-acoustic-legendary-trace.png"],
   ["rifflab-legendary-cutaway", "Acoustic", "Phoenix Harmony", "피닉스 금장 문양을 가진 컷어웨이 슈팅 기타 PNG", "#7c241b", "#d8a64a", "image-rifflab-legendary-cutaway", "/images/rifflab-legendary-cutaway-sprite-tight.png"],
   ["rifflab-epic-cutaway", "Acoustic", "Azure Bloom", "내추럴 우드와 블루 골드 장식을 가진 컷어웨이 슈팅 기타 PNG", "#d8aa66", "#2f63b8", "image-rifflab-epic-cutaway", "/images/rifflab-epic-cutaway-sprite-tight.png"],
+  ["rifflab-onyx-pearl-dreadnought", "Acoustic", "Onyx Pearl", "검정 드레드넛 바디와 자개 바인딩을 가진 에픽 슈팅 기타 PNG", "#080909", "#c7d7d4", "image-rifflab-onyx-pearl-dreadnought", "/images/rifflab-onyx-pearl-dreadnought-sprite-tight.png"],
   ["rifflab-astral-relic-cutaway", "Acoustic", "Astral Relic", "블랙 바디와 금장 별 문양을 가진 고대 유물풍 컷어웨이 슈팅 기타 PNG", "#0f0d09", "#d8a64a", "image-rifflab-astral-relic-cutaway", "/images/rifflab-astral-relic-cutaway-sprite-tight.png"],
   ["rifflab-temple-grace-cutaway", "Acoustic", "Temple Grace", "아이보리 화이트 바디와 골드 문양을 가진 성역풍 컷어웨이 슈팅 기타 PNG", "#f4efe2", "#d6a13b", "image-rifflab-temple-grace-cutaway", "/images/rifflab-temple-grace-cutaway-sprite-tight.png"],
   ["rifflab-frost-spirit-cutaway", "Acoustic", "Frost Spirit", "겨울밤과 달빛 서리 문양을 가진 얼음 정령풍 컷어웨이 슈팅 기타 PNG", "#082c3f", "#bdefff", "image-rifflab-frost-spirit-cutaway", "/images/rifflab-frost-spirit-cutaway-sprite-tight.png"],
@@ -3583,10 +3586,12 @@ const GUITAR_LAB_VARIANT_IDS = new Set(GUITAR_LAB_VARIANTS.map((variant) => vari
 const SHOOTER_TRACE_GUITAR_VARIANT_ID = "acoustic-real-trace";
 const SHOOTER_RARITY_GUITAR_VARIANT_IDS = [
   SHOOTER_TRACE_GUITAR_VARIANT_ID,
+  "rifflab-common-cutaway",
   "acoustic-epic-trace",
   "acoustic-legendary-core-trace",
   "rifflab-legendary-cutaway",
   "rifflab-epic-cutaway",
+  "rifflab-onyx-pearl-dreadnought",
   "rifflab-astral-relic-cutaway",
   "rifflab-temple-grace-cutaway",
   "rifflab-frost-spirit-cutaway",
@@ -3604,10 +3609,12 @@ const SHOOTER_GUITAR_RARITY_OPTIONS = [
 ];
 const SHOOTER_GUITAR_RARITY_BY_VARIANT_ID = {
   [SHOOTER_TRACE_GUITAR_VARIANT_ID]: SHOOTER_GUITAR_RARITIES.NORMAL,
+  "rifflab-common-cutaway": SHOOTER_GUITAR_RARITIES.NORMAL,
   "acoustic-epic-trace": SHOOTER_GUITAR_RARITIES.NORMAL,
   "acoustic-legendary-core-trace": SHOOTER_GUITAR_RARITIES.NORMAL,
   "rifflab-legendary-cutaway": SHOOTER_GUITAR_RARITIES.LEGENDARY,
   "rifflab-epic-cutaway": SHOOTER_GUITAR_RARITIES.EPIC,
+  "rifflab-onyx-pearl-dreadnought": SHOOTER_GUITAR_RARITIES.EPIC,
   "rifflab-astral-relic-cutaway": SHOOTER_GUITAR_RARITIES.LEGENDARY,
   "rifflab-temple-grace-cutaway": SHOOTER_GUITAR_RARITIES.LEGENDARY,
   "rifflab-frost-spirit-cutaway": SHOOTER_GUITAR_RARITIES.LEGENDARY,
@@ -7223,7 +7230,9 @@ function App() {
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
   const [shooterDifficulty, setShooterDifficulty] = useState(SHOOTER_DIFFICULTIES.EASY);
-  const [shooterGuitarRarityFilter, setShooterGuitarRarityFilter] = useState(SHOOTER_GUITAR_RARITIES.NORMAL);
+  const [shooterGuitarRarityFilter, setShooterGuitarRarityFilter] = useState(() =>
+    getShooterGuitarRarityId(selectedGuitarVariantId),
+  );
   const [shooterRecords, setShooterRecords] = useState(() => RecordService.getShooterRecords());
   const [showShooterRecords, setShowShooterRecords] = useState(false);
   const [shooterLives, setShooterLives] = useState(SHOOTER_MAX_LIVES);
