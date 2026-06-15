@@ -300,6 +300,10 @@ function getSixthStringRootFret(root) {
   return (NOTE_INDEX[root] - NOTE_INDEX.E + 12) % 12;
 }
 
+function getFifthStringRootFret(root) {
+  return (NOTE_INDEX[root] - NOTE_INDEX.A + 12) % 12;
+}
+
 function normalizeBoxStartFret(fret) {
   return fret <= 0 ? fret + 12 : fret;
 }
@@ -1085,6 +1089,234 @@ const CHORD_TONE_DEGREE_OFFSETS = {
     none: [0, 2, 4],
   },
 };
+
+const CHORD_SHAPE_TEMPLATES = {
+  major: {
+    none: [
+      {
+        id: "e-major",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 2], [3, 1], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "a-major",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    "7": [
+      {
+        id: "e7",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 0], [3, 1], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "a7",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 0], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    maj7: [
+      {
+        id: "emaj7",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 1], [3, 1], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "amaj7",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 1], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    sus2: [
+      {
+        id: "esus2",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 4], [3, 4], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "asus2",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    sus4: [
+      {
+        id: "esus4",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 2], [3, 2], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "asus4",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 3], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    "7sus4": [
+      {
+        id: "e7sus4",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 0], [3, 2], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "a7sus4",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 0], [2, 3], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    "6": [
+      {
+        id: "e6",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 2], [3, 1], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "a6",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 2], [1, 2]],
+        barres: [{ fretOffset: 2, fromString: 4, toString: 1, label: "3", minBaseFret: 0 }],
+      },
+    ],
+    add9: [
+      {
+        id: "eadd9",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 4], [3, 1], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "aadd9",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 4], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    maj9: [
+      {
+        id: "emaj9",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 1], [3, 1], [2, 0], [1, 2]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 2, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "amaj9",
+        rootString: 5,
+        strings: [[5, 0], [4, -1], [3, 1], [2, 0]],
+        minBaseFret: 1,
+      },
+    ],
+  },
+  minor: {
+    none: [
+      {
+        id: "e-minor",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 2], [3, 0], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "a-minor",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 1], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    m7: [
+      {
+        id: "em7",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 0], [3, 0], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "am7",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 0], [2, 1], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    m6: [
+      {
+        id: "em6",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 2], [3, 0], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "am6",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 1], [1, 2]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    add9: [
+      {
+        id: "emadd9",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 4], [3, 0], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "amadd9",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 4], [2, 1], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    m9: [
+      {
+        id: "em9",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 0], [3, 0], [2, 0], [1, 2]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 2, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "am9",
+        rootString: 5,
+        strings: [[5, 0], [4, -2], [3, 0], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+        minBaseFret: 2,
+      },
+    ],
+  },
+  dim: {
+    none: [
+      {
+        id: "a-dim",
+        rootString: 5,
+        strings: [[5, 0], [4, 1], [3, 2], [2, 1]],
+      },
+    ],
+  },
+  aug: {
+    none: [
+      {
+        id: "e-aug",
+        rootString: 6,
+        strings: [[6, 0], [4, 2], [3, 1], [2, 1]],
+      },
+      {
+        id: "a-aug",
+        rootString: 5,
+        strings: [[5, 0], [4, -1], [3, -2], [2, -2]],
+        minBaseFret: 2,
+      },
+    ],
+  },
+};
 const NOTE_LETTERS = ["C", "D", "E", "F", "G", "A", "B"];
 const NATURAL_NOTE_INDEX = {
   C: 0,
@@ -1134,6 +1366,92 @@ function formatChordToneLabel(noteName, displayRoot, descriptor) {
   if (accidentalOffset < -6) accidentalOffset += 12;
   if (Math.abs(accidentalOffset) > 2) return noteName;
   return `${targetLetter}${getAccidentalLabel(accidentalOffset)}`;
+}
+
+function getChordShapeTemplateBaseFret(root, template) {
+  return template.rootString === 5 ? getFifthStringRootFret(root) : getSixthStringRootFret(root);
+}
+
+function getChordShapeTemplateFrets(template, baseFret) {
+  return template.strings.map(([, fretOffset]) => baseFret + fretOffset);
+}
+
+function isChordShapeTemplateUsable(template, baseFret) {
+  if (baseFret < (template.minBaseFret ?? 0)) return false;
+  return getChordShapeTemplateFrets(template, baseFret).every(
+    (fret) => Number.isFinite(fret) && fret >= 0 && fret <= MAX_FRETBOARD_GUIDE_FRET,
+  );
+}
+
+function getChordShapeTemplateScore(template, baseFret) {
+  const frets = getChordShapeTemplateFrets(template, baseFret);
+  const fretted = frets.filter((fret) => fret > 0);
+  const minFret = fretted.length ? Math.min(...fretted) : 0;
+  const maxFret = fretted.length ? Math.max(...fretted) : 0;
+  const span = Math.max(0, maxFret - minFret);
+  return maxFret * 10 + span * 2 + (template.priority ?? 0);
+}
+
+function getChordShapeTemplates(quality, extension) {
+  const templateGroup = CHORD_SHAPE_TEMPLATES[quality] ?? CHORD_SHAPE_TEMPLATES.major;
+  return templateGroup?.[extension] ?? templateGroup?.none ?? [];
+}
+
+function getPitchForStringFret(stringNumber, fretNumber) {
+  const stringInfo = STANDARD_TUNING.find((item) => item.stringNumber === Number(stringNumber));
+  if (!stringInfo) return null;
+  return midiToPitch(pitchToMidi(stringInfo.pitch) + Number(fretNumber));
+}
+
+function buildGeneratedChordShapeOption({
+  root,
+  quality,
+  extension,
+  displayName,
+  hint = `${displayName} 코드 운지입니다`,
+}) {
+  const safeExtension = normalizeChordExtensionForQuality(quality, extension);
+  const templates = getChordShapeTemplates(quality, safeExtension);
+  const candidates = templates
+    .map((template) => {
+      const baseFret = getChordShapeTemplateBaseFret(root, template);
+      if (!isChordShapeTemplateUsable(template, baseFret)) return null;
+      return {
+        baseFret,
+        score: getChordShapeTemplateScore(template, baseFret),
+        template,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.score - b.score || a.baseFret - b.baseFret);
+  const selected = candidates[0];
+  if (!selected) return null;
+
+  const positions = selected.template.strings
+    .map(([stringNumber, fretOffset]) => {
+      const fret = selected.baseFret + fretOffset;
+      const pitch = getPitchForStringFret(stringNumber, fret);
+      if (!pitch) return null;
+      return { pitch, stringNumber, fret };
+    })
+    .filter(Boolean);
+  const barres = (selected.template.barres ?? [])
+    .filter((barre) => selected.baseFret >= (barre.minBaseFret ?? 0))
+    .map((barre) => ({
+      fret: selected.baseFret + barre.fretOffset,
+      fromString: barre.fromString,
+      toString: barre.toString,
+      label: barre.label,
+    }));
+  const chord = makeChordViewOption(
+    `generated-shape-${root}-${quality}-${safeExtension}-${selected.template.id}`,
+    displayName,
+    hint,
+    positions,
+    barres,
+    { root, quality, extension: safeExtension, displayName },
+  );
+  return applyStandardChordFingering(chord);
 }
 
 function getChordViewerPositionRange(positionId) {
@@ -1245,36 +1563,46 @@ function buildCompactChordToneNotes({ root, displayRoot = root, quality, extensi
     .sort((a, b) => b.stringNumber - a.stringNumber || a.fretNumber - b.fretNumber);
 }
 
-function buildChordToneReferencePosition({ root, displayRoot = root, quality, extension, positionId, storedChord = null }) {
-  if (positionId === "position1" && storedChord) {
-    return buildStoredChordReferencePosition(storedChord);
-  }
-  const [startFret, endFret] = getChordViewerPositionRange(positionId);
-  const isFullView = positionId === CHORD_VIEWER_POSITION_ALL;
-  return {
-    id: `${root}-${quality}-${extension}-${positionId}`,
-    notes: isFullView
-      ? buildChordToneNotes({ root, displayRoot, quality, extension, positionId })
-      : buildCompactChordToneNotes({ root, displayRoot, quality, extension, positionId }),
-    barres: [],
-    stringStates: {},
-    visibleFrets: Array.from({ length: endFret - Math.max(1, startFret) + 1 }, (_, index) => Math.max(1, startFret) + index),
-  };
+function buildChordToneReferencePosition({ root, quality, extension, positionId, storedChord = null, generatedChord = null }) {
+  const chord = storedChord ?? generatedChord;
+  if (!chord) return null;
+  const position = buildStoredChordReferencePosition(chord);
+  return position ? { ...position, id: `${chord.id}-${positionId}` } : null;
 }
 
-function buildChordToneReferenceOption({ root, displayRoot = root, quality, extension, displayName, hint = "선택 코드 구성음을 구간별로 표시합니다", storedChord = null }) {
-  const position1 = buildChordToneReferencePosition({ root, displayRoot, quality, extension, positionId: "position1", storedChord });
-  return {
-    id: `generated-${root}-${quality}-${extension}`,
+function buildChordToneReferenceOption({ root, quality, extension, displayName, hint = "선택 코드 운지를 표시합니다", storedChord = null }) {
+  if (storedChord && storedChord.displayName === displayName) {
+    return storedChord;
+  }
+  const generatedChord = buildGeneratedChordShapeOption({
     root,
-    displayRoot,
     quality,
     extension,
     displayName,
     hint,
+  });
+  const position1 = buildChordToneReferencePosition({
+    root,
+    quality,
+    extension,
+    positionId: "position1",
+    storedChord,
+    generatedChord,
+  });
+  if (!position1 || !generatedChord) {
+    return storedChord ?? null;
+  }
+  return {
+    ...generatedChord,
+    id: `generated-${root}-${quality}-${extension}`,
+    root,
+    quality,
+    extension: normalizeChordExtensionForQuality(quality, extension),
+    displayName,
+    hint,
     visibleFrets: position1.visibleFrets,
-    notes: position1.notes,
-    barres: [],
+    notes: generatedChord.notes,
+    barres: generatedChord.barres ?? [],
   };
 }
 
@@ -1284,7 +1612,6 @@ function getChordCatalogOptionKey(chord) {
 
 function buildSelectableChordCatalogOptions(baseRoot, accidental = "natural") {
   const lookupRoot = getChordLookupRoot(baseRoot, accidental);
-  const displayRoot = getChordDisplayRoot(baseRoot, accidental);
   return CHORD_QUALITY_OPTIONS.flatMap((qualityOption) => {
     const quality = qualityOption.id;
     return CHORD_EXTENSION_OPTIONS
@@ -1298,15 +1625,14 @@ function buildSelectableChordCatalogOptions(baseRoot, accidental = "natural") {
             chord.extension === extension,
         ) ?? null;
         const displayName = getChordNameFromParts(baseRoot, accidental, quality, extension);
-if (
-  storedChord?.displayName === displayName &&
-  storedChord.root === baseRoot
-) {
+        if (
+          storedChord?.displayName === displayName &&
+          storedChord.root === lookupRoot
+        ) {
           return storedChord;
         }
         return buildChordToneReferenceOption({
-          root: baseRoot,
-          displayRoot,
+          root: lookupRoot,
           quality,
           extension,
           displayName,
@@ -7859,10 +8185,11 @@ function App() {
     [selectedBuiltChord, viewerChordId],
   );
   const chordCatalogGroups = useMemo(() => {
-    return CHORD_NATURAL_ROOTS
+    return CHORD_ROOTS
       .map((root) => {
+        const { baseRoot, accidental } = splitChordRootForSelector(root);
         const storedChords = CHORD_VIEW_OPTIONS.filter((chord) => chord.root === root);
-        const generatedChords = buildSelectableChordCatalogOptions(root, "natural");
+        const generatedChords = buildSelectableChordCatalogOptions(baseRoot, accidental);
         return {
           root,
           chords: mergeChordCatalogOptions(storedChords, generatedChords),
@@ -8016,10 +8343,11 @@ function App() {
           extension: viewerChordExtension,
           positionId: position.id,
           storedChord: selectedStoredChord,
+          generatedChord: selectedBuiltChord,
         }),
       ]),
     );
-  }, [selectedStoredChord, viewerChordAccidental, viewerChordBaseRoot, viewerChordExtension, viewerChordQuality, viewerChordRoot, viewerMode]);
+  }, [selectedBuiltChord, selectedStoredChord, viewerChordAccidental, viewerChordBaseRoot, viewerChordExtension, viewerChordQuality, viewerChordRoot, viewerMode]);
   const viewerCurrentChordPosition =
     viewerChordPosition === CHORD_VIEWER_POSITION_ALL
       ? viewerChordPositionData.position1
@@ -8048,8 +8376,12 @@ function App() {
       return [minFret, Math.max(maxFret, minFret + 3)];
     }
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return [0, 12];
-    return getChordViewerPositionRange(viewerChordPosition);
-  }, [viewerChordPosition, viewerMode, viewerNotePositionRange, viewerScaleBlock.visibleFrets]);
+    const visibleFrets = viewerVisibleFrets ?? [];
+    const minFret = Math.min(...visibleFrets);
+    const maxFret = Math.max(...visibleFrets);
+    if (!Number.isFinite(minFret) || !Number.isFinite(maxFret)) return [0, 12];
+    return [Math.max(0, minFret), Math.max(maxFret, minFret + 2)];
+  }, [viewerMode, viewerNotePositionRange, viewerScaleBlock.visibleFrets, viewerVisibleFrets]);
   const viewerShouldFitFretboard =
     viewerMode === FRETBOARD_VIEWER_MODES.SCALE ||
     viewerMode === FRETBOARD_VIEWER_MODES.CHORD ||
