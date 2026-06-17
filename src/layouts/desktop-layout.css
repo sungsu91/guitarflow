@@ -154,3 +154,16 @@
     overflow: hidden;
   }
 }
+
+@media (max-width: 1023px) {
+  .desktopLayout,
+  .desktopWorkspace,
+  .desktopWorkspaceContent {
+    display: contents !important;
+  }
+
+  .desktopSidebar,
+  .desktopWorkspaceHeader {
+    display: none !important;
+  }
+}
