@@ -3729,6 +3729,10 @@ const SHOOTER_HIT_SOUND_CANDIDATES = [
 ];
 const SHOOTER_PLAYER_STORAGE_KEY = "rifflabSelectedPlayer";
 const SHOOTER_GUITAR_STORAGE_KEY = "rifflabSelectedGuitar";
+const SHOOTER_PICK_SKIN_STORAGE_KEY = "rifflabShooterPickSkin";
+const SHOOTER_EFFECT_STORAGE_KEY = "rifflabShooterEffect";
+const SHOOTER_MAP_STORAGE_KEY = "rifflabShooterMap";
+const SHOOTER_EMBLEM_STORAGE_KEY = "rifflabShooterEmblem";
 const GUITAR_LAB_STORAGE_KEY = "rifflab-shooter-guitar-v1";
 const GUITAR_LAB_AVAILABILITY_STORAGE_KEY = "rifflabGuitarLabAvailability";
 const GUITAR_LAB_DELETED_STORAGE_KEY = "rifflabGuitarLabDeletedIds";
@@ -3907,7 +3911,7 @@ const GUITAR_LAB_VARIANTS = [
   projectileAssetSrc,
   index: index + 1,
 }));
-const DEFAULT_GUITAR_LAB_VARIANT_ID = "acoustic-core-dread-01";
+const DEFAULT_GUITAR_LAB_VARIANT_ID = "rifflab-astral-relic-cutaway";
 const GUITAR_LAB_VARIANT_IDS = new Set(GUITAR_LAB_VARIANTS.map((variant) => variant.id));
 const SHOOTER_TRACE_GUITAR_VARIANT_ID = "acoustic-real-trace";
 const SHOOTER_RARITY_GUITAR_VARIANT_IDS = [
@@ -3933,6 +3937,362 @@ const SHOOTER_GUITAR_RARITY_OPTIONS = [
   { id: SHOOTER_GUITAR_RARITIES.EPIC, label: "에픽" },
   { id: SHOOTER_GUITAR_RARITIES.LEGENDARY, label: "레전더리" },
 ];
+const SHOOTER_SKIN_TABS = [
+  { id: "guitar", label: "기타" },
+  { id: "pick", label: "피크" },
+  { id: "map", label: "맵" },
+  { id: "emblem", label: "엠블럼" },
+  { id: "effect", label: "이펙트" },
+];
+const SHOOTER_PICK_SKINS = [
+  { id: "gold", label: "Gold Pick", description: "금장 장식 피크 발사체", assetSrc: "/images/shooter-pick-legendary-ornate.png" },
+  { id: "leather-black", label: "Leather Black Pick", description: "블랙 레더 질감 피크", assetSrc: "/images/shooter-pick-leather-black.png" },
+  { id: "tortoise-shell", label: "Tortoise Shell Pick", description: "토터스 쉘 패턴 피크", assetSrc: "/images/shooter-pick-tortoise-shell.png" },
+  { id: "walnut-wood", label: "Walnut Wood Pick", description: "우드 그레인 피크", assetSrc: "/images/shooter-pick-walnut-wood.png" },
+  { id: "pearl-ivory", label: "Pearl Ivory Pick", description: "진주빛 아이보리 피크", assetSrc: "/images/shooter-pick-pearl-ivory.png" },
+  { id: "brushed-gold", label: "Brushed Gold Pick", description: "브러시드 골드 피크", assetSrc: "/images/shooter-pick-brushed-gold.png" },
+  { id: "brushed-silver", label: "Brushed Silver Pick", description: "브러시드 실버 피크", assetSrc: "/images/shooter-pick-brushed-silver.png" },
+  { id: "sapphire-gem", label: "Sapphire Gem Pick", description: "블루 사파이어 보석 피크", assetSrc: "/images/shooter-pick-sapphire-gem.png" },
+  { id: "amethyst-gem", label: "Amethyst Gem Pick", description: "퍼플 애메시스트 보석 피크", assetSrc: "/images/shooter-pick-amethyst-gem.png" },
+  { id: "carbon-fiber", label: "Carbon Fiber Pick", description: "카본 파이버 피크", assetSrc: "/images/shooter-pick-carbon-fiber.png" },
+  { id: "neon-pink", label: "Neon Pink Pick", description: "핑크 네온 피크", assetSrc: "/images/shooter-pick-neon-pink.png" },
+  { id: "neon-cyan", label: "Neon Cyan Pick", description: "시안 네온 피크", assetSrc: "/images/shooter-pick-neon-cyan.png" },
+  { id: "lava-rock", label: "Lava Rock Pick", description: "용암 균열 피크", assetSrc: "/images/shooter-pick-lava-rock.png" },
+];
+const SHOOTER_MAP_OPTIONS = [
+  {
+    id: "none",
+    label: "없음",
+    description: "기본 슈팅 배경",
+  },
+  {
+    id: "rifflab-studio",
+    label: "RIFFLAB 연습실",
+    description: "고급 기타 공방과 빈티지 작업실",
+    backgroundImage: "/images/maps/rifflab-practice-studio-clean.png",
+    previewImage: "/images/maps/rifflab-practice-studio-clean.png",
+  },
+  {
+    id: "ocean-resort",
+    label: "오션 리조트",
+    description: "해양 차원문이 열린 열대 해변 리조트",
+    backgroundImage: "/images/maps/ocean-resort.png",
+    previewImage: "/images/maps/ocean-resort.png",
+  },
+];
+const SHOOTER_EMBLEM_OPTIONS = [
+  {
+    id: "none",
+    label: "없음",
+    description: "중앙 엠블럼 표시 안 함",
+    image: "",
+    className: "shooterCenterEmblem--none",
+  },
+  {
+    id: "lion-gold",
+    label: "골드 사자",
+    description: "왕실 문장 느낌의 골드 사자 엠블럼",
+    image: "/assets/emblems/lion-gold-emblem.png",
+    className: "shooterCenterEmblem--lionGold",
+  },
+];
+const SHOOTER_MAP_LEGACY_ID_MAP = {
+  "classic-wood": "rifflab-studio",
+  "simple-white": "rifflab-studio",
+};
+const SHOOTER_EFFECT_LAYER_SLOTS = {
+  FLOOR: "floor",
+  BACK: "back",
+  BODY: "body",
+  FRONT: "front",
+};
+const SHOOTER_EFFECT_EXIT_ANIMATION_MS = 360;
+const SHOOTER_EFFECT_SECTION_IDS = {
+  NONE: "none",
+  AURA: "aura",
+  FLOOR: "floor",
+  DECORATION: "decoration",
+};
+const SHOOTER_EFFECT_SECTION_OPTIONS = [
+  { id: SHOOTER_EFFECT_SECTION_IDS.NONE, label: "없음" },
+  { id: SHOOTER_EFFECT_SECTION_IDS.AURA, label: "아우라" },
+  { id: SHOOTER_EFFECT_SECTION_IDS.FLOOR, label: "바닥" },
+  { id: SHOOTER_EFFECT_SECTION_IDS.DECORATION, label: "장식 / 파편 (세트)" },
+];
+const SHOOTER_EFFECT_OPTIONS = [
+  {
+    id: "none",
+    name: "None",
+    label: "없음",
+    description: "추가 기타 효과 없음",
+    rarity: "common",
+    type: "static",
+    image: "",
+    className: "effect-none",
+    layers: [],
+  },
+  {
+    id: "legendary-violet",
+    name: "Legendary Violet Set",
+    label: "레전더리 바이올렛 세트",
+    description: "룬 마법진, 상승 아우라, 별빛 파티클",
+    rarity: "legendary",
+    type: "animated",
+    image: "/assets/effects/legendary-violet-reference.png",
+    className: "effect-legendary-violet-png",
+    category: SHOOTER_EFFECT_SECTION_IDS.DECORATION,
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.BACK,
+  },
+  {
+    id: "aura-blue",
+    name: "Blue Aura",
+    label: "은은한 블루 아우라",
+    description: "기타 주변에 푸른 오라",
+    rarity: "rare",
+    type: "animated",
+    image: "/assets/effects/sheet-aura-blue.png",
+    className: "effect-sheet-aura-blue",
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.BACK,
+  },
+  {
+    id: "nature-aura",
+    name: "Nature Aura",
+    label: "네이처 아우라",
+    description: "초록빛 잎사귀 오라",
+    rarity: "rare",
+    type: "animated",
+    image: "/assets/effects/sheet-aura-nature.png",
+    className: "effect-sheet-aura-nature",
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.BACK,
+  },
+  {
+    id: "mystic-aura",
+    name: "Mystic Aura",
+    label: "미스틱 아우라",
+    description: "보랏빛 마법 오라",
+    rarity: "epic",
+    type: "animated",
+    image: "/assets/effects/sheet-aura-mystic.png",
+    className: "effect-sheet-aura-mystic",
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.BACK,
+  },
+  {
+    id: "legendary-aura",
+    name: "Legendary Aura",
+    label: "레전더리 오라",
+    description: "붉은 레전더리 기타 오라",
+    rarity: "legendary",
+    type: "animated",
+    image: "/assets/effects/sheet-aura-legendary.png",
+    className: "effect-sheet-aura-legendary",
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.BACK,
+  },
+  {
+    id: "floor-light",
+    name: "Blue Light",
+    label: "블루 라이트",
+    description: "기타 아래 푸른 마법진",
+    rarity: "common",
+    type: "animated",
+    image: "/assets/effects/sheet-floor-blue-light.png",
+    className: "effect-sheet-floor-blue",
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.FLOOR,
+  },
+  {
+    id: "nature-circle",
+    name: "Nature Circle",
+    label: "네이처 서클",
+    description: "초록빛 자연 마법진",
+    rarity: "rare",
+    type: "animated",
+    image: "/assets/effects/sheet-floor-nature-circle.png",
+    className: "effect-sheet-floor-nature",
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.FLOOR,
+  },
+  {
+    id: "mystic-circle",
+    name: "Mystic Circle",
+    label: "미스틱 서클",
+    description: "보랏빛 미스틱 마법진",
+    rarity: "epic",
+    type: "animated",
+    image: "/assets/effects/sheet-floor-mystic-circle.png",
+    className: "effect-sheet-floor-mystic",
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.FLOOR,
+  },
+  {
+    id: "legendary-circle",
+    name: "Legendary Circle",
+    label: "레전더리 서클",
+    description: "붉은 레전더리 마법진",
+    rarity: "legendary",
+    type: "animated",
+    image: "/assets/effects/sheet-floor-legendary-circle.png",
+    className: "effect-sheet-floor-legendary",
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.FLOOR,
+  },
+  {
+    id: "floating-leaf",
+    name: "Floating Leaf",
+    label: "플로팅 리프",
+    description: "기타 주변을 도는 잎사귀",
+    rarity: "rare",
+    type: "animated",
+    image: "/assets/effects/sheet-particles-floating-leaf.png",
+    className: "effect-sheet-floating-leaf",
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.FRONT,
+  },
+  {
+    id: "mystic-shards",
+    name: "Mystic Shards",
+    label: "미스틱 파편",
+    description: "보랏빛 파편 장식",
+    rarity: "epic",
+    type: "animated",
+    image: "/assets/effects/sheet-particles-mystic-shards.png",
+    className: "effect-sheet-mystic-shards",
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.FRONT,
+  },
+  {
+    id: "shard-boost",
+    name: "Legendary Shards",
+    label: "레전더리 파편",
+    description: "붉은 파편과 피격 파편 강화",
+    rarity: "legendary",
+    type: "animated",
+    image: "/assets/effects/sheet-particles-legendary-shards.png",
+    className: "effect-sheet-legendary-shards",
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.FRONT,
+  },
+  {
+    id: "subtle-aura",
+    name: "Subtle Aura",
+    label: "숨결 아우라",
+    description: "은은하게 번지는 하단 오라",
+    rarity: "rare",
+    type: "animated",
+    image: "/assets/effects/sheet-special-subtle-aura.png",
+    className: "effect-sheet-subtle-aura",
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.FLOOR,
+  },
+  {
+    id: "flame-aura",
+    name: "Flame Aura",
+    label: "불꽃 아우라",
+    description: "기타 아래에서 타오르는 불꽃",
+    rarity: "epic",
+    type: "animated",
+    image: "/assets/effects/sheet-special-flame-aura.png",
+    className: "effect-sheet-flame-aura",
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.BACK,
+  },
+  {
+    id: "eclipse-aura",
+    name: "Eclipse Aura",
+    label: "이클립스 오라",
+    description: "강한 붉은 이클립스 오라",
+    rarity: "legendary",
+    type: "animated",
+    image: "/assets/effects/sheet-special-eclipse-aura.png",
+    className: "effect-sheet-eclipse-aura",
+    layer: SHOOTER_EFFECT_LAYER_SLOTS.FLOOR,
+  },
+];
+const SHOOTER_EFFECT_SECTION_ID_SET = new Set(SHOOTER_EFFECT_SECTION_OPTIONS.map((section) => section.id));
+const SHOOTER_EFFECT_DECORATION_SECTION_IDS = new Set([
+  "legendary-violet",
+  "floating-leaf",
+  "mystic-shards",
+  "shard-boost",
+  "subtle-aura",
+]);
+const SHOOTER_EFFECT_LEGACY_ID_MAP = {
+  aura: "aura-blue",
+  "circle-halo": "aura-blue",
+  "ornament-light": "subtle-aura",
+  "still-png": "subtle-aura",
+};
+const SHOOTER_EFFECT_COMPOSITE_GROUPS = {
+  blue: {
+    floor: "/assets/effects/sheet-floor-blue-light.png",
+    floorClassName: "effect-sheet-floor-blue effect-sheet-floor--linked",
+    aura: "/assets/effects/sheet-aura-blue.png",
+    auraClassName: "effect-sheet-aura-blue effect-sheet-aura--linked",
+    bodyClassName: "effect-sheet-body effect-sheet-body-blue",
+  },
+  nature: {
+    floor: "/assets/effects/sheet-floor-nature-circle.png",
+    floorClassName: "effect-sheet-floor-nature effect-sheet-floor--linked",
+    aura: "/assets/effects/sheet-aura-nature.png",
+    auraClassName: "effect-sheet-aura-nature effect-sheet-aura--linked",
+    bodyClassName: "effect-sheet-body effect-sheet-body-nature",
+    front: "/assets/effects/sheet-particles-floating-leaf.png",
+    frontClassName: "effect-sheet-floating-leaf effect-sheet-front--linked",
+  },
+  mystic: {
+    floor: "/assets/effects/sheet-floor-mystic-circle.png",
+    floorClassName: "effect-sheet-floor-mystic effect-sheet-floor--linked",
+    aura: "/assets/effects/sheet-aura-mystic.png",
+    auraClassName: "effect-sheet-aura-mystic effect-sheet-aura--linked",
+    bodyClassName: "effect-sheet-body effect-sheet-body-mystic",
+    front: "/assets/effects/sheet-particles-mystic-shards.png",
+    frontClassName: "effect-sheet-mystic-shards effect-sheet-front--linked",
+  },
+  legendary: {
+    floor: "/assets/effects/sheet-floor-legendary-circle.png",
+    floorClassName: "effect-sheet-floor-legendary effect-sheet-floor--linked",
+    aura: "/assets/effects/sheet-aura-legendary.png",
+    auraClassName: "effect-sheet-aura-legendary effect-sheet-aura--linked",
+    bodyClassName: "effect-sheet-body effect-sheet-body-legendary",
+    front: "/assets/effects/sheet-particles-legendary-shards.png",
+    frontClassName: "effect-sheet-legendary-shards effect-sheet-front--linked",
+  },
+  flame: {
+    floor: "/assets/effects/sheet-floor-legendary-circle.png",
+    floorClassName: "effect-sheet-floor-legendary effect-sheet-floor--linked",
+    aura: "/assets/effects/sheet-special-flame-aura.png",
+    auraClassName: "effect-sheet-flame-aura effect-sheet-aura--linked",
+    bodyClassName: "effect-sheet-body effect-sheet-body-flame",
+    front: "/assets/effects/sheet-particles-legendary-shards.png",
+    frontClassName: "effect-sheet-legendary-shards effect-sheet-front--linked",
+  },
+  eclipse: {
+    floor: "/assets/effects/sheet-special-eclipse-aura.png",
+    floorClassName: "effect-sheet-eclipse-aura effect-sheet-floor--linked",
+    aura: "/assets/effects/sheet-aura-legendary.png",
+    auraClassName: "effect-sheet-aura-legendary effect-sheet-aura--linked",
+    bodyClassName: "effect-sheet-body effect-sheet-body-legendary",
+    front: "/assets/effects/sheet-particles-legendary-shards.png",
+    frontClassName: "effect-sheet-legendary-shards effect-sheet-front--linked",
+  },
+  subtle: {
+    floor: "/assets/effects/sheet-special-subtle-aura.png",
+    floorClassName: "effect-sheet-subtle-aura effect-sheet-floor--linked",
+    aura: "/assets/effects/sheet-aura-blue.png",
+    auraClassName: "effect-sheet-aura-blue effect-sheet-aura--linked",
+    bodyClassName: "effect-sheet-body effect-sheet-body-blue",
+  },
+};
+const SHOOTER_EFFECT_COMPOSITE_GROUP_BY_ID = {
+  "aura-blue": "blue",
+  "floor-light": "blue",
+  "nature-aura": "nature",
+  "nature-circle": "nature",
+  "floating-leaf": "nature",
+  "mystic-aura": "mystic",
+  "mystic-circle": "mystic",
+  "mystic-shards": "mystic",
+  "legendary-aura": "legendary",
+  "legendary-circle": "legendary",
+  "shard-boost": "legendary",
+  "subtle-aura": "subtle",
+  "flame-aura": "flame",
+  "eclipse-aura": "eclipse",
+};
+const DEFAULT_SHOOTER_PICK_SKIN_ID = SHOOTER_PICK_SKINS[0].id;
+const DEFAULT_SHOOTER_EFFECT_ID = "flame-aura";
+const DEFAULT_SHOOTER_MAP_ID = "rifflab-studio";
+const DEFAULT_SHOOTER_EMBLEM_ID = SHOOTER_EMBLEM_OPTIONS[1]?.id ?? SHOOTER_EMBLEM_OPTIONS[0].id;
 const SHOOTER_GUITAR_RARITY_BY_VARIANT_ID = {
   [SHOOTER_TRACE_GUITAR_VARIANT_ID]: SHOOTER_GUITAR_RARITIES.NORMAL,
   "rifflab-common-cutaway": SHOOTER_GUITAR_RARITIES.NORMAL,
@@ -3954,6 +4314,117 @@ const FRESH_ACOUSTIC_GUITAR_IDS = new Set([
 
 function getShooterGuitarRarityId(variantId) {
   return SHOOTER_GUITAR_RARITY_BY_VARIANT_ID[variantId] ?? SHOOTER_GUITAR_RARITIES.NORMAL;
+}
+
+function getShooterPickSkinById(skinId) {
+  return SHOOTER_PICK_SKINS.find((skin) => skin.id === skinId) ?? SHOOTER_PICK_SKINS[0];
+}
+
+function getShooterMapById(mapId) {
+  const normalizedMapId = SHOOTER_MAP_LEGACY_ID_MAP[mapId] ?? mapId;
+  return SHOOTER_MAP_OPTIONS.find((map) => map.id === normalizedMapId)
+    ?? SHOOTER_MAP_OPTIONS.find((map) => map.id === DEFAULT_SHOOTER_MAP_ID)
+    ?? SHOOTER_MAP_OPTIONS[0];
+}
+
+function getShooterMapCssVars(map) {
+  const image = map?.backgroundImage ?? map?.previewImage;
+  return image ? { "--shooter-map-image": `url(${image})` } : undefined;
+}
+
+function getShooterEmblemById(emblemId) {
+  return SHOOTER_EMBLEM_OPTIONS.find((emblem) => emblem.id === emblemId)
+    ?? SHOOTER_EMBLEM_OPTIONS.find((emblem) => emblem.id === DEFAULT_SHOOTER_EMBLEM_ID)
+    ?? SHOOTER_EMBLEM_OPTIONS[0];
+}
+
+function getShooterEffectById(effectId) {
+  const normalizedEffectId = SHOOTER_EFFECT_LEGACY_ID_MAP[effectId] ?? effectId;
+  return SHOOTER_EFFECT_OPTIONS.find((effect) => effect.id === normalizedEffectId)
+    ?? SHOOTER_EFFECT_OPTIONS.find((effect) => effect.id === DEFAULT_SHOOTER_EFFECT_ID)
+    ?? SHOOTER_EFFECT_OPTIONS[0];
+}
+
+function getShooterEffectSectionId(effect) {
+  if (!effect || effect.id === "none") return SHOOTER_EFFECT_SECTION_IDS.NONE;
+  if (SHOOTER_EFFECT_SECTION_ID_SET.has(effect.category)) return effect.category;
+  if (SHOOTER_EFFECT_DECORATION_SECTION_IDS.has(effect.id)) return SHOOTER_EFFECT_SECTION_IDS.DECORATION;
+  if (effect.layer === SHOOTER_EFFECT_LAYER_SLOTS.FLOOR) return SHOOTER_EFFECT_SECTION_IDS.FLOOR;
+  if (effect.layer === SHOOTER_EFFECT_LAYER_SLOTS.BACK || effect.id.includes("aura")) return SHOOTER_EFFECT_SECTION_IDS.AURA;
+  if (effect.layer === SHOOTER_EFFECT_LAYER_SLOTS.FRONT) return SHOOTER_EFFECT_SECTION_IDS.DECORATION;
+  return SHOOTER_EFFECT_SECTION_IDS.DECORATION;
+}
+
+function getShooterCompositeLayersForEffect(effect) {
+  const groupId = SHOOTER_EFFECT_COMPOSITE_GROUP_BY_ID[effect?.id];
+  const group = groupId ? SHOOTER_EFFECT_COMPOSITE_GROUPS[groupId] : null;
+  if (!group) return null;
+
+  return [
+    {
+      slot: SHOOTER_EFFECT_LAYER_SLOTS.FLOOR,
+      image: group.floor,
+      className: group.floorClassName,
+    },
+    {
+      slot: SHOOTER_EFFECT_LAYER_SLOTS.BACK,
+      image: group.aura,
+      className: group.auraClassName,
+    },
+    {
+      slot: SHOOTER_EFFECT_LAYER_SLOTS.BODY,
+      image: group.aura,
+      className: group.bodyClassName,
+    },
+    {
+      slot: SHOOTER_EFFECT_LAYER_SLOTS.FRONT,
+      image: group.front,
+      className: group.frontClassName,
+    },
+  ];
+}
+
+function getShooterEffectLayers(effect) {
+  if (!effect) return [];
+  const compositeLayers = getShooterCompositeLayersForEffect(effect);
+  const effectLayers = Array.isArray(compositeLayers) && compositeLayers.length > 0
+    ? compositeLayers
+    : Array.isArray(effect.layers) && effect.layers.length > 0
+    ? effect.layers
+    : effect.image
+      ? [
+          {
+            slot: effect.layer ?? SHOOTER_EFFECT_LAYER_SLOTS.BACK,
+            image: effect.image,
+            className: effect.className,
+          },
+        ]
+      : [];
+
+  return effectLayers
+    .filter((layer) => layer?.image)
+    .map((layer, index) => {
+      const slot = layer.slot ?? layer.layer ?? effect.layer ?? SHOOTER_EFFECT_LAYER_SLOTS.BACK;
+      return {
+        key: `${effect.id}-${slot}-${index}`,
+        slot,
+        image: layer.image,
+        className: layer.className ?? effect.className,
+        type: layer.type ?? effect.type,
+        effectId: effect.id,
+      };
+    });
+}
+
+function getShooterEffectLayerClassName(layer, extraClassName = "") {
+  return [
+    "guitarPlayerEffectLayer",
+    `guitarPlayerEffectLayer--${layer.slot}`,
+    `guitarPlayerEffectLayer--${layer.type}`,
+    `guitarPlayerEffectLayer--${layer.effectId}`,
+    layer.className,
+    extraClassName,
+  ].filter(Boolean).join(" ");
 }
 
 const DEFAULT_SHOOTER_PLAYER_SLOTS = {
@@ -4535,6 +5006,26 @@ function getStoredGuitarLabVariantId() {
     || window.localStorage.getItem(SHOOTER_PLAYER_STORAGE_KEY)
     || window.localStorage.getItem(GUITAR_LAB_STORAGE_KEY);
   return GUITAR_LAB_VARIANT_IDS.has(stored) ? stored : DEFAULT_GUITAR_LAB_VARIANT_ID;
+}
+
+function getStoredShooterPickSkinId() {
+  if (typeof window === "undefined") return DEFAULT_SHOOTER_PICK_SKIN_ID;
+  return getShooterPickSkinById(window.localStorage.getItem(SHOOTER_PICK_SKIN_STORAGE_KEY)).id;
+}
+
+function getStoredShooterEffectId() {
+  if (typeof window === "undefined") return DEFAULT_SHOOTER_EFFECT_ID;
+  return getShooterEffectById(window.localStorage.getItem(SHOOTER_EFFECT_STORAGE_KEY)).id;
+}
+
+function getStoredShooterMapId() {
+  if (typeof window === "undefined") return DEFAULT_SHOOTER_MAP_ID;
+  return getShooterMapById(window.localStorage.getItem(SHOOTER_MAP_STORAGE_KEY)).id;
+}
+
+function getStoredShooterEmblemId() {
+  if (typeof window === "undefined") return DEFAULT_SHOOTER_EMBLEM_ID;
+  return getShooterEmblemById(window.localStorage.getItem(SHOOTER_EMBLEM_STORAGE_KEY)).id;
 }
 
 function normalizeShooterPlayerSlots(value = {}) {
@@ -6714,11 +7205,12 @@ const SHOOTER_DIFFICULTY_PACING = {
   [SHOOTER_DIFFICULTIES.DIFFICULT]: { durationMs: 4752, spawnGapMinMs: 1100, spawnGapMaxMs: 1100, maxTargets: 4 },
 };
 const SHOOTER_EASY_PHASES = [
-  { label: "1~3프렛", minMs: 0, minSpawn: 0, minFret: 1, maxFret: 3, poolRatioCap: 0.48, randomnessBonus: -0.14, jumpBiasBonus: -0.12 },
-  { label: "1~5프렛", minMs: 0, minSpawn: 8, minFret: 1, maxFret: 5, poolRatioCap: 0.62, randomnessBonus: -0.08, jumpBiasBonus: -0.06 },
-  { label: "1~7프렛", minMs: 45_000, minSpawn: 18, minFret: 1, maxFret: 7, poolRatioCap: 0.76, randomnessBonus: -0.03, jumpBiasBonus: -0.02 },
-  { label: "1~9프렛", minMs: 90_000, minSpawn: 30, minFret: 1, maxFret: 9, poolRatioCap: 0.9, randomnessBonus: 0.02, jumpBiasBonus: 0.02 },
-  { label: "1~11프렛", minMs: 150_000, minSpawn: 44, minFret: 1, maxFret: 11, poolRatioCap: 1, randomnessBonus: 0.08, jumpBiasBonus: 0.06 },
+  { label: "개방현", minMs: 0, minSpawn: 0, minFret: 0, maxFret: 0, poolRatioCap: 1, randomnessBonus: -0.16, jumpBiasBonus: -0.14 },
+  { label: "개방현~3프렛", minMs: 10_000, minSpawn: 4, minFret: 0, maxFret: 3, poolRatioCap: 0.54, randomnessBonus: -0.12, jumpBiasBonus: -0.1 },
+  { label: "개방현~5프렛", minMs: 30_000, minSpawn: 12, minFret: 0, maxFret: 5, poolRatioCap: 0.68, randomnessBonus: -0.06, jumpBiasBonus: -0.04 },
+  { label: "개방현~9프렛", minMs: 65_000, minSpawn: 24, minFret: 0, maxFret: 9, poolRatioCap: 0.82, randomnessBonus: -0.01, jumpBiasBonus: 0 },
+  { label: "개방현~12프렛", minMs: 105_000, minSpawn: 38, minFret: 0, maxFret: 12, poolRatioCap: 0.94, poolRatioFloor: 0.74, randomnessBonus: 0.04, jumpBiasBonus: 0.04 },
+  { label: "전 음역", minMs: 150_000, minSpawn: 52, minFret: 0, maxFret: MAX_FRETBOARD_GUIDE_FRET, poolRatioCap: 1, poolRatioFloor: 1, randomnessBonus: 0.1, jumpBiasBonus: 0.08 },
 ];
 const SHOOTER_NORMAL_MAX_FRET = 11;
 const SHOOTER_ENEMY_ASSETS = {
@@ -7006,8 +7498,8 @@ function getShooterHitboxContact(target, startX, startY, targetY) {
   };
 }
 
-function getShooterEffectiveLevel(level, difficulty, elapsedMs = 0) {
-  const phase = getShooterDifficultyPhase(difficulty, elapsedMs);
+function getShooterEffectiveLevel(level, difficulty, elapsedMs = 0, spawnedCount = 0) {
+  const phase = getShooterDifficultyPhase(difficulty, elapsedMs, spawnedCount);
   const pacing = getShooterDifficultyPacing(difficulty);
   if (difficulty === SHOOTER_DIFFICULTIES.NORMAL) {
     return {
@@ -7033,7 +7525,7 @@ function getShooterEffectiveLevel(level, difficulty, elapsedMs = 0) {
     ...level,
     phaseLabel: phase.label,
     maxTargets: pacing.maxTargets,
-    poolRatio: Math.min(phase.poolRatioCap, level.poolRatio),
+    poolRatio: Math.max(phase.poolRatioFloor ?? 0, Math.min(phase.poolRatioCap, level.poolRatio)),
     randomness: clampValue(level.randomness + phase.randomnessBonus, 0.12, 1),
     jumpBias: clampValue(level.jumpBias + phase.jumpBiasBonus, 0.04, 1),
   };
@@ -7556,9 +8048,11 @@ function App() {
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
   const [shooterDifficulty, setShooterDifficulty] = useState(SHOOTER_DIFFICULTIES.EASY);
-  const [shooterGuitarRarityFilter, setShooterGuitarRarityFilter] = useState(() =>
-    getShooterGuitarRarityId(selectedGuitarVariantId),
-  );
+  const [shooterSkinTab, setShooterSkinTab] = useState(SHOOTER_SKIN_TABS[0].id);
+  const [selectedShooterPickSkinId, setSelectedShooterPickSkinId] = useState(getStoredShooterPickSkinId);
+  const [selectedShooterEffectId, setSelectedShooterEffectId] = useState(getStoredShooterEffectId);
+  const [selectedShooterMapId, setSelectedShooterMapId] = useState(getStoredShooterMapId);
+  const [selectedShooterEmblemId, setSelectedShooterEmblemId] = useState(getStoredShooterEmblemId);
   const [shooterRecords, setShooterRecords] = useState(() => RecordService.getShooterRecords());
   const [showShooterRecords, setShowShooterRecords] = useState(false);
   const [shooterLives, setShooterLives] = useState(SHOOTER_MAX_LIVES);
@@ -7577,6 +8071,101 @@ function App() {
       ?? GUITAR_LAB_VARIANTS.find((variant) => !guitarLabPurgedIds.includes(variant.id))
       ?? GUITAR_LAB_VARIANTS[0],
     [guitarLabPurgedIds, selectedGuitarVariantId],
+  );
+  const selectedShooterPickSkin = useMemo(
+    () => getShooterPickSkinById(selectedShooterPickSkinId),
+    [selectedShooterPickSkinId],
+  );
+  const selectedShooterEffect = useMemo(
+    () => getShooterEffectById(selectedShooterEffectId),
+    [selectedShooterEffectId],
+  );
+  const selectedShooterMap = useMemo(
+    () => getShooterMapById(selectedShooterMapId),
+    [selectedShooterMapId],
+  );
+  const selectedShooterEmblem = useMemo(
+    () => getShooterEmblemById(selectedShooterEmblemId),
+    [selectedShooterEmblemId],
+  );
+  const selectedGuitar = selectedGuitarVariant;
+  const selectedPick = selectedShooterPickSkin;
+  const selectedEffect = selectedShooterEffect;
+  const selectedMap = selectedShooterMap;
+  const selectedEmblem = selectedShooterEmblem;
+  const selectedMapStyle = useMemo(() => getShooterMapCssVars(selectedMap), [selectedMap]);
+  const selectedMapIsDefault = selectedMap.id === "none";
+  const selectedMapSkinClassName = selectedMapIsDefault ? "" : `shooterMapSkin shooterMapSkin--${selectedMap.id}`;
+  const defaultShooterMapOption = SHOOTER_MAP_OPTIONS.find((map) => map.id === "none");
+  const shooterMapPickerOptions = SHOOTER_MAP_OPTIONS.filter((map) => map.id !== "none");
+  const defaultShooterEmblemOption = SHOOTER_EMBLEM_OPTIONS.find((emblem) => emblem.id === "none");
+  const shooterEmblemPickerOptions = SHOOTER_EMBLEM_OPTIONS.filter((emblem) => emblem.id !== "none");
+  const selectedMapCenterEmblem = useMemo(
+    () => (selectedEmblem.id === "none" ? null : selectedEmblem),
+    [selectedEmblem],
+  );
+  const selectedEffectLayers = useMemo(
+    () => getShooterEffectLayers(selectedEffect),
+    [selectedEffect],
+  );
+  const selectedEffectFloorLayers = useMemo(
+    () => selectedEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.FLOOR),
+    [selectedEffectLayers],
+  );
+  const selectedEffectBackLayers = useMemo(
+    () => selectedEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.BACK),
+    [selectedEffectLayers],
+  );
+  const selectedEffectBodyLayers = useMemo(
+    () => selectedEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.BODY),
+    [selectedEffectLayers],
+  );
+  const selectedEffectFrontLayers = useMemo(
+    () => selectedEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.FRONT),
+    [selectedEffectLayers],
+  );
+  const [exitingEffectLayers, setExitingEffectLayers] = useState([]);
+  const previousEffectLayersRef = useRef([]);
+  const effectExitTimeoutRef = useRef(null);
+  useEffect(() => {
+    const previousEffectLayers = previousEffectLayersRef.current;
+    const activeLayerKeys = new Set(selectedEffectLayers.map((layer) => layer.key));
+    const removedEffectLayers = previousEffectLayers.filter((layer) => !activeLayerKeys.has(layer.key));
+
+    if (removedEffectLayers.length > 0) {
+      const exitStartedAt = Date.now();
+      setExitingEffectLayers(
+        removedEffectLayers.map((layer) => ({
+          ...layer,
+          exitKey: `exit-${layer.key}-${exitStartedAt}`,
+        })),
+      );
+      window.clearTimeout(effectExitTimeoutRef.current);
+      effectExitTimeoutRef.current = window.setTimeout(() => {
+        setExitingEffectLayers([]);
+      }, SHOOTER_EFFECT_EXIT_ANIMATION_MS);
+    }
+
+    previousEffectLayersRef.current = selectedEffectLayers;
+  }, [selectedEffectLayers]);
+  useEffect(() => () => {
+    window.clearTimeout(effectExitTimeoutRef.current);
+  }, []);
+  const exitingEffectFloorLayers = useMemo(
+    () => exitingEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.FLOOR),
+    [exitingEffectLayers],
+  );
+  const exitingEffectBackLayers = useMemo(
+    () => exitingEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.BACK),
+    [exitingEffectLayers],
+  );
+  const exitingEffectBodyLayers = useMemo(
+    () => exitingEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.BODY),
+    [exitingEffectLayers],
+  );
+  const exitingEffectFrontLayers = useMemo(
+    () => exitingEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.FRONT),
+    [exitingEffectLayers],
   );
   const assignedGuitarVariantIds = useMemo(
     () => new Set(Object.values(shooterPlayerSlots).filter((variantId) => GUITAR_LAB_VARIANT_IDS.has(variantId))),
@@ -7597,17 +8186,30 @@ function App() {
     () => GUITAR_LAB_VARIANTS.filter((variant) => guitarLabDeletedIds.includes(variant.id) && !guitarLabPurgedIds.includes(variant.id)),
     [guitarLabDeletedIds, guitarLabPurgedIds],
   );
-  const shooterPlayerOptions = useMemo(() => {
-    const rarityCandidates = SHOOTER_RARITY_GUITAR_VARIANT_IDS.map((variantId) => {
+  const shooterPlayerOptions = useMemo(() => (
+    SHOOTER_RARITY_GUITAR_VARIANT_IDS.map((variantId) => {
       const variant = GUITAR_LAB_VARIANTS.find((item) => item.id === variantId);
-      if (!variant || getShooterGuitarRarityId(variant.id) !== shooterGuitarRarityFilter) return null;
+      if (!variant || guitarLabPurgedIds.includes(variant.id)) return null;
       return {
         slotKey: `rarity-candidate-${variant.id}`,
         variant,
       };
-    }).filter(Boolean);
-    return rarityCandidates;
-  }, [shooterGuitarRarityFilter]);
+    }).filter(Boolean)
+  ), [guitarLabPurgedIds]);
+  const shooterGuitarSections = useMemo(
+    () => SHOOTER_GUITAR_RARITY_OPTIONS.map((option) => ({
+      ...option,
+      options: shooterPlayerOptions.filter(({ variant }) => getShooterGuitarRarityId(variant.id) === option.id),
+    })),
+    [shooterPlayerOptions],
+  );
+  const shooterEffectSections = useMemo(
+    () => SHOOTER_EFFECT_SECTION_OPTIONS.map((section) => ({
+      ...section,
+      options: SHOOTER_EFFECT_OPTIONS.filter((effect) => getShooterEffectSectionId(effect) === section.id),
+    })).filter((section) => section.options.length > 0),
+    [],
+  );
   const visibleSvgLogoCandidates = useMemo(
     () => SVG_LOGO_LAB_CANDIDATES.filter((candidate) => !svgLogoLabState.deletedLogos.includes(candidate.id)),
     [svgLogoLabState.deletedLogos],
@@ -7669,6 +8271,38 @@ function App() {
       window.localStorage.setItem(GUITAR_LAB_STORAGE_KEY, variantId);
     }
   }, [guitarLabPurgedIds]);
+
+  const applyShooterPickSkin = useCallback((skinId) => {
+    const nextSkin = getShooterPickSkinById(skinId);
+    setSelectedShooterPickSkinId(nextSkin.id);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SHOOTER_PICK_SKIN_STORAGE_KEY, nextSkin.id);
+    }
+  }, []);
+
+  const applyShooterEffect = useCallback((effectId) => {
+    const nextEffect = getShooterEffectById(effectId);
+    setSelectedShooterEffectId(nextEffect.id);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SHOOTER_EFFECT_STORAGE_KEY, nextEffect.id);
+    }
+  }, []);
+
+  const applyShooterMap = useCallback((mapId) => {
+    const nextMap = getShooterMapById(mapId);
+    setSelectedShooterMapId(nextMap.id);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SHOOTER_MAP_STORAGE_KEY, nextMap.id);
+    }
+  }, []);
+
+  const applyShooterEmblem = useCallback((emblemId) => {
+    const nextEmblem = getShooterEmblemById(emblemId);
+    setSelectedShooterEmblemId(nextEmblem.id);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SHOOTER_EMBLEM_STORAGE_KEY, nextEmblem.id);
+    }
+  }, []);
 
   const persistGuitarLabDeletedIds = useCallback((nextIds) => {
     const normalized = normalizeGuitarLabVariantIds(nextIds).filter((id) => !guitarLabPurgedIds.includes(id));
@@ -10121,7 +10755,7 @@ function App() {
   const spawnShooterTarget = useCallback(() => {
     if (gameStateRef.current === GAME_STATES.GAMEOVER) return false;
     const difficulty = shooterDifficultyRef.current;
-    const level = getShooterEffectiveLevel(getShooterLevel(hitsRef.current), difficulty, gameTimeRef.current);
+    const level = getShooterEffectiveLevel(getShooterLevel(hitsRef.current), difficulty, gameTimeRef.current, patternRef.current);
     const activeTargetCount = shooterTargetsRef.current.filter((target) => !target.defeated).length;
     if (activeTargetCount >= level.maxTargets) return false;
     const trainingNotes = getShooterDifficultyNotes(activeNotesRef.current, difficulty, gameTimeRef.current, selectedPentatonicRef.current, patternRef.current);
@@ -10311,9 +10945,10 @@ function App() {
     if (!arena || !projectile) return;
     const node = document.createElement("div");
     const projectileAssetSrc = projectile.projectileAssetSrc;
+    const projectileSkinId = projectile.pickSkinId ?? DEFAULT_SHOOTER_PICK_SKIN_ID;
     const startPoint = getShooterArenaPoint(projectile.startX, projectile.startY);
     const endPoint = getShooterArenaPoint(projectile.endX, projectile.endY);
-    node.className = `energyProjectile energyProjectile--immediate ${projectileAssetSrc ? "energyProjectile--imageProjectile" : ""}`;
+    node.className = `energyProjectile energyProjectile--immediate energyProjectile--pick-${projectileSkinId} ${projectileAssetSrc ? "energyProjectile--imageProjectile" : ""}`;
     if (projectileAssetSrc) {
       const asset = document.createElement("img");
       asset.alt = "";
@@ -10412,7 +11047,8 @@ function App() {
       duration: projectileDuration,
       angle,
       spin: Math.random() < 0.5 ? -4 - Math.random() * 5 : 4 + Math.random() * 5,
-      projectileAssetSrc: selectedGuitarVariant.projectileAssetSrc,
+      pickSkinId: selectedPick.id,
+      projectileAssetSrc: selectedPick.assetSrc,
       renderedByDom: true,
     };
     showImmediateProjectile(projectile);
@@ -10424,7 +11060,7 @@ function App() {
 
     setProjectiles([...projectilesRef.current]);
     return projectile;
-  }, [aimShooterAtTarget, selectedGuitarVariant.projectileAssetSrc, showImmediateProjectile]);
+  }, [aimShooterAtTarget, selectedPick, showImmediateProjectile]);
 
   const judgeShooterNote = useCallback(
     (detectedPitchName) => {
@@ -13575,8 +14211,8 @@ function App() {
   const shooterTargetDetail = shooterTarget?.detail ?? (shooterTarget ? getShooterNoteDetail(shooterTarget.note) : null);
   const shooterGuidePitch = shooterTargetDetail?.octaveNote ?? shooterTargetDetail?.pitch;
   const shooterGuidePositions = shooterGuidePitch ? getFretboardPositionsForPitch(shooterGuidePitch) : [];
-  const shooterDifficultyPhase = getShooterDifficultyPhase(shooterDifficulty, gameTimeRef.current);
-  const shooterLevel = getShooterEffectiveLevel(getShooterLevel(hits), shooterDifficulty, gameTimeRef.current);
+  const shooterDifficultyPhase = getShooterDifficultyPhase(shooterDifficulty, gameTimeRef.current, patternRef.current);
+  const shooterLevel = getShooterEffectiveLevel(getShooterLevel(hits), shooterDifficulty, gameTimeRef.current, patternRef.current);
   const shooterDifficultyLabel = SHOOTER_DIFFICULTY_OPTIONS.find((option) => option.id === shooterDifficulty)?.label ?? "쉬움";
   const shooterTotalAccuracy = shooterRecords.totals.shots > 0
     ? Math.round((shooterRecords.totals.hits / shooterRecords.totals.shots) * 100)
@@ -16072,10 +16708,21 @@ function App() {
           </div>
 
           <div
-            className={`shooterArena ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""}`}
+            className={`shooterArena ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapCenterEmblem ? "shooterArena--centerEmblem" : ""} shooterArena--effect-${selectedEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""}`}
             onClick={handleShooterArenaClick}
             ref={shooterArenaRef}
+            style={selectedMapStyle}
           >
+            {selectedMapCenterEmblem ? (
+              <img
+                alt=""
+                aria-hidden="true"
+                className={`shooterCenterEmblem ${selectedMapCenterEmblem.className ?? ""}`}
+                draggable="false"
+                src={selectedMapCenterEmblem.image}
+              />
+            ) : null}
+
             <div className="shooterBestHud" aria-label="슈팅게임 최고 기록">
               <span>BEST SCORE {shooterRecords.best.score.toLocaleString()}</span>
               <span>BEST COMBO {shooterRecords.best.combo}</span>
@@ -16211,10 +16858,11 @@ function App() {
 
             {projectiles.map((projectile) => {
               if (projectile.renderedByDom) return null;
-              const projectileAssetSrc = projectile.projectileAssetSrc ?? selectedGuitarVariant.projectileAssetSrc;
+              const projectileSkinId = projectile.pickSkinId ?? selectedPick.id;
+              const projectileAssetSrc = projectile.projectileAssetSrc ?? selectedPick.assetSrc;
               return (
                 <div
-                  className={`energyProjectile ${projectileAssetSrc ? "energyProjectile--imageProjectile" : ""}`}
+                  className={`energyProjectile energyProjectile--pick-${projectileSkinId} ${projectileAssetSrc ? "energyProjectile--imageProjectile" : ""}`}
                   key={projectile.id}
                   style={{
                     "--projectile-start-x": `${projectile.startX}%`,
@@ -16239,9 +16887,51 @@ function App() {
               );
             })}
 
-            <div className={`guitarPlayer guitarPlayer--${selectedGuitarVariant.id} ${projectiles.length > 0 ? "shooting" : ""}`} ref={shooterGuitarPlayerRef} style={shooterMotion}>
+            <div className={`guitarPlayer guitarPlayer--${selectedGuitar.id} guitarPlayer--effect-${selectedEffect.id} ${projectiles.length > 0 ? "shooting" : ""}`} ref={shooterGuitarPlayerRef} style={shooterMotion}>
+              {selectedEffectFloorLayers.map((layer) => (
+                <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true">
+                  <img alt="" draggable="false" src={layer.image} />
+                </span>
+              ))}
+              {exitingEffectFloorLayers.map((layer) => (
+                <span className={getShooterEffectLayerClassName(layer, "guitarPlayerEffectLayer--exiting")} key={layer.exitKey} aria-hidden="true">
+                  <img alt="" draggable="false" src={layer.image} />
+                </span>
+              ))}
+              <span className="guitarPlayerSkinFloor" aria-hidden="true" />
+              <span className="guitarPlayerSkinGlow" aria-hidden="true" />
+              {selectedEffectBackLayers.map((layer) => (
+                <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true">
+                  <img alt="" draggable="false" src={layer.image} />
+                </span>
+              ))}
+              {exitingEffectBackLayers.map((layer) => (
+                <span className={getShooterEffectLayerClassName(layer, "guitarPlayerEffectLayer--exiting")} key={layer.exitKey} aria-hidden="true">
+                  <img alt="" draggable="false" src={layer.image} />
+                </span>
+              ))}
               <div className="guitarPlayerAura" aria-hidden="true" />
-              <GuitarAssetSvg variant={selectedGuitarVariant} className="guitarPlayerAsset" compact />
+              {selectedEffectBodyLayers.map((layer) => (
+                <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true">
+                  <img alt="" draggable="false" src={layer.image} />
+                </span>
+              ))}
+              {exitingEffectBodyLayers.map((layer) => (
+                <span className={getShooterEffectLayerClassName(layer, "guitarPlayerEffectLayer--exiting")} key={layer.exitKey} aria-hidden="true">
+                  <img alt="" draggable="false" src={layer.image} />
+                </span>
+              ))}
+              <GuitarAssetSvg variant={selectedGuitar} className="guitarPlayerAsset" compact />
+              {selectedEffectFrontLayers.map((layer) => (
+                <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true">
+                  <img alt="" draggable="false" src={layer.image} />
+                </span>
+              ))}
+              {exitingEffectFrontLayers.map((layer) => (
+                <span className={getShooterEffectLayerClassName(layer, "guitarPlayerEffectLayer--exiting")} key={layer.exitKey} aria-hidden="true">
+                  <img alt="" draggable="false" src={layer.image} />
+                </span>
+              ))}
               <span className="guitarPlayerMuzzle" aria-hidden="true" />
             </div>
             <div className="mobileShooterLives" aria-label={`남은 목숨 ${shooterLives}`}>
@@ -16272,7 +16962,7 @@ function App() {
                 </button>
                 {gameState !== GAME_STATES.PAUSED && (
                   <small className="shooterPlayerSelectedLabel">
-                    {selectedGuitarVariant.title}
+                    {selectedGuitar.title}
                   </small>
                 )}
                 {gameState !== GAME_STATES.PAUSED && (
@@ -16280,12 +16970,11 @@ function App() {
                     className="mobileShooterStartButton"
                     onClick={(event) => {
                       event.stopPropagation();
-                      setShooterGuitarRarityFilter(getShooterGuitarRarityId(selectedGuitarVariant.id));
                       setShooterGuitarPickerOpen(true);
                     }}
                     type="button"
                   >
-                    기타 변경
+                    스킨 설정
                   </button>
                 )}
                 {gameState === GAME_STATES.PAUSED && (
@@ -16323,7 +17012,7 @@ function App() {
               role="presentation"
             >
               <div
-                aria-label="슈팅게임 기타 선택"
+                aria-label="슈팅게임 스킨 설정"
                 aria-modal="true"
                 className="shooterGuitarPickerModal"
                 onClick={(event) => event.stopPropagation()}
@@ -16331,51 +17020,214 @@ function App() {
               >
                 <div className="shooterGuitarPickerHeader">
                   <div>
-                    <span>기타 변경</span>
-                    <strong>{selectedGuitarVariant.title}</strong>
+                    <span>스킨 설정</span>
+                    <strong>{selectedGuitar.title} · {selectedPick.label} · {selectedMap.label} · {selectedEmblem.label}</strong>
                   </div>
                   <button onClick={() => setShooterGuitarPickerOpen(false)} type="button">
                     닫기
                   </button>
                 </div>
-                <div className="shooterGuitarRarityTabs" aria-label="기타 등급">
-                  {SHOOTER_GUITAR_RARITY_OPTIONS.map((option) => (
+                <div className="shooterSkinTabs" aria-label="스킨 카테고리">
+                  {SHOOTER_SKIN_TABS.map((option) => (
                     <button
-                      aria-pressed={shooterGuitarRarityFilter === option.id}
-                      className={shooterGuitarRarityFilter === option.id ? "selected" : ""}
+                      aria-pressed={shooterSkinTab === option.id}
+                      className={shooterSkinTab === option.id ? "selected" : ""}
                       key={option.id}
-                      onClick={() => setShooterGuitarRarityFilter(option.id)}
+                      onClick={() => setShooterSkinTab(option.id)}
                       type="button"
                     >
                       {option.label}
                     </button>
                   ))}
                 </div>
-                <div className="shooterGuitarPickerList">
-                  {shooterPlayerOptions.length > 0 ? shooterPlayerOptions.map(({ slotKey, variant }) => {
-                    const isSelected = selectedGuitarVariant.id === variant.id;
-                    return (
-                      <button
-                        className={`shooterGuitarPickerItem ${isSelected ? "selected" : ""}`}
-                        key={`${slotKey}-${variant.id}`}
-                        onClick={() => {
-                          applyGuitarVariant(variant.id);
-                          setShooterGuitarPickerOpen(false);
-                        }}
-                        type="button"
-                      >
-                        <GuitarAssetSvg variant={variant} className="shooterGuitarPickerAsset" compact />
-                        <span>
-                          <strong>{variant.title}</strong>
-                          <small>{variant.pack}</small>
-                        </span>
-                        <em>{isSelected ? "선택됨" : "선택"}</em>
-                      </button>
-                    );
-                  }) : (
-                    <div className="shooterGuitarPickerEmpty">
-                      <strong>준비중</strong>
-                      <span>새 기타가 추가되면 여기에 표시됩니다.</span>
+                <div className="shooterSkinPickerBody">
+                  {shooterSkinTab === "guitar" ? (
+                    <div className="shooterGuitarPickerList">
+                      {shooterGuitarSections.some((section) => section.options.length > 0) ? shooterGuitarSections.map((section) => (
+                        <section className="shooterGuitarRaritySection" key={section.id}>
+                          <div className="shooterSkinSectionHeader">
+                            <span>{section.label}</span>
+                          </div>
+                          <div className="shooterGuitarPickerGrid">
+                            {section.options.map(({ slotKey, variant }) => {
+                              const isSelected = selectedGuitar.id === variant.id;
+                              return (
+                                <button
+                                  className={`shooterGuitarPickerItem ${isSelected ? "selected" : ""}`}
+                                  key={`${slotKey}-${variant.id}`}
+                                  onClick={() => {
+                                    applyGuitarVariant(variant.id);
+                                  }}
+                                  type="button"
+                                >
+                                  <GuitarAssetSvg variant={variant} className="shooterGuitarPickerAsset" compact />
+                                  <span>
+                                    <strong>{variant.title}</strong>
+                                    <small>{variant.pack}</small>
+                                  </span>
+                                  <em>{isSelected ? "선택됨" : "선택"}</em>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </section>
+                      )) : (
+                        <div className="shooterGuitarPickerEmpty">
+                          <strong>준비중</strong>
+                          <span>새 기타가 추가되면 여기에 표시됩니다.</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : shooterSkinTab === "pick" ? (
+                    <div className="shooterSkinOptionGrid shooterSkinOptionGrid--picks" aria-label="피크 스킨 선택">
+                      {SHOOTER_PICK_SKINS.map((skin) => {
+                        const isSelected = selectedPick.id === skin.id;
+                        return (
+                          <button
+                            aria-pressed={isSelected}
+                            className={`shooterSkinOptionCard shooterSkinOptionCard--pick ${isSelected ? "selected" : ""}`}
+                            key={skin.id}
+                            onClick={() => applyShooterPickSkin(skin.id)}
+                            type="button"
+                          >
+                            <span
+                              className={`shooterPickPreview shooterPickPreview--${skin.id} ${
+                                skin.assetSrc ? "shooterPickPreview--image" : ""
+                              }`}
+                              aria-hidden="true"
+                            >
+                              {skin.assetSrc ? <img alt="" draggable="false" src={skin.assetSrc} /> : null}
+                            </span>
+                            <strong>{skin.label}</strong>
+                            <small>{skin.description}</small>
+                            <em>{isSelected ? "선택됨" : "선택"}</em>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : shooterSkinTab === "map" ? (
+                    <div className="shooterSkinOptionStack" aria-label="슈팅 맵 선택">
+                      {defaultShooterMapOption ? (
+                        <button
+                          aria-pressed={selectedMap.id === defaultShooterMapOption.id}
+                          className={`shooterMapCard shooterMapCard--default shooterSkinDefaultButton ${
+                            selectedMap.id === defaultShooterMapOption.id ? "selected" : ""
+                          }`}
+                          onClick={() => applyShooterMap(defaultShooterMapOption.id)}
+                          type="button"
+                        >
+                          <strong>{defaultShooterMapOption.label}</strong>
+                        </button>
+                      ) : null}
+                      <div className="shooterMapPickerGrid">
+                        {shooterMapPickerOptions.map((map) => {
+                          const isSelected = selectedMap.id === map.id;
+                          const mapStyle = getShooterMapCssVars(map);
+                          const hasMapImage = Boolean(map.previewImage ?? map.backgroundImage);
+                          return (
+                            <button
+                              aria-pressed={isSelected}
+                              className={`shooterMapCard ${isSelected ? "selected" : ""}`}
+                              key={map.id}
+                              onClick={() => applyShooterMap(map.id)}
+                              type="button"
+                            >
+                              <strong>{map.label}</strong>
+                              <span
+                                className={`shooterMapPreview shooterMapSkin shooterMapSkin--${map.id} ${hasMapImage ? "shooterMapPreview--image" : ""}`}
+                                aria-hidden="true"
+                                style={mapStyle}
+                              >
+                                <i />
+                              </span>
+                              <small>{map.description}</small>
+                              <em>{isSelected ? "선택됨" : "선택"}</em>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : shooterSkinTab === "emblem" ? (
+                    <div className="shooterSkinOptionStack" aria-label="중앙 엠블럼 선택">
+                      {defaultShooterEmblemOption ? (
+                        <button
+                          aria-pressed={selectedEmblem.id === defaultShooterEmblemOption.id}
+                          className={`shooterSkinOptionCard shooterSkinOptionCard--emblem shooterSkinDefaultButton ${
+                            selectedEmblem.id === defaultShooterEmblemOption.id ? "selected" : ""
+                          }`}
+                          onClick={() => applyShooterEmblem(defaultShooterEmblemOption.id)}
+                          type="button"
+                        >
+                          <strong>{defaultShooterEmblemOption.label}</strong>
+                        </button>
+                      ) : null}
+                      <div className="shooterSkinOptionGrid shooterSkinOptionGrid--emblems">
+                        {shooterEmblemPickerOptions.map((emblem) => {
+                          const isSelected = selectedEmblem.id === emblem.id;
+                          return (
+                            <button
+                              aria-pressed={isSelected}
+                              className={`shooterSkinOptionCard shooterSkinOptionCard--emblem ${isSelected ? "selected" : ""}`}
+                              key={emblem.id}
+                              onClick={() => applyShooterEmblem(emblem.id)}
+                              type="button"
+                            >
+                              {emblem.image ? (
+                                <span className="shooterEmblemPreview" aria-hidden="true">
+                                  <img alt="" draggable="false" src={emblem.image} />
+                                </span>
+                              ) : null}
+                              <strong>{emblem.label}</strong>
+                              <small>{emblem.description}</small>
+                              <em>{isSelected ? "선택됨" : "선택"}</em>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="shooterEffectPickerList" aria-label="슈팅 기타 효과 선택">
+                      {shooterEffectSections.map((section) => (
+                        <section className="shooterEffectSection" key={section.id}>
+                          <div className="shooterSkinSectionHeader">
+                            <span>{section.label}</span>
+                          </div>
+                          <div className="shooterSkinOptionGrid shooterSkinOptionGrid--effects">
+                            {section.options.map((effect) => {
+                              const isSelected = selectedEffect.id === effect.id;
+                              return (
+                                <button
+                                  aria-pressed={isSelected}
+                                  className={`shooterSkinOptionCard shooterSkinOptionCard--effect ${
+                                    effect.id === "none" ? "shooterSkinOptionCard--effectNone" : ""
+                                  } ${isSelected ? "selected" : ""}`}
+                                  key={effect.id}
+                                  onClick={() => applyShooterEffect(effect.id)}
+                                  type="button"
+                                >
+                                  {effect.id !== "none" ? (
+                                    <span
+                                      className={`shooterEffectPreview shooterEffectPreview--${effect.id} shooterEffectPreview--${effect.type} ${
+                                        effect.image ? "shooterEffectPreview--image" : ""
+                                      }`}
+                                      aria-hidden="true"
+                                    >
+                                      {effect.image ? <img alt="" draggable="false" src={effect.image} /> : null}
+                                    </span>
+                                  ) : null}
+                                  <strong>{effect.label}</strong>
+                                  {effect.id !== "none" ? (
+                                    <>
+                                      <small>{effect.description}</small>
+                                      <em>{isSelected ? "선택됨" : "선택"}</em>
+                                    </>
+                                  ) : null}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </section>
+                      ))}
                     </div>
                   )}
                 </div>
