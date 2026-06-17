@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import BrandHeader from "../components/BrandHeader";
 
 const DESKTOP_NAV_ITEMS = [
@@ -8,7 +9,33 @@ const DESKTOP_NAV_ITEMS = [
   { href: "#stage3-storage", label: "저장실" },
 ];
 
+const DESKTOP_LAYOUT_QUERY = "(min-width: 1024px)";
+
+function getIsDesktopLayout() {
+  if (typeof window === "undefined") return false;
+  if (typeof window.matchMedia !== "function") return false;
+  return window.matchMedia(DESKTOP_LAYOUT_QUERY).matches;
+}
+
 export default function DesktopLayout({ children }) {
+  const [isDesktopLayout, setIsDesktopLayout] = useState(getIsDesktopLayout);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(DESKTOP_LAYOUT_QUERY);
+    const syncDesktopLayout = () => setIsDesktopLayout(mediaQuery.matches);
+
+    syncDesktopLayout();
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", syncDesktopLayout);
+      return () => mediaQuery.removeEventListener("change", syncDesktopLayout);
+    }
+
+    mediaQuery.addListener(syncDesktopLayout);
+    return () => mediaQuery.removeListener(syncDesktopLayout);
+  }, []);
+
+  if (!isDesktopLayout) return children;
+
   return (
     <div className="desktopLayout">
       <aside className="desktopSidebar" aria-label="RIFFLAB desktop navigation">
