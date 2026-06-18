@@ -4542,19 +4542,34 @@ function MetronomeVisualLabCircle({ activeBeat, beatPattern, isPlaying }) {
 
 function StandaloneMetronomeVisual({
   activeBeat,
+  barEnabled = false,
   beatPattern,
+  beatMs = 600,
+  dotsEnabled = true,
+  flashEnabled = false,
   isPlaying,
   mode,
   onBeatClick,
+  onBarEnabledChange,
+  onDotsEnabledChange,
+  onFlashEnabledChange,
+  onOptionsPointerCancel,
+  onOptionsPointerDown,
+  onOptionsPointerMove,
+  onOptionsPointerUp,
   onPointerCancel,
   onPointerDown,
   onPointerMove,
   onPointerUp,
+  optionsOpen = false,
   swipeActive = false,
   swipeOffset = 0,
 }) {
   const beatCount = Math.max(1, beatPattern.length);
   const selectedMode = normalizeMetronomeDisplayMode(mode);
+  const safeBeatMs = Math.max(120, Number(beatMs) || 600);
+  const activeBeatState = beatPattern[activeBeat] ?? getDefaultBeatState(activeBeat);
+  const flashActive = flashEnabled && isPlaying && activeBeatState === METRONOME_BEAT_STATES.ACCENT;
   const renderBeat = (beatState, index, className = "", style = undefined) => (
     <BeatDot
       active={isPlaying && activeBeat === index}
@@ -4578,21 +4593,82 @@ function StandaloneMetronomeVisual({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       role="group"
-      style={{ "--metronome-mode-swipe-x": `${swipeOffset}px` }}
+      style={{
+        "--metronome-mode-swipe-x": `${swipeOffset}px`,
+        "--metronome-beat-ms": `${safeBeatMs}ms`,
+      }}
     >
-      {selectedMode === "circle" ? (
-        <div className="metronomeModeCircleOrbit" style={{ "--circle-beat-count": beatCount }}>
-          <span className="metronomeModeCircleCore" aria-hidden="true" />
-          {beatPattern.map((beatState, index) => renderBeat(
-            beatState,
-            index,
-            "metronomeBeatButton metronomeModeCircleBeat",
-            { "--beat-angle": `${(360 / beatCount) * index - 90}deg` },
-          ))}
-        </div>
+      {flashActive ? (
+        <span className="metronomeBeatFlash" key={`flash-${activeBeat}`} aria-hidden="true" />
+      ) : null}
+      {barEnabled ? (
+        <span className={`metronomeBeatBar ${isPlaying ? "active" : ""}`} aria-hidden="true" />
+      ) : null}
+      {dotsEnabled ? (
+        selectedMode === "circle" ? (
+          <div className="metronomeModeCircleOrbit" style={{ "--circle-beat-count": beatCount }}>
+            <span className="metronomeModeCircleCore" aria-hidden="true" />
+            {beatPattern.map((beatState, index) => renderBeat(
+              beatState,
+              index,
+              "metronomeBeatButton metronomeModeCircleBeat",
+              { "--beat-angle": `${(360 / beatCount) * index - 90}deg` },
+            ))}
+          </div>
+        ) : (
+          beatPattern.map((beatState, index) => renderBeat(beatState, index, "metronomeBeatButton"))
+        )
       ) : (
-        beatPattern.map((beatState, index) => renderBeat(beatState, index, "metronomeBeatButton"))
+        <span className="metronomeDotsOffState" aria-hidden="true" />
       )}
+      <div
+        className={`metronomeVisualOptionsPanel ${optionsOpen ? "open" : ""}`}
+        onPointerCancel={onOptionsPointerCancel}
+        onPointerDown={onOptionsPointerDown}
+        onPointerMove={onOptionsPointerMove}
+        onPointerUp={onOptionsPointerUp}
+      >
+        <div className="metronomeVisualOptionsHandle" aria-hidden="true">
+          <span />
+        </div>
+        <div className="metronomeVisualOptionsToggles" aria-label="메트로놈 확장 옵션">
+          <button
+            aria-label="점자 표시 켜기 또는 끄기"
+            aria-pressed={dotsEnabled}
+            className={dotsEnabled ? "selected" : ""}
+            onClick={() => onDotsEnabledChange?.(!dotsEnabled)}
+            type="button"
+          >
+            <span className="metronomeVisualOptionIcon metronomeVisualOptionIcon--dots" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
+          </button>
+          <button
+            aria-label="세로 리듬바 켜기 또는 끄기"
+            aria-pressed={barEnabled}
+            className={barEnabled ? "selected" : ""}
+            onClick={() => onBarEnabledChange?.(!barEnabled)}
+            type="button"
+          >
+            <span className="metronomeVisualOptionIcon metronomeVisualOptionIcon--bar" aria-hidden="true">
+              <i />
+            </span>
+          </button>
+          <button
+            aria-label="강박 플래쉬 켜기 또는 끄기"
+            aria-pressed={flashEnabled}
+            className={flashEnabled ? "selected" : ""}
+            onClick={() => onFlashEnabledChange?.(!flashEnabled)}
+            type="button"
+          >
+            <span className="metronomeVisualOptionIcon metronomeVisualOptionIcon--flash" aria-hidden="true">
+              <i />
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -7858,6 +7934,10 @@ function App() {
   const [metronomeDisplayMode, setMetronomeDisplayMode] = useState(getStoredMetronomeDisplayMode);
   const [metronomeModeSwipeOffset, setMetronomeModeSwipeOffset] = useState(0);
   const [metronomeModeSwipeActive, setMetronomeModeSwipeActive] = useState(false);
+  const [metronomeVisualOptionsOpen, setMetronomeVisualOptionsOpen] = useState(false);
+  const [metronomeDotsEnabled, setMetronomeDotsEnabled] = useState(true);
+  const [metronomeBarEnabled, setMetronomeBarEnabled] = useState(false);
+  const [metronomeFlashEnabled, setMetronomeFlashEnabled] = useState(false);
   const [metronomeVisualLabTimeSignature, setMetronomeVisualLabTimeSignature] = useState("4/4");
   const [metronomeVisualLabPlaying, setMetronomeVisualLabPlaying] = useState(false);
   const [metronomeVisualLabBeat, setMetronomeVisualLabBeat] = useState(0);
@@ -8682,6 +8762,7 @@ function App() {
   const bpmSwipePreviewValueRef = useRef(DEFAULT_BPM);
   const metronomeModeSwipeStartRef = useRef(null);
   const metronomeModeSwipeChangedAtRef = useRef(0);
+  const metronomeOptionsSwipeStartRef = useRef(null);
   const fretboardSwipeStartRef = useRef(null);
   const fretboardSwipeFeedbackTimerRef = useRef(null);
   const stage3StorageSwipeStartRef = useRef(null);
@@ -12187,6 +12268,8 @@ function App() {
     setBeat(0);
     setAutoBpmIncrements(0);
     setMetronomeIsMutedCycle(false);
+    metronomeOptionsSwipeStartRef.current = null;
+    setMetronomeVisualOptionsOpen(false);
     setStage3MeasureProgress(0);
     setFeedback(metronomeCountInRef.current ? "Count In" : "Play");
     setState(GAME_STATES.PLAYING);
@@ -12859,6 +12942,61 @@ function App() {
     metronomeModeSwipeStartRef.current = null;
     setMetronomeModeSwipeActive(false);
     setMetronomeModeSwipeOffset(0);
+  }, []);
+
+  const handleMetronomeOptionsSwipeStart = useCallback((event) => {
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    metronomeOptionsSwipeStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      pointerId: event.pointerId,
+      locked: false,
+      canceled: false,
+    };
+  }, []);
+
+  const handleMetronomeOptionsSwipeMove = useCallback((event) => {
+    const swipe = metronomeOptionsSwipeStartRef.current;
+    if (!swipe || swipe.canceled) return;
+    const deltaX = event.clientX - swipe.x;
+    const deltaY = event.clientY - swipe.y;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+
+    if (!swipe.locked) {
+      if (absX < 5 && absY < 5) return;
+      if (absX > absY * 1.8 && absX > 18) {
+        metronomeOptionsSwipeStartRef.current = { ...swipe, canceled: true };
+        event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+        return;
+      }
+      swipe.locked = true;
+    }
+
+    if (event.cancelable) event.preventDefault();
+  }, []);
+
+  const handleMetronomeOptionsSwipeEnd = useCallback((event) => {
+    const swipe = metronomeOptionsSwipeStartRef.current;
+    if (!swipe) return;
+    event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+    metronomeOptionsSwipeStartRef.current = null;
+    if (swipe.canceled) return;
+
+    const deltaY = event.clientY - swipe.y;
+    if (deltaY <= -12) {
+      setMetronomeVisualOptionsOpen(true);
+    } else if (deltaY >= 12) {
+      setMetronomeVisualOptionsOpen(false);
+    }
+  }, []);
+
+  const handleMetronomeOptionsSwipeCancel = useCallback((event) => {
+    const swipe = metronomeOptionsSwipeStartRef.current;
+    if (!swipe) return;
+    event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+    metronomeOptionsSwipeStartRef.current = null;
   }, []);
 
   const cycleStandaloneBeatState = useCallback((beatIndex) => {
@@ -16429,17 +16567,34 @@ function App() {
 
           <StandaloneMetronomeVisual
             activeBeat={beat}
+            barEnabled={metronomeBarEnabled}
             beatPattern={standaloneBeatPattern}
+            beatMs={beatMs}
+            dotsEnabled={metronomeDotsEnabled}
+            flashEnabled={metronomeFlashEnabled}
             isPlaying={gameState === GAME_STATES.PLAYING}
             mode={metronomeDisplayMode}
             onBeatClick={cycleStandaloneBeatState}
+            onBarEnabledChange={setMetronomeBarEnabled}
+            onDotsEnabledChange={setMetronomeDotsEnabled}
+            onFlashEnabledChange={setMetronomeFlashEnabled}
+            onOptionsPointerCancel={handleMetronomeOptionsSwipeCancel}
+            onOptionsPointerDown={handleMetronomeOptionsSwipeStart}
+            onOptionsPointerMove={handleMetronomeOptionsSwipeMove}
+            onOptionsPointerUp={handleMetronomeOptionsSwipeEnd}
             onPointerCancel={handleMetronomeModeSwipeCancel}
             onPointerDown={handleMetronomeModeSwipeStart}
             onPointerMove={handleMetronomeModeSwipeMove}
             onPointerUp={handleMetronomeModeSwipeEnd}
+            optionsOpen={metronomeVisualOptionsOpen}
             swipeActive={metronomeModeSwipeActive}
             swipeOffset={metronomeModeSwipeOffset}
           />
+          {metronomeFlashEnabled
+            && gameState === GAME_STATES.PLAYING
+            && (standaloneBeatPattern[beat] ?? getDefaultBeatState(beat)) === METRONOME_BEAT_STATES.ACCENT ? (
+              <span className="metronomeGlobalFlash" key={`metronome-global-flash-${beat}`} aria-hidden="true" />
+            ) : null}
 
           <div
             aria-label="BPM 조절 영역. 좌우 스와이프는 BPM만 변경합니다"
