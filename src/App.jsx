@@ -3469,6 +3469,22 @@ function TrainingPanelHeader({ collapsed, content = null, onToggle, title }) {
   );
 }
 
+function CountInToggleButton({ className = "", disabled = false, enabled = false, onChange = () => {} }) {
+  return (
+    <button
+      aria-label={`카운트인 ${enabled ? "끄기" : "켜기"}`}
+      aria-pressed={enabled}
+      className={`countInToggleButton ${enabled ? "selected" : ""} ${className}`.trim()}
+      disabled={disabled}
+      onClick={() => onChange(!enabled)}
+      type="button"
+    >
+      <Timer size={14} aria-hidden="true" />
+      <span>Count</span>
+    </button>
+  );
+}
+
 const DEFAULT_STRUM_PATTERN = [];
 
 function normalizeStrumPattern(pattern) {
@@ -6432,9 +6448,12 @@ const DEFAULT_ONLY_TRAINING_METRONOME_SCOPES = new Set([
 function keepOnlyTrainingMetronomeRuntimeSettings(scope, settings) {
   const normalized = settings ?? createDefaultMetronomeSettings();
   if (!DEFAULT_ONLY_TRAINING_METRONOME_SCOPES.has(scope)) return normalized;
+  const countInEnabled = Boolean(normalized.countIn) || Number(normalized.countInBars) > 0;
   return {
     ...createDefaultMetronomeSettings(),
     bpm: clampBpm(normalized.bpm),
+    countIn: countInEnabled,
+    countInBars: countInEnabled ? Math.max(1, Number(normalized.countInBars) || 1) : 0,
   };
 }
 const MIN_REPEAT_COUNT = 1;
@@ -6504,6 +6523,10 @@ const POSITION_MODE_WARNING =
   "같은 음은 다른 위치에도 있을 수 있어요. 이 모드는 표시된 위치로 연습하는 것을 권장합니다.";
 const BPM_PRESETS = [40, 60, 80, 100, 120, 140, 160, 180];
 const SCALE_ASCENDING = ["A2", "C3", "D3", "E3", "G3", "A3", "C4", "D4", "E4", "G4", "A4", "C5"];
+function createPingPongSequence(sequence) {
+  if (!Array.isArray(sequence) || sequence.length <= 2) return Array.isArray(sequence) ? [...sequence] : [];
+  return [...sequence, ...sequence.slice(1, -1).reverse()];
+}
 const FIRST_POSITION_ASCENDING_SEQUENCE = [
   "E2", "F2", "G2",
   "A2", "B2", "C3",
@@ -6520,10 +6543,7 @@ const FIRST_POSITION_RETURN_SEQUENCE = [
   "C3", "B2", "A2",
   "G2", "F2", "E2",
 ];
-const FIRST_POSITION_SEQUENCE = [
-  ...FIRST_POSITION_ASCENDING_SEQUENCE,
-  ...FIRST_POSITION_RETURN_SEQUENCE,
-];
+const FIRST_POSITION_SEQUENCE = createPingPongSequence(FIRST_POSITION_ASCENDING_SEQUENCE);
 const LEGACY_PRACTICE_CATEGORIES = [
   {
     id: "open",
@@ -9197,6 +9217,11 @@ function App() {
     scopedMetronomeSettingsRef.current[nextScope] = nextSettings;
     applyScopedMetronomeSettings(nextSettings);
   }, [applyScopedMetronomeSettings, captureActiveMetronomeSettings]);
+  const changeTrainingCountIn = useCallback((enabled) => {
+    const nextEnabled = Boolean(enabled);
+    setMetronomeCountIn(nextEnabled);
+    setMetronomeCountInBars(nextEnabled ? Math.max(1, metronomeCountInBarsRef.current || 1) : 0);
+  }, []);
   const applyViewerChordSelection = useCallback((baseRoot, accidental, quality, extension) => {
     const safeExtension = normalizeChordExtensionForQuality(quality, extension);
     const exactChord = getChordFromSelector(baseRoot, accidental, quality, safeExtension);
@@ -9718,7 +9743,7 @@ function App() {
       else sequence = FIRST_POSITION_SEQUENCE;
     } else if (safeCategory.id === "scale-block") {
       if (direction === SCALE_DIRECTIONS.DESC) sequence = [...base].reverse();
-      else if (direction === SCALE_DIRECTIONS.LOOP) sequence = [...base, ...base.slice(0, -1).reverse()];
+      else if (direction === SCALE_DIRECTIONS.LOOP) sequence = createPingPongSequence(base);
     }
     if ((safeCategory.id === "first-position" || safeCategory.id === "scale-block") && repeatPractice) {
       sequence = repeatSequence(sequence, repeatCount);
@@ -11427,7 +11452,11 @@ function App() {
 
       if (countInActiveRef.current) {
         countInTimeRef.current += deltaMs;
-        setStage3MeasureProgress(Math.min(1, countInTimeRef.current / currentMeasureMs));
+        const countInProgressNow = performance.now();
+        if (countInProgressNow - lastStage3ProgressUiAtRef.current >= 80) {
+          lastStage3ProgressUiAtRef.current = countInProgressNow;
+          setStage3MeasureProgress(Math.min(1, countInTimeRef.current / currentMeasureMs));
+        }
         if (countInTimeRef.current >= currentMeasureMs) {
           countInActiveRef.current = false;
           countInTimeRef.current = 0;
@@ -11442,9 +11471,7 @@ function App() {
         if (countInTick < beatsPerMeasure && countInTick !== lastBeatRef.current) {
           lastBeatRef.current = countInTick;
           const countInBeat = countInTick % beatsPerMeasure;
-          flushSync(() => {
-            setBeat(countInBeat);
-          });
+          setBeat(countInBeat);
           playCountInVoice(countInBeat);
         }
         return;
@@ -11478,7 +11505,11 @@ function App() {
           }
         }
       }
-      setStage3MeasureProgress((gameTimeRef.current % currentMeasureMs) / currentMeasureMs);
+      const progressNow = performance.now();
+      if (progressNow - lastStage3ProgressUiAtRef.current >= 80) {
+        lastStage3ProgressUiAtRef.current = progressNow;
+        setStage3MeasureProgress((gameTimeRef.current % currentMeasureMs) / currentMeasureMs);
+      }
       const currentTick = Math.floor(gameTimeRef.current / currentTickMs);
       if (currentTick === lastBeatRef.current) return;
 
@@ -11488,9 +11519,7 @@ function App() {
       const subdivisionIndex = currentTick % clicksPerBeat;
       const isFirstBeat = currentBeat === 0;
       if (subdivisionIndex === 0) {
-        flushSync(() => {
-          setBeat(beatInBar);
-        });
+        setBeat(beatInBar);
       }
       playPatternTick(beatInBar, subdivisionIndex);
 
@@ -17749,6 +17778,11 @@ function App() {
                 )}
                 {gameState === GAME_STATES.PLAYING ? "STOP" : isStage3AudioPreparing ? "준비중" : "START"}
               </button>
+              <CountInToggleButton
+                className="stage3CountInToggle"
+                enabled={metronomeCountIn}
+                onChange={changeTrainingCountIn}
+              />
             </div>
           </div>
 
@@ -18117,6 +18151,11 @@ function App() {
                         <Play size={18} aria-hidden="true" />
                       )}
                     </button>
+                    <CountInToggleButton
+                      className="referenceCountInToggle"
+                      enabled={metronomeCountIn}
+                      onChange={changeTrainingCountIn}
+                    />
                   </div>
                   <MetronomeControl
                     accentEnabled={metronomeAccent}
@@ -18128,7 +18167,7 @@ function App() {
                     onAccentChange={changeTrainingMetronomeAccent}
                     onAccentToneChange={changeMetronomeAccentTone}
                     onBpmChange={changeBpm}
-                    onCountInChange={setMetronomeCountIn}
+                    onCountInChange={changeTrainingCountIn}
                     onRepeatChange={setRepeatPractice}
                     onSubdivisionChange={setMetronomeSubdivision}
                     onTimeSignatureChange={changeTrainingMetronomeTimeSignature}
@@ -18157,7 +18196,7 @@ function App() {
                     inputId="reference-bpm-presets"
                     onAccentChange={changeTrainingMetronomeAccent}
                     onBpmChange={changeBpm}
-                    onCountInChange={setMetronomeCountIn}
+                    onCountInChange={changeTrainingCountIn}
                     onRepeatChange={setRepeatPractice}
                     onSubdivisionChange={setMetronomeSubdivision}
                     onTimeSignatureChange={changeTrainingMetronomeTimeSignature}

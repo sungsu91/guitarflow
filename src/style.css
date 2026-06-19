@@ -48092,3 +48092,139 @@ html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel
     linear-gradient(90deg, rgba(127, 61, 80, 0.34), #bc7080 42%, #fff2f4 50%, #d28494 58%, rgba(127, 61, 80, 0.28)) !important;
 }
 @media (prefers-reduced-motion: reduce) {
+}
+
+/* Shared count-in toggle used by mobile training screens. */
+.countInToggleButton {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  min-width: 64px !important;
+  min-height: 31px !important;
+  padding: 0 9px !important;
+  border: 1px solid rgba(217, 170, 85, 0.28) !important;
+  border-radius: 999px !important;
+  background:
+    radial-gradient(circle at 34% 16%, rgba(255, 246, 214, 0.16), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.01)),
+    rgba(12, 12, 12, 0.78) !important;
+  color: rgba(255, 239, 202, 0.9) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.08),
+    0 4px 10px rgba(0, 0, 0, 0.13) !important;
+}
+
+.countInToggleButton svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+}
+
+.countInToggleButton span {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.countInToggleButton.selected {
+  border-color: rgba(255, 248, 230, 0.72) !important;
+  background:
+    radial-gradient(circle at 30% 14%, rgba(255, 255, 255, 0.74), transparent 40%),
+    linear-gradient(180deg, #fffdf4 0%, #efe6d5 100%) !important;
+  color: #2b2418 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 -1px 0 rgba(122, 103, 75, 0.16),
+    0 6px 13px rgba(54, 42, 26, 0.14) !important;
+}
+
+.stage3StartControlCluster .stage3CountInToggle {
+  position: absolute !important;
+  right: 12px !important;
+  top: auto !important;
+  bottom: -13px !important;
+  z-index: 2 !important;
+  min-width: 62px;
+  transform: none !important;
+}
+
+.chordTransitionHud.stage3ProgressHud {
+  position: relative !important;
+  z-index: 3 !important;
+  overflow: visible !important;
+}
+
+.referenceStandaloneMetronomeDeck .metronomeHeroCard {
+  position: relative !important;
+}
+
+.referenceStandaloneMetronomeDeck .referenceCountInToggle {
+  position: absolute !important;
+  left: 16px !important;
+  bottom: -15px !important;
+  z-index: 2 !important;
+}
+
+html body .app.theme-light.theme-light .countInToggleButton {
+  border-color: rgba(132, 112, 82, 0.24) !important;
+  background:
+    radial-gradient(circle at 34% 16%, rgba(255, 255, 255, 0.58), transparent 38%),
+    linear-gradient(180deg, rgba(255, 253, 248, 0.96), rgba(238, 230, 216, 0.84)) !important;
+  color: #3c3428 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.74),
+    0 4px 10px rgba(68, 56, 40, 0.08) !important;
+}
+
+html body .app.theme-light.theme-light .countInToggleButton.selected {
+  border-color: rgba(143, 123, 88, 0.34) !important;
+  background:
+    radial-gradient(circle at 30% 14%, rgba(255, 255, 255, 0.72), transparent 40%),
+    linear-gradient(180deg, #fffdf4 0%, #eee6d6 100%) !important;
+  color: #2b2418 !important;
+}
+
+@media (max-width: 430px) {
+  .referenceStandaloneMetronomeDeck .referenceCountInToggle {
+    left: 15px !important;
+    bottom: -15px !important;
+    min-width: 60px !important;
+    min-height: 30px !important;
+    padding: 0 8px !important;
+    font-size: 9px !important;
+  }
+
+  .stage3StartControlCluster .stage3CountInToggle {
+    right: 10px !important;
+    bottom: -13px !important;
+    min-width: 58px !important;
+    min-height: 30px !important;
+    padding: 0 7px !important;
+    font-size: 9px !important;
+  }
+}
+
+html body .app.app.app button.countInToggleButton.countInToggleButton {
+  border-color: rgba(132, 112, 82, 0.24) !important;
+  background-color: rgba(255, 253, 248, 0.96) !important;
+  background-image:
+    radial-gradient(circle at 34% 16%, rgba(255, 255, 255, 0.58), transparent 38%),
+    linear-gradient(180deg, rgba(255, 253, 248, 0.96), rgba(238, 230, 216, 0.84)) !important;
+  color: #3c3428 !important;
+}
+
+html body .app.app.app button.countInToggleButton.countInToggleButton.selected,
+html body .app.app.app button.countInToggleButton.countInToggleButton[aria-pressed="true"] {
+  border-color: rgba(143, 123, 88, 0.34) !important;
+  background-color: #fffdf4 !important;
+  background-image:
+    radial-gradient(circle at 30% 14%, rgba(255, 255, 255, 0.72), transparent 40%),
+    linear-gradient(180deg, #fffdf4 0%, #eee6d6 100%) !important;
+  color: #2b2418 !important;
+}
