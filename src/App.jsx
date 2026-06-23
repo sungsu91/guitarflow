@@ -16,7 +16,7 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import { flushSync } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import BrandHeader from "./components/BrandHeader";
 import Fretboard from "./components/Fretboard";
 import { RIFFLAB_COMMON_CUTAWAY_SPRITE_SRC } from "./assets/rifflabCommonCutawaySprite";
@@ -4659,8 +4659,6 @@ function StandaloneMetronomeVisual({
   const beatCount = Math.max(1, beatPattern.length);
   const selectedMode = normalizeMetronomeDisplayMode(mode);
   const safeBeatMs = Math.max(120, Number(beatMs) || 600);
-  const activeBeatState = beatPattern[activeBeat] ?? getDefaultBeatState(activeBeat);
-  const flashActive = flashEnabled && isPlaying && activeBeatState === METRONOME_BEAT_STATES.ACCENT;
   const renderBeat = (beatState, index, className = "", style = undefined) => (
     <BeatDot
       active={isPlaying && activeBeat === index}
@@ -4677,7 +4675,7 @@ function StandaloneMetronomeVisual({
   return (
     <div
       aria-label={`${METRONOME_DISPLAY_MODES.find((item) => item.id === selectedMode)?.label ?? "Metronome Mode"} 박자 표시 영역. 좌우 스와이프는 표시 모드만 전환합니다`}
-      className={`metronomeBeatMatrix metronomeBeatMatrix--main metronomeBeatMatrix--${selectedMode} ${swipeActive ? "metronomeBeatMatrix--swiping" : ""}`}
+      className={`metronomeBeatMatrix metronomeBeatMatrix--main metronomeBeatMatrix--${selectedMode} ${swipeActive ? "metronomeBeatMatrix--swiping" : ""} ${optionsOpen ? "metronomeBeatMatrix--options-open" : ""}`}
       data-metronome-mode-swipe-zone="true"
       onPointerCancel={onPointerCancel}
       onPointerDown={onPointerDown}
@@ -4689,9 +4687,6 @@ function StandaloneMetronomeVisual({
         "--metronome-beat-ms": `${safeBeatMs}ms`,
       }}
     >
-      {flashActive ? (
-        <span className="metronomeBeatFlash" key={`flash-${activeBeat}`} aria-hidden="true" />
-      ) : null}
       {barEnabled ? (
         <span className={`metronomeBeatBar ${isPlaying ? "active" : ""}`} aria-hidden="true" />
       ) : null}
@@ -4761,6 +4756,32 @@ function StandaloneMetronomeVisual({
         </div>
       </div>
     </div>
+  );
+}
+
+function MetronomeViewportFlash({ active, pulseKey }) {
+  if (!active || typeof document === "undefined") return null;
+  return createPortal(
+    <span className="metronomeGlobalFlash" key={pulseKey} aria-hidden="true" />,
+    document.body,
+  );
+}
+
+function TapTempoGlyph() {
+  return (
+    <span className="tapTempoIconCrop" aria-hidden="true">
+      <svg className="tapTempoGlyph" viewBox="0 0 68 70" focusable="false">
+        <path className="tapTempoGlyphRay" d="M13 10 L20 17" />
+        <path className="tapTempoGlyphRay" d="M32 4 L32 14" />
+        <path className="tapTempoGlyphRay" d="M51 10 L44 17" />
+        <path className="tapTempoGlyphRing tapTempoGlyphRing--outer" d="M14 33 C14 22 22 15 32 15 C42 15 50 22 50 33" />
+        <path className="tapTempoGlyphRing tapTempoGlyphRing--inner" d="M21 33 C21 26 26 22 32 22 C38 22 43 26 43 33" />
+        <path
+          className="tapTempoGlyphHand"
+          d="M30.5 57 V29.5 C30.5 25.8 33.1 23.4 36.1 23.4 C39.2 23.4 41.6 25.9 41.6 29.5 V38.4 C42.8 36.8 44.5 36 46.3 36 C49.3 36 51.2 38.2 51.4 41.1 C52.5 39.9 54 39.3 55.6 39.3 C58.8 39.3 61 41.8 61 45.4 V57 C61 61.6 57.7 64 52.6 64 H36.7 C32.6 64 30.1 62.1 27.7 58.9 L18.1 46.2 C16 43.4 16.5 40.2 19.1 38.4 C21.5 36.8 24.3 37.4 26.3 40 L30.5 45.5"
+        />
+      </svg>
+    </span>
   );
 }
 
@@ -8448,6 +8469,7 @@ function App() {
   const [metronomeDotsEnabled, setMetronomeDotsEnabled] = useState(true);
   const [metronomeBarEnabled, setMetronomeBarEnabled] = useState(false);
   const [metronomeFlashEnabled, setMetronomeFlashEnabled] = useState(false);
+  const [metronomeFlashPulse, setMetronomeFlashPulse] = useState(0);
   const [metronomeVisualLabTimeSignature, setMetronomeVisualLabTimeSignature] = useState("4/4");
   const [metronomeVisualLabPlaying, setMetronomeVisualLabPlaying] = useState(false);
   const [metronomeVisualLabBeat, setMetronomeVisualLabBeat] = useState(0);
@@ -9221,6 +9243,7 @@ function App() {
   const coachModeEnabledRef = useRef(false);
   const coachPlayBarsRef = useRef(4);
   const coachMuteBarsRef = useRef(4);
+  const metronomeFlashEnabledRef = useRef(metronomeFlashEnabled);
   const metronomeTrackerModeRef = useRef(initialMetronomeTrackerProgressRef.current.trackerMode);
   const metronomeTrackerBaseBarsRef = useRef(initialMetronomeTrackerProgressRef.current.measureCount);
   const metronomeTrackerBaseElapsedMsRef = useRef(initialMetronomeTrackerProgressRef.current.trackerElapsedMs);
@@ -9728,6 +9751,14 @@ function App() {
     const nextEnabled = Boolean(enabled);
     setMetronomeCountIn(nextEnabled);
     setMetronomeCountInBars(nextEnabled ? Math.max(1, metronomeCountInBarsRef.current || 1) : 0);
+  }, []);
+  const changeMetronomeFlashEnabled = useCallback((enabled) => {
+    const nextEnabled = Boolean(enabled);
+    metronomeFlashEnabledRef.current = nextEnabled;
+    setMetronomeFlashEnabled(nextEnabled);
+    if (nextEnabled) {
+      setMetronomeFlashPulse((value) => value + 1);
+    }
   }, []);
   const applyViewerChordSelection = useCallback((baseRoot, accidental, quality, extension) => {
     const safeExtension = normalizeChordExtensionForQuality(quality, extension);
@@ -10634,7 +10665,16 @@ function App() {
     }
   }, [playMetronomeDialClick]);
 
+  const triggerMetronomeViewportFlash = useCallback(() => {
+    if (!metronomeFlashEnabledRef.current) return;
+    setMetronomeFlashPulse((value) => value + 1);
+  }, []);
+
   const playTick = useCallback((accent = false, subdivisionIndex = 0, useAccentSetting = true) => {
+    if (accent && subdivisionIndex === 0) {
+      triggerMetronomeViewportFlash();
+    }
+
     const audio = audioRef.current;
     if (!audio || gameStateRef.current !== GAME_STATES.PLAYING || !metronomeOnRef.current) return;
     if (audio.state === "suspended") {
@@ -10702,7 +10742,7 @@ function App() {
     source.connect(gain);
     gain.connect(output || audio.destination);
     source.start(now);
-  }, [ensureMetronomeOutput]);
+  }, [ensureMetronomeOutput, triggerMetronomeViewportFlash]);
 
   const playVisualLabTick = useCallback((beatState = METRONOME_BEAT_STATES.NORMAL) => {
     const audio = audioRef.current;
@@ -12280,6 +12320,9 @@ function App() {
         if (visualBeat !== lastBeatRef.current) {
           lastBeatRef.current = visualBeat;
           setBeat(beatInBar);
+          if (beatInBar === 0) {
+            triggerMetronomeViewportFlash();
+          }
           if (chordPracticeIndexRef.current !== measureIndex) {
             chordPracticeIndexRef.current = measureIndex;
             setChordPracticeIndex(measureIndex);
@@ -12307,6 +12350,9 @@ function App() {
           : 0;
         if (subdivisionIndex === 0) {
           setBeat(beatInBar);
+          if (beatInBar === 0) {
+            triggerMetronomeViewportFlash();
+          }
         }
         if (chordPracticeIndexRef.current !== measureIndex) {
           chordPracticeIndexRef.current = measureIndex;
@@ -12314,7 +12360,7 @@ function App() {
         }
       }
     },
-    [chordTransitionProgression.length, playCountInVoice, startBackingScheduler, stopBackingScheduler],
+    [chordTransitionProgression.length, playCountInVoice, startBackingScheduler, stopBackingScheduler, triggerMetronomeViewportFlash],
   );
 
   const runMetronomeFrame = useCallback(
@@ -14527,6 +14573,10 @@ function App() {
   }, [standaloneBeatPattern]);
 
   useEffect(() => {
+    metronomeFlashEnabledRef.current = metronomeFlashEnabled;
+  }, [metronomeFlashEnabled]);
+
+  useEffect(() => {
     autoBpmModeRef.current = autoBpmMode;
     autoBpmEnabledRef.current = autoBpmMode !== "off";
     setAutoBpmEnabled(autoBpmMode !== "off");
@@ -15761,6 +15811,10 @@ function App() {
       onPointerUpCapture={handleAppPointerUpCapture}
       translate="no"
     >
+      <MetronomeViewportFlash
+        active={metronomeFlashEnabled && metronomeFlashPulse > 0}
+        pulseKey={`metronome-global-flash-${metronomeFlashPulse}`}
+      />
       {utilityMenuOpen ? (
         <div className="utilityMenuLayer" role="presentation">
           <button
@@ -17812,7 +17866,7 @@ function App() {
             onBeatClick={cycleStandaloneBeatState}
             onBarEnabledChange={setMetronomeBarEnabled}
             onDotsEnabledChange={setMetronomeDotsEnabled}
-            onFlashEnabledChange={setMetronomeFlashEnabled}
+            onFlashEnabledChange={changeMetronomeFlashEnabled}
             onOptionsPointerCancel={handleMetronomeOptionsSwipeCancel}
             onOptionsPointerDown={handleMetronomeOptionsSwipeStart}
             onOptionsPointerMove={handleMetronomeOptionsSwipeMove}
@@ -17825,12 +17879,6 @@ function App() {
             swipeActive={metronomeModeSwipeActive}
             swipeOffset={metronomeModeSwipeOffset}
           />
-          {metronomeFlashEnabled
-            && gameState === GAME_STATES.PLAYING
-            && (standaloneBeatPattern[beat] ?? getDefaultBeatState(beat)) === METRONOME_BEAT_STATES.ACCENT ? (
-              <span className="metronomeGlobalFlash" key={`metronome-global-flash-${beat}`} aria-hidden="true" />
-            ) : null}
-
           <div
             aria-label="BPM 조절 영역. 좌우 스와이프는 BPM만 변경합니다"
             className="metronomeHeroCard metronomeHeroCard--interactive"
@@ -17977,14 +18025,7 @@ function App() {
                 }}
                 type="button"
               >
-                <span className="tapTempoIconCrop" aria-hidden="true">
-                  <img
-                    alt=""
-                    className="tapTempoButtonImage"
-                    draggable="false"
-                    src="/images/tap-tempo-button.png"
-                  />
-                </span>
+                <TapTempoGlyph />
                 <span className="metronomeHeroActionText">TAP</span>
               </button>
             </div>
@@ -19321,14 +19362,7 @@ function App() {
                     }}
                     type="button"
                   >
-                    <span className="tapTempoIconCrop" aria-hidden="true">
-                      <img
-                        alt=""
-                        className="tapTempoButtonImage"
-                        draggable="false"
-                        src="/images/tap-tempo-button.png"
-                      />
-                    </span>
+                    <TapTempoGlyph />
                     <span className="metronomeHeroActionText">TAP</span>
                   </button>
                   <button
@@ -19720,14 +19754,7 @@ function App() {
                         }}
                         type="button"
                       >
-                        <span className="tapTempoIconCrop" aria-hidden="true">
-                          <img
-                            alt=""
-                            className="tapTempoButtonImage"
-                            draggable="false"
-                            src="/images/tap-tempo-button.png"
-                          />
-                        </span>
+                        <TapTempoGlyph />
                         <span className="metronomeHeroActionText">TAP</span>
                       </button>
                       <CountInToggleButton

@@ -44883,27 +44883,22 @@ html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metro
 }
 
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix--main .metronomeBeatFlash {
-  position: absolute;
-  inset: 0;
-  z-index: 7;
-  background:
-    radial-gradient(circle at 50% 48%, rgba(255, 255, 255, 0.92), rgba(255, 235, 184, 0.56) 30%, rgba(241, 202, 122, 0.18) 62%, transparent 78%);
-  opacity: 0;
-  pointer-events: none;
-  mix-blend-mode: screen;
-  animation: metronomeBeatFlashPulse 140ms ease-out;
+  display: none !important;
 }
 
 .metronomeGlobalFlash {
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.88), rgba(255, 244, 210, 0.52) 24%, rgba(241, 202, 122, 0.2) 48%, transparent 76%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(241, 202, 122, 0.16));
-  mix-blend-mode: screen;
-  animation: metronomeGlobalFlashPulse 140ms ease-out forwards;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 2147483647 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  pointer-events: none !important;
+  background: rgb(255, 255, 252) !important;
+  opacity: 0;
+  mix-blend-mode: normal !important;
+  animation: metronomeGlobalFlashPulse 160ms ease-out forwards;
+  will-change: opacity;
 }
 
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeVisualOptionsPanel {
@@ -45034,14 +45029,11 @@ html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetro
 }
 
 html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetronomePanel .metronomeBeatMatrix--main .metronomeBeatFlash {
-  background:
-    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.96), rgba(255, 230, 236, 0.58) 34%, rgba(224, 154, 168, 0.22) 62%, transparent 78%);
+  display: none !important;
 }
 
 html body .app.theme-light.theme-light .metronomeGlobalFlash {
-  background:
-    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.92), rgba(255, 230, 236, 0.58) 24%, rgba(224, 154, 168, 0.2) 48%, transparent 76%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(224, 154, 168, 0.14));
+  background: rgb(255, 255, 252) !important;
 }
 
 html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetronomePanel .metronomeVisualOptionsHandle span {
@@ -45112,33 +45104,29 @@ html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetro
 
 @keyframes metronomeBeatFlashPulse {
   0% {
-    opacity: 1;
-    filter: brightness(1.8);
-  }
-
-  40% {
-    opacity: 0.52;
+    opacity: 0;
   }
 
   100% {
     opacity: 0;
-    filter: brightness(1);
   }
 }
 
 @keyframes metronomeGlobalFlashPulse {
   0% {
-    opacity: 0.92;
-    filter: brightness(2.15) saturate(1.25);
+    opacity: 0.48;
   }
 
-  42% {
-    opacity: 0.46;
+  18% {
+    opacity: 0.44;
+  }
+
+  58% {
+    opacity: 0.24;
   }
 
   100% {
     opacity: 0;
-    filter: brightness(1) saturate(1);
   }
 }
 
@@ -54081,4 +54069,167 @@ html body main.app.app.app
     strong {
     font-size: 50px !important;
   }
+}
+
+/* Standalone metronome: hide the rhythm sweep bar while the bottom visual panel is open. */
+html body main.app.app.app
+  .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+  .metronomeBeatMatrix--main.metronomeBeatMatrix--options-open
+  .metronomeBeatBar,
+html body main.app.app.app
+  .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+  .metronomeBeatMatrix--main.metronomeBeatMatrix--options-open
+  .metronomeBeatBar::before,
+html body main.app.app.app
+  .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+  .metronomeBeatMatrix--main.metronomeBeatMatrix--options-open
+  .metronomeBeatBar::after {
+  display: none !important;
+  visibility: hidden !important;
+  animation: none !important;
+}
+
+html body main.app.app.app
+  .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+  .metronomeBeatMatrix--main.metronomeBeatMatrix--options-open
+  .metronomeVisualOptionsPanel.open {
+  z-index: 30 !important;
+}
+
+/* TAP tempo icon: draw the hand directly so no image box or clipped PNG background remains. */
+html body main.app.app.app
+  .metronomeHeroTapTempoButton
+  .tapTempoIconCrop,
+html body main.app.app.app
+  .chordTransitionPanel.chordTransitionPanel
+  .stage3BpmTransportCard.stage3BpmTransportCard
+  .stage3BpmActionPanel
+  .metronomeHeroTapTempoButton
+  .tapTempoIconCrop,
+html body main.app.app.app
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeHeroCard.metronomeHeroCard
+  .metronomeHeroTapTempoButton
+  .tapTempoIconCrop,
+html body main.app.app.app
+  .referenceMetronomeHeroCard.metronomeHeroCard
+  .metronomeHeroTapTempoButton
+  .tapTempoIconCrop {
+  position: relative !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  flex: 0 0 auto !important;
+  width: 32px !important;
+  height: 34px !important;
+  overflow: visible !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+
+html body main.app.app.app
+  .metronomeHeroTapTempoButton
+  .tapTempoGlyph,
+html body main.app.app.app
+  .chordTransitionPanel.chordTransitionPanel
+  .stage3BpmTransportCard.stage3BpmTransportCard
+  .stage3BpmActionPanel
+  .metronomeHeroTapTempoButton
+  .tapTempoGlyph,
+html body main.app.app.app
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeHeroCard.metronomeHeroCard
+  .metronomeHeroTapTempoButton
+  .tapTempoGlyph,
+html body main.app.app.app
+  .referenceMetronomeHeroCard.metronomeHeroCard
+  .metronomeHeroTapTempoButton
+  .tapTempoGlyph {
+  position: static !important;
+  display: block !important;
+  width: 32px !important;
+  max-width: none !important;
+  height: 34px !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+  mix-blend-mode: normal !important;
+  filter: drop-shadow(0 1px 1px rgba(74, 46, 18, 0.12)) !important;
+}
+
+html body main.app.app.app
+  .tapTempoGlyphRay,
+html body main.app.app.app
+  .tapTempoGlyphRing {
+  fill: none !important;
+  stroke: #c79742 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  stroke-width: 4.2px !important;
+}
+
+html body main.app.app.app
+  .tapTempoGlyphRing--inner {
+  opacity: 0.88 !important;
+  stroke-width: 3.6px !important;
+}
+
+html body main.app.app.app
+  .tapTempoGlyphHand {
+  fill: #f6eee2 !important;
+  stroke: #30261d !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  stroke-width: 4.2px !important;
+}
+
+html body main.app.app.app
+  .metronomeHeroTapTempoButton:active
+  .tapTempoGlyph,
+html body main.app.app.app
+  .metronomeHeroTapTempoButton.is-tapping
+  .tapTempoGlyph {
+  transform: translateY(1px) scale(0.96) !important;
+}
+
+/* Stage 1/2 TAP glyph hard override: remove the old clipped image panel. */
+html body main.app.app.app
+  :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+  .referenceMetronomeHeroCard.metronomeHeroCard
+  .metronomeHeroActionPanel.referenceMetronomeActionPanel
+  .metronomeHeroTapTempoButton
+  .tapTempoIconCrop {
+  position: relative !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  flex: 0 0 auto !important;
+  width: 32px !important;
+  height: 34px !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+
+html body main.app.app.app
+  :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+  .referenceMetronomeHeroCard.metronomeHeroCard
+  .metronomeHeroActionPanel.referenceMetronomeActionPanel
+  .metronomeHeroTapTempoButton
+  .tapTempoGlyph {
+  position: static !important;
+  display: block !important;
+  width: 32px !important;
+  max-width: none !important;
+  height: 34px !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+  mix-blend-mode: normal !important;
+  filter: drop-shadow(0 1px 1px rgba(74, 46, 18, 0.12)) !important;
 }
