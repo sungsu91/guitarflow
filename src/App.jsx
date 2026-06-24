@@ -3311,19 +3311,10 @@ function MetronomeControl({
     if (!enableBpmSwipePreview || !swipe || swipe.canceled || swipe.pointerId !== event.pointerId) return;
 
     const deltaX = event.clientX - swipe.x;
-    const deltaY = event.clientY - swipe.y;
     const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
 
     if (!swipe.locked) {
-      if (absX < 1 && absY < 1) return;
-      if (absY > 12 && absY > absX * 1.25) {
-        swipe.canceled = true;
-        setSwipePreviewBpm(null);
-        syncBpmVisualValue(draftBpm);
-        event.currentTarget.releasePointerCapture?.(swipe.pointerId);
-        return;
-      }
+      if (absX < 4) return;
       swipe.locked = true;
     }
 
@@ -13825,18 +13816,10 @@ function App() {
     if (!swipe || swipe.canceled) return;
 
     const deltaX = event.clientX - swipe.x;
-    const deltaY = event.clientY - swipe.y;
     const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
 
     if (!swipe.locked) {
-      if (absX < 10 && absY < 10) return;
-      if (absY > absX * 1.25) {
-        bpmSwipeStartRef.current = { ...swipe, canceled: true };
-        resetBpmSwipePreview();
-        event.currentTarget.releasePointerCapture?.(swipe.pointerId);
-        return;
-      }
+      if (absX < 6) return;
       swipe.locked = true;
     }
 

@@ -54685,7 +54685,7 @@ html body main.app.app.app
   }
 }
 
-/* Rhythm, single-note, and scale BPM panels: make count-in ON/OFF state immediately visible. */
+/* Rhythm, single-note, and scale BPM panels: express count-in state through text/icon brightness only. */
 @media (max-width: 720px) {
   html body main.app.app.app
     .chordTransitionPanel.chordTransitionPanel
@@ -54697,19 +54697,19 @@ html body main.app.app.app
     .referenceMetronomeHeroCard.metronomeHeroCard
     .metronomeHeroActionPanel.referenceMetronomeActionPanel
     button.metronomeHeroCountInButton.countInToggleButton {
-    align-self: center !important;
+    align-self: stretch !important;
     justify-self: stretch !important;
-    min-height: 34px !important;
-    height: 34px !important;
-    margin: 5px 4px !important;
-    padding: 0 7px !important;
-    border: 1px solid rgba(139, 105, 61, 0.2) !important;
-    border-radius: 999px !important;
-    background:
-      linear-gradient(180deg, rgba(121, 91, 54, 0.08), rgba(121, 91, 54, 0.035)) !important;
-    color: rgba(112, 81, 43, 0.48) !important;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34) !important;
-    opacity: 0.78 !important;
+    min-height: 44px !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 6px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+    color: rgba(105, 96, 88, 0.48) !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
   }
 
   html body main.app.app.app
@@ -54726,6 +54726,7 @@ html body main.app.app.app
     :is(span, svg) {
     color: currentColor !important;
     -webkit-text-fill-color: currentColor !important;
+    opacity: 0.64 !important;
   }
 
   html body main.app.app.app
@@ -54738,15 +54739,26 @@ html body main.app.app.app
     .referenceMetronomeHeroCard.metronomeHeroCard
     .metronomeHeroActionPanel.referenceMetronomeActionPanel
     button.metronomeHeroCountInButton.countInToggleButton:is(.selected, [aria-pressed="true"]) {
-    border-color: rgba(255, 219, 128, 0.78) !important;
-    background:
-      radial-gradient(circle at 32% 0%, rgba(255, 255, 255, 0.82), transparent 44%),
-      linear-gradient(180deg, #fff5cd 0%, #f2c461 100%) !important;
-    color: #24190a !important;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      0 0 0 1px rgba(255, 238, 181, 0.22),
-      0 7px 16px rgba(180, 117, 24, 0.22) !important;
+    border: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+    color: #9b6b24 !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+  }
+
+  html body main.app.app.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .stage3BpmActionPanel
+    button.metronomeHeroCountInButton.countInToggleButton:is(.selected, [aria-pressed="true"])
+    :is(span, svg),
+  html body main.app.app.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeHeroActionPanel.referenceMetronomeActionPanel
+    button.metronomeHeroCountInButton.countInToggleButton:is(.selected, [aria-pressed="true"])
+    :is(span, svg) {
     opacity: 1 !important;
   }
 
@@ -54760,11 +54772,11 @@ html body main.app.app.app
     .referenceMetronomeHeroCard.metronomeHeroCard
     .metronomeHeroActionPanel.referenceMetronomeActionPanel
     button.metronomeHeroCountInButton.countInToggleButton {
-    border-color: rgba(217, 170, 85, 0.2) !important;
-    background:
-      linear-gradient(180deg, rgba(217, 170, 85, 0.08), rgba(217, 170, 85, 0.025)) !important;
+    border: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
     color: rgba(243, 211, 147, 0.48) !important;
-    box-shadow: inset 0 1px 0 rgba(255, 231, 169, 0.08) !important;
+    box-shadow: none !important;
   }
 
   html body main.app.theme-brand.theme-brand.app
@@ -54777,14 +54789,11 @@ html body main.app.app.app
     .referenceMetronomeHeroCard.metronomeHeroCard
     .metronomeHeroActionPanel.referenceMetronomeActionPanel
     button.metronomeHeroCountInButton.countInToggleButton:is(.selected, [aria-pressed="true"]) {
-    border-color: rgba(255, 226, 145, 0.9) !important;
-    background:
-      radial-gradient(circle at 32% 0%, rgba(255, 255, 255, 0.82), transparent 44%),
-      linear-gradient(180deg, #fff2c4 0%, #d9aa55 100%) !important;
-    color: #1f1608 !important;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.76),
-      0 0 18px rgba(217, 170, 85, 0.34) !important;
+    border: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+    color: #f3d393 !important;
+    box-shadow: none !important;
   }
 }
 
@@ -54870,4 +54879,15 @@ html body main.app.app.app
   100% {
     transform: translate3d(0, 0, 0);
   }
+}
+
+/* BPM swipe zones own the gesture once touched, so diagonal finger movement cannot hand control to page scroll. */
+html body main.app.app.app .metronomeBpmInputShell--liveSwipe,
+html body main.app.app.app [data-bpm-swipe-zone="true"],
+html body main.app.app.app .stage3CollapsedBpmControl,
+html body main.app.app.app .stage3BpmTransportCard.metronomeHeroCard.metronomeHeroCard--interactive,
+html body main.app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroCard.metronomeHeroCard--interactive,
+html body main.app.app.app .referenceStandaloneMetronomeDeck.standaloneMetronomePanel .referenceMetronomeHeroCard.metronomeHeroCard.metronomeHeroCard--interactive {
+  touch-action: none !important;
+  overscroll-behavior: contain !important;
 }
