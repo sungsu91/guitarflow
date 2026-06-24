@@ -1334,6 +1334,173 @@ const CHORD_SHAPE_TEMPLATES = {
     ],
   },
 };
+
+const CHORD_BUILDER_POSITION_TEMPLATES = {
+  major: {
+    none: [
+      {
+        id: "caged-c-major",
+        rootString: 5,
+        strings: [[5, 0], [4, -1], [3, -3], [2, -2], [1, -3]],
+        barres: [{ fretOffset: -3, fromString: 3, toString: 1, label: "1", minBaseFret: 4 }],
+        minBaseFret: 3,
+        priority: 0,
+      },
+      {
+        id: "caged-a-major",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 1,
+      },
+      {
+        id: "caged-g-major",
+        rootString: 6,
+        strings: [[6, 0], [5, -1], [4, -3], [3, -3], [2, -3], [1, 0]],
+        barres: [{ fretOffset: -3, fromString: 4, toString: 2, label: "1", minBaseFret: 4 }],
+        minBaseFret: 3,
+        priority: 2,
+      },
+      {
+        id: "caged-e-major",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 2], [3, 1], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 3,
+      },
+      {
+        id: "caged-d-major",
+        rootString: 4,
+        strings: [[4, 0], [3, 2], [2, 3], [1, 2]],
+        priority: 4,
+      },
+    ],
+    "7": [
+      {
+        id: "caged-c7",
+        rootString: 5,
+        strings: [[5, 0], [4, -1], [3, 0], [2, -2], [1, -3]],
+        barres: [{ fretOffset: -3, fromString: 2, toString: 1, label: "1", minBaseFret: 4 }],
+        minBaseFret: 3,
+        priority: 0,
+      },
+      {
+        id: "caged-a7",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 0], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 1,
+      },
+      {
+        id: "caged-g7",
+        rootString: 6,
+        strings: [[6, 0], [5, -1], [4, -3], [3, -3], [2, -3], [1, -2]],
+        barres: [{ fretOffset: -3, fromString: 4, toString: 2, label: "1", minBaseFret: 4 }],
+        minBaseFret: 3,
+        priority: 2,
+      },
+      {
+        id: "caged-e7",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 0], [3, 1], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 3,
+      },
+      {
+        id: "caged-d7",
+        rootString: 4,
+        strings: [[4, 0], [3, 2], [2, 1], [1, 2]],
+        priority: 4,
+      },
+    ],
+    maj7: [
+      {
+        id: "caged-cmaj7",
+        rootString: 5,
+        strings: [[5, 0], [4, -1], [3, -3], [2, -3], [1, -3]],
+        barres: [{ fretOffset: -3, fromString: 3, toString: 1, label: "1", minBaseFret: 4 }],
+        minBaseFret: 3,
+        priority: 0,
+      },
+      {
+        id: "caged-amaj7",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 1], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 1,
+      },
+      {
+        id: "caged-gmaj7",
+        rootString: 6,
+        strings: [[6, 0], [5, -1], [4, -3], [3, -3], [2, -3], [1, -1]],
+        barres: [{ fretOffset: -3, fromString: 4, toString: 2, label: "1", minBaseFret: 4 }],
+        minBaseFret: 3,
+        priority: 2,
+      },
+      {
+        id: "caged-emaj7",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 1], [3, 1], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 3,
+      },
+      {
+        id: "caged-dmaj7",
+        rootString: 4,
+        strings: [[4, 0], [3, 2], [2, 2], [1, 2]],
+        priority: 4,
+      },
+    ],
+  },
+  minor: {
+    none: [
+      {
+        id: "caged-a-minor",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 1], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 0,
+      },
+      {
+        id: "caged-e-minor",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 2], [3, 0], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 1,
+      },
+      {
+        id: "caged-d-minor",
+        rootString: 4,
+        strings: [[4, 0], [3, 2], [2, 3], [1, 1]],
+        priority: 2,
+      },
+    ],
+    m7: [
+      {
+        id: "caged-am7",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 0], [2, 1], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 0,
+      },
+      {
+        id: "caged-em7",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 0], [3, 0], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 1,
+      },
+      {
+        id: "caged-dm7",
+        rootString: 4,
+        strings: [[4, 0], [3, 2], [2, 1], [1, 1]],
+        barres: [{ fretOffset: 1, fromString: 2, toString: 1, label: "1", minBaseFret: 0 }],
+        priority: 2,
+      },
+    ],
+  },
+};
+
 const NOTE_LETTERS = ["C", "D", "E", "F", "G", "A", "B"];
 const NATURAL_NOTE_INDEX = {
   C: 0,
@@ -1385,8 +1552,15 @@ function formatChordToneLabel(noteName, displayRoot, descriptor) {
   return `${targetLetter}${getAccidentalLabel(accidentalOffset)}`;
 }
 
+function getStringRootFret(root, stringNumber) {
+  const stringInfo = STANDARD_TUNING.find((item) => item.stringNumber === Number(stringNumber));
+  const stringPitchClass = getPitchClass(stringInfo?.pitch);
+  if (!stringPitchClass || NOTE_INDEX[root] == null || NOTE_INDEX[stringPitchClass] == null) return null;
+  return (NOTE_INDEX[root] - NOTE_INDEX[stringPitchClass] + 12) % 12;
+}
+
 function getChordShapeTemplateBaseFret(root, template) {
-  return template.rootString === 5 ? getFifthStringRootFret(root) : getSixthStringRootFret(root);
+  return getStringRootFret(root, template.rootString);
 }
 
 function getChordShapeTemplateFrets(template, baseFret) {
@@ -1409,9 +1583,67 @@ function getChordShapeTemplateScore(template, baseFret) {
   return maxFret * 10 + span * 2 + (template.priority ?? 0);
 }
 
+function getChordTemplateCandidateSortInfo(template, baseFret) {
+  const frets = getChordShapeTemplateFrets(template, baseFret).filter((fret) => Number.isFinite(fret));
+  const fretted = frets.filter((fret) => fret > 0);
+  const visibleFrets = fretted.length ? fretted : frets;
+  return {
+    maxFret: visibleFrets.length ? Math.max(...visibleFrets) : 0,
+    startFret: visibleFrets.length ? Math.min(...visibleFrets) : 0,
+  };
+}
+
+function buildChordTemplateCandidates(root, templates) {
+  return templates
+    .flatMap((template) => {
+      const firstBaseFret = getChordShapeTemplateBaseFret(root, template);
+      if (!Number.isFinite(firstBaseFret)) return [];
+      const baseFrets = [];
+      for (let baseFret = firstBaseFret; baseFret <= MAX_FRETBOARD_GUIDE_FRET; baseFret += 12) {
+        if (isChordShapeTemplateUsable(template, baseFret)) baseFrets.push(baseFret);
+      }
+      return baseFrets.map((baseFret) => {
+        const sortInfo = getChordTemplateCandidateSortInfo(template, baseFret);
+        return {
+          baseFret,
+          maxFret: sortInfo.maxFret,
+          score: getChordShapeTemplateScore(template, baseFret),
+          startFret: sortInfo.startFret,
+          template,
+        };
+      });
+    });
+}
+
+function getChordShapeTemplateCandidates(root, quality, extension) {
+  const safeExtension = normalizeChordExtensionForQuality(quality, extension);
+  const templates = getChordShapeTemplates(quality, safeExtension);
+  return buildChordTemplateCandidates(root, templates)
+    .sort((a, b) => a.score - b.score || a.baseFret - b.baseFret || a.template.id.localeCompare(b.template.id));
+}
+
 function getChordShapeTemplates(quality, extension) {
   const templateGroup = CHORD_SHAPE_TEMPLATES[quality] ?? CHORD_SHAPE_TEMPLATES.major;
   return templateGroup?.[extension] ?? templateGroup?.none ?? [];
+}
+
+function getChordBuilderPositionTemplates(quality, extension) {
+  const safeExtension = normalizeChordExtensionForQuality(quality, extension);
+  return CHORD_BUILDER_POSITION_TEMPLATES[quality]?.[safeExtension] ?? [];
+}
+
+function isChordBuilderPositionSupported(quality, extension) {
+  return getChordBuilderPositionTemplates(quality, extension).length > 0;
+}
+
+function getChordBuilderPositionCandidates(root, quality, extension) {
+  return buildChordTemplateCandidates(root, getChordBuilderPositionTemplates(quality, extension))
+    .sort((a, b) =>
+      a.startFret - b.startFret ||
+      a.maxFret - b.maxFret ||
+      (a.template.priority ?? 0) - (b.template.priority ?? 0) ||
+      a.template.id.localeCompare(b.template.id),
+    );
 }
 
 function getPitchForStringFret(stringNumber, fretNumber) {
@@ -1426,22 +1658,11 @@ function buildGeneratedChordShapeOption({
   extension,
   displayName,
   hint = `${displayName} 코드 운지입니다`,
+  candidate = null,
+  idSuffix = "",
 }) {
   const safeExtension = normalizeChordExtensionForQuality(quality, extension);
-  const templates = getChordShapeTemplates(quality, safeExtension);
-  const candidates = templates
-    .map((template) => {
-      const baseFret = getChordShapeTemplateBaseFret(root, template);
-      if (!isChordShapeTemplateUsable(template, baseFret)) return null;
-      return {
-        baseFret,
-        score: getChordShapeTemplateScore(template, baseFret),
-        template,
-      };
-    })
-    .filter(Boolean)
-    .sort((a, b) => a.score - b.score || a.baseFret - b.baseFret);
-  const selected = candidates[0];
+  const selected = candidate ?? getChordShapeTemplateCandidates(root, quality, safeExtension)[0];
   if (!selected) return null;
 
   const positions = selected.template.strings
@@ -1461,7 +1682,7 @@ function buildGeneratedChordShapeOption({
       label: barre.label,
     }));
   const chord = makeChordViewOption(
-    `generated-shape-${root}-${quality}-${safeExtension}-${selected.template.id}`,
+    `generated-shape-${root}-${quality}-${safeExtension}-${selected.template.id}${idSuffix}`,
     displayName,
     hint,
     positions,
@@ -1511,13 +1732,35 @@ function getChordShapeStringState(chord, stringNumber) {
   return Number(note.fretNumber ?? note.fret ?? 0) === 0 ? "o" : "";
 }
 
-function buildStoredChordReferencePosition(chord) {
+function getChordReferenceShapeSignature(chord) {
+  if (!chord) return "";
+  return [6, 5, 4, 3, 2, 1]
+    .map((stringNumber) => {
+      const note = chord.notes?.find((item) => Number(item.stringNumber) === stringNumber);
+      if (!note) return "x";
+      return String(Number(note.fretNumber ?? note.fret ?? 0));
+    })
+    .join("|");
+}
+
+function getChordReferenceSortInfo(chord) {
+  const frets = chord?.notes
+    ?.map((note) => Number(note.fretNumber ?? note.fret))
+    .filter((fret) => Number.isFinite(fret)) ?? [];
+  if (!frets.length) return { startFret: 99, maxFret: 99 };
+  return {
+    startFret: Math.min(...frets),
+    maxFret: Math.max(...frets),
+  };
+}
+
+function buildStoredChordReferencePosition(chord, positionId = "position1") {
   if (!chord) return null;
   const frettedNotes = chord.notes
     .filter((note) => Number(note.fretNumber ?? note.fret ?? 0) > 0)
     .map((note, index) => ({
       ...note,
-      id: `${chord.id}-position1-${note.stringNumber}-${note.fretNumber}-${index}`,
+      id: `${chord.id}-${positionId}-${note.stringNumber}-${note.fretNumber}-${index}`,
       label: getChordDisplayNoteName(note.noteName),
       isRoot: note.noteName === chord.root,
     }));
@@ -1525,7 +1768,7 @@ function buildStoredChordReferencePosition(chord) {
     ? chord.visibleFrets
     : getCompactFretRange(frettedNotes, chord.barres);
   return {
-    id: `${chord.id}-position1`,
+    id: `${chord.id}-${positionId}`,
     notes: frettedNotes,
     barres: chord.barres ?? [],
     stringStates: Object.fromEntries(
@@ -1580,11 +1823,99 @@ function buildCompactChordToneNotes({ root, displayRoot = root, quality, extensi
     .sort((a, b) => b.stringNumber - a.stringNumber || a.fretNumber - b.fretNumber);
 }
 
-function buildChordToneReferencePosition({ root, quality, extension, positionId, storedChord = null, generatedChord = null }) {
-  const chord = storedChord ?? generatedChord;
-  if (!chord) return null;
-  const position = buildStoredChordReferencePosition(chord);
-  return position ? { ...position, id: `${chord.id}-${positionId}` } : null;
+function buildChordReferencePositionMap({
+  root,
+  quality,
+  extension,
+  displayName,
+  hint = `${displayName} 코드 운지입니다`,
+  storedChord = null,
+}) {
+  const safeExtension = normalizeChordExtensionForQuality(quality, extension);
+  const candidates = isChordBuilderPositionSupported(quality, safeExtension)
+    ? getChordBuilderPositionCandidates(root, quality, safeExtension)
+    : getChordShapeTemplateCandidates(root, quality, safeExtension);
+  const candidateEntries = candidates
+    .map((candidate) => {
+      const chord = buildGeneratedChordShapeOption({
+        root,
+        quality,
+        extension: safeExtension,
+        displayName,
+        hint,
+        candidate,
+        idSuffix: `-${candidate.template.id}-${candidate.baseFret}`,
+      });
+      if (!chord) return null;
+      return {
+        chord,
+        sortInfo: getChordReferenceSortInfo(chord),
+        sourcePriority: 1,
+        templatePriority: candidate.template.priority ?? 0,
+      };
+    })
+    .filter(Boolean);
+  const entries = storedChord
+    ? [
+      ...candidateEntries,
+      {
+        chord: storedChord,
+        sortInfo: getChordReferenceSortInfo(storedChord),
+        sourcePriority: 0,
+        templatePriority: -1,
+      },
+    ]
+    : candidateEntries;
+  const uniqueEntries = new Map();
+  entries.forEach((entry) => {
+    const signature = getChordReferenceShapeSignature(entry.chord);
+    if (!signature) return;
+    const current = uniqueEntries.get(signature);
+    if (!current || entry.sourcePriority < current.sourcePriority) {
+      uniqueEntries.set(signature, entry);
+    }
+  });
+
+  return Object.fromEntries(
+    [...uniqueEntries.values()]
+      .sort((a, b) =>
+        a.sortInfo.startFret - b.sortInfo.startFret ||
+        a.sortInfo.maxFret - b.sortInfo.maxFret ||
+        a.sourcePriority - b.sourcePriority ||
+        a.templatePriority - b.templatePriority ||
+        String(a.chord.id).localeCompare(String(b.chord.id)),
+      )
+      .slice(0, CHORD_VIEWER_POSITIONS.length)
+      .map((entry, index) => {
+        const positionId = CHORD_VIEWER_POSITIONS[index].id;
+        return [
+          positionId,
+          buildStoredChordReferencePosition(entry.chord, positionId),
+        ];
+      })
+      .filter(([, position]) => position),
+  );
+}
+
+function buildChordToneReferencePosition({
+  root,
+  quality,
+  extension,
+  positionId,
+  displayName,
+  hint,
+  storedChord = null,
+  generatedChord = null,
+}) {
+  const positionMap = buildChordReferencePositionMap({
+    root,
+    quality,
+    extension,
+    displayName: displayName ?? generatedChord?.displayName ?? storedChord?.displayName ?? root,
+    hint: hint ?? generatedChord?.hint ?? storedChord?.hint,
+    storedChord,
+  });
+  return positionMap[positionId] ?? null;
 }
 
 function buildChordToneReferenceOption({ root, quality, extension, displayName, hint = "선택 코드 운지를 표시합니다", storedChord = null }) {
@@ -1598,15 +1929,18 @@ function buildChordToneReferenceOption({ root, quality, extension, displayName, 
     displayName,
     hint,
   });
-  const position1 = buildChordToneReferencePosition({
+  const positionMap = buildChordReferencePositionMap({
     root,
     quality,
     extension,
-    positionId: "position1",
+    displayName,
+    hint,
     storedChord,
-    generatedChord,
   });
-  if (!position1 || !generatedChord) {
+  const firstAvailablePosition = CHORD_VIEWER_POSITIONS
+    .map((position) => positionMap[position.id])
+    .find(Boolean);
+  if (!firstAvailablePosition || !generatedChord) {
     return storedChord ?? null;
   }
   return {
@@ -1617,7 +1951,7 @@ function buildChordToneReferenceOption({ root, quality, extension, displayName, 
     extension: normalizeChordExtensionForQuality(quality, extension),
     displayName,
     hint,
-    visibleFrets: position1.visibleFrets,
+    visibleFrets: firstAvailablePosition.visibleFrets,
     notes: generatedChord.notes,
     barres: generatedChord.barres ?? [],
   };
@@ -2092,6 +2426,16 @@ const getBackingPianoVoicing = (chord) => {
   ];
 };
 
+const MINI_CHORD_SMOOTH_BACKING = {
+  pianoSlotOverlapRatio: 1.04,
+  pianoReleaseSeconds: 0.19,
+  pianoCommonToneAttackSeconds: 0.085,
+  pianoCommonToneLevelRatio: 0.78,
+  bassSlotOverlapRatio: 1.01,
+  bassReleaseSeconds: 0.055,
+  bassMotionMode: "root",
+};
+
 const getBackingSessionKey = ({
   progression = [],
   bpmValue = DEFAULT_BPM,
@@ -2099,12 +2443,14 @@ const getBackingSessionKey = ({
   rhythmPattern = STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern,
   bassBeat = STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat,
   pianoBeat = STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat,
+  smoothChordTransitions = false,
 } = {}) => [
   clampBpm(bpmValue),
   timeSignatureValue,
   rhythmPattern,
   bassBeat,
   pianoBeat,
+  smoothChordTransitions ? "smooth" : "plain",
   progression.map((chord) => `${chord?.id ?? ""}:${chord?.displayName ?? chord?.fretboardDisplayName ?? ""}`).join("|"),
 ].join("::");
 
@@ -2122,6 +2468,7 @@ const createBackingTimelineEvents = ({
   rhythmPattern = STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern,
   bassBeat = STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat,
   pianoBeat = STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat,
+  smoothChordTransitions = false,
 }) => {
   const signature = getTimeSignatureOption(timeSignature);
   const beatsPerMeasure = signature.beats;
@@ -2138,9 +2485,10 @@ const createBackingTimelineEvents = ({
   const cycleMeasures = Math.max(1, progression.length);
   const measureSeconds = beatsPerMeasure * beatSeconds;
   const cycleSeconds = cycleMeasures * beatsPerMeasure * beatSeconds;
+  const smoothTransitions = Boolean(smoothChordTransitions);
   const events = [];
-  const addEvent = (offsetSeconds, instrument, sample, volume, playbackRate = 1, duration = null, stepIndex = 0, chordIndex = 0, shape = "", debugLog = "") => {
-    events.push({ offsetSeconds, instrument, sample, volume, playbackRate, duration, stepIndex, chordIndex, shape, debugLog });
+  const addEvent = (offsetSeconds, instrument, sample, volume, playbackRate = 1, duration = null, stepIndex = 0, chordIndex = 0, shape = "", debugLog = "", options = {}) => {
+    events.push({ offsetSeconds, instrument, sample, volume, playbackRate, duration, stepIndex, chordIndex, shape, debugLog, ...options });
   };
   const addDrumEvent = (beatOffset, sample, offset = 0, volume = 0.5, beatInBar = 0, chordIndex = 0) => {
     const isKick = sample === "kick";
@@ -2202,18 +2550,24 @@ const createBackingTimelineEvents = ({
         ? Math.min(0.11, sixteenthOffset * 0.88)
         : bassPattern === "8beat"
           ? Math.min(0.18, eighthOffset * 0.9)
-          : Math.max(0.18, measureSeconds * 0.92);
+          : Math.max(0.18, measureSeconds * (smoothTransitions ? MINI_CHORD_SMOOTH_BACKING.bassSlotOverlapRatio : 0.92));
       const bassOffsets = bassPattern === "16beat"
         ? [0, sixteenthOffset, eighthOffset, sixteenthOffset * 3]
         : bassPattern === "8beat"
           ? [0, eighthOffset]
           : (beatInBar === 0 ? [0] : []);
+      const bassEventOptions = smoothTransitions
+        ? {
+            releaseSeconds: MINI_CHORD_SMOOTH_BACKING.bassReleaseSeconds,
+            bassMotionMode: MINI_CHORD_SMOOTH_BACKING.bassMotionMode,
+          }
+        : {};
       bassOffsets.forEach((offset, index) => {
         const stepLabel = getBackingStepLogLabel(beatInBar, offset, sixteenthOffset);
         const debugLog = bassPattern === "basic"
           ? `[BASS] pattern=basic chord=${chordLabel} note=${rootLetter}`
           : `[BASS] pattern=${getBackingPatternLogLabel(bassPattern)} step=${stepLabel} note=${rootLetter}`;
-        addEvent(beatOffset + offset, "bass", `bass_${bassSampleRoot}`, index === 0 ? 0.82 : 0.64, 1, bassDuration, beatInBar, chordIndex, "", debugLog);
+        addEvent(beatOffset + offset, "bass", `bass_${bassSampleRoot}`, index === 0 ? 0.82 : 0.64, 1, bassDuration, beatInBar, chordIndex, "", debugLog, bassEventOptions);
       });
 
       const pianoOffsets = pianoPattern === "16beat"
@@ -2225,21 +2579,44 @@ const createBackingTimelineEvents = ({
             : (beatInBar === 0 ? [0] : []);
       if (pianoOffsets.length) {
         const pianoDuration = pianoPattern === "basic"
-          ? Math.max(0.24, measureSeconds * 0.9)
+          ? Math.max(0.24, measureSeconds * (smoothTransitions ? MINI_CHORD_SMOOTH_BACKING.pianoSlotOverlapRatio : 0.9))
           : pianoPattern === "16beat"
             ? Math.min(0.14, sixteenthOffset * 0.9)
             : pianoPattern === "8beat"
               ? Math.min(0.28, eighthOffset * 0.92)
               : Math.min(0.52, beatSeconds * 0.9);
         const pianoLevel = pianoPattern === "basic" ? 0.34 : pianoPattern === "16beat" ? 0.2 : pianoPattern === "8beat" ? 0.22 : 0.32;
+        const previousChord = smoothTransitions && chordIndex > 0 ? progression[chordIndex - 1] : null;
+        const previousVoicing = previousChord && !previousChord.isRest
+          ? new Set(getBackingPianoVoicing(previousChord))
+          : null;
         const addPianoVoicing = (offset = 0) => getBackingPianoVoicing(chord).forEach((midi, index) => {
+          const isCommonTone = Boolean(smoothTransitions && previousVoicing?.has(midi));
           const stepLabel = getBackingStepLogLabel(beatInBar, offset, sixteenthOffset);
           const debugLog = index === 0
             ? pianoPattern === "basic"
               ? `[PIANO] pattern=basic chord=${chordLabel}`
               : `[PIANO] pattern=${getBackingPatternLogLabel(pianoPattern)} step=${stepLabel} chord=${chordLabel}`
             : "";
-          addEvent(beatOffset + offset + index * 0.004, "piano", "piano", pianoLevel, 2 ** ((midi - 67) / 12), pianoDuration, beatInBar, chordIndex, "", debugLog);
+          addEvent(
+            beatOffset + offset + index * 0.004,
+            "piano",
+            "piano",
+            isCommonTone ? pianoLevel * MINI_CHORD_SMOOTH_BACKING.pianoCommonToneLevelRatio : pianoLevel,
+            2 ** ((midi - 67) / 12),
+            pianoDuration,
+            beatInBar,
+            chordIndex,
+            "",
+            debugLog,
+            smoothTransitions
+              ? {
+                  attackSeconds: isCommonTone ? MINI_CHORD_SMOOTH_BACKING.pianoCommonToneAttackSeconds : 0.006,
+                  commonTone: isCommonTone,
+                  releaseSeconds: MINI_CHORD_SMOOTH_BACKING.pianoReleaseSeconds,
+                }
+              : {},
+          );
         });
         pianoOffsets.forEach((offset) => addPianoVoicing(offset));
       }
@@ -7687,22 +8064,29 @@ function getMiniChordBackingChordFromLabel(label = "", barIndex = 0, sequenceInd
   };
 }
 
-function buildMiniChordBackingProgression({ slots = [], barCount = 4, barSequence = null } = {}) {
+function buildMiniChordBackingProgression({ slots = [], barCount = 4, slotSequence = null } = {}) {
   const safeBarCount = normalizeMiniChordBarCount(barCount);
-  const playbackBars = Array.isArray(barSequence) && barSequence.length
-    ? barSequence
-    : Array.from({ length: safeBarCount }, (_, index) => index);
-  return playbackBars
-    .map((barIndex, sequenceIndex) => {
-      const safeBarIndex = Math.max(0, Math.min(safeBarCount - 1, Number(barIndex) || 0));
+  const normalizedSlots = normalizeMiniChordSlots(slots, safeBarCount);
+  const playbackSlots = Array.isArray(slotSequence) && slotSequence.length
+    ? slotSequence
+    : Array.from({ length: safeBarCount * MINI_CHORD_SLOTS_PER_BAR }, (_, index) => index);
+  let activeChordLabel = "";
+  return playbackSlots
+    .map((slotIndex, sequenceIndex) => {
+      const safeSlotIndex = Math.max(0, Math.min(normalizedSlots.length - 1, Number(slotIndex) || 0));
+      const safeBarIndex = Math.floor(safeSlotIndex / MINI_CHORD_SLOTS_PER_BAR);
+      const slotChord = String(normalizedSlots[safeSlotIndex] ?? "").trim();
+      if (slotChord) activeChordLabel = slotChord;
       const chord = getMiniChordBackingChordFromLabel(
-        getMiniChordBarChordLabel(slots, safeBarIndex),
+        activeChordLabel,
         safeBarIndex,
         sequenceIndex,
       );
       return {
         ...chord,
         miniChordBarIndex: safeBarIndex,
+        miniChordSlotIndex: safeSlotIndex,
+        miniChordSlotInBar: safeSlotIndex % MINI_CHORD_SLOTS_PER_BAR,
         miniChordSequenceIndex: sequenceIndex,
       };
     });
@@ -9279,6 +9663,8 @@ function App() {
   const miniChordPlayTimerRef = useRef(null);
   const miniChordPlaybackFrameRef = useRef(null);
   const miniChordPlaybackBarsRef = useRef([]);
+  const miniChordPlaybackSlotsRef = useRef([]);
+  const miniChordPlayheadRef = useRef(null);
   const miniChordPlayingBarIndexRef = useRef(null);
   const miniChordLoopRef = useRef(initialMiniChordArrangementRef.current.loop);
   const miniChordIsPlayingRef = useRef(false);
@@ -9518,11 +9904,17 @@ function App() {
   }, [getStoredChordFromSelector]);
   const availableChordExtensionOptions = CHORD_EXTENSION_OPTIONS
     .filter((extension) => isChordExtensionAvailableForQuality(extension, viewerChordQuality))
-    .map((extension) => ({
-      ...extension,
-      disabled: !getChordFromSelector(viewerChordBaseRoot, viewerChordAccidental, viewerChordQuality, extension.id),
-      hasDiagram: Boolean(getChordFromSelector(viewerChordBaseRoot, viewerChordAccidental, viewerChordQuality, extension.id)),
-    }));
+    .map((extension) => {
+      const isSupported = isChordBuilderPositionSupported(viewerChordQuality, extension.id);
+      const chord = isSupported
+        ? getChordFromSelector(viewerChordBaseRoot, viewerChordAccidental, viewerChordQuality, extension.id)
+        : null;
+      return {
+        ...extension,
+        disabled: !isSupported || !chord,
+        hasDiagram: Boolean(chord),
+      };
+    });
   const getChordStringState = useCallback((chord, stringNumber) => {
     const note = chord?.notes?.find((item) => item.stringNumber === stringNumber);
     if (!note) return "x";
@@ -9594,31 +9986,21 @@ function App() {
           : "기타 지판 정보";
   const viewerChordPositionData = useMemo(() => {
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return {};
-    const positions = [
-      ...CHORD_VIEWER_POSITIONS,
-      { id: CHORD_VIEWER_POSITION_ALL, label: "전체" },
-    ];
-    return Object.fromEntries(
-      positions.map((position) => [
-        position.id,
-        buildChordToneReferencePosition({
-          root: viewerChordRoot,
-          displayRoot: getChordDisplayRoot(viewerChordBaseRoot, viewerChordAccidental),
-          quality: viewerChordQuality,
-          extension: viewerChordExtension,
-          positionId: position.id,
-          storedChord: selectedStoredChord,
-          generatedChord: selectedBuiltChord,
-        }),
-      ]),
-    );
-  }, [selectedBuiltChord, selectedStoredChord, viewerChordAccidental, viewerChordBaseRoot, viewerChordExtension, viewerChordQuality, viewerChordRoot, viewerMode]);
+    return buildChordReferencePositionMap({
+      root: viewerChordRoot,
+      quality: viewerChordQuality,
+      extension: viewerChordExtension,
+      displayName: viewerSelectedChordName,
+      hint: selectedStoredChord?.hint ?? selectedBuiltChord?.hint,
+      storedChord: selectedStoredChord,
+    });
+  }, [selectedBuiltChord, selectedStoredChord, viewerChordExtension, viewerChordQuality, viewerChordRoot, viewerMode, viewerSelectedChordName]);
   const viewerCurrentChordPosition =
     viewerChordPosition === CHORD_VIEWER_POSITION_ALL
       ? viewerChordPositionData.position1
-      : viewerChordPositionData[viewerChordPosition] ?? viewerChordPositionData.position1;
+      : viewerChordPositionData[viewerChordPosition] ?? null;
   const viewerVisibleFrets = viewerMode === FRETBOARD_VIEWER_MODES.CHORD
-    ? viewerCurrentChordPosition?.visibleFrets ?? viewerChord.visibleFrets
+    ? viewerCurrentChordPosition?.visibleFrets ?? []
     : viewerScaleBlock.visibleFrets;
   const viewerFretboardNotes = useMemo(() => {
     if (viewerMode === FRETBOARD_VIEWER_MODES.SCALE) return viewerScaleBlock.notes;
@@ -9654,7 +10036,8 @@ function App() {
   useEffect(() => {
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return;
     if (viewerChordPositionData[viewerChordPosition]) return;
-    setViewerChordPosition("position1");
+    const nextPosition = CHORD_VIEWER_POSITIONS.find((position) => viewerChordPositionData[position.id])?.id ?? "position1";
+    setViewerChordPosition(nextPosition);
   }, [viewerChordPosition, viewerChordPositionData, viewerMode]);
   const stage3StorageSelectedChord = useMemo(() => CHORD_VIEW_OPTIONS.find(
     (chord) =>
@@ -10422,6 +10805,7 @@ function App() {
     bassBeat = backingBassBeatRef.current,
     pianoBeat = backingPianoBeatRef.current,
     preloadAudio = false,
+    smoothChordTransitions = false,
   } = {}) => {
     const token = backingPrepareTokenRef.current + 1;
     backingPrepareTokenRef.current = token;
@@ -10432,6 +10816,7 @@ function App() {
       rhythmPattern,
       bassBeat,
       pianoBeat,
+      smoothChordTransitions,
     });
     if (backingPreparedSessionKeyRef.current === sessionKey && backingPreparedSessionRef.current?.events?.length) {
       setStage3BackingPrepareStatus("ready");
@@ -10452,6 +10837,7 @@ function App() {
       rhythmPattern,
       bassBeat,
       pianoBeat,
+      smoothChordTransitions,
     });
 
     try {
@@ -10553,6 +10939,7 @@ function App() {
     const sessionProgression = options.progression ?? chordTransitionProgression;
     const sessionBpm = options.bpmValue ?? bpmRef.current;
     const sessionTimeSignature = options.timeSignatureValue ?? "4/4";
+    const smoothChordTransitions = Boolean(options.smoothChordTransitions);
     const session = createBackingTimelineEvents({
       progression: sessionProgression,
       bpm: sessionBpm,
@@ -10560,6 +10947,7 @@ function App() {
       rhythmPattern: nextRhythmPattern,
       bassBeat: nextBassBeat,
       pianoBeat: nextPianoBeat,
+      smoothChordTransitions,
     });
     const sessionKey = getBackingSessionKey({
       progression: sessionProgression,
@@ -10568,6 +10956,7 @@ function App() {
       rhythmPattern: nextRhythmPattern,
       bassBeat: nextBassBeat,
       pianoBeat: nextPianoBeat,
+      smoothChordTransitions,
     });
 
     backingRhythmPatternRef.current = nextRhythmPattern;
@@ -10892,7 +11281,7 @@ function App() {
     prepareStage3BackingSession,
   ]);
 
-  const playBackingSample = useCallback((sampleId, when, volume = 0.6, playbackRate = 1, duration = null, part = "drum", shape = "") => {
+  const playBackingSample = useCallback((sampleId, when, volume = 0.6, playbackRate = 1, duration = null, part = "drum", shape = "", options = {}) => {
     const audio = audioRef.current;
     const buffer = backingSampleBuffersRef.current[sampleId];
     if (!audio || !buffer || audio.state !== "running") return;
@@ -10923,20 +11312,23 @@ function App() {
     source.buffer = buffer;
     source.playbackRate.setValueAtTime(Math.max(0.25, Math.min(4, playbackRate)), when);
     if (part === "piano") {
-      const pianoAttack = 0.002;
-      const pianoRelease = 0.075;
+      const pianoAttack = Math.max(0.002, Math.min(0.14, Number(options.attackSeconds) || 0.002));
+      const pianoRelease = Math.max(0.04, Math.min(0.28, Number(options.releaseSeconds) || 0.075));
+      const peakLevel = safeVolume * (options.commonTone ? 0.82 : 0.92);
+      const holdLevel = safeVolume * (options.commonTone ? 0.72 : 0.78);
       gain.gain.setValueAtTime(0.0001, when);
-      gain.gain.linearRampToValueAtTime(safeVolume * 0.92, when + pianoAttack);
+      gain.gain.linearRampToValueAtTime(peakLevel, when + pianoAttack);
       if (Number.isFinite(duration) && duration > 0) {
         const end = when + duration;
-        gain.gain.setValueAtTime(safeVolume * 0.78, Math.max(when + pianoAttack, end - pianoRelease));
+        const releaseStart = Math.max(when + pianoAttack, end - pianoRelease);
+        gain.gain.setValueAtTime(holdLevel, releaseStart);
         gain.gain.linearRampToValueAtTime(0.0001, end);
       }
       source.connect(gain);
       gain.connect(output || backingMasterGainRef.current);
       source.start(when);
       if (Number.isFinite(duration) && duration > 0) {
-        source.stop(when + duration + 0.02);
+        source.stop(when + duration + 0.035);
       }
       return;
     }
@@ -10959,7 +11351,15 @@ function App() {
     gain.gain.linearRampToValueAtTime(safeVolume, when + 0.006);
     if (Number.isFinite(duration) && duration > 0) {
       const end = when + duration;
-      gain.gain.setValueAtTime(safeVolume, Math.max(when + 0.008, end - 0.018));
+      const releaseSeconds = Math.max(
+        0.012,
+        Math.min(
+          part === "bass" ? 0.08 : 0.04,
+          Number(options.releaseSeconds) || 0.018,
+          duration * 0.48,
+        ),
+      );
+      gain.gain.setValueAtTime(safeVolume, Math.max(when + 0.008, end - releaseSeconds));
       gain.gain.linearRampToValueAtTime(0.0001, end);
     }
     source.connect(gain);
@@ -10995,6 +11395,7 @@ function App() {
       event.duration,
       event.instrument,
       event.shape,
+      event,
     );
   }, [playBackingSample]);
 
@@ -11114,6 +11515,7 @@ function App() {
     backingNextEventIndexRef.current = session.events.findIndex((event) => event.offsetSeconds >= safeStartOffset);
     if (backingNextEventIndexRef.current < 0) backingNextEventIndexRef.current = 0;
     backingCycleStartTimeRef.current = audio.currentTime + 0.06 - safeStartOffset;
+    backingDisplayStartTimeRef.current = backingCycleStartTimeRef.current;
     backingSchedulerRunningRef.current = true;
     runBackingScheduler();
     backingSchedulerTimerRef.current = window.setInterval(runBackingScheduler, 25);
@@ -14451,6 +14853,8 @@ function App() {
         miniChordIsPlayingRef.current = false;
         miniChordPlayingBarIndexRef.current = null;
         miniChordPlaybackBarsRef.current = [];
+        miniChordPlaybackSlotsRef.current = [];
+        miniChordPlayheadRef.current = null;
         setMiniChordIsPlaying(false);
         setMiniChordPlayhead(null);
         setMiniChordPlayingBarIndex(null);
@@ -14734,6 +15138,10 @@ function App() {
   useEffect(() => {
     miniChordIsPlayingRef.current = miniChordIsPlaying;
   }, [miniChordIsPlaying]);
+
+  useEffect(() => {
+    miniChordPlayheadRef.current = miniChordPlayhead;
+  }, [miniChordPlayhead]);
 
   useEffect(() => {
     backingDrumVolumeRef.current = clampBackingPartVolume(backingDrumVolume);
@@ -15386,13 +15794,15 @@ function App() {
   }, [loadMiniChordArrangement]);
 
   const getMiniChordBackingPlaybackData = useCallback(() => {
+    const slotSequence = createMiniChordPlaybackSequence(miniChordBarCount, miniChordBarMarks);
     const barSequence = getMiniChordBarPlaybackSequence(miniChordBarCount, miniChordBarMarks);
     return {
+      slotSequence,
       barSequence,
       progression: buildMiniChordBackingProgression({
         slots: miniChordSlots,
         barCount: miniChordBarCount,
-        barSequence,
+        slotSequence,
       }),
     };
   }, [miniChordBarCount, miniChordBarMarks, miniChordSlots]);
@@ -15412,6 +15822,8 @@ function App() {
     }
     miniChordPlayingBarIndexRef.current = null;
     miniChordPlaybackBarsRef.current = [];
+    miniChordPlaybackSlotsRef.current = [];
+    miniChordPlayheadRef.current = null;
     miniChordIsPlayingRef.current = false;
     setMiniChordIsPlaying(false);
     setMiniChordPlayhead(null);
@@ -15422,19 +15834,24 @@ function App() {
     const audio = audioRef.current;
     const session = backingPreparedSessionRef.current;
     const barSequence = miniChordPlaybackBarsRef.current;
+    const slotSequence = miniChordPlaybackSlotsRef.current;
+    const playbackSequence = slotSequence.length
+      ? slotSequence
+      : barSequence.map((barIndex) => barIndex * MINI_CHORD_SLOTS_PER_BAR);
     if (
       !audio ||
       backingSchedulerModeRef.current !== BACKING_SCHEDULER_MODES.MINI_CHORD ||
       !backingSchedulerRunningRef.current ||
       !session?.events?.length ||
-      !barSequence.length
+      !playbackSequence.length
     ) {
       return;
     }
 
     const measureSeconds = session.beatsPerMeasure * session.beatSeconds;
     const cycleSeconds = session.cycleSeconds;
-    const elapsedSeconds = Math.max(0, audio.currentTime - backingCycleStartTimeRef.current);
+    const displayStartTime = backingDisplayStartTimeRef.current || backingCycleStartTimeRef.current;
+    const elapsedSeconds = Math.max(0, audio.currentTime - displayStartTime);
     if (!miniChordLoopRef.current && elapsedSeconds >= cycleSeconds - 0.012) {
       stopMiniChordPreview();
       return;
@@ -15443,14 +15860,18 @@ function App() {
     const cycleElapsedSeconds = cycleSeconds > 0 ? elapsedSeconds % cycleSeconds : 0;
     const sequenceIndex = Math.max(
       0,
-      Math.min(barSequence.length - 1, Math.floor(cycleElapsedSeconds / measureSeconds)),
+      Math.min(playbackSequence.length - 1, Math.floor(cycleElapsedSeconds / measureSeconds)),
     );
-    const barIndex = barSequence[sequenceIndex] ?? 0;
+    const slotIndex = Math.max(0, Number(playbackSequence[sequenceIndex]) || 0);
+    const barIndex = Math.floor(slotIndex / MINI_CHORD_SLOTS_PER_BAR);
     if (miniChordPlayingBarIndexRef.current !== barIndex) {
       miniChordPlayingBarIndexRef.current = barIndex;
       setMiniChordPlayingBarIndex(barIndex);
-      setMiniChordPlayhead(barIndex * MINI_CHORD_SLOTS_PER_BAR);
       setMiniChordPageIndex(Math.floor(barIndex / MINI_CHORD_BARS_PER_PAGE));
+    }
+    if (miniChordPlayheadRef.current !== slotIndex) {
+      miniChordPlayheadRef.current = slotIndex;
+      setMiniChordPlayhead(slotIndex);
     }
 
     miniChordPlaybackFrameRef.current = window.requestAnimationFrame(syncMiniChordPlaybackVisuals);
@@ -15468,7 +15889,7 @@ function App() {
     const startToken = miniChordStartTokenRef.current + 1;
     miniChordStartTokenRef.current = startToken;
 
-    const { barSequence, progression } = getMiniChordBackingPlaybackData();
+    const { barSequence, slotSequence, progression } = getMiniChordBackingPlaybackData();
     const audioReady = await ensureAudioReady();
     if (miniChordStartTokenRef.current !== startToken || appModeRef.current !== APP_MODES.MINI_CHORD_MAKER) return;
     if (!audioReady || !audioRef.current) {
@@ -15483,11 +15904,12 @@ function App() {
       const session = await prepareStage3BackingSession({
         progression,
         bpmValue: miniChordBpm,
-        timeSignatureValue: "4/4",
+        timeSignatureValue: "2/4",
         rhythmPattern: backingRhythmPatternRef.current,
         bassBeat: backingBassBeatRef.current,
         pianoBeat: backingPianoBeatRef.current,
         preloadAudio: false,
+        smoothChordTransitions: true,
       });
       if (miniChordStartTokenRef.current !== startToken || appModeRef.current !== APP_MODES.MINI_CHORD_MAKER) return;
       if (!session?.events?.length) {
@@ -15495,12 +15917,16 @@ function App() {
         return;
       }
       miniChordPlaybackBarsRef.current = barSequence;
-      miniChordPlayingBarIndexRef.current = barSequence[0] ?? 0;
+      miniChordPlaybackSlotsRef.current = slotSequence;
+      const firstSlotIndex = slotSequence[0] ?? (barSequence[0] ?? 0) * MINI_CHORD_SLOTS_PER_BAR;
+      const firstBarIndex = Math.floor(firstSlotIndex / MINI_CHORD_SLOTS_PER_BAR);
+      miniChordPlayingBarIndexRef.current = firstBarIndex;
+      miniChordPlayheadRef.current = firstSlotIndex;
       miniChordIsPlayingRef.current = true;
       setMiniChordIsPlaying(true);
-      setMiniChordPlayingBarIndex(barSequence[0] ?? 0);
-      setMiniChordPlayhead((barSequence[0] ?? 0) * MINI_CHORD_SLOTS_PER_BAR);
-      setMiniChordPageIndex(Math.floor((barSequence[0] ?? 0) / MINI_CHORD_BARS_PER_PAGE));
+      setMiniChordPlayingBarIndex(firstBarIndex);
+      setMiniChordPlayhead(firstSlotIndex);
+      setMiniChordPageIndex(Math.floor(firstBarIndex / MINI_CHORD_BARS_PER_PAGE));
       startBackingScheduler(0, BACKING_SCHEDULER_MODES.MINI_CHORD);
       miniChordPlaybackFrameRef.current = window.requestAnimationFrame(syncMiniChordPlaybackVisuals);
     } catch (error) {
@@ -15749,11 +16175,13 @@ function App() {
     const playbackData = getMiniChordBackingPlaybackData();
     if (miniChordIsPlayingRef.current) {
       miniChordPlaybackBarsRef.current = playbackData.barSequence;
+      miniChordPlaybackSlotsRef.current = playbackData.slotSequence;
     }
     requestStage3BackingPatternChange(overrides, {
       progression: playbackData.progression,
       bpmValue: miniChordBpm,
-      timeSignatureValue: "4/4",
+      timeSignatureValue: "2/4",
+      smoothChordTransitions: true,
     });
   };
 
@@ -17465,17 +17893,21 @@ function App() {
                   </ChordBuilderOptionSection>
 
                   <ChordBuilderOptionSection layout="cols-4" title="코드 타입">
-                    {CHORD_QUALITY_OPTIONS.map((quality) => (
-                      <ChordBuilderChip
-                        key={quality.id}
-                        onClick={() => {
-                          applyViewerChordSelection(viewerChordBaseRoot, viewerChordAccidental, quality.id, viewerChordExtension);
-                        }}
-                        selected={viewerChordQuality === quality.id}
-                      >
-                        {quality.label}
-                      </ChordBuilderChip>
-                    ))}
+                    {CHORD_QUALITY_OPTIONS.map((quality) => {
+                      const isSupported = isChordBuilderPositionSupported(quality.id, "none");
+                      return (
+                        <ChordBuilderChip
+                          disabled={!isSupported}
+                          key={quality.id}
+                          onClick={() => {
+                            applyViewerChordSelection(viewerChordBaseRoot, viewerChordAccidental, quality.id, viewerChordExtension);
+                          }}
+                          selected={viewerChordQuality === quality.id}
+                        >
+                          {quality.label}
+                        </ChordBuilderChip>
+                      );
+                    })}
                   </ChordBuilderOptionSection>
 
                   <ChordBuilderOptionSection layout="tensions-2row" title="확장/텐션">

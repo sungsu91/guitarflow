@@ -54233,3 +54233,390 @@ html body main.app.app.app
   mix-blend-mode: normal !important;
   filter: drop-shadow(0 1px 1px rgba(74, 46, 18, 0.12)) !important;
 }
+
+/* Stage 1/2 gold-dark mobile finish: keep the shared metronome controls in the brand palette. */
+@media (max-width: 720px) {
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeDeck.standaloneMetronomePanel
+    .referenceMetronomeHeroCard.metronomeHeroCard.metronomeHeroCard--interactive {
+    border-color: rgba(217, 170, 85, 0.32) !important;
+    background:
+      radial-gradient(circle at 50% -28%, rgba(241, 202, 122, 0.14), transparent 50%),
+      linear-gradient(180deg, rgba(28, 23, 14, 0.98), rgba(7, 7, 5, 0.995)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 231, 169, 0.1),
+      0 10px 20px rgba(0, 0, 0, 0.34) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeDeck.standaloneMetronomePanel
+    .referenceMetronomeHeroCard.metronomeHeroCard.metronomeHeroCard--interactive::before,
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeDeck.standaloneMetronomePanel
+    .referenceMetronomeHeroCard.metronomeHeroCard.metronomeHeroCard--interactive::after {
+    background: linear-gradient(180deg, transparent, rgba(217, 170, 85, 0.28), transparent) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeBpmAdjustGroup
+    > .metronomeHeroBpmButton {
+    color: #f6e5bd !important;
+    text-shadow: 0 0 12px rgba(217, 170, 85, 0.18) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeBpmAdjustGroup
+    > .metronomeHeroBpmJumpButton,
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeHeroBpmValue
+    span {
+    color: #d9aa55 !important;
+    text-shadow: none !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeBpmAdjustDivider {
+    background: rgba(217, 170, 85, 0.28) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeHeroBpmValue
+    strong {
+    color: #fff1d0 !important;
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.72),
+      0 0 18px rgba(217, 170, 85, 0.18) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeHeroActionPanel.referenceMetronomeActionPanel {
+    border-top-color: rgba(217, 170, 85, 0.24) !important;
+    background:
+      linear-gradient(to right, transparent 0 calc(33.333% - 0.5px), rgba(217, 170, 85, 0.2) calc(33.333% - 0.5px) calc(33.333% + 0.5px), transparent calc(33.333% + 0.5px) 100%),
+      linear-gradient(to right, transparent 0 calc(66.666% - 0.5px), rgba(217, 170, 85, 0.2) calc(66.666% - 0.5px) calc(66.666% + 0.5px), transparent calc(66.666% + 0.5px) 100%) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeHeroActionPanel.referenceMetronomeActionPanel
+    :is(.metronomeHeroPlayButton, .metronomeHeroTapTempoButton, .metronomeHeroCountInButton) {
+    color: #d9aa55 !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeHeroActionPanel.referenceMetronomeActionPanel
+    :is(.metronomeHeroActionText, .metronomeHeroCountInButton span),
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeHeroActionPanel.referenceMetronomeActionPanel
+    :is(.metronomeHeroActionIcon, .tapTempoIconCrop, .metronomeHeroCountInButton svg) {
+    color: #f3d393 !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeDeck.standaloneMetronomePanel
+    .standaloneMetronomeControl.referenceStandaloneMetronomeControl
+    > .metronomeOptions.metronomeOptions--splitTone {
+    border-color: rgba(217, 170, 85, 0.24) !important;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(217, 170, 85, 0.11), transparent 52%),
+      linear-gradient(180deg, rgba(21, 18, 12, 0.94), rgba(7, 7, 5, 0.96)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 231, 169, 0.08),
+      0 8px 18px rgba(0, 0, 0, 0.26) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeControl
+    > .metronomeOptions.metronomeOptions--splitTone
+    .metronomeSelectLabel {
+    color: rgba(245, 222, 176, 0.78) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeControl
+    > .metronomeOptions.metronomeOptions--splitTone
+    button.metronomeSelectButton.metronomeSelectButton {
+    border-color: rgba(217, 170, 85, 0.34) !important;
+    background:
+      linear-gradient(180deg, rgba(24, 19, 9, 0.96), rgba(8, 7, 4, 0.985)) !important;
+    color: #f5deb0 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 232, 166, 0.08) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeControl
+    > .metronomeOptions.metronomeOptions--splitTone
+    button.metronomeSelectButton.metronomeSelectButton
+    :is(b, i) {
+    color: #f7d98d !important;
+    -webkit-text-fill-color: #f7d98d !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeControl
+    .metronomeSelectMenu,
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeControl
+    .metronomeSelectMenu.metronomeSelectMenu--twoColumn {
+    border-color: rgba(217, 170, 85, 0.52) !important;
+    background:
+      radial-gradient(circle at 18% 0%, rgba(217, 170, 85, 0.18), transparent 40%),
+      linear-gradient(180deg, rgba(28, 22, 11, 0.98), rgba(7, 6, 3, 0.99)) !important;
+    color: #f4dfb3 !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 231, 169, 0.1),
+      0 18px 32px rgba(0, 0, 0, 0.54) !important;
+    scrollbar-color: rgba(217, 170, 85, 0.7) rgba(12, 9, 4, 0.9) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeControl
+    .metronomeSelectMenu
+    .metronomeSelectOption {
+    border-color: rgba(217, 170, 85, 0.16) !important;
+    background: transparent !important;
+    color: #f4dfb3 !important;
+    -webkit-text-fill-color: #f4dfb3 !important;
+    box-shadow: none !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeControl
+    .metronomeSelectMenu
+    .metronomeSelectOption:is(:hover, :focus-visible) {
+    background: rgba(217, 170, 85, 0.13) !important;
+    color: #fff4d4 !important;
+    -webkit-text-fill-color: #fff4d4 !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeControl
+    .metronomeSelectMenu
+    .metronomeSelectOption.selected,
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeControl
+    .metronomeSelectMenu
+    .metronomeSelectOption[aria-selected="true"] {
+    background:
+      linear-gradient(180deg, rgba(217, 170, 85, 0.34), rgba(113, 76, 24, 0.28)) !important;
+    color: #fff7df !important;
+    -webkit-text-fill-color: #fff7df !important;
+  }
+}
+
+/* Rhythm & chord / metronome gold-dark mobile finish: keep BPM transport panels off the white theme. */
+@media (max-width: 720px) {
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard,
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard.metronomeHeroCard--interactive {
+    border-color: rgba(217, 170, 85, 0.32) !important;
+    background:
+      radial-gradient(circle at 50% -28%, rgba(241, 202, 122, 0.14), transparent 50%),
+      linear-gradient(180deg, rgba(28, 23, 14, 0.98), rgba(7, 7, 5, 0.995)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 231, 169, 0.1),
+      0 10px 20px rgba(0, 0, 0, 0.34) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard::before,
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard::after,
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard.metronomeHeroCard--interactive::before,
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard.metronomeHeroCard--interactive::after {
+    background: linear-gradient(180deg, transparent, rgba(217, 170, 85, 0.28), transparent) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .metronomeBpmAdjustGroup
+    > button.metronomeHeroBpmButton,
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .metronomeBpmAdjustGroup
+    > button.metronomeHeroBpmButton:is(:hover, :focus, :focus-visible, :focus-within, :active),
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard
+    .metronomeBpmAdjustGroup
+    > button.metronomeHeroBpmButton,
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard
+    .metronomeBpmAdjustGroup
+    > button.metronomeHeroBpmButton:is(:hover, :focus, :focus-visible, :focus-within, :active) {
+    color: #f6e5bd !important;
+    text-shadow: 0 0 12px rgba(217, 170, 85, 0.18) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .metronomeBpmAdjustGroup
+    > button.metronomeHeroBpmJumpButton,
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .metronomeBpmAdjustGroup
+    > button.metronomeHeroBpmJumpButton:is(:hover, :focus, :focus-visible, :focus-within, :active),
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard
+    .metronomeBpmAdjustGroup
+    > button.metronomeHeroBpmJumpButton,
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard
+    .metronomeBpmAdjustGroup
+    > button.metronomeHeroBpmJumpButton:is(:hover, :focus, :focus-visible, :focus-within, :active),
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .metronomeHeroBpmValue
+    span,
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard
+    .metronomeHeroBpmValue
+    span {
+    color: #d9aa55 !important;
+    text-shadow: none !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .metronomeBpmAdjustDivider,
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard
+    .metronomeBpmAdjustDivider {
+    background: rgba(217, 170, 85, 0.28) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .metronomeHeroBpmValue,
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard
+    .metronomeHeroBpmValue {
+    border-color: rgba(217, 170, 85, 0.2) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .metronomeHeroBpmValue
+    strong,
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard
+    .metronomeHeroBpmValue
+    strong {
+    color: #fff1d0 !important;
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.72),
+      0 0 18px rgba(217, 170, 85, 0.18) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .stage3BpmActionPanel,
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard
+    .metronomeHeroActionPanel {
+    border-top-color: rgba(217, 170, 85, 0.24) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .stage3BpmActionPanel {
+    background:
+      linear-gradient(to right, transparent 0 calc(33.333% - 0.5px), rgba(217, 170, 85, 0.2) calc(33.333% - 0.5px) calc(33.333% + 0.5px), transparent calc(33.333% + 0.5px) 100%),
+      linear-gradient(to right, transparent 0 calc(66.666% - 0.5px), rgba(217, 170, 85, 0.2) calc(66.666% - 0.5px) calc(66.666% + 0.5px), transparent calc(66.666% + 0.5px) 100%) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard
+    .metronomeHeroActionPanel::before {
+    background: rgba(217, 170, 85, 0.22) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .stage3BpmActionPanel
+    :is(.metronomeHeroPlayButton, .metronomeHeroTapTempoButton, .metronomeHeroCountInButton),
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard
+    .metronomeHeroActionPanel
+    :is(.metronomeHeroPlayButton, .metronomeHeroTapTempoButton) {
+    color: #d9aa55 !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .stage3BpmActionPanel
+    :is(.metronomeHeroActionText, .metronomeHeroCountInButton span),
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .stage3BpmActionPanel
+    :is(.metronomeHeroActionIcon, .tapTempoIconCrop, .metronomeHeroCountInButton svg),
+  html body main.app.theme-brand.theme-brand.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard
+    .metronomeHeroActionPanel
+    :is(.metronomeHeroActionText, .metronomeHeroActionIcon, .tapTempoIconCrop) {
+    color: #f3d393 !important;
+  }
+}
