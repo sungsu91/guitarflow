@@ -54620,3 +54620,161 @@ html body main.app.app.app
     color: #f3d393 !important;
   }
 }
+
+/* Mobile deploy guard: target the BPM cards directly so older white-panel rules cannot win. */
+@media (max-width: 720px) {
+  main.app.theme-brand
+    :is(
+      .stage3BpmTransportCard.metronomeHeroCard,
+      .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) > .metronomeHeroCard.metronomeHeroCard--interactive,
+      .referenceStandaloneMetronomeDeck .referenceMetronomeHeroCard.metronomeHeroCard--interactive
+    ) {
+    border-color: rgba(217, 170, 85, 0.32) !important;
+    background:
+      radial-gradient(circle at 50% -28%, rgba(241, 202, 122, 0.14), transparent 50%),
+      linear-gradient(180deg, rgba(28, 23, 14, 0.98), rgba(7, 7, 5, 0.995)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 231, 169, 0.1),
+      0 10px 20px rgba(0, 0, 0, 0.34) !important;
+  }
+
+  main.app.theme-brand
+    :is(
+      .stage3BpmTransportCard.metronomeHeroCard,
+      .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) > .metronomeHeroCard.metronomeHeroCard--interactive,
+      .referenceStandaloneMetronomeDeck .referenceMetronomeHeroCard.metronomeHeroCard--interactive
+    )
+    .metronomeHeroBpmValue {
+    border-color: rgba(217, 170, 85, 0.2) !important;
+    color: #f3d393 !important;
+  }
+
+  main.app.theme-brand
+    :is(
+      .stage3BpmTransportCard.metronomeHeroCard,
+      .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) > .metronomeHeroCard.metronomeHeroCard--interactive,
+      .referenceStandaloneMetronomeDeck .referenceMetronomeHeroCard.metronomeHeroCard--interactive
+    )
+    .metronomeHeroBpmValue
+    strong {
+    color: #fff1d0 !important;
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.72),
+      0 0 18px rgba(217, 170, 85, 0.18) !important;
+  }
+
+  main.app.theme-brand
+    :is(
+      .stage3BpmTransportCard.metronomeHeroCard,
+      .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) > .metronomeHeroCard.metronomeHeroCard--interactive,
+      .referenceStandaloneMetronomeDeck .referenceMetronomeHeroCard.metronomeHeroCard--interactive
+    )
+    :is(.metronomeHeroBpmValue span, .metronomeHeroBpmJumpButton, .metronomeHeroActionText, .metronomeHeroActionIcon, .tapTempoIconCrop, .metronomeHeroCountInButton span) {
+    color: #f3d393 !important;
+    -webkit-text-fill-color: #f3d393 !important;
+  }
+
+  main.app.theme-brand
+    :is(
+      .stage3BpmTransportCard.metronomeHeroCard,
+      .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) > .metronomeHeroCard.metronomeHeroCard--interactive,
+      .referenceStandaloneMetronomeDeck .referenceMetronomeHeroCard.metronomeHeroCard--interactive
+    )
+    :is(.metronomeHeroBpmButton, .metronomeHeroPlayButton, .metronomeHeroTapTempoButton, .metronomeHeroCountInButton) {
+    color: #d9aa55 !important;
+  }
+
+  main.app.theme-brand
+    :is(
+      .stage3BpmTransportCard.metronomeHeroCard,
+      .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) > .metronomeHeroCard.metronomeHeroCard--interactive,
+      .referenceStandaloneMetronomeDeck .referenceMetronomeHeroCard.metronomeHeroCard--interactive
+    )
+    .metronomeBpmAdjustDivider {
+    background: rgba(217, 170, 85, 0.28) !important;
+  }
+
+  main.app.theme-brand
+    :is(
+      .stage3BpmTransportCard.metronomeHeroCard,
+      .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) > .metronomeHeroCard.metronomeHeroCard--interactive,
+      .referenceStandaloneMetronomeDeck .referenceMetronomeHeroCard.metronomeHeroCard--interactive
+    )
+    .metronomeHeroActionPanel {
+    border-top-color: rgba(217, 170, 85, 0.24) !important;
+  }
+}
+
+/* Mobile standalone metronome: keep the rhythm sweep bar anchored above the beat panel. */
+@media (max-width: 720px) {
+  main.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeBeatMatrix--main.metronomeBeatMatrix--main {
+    position: relative !important;
+    isolation: isolate !important;
+    overflow: hidden !important;
+    z-index: 2 !important;
+    transform: translateZ(0);
+  }
+
+  main.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    :is(.metronomeBeatMatrix--dot .beatDot, .metronomeModeCircleOrbit, .metronomeDotsOffState) {
+    position: relative !important;
+    z-index: 2 !important;
+  }
+
+  main.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeBeatMatrix--main
+    .metronomeBeatBar {
+    position: absolute !important;
+    top: 12% !important;
+    bottom: 12% !important;
+    left: 12px !important;
+    z-index: 5 !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 0.98 !important;
+    pointer-events: none !important;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+  }
+
+  main.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeBeatMatrix--main
+    .metronomeBeatBar.active {
+    animation-name: metronomeBeatBarMobileTravel !important;
+  }
+
+  main.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeBeatMatrix--main.metronomeBeatMatrix--options-open
+    .metronomeBeatBar,
+  main.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeBeatMatrix--main.metronomeBeatMatrix--options-open
+    .metronomeBeatBar::before,
+  main.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeBeatMatrix--main.metronomeBeatMatrix--options-open
+    .metronomeBeatBar::after {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
+
+@keyframes metronomeBeatBarMobileTravel {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(calc(100vw - 54px), 0, 0);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
