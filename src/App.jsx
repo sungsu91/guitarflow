@@ -2340,6 +2340,12 @@ const BACKING_PIANO_BEAT_OPTIONS = [
   { id: "8beat", label: "8비트" },
   { id: "16beat", label: "16비트" },
 ];
+const MINI_CHORD_DEFAULT_PIANO_STYLE = "basic";
+const MINI_CHORD_PIANO_STYLE_OPTIONS = [
+  { id: "basic", label: "기본" },
+  { id: "custom", label: "커스텀" },
+];
+const MINI_CHORD_PIANO_STYLE_IDS = new Set(MINI_CHORD_PIANO_STYLE_OPTIONS.map((option) => option.id));
 const BACKING_SCHEDULER_MODES = {
   STAGE3: "stage3",
   MINI_CHORD: "miniChord",
@@ -2378,6 +2384,11 @@ function shouldLogBackingDebugEvents() {
   } catch {
     return false;
   }
+}
+
+function normalizeMiniChordPianoStyle(value) {
+  const style = String(value ?? MINI_CHORD_DEFAULT_PIANO_STYLE);
+  return MINI_CHORD_PIANO_STYLE_IDS.has(style) ? style : MINI_CHORD_DEFAULT_PIANO_STYLE;
 }
 
 const BACKING_NOTE_MIDI = {
@@ -2444,6 +2455,7 @@ const getBackingSessionKey = ({
   bassBeat = STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat,
   pianoBeat = STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat,
   smoothChordTransitions = false,
+  pianoStyle = MINI_CHORD_DEFAULT_PIANO_STYLE,
 } = {}) => [
   clampBpm(bpmValue),
   timeSignatureValue,
@@ -2451,6 +2463,7 @@ const getBackingSessionKey = ({
   bassBeat,
   pianoBeat,
   smoothChordTransitions ? "smooth" : "plain",
+  normalizeMiniChordPianoStyle(pianoStyle),
   progression.map((chord) => `${chord?.id ?? ""}:${chord?.displayName ?? chord?.fretboardDisplayName ?? ""}`).join("|"),
 ].join("::");
 
@@ -2469,6 +2482,7 @@ const createBackingTimelineEvents = ({
   bassBeat = STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat,
   pianoBeat = STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat,
   smoothChordTransitions = false,
+  pianoStyle = MINI_CHORD_DEFAULT_PIANO_STYLE,
 }) => {
   const signature = getTimeSignatureOption(timeSignature);
   const beatsPerMeasure = signature.beats;
@@ -2486,6 +2500,9 @@ const createBackingTimelineEvents = ({
   const measureSeconds = beatsPerMeasure * beatSeconds;
   const cycleSeconds = cycleMeasures * beatsPerMeasure * beatSeconds;
   const smoothTransitions = Boolean(smoothChordTransitions);
+  const backingPianoStyle = smoothTransitions
+    ? normalizeMiniChordPianoStyle(pianoStyle)
+    : MINI_CHORD_DEFAULT_PIANO_STYLE;
   const events = [];
   const addEvent = (offsetSeconds, instrument, sample, volume, playbackRate = 1, duration = null, stepIndex = 0, chordIndex = 0, shape = "", debugLog = "", options = {}) => {
     events.push({ offsetSeconds, instrument, sample, volume, playbackRate, duration, stepIndex, chordIndex, shape, debugLog, ...options });
@@ -2613,6 +2630,7 @@ const createBackingTimelineEvents = ({
               ? {
                   attackSeconds: isCommonTone ? MINI_CHORD_SMOOTH_BACKING.pianoCommonToneAttackSeconds : 0.006,
                   commonTone: isCommonTone,
+                  pianoStyle: backingPianoStyle,
                   releaseSeconds: MINI_CHORD_SMOOTH_BACKING.pianoReleaseSeconds,
                 }
               : {},
@@ -3932,7 +3950,7 @@ function CountInToggleButton({ className = "", disabled = false, enabled = false
       type="button"
     >
       <Timer size={14} aria-hidden="true" />
-      <span>Count</span>
+      <span>{`Count ${enabled ? "ON" : "OFF"}`}</span>
     </button>
   );
 }
@@ -8118,6 +8136,7 @@ function createDefaultMiniChordArrangement() {
     bpm: 80,
     capo: 0,
     loop: true,
+    pianoStyle: MINI_CHORD_DEFAULT_PIANO_STYLE,
   };
 }
 
@@ -8136,6 +8155,7 @@ function normalizeMiniChordArrangement(value = {}) {
     bpm: clampBpm(value.bpm ?? fallback.bpm),
     capo: Math.max(0, Math.min(12, Number(value.capo) || 0)),
     loop: value.loop == null ? fallback.loop : Boolean(value.loop),
+    pianoStyle: normalizeMiniChordPianoStyle(value.pianoStyle ?? fallback.pianoStyle),
   };
 }
 
@@ -8959,7 +8979,6 @@ function App() {
   const [backingDrumEnabled, setBackingDrumEnabled] = useState(true);
   const [backingBassEnabled, setBackingBassEnabled] = useState(true);
   const [backingPianoEnabled, setBackingPianoEnabled] = useState(true);
-  const [backingSoloPart, setBackingSoloPart] = useState(null);
   const [backingDrumVolume, setBackingDrumVolume] = useState(BACKING_DEFAULT_PART_VOLUMES.drum);
   const [backingBassVolume, setBackingBassVolume] = useState(BACKING_DEFAULT_PART_VOLUMES.bass);
   const [backingPianoVolume, setBackingPianoVolume] = useState(BACKING_DEFAULT_PART_VOLUMES.piano);
@@ -8968,6 +8987,7 @@ function App() {
   const [backingPianoBeat, setBackingPianoBeat] = useState(STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat);
   const [stage3BackingPrepareStatus, setStage3BackingPrepareStatus] = useState("idle");
   const initialMiniChordArrangementRef = useRef(getStoredMiniChordDraftArrangement());
+  const [miniChordPianoStyle, setMiniChordPianoStyle] = useState(initialMiniChordArrangementRef.current.pianoStyle);
   const [miniChordSavedItems, setMiniChordSavedItems] = useState(getStoredMiniChordArrangements);
   const [miniChordTitle, setMiniChordTitle] = useState(initialMiniChordArrangementRef.current.title);
   const [miniChordBarCount, setMiniChordBarCount] = useState(initialMiniChordArrangementRef.current.barCount);
@@ -9672,13 +9692,13 @@ function App() {
   const backingDrumEnabledRef = useRef(true);
   const backingBassEnabledRef = useRef(true);
   const backingPianoEnabledRef = useRef(true);
-  const backingSoloPartRef = useRef(null);
   const backingDrumVolumeRef = useRef(BACKING_DEFAULT_PART_VOLUMES.drum);
   const backingBassVolumeRef = useRef(BACKING_DEFAULT_PART_VOLUMES.bass);
   const backingPianoVolumeRef = useRef(BACKING_DEFAULT_PART_VOLUMES.piano);
   const backingRhythmPatternRef = useRef(STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern);
   const backingBassBeatRef = useRef(STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat);
   const backingPianoBeatRef = useRef(STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat);
+  const miniChordPianoStyleRef = useRef(MINI_CHORD_DEFAULT_PIANO_STYLE);
   const metronomeBarLimitRef = useRef(initialMetronomeTrackerProgressRef.current.barLimit);
   const metronomeBarStopWhenReachedRef = useRef(false);
   const metronomeBarResetWhenReachedRef = useRef(false);
@@ -10806,6 +10826,7 @@ function App() {
     pianoBeat = backingPianoBeatRef.current,
     preloadAudio = false,
     smoothChordTransitions = false,
+    pianoStyle = MINI_CHORD_DEFAULT_PIANO_STYLE,
   } = {}) => {
     const token = backingPrepareTokenRef.current + 1;
     backingPrepareTokenRef.current = token;
@@ -10817,6 +10838,7 @@ function App() {
       bassBeat,
       pianoBeat,
       smoothChordTransitions,
+      pianoStyle,
     });
     if (backingPreparedSessionKeyRef.current === sessionKey && backingPreparedSessionRef.current?.events?.length) {
       setStage3BackingPrepareStatus("ready");
@@ -10838,6 +10860,7 @@ function App() {
       bassBeat,
       pianoBeat,
       smoothChordTransitions,
+      pianoStyle,
     });
 
     try {
@@ -10925,10 +10948,12 @@ function App() {
       const nextRhythmPattern = nextBacking.rhythmPattern;
       const nextBassBeat = nextBacking.bassBeat;
       const nextPianoBeat = nextBacking.pianoBeat;
+      const forceSessionUpdate = Boolean(options.forceSessionUpdate);
     if (
       nextRhythmPattern === backingRhythmPattern &&
       nextBassBeat === backingBassBeat &&
-      nextPianoBeat === backingPianoBeat
+      nextPianoBeat === backingPianoBeat &&
+      !forceSessionUpdate
     ) {
       return;
     }
@@ -10940,6 +10965,7 @@ function App() {
     const sessionBpm = options.bpmValue ?? bpmRef.current;
     const sessionTimeSignature = options.timeSignatureValue ?? "4/4";
     const smoothChordTransitions = Boolean(options.smoothChordTransitions);
+    const pianoStyle = normalizeMiniChordPianoStyle(options.pianoStyle);
     const session = createBackingTimelineEvents({
       progression: sessionProgression,
       bpm: sessionBpm,
@@ -10948,6 +10974,7 @@ function App() {
       bassBeat: nextBassBeat,
       pianoBeat: nextPianoBeat,
       smoothChordTransitions,
+      pianoStyle,
     });
     const sessionKey = getBackingSessionKey({
       progression: sessionProgression,
@@ -10957,6 +10984,7 @@ function App() {
       bassBeat: nextBassBeat,
       pianoBeat: nextPianoBeat,
       smoothChordTransitions,
+      pianoStyle,
     });
 
     backingRhythmPatternRef.current = nextRhythmPattern;
@@ -11372,10 +11400,6 @@ function App() {
 
   const schedulePreparedBackingEvent = useCallback((event, when) => {
     if (!event) return;
-    const soloPart = backingSchedulerModeRef.current === BACKING_SCHEDULER_MODES.MINI_CHORD
-      ? backingSoloPartRef.current
-      : null;
-    if (soloPart && event.instrument !== soloPart) return;
     if (event.instrument === "drum" && !backingDrumEnabledRef.current) return;
     if (event.instrument === "bass" && !backingBassEnabledRef.current) return;
     if (event.instrument === "piano" && !backingPianoEnabledRef.current) return;
@@ -15128,8 +15152,8 @@ function App() {
   }, [backingPianoEnabled]);
 
   useEffect(() => {
-    backingSoloPartRef.current = backingSoloPart;
-  }, [backingSoloPart]);
+    miniChordPianoStyleRef.current = normalizeMiniChordPianoStyle(miniChordPianoStyle);
+  }, [miniChordPianoStyle]);
 
   useEffect(() => {
     miniChordLoopRef.current = miniChordLoop;
@@ -15748,12 +15772,14 @@ function App() {
     bpm: miniChordBpm,
     capo: miniChordCapo,
     loop: miniChordLoop,
+    pianoStyle: miniChordPianoStyle,
   }), [
     miniChordBarMarks,
     miniChordBarCount,
     miniChordBpm,
     miniChordCapo,
     miniChordLoop,
+    miniChordPianoStyle,
     miniChordRepeatEndsFromMarks,
     miniChordRepeatStartsFromMarks,
     miniChordSlots,
@@ -15771,6 +15797,8 @@ function App() {
     setMiniChordBpm(next.bpm);
     setMiniChordCapo(next.capo);
     setMiniChordLoop(next.loop);
+    miniChordPianoStyleRef.current = next.pianoStyle;
+    setMiniChordPianoStyle(next.pianoStyle);
     setMiniChordActiveSlot(0);
     setMiniChordActiveBarIndex(null);
     setMiniChordChordPickerSlot(null);
@@ -15910,6 +15938,7 @@ function App() {
         pianoBeat: backingPianoBeatRef.current,
         preloadAudio: false,
         smoothChordTransitions: true,
+        pianoStyle: miniChordPianoStyleRef.current,
       });
       if (miniChordStartTokenRef.current !== startToken || appModeRef.current !== APP_MODES.MINI_CHORD_MAKER) return;
       if (!session?.events?.length) {
@@ -15971,6 +16000,7 @@ function App() {
         bpm: miniChordBpm,
         capo: miniChordCapo,
         loop: miniChordLoop,
+        pianoStyle: miniChordPianoStyle,
       })));
     } catch (error) {
       console.warn("MINI CHORD DRAFT SAVE FAILED:", error);
@@ -15981,6 +16011,7 @@ function App() {
     miniChordBpm,
     miniChordCapo,
     miniChordLoop,
+    miniChordPianoStyle,
     miniChordRepeatEndsFromMarks,
     miniChordRepeatStartsFromMarks,
     miniChordSlots,
@@ -16140,21 +16171,7 @@ function App() {
     return backingDrumEnabled;
   };
 
-  const enableBackingPart = (part) => {
-    if (part === "bass") {
-      setBackingBassEnabled(true);
-    } else if (part === "piano") {
-      setBackingPianoEnabled(true);
-    } else {
-      setBackingDrumEnabled(true);
-    }
-  };
-
   const toggleBackingPartEnabled = (part) => {
-    if (getBackingPartEnabled(part) && backingSoloPart === part) {
-      backingSoloPartRef.current = null;
-      setBackingSoloPart(null);
-    }
     if (part === "bass") {
       setBackingBassEnabled((value) => !value);
     } else if (part === "piano") {
@@ -16164,14 +16181,7 @@ function App() {
     }
   };
 
-  const toggleBackingPartSolo = (part) => {
-    const nextSoloPart = backingSoloPart === part ? null : part;
-    backingSoloPartRef.current = nextSoloPart;
-    setBackingSoloPart(nextSoloPart);
-    if (nextSoloPart) enableBackingPart(part);
-  };
-
-  const requestMiniChordBackingPatternChange = (overrides = {}) => {
+  const requestMiniChordBackingPatternChange = (overrides = {}, options = {}) => {
     const playbackData = getMiniChordBackingPlaybackData();
     if (miniChordIsPlayingRef.current) {
       miniChordPlaybackBarsRef.current = playbackData.barSequence;
@@ -16182,6 +16192,18 @@ function App() {
       bpmValue: miniChordBpm,
       timeSignatureValue: "2/4",
       smoothChordTransitions: true,
+      pianoStyle: options.pianoStyle ?? miniChordPianoStyleRef.current,
+      forceSessionUpdate: options.forceSessionUpdate,
+    });
+  };
+
+  const updateMiniChordPianoStyle = (value) => {
+    const nextStyle = normalizeMiniChordPianoStyle(value);
+    miniChordPianoStyleRef.current = nextStyle;
+    setMiniChordPianoStyle(nextStyle);
+    requestMiniChordBackingPatternChange({}, {
+      forceSessionUpdate: true,
+      pianoStyle: nextStyle,
     });
   };
 
@@ -16206,6 +16228,9 @@ function App() {
       beatValue: backingPianoBeat,
       options: BACKING_PIANO_BEAT_OPTIONS,
       onBeatChange: (value) => requestMiniChordBackingPatternChange({ pianoBeat: value }),
+      styleValue: miniChordPianoStyle,
+      styleOptions: MINI_CHORD_PIANO_STYLE_OPTIONS,
+      onStyleChange: updateMiniChordPianoStyle,
     },
   ];
 
@@ -17122,11 +17147,9 @@ function App() {
               {miniChordBackingParts.map((part) => {
                 const volumeValue = getBackingVolumeValue(part.id);
                 const enabled = getBackingPartEnabled(part.id);
-                const solo = backingSoloPart === part.id;
-                const mutedBySolo = Boolean(backingSoloPart && backingSoloPart !== part.id);
                 return (
                   <section
-                    className={`miniChordBackingRow ${solo ? "is-solo" : ""} ${mutedBySolo ? "is-solo-muted" : ""}`}
+                    className="miniChordBackingRow"
                     key={part.id}
                     aria-label={`${part.label} 반주 설정`}
                   >
@@ -17158,15 +17181,6 @@ function App() {
                       >
                         {enabled ? <Volume2 size={14} aria-hidden="true" /> : <VolumeX size={14} aria-hidden="true" />}
                       </button>
-                      <button
-                        aria-label={`${part.label} Solo ${solo ? "해제" : "설정"}`}
-                        aria-pressed={solo}
-                        className={`miniChordSoloToggle ${solo ? "is-solo" : ""}`}
-                        onClick={() => toggleBackingPartSolo(part.id)}
-                        type="button"
-                      >
-                        Solo
-                      </button>
                     </div>
                     <div className="miniChordBeatOptions" role="group" aria-label={`${part.label} 비트 선택`}>
                       {part.options.map((option) => (
@@ -17180,6 +17194,20 @@ function App() {
                         </button>
                       ))}
                     </div>
+                    {part.styleOptions ? (
+                      <div className="miniChordPianoStyleOptions" role="group" aria-label="피아노 연주 스타일 선택">
+                        {part.styleOptions.map((option) => (
+                          <button
+                            className={part.styleValue === option.id ? "selected" : ""}
+                            key={option.id}
+                            onClick={() => part.onStyleChange(option.id)}
+                            type="button"
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                   </section>
                 );
               })}

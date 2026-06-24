@@ -39471,11 +39471,20 @@ html body .chordTransitionHud .beatDot.active .beatDot__glyph {
   accent-color: #d8a94e;
 }
 
-.miniChordMakerPanelCompact .miniChordBeatOptions {
+.miniChordMakerPanelCompact .miniChordBeatOptions,
+.miniChordMakerPanelCompact .miniChordPianoStyleOptions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 5px;
   min-width: 0;
+}
+
+.miniChordMakerPanelCompact .miniChordBeatOptions {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.miniChordMakerPanelCompact .miniChordPianoStyleOptions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 6px;
 }
 
 .miniChordMakerPanelCompact .miniChordBackingRow:nth-child(1) .miniChordBeatOptions,
@@ -39483,7 +39492,8 @@ html body .chordTransitionHud .beatDot.active .beatDot__glyph {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.miniChordMakerPanelCompact .miniChordBeatOptions button {
+.miniChordMakerPanelCompact .miniChordBeatOptions button,
+.miniChordMakerPanelCompact .miniChordPianoStyleOptions button {
   min-width: 0;
   min-height: 30px;
   padding: 0 4px;
@@ -39499,7 +39509,9 @@ html body .chordTransitionHud .beatDot.active .beatDot__glyph {
 }
 
 .miniChordMakerPanelCompact .miniChordBeatOptions button.selected,
-.miniChordMakerPanelCompact .miniChordBeatOptions button:hover {
+.miniChordMakerPanelCompact .miniChordBeatOptions button:hover,
+.miniChordMakerPanelCompact .miniChordPianoStyleOptions button.selected,
+.miniChordMakerPanelCompact .miniChordPianoStyleOptions button:hover {
   border-color: rgba(255, 218, 137, 0.86);
   background: linear-gradient(180deg, #d8a94e 0%, #7b521d 100%);
   color: #080705;
@@ -39523,11 +39535,13 @@ html body .chordTransitionHud .beatDot.active .beatDot__glyph {
     gap: 5px;
   }
 
-  .miniChordMakerPanelCompact .miniChordBeatOptions {
+  .miniChordMakerPanelCompact .miniChordBeatOptions,
+  .miniChordMakerPanelCompact .miniChordPianoStyleOptions {
     gap: 4px;
   }
 
-  .miniChordMakerPanelCompact .miniChordBeatOptions button {
+  .miniChordMakerPanelCompact .miniChordBeatOptions button,
+  .miniChordMakerPanelCompact .miniChordPianoStyleOptions button {
     min-height: 29px;
     padding: 0 2px;
     font-size: 10px;
@@ -39658,7 +39672,8 @@ html body .app.theme-light.theme-light .miniChordMakerPanelCompact .miniChordVol
   background: linear-gradient(90deg, #d3a34d, #efe4cc) !important;
 }
 
-html body .app.theme-light.theme-light .miniChordMakerPanelCompact .miniChordBeatOptions button {
+html body .app.theme-light.theme-light .miniChordMakerPanelCompact .miniChordBeatOptions button,
+html body .app.theme-light.theme-light .miniChordMakerPanelCompact .miniChordPianoStyleOptions button {
   border-color: #d3c6aa !important;
   background:
     linear-gradient(180deg, #fffdf8, #f1eadf) !important;
@@ -39669,7 +39684,9 @@ html body .app.theme-light.theme-light .miniChordMakerPanelCompact .miniChordBea
 }
 
 html body .app.theme-light.theme-light .miniChordMakerPanelCompact .miniChordBeatOptions button.selected,
-html body .app.theme-light.theme-light .miniChordMakerPanelCompact .miniChordBeatOptions button:hover {
+html body .app.theme-light.theme-light .miniChordMakerPanelCompact .miniChordBeatOptions button:hover,
+html body .app.theme-light.theme-light .miniChordMakerPanelCompact .miniChordPianoStyleOptions button.selected,
+html body .app.theme-light.theme-light .miniChordMakerPanelCompact .miniChordPianoStyleOptions button:hover {
   border-color: #2b2f32 !important;
   background: #2b2f32 !important;
   color: #fff7e4 !important;
@@ -48832,10 +48849,21 @@ html body .app.theme-light.theme-light .standaloneMetronomePanel.standaloneMetro
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel
   .metronomeBeatMatrix--main.metronomeBeatMatrix--main
   .metronomeBeatBar {
+  display: block !important;
+  place-items: initial !important;
+  box-sizing: border-box !important;
+  aspect-ratio: auto !important;
   top: 0 !important;
   bottom: 0 !important;
   left: 12px;
   width: 3px !important;
+  min-width: 3px !important;
+  max-width: 3px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  padding: 0 !important;
+  border: 0 !important;
   border-radius: 0 !important;
   background:
     linear-gradient(90deg, rgba(190, 93, 116, 0.5), #fff2f4 48%, rgba(224, 154, 168, 0.9)) !important;
@@ -50371,11 +50399,15 @@ html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPan
 /* Mini chord polish: selected backing beats should read selected, not pressed. */
 .miniChordMakerPanelCompact .miniChordBeatOptions button,
 .miniChordMakerPanelCompact .miniChordBeatOptions button:active,
-.miniChordMakerPanelCompact .miniChordBeatOptions button:focus {
+.miniChordMakerPanelCompact .miniChordBeatOptions button:focus,
+.miniChordMakerPanelCompact .miniChordPianoStyleOptions button,
+.miniChordMakerPanelCompact .miniChordPianoStyleOptions button:active,
+.miniChordMakerPanelCompact .miniChordPianoStyleOptions button:focus {
   transform: none !important;
 }
 
-.miniChordMakerPanelCompact .miniChordBeatOptions button.selected {
+.miniChordMakerPanelCompact .miniChordBeatOptions button.selected,
+.miniChordMakerPanelCompact .miniChordPianoStyleOptions button.selected {
   border-color: rgba(231, 183, 96, 0.62) !important;
   background:
     linear-gradient(180deg, rgba(231, 183, 96, 0.24), rgba(132, 86, 28, 0.18)) !important;
@@ -50385,7 +50417,8 @@ html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPan
     0 1px 0 rgba(0, 0, 0, 0.12) !important;
 }
 
-.miniChordMakerPanelCompact .miniChordBeatOptions button:hover:not(.selected) {
+.miniChordMakerPanelCompact .miniChordBeatOptions button:hover:not(.selected),
+.miniChordMakerPanelCompact .miniChordPianoStyleOptions button:hover:not(.selected) {
   border-color: rgba(231, 183, 96, 0.48) !important;
   background: rgba(231, 183, 96, 0.1) !important;
   color: #ffe7aa !important;
@@ -50401,7 +50434,8 @@ html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPan
   white-space: nowrap;
 }
 
-html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordBeatOptions button.selected {
+html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordBeatOptions button.selected,
+html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordPianoStyleOptions button.selected {
   border-color: rgba(151, 102, 39, 0.42) !important;
   background:
     linear-gradient(180deg, rgba(255, 246, 228, 0.92), rgba(235, 216, 178, 0.76)) !important;
@@ -50411,7 +50445,8 @@ html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPan
     0 1px 2px rgba(91, 78, 55, 0.06) !important;
 }
 
-html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordBeatOptions button:hover:not(.selected) {
+html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordBeatOptions button:hover:not(.selected),
+html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordPianoStyleOptions button:hover:not(.selected) {
   border-color: rgba(151, 102, 39, 0.3) !important;
   background: rgba(255, 246, 228, 0.62) !important;
   color: #5a4020 !important;
@@ -50436,7 +50471,7 @@ html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPan
   margin-top: 0 !important;
 }
 
-/* Mini chord backing playback: current measure and solo controls. */
+/* Mini chord backing playback: current measure. */
 .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.is-playing {
   z-index: 6;
   border-color: rgba(255, 220, 128, 0.78) !important;
@@ -50460,44 +50495,6 @@ html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPan
   box-shadow: none !important;
 }
 
-.miniChordMakerPanelCompact .miniChordBackingControlLine {
-  grid-template-columns: minmax(42px, 0.62fr) minmax(84px, 1fr) 36px 58px;
-}
-
-.miniChordMakerPanelCompact .miniChordSoloToggle {
-  display: inline-grid;
-  place-items: center;
-  min-width: 0;
-  min-height: 30px;
-  padding: 0 8px;
-  border: 1px solid rgba(207, 157, 73, 0.3);
-  border-radius: 7px;
-  background: rgba(0, 0, 0, 0.18);
-  color: rgba(244, 215, 154, 0.72);
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0;
-}
-
-.miniChordMakerPanelCompact .miniChordSoloToggle.is-solo {
-  border-color: rgba(255, 218, 137, 0.86);
-  background: linear-gradient(180deg, #e8b65c 0%, #8f5d21 100%);
-  color: #080705;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 245, 206, 0.28),
-    0 0 15px rgba(232, 182, 92, 0.26);
-}
-
-.miniChordMakerPanelCompact .miniChordBackingRow.is-solo {
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 218, 137, 0.42),
-    0 0 18px rgba(232, 182, 92, 0.14);
-}
-
-.miniChordMakerPanelCompact .miniChordBackingRow.is-solo-muted {
-  opacity: 0.58;
-}
-
 html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.is-playing {
   border-color: rgba(169, 112, 35, 0.72) !important;
   background:
@@ -50514,26 +50511,9 @@ html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPan
   text-shadow: none;
 }
 
-html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordSoloToggle {
-  border-color: rgba(151, 102, 39, 0.28);
-  background: rgba(255, 250, 239, 0.72);
-  color: #6a4b22;
-}
-
-html body main.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordSoloToggle.is-solo {
-  border-color: rgba(151, 102, 39, 0.62);
-  background: linear-gradient(180deg, #fff2d4, #d4a653);
-  color: #3f2a10;
-}
-
 @media (max-width: 374px) {
   .miniChordMakerPanelCompact .miniChordBackingControlLine {
-    grid-template-columns: minmax(38px, 0.5fr) minmax(70px, 1fr) 34px 50px;
-  }
-
-  .miniChordMakerPanelCompact .miniChordSoloToggle {
-    padding: 0 5px;
-    font-size: 10px;
+    grid-template-columns: 38px minmax(0, 1fr) 34px;
   }
 }
 
@@ -54705,6 +54685,109 @@ html body main.app.app.app
   }
 }
 
+/* Rhythm, single-note, and scale BPM panels: make count-in ON/OFF state immediately visible. */
+@media (max-width: 720px) {
+  html body main.app.app.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .stage3BpmActionPanel
+    button.metronomeHeroCountInButton.countInToggleButton,
+  html body main.app.app.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeHeroActionPanel.referenceMetronomeActionPanel
+    button.metronomeHeroCountInButton.countInToggleButton {
+    align-self: center !important;
+    justify-self: stretch !important;
+    min-height: 34px !important;
+    height: 34px !important;
+    margin: 5px 4px !important;
+    padding: 0 7px !important;
+    border: 1px solid rgba(139, 105, 61, 0.2) !important;
+    border-radius: 999px !important;
+    background:
+      linear-gradient(180deg, rgba(121, 91, 54, 0.08), rgba(121, 91, 54, 0.035)) !important;
+    color: rgba(112, 81, 43, 0.48) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34) !important;
+    opacity: 0.78 !important;
+  }
+
+  html body main.app.app.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .stage3BpmActionPanel
+    button.metronomeHeroCountInButton.countInToggleButton
+    :is(span, svg),
+  html body main.app.app.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeHeroActionPanel.referenceMetronomeActionPanel
+    button.metronomeHeroCountInButton.countInToggleButton
+    :is(span, svg) {
+    color: currentColor !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+
+  html body main.app.app.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .stage3BpmActionPanel
+    button.metronomeHeroCountInButton.countInToggleButton:is(.selected, [aria-pressed="true"]),
+  html body main.app.app.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeHeroActionPanel.referenceMetronomeActionPanel
+    button.metronomeHeroCountInButton.countInToggleButton:is(.selected, [aria-pressed="true"]) {
+    border-color: rgba(255, 219, 128, 0.78) !important;
+    background:
+      radial-gradient(circle at 32% 0%, rgba(255, 255, 255, 0.82), transparent 44%),
+      linear-gradient(180deg, #fff5cd 0%, #f2c461 100%) !important;
+    color: #24190a !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      0 0 0 1px rgba(255, 238, 181, 0.22),
+      0 7px 16px rgba(180, 117, 24, 0.22) !important;
+    opacity: 1 !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .stage3BpmActionPanel
+    button.metronomeHeroCountInButton.countInToggleButton,
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeHeroActionPanel.referenceMetronomeActionPanel
+    button.metronomeHeroCountInButton.countInToggleButton {
+    border-color: rgba(217, 170, 85, 0.2) !important;
+    background:
+      linear-gradient(180deg, rgba(217, 170, 85, 0.08), rgba(217, 170, 85, 0.025)) !important;
+    color: rgba(243, 211, 147, 0.48) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 231, 169, 0.08) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .stage3BpmActionPanel
+    button.metronomeHeroCountInButton.countInToggleButton:is(.selected, [aria-pressed="true"]),
+  html body main.app.theme-brand.theme-brand.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard
+    .metronomeHeroActionPanel.referenceMetronomeActionPanel
+    button.metronomeHeroCountInButton.countInToggleButton:is(.selected, [aria-pressed="true"]) {
+    border-color: rgba(255, 226, 145, 0.9) !important;
+    background:
+      radial-gradient(circle at 32% 0%, rgba(255, 255, 255, 0.82), transparent 44%),
+      linear-gradient(180deg, #fff2c4 0%, #d9aa55 100%) !important;
+    color: #1f1608 !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.76),
+      0 0 18px rgba(217, 170, 85, 0.34) !important;
+  }
+}
+
 /* Mobile standalone metronome: keep the rhythm sweep bar anchored above the beat panel. */
 @media (max-width: 720px) {
   main.app
@@ -54728,10 +54811,20 @@ html body main.app.app.app
     .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
     .metronomeBeatMatrix--main
     .metronomeBeatBar {
+    aspect-ratio: auto !important;
+    box-sizing: border-box !important;
     position: absolute !important;
     top: 12% !important;
     bottom: 12% !important;
     left: 12px !important;
+    width: 3px !important;
+    min-width: 3px !important;
+    max-width: 3px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 0 !important;
+    border: 0 !important;
     z-index: 5 !important;
     display: block !important;
     visibility: visible !important;
