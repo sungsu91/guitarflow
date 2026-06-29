@@ -54891,3 +54891,1676 @@ html body main.app.app.app .referenceStandaloneMetronomeDeck.standaloneMetronome
   touch-action: none !important;
   overscroll-behavior: contain !important;
 }
+
+/* Mini chord picker: shared chord-builder logic, compressed for the floating editor. */
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordChordPopover {
+  width: min(284px, calc(100vw - 16px)) !important;
+  max-height: min(440px, calc(100dvh - 16px)) !important;
+  gap: 7px !important;
+  padding: 9px !important;
+  border-color: rgba(162, 121, 51, 0.48) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 239, 0.99), rgba(246, 234, 211, 0.99)) !important;
+  color: #2d2418 !important;
+  box-shadow: 0 18px 34px rgba(79, 55, 21, 0.24) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid rgba(162, 121, 51, 0.36);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fff8e8 0%, #efd9aa 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerHeader span,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBuilderMiniSection > span {
+  color: #7b5b25;
+  font-size: 10px;
+  font-weight: 1000;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerHeader strong {
+  grid-column: 2;
+  justify-self: center;
+  min-width: 0;
+  max-width: 128px;
+  color: #1d160d !important;
+  font-size: 20px;
+  font-weight: 1000;
+  letter-spacing: 0;
+  line-height: 1;
+  overflow: hidden;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBuilderMini {
+  display: grid;
+  gap: 6px;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBuilderMiniSection {
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid rgba(162, 121, 51, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 248, 232, 0.82);
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerSegment--accidental {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-radius: 8px;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerRoots,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerQualities,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerExtensions {
+  display: grid;
+  gap: 4px;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerRoots {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerQualities {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerExtensions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerSegment button,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerRoots button,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerQualities button,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerExtensions button,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerActions button {
+  min-width: 0;
+  min-height: 29px;
+  padding: 0 5px;
+  border: 1px solid rgba(162, 121, 51, 0.28);
+  border-radius: 7px;
+  background: #fffaf0;
+  color: #3a2b17;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerRoots button {
+  min-height: 31px;
+  font-size: 12px;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact :is(
+  .miniChordPickerSegment,
+  .miniChordPickerRoots,
+  .miniChordPickerQualities,
+  .miniChordPickerExtensions
+) button.selected,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerActions button.primary {
+  border-color: rgba(126, 84, 25, 0.72);
+  background: linear-gradient(180deg, #f0c46b 0%, #be842e 100%);
+  color: #1d1206;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.76);
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact :is(
+  .miniChordPickerSegment,
+  .miniChordPickerRoots,
+  .miniChordPickerQualities,
+  .miniChordPickerExtensions,
+  .miniChordPickerActions
+) button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordPickerActions {
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: 5px;
+}
+
+/* Mini chord cells: code text gets almost the full cell; repeat symbols float above it. */
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.hasEnding,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.hasSymbols {
+  min-height: 64px !important;
+  contain: none !important;
+  overflow: hidden !important;
+  padding-top: 13px !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatStart::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatEnd::after {
+  content: none !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBarNumber {
+  display: none !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBarGhostNumber {
+  position: absolute !important;
+  top: 18px !important;
+  left: 5px !important;
+  z-index: 17 !important;
+  display: block !important;
+  color: rgba(126, 84, 25, 0.22) !important;
+  font-size: 6px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnding {
+  top: 0 !important;
+  bottom: auto !important;
+  z-index: 44 !important;
+  height: 16px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: rgba(126, 84, 25, 0.62) !important;
+  outline-offset: -1px !important;
+  pointer-events: auto !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd {
+  top: 0 !important;
+  bottom: 0 !important;
+  z-index: 48 !important;
+  width: 16px !important;
+  height: auto !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart {
+  left: 0 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd {
+  right: 0 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnding {
+  left: 18px !important;
+  right: 18px !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnding.active::after {
+  content: none !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart.active::after,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd.active::after {
+  position: absolute !important;
+  top: 16px !important;
+  display: block !important;
+  color: rgba(126, 84, 25, 0.76) !important;
+  font-size: 14px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
+  text-shadow: 0 0 0.5px rgba(126, 84, 25, 0.5) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart.active::after {
+  left: 1px !important;
+  content: "|:" !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd.active::after {
+  right: 1px !important;
+  content: ":|" !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBarMarkLane {
+  top: 1px !important;
+  left: 2px !important;
+  right: 2px !important;
+  z-index: 12 !important;
+  height: 16px !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordSymbolStack {
+  top: 0 !important;
+  right: 2px !important;
+  left: auto !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 1px !important;
+  max-width: calc(100% - 16px) !important;
+  overflow: visible !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .hasEnding .miniChordSymbolStack {
+  top: 0 !important;
+  max-width: calc(100% - 30px) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordSymbolStack i {
+  max-width: 34px !important;
+  min-height: 12px !important;
+  padding: 0 3px !important;
+  border-radius: 999px !important;
+  font-size: 7px !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .barEndingBracket {
+  top: 0 !important;
+  left: 2px !important;
+  right: 2px !important;
+  height: 14px !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .barEndingBracket b {
+  top: 2px !important;
+  left: 4px !important;
+  font-size: 8px !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlots {
+  min-height: 52px !important;
+  gap: 0 !important;
+  overflow: visible !important;
+  padding: 1px 0 2px !important;
+  position: relative !important;
+  z-index: 18 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotWrap {
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 19 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotWrap + .miniChordSlotWrap {
+  border-left-color: rgba(143, 123, 88, 0.08) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot {
+  display: grid !important;
+  justify-items: center !important;
+  min-height: 52px !important;
+  padding: 0 !important;
+  position: relative !important;
+  overflow: visible !important;
+  z-index: 20 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot strong,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotLabel {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  overflow: visible !important;
+  color: currentColor !important;
+  font-family: Arial, "Noto Sans KR", sans-serif !important;
+  font-size: 13px !important;
+  font-stretch: condensed !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  text-overflow: clip !important;
+  position: relative !important;
+  z-index: 21 !important;
+  transform: none !important;
+  transform-origin: center !important;
+  text-shadow: 0 0 0.24px currentColor !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotLabel--compact {
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotLabel--small {
+  font-size: 7.8px !important;
+  font-weight: 1000 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotLabel--xsmall {
+  font-family: "Arial Narrow", Arial, "Noto Sans KR", sans-serif !important;
+  font-size: 5.2px !important;
+  font-weight: 950 !important;
+  transform: scaleX(0.78) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotLabel--xxsmall {
+  font-family: "Arial Narrow", Arial, "Noto Sans KR", sans-serif !important;
+  font-size: 4px !important;
+  font-weight: 950 !important;
+  transform: scaleX(0.72) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotLabel--micro {
+  font-family: "Arial Narrow", Arial, "Noto Sans KR", sans-serif !important;
+  font-size: 3.75px !important;
+  font-weight: 900 !important;
+  transform: scaleX(0.68) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotLabel--rest {
+  color: #526e88 !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+  text-shadow: 0 0 0.28px rgba(54, 75, 98, 0.62) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot:not(.filled) strong {
+  visibility: hidden !important;
+}
+
+/* Mini chord mark editor: dark tool popover, aligned with the chord picker tone. */
+html body main.app.app.app .miniChordMakerPanelCompact .barEndingPopover {
+  width: min(232px, calc(100vw - 18px)) !important;
+  max-height: min(390px, calc(100dvh - 18px)) !important;
+  gap: 7px !important;
+  padding: 9px !important;
+  border: 1px solid rgba(229, 190, 118, 0.48) !important;
+  border-radius: 10px !important;
+  background:
+    radial-gradient(circle at 24% 0%, rgba(229, 190, 118, 0.16), transparent 34%),
+    linear-gradient(180deg, rgba(23, 19, 13, 0.98), rgba(3, 4, 4, 0.98)) !important;
+  color: #f7dfae !important;
+  box-shadow: 0 18px 34px rgba(23, 14, 4, 0.46) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .barEndingPopover .miniChordPickerTitle {
+  min-height: 22px !important;
+  padding: 4px 6px !important;
+  border: 1px solid rgba(229, 190, 118, 0.18) !important;
+  border-radius: 7px !important;
+  background: rgba(255, 239, 200, 0.08) !important;
+  color: rgba(255, 229, 174, 0.78) !important;
+  font-size: 10px !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.15 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .barMarkSectionLabel {
+  display: block !important;
+  color: rgba(255, 229, 174, 0.68) !important;
+  font-size: 9px !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact :is(
+  .barEndingOptions,
+  .barMarkIndexOptions,
+  .barMarkerOptions,
+  .barCommandOptions
+) {
+  display: grid !important;
+  gap: 5px !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .barEndingOptions,
+html body main.app.app.app .miniChordMakerPanelCompact .barMarkIndexOptions {
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .barMarkerOptions,
+html body main.app.app.app .miniChordMakerPanelCompact .barCommandOptions {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact :is(
+  .barEndingOptions,
+  .barMarkIndexOptions,
+  .barMarkerOptions,
+  .barCommandOptions
+) button,
+html body main.app.app.app .miniChordMakerPanelCompact .barEndingClear {
+  min-width: 0 !important;
+  min-height: 28px !important;
+  padding: 0 6px !important;
+  border: 1px solid rgba(229, 190, 118, 0.2) !important;
+  border-radius: 7px !important;
+  background: linear-gradient(180deg, rgba(255, 248, 225, 0.14), rgba(255, 232, 184, 0.06)) !important;
+  color: rgba(255, 232, 178, 0.86) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.05 !important;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease, box-shadow 120ms ease !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact :is(
+  .barEndingOptions,
+  .barMarkIndexOptions,
+  .barMarkerOptions,
+  .barCommandOptions
+) button:hover,
+html body main.app.app.app .miniChordMakerPanelCompact :is(
+  .barEndingOptions,
+  .barMarkIndexOptions,
+  .barMarkerOptions,
+  .barCommandOptions
+) button.selected,
+html body main.app.app.app .miniChordMakerPanelCompact .barEndingClear:hover {
+  border-color: rgba(255, 222, 157, 0.72) !important;
+  background: linear-gradient(180deg, #eed293 0%, #936326 100%) !important;
+  color: #130c04 !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 247, 218, 0.7) !important;
+  transform: translateY(-1px) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .barEndingClear {
+  background: rgba(255, 246, 221, 0.94) !important;
+  color: #21180d !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnding::before {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 15px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: linear-gradient(180deg, rgba(126, 84, 25, 0.075), rgba(126, 84, 25, 0.025)) !important;
+  box-shadow: inset 0 -1px 0 rgba(126, 84, 25, 0.08) !important;
+  content: "" !important;
+  pointer-events: none !important;
+  transition: background 120ms ease, box-shadow 120ms ease !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnding:hover::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnding:active::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBar.is-editing .miniChordMarkHotspotEnding::before {
+  background: linear-gradient(180deg, rgba(126, 84, 25, 0.13), rgba(126, 84, 25, 0.045)) !important;
+  box-shadow: inset 0 -1px 0 rgba(126, 84, 25, 0.18) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd::before {
+  position: absolute !important;
+  top: 15px !important;
+  bottom: 0 !important;
+  width: 16px !important;
+  border-radius: 0 !important;
+  background: rgba(126, 84, 25, 0.04) !important;
+  content: "" !important;
+  pointer-events: none !important;
+  transition: background 120ms ease, box-shadow 120ms ease !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart::before {
+  left: 0 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd::before {
+  right: 0 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart:hover::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart:active::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart.active::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd:hover::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd:active::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd.active::before {
+  background: rgba(126, 84, 25, 0.1) !important;
+  box-shadow: inset 0 0 0 1px rgba(126, 84, 25, 0.08) !important;
+}
+
+/* Mini chord mark editor follows the active app theme. */
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .barEndingPopover {
+  border-color: rgba(154, 103, 38, 0.34) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 240, 0.99), rgba(241, 229, 207, 0.99)) !important;
+  color: #2c2114 !important;
+  box-shadow: 0 16px 30px rgba(77, 53, 25, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .barEndingPopover .miniChordPickerTitle {
+  border-color: rgba(154, 103, 38, 0.18) !important;
+  background: rgba(126, 84, 25, 0.07) !important;
+  color: rgba(69, 48, 25, 0.74) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .barMarkSectionLabel {
+  color: rgba(69, 48, 25, 0.64) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact :is(
+  .barEndingOptions,
+  .barMarkIndexOptions,
+  .barMarkerOptions,
+  .barCommandOptions
+) button,
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .barEndingClear {
+  border-color: rgba(143, 123, 88, 0.24) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(239, 228, 207, 0.62)) !important;
+  color: #2e2a22 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact :is(
+  .barEndingOptions,
+  .barMarkIndexOptions,
+  .barMarkerOptions,
+  .barCommandOptions
+) button:hover,
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact :is(
+  .barEndingOptions,
+  .barMarkIndexOptions,
+  .barMarkerOptions,
+  .barCommandOptions
+) button.selected {
+  border-color: rgba(73, 64, 49, 0.52) !important;
+  background: linear-gradient(180deg, #4a4030, #2e2a22) !important;
+  color: #fff7e4 !important;
+  box-shadow: 0 4px 10px rgba(77, 53, 25, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .barEndingClear:hover {
+  border-color: rgba(154, 103, 38, 0.46) !important;
+  background: linear-gradient(180deg, #f4d690, #b98534) !important;
+  color: #1d1408 !important;
+}
+
+/* Mini chord repeat markers: keep click zones passive and draw the symbols from the bar state. */
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatStart::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatEnd::after {
+  position: absolute !important;
+  top: 17px !important;
+  width: auto !important;
+  height: auto !important;
+  border: 0 !important;
+  background: transparent !important;
+  z-index: 52 !important;
+  display: block !important;
+  color: rgba(255, 224, 161, 0.78) !important;
+  font-size: 14px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
+  text-shadow: 0 0 0.5px rgba(255, 224, 161, 0.46) !important;
+  transform: none !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatStart::before {
+  left: 1px !important;
+  content: "|:" !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatEnd::after {
+  right: 1px !important;
+  content: ":|" !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnding::before {
+  transition: none !important;
+  transform: none !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart:hover::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart:active::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart.active::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd:hover::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd:active::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd.active::before {
+  background: rgba(126, 84, 25, 0.04) !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnding:hover::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnding:active::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBar.is-editing .miniChordMarkHotspotEnding::before {
+  background: linear-gradient(180deg, rgba(126, 84, 25, 0.075), rgba(126, 84, 25, 0.025)) !important;
+  box-shadow: inset 0 -1px 0 rgba(126, 84, 25, 0.08) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart.active::after,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd.active::after {
+  display: none !important;
+  content: none !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatStart::before,
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatEnd::after {
+  color: rgba(126, 84, 25, 0.86) !important;
+  text-shadow: 0 0 0.5px rgba(126, 84, 25, 0.46) !important;
+}
+
+/* Mini chord mark hit areas should blend into the measure, not look like separate sections. */
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnding::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnding:hover::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnding:active::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBar.is-editing .miniChordMarkHotspotEnding::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart:hover::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart:active::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotStart.active::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd:hover::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd:active::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnd.active::before {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  content: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+
+/* Mini chord beat labels must stay inside their own beat cell. */
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotWrap,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot strong,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotLabel {
+  max-width: calc(100% - 1px) !important;
+  overflow: hidden !important;
+  text-overflow: clip !important;
+}
+
+/* Repeat marks are a faint full-height overlay, independent from the click hit area. */
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatStart::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatEnd::after {
+  top: 13px !important;
+  bottom: 2px !important;
+  width: 8px !important;
+  height: auto !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: transparent !important;
+  content: "" !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+  text-shadow: none !important;
+  transform: none !important;
+  z-index: 34 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatStart::before {
+  left: 1px !important;
+  border-left: 2px solid rgba(255, 224, 161, 0.42) !important;
+  background:
+    radial-gradient(circle at 6px 40%, rgba(255, 224, 161, 0.44) 0, rgba(255, 224, 161, 0.44) 1.35px, transparent 1.6px),
+    radial-gradient(circle at 6px 60%, rgba(255, 224, 161, 0.44) 0, rgba(255, 224, 161, 0.44) 1.35px, transparent 1.6px) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatEnd::after {
+  right: 1px !important;
+  border-right: 2px solid rgba(255, 224, 161, 0.42) !important;
+  background:
+    radial-gradient(circle at 2px 40%, rgba(255, 224, 161, 0.44) 0, rgba(255, 224, 161, 0.44) 1.35px, transparent 1.6px),
+    radial-gradient(circle at 2px 60%, rgba(255, 224, 161, 0.44) 0, rgba(255, 224, 161, 0.44) 1.35px, transparent 1.6px) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatStart::before {
+  border-left-color: rgba(126, 84, 25, 0.42) !important;
+  background:
+    radial-gradient(circle at 6px 40%, rgba(126, 84, 25, 0.44) 0, rgba(126, 84, 25, 0.44) 1.35px, transparent 1.6px),
+    radial-gradient(circle at 6px 60%, rgba(126, 84, 25, 0.44) 0, rgba(126, 84, 25, 0.44) 1.35px, transparent 1.6px) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar.repeatEnd::after {
+  border-right-color: rgba(126, 84, 25, 0.42) !important;
+  background:
+    radial-gradient(circle at 2px 40%, rgba(126, 84, 25, 0.44) 0, rgba(126, 84, 25, 0.44) 1.35px, transparent 1.6px),
+    radial-gradient(circle at 2px 60%, rgba(126, 84, 25, 0.44) 0, rgba(126, 84, 25, 0.44) 1.35px, transparent 1.6px) !important;
+}
+
+/* Mini chord compact settings: theme-toned controls and capo stepper. */
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordSettingsGrid {
+  gap: 7px !important;
+  padding: 8px !important;
+  background: transparent !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordSettingsGrid .miniChordSwitch {
+  grid-column: 1 / -1 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordSettingsGrid .miniChordField,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordSettingsGrid .miniChordSwitch {
+  min-height: 48px !important;
+  border-color: rgba(217, 170, 85, 0.26) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 232, 179, 0.1), rgba(10, 8, 5, 0.32)),
+    rgba(12, 9, 5, 0.72) !important;
+  color: #ffe8b3 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 209, 0.08) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordSettingsGrid .miniChordField {
+  padding: 7px !important;
+  border: 1px solid rgba(217, 170, 85, 0.26) !important;
+  border-radius: 10px !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordSettingsGrid .miniChordField > span,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordSettingsGrid .miniChordSwitch span {
+  color: rgba(255, 229, 174, 0.82) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordSettingsGrid .miniChordField input,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordCapoStepper {
+  width: 100% !important;
+  min-height: 34px !important;
+  border: 1px solid rgba(217, 170, 85, 0.24) !important;
+  border-radius: 8px !important;
+  background: rgba(5, 5, 4, 0.62) !important;
+  color: #fff0c7 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 209, 0.06) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordCapoStepper {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 24px !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordCapoStepper strong {
+  display: grid !important;
+  place-items: center !important;
+  min-width: 0 !important;
+  color: currentColor !important;
+  font-size: 15px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordCapoStepper > div {
+  display: grid !important;
+  grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
+  border-left: 1px solid rgba(217, 170, 85, 0.2) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordCapoStepper button {
+  display: grid !important;
+  place-items: center !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: currentColor !important;
+  opacity: 0.88 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordCapoStepper button + button {
+  border-top: 1px solid rgba(217, 170, 85, 0.16) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordCapoStepper button:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.28 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordCapoStepper button:not(:disabled):active {
+  background: rgba(217, 170, 85, 0.14) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordSettingsGrid .miniChordField,
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordSettingsGrid .miniChordSwitch {
+  border-color: rgba(143, 123, 88, 0.2) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 244, 0.88), rgba(243, 234, 216, 0.7)) !important;
+  color: #2e2a22 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordSettingsGrid .miniChordField > span,
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordSettingsGrid .miniChordSwitch span {
+  color: rgba(69, 48, 25, 0.72) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordSettingsGrid .miniChordField input,
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoStepper {
+  border-color: rgba(143, 123, 88, 0.22) !important;
+  background: rgba(255, 252, 244, 0.72) !important;
+  color: #1f1a12 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoStepper > div {
+  border-left-color: rgba(143, 123, 88, 0.2) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoStepper button + button {
+  border-top-color: rgba(143, 123, 88, 0.16) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoStepper button:not(:disabled):active {
+  background: rgba(185, 133, 52, 0.16) !important;
+}
+
+/* Mini chord saved-list dropdown: replace native select with a themed load menu. */
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordQuickBar {
+  grid-template-columns: minmax(0, 1fr) 78px 40px !important;
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 70 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadPicker {
+  position: relative !important;
+  min-width: 0 !important;
+  z-index: 78 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadPicker > button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-height: 36px !important;
+  min-width: 0 !important;
+  padding: 0 8px !important;
+  border: 1px solid rgba(217, 170, 85, 0.28) !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 232, 179, 0.12), rgba(10, 8, 5, 0.34)),
+    rgba(12, 9, 5, 0.72) !important;
+  color: #ffe8b3 !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 209, 0.08) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadPicker > button:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.48 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadMenu {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  right: 0 !important;
+  z-index: 180 !important;
+  display: grid !important;
+  width: min(304px, calc(100vw - 26px)) !important;
+  max-height: min(276px, calc(100dvh - 190px)) !important;
+  gap: 4px !important;
+  padding: 7px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border: 1px solid rgba(229, 190, 118, 0.42) !important;
+  border-radius: 12px !important;
+  background:
+    radial-gradient(circle at 24% 0%, rgba(229, 190, 118, 0.14), transparent 34%),
+    linear-gradient(180deg, rgba(24, 19, 12, 0.99), rgba(5, 5, 4, 0.99)) !important;
+  box-shadow: 0 18px 36px rgba(20, 12, 4, 0.42), inset 0 1px 0 rgba(255, 244, 209, 0.08) !important;
+  scrollbar-color: rgba(217, 170, 85, 0.44) transparent !important;
+  scrollbar-width: thin !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadItem {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 24px !important;
+  align-items: stretch !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(229, 190, 118, 0.17) !important;
+  border-radius: 9px !important;
+  background: rgba(255, 239, 200, 0.075) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadItemMain,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadDelete {
+  min-width: 0 !important;
+  min-height: 38px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit !important;
+  font: inherit !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadItemMain {
+  display: grid !important;
+  gap: 2px !important;
+  justify-items: start !important;
+  padding: 6px 7px !important;
+  text-align: left !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadItemMain span,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadItemMain small {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadItemMain span {
+  color: #fff1cb !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.08 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadItemMain small {
+  color: rgba(255, 229, 174, 0.68) !important;
+  font-size: 9px !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.05 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadDelete {
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border-left: 1px solid rgba(229, 190, 118, 0.13) !important;
+  color: rgba(255, 229, 174, 0.72) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadItemMain:active,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadDelete:active {
+  background: rgba(229, 190, 118, 0.14) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordLoadPicker > button {
+  border-color: rgba(143, 123, 88, 0.22) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(239, 228, 207, 0.6)) !important;
+  color: #2e2a22 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordLoadMenu {
+  border-color: rgba(154, 103, 38, 0.32) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 240, 0.99), rgba(241, 229, 207, 0.99)) !important;
+  box-shadow: 0 16px 30px rgba(77, 53, 25, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
+  scrollbar-color: rgba(154, 103, 38, 0.34) transparent !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordLoadItem {
+  border-color: rgba(143, 123, 88, 0.18) !important;
+  background: rgba(255, 252, 244, 0.68) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordLoadItemMain span {
+  color: #261d12 !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordLoadItemMain small {
+  color: rgba(69, 48, 25, 0.62) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordLoadDelete {
+  border-left-color: rgba(143, 123, 88, 0.16) !important;
+  color: rgba(69, 48, 25, 0.6) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordLoadItemMain:active,
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordLoadDelete:active {
+  background: rgba(185, 133, 52, 0.13) !important;
+}
+
+/* Mini chord selected buttons stay ivory, never black, in the compact mobile UI. */
+html body main.app.app.app .miniChordMakerPanelCompact :is(
+  .miniChordSegment button.selected,
+  .miniChordSegment button.selected:hover,
+  .miniChordSegment button.selected:active,
+  .miniChordBeatOptions button.selected,
+  .miniChordBeatOptions button.selected:hover,
+  .miniChordBeatOptions button.selected:active,
+  .miniChordPianoStyleOptions button.selected,
+  .miniChordPianoStyleOptions button.selected:hover,
+  .miniChordPianoStyleOptions button.selected:active
+) {
+  border-color: rgba(202, 145, 52, 0.48) !important;
+  background:
+    linear-gradient(180deg, #fffaf0 0%, #f2dfb6 100%) !important;
+  color: #2f2415 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.86),
+    inset 0 0 0 1px rgba(202, 145, 52, 0.08) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact :is(
+  .miniChordSegment button.selected,
+  .miniChordSegment button.selected:hover,
+  .miniChordSegment button.selected:active,
+  .miniChordBeatOptions button.selected,
+  .miniChordBeatOptions button.selected:hover,
+  .miniChordBeatOptions button.selected:active,
+  .miniChordPianoStyleOptions button.selected,
+  .miniChordPianoStyleOptions button.selected:hover,
+  .miniChordPianoStyleOptions button.selected:active
+) {
+  border-color: rgba(178, 128, 47, 0.44) !important;
+  background:
+    linear-gradient(180deg, #fffaf0 0%, #f3e4c1 100%) !important;
+  color: #2a2115 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    inset 0 0 0 1px rgba(178, 128, 47, 0.1) !important;
+}
+
+/* Mini chord mobile controls: match the existing RIFFLAB gold action tone. */
+html body main.app.app.app .miniChordMakerPanelCompact :is(
+  .miniChordCompactSettings summary,
+  .miniChordLoadPicker > button,
+  .miniChordSegment button.selected,
+  .miniChordSegment button.selected:hover,
+  .miniChordSegment button.selected:active,
+  .miniChordBeatOptions button.selected,
+  .miniChordBeatOptions button.selected:hover,
+  .miniChordBeatOptions button.selected:active,
+  .miniChordPianoStyleOptions button.selected,
+  .miniChordPianoStyleOptions button.selected:hover,
+  .miniChordPianoStyleOptions button.selected:active
+) {
+  border-color: rgba(171, 119, 40, 0.42) !important;
+  background: linear-gradient(180deg, #f8e8bd 0%, #d8ad5a 100%) !important;
+  color: #241809 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 251, 236, 0.78),
+    0 1px 2px rgba(101, 72, 30, 0.12) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordCompactSettings summary span,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordCompactSettings summary b {
+  color: #241809 !important;
+}
+
+.miniChordMakerPanelCompact .barEndingClear {
+  border-color: rgba(143, 123, 88, 0.24) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(239, 228, 207, 0.68)) !important;
+  color: #2e2a22 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  transform: none !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .barEndingClear,
+html body main.app.app.app .miniChordMakerPanelCompact .barEndingClear:hover {
+  border-color: rgba(143, 123, 88, 0.24) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(239, 228, 207, 0.68)) !important;
+  color: #2e2a22 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  transform: none !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .barEndingClear,
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .barEndingClear:hover {
+  border-color: rgba(143, 123, 88, 0.24) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(239, 228, 207, 0.68)) !important;
+  color: #2e2a22 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  transform: none !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact :is(
+  .miniChordCompactSettings summary,
+  .miniChordLoadPicker > button,
+  .miniChordSegment button.selected,
+  .miniChordBeatOptions button.selected,
+  .miniChordPianoStyleOptions button.selected
+) {
+  border-color: rgba(171, 119, 40, 0.42) !important;
+  background: linear-gradient(180deg, #f7e7bb 0%, #d6ac59 100%) !important;
+  color: #241809 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 251, 236, 0.82),
+    0 1px 2px rgba(101, 72, 30, 0.1) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCompactSettings summary span,
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCompactSettings summary b {
+  color: #241809 !important;
+}
+
+/* Mini chord popovers must sit above every compact control while open. */
+html body main.app.app.app .miniChordMakerPanelCompact {
+  isolation: isolate !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact:has(.miniChordChordPopover, .barEndingPopover) .miniChordQuickBar,
+html body main.app.app.app .miniChordMakerPanelCompact:has(.miniChordChordPopover, .barEndingPopover) .miniChordMeasureStrip,
+html body main.app.app.app .miniChordMakerPanelCompact:has(.miniChordChordPopover, .barEndingPopover) .miniChordCompactSettings,
+html body main.app.app.app .miniChordMakerPanelCompact:has(.miniChordChordPopover, .barEndingPopover) .miniChordBackingPanel {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact:has(.miniChordChordPopover, .barEndingPopover) .miniChordTimelinePanelCompact {
+  position: relative !important;
+  z-index: 2400 !important;
+  overflow: visible !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact:has(.miniChordChordPopover, .barEndingPopover) .miniChordTimelineFour,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordBar:has(.miniChordChordPopover, .barEndingPopover),
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlotWrap:has(.miniChordChordPopover),
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot:has(.miniChordChordPopover) {
+  overflow: visible !important;
+  z-index: 2450 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordChordPopover,
+html body main.app.app.app .miniChordMakerPanelCompact .barEndingPopover {
+  z-index: 3200 !important;
+}
+
+/* Mini chord color correction: muted RIFFLAB beige, not yellow-gold. */
+html body main.app.app.app .miniChordMakerPanelCompact :is(
+  .miniChordCompactSettings summary,
+  .miniChordLoadPicker > button,
+  .miniChordSegment button.selected,
+  .miniChordSegment button.selected:hover,
+  .miniChordBeatOptions button.selected,
+  .miniChordBeatOptions button.selected:hover,
+  .miniChordPianoStyleOptions button.selected,
+  .miniChordPianoStyleOptions button.selected:hover,
+  .miniChordPickerSegment button.selected,
+  .miniChordPickerRoots button.selected,
+  .miniChordPickerQualities button.selected,
+  .miniChordPickerExtensions button.selected,
+  .miniChordPickerActions button.primary,
+  .barEndingOptions button.selected,
+  .barMarkerOptions button.selected,
+  .barCommandOptions button.selected
+) {
+  border-color: rgba(133, 111, 78, 0.34) !important;
+  background: linear-gradient(180deg, #f0e6d5 0%, #d9c8aa 100%) !important;
+  color: #2f2619 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 0 0 1px rgba(133, 111, 78, 0.06) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact :is(.miniChordCompactSettings summary span, .miniChordCompactSettings summary b) {
+  color: #2f2619 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordSwitch input {
+  accent-color: #8f7b5b !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .barEndingClear,
+html body main.app.app.app .miniChordMakerPanelCompact .barEndingClear:hover,
+html body main.app.app.app .miniChordMakerPanelCompact .barEndingClear:active {
+  border-color: rgba(133, 111, 78, 0.24) !important;
+  background: linear-gradient(180deg, #fbf7ef 0%, #ebe0cf 100%) !important;
+  color: #2f2a22 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86) !important;
+  transform: none !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact :is(
+  .miniChordCompactSettings summary,
+  .miniChordLoadPicker > button,
+  .miniChordSegment button.selected,
+  .miniChordSegment button.selected:hover,
+  .miniChordBeatOptions button.selected,
+  .miniChordBeatOptions button.selected:hover,
+  .miniChordPianoStyleOptions button.selected,
+  .miniChordPianoStyleOptions button.selected:hover,
+  .miniChordPickerSegment button.selected,
+  .miniChordPickerRoots button.selected,
+  .miniChordPickerQualities button.selected,
+  .miniChordPickerExtensions button.selected,
+  .miniChordPickerActions button.primary,
+  .barEndingOptions button.selected,
+  .barMarkerOptions button.selected,
+  .barCommandOptions button.selected
+) {
+  border-color: rgba(133, 111, 78, 0.34) !important;
+  background: linear-gradient(180deg, #f0e6d5 0%, #d9c8aa 100%) !important;
+  color: #2f2619 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.84),
+    inset 0 0 0 1px rgba(133, 111, 78, 0.06) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact :is(.miniChordCompactSettings summary span, .miniChordCompactSettings summary b) {
+  color: #2f2619 !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .barEndingClear,
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .barEndingClear:hover,
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .barEndingClear:active {
+  border-color: rgba(133, 111, 78, 0.24) !important;
+  background: linear-gradient(180deg, #fbf7ef 0%, #ebe0cf 100%) !important;
+  color: #2f2a22 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86) !important;
+  transform: none !important;
+}
+
+/* Mini chord final glass-ivory buttons: mirror the Stage3 backing control finish. */
+html body main.app.app.app .miniChordMakerPanelCompact :is(
+  .miniChordLoadPicker > button,
+  .miniChordCompactSettings summary,
+  .miniChordPickerSegment button,
+  .miniChordPickerRoots button,
+  .miniChordPickerQualities button,
+  .miniChordPickerExtensions button,
+  .miniChordPickerActions button,
+  .barEndingOptions button,
+  .barMarkerOptions button,
+  .barCommandOptions button,
+  .barEndingClear
+) {
+  border-color: rgba(116, 78, 52, 0.28) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 250, 0.86), rgba(225, 201, 190, 0.22)),
+    #fbf5f0 !important;
+  color: #211813 !important;
+  box-shadow:
+    0 3px 8px rgba(103, 72, 56, 0.08),
+    0 0 0 1px rgba(255, 252, 249, 0.58) inset,
+    inset 0 -1px 0 rgba(116, 78, 52, 0.1) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact :is(
+  .miniChordSegment button.selected,
+  .miniChordSegment button.selected:hover,
+  .miniChordBeatOptions button.selected,
+  .miniChordBeatOptions button.selected:hover,
+  .miniChordPianoStyleOptions button.selected,
+  .miniChordPianoStyleOptions button.selected:hover,
+  .miniChordPickerSegment button.selected,
+  .miniChordPickerRoots button.selected,
+  .miniChordPickerQualities button.selected,
+  .miniChordPickerExtensions button.selected,
+  .miniChordPickerActions button.primary,
+  .barEndingOptions button.selected,
+  .barMarkerOptions button.selected,
+  .barCommandOptions button.selected
+) {
+  border-color: rgba(128, 85, 45, 0.58) !important;
+  background:
+    radial-gradient(circle at 34% 12%, rgba(255, 249, 237, 0.82), transparent 44%),
+    linear-gradient(180deg, #edd9b7 0%, #d7b274 100%) !important;
+  color: #1d130c !important;
+  box-shadow:
+    0 5px 12px rgba(103, 72, 56, 0.13),
+    0 0 0 1px rgba(255, 249, 237, 0.58) inset,
+    inset 0 -1px 0 rgba(128, 85, 45, 0.18) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordCompactSettings summary span,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordCompactSettings summary b {
+  color: #211813 !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact :is(
+  .miniChordLoadPicker > button,
+  .miniChordCompactSettings summary,
+  .miniChordPickerSegment button,
+  .miniChordPickerRoots button,
+  .miniChordPickerQualities button,
+  .miniChordPickerExtensions button,
+  .miniChordPickerActions button,
+  .barEndingOptions button,
+  .barMarkerOptions button,
+  .barCommandOptions button,
+  .barEndingClear
+) {
+  border-color: rgba(116, 78, 52, 0.28) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 250, 0.86), rgba(225, 201, 190, 0.22)),
+    #fbf5f0 !important;
+  color: #211813 !important;
+  box-shadow:
+    0 3px 8px rgba(103, 72, 56, 0.08),
+    0 0 0 1px rgba(255, 252, 249, 0.58) inset,
+    inset 0 -1px 0 rgba(116, 78, 52, 0.1) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact :is(
+  .miniChordSegment button.selected,
+  .miniChordSegment button.selected:hover,
+  .miniChordBeatOptions button.selected,
+  .miniChordBeatOptions button.selected:hover,
+  .miniChordPianoStyleOptions button.selected,
+  .miniChordPianoStyleOptions button.selected:hover,
+  .miniChordPickerSegment button.selected,
+  .miniChordPickerRoots button.selected,
+  .miniChordPickerQualities button.selected,
+  .miniChordPickerExtensions button.selected,
+  .miniChordPickerActions button.primary,
+  .barEndingOptions button.selected,
+  .barMarkerOptions button.selected,
+  .barCommandOptions button.selected
+) {
+  border-color: rgba(128, 85, 45, 0.58) !important;
+  background:
+    radial-gradient(circle at 34% 12%, rgba(255, 249, 237, 0.82), transparent 44%),
+    linear-gradient(180deg, #edd9b7 0%, #d7b274 100%) !important;
+  color: #1d130c !important;
+  box-shadow:
+    0 5px 12px rgba(103, 72, 56, 0.13),
+    0 0 0 1px rgba(255, 249, 237, 0.58) inset,
+    inset 0 -1px 0 rgba(128, 85, 45, 0.18) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCompactSettings summary span,
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCompactSettings summary b {
+  color: #211813 !important;
+}
+
+/* Mini chord BPM card: copied from the metronome transport, but scoped only to mini chord. */
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmPanel {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 23% 54% 23% !important;
+  grid-template-rows: 84px 44px !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  width: 100% !important;
+  min-height: 128px !important;
+  max-height: 128px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid rgba(169, 123, 66, 0.22) !important;
+  border-radius: 17px !important;
+  background:
+    radial-gradient(circle at 50% -18%, rgba(255, 255, 255, 0.78), transparent 48%),
+    linear-gradient(180deg, rgba(255, 252, 246, 0.9), rgba(247, 238, 224, 0.78)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.84),
+    0 9px 18px rgba(88, 58, 28, 0.07) !important;
+  overflow: hidden !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmPanel::before,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmPanel::after {
+  position: absolute !important;
+  top: 18px !important;
+  z-index: 1 !important;
+  width: 1px !important;
+  height: 50px !important;
+  background: rgba(169, 123, 66, 0.15) !important;
+  content: "" !important;
+  pointer-events: none !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmPanel::before {
+  left: 23% !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmPanel::after {
+  right: 23% !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmAdjustGroup {
+  z-index: 2 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: 26px 10px 26px !important;
+  align-content: center !important;
+  align-items: center !important;
+  justify-items: center !important;
+  gap: 0 !important;
+  height: 84px !important;
+  min-height: 84px !important;
+  max-height: 84px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 11px 0 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmAdjustGroup--down {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmAdjustGroup--up {
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmAdjustGroup > button {
+  all: unset !important;
+  box-sizing: border-box !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 26px !important;
+  min-height: 26px !important;
+  max-height: 26px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  line-height: 26px !important;
+  text-align: center !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmStepButton {
+  grid-row: 1 !important;
+  color: #201b14 !important;
+  font-size: 28px !important;
+  font-weight: 1000 !important;
+  text-shadow:
+    0.35px 0 currentColor,
+    -0.35px 0 currentColor,
+    0 1px 0 rgba(255, 255, 255, 0.62) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmJumpButton {
+  grid-row: 3 !important;
+  color: #9c7036 !important;
+  font-size: 16px !important;
+  font-weight: 1000 !important;
+  text-shadow:
+    0.28px 0 currentColor,
+    -0.28px 0 currentColor,
+    0 1px 0 rgba(255, 255, 255, 0.66) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmAdjustDivider {
+  grid-row: 2 !important;
+  display: block !important;
+  width: 28px !important;
+  height: 2px !important;
+  border-radius: 999px !important;
+  background: rgba(169, 123, 66, 0.18) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmValue {
+  z-index: 2 !important;
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  display: grid !important;
+  grid-template-rows: auto auto !important;
+  align-content: center !important;
+  align-items: center !important;
+  justify-items: center !important;
+  gap: 1px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 4px 2px 3px !important;
+  border: 0 !important;
+  pointer-events: none !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmValue strong {
+  grid-row: 1 !important;
+  color: #171b1e !important;
+  font-size: clamp(50px, 15vw, 58px) !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0 !important;
+  line-height: 0.82 !important;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.82),
+    0 6px 12px rgba(65, 45, 22, 0.1) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmValue span {
+  grid-row: 2 !important;
+  display: block !important;
+  color: #9c7036 !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0.14em !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmActionPanel {
+  position: relative !important;
+  z-index: 2 !important;
+  grid-column: 1 / -1 !important;
+  grid-row: 2 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  min-height: 44px !important;
+  margin: 0 14px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(169, 123, 66, 0.15) !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(to right, transparent 0 calc(50% - 0.5px), rgba(169, 123, 66, 0.15) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px) 100%) !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact :is(.miniChordBpmPlayButton, .miniChordBpmTapButton) {
+  all: unset !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  z-index: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  padding: 0 6px !important;
+  color: #8d642f !important;
+  cursor: pointer !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmActionIcon,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTapTempoIcon {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 24px !important;
+  height: 24px !important;
+  color: #1d1d1b !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTapTempoIcon {
+  width: 31px !important;
+  height: 31px !important;
+  overflow: hidden !important;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.9), rgba(247, 238, 224, 0.78)) !important;
+  mix-blend-mode: multiply !important;
+  opacity: 0.94 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTapTempoGlyph {
+  width: 31px !important;
+  height: 31px !important;
+  overflow: visible !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact :is(
+  .miniChordTapTempoGlyphRay,
+  .miniChordTapTempoGlyphRing,
+  .miniChordTapTempoGlyphHand
+) {
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  stroke-width: 4.2 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordTapTempoGlyphHand {
+  fill: rgba(141, 100, 47, 0.08) !important;
+  stroke-width: 4.7 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmTapButton:active .miniChordTapTempoGlyph,
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmTapButton.is-tapping .miniChordTapTempoGlyph {
+  transform: translateY(1px) scale(0.96) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmActionText {
+  color: #8d642f !important;
+  font-size: 10px !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0.04em !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact:has(.miniChordChordPopover, .barEndingPopover) .miniChordBpmPanel {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+@media (max-width: 374px) {
+  html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmPanel {
+    grid-template-rows: 80px 42px !important;
+    min-height: 122px !important;
+    max-height: 122px !important;
+  }
+
+  html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmAdjustGroup {
+    grid-template-rows: 25px 8px 25px !important;
+    height: 80px !important;
+    min-height: 80px !important;
+    max-height: 80px !important;
+    padding: 11px 0 !important;
+  }
+
+  html body main.app.app.app .miniChordMakerPanelCompact .miniChordBpmValue strong {
+    font-size: 50px !important;
+  }
+}

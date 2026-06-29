@@ -1,5 +1,7 @@
 ﻿import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ChevronDown,
+  ChevronUp,
   FolderOpen,
   Gamepad2,
   Grid3X3,
@@ -15,6 +17,7 @@ import {
   Timer,
   Volume2,
   VolumeX,
+  X,
 } from "lucide-react";
 import { createPortal, flushSync } from "react-dom";
 import BrandHeader from "./components/BrandHeader";
@@ -1634,6 +1637,14 @@ function getChordBuilderPositionTemplates(quality, extension) {
 
 function isChordBuilderPositionSupported(quality, extension) {
   return getChordBuilderPositionTemplates(quality, extension).length > 0;
+}
+
+function isChordViewerSelectionSupported(quality, extension) {
+  const safeExtension = normalizeChordExtensionForQuality(quality, extension);
+  return (
+    isChordBuilderPositionSupported(quality, safeExtension) ||
+    getChordShapeTemplates(quality, safeExtension).length > 0
+  );
 }
 
 function getChordBuilderPositionCandidates(root, quality, extension) {
@@ -5171,6 +5182,24 @@ function TapTempoGlyph() {
   );
 }
 
+function MiniChordTapTempoGlyph() {
+  return (
+    <span className="miniChordTapTempoIcon" aria-hidden="true">
+      <svg className="miniChordTapTempoGlyph" viewBox="0 0 68 70" focusable="false">
+        <path className="miniChordTapTempoGlyphRay" d="M13 10 L20 17" />
+        <path className="miniChordTapTempoGlyphRay" d="M32 4 L32 14" />
+        <path className="miniChordTapTempoGlyphRay" d="M51 10 L44 17" />
+        <path className="miniChordTapTempoGlyphRing" d="M14 33 C14 22 22 15 32 15 C42 15 50 22 50 33" />
+        <path className="miniChordTapTempoGlyphRing miniChordTapTempoGlyphRing--inner" d="M21 33 C21 26 26 22 32 22 C38 22 43 26 43 33" />
+        <path
+          className="miniChordTapTempoGlyphHand"
+          d="M30.5 57 V29.5 C30.5 25.8 33.1 23.4 36.1 23.4 C39.2 23.4 41.6 25.9 41.6 29.5 V38.4 C42.8 36.8 44.5 36 46.3 36 C49.3 36 51.2 38.2 51.4 41.1 C52.5 39.9 54 39.3 55.6 39.3 C58.8 39.3 61 41.8 61 45.4 V57 C61 61.6 57.7 64 52.6 64 H36.7 C32.6 64 30.1 62.1 27.7 58.9 L18.1 46.2 C16 43.4 16.5 40.2 19.1 38.4 C21.5 36.8 24.3 37.4 26.3 40 L30.5 45.5"
+        />
+      </svg>
+    </span>
+  );
+}
+
 function MetronomeVisualLabPickSwing({ activeBeat, beatPattern, isPlaying }) {
   const beatState = beatPattern[activeBeat] ?? METRONOME_BEAT_STATES.ACCENT;
   const swingDirection = activeBeat % 2 === 0 ? -1 : 1;
@@ -7624,8 +7653,7 @@ const MINI_CHORD_MIN_BARS = 4;
 const MINI_CHORD_MAX_BARS = 32;
 const MINI_CHORD_SLOTS_PER_BAR = 2;
 const MINI_CHORD_BARS_PER_PAGE = 4;
-const MINI_CHORD_PICKER_SHARP_ROOTS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-const MINI_CHORD_PICKER_FLAT_ROOTS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+const MINI_CHORD_REST_LABEL = "N.C.";
 const MINI_CHORD_MARKER_INDEX_OPTIONS = [1, 2, 3, 4, 5];
 const MINI_CHORD_LOCATION_MARKER_OPTIONS = [
   { value: "segno", label: "Segno", indexed: true },
@@ -7650,18 +7678,68 @@ const MINI_CHORD_COMMAND_ALIASES = {
   dsCoda: "dsAlCoda",
 };
 
-function getMiniChordPickerSuffix(quality, extension) {
-  if (extension === "seven") return quality === "minor" ? "m7" : "7";
-  if (extension === "minor7") return "m7";
-  if (extension === "major7") return "M7";
-  if (extension === "minor7Flat5") return "m7b5";
-  if (extension === "dim7") return "dim7";
-  if (extension === "aug") return "aug";
-  return quality === "minor" ? "m" : "";
+const MINI_CHORD_QUALITY_LABELS = {
+  major: "메이저",
+  minor: "마이너",
+  dim: "dim",
+  aug: "aug",
+};
+
+function getMiniChordLabelParts(label = "") {
+  const cleanLabel = String(label ?? "").replace(/\(.*?\)/g, "").trim();
+  const rootMatch = /^([A-G])([#b]?)/.exec(cleanLabel);
+  const baseRoot = CHORD_NATURAL_ROOTS.includes(rootMatch?.[1]) ? rootMatch[1] : "C";
+  const accidental = rootMatch?.[2] === "#" ? "sharp" : rootMatch?.[2] === "b" ? "flat" : "natural";
+  const rootToken = `${baseRoot}${rootMatch?.[2] ?? ""}`;
+  const suffix = rootMatch ? cleanLabel.slice(rootToken.length) : "";
+  const lookupRoot = getChordLookupRoot(baseRoot, accidental);
+  const meta = getChordMetaFromLabel(`${lookupRoot}${suffix}`);
+  const extension = normalizeChordExtensionForQuality(meta.quality, meta.extension);
+  return {
+    baseRoot,
+    accidental,
+    root: lookupRoot,
+    quality: meta.quality,
+    extension,
+    displayName: getChordNameFromParts(baseRoot, accidental, meta.quality, extension),
+  };
 }
 
-function getMiniChordPickerChord(root, quality, extension) {
-  return `${root}${getMiniChordPickerSuffix(quality, extension)}`;
+function getMiniChordPickerChord(baseRoot, accidental, quality, extension) {
+  return getChordNameFromParts(baseRoot, accidental, quality, normalizeChordExtensionForQuality(quality, extension));
+}
+
+function transposeMiniChordLabel(label = "", semitones = 0) {
+  const token = String(label ?? "").trim();
+  if (!token || isMiniChordRestValue(token)) return token;
+  const parts = getMiniChordLabelParts(token);
+  const rootIndex = CHORD_ROOTS.indexOf(parts.root);
+  if (rootIndex < 0) return token;
+  const safeShift = Math.trunc(Number(semitones) || 0);
+  const nextRoot = CHORD_ROOTS[(rootIndex + safeShift + CHORD_ROOTS.length * 8) % CHORD_ROOTS.length];
+  const rootMatch = /^([A-G])(#?)/.exec(nextRoot);
+  const baseRoot = CHORD_NATURAL_ROOTS.includes(rootMatch?.[1]) ? rootMatch[1] : parts.baseRoot;
+  const accidental = rootMatch?.[2] === "#" ? "sharp" : "natural";
+  return getChordNameFromParts(baseRoot, accidental, parts.quality, parts.extension);
+}
+
+function getMiniChordPickerStateFromLabel(label = "", fallback = {}) {
+  const normalizedLabel = String(label ?? "").trim();
+  if (!normalizedLabel || isMiniChordRestValue(normalizedLabel)) {
+    return {
+      baseRoot: fallback.baseRoot ?? "C",
+      accidental: fallback.accidental ?? "natural",
+      quality: fallback.quality ?? "major",
+      extension: normalizeChordExtensionForQuality(fallback.quality ?? "major", fallback.extension ?? "none"),
+    };
+  }
+  const parts = getMiniChordLabelParts(normalizedLabel);
+  return {
+    baseRoot: parts.baseRoot,
+    accidental: parts.accidental,
+    quality: parts.quality,
+    extension: parts.extension,
+  };
 }
 
 function normalizeMiniChordBarCount(value) {
@@ -7737,19 +7815,31 @@ function getMiniChordCommandLabel(command, targetIndex = 1) {
   return "";
 }
 
+function getMiniChordMarkChipLabel(label = "") {
+  const text = String(label ?? "").replace(/^M\d+\s+/, "");
+  const index = text.match(/(\d+)$/)?.[1] ?? "";
+  if (text.startsWith("Segno")) return `S${index}`;
+  if (text.startsWith("To Coda")) return `toC${index}`;
+  if (text.startsWith("Coda")) return `C${index}`;
+  if (text.startsWith("D.S. al Fine")) return `D.S.F${index}`;
+  if (text.startsWith("D.S. al Coda")) return `D.S.C${index}`;
+  if (text.startsWith("D.C. al Fine")) return "D.C.F";
+  if (text.startsWith("D.C. al Coda")) return `D.C.C${index}`;
+  return text;
+}
+
 function getMiniChordActiveMarkIndex(mark = {}) {
   return normalizeMiniChordMarkerIndex(mark.markerIndex ?? mark.targetIndex ?? 1);
 }
 
 function getMiniChordBarMarkLabels(mark = {}, barIndex = null) {
-  const prefix = Number.isInteger(barIndex) ? `M${barIndex + 1} ` : "";
   if (mark.command) {
     const label = getMiniChordCommandLabel(mark.command, mark.targetIndex);
-    return label ? [`${prefix}${label}`] : [];
+    return label ? [label] : [];
   }
   if (mark.marker) {
     const label = getMiniChordLocationMarkerLabel(mark.marker, mark.markerIndex);
-    return label ? [`${prefix}${label}`] : [];
+    return label ? [label] : [];
   }
   return [];
 }
@@ -8018,6 +8108,24 @@ function isMiniChordRestValue(value = "") {
   return !token || token === "휴지" || token === "-" || /^rest$/i.test(token) || /^n\.?c\.?$/i.test(token);
 }
 
+function getMiniChordSlotDisplayLabel(value = "") {
+  const token = String(value ?? "").trim();
+  if (!token) return "";
+  return isMiniChordRestValue(token) ? MINI_CHORD_REST_LABEL : token;
+}
+
+function getMiniChordSlotLabelClassName(value = "") {
+  const label = getMiniChordSlotDisplayLabel(value);
+  const classes = ["miniChordSlotLabel"];
+  if (label.length >= 8) classes.push("miniChordSlotLabel--micro");
+  else if (label.length >= 7) classes.push("miniChordSlotLabel--xxsmall");
+  else if (label.length >= 6) classes.push("miniChordSlotLabel--xsmall");
+  else if (label.length >= 5) classes.push("miniChordSlotLabel--small");
+  else if (label.length >= 4) classes.push("miniChordSlotLabel--compact");
+  if (label === MINI_CHORD_REST_LABEL) classes.push("miniChordSlotLabel--rest");
+  return classes.join(" ");
+}
+
 function getMiniChordBarPlaybackSequence(barCount = 4, marks = {}) {
   const slotSequence = createMiniChordPlaybackSequence(barCount, marks);
   const barSequence = slotSequence
@@ -8042,8 +8150,8 @@ function getMiniChordBackingChordFromLabel(label = "", barIndex = 0, sequenceInd
   if (isMiniChordRestValue(normalizedLabel)) {
     return {
       id: `mini-rest-${barIndex}-${sequenceIndex}`,
-      displayName: "휴지",
-      fretboardDisplayName: "휴지",
+      displayName: MINI_CHORD_REST_LABEL,
+      fretboardDisplayName: MINI_CHORD_REST_LABEL,
       root: "C",
       quality: "rest",
       extension: "none",
@@ -8061,7 +8169,7 @@ function getMiniChordBackingChordFromLabel(label = "", barIndex = 0, sequenceInd
     };
   }
 
-  const meta = getChordMetaFromLabel(normalizedLabel);
+  const meta = getMiniChordLabelParts(normalizedLabel);
   return {
     id: `mini-fallback-${normalizedLabel}-${barIndex}-${sequenceIndex}`,
     displayName: meta.displayName,
@@ -8980,6 +9088,7 @@ function App() {
   const initialMiniChordArrangementRef = useRef(getStoredMiniChordDraftArrangement());
   const [miniChordPianoStyle, setMiniChordPianoStyle] = useState(initialMiniChordArrangementRef.current.pianoStyle);
   const [miniChordSavedItems, setMiniChordSavedItems] = useState(getStoredMiniChordArrangements);
+  const [miniChordLoadOpen, setMiniChordLoadOpen] = useState(false);
   const [miniChordTitle, setMiniChordTitle] = useState(initialMiniChordArrangementRef.current.title);
   const [miniChordBarCount, setMiniChordBarCount] = useState(initialMiniChordArrangementRef.current.barCount);
   const [miniChordSlots, setMiniChordSlots] = useState(initialMiniChordArrangementRef.current.slots);
@@ -8996,13 +9105,15 @@ function App() {
   const [miniChordChordPickerPosition, setMiniChordChordPickerPosition] = useState(null);
   const [miniChordMarkTargetIndex, setMiniChordMarkTargetIndex] = useState(1);
   const [miniChordNotice, setMiniChordNotice] = useState("");
-  const [miniChordPickerAccidental, setMiniChordPickerAccidental] = useState("sharp");
+  const [miniChordPickerBaseRoot, setMiniChordPickerBaseRoot] = useState("C");
+  const [miniChordPickerAccidental, setMiniChordPickerAccidental] = useState("natural");
   const [miniChordPickerQuality, setMiniChordPickerQuality] = useState("major");
-  const [miniChordPickerExtension, setMiniChordPickerExtension] = useState("triad");
+  const [miniChordPickerExtension, setMiniChordPickerExtension] = useState("none");
   const [miniChordPlayhead, setMiniChordPlayhead] = useState(null);
   const [miniChordPlayingBarIndex, setMiniChordPlayingBarIndex] = useState(null);
   const [miniChordIsPlaying, setMiniChordIsPlaying] = useState(false);
   const [miniChordPageIndex, setMiniChordPageIndex] = useState(0);
+  const [miniChordTapTempoPressTick, setMiniChordTapTempoPressTick] = useState(0);
   const [metronomeRepeat, setMetronomeRepeat] = useState(false);
   const [autoBpmMode, setAutoBpmMode] = useState("off");
   const [autoBpmDirection, setAutoBpmDirection] = useState("increase");
@@ -9690,6 +9801,8 @@ function App() {
   const backingBassBeatRef = useRef(STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat);
   const backingPianoBeatRef = useRef(STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat);
   const miniChordPianoStyleRef = useRef(MINI_CHORD_DEFAULT_PIANO_STYLE);
+  const miniChordTapTempoTimesRef = useRef([]);
+  const miniChordTapTempoPressTimerRef = useRef(null);
   const metronomeBarLimitRef = useRef(initialMetronomeTrackerProgressRef.current.barLimit);
   const metronomeBarStopWhenReachedRef = useRef(false);
   const metronomeBarResetWhenReachedRef = useRef(false);
@@ -9916,7 +10029,7 @@ function App() {
   const availableChordExtensionOptions = CHORD_EXTENSION_OPTIONS
     .filter((extension) => isChordExtensionAvailableForQuality(extension, viewerChordQuality))
     .map((extension) => {
-      const isSupported = isChordBuilderPositionSupported(viewerChordQuality, extension.id);
+      const isSupported = isChordViewerSelectionSupported(viewerChordQuality, extension.id);
       const chord = isSupported
         ? getChordFromSelector(viewerChordBaseRoot, viewerChordAccidental, viewerChordQuality, extension.id)
         : null;
@@ -13765,9 +13878,37 @@ function App() {
     changeBpm(Math.round(60000 / averageInterval));
   }, [changeBpm]);
 
+  const changeMiniChordBpm = useCallback((nextBpm) => {
+    setMiniChordNotice("");
+    setMiniChordBpm(clampBpm(nextBpm));
+  }, []);
+
+  const triggerMiniChordTapTempoPressFeedback = useCallback(() => {
+    setMiniChordTapTempoPressTick((tick) => tick + 1);
+    if (miniChordTapTempoPressTimerRef.current != null) window.clearTimeout(miniChordTapTempoPressTimerRef.current);
+    miniChordTapTempoPressTimerRef.current = window.setTimeout(() => {
+      miniChordTapTempoPressTimerRef.current = null;
+      setMiniChordTapTempoPressTick(0);
+    }, 115);
+  }, []);
+
+  const handleMiniChordTapTempo = useCallback(() => {
+    const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+    const nextTimes = [...miniChordTapTempoTimesRef.current.filter((time) => now - time < 2200), now].slice(-6);
+    miniChordTapTempoTimesRef.current = nextTimes;
+    if (nextTimes.length < 2) return;
+
+    const intervals = nextTimes.slice(1).map((time, index) => time - nextTimes[index]);
+    const averageInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
+    if (!Number.isFinite(averageInterval) || averageInterval <= 0) return;
+
+    changeMiniChordBpm(Math.round(60000 / averageInterval));
+  }, [changeMiniChordBpm]);
+
   useEffect(() => () => {
     if (bpmSwipeFrameRef.current != null) window.cancelAnimationFrame(bpmSwipeFrameRef.current);
     if (tapTempoPressTimerRef.current != null) window.clearTimeout(tapTempoPressTimerRef.current);
+    if (miniChordTapTempoPressTimerRef.current != null) window.clearTimeout(miniChordTapTempoPressTimerRef.current);
   }, []);
 
   const renderBpmSwipePreview = useCallback((nextBpm) => {
@@ -15572,9 +15713,25 @@ function App() {
   const miniChordVisibleStartBar = 1;
   const miniChordVisibleEndBar = miniChordBarCount;
   const miniChordVisibleBars = miniChordTimelineBars;
-  const miniChordPickerRoots = miniChordPickerAccidental === "flat"
-    ? MINI_CHORD_PICKER_FLAT_ROOTS
-    : MINI_CHORD_PICKER_SHARP_ROOTS;
+  const miniChordPickerSafeExtension = normalizeChordExtensionForQuality(miniChordPickerQuality, miniChordPickerExtension);
+  const miniChordPickerSelectedLabel = getMiniChordPickerChord(
+    miniChordPickerBaseRoot,
+    miniChordPickerAccidental,
+    miniChordPickerQuality,
+    miniChordPickerSafeExtension,
+  );
+  const miniChordPickerSelectedChord = getChordFromSelector(
+    miniChordPickerBaseRoot,
+    miniChordPickerAccidental,
+    miniChordPickerQuality,
+    miniChordPickerSafeExtension,
+  );
+  const miniChordPickerExtensionOptions = CHORD_EXTENSION_OPTIONS
+    .filter((extension) => isChordExtensionAvailableForQuality(extension, miniChordPickerQuality))
+    .map((extension) => ({
+      ...extension,
+      disabled: !isChordViewerSelectionSupported(miniChordPickerQuality, extension.id),
+    }));
 
   const miniChordActiveValue = miniChordSlots[miniChordActiveSlot] ?? "";
   const miniChordRepeatStartsFromMarks = useMemo(
@@ -15620,6 +15777,19 @@ function App() {
     setMiniChordPlayhead((slot) => (slot == null ? null : Math.min(slot, safeBarCount * MINI_CHORD_SLOTS_PER_BAR - 1)));
     setMiniChordPageIndex((page) => Math.min(page, Math.ceil(safeBarCount / MINI_CHORD_BARS_PER_PAGE) - 1));
   }, []);
+
+  const updateMiniChordCapoStep = useCallback((delta) => {
+    const currentCapo = Math.max(0, Math.min(12, Math.round(Number(miniChordCapo) || 0)));
+    const nextCapo = Math.max(0, Math.min(12, currentCapo + Math.trunc(Number(delta) || 0)));
+    const transposeStep = nextCapo - currentCapo;
+    if (!transposeStep) return;
+    setMiniChordNotice("");
+    setMiniChordCapo(nextCapo);
+    setMiniChordSlots((slots) => normalizeMiniChordSlots(
+      slots.map((slot) => transposeMiniChordLabel(slot, transposeStep)),
+      miniChordBarCount,
+    ));
+  }, [miniChordBarCount, miniChordCapo]);
 
   const updateMiniChordSlot = useCallback((slotIndex, value) => {
     const safeIndex = Math.max(0, Math.min(miniChordBarCount * MINI_CHORD_SLOTS_PER_BAR - 1, Number(slotIndex) || 0));
@@ -15795,9 +15965,14 @@ function App() {
     stopBackingScheduler();
   }, [stopBackingScheduler]);
 
+  const deleteMiniChordSavedItem = useCallback((itemId) => {
+    setMiniChordSavedItems((items) => items.filter((item) => item.id !== itemId));
+  }, []);
+
   const saveMiniChordArrangement = useCallback(() => {
     const current = getCurrentMiniChordArrangement();
     setMiniChordSavedItems((items) => [current, ...items.filter((item) => item.id !== current.id)].slice(0, 24));
+    setMiniChordLoadOpen(false);
   }, [getCurrentMiniChordArrangement]);
 
   const resetMiniChordDraft = useCallback(() => {
@@ -16023,6 +16198,21 @@ function App() {
     if (miniChordPlayhead == null) return;
     setMiniChordPageIndex(Math.floor(miniChordPlayhead / (MINI_CHORD_BARS_PER_PAGE * MINI_CHORD_SLOTS_PER_BAR)));
   }, [miniChordPlayhead]);
+
+  useEffect(() => {
+    if (!miniChordLoadOpen) return undefined;
+    const handlePointerDown = (event) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest(".miniChordLoadPicker")) return;
+      setMiniChordLoadOpen(false);
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [miniChordLoadOpen]);
+
+  useEffect(() => {
+    if (!miniChordSavedItems.length) setMiniChordLoadOpen(false);
+  }, [miniChordSavedItems.length]);
 
   const closeMiniChordFloatingEditors = useCallback(() => {
     setMiniChordChordPickerSlot(null);
@@ -16679,23 +16869,57 @@ function App() {
                 value={miniChordTitle}
               />
             </label>
-            <select
-              aria-label="미니코드 불러오기"
-              disabled={!miniChordSavedItems.length}
-              onChange={(event) => {
-                const item = miniChordSavedItems.find((savedItem) => savedItem.id === event.currentTarget.value);
-                if (item) loadMiniChordArrangement(item);
-                event.currentTarget.value = "";
-              }}
-              value=""
-            >
-              <option value="">불러오기</option>
-              {miniChordSavedItems.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.title} - {item.slots.filter(Boolean).join(" ")}
-                </option>
-              ))}
-            </select>
+            <div className="miniChordLoadPicker">
+              <button
+                aria-expanded={miniChordLoadOpen}
+                aria-haspopup="listbox"
+                disabled={!miniChordSavedItems.length}
+                onClick={() => {
+                  closeMiniChordFloatingEditors();
+                  setMiniChordLoadOpen((open) => !open);
+                }}
+                title="불러오기"
+                type="button"
+              >
+                불러오기
+              </button>
+              {miniChordLoadOpen ? (
+                <div className="miniChordLoadMenu" role="listbox" aria-label="저장된 미니코드">
+                  {miniChordSavedItems.map((item) => {
+                    const chordSummary = item.slots
+                      .map(getMiniChordSlotDisplayLabel)
+                      .filter(Boolean)
+                      .join(" ");
+                    return (
+                      <div className="miniChordLoadItem" key={item.id} role="option" aria-selected="false">
+                        <button
+                          className="miniChordLoadItemMain"
+                          onClick={() => {
+                            loadMiniChordArrangement(item);
+                            setMiniChordLoadOpen(false);
+                          }}
+                          type="button"
+                        >
+                          <span>{item.title}</span>
+                          <small>{chordSummary || "빈 코드"}</small>
+                        </button>
+                        <button
+                          className="miniChordLoadDelete"
+                          aria-label={`${item.title} 삭제`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            deleteMiniChordSavedItem(item.id);
+                          }}
+                          type="button"
+                        >
+                          <X size={12} aria-hidden="true" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
             <button onClick={saveMiniChordArrangement} title="저장" type="button">
               <FolderOpen size={15} aria-hidden="true" />
               저장
@@ -16747,53 +16971,6 @@ function App() {
             </div>
           </div>
 
-          <details className="miniChordCompactSettings">
-            <summary>
-              <span>설정</span>
-              <b>{miniChordBpm} BPM · Capo {miniChordCapo}</b>
-            </summary>
-            <div className="miniChordSettingsGrid">
-              <label className="miniChordField">
-                <span>BPM</span>
-                <input
-                  inputMode="numeric"
-                  max="240"
-                  min="30"
-                  onChange={(event) => setMiniChordBpm(clampBpm(event.currentTarget.value))}
-                  type="number"
-                  value={miniChordBpm}
-                />
-              </label>
-              <label className="miniChordField">
-                <span>카포</span>
-                <input
-                  inputMode="numeric"
-                  max="12"
-                  min="0"
-                  onChange={(event) => setMiniChordCapo(Math.max(0, Math.min(12, Number(event.currentTarget.value) || 0)))}
-                  type="number"
-                  value={miniChordCapo}
-                />
-              </label>
-              <label className="miniChordSwitch">
-                <input
-                  checked={miniChordLoop}
-                  onChange={(event) => setMiniChordLoop(event.currentTarget.checked)}
-                  type="checkbox"
-                />
-                <span>반복 재생</span>
-              </label>
-              <div className="miniChordRepeatSummary">
-                <span>도돌이표</span>
-                <strong>
-                  {miniChordRepeatRange
-                    ? `${miniChordRepeatRange.start + 1}~${miniChordRepeatRange.end + 1}마디`
-                    : "구간 미지정"}
-                </strong>
-              </div>
-            </div>
-          </details>
-
           {miniChordNotice ? (
             <div className="miniChordNotice" role="status">
               {miniChordNotice}
@@ -16808,7 +16985,6 @@ function App() {
                   : false;
                 const activeMarkIndex = getMiniChordActiveMarkIndex(bar.mark);
                 const hasEnding = bar.endings.length > 0;
-                const hasBarIdentity = Boolean(bar.markLabels.length || hasEnding || bar.repeatStart || bar.repeatEnd);
                 return (
                   <article
                     className={`miniChordBar ${bar.repeatStart ? "repeatStart" : ""} ${bar.repeatEnd ? "repeatEnd" : ""} ${hasEnding ? "hasEnding" : ""} ${bar.markLabels.length ? "hasSymbols" : ""} ${inRepeatRange ? "repeatRange" : ""} ${miniChordActiveBarIndex === bar.index ? "is-editing" : ""} ${miniChordPlayingBarIndex === bar.index ? "is-playing" : ""}`}
@@ -16863,11 +17039,10 @@ function App() {
                         ));
                       }}
                       type="button"
-                    >
-                      {hasBarIdentity && !bar.markLabels.length ? (
-                        <span className="miniChordBarNumber">M{bar.index + 1}</span>
-                      ) : null}
-                    </button>
+                    />
+                    <span className="miniChordBarGhostNumber" aria-hidden="true">
+                      {bar.index + 1}
+                    </span>
                     <div className="miniChordBarMarkLane" aria-hidden="true">
                       {bar.endingLabel ? (
                         <span className="barEndingBracket">
@@ -16877,7 +17052,7 @@ function App() {
                       {bar.markLabels.length ? (
                         <span className="miniChordSymbolStack">
                           {bar.markLabels.map((label) => (
-                            <i key={label}>{label}</i>
+                            <i key={label} title={label}>{getMiniChordMarkChipLabel(label)}</i>
                           ))}
                         </span>
                       ) : null}
@@ -16889,6 +17064,7 @@ function App() {
                         style={miniChordEndingPopoverPosition ?? undefined}
                       >
                         <div className="miniChordPickerTitle">마디 기호</div>
+                        <span className="barMarkSectionLabel">도돌이표 마디</span>
                         <div className="barEndingOptions" aria-label="도돌이번호 설정">
                           {[1, 2, 3, 4, 5].map((ending) => (
                             <button
@@ -16903,39 +17079,6 @@ function App() {
                               type="button"
                             >
                               {ending}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="barMarkIndexOptions" aria-label="마커 번호 선택">
-                          {MINI_CHORD_MARKER_INDEX_OPTIONS.map((markerIndex) => (
-                            <button
-                              className={miniChordMarkTargetIndex === markerIndex ? "selected" : ""}
-                              key={markerIndex}
-                              onClick={() => {
-                                if (
-                                  bar.mark.marker === "toCoda"
-                                  && !hasMiniChordCodaTarget(miniChordBarMarks, markerIndex, miniChordBarCount)
-                                ) {
-                                  setMiniChordNotice(`Coda ${markerIndex} 구간이 필요합니다`);
-                                  return;
-                                }
-                                if (
-                                  doesMiniChordCommandNeedTarget(bar.mark.command)
-                                  && !hasMiniChordCodaTarget(miniChordBarMarks, markerIndex, miniChordBarCount)
-                                ) {
-                                  setMiniChordNotice(`Coda ${markerIndex} 구간이 필요합니다`);
-                                  return;
-                                }
-                                setMiniChordMarkTargetIndex(markerIndex);
-                                if (doesMiniChordMarkerNeedIndex(bar.mark.marker)) {
-                                  updateMiniChordBarMark(bar.index, { markerIndex });
-                                } else if (doesMiniChordCommandNeedTarget(bar.mark.command)) {
-                                  updateMiniChordBarMark(bar.index, { targetIndex: markerIndex });
-                                }
-                              }}
-                              type="button"
-                            >
-                              {markerIndex}
                             </button>
                           ))}
                         </div>
@@ -17017,19 +17160,31 @@ function App() {
                             className={`miniChordSlot ${miniChordActiveSlot === slot.index ? "active" : ""} ${miniChordPlayhead === slot.index ? "playing" : ""} ${slot.chord ? "filled" : ""}`}
                             onClick={(event) => {
                               event.stopPropagation();
+                              const pickerState = getMiniChordPickerStateFromLabel(slot.chord, {
+                                baseRoot: miniChordPickerBaseRoot,
+                                accidental: miniChordPickerAccidental,
+                                quality: miniChordPickerQuality,
+                                extension: miniChordPickerSafeExtension,
+                              });
                               setMiniChordActiveSlot(slot.index);
                               setMiniChordActiveBarIndex(null);
                               setMiniChordEndingPopoverPosition(null);
+                              setMiniChordPickerBaseRoot(pickerState.baseRoot);
+                              setMiniChordPickerAccidental(pickerState.accidental);
+                              setMiniChordPickerQuality(pickerState.quality);
+                              setMiniChordPickerExtension(pickerState.extension);
                               setMiniChordChordPickerSlot(slot.index);
                               setMiniChordChordPickerPosition(getMiniChordFloatingPosition(
                                 event.currentTarget.getBoundingClientRect(),
-                                { width: 252, height: 252 },
+                                { width: 284, height: 360 },
                               ));
                               setMiniChordPageIndex(Math.floor(slot.index / (MINI_CHORD_BARS_PER_PAGE * MINI_CHORD_SLOTS_PER_BAR)));
                             }}
                             type="button"
                           >
-                            <strong>{slot.chord || ""}</strong>
+                            <strong className={getMiniChordSlotLabelClassName(slot.chord)}>
+                              {getMiniChordSlotDisplayLabel(slot.chord)}
+                            </strong>
                           </button>
                           {miniChordChordPickerSlot === slot.index ? (
                             <div
@@ -17037,67 +17192,113 @@ function App() {
                               onClick={(event) => event.stopPropagation()}
                               style={miniChordChordPickerPosition ?? undefined}
                             >
-                              <div className="miniChordPickerTitle">코드 변경</div>
-                              <div className="miniChordPickerSegment" role="group" aria-label="조표 선택">
-                                <button
-                                  className={miniChordPickerAccidental === "sharp" ? "selected" : ""}
-                                  onClick={() => setMiniChordPickerAccidental("sharp")}
-                                  type="button"
-                                >
-                                  #
-                                </button>
-                                <button
-                                  className={miniChordPickerAccidental === "flat" ? "selected" : ""}
-                                  onClick={() => setMiniChordPickerAccidental("flat")}
-                                  type="button"
-                                >
-                                  b
-                                </button>
+                              <div className="miniChordPickerHeader">
+                                <span>선택 코드</span>
+                                <strong>{miniChordPickerSelectedLabel}</strong>
                               </div>
-                              <div className="miniChordPickerSegment" role="group" aria-label="장단조 선택">
-                                <button
-                                  className={miniChordPickerQuality === "major" ? "selected" : ""}
-                                  onClick={() => setMiniChordPickerQuality("major")}
-                                  type="button"
-                                >
-                                  장조
-                                </button>
-                                <button
-                                  className={miniChordPickerQuality === "minor" ? "selected" : ""}
-                                  onClick={() => setMiniChordPickerQuality("minor")}
-                                  type="button"
-                                >
-                                  단조
-                                </button>
-                              </div>
-                              <div className="miniChordPickerRoots" aria-label="코드 루트 선택">
-                                {miniChordPickerRoots.map((root) => (
-                                  <button
-                                    key={root}
-                                    onClick={() => {
-                                      updateMiniChordSlot(
-                                        slot.index,
-                                        getMiniChordPickerChord(root, miniChordPickerQuality, miniChordPickerExtension),
+                              <div className="miniChordBuilderMini">
+                                <section className="miniChordBuilderMiniSection">
+                                  <span>변화표</span>
+                                  <div className="miniChordPickerSegment miniChordPickerSegment--accidental" role="group" aria-label="변화표 선택">
+                                    {CHORD_ACCIDENTAL_OPTIONS.map((accidental) => {
+                                      const isAvailable = Boolean(getChordFromSelector(
+                                        miniChordPickerBaseRoot,
+                                        accidental.id,
+                                        miniChordPickerQuality,
+                                        miniChordPickerSafeExtension,
+                                      ));
+                                      return (
+                                        <button
+                                          className={miniChordPickerAccidental === accidental.id ? "selected" : ""}
+                                          disabled={!isAvailable}
+                                          key={`mini-accidental-${accidental.id}`}
+                                          onClick={() => setMiniChordPickerAccidental(accidental.id)}
+                                          type="button"
+                                        >
+                                          {accidental.id === "flat" ? "♭" : accidental.label}
+                                        </button>
                                       );
-                                      setMiniChordChordPickerSlot(null);
-                                      setMiniChordChordPickerPosition(null);
-                                    }}
-                                    type="button"
-                                  >
-                                    {root}
-                                  </button>
-                                ))}
+                                    })}
+                                  </div>
+                                </section>
+                                <section className="miniChordBuilderMiniSection">
+                                  <span>루트</span>
+                                  <div className="miniChordPickerRoots" aria-label="코드 루트 선택">
+                                    {CHORD_NATURAL_ROOTS.map((root) => (
+                                      <button
+                                        className={miniChordPickerBaseRoot === root ? "selected" : ""}
+                                        key={`mini-root-${root}`}
+                                        onClick={() => setMiniChordPickerBaseRoot(root)}
+                                        type="button"
+                                      >
+                                        {root}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </section>
+                                <section className="miniChordBuilderMiniSection">
+                                  <span>타입</span>
+                                  <div className="miniChordPickerQualities" role="group" aria-label="코드 타입 선택">
+                                    {CHORD_QUALITY_OPTIONS.map((quality) => {
+                                      const nextExtension = normalizeChordExtensionForQuality(quality.id, miniChordPickerSafeExtension);
+                                      const isSupported = isChordViewerSelectionSupported(quality.id, nextExtension);
+                                      return (
+                                        <button
+                                          className={miniChordPickerQuality === quality.id ? "selected" : ""}
+                                          disabled={!isSupported}
+                                          key={`mini-quality-${quality.id}`}
+                                          onClick={() => {
+                                            setMiniChordPickerQuality(quality.id);
+                                            setMiniChordPickerExtension(nextExtension);
+                                          }}
+                                          type="button"
+                                        >
+                                          {MINI_CHORD_QUALITY_LABELS[quality.id] ?? quality.label}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </section>
+                                <section className="miniChordBuilderMiniSection">
+                                  <span>확장</span>
+                                  <div className="miniChordPickerExtensions" role="group" aria-label="확장 코드 선택">
+                                    {miniChordPickerExtensionOptions.map((extension) => (
+                                      <button
+                                        className={miniChordPickerSafeExtension === extension.id ? "selected" : ""}
+                                        disabled={extension.disabled}
+                                        key={`mini-extension-${extension.id}`}
+                                        onClick={() => setMiniChordPickerExtension(extension.id)}
+                                        type="button"
+                                      >
+                                        {extension.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </section>
                               </div>
                               <div className="miniChordPickerActions">
                                 <button
+                                  className="primary"
+                                  disabled={!miniChordPickerSelectedChord}
                                   onClick={() => {
-                                    updateMiniChordSlot(slot.index, "휴지");
+                                    if (!miniChordPickerSelectedChord) return;
+                                    updateMiniChordSlot(slot.index, miniChordPickerSelectedLabel);
                                     setMiniChordChordPickerSlot(null);
                                     setMiniChordChordPickerPosition(null);
                                   }}
                                   type="button"
                                 >
-                                  휴지 ×
+                                  적용
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    updateMiniChordSlot(slot.index, MINI_CHORD_REST_LABEL);
+                                    setMiniChordChordPickerSlot(null);
+                                    setMiniChordChordPickerPosition(null);
+                                  }}
+                                  type="button"
+                                >
+                                  N.C.
                                 </button>
                                 <button
                                   onClick={() => {
@@ -17118,6 +17319,111 @@ function App() {
                   </article>
                 );
               })}
+            </div>
+          </div>
+
+          <div className="miniChordBpmPanel" aria-label="미니코드 BPM 설정" role="group">
+            <div className="miniChordBpmAdjustGroup miniChordBpmAdjustGroup--down" aria-label="BPM 낮추기" role="group">
+              <button
+                aria-label="BPM 1 낮추기"
+                className="miniChordBpmStepButton"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  changeMiniChordBpm(miniChordBpm - 1);
+                  event.currentTarget.blur();
+                }}
+                onMouseDown={(event) => event.preventDefault()}
+                type="button"
+              >
+                -
+              </button>
+              <span className="miniChordBpmAdjustDivider" aria-hidden="true" />
+              <button
+                aria-label="BPM 10 낮추기"
+                className="miniChordBpmJumpButton"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  changeMiniChordBpm(miniChordBpm - 10);
+                  event.currentTarget.blur();
+                }}
+                onMouseDown={(event) => event.preventDefault()}
+                type="button"
+              >
+                -10
+              </button>
+            </div>
+            <div className="miniChordBpmValue">
+              <strong>{miniChordBpm}</strong>
+              <span>BPM</span>
+            </div>
+            <div className="miniChordBpmAdjustGroup miniChordBpmAdjustGroup--up" aria-label="BPM 올리기" role="group">
+              <button
+                aria-label="BPM 1 올리기"
+                className="miniChordBpmStepButton"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  changeMiniChordBpm(miniChordBpm + 1);
+                  event.currentTarget.blur();
+                }}
+                onMouseDown={(event) => event.preventDefault()}
+                type="button"
+              >
+                +
+              </button>
+              <span className="miniChordBpmAdjustDivider" aria-hidden="true" />
+              <button
+                aria-label="BPM 10 올리기"
+                className="miniChordBpmJumpButton"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  changeMiniChordBpm(miniChordBpm + 10);
+                  event.currentTarget.blur();
+                }}
+                onMouseDown={(event) => event.preventDefault()}
+                type="button"
+              >
+                +10
+              </button>
+            </div>
+            <div className="miniChordBpmActionPanel" aria-label="미니코드 시작과 탭 템포">
+              <button
+                aria-label={miniChordIsPlaying ? "미니코드 반주 정지" : "미니코드 반주 시작"}
+                className={`miniChordBpmPlayButton ${miniChordIsPlaying ? "reset" : "primary"}`}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (miniChordIsPlaying) {
+                    stopMiniChordPreview();
+                    return;
+                  }
+                  startMiniChordPreview();
+                }}
+                type="button"
+              >
+                <span className="miniChordBpmActionIcon" aria-hidden="true">
+                  {miniChordIsPlaying ? <Square size={15} /> : <Play size={18} />}
+                </span>
+                <span className="miniChordBpmActionText">{miniChordIsPlaying ? "STOP" : "PLAY"}</span>
+              </button>
+              <button
+                aria-label="탭 템포로 미니코드 BPM 설정"
+                className={`miniChordBpmTapButton ${miniChordTapTempoPressTick > 0 ? "is-tapping" : ""}`}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  triggerMiniChordTapTempoPressFeedback();
+                  handleMiniChordTapTempo();
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === " " || event.key === "Enter") triggerMiniChordTapTempoPressFeedback();
+                }}
+                onPointerDown={(event) => {
+                  event.stopPropagation();
+                  triggerMiniChordTapTempoPressFeedback();
+                }}
+                type="button"
+              >
+                <MiniChordTapTempoGlyph />
+                <span className="miniChordBpmActionText">TAP</span>
+              </button>
             </div>
           </div>
 
@@ -17905,7 +18211,7 @@ function App() {
 
                   <ChordBuilderOptionSection layout="cols-4" title="코드 타입">
                     {CHORD_QUALITY_OPTIONS.map((quality) => {
-                      const isSupported = isChordBuilderPositionSupported(quality.id, "none");
+                      const isSupported = isChordViewerSelectionSupported(quality.id, "none");
                       return (
                         <ChordBuilderChip
                           disabled={!isSupported}
