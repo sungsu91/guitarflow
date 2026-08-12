@@ -1,4 +1,15 @@
 import { memo } from "react";
+import {
+  LICK_TECHNIQUES,
+  buildLickTechniqueRelations,
+  getLickBendAmountLabel,
+  getLickTechniqueLabel,
+  getLickTechniqueSymbol,
+  isLickHarmonicStep,
+  isLickMuteStep,
+  isLickRestStep,
+  normalizeLickTechnique,
+} from "../music/lickTechniques";
 
 const CHROMATIC_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const NOTE_INDEX = Object.fromEntries(CHROMATIC_NOTES.map((note, index) => [note, index]));
@@ -76,6 +87,36 @@ function buildGeneratedNotes({ fretRange, selectedNotes, showOnlySelected }) {
   }).filter((note) => !showOnlySelected || selected.size === 0 || selected.has(note.noteName));
 }
 
+export function prepareLickTabSteps(tabSteps) {
+  const steps = Array.isArray(tabSteps) ? tabSteps : [];
+  return steps.map((step, index) => {
+    return {
+      ...step,
+      tabId: step.id ?? `tab-step-${index + 1}`,
+      tabIndex: index,
+      order: step.order ?? index + 1,
+      technique: normalizeLickTechnique(step.technique),
+    };
+  });
+}
+
+export function buildLickTabConnections(tabSteps) {
+  const steps = Array.isArray(tabSteps) ? tabSteps : [];
+  return buildLickTechniqueRelations(steps).map((relation) => ({
+    ...relation,
+    id: `${relation.from.tabId}-to-${relation.to.tabId}-${relation.technique}`,
+    symbol: getLickTechniqueSymbol(relation.technique),
+    label: getLickTechniqueLabel(relation.technique),
+    isActive: Boolean(relation.from.isActive || relation.to.isActive),
+  }));
+}
+
+function getTabStepDisplay(step) {
+  if (isLickRestStep(step)) return "𝄽";
+  if (isLickMuteStep(step)) return "x";
+  return String(Number(step?.fretNumber));
+}
+
 function Fretboard({
   barres = [],
   className = "",
@@ -89,12 +130,19 @@ function Fretboard({
   showOnlySelected = true,
   showStringNames = true,
   stringStates = {},
+  tabSteps = [],
+  notation = "notes",
 }) {
   const [startFret, endFret] = normalizeFretRange(fretRange);
   const visualStartFret = Math.max(1, startFret);
   const visualEndFret = Math.max(visualStartFret, endFret);
   const fretNumbers = buildFretNumbers(visualStartFret, visualEndFret);
   const renderNotes = notes ?? buildGeneratedNotes({ fretRange, selectedNotes, showOnlySelected });
+  const isTabMode = notation === "tab";
+  const preparedTabSteps = isTabMode ? prepareLickTabSteps(tabSteps) : [];
+  const tabConnections = isTabMode ? buildLickTabConnections(preparedTabSteps) : [];
+  const tabSlotCount = Math.max(1, preparedTabSteps.length);
+  const displayColumns = isTabMode ? preparedTabSteps : fretNumbers;
   const visibleNoteIds = new Set();
   const selected = new Set(selectedNotes);
   const openNotesByString = new Map();
@@ -108,24 +156,31 @@ function Fretboard({
   const getXRatio = (fretNumber) => {
     return (fretNumber - visualStartFret + 0.5) / Math.max(1, fretNumbers.length);
   };
+  const getTabXRatio = (tabIndex) => (Number(tabIndex) + 0.5) / tabSlotCount;
 
   return (
     <div
-      className={`fretboardComponent fretboardComponent--${mode} ${className}`}
-      style={{ "--fret-count": Math.max(1, visualEndFret - visualStartFret + 1), "--fret-slot-count": fretNumbers.length }}
+      className={`fretboardComponent fretboardComponent--${mode} ${isTabMode ? "fretboardComponent--tab" : ""} ${className}`}
+      style={{
+        "--fret-count": isTabMode ? tabSlotCount : Math.max(1, visualEndFret - visualStartFret + 1),
+        "--fret-slot-count": isTabMode ? tabSlotCount : fretNumbers.length,
+        "--lick-step-count": tabSlotCount,
+      }}
     >
       <div className="fretboardComponentScroller">
         <div className="fretboardNut" aria-hidden="true" />
         {showFretNumbers && (
-          <div className="fretboardFretNumbers" style={{ gridTemplateColumns: `repeat(${fretNumbers.length}, minmax(34px, 1fr))` }}>
-            {fretNumbers.map((fret) => (
-              <span key={fret}>{fret}</span>
+          <div className="fretboardFretNumbers" style={{ gridTemplateColumns: `repeat(${displayColumns.length}, minmax(34px, 1fr))` }}>
+            {displayColumns.map((item, index) => (
+              <span className={isTabMode && item.isActive ? "active" : ""} key={isTabMode ? item.tabId : item}>
+                {isTabMode ? item.order ?? index + 1 : item}
+              </span>
             ))}
           </div>
         )}
-        <div className="fretboardGrid" style={{ gridTemplateColumns: `repeat(${fretNumbers.length}, minmax(34px, 1fr))` }}>
-          {fretNumbers.map((fret) => (
-            <i key={`fret-${fret}`} />
+        <div className="fretboardGrid" style={{ gridTemplateColumns: `repeat(${displayColumns.length}, minmax(34px, 1fr))` }}>
+          {displayColumns.map((item, index) => (
+            <i key={isTabMode ? `step-${item.tabId}` : `fret-${item ?? index}`} />
           ))}
         </div>
         <div className="fretboardStrings">
@@ -146,7 +201,7 @@ function Fretboard({
                   <em className={`fretboardStringState ${stringState}`}>
                     {String(stringState).toUpperCase()}
                   </em>
-                ) : openNote ? (
+                ) : !isTabMode && openNote ? (
                   <em className={`fretboardStringState noteOpen ${openNote.noteName === rootNote || openNote.isRoot ? "root" : ""} ${openNote.isActive ? "active" : ""} ${isOpenCurrent ? "current-note" : ""}`}>
                     {openLabel}
                   </em>
@@ -176,7 +231,72 @@ function Fretboard({
             </span>
           );
         })}
-        {renderNotes.map((note, index) => {
+        {tabConnections.map((connection) => {
+          const fromRatio = getTabXRatio(connection.fromIndex);
+          const toRatio = getTabXRatio(connection.toIndex);
+          const leftRatio = Math.min(fromRatio, toRatio);
+          const widthRatio = Math.abs(toRatio - fromRatio);
+          return (
+            <span
+              aria-label={`${connection.from.fretNumber}프렛에서 ${connection.to.fretNumber}프렛 ${connection.label}`}
+              className={`fretboardTabConnection fretboardTabConnection--${connection.technique} ${connection.isActive ? "active" : ""}`}
+              key={connection.id}
+              role="img"
+              style={{
+                "--fretboard-tab-left-ratio": leftRatio,
+                "--fretboard-tab-width-ratio": widthRatio,
+                "--fretboard-tab-y-ratio": (Number(connection.from.stringNumber) - 0.5) / 6,
+              }}
+            >
+              <i />
+              <b>{connection.symbol}</b>
+            </span>
+          );
+        })}
+        {preparedTabSteps.map((step) => {
+          const fretNumber = Number(step.fretNumber);
+          const technique = normalizeLickTechnique(step.technique);
+          const techniqueLabel = getLickTechniqueLabel(technique);
+          const isRest = isLickRestStep(step);
+          const isMute = isLickMuteStep(step);
+          const isHarmonic = isLickHarmonicStep(step);
+          const isBend = technique === LICK_TECHNIQUES.BEND;
+          const isRelease = technique === LICK_TECHNIQUES.BEND_RELEASE;
+          const isVibrato = technique === LICK_TECHNIQUES.VIBRATO;
+          const displayValue = getTabStepDisplay(step);
+          const stringLabel = isRest
+            ? "휴지"
+            : `${step.stringNumber}번줄 ${fretNumber === 0 ? "개방현" : `${fretNumber}프렛`}`;
+          return (
+            <span
+              aria-label={`${step.order}번째 ${stringLabel}${techniqueLabel ? ` ${techniqueLabel}` : ""}`}
+              className={`fretboardTabNote fretboardTabNote--${technique || "pick"} ${fretNumber === 0 ? "open" : ""} ${isRest ? "rest" : ""} ${isMute ? "mute" : ""} ${isHarmonic ? "harmonic" : ""} ${step.isActive ? "active current-note" : ""}`}
+              data-lick-order={step.order}
+              key={step.tabId}
+              style={{
+                "--fretboard-tab-x-ratio": getTabXRatio(step.tabIndex),
+                "--fretboard-tab-y-ratio": isRest ? 0.5 : (Number(step.stringNumber) - 0.5) / 6,
+              }}
+            >
+              <b><span>{displayValue}</span></b>
+              {isVibrato ? <small className="fretboardTabLocalTechnique fretboardTabVibrato">~</small> : null}
+              {isBend ? (
+                <small className="fretboardTabLocalTechnique fretboardTabBend">
+                  <i aria-hidden="true">↗</i>
+                  <em>Bend {getLickBendAmountLabel(step)}</em>
+                </small>
+              ) : null}
+              {isRelease ? (
+                <small className="fretboardTabLocalTechnique fretboardTabRelease">
+                  <i aria-hidden="true">↘</i>
+                  <em>Release</em>
+                </small>
+              ) : null}
+              {isHarmonic ? <small className="fretboardTabLocalTechnique fretboardTabHarmonicLabel">Harm.</small> : null}
+            </span>
+          );
+        })}
+        {!isTabMode && renderNotes.map((note, index) => {
           if (Number(note.fretNumber) <= 0) return null;
           if (note.fretNumber < visualStartFret || note.fretNumber > visualEndFret) return null;
           const noteName = note.noteName ?? getPitchClass(note.pitch);

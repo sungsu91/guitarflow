@@ -23,9 +23,16 @@ import { createPortal, flushSync } from "react-dom";
 import BrandHeader from "./components/BrandHeader";
 import Fretboard from "./components/Fretboard";
 import { RIFFLAB_COMMON_CUTAWAY_SPRITE_SRC } from "./assets/rifflabCommonCutawaySprite";
+import {
+  LICK_RELATION_TECHNIQUES,
+  buildLickTechniqueRelations,
+  isLickRestStep,
+  normalizeLickTechnique,
+} from "./music/lickTechniques";
 
 const CHROMATIC_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const NOTE_INDEX = Object.fromEntries(CHROMATIC_NOTES.map((note, index) => [note, index]));
+const APP_VERSION_LABEL = "Version 0.9.1";
 
 const SOLFEGE = {
   C: "도",
@@ -156,6 +163,7 @@ const SCALE_FAMILIES = {
   pentatonic: { id: "pentatonic", label: "펜타토닉" },
   scale: { id: "scale", label: "스케일" },
 };
+const SCALE_LICK_GROUP_ID = "lick";
 
 const PENTATONIC_TYPES = {
   minor: { id: "minor", label: "마이너", intervals: [0, 3, 5, 7, 10], windowOffset: 0 },
@@ -168,6 +176,375 @@ const DIATONIC_SCALE_TYPES = {
 };
 
 const SCALE_BOX_OPTIONS = [1, 2, 3, 4, 5];
+const SCALE_BOX_SET_ID = "box-set";
+const SCALE_BOX_SET_LABEL = "BOX SET";
+const SCALE_BOX_SET_MAX_FRET = 15;
+// Keep unfinished LICK training available for local development, but never expose it in production builds.
+const SCALE_LICK_UI_ENABLED = import.meta.env.DEV;
+const SCALE_LICK_STYLES = [
+  {
+    id: "intro-lick",
+    label: "입문 릭",
+    defaultType: "minor",
+    basisLabel: "A 마이너 펜타토닉",
+    licks: [
+      {
+        number: 1,
+        visibleFrets: [5, 6, 7, 8],
+        steps: [
+          { stringNumber: 6, fretNumber: 5 },
+          { stringNumber: 5, fretNumber: 7 },
+          { stringNumber: 4, fretNumber: 5 },
+          { stringNumber: 4, fretNumber: 7 },
+          { stringNumber: 3, fretNumber: 5 },
+        ],
+      },
+      {
+        number: 2,
+        visibleFrets: [5, 6, 7, 8],
+        steps: [
+          { stringNumber: 3, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 7 },
+          { stringNumber: 2, fretNumber: 5 },
+          { stringNumber: 2, fretNumber: 8 },
+          { stringNumber: 1, fretNumber: 5 },
+        ],
+      },
+      {
+        number: 3,
+        visibleFrets: [5, 6, 7, 8],
+        steps: [
+          { stringNumber: 1, fretNumber: 8 },
+          { stringNumber: 1, fretNumber: 5 },
+          { stringNumber: 2, fretNumber: 8 },
+          { stringNumber: 2, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 7 },
+          { stringNumber: 3, fretNumber: 5 },
+        ],
+      },
+      {
+        number: 4,
+        visibleFrets: [5, 6, 7, 8],
+        steps: [
+          { stringNumber: 4, fretNumber: 7 },
+          { stringNumber: 3, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 7 },
+          { stringNumber: 2, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 7 },
+          { stringNumber: 3, fretNumber: 5 },
+        ],
+      },
+      {
+        number: 5,
+        visibleFrets: [5, 6, 7, 8],
+        steps: [
+          { stringNumber: 5, fretNumber: 7 },
+          { stringNumber: 4, fretNumber: 5 },
+          { stringNumber: 4, fretNumber: 7 },
+          { stringNumber: 3, fretNumber: 5 },
+          { stringNumber: 2, fretNumber: 5 },
+          { stringNumber: 1, fretNumber: 5 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "blues-lick",
+    label: "블루스 릭",
+    defaultType: "minor",
+    basisLabel: "A 마이너 블루스",
+    licks: [
+      {
+        number: 1,
+        visibleFrets: [5, 6, 7, 8],
+        steps: [
+          { stringNumber: 3, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 7, technique: "bend" },
+          { stringNumber: 3, fretNumber: 5 },
+          { stringNumber: 4, fretNumber: 7 },
+          { stringNumber: 4, fretNumber: 5, technique: "vibrato" },
+        ],
+      },
+      {
+        number: 2,
+        visibleFrets: [5, 6, 7, 8],
+        steps: [
+          { stringNumber: 4, fretNumber: 5 },
+          { stringNumber: 5, fretNumber: 6, technique: "blue note" },
+          { stringNumber: 5, fretNumber: 7 },
+          { stringNumber: 4, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 7, technique: "bend" },
+        ],
+      },
+      {
+        number: 3,
+        visibleFrets: [5, 6, 7, 8],
+        steps: [
+          { stringNumber: 2, fretNumber: 8, technique: "vibrato" },
+          { stringNumber: 2, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 7, technique: "bend" },
+          { stringNumber: 3, fretNumber: 5 },
+          { stringNumber: 4, fretNumber: 7 },
+        ],
+      },
+      {
+        number: 4,
+        visibleFrets: [5, 6, 7, 8],
+        steps: [
+          { stringNumber: 1, fretNumber: 8, technique: "bend", targetFret: 10 },
+          { stringNumber: 1, fretNumber: 8, technique: "bend-release", releaseFret: 8 },
+          { stringNumber: 1, fretNumber: 5 },
+          { stringNumber: 2, fretNumber: 8 },
+          { stringNumber: 2, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 7, technique: "bend" },
+        ],
+      },
+      {
+        number: 5,
+        visibleFrets: [5, 6, 7, 8],
+        steps: [
+          { stringNumber: 5, fretNumber: 6, technique: "blue note" },
+          { stringNumber: 5, fretNumber: 7 },
+          { stringNumber: 4, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 7, technique: "bend" },
+          { stringNumber: 3, fretNumber: 5, technique: "vibrato" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "rock-lick",
+    label: "록 릭",
+    defaultType: "minor",
+    basisLabel: "A 마이너 펜타토닉",
+    licks: [
+      {
+        number: 1,
+        visibleFrets: [5, 6, 7, 8],
+        steps: [
+          { stringNumber: 6, fretNumber: 5 },
+          { stringNumber: 6, fretNumber: 8 },
+          { stringNumber: 5, fretNumber: 5 },
+          { stringNumber: 5, fretNumber: 7 },
+          { stringNumber: 4, fretNumber: 5 },
+          { stringNumber: 4, fretNumber: 7 },
+        ],
+      },
+      {
+        number: 2,
+        visibleFrets: [5, 6, 7, 8, 9, 10],
+        steps: [
+          { stringNumber: 3, fretNumber: 7 },
+          { stringNumber: 3, fretNumber: 9, technique: "slide-up" },
+          { stringNumber: 2, fretNumber: 8 },
+          { stringNumber: 1, fretNumber: 5 },
+          { stringNumber: 1, fretNumber: 8 },
+          { stringNumber: 1, fretNumber: 10, technique: "bend" },
+        ],
+      },
+      {
+        number: 3,
+        visibleFrets: [5, 6, 7, 8],
+        steps: [
+          { stringNumber: 4, fretNumber: 7 },
+          { stringNumber: 3, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 7 },
+          { stringNumber: 2, fretNumber: 5 },
+          { stringNumber: 2, fretNumber: 8 },
+          { stringNumber: 1, fretNumber: 5 },
+          { stringNumber: 1, fretNumber: 8 },
+        ],
+      },
+      {
+        number: 4,
+        visibleFrets: [5, 6, 7, 8, 9, 10],
+        steps: [
+          { stringNumber: 1, fretNumber: 5 },
+          { stringNumber: 1, fretNumber: 8 },
+          { stringNumber: 1, fretNumber: 10, technique: "bend" },
+          { stringNumber: 1, fretNumber: 8 },
+          { stringNumber: 2, fretNumber: 8 },
+          { stringNumber: 3, fretNumber: 9 },
+          { stringNumber: 3, fretNumber: 7, technique: "slide-down" },
+        ],
+      },
+      {
+        number: 5,
+        visibleFrets: [5, 6, 7, 8],
+        steps: [
+          { stringNumber: 5, fretNumber: 7 },
+          { stringNumber: 4, fretNumber: 7 },
+          { stringNumber: 3, fretNumber: 7 },
+          { stringNumber: 2, fretNumber: 8 },
+          { stringNumber: 1, fretNumber: 8 },
+          { stringNumber: 1, fretNumber: 5 },
+          { stringNumber: 2, fretNumber: 8 },
+          { stringNumber: 3, fretNumber: 7 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "jazz-lick",
+    label: "재즈 릭",
+    defaultType: "minor",
+    basisLabel: "A7 코드톤",
+    licks: [
+      {
+        number: 1,
+        visibleFrets: [4, 5, 6, 7, 8],
+        steps: [
+          { stringNumber: 4, fretNumber: 7 },
+          { stringNumber: 3, fretNumber: 5, technique: "chromatic approach" },
+          { stringNumber: 3, fretNumber: 6 },
+          { stringNumber: 2, fretNumber: 5 },
+          { stringNumber: 2, fretNumber: 8 },
+          { stringNumber: 1, fretNumber: 5 },
+        ],
+      },
+      {
+        number: 2,
+        visibleFrets: [5, 6, 7],
+        steps: [
+          { stringNumber: 5, fretNumber: 5 },
+          { stringNumber: 5, fretNumber: 6, technique: "chromatic approach" },
+          { stringNumber: 5, fretNumber: 7 },
+          { stringNumber: 4, fretNumber: 5 },
+          { stringNumber: 4, fretNumber: 6, technique: "chromatic approach" },
+          { stringNumber: 4, fretNumber: 7 },
+        ],
+      },
+      {
+        number: 3,
+        visibleFrets: [4, 5, 6],
+        steps: [
+          { stringNumber: 3, fretNumber: 4, technique: "approach" },
+          { stringNumber: 3, fretNumber: 5 },
+          { stringNumber: 2, fretNumber: 4, technique: "chromatic approach" },
+          { stringNumber: 2, fretNumber: 5 },
+          { stringNumber: 2, fretNumber: 6 },
+          { stringNumber: 1, fretNumber: 5 },
+        ],
+      },
+      {
+        number: 4,
+        visibleFrets: [4, 5, 6, 7],
+        steps: [
+          { stringNumber: 4, fretNumber: 6, technique: "chromatic approach" },
+          { stringNumber: 4, fretNumber: 7 },
+          { stringNumber: 3, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 6 },
+          { stringNumber: 2, fretNumber: 5 },
+          { stringNumber: 1, fretNumber: 4, technique: "approach" },
+          { stringNumber: 1, fretNumber: 5 },
+        ],
+      },
+      {
+        number: 5,
+        visibleFrets: [4, 5, 6, 7],
+        steps: [
+          { stringNumber: 6, fretNumber: 5 },
+          { stringNumber: 5, fretNumber: 4 },
+          { stringNumber: 5, fretNumber: 5, technique: "passing tone" },
+          { stringNumber: 4, fretNumber: 4 },
+          { stringNumber: 4, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 5 },
+          { stringNumber: 3, fretNumber: 6 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "country-lick",
+    label: "컨트리 릭",
+    defaultType: "major",
+    basisLabel: "A 메이저 펜타토닉",
+    licks: [
+      {
+        number: 1,
+        visibleFrets: [0, 1, 2, 3, 4],
+        steps: [
+          { stringNumber: 5, fretNumber: 0 },
+          { stringNumber: 5, fretNumber: 2, technique: "hammer-on" },
+          { stringNumber: 5, fretNumber: 4 },
+          { stringNumber: 4, fretNumber: 2 },
+          { stringNumber: 3, fretNumber: 2 },
+          { stringNumber: 2, fretNumber: 2 },
+        ],
+      },
+      {
+        number: 2,
+        visibleFrets: [0, 1, 2, 3, 4, 5],
+        steps: [
+          { stringNumber: 3, fretNumber: 2 },
+          { stringNumber: 3, fretNumber: 4, technique: "hammer-on" },
+          { stringNumber: 2, fretNumber: 2 },
+          { stringNumber: 1, fretNumber: 0 },
+          { stringNumber: 1, fretNumber: 2 },
+          { stringNumber: 1, fretNumber: 5, technique: "slide" },
+        ],
+      },
+      {
+        number: 3,
+        visibleFrets: [0, 1, 2, 3],
+        steps: [
+          { stringNumber: 4, fretNumber: 2 },
+          { stringNumber: 3, fretNumber: 2 },
+          { stringNumber: 2, fretNumber: 3, technique: "pull-off" },
+          { stringNumber: 2, fretNumber: 2 },
+          { stringNumber: 1, fretNumber: 0 },
+          { stringNumber: 2, fretNumber: 2 },
+        ],
+      },
+      {
+        number: 4,
+        visibleFrets: [0, 1, 2, 3, 4, 5],
+        steps: [
+          { stringNumber: 2, fretNumber: 2 },
+          { stringNumber: 1, fretNumber: 0 },
+          { stringNumber: 1, fretNumber: 2, technique: "hammer-on" },
+          { stringNumber: 1, fretNumber: 4 },
+          { stringNumber: 1, fretNumber: 5, technique: "slide" },
+          { stringNumber: 2, fretNumber: 2 },
+        ],
+      },
+      {
+        number: 5,
+        visibleFrets: [0, 1, 2, 3, 4],
+        steps: [
+          { stringNumber: 6, fretNumber: 0 },
+          { stringNumber: 5, fretNumber: 0 },
+          { stringNumber: 5, fretNumber: 4, technique: "slide" },
+          { stringNumber: 4, fretNumber: 2 },
+          { stringNumber: 3, fretNumber: 2 },
+          { stringNumber: 2, fretNumber: 2 },
+          { stringNumber: 1, fretNumber: 0 },
+        ],
+      },
+    ],
+  },
+];
+const SCALE_LICK_STYLE_BY_ID = Object.fromEntries(SCALE_LICK_STYLES.map((style) => [style.id, style]));
+const SCALE_LICK_FAMILY_IDS = new Set(SCALE_LICK_STYLES.map((style) => style.id));
+const SCALE_LICK_OPTIONS = SCALE_LICK_STYLES.flatMap((style) =>
+  style.licks.map((lick) => ({
+    ...lick,
+    id: `${style.id}-lick-${lick.number}`,
+    label: `LICK${lick.number}`,
+    styleId: style.id,
+    styleLabel: style.label,
+    basisLabel: style.basisLabel,
+  })),
+);
+const SCALE_TRAINING_FAMILIES = {
+  scale: SCALE_FAMILIES.scale,
+  pentatonic: SCALE_FAMILIES.pentatonic,
+  ...(SCALE_LICK_UI_ENABLED
+    ? Object.fromEntries(SCALE_LICK_STYLES.map((style) => [style.id, { id: style.id, label: style.label }]))
+    : {}),
+};
 
 const PENTATONIC_BOX_PATTERNS = {
   minor: [
@@ -332,33 +709,236 @@ function getPatternOffsets(pattern) {
   return Object.values(pattern.stringOffsets).flat();
 }
 
-function getPatternStartFret(root, pattern) {
-  return normalizeBoxStartFret(getSixthStringRootFret(root) + (pattern.startOffset ?? 0));
+const SCALE_BOX_OCTAVE_FRETS = 12;
+const SCALE_BOX_PREFERRED_MIN_FRET = 1;
+const SCALE_BOX_PREFERRED_MAX_FRET = 12;
+const SCALE_BOX_EXTENDED_MAX_FRET = 15;
+
+function getScaleBoxPlacementTier({ maxFret, minFret }) {
+  const staysAboveOpenStrings = minFret >= SCALE_BOX_PREFERRED_MIN_FRET;
+  if (staysAboveOpenStrings && maxFret <= SCALE_BOX_PREFERRED_MAX_FRET) return 0;
+  if (staysAboveOpenStrings && maxFret <= SCALE_BOX_EXTENDED_MAX_FRET) return 1;
+  if (minFret >= 0 && maxFret <= SCALE_BOX_PREFERRED_MAX_FRET) return 2;
+  if (minFret >= 0 && maxFret <= SCALE_BOX_EXTENDED_MAX_FRET) return 3;
+  if (staysAboveOpenStrings) return 4;
+  return 5;
 }
 
-function getPatternVisibleFrets(root, pattern) {
-  const start = getPatternStartFret(root, pattern);
+function compareScaleBoxPlacements(a, b) {
+  const aScore = [
+    a.tier,
+    Math.max(0, a.maxFret - SCALE_BOX_EXTENDED_MAX_FRET),
+    Math.max(0, a.maxFret - SCALE_BOX_PREFERRED_MAX_FRET),
+    a.maxFret,
+    Math.abs(a.octaveShift),
+  ];
+  const bScore = [
+    b.tier,
+    Math.max(0, b.maxFret - SCALE_BOX_EXTENDED_MAX_FRET),
+    Math.max(0, b.maxFret - SCALE_BOX_PREFERRED_MAX_FRET),
+    b.maxFret,
+    Math.abs(b.octaveShift),
+  ];
+  for (let index = 0; index < aScore.length; index += 1) {
+    if (aScore[index] !== bScore[index]) return aScore[index] - bScore[index];
+  }
+  return a.minFret - b.minFret;
+}
+
+function getPracticalPatternPlacement(root, pattern) {
+  const baseStartFret = normalizeBoxStartFret(getSixthStringRootFret(root) + (pattern.startOffset ?? 0));
   const offsets = getPatternOffsets(pattern);
-  const minFret = start + Math.min(...offsets);
-  const maxFret = start + Math.max(...offsets);
-  return Array.from({ length: maxFret - minFret + 1 }, (_, index) => minFret + index);
+  const minOffset = Math.min(...offsets);
+  const maxOffset = Math.max(...offsets);
+  const candidates = [];
+
+  for (let octave = -4; octave <= 4; octave += 1) {
+    const octaveShift = octave * SCALE_BOX_OCTAVE_FRETS;
+    const startFret = baseStartFret + octaveShift;
+    const minFret = startFret + minOffset;
+    const maxFret = startFret + maxOffset;
+    if (minFret < 0 || maxFret > MAX_FRETBOARD_GUIDE_FRET) continue;
+    const candidate = { baseStartFret, maxFret, minFret, octaveShift, startFret };
+    candidates.push({ ...candidate, tier: getScaleBoxPlacementTier(candidate) });
+  }
+
+  const selected = candidates.sort(compareScaleBoxPlacements)[0];
+  if (selected) return selected;
+
+  const startFret = Math.max(0, baseStartFret);
+  return {
+    baseStartFret,
+    maxFret: startFret + maxOffset,
+    minFret: startFret + minOffset,
+    octaveShift: startFret - baseStartFret,
+    startFret,
+    tier: 5,
+  };
 }
 
-function getScaleBlockPattern(familyId, typeId, boxNumber = 1) {
-  const patterns =
+function getScaleBlockPatterns(familyId, typeId) {
+  return (
     familyId === SCALE_FAMILIES.scale.id
       ? DIATONIC_BOX_PATTERNS[typeId] ?? DIATONIC_BOX_PATTERNS.minor
-      : PENTATONIC_BOX_PATTERNS[typeId] ?? PENTATONIC_BOX_PATTERNS.minor;
-  return patterns.find((pattern) => pattern.box === Number(boxNumber)) ?? patterns[0];
+      : PENTATONIC_BOX_PATTERNS[typeId] ?? PENTATONIC_BOX_PATTERNS.minor
+  );
 }
 
-function buildScaleBlockPractice(root = "A", typeId = "minor", familyId = SCALE_FAMILIES.pentatonic.id, boxNumber = 1) {
+function compareScaleBoxDisplayPositions(a, b) {
+  return (
+    a.placement.minFret - b.placement.minFret ||
+    a.placement.startFret - b.placement.startFret ||
+    a.placement.maxFret - b.placement.maxFret ||
+    a.pattern.box - b.pattern.box
+  );
+}
+
+function getScaleBoxDisplayEntries(root, familyId, typeId) {
+  return getScaleBlockPatterns(familyId, typeId)
+    .map((pattern) => ({ pattern, placement: getPracticalPatternPlacement(root, pattern) }))
+    .sort(compareScaleBoxDisplayPositions)
+    .map((entry, index) => ({
+      ...entry,
+      displayBox: index + 1,
+      sourceBox: entry.pattern.box,
+    }));
+}
+
+function getScaleBlockDisplayEntry(root, familyId, typeId, boxNumber = 1) {
+  const entries = getScaleBoxDisplayEntries(root, familyId, typeId);
+  const displayBox = Math.max(1, Math.min(entries.length, Number(boxNumber) || 1));
+  return entries.find((entry) => entry.displayBox === displayBox) ?? entries[0];
+}
+
+function isScaleLickFamilyId(familyId) {
+  return SCALE_LICK_UI_ENABLED && SCALE_LICK_FAMILY_IDS.has(familyId);
+}
+
+function getScaleLickStyle(familyId) {
+  return SCALE_LICK_STYLE_BY_ID[familyId] ?? SCALE_LICK_STYLES[0];
+}
+
+function getScaleLickOptionsForFamily(familyId) {
+  const style = getScaleLickStyle(familyId);
+  return SCALE_LICK_OPTIONS.filter((lick) => lick.styleId === style.id);
+}
+
+function getScaleLickOption(familyId, lickId) {
+  const options = getScaleLickOptionsForFamily(familyId);
+  return options.find((lick) => lick.id === lickId) ?? options[0] ?? SCALE_LICK_OPTIONS[0];
+}
+
+export function buildScaleLickPractice(familyId = SCALE_LICK_STYLES[0].id, lickId = getScaleLickOptionsForFamily(familyId)[0]?.id) {
+  const style = getScaleLickStyle(familyId);
+  const lick = getScaleLickOption(style.id, lickId);
+  const rawOrderedSteps = lick.steps.map((step, index) => {
+    const technique = normalizeLickTechnique(step.technique);
+    if (isLickRestStep(step)) {
+      return {
+        ...step,
+        technique: "rest",
+        id: `${lick.id}-step-${index + 1}`,
+        noteId: `${lick.id}-rest-${index + 1}`,
+        order: index + 1,
+        pitch: "",
+        noteName: "",
+        ghost: true,
+      };
+    }
+    const tuning = STANDARD_TUNING.find((stringInfo) => stringInfo.stringNumber === step.stringNumber) ?? STANDARD_TUNING[0];
+    const pitch = midiToPitch(pitchToMidi(tuning.pitch) + step.fretNumber);
+    const noteId = `${lick.id}-s${step.stringNumber}-f${step.fretNumber}`;
+    return {
+      ...step,
+      technique,
+      id: `${lick.id}-step-${index + 1}`,
+      noteId,
+      order: index + 1,
+      pitch,
+      noteName: getPitchClass(pitch),
+    };
+  });
+  const initialRelations = buildLickTechniqueRelations(rawOrderedSteps);
+  const relationByTechniqueIndex = new Map(initialRelations.map((relation) => [relation.techniqueIndex, relation]));
+  const orderedSteps = rawOrderedSteps.map((step, index) => {
+    const technique = normalizeLickTechnique(step.technique);
+    if (!LICK_RELATION_TECHNIQUES.has(technique)) return step;
+    const relation = relationByTechniqueIndex.get(index);
+    if (!relation) return { ...step, technique: "", invalidTechnique: technique };
+    return {
+      ...step,
+      technique: relation.technique,
+      techniqueFromOrder: relation.from.order,
+      techniqueToOrder: relation.to.order,
+    };
+  });
+  const notesByPosition = new Map();
+  orderedSteps.forEach((step) => {
+    if (isLickRestStep(step)) return;
+    const key = `s${step.stringNumber}-f${step.fretNumber}`;
+    const existing = notesByPosition.get(key);
+    if (existing) {
+      const lickOrders = [...existing.lickOrders, step.order];
+      notesByPosition.set(key, {
+        ...existing,
+        label: lickOrders.join("·"),
+        lickOrders,
+        lickStepIds: [...existing.lickStepIds, step.id],
+      });
+      return;
+    }
+    notesByPosition.set(key, {
+      ...makeGuitarNote({
+        pitch: step.pitch,
+        stringNumber: step.stringNumber,
+        fretNumber: step.fretNumber,
+        group: style.id,
+        hint: `${style.label} ${lick.label} ${step.order}번 음 = ${step.stringNumber}번줄 ${step.fretNumber === 0 ? "개방현" : `${step.fretNumber}프렛`}`,
+      }),
+      id: step.noteId,
+      label: String(step.order),
+      lickOrders: [step.order],
+      lickStepIds: [step.id],
+      technique: step.technique,
+    });
+  });
+
+  return {
+    label: `${lick.basisLabel} ${style.label} ${lick.label}`,
+    notes: [...notesByPosition.values()],
+    sequence: orderedSteps.map((step) => ({
+      noteName: step.pitch,
+      pitch: step.pitch,
+      noteId: step.noteId,
+      stringNumber: step.stringNumber,
+      fretNumber: step.fretNumber,
+      label: String(step.order),
+      order: step.order,
+      technique: step.technique,
+      ghost: Boolean(step.ghost),
+    })),
+    visibleFrets: lick.visibleFrets,
+    root: "A",
+    type: style.defaultType === "major" ? PENTATONIC_TYPES.major : PENTATONIC_TYPES.minor,
+    family: { id: style.id, label: style.label },
+    lick,
+    style,
+    orderedSteps,
+    techniqueRelations: buildLickTechniqueRelations(orderedSteps),
+  };
+}
+
+export function buildScaleBlockPractice(root = "C", typeId = "minor", familyId = SCALE_FAMILIES.pentatonic.id, boxNumber = 1) {
   const family = SCALE_FAMILIES[familyId] ?? SCALE_FAMILIES.pentatonic;
   const typeSource = family.id === SCALE_FAMILIES.scale.id ? DIATONIC_SCALE_TYPES : PENTATONIC_TYPES;
   const type = typeSource[typeId] ?? typeSource.minor;
-  const pattern = getScaleBlockPattern(family.id, type.id, boxNumber);
-  const startFret = getPatternStartFret(root, pattern);
-  const visibleFrets = getPatternVisibleFrets(root, pattern);
+  const displayEntry = getScaleBlockDisplayEntry(root, family.id, type.id, boxNumber);
+  const { displayBox, pattern, placement, sourceBox } = displayEntry;
+  const startFret = placement.startFret;
+  const visibleFrets = Array.from(
+    { length: placement.maxFret - placement.minFret + 1 },
+    (_, index) => placement.minFret + index,
+  );
   const notes = STANDARD_TUNING.flatMap((stringInfo) => {
     const openMidi = pitchToMidi(stringInfo.pitch);
     return (pattern.stringOffsets[stringInfo.stringNumber] ?? []).map((offset) => {
@@ -373,8 +953,196 @@ function buildScaleBlockPractice(root = "A", typeId = "minor", familyId = SCALE_
     });
   }).sort((a, b) => a.frequency - b.frequency || b.stringNumber - a.stringNumber || a.fretNumber - b.fretNumber);
   const sequence = [...new Map(notes.map((note) => [note.pitch, note])).values()].map((note) => note.pitch);
-  const label = `${root} ${type.label} ${family.label} Box ${pattern.box}`;
-  return { label, notes, sequence, visibleFrets, root, type, family, pattern };
+  const label = `${root} ${type.label} ${family.label} Box ${displayBox}`;
+  return { displayBox, label, notes, sequence, visibleFrets, root, type, family, pattern, placement, sourceBox };
+}
+
+const SCALE_BOX_SET_LAYERS = [
+  { boxes: [1], stringNumber: 6, role: "entry" },
+  { boxes: [1], stringNumber: 6 },
+  { boxes: [1, 2], stringNumber: 5, role: "bridge" },
+  { boxes: [2], stringNumber: 5 },
+  { boxes: [2, 3], stringNumber: 4, role: "bridge" },
+  { boxes: [3], stringNumber: 4 },
+  { boxes: [3], stringNumber: 3 },
+  { boxes: [3, 4], stringNumber: 3, role: "bridge" },
+  { boxes: [4], stringNumber: 2 },
+  { boxes: [4, 5], stringNumber: 2, role: "bridge" },
+  { boxes: [5], stringNumber: 1 },
+  { boxes: [5], stringNumber: 1, role: "exit" },
+];
+
+function getScaleBoxSetPositionKey(note) {
+  return `s${note.stringNumber}-f${note.fretNumber}`;
+}
+
+function buildScaleBoxSetNotePool(boxPractices) {
+  const noteMap = new Map();
+  boxPractices.forEach((practice) => {
+    practice.notes.forEach((note) => {
+      const positionKey = getScaleBoxSetPositionKey(note);
+      const existing = noteMap.get(positionKey);
+      if (existing) {
+        if (!existing.boxMemberships.includes(practice.displayBox)) {
+          existing.boxMemberships.push(practice.displayBox);
+          existing.boxMemberships.sort((a, b) => a - b);
+        }
+        return;
+      }
+      noteMap.set(positionKey, {
+        ...note,
+        boxMemberships: [practice.displayBox],
+      });
+    });
+  });
+  return [...noteMap.values()];
+}
+
+function getScaleBoxSetLayerCandidates(notePool, layer) {
+  return notePool.filter((note) => {
+    if (Number(note.stringNumber) !== layer.stringNumber) return false;
+    return layer.boxes.some((boxNumber) => note.boxMemberships.includes(boxNumber));
+  });
+}
+
+function getScaleBoxSetCandidateCost(note, layer, layerIndex, layerCount, minFret, maxFret) {
+  const progress = layerCount <= 1 ? 0 : layerIndex / (layerCount - 1);
+  const expectedFret = minFret + (maxFret - minFret) * progress;
+  let cost = Math.abs(note.fretNumber - expectedFret) * 0.85;
+
+  if (layer.role === "bridge") {
+    const sharedByBothBoxes = layer.boxes.every((boxNumber) => note.boxMemberships.includes(boxNumber));
+    if (!sharedByBothBoxes) cost += 5;
+  }
+  if (layer.role === "entry") cost += Math.max(0, note.fretNumber - minFret) * 1.5;
+  if (layer.role === "exit") cost += Math.max(0, maxFret - note.fretNumber) * 1.5;
+  return cost;
+}
+
+function solveScaleBoxSetPath(notePool, maxFretJump, maxBacktrack) {
+  const layerCandidates = SCALE_BOX_SET_LAYERS.map((layer) => getScaleBoxSetLayerCandidates(notePool, layer));
+  if (layerCandidates.some((candidates) => !candidates.length)) return null;
+
+  const minFret = Math.min(...notePool.map((note) => note.fretNumber));
+  const maxFret = Math.max(...notePool.map((note) => note.fretNumber));
+  let states = layerCandidates[0].map((note) => ({
+    cost: getScaleBoxSetCandidateCost(note, SCALE_BOX_SET_LAYERS[0], 0, SCALE_BOX_SET_LAYERS.length, minFret, maxFret),
+    path: [note],
+  }));
+
+  for (let layerIndex = 1; layerIndex < SCALE_BOX_SET_LAYERS.length; layerIndex += 1) {
+    const layer = SCALE_BOX_SET_LAYERS[layerIndex];
+    const nextStates = [];
+    layerCandidates[layerIndex].forEach((note) => {
+      let bestState = null;
+      states.forEach((state) => {
+        const previous = state.path.at(-1);
+        if (getScaleBoxSetPositionKey(previous) === getScaleBoxSetPositionKey(note)) return;
+        if (pitchToMidi(note.pitch) <= pitchToMidi(previous.pitch)) return;
+        if (state.path.some((pathNote) => getScaleBoxSetPositionKey(pathNote) === getScaleBoxSetPositionKey(note))) return;
+
+        const fretDelta = note.fretNumber - previous.fretNumber;
+        if (Math.abs(fretDelta) > maxFretJump || fretDelta < -maxBacktrack) return;
+
+        const backwardPenalty = fretDelta < 0 ? Math.abs(fretDelta) * 3 + 1.5 : 0;
+        const sameStringPenalty = note.stringNumber === previous.stringNumber && fretDelta < 1 ? 1.5 : 0;
+        const pitchStep = pitchToMidi(note.pitch) - pitchToMidi(previous.pitch);
+        const pitchStepPenalty = Math.max(0, pitchStep - 5) * 0.65;
+        const transitionCost = Math.abs(fretDelta) * 0.7 + backwardPenalty + sameStringPenalty + pitchStepPenalty;
+        const candidateCost = getScaleBoxSetCandidateCost(
+          note,
+          layer,
+          layerIndex,
+          SCALE_BOX_SET_LAYERS.length,
+          minFret,
+          maxFret,
+        );
+        const nextState = {
+          cost: state.cost + transitionCost + candidateCost,
+          path: [...state.path, note],
+        };
+        if (!bestState || nextState.cost < bestState.cost) bestState = nextState;
+      });
+      if (bestState) nextStates.push(bestState);
+    });
+    if (!nextStates.length) return null;
+    states = nextStates;
+  }
+
+  return states.sort((a, b) => a.cost - b.cost)[0]?.path ?? null;
+}
+
+export function buildScaleBoxSetPractice(root = "C", typeId = "minor", familyId = SCALE_FAMILIES.pentatonic.id, direction = "ascending") {
+  const boxPractices = SCALE_BOX_OPTIONS.map((boxNumber) => buildScaleBlockPractice(root, typeId, familyId, boxNumber));
+  const fullNotePool = buildScaleBoxSetNotePool(boxPractices);
+  const practicalNotePools = [
+    fullNotePool.filter((note) => note.fretNumber >= 1 && note.fretNumber <= SCALE_BOX_SET_MAX_FRET),
+    fullNotePool.filter((note) => note.fretNumber >= 0 && note.fretNumber <= SCALE_BOX_SET_MAX_FRET),
+    fullNotePool,
+  ];
+  const movementLimits = [
+    { maxFretJump: 4, maxBacktrack: 1 },
+    { maxFretJump: 5, maxBacktrack: 2 },
+    { maxFretJump: 7, maxBacktrack: 3 },
+    { maxFretJump: 12, maxBacktrack: 5 },
+  ];
+  let corePath = null;
+  for (const notePool of practicalNotePools) {
+    for (const limits of movementLimits) {
+      corePath = solveScaleBoxSetPath(notePool, limits.maxFretJump, limits.maxBacktrack);
+      if (corePath) break;
+    }
+    if (corePath) break;
+  }
+
+  const safeCorePath = corePath ?? boxPractices.flatMap((practice) => practice.notes.slice(0, 1));
+  const phrasePath = safeCorePath;
+  const notes = [...new Map(phrasePath.map((note) => [getScaleBoxSetPositionKey(note), note])).values()].map((note) => ({
+    ...note,
+    group: SCALE_BOX_SET_ID,
+    isRoot: note.noteName === root,
+  }));
+  const ascendingSequence = phrasePath.map((note, index) => ({
+    noteName: note.pitch,
+    pitch: note.pitch,
+    noteId: note.id,
+    stringNumber: note.stringNumber,
+    fretNumber: note.fretNumber,
+    boxMemberships: note.boxMemberships,
+    pathOrder: index + 1,
+  }));
+  const isDescending = direction === "descending";
+  const sequence = isDescending ? [...ascendingSequence].reverse() : ascendingSequence;
+  const routeFrets = notes.map((note) => note.fretNumber);
+  const minFret = Math.min(...routeFrets);
+  const maxFret = Math.max(...routeFrets);
+  const visibleFrets = Array.from({ length: maxFret - minFret + 1 }, (_, index) => minFret + index);
+  const family = boxPractices[0].family;
+  const type = boxPractices[0].type;
+
+  return {
+    boxSet: true,
+    displayBox: SCALE_BOX_SET_ID,
+    label: `${root} ${type.label} ${family.label} ${SCALE_BOX_SET_LABEL}`,
+    notes,
+    sequence,
+    visibleFrets,
+    root,
+    type,
+    family,
+    phrasePath: {
+      direction: isDescending ? "descending" : "ascending",
+      movementTypes: ["same-string", "adjacent-box", "full-span"],
+      coveredBoxes: SCALE_BOX_OPTIONS,
+      availablePositionCount: fullNotePool.length,
+    },
+  };
+}
+
+function buildScaleTrainingPractice(root = "C", typeId = "minor", familyId = SCALE_FAMILIES.pentatonic.id, detailValue = 1, boxSetDirection = "ascending") {
+  if (isScaleLickFamilyId(familyId)) return buildScaleLickPractice(familyId, detailValue);
+  if (detailValue === SCALE_BOX_SET_ID) return buildScaleBoxSetPractice(root, typeId, familyId, boxSetDirection);
+  return buildScaleBlockPractice(root, typeId, familyId, detailValue);
 }
 
 const GUITAR_NOTES = [
@@ -3140,12 +3908,11 @@ function MetronomeSelectControl({ ariaLabel = "", className = "", dropdownDirect
         onClick={(event) => {
           event.stopPropagation();
           updateOpenDirection();
-          setOpen((current) => {
-            if (!current && typeof window !== "undefined") {
-              window.dispatchEvent(new CustomEvent("riffDropdownOpen", { detail: dropdownIdRef.current }));
-            }
-            return !current;
-          });
+          const nextOpen = !open;
+          if (nextOpen && typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("riffDropdownOpen", { detail: dropdownIdRef.current }));
+          }
+          setOpen(nextOpen);
         }}
         onPointerDown={(event) => event.stopPropagation()}
         onTouchStart={(event) => event.stopPropagation()}
@@ -3937,6 +4704,46 @@ function TrainingPanelHeader({ collapsed, content = null, onToggle, title }) {
           <b aria-hidden="true">{collapsed ? "⌄" : "⌃"}</b>
         </button>
       ) : null}
+    </div>
+  );
+}
+
+function TrainingNoteGuideToggle({ enabled, onChange }) {
+  return (
+    <button
+      aria-label={`현재 음 표시 ${enabled ? "끄기" : "켜기"}`}
+      aria-pressed={enabled}
+      className={`trainingNoteGuideToggle ${enabled ? "selected" : ""}`}
+      onClick={() => onChange(!enabled)}
+      type="button"
+    >
+      <span>진행</span>
+      <b>{enabled ? "ON" : "OFF"}</b>
+    </button>
+  );
+}
+
+function BoxSetDirectionToggle({ direction, onChange }) {
+  return (
+    <div className="boxSetDirectionToggle" role="group" aria-label="BOX SET 진행 방향">
+      <button
+        aria-label="낮은 음에서 높은 음으로 진행"
+        aria-pressed={direction === SCALE_DIRECTIONS.ASC}
+        className={direction === SCALE_DIRECTIONS.ASC ? "selected" : ""}
+        onClick={() => onChange(SCALE_DIRECTIONS.ASC)}
+        type="button"
+      >
+        ↑
+      </button>
+      <button
+        aria-label="높은 음에서 낮은 음으로 진행"
+        aria-pressed={direction === SCALE_DIRECTIONS.DESC}
+        className={direction === SCALE_DIRECTIONS.DESC ? "selected" : ""}
+        onClick={() => onChange(SCALE_DIRECTIONS.DESC)}
+        type="button"
+      >
+        ↓
+      </button>
     </div>
   );
 }
@@ -7079,8 +7886,8 @@ const LEGACY_PRACTICE_CATEGORIES = [
   },
   {
     id: "scale-block",
-    title: "스케일 · 펜타토닉",
-    subtitle: "박스 패턴으로 스케일과 펜타토닉 위치를 반복 학습",
+    title: "스케일 · 펜타토닉 · 릭",
+    subtitle: "스케일과 펜타토닉, 짧은 기타 프레이즈 훈련",
     notes: NOTES,
     sequence: SCALE_ASCENDING,
     modeLabel: "Box Pattern",
@@ -7143,11 +7950,11 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "stage2",
-    title: "🎸 스케일 · 펜타토닉",
+    title: "🎸 스케일 · 펜타토닉 · 릭",
     content: (
       <>
-        <p>메이저, 마이너, 펜타토닉 스케일을 Box 단위로 연습하는 훈련입니다.</p>
-        <p>키, 스케일 종류, 타입, Box를 선택하면 해당 위치가 지판에 표시됩니다.</p>
+        <p>메이저, 마이너, 펜타토닉 스케일과 짧은 기타 프레이즈를 연습하는 훈련입니다.</p>
+        <p>키, 성격, 훈련 종류, 세부 항목을 선택하면 해당 위치가 지판에 표시됩니다.</p>
         <strong>연습 포인트</strong>
         <ul>
           <li>Box별 음 위치를 반복해서 익힙니다.</li>
@@ -8779,7 +9586,33 @@ function getShooterSpawnX(previousX = 50) {
 }
 
 function getSequenceStepNoteName(step) {
-  return typeof step === "string" ? step : step?.noteName;
+  return typeof step === "string" ? step : step?.noteName ?? step?.pitch ?? step?.octaveNote;
+}
+
+function findSequenceStepNote(noteList, step, fallback = null) {
+  const notes = Array.isArray(noteList) ? noteList : [];
+  const noteName = getSequenceStepNoteName(step);
+  if (!notes.length || !noteName) return fallback;
+
+  if (typeof step !== "string" && step?.noteId) {
+    const idMatch = notes.find((note) => note.id === step.noteId);
+    if (idMatch) return { ...idMatch, label: step.label ?? idMatch.label, lickOrder: step.order, technique: step.technique ?? idMatch.technique };
+  }
+
+  const hasPosition =
+    typeof step !== "string" &&
+    Number.isFinite(Number(step?.stringNumber)) &&
+    Number.isFinite(Number(step?.fretNumber));
+  if (hasPosition) {
+    const positionMatch = notes.find((note) =>
+      (note.pitch === noteName || note.octaveNote === noteName) &&
+      Number(note.stringNumber) === Number(step.stringNumber) &&
+      Number(note.fretNumber ?? note.fret) === Number(step.fretNumber),
+    );
+    if (positionMatch) return { ...positionMatch, label: step.label ?? positionMatch.label, lickOrder: step.order, technique: step.technique ?? positionMatch.technique };
+  }
+
+  return notes.find((note) => note.pitch === noteName || note.octaveNote === noteName) ?? fallback;
 }
 
 function expandSequenceForSubdivision(sequence, subdivision) {
@@ -8792,9 +9625,13 @@ function expandSequenceForSubdivision(sequence, subdivision) {
     const sequenceIndex = subdivision?.advanceEverySubdivision
       ? index % sequence.length
       : Math.floor(index / repeatCount) % sequence.length;
+    const sourceStep = sequence[sequenceIndex];
+    const stepPayload = typeof sourceStep === "string"
+      ? { noteName: sourceStep }
+      : { ...sourceStep, noteName: getSequenceStepNoteName(sourceStep) };
     return {
-      noteName: sequence[sequenceIndex],
-      ghost: Boolean(patternStep.ghost || patternStep.play === false),
+      ...stepPayload,
+      ghost: Boolean(stepPayload.ghost || patternStep.ghost || patternStep.play === false),
     };
   });
 }
@@ -9011,15 +9848,17 @@ function App() {
   const [selectedCategoryId, setSelectedCategoryId] = useState(initialRouteRef.current.categoryId);
   const [pendingStageCardId, setPendingStageCardId] = useState(null);
   const [scaleDirection, setScaleDirection] = useState(SCALE_DIRECTIONS.LOOP);
-  const [selectedScaleRoot, setSelectedScaleRoot] = useState("A");
+  const [boxSetDirection, setBoxSetDirection] = useState(SCALE_DIRECTIONS.ASC);
+  const [selectedScaleRoot, setSelectedScaleRoot] = useState("C");
   const [selectedScaleFamily, setSelectedScaleFamily] = useState(SCALE_FAMILIES.pentatonic.id);
   const [selectedScaleType, setSelectedScaleType] = useState(PENTATONIC_TYPES.minor.id);
   const [selectedScaleBox, setSelectedScaleBox] = useState(1);
+  const [selectedScaleLick, setSelectedScaleLick] = useState(SCALE_LICK_OPTIONS[0].id);
   const [viewerMode, setViewerMode] = useState(FRETBOARD_VIEWER_MODES.CHORD);
   const [viewerSwipeFeedback, setViewerSwipeFeedback] = useState("");
   const [viewerNoteFilter, setViewerNoteFilter] = useState("ALL");
   const [viewerOctaveRange] = useState("all");
-  const [viewerScaleRoot, setViewerScaleRoot] = useState("A");
+  const [viewerScaleRoot, setViewerScaleRoot] = useState("C");
   const [viewerScaleFamily, setViewerScaleFamily] = useState(SCALE_FAMILIES.pentatonic.id);
   const [viewerScaleType, setViewerScaleType] = useState(PENTATONIC_TYPES.minor.id);
   const [viewerScaleBox, setViewerScaleBox] = useState(1);
@@ -9162,6 +10001,7 @@ function App() {
   const [feelPlaybackIndex, setFeelPlaybackIndex] = useState(-1);
   const [feelPlaybackProgress, setFeelPlaybackProgress] = useState(0);
   const [isMobileLayout, setIsMobileLayout] = useState(false);
+  const [trainingNoteGuideEnabled, setTrainingNoteGuideEnabled] = useState(true);
   const [hitZoneNote, setHitZoneNote] = useState(null);
   const [isHitWindowActive, setIsHitWindowActive] = useState(false);
   const [shooterTargets, setShooterTargets] = useState([]);
@@ -9909,12 +10749,32 @@ function App() {
   const selectedCategory =
     PRACTICE_CATEGORIES.find((category) => category.id === selectedCategoryId) ??
     DEFAULT_CATEGORY;
+  const isSelectedScaleLick = isScaleLickFamilyId(selectedScaleFamily);
+  const selectedScaleLickOptions = isSelectedScaleLick ? getScaleLickOptionsForFamily(selectedScaleFamily) : [];
+  const safeSelectedScaleLick = selectedScaleLickOptions.some((lick) => lick.id === selectedScaleLick)
+    ? selectedScaleLick
+    : selectedScaleLickOptions[0]?.id ?? SCALE_LICK_OPTIONS[0].id;
   const selectedScaleTypeOptions =
     selectedScaleFamily === SCALE_FAMILIES.scale.id ? DIATONIC_SCALE_TYPES : PENTATONIC_TYPES;
+  const isSelectedScaleBoxSet = !isSelectedScaleLick && selectedScaleBox === SCALE_BOX_SET_ID;
   const selectedPentatonic = useMemo(
-    () => buildScaleBlockPractice(selectedScaleRoot, selectedScaleType, selectedScaleFamily, selectedScaleBox),
-    [selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType],
+    () => buildScaleTrainingPractice(
+      selectedScaleRoot,
+      selectedScaleType,
+      selectedScaleFamily,
+      isSelectedScaleLick ? safeSelectedScaleLick : selectedScaleBox,
+      boxSetDirection,
+    ),
+    [boxSetDirection, isSelectedScaleLick, safeSelectedScaleLick, selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType],
   );
+  const selectedScaleDetailOptions = isSelectedScaleLick
+    ? selectedScaleLickOptions.map((lick) => ({ id: lick.id, label: lick.label }))
+    : [
+        ...SCALE_BOX_OPTIONS.map((boxNumber) => ({ id: boxNumber, label: `BOX${boxNumber}` })),
+        { id: SCALE_BOX_SET_ID, label: SCALE_BOX_SET_LABEL },
+      ];
+  const selectedScaleDetailValue = isSelectedScaleLick ? safeSelectedScaleLick : selectedScaleBox;
+  const selectedScaleDetailLabel = "세부";
   const selectedPentatonicRef = useRef(selectedPentatonic);
   selectedPentatonicRef.current = selectedPentatonic;
   const viewerScaleTypeOptions =
@@ -10636,6 +11496,7 @@ function App() {
       modeLabel: selectedPentatonic.label,
       notes: selectedPentatonic.notes,
       sequence: selectedPentatonic.sequence,
+      boxSet: selectedPentatonic.boxSet,
     };
   }, [selectedCategory, selectedPentatonic]);
   const currentJudgmentMode = getJudgmentMode(
@@ -10786,7 +11647,7 @@ function App() {
       if (direction === SCALE_DIRECTIONS.ASC) sequence = FIRST_POSITION_ASCENDING_SEQUENCE;
       else if (direction === SCALE_DIRECTIONS.DESC) sequence = [...FIRST_POSITION_ASCENDING_SEQUENCE].reverse();
       else sequence = FIRST_POSITION_SEQUENCE;
-    } else if (safeCategory.id === "scale-block") {
+    } else if (safeCategory.id === "scale-block" && !safeCategory.boxSet) {
       if (direction === SCALE_DIRECTIONS.DESC) sequence = [...base].reverse();
       else if (direction === SCALE_DIRECTIONS.LOOP) sequence = createPingPongSequence(base);
     }
@@ -11934,10 +12795,9 @@ function App() {
       ? patternRef.current % sequence.length
       : patternRef.current;
     const sequenceStep = sequence[sequenceIndex];
-    const noteName = getSequenceStepNoteName(sequenceStep);
     const isGhost = Boolean(sequenceStep?.ghost);
     patternRef.current += 1;
-    const detail = noteList.find((note) => note.pitch === noteName) ?? DEFAULT_CATEGORY.notes[0];
+    const detail = findSequenceStepNote(noteList, sequenceStep, DEFAULT_CATEGORY.notes[0]);
     const fallDuration = getBeatMs(bpmRef.current) * speedRef.current.beats;
 
     enemiesRef.current = [
@@ -12014,8 +12874,7 @@ function App() {
         ? patternRef.current % sequence.length
         : patternRef.current;
       const sequenceStep = sequence[sequenceIndex];
-      const targetPitch = getSequenceStepNoteName(sequenceStep);
-      const target = noteList.find((note) => note.pitch === targetPitch || note.octaveNote === targetPitch);
+      const target = findSequenceStepNote(noteList, sequenceStep, null);
       if (!target || target.pitch !== detectedPitchName) return;
 
       lastHitRef.current = { note: detectedPitchName, time: now };
@@ -14475,16 +15334,28 @@ function App() {
     setFeedback("Ready");
   }, [getPlayableCategory, getPracticeSequence, repeatPractice, selectedCategory]);
 
-  const resetScalePracticePreview = useCallback((root, typeId, familyId = selectedScaleFamily, boxNumber = selectedScaleBox) => {
-    const nextPentatonic = buildScaleBlockPractice(root, typeId, familyId, boxNumber);
+  const resetScalePracticePreview = useCallback((
+    root,
+    typeId,
+    familyId = selectedScaleFamily,
+    detailValue = isScaleLickFamilyId(selectedScaleFamily) ? safeSelectedScaleLick : selectedScaleBox,
+    directionOverride = null,
+  ) => {
+    const nextBoxSetDirection = directionOverride === SCALE_DIRECTIONS.DESC
+      ? SCALE_DIRECTIONS.DESC
+      : directionOverride === SCALE_DIRECTIONS.ASC
+        ? SCALE_DIRECTIONS.ASC
+        : boxSetDirection;
+    const nextPentatonic = buildScaleTrainingPractice(root, typeId, familyId, detailValue, nextBoxSetDirection);
     const safeCategory = {
       ...normalizePracticeCategory(selectedCategory),
       notes: nextPentatonic.notes,
       sequence: nextPentatonic.sequence,
       modeLabel: nextPentatonic.label,
+      boxSet: nextPentatonic.boxSet,
     };
     activeNotesRef.current = safeCategory.notes;
-    sequenceRef.current = getPracticeSequence(safeCategory, scaleDirection);
+    sequenceRef.current = getPracticeSequence(safeCategory, nextPentatonic.boxSet ? nextBoxSetDirection : scaleDirection);
     practiceLoopRef.current = shouldLoopPractice(safeCategory, repeatPractice);
     patternRef.current = 0;
     practiceCompletedRef.current = false;
@@ -14497,32 +15368,72 @@ function App() {
     setIsHitWindowActive(false);
     setLaneFeedback([]);
     setFeedback("Ready");
-  }, [getPracticeSequence, repeatPractice, scaleDirection, selectedCategory, selectedScaleBox, selectedScaleFamily]);
+  }, [boxSetDirection, getPracticeSequence, repeatPractice, safeSelectedScaleLick, scaleDirection, selectedCategory, selectedScaleBox, selectedScaleFamily]);
 
   const changeScaleRoot = useCallback((root) => {
     setSelectedScaleRoot(root);
-    resetScalePracticePreview(root, selectedScaleType, selectedScaleFamily, selectedScaleBox);
-  }, [resetScalePracticePreview, selectedScaleBox, selectedScaleFamily, selectedScaleType]);
+    resetScalePracticePreview(root, selectedScaleType, selectedScaleFamily, isScaleLickFamilyId(selectedScaleFamily) ? safeSelectedScaleLick : selectedScaleBox);
+  }, [resetScalePracticePreview, safeSelectedScaleLick, selectedScaleBox, selectedScaleFamily, selectedScaleType]);
 
   const changeScaleFamily = useCallback((familyId) => {
-    const nextFamily = SCALE_FAMILIES[familyId] ? familyId : SCALE_FAMILIES.pentatonic.id;
+    const nextFamily = SCALE_TRAINING_FAMILIES[familyId] ? familyId : SCALE_FAMILIES.pentatonic.id;
     const nextTypeOptions = nextFamily === SCALE_FAMILIES.scale.id ? DIATONIC_SCALE_TYPES : PENTATONIC_TYPES;
-    const nextType = nextTypeOptions[selectedScaleType] ? selectedScaleType : nextTypeOptions.minor.id;
+    const nextLickStyle = isScaleLickFamilyId(nextFamily) ? getScaleLickStyle(nextFamily) : null;
+    const nextType = nextLickStyle?.defaultType && nextTypeOptions[nextLickStyle.defaultType]
+      ? nextLickStyle.defaultType
+      : nextTypeOptions[selectedScaleType] ? selectedScaleType : nextTypeOptions.minor.id;
+    const nextLick = nextLickStyle ? getScaleLickOption(nextFamily, selectedScaleLick).id : selectedScaleLick;
     setSelectedScaleFamily(nextFamily);
     setSelectedScaleType(nextType);
-    resetScalePracticePreview(selectedScaleRoot, nextType, nextFamily, selectedScaleBox);
-  }, [resetScalePracticePreview, selectedScaleBox, selectedScaleRoot, selectedScaleType]);
+    if (nextLickStyle) setSelectedScaleLick(nextLick);
+    resetScalePracticePreview(
+      selectedScaleRoot,
+      nextType,
+      nextFamily,
+      nextLickStyle ? nextLick : selectedScaleBox,
+    );
+  }, [resetScalePracticePreview, selectedScaleBox, selectedScaleLick, selectedScaleRoot, selectedScaleType]);
 
   const changeScaleType = useCallback((typeId) => {
     setSelectedScaleType(typeId);
-    resetScalePracticePreview(selectedScaleRoot, typeId, selectedScaleFamily, selectedScaleBox);
-  }, [resetScalePracticePreview, selectedScaleBox, selectedScaleFamily, selectedScaleRoot]);
+    resetScalePracticePreview(selectedScaleRoot, typeId, selectedScaleFamily, isScaleLickFamilyId(selectedScaleFamily) ? safeSelectedScaleLick : selectedScaleBox);
+  }, [resetScalePracticePreview, safeSelectedScaleLick, selectedScaleBox, selectedScaleFamily, selectedScaleRoot]);
 
   const changeScaleBox = useCallback((boxNumber) => {
-    const nextBox = Math.max(1, Math.min(5, Number(boxNumber) || 1));
+    const nextBox = boxNumber === SCALE_BOX_SET_ID
+      ? SCALE_BOX_SET_ID
+      : Math.max(1, Math.min(5, Number(boxNumber) || 1));
+    const nextBoxSetDirection = nextBox === SCALE_BOX_SET_ID ? SCALE_DIRECTIONS.ASC : boxSetDirection;
+    if (nextBox === SCALE_BOX_SET_ID) setBoxSetDirection(nextBoxSetDirection);
     setSelectedScaleBox(nextBox);
-    resetScalePracticePreview(selectedScaleRoot, selectedScaleType, selectedScaleFamily, nextBox);
+    resetScalePracticePreview(selectedScaleRoot, selectedScaleType, selectedScaleFamily, nextBox, nextBoxSetDirection);
+  }, [boxSetDirection, resetScalePracticePreview, selectedScaleFamily, selectedScaleRoot, selectedScaleType]);
+
+  const changeBoxSetDirection = useCallback((direction) => {
+    const nextDirection = direction === SCALE_DIRECTIONS.DESC ? SCALE_DIRECTIONS.DESC : SCALE_DIRECTIONS.ASC;
+    setBoxSetDirection(nextDirection);
+    resetScalePracticePreview(
+      selectedScaleRoot,
+      selectedScaleType,
+      selectedScaleFamily,
+      SCALE_BOX_SET_ID,
+      nextDirection,
+    );
   }, [resetScalePracticePreview, selectedScaleFamily, selectedScaleRoot, selectedScaleType]);
+
+  const changeScaleLick = useCallback((lickId) => {
+    const nextLick = getScaleLickOption(selectedScaleFamily, lickId).id;
+    setSelectedScaleLick(nextLick);
+    resetScalePracticePreview(selectedScaleRoot, selectedScaleType, selectedScaleFamily, nextLick);
+  }, [resetScalePracticePreview, selectedScaleFamily, selectedScaleRoot, selectedScaleType]);
+
+  const changeScaleDetail = useCallback((detailValue) => {
+    if (isScaleLickFamilyId(selectedScaleFamily)) {
+      changeScaleLick(detailValue);
+      return;
+    }
+    changeScaleBox(detailValue);
+  }, [changeScaleBox, changeScaleLick, selectedScaleFamily]);
 
   const toggleRepeatPractice = useCallback((event) => {
     const nextRepeat = event.target.checked;
@@ -15560,8 +16471,7 @@ function App() {
     return Array.from({ length: 5 }, (_, index) => {
       const startIndex = patternRef.current % sequence.length;
       const sequenceStep = sequence[(startIndex + index) % sequence.length];
-      const noteName = getSequenceStepNoteName(sequenceStep);
-      const note = noteList.find((item) => item.pitch === noteName) ?? DEFAULT_CATEGORY.notes[0];
+      const note = findSequenceStepNote(noteList, sequenceStep, DEFAULT_CATEGORY.notes[0]);
       return { ...note, ghost: Boolean(sequenceStep?.ghost) };
     });
   }, [appMode, enemies, gameState, referenceStepTick, scaleDirection, selectedCategory.id, selectedCategory.notes, selectedCategory.sequence, selectedPentatonic.notes, selectedPentatonic.sequence]);
@@ -15579,6 +16489,11 @@ function App() {
   }, [appMode, detected, gameState, selectedCategory.id, selectedPentatonic.notes]);
   const referencePrompt = detectedScaleNote ?? currentPrompt;
   const referenceDisplayPrompt = referencePrompt;
+  const showTrainingNoteGuide = !isMobileLayout || trainingNoteGuideEnabled;
+  const displayedReferencePrompt = showTrainingNoteGuide ? referenceDisplayPrompt : null;
+  const referencePromptDisplayLabel = displayedReferencePrompt
+    ? `${displayedReferencePrompt.solfege ?? getSolfege(displayedReferencePrompt.pitch)} / ${displayedReferencePrompt.pitch}`
+    : showTrainingNoteGuide ? "준비" : "진행 OFF";
   const referenceNextPrompt =
     nextNotes.find(
       (note) =>
@@ -15596,18 +16511,29 @@ function App() {
     const sourceNotes = selectedCategory.id === "scale-block" ? selectedPentatonic.notes : selectedCategory.notes;
     return sourceNotes.map((note) => {
       const isActive =
+        showTrainingNoteGuide &&
         referenceDisplayPrompt?.pitch === note.pitch &&
         referenceDisplayPrompt?.stringNumber === note.stringNumber &&
         referenceDisplayPrompt?.fretNumber === note.fretNumber;
       return {
         ...note,
-        label: note.octaveNote ?? note.pitch,
+        label: isActive && referenceDisplayPrompt?.lickOrder
+          ? String(referenceDisplayPrompt.lickOrder)
+          : note.label ?? note.octaveNote ?? note.pitch,
         isActive,
         isCurrent: isActive,
         isRoot: false,
       };
     });
-  }, [referenceDisplayPrompt, selectedCategory.id, selectedCategory.notes, selectedPentatonic.notes, selectedScaleRoot]);
+  }, [referenceDisplayPrompt, selectedCategory.id, selectedCategory.notes, selectedPentatonic.notes, showTrainingNoteGuide]);
+  const showLickTabFretboard = selectedCategory.id === "scale-block" && isSelectedScaleLick;
+  const referenceLickTabSteps = useMemo(() => {
+    if (!showLickTabFretboard) return [];
+    return (selectedPentatonic.orderedSteps ?? []).map((step) => ({
+      ...step,
+      isActive: showTrainingNoteGuide && referenceDisplayPrompt?.lickOrder === step.order,
+    }));
+  }, [referenceDisplayPrompt?.lickOrder, selectedPentatonic.orderedSteps, showLickTabFretboard, showTrainingNoteGuide]);
   const referenceBoardRange = useMemo(() => {
     if (selectedCategory.id === "scale-block") {
       return [
@@ -15626,8 +16552,10 @@ function App() {
     const type = selectedScaleTypeOptions[selectedScaleType] ?? selectedScaleTypeOptions.minor;
     const family = SCALE_FAMILIES[selectedScaleFamily] ?? SCALE_FAMILIES.pentatonic;
     const rootLabel = `${root?.label ?? selectedScaleRoot}/${root?.solfege ?? SOLFEGE[selectedScaleRoot] ?? ""}`;
+    if (isSelectedScaleLick) return selectedPentatonic.label;
+    if (selectedScaleBox === SCALE_BOX_SET_ID) return `${rootLabel} ${type.label} ${family.label} ${SCALE_BOX_SET_LABEL}`;
     return `${rootLabel} ${type.label} ${family.label} BOX${selectedScaleBox}`;
-  }, [selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType, selectedScaleTypeOptions]);
+  }, [isSelectedScaleLick, selectedPentatonic.label, selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType, selectedScaleTypeOptions]);
   const referenceCurrentLabel = selectedCategory.tutorial
     ? "현재 연습"
     : selectedCategory.id === "scale-block"
@@ -16259,7 +17187,7 @@ function App() {
     : selectedCategory.id === "rhythm" && appMode === APP_MODES.PRACTICE
       ? { title: "리듬 · 코드 전환", subtitle: "메트로놈 기반 코드 전환 훈련" }
     : selectedCategory.id === "scale-block" && appMode === APP_MODES.PRACTICE
-      ? { title: "스케일 · 펜타토닉", subtitle: "박스 패턴으로 위치를 반복 학습" }
+      ? { title: "스케일 · 펜타토닉 · 릭", subtitle: "박스 패턴과 짧은 기타 프레이즈 훈련" }
     : selectedCategory.id === "first-position" && appMode === APP_MODES.PRACTICE
       ? { title: "제로포지션 기본", subtitle: "개방현과 저포지션 음 위치 훈련" }
     : { title: "리듬 & 코드", subtitle: "메트로놈 기반 기타 리듬 트레이닝" };
@@ -16512,8 +17440,8 @@ function App() {
               >
                 <span className="utilityMenuIcon" aria-hidden="true">02</span>
                 <div className="utilityMenuText">
-                  <strong>스케일 · 펜타토닉</strong>
-                  <small>스케일과 펜타토닉 박스 위치 훈련</small>
+                  <strong>스케일 · 펜타토닉 · 릭</strong>
+                  <small>구간별 위치 · 프레이즈 연습</small>
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true">›</span>
               </button>
@@ -16621,6 +17549,9 @@ function App() {
                 <span className="utilityMenuChevron" aria-hidden="true">↗</span>
               </a>
             </nav>
+            <p className="utilityMenuVersion" aria-label={`앱 ${APP_VERSION_LABEL}`}>
+              RIFFLAB {APP_VERSION_LABEL}
+            </p>
           </aside>
         </div>
       ) : null}
@@ -20296,7 +21227,7 @@ function App() {
               {selectedCategory.id === "first-position" || selectedCategory.id === "scale-block" ? (
                 selectedCategory.id === "scale-block" ? (
                   <div className="referenceHeader stage2HeaderScalePicker">
-                    <div className="scalePickerPanel referenceScalePicker">
+                    <div className={`scalePickerPanel referenceScalePicker ${isSelectedScaleBoxSet ? "boxSetActive" : ""}`}>
                       <MetronomeSelectControl
                         className="scaleKeySelect"
                         dropdownDirection="down"
@@ -20307,14 +21238,14 @@ function App() {
                       />
                       <div className="scaleTypeGroup">
                         <MetronomeSelectControl
-                          label="종류"
+                          label="훈련"
                           dropdownDirection="down"
                           onChange={changeScaleFamily}
-                          options={Object.values(SCALE_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
+                          options={Object.values(SCALE_TRAINING_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
                           value={selectedScaleFamily}
                         />
                         <MetronomeSelectControl
-                          label="타입"
+                          label="성격"
                           dropdownDirection="down"
                           onChange={changeScaleType}
                           options={Object.values(selectedScaleTypeOptions).map((type) => ({ id: type.id, label: type.label }))}
@@ -20322,20 +21253,43 @@ function App() {
                         />
                       </div>
                       <MetronomeSelectControl
-                        className="scaleBoxSelect"
+                        className={`scaleBoxSelect scaleDetailSelect ${isSelectedScaleLick ? "scaleLickSelect" : ""}`}
                         dropdownDirection="down"
-                        label="BOX"
-                        onChange={changeScaleBox}
-                        options={[1, 2, 3, 4, 5].map((box) => ({ id: box, label: `BOX${box}` }))}
-                        value={selectedScaleBox}
+                        label={selectedScaleDetailLabel}
+                        onChange={changeScaleDetail}
+                        options={selectedScaleDetailOptions}
+                        value={selectedScaleDetailValue}
                       />
+                      {isSelectedScaleBoxSet ? (
+                        <BoxSetDirectionToggle
+                          direction={boxSetDirection}
+                          onChange={changeBoxSetDirection}
+                        />
+                      ) : null}
+                      {isMobileLayout ? (
+                        <TrainingNoteGuideToggle
+                          enabled={trainingNoteGuideEnabled}
+                          onChange={setTrainingNoteGuideEnabled}
+                        />
+                      ) : null}
                     </div>
                   </div>
                 ) : (
                   <TrainingPanelHeader
-                    title={referenceDisplayPrompt
-                      ? `${referenceDisplayPrompt.solfege ?? getSolfege(referenceDisplayPrompt.pitch)} / ${referenceDisplayPrompt.pitch}`
-                      : "준비"}
+                    content={(
+                      <>
+                        <span className="trainingDetailTitle">
+                          {referencePromptDisplayLabel}
+                        </span>
+                        {isMobileLayout ? (
+                          <TrainingNoteGuideToggle
+                            enabled={trainingNoteGuideEnabled}
+                            onChange={setTrainingNoteGuideEnabled}
+                          />
+                        ) : null}
+                      </>
+                    )}
+                    title={referencePromptDisplayLabel}
                   />
                 )
               ) : (
@@ -20351,15 +21305,17 @@ function App() {
                 </div>
               )}
               <Fretboard
-                className="trainingSharedFretboard fitRange"
+                className={`trainingSharedFretboard fitRange ${showLickTabFretboard ? "trainingLickTabFretboard" : ""}`}
                 fretRange={referenceBoardRange}
                 mode="training"
                 notes={referenceBoardNotes}
+                notation={showLickTabFretboard ? "tab" : "notes"}
                 rootNote={selectedCategory.id === "scale-block" || selectedCategory.id === "first-position" ? "" : referenceDisplayPrompt?.noteName}
                 selectedNotes={selectedCategory.id === "scale-block" || selectedCategory.id === "first-position" ? ["__active-note-only__"] : []}
                 showFretNumbers
                 showStringNames
                 showOnlySelected={false}
+                tabSteps={referenceLickTabSteps}
               />
               <p>
                 {gameState === GAME_STATES.PLAYING
@@ -20658,42 +21614,44 @@ function App() {
                     />
                     <div className="scaleTypeGroup">
                       <MetronomeSelectControl
-                        label="종류"
+                        label="훈련"
                         onChange={changeScaleFamily}
-                        options={Object.values(SCALE_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
+                        options={Object.values(SCALE_TRAINING_FAMILIES).map((family) => ({ id: family.id, label: family.label }))}
                         value={selectedScaleFamily}
                       />
                       <MetronomeSelectControl
-                        label="타입"
+                        label="성격"
                         onChange={changeScaleType}
                         options={Object.values(selectedScaleTypeOptions).map((type) => ({ id: type.id, label: type.label }))}
                         value={selectedScaleType}
                       />
                     </div>
                     <MetronomeSelectControl
-                      className="scaleBoxSelect"
-                      label="Box"
-                      onChange={changeScaleBox}
-                      options={SCALE_BOX_OPTIONS.map((boxNumber) => ({ id: boxNumber, label: `Box ${boxNumber}` }))}
-                      value={selectedScaleBox}
+                      className={`scaleBoxSelect scaleDetailSelect ${isSelectedScaleLick ? "scaleLickSelect" : ""}`}
+                      label={selectedScaleDetailLabel}
+                      onChange={changeScaleDetail}
+                      options={selectedScaleDetailOptions}
+                      value={selectedScaleDetailValue}
                     />
                     <strong>{selectedPentatonic.label}</strong>
                   </div>
                 )}
-                <label className="mobileSelectControl mobileDirectionSelect">
-                  <span>진행 방향</span>
-                  <select
-                    aria-label="진행 방향 선택"
-                    onChange={(event) => changeScaleDirection(event.target.value)}
-                    value={scaleDirection}
-                  >
-                    {SCALE_DIRECTION_OPTIONS.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {!isSelectedScaleBoxSet ? (
+                  <label className="mobileSelectControl mobileDirectionSelect">
+                    <span>진행 방향</span>
+                    <select
+                      aria-label="진행 방향 선택"
+                      onChange={(event) => changeScaleDirection(event.target.value)}
+                      value={scaleDirection}
+                    >
+                      {SCALE_DIRECTION_OPTIONS.map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
                 <label className="mobileSelectControl mobileSubdivisionSelect">
                   <span>리듬 분할</span>
                   <select
@@ -20711,7 +21669,7 @@ function App() {
                     ))}
                   </select>
                 </label>
-                {SCALE_DIRECTION_OPTIONS.map((option) => (
+                {!isSelectedScaleBoxSet ? SCALE_DIRECTION_OPTIONS.map((option) => (
                   <button
                     className={scaleDirection === option.id ? "selected" : ""}
                     key={option.id}
@@ -20727,7 +21685,7 @@ function App() {
                           : option.hint}
                     </span>
                   </button>
-                ))}
+                )) : null}
                 <label className="repeatToggle">
                   <input
                     checked={repeatPractice}
@@ -20952,8 +21910,8 @@ function App() {
                         ...getNoteColorStyle(note.octaveNote),
                       }}
                       >
-                        <b>{note.octaveNote}</b>
-                        <small>{note.solfege}</small>
+                        <b>{isSelectedScaleLick ? (isActive && referenceDisplayPrompt?.lickOrder ? referenceDisplayPrompt.lickOrder : note.label ?? note.octaveNote) : note.octaveNote}</b>
+                        <small>{isSelectedScaleLick ? note.noteName : note.solfege}</small>
                       </span>
                     );
                   })}

@@ -2,7 +2,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "verify:scale-boxes": "node scripts/verify-scale-boxes.mjs",
+    "verify:box-set": "node scripts/verify-box-set.mjs",
+    "verify:lick-techniques": "node scripts/verify-lick-techniques.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
