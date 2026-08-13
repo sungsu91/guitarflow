@@ -7763,6 +7763,262 @@ button.primary:hover:not(:disabled) {
   }
 }
 
+/* Rhythm code storage is a modal workspace, matching the saved backing flow. */
+html body main.app.app.app .stage3StorageDialogLayer {
+  position: fixed;
+  inset: 0;
+  z-index: 7000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-sizing: border-box;
+}
+
+html body main.app.app.app .stage3StorageDialogLayer .stage3StorageRoom.stage3StorageDialog.chordTransitionPanel {
+  position: relative;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  width: min(760px, calc(100vw - 48px)) !important;
+  max-width: 760px !important;
+  min-height: 0 !important;
+  max-height: min(86dvh, 820px) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(241, 202, 122, 0.42) !important;
+  border-radius: 22px !important;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(217, 170, 85, 0.13), transparent 32%),
+    linear-gradient(180deg, #10151a 0%, #080b0e 100%) !important;
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  transform: translate3d(var(--storage-swipe-x, 0), 0, 0) !important;
+  transition: var(--storage-swipe-transition, transform 180ms cubic-bezier(0.2, 0.85, 0.24, 1)) !important;
+}
+
+html body main.app.app.app .stage3StorageDialogHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 17px 18px 15px;
+  border-bottom: 1px solid rgba(217, 170, 85, 0.18);
+  background: rgba(255, 255, 255, 0.025);
+  box-sizing: border-box;
+}
+
+html body main.app.app.app .stage3StorageDialogHeading > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+html body main.app.app.app .stage3StorageDialogHeading strong {
+  color: #fff3d5;
+  font-size: 17px;
+  font-weight: 950;
+  letter-spacing: -0.025em;
+}
+
+html body main.app.app.app .stage3StorageDialogHeading span {
+  overflow: hidden;
+  color: rgba(255, 238, 196, 0.62);
+  font-size: 11px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html body main.app.app.app .stage3StorageDialogHeading > button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(217, 170, 85, 0.26);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 238, 196, 0.86);
+}
+
+html body main.app.app.app .stage3StorageDialogHeading > button:focus-visible {
+  outline: 2px solid #f1ca7a;
+  outline-offset: 2px;
+}
+
+html body main.app.app.app .stage3StorageDialog .stage3StorageComposer {
+  min-height: 0 !important;
+  max-height: calc(min(86dvh, 820px) - 73px) !important;
+  padding: 14px 16px 18px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+html body main.app.app.app .stage3StorageDialog .stage3StorageTopBar {
+  grid-template-columns: minmax(0, 1fr) !important;
+  margin-bottom: 2px !important;
+}
+
+html body main.app.app.app .stage3StorageDialog .stage3StorageNativeSelect {
+  grid-column: 1 !important;
+  width: 100% !important;
+}
+
+html body main.app.app.app.theme-light .stage3StorageDialogLayer {
+  background: rgba(35, 28, 18, 0.42);
+}
+
+html body main.app.app.app.theme-light .stage3StorageDialogLayer .stage3StorageRoom.stage3StorageDialog.chordTransitionPanel {
+  border-color: #d2bf99 !important;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(187, 132, 47, 0.14), transparent 35%),
+    linear-gradient(180deg, #fffdf7 0%, #f4ead7 100%) !important;
+  box-shadow: 0 28px 80px rgba(81, 63, 37, 0.25) !important;
+}
+
+html body main.app.app.app.theme-light .stage3StorageDialogHeading {
+  border-bottom-color: rgba(119, 82, 29, 0.18);
+  background: rgba(255, 255, 255, 0.62);
+}
+
+html body main.app.app.app.theme-light .stage3StorageDialogHeading strong {
+  color: #2e2418;
+}
+
+html body main.app.app.app.theme-light .stage3StorageDialogHeading span {
+  color: #725d42;
+}
+
+html body main.app.app.app.theme-light .stage3StorageDialogHeading > button {
+  border-color: rgba(119, 82, 29, 0.22);
+  background: rgba(255, 255, 255, 0.72);
+  color: #5d482f;
+}
+
+@media (max-width: 1023px) {
+  html body main.app.app.app .stage3StorageDialogLayer {
+    align-items: center;
+    justify-items: center;
+    padding: 14px;
+  }
+
+  html body main.app.app.app .stage3StorageDialogLayer .stage3StorageRoom.stage3StorageDialog.chordTransitionPanel {
+    width: min(430px, calc(100vw - 28px)) !important;
+    max-width: 430px !important;
+    max-height: min(82dvh, 720px) !important;
+    border-radius: 22px !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialogHeading {
+    padding: 15px 14px 13px;
+  }
+
+  html body main.app.app.app .stage3StorageDialog .stage3StorageComposer {
+    max-height: calc(min(82dvh, 720px) - 62px) !important;
+    padding: 12px 10px calc(18px + env(safe-area-inset-bottom)) !important;
+    scrollbar-gutter: auto;
+  }
+}
+
+/* Modal-only editor grid: discard the former full-page storage tracks. */
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0 !important;
+  width: 100% !important;
+}
+
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder > * {
+  grid-column: 1 !important;
+  grid-row: auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder .stage3CompactOptionRow {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageComposerActions,
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageComposerActions.stage3StorageActionSegment {
+  justify-self: end !important;
+  width: auto !important;
+  min-height: 34px !important;
+  height: auto !important;
+  margin-top: 8px !important;
+}
+
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageComposerActions button {
+  min-width: 84px !important;
+  min-height: 34px !important;
+  height: 34px !important;
+}
+
+@media (min-width: 1024px) {
+  html body main.app.app.app .stage3StorageDialogLayer .stage3StorageRoom.stage3StorageDialog.chordTransitionPanel {
+    width: min(920px, calc(100vw - 64px)) !important;
+    max-width: 920px !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.36fr) !important;
+    column-gap: 14px !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder > .stage3RootPickRow {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder > .stage3RootPickRow + .stage3OptionRow {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder > .stage3CompactOptionRow {
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder > .stage3StrumPickRow {
+    grid-column: 1 / -1 !important;
+    grid-row: 3 !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder > .stage3AddRow {
+    grid-column: 1 / -1 !important;
+    grid-row: 4 !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder > .stage3InlineProgressionRow {
+    grid-column: 1 / -1 !important;
+    grid-row: 5 !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder > .stage3InlineStrum {
+    grid-column: 1 / -1 !important;
+    grid-row: 6 !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder > .stage3StorageComposerActions {
+    grid-column: 1 / -1 !important;
+    grid-row: 7 !important;
+  }
+}
+
 /* Gold-dark scale training: keep the PLAY-mode picker menus in the active theme. */
 html body main.app.app.app.theme-brand.theme-brand
   .scaleBlockTrainingPanel.referenceTrainingPanel
@@ -35465,65 +35721,6 @@ html body .app.app.app .fretboardViewerPanel.fretboardViewerPanel .viewerMapCard
   padding-inline: 7px !important;
 }
 
-.scaleBlockTrainingPanel .referenceScalePicker.boxSetActive {
-  grid-template-columns:
-    minmax(68px, 0.82fr)
-    minmax(72px, 0.72fr)
-    minmax(96px, 1.2fr)
-    minmax(68px, 0.78fr)
-    48px !important;
-}
-
-.boxSetDirectionToggle {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-self: end;
-  min-width: 0;
-  height: 31px;
-  gap: 2px;
-  order: 5;
-}
-
-.boxSetDirectionToggle button {
-  display: grid;
-  min-width: 0;
-  min-height: 31px;
-  padding: 0;
-  place-items: center;
-  border: 1px solid rgba(217, 170, 85, 0.3);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 238, 196, 0.68);
-  font: 950 15px/1 inherit;
-  cursor: pointer;
-}
-
-.boxSetDirectionToggle button.selected,
-.boxSetDirectionToggle button[aria-pressed="true"] {
-  border-color: rgba(241, 202, 122, 0.72);
-  background: linear-gradient(180deg, rgba(217, 170, 85, 0.34), rgba(135, 88, 31, 0.3));
-  color: #fff1c8;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
-.boxSetDirectionToggle button:focus-visible {
-  outline: 2px solid rgba(241, 202, 122, 0.72);
-  outline-offset: 1px;
-}
-
-html body .app.theme-light .boxSetDirectionToggle button {
-  border-color: rgba(151, 103, 92, 0.3);
-  background: linear-gradient(180deg, rgba(255, 253, 251, 0.84), rgba(224, 195, 189, 0.24));
-  color: rgba(91, 67, 62, 0.72);
-}
-
-html body .app.theme-light .boxSetDirectionToggle button.selected,
-html body .app.theme-light .boxSetDirectionToggle button[aria-pressed="true"] {
-  border-color: rgba(132, 82, 72, 0.48);
-  background: linear-gradient(180deg, #f2dcd6 0%, #dfb8ad 100%);
-  color: #6c241d;
-}
-
 .scaleBlockTrainingPanel .referenceScalePicker .scaleTypeGroup {
   grid-template-columns: minmax(60px, 0.72fr) minmax(72px, 1fr) !important;
   gap: 4px !important;
@@ -47832,6 +48029,76 @@ html body .app .fretboardViewerPanel.fretboardViewerPanel
   grid-template-columns: repeat(var(--fret-slot-count), 46px) !important;
 }
 
+/* Note viewer filtering keeps the full swipeable board and only changes marker emphasis. */
+html body .app .fretboardViewerPanel.fretboardViewerPanel
+  .viewerMapCard--note.viewerMapCard
+  .viewerSharedFretboard.allNotes.noteFilterActive
+  :is(.fretboardNoteChip, .fretboardStringState.noteOpen):not(.selected) {
+  opacity: 0.2 !important;
+  filter: saturate(0.16) brightness(0.72) contrast(0.76) !important;
+}
+
+html body .app .fretboardViewerPanel.fretboardViewerPanel
+  .viewerMapCard--note.viewerMapCard
+  .viewerSharedFretboard.allNotes.noteFilterActive
+  :is(.fretboardNoteChip.selected, .fretboardStringState.noteOpen.selected) {
+  z-index: 9 !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+html body .app.theme-brand.theme-brand .fretboardViewerPanel.fretboardViewerPanel
+  .viewerMapCard--note.viewerMapCard
+  .viewerSharedFretboard.allNotes.noteFilterActive
+  :is(.fretboardNoteChip.selected, .fretboardStringState.noteOpen.selected) {
+  border-color: rgba(92, 56, 17, 0.92) !important;
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 244, 204, 0.72), transparent 38%),
+    linear-gradient(180deg, #deb660 0%, #ad712c 100%) !important;
+  color: #1c1005 !important;
+  -webkit-text-fill-color: #1c1005 !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 224, 153, 0.5),
+    0 3px 7px rgba(51, 30, 9, 0.24),
+    inset 0 1px 0 rgba(255, 248, 220, 0.56) !important;
+}
+
+html body .app.theme-brand.theme-brand .fretboardViewerPanel.fretboardViewerPanel
+  .viewerMapCard--note.viewerMapCard
+  .viewerSharedFretboard.allNotes.noteFilterActive
+  :is(.fretboardNoteChip.selected, .fretboardStringState.noteOpen.selected)
+  :is(b, span) {
+  color: #1c1005 !important;
+  -webkit-text-fill-color: #1c1005 !important;
+  text-shadow: 0 1px 0 rgba(255, 238, 191, 0.3) !important;
+}
+
+html body .app.theme-light.theme-light .fretboardViewerPanel.fretboardViewerPanel
+  .viewerMapCard--note.viewerMapCard
+  .viewerSharedFretboard.allNotes.noteFilterActive
+  :is(.fretboardNoteChip.selected, .fretboardStringState.noteOpen.selected) {
+  border-color: rgba(112, 70, 61, 0.82) !important;
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.82), transparent 40%),
+    linear-gradient(180deg, #f5e9e5 0%, #d8b8af 100%) !important;
+  color: #251815 !important;
+  -webkit-text-fill-color: #251815 !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 250, 247, 0.84),
+    0 3px 7px rgba(83, 53, 46, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+html body .app.theme-light.theme-light .fretboardViewerPanel.fretboardViewerPanel
+  .viewerMapCard--note.viewerMapCard
+  .viewerSharedFretboard.allNotes.noteFilterActive
+  :is(.fretboardNoteChip.selected, .fretboardStringState.noteOpen.selected)
+  :is(b, span) {
+  color: #251815 !important;
+  -webkit-text-fill-color: #251815 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.52) !important;
+}
+
 /* Brand dark-gold rhythm tab: keep progression dropdowns present but quieter. */
 html body .app.theme-brand
   :is(.chordTransitionPanel, .stage3Container, .stage3PracticePanel)
@@ -48221,6 +48488,26 @@ html body .app.theme-light.theme-light
   min-width: 0 !important;
 }
 
+.chordBuilderOptionSection--labeled {
+  grid-template-columns: 34px minmax(0, 1fr) !important;
+  align-items: stretch !important;
+  column-gap: 6px !important;
+}
+
+.chordBuilderOptionLabel {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  min-width: 0 !important;
+  padding-left: 1px !important;
+  color: rgba(122, 82, 28, 0.82) !important;
+  font-size: 10.5px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.02em !important;
+  white-space: nowrap !important;
+}
+
 .chordBuilderOptionSection + .chordBuilderOptionSection {
   padding-top: 6px !important;
   border-top: 1px solid rgba(160, 135, 90, 0.16) !important;
@@ -48349,6 +48636,30 @@ html body .app.theme-brand.theme-brand
   .chordBuilderPanel--composer
   .chordBuilderOptionSection + .chordBuilderOptionSection {
   border-top-color: rgba(217, 170, 85, 0.13) !important;
+}
+
+html body .app.theme-brand.theme-brand
+  .fretboardViewerPanel.fretboardViewerPanel
+  .chordBuilderPanel--composer
+  .chordBuilderOptionLabel {
+  color: rgba(236, 195, 104, 0.84) !important;
+}
+
+@media (max-width: 680px) {
+  html body .app.theme-light.theme-light
+    .fretboardViewerPanel.fretboardViewerPanel
+    .chordBuilderPanel--composer
+    .chordBuilderChip.selected {
+    border-color: rgba(165, 111, 31, 0.9) !important;
+    background:
+      linear-gradient(180deg, rgba(255, 252, 240, 0.92), rgba(205, 167, 92, 0.58)),
+      #ead6aa !important;
+    color: #211509 !important;
+    box-shadow:
+      0 3px 9px rgba(101, 70, 25, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.88),
+      inset 0 -1px 0 rgba(126, 82, 23, 0.18) !important;
+  }
 }
 
 html body .app.theme-brand.theme-brand
@@ -57107,42 +57418,6 @@ html body main.app.app.app.theme-light .trainingLickTabFretboard .fretboardTabNo
       52px !important;
     gap: 4px !important;
     padding: 7px !important;
-  }
-
-  html body main.app.app.app
-    .scaleBlockTrainingPanel
-    .referenceTrainingMainRow
-    .stage2HeaderScalePicker
-    .referenceScalePicker.boxSetActive {
-    grid-template-columns:
-      minmax(58px, 0.85fr)
-      minmax(52px, 0.62fr)
-      minmax(72px, 1fr)
-      minmax(62px, 0.82fr)
-      52px !important;
-  }
-
-  html body main.app.app.app
-    .scaleBlockTrainingPanel
-    .stage2HeaderScalePicker
-    .referenceScalePicker.boxSetActive
-    > .boxSetDirectionToggle {
-    grid-column: 4 !important;
-    grid-row: 2 !important;
-    width: 100% !important;
-    height: 19px !important;
-    margin-top: -1px !important;
-  }
-
-  html body main.app.app.app
-    .scaleBlockTrainingPanel
-    .stage2HeaderScalePicker
-    .referenceScalePicker.boxSetActive
-    > .boxSetDirectionToggle
-    button {
-    min-height: 19px !important;
-    border-radius: 6px !important;
-    font-size: 12px !important;
   }
 
   html body main.app.app.app

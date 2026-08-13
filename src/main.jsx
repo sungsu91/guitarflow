@@ -5,6 +5,7 @@ import DesktopLayout from "./layouts/DesktopLayout.jsx";
 import "./style.css";
 import "./components/brand-header.css";
 import "./layouts/desktop-layout.css";
+import "./components/backing-loop.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

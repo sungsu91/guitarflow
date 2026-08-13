@@ -1,7 +1,9 @@
 {
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test": "node --test tests/*.test.mjs",
     "preview": "vite preview",
     "verify:scale-boxes": "node scripts/verify-scale-boxes.mjs",
     "verify:box-set": "node scripts/verify-box-set.mjs",

@@ -189,6 +189,7 @@ function Fretboard({
             const openNote = openNotesByString.get(stringInfo.stringNumber);
             const openLabel = openNote?.label ?? openNote?.noteName ?? getPitchClass(openNote?.pitch);
             const isOpenCurrent = Boolean(openNote?.isCurrent || openNote?.current || openNote?.isActive);
+            const isOpenSelected = Boolean(openNote && (selected.size === 0 || selected.has(openNote.noteName)));
             return (
               <div className="fretboardStringRow" key={stringInfo.stringNumber}>
                 {showStringNames && (
@@ -202,7 +203,7 @@ function Fretboard({
                     {String(stringState).toUpperCase()}
                   </em>
                 ) : !isTabMode && openNote ? (
-                  <em className={`fretboardStringState noteOpen ${openNote.noteName === rootNote || openNote.isRoot ? "root" : ""} ${openNote.isActive ? "active" : ""} ${isOpenCurrent ? "current-note" : ""}`}>
+                  <em className={`fretboardStringState noteOpen ${openNote.noteName === rootNote || openNote.isRoot ? "root" : ""} ${openNote.isActive ? "active" : ""} ${isOpenCurrent ? "current-note" : ""} ${isOpenSelected ? "selected" : ""}`}>
                     {openLabel}
                   </em>
                 ) : null}

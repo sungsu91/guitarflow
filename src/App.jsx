@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { createPortal, flushSync } from "react-dom";
 import BrandHeader from "./components/BrandHeader";
+import BackingLoop from "./components/BackingLoop";
 import Fretboard from "./components/Fretboard";
 import { RIFFLAB_COMMON_CUTAWAY_SPRITE_SRC } from "./assets/rifflabCommonCutawaySprite";
 import {
@@ -32,7 +33,7 @@ import {
 
 const CHROMATIC_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const NOTE_INDEX = Object.fromEntries(CHROMATIC_NOTES.map((note, index) => [note, index]));
-const APP_VERSION_LABEL = "Version 0.9.1";
+const APP_VERSION_LABEL = "Version 0.9.2";
 
 const SOLFEGE = {
   C: "도",
@@ -89,9 +90,18 @@ function getPitchOctave(pitch) {
   return match ? Number(match[0]) : null;
 }
 
-function ChordBuilderOptionSection({ children, layout = "wrap", title }) {
+function ChordBuilderOptionSection({ children, layout = "wrap", showTitle = false, title }) {
+  const sectionClassName = [
+    "chordBuilderOptionSection",
+    `chordBuilderOptionSection--${layout}`,
+    showTitle ? "chordBuilderOptionSection--labeled" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <section className={`chordBuilderOptionSection chordBuilderOptionSection--${layout}`}>
+    <section aria-label={title} className={sectionClassName}>
+      {showTitle ? <span className="chordBuilderOptionLabel">{title}</span> : null}
       <div className="chordBuilderChipGrid">{children}</div>
     </section>
   );
@@ -177,7 +187,9 @@ const DIATONIC_SCALE_TYPES = {
 
 const SCALE_BOX_OPTIONS = [1, 2, 3, 4, 5];
 const SCALE_BOX_SET_ID = "box-set";
-const SCALE_BOX_SET_LABEL = "BOX SET";
+const SCALE_BOX_SET_UP_RIGHT_ID = "box-set-up-right";
+const SCALE_BOX_SET_DOWN_RIGHT_ID = "box-set-down-right";
+const SCALE_BOX_SET_LABEL = "SET";
 const SCALE_BOX_SET_MAX_FRET = 15;
 // Keep unfinished LICK training available for local development, but never expose it in production builds.
 const SCALE_LICK_UI_ENABLED = import.meta.env.DEV;
@@ -526,6 +538,10 @@ const SCALE_LICK_STYLES = [
     ],
   },
 ];
+
+function getScaleBoxSetDirectionLabel(direction = "ascending") {
+  return `${SCALE_BOX_SET_LABEL} ${direction === "descending" ? "↘" : "↗"}`;
+}
 const SCALE_LICK_STYLE_BY_ID = Object.fromEntries(SCALE_LICK_STYLES.map((style) => [style.id, style]));
 const SCALE_LICK_FAMILY_IDS = new Set(SCALE_LICK_STYLES.map((style) => style.id));
 const SCALE_LICK_OPTIONS = SCALE_LICK_STYLES.flatMap((style) =>
@@ -957,20 +973,46 @@ export function buildScaleBlockPractice(root = "C", typeId = "minor", familyId =
   return { displayBox, label, notes, sequence, visibleFrets, root, type, family, pattern, placement, sourceBox };
 }
 
-const SCALE_BOX_SET_LAYERS = [
-  { boxes: [1], stringNumber: 6, role: "entry" },
-  { boxes: [1], stringNumber: 6 },
-  { boxes: [1, 2], stringNumber: 5, role: "bridge" },
-  { boxes: [2], stringNumber: 5 },
-  { boxes: [2, 3], stringNumber: 4, role: "bridge" },
-  { boxes: [3], stringNumber: 4 },
-  { boxes: [3], stringNumber: 3 },
-  { boxes: [3, 4], stringNumber: 3, role: "bridge" },
-  { boxes: [4], stringNumber: 2 },
-  { boxes: [4, 5], stringNumber: 2, role: "bridge" },
-  { boxes: [5], stringNumber: 1 },
-  { boxes: [5], stringNumber: 1, role: "exit" },
-];
+const SCALE_BOX_SET_PATHS = {
+  ascending: {
+    diagonal: "up-right",
+    endString: 1,
+    startString: 6,
+    stages: [
+      { box: 1, stringNumber: 6 },
+      { box: 1, stringNumber: 5 },
+      { box: 2, stringNumber: 5 },
+      { box: 2, stringNumber: 4 },
+      { box: 3, stringNumber: 4 },
+      { box: 3, stringNumber: 3 },
+      { box: 4, stringNumber: 3 },
+      { box: 4, stringNumber: 2 },
+      { box: 5, stringNumber: 2 },
+      { box: 5, stringNumber: 1 },
+    ],
+  },
+  descending: {
+    diagonal: "down-right",
+    endString: 6,
+    startString: 1,
+    stages: [
+      { box: 1, stringNumber: 1 },
+      { box: 1, stringNumber: 2 },
+      { box: 2, stringNumber: 2 },
+      { box: 2, stringNumber: 3 },
+      { box: 3, stringNumber: 3 },
+      { box: 3, stringNumber: 4 },
+      { box: 4, stringNumber: 4 },
+      { box: 4, stringNumber: 5 },
+      { box: 5, stringNumber: 5 },
+      { box: 5, stringNumber: 6 },
+    ],
+  },
+};
+
+function getScaleBoxSetPathDefinition(direction) {
+  return direction === "descending" ? SCALE_BOX_SET_PATHS.descending : SCALE_BOX_SET_PATHS.ascending;
+}
 
 function getScaleBoxSetPositionKey(note) {
   return `s${note.stringNumber}-f${note.fretNumber}`;
@@ -998,121 +1040,164 @@ function buildScaleBoxSetNotePool(boxPractices) {
   return [...noteMap.values()];
 }
 
-function getScaleBoxSetLayerCandidates(notePool, layer) {
-  return notePool.filter((note) => {
-    if (Number(note.stringNumber) !== layer.stringNumber) return false;
-    return layer.boxes.some((boxNumber) => note.boxMemberships.includes(boxNumber));
+function buildScaleBoxSetStageCandidates(boxPractices, notePool, pathDefinition, minFret) {
+  const pooledNotes = new Map(notePool.map((note) => [getScaleBoxSetPositionKey(note), note]));
+  return pathDefinition.stages.map((stage, stageIndex) => {
+    const practice = boxPractices.find((candidate) => candidate.displayBox === stage.box);
+    const previousStage = pathDefinition.stages[stageIndex - 1];
+    return practice.notes
+      .filter((note) => note.stringNumber === stage.stringNumber)
+      .map((note) => pooledNotes.get(getScaleBoxSetPositionKey(note)))
+      .filter((note) => note && note.fretNumber >= minFret && note.fretNumber <= SCALE_BOX_SET_MAX_FRET)
+      .map((note) => ({
+        ...note,
+        routeBox: stage.box,
+        sourceBox: stage.box,
+        sourcePatternBox: practice.sourceBox,
+        routeStage: stageIndex + 1,
+        connectionFromBox: previousStage && previousStage.box !== stage.box ? previousStage.box : null,
+      }));
   });
 }
 
-function getScaleBoxSetCandidateCost(note, layer, layerIndex, layerCount, minFret, maxFret) {
-  const progress = layerCount <= 1 ? 0 : layerIndex / (layerCount - 1);
+function getScaleBoxSetStagePositionCost(note, stageIndex, stageCount, minFret, maxFret) {
+  const progress = stageCount <= 1 ? 0 : stageIndex / (stageCount - 1);
   const expectedFret = minFret + (maxFret - minFret) * progress;
-  let cost = Math.abs(note.fretNumber - expectedFret) * 0.85;
-
-  if (layer.role === "bridge") {
-    const sharedByBothBoxes = layer.boxes.every((boxNumber) => note.boxMemberships.includes(boxNumber));
-    if (!sharedByBothBoxes) cost += 5;
-  }
-  if (layer.role === "entry") cost += Math.max(0, note.fretNumber - minFret) * 1.5;
-  if (layer.role === "exit") cost += Math.max(0, maxFret - note.fretNumber) * 1.5;
-  return cost;
+  return Math.abs(note.fretNumber - expectedFret) * 0.65;
 }
 
-function solveScaleBoxSetPath(notePool, maxFretJump, maxBacktrack) {
-  const layerCandidates = SCALE_BOX_SET_LAYERS.map((layer) => getScaleBoxSetLayerCandidates(notePool, layer));
-  if (layerCandidates.some((candidates) => !candidates.length)) return null;
+function getScaleBoxSetTransitionCost(previous, current, direction) {
+  const fretDelta = current.fretNumber - previous.fretNumber;
+  const fretDistance = Math.abs(fretDelta);
+  const pitchDelta = pitchToMidi(current.pitch) - pitchToMidi(previous.pitch);
+  const boxChanged = current.routeBox !== previous.routeBox;
+  const usesSharedBoundary = boxChanged && (
+    current.boxMemberships.includes(previous.routeBox)
+    || previous.boxMemberships.includes(current.routeBox)
+  );
+  const expectedPitchDirection = direction === "descending" ? -1 : 1;
+  const pitchDirectionPenalty = pitchDelta * expectedPitchDirection <= 0 ? 1.5 : 0;
 
-  const minFret = Math.min(...notePool.map((note) => note.fretNumber));
-  const maxFret = Math.max(...notePool.map((note) => note.fretNumber));
-  let states = layerCandidates[0].map((note) => ({
-    cost: getScaleBoxSetCandidateCost(note, SCALE_BOX_SET_LAYERS[0], 0, SCALE_BOX_SET_LAYERS.length, minFret, maxFret),
+  return fretDistance * 0.75
+    + Math.max(0, fretDistance - 3) * 1.75
+    + (fretDelta < -2 ? Math.abs(fretDelta) * 1.2 : 0)
+    + Math.max(0, Math.abs(pitchDelta) - 7) * 0.7
+    + pitchDirectionPenalty
+    + (boxChanged && !usesSharedBoundary ? 1.5 : 0)
+    - (usesSharedBoundary ? 2.5 : 0);
+}
+
+function solveScaleBoxSetConnectionPath(boxPractices, notePool, pathDefinition, direction, minFret, maxFretJump) {
+  const candidateLayers = buildScaleBoxSetStageCandidates(
+    boxPractices,
+    notePool,
+    pathDefinition,
+    minFret,
+  );
+  if (candidateLayers.some((candidates) => !candidates.length)) return null;
+
+  const noteFrets = candidateLayers.flat().map((note) => note.fretNumber);
+  const routeMinFret = Math.min(...noteFrets);
+  const routeMaxFret = Math.max(...noteFrets);
+  let states = candidateLayers[0].map((note) => ({
+    cost: getScaleBoxSetStagePositionCost(
+      note,
+      0,
+      candidateLayers.length,
+      routeMinFret,
+      routeMaxFret,
+    ) + note.fretNumber * 0.4,
     path: [note],
   }));
 
-  for (let layerIndex = 1; layerIndex < SCALE_BOX_SET_LAYERS.length; layerIndex += 1) {
-    const layer = SCALE_BOX_SET_LAYERS[layerIndex];
-    const nextStates = [];
-    layerCandidates[layerIndex].forEach((note) => {
-      let bestState = null;
+  for (let stageIndex = 1; stageIndex < candidateLayers.length; stageIndex += 1) {
+    const bestStates = new Map();
+    candidateLayers[stageIndex].forEach((note) => {
       states.forEach((state) => {
         const previous = state.path.at(-1);
         if (getScaleBoxSetPositionKey(previous) === getScaleBoxSetPositionKey(note)) return;
-        if (pitchToMidi(note.pitch) <= pitchToMidi(previous.pitch)) return;
-        if (state.path.some((pathNote) => getScaleBoxSetPositionKey(pathNote) === getScaleBoxSetPositionKey(note))) return;
+        if (Math.abs(note.fretNumber - previous.fretNumber) > maxFretJump) return;
 
-        const fretDelta = note.fretNumber - previous.fretNumber;
-        if (Math.abs(fretDelta) > maxFretJump || fretDelta < -maxBacktrack) return;
-
-        const backwardPenalty = fretDelta < 0 ? Math.abs(fretDelta) * 3 + 1.5 : 0;
-        const sameStringPenalty = note.stringNumber === previous.stringNumber && fretDelta < 1 ? 1.5 : 0;
-        const pitchStep = pitchToMidi(note.pitch) - pitchToMidi(previous.pitch);
-        const pitchStepPenalty = Math.max(0, pitchStep - 5) * 0.65;
-        const transitionCost = Math.abs(fretDelta) * 0.7 + backwardPenalty + sameStringPenalty + pitchStepPenalty;
-        const candidateCost = getScaleBoxSetCandidateCost(
-          note,
-          layer,
-          layerIndex,
-          SCALE_BOX_SET_LAYERS.length,
-          minFret,
-          maxFret,
-        );
         const nextState = {
-          cost: state.cost + transitionCost + candidateCost,
+          cost: state.cost
+            + getScaleBoxSetStagePositionCost(
+              note,
+              stageIndex,
+              candidateLayers.length,
+              routeMinFret,
+              routeMaxFret,
+            )
+            + getScaleBoxSetTransitionCost(previous, note, direction),
           path: [...state.path, note],
         };
-        if (!bestState || nextState.cost < bestState.cost) bestState = nextState;
+        const stateKey = getScaleBoxSetPositionKey(note);
+        const existing = bestStates.get(stateKey);
+        if (!existing || nextState.cost < existing.cost) bestStates.set(stateKey, nextState);
       });
-      if (bestState) nextStates.push(bestState);
     });
-    if (!nextStates.length) return null;
-    states = nextStates;
+    states = [...bestStates.values()];
+    if (!states.length) return null;
   }
 
-  return states.sort((a, b) => a.cost - b.cost)[0]?.path ?? null;
+  return states.sort((left, right) => left.cost - right.cost)[0]?.path ?? null;
 }
 
 export function buildScaleBoxSetPractice(root = "C", typeId = "minor", familyId = SCALE_FAMILIES.pentatonic.id, direction = "ascending") {
   const boxPractices = SCALE_BOX_OPTIONS.map((boxNumber) => buildScaleBlockPractice(root, typeId, familyId, boxNumber));
   const fullNotePool = buildScaleBoxSetNotePool(boxPractices);
-  const practicalNotePools = [
-    fullNotePool.filter((note) => note.fretNumber >= 1 && note.fretNumber <= SCALE_BOX_SET_MAX_FRET),
-    fullNotePool.filter((note) => note.fretNumber >= 0 && note.fretNumber <= SCALE_BOX_SET_MAX_FRET),
-    fullNotePool,
-  ];
-  const movementLimits = [
-    { maxFretJump: 4, maxBacktrack: 1 },
-    { maxFretJump: 5, maxBacktrack: 2 },
-    { maxFretJump: 7, maxBacktrack: 3 },
-    { maxFretJump: 12, maxBacktrack: 5 },
-  ];
+  const pathDefinition = getScaleBoxSetPathDefinition(direction);
   let corePath = null;
-  for (const notePool of practicalNotePools) {
-    for (const limits of movementLimits) {
-      corePath = solveScaleBoxSetPath(notePool, limits.maxFretJump, limits.maxBacktrack);
+  for (const minFret of [1, 0]) {
+    for (const maxFretJump of [5, 7, 12]) {
+      corePath = solveScaleBoxSetConnectionPath(
+        boxPractices,
+        fullNotePool,
+        pathDefinition,
+        direction,
+        minFret,
+        maxFretJump,
+      );
       if (corePath) break;
     }
     if (corePath) break;
   }
 
-  const safeCorePath = corePath ?? boxPractices.flatMap((practice) => practice.notes.slice(0, 1));
-  const phrasePath = safeCorePath;
-  const notes = [...new Map(phrasePath.map((note) => [getScaleBoxSetPositionKey(note), note])).values()].map((note) => ({
+  const safeCorePath = corePath ?? pathDefinition.stages.map((stage, stageIndex) => {
+    const practice = boxPractices.find((candidate) => candidate.displayBox === stage.box);
+    const note = practice.notes.find((candidate) => candidate.stringNumber === stage.stringNumber);
+    const pooledNote = fullNotePool.find((candidate) =>
+      getScaleBoxSetPositionKey(candidate) === getScaleBoxSetPositionKey(note));
+    const previousStage = pathDefinition.stages[stageIndex - 1];
+    return {
+      ...pooledNote,
+      routeBox: stage.box,
+      sourceBox: stage.box,
+      sourcePatternBox: practice.sourceBox,
+      routeStage: stageIndex + 1,
+      connectionFromBox: previousStage && previousStage.box !== stage.box ? previousStage.box : null,
+    };
+  });
+  const isDescending = direction === "descending";
+  const notes = safeCorePath.map((note, index) => ({
     ...note,
     group: SCALE_BOX_SET_ID,
     isRoot: note.noteName === root,
+    pathOrder: index + 1,
   }));
-  const ascendingSequence = phrasePath.map((note, index) => ({
+  const sequence = notes.map((note, index) => ({
     noteName: note.pitch,
     pitch: note.pitch,
     noteId: note.id,
     stringNumber: note.stringNumber,
     fretNumber: note.fretNumber,
     boxMemberships: note.boxMemberships,
+    routeBox: note.routeBox,
+    sourceBox: note.sourceBox,
+    sourcePatternBox: note.sourcePatternBox,
+    routeStage: note.routeStage,
+    connectionFromBox: note.connectionFromBox,
     pathOrder: index + 1,
   }));
-  const isDescending = direction === "descending";
-  const sequence = isDescending ? [...ascendingSequence].reverse() : ascendingSequence;
   const routeFrets = notes.map((note) => note.fretNumber);
   const minFret = Math.min(...routeFrets);
   const maxFret = Math.max(...routeFrets);
@@ -1123,18 +1208,26 @@ export function buildScaleBoxSetPractice(root = "C", typeId = "minor", familyId 
   return {
     boxSet: true,
     displayBox: SCALE_BOX_SET_ID,
-    label: `${root} ${type.label} ${family.label} ${SCALE_BOX_SET_LABEL}`,
+    label: `${root} ${type.label} ${family.label} ${getScaleBoxSetDirectionLabel(direction)}`,
     notes,
     sequence,
     visibleFrets,
     root,
     type,
     family,
-    phrasePath: {
+    setPath: {
       direction: isDescending ? "descending" : "ascending",
-      movementTypes: ["same-string", "adjacent-box", "full-span"],
+      diagonal: pathDefinition.diagonal,
+      source: "existing-boxes",
+      boxOrder: SCALE_BOX_OPTIONS,
+      notesPerBox: SCALE_BOX_OPTIONS.map((boxNumber) =>
+        sequence.filter((note) => note.routeBox === boxNumber).length),
+      pathLength: sequence.length,
+      movementTypes: ["adjacent-string", "adjacent-box", "stair-step"],
       coveredBoxes: SCALE_BOX_OPTIONS,
       availablePositionCount: fullNotePool.length,
+      startString: sequence[0]?.stringNumber,
+      endString: sequence.at(-1)?.stringNumber,
     },
   };
 }
@@ -4723,31 +4816,6 @@ function TrainingNoteGuideToggle({ enabled, onChange }) {
   );
 }
 
-function BoxSetDirectionToggle({ direction, onChange }) {
-  return (
-    <div className="boxSetDirectionToggle" role="group" aria-label="BOX SET 진행 방향">
-      <button
-        aria-label="낮은 음에서 높은 음으로 진행"
-        aria-pressed={direction === SCALE_DIRECTIONS.ASC}
-        className={direction === SCALE_DIRECTIONS.ASC ? "selected" : ""}
-        onClick={() => onChange(SCALE_DIRECTIONS.ASC)}
-        type="button"
-      >
-        ↑
-      </button>
-      <button
-        aria-label="높은 음에서 낮은 음으로 진행"
-        aria-pressed={direction === SCALE_DIRECTIONS.DESC}
-        className={direction === SCALE_DIRECTIONS.DESC ? "selected" : ""}
-        onClick={() => onChange(SCALE_DIRECTIONS.DESC)}
-        type="button"
-      >
-        ↓
-      </button>
-    </div>
-  );
-}
-
 function CountInToggleButton({ className = "", disabled = false, enabled = false, onChange = () => {} }) {
   return (
     <button
@@ -7972,16 +8040,16 @@ const HELP_GUIDE_SECTIONS = [
       <>
         <p>코드 진행을 보면서 코드 전환과 리듬을 함께 연습하는 화면입니다.</p>
         <p>상단의 추천 드롭다운에서는 앱에서 고정 제공하는 대표 진행을 바로 불러올 수 있습니다.</p>
-        <p>사용자 드롭다운에서는 저장실에 저장한 내 코드 진행을 불러올 수 있습니다.</p>
+        <p>사용자 드롭다운에서는 저장된 진행 팝업에 보관한 내 코드 진행을 불러올 수 있습니다.</p>
         <strong>추천 진행</strong>
         <ul>
           <li>추천 진행을 선택하면 코드 진행, BPM, 드럼·베이스·피아노 비트가 자동 적용됩니다.</li>
           <li>적용 후에는 BPM과 반주 비트를 자유롭게 바꿀 수 있습니다.</li>
-          <li>추천 진행은 운영자가 고정 제공하는 항목이라 저장실에서 삭제하거나 수정하지 않습니다.</li>
+          <li>추천 진행은 운영자가 고정 제공하는 항목이라 저장된 진행 팝업에서 삭제하거나 수정하지 않습니다.</li>
         </ul>
-        <strong>저장실</strong>
+        <strong>저장된 진행</strong>
         <ul>
-          <li>저장실은 사용자가 만든 코드 진행과 주법을 저장하는 공간입니다.</li>
+          <li>저장된 진행 팝업은 사용자가 만든 코드 진행과 주법을 보관하는 공간입니다.</li>
           <li>루트, 성격, 옵션을 선택해 코드를 추가하고 진행순서를 만듭니다.</li>
           <li>주법을 추가한 뒤 저장하면 사용자 드롭다운에서 불러올 수 있습니다.</li>
           <li>사용자 저장 진행만 수정하거나 삭제할 수 있습니다.</li>
@@ -8047,7 +8115,7 @@ const HELP_GUIDE_SECTIONS = [
     content: (
       <>
         <p>사용 중 불편한 점, 오류, 추가되었으면 하는 기능이 있다면 알려주세요.</p>
-        <p>훈련 흐름, 모바일 화면, 사운드, 저장실 기능에 대한 의견도 환영합니다.</p>
+        <p>훈련 흐름, 모바일 화면, 사운드, 저장 기능에 대한 의견도 환영합니다.</p>
         <p>보내주신 피드백은 RIFFLAB을 더 사용하기 좋은 기타 훈련 앱으로 다듬는 데 활용됩니다.</p>
         <a className="helpInstagramLink" href="https://www.instagram.com/sungsu91_/" rel="noreferrer" target="_blank">
           <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -10771,9 +10839,24 @@ function App() {
     ? selectedScaleLickOptions.map((lick) => ({ id: lick.id, label: lick.label }))
     : [
         ...SCALE_BOX_OPTIONS.map((boxNumber) => ({ id: boxNumber, label: `BOX${boxNumber}` })),
-        { id: SCALE_BOX_SET_ID, label: SCALE_BOX_SET_LABEL },
+        {
+          id: SCALE_BOX_SET_UP_RIGHT_ID,
+          label: getScaleBoxSetDirectionLabel(SCALE_DIRECTIONS.ASC),
+          longLabel: `${getScaleBoxSetDirectionLabel(SCALE_DIRECTIONS.ASC)}: 좌하단에서 우상단`,
+        },
+        {
+          id: SCALE_BOX_SET_DOWN_RIGHT_ID,
+          label: getScaleBoxSetDirectionLabel(SCALE_DIRECTIONS.DESC),
+          longLabel: `${getScaleBoxSetDirectionLabel(SCALE_DIRECTIONS.DESC)}: 좌상단에서 우하단`,
+        },
       ];
-  const selectedScaleDetailValue = isSelectedScaleLick ? safeSelectedScaleLick : selectedScaleBox;
+  const selectedScaleDetailValue = isSelectedScaleLick
+    ? safeSelectedScaleLick
+    : isSelectedScaleBoxSet
+      ? boxSetDirection === SCALE_DIRECTIONS.DESC
+        ? SCALE_BOX_SET_DOWN_RIGHT_ID
+        : SCALE_BOX_SET_UP_RIGHT_ID
+      : selectedScaleBox;
   const selectedScaleDetailLabel = "세부";
   const selectedPentatonicRef = useRef(selectedPentatonic);
   selectedPentatonicRef.current = selectedPentatonic;
@@ -10922,7 +11005,7 @@ function App() {
   );
   const viewerMapPitchClasses = useMemo(() => {
     if (viewerMode === FRETBOARD_VIEWER_MODES.NOTE) {
-      return viewerNoteFilter === "ALL" ? new Set(CHROMATIC_NOTES) : new Set([viewerNoteFilter]);
+      return new Set(CHROMATIC_NOTES);
     }
     if (viewerMode === FRETBOARD_VIEWER_MODES.SCALE) {
       return new Set(viewerScaleBlock.notes.map((note) => note.noteName));
@@ -10931,7 +11014,7 @@ function App() {
       return new Set(viewerChordToneNames);
     }
     return new Set(CHROMATIC_NOTES);
-  }, [viewerChordToneNames, viewerMode, viewerNoteFilter, viewerScaleBlock.notes]);
+  }, [viewerChordToneNames, viewerMode, viewerScaleBlock.notes]);
   const viewerMapNotes = useMemo(() => {
     return viewerMapStrings.flatMap((stringInfo) => {
       const openMidi = pitchToMidi(stringInfo.pitch);
@@ -10991,6 +11074,9 @@ function App() {
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return viewerMapNotes;
     return viewerCurrentChordPosition?.notes ?? [];
   }, [viewerCurrentChordPosition, viewerMapNotes, viewerMode, viewerScaleBlock.notes]);
+  const viewerSelectedPitchClasses = viewerMode === FRETBOARD_VIEWER_MODES.NOTE
+    ? viewerNoteFilter === "ALL" ? CHROMATIC_NOTES : [viewerNoteFilter]
+    : [...viewerMapPitchClasses];
   const viewerChordBarres = viewerMode === FRETBOARD_VIEWER_MODES.CHORD
     ? viewerCurrentChordPosition?.barres ?? []
     : [];
@@ -11313,13 +11399,6 @@ function App() {
       setStage3StorageStrumDraftPattern(firstPattern);
     }
     setStage3StorageOpen(true);
-    if (typeof window !== "undefined") {
-      window.history.pushState(
-        { appRoute: APP_ROUTES.STAGE3, stage3StorageOpen: true },
-        "",
-        `${window.location.pathname}${window.location.search}${APP_ROUTES.STAGE3}`,
-      );
-    }
   }, [bpm, hasChordTransitionProgression, isStage3RecommendedItem, metronomeTimeSignature, selectedStage3LibraryItem, stage3ChordIds, stage3QuickSlots, stage3RecommendedSlots]);
   const saveStage3StorageItem = useCallback((mode = "update") => {
     if (!hasStage3StorageProgression) return;
@@ -13472,18 +13551,20 @@ function App() {
       const currentBeat = Math.floor(currentTick / clicksPerBeat);
       const beatInBar = currentBeat % beatsPerMeasure;
       const subdivisionIndex = currentTick % clicksPerBeat;
-      const isFirstBeat = currentBeat === 0;
+      const advancesEverySubdivision = selectedCategory.id === "scale-block";
+      // The phrase cursor is independent of beat/bar/chord indices, so measure changes never restart the melody.
+      const isFirstSequenceTick = advancesEverySubdivision ? currentTick === 0 : currentBeat === 0;
       if (subdivisionIndex === 0) {
         setBeat(beatInBar);
       }
       playPatternTick(beatInBar, subdivisionIndex);
 
-      if (subdivisionIndex !== 0) return;
+      if (!advancesEverySubdivision && subdivisionIndex !== 0) return;
 
       const sequence = Array.isArray(sequenceRef.current) && sequenceRef.current.length > 0
         ? sequenceRef.current
         : selectedCategory.sequence;
-      if (!sequence?.length || isFirstBeat) return;
+      if (!sequence?.length || isFirstSequenceTick) return;
 
       if (!practiceLoopRef.current && patternRef.current >= sequence.length - 1) {
         practiceCompletedRef.current = true;
@@ -15399,27 +15480,21 @@ function App() {
     resetScalePracticePreview(selectedScaleRoot, typeId, selectedScaleFamily, isScaleLickFamilyId(selectedScaleFamily) ? safeSelectedScaleLick : selectedScaleBox);
   }, [resetScalePracticePreview, safeSelectedScaleLick, selectedScaleBox, selectedScaleFamily, selectedScaleRoot]);
 
-  const changeScaleBox = useCallback((boxNumber) => {
-    const nextBox = boxNumber === SCALE_BOX_SET_ID
+  const changeScaleBox = useCallback((boxValue) => {
+    const isDownRightBoxSet = boxValue === SCALE_BOX_SET_DOWN_RIGHT_ID;
+    const isUpRightBoxSet = boxValue === SCALE_BOX_SET_UP_RIGHT_ID || boxValue === SCALE_BOX_SET_ID;
+    const nextBox = isUpRightBoxSet || isDownRightBoxSet
       ? SCALE_BOX_SET_ID
-      : Math.max(1, Math.min(5, Number(boxNumber) || 1));
-    const nextBoxSetDirection = nextBox === SCALE_BOX_SET_ID ? SCALE_DIRECTIONS.ASC : boxSetDirection;
+      : Math.max(1, Math.min(5, Number(boxValue) || 1));
+    const nextBoxSetDirection = isDownRightBoxSet
+      ? SCALE_DIRECTIONS.DESC
+      : isUpRightBoxSet
+        ? SCALE_DIRECTIONS.ASC
+        : boxSetDirection;
     if (nextBox === SCALE_BOX_SET_ID) setBoxSetDirection(nextBoxSetDirection);
     setSelectedScaleBox(nextBox);
     resetScalePracticePreview(selectedScaleRoot, selectedScaleType, selectedScaleFamily, nextBox, nextBoxSetDirection);
   }, [boxSetDirection, resetScalePracticePreview, selectedScaleFamily, selectedScaleRoot, selectedScaleType]);
-
-  const changeBoxSetDirection = useCallback((direction) => {
-    const nextDirection = direction === SCALE_DIRECTIONS.DESC ? SCALE_DIRECTIONS.DESC : SCALE_DIRECTIONS.ASC;
-    setBoxSetDirection(nextDirection);
-    resetScalePracticePreview(
-      selectedScaleRoot,
-      selectedScaleType,
-      selectedScaleFamily,
-      SCALE_BOX_SET_ID,
-      nextDirection,
-    );
-  }, [resetScalePracticePreview, selectedScaleFamily, selectedScaleRoot, selectedScaleType]);
 
   const changeScaleLick = useCallback((lickId) => {
     const nextLick = getScaleLickOption(selectedScaleFamily, lickId).id;
@@ -15557,20 +15632,13 @@ function App() {
     setSelectedCategoryId("rhythm");
     setPendingStageCardId("rhythm");
     switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
-    setStage3StorageOpen(true);
-    if (typeof window !== "undefined") {
-      window.history.pushState(
-        { appRoute: APP_ROUTES.STAGE3, stage3StorageOpen: true },
-        "",
-        `${window.location.pathname}${window.location.search}${APP_ROUTES.STAGE3}`,
-      );
-    }
+    openStage3Storage();
     enemiesRef.current = [];
     setEnemies([]);
     setBeat(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
+  }, [cancelCountInVoice, openStage3Storage, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
 
   const showMiniChordMaker = useCallback(() => {
     stopBackingScheduler();
@@ -15863,6 +15931,20 @@ function App() {
   useEffect(() => {
     stage3StorageOpenRef.current = stage3StorageOpen;
   }, [stage3StorageOpen]);
+
+  useEffect(() => {
+    if (!stage3StorageOpen || typeof document === "undefined") return undefined;
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") closeStage3StorageRoom();
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [closeStage3StorageRoom, stage3StorageOpen]);
 
   useEffect(() => {
     if (!utilityMenuOpen) return undefined;
@@ -16553,9 +16635,9 @@ function App() {
     const family = SCALE_FAMILIES[selectedScaleFamily] ?? SCALE_FAMILIES.pentatonic;
     const rootLabel = `${root?.label ?? selectedScaleRoot}/${root?.solfege ?? SOLFEGE[selectedScaleRoot] ?? ""}`;
     if (isSelectedScaleLick) return selectedPentatonic.label;
-    if (selectedScaleBox === SCALE_BOX_SET_ID) return `${rootLabel} ${type.label} ${family.label} ${SCALE_BOX_SET_LABEL}`;
+    if (selectedScaleBox === SCALE_BOX_SET_ID) return `${rootLabel} ${type.label} ${family.label} ${getScaleBoxSetDirectionLabel(boxSetDirection)}`;
     return `${rootLabel} ${type.label} ${family.label} BOX${selectedScaleBox}`;
-  }, [isSelectedScaleLick, selectedPentatonic.label, selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType, selectedScaleTypeOptions]);
+  }, [boxSetDirection, isSelectedScaleLick, selectedPentatonic.label, selectedScaleBox, selectedScaleFamily, selectedScaleRoot, selectedScaleType, selectedScaleTypeOptions]);
   const referenceCurrentLabel = selectedCategory.tutorial
     ? "현재 연습"
     : selectedCategory.id === "scale-block"
@@ -17182,8 +17264,6 @@ function App() {
       ? { title: "메트로놈", subtitle: "템포와 박자를 빠르게 맞추는 독립 리듬 기준" }
     : appMode === APP_MODES.SHOOTER
       ? { title: "슈팅게임", subtitle: "리듬 반응을 게임처럼 반복 훈련" }
-    : stage3StorageOpen
-      ? { title: "", subtitle: "" }
     : selectedCategory.id === "rhythm" && appMode === APP_MODES.PRACTICE
       ? { title: "리듬 · 코드 전환", subtitle: "메트로놈 기반 코드 전환 훈련" }
     : selectedCategory.id === "scale-block" && appMode === APP_MODES.PRACTICE
@@ -17442,14 +17522,6 @@ function App() {
                 <div className="utilityMenuText">
                   <strong>스케일 · 펜타토닉 · 릭</strong>
                   <small>구간별 위치 · 프레이즈 연습</small>
-                </div>
-                <span className="utilityMenuChevron" aria-hidden="true">›</span>
-              </button>
-              <button className="utilityMenuItem utilityMenuItemPrimary utilityMenuItemActive" onClick={showStage3StorageRoom} type="button">
-                <span className="utilityMenuIcon" aria-hidden="true">▦</span>
-                <div className="utilityMenuText">
-                  <strong>저장실</strong>
-                  <small>코드 진행 및 주법 관리</small>
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true">›</span>
               </button>
@@ -19022,7 +19094,7 @@ function App() {
                 </div>
               </div>
               <Fretboard
-                className={`viewerSharedFretboard ${viewerMode === FRETBOARD_VIEWER_MODES.NOTE && viewerNoteFilter === "ALL" ? "allNotes" : ""} ${viewerShouldFitFretboard ? "fitRange" : ""}`}
+                className={`viewerSharedFretboard ${viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "allNotes" : ""} ${viewerMode === FRETBOARD_VIEWER_MODES.NOTE && viewerNoteFilter !== "ALL" ? "noteFilterActive" : ""} ${viewerShouldFitFretboard ? "fitRange" : ""}`}
                 barres={viewerChordBarres}
                 fretRange={viewerFretboardRange}
                 mode={viewerMode}
@@ -19030,9 +19102,7 @@ function App() {
                   ...note,
                   label:
                     viewerMode === FRETBOARD_VIEWER_MODES.NOTE
-                      ? viewerNoteFilter === "ALL"
-                        ? note.noteName ?? getPitchClass(note.pitch) ?? note.label
-                        : note.pitch ?? note.octaveNote ?? note.label ?? note.noteName
+                      ? note.noteName ?? getPitchClass(note.pitch) ?? note.label
                       : viewerMode === FRETBOARD_VIEWER_MODES.CHORD && showChordFingeringGuide && note.finger
                         ? note.finger
                         : note.label,
@@ -19044,7 +19114,7 @@ function App() {
                         : viewerNoteFilter !== "ALL" && note.noteName === viewerNoteFilter,
                 }))}
                 rootNote={viewerMode === FRETBOARD_VIEWER_MODES.CHORD || viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "" : viewerNoteFilter === "ALL" ? "" : viewerNoteFilter}
-                selectedNotes={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? ["__chord-shape-only__"] : [...viewerMapPitchClasses]}
+                selectedNotes={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? ["__chord-shape-only__"] : viewerSelectedPitchClasses}
                 showFretNumbers
                 showFingering={viewerMode === FRETBOARD_VIEWER_MODES.CHORD && showChordFingeringGuide}
                 showOnlySelected
@@ -19097,7 +19167,7 @@ function App() {
                 <div className="chordBuilderPanel chordBuilderPanel--composer" aria-label="코드 빌더">
                   <div className="chordBuilderPanelTitle">코드 빌더</div>
 
-                  <ChordBuilderOptionSection layout="cols-5" title="프렛 구간">
+                  <ChordBuilderOptionSection layout="cols-5" showTitle={isMobileLayout} title="구간">
                     {CHORD_VIEWER_POSITIONS.map((position) => (
                       <ChordBuilderChip
                         disabled={!viewerChordPositionData[position.id]}
@@ -19110,7 +19180,7 @@ function App() {
                     ))}
                   </ChordBuilderOptionSection>
 
-                  <ChordBuilderOptionSection layout="cols-7" title="루트음">
+                  <ChordBuilderOptionSection layout="cols-7" showTitle={isMobileLayout} title="루트">
                     {chordRootOptions.map((root) => (
                       <ChordBuilderChip
                         key={root}
@@ -19122,7 +19192,7 @@ function App() {
                     ))}
                   </ChordBuilderOptionSection>
 
-                  <ChordBuilderOptionSection layout="cols-3" title="변화표">
+                  <ChordBuilderOptionSection layout="cols-3" showTitle={isMobileLayout} title="변화">
                     {CHORD_ACCIDENTAL_OPTIONS.map((accidental) => {
                       const hasDiagram = Boolean(
                         getChordFromSelector(viewerChordBaseRoot, accidental.id, viewerChordQuality, viewerChordExtension),
@@ -19140,7 +19210,7 @@ function App() {
                     })}
                   </ChordBuilderOptionSection>
 
-                  <ChordBuilderOptionSection layout="cols-4" title="코드 타입">
+                  <ChordBuilderOptionSection layout="cols-4" showTitle={isMobileLayout} title="타입">
                     {CHORD_QUALITY_OPTIONS.map((quality) => {
                       const isSupported = isChordViewerSelectionSupported(quality.id, "none");
                       return (
@@ -19158,7 +19228,7 @@ function App() {
                     })}
                   </ChordBuilderOptionSection>
 
-                  <ChordBuilderOptionSection layout="tensions-2row" title="확장/텐션">
+                  <ChordBuilderOptionSection layout="tensions-2row" showTitle={isMobileLayout} title="확장">
                     {availableChordExtensionOptions.map((extension) => {
                       const isDisabled = extension.disabled || !extension.hasDiagram;
                       return (
@@ -19738,6 +19808,8 @@ function App() {
             tone={metronomeTone}
             weakTone={metronomeWeakTone}
           />
+
+          <BackingLoop mobile={isMobileLayout} />
 
           <div className="metronomePresetStrip" aria-label="메트로놈 설정 저장 및 불러오기">
             <input
@@ -20508,24 +20580,44 @@ function App() {
           )}
 
         </section>
-      ) : selectedCategory.id === "rhythm" && stage3StorageOpen ? (
-        <section
-          className="stage3StorageRoom chordTransitionPanel"
-          aria-label="코드 진행 보관함"
-          onPointerCancel={handleStage3StorageSwipeCancel}
-          onPointerDown={handleStage3StorageSwipeStart}
-          onPointerMove={handleStage3StorageSwipeMove}
-          onPointerUp={handleStage3StorageSwipeEnd}
-          style={{
-            "--storage-swipe-x": `${stage3StorageSwipeOffset}px`,
-            "--storage-swipe-transition": stage3StorageSwipeActive ? "none" : "transform 180ms cubic-bezier(0.2, 0.85, 0.24, 1)",
-          }}
-        >
+      ) : selectedCategory.id === "rhythm" ? (
+        <>
+        {stage3StorageOpen ? (
+          <div
+            className="stage3StorageDialogLayer"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) closeStage3StorageRoom();
+            }}
+            role="presentation"
+          >
+            <section
+              aria-label="저장된 코드 진행"
+              aria-modal="true"
+              className="stage3StorageRoom stage3StorageDialog chordTransitionPanel"
+              onPointerCancel={handleStage3StorageSwipeCancel}
+              onPointerDown={handleStage3StorageSwipeStart}
+              onPointerMove={handleStage3StorageSwipeMove}
+              onPointerUp={handleStage3StorageSwipeEnd}
+              role="dialog"
+              style={{
+                "--storage-swipe-x": `${stage3StorageSwipeOffset}px`,
+                "--storage-swipe-transition": stage3StorageSwipeActive ? "none" : "transform 180ms cubic-bezier(0.2, 0.85, 0.24, 1)",
+              }}
+            >
+          <div className="stage3StorageDialogHeading">
+            <div>
+              <strong>저장된 코드 진행</strong>
+              <span>{stage3QuickSlots.length ? `${stage3QuickSlots.length}개의 사용자 진행` : "새 코드 진행을 만들어 저장해보세요."}</span>
+            </div>
+            <button aria-label="저장된 코드 진행 닫기" autoFocus onClick={closeStage3StorageRoom} type="button">
+              <X size={17} />
+            </button>
+          </div>
           <div className="stage3InlineSettings stage3StorageComposer stage3PracticeUtilityPanel">
             <div className="stage3StorageTopBar">
               <select
                 className="stage3StorageNativeSelect"
-                aria-label="저장실 불러오기"
+                aria-label="저장된 코드 진행 불러오기"
                 onChange={(event) => {
                   const item = stage3QuickSlots.find((slot) => slot.id === event.target.value);
                   if (!item) return;
@@ -20538,11 +20630,8 @@ function App() {
                   <option key={`storage-load-${item.id}`} value={item.id}>{getStage3DropdownLabel(item)}</option>
                 ))}
               </select>
-              <button className="stage3StorageBackButton" onClick={closeStage3StorageRoom} type="button">
-                돌아가기
-              </button>
             </div>
-            <div className="stage3StorageChordBuilder" aria-label="저장실 코드 및 주법 선택">
+            <div className="stage3StorageChordBuilder" aria-label="저장된 진행 코드 및 주법 선택">
               <div className="stage3OptionRow stage3RootPickRow">
                 <span>루트</span>
                 <div className="stage3SegmentControl">
@@ -20736,8 +20825,9 @@ function App() {
               </div>
             </div>
           </div>
-        </section>
-      ) : selectedCategory.id === "rhythm" ? (
+            </section>
+          </div>
+        ) : null}
         <section className="chordTransitionPanel" aria-label="Chord transition practice">
           <div className="chordTransitionBody">
             <aside className="referenceFretboard chordTransitionChart" aria-label="Current chord fingering">
@@ -20942,7 +21032,7 @@ function App() {
                 type="button"
               >
                 <FolderOpen size={14} />
-                저장실
+                LOAD
               </button>
             </div>
             {isMobileLayout ? (
@@ -21208,6 +21298,7 @@ function App() {
             </div>
           </div>
         </section>
+        </>
       ) : !LEGACY_PRACTICE_RENDERING_ENABLED ? (
         <section
           className={`referenceTrainingPanel ${selectedCategory.id === "first-position" ? "firstPositionTrainingPanel" : ""} ${selectedCategory.id === "scale-block" ? "scaleBlockTrainingPanel" : ""}`}
@@ -21227,7 +21318,7 @@ function App() {
               {selectedCategory.id === "first-position" || selectedCategory.id === "scale-block" ? (
                 selectedCategory.id === "scale-block" ? (
                   <div className="referenceHeader stage2HeaderScalePicker">
-                    <div className={`scalePickerPanel referenceScalePicker ${isSelectedScaleBoxSet ? "boxSetActive" : ""}`}>
+                    <div className="scalePickerPanel referenceScalePicker">
                       <MetronomeSelectControl
                         className="scaleKeySelect"
                         dropdownDirection="down"
@@ -21260,12 +21351,6 @@ function App() {
                         options={selectedScaleDetailOptions}
                         value={selectedScaleDetailValue}
                       />
-                      {isSelectedScaleBoxSet ? (
-                        <BoxSetDirectionToggle
-                          direction={boxSetDirection}
-                          onChange={changeBoxSetDirection}
-                        />
-                      ) : null}
                       {isMobileLayout ? (
                         <TrainingNoteGuideToggle
                           enabled={trainingNoteGuideEnabled}

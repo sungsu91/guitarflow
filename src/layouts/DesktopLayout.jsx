@@ -6,7 +6,6 @@ const DESKTOP_NAV_ITEMS = [
   { href: "#fretboard", label: "지판보기" },
   { href: "#metronome", label: "메트로놈" },
   { href: "#shooter", label: "슈팅게임" },
-  { href: "#stage3-storage", label: "저장실" },
 ];
 
 const DESKTOP_MIN_WIDTH = 1024;
