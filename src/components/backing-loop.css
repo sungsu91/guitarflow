@@ -28,13 +28,13 @@
 .backingLoopPanel--mobile {
   position: relative;
   display: grid;
-  grid-template-rows: 13px 8px 27px 21px 18px;
-  gap: 2px;
+  grid-template-rows: 16px 17px 36px 28px;
+  gap: 3px;
   width: 100%;
-  height: 103px;
-  min-height: 103px;
-  margin: 5px 0 0;
-  padding: 4px 3px;
+  height: 118px;
+  min-height: 118px;
+  margin: 7px 0 0;
+  padding: 6px 4px;
   border-color: rgba(151, 103, 92, 0.27);
   border-radius: 14px;
   background:
@@ -44,6 +44,33 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.52),
     0 2px 6px rgba(96, 62, 56, 0.07);
   overflow: hidden;
+}
+
+.backingLoopPanel--mobile .backingLoopTitle,
+.backingLoopPanel--mobile .backingLoopTime {
+  font-size: 9.5px;
+}
+
+.backingLoopPanel--mobile .backingLoopProgress {
+  margin: 1px 4px;
+  padding: 2px 0;
+}
+
+.backingLoopPanel--mobile .backingLoopProgress input::-webkit-slider-runnable-track {
+  height: 4px;
+}
+
+.backingLoopPanel--mobile .backingLoopProgress input::-moz-range-track,
+.backingLoopPanel--mobile .backingLoopProgress input::-moz-range-progress {
+  height: 4px;
+}
+
+.backingLoopPanel--mobile .backingLoopButton {
+  font-size: 11px;
+}
+
+.backingLoopPanel--mobile .backingLoopStorageControls .backingLoopButton {
+  font-size: 10px;
 }
 
 .backingLoopPanel--mobile::before {
@@ -69,7 +96,7 @@
 
 .backingLoopHeader {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 48px;
+  grid-template-columns: minmax(0, 1fr) 82px;
   align-items: center;
   gap: 7px;
   min-width: 0;
@@ -133,6 +160,53 @@
   min-width: 0;
   align-items: center;
   padding: 0 3px;
+}
+
+.backingLoopInputMeter {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  margin: 0 4px;
+  overflow: visible;
+}
+
+.backingLoopInputMeter::before {
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(157, 128, 105, 0.3);
+  box-shadow: inset 0 1px 1px rgba(81, 54, 47, 0.08);
+  content: "";
+}
+
+.backingLoopInputMeter > i {
+  position: absolute;
+  left: 0;
+  width: var(--backing-loop-input-level, 0%);
+  height: 3px;
+  border-radius: 999px;
+  background: #bfa469;
+  transition: width 60ms linear, background-color 120ms ease;
+}
+
+.backingLoopInputMeter--ok > i {
+  background: linear-gradient(90deg, #bd9a51, #d98c9e);
+}
+
+.backingLoopInputMeter--peak > i {
+  background: #bd4d55;
+}
+
+.backingLoopInputMeter > span {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  color: #a72f35;
+  font-size: 6px;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: 0.04em;
 }
 
 .backingLoopProgress input {
@@ -204,7 +278,7 @@
 }
 
 .backingLoopMainControls {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 4px;
 }
 
@@ -287,8 +361,7 @@
   color: #6e4a1d;
 }
 
-.backingLoopCancelButton:not(:disabled),
-.backingLoopDeleteButton:not(:disabled) {
+.backingLoopCancelButton:not(:disabled) {
   color: #853d36;
 }
 
@@ -302,21 +375,13 @@
   font-size: 9px;
 }
 
-.backingLoopPanel--mobile > .backingLoopDeleteButton {
-  width: 100%;
-  border-radius: 6px;
-  background: rgba(255, 250, 244, 0.48);
-  font-size: 8.5px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48);
-}
-
 .backingLoopAudio {
   display: none;
 }
 
 .backingLoopPanel--desktop {
   display: grid;
-  grid-template-columns: minmax(320px, 2fr) minmax(160px, 0.9fr) minmax(110px, 0.55fr);
+  grid-template-columns: minmax(420px, 2fr) minmax(220px, 0.9fr);
   grid-template-rows: 17px 10px 40px 16px;
   align-items: center;
   gap: 4px 10px;
@@ -329,7 +394,7 @@
 
 .backingLoopPanel--desktop .backingLoopHeader {
   grid-column: 1 / -1;
-  grid-template-columns: minmax(0, 1fr) 60px;
+  grid-template-columns: minmax(0, 1fr) 90px;
 }
 
 .backingLoopPanel--desktop .backingLoopTitle {
@@ -354,10 +419,6 @@
 .backingLoopPanel--desktop .backingLoopStorageControls {
   height: 40px;
   gap: 7px;
-}
-
-.backingLoopPanel--desktop > .backingLoopDeleteButton {
-  height: 40px;
 }
 
 .backingLoopPanel--desktop .backingLoopButton {
@@ -389,6 +450,12 @@
   background: rgba(44, 30, 27, 0.32);
   backdrop-filter: blur(3px);
   -webkit-overflow-scrolling: touch;
+}
+
+.backingLoopDialogLayer--centered {
+  align-items: center;
+  padding-top: max(14px, env(safe-area-inset-top));
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
 }
 
 .backingLoopDialogLayer > [role="dialog"] {
@@ -454,6 +521,44 @@
   color: #6a4941;
 }
 
+.backingLoopDialogHeading > .backingLoopDialogHeadingActions {
+  display: flex;
+  min-width: auto;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.backingLoopDialogHeadingActions > button {
+  display: grid;
+  min-width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(151, 103, 92, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  color: #6a4941;
+  font-family: inherit;
+}
+
+.backingLoopDialogHeadingActions > button:first-child {
+  min-width: 42px;
+  padding: 0 9px;
+  font-size: 9px;
+  font-weight: 950;
+}
+
+.backingLoopDialogHeadingActions > button[aria-pressed="true"] {
+  border-color: rgba(154, 98, 48, 0.48);
+  background: rgba(239, 216, 172, 0.56);
+  color: #68451e;
+}
+
+.backingLoopDialogHeadingActions > button:disabled {
+  opacity: 0.45;
+}
+
 .backingLoopDialogHeading--confirm {
   padding: 2px 1px 3px;
 }
@@ -512,8 +617,17 @@
   grid-template-columns: 1fr;
 }
 
+.backingLoopDialogActions--load {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
 .backingLoopDialogActions button {
+  display: inline-flex;
   min-height: 35px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   padding: 0 10px;
   border: 1px solid rgba(151, 103, 92, 0.22);
   border-radius: 9px;
@@ -537,6 +651,174 @@
 
 .backingLoopDialogActions button:disabled {
   opacity: 0.5;
+}
+
+.backingLoopTrimDialog {
+  gap: 10px;
+  overflow: visible;
+}
+
+.backingLoopDialogHeading > .backingLoopTrimReset {
+  display: inline-flex;
+  width: auto;
+  min-width: 62px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 9px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 8px;
+  font-weight: 950;
+}
+
+.backingLoopTrimWaveform {
+  position: relative;
+  height: 94px;
+  min-height: 94px;
+  overflow: visible;
+  border: 1px solid rgba(151, 103, 92, 0.24);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(233, 216, 204, 0.34)),
+    #f5ece4;
+  box-shadow:
+    inset 0 1px 2px rgba(89, 55, 47, 0.07),
+    0 1px 0 rgba(255, 255, 255, 0.7);
+  touch-action: none;
+}
+
+.backingLoopTrimBars {
+  position: absolute;
+  inset: 10px 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  pointer-events: none;
+}
+
+.backingLoopTrimBars > i {
+  min-width: 1px;
+  max-width: 3px;
+  flex: 1 1 1px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #c48994, #a96d75);
+  opacity: 0.84;
+}
+
+.backingLoopTrimMask {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  background: rgba(65, 46, 41, 0.34);
+  pointer-events: none;
+}
+
+.backingLoopTrimMask--start {
+  left: 0;
+}
+
+.backingLoopTrimMask--end {
+  right: 0;
+}
+
+.backingLoopTrimSelection {
+  position: absolute;
+  z-index: 2;
+  top: 3px;
+  bottom: 3px;
+  border-block: 1px solid rgba(166, 109, 51, 0.72);
+  background: rgba(222, 181, 100, 0.08);
+  pointer-events: none;
+}
+
+.backingLoopTrimPlayhead {
+  position: absolute;
+  z-index: 5;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: #f1c95f;
+  box-shadow: 0 0 5px rgba(193, 126, 42, 0.58);
+  pointer-events: none;
+}
+
+.backingLoopTrimHandle {
+  position: absolute;
+  z-index: 4;
+  top: 10px;
+  bottom: 10px;
+  width: 34px;
+  margin: 0 0 0 -17px;
+  padding: 0;
+  border: 0;
+  background:
+    radial-gradient(circle at center, #fff4d8 0 4px, #a56b2b 5px 6px, transparent 7px),
+    linear-gradient(90deg, transparent 15px, #b57636 15px 19px, transparent 19px);
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.backingLoopTrimHandle--end {
+  z-index: 3;
+}
+
+.backingLoopTrimHandle:focus-visible {
+  outline: 2px solid rgba(154, 98, 48, 0.58);
+  outline-offset: -4px;
+  border-radius: 8px;
+}
+
+.backingLoopTrimHandle:disabled {
+  opacity: 0.45;
+}
+
+.backingLoopTrimTimes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.backingLoopTrimTimes > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 7px 5px;
+  border: 1px solid rgba(151, 103, 92, 0.17);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.32);
+  text-align: center;
+}
+
+.backingLoopTrimTimes small {
+  color: rgba(74, 50, 44, 0.56);
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.backingLoopTrimTimes strong {
+  color: #624318;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 950;
+}
+
+.backingLoopTrimActions {
+  grid-template-columns: 1.16fr 1fr 1fr;
+  gap: 6px;
+}
+
+.backingLoopTrimHint {
+  margin: -2px 0 0;
+  color: rgba(74, 50, 44, 0.56);
+  font-size: 8px;
+  font-weight: 750;
+  line-height: 1.3;
+  text-align: center;
 }
 
 .backingLoopLibrary {
@@ -576,6 +858,48 @@
 }
 
 .backingLoopLibrary > button small {
+  color: rgba(89, 61, 54, 0.58);
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 850;
+}
+
+.backingLoopLibraryEditItem {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  min-height: 39px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 11px;
+  border: 1px solid rgba(151, 103, 92, 0.2);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.5);
+  color: #48312b;
+  cursor: pointer;
+}
+
+.backingLoopLibraryEditItem:has(input:checked) {
+  border-color: rgba(154, 98, 48, 0.48);
+  background: rgba(239, 216, 172, 0.48);
+}
+
+.backingLoopLibraryEditItem input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #a46b29;
+}
+
+.backingLoopLibraryEditItem > span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backingLoopLibraryEditItem > small {
   color: rgba(89, 61, 54, 0.58);
   font-size: 8px;
   font-variant-numeric: tabular-nums;
@@ -664,6 +988,27 @@ html body main.app.theme-brand.theme-brand
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.44);
 }
 
+html body main.app.theme-brand.theme-brand .backingLoopInputMeter::before {
+  background: rgba(217, 170, 85, 0.2);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.44);
+}
+
+html body main.app.theme-brand.theme-brand .backingLoopInputMeter > i {
+  background: #9b8249;
+}
+
+html body main.app.theme-brand.theme-brand .backingLoopInputMeter--ok > i {
+  background: linear-gradient(90deg, #bd9645, #df9e70);
+}
+
+html body main.app.theme-brand.theme-brand .backingLoopInputMeter--peak > i {
+  background: #d75d57;
+}
+
+html body main.app.theme-brand.theme-brand .backingLoopInputMeter > span {
+  color: #df7770;
+}
+
 html body main.app.theme-brand.theme-brand
   .backingLoopProgress input::-webkit-slider-thumb {
   border-color: rgba(255, 222, 148, 0.44);
@@ -730,7 +1075,7 @@ html body main.app.theme-brand.theme-brand
 }
 
 html body main.app.theme-brand.theme-brand
-  :is(.backingLoopCancelButton, .backingLoopDeleteButton):not(:disabled) {
+  .backingLoopCancelButton:not(:disabled) {
   color: #dc8b7f;
 }
 
@@ -739,12 +1084,6 @@ html body main.app.theme-brand.theme-brand .backingLoopCancelButton:not(:disable
   background:
     linear-gradient(180deg, rgba(132, 48, 42, 0.22), rgba(37, 14, 12, 0.34)),
     rgba(8, 6, 5, 0.9);
-}
-
-html body main.app.theme-brand.theme-brand
-  .backingLoopPanel--mobile > .backingLoopDeleteButton {
-  background: rgba(6, 6, 4, 0.72);
-  box-shadow: inset 0 1px 0 rgba(255, 238, 196, 0.025);
 }
 
 html body main.app.theme-brand.theme-brand .backingLoopDesktopNotice {
@@ -776,8 +1115,10 @@ html body:has(main.app.theme-brand)
 }
 
 html body:has(main.app.theme-brand) .backingLoopDialogHeading > button,
+html body:has(main.app.theme-brand) .backingLoopDialogHeadingActions > button,
 html body:has(main.app.theme-brand) .backingLoopDialogActions button,
-html body:has(main.app.theme-brand) .backingLoopLibrary > button {
+html body:has(main.app.theme-brand) .backingLoopLibrary > button,
+html body:has(main.app.theme-brand) .backingLoopLibraryEditItem {
   border-color: rgba(217, 170, 85, 0.24);
   background: rgba(7, 7, 5, 0.82);
   color: rgba(245, 228, 186, 0.9);
@@ -792,6 +1133,44 @@ html body:has(main.app.theme-brand) .backingLoopTitleField input {
 
 html body:has(main.app.theme-brand) .backingLoopTitleField input::placeholder {
   color: rgba(235, 215, 175, 0.34);
+}
+
+html body:has(main.app.theme-brand) .backingLoopTrimWaveform {
+  border-color: rgba(217, 170, 85, 0.3);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(217, 170, 85, 0.06), transparent 62%),
+    linear-gradient(180deg, #0d0c08, #050604);
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.72),
+    0 1px 0 rgba(255, 238, 196, 0.04);
+}
+
+html body:has(main.app.theme-brand) .backingLoopTrimBars > i {
+  background: linear-gradient(180deg, #d4a954, #8d6428);
+  opacity: 0.86;
+}
+
+html body:has(main.app.theme-brand) .backingLoopTrimMask {
+  background: rgba(0, 0, 0, 0.58);
+}
+
+html body:has(main.app.theme-brand) .backingLoopTrimSelection {
+  border-color: rgba(239, 199, 111, 0.72);
+  background: rgba(217, 170, 85, 0.07);
+}
+
+html body:has(main.app.theme-brand) .backingLoopTrimTimes > span {
+  border-color: rgba(217, 170, 85, 0.2);
+  background: rgba(7, 7, 5, 0.72);
+}
+
+html body:has(main.app.theme-brand) .backingLoopTrimTimes small,
+html body:has(main.app.theme-brand) .backingLoopTrimHint {
+  color: rgba(236, 215, 172, 0.52);
+}
+
+html body:has(main.app.theme-brand) .backingLoopTrimTimes strong {
+  color: #efc86f;
 }
 
 html body:has(main.app.theme-brand) .backingLoopDialogActions button.primary {
@@ -811,7 +1190,15 @@ html body:has(main.app.theme-brand) .backingLoopLibrary > button.selected {
   background: rgba(180, 126, 46, 0.24);
 }
 
-html body:has(main.app.theme-brand) .backingLoopLibrary > button small {
+html body:has(main.app.theme-brand) .backingLoopDialogHeadingActions > button[aria-pressed="true"],
+html body:has(main.app.theme-brand) .backingLoopLibraryEditItem:has(input:checked) {
+  border-color: rgba(239, 199, 111, 0.5);
+  background: rgba(180, 126, 46, 0.24);
+  color: #f6e6c0;
+}
+
+html body:has(main.app.theme-brand) .backingLoopLibrary > button small,
+html body:has(main.app.theme-brand) .backingLoopLibraryEditItem > small {
   color: rgba(236, 215, 172, 0.54);
 }
 
@@ -826,6 +1213,39 @@ html body:has(main.app.theme-brand) .backingLoopLibraryEmpty {
 }
 
 @media (max-width: 680px) {
+  html body main.app.app.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    > .metronomeHeroCard.metronomeHeroCard--interactive {
+    grid-template-rows: 78px 42px !important;
+    height: 120px !important;
+    min-height: 120px !important;
+    max-height: 120px !important;
+  }
+
+  html body main.app.app.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    > .metronomeHeroCard.metronomeHeroCard--interactive
+    .metronomeBpmAdjustGroup {
+    grid-template-rows: 25px 8px 25px !important;
+    height: 78px !important;
+    min-height: 78px !important;
+    max-height: 78px !important;
+    padding-block: 10px !important;
+  }
+
+  html body main.app.app.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    > .metronomeHeroCard.metronomeHeroCard--interactive
+    .metronomeHeroActionPanel,
+  html body main.app.app.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    > .metronomeHeroCard.metronomeHeroCard--interactive
+    .metronomeHeroActionPanel
+    :is(.metronomeHeroPlayButton, .metronomeHeroTapTempoButton) {
+    height: 42px !important;
+    min-height: 42px !important;
+  }
+
   html body main.app.app.app
     .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) {
     padding-bottom: 10px !important;
@@ -917,23 +1337,32 @@ html body:has(main.app.theme-brand) .backingLoopLibraryEmpty {
   }
 
   .backingLoopHeader {
-    grid-template-columns: minmax(0, 1fr) 44px;
+    grid-template-columns: minmax(0, 1fr) 76px;
     gap: 4px;
     padding-inline: 1px;
   }
 
-  .backingLoopTitle,
-  .backingLoopTime {
-    font-size: 7.5px;
+  .backingLoopPanel--mobile .backingLoopTitle,
+  .backingLoopPanel--mobile .backingLoopTime {
+    font-size: 8.25px;
   }
 
   .backingLoopMainControls {
     gap: 3px;
   }
 
-  .backingLoopButton {
+  .backingLoopPanel--mobile .backingLoopButton {
     gap: 2px;
     padding-inline: 2px;
+    font-size: 9px;
+  }
+
+  .backingLoopPanel--mobile .backingLoopMainControls .backingLoopButton svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .backingLoopPanel--mobile .backingLoopStorageControls .backingLoopButton {
     font-size: 9px;
   }
 }

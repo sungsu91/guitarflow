@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  buildWaveformPeaks,
+  clampTrimRange,
+  decodeLoopRecording,
+  DEFAULT_MIN_TRIM_MS,
+  processLoopRecording,
+  trimLoopAudioData,
+} from "../audio/audioPostProcessing";
+import { acquireMicInput } from "../audio/micInputEngine";
+import { getMicInputPreset, MIC_INPUT_PRESETS } from "../audio/micInputPresets";
+import {
   deleteBackingLoopRecording,
   loadBackingLoopLibrary,
   loadBackingLoopRecording,
@@ -13,33 +23,66 @@ import {
   normalizeBackingLoopTitle,
 } from "./backingLoopUtils";
 
-const GUITAR_AUDIO_CONSTRAINTS = {
-  autoGainControl: false,
-  channelCount: 1,
-  echoCancellation: false,
-  noiseSuppression: false,
-};
+const BACKING_LOOP_CONSUMER_ID = "backing-loop-recorder";
+const RECORDING_PRESET = getMicInputPreset(MIC_INPUT_PRESETS.GUITAR_RECORDING);
+const EMPTY_INPUT_LEVEL = Object.freeze({
+  clipping: false,
+  normalized: 0,
+  peak: 0,
+  peakDb: -100,
+  rms: 0,
+  rmsDb: -100,
+  state: "low",
+});
 
 export default function useBackingLoop() {
   const [audioUrl, setAudioUrl] = useState("");
+  const [appliedTrimRange, setAppliedTrimRange] = useState(null);
   const [currentTimeMs, setCurrentTimeMs] = useState(0);
+  const [deletePending, setDeletePending] = useState(false);
   const [dialog, setDialog] = useState("");
+  // Keep the untrimmed session source in memory only. SAVE promotes the current
+  // edited recording to the new source, so the older raw take is not persisted.
+  const [editSourceAudioData, setEditSourceAudioData] = useState(null);
+  const [editSourceRecording, setEditSourceRecording] = useState(null);
   const [library, setLibrary] = useState([]);
+  const [libraryEditMode, setLibraryEditMode] = useState(false);
+  const [selectedLibraryIds, setSelectedLibraryIds] = useState([]);
   const [notice, setNotice] = useState("");
   const [phase, setPhase] = useState("idle");
   const [recording, setRecording] = useState(null);
+  const [recordingAudioData, setRecordingAudioData] = useState(null);
+  const [inputLevel, setInputLevel] = useState(EMPTY_INPUT_LEVEL);
   const [saveError, setSaveError] = useState("");
+  const [selectedLibraryId, setSelectedLibraryId] = useState("");
   const [titleDraft, setTitleDraft] = useState("");
+  const [trimDraft, setTrimDraft] = useState(null);
+  const [trimEndMs, setTrimEndMs] = useState(0);
+  const [trimPreviewPlaying, setTrimPreviewPlaying] = useState(false);
+  const [trimPreviewPositionMs, setTrimPreviewPositionMs] = useState(0);
+  const [trimPreviewUrl, setTrimPreviewUrl] = useState("");
+  const [trimStartMs, setTrimStartMs] = useState(0);
   const audioRef = useRef(null);
+  const armTimerRef = useRef(null);
   const chunksRef = useRef([]);
   const discardRecordingRef = useRef(false);
   const mediaRecorderRef = useRef(null);
+  const micSessionRef = useRef(null);
+  const meterStopRef = useRef(null);
   const mountedRef = useRef(true);
   const playbackTimerRef = useRef(null);
   const recordingRequestVersionRef = useRef(0);
   const recordingStartedAtRef = useRef(0);
   const recordingTimerRef = useRef(null);
-  const streamRef = useRef(null);
+  const trimPreviewAudioRef = useRef(null);
+  const trimPreviewTimerRef = useRef(null);
+
+  const clearArmTimer = useCallback(() => {
+    if (armTimerRef.current != null) {
+      window.clearTimeout(armTimerRef.current);
+      armTimerRef.current = null;
+    }
+  }, []);
 
   const clearRecordingTimer = useCallback(() => {
     if (recordingTimerRef.current != null) {
@@ -55,9 +98,37 @@ export default function useBackingLoop() {
     }
   }, []);
 
+  const clearTrimPreviewTimer = useCallback(() => {
+    if (trimPreviewTimerRef.current != null) {
+      window.clearInterval(trimPreviewTimerRef.current);
+      trimPreviewTimerRef.current = null;
+    }
+  }, []);
+
+  const stopTrimPreview = useCallback((resetPosition = true) => {
+    const audio = trimPreviewAudioRef.current;
+    audio?.pause?.();
+    clearTrimPreviewTimer();
+    setTrimPreviewPlaying(false);
+    if (resetPosition) {
+      if (audio) {
+        try {
+          audio.currentTime = trimStartMs / 1000;
+        } catch {
+          // Metadata may not be ready yet; the next preview starts from trimStart.
+        }
+      }
+      setTrimPreviewPositionMs(trimStartMs);
+    }
+  }, [clearTrimPreviewTimer, trimStartMs]);
+
   const releaseMicrophone = useCallback(() => {
-    streamRef.current?.getTracks?.().forEach((track) => track.stop());
-    streamRef.current = null;
+    meterStopRef.current?.();
+    meterStopRef.current = null;
+    const session = micSessionRef.current;
+    micSessionRef.current = null;
+    session?.release?.();
+    setInputLevel(EMPTY_INPUT_LEVEL);
   }, []);
 
   const resetAudioPosition = useCallback(() => {
@@ -116,6 +187,17 @@ export default function useBackingLoop() {
   }, [recording?.blob]);
 
   useEffect(() => {
+    if (!trimDraft?.recording?.blob) {
+      setTrimPreviewUrl("");
+      return undefined;
+    }
+
+    const nextPreviewUrl = URL.createObjectURL(trimDraft.recording.blob);
+    setTrimPreviewUrl(nextPreviewUrl);
+    return () => URL.revokeObjectURL(nextPreviewUrl);
+  }, [trimDraft?.recording?.blob]);
+
+  useEffect(() => {
     if (phase !== "playing") {
       clearPlaybackTimer();
       return undefined;
@@ -129,8 +211,10 @@ export default function useBackingLoop() {
   }, [clearPlaybackTimer, phase]);
 
   useEffect(() => () => {
+    clearArmTimer();
     clearPlaybackTimer();
     clearRecordingTimer();
+    clearTrimPreviewTimer();
     const mediaRecorder = mediaRecorderRef.current;
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.ondataavailable = null;
@@ -138,8 +222,9 @@ export default function useBackingLoop() {
       mediaRecorder.stop();
     }
     audioRef.current?.pause();
+    trimPreviewAudioRef.current?.pause();
     releaseMicrophone();
-  }, [clearPlaybackTimer, clearRecordingTimer, releaseMicrophone]);
+  }, [clearArmTimer, clearPlaybackTimer, clearRecordingTimer, clearTrimPreviewTimer, releaseMicrophone]);
 
   const stopRecording = useCallback(() => {
     const mediaRecorder = mediaRecorderRef.current;
@@ -148,7 +233,7 @@ export default function useBackingLoop() {
   }, []);
 
   const startRecording = useCallback(async () => {
-    if (["requesting", "recording", "saving", "loading"].includes(phase)) return;
+    if (["requesting", "armed", "recording", "processing", "trimming", "applying", "saving", "loading"].includes(phase)) return;
     if (!navigator.mediaDevices?.getUserMedia || typeof window.MediaRecorder !== "function") {
       setNotice("이 브라우저에서는 마이크 녹음을 지원하지 않아요.");
       setPhase("error");
@@ -163,22 +248,29 @@ export default function useBackingLoop() {
     const requestVersion = ++recordingRequestVersionRef.current;
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: GUITAR_AUDIO_CONSTRAINTS });
+      const micSession = await acquireMicInput({
+        consumerId: BACKING_LOOP_CONSUMER_ID,
+        preset: MIC_INPUT_PRESETS.GUITAR_RECORDING,
+      });
       if (!mountedRef.current || requestVersion !== recordingRequestVersionRef.current) {
-        stream.getTracks().forEach((track) => track.stop());
+        micSession.release();
         return;
       }
 
       const mimeType = getPreferredBackingLoopMimeType(window.MediaRecorder);
       let mediaRecorder;
       try {
-        mediaRecorder = new window.MediaRecorder(stream, mimeType ? { audioBitsPerSecond: 128000, mimeType } : undefined);
+        mediaRecorder = new window.MediaRecorder(
+          micSession.recordingStream,
+          mimeType ? { audioBitsPerSecond: RECORDING_PRESET.mediaRecorderBitsPerSecond, mimeType } : undefined,
+        );
       } catch {
-        mediaRecorder = new window.MediaRecorder(stream);
+        mediaRecorder = new window.MediaRecorder(micSession.recordingStream);
       }
 
       chunksRef.current = [];
-      streamRef.current = stream;
+      micSessionRef.current = micSession;
+      meterStopRef.current = micSession.startLevelMonitoring(setInputLevel);
       mediaRecorderRef.current = mediaRecorder;
       mediaRecorder.ondataavailable = (event) => {
         if (event.data?.size > 0) chunksRef.current.push(event.data);
@@ -190,8 +282,9 @@ export default function useBackingLoop() {
         setNotice("녹음 중 문제가 발생했어요. 이전 백킹은 그대로 유지됩니다.");
         setPhase("error");
       };
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         clearRecordingTimer();
+        clearArmTimer();
         releaseMicrophone();
         if (!mountedRef.current) return;
 
@@ -204,6 +297,10 @@ export default function useBackingLoop() {
         if (discardRecordingRef.current) {
           discardRecordingRef.current = false;
           setRecording(null);
+          setRecordingAudioData(null);
+          setEditSourceRecording(null);
+          setEditSourceAudioData(null);
+          setAppliedTrimRange(null);
           setCurrentTimeMs(0);
           setNotice("현재 작업을 취소했어요. 저장된 백킹은 그대로 유지됩니다.");
           setPhase("idle");
@@ -216,26 +313,66 @@ export default function useBackingLoop() {
           return;
         }
 
-        setRecording({
-          blob,
+        setPhase("processing");
+        setNotice("기타 톤과 루프 경계를 정돈하고 있어요.");
+        const processed = await processLoopRecording(blob, durationMs);
+        if (!mountedRef.current) return;
+        const nextRecording = {
+          blob: processed.blob,
           createdAt: Date.now(),
-          durationMs,
+          durationMs: processed.durationMs || durationMs,
           id: "",
-          mimeType: blobType,
+          mimeType: processed.mimeType || blobType,
           title: BACKING_LOOP_DEFAULT_TITLE,
+        };
+        setEditSourceRecording(nextRecording);
+        setAppliedTrimRange({
+          endMs: nextRecording.durationMs,
+          startMs: 0,
         });
+        if (!processed.audioData?.channels?.length) {
+          setRecording(nextRecording);
+          setRecordingAudioData(null);
+          setEditSourceAudioData(null);
+          setCurrentTimeMs(0);
+          setNotice("녹음 완료 · 이 브라우저에서는 원본 구간으로 바로 사용합니다.");
+          setPhase("idle");
+          return;
+        }
+        setEditSourceAudioData(processed.audioData);
+        setTrimDraft({
+          audioData: processed.audioData,
+          fallbackAudioData: processed.audioData,
+          fallbackRecording: nextRecording,
+          initialRecording: true,
+          recording: nextRecording,
+          waveform: buildWaveformPeaks(processed.audioData, 96),
+        });
+        setTrimStartMs(0);
+        setTrimEndMs(nextRecording.durationMs);
+        setTrimPreviewPositionMs(0);
+        setTrimPreviewPlaying(false);
         setCurrentTimeMs(0);
-        setNotice("녹음 완료 · 바로 PLAY하거나 제목을 정해 SAVE하세요.");
-        setPhase("idle");
+        setNotice("앞뒤 준비 구간을 다듬거나 원본 그대로 사용할 수 있어요.");
+        setDialog("trim");
+        setPhase("trimming");
       };
 
-      recordingStartedAtRef.current = performance.now();
       setCurrentTimeMs(0);
-      setPhase("recording");
-      mediaRecorder.start(250);
-      recordingTimerRef.current = window.setInterval(() => {
-        setCurrentTimeMs(performance.now() - recordingStartedAtRef.current);
-      }, 160);
+      setPhase("armed");
+      setNotice("입력 준비 · 손을 뗀 뒤 녹음이 시작됩니다.");
+      armTimerRef.current = window.setTimeout(() => {
+        armTimerRef.current = null;
+        if (!mountedRef.current || mediaRecorderRef.current !== mediaRecorder) return;
+        recordingStartedAtRef.current = performance.now();
+        setCurrentTimeMs(0);
+        setPhase("recording");
+        setNotice("기타 코드 진행 녹음 중");
+        mediaRecorder.start(250);
+        recordingTimerRef.current = window.setInterval(() => {
+          setCurrentTimeMs(performance.now() - recordingStartedAtRef.current);
+        }, 160);
+      }, RECORDING_PRESET.armDelayMs);
     } catch (error) {
       releaseMicrophone();
       if (!mountedRef.current || requestVersion !== recordingRequestVersionRef.current) return;
@@ -245,22 +382,52 @@ export default function useBackingLoop() {
         : "사용 가능한 마이크를 확인해주세요. 이전 백킹은 유지됩니다.");
       setPhase("error");
     }
-  }, [clearRecordingTimer, phase, releaseMicrophone, resetAudioPosition]);
+  }, [clearArmTimer, clearRecordingTimer, phase, releaseMicrophone, resetAudioPosition]);
 
   const toggleRecording = useCallback(() => {
     if (phase === "recording") {
       stopRecording();
       return;
     }
+    if (phase === "armed") {
+      clearArmTimer();
+      mediaRecorderRef.current = null;
+      releaseMicrophone();
+      setNotice("녹음 준비를 취소했어요. 이전 백킹은 그대로 유지됩니다.");
+      setPhase("idle");
+      return;
+    }
+    if (recording?.blob) {
+      setDialog("clear-recording");
+      return;
+    }
     startRecording();
-  }, [phase, startRecording, stopRecording]);
+  }, [clearArmTimer, phase, recording?.blob, releaseMicrophone, startRecording, stopRecording]);
+
+  const confirmClearRecording = useCallback(() => {
+    if (!recording?.blob || ["requesting", "armed", "recording", "processing", "trimming", "applying", "saving", "loading", "playing"].includes(phase)) return;
+    resetAudioPosition();
+    setRecording(null);
+    setRecordingAudioData(null);
+    setEditSourceRecording(null);
+    setEditSourceAudioData(null);
+    setAppliedTrimRange(null);
+    setTrimDraft(null);
+    setCurrentTimeMs(0);
+    setDialog("");
+    setNotice("현재 백킹을 비웠어요. REC를 누르면 새 녹음이 시작됩니다.");
+    setPhase("idle");
+  }, [phase, recording?.blob, resetAudioPosition]);
 
   const cancelCurrent = useCallback(() => {
-    if (["saving", "loading"].includes(phase)) return;
+    if (["saving", "loading", "applying"].includes(phase)) return;
 
     recordingRequestVersionRef.current += 1;
+    clearArmTimer();
     setDialog("");
     setSaveError("");
+    stopTrimPreview();
+    setTrimDraft(null);
     resetAudioPosition();
     clearRecordingTimer();
 
@@ -274,14 +441,18 @@ export default function useBackingLoop() {
     }
 
     setRecording(null);
+    setRecordingAudioData(null);
+    setEditSourceRecording(null);
+    setEditSourceAudioData(null);
+    setAppliedTrimRange(null);
     setCurrentTimeMs(0);
     setNotice("현재 작업을 취소했어요. 저장된 백킹은 그대로 유지됩니다.");
     setPhase("idle");
-  }, [clearRecordingTimer, phase, releaseMicrophone, resetAudioPosition]);
+  }, [clearArmTimer, clearRecordingTimer, phase, releaseMicrophone, resetAudioPosition, stopTrimPreview]);
 
   const playRecording = useCallback(async () => {
     if (!recording?.blob || !audioRef.current || !audioUrl) return;
-    if (["recording", "requesting", "saving", "loading"].includes(phase)) return;
+    if (["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phase)) return;
 
     try {
       const audio = audioRef.current;
@@ -307,35 +478,253 @@ export default function useBackingLoop() {
   }, [pausePlayback, phase, playRecording]);
 
   const resetPlayback = useCallback(() => {
-    if (!recording?.blob || ["recording", "requesting", "saving", "loading"].includes(phase)) return;
+    if (!recording?.blob || ["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phase)) return;
     resetAudioPosition();
     setNotice("재생 위치를 처음으로 되돌렸어요.");
     setPhase("idle");
   }, [phase, recording?.blob, resetAudioPosition]);
 
   const openSaveDialog = useCallback(() => {
-    if (!recording?.blob || ["recording", "requesting", "saving", "loading", "playing"].includes(phase)) return;
+    if (!recording?.blob || ["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading", "playing"].includes(phase)) return;
     setSaveError("");
     setTitleDraft(recording.title === BACKING_LOOP_DEFAULT_TITLE ? "" : recording.title);
     setDialog("save");
   }, [phase, recording]);
 
   const openLoadDialog = useCallback(() => {
-    if (["recording", "requesting", "saving", "loading"].includes(phase)) return;
+    if (["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phase)) return;
+    setSelectedLibraryId("");
+    setSelectedLibraryIds([]);
+    setLibraryEditMode(false);
     setDialog("load");
   }, [phase]);
 
   const openDeleteDialog = useCallback(() => {
-    if (!recording?.id || ["recording", "requesting", "saving", "loading"].includes(phase)) return;
-    if (phase === "playing") pausePlayback();
+    const targetIds = libraryEditMode ? selectedLibraryIds : [selectedLibraryId].filter(Boolean);
+    if (!targetIds.length || ["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phase)) return;
+    if (phase === "playing" && targetIds.includes(recording?.id)) pausePlayback();
     setDialog("delete");
-  }, [pausePlayback, phase, recording?.id]);
+  }, [libraryEditMode, pausePlayback, phase, recording?.id, selectedLibraryId, selectedLibraryIds]);
+
+  const openTrimEditor = useCallback(async () => {
+    if (!recording?.blob || ["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading", "playing"].includes(phase)) return;
+    resetAudioPosition();
+    setPhase("processing");
+    setNotice("편집할 파형을 준비하고 있어요.");
+    try {
+      const sourceRecording = editSourceRecording?.blob ? editSourceRecording : recording;
+      const audioData = editSourceAudioData
+        || (!editSourceRecording?.blob ? recordingAudioData : null)
+        || await decodeLoopRecording(sourceRecording.blob);
+      if (!mountedRef.current) return;
+      const editDurationMs = audioData.durationMs || sourceRecording.durationMs;
+      const editRecording = { ...sourceRecording, durationMs: editDurationMs };
+      const previousSourceDurationMs = Math.max(0, Number(sourceRecording.durationMs) || 0);
+      const previousRangeUsesFullSource = !appliedTrimRange
+        || (appliedTrimRange.startMs <= 1 && appliedTrimRange.endMs >= previousSourceDurationMs - 1);
+      const nextRange = previousRangeUsesFullSource
+        ? { endMs: editDurationMs, startMs: 0 }
+        : clampTrimRange(
+          appliedTrimRange.startMs,
+          appliedTrimRange.endMs,
+          editDurationMs,
+          DEFAULT_MIN_TRIM_MS,
+        );
+      setEditSourceRecording(editRecording);
+      setEditSourceAudioData(audioData);
+      if (!editSourceRecording?.blob) setAppliedTrimRange(nextRange);
+      setTrimDraft({
+        audioData,
+        fallbackAudioData: recordingAudioData,
+        fallbackRecording: recording,
+        initialRecording: false,
+        recording: editRecording,
+        waveform: buildWaveformPeaks(audioData, 96),
+      });
+      setTrimStartMs(nextRange.startMs);
+      setTrimEndMs(nextRange.endMs);
+      setTrimPreviewPositionMs(nextRange.startMs);
+      setTrimPreviewPlaying(false);
+      setDialog("trim");
+      setNotice("원본 전체 범위에서 구간을 다시 다듬을 수 있어요.");
+      setPhase("trimming");
+    } catch {
+      if (!mountedRef.current) return;
+      setNotice("현재 백킹의 편집 파형을 불러올 수 없어요.");
+      setPhase("error");
+    }
+  }, [
+    appliedTrimRange,
+    editSourceAudioData,
+    editSourceRecording,
+    phase,
+    recording,
+    recordingAudioData,
+    resetAudioPosition,
+  ]);
+
+  const resetTrimSelection = useCallback(() => {
+    if (!trimDraft?.recording) return;
+    stopTrimPreview(false);
+    setTrimStartMs(0);
+    setTrimEndMs(trimDraft.recording.durationMs);
+    setTrimPreviewPositionMs(0);
+  }, [stopTrimPreview, trimDraft]);
+
+  const updateTrimStart = useCallback((value) => {
+    if (!trimDraft?.recording || phase === "applying") return;
+    stopTrimPreview(false);
+    const duration = Math.max(0, trimDraft.recording.durationMs);
+    const minimum = Math.min(duration, DEFAULT_MIN_TRIM_MS);
+    const nextStart = Math.max(0, Math.min(Number(value) || 0, trimEndMs - minimum));
+    setTrimStartMs(nextStart);
+    setTrimPreviewPositionMs(nextStart);
+  }, [phase, stopTrimPreview, trimDraft, trimEndMs]);
+
+  const updateTrimEnd = useCallback((value) => {
+    if (!trimDraft?.recording || phase === "applying") return;
+    stopTrimPreview(false);
+    const duration = Math.max(0, trimDraft.recording.durationMs);
+    const minimum = Math.min(duration, DEFAULT_MIN_TRIM_MS);
+    const nextEnd = Math.min(duration, Math.max(Number(value) || duration, trimStartMs + minimum));
+    setTrimEndMs(nextEnd);
+    setTrimPreviewPositionMs(trimStartMs);
+  }, [phase, stopTrimPreview, trimDraft, trimStartMs]);
+
+  const useOriginalTrimRecording = useCallback(() => {
+    if (!trimDraft?.recording || phase === "applying") return;
+    stopTrimPreview();
+    setRecording(trimDraft.fallbackRecording || trimDraft.recording);
+    setRecordingAudioData(trimDraft.fallbackAudioData || trimDraft.audioData);
+    setCurrentTimeMs(0);
+    setTrimDraft(null);
+    setDialog("");
+    setNotice(trimDraft.initialRecording
+      ? "원본 녹음을 그대로 사용합니다. EDIT에서 언제든 다시 다듬을 수 있어요."
+      : "이번 구간 조정을 취소하고 이전 백킹 상태를 유지합니다.");
+    setPhase("idle");
+  }, [phase, stopTrimPreview, trimDraft]);
+
+  const applyTrim = useCallback(async () => {
+    if (!trimDraft?.recording || !trimDraft.audioData || phase === "applying") return;
+    stopTrimPreview(false);
+    setPhase("applying");
+    setNotice("선택한 구간을 루프로 정돈하고 있어요.");
+    try {
+      const fullDuration = trimDraft.recording.durationMs;
+      const keepsFullRecording = trimStartMs <= 1 && trimEndMs >= fullDuration - 1;
+      const trimmed = keepsFullRecording
+        ? null
+        : trimLoopAudioData(trimDraft.audioData, trimStartMs, trimEndMs, {
+          minimumTrimMs: DEFAULT_MIN_TRIM_MS,
+        });
+      if (!mountedRef.current) return;
+      setAppliedTrimRange({
+        endMs: keepsFullRecording ? fullDuration : trimEndMs,
+        startMs: keepsFullRecording ? 0 : trimStartMs,
+      });
+      setRecording(trimmed ? {
+        ...trimDraft.recording,
+        blob: trimmed.blob,
+        durationMs: trimmed.durationMs,
+        mimeType: trimmed.mimeType,
+      } : trimDraft.recording);
+      setRecordingAudioData(trimmed?.audioData || trimDraft.audioData);
+      setCurrentTimeMs(0);
+      setTrimDraft(null);
+      setDialog("");
+      setNotice(trimmed
+        ? "선택 구간 적용 완료 · 바로 PLAY하거나 SAVE하세요."
+        : "원본 전체 구간 적용 완료 · 바로 PLAY하거나 SAVE하세요.");
+      setPhase("idle");
+    } catch {
+      if (!mountedRef.current) return;
+      setNotice("선택 구간을 적용하지 못했어요. 원본은 그대로 유지됩니다.");
+      setPhase("trimming");
+    }
+  }, [phase, stopTrimPreview, trimDraft, trimEndMs, trimStartMs]);
+
+  const toggleTrimPreview = useCallback(async () => {
+    if (!trimDraft?.recording || !trimPreviewAudioRef.current || phase === "applying") return;
+    if (trimPreviewPlaying) {
+      stopTrimPreview();
+      return;
+    }
+
+    const audio = trimPreviewAudioRef.current;
+    clearTrimPreviewTimer();
+    try {
+      audio.loop = false;
+      audio.currentTime = trimStartMs / 1000;
+      await audio.play();
+      setTrimPreviewPositionMs(trimStartMs);
+      setTrimPreviewPlaying(true);
+      trimPreviewTimerRef.current = window.setInterval(() => {
+        const positionMs = Math.max(trimStartMs, audio.currentTime * 1000);
+        if (positionMs >= trimEndMs - 8 || audio.ended) {
+          audio.pause();
+          clearTrimPreviewTimer();
+          try {
+            audio.currentTime = trimStartMs / 1000;
+          } catch {
+            // The next preview still starts from trimStart.
+          }
+          setTrimPreviewPositionMs(trimStartMs);
+          setTrimPreviewPlaying(false);
+          return;
+        }
+        setTrimPreviewPositionMs(positionMs);
+      }, 40);
+    } catch {
+      clearTrimPreviewTimer();
+      setTrimPreviewPlaying(false);
+      setNotice("선택 구간을 미리 재생할 수 없어요.");
+    }
+  }, [clearTrimPreviewTimer, phase, stopTrimPreview, trimDraft, trimEndMs, trimPreviewPlaying, trimStartMs]);
+
+  const requestSaveConfirmation = useCallback(() => {
+    if (!recording?.blob || phase === "saving") return;
+    const title = normalizeBackingLoopTitle(titleDraft);
+    if (!title) {
+      setSaveError("제목을 입력해주세요.");
+      return;
+    }
+    setSaveError("");
+    setDialog("save-confirm");
+  }, [phase, recording?.blob, titleDraft]);
+
+  const toggleLibraryEditMode = useCallback(() => {
+    setLibraryEditMode((editing) => !editing);
+    setSelectedLibraryId("");
+    setSelectedLibraryIds([]);
+  }, []);
+
+  const toggleLibraryRecordingSelection = useCallback((id) => {
+    setSelectedLibraryIds((ids) => (
+      ids.includes(id) ? ids.filter((selectedId) => selectedId !== id) : [...ids, id]
+    ));
+  }, []);
 
   const closeDialog = useCallback(() => {
-    if (["saving", "loading"].includes(phase)) return;
+    if (["saving", "loading", "applying"].includes(phase) || deletePending) return;
+    if (dialog === "trim") {
+      useOriginalTrimRecording();
+      return;
+    }
+    if (dialog === "delete") {
+      setDialog("load");
+      return;
+    }
+    if (dialog === "save-confirm") {
+      setDialog("save");
+      return;
+    }
     setDialog("");
     setSaveError("");
-  }, [phase]);
+    setSelectedLibraryId("");
+    setSelectedLibraryIds([]);
+    setLibraryEditMode(false);
+  }, [deletePending, dialog, phase, useOriginalTrimRecording]);
 
   const confirmSave = useCallback(async () => {
     if (!recording?.blob || phase === "saving") return;
@@ -355,6 +744,12 @@ export default function useBackingLoop() {
       });
       if (!mountedRef.current) return;
       setRecording(savedRecording);
+      setEditSourceRecording(savedRecording);
+      setEditSourceAudioData(recordingAudioData);
+      setAppliedTrimRange({
+        endMs: savedRecording.durationMs,
+        startMs: 0,
+      });
       setLibrary((currentLibrary) => [
         savedRecording,
         ...currentLibrary.filter((item) => item.id !== savedRecording.id),
@@ -362,13 +757,16 @@ export default function useBackingLoop() {
       setCurrentTimeMs(0);
       setNotice(`“${savedRecording.title}” 저장 완료`);
       setDialog("");
+      setLibraryEditMode(false);
+      setSelectedLibraryIds([]);
       setPhase("idle");
     } catch {
       if (!mountedRef.current) return;
       setSaveError("저장 공간을 사용할 수 없어요.");
+      setDialog("save");
       setPhase("idle");
     }
-  }, [phase, recording, titleDraft]);
+  }, [phase, recording, recordingAudioData, titleDraft]);
 
   const loadRecording = useCallback(async (id) => {
     if (!id || phase === "loading") return;
@@ -379,6 +777,16 @@ export default function useBackingLoop() {
       if (!mountedRef.current) return;
       if (!savedRecording) throw new Error("Saved backing loop not found.");
       setRecording(savedRecording);
+      setRecordingAudioData(null);
+      setEditSourceRecording(savedRecording);
+      setEditSourceAudioData(null);
+      setAppliedTrimRange({
+        endMs: savedRecording.durationMs,
+        startMs: 0,
+      });
+      setSelectedLibraryId("");
+      setSelectedLibraryIds([]);
+      setLibraryEditMode(false);
       setCurrentTimeMs(0);
       setNotice(`“${savedRecording.title}” 불러오기 완료`);
       setDialog("");
@@ -391,29 +799,44 @@ export default function useBackingLoop() {
   }, [phase, resetAudioPosition]);
 
   const confirmDelete = useCallback(async () => {
-    if (!recording?.id) return;
-    const savedId = recording.id;
-    setPhase("loading");
-    resetAudioPosition();
+    const savedIds = libraryEditMode ? selectedLibraryIds : [selectedLibraryId].filter(Boolean);
+    if (!savedIds.length || deletePending) return;
+    const deletingCurrent = savedIds.includes(recording?.id);
+    setDeletePending(true);
+    if (deletingCurrent) {
+      setPhase("loading");
+      resetAudioPosition();
+    }
 
     try {
-      await deleteBackingLoopRecording(savedId);
+      await Promise.all(savedIds.map((savedId) => deleteBackingLoopRecording(savedId)));
       if (!mountedRef.current) return;
-      setLibrary((currentLibrary) => currentLibrary.filter((item) => item.id !== savedId));
-      setRecording(null);
-      setCurrentTimeMs(0);
-      setNotice("저장된 백킹을 삭제했어요.");
-      setDialog("");
-      setPhase("idle");
+      setLibrary((currentLibrary) => currentLibrary.filter((item) => !savedIds.includes(item.id)));
+      if (deletingCurrent) {
+        setRecording(null);
+        setRecordingAudioData(null);
+        setEditSourceRecording(null);
+        setEditSourceAudioData(null);
+        setAppliedTrimRange(null);
+        setCurrentTimeMs(0);
+      }
+      setSelectedLibraryId("");
+      setSelectedLibraryIds([]);
+      setLibraryEditMode(false);
+      setNotice(savedIds.length > 1 ? `저장된 백킹 ${savedIds.length}개를 삭제했어요.` : "저장된 백킹을 삭제했어요.");
+      setDialog("load");
+      if (deletingCurrent) setPhase("idle");
     } catch {
       if (!mountedRef.current) return;
       setNotice("저장된 백킹을 삭제하지 못했어요.");
-      setPhase("error");
+      if (deletingCurrent) setPhase("error");
+    } finally {
+      if (mountedRef.current) setDeletePending(false);
     }
-  }, [recording, resetAudioPosition]);
+  }, [deletePending, libraryEditMode, recording?.id, resetAudioPosition, selectedLibraryId, selectedLibraryIds]);
 
   const seekPlayback = useCallback((nextTimeMs) => {
-    if (!recording?.blob || phase === "recording" || phase === "requesting") return;
+    if (!recording?.blob || ["armed", "recording", "requesting", "processing", "trimming", "applying"].includes(phase)) return;
     const durationMs = Math.max(0, Number(recording.durationMs) || 0);
     if (!durationMs) return;
     const safeTimeMs = Math.min(durationMs, Math.max(0, Number(nextTimeMs) || 0));
@@ -460,6 +883,15 @@ export default function useBackingLoop() {
 
   const hasRecording = Boolean(recording?.blob);
   const durationMs = hasRecording ? Math.max(0, Number(recording.durationMs) || 0) : 0;
+  const trimDurationMs = Math.max(0, Number(trimDraft?.recording?.durationMs) || 0);
+  const trimSelection = trimDraft ? {
+    durationMs: trimDurationMs,
+    endMs: trimEndMs,
+    lengthMs: Math.max(0, trimEndMs - trimStartMs),
+    previewPositionMs: trimPreviewPositionMs,
+    startMs: trimStartMs,
+    waveform: trimDraft.waveform || [],
+  } : null;
   const displayTimeMs = ["recording", "playing", "paused"].includes(phase)
     ? currentTimeMs
     : durationMs;
@@ -470,40 +902,62 @@ export default function useBackingLoop() {
   }), [currentTimeMs, hasRecording, phase]);
 
   return {
+    applyTrim,
     audioRef,
     audioUrl,
     cancelCurrent,
     closeDialog,
     confirmDelete,
+    confirmClearRecording,
     confirmSave,
     currentTimeMs,
+    deletePending,
     dialog,
     displayTimeMs,
     durationMs,
     handleLoadedMetadata,
     handlePlaybackEnded,
     hasRecording,
+    inputLevel,
+    isArmed: phase === "armed",
     isPaused: phase === "paused",
     isPlaying: phase === "playing",
     isRecording: phase === "recording",
     library,
+    libraryEditMode,
     loadRecording,
     notice,
     openDeleteDialog,
     openLoadDialog,
     openSaveDialog,
+    openTrimEditor,
     pausePlayback,
     phase,
     playRecording,
     recording,
+    requestSaveConfirmation,
     resetPlayback,
+    resetTrimSelection,
     saveError,
+    selectedLibraryId,
+    selectedLibraryIds,
+    selectLibraryRecording: setSelectedLibraryId,
     seekPlayback,
     setTitleDraft,
     status,
     title: recording?.title || BACKING_LOOP_DEFAULT_TITLE,
     titleDraft,
+    toggleLibraryEditMode,
+    toggleLibraryRecordingSelection,
     togglePlayback,
     toggleRecording,
+    toggleTrimPreview,
+    trimPreviewAudioRef,
+    trimPreviewPlaying,
+    trimPreviewUrl,
+    trimSelection,
+    updateTrimEnd,
+    updateTrimStart,
+    useOriginalTrimRecording,
   };
 }

@@ -31,7 +31,11 @@ export function getPreferredBackingLoopMimeType(MediaRecorderApi) {
 export function getBackingLoopStatus({ elapsedMs = 0, hasRecording = false, phase = "idle" } = {}) {
   const time = formatBackingLoopTime(elapsedMs);
   if (phase === "requesting") return { label: "MIC ACCESS", tone: "pending" };
+  if (phase === "armed") return { label: "ARM", tone: "recording" };
   if (phase === "recording") return { label: `REC ${time}`, tone: "recording" };
+  if (phase === "processing") return { label: "LEVELING", tone: "pending" };
+  if (phase === "trimming") return { label: "TRIM", tone: "pending" };
+  if (phase === "applying") return { label: "APPLYING", tone: "pending" };
   if (phase === "playing") return { label: `PLAY ${time}`, tone: "playing" };
   if (phase === "paused") return { label: `PAUSED ${time}`, tone: "paused" };
   if (phase === "saving") return { label: "SAVING", tone: "pending" };

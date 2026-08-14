@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import BackingLoop from "../src/components/BackingLoop";
 import "../src/components/backing-loop.css";
 
-function createSilentWavBlob(durationSeconds = 0.72, sampleRate = 8_000) {
+function createSilentWavBlob(durationSeconds = 2.72, sampleRate = 8_000) {
   const sampleCount = Math.floor(durationSeconds * sampleRate);
   const bytesPerSample = 2;
   const dataSize = sampleCount * bytesPerSample;
@@ -64,7 +64,7 @@ window.MediaRecorder = HarnessMediaRecorder;
 
 function Harness() {
   return (
-    <main className="backingLoopHarness">
+    <main className="app theme-brand backingLoopHarness">
       <BackingLoop mobile />
     </main>
   );
@@ -76,7 +76,7 @@ style.textContent = `
   body {
     display: grid;
     place-items: start center;
-    background: #eee4db;
+    background: #0b0f12;
     font-family: Inter, system-ui, sans-serif;
   }
   .backingLoopHarness {
@@ -87,4 +87,5 @@ style.textContent = `
 `;
 document.head.append(style);
 
-createRoot(document.getElementById("root")).render(<Harness />);
+window.__riffLabBackingLoopHarnessRoot ??= createRoot(document.getElementById("root"));
+window.__riffLabBackingLoopHarnessRoot.render(<Harness />);

@@ -12,14 +12,18 @@ import {
   Pause,
   Play,
   Radio,
+  RotateCcw,
   Settings,
   Square,
   Timer,
+  Trash2,
   Volume2,
   VolumeX,
   X,
 } from "lucide-react";
 import { createPortal, flushSync } from "react-dom";
+import { acquireMicInput } from "./audio/micInputEngine";
+import { MIC_INPUT_PRESETS } from "./audio/micInputPresets";
 import BrandHeader from "./components/BrandHeader";
 import BackingLoop from "./components/BackingLoop";
 import Fretboard from "./components/Fretboard";
@@ -30,10 +34,18 @@ import {
   isLickRestStep,
   normalizeLickTechnique,
 } from "./music/lickTechniques";
+import {
+  createShooterEnemyHurtbox,
+  createShooterGuitarCollisionGeometry,
+  createShooterProjectileHitbox,
+  lerpPoint,
+  solveShooterIntercept,
+  sweepCircleAgainstMovingEllipse,
+} from "./shooter/collision";
 
 const CHROMATIC_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const NOTE_INDEX = Object.fromEntries(CHROMATIC_NOTES.map((note, index) => [note, index]));
-const APP_VERSION_LABEL = "Version 0.9.2";
+const APP_VERSION_LABEL = "Version 0.9.3";
 
 const SOLFEGE = {
   C: "도",
@@ -3642,7 +3654,6 @@ const FEEL_RECORDER_STORAGE_KEY = "rifflab-feel-recorder-patterns";
 const METRONOME_PRESET_STORAGE_KEY = "rifflab-metronome-presets-v1";
 const METRONOME_TRACKER_PROGRESS_STORAGE_KEY = "rifflab-metronome-tracker-progress-v1";
 const METRONOME_TRACKER_STORAGE_DEBOUNCE_MS = 360;
-const METRONOME_DISPLAY_MODE_STORAGE_KEY = "rifflabMetronomeMode";
 const APP_THEME_STORAGE_KEY = "rifflabThemeMode";
 const APP_THEMES = {
   BRAND: "brand",
@@ -3653,12 +3664,12 @@ const APP_THEME_OPTIONS = [
   {
     id: APP_THEMES.LIGHT,
     label: "화이트",
-    description: "RIFFLAB 기본 테마 · 흰색 배경 · 검정 텍스트 · 가독성 중심",
+    description: "밝고 선명한 기본 화면",
   },
   {
     id: APP_THEMES.BRAND,
     label: "골드다크",
-    description: "골드/브론즈 기반 · 브랜드 감성과 몰입감 중심",
+    description: "골드·브론즈 몰입 화면",
   },
 ];
 function getSelectableAppThemeOptions() {
@@ -3796,9 +3807,8 @@ function getTwoColumnVerticalFlowOptions(options) {
   ));
 }
 
-function getStoredMetronomeDisplayMode() {
-  if (typeof window === "undefined") return "dot";
-  return normalizeMetronomeDisplayMode(window.localStorage.getItem(METRONOME_DISPLAY_MODE_STORAGE_KEY));
+function getInitialMetronomeDisplayMode() {
+  return METRONOME_DISPLAY_MODES[0]?.id ?? "dot";
 }
 
 function normalizeAppTheme(value) {
@@ -5308,7 +5318,6 @@ const SHOOTER_SKIN_TABS = [
   { id: "effect", label: "이펙트" },
 ];
 const SHOOTER_PICK_SKINS = [
-  { id: "gold", label: "Gold Pick", description: "금장 장식 피크 발사체", assetSrc: "/images/shooter-pick-legendary-ornate.png" },
   { id: "leather-black", label: "Leather Black Pick", description: "블랙 레더 질감 피크", assetSrc: "/images/shooter-pick-leather-black.png" },
   { id: "tortoise-shell", label: "Tortoise Shell Pick", description: "토터스 쉘 패턴 피크", assetSrc: "/images/shooter-pick-tortoise-shell.png" },
   { id: "walnut-wood", label: "Walnut Wood Pick", description: "우드 그레인 피크", assetSrc: "/images/shooter-pick-walnut-wood.png" },
@@ -5369,7 +5378,6 @@ const SHOOTER_EFFECT_LAYER_SLOTS = {
   BODY: "body",
   FRONT: "front",
 };
-const SHOOTER_EFFECT_EXIT_ANIMATION_MS = 360;
 const SHOOTER_EFFECT_SECTION_IDS = {
   NONE: "none",
   AURA: "aura",
@@ -5779,14 +5787,59 @@ function getShooterEffectLayers(effect) {
     });
 }
 
-function getShooterEffectLayerClassName(layer, extraClassName = "") {
+const shooterEffectImagePreloadCache = new Map();
+
+function preloadShooterEffectImage(src) {
+  if (!src || typeof window === "undefined" || typeof window.Image !== "function") {
+    return Promise.resolve();
+  }
+
+  const cached = shooterEffectImagePreloadCache.get(src);
+  if (cached) return cached.promise;
+
+  const image = new window.Image();
+  image.decoding = "async";
+  const promise = new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+
+    image.addEventListener("load", () => {
+      if (typeof image.decode !== "function") {
+        finish();
+        return;
+      }
+      image.decode().catch(() => undefined).finally(finish);
+    }, { once: true });
+    image.addEventListener("error", finish, { once: true });
+    image.src = src;
+  });
+
+  shooterEffectImagePreloadCache.set(src, { image, promise });
+  return promise;
+}
+
+function preloadShooterEffectImages(effect) {
+  const imageSources = [...new Set(getShooterEffectLayers(effect).map((layer) => layer.image).filter(Boolean))];
+  return Promise.all(imageSources.map(preloadShooterEffectImage)).then(() => undefined);
+}
+
+async function preloadShooterEffectCatalog() {
+  for (const effect of SHOOTER_EFFECT_OPTIONS) {
+    await preloadShooterEffectImages(effect);
+  }
+}
+
+function getShooterEffectLayerClassName(layer) {
   return [
     "guitarPlayerEffectLayer",
     `guitarPlayerEffectLayer--${layer.slot}`,
     `guitarPlayerEffectLayer--${layer.type}`,
     `guitarPlayerEffectLayer--${layer.effectId}`,
     layer.className,
-    extraClassName,
   ].filter(Boolean).join(" ");
 }
 
@@ -6057,21 +6110,339 @@ function TapTempoGlyph() {
   );
 }
 
-function MiniChordTapTempoGlyph() {
+function MiniChordLoadDialog({
+  confirmDeleteOpen,
+  editMode,
+  items,
+  onCancelDelete,
+  onClose,
+  onConfirmDelete,
+  onLoad,
+  onRequestDelete,
+  onSelect,
+  onToggleEditMode,
+  onToggleSelected,
+  selectedId,
+  selectedIds,
+}) {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        if (confirmDeleteOpen) onCancelDelete();
+        else onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [confirmDeleteOpen, onCancelDelete, onClose]);
+
+  if (typeof document === "undefined") return null;
+  const selectedItem = items.find((item) => item.id === selectedId);
+  const selectedItems = editMode
+    ? items.filter((item) => selectedIds.includes(item.id))
+    : selectedItem ? [selectedItem] : [];
+  const selectedCount = selectedItems.length;
+
+  return createPortal(
+    <div
+      className="backingLoopDialogLayer storageModalLayer miniChordLoadDialogLayer"
+      onMouseDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        if (confirmDeleteOpen) onCancelDelete();
+        else onClose();
+      }}
+      role="presentation"
+    >
+      <div aria-labelledby="mini-chord-load-dialog-title" aria-modal="true" id="mini-chord-load-dialog" role="dialog">
+        {confirmDeleteOpen ? (
+          <section className="backingLoopDialog backingLoopDeleteDialog miniChordDeleteDialog">
+            <div className="backingLoopDialogHeading backingLoopDialogHeading--confirm">
+              <div>
+                <strong id="mini-chord-load-dialog-title">
+                  {selectedCount > 1
+                    ? `선택한 미니코드 ${selectedCount}개를 삭제할까요?`
+                    : `“${selectedItems[0]?.title || "선택한 미니코드"}”를 삭제할까요?`}
+                </strong>
+                <span>저장 목록에서 삭제되며 이 작업은 되돌릴 수 없어요.</span>
+              </div>
+            </div>
+            <div className="backingLoopDialogActions">
+              <button onClick={onCancelDelete} type="button">취소</button>
+              <button className="danger" onClick={onConfirmDelete} type="button">삭제</button>
+            </div>
+          </section>
+        ) : (
+          <section className="backingLoopDialog backingLoopLoadDialog miniChordLoadDialog">
+            <div className="backingLoopDialogHeading">
+              <div>
+                <strong id="mini-chord-load-dialog-title">저장된 미니코드</strong>
+                <span>{items.length ? `${items.length}개의 코드 진행` : "아직 저장된 미니코드가 없어요."}</span>
+              </div>
+              <div className="backingLoopDialogHeadingActions">
+                <button
+                  aria-pressed={editMode}
+                  disabled={!items.length}
+                  onClick={onToggleEditMode}
+                  type="button"
+                >
+                  {editMode ? "완료" : "편집"}
+                </button>
+                <button aria-label="미니코드 불러오기 창 닫기" onClick={onClose} type="button">
+                  <X size={15} />
+                </button>
+              </div>
+            </div>
+            <div className="backingLoopLibrary miniChordLoadLibrary">
+              {items.length ? items.map((item) => {
+                const chordSummary = item.slots
+                  .map(getMiniChordSlotDisplayLabel)
+                  .filter(Boolean)
+                  .join(" · ");
+                if (editMode) {
+                  return (
+                    <label className="backingLoopLibraryEditItem miniChordLoadLibraryEditItem" key={item.id}>
+                      <input
+                        aria-label={`${item.title} 선택`}
+                        checked={selectedIds.includes(item.id)}
+                        onChange={() => onToggleSelected(item.id)}
+                        type="checkbox"
+                      />
+                      <span className="miniChordLoadDialogItemText">
+                        <b title={item.title}>{item.title}</b>
+                        <em title={chordSummary}>{chordSummary || "빈 코드"}</em>
+                      </span>
+                      <small>{item.barCount}마디 · {item.bpm} BPM</small>
+                    </label>
+                  );
+                }
+                return (
+                  <button
+                    aria-label={`${item.title} 선택`}
+                    aria-pressed={item.id === selectedId}
+                    className={item.id === selectedId ? "selected" : ""}
+                    key={item.id}
+                    onClick={() => onSelect(item.id)}
+                    type="button"
+                  >
+                    <span className="miniChordLoadDialogItemText">
+                      <b title={item.title}>{item.title}</b>
+                      <em title={chordSummary}>{chordSummary || "빈 코드"}</em>
+                    </span>
+                    <small>{item.barCount}마디 · {item.bpm} BPM</small>
+                  </button>
+                );
+              }) : (
+                <div className="backingLoopLibraryEmpty miniChordLoadLibraryEmpty">
+                  <Music2 aria-hidden="true" size={19} />
+                  <span>코드 진행을 만든 뒤 저장하세요.</span>
+                </div>
+              )}
+            </div>
+            <div className="backingLoopDialogActions backingLoopDialogActions--load">
+              <button onClick={onClose} type="button">닫기</button>
+              <button disabled={!selectedCount} className="danger" onClick={onRequestDelete} type="button">
+                <Trash2 aria-hidden="true" size={12} />
+                {editMode ? `${selectedCount}개 삭제` : "삭제"}
+              </button>
+              <button disabled={!selectedItem || editMode} className="primary" onClick={() => onLoad(selectedItem)} type="button">
+                불러오기
+              </button>
+            </div>
+          </section>
+        )}
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+function MiniChordSaveConfirmDialog({ onCancel, onConfirm, title }) {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onCancel]);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="backingLoopDialogLayer storageModalLayer miniChordSaveConfirmDialogLayer"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onCancel();
+      }}
+      role="presentation"
+    >
+      <div aria-labelledby="mini-chord-save-confirm-title" aria-modal="true" role="dialog">
+        <section className="backingLoopDialog backingLoopSaveConfirmDialog miniChordSaveConfirmDialog">
+          <div className="backingLoopDialogHeading backingLoopDialogHeading--confirm">
+            <div>
+              <strong id="mini-chord-save-confirm-title">
+                “{title.trim() || "내 미니코드"}”을 저장하시겠습니까?
+              </strong>
+              <span>현재 코드 진행과 설정이 저장 목록에 추가됩니다.</span>
+            </div>
+          </div>
+          <div className="backingLoopDialogActions">
+            <button onClick={onCancel} type="button">아니오</button>
+            <button className="primary" onClick={onConfirm} type="button">저장</button>
+          </div>
+        </section>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+function MetronomeTransportCard({
+  ariaLabel,
+  bpm,
+  bpmPreview = false,
+  bpmPreviewKey,
+  cardClassName = "",
+  isPlaying,
+  onBeforeBpmChange,
+  onBpmButtonPointerCancel,
+  onBpmButtonPointerDown,
+  onBpmButtonPointerUp,
+  onBpmChange,
+  onCardPointerCancel,
+  onCardPointerDown,
+  onCardPointerMove,
+  onCardPointerUp,
+  onStart,
+  onStop,
+  onTapTempo,
+  onTapTempoPressFeedback,
+  playStartLabel = "메트로놈 시작",
+  playStopLabel = "메트로놈 정지",
+  swipeEnabled = false,
+  tapTempoLabel = "탭 템포로 BPM 설정",
+  tapTempoPressTick = 0,
+}) {
+  const changeBpmBy = (delta, controlId, event) => {
+    event.stopPropagation();
+    if (onBeforeBpmChange?.(controlId, event) === false) return;
+    onBpmChange(bpm + delta);
+    event.currentTarget.blur();
+  };
+
+  const handleBpmPointerDown = (controlId, event) => {
+    onBpmButtonPointerDown?.(controlId, event);
+  };
+
   return (
-    <span className="miniChordTapTempoIcon" aria-hidden="true">
-      <svg className="miniChordTapTempoGlyph" viewBox="0 0 68 70" focusable="false">
-        <path className="miniChordTapTempoGlyphRay" d="M13 10 L20 17" />
-        <path className="miniChordTapTempoGlyphRay" d="M32 4 L32 14" />
-        <path className="miniChordTapTempoGlyphRay" d="M51 10 L44 17" />
-        <path className="miniChordTapTempoGlyphRing" d="M14 33 C14 22 22 15 32 15 C42 15 50 22 50 33" />
-        <path className="miniChordTapTempoGlyphRing miniChordTapTempoGlyphRing--inner" d="M21 33 C21 26 26 22 32 22 C38 22 43 26 43 33" />
-        <path
-          className="miniChordTapTempoGlyphHand"
-          d="M30.5 57 V29.5 C30.5 25.8 33.1 23.4 36.1 23.4 C39.2 23.4 41.6 25.9 41.6 29.5 V38.4 C42.8 36.8 44.5 36 46.3 36 C49.3 36 51.2 38.2 51.4 41.1 C52.5 39.9 54 39.3 55.6 39.3 C58.8 39.3 61 41.8 61 45.4 V57 C61 61.6 57.7 64 52.6 64 H36.7 C32.6 64 30.1 62.1 27.7 58.9 L18.1 46.2 C16 43.4 16.5 40.2 19.1 38.4 C21.5 36.8 24.3 37.4 26.3 40 L30.5 45.5"
-        />
-      </svg>
-    </span>
+    <div
+      aria-label={ariaLabel}
+      className={`metronomeHeroCard metronomeHeroCard--interactive ${cardClassName}`.trim()}
+      data-bpm-swipe-zone={swipeEnabled ? "true" : undefined}
+      onPointerCancel={onCardPointerCancel}
+      onPointerDown={onCardPointerDown}
+      onPointerMove={onCardPointerMove}
+      onPointerUp={onCardPointerUp}
+      role="group"
+    >
+      <div className="metronomeBpmAdjustGroup metronomeBpmAdjustGroup--down" aria-label="BPM 낮추기" role="group">
+        <button
+          aria-label="BPM 1 낮추기"
+          className="metronomeHeroBpmButton"
+          onClick={(event) => changeBpmBy(-1, "bpm-down-1", event)}
+          onMouseDown={(event) => event.preventDefault()}
+          onPointerCancel={onBpmButtonPointerCancel}
+          onPointerDown={(event) => handleBpmPointerDown("bpm-down-1", event)}
+          onPointerUp={onBpmButtonPointerUp}
+          type="button"
+        >
+          -
+        </button>
+        <span className="metronomeBpmAdjustDivider" aria-hidden="true" />
+        <button
+          aria-label="BPM 10 낮추기"
+          className="metronomeHeroBpmJumpButton metronomeHeroBpmJumpButton--down"
+          onClick={(event) => changeBpmBy(-10, "bpm-down-10", event)}
+          onMouseDown={(event) => event.preventDefault()}
+          onPointerCancel={onBpmButtonPointerCancel}
+          onPointerDown={(event) => handleBpmPointerDown("bpm-down-10", event)}
+          onPointerUp={onBpmButtonPointerUp}
+          type="button"
+        >
+          -10
+        </button>
+      </div>
+      <div className="metronomeHeroBpmValue">
+        <span>BPM</span>
+        <strong data-bpm-preview-value={bpmPreviewKey ?? (bpmPreview ? "true" : undefined)}>{bpm}</strong>
+      </div>
+      <div className="metronomeBpmAdjustGroup metronomeBpmAdjustGroup--up" aria-label="BPM 올리기" role="group">
+        <button
+          aria-label="BPM 1 올리기"
+          className="metronomeHeroBpmButton"
+          onClick={(event) => changeBpmBy(1, "bpm-up-1", event)}
+          onMouseDown={(event) => event.preventDefault()}
+          onPointerCancel={onBpmButtonPointerCancel}
+          onPointerDown={(event) => handleBpmPointerDown("bpm-up-1", event)}
+          onPointerUp={onBpmButtonPointerUp}
+          type="button"
+        >
+          +
+        </button>
+        <span className="metronomeBpmAdjustDivider" aria-hidden="true" />
+        <button
+          aria-label="BPM 10 올리기"
+          className="metronomeHeroBpmJumpButton metronomeHeroBpmJumpButton--up"
+          onClick={(event) => changeBpmBy(10, "bpm-up-10", event)}
+          onMouseDown={(event) => event.preventDefault()}
+          onPointerCancel={onBpmButtonPointerCancel}
+          onPointerDown={(event) => handleBpmPointerDown("bpm-up-10", event)}
+          onPointerUp={onBpmButtonPointerUp}
+          type="button"
+        >
+          +10
+        </button>
+      </div>
+      <div className="metronomeHeroActionPanel" aria-label="메트로놈 실행과 탭 템포">
+        <button
+          aria-label={isPlaying ? playStopLabel : playStartLabel}
+          className={`metronomeHeroPlayButton ${isPlaying ? "reset" : "primary"}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            if (isPlaying) {
+              onStop();
+              return;
+            }
+            onStart();
+          }}
+          type="button"
+        >
+          <span className="metronomeHeroActionIcon" aria-hidden="true">
+            {isPlaying ? <Square size={15} /> : <Play size={18} />}
+          </span>
+          <span className="metronomeHeroActionText">{isPlaying ? "STOP" : "PLAY"}</span>
+        </button>
+        <button
+          aria-label={tapTempoLabel}
+          className={`metronomeHeroTapTempoButton ${tapTempoPressTick > 0 ? "is-tapping" : ""}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onTapTempoPressFeedback?.();
+            onTapTempo();
+          }}
+          onKeyDown={(event) => {
+            if (event.key === " " || event.key === "Enter") onTapTempoPressFeedback?.();
+          }}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            onTapTempoPressFeedback?.();
+          }}
+          type="button"
+        >
+          <TapTempoGlyph />
+          <span className="metronomeHeroActionText">TAP</span>
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -7851,12 +8222,11 @@ const SHOOTER_LIFE_LINE_PERCENT = 86;
 const SHOOTER_TARGET_HIT_EFFECT_MS = 220;
 const SHOOTER_TARGET_BREAK_EFFECT_MS = 450;
 const SHOOTER_PROJECTILE_MS = 640;
-const SHOOTER_PROJECTILE_IMPACT_RATIO = 1;
-const SHOOTER_PROJECTILE_IMPACT_SYNC_MS = 0;
 const SHOOTER_PROJECTILE_CONTACT_HOLD_MS = 58;
 const SHOOTER_EMPTY_REFILL_MS = 420;
-const SHOOTER_TARGET_HITBOX = { width: 10.6, height: 8.8 };
-const SHOOTER_PROJECTILE_HITBOX = { width: 6.4, height: 7.2 };
+const SHOOTER_HITBOX_DEBUG_INTERVAL_MS = 32;
+// Default-off developer overlay. In dev builds it can also be enabled with ?debugHitbox=1#shooter.
+const DEBUG_HITBOX = false;
 const SHOOTER_TARGET_BREAK_PIECES = [
   { clip: "polygon(0 0, 47% 0, 42% 36%, 0 46%)", dx: "-12px", dy: "-10px", rotate: "-22deg", origin: "72% 68%" },
   { clip: "polygon(47% 0, 100% 0, 100% 38%, 58% 33%)", dx: "13px", dy: "-9px", rotate: "21deg", origin: "22% 72%" },
@@ -7865,6 +8235,13 @@ const SHOOTER_TARGET_BREAK_PIECES = [
   { clip: "polygon(58% 33%, 100% 38%, 100% 100%, 75% 100%, 67% 62%)", dx: "12px", dy: "8px", rotate: "-18deg", origin: "28% 28%" },
   { clip: "polygon(24% 100%, 49% 54%, 67% 62%, 75% 100%)", dx: "1px", dy: "13px", rotate: "14deg", origin: "50% 18%" },
 ];
+
+function getInitialShooterHitboxDebugMode() {
+  if (DEBUG_HITBOX) return true;
+  if (!import.meta.env.DEV || typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("debugHitbox") === "1";
+}
+
 const MIC_READ_INTERVAL_MS = 33;
 const MIC_ANALYSIS_INTERVAL_MS = 34;
 const MIC_DISPLAY_UPDATE_MS = 100;
@@ -9203,6 +9580,12 @@ const SHOOTER_ENEMY_ASSETS = {
   [SHOOTER_DIFFICULTIES.NORMAL]: "/images/shooter-monster-normal.svg",
   [SHOOTER_DIFFICULTIES.DIFFICULT]: "/images/shooter-monster-hard.svg",
 };
+
+function preloadShooterEnemyAssets() {
+  return Promise.all(
+    [...new Set(Object.values(SHOOTER_ENEMY_ASSETS))].map(preloadShooterEffectImage),
+  ).then(() => undefined);
+}
 const SHOOTER_RECORDS_STORAGE_KEY = "rifflabShooterRecords";
 const SHOOTER_GUITAR_PIVOT_PERCENT = { x: 50, y: 91.5 };
 const SHOOTER_GUITAR_AIM_LIMIT_DEG = 34;
@@ -9465,24 +9848,6 @@ function getShooterTargetYAt(target, now = 0) {
   return 8 + progress * 80;
 }
 
-function getShooterHitboxContact(target, startX, startY, targetY) {
-  const targetHitbox = target?.hitbox ?? SHOOTER_TARGET_HITBOX;
-  const combinedRadiusX = (Number(targetHitbox.width) + SHOOTER_PROJECTILE_HITBOX.width) / 2;
-  const combinedRadiusY = (Number(targetHitbox.height) + SHOOTER_PROJECTILE_HITBOX.height) / 2;
-  const dx = startX - target.x;
-  const dy = startY - targetY;
-  const centerDistance = Math.hypot(dx, dy) || 1;
-  const ellipseDistance = Math.sqrt((dx / combinedRadiusX) ** 2 + (dy / combinedRadiusY) ** 2) || 1;
-  const edgeScale = Math.min(1, 1 / ellipseDistance);
-  const contactX = target.x + dx * edgeScale;
-  const contactY = targetY + dy * edgeScale;
-  return {
-    x: contactX,
-    y: contactY,
-    durationRatio: Math.max(0.36, Math.min(1, Math.hypot(startX - contactX, startY - contactY) / centerDistance)),
-  };
-}
-
 function getShooterEffectiveLevel(level, difficulty, elapsedMs = 0, spawnedCount = 0) {
   const phase = getShooterDifficultyPhase(difficulty, elapsedMs, spawnedCount);
   const pacing = getShooterDifficultyPacing(difficulty);
@@ -9553,7 +9918,7 @@ function getShooterFullRangeNotes(includeSharps = false, maxFret = MAX_FRETBOARD
 
 function getShooterPrimaryAimTarget(targets) {
   return [...(targets ?? [])]
-    .filter((target) => target && !target.defeated && target.impactAt == null)
+    .filter((target) => target && !target.defeated)
     .sort((a, b) => (b.y ?? 0) - (a.y ?? 0))[0] ?? null;
 }
 
@@ -9870,7 +10235,7 @@ function App() {
   const [designLabSection, setDesignLabSection] = useState("logo");
   const [logoPreviewScale, setLogoPreviewScale] = useState(100);
   const [metronomeVisualLabMode, setMetronomeVisualLabMode] = useState("circle");
-  const [metronomeDisplayMode, setMetronomeDisplayMode] = useState(getStoredMetronomeDisplayMode);
+  const [metronomeDisplayMode, setMetronomeDisplayMode] = useState(getInitialMetronomeDisplayMode);
   const [metronomeModeSwipeOffset, setMetronomeModeSwipeOffset] = useState(0);
   const [metronomeModeSwipeActive, setMetronomeModeSwipeActive] = useState(false);
   const [metronomeVisualOptionsOpen, setMetronomeVisualOptionsOpen] = useState(false);
@@ -9996,6 +10361,11 @@ function App() {
   const [miniChordPianoStyle, setMiniChordPianoStyle] = useState(initialMiniChordArrangementRef.current.pianoStyle);
   const [miniChordSavedItems, setMiniChordSavedItems] = useState(getStoredMiniChordArrangements);
   const [miniChordLoadOpen, setMiniChordLoadOpen] = useState(false);
+  const [miniChordLoadSelectedId, setMiniChordLoadSelectedId] = useState("");
+  const [miniChordLoadSelectedIds, setMiniChordLoadSelectedIds] = useState([]);
+  const [miniChordLoadEditMode, setMiniChordLoadEditMode] = useState(false);
+  const [miniChordDeleteConfirmOpen, setMiniChordDeleteConfirmOpen] = useState(false);
+  const [miniChordSaveConfirmOpen, setMiniChordSaveConfirmOpen] = useState(false);
   const [miniChordTitle, setMiniChordTitle] = useState(initialMiniChordArrangementRef.current.title);
   const [miniChordBarCount, setMiniChordBarCount] = useState(initialMiniChordArrangementRef.current.barCount);
   const [miniChordSlots, setMiniChordSlots] = useState(initialMiniChordArrangementRef.current.slots);
@@ -10075,6 +10445,8 @@ function App() {
   const [shooterTargets, setShooterTargets] = useState([]);
   const [projectiles, setProjectiles] = useState([]);
   const [shooterBreakEffects, setShooterBreakEffects] = useState([]);
+  const shooterHitboxDebugEnabled = useMemo(getInitialShooterHitboxDebugMode, []);
+  const [shooterDebugGeometry, setShooterDebugGeometry] = useState(null);
   const [shooterAim, setShooterAim] = useState(undefined);
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
@@ -10155,49 +10527,14 @@ function App() {
     () => selectedEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.FRONT),
     [selectedEffectLayers],
   );
-  const [exitingEffectLayers, setExitingEffectLayers] = useState([]);
-  const previousEffectLayersRef = useRef([]);
-  const effectExitTimeoutRef = useRef(null);
+  const effectSelectionRequestRef = useRef(0);
   useEffect(() => {
-    const previousEffectLayers = previousEffectLayersRef.current;
-    const activeLayerKeys = new Set(selectedEffectLayers.map((layer) => layer.key));
-    const removedEffectLayers = previousEffectLayers.filter((layer) => !activeLayerKeys.has(layer.key));
-
-    if (removedEffectLayers.length > 0) {
-      const exitStartedAt = Date.now();
-      setExitingEffectLayers(
-        removedEffectLayers.map((layer) => ({
-          ...layer,
-          exitKey: `exit-${layer.key}-${exitStartedAt}`,
-        })),
-      );
-      window.clearTimeout(effectExitTimeoutRef.current);
-      effectExitTimeoutRef.current = window.setTimeout(() => {
-        setExitingEffectLayers([]);
-      }, SHOOTER_EFFECT_EXIT_ANIMATION_MS);
-    }
-
-    previousEffectLayersRef.current = selectedEffectLayers;
-  }, [selectedEffectLayers]);
-  useEffect(() => () => {
-    window.clearTimeout(effectExitTimeoutRef.current);
+    if (!shooterGuitarPickerOpen) return;
+    void preloadShooterEffectCatalog();
+  }, [shooterGuitarPickerOpen]);
+  useEffect(() => {
+    void preloadShooterEnemyAssets();
   }, []);
-  const exitingEffectFloorLayers = useMemo(
-    () => exitingEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.FLOOR),
-    [exitingEffectLayers],
-  );
-  const exitingEffectBackLayers = useMemo(
-    () => exitingEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.BACK),
-    [exitingEffectLayers],
-  );
-  const exitingEffectBodyLayers = useMemo(
-    () => exitingEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.BODY),
-    [exitingEffectLayers],
-  );
-  const exitingEffectFrontLayers = useMemo(
-    () => exitingEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.FRONT),
-    [exitingEffectLayers],
-  );
   const assignedGuitarVariantIds = useMemo(
     () => new Set(Object.values(shooterPlayerSlots).filter((variantId) => GUITAR_LAB_VARIANT_IDS.has(variantId))),
     [shooterPlayerSlots],
@@ -10313,10 +10650,16 @@ function App() {
 
   const applyShooterEffect = useCallback((effectId) => {
     const nextEffect = getShooterEffectById(effectId);
-    setSelectedShooterEffectId(nextEffect.id);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(SHOOTER_EFFECT_STORAGE_KEY, nextEffect.id);
-    }
+    const requestId = effectSelectionRequestRef.current + 1;
+    effectSelectionRequestRef.current = requestId;
+
+    void preloadShooterEffectImages(nextEffect).then(() => {
+      if (effectSelectionRequestRef.current !== requestId) return;
+      setSelectedShooterEffectId(nextEffect.id);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(SHOOTER_EFFECT_STORAGE_KEY, nextEffect.id);
+      }
+    });
   }, []);
 
   const applyShooterMap = useCallback((mapId) => {
@@ -10606,6 +10949,8 @@ function App() {
   const metronomeWeakGainRef = useRef(null);
   const analyserRef = useRef(null);
   const bufferRef = useRef(null);
+  const micInputSessionRef = useRef(null);
+  const micRequestVersionRef = useRef(0);
   const sourceRef = useRef(null);
   const streamRef = useRef(null);
   const rafRef = useRef(null);
@@ -10725,6 +11070,10 @@ function App() {
   const bpmSwipeStartRef = useRef(null);
   const bpmSwipeFrameRef = useRef(null);
   const bpmSwipePreviewValueRef = useRef(DEFAULT_BPM);
+  const miniChordBpmRef = useRef(initialMiniChordArrangementRef.current.bpm);
+  const miniChordBpmSwipeStartRef = useRef(null);
+  const miniChordBpmSwipeFrameRef = useRef(null);
+  const miniChordBpmSwipePreviewValueRef = useRef(initialMiniChordArrangementRef.current.bpm);
   const bpmButtonPressRef = useRef(null);
   const bpmButtonInputBlockedUntilRef = useRef(0);
   const pointerInteractionRef = useRef(null);
@@ -10769,8 +11118,11 @@ function App() {
   const projectilesRef = useRef([]);
   const shooterBreakEffectsRef = useRef([]);
   const shooterArenaRef = useRef(null);
+  const shooterArenaSizeRef = useRef({ height: 0, node: null, width: 0 });
   const shooterGuitarPlayerRef = useRef(null);
+  const shooterGuitarBaseMetricsRef = useRef(null);
   const shooterTargetNodesRef = useRef(new Map());
+  const shooterTargetRefCallbacksRef = useRef(new Map());
   const projectileNodesRef = useRef(new Map());
   const shooterTargetIdRef = useRef(1);
   const projectileIdRef = useRef(1);
@@ -10785,6 +11137,7 @@ function App() {
   const shooterSessionSavedRef = useRef(true);
   const shooterAimResetTimerRef = useRef(null);
   const lastShooterGuitarAimRef = useRef({ targetId: null, angle: null });
+  const lastShooterHitboxDebugAtRef = useRef(0);
   const lastMicReadAtRef = useRef(0);
   const lastMicAnalysisAtRef = useRef(0);
   const scoreRef = useRef(0);
@@ -10903,7 +11256,7 @@ function App() {
     [selectedBuiltChord, viewerChordId],
   );
   const chordCatalogGroups = useMemo(() => {
-    return CHORD_ROOTS
+    return CHORD_NATURAL_ROOTS
       .map((root) => {
         const { baseRoot, accidental } = splitChordRootForSelector(root);
         const storedChords = CHORD_VIEW_OPTIONS.filter((chord) => chord.root === root);
@@ -11703,6 +12056,7 @@ function App() {
     projectilesRef.current = [];
     shooterBreakEffectsRef.current = [];
     shooterTargetNodesRef.current.clear();
+    shooterTargetRefCallbacksRef.current.clear();
     projectileNodesRef.current.clear();
     shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
@@ -12915,10 +13269,10 @@ function App() {
         detail,
         x: nextX,
         y: 8,
+        previousY: 8,
         bornAt: gameTimeRef.current,
         duration: getShooterTargetDuration(difficulty),
         difficulty,
-        hitbox: SHOOTER_TARGET_HITBOX,
         level: level.name,
         phaseLabel: level.phaseLabel,
       },
@@ -13015,14 +13369,72 @@ function App() {
     [flashStage, showLaneFeedback],
   );
 
+  const refreshShooterArenaSize = useCallback(() => {
+    const node = shooterArenaRef.current;
+    if (!node) {
+      shooterArenaSizeRef.current = { height: 0, node: null, width: 0 };
+      shooterGuitarBaseMetricsRef.current = null;
+      return shooterArenaSizeRef.current;
+    }
+
+    const width = node.clientWidth || 0;
+    const height = node.clientHeight || 0;
+    const previous = shooterArenaSizeRef.current;
+    if (previous.node !== node || previous.width !== width || previous.height !== height) {
+      shooterArenaSizeRef.current = { height, node, width };
+      shooterGuitarBaseMetricsRef.current = null;
+    }
+    return shooterArenaSizeRef.current;
+  }, []);
+
+  const getShooterArenaSize = useCallback(() => {
+    const cached = shooterArenaSizeRef.current;
+    if (cached.node === shooterArenaRef.current && cached.width > 0 && cached.height > 0) return cached;
+    return refreshShooterArenaSize();
+  }, [refreshShooterArenaSize]);
+
+  const getShooterGuitarBaseMetrics = useCallback((force = false) => {
+    const arenaSize = getShooterArenaSize();
+    const playerNode = shooterGuitarPlayerRef.current;
+    const assetNode = playerNode?.querySelector?.(".guitarPlayerAsset");
+    const cached = shooterGuitarBaseMetricsRef.current;
+    if (
+      !force
+      && cached
+      && cached.arenaHeight === arenaSize.height
+      && cached.arenaWidth === arenaSize.width
+      && cached.assetNode === assetNode
+      && cached.playerNode === playerNode
+    ) {
+      return cached;
+    }
+
+    const arenaRect = shooterArenaRef.current?.getBoundingClientRect?.();
+    const playerRect = playerNode?.getBoundingClientRect?.();
+    if (!arenaRect?.width || !arenaRect?.height || !playerRect) return null;
+    const metrics = {
+      arenaHeight: arenaRect.height,
+      arenaRect: { height: arenaRect.height, width: arenaRect.width },
+      arenaWidth: arenaRect.width,
+      assetHeight: Math.max(1, assetNode?.offsetHeight || playerRect.height || 1),
+      assetNode,
+      assetWidth: Math.max(1, assetNode?.offsetWidth || playerRect.width || 1),
+      pivotX: playerRect.left - arenaRect.left + playerRect.width / 2,
+      pivotY: playerRect.bottom - arenaRect.top,
+      playerNode,
+    };
+    shooterGuitarBaseMetricsRef.current = metrics;
+    return metrics;
+  }, [getShooterArenaSize]);
+
   const getShooterGuitarAimAngle = useCallback((target) => {
     if (!target) return 0;
-    const rect = shooterArenaRef.current?.getBoundingClientRect?.();
-    if (rect?.width && rect?.height) {
-      const targetX = (rect.width * (Number(target.x) || 50)) / 100;
-      const targetY = (rect.height * (Number(target.y) || 8)) / 100;
-      const pivotX = (rect.width * SHOOTER_GUITAR_PIVOT_PERCENT.x) / 100;
-      const pivotY = (rect.height * SHOOTER_GUITAR_PIVOT_PERCENT.y) / 100;
+    const metrics = getShooterGuitarBaseMetrics();
+    if (metrics) {
+      const targetX = (metrics.arenaRect.width * (Number(target.x) || 50)) / 100;
+      const targetY = (metrics.arenaRect.height * (Number(target.y) || 8)) / 100;
+      const pivotX = metrics.pivotX;
+      const pivotY = metrics.pivotY;
       const dx = targetX - pivotX;
       const dy = Math.max(6, pivotY - targetY);
       return clampValue(Math.atan2(dx, dy) * (180 / Math.PI), -SHOOTER_GUITAR_AIM_LIMIT_DEG, SHOOTER_GUITAR_AIM_LIMIT_DEG);
@@ -13030,7 +13442,7 @@ function App() {
     const dx = (Number(target.x) || 50) - SHOOTER_GUITAR_PIVOT_PERCENT.x;
     const dy = Math.max(1.2, SHOOTER_GUITAR_PIVOT_PERCENT.y - (Number(target.y) || 8));
     return clampValue(Math.atan2(dx, dy) * (180 / Math.PI), -SHOOTER_GUITAR_AIM_LIMIT_DEG, SHOOTER_GUITAR_AIM_LIMIT_DEG);
-  }, []);
+  }, [getShooterGuitarBaseMetrics]);
 
   const applyShooterGuitarAim = useCallback((target, force = false) => {
     const node = shooterGuitarPlayerRef.current;
@@ -13062,23 +13474,186 @@ function App() {
   }, [applyShooterGuitarAim]);
 
   const getShooterArenaPoint = useCallback((x, y) => {
-    const rect = shooterArenaRef.current?.getBoundingClientRect?.();
-    if (!rect?.width || !rect?.height) return null;
+    const arenaSize = getShooterArenaSize();
+    if (!arenaSize.width || !arenaSize.height) return null;
     return {
-      x: (rect.width * x) / 100,
-      y: (rect.height * y) / 100,
+      x: (arenaSize.width * x) / 100,
+      y: (arenaSize.height * y) / 100,
+    };
+  }, [getShooterArenaSize]);
+
+  const getShooterGuitarCollisionGeometry = useCallback((forceMetrics = false) => {
+    const metrics = getShooterGuitarBaseMetrics(forceMetrics);
+    if (!metrics) return null;
+    return createShooterGuitarCollisionGeometry({
+      angleDeg: Number(lastShooterGuitarAimRef.current.angle) || 0,
+      height: metrics.assetHeight,
+      pivotX: metrics.pivotX,
+      pivotY: metrics.pivotY,
+      width: metrics.assetWidth,
+    });
+  }, [getShooterGuitarBaseMetrics]);
+
+  const getShooterTargetHurtbox = useCallback((target, y = target?.y) => {
+    if (!target) return null;
+    const center = getShooterArenaPoint(target.x, Number(y) || 0);
+    if (!center) return null;
+    const renderSize = target.difficulty === SHOOTER_DIFFICULTIES.EASY ? NOTE_SIZE * 1.46 : NOTE_SIZE * 1.14;
+    return createShooterEnemyHurtbox({
+      centerX: center.x,
+      centerY: center.y,
+      difficulty: target.difficulty ?? SHOOTER_DIFFICULTIES.EASY,
+      height: target.renderHeight || renderSize,
+      width: target.renderWidth || renderSize,
+    });
+  }, [getShooterArenaPoint]);
+
+  const getShooterProjectileHitbox = useCallback((projectile, point) => {
+    const hitbox = createShooterProjectileHitbox({
+      centerX: point.x,
+      centerY: point.y,
+      height: projectile?.renderHeight || 30,
+      width: projectile?.renderWidth || 32,
+    });
+    return {
+      ...hitbox,
+      radius: hitbox.radius * (Number(projectile?.currentScale) || 1),
     };
   }, []);
 
-  const applyShooterTargetTransform = useCallback((target, y = getShooterTargetYAt(target, gameTimeRef.current)) => {
+  const applyShooterProjectileTransform = useCallback((projectile, pointPercent, progress = 0) => {
+    const node = projectileNodesRef.current.get(projectile?.id);
+    const point = getShooterArenaPoint(pointPercent.x, pointPercent.y);
+    if (!node || !point) return;
+    const visualAngle = (Number(projectile.angle) || 0) - 90 + (Number(projectile.spin) || 0) * progress;
+    const scale = 0.74 + Math.min(1, Math.max(0, progress)) * 0.26;
+    projectile.currentScale = scale;
+    if (node.style.opacity !== "1") node.style.opacity = "1";
+    node.style.transform = `translate3d(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px, 0) translate(-50%, -50%) rotate(${visualAngle.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+  }, [getShooterArenaPoint]);
+
+  const updateShooterHitboxDebug = useCallback((force = false) => {
+    if (!shooterHitboxDebugEnabled) return;
+    const now = performance.now();
+    if (!force && now - lastShooterHitboxDebugAtRef.current < SHOOTER_HITBOX_DEBUG_INTERVAL_MS) return;
+    const arenaSize = getShooterArenaSize();
+    if (!arenaSize.width || !arenaSize.height) return;
+    lastShooterHitboxDebugAtRef.current = now;
+    const guitar = getShooterGuitarCollisionGeometry();
+    const targets = shooterTargetsRef.current
+      .filter((target) => !target.defeated)
+      .map((target) => ({ id: target.id, ...getShooterTargetHurtbox(target, target.y) }))
+      .filter((target) => target.center);
+    const debugProjectiles = projectilesRef.current.map((projectile) => {
+      const currentPercent = {
+        x: projectile.currentX ?? projectile.startX,
+        y: projectile.currentY ?? projectile.startY,
+      };
+      const previousPercent = {
+        x: projectile.previousX ?? currentPercent.x,
+        y: projectile.previousY ?? currentPercent.y,
+      };
+      const current = getShooterArenaPoint(currentPercent.x, currentPercent.y);
+      const previous = getShooterArenaPoint(previousPercent.x, previousPercent.y);
+      if (!current || !previous) return null;
+      return {
+        id: projectile.id,
+        current,
+        previous,
+        hitbox: getShooterProjectileHitbox(projectile, current),
+      };
+    }).filter(Boolean);
+    const collisionPoints = shooterBreakEffectsRef.current
+      .filter((effect) => effect.collisionPoint)
+      .map((effect) => getShooterArenaPoint(effect.collisionPoint.x, effect.collisionPoint.y))
+      .filter(Boolean);
+    setShooterDebugGeometry({
+      width: arenaSize.width,
+      height: arenaSize.height,
+      guitar,
+      targets,
+      projectiles: debugProjectiles,
+      collisionPoints,
+    });
+  }, [
+    getShooterArenaPoint,
+    getShooterArenaSize,
+    getShooterGuitarCollisionGeometry,
+    getShooterProjectileHitbox,
+    getShooterTargetHurtbox,
+    shooterHitboxDebugEnabled,
+  ]);
+
+  useEffect(() => {
+    let refreshFrame = 0;
+    const refreshMetrics = () => {
+      window.cancelAnimationFrame(refreshFrame);
+      refreshFrame = window.requestAnimationFrame(() => {
+        shooterGuitarBaseMetricsRef.current = null;
+        refreshShooterArenaSize();
+      });
+    };
+    refreshMetrics();
+    window.addEventListener("resize", refreshMetrics);
+    const observer = typeof window.ResizeObserver === "function"
+      ? new window.ResizeObserver(refreshMetrics)
+      : null;
+    if (observer && shooterArenaRef.current) observer.observe(shooterArenaRef.current);
+    if (observer && shooterGuitarPlayerRef.current) observer.observe(shooterGuitarPlayerRef.current);
+    return () => {
+      window.cancelAnimationFrame(refreshFrame);
+      window.removeEventListener("resize", refreshMetrics);
+      observer?.disconnect();
+    };
+  }, [appMode, isMobileLayout, refreshShooterArenaSize, selectedGuitar.id]);
+
+  useEffect(() => {
+    if (!shooterHitboxDebugEnabled || appMode !== APP_MODES.SHOOTER) {
+      setShooterDebugGeometry(null);
+      return undefined;
+    }
+    const refresh = () => window.requestAnimationFrame(() => updateShooterHitboxDebug(true));
+    refresh();
+    window.addEventListener("resize", refresh);
+    return () => window.removeEventListener("resize", refresh);
+  }, [
+    appMode,
+    isMobileLayout,
+    selectedGuitar.id,
+    shooterHitboxDebugEnabled,
+    updateShooterHitboxDebug,
+  ]);
+
+  const applyShooterTargetTransform = useCallback((target, y = getShooterTargetYAt(target, gameTimeRef.current), syncEffectPosition = false) => {
     const node = shooterTargetNodesRef.current.get(target?.id);
     if (!node || !target) return;
     const point = getShooterArenaPoint(target.x, y);
     if (!point) return;
-    node.style.setProperty("--target-x-px", `${point.x}px`);
-    node.style.setProperty("--target-y-px", `${point.y}px`);
-    node.style.transform = `translate3d(${point.x}px, ${point.y}px, 0) translate(-50%, -50%)`;
+    if (syncEffectPosition) {
+      node.style.setProperty("--target-x-px", `${point.x.toFixed(2)}px`);
+      node.style.setProperty("--target-y-px", `${point.y.toFixed(2)}px`);
+    }
+    node.style.transform = `translate3d(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px, 0) translate(-50%, -50%)`;
   }, [getShooterArenaPoint]);
+
+  const getShooterTargetNodeRef = useCallback((targetId) => {
+    const existing = shooterTargetRefCallbacksRef.current.get(targetId);
+    if (existing) return existing;
+    const callback = (node) => {
+      if (!node) {
+        shooterTargetNodesRef.current.delete(targetId);
+        if (!shooterTargetsRef.current.some((target) => target.id === targetId)) {
+          shooterTargetRefCallbacksRef.current.delete(targetId);
+        }
+        return;
+      }
+      shooterTargetNodesRef.current.set(targetId, node);
+      const target = shooterTargetsRef.current.find((candidate) => candidate.id === targetId);
+      if (target) applyShooterTargetTransform(target, target.y);
+    };
+    shooterTargetRefCallbacksRef.current.set(targetId, callback);
+    return callback;
+  }, [applyShooterTargetTransform]);
 
   const showImmediateProjectile = useCallback((projectile) => {
     const arena = shooterArenaRef.current;
@@ -13088,7 +13663,7 @@ function App() {
     const projectileSkinId = projectile.pickSkinId ?? DEFAULT_SHOOTER_PICK_SKIN_ID;
     const startPoint = getShooterArenaPoint(projectile.startX, projectile.startY);
     const endPoint = getShooterArenaPoint(projectile.endX, projectile.endY);
-    node.className = `energyProjectile energyProjectile--immediate energyProjectile--pick-${projectileSkinId} ${projectileAssetSrc ? "energyProjectile--imageProjectile" : ""}`;
+    node.className = `energyProjectile energyProjectile--immediate energyProjectile--continuous energyProjectile--pick-${projectileSkinId} ${projectileAssetSrc ? "energyProjectile--imageProjectile" : ""}`;
     if (projectileAssetSrc) {
       const asset = document.createElement("img");
       asset.alt = "";
@@ -13097,6 +13672,12 @@ function App() {
       asset.draggable = false;
       asset.src = projectileAssetSrc;
       node.appendChild(asset);
+    }
+    if (shooterHitboxDebugEnabled) {
+      const hitbox = document.createElement("span");
+      hitbox.className = "energyProjectileDebugHitbox";
+      hitbox.setAttribute("aria-hidden", "true");
+      node.appendChild(hitbox);
     }
     node.style.setProperty("--projectile-start-x", `${projectile.startX}%`);
     node.style.setProperty("--projectile-start-y", `${projectile.startY}%`);
@@ -13111,24 +13692,29 @@ function App() {
     node.style.setProperty("--projectile-spin", `${projectile.spin ?? 10}deg`);
     arena.appendChild(node);
     projectileNodesRef.current.set(projectile.id, node);
-    window.setTimeout(() => {
-      node.classList.add("energyProjectile--impacting");
-    }, Math.max(0, Math.round(projectile.duration * SHOOTER_PROJECTILE_IMPACT_RATIO) - SHOOTER_PROJECTILE_IMPACT_SYNC_MS));
-    window.setTimeout(() => {
-      projectileNodesRef.current.delete(projectile.id);
-      node.remove();
-    }, projectile.duration + SHOOTER_PROJECTILE_CONTACT_HOLD_MS);
-  }, [getShooterArenaPoint]);
+    projectile.renderHeight = node.offsetHeight || 30;
+    projectile.renderWidth = node.offsetWidth || 32;
+    if (shooterHitboxDebugEnabled) {
+      const baseHitbox = createShooterProjectileHitbox({
+        centerX: 0,
+        centerY: 0,
+        height: projectile.renderHeight,
+        width: projectile.renderWidth,
+      });
+      node.style.setProperty("--projectile-debug-hitbox-size", `${baseHitbox.radius * 2}px`);
+    }
+    applyShooterProjectileTransform(projectile, { x: projectile.startX, y: projectile.startY }, 0);
+  }, [applyShooterProjectileTransform, getShooterArenaPoint, shooterHitboxDebugEnabled]);
 
-  const completeShooterTargetImpact = useCallback((targetId) => {
+  const completeShooterTargetImpact = useCallback((targetId, collisionPoint = null) => {
     const target = shooterTargetsRef.current.find((item) => item.id === targetId);
     if (!target || target.defeated) return;
 
     const y = Number(target.y) || getShooterTargetYAt(target, gameTimeRef.current);
-    applyShooterTargetTransform(target, y);
+    applyShooterTargetTransform(target, y, true);
 
     const node = shooterTargetNodesRef.current.get(target.id);
-    const arenaHeight = shooterArenaRef.current?.getBoundingClientRect?.()?.height ?? 0;
+    const arenaHeight = getShooterArenaSize().height;
     const fallDistancePx = arenaHeight && target.duration
       ? Math.max(2, Math.min(18, ((arenaHeight * 0.8) / target.duration) * SHOOTER_TARGET_HIT_EFFECT_MS))
       : 8;
@@ -13136,16 +13722,18 @@ function App() {
     node?.classList.remove("fallingTarget");
     node?.classList.add("impacting", "defeated");
 
-  const breakEffect = {
-    id: shooterBreakEffectIdRef.current++,
-    targetId: target.id,
-    note: target.note,
-    x: target.x,
-    y,
-    bornAt: gameTimeRef.current,
-  };
-  shooterBreakEffectsRef.current = [...shooterBreakEffectsRef.current, breakEffect].slice(-12);
-  setShooterBreakEffects([...shooterBreakEffectsRef.current]);
+    const effectPoint = collisionPoint ?? { x: target.x, y };
+    const breakEffect = {
+      id: shooterBreakEffectIdRef.current++,
+      targetId: target.id,
+      note: target.note,
+      x: effectPoint.x,
+      y: effectPoint.y,
+      collisionPoint: effectPoint,
+      bornAt: gameTimeRef.current,
+    };
+    shooterBreakEffectsRef.current = [...shooterBreakEffectsRef.current, breakEffect].slice(-12);
+    setShooterBreakEffects([...shooterBreakEffectsRef.current]);
 
     shooterTargetsRef.current = shooterTargetsRef.current.map((currentTarget) => (
       currentTarget.id === target.id
@@ -13154,7 +13742,9 @@ function App() {
             y,
             defeated: true,
             hitAt: gameTimeRef.current,
-            impactAt: undefined,
+            impactX: effectPoint.x,
+            impactY: effectPoint.y,
+            pendingProjectileId: undefined,
           }
         : currentTarget
     ));
@@ -13163,26 +13753,49 @@ function App() {
     flashStage("hit");
     playShooterSound("hit", { combo: Number(target.hitCombo) || 1 });
     setShooterTargets([...shooterTargetsRef.current]);
-  }, [applyShooterTargetTransform, flashStage, playShooterSound]);
+  }, [applyShooterTargetTransform, flashStage, getShooterArenaSize, playShooterSound]);
 
   const fireProjectile = useCallback((target, noteName) => {
-    const muzzleX = 50;
-    const muzzleY = 79;
-    const targetY = getShooterTargetYAt(target, gameTimeRef.current);
-    const firstContact = getShooterHitboxContact(target, muzzleX, muzzleY, targetY);
-    const estimatedDuration = Math.round(SHOOTER_PROJECTILE_MS * firstContact.durationRatio);
-    const impactY = getShooterTargetYAt(target, gameTimeRef.current + estimatedDuration);
-    const contact = getShooterHitboxContact(target, muzzleX, muzzleY, impactY);
-    const angle = Math.atan2(contact.y - muzzleY, contact.x - muzzleX) * (180 / Math.PI);
-    const projectileDuration = Math.round(SHOOTER_PROJECTILE_MS * contact.durationRatio);
+    const arenaSize = refreshShooterArenaSize();
+    if (!arenaSize.width || !arenaSize.height) return null;
     aimShooterAtTarget(target, 105);
+    const guitarGeometry = getShooterGuitarCollisionGeometry();
+    const fallbackMuzzle = getShooterArenaPoint(50, 79);
+    const muzzlePoint = guitarGeometry?.muzzlePoint ?? fallbackMuzzle;
+    if (!muzzlePoint) return null;
+    const targetY = getShooterTargetYAt(target, gameTimeRef.current);
+    const targetPoint = getShooterArenaPoint(target.x, targetY);
+    if (!targetPoint) return null;
+    const targetVelocity = {
+      x: 0,
+      y: (arenaSize.height * 0.8) / Math.max(1, Number(target.duration) || 1),
+    };
+    const projectileSpeed = (arenaSize.height * 0.88) / SHOOTER_PROJECTILE_MS;
+    const intercept = solveShooterIntercept({
+      start: muzzlePoint,
+      target: targetPoint,
+      targetVelocity,
+      projectileSpeed,
+      maxTimeMs: SHOOTER_PROJECTILE_MS * 1.35,
+    });
+    const muzzleX = (muzzlePoint.x / arenaSize.width) * 100;
+    const muzzleY = (muzzlePoint.y / arenaSize.height) * 100;
+    const endX = (intercept.point.x / arenaSize.width) * 100;
+    const endY = (intercept.point.y / arenaSize.height) * 100;
+    const angle = Math.atan2(intercept.point.y - muzzlePoint.y, intercept.point.x - muzzlePoint.x) * (180 / Math.PI);
+    const projectileDuration = Math.max(90, Math.round(intercept.timeMs));
     const projectile = {
       id: projectileIdRef.current++,
+      targetId: target.id,
       note: noteName,
       startX: muzzleX,
       startY: muzzleY,
-      endX: contact.x,
-      endY: contact.y,
+      previousX: muzzleX,
+      previousY: muzzleY,
+      currentX: muzzleX,
+      currentY: muzzleY,
+      endX,
+      endY,
       bornAt: gameTimeRef.current,
       duration: projectileDuration,
       angle,
@@ -13200,7 +13813,46 @@ function App() {
 
     setProjectiles([...projectilesRef.current]);
     return projectile;
-  }, [aimShooterAtTarget, selectedPick, showImmediateProjectile]);
+  }, [
+    aimShooterAtTarget,
+    getShooterArenaPoint,
+    getShooterGuitarCollisionGeometry,
+    refreshShooterArenaSize,
+    selectedPick,
+    showImmediateProjectile,
+  ]);
+
+  const resolveShooterProjectileHit = useCallback((projectile, target, collisionPoint) => {
+    if (!projectile || projectile.resolvedAt != null || !target || target.defeated) return false;
+    projectile.resolvedAt = gameTimeRef.current;
+    projectile.collisionPoint = collisionPoint;
+    const nextCombo = comboRef.current + 1;
+    shooterTargetsRef.current = shooterTargetsRef.current.map((currentTarget) => (
+      currentTarget.id === target.id
+        ? {
+            ...currentTarget,
+            hitCombo: nextCombo,
+            impactX: collisionPoint.x,
+            impactY: collisionPoint.y,
+            pendingProjectileId: undefined,
+          }
+        : currentTarget
+    ));
+    scoreRef.current += 100;
+    setScore((value) => value + 100);
+    comboRef.current = nextCombo;
+    maxComboRef.current = Math.max(maxComboRef.current, nextCombo);
+    setMaxCombo((current) => Math.max(current, nextCombo));
+    setCombo(nextCombo);
+    setHits((value) => {
+      const next = value + 1;
+      hitsRef.current = next;
+      return next;
+    });
+    projectileNodesRef.current.get(projectile.id)?.classList.add("energyProjectile--impacting");
+    completeShooterTargetImpact(target.id, collisionPoint);
+    return true;
+  }, [completeShooterTargetImpact]);
 
   const judgeShooterNote = useCallback(
     (detectedPitchName) => {
@@ -13210,11 +13862,10 @@ function App() {
 
       const orderedTargets = shooterTargetsRef.current
         .map((target, index) => ({ target, index }))
-        .filter(({ target }) => !target.defeated && target.impactAt == null)
+        .filter(({ target }) => !target.defeated && !target.pendingProjectileId)
         .sort((a, b) => b.target.y - a.target.y || a.target.bornAt - b.target.bornAt);
       const frontTarget = orderedTargets[0] ?? null;
       const target = frontTarget?.target ?? null;
-      const targetIndex = frontTarget?.index ?? -1;
       const targetPitchName = target?.detail?.pitch ?? target?.note ?? null;
       const matchesFrontTarget = Boolean(targetPitchName && detectedPitchName && targetPitchName === detectedPitchName);
       lastShotRef.current = { note: detectedPitchName, time: now };
@@ -13228,44 +13879,34 @@ function App() {
       }
 
       const projectile = fireProjectile(target, detectedPitchName);
-      const projectileDuration = projectile?.duration ?? 0;
-      const impactDelay = Math.max(
-        0,
-        Math.round(projectileDuration * SHOOTER_PROJECTILE_IMPACT_RATIO) - SHOOTER_PROJECTILE_IMPACT_SYNC_MS,
-      );
-      window.setTimeout(() => {
-        completeShooterTargetImpact(target.id);
-      }, impactDelay);
-      const nextCombo = comboRef.current + 1;
-      shooterTargetsRef.current = shooterTargetsRef.current.map((currentTarget, index) => (
-        index === targetIndex
+      if (!projectile) return;
+      shooterTargetsRef.current = shooterTargetsRef.current.map((currentTarget) => (
+        currentTarget.id === target.id
           ? {
               ...currentTarget,
-              impactAt: now + impactDelay,
-              impactX: projectile?.endX ?? currentTarget.x,
-              impactY: projectile?.endY ?? currentTarget.y,
-              hitCombo: nextCombo,
+              pendingProjectileId: projectile.id,
             }
           : currentTarget
       ));
       setShooterTargets([...shooterTargetsRef.current]);
       setFeedback("Fire");
-      scoreRef.current += 100;
-      setScore((value) => value + 100);
-      comboRef.current = nextCombo;
-      maxComboRef.current = Math.max(maxComboRef.current, nextCombo);
-      setMaxCombo((current) => Math.max(current, nextCombo));
-      setCombo(nextCombo);
-      setHits((value) => {
-        const next = value + 1;
-        hitsRef.current = next;
-        return next;
-      });
       attemptsRef.current += 1;
       setAttempts((value) => value + 1);
     },
-    [completeShooterTargetImpact, fireProjectile, flashStage, playShooterSound],
+    [fireProjectile, flashStage, playShooterSound],
   );
+
+  const fireShooterDebugTestShot = useCallback(() => {
+    if (!shooterHitboxDebugEnabled || gameStateRef.current !== GAME_STATES.PLAYING) return;
+    const target = [...shooterTargetsRef.current]
+      .filter((candidate) => !candidate.defeated && !candidate.pendingProjectileId)
+      .sort((left, right) => right.y - left.y || left.bornAt - right.bornAt)[0];
+    const pitch = target?.detail?.pitch ?? target?.note;
+    if (!pitch) return;
+    shooterReleaseLockRef.current = null;
+    lastShotRef.current = { note: null, time: Number.NEGATIVE_INFINITY };
+    judgeShooterNote(pitch);
+  }, [judgeShooterNote, shooterHitboxDebugEnabled]);
 
   const finalizeShooterRecord = useCallback((reason = "reset") => {
     if (shooterSessionSavedRef.current) return;
@@ -13297,13 +13938,15 @@ function App() {
     (now) => {
       const analyser = analyserRef.current;
       const buffer = bufferRef.current;
-      const audio = audioRef.current;
+      const micSession = micInputSessionRef.current;
+      const audio = micSession?.audioContext || audioRef.current;
       if (!analyser || !buffer || !audio) return;
       if (now - lastMicReadAtRef.current < MIC_READ_INTERVAL_MS) return;
       lastMicReadAtRef.current = now;
 
       analyser.getFloatTimeDomainData(buffer);
-      const rms = getRms(buffer);
+      const detectionFrame = micSession?.readDetectionFrame?.(now);
+      const rms = detectionFrame?.rms ?? getRms(buffer);
       const inputGain = isMobileLayoutRef.current ? 22 : 12;
       const normalizedLevel = Math.min(1, rms * inputGain);
 
@@ -13312,10 +13955,11 @@ function App() {
         lastDebugUpdateRef.current = now;
       }
 
-      const minVolume = isMobileLayoutRef.current ? LOW_SIGNAL_LEVEL * 0.42 : LOW_SIGNAL_LEVEL;
+      const minVolume = detectionFrame?.thresholdRms
+        ?? (isMobileLayoutRef.current ? LOW_SIGNAL_LEVEL * 0.42 : LOW_SIGNAL_LEVEL);
       const gameNoteTolerance = isMobileLayoutRef.current ? 68 : 45;
 
-      if (rms < minVolume) {
+      if ((detectionFrame && !detectionFrame.isSignalPresent) || rms < minVolume) {
         shooterReleaseLockRef.current = null;
         stableGameNoteRef.current = { note: null, count: 0 };
         if (now - lastDetectedDisplayUpdateRef.current > MIC_LOW_SIGNAL_DISPLAY_UPDATE_MS) {
@@ -13584,8 +14228,10 @@ function App() {
 
   const runShooterFrame = useCallback(
     (deltaMs) => {
+      const previousGameTime = gameTimeRef.current;
       gameTimeRef.current += deltaMs;
       const currentBeatMs = getBeatMs(bpmRef.current);
+      const frameArenaSize = getShooterArenaSize();
 
       if (
         shooterTargetsRef.current.length === 0
@@ -13613,6 +14259,7 @@ function App() {
         if (target.defeated) return;
         const progress = Math.min(1, (gameTimeRef.current - target.bornAt) / target.duration);
         const nextY = 8 + progress * 80;
+        target.previousY = Number(target.y) || nextY;
         if (target.y !== nextY) {
           target.y = nextY;
         }
@@ -13620,21 +14267,69 @@ function App() {
       });
       applyShooterGuitarAim(getShooterPrimaryAimTarget(shooterTargetsRef.current));
 
+      projectilesRef.current.forEach((projectile) => {
+        if (projectile.resolvedAt != null) return;
+        const previousProgress = Math.max(0, Math.min(1, (previousGameTime - projectile.bornAt) / projectile.duration));
+        const currentProgress = Math.max(0, Math.min(1, (gameTimeRef.current - projectile.bornAt) / projectile.duration));
+        const previousPercent = lerpPoint(
+          { x: projectile.startX, y: projectile.startY },
+          { x: projectile.endX, y: projectile.endY },
+          previousProgress,
+        );
+        const currentPercent = lerpPoint(
+          { x: projectile.startX, y: projectile.startY },
+          { x: projectile.endX, y: projectile.endY },
+          currentProgress,
+        );
+        projectile.previousX = previousPercent.x;
+        projectile.previousY = previousPercent.y;
+        projectile.currentX = currentPercent.x;
+        projectile.currentY = currentPercent.y;
+        applyShooterProjectileTransform(projectile, currentPercent, currentProgress);
+
+        const target = shooterTargetsRef.current.find((candidate) => candidate.id === projectile.targetId);
+        if (!target || target.defeated) return;
+        const previousPoint = getShooterArenaPoint(previousPercent.x, previousPercent.y);
+        const currentPoint = getShooterArenaPoint(currentPercent.x, currentPercent.y);
+        const targetStart = getShooterTargetHurtbox(target, target.previousY ?? target.y);
+        const targetEnd = getShooterTargetHurtbox(target, target.y);
+        if (!previousPoint || !currentPoint || !targetStart || !targetEnd) return;
+        const projectileHitbox = getShooterProjectileHitbox(projectile, currentPoint);
+        const collision = sweepCircleAgainstMovingEllipse({
+          start: previousPoint,
+          end: currentPoint,
+          projectileRadius: projectileHitbox.radius,
+          targetStart: targetStart.center,
+          targetEnd: targetEnd.center,
+          targetRadiusX: targetEnd.radiusX,
+          targetRadiusY: targetEnd.radiusY,
+        });
+        if (!collision) return;
+
+        const collisionProjectilePercent = {
+          x: (collision.projectileCenter.x / (frameArenaSize.width || 1)) * 100,
+          y: (collision.projectileCenter.y / (frameArenaSize.height || 1)) * 100,
+        };
+        const collisionPointPercent = {
+          x: (collision.collisionPoint.x / (frameArenaSize.width || 1)) * 100,
+          y: (collision.collisionPoint.y / (frameArenaSize.height || 1)) * 100,
+        };
+        projectile.currentX = collisionProjectilePercent.x;
+        projectile.currentY = collisionProjectilePercent.y;
+        applyShooterProjectileTransform(
+          projectile,
+          collisionProjectilePercent,
+          previousProgress + (currentProgress - previousProgress) * collision.ratio,
+        );
+        resolveShooterProjectileHit(projectile, target, collisionPointPercent);
+        targetsChanged = true;
+      });
+
       const defeatedExpiredTargets = shooterTargetsRef.current.filter(
         (target) => target.defeated && gameTimeRef.current - (target.hitAt ?? target.bornAt) >= SHOOTER_TARGET_HIT_EFFECT_MS,
       );
-      const impactedTargets = shooterTargetsRef.current.filter(
-        (target) => target.impactAt != null && !target.defeated && gameTimeRef.current >= target.impactAt,
-      );
-      if (impactedTargets.length > 0) {
-        impactedTargets.forEach((target) => {
-          completeShooterTargetImpact(target.id);
-        });
-        targetsChanged = true;
-      }
       const missedTargets = shooterTargetsRef.current.filter((target) => (
         !target.defeated
-        && target.impactAt == null
         && (
           gameTimeRef.current - target.bornAt >= target.duration
           || getShooterTargetYAt(target, gameTimeRef.current) >= SHOOTER_LIFE_LINE_PERCENT
@@ -13663,9 +14358,25 @@ function App() {
         }
       }
 
-      const nextProjectiles = projectilesRef.current.filter(
-        (projectile) => gameTimeRef.current - projectile.bornAt <= projectile.duration + SHOOTER_PROJECTILE_CONTACT_HOLD_MS,
-      );
+      const expiredProjectiles = projectilesRef.current.filter((projectile) => (
+        projectile.resolvedAt != null
+          ? gameTimeRef.current - projectile.resolvedAt > SHOOTER_PROJECTILE_CONTACT_HOLD_MS
+          : gameTimeRef.current - projectile.bornAt > projectile.duration
+      ));
+      const expiredProjectileIds = new Set(expiredProjectiles.map((projectile) => projectile.id));
+      expiredProjectiles.forEach((projectile) => {
+        projectileNodesRef.current.get(projectile.id)?.remove();
+        projectileNodesRef.current.delete(projectile.id);
+        if (projectile.resolvedAt == null) {
+          shooterTargetsRef.current = shooterTargetsRef.current.map((target) => (
+            target.pendingProjectileId === projectile.id
+              ? { ...target, pendingProjectileId: undefined }
+              : target
+          ));
+          targetsChanged = true;
+        }
+      });
+      const nextProjectiles = projectilesRef.current.filter((projectile) => !expiredProjectileIds.has(projectile.id));
       if (nextProjectiles.length !== projectilesRef.current.length) {
         projectilesRef.current = nextProjectiles;
         setProjectiles([...projectilesRef.current]);
@@ -13677,11 +14388,27 @@ function App() {
     shooterBreakEffectsRef.current = nextBreakEffects;
     setShooterBreakEffects([...shooterBreakEffectsRef.current]);
   }
+      updateShooterHitboxDebug();
       if (removedTargetIds.size > 0 || targetsChanged) {
         setShooterTargets([...shooterTargetsRef.current]);
       }
     },
-    [applyShooterGuitarAim, applyShooterTargetTransform, completeShooterTargetImpact, finalizeShooterRecord, flashStage, playShooterSound, setState, spawnShooterTarget],
+    [
+      applyShooterGuitarAim,
+      applyShooterProjectileTransform,
+      applyShooterTargetTransform,
+      finalizeShooterRecord,
+      flashStage,
+      getShooterArenaPoint,
+      getShooterArenaSize,
+      getShooterProjectileHitbox,
+      getShooterTargetHurtbox,
+      playShooterSound,
+      resolveShooterProjectileHit,
+      setState,
+      spawnShooterTarget,
+      updateShooterHitboxDebug,
+    ],
   );
 
   const runChordTransitionFrame = useCallback(
@@ -14031,16 +14758,9 @@ function App() {
   );
 
   const stopMic = useCallback(() => {
-    if (sourceRef.current) {
-      try {
-        sourceRef.current.disconnect();
-      } catch {
-        // The source may already be disconnected by the browser.
-      }
-    }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-    }
+    micRequestVersionRef.current += 1;
+    micInputSessionRef.current?.release?.();
+    micInputSessionRef.current = null;
     sourceRef.current = null;
     analyserRef.current = null;
     bufferRef.current = null;
@@ -14053,6 +14773,7 @@ function App() {
 
   const startMic = useCallback(async () => {
     if (appModeRef.current !== APP_MODES.SHOOTER) return false;
+    const requestVersion = ++micRequestVersionRef.current;
     const showPermissionGuide = () => {
       window.alert("마이크 권한이 꺼져 있습니다.\n\n새로고침 후 다시 시도하거나,\n브라우저 설정에서 마이크 권한을 허용해주세요.");
     };
@@ -14072,44 +14793,30 @@ function App() {
         }
       }
       setMicStatus("No Signal");
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-        },
+      const micSession = await acquireMicInput({
+        consumerId: "shooting-game-detector",
+        preset: MIC_INPUT_PRESETS.GUITAR_DETECTION,
       });
-
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) throw new Error("Web Audio API is not supported.");
-      let audio = audioRef.current;
-      if (!audio || audio.state === "closed") audio = new AudioContext();
-      if (audio.state === "suspended") await audio.resume();
-
-      const analyser = audio.createAnalyser();
-      analyser.fftSize = isMobileLayoutRef.current ? MIC_FFT_SIZE_MOBILE : MIC_FFT_SIZE_DESKTOP;
-      analyser.smoothingTimeConstant = 0;
-
-      if (sourceRef.current) {
-        try {
-          sourceRef.current.disconnect();
-        } catch {
-          // The source may already be disconnected by the browser.
-        }
+      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER) {
+        await micSession.release();
+        return false;
       }
-      streamRef.current?.getTracks().forEach((track) => track.stop());
-      const source = audio.createMediaStreamSource(stream);
-      source.connect(analyser);
+      if (!micSession.audioContext || !micSession.analyser) {
+        await micSession.release();
+        throw new Error("Web Audio API is not supported.");
+      }
 
-      streamRef.current = stream;
-      sourceRef.current = source;
-      audioRef.current = audio;
-      analyserRef.current = analyser;
-      bufferRef.current = new Float32Array(analyser.fftSize);
+      micInputSessionRef.current?.release?.();
+      micInputSessionRef.current = micSession;
+      streamRef.current = micSession.rawStream;
+      sourceRef.current = null;
+      analyserRef.current = micSession.analyser;
+      bufferRef.current = new Float32Array(micSession.analyser.fftSize);
       setMicStatus("Mic Connected");
       if (gameStateRef.current === GAME_STATES.IDLE) setState(GAME_STATES.LISTENING);
       return true;
     } catch (error) {
+      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER) return false;
       setMicStatus("Permission Denied");
       setFeedback("마이크 권한 필요");
       if (error?.name === "NotAllowedError" || error?.name === "PermissionDeniedError") {
@@ -14258,7 +14965,7 @@ function App() {
     }
 
     if (gameStateRef.current === GAME_STATES.PAUSED) {
-      let resumeDetectorReady = Boolean(streamRef.current && analyserRef.current && bufferRef.current && audioRef.current);
+      let resumeDetectorReady = shooterHitboxDebugEnabled || Boolean(micInputSessionRef.current && analyserRef.current && bufferRef.current);
       if (!resumeDetectorReady) {
         resumeDetectorReady = await startMic();
       }
@@ -14275,7 +14982,7 @@ function App() {
 
     if (gameStateRef.current === GAME_STATES.PLAYING) return;
 
-    let detectorReady = Boolean(streamRef.current && analyserRef.current && bufferRef.current && audioRef.current);
+    let detectorReady = shooterHitboxDebugEnabled || Boolean(micInputSessionRef.current && analyserRef.current && bufferRef.current);
     if (!detectorReady) {
       detectorReady = await startMic();
     }
@@ -14306,7 +15013,7 @@ function App() {
     setFeedback("Start Shooter");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
-  }, [ensureAudioReady, getPracticeSequence, resetScore, selectedPentatonic, setState, spawnShooterTarget, startMic]);
+  }, [ensureAudioReady, getPracticeSequence, resetScore, selectedPentatonic, setState, shooterHitboxDebugEnabled, spawnShooterTarget, startMic]);
 
   const startShooterMic = useCallback(async () => {
     appModeRef.current = APP_MODES.SHOOTER;
@@ -14819,8 +15526,10 @@ function App() {
   }, [changeBpm]);
 
   const changeMiniChordBpm = useCallback((nextBpm) => {
+    const safeBpm = clampBpm(nextBpm);
     setMiniChordNotice("");
-    setMiniChordBpm(clampBpm(nextBpm));
+    miniChordBpmRef.current = safeBpm;
+    setMiniChordBpm(safeBpm);
   }, []);
 
   const triggerMiniChordTapTempoPressFeedback = useCallback(() => {
@@ -14847,6 +15556,7 @@ function App() {
 
   useEffect(() => () => {
     if (bpmSwipeFrameRef.current != null) window.cancelAnimationFrame(bpmSwipeFrameRef.current);
+    if (miniChordBpmSwipeFrameRef.current != null) window.cancelAnimationFrame(miniChordBpmSwipeFrameRef.current);
     if (tapTempoPressTimerRef.current != null) window.clearTimeout(tapTempoPressTimerRef.current);
     if (miniChordTapTempoPressTimerRef.current != null) window.clearTimeout(miniChordTapTempoPressTimerRef.current);
   }, []);
@@ -14944,6 +15654,101 @@ function App() {
     event.currentTarget.releasePointerCapture?.(swipe.pointerId);
     resetBpmSwipePreview();
   }, [resetBpmSwipePreview]);
+
+  const renderMiniChordBpmSwipePreview = useCallback((nextBpm) => {
+    const safeBpm = clampBpm(nextBpm);
+    miniChordBpmSwipePreviewValueRef.current = safeBpm;
+    if (miniChordBpmSwipeFrameRef.current != null) return;
+    miniChordBpmSwipeFrameRef.current = window.requestAnimationFrame(() => {
+      miniChordBpmSwipeFrameRef.current = null;
+      if (typeof document === "undefined") return;
+      document.querySelectorAll("[data-bpm-preview-value=\"mini-chord\"]").forEach((node) => {
+        node.textContent = String(miniChordBpmSwipePreviewValueRef.current);
+      });
+    });
+  }, []);
+
+  const resetMiniChordBpmSwipePreview = useCallback(() => {
+    renderMiniChordBpmSwipePreview(miniChordBpmRef.current);
+  }, [renderMiniChordBpmSwipePreview]);
+
+  useEffect(() => {
+    miniChordBpmRef.current = miniChordBpm;
+    resetMiniChordBpmSwipePreview();
+  }, [miniChordBpm, resetMiniChordBpmSwipePreview]);
+
+  const handleMiniChordBpmSwipeStart = useCallback((event) => {
+    if (event.target?.closest?.("button, select, input, textarea")) return;
+
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    const now = performance.now();
+    const startBpm = miniChordBpmRef.current;
+    miniChordBpmSwipeStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      lastX: event.clientX,
+      lastTime: now,
+      startBpm,
+      lastAppliedBpm: startBpm,
+      previewBpm: startBpm,
+      locked: false,
+      canceled: false,
+      pointerId: event.pointerId,
+    };
+  }, []);
+
+  const handleMiniChordBpmSwipeMove = useCallback((event) => {
+    const swipe = miniChordBpmSwipeStartRef.current;
+    if (!swipe || swipe.canceled || swipe.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - swipe.x;
+    const absX = Math.abs(deltaX);
+
+    if (!swipe.locked) {
+      if (absX < 6) return;
+      swipe.locked = true;
+    }
+
+    event.preventDefault();
+
+    const now = performance.now();
+    const elapsed = Math.max(16, now - swipe.lastTime);
+    const velocity = (event.clientX - swipe.lastX) / elapsed;
+    const velocityBoost = Math.sign(velocity) * Math.min(8, Math.max(0, Math.abs(velocity) - 0.25) * 5);
+    const distanceBpm = deltaX / 9;
+    const nextBpm = clampBpm(swipe.startBpm + Math.round(distanceBpm + velocityBoost));
+
+    if (nextBpm !== swipe.lastAppliedBpm) {
+      swipe.previewBpm = nextBpm;
+      renderMiniChordBpmSwipePreview(nextBpm);
+      swipe.lastAppliedBpm = nextBpm;
+    }
+
+    swipe.lastX = event.clientX;
+    swipe.lastTime = now;
+  }, [renderMiniChordBpmSwipePreview]);
+
+  const handleMiniChordBpmSwipeEnd = useCallback((event) => {
+    const swipe = miniChordBpmSwipeStartRef.current;
+    miniChordBpmSwipeStartRef.current = null;
+    if (!swipe || swipe.pointerId !== event.pointerId) return;
+
+    event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+    if (!swipe.canceled && swipe.previewBpm !== undefined && swipe.previewBpm !== miniChordBpmRef.current) {
+      changeMiniChordBpm(swipe.previewBpm);
+      return;
+    }
+    resetMiniChordBpmSwipePreview();
+  }, [changeMiniChordBpm, resetMiniChordBpmSwipePreview]);
+
+  const handleMiniChordBpmSwipeCancel = useCallback((event) => {
+    const swipe = miniChordBpmSwipeStartRef.current;
+    miniChordBpmSwipeStartRef.current = null;
+    if (!swipe) return;
+    event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+    resetMiniChordBpmSwipePreview();
+  }, [resetMiniChordBpmSwipePreview]);
 
   const blockBpmButtonInput = useCallback((durationMs = 520) => {
     bpmButtonInputBlockedUntilRef.current = Date.now() + durationMs;
@@ -15960,11 +16765,6 @@ function App() {
   }, [chordPracticeIndex]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(METRONOME_DISPLAY_MODE_STORAGE_KEY, normalizeMetronomeDisplayMode(metronomeDisplayMode));
-  }, [metronomeDisplayMode]);
-
-  useEffect(() => {
     if (typeof window === "undefined") return undefined;
     if (!window.location.hash) {
       window.history.replaceState(
@@ -16467,16 +17267,8 @@ function App() {
     return () => {
       cancelAnimationFrame(rafRef.current);
       window.clearTimeout(flashTimerRef.current);
-      if (sourceRef.current) {
-        try {
-          sourceRef.current.disconnect();
-        } catch {
-          // The source may already be disconnected by the browser.
-        }
-      }
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
+      micInputSessionRef.current?.release?.();
+      micInputSessionRef.current = null;
       sourceRef.current = null;
       analyserRef.current = null;
       bufferRef.current = null;
@@ -16975,14 +17767,15 @@ function App() {
     stopBackingScheduler();
   }, [stopBackingScheduler]);
 
-  const deleteMiniChordSavedItem = useCallback((itemId) => {
-    setMiniChordSavedItems((items) => items.filter((item) => item.id !== itemId));
-  }, []);
-
   const saveMiniChordArrangement = useCallback(() => {
     const current = getCurrentMiniChordArrangement();
     setMiniChordSavedItems((items) => [current, ...items.filter((item) => item.id !== current.id)].slice(0, 24));
     setMiniChordLoadOpen(false);
+    setMiniChordLoadSelectedId("");
+    setMiniChordLoadSelectedIds([]);
+    setMiniChordLoadEditMode(false);
+    setMiniChordDeleteConfirmOpen(false);
+    setMiniChordSaveConfirmOpen(false);
   }, [getCurrentMiniChordArrangement]);
 
   const resetMiniChordDraft = useCallback(() => {
@@ -17205,24 +17998,19 @@ function App() {
   }, [appMode, stopMiniChordPreview]);
 
   useEffect(() => {
+    if (appMode === APP_MODES.MINI_CHORD_MAKER) return;
+    setMiniChordLoadOpen(false);
+    setMiniChordLoadSelectedId("");
+    setMiniChordLoadSelectedIds([]);
+    setMiniChordLoadEditMode(false);
+    setMiniChordDeleteConfirmOpen(false);
+    setMiniChordSaveConfirmOpen(false);
+  }, [appMode]);
+
+  useEffect(() => {
     if (miniChordPlayhead == null) return;
     setMiniChordPageIndex(Math.floor(miniChordPlayhead / (MINI_CHORD_BARS_PER_PAGE * MINI_CHORD_SLOTS_PER_BAR)));
   }, [miniChordPlayhead]);
-
-  useEffect(() => {
-    if (!miniChordLoadOpen) return undefined;
-    const handlePointerDown = (event) => {
-      const target = event.target;
-      if (target instanceof Element && target.closest(".miniChordLoadPicker")) return;
-      setMiniChordLoadOpen(false);
-    };
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [miniChordLoadOpen]);
-
-  useEffect(() => {
-    if (!miniChordSavedItems.length) setMiniChordLoadOpen(false);
-  }, [miniChordSavedItems.length]);
 
   const closeMiniChordFloatingEditors = useCallback(() => {
     setMiniChordChordPickerSlot(null);
@@ -17230,6 +18018,75 @@ function App() {
     setMiniChordActiveBarIndex(null);
     setMiniChordEndingPopoverPosition(null);
   }, []);
+
+  const requestSaveMiniChordArrangement = useCallback(() => {
+    closeMiniChordFloatingEditors();
+    setMiniChordSaveConfirmOpen(true);
+  }, [closeMiniChordFloatingEditors]);
+
+  const cancelSaveMiniChordArrangement = useCallback(() => {
+    setMiniChordSaveConfirmOpen(false);
+  }, []);
+
+  const closeMiniChordLoadDialog = useCallback(() => {
+    setMiniChordLoadOpen(false);
+    setMiniChordLoadSelectedId("");
+    setMiniChordLoadSelectedIds([]);
+    setMiniChordLoadEditMode(false);
+    setMiniChordDeleteConfirmOpen(false);
+  }, []);
+
+  const openMiniChordLoadDialog = useCallback(() => {
+    closeMiniChordFloatingEditors();
+    setMiniChordLoadSelectedId("");
+    setMiniChordLoadSelectedIds([]);
+    setMiniChordLoadEditMode(false);
+    setMiniChordDeleteConfirmOpen(false);
+    setMiniChordLoadOpen(true);
+  }, [closeMiniChordFloatingEditors]);
+
+  const toggleMiniChordLoadEditMode = useCallback(() => {
+    setMiniChordLoadEditMode((editing) => !editing);
+    setMiniChordLoadSelectedId("");
+    setMiniChordLoadSelectedIds([]);
+  }, []);
+
+  const toggleMiniChordLoadSelection = useCallback((itemId) => {
+    setMiniChordLoadSelectedIds((itemIds) => (
+      itemIds.includes(itemId)
+        ? itemIds.filter((selectedId) => selectedId !== itemId)
+        : [...itemIds, itemId]
+    ));
+  }, []);
+
+  const loadSelectedMiniChordArrangement = useCallback((item) => {
+    if (!item) return;
+    loadMiniChordArrangement(item);
+    closeMiniChordLoadDialog();
+  }, [closeMiniChordLoadDialog, loadMiniChordArrangement]);
+
+  const requestDeleteMiniChordSavedItem = useCallback(() => {
+    const selectedCount = miniChordLoadEditMode
+      ? miniChordLoadSelectedIds.length
+      : Number(Boolean(miniChordLoadSelectedId));
+    if (selectedCount) setMiniChordDeleteConfirmOpen(true);
+  }, [miniChordLoadEditMode, miniChordLoadSelectedId, miniChordLoadSelectedIds.length]);
+
+  const cancelDeleteMiniChordSavedItem = useCallback(() => {
+    setMiniChordDeleteConfirmOpen(false);
+  }, []);
+
+  const confirmDeleteMiniChordSavedItem = useCallback(() => {
+    const selectedIds = miniChordLoadEditMode
+      ? miniChordLoadSelectedIds
+      : [miniChordLoadSelectedId].filter(Boolean);
+    if (!selectedIds.length) return;
+    setMiniChordSavedItems((items) => items.filter((item) => !selectedIds.includes(item.id)));
+    setMiniChordLoadSelectedId("");
+    setMiniChordLoadSelectedIds([]);
+    setMiniChordLoadEditMode(false);
+    setMiniChordDeleteConfirmOpen(false);
+  }, [miniChordLoadEditMode, miniChordLoadSelectedId, miniChordLoadSelectedIds]);
 
   useEffect(() => {
     if (appMode !== APP_MODES.MINI_CHORD_MAKER) return undefined;
@@ -17874,60 +18731,47 @@ function App() {
             </label>
             <div className="miniChordLoadPicker">
               <button
+                aria-controls="mini-chord-load-dialog"
                 aria-expanded={miniChordLoadOpen}
-                aria-haspopup="listbox"
-                disabled={!miniChordSavedItems.length}
-                onClick={() => {
-                  closeMiniChordFloatingEditors();
-                  setMiniChordLoadOpen((open) => !open);
-                }}
+                aria-haspopup="dialog"
+                onClick={openMiniChordLoadDialog}
                 title="불러오기"
                 type="button"
               >
                 불러오기
               </button>
-              {miniChordLoadOpen ? (
-                <div className="miniChordLoadMenu" role="listbox" aria-label="저장된 미니코드">
-                  {miniChordSavedItems.map((item) => {
-                    const chordSummary = item.slots
-                      .map(getMiniChordSlotDisplayLabel)
-                      .filter(Boolean)
-                      .join(" ");
-                    return (
-                      <div className="miniChordLoadItem" key={item.id} role="option" aria-selected="false">
-                        <button
-                          className="miniChordLoadItemMain"
-                          onClick={() => {
-                            loadMiniChordArrangement(item);
-                            setMiniChordLoadOpen(false);
-                          }}
-                          type="button"
-                        >
-                          <span>{item.title}</span>
-                          <small>{chordSummary || "빈 코드"}</small>
-                        </button>
-                        <button
-                          className="miniChordLoadDelete"
-                          aria-label={`${item.title} 삭제`}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            deleteMiniChordSavedItem(item.id);
-                          }}
-                          type="button"
-                        >
-                          <X size={12} aria-hidden="true" />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : null}
             </div>
-            <button onClick={saveMiniChordArrangement} title="저장" type="button">
+            <button onClick={requestSaveMiniChordArrangement} title="저장" type="button">
               <FolderOpen size={15} aria-hidden="true" />
               저장
             </button>
           </div>
+
+          {miniChordLoadOpen ? (
+            <MiniChordLoadDialog
+              confirmDeleteOpen={miniChordDeleteConfirmOpen}
+              editMode={miniChordLoadEditMode}
+              items={miniChordSavedItems}
+              onCancelDelete={cancelDeleteMiniChordSavedItem}
+              onClose={closeMiniChordLoadDialog}
+              onConfirmDelete={confirmDeleteMiniChordSavedItem}
+              onLoad={loadSelectedMiniChordArrangement}
+              onRequestDelete={requestDeleteMiniChordSavedItem}
+              onSelect={setMiniChordLoadSelectedId}
+              onToggleEditMode={toggleMiniChordLoadEditMode}
+              onToggleSelected={toggleMiniChordLoadSelection}
+              selectedId={miniChordLoadSelectedId}
+              selectedIds={miniChordLoadSelectedIds}
+            />
+          ) : null}
+
+          {miniChordSaveConfirmOpen ? (
+            <MiniChordSaveConfirmDialog
+              onCancel={cancelSaveMiniChordArrangement}
+              onConfirm={saveMiniChordArrangement}
+              title={miniChordTitle}
+            />
+          ) : null}
 
           <div className="miniChordMeasureStrip" aria-label="마디와 페이지 선택">
             <span>마디</span>
@@ -18325,109 +19169,27 @@ function App() {
             </div>
           </div>
 
-          <div className="miniChordBpmPanel" aria-label="미니코드 BPM 설정" role="group">
-            <div className="miniChordBpmAdjustGroup miniChordBpmAdjustGroup--down" aria-label="BPM 낮추기" role="group">
-              <button
-                aria-label="BPM 1 낮추기"
-                className="miniChordBpmStepButton"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  changeMiniChordBpm(miniChordBpm - 1);
-                  event.currentTarget.blur();
-                }}
-                onMouseDown={(event) => event.preventDefault()}
-                type="button"
-              >
-                -
-              </button>
-              <span className="miniChordBpmAdjustDivider" aria-hidden="true" />
-              <button
-                aria-label="BPM 10 낮추기"
-                className="miniChordBpmJumpButton"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  changeMiniChordBpm(miniChordBpm - 10);
-                  event.currentTarget.blur();
-                }}
-                onMouseDown={(event) => event.preventDefault()}
-                type="button"
-              >
-                -10
-              </button>
-            </div>
-            <div className="miniChordBpmValue">
-              <strong>{miniChordBpm}</strong>
-              <span>BPM</span>
-            </div>
-            <div className="miniChordBpmAdjustGroup miniChordBpmAdjustGroup--up" aria-label="BPM 올리기" role="group">
-              <button
-                aria-label="BPM 1 올리기"
-                className="miniChordBpmStepButton"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  changeMiniChordBpm(miniChordBpm + 1);
-                  event.currentTarget.blur();
-                }}
-                onMouseDown={(event) => event.preventDefault()}
-                type="button"
-              >
-                +
-              </button>
-              <span className="miniChordBpmAdjustDivider" aria-hidden="true" />
-              <button
-                aria-label="BPM 10 올리기"
-                className="miniChordBpmJumpButton"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  changeMiniChordBpm(miniChordBpm + 10);
-                  event.currentTarget.blur();
-                }}
-                onMouseDown={(event) => event.preventDefault()}
-                type="button"
-              >
-                +10
-              </button>
-            </div>
-            <div className="miniChordBpmActionPanel" aria-label="미니코드 시작과 탭 템포">
-              <button
-                aria-label={miniChordIsPlaying ? "미니코드 반주 정지" : "미니코드 반주 시작"}
-                className={`miniChordBpmPlayButton ${miniChordIsPlaying ? "reset" : "primary"}`}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (miniChordIsPlaying) {
-                    stopMiniChordPreview();
-                    return;
-                  }
-                  startMiniChordPreview();
-                }}
-                type="button"
-              >
-                <span className="miniChordBpmActionIcon" aria-hidden="true">
-                  {miniChordIsPlaying ? <Square size={15} /> : <Play size={18} />}
-                </span>
-                <span className="miniChordBpmActionText">{miniChordIsPlaying ? "STOP" : "PLAY"}</span>
-              </button>
-              <button
-                aria-label="탭 템포로 미니코드 BPM 설정"
-                className={`miniChordBpmTapButton ${miniChordTapTempoPressTick > 0 ? "is-tapping" : ""}`}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  triggerMiniChordTapTempoPressFeedback();
-                  handleMiniChordTapTempo();
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === " " || event.key === "Enter") triggerMiniChordTapTempoPressFeedback();
-                }}
-                onPointerDown={(event) => {
-                  event.stopPropagation();
-                  triggerMiniChordTapTempoPressFeedback();
-                }}
-                type="button"
-              >
-                <MiniChordTapTempoGlyph />
-                <span className="miniChordBpmActionText">TAP</span>
-              </button>
-            </div>
+          <div className="standaloneMetronomePanel miniChordMetronomePanel" aria-label="미니코드 메트로놈">
+            <MetronomeTransportCard
+              ariaLabel="미니코드 BPM 조절 및 반주 재생"
+              bpm={miniChordBpm}
+              bpmPreviewKey="mini-chord"
+              isPlaying={miniChordIsPlaying}
+              onBpmChange={changeMiniChordBpm}
+              onCardPointerCancel={handleMiniChordBpmSwipeCancel}
+              onCardPointerDown={handleMiniChordBpmSwipeStart}
+              onCardPointerMove={handleMiniChordBpmSwipeMove}
+              onCardPointerUp={handleMiniChordBpmSwipeEnd}
+              onStart={startMiniChordPreview}
+              onStop={stopMiniChordPreview}
+              onTapTempo={handleMiniChordTapTempo}
+              onTapTempoPressFeedback={triggerMiniChordTapTempoPressFeedback}
+              playStartLabel="미니코드 반주 시작"
+              playStopLabel="미니코드 반주 정지"
+              swipeEnabled
+              tapTempoLabel="탭 템포로 미니코드 BPM 설정"
+              tapTempoPressTick={miniChordTapTempoPressTick}
+            />
           </div>
 
           <details className="miniChordBackingPanel" open>
@@ -19629,157 +20391,27 @@ function App() {
             swipeActive={metronomeModeSwipeActive}
             swipeOffset={metronomeModeSwipeOffset}
           />
-          <div
-            aria-label="BPM 조절 영역. 좌우 스와이프는 BPM만 변경합니다"
-            className="metronomeHeroCard metronomeHeroCard--interactive"
-            data-bpm-swipe-zone="true"
-            onPointerCancel={handleBpmSwipeCancel}
-            onPointerDown={handleBpmSwipeStart}
-            onPointerMove={handleBpmSwipeMove}
-            onPointerUp={handleBpmSwipeEnd}
-            role="group"
-          >
-            <div className="metronomeBpmAdjustGroup metronomeBpmAdjustGroup--down" aria-label="BPM 낮추기" role="group">
-              <button
-                aria-label="BPM 1 낮추기"
-                className="metronomeHeroBpmButton"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (shouldIgnoreBpmButtonClick("bpm-down-1", event)) return;
-                  changeBpm(bpm - 1);
-                  event.currentTarget.blur();
-                }}
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                }}
-                onPointerDown={(event) => {
-                  armBpmButtonInput("bpm-down-1", event);
-                }}
-                onPointerCancel={cancelBpmButtonInput}
-                onPointerUp={releaseBpmButtonInput}
-                type="button"
-              >
-                -
-              </button>
-              <span className="metronomeBpmAdjustDivider" aria-hidden="true" />
-              <button
-                aria-label="BPM 10 낮추기"
-                className="metronomeHeroBpmJumpButton metronomeHeroBpmJumpButton--down"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (shouldIgnoreBpmButtonClick("bpm-down-10", event)) return;
-                  changeBpm(bpm - 10);
-                  event.currentTarget.blur();
-                }}
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                }}
-                onPointerDown={(event) => {
-                  armBpmButtonInput("bpm-down-10", event);
-                }}
-                onPointerCancel={cancelBpmButtonInput}
-                onPointerUp={releaseBpmButtonInput}
-                type="button"
-              >
-                -10
-              </button>
-            </div>
-            <div className="metronomeHeroBpmValue">
-              <span>BPM</span>
-              <strong data-bpm-preview-value="true">{bpm}</strong>
-            </div>
-            <div className="metronomeBpmAdjustGroup metronomeBpmAdjustGroup--up" aria-label="BPM 올리기" role="group">
-              <button
-                aria-label="BPM 1 올리기"
-                className="metronomeHeroBpmButton"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (shouldIgnoreBpmButtonClick("bpm-up-1", event)) return;
-                  changeBpm(bpm + 1);
-                  event.currentTarget.blur();
-                }}
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                }}
-                onPointerDown={(event) => {
-                  armBpmButtonInput("bpm-up-1", event);
-                }}
-                onPointerCancel={cancelBpmButtonInput}
-                onPointerUp={releaseBpmButtonInput}
-                type="button"
-              >
-                +
-              </button>
-              <span className="metronomeBpmAdjustDivider" aria-hidden="true" />
-              <button
-                aria-label="BPM 10 올리기"
-                className="metronomeHeroBpmJumpButton metronomeHeroBpmJumpButton--up"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (shouldIgnoreBpmButtonClick("bpm-up-10", event)) return;
-                  changeBpm(bpm + 10);
-                  event.currentTarget.blur();
-                }}
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                }}
-                onPointerDown={(event) => {
-                  armBpmButtonInput("bpm-up-10", event);
-                }}
-                onPointerCancel={cancelBpmButtonInput}
-                onPointerUp={releaseBpmButtonInput}
-                type="button"
-              >
-                +10
-              </button>
-            </div>
-            <div className="metronomeHeroActionPanel" aria-label="메트로놈 실행과 탭 템포">
-              <button
-                aria-label={gameState === GAME_STATES.PLAYING ? "메트로놈 정지" : "메트로놈 시작"}
-                className={`metronomeHeroPlayButton ${gameState === GAME_STATES.PLAYING ? "reset" : "primary"}`}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (gameState === GAME_STATES.PLAYING) {
-                    stopMetronomePlayback();
-                    return;
-                  }
-                  startMetronomePractice();
-                }}
-                type="button"
-              >
-                <span className="metronomeHeroActionIcon" aria-hidden="true">
-                  {gameState === GAME_STATES.PLAYING ? (
-                    <Square size={15} />
-                  ) : (
-                    <Play size={18} />
-                  )}
-                </span>
-                <span className="metronomeHeroActionText">
-                  {gameState === GAME_STATES.PLAYING ? "STOP" : "PLAY"}
-                </span>
-              </button>
-              <button
-                aria-label="탭 템포로 BPM 설정"
-                className={`metronomeHeroTapTempoButton ${tapTempoPressTick > 0 ? "is-tapping" : ""}`}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  triggerTapTempoPressFeedback();
-                  handleTapTempo();
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === " " || event.key === "Enter") triggerTapTempoPressFeedback();
-                }}
-                onPointerDown={(event) => {
-                  event.stopPropagation();
-                  triggerTapTempoPressFeedback();
-                }}
-                type="button"
-              >
-                <TapTempoGlyph />
-                <span className="metronomeHeroActionText">TAP</span>
-              </button>
-            </div>
-          </div>
+          <MetronomeTransportCard
+            ariaLabel="BPM 조절 영역. 좌우 스와이프는 BPM만 변경합니다"
+            bpm={bpm}
+            bpmPreview
+            isPlaying={gameState === GAME_STATES.PLAYING}
+            onBeforeBpmChange={(controlId, event) => !shouldIgnoreBpmButtonClick(controlId, event)}
+            onBpmButtonPointerCancel={cancelBpmButtonInput}
+            onBpmButtonPointerDown={armBpmButtonInput}
+            onBpmButtonPointerUp={releaseBpmButtonInput}
+            onBpmChange={changeBpm}
+            onCardPointerCancel={handleBpmSwipeCancel}
+            onCardPointerDown={handleBpmSwipeStart}
+            onCardPointerMove={handleBpmSwipeMove}
+            onCardPointerUp={handleBpmSwipeEnd}
+            onStart={startMetronomePractice}
+            onStop={stopMetronomePlayback}
+            onTapTempo={handleTapTempo}
+            onTapTempoPressFeedback={triggerTapTempoPressFeedback}
+            swipeEnabled
+            tapTempoPressTick={tapTempoPressTick}
+          />
 
           <MetronomeControl
             accentEnabled={metronomeAccent}
@@ -20026,14 +20658,7 @@ function App() {
               <div
                 className={`enemy shooterEnemy shooterEnemy--monster ${getShooterEnemyDifficultyClass(targetDifficulty)} ${!target.defeated ? "fallingTarget" : ""} ${target.defeated ? "defeated" : ""}`}
                 key={target.id}
-                ref={(node) => {
-                  if (node) {
-                    shooterTargetNodesRef.current.set(target.id, node);
-                    window.requestAnimationFrame(() => applyShooterTargetTransform(target, target.y));
-                  } else {
-                    shooterTargetNodesRef.current.delete(target.id);
-                  }
-                }}
+                ref={getShooterTargetNodeRef(target.id)}
                 style={{
                   left: 0,
                   top: 0,
@@ -20161,14 +20786,99 @@ function App() {
               );
             })}
 
+            {shooterHitboxDebugEnabled ? (
+              <div className="shooterHitboxDebugToolbar">
+                <span>DEBUG HITBOX</span>
+                <button
+                  disabled={gameState !== GAME_STATES.PLAYING || !shooterTargets.some((target) => !target.defeated && !target.pendingProjectileId)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    fireShooterDebugTestShot();
+                  }}
+                  type="button"
+                >
+                  TEST SHOT
+                </button>
+              </div>
+            ) : null}
+
+            {shooterHitboxDebugEnabled && shooterDebugGeometry ? (
+              <svg
+                aria-hidden="true"
+                className="shooterHitboxDebugOverlay"
+                preserveAspectRatio="none"
+                viewBox={`0 0 ${shooterDebugGeometry.width} ${shooterDebugGeometry.height}`}
+              >
+                <text className="shooterHitboxDebugTitle" x="10" y="18">HITBOX DEBUG</text>
+                {shooterDebugGeometry.guitar ? (
+                  <g className="shooterHitboxDebugGuitar">
+                    <ellipse
+                      className="shooterHitboxDebugBody"
+                      cx={shooterDebugGeometry.guitar.body.center.x}
+                      cy={shooterDebugGeometry.guitar.body.center.y}
+                      rx={shooterDebugGeometry.guitar.body.radiusX}
+                      ry={shooterDebugGeometry.guitar.body.radiusY}
+                      transform={`rotate(${shooterDebugGeometry.guitar.body.rotationDeg} ${shooterDebugGeometry.guitar.body.center.x} ${shooterDebugGeometry.guitar.body.center.y})`}
+                    />
+                    <line
+                      className="shooterHitboxDebugNeck"
+                      x1={shooterDebugGeometry.guitar.neck.start.x}
+                      y1={shooterDebugGeometry.guitar.neck.start.y}
+                      x2={shooterDebugGeometry.guitar.neck.end.x}
+                      y2={shooterDebugGeometry.guitar.neck.end.y}
+                      strokeWidth={shooterDebugGeometry.guitar.neck.radius * 2}
+                    />
+                    <ellipse
+                      className="shooterHitboxDebugHead"
+                      cx={shooterDebugGeometry.guitar.head.center.x}
+                      cy={shooterDebugGeometry.guitar.head.center.y}
+                      rx={shooterDebugGeometry.guitar.head.radiusX}
+                      ry={shooterDebugGeometry.guitar.head.radiusY}
+                      transform={`rotate(${shooterDebugGeometry.guitar.head.rotationDeg} ${shooterDebugGeometry.guitar.head.center.x} ${shooterDebugGeometry.guitar.head.center.y})`}
+                    />
+                    <g
+                      className="shooterHitboxDebugMuzzle"
+                      transform={`translate(${shooterDebugGeometry.guitar.muzzlePoint.x} ${shooterDebugGeometry.guitar.muzzlePoint.y})`}
+                    >
+                      <circle r="4" />
+                      <path d="M-8 0H8M0-8V8" />
+                    </g>
+                  </g>
+                ) : null}
+                {shooterDebugGeometry.targets.map((target) => (
+                  <g className="shooterHitboxDebugEnemy" key={`debug-target-${target.id}`}>
+                    <ellipse
+                      cx={target.center.x}
+                      cy={target.center.y}
+                      rx={target.radiusX}
+                      ry={target.radiusY}
+                    />
+                    <path d={`M${target.center.x - 4} ${target.center.y}H${target.center.x + 4}M${target.center.x} ${target.center.y - 4}V${target.center.y + 4}`} />
+                  </g>
+                ))}
+                {shooterDebugGeometry.projectiles.map((projectile) => (
+                  <g className="shooterHitboxDebugProjectile" key={`debug-projectile-${projectile.id}`}>
+                    <line
+                      className="shooterHitboxDebugPath"
+                      x1={projectile.previous.x}
+                      y1={projectile.previous.y}
+                      x2={projectile.current.x}
+                      y2={projectile.current.y}
+                    />
+                  </g>
+                ))}
+                {shooterDebugGeometry.collisionPoints.map((point, index) => (
+                  <g className="shooterHitboxDebugCollision" key={`debug-collision-${index}`} transform={`translate(${point.x} ${point.y})`}>
+                    <circle r="4.5" />
+                    <path d="M-9 0H9M0-9V9" />
+                  </g>
+                ))}
+              </svg>
+            ) : null}
+
             <div className={`guitarPlayer guitarPlayer--${selectedGuitar.id} guitarPlayer--effect-${selectedEffect.id} ${projectiles.length > 0 ? "shooting" : ""}`} ref={shooterGuitarPlayerRef} style={shooterMotion}>
               {selectedEffectFloorLayers.map((layer) => (
                 <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true">
-                  <img alt="" draggable="false" src={layer.image} />
-                </span>
-              ))}
-              {exitingEffectFloorLayers.map((layer) => (
-                <span className={getShooterEffectLayerClassName(layer, "guitarPlayerEffectLayer--exiting")} key={layer.exitKey} aria-hidden="true">
                   <img alt="" draggable="false" src={layer.image} />
                 </span>
               ))}
@@ -20179,30 +20889,15 @@ function App() {
                   <img alt="" draggable="false" src={layer.image} />
                 </span>
               ))}
-              {exitingEffectBackLayers.map((layer) => (
-                <span className={getShooterEffectLayerClassName(layer, "guitarPlayerEffectLayer--exiting")} key={layer.exitKey} aria-hidden="true">
-                  <img alt="" draggable="false" src={layer.image} />
-                </span>
-              ))}
               <div className="guitarPlayerAura" aria-hidden="true" />
               {selectedEffectBodyLayers.map((layer) => (
                 <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true">
                   <img alt="" draggable="false" src={layer.image} />
                 </span>
               ))}
-              {exitingEffectBodyLayers.map((layer) => (
-                <span className={getShooterEffectLayerClassName(layer, "guitarPlayerEffectLayer--exiting")} key={layer.exitKey} aria-hidden="true">
-                  <img alt="" draggable="false" src={layer.image} />
-                </span>
-              ))}
               <GuitarAssetSvg variant={selectedGuitar} className="guitarPlayerAsset" compact />
               {selectedEffectFrontLayers.map((layer) => (
                 <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true">
-                  <img alt="" draggable="false" src={layer.image} />
-                </span>
-              ))}
-              {exitingEffectFrontLayers.map((layer) => (
-                <span className={getShooterEffectLayerClassName(layer, "guitarPlayerEffectLayer--exiting")} key={layer.exitKey} aria-hidden="true">
                   <img alt="" draggable="false" src={layer.image} />
                 </span>
               ))}
@@ -20262,6 +20957,13 @@ function App() {
                   </div>
                 ) : gameState === GAME_STATES.PAUSED ? (
                   <div className="shooterPausePanel" aria-label="슈팅게임 일시정지 메뉴">
+                    <div className="shooterPausePanelHeader">
+                      <Pause aria-hidden="true" size={24} strokeWidth={2.25} />
+                      <span>
+                        <strong>일시정지</strong>
+                        <small>PAUSED</small>
+                      </span>
+                    </div>
                     <button
                       aria-label="슈팅게임 계속"
                       className="mobileShooterStartButton primary shooterPausePanelButton shooterPausePanelButton--continue"
@@ -20270,7 +20972,16 @@ function App() {
                         startShooter();
                       }}
                       type="button"
-                    />
+                    >
+                      <span className="shooterPausePanelButtonSheen" />
+                      <span className="shooterPausePanelIcon">
+                        <Play aria-hidden="true" size={22} strokeWidth={2.35} />
+                      </span>
+                      <span className="shooterPausePanelLabel">
+                        <strong>계속</strong>
+                        <small>CONTINUE</small>
+                      </span>
+                    </button>
                     <button
                       aria-label="슈팅게임 리셋"
                       className="mobileShooterStartButton shooterPausePanelButton shooterPausePanelButton--reset"
@@ -20279,7 +20990,16 @@ function App() {
                         stopPracticeSession();
                       }}
                       type="button"
-                    />
+                    >
+                      <span className="shooterPausePanelButtonSheen" />
+                      <span className="shooterPausePanelIcon">
+                        <RotateCcw aria-hidden="true" size={22} strokeWidth={2.2} />
+                      </span>
+                      <span className="shooterPausePanelLabel">
+                        <strong>RESET</strong>
+                        <small>RESTART</small>
+                      </span>
+                    </button>
                   </div>
                 ) : (
                   <>
@@ -20364,11 +21084,13 @@ function App() {
               >
                 <div className="shooterGuitarPickerHeader">
                   <div>
-                    <span>스킨 설정</span>
-                    <strong>{selectedGuitar.title} · {selectedPick.label} · {selectedMap.label} · {selectedEmblem.label}</strong>
+                    <strong>스킨 설정</strong>
+                    <span title={`${selectedGuitar.title} · ${selectedPick.label} · ${selectedMap.label} · ${selectedEmblem.label}`}>
+                      {selectedGuitar.title} · {selectedPick.label} · {selectedMap.label} · {selectedEmblem.label}
+                    </span>
                   </div>
-                  <button onClick={() => setShooterGuitarPickerOpen(false)} type="button">
-                    닫기
+                  <button aria-label="스킨 설정 창 닫기" onClick={() => setShooterGuitarPickerOpen(false)} type="button">
+                    <X aria-hidden="true" size={15} />
                   </button>
                 </div>
                 <div className="shooterSkinTabs" aria-label="스킨 카테고리">
@@ -20584,7 +21306,7 @@ function App() {
         <>
         {stage3StorageOpen ? (
           <div
-            className="stage3StorageDialogLayer"
+            className="stage3StorageDialogLayer storageModalLayer"
             onMouseDown={(event) => {
               if (event.target === event.currentTarget) closeStage3StorageRoom();
             }}

@@ -4120,7 +4120,9 @@ h1 {
 }
 
 .shooterArena .enemy.shooterEnemy.fallingTarget {
+  contain: layout style;
   will-change: transform;
+  backface-visibility: hidden;
 }
 
 .shooterArena.paused .enemy.shooterEnemy.fallingTarget,
@@ -7764,6 +7766,13 @@ button.primary:hover:not(:disabled) {
 }
 
 /* Rhythm code storage is a modal workspace, matching the saved backing flow. */
+@media (max-width: 1023px) {
+  .storageModalLayer {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
 html body main.app.app.app .stage3StorageDialogLayer {
   position: fixed;
   inset: 0;
@@ -15931,21 +15940,23 @@ button.primary svg {
   inset: 0;
   z-index: 80;
   display: grid;
-  place-items: center;
-  padding: 18px;
-  background: rgba(0, 0, 0, 0.62);
-  backdrop-filter: blur(5px);
+  place-items: start center;
+  padding: clamp(56px, 8dvh, 72px) 14px 14px;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.62) 0 52%, rgba(0, 0, 0, 0.18) 72%, transparent 100%);
+  backdrop-filter: none;
 }
 
 .shooterGuitarPickerModal {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
-  gap: 12px;
-  width: min(420px, calc(100vw - 24px));
-  max-height: min(680px, calc(100dvh - 34px));
-  padding: 14px;
+  gap: 9px;
+  width: min(342px, calc(100vw - 28px));
+  height: min(400px, calc(100dvh - 300px));
+  max-height: min(400px, calc(100dvh - 300px));
+  padding: 12px;
   border: 1px solid rgba(217, 170, 85, 0.34);
-  border-radius: 20px;
+  border-radius: 16px;
   background:
     radial-gradient(circle at 18% 0%, rgba(217, 170, 85, 0.14), transparent 34%),
     linear-gradient(145deg, rgba(11, 11, 9, 0.98), rgba(2, 5, 7, 0.98));
@@ -15960,35 +15971,41 @@ button.primary svg {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding-bottom: 10px;
+  padding-bottom: 8px;
   border-bottom: 1px solid rgba(217, 170, 85, 0.16);
 }
 
 .shooterGuitarPickerHeader div {
   display: grid;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
 }
 
 .shooterGuitarPickerHeader span {
-  color: var(--ui-gold, #d9aa55);
-  font-size: 12px;
-  font-weight: 950;
-  letter-spacing: 0.02em;
+  overflow: hidden;
+  color: rgba(245, 232, 201, 0.62);
+  font-size: 10px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .shooterGuitarPickerHeader strong {
   overflow: hidden;
   color: rgba(255, 248, 232, 0.94);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 950;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .shooterGuitarPickerHeader button {
-  min-height: 34px;
-  padding: 0 13px;
+  display: inline-grid;
+  width: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0;
+  place-items: center;
   border: 1px solid rgba(217, 170, 85, 0.3);
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.28);
@@ -16007,15 +16024,15 @@ button.primary svg {
 .shooterSkinTabs button {
   display: inline-grid;
   place-items: center;
-  min-height: 34px;
-  padding: 0 6px;
+  min-height: 30px;
+  padding: 0 4px;
   border: 1px solid rgba(217, 170, 85, 0.24);
   border-radius: 999px;
   background:
     linear-gradient(180deg, rgba(255, 244, 210, 0.06), transparent 62%),
     rgba(0, 0, 0, 0.28);
   color: rgba(255, 244, 210, 0.76);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 950;
   line-height: 1;
   box-shadow: none;
@@ -16713,13 +16730,6 @@ button.primary svg {
   box-shadow: none;
 }
 
-.shooterPickPreview--gold {
-  border: 0;
-  clip-path: none;
-  background: transparent;
-  box-shadow: none;
-}
-
 .shooterPickPreview--sharp {
   width: 42px;
   clip-path: polygon(50% 100%, 12% 28%, 32% 8%, 68% 8%, 88% 28%);
@@ -16922,20 +16932,20 @@ button.primary svg {
   }
 
   .shooterGuitarPickerOverlay {
-    place-items: end center;
-    align-items: end;
-    padding: max(10px, env(safe-area-inset-top)) 8px clamp(205px, 26dvh, 220px);
+    place-items: start center;
+    align-items: start;
+    padding: max(72px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
     background:
       linear-gradient(180deg, rgba(0, 0, 0, 0.64) 0 52%, rgba(0, 0, 0, 0.16) 72%, transparent 100%);
     backdrop-filter: none;
   }
 
   .shooterGuitarPickerModal {
-    width: calc(100vw - 16px);
-    height: min(620px, calc(100dvh - clamp(260px, 31dvh, 285px)));
-    max-height: min(620px, calc(100dvh - clamp(260px, 31dvh, 285px)));
-    padding: 12px;
-    border-radius: 18px;
+    width: min(342px, calc(100vw - 28px));
+    height: min(400px, calc(100dvh - 325px));
+    max-height: min(400px, calc(100dvh - 325px));
+    padding: 11px;
+    border-radius: 16px;
   }
 
   .shooterSkinPickerBody {
@@ -29979,6 +29989,27 @@ body {
   animation: shooterEnergyProjectile var(--projectile-duration-ms, 240ms) linear both;
 }
 
+.shooterArena .energyProjectile.energyProjectile--continuous {
+  opacity: 1;
+  animation: none !important;
+}
+
+.energyProjectileDebugHitbox {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 8;
+  width: var(--projectile-debug-hitbox-size, 27px);
+  height: var(--projectile-debug-hitbox-size, 27px);
+  border: 1.5px solid #3ee7ff;
+  border-radius: 999px;
+  background: rgba(62, 231, 255, 0.16);
+  box-shadow: 0 0 5px rgba(62, 231, 255, 0.52);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
+
 .shooterArena .energyProjectile.energyProjectile--impacting {
   filter: brightness(1.35) saturate(1.12);
   box-shadow:
@@ -30065,11 +30096,6 @@ body {
 .shooterArena .energyProjectile.energyProjectile--pick-neon::before {
   background: rgba(236, 254, 255, 0.78);
   box-shadow: 0 5px 0 rgba(14, 116, 144, 0.18);
-}
-
-.shooterArena .energyProjectile.energyProjectile--pick-gold.energyProjectile--imageProjectile {
-  width: clamp(30px, 8vw, 40px);
-  height: clamp(38px, 10vw, 52px);
 }
 
 .shooterArena .guitarPlayerEffectLayer {
@@ -30397,35 +30423,11 @@ body {
   filter: none;
   transform-origin: 50% 72%;
   will-change: transform, opacity;
-  animation:
-    shooterLegendaryVioletPngEnter 420ms cubic-bezier(0.19, 1, 0.22, 1) both,
-    shooterLegendaryVioletPngPulse 2600ms ease-in-out 420ms infinite;
-}
-
-.shooterArena .effect-legendary-violet-png.guitarPlayerEffectLayer--exiting {
-  opacity: 1;
-  animation: shooterLegendaryVioletPngExit 360ms ease-in forwards;
+  animation: shooterLegendaryVioletPngPulse 2600ms ease-in-out infinite;
 }
 
 .shooterArena .effect-legendary-violet-png img {
   object-fit: contain;
-}
-
-@keyframes shooterLegendaryVioletPngEnter {
-  0% {
-    opacity: 0;
-    transform: translateX(-50%) scale(0.85) rotate(-2deg);
-  }
-
-  72% {
-    opacity: 1;
-    transform: translateX(-50%) scale(1.012) rotate(0.35deg);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateX(-50%) scale(1) rotate(0deg);
-  }
 }
 
 @keyframes shooterLegendaryVioletPngPulse {
@@ -30438,18 +30440,6 @@ body {
   48% {
     opacity: 0.9;
     transform: translateX(-50%) scale(1.03) rotate(0.25deg);
-  }
-}
-
-@keyframes shooterLegendaryVioletPngExit {
-  0% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1) rotate(0deg);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-10px) scale(1.08) rotate(0.4deg);
   }
 }
 
@@ -30970,6 +30960,139 @@ body {
   z-index: 34;
   isolation: isolate;
   will-change: transform;
+}
+
+.shooterHitboxDebugOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.shooterHitboxDebugToolbar {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  z-index: 91;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+  border: 1px solid rgba(62, 231, 255, 0.52);
+  border-radius: 8px;
+  background: rgba(3, 10, 14, 0.82);
+  color: #baf7ff;
+  font: 900 8px/1 system-ui, sans-serif;
+  letter-spacing: 0.05em;
+  pointer-events: auto;
+}
+
+.shooterHitboxDebugToolbar button {
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 221, 76, 0.58);
+  border-radius: 6px;
+  background: rgba(255, 221, 76, 0.14);
+  color: #fff2a3;
+  font: 900 8px/1 system-ui, sans-serif;
+}
+
+.shooterHitboxDebugToolbar button:disabled {
+  opacity: 0.42;
+}
+
+.shooterHitboxDebugTitle {
+  fill: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.92);
+  stroke-width: 3px;
+}
+
+.shooterHitboxDebugBody,
+.shooterHitboxDebugNeck,
+.shooterHitboxDebugHead,
+.shooterHitboxDebugEnemy ellipse,
+.shooterHitboxDebugProjectile circle,
+.shooterHitboxDebugMuzzle circle,
+.shooterHitboxDebugCollision circle {
+  vector-effect: non-scaling-stroke;
+}
+
+.shooterHitboxDebugBody {
+  fill: rgba(57, 255, 126, 0.12);
+  stroke: #39ff7e;
+  stroke-width: 1.5px;
+}
+
+.shooterHitboxDebugNeck {
+  fill: none;
+  stroke: rgba(70, 204, 255, 0.58);
+  stroke-linecap: round;
+}
+
+.shooterHitboxDebugHead {
+  fill: rgba(255, 94, 214, 0.16);
+  stroke: #ff5ed6;
+  stroke-width: 1.5px;
+}
+
+.shooterHitboxDebugMuzzle circle {
+  fill: rgba(255, 248, 147, 0.68);
+  stroke: #fff893;
+  stroke-width: 1.5px;
+}
+
+.shooterHitboxDebugMuzzle path,
+.shooterHitboxDebugCollision path,
+.shooterHitboxDebugEnemy path {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.shooterHitboxDebugMuzzle path {
+  stroke: #fff893;
+  stroke-width: 1px;
+}
+
+.shooterHitboxDebugEnemy ellipse {
+  fill: rgba(255, 74, 74, 0.12);
+  stroke: #ff4a4a;
+  stroke-width: 1.5px;
+}
+
+.shooterHitboxDebugEnemy path {
+  stroke: rgba(255, 120, 120, 0.9);
+  stroke-width: 1px;
+}
+
+.shooterHitboxDebugProjectile circle {
+  fill: rgba(62, 231, 255, 0.16);
+  stroke: #3ee7ff;
+  stroke-width: 1.5px;
+}
+
+.shooterHitboxDebugPath {
+  vector-effect: non-scaling-stroke;
+  stroke: #3ee7ff;
+  stroke-width: 1.2px;
+  stroke-dasharray: 3 2;
+}
+
+.shooterHitboxDebugCollision circle {
+  fill: rgba(255, 221, 76, 0.72);
+  stroke: #ffdd4c;
+  stroke-width: 1.5px;
+}
+
+.shooterHitboxDebugCollision path {
+  stroke: #ffdd4c;
+  stroke-width: 1.2px;
 }
 
 .targetBreakLayer {
@@ -52154,18 +52277,19 @@ html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.r
 /* Shooter image panels final lock: start and paused states use supplied art with transparent hit zones. */
 html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
 html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
-  width: min(356px, calc(100% - 18px)) !important;
+  width: min(328px, calc(100% - 30px)) !important;
   height: auto !important;
   min-width: 0 !important;
   min-height: 0 !important;
   aspect-ratio: 1098 / 488 !important;
   padding: 0 !important;
   border: 0 !important;
-  border-radius: 26px !important;
+  border-radius: 22px !important;
   background: url("/images/shooter-start-panel-dark.png") center / 100% 100% no-repeat !important;
   color: transparent !important;
   box-shadow: none !important;
-  opacity: 0.88 !important;
+  filter: drop-shadow(0 16px 18px rgba(0, 0, 0, 0.34)) saturate(1.04) contrast(1.04) !important;
+  opacity: 0.98 !important;
   overflow: hidden !important;
   backdrop-filter: none !important;
 }
@@ -52173,7 +52297,8 @@ html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatu
 html body .app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
 html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
   background: url("/images/shooter-start-panel-light.png") center / 100% 100% no-repeat !important;
-  opacity: 0.9 !important;
+  filter: drop-shadow(0 14px 18px rgba(92, 60, 24, 0.2)) saturate(0.98) contrast(1.025) !important;
+  opacity: 0.98 !important;
 }
 
 html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu,
@@ -52292,8 +52417,8 @@ html body main.app.app.app .shooterArena .shooterCenterStatus:is(.shooterCenterS
 @media (max-width: 420px) {
   html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
   html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
-    width: min(330px, calc(100% - 42px)) !important;
-    border-radius: 22px !important;
+    width: min(288px, calc(100% - 58px)) !important;
+    border-radius: 20px !important;
   }
 
   html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu,
@@ -52306,8 +52431,8 @@ html body main.app.app.app .shooterArena .shooterCenterStatus:is(.shooterCenterS
 @media (max-width: 360px) {
   html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
   html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
-    width: min(306px, calc(100% - 34px)) !important;
-    border-radius: 19px !important;
+    width: min(272px, calc(100% - 48px)) !important;
+    border-radius: 18px !important;
   }
 
   html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu,
@@ -56586,6 +56711,69 @@ html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChord
   background: rgba(185, 133, 52, 0.13) !important;
 }
 
+/* Mini chord storage uses the same modal library pattern as Backing Loop LOAD. */
+.miniChordLoadDialog {
+  gap: 12px !important;
+}
+
+.miniChordLoadLibrary > button {
+  min-height: 52px !important;
+  padding: 7px 10px !important;
+}
+
+.miniChordLoadLibrary > .miniChordLoadLibraryEditItem {
+  min-height: 52px !important;
+  padding: 7px 10px !important;
+}
+
+.miniChordLoadLibraryEditItem > small {
+  text-align: right !important;
+  white-space: nowrap !important;
+}
+
+.miniChordLoadLibrary > button .miniChordLoadDialogItemText {
+  display: grid !important;
+  min-width: 0 !important;
+  gap: 3px !important;
+  overflow: hidden !important;
+  white-space: normal !important;
+}
+
+.miniChordLoadDialogItemText b,
+.miniChordLoadDialogItemText em {
+  display: block !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  font-style: normal !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.miniChordLoadDialogItemText b {
+  color: #48312b !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+}
+
+.miniChordLoadDialogItemText em {
+  color: rgba(89, 61, 54, 0.58) !important;
+  font-size: 8px !important;
+  font-weight: 800 !important;
+}
+
+.miniChordLoadLibrary > button > small {
+  text-align: right !important;
+  white-space: nowrap !important;
+}
+
+html body:has(main.app.theme-brand) .miniChordLoadDialogItemText b {
+  color: rgba(245, 228, 186, 0.9) !important;
+}
+
+html body:has(main.app.theme-brand) .miniChordLoadDialogItemText em {
+  color: rgba(236, 215, 172, 0.54) !important;
+}
+
 /* Mini chord selected buttons stay ivory, never black, in the compact mobile UI. */
 html body main.app.app.app .miniChordMakerPanelCompact :is(
   .miniChordSegment button.selected,
@@ -57213,6 +57401,27 @@ html body main.app.app.app .miniChordMakerPanelCompact:has(.miniChordChordPopove
   }
 }
 
+/* Mini chord reuses the standalone metronome transport without inheriting the page shell. */
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMetronomePanel.standaloneMetronomePanel {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordMetronomePanel .metronomeHeroCard {
+  margin-bottom: 0 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact:has(.miniChordChordPopover, .barEndingPopover) .miniChordMetronomePanel {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
 /* Keep lick TAB text legible after global theme text rules. */
 html body main.app.app.app .trainingLickTabFretboard .fretboardTabNote,
 html body main.app.app.app .trainingLickTabFretboard .fretboardTabNote :is(b, small),
@@ -57714,5 +57923,822 @@ html body main.app.app.app .trainingLickTabFretboard .fretboardTabHarmonicLabel 
     min-width: 21px;
     height: 21px;
     font-size: 14px !important;
+  }
+}
+
+/* Shooter start panel: keep all labels and icons resolution-independent. */
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
+  width: min(328px, calc(100% - 30px)) !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  padding: 8px !important;
+  border: 1px solid rgba(231, 179, 84, 0.62) !important;
+  border-radius: 20px !important;
+  background:
+    radial-gradient(ellipse at 50% -30%, rgba(255, 232, 174, 0.18), transparent 56%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.055), transparent 34%),
+    linear-gradient(180deg, rgba(41, 39, 34, 0.98) 0%, rgba(19, 19, 17, 0.985) 54%, rgba(8, 8, 7, 0.99) 100%) !important;
+  color: #f6c66c !important;
+  box-shadow:
+    0 16px 28px rgba(0, 0, 0, 0.36),
+    0 2px 0 rgba(255, 245, 214, 0.08),
+    inset 0 1px 0 rgba(255, 247, 222, 0.18),
+    inset 0 -12px 22px rgba(0, 0, 0, 0.22),
+    inset 0 0 0 1px rgba(255, 218, 139, 0.08) !important;
+  filter: none !important;
+  opacity: 1 !important;
+  overflow: hidden !important;
+  backdrop-filter: blur(8px) saturate(1.08) !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
+  border-color: rgba(177, 124, 42, 0.56) !important;
+  background:
+    radial-gradient(ellipse at 50% -28%, rgba(255, 255, 255, 0.98), transparent 58%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.58), transparent 36%),
+    linear-gradient(180deg, #fbf6ec 0%, #eee2ce 58%, #dfceb1 100%) !important;
+  color: #82500f !important;
+  box-shadow:
+    0 15px 26px rgba(80, 53, 20, 0.2),
+    0 2px 0 rgba(255, 255, 255, 0.82),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -12px 22px rgba(132, 87, 24, 0.07),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.44) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 2 !important;
+  display: grid !important;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 7px !important;
+  width: 100% !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton {
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  left: auto !important;
+  display: grid !important;
+  grid-template-columns: 40px minmax(0, 1fr) 40px !important;
+  align-items: center !important;
+  width: 100% !important;
+  height: 57px !important;
+  min-width: 0 !important;
+  min-height: 57px !important;
+  padding: 5px 10px !important;
+  border: 1px solid rgba(218, 158, 57, 0.58) !important;
+  border-radius: 14px !important;
+  background:
+    radial-gradient(ellipse at 50% -35%, rgba(255, 235, 177, 0.16), transparent 58%),
+    linear-gradient(180deg, rgba(50, 47, 40, 0.98) 0%, rgba(25, 24, 21, 0.99) 54%, rgba(11, 11, 10, 1) 100%) !important;
+  color: #f3bf60 !important;
+  box-shadow:
+    0 7px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 245, 215, 0.16),
+    inset 0 -9px 14px rgba(0, 0, 0, 0.18),
+    inset 0 0 0 1px rgba(255, 221, 148, 0.06) !important;
+  filter: none !important;
+  outline: none !important;
+  overflow: hidden !important;
+  pointer-events: auto !important;
+  transform: translateZ(0) scale(1) !important;
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 95ms ease, filter 120ms ease !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary {
+  border-color: rgba(255, 203, 103, 0.76) !important;
+  background:
+    radial-gradient(ellipse at 50% -34%, rgba(255, 237, 179, 0.23), transparent 58%),
+    linear-gradient(180deg, rgba(59, 52, 39, 0.99) 0%, rgba(29, 26, 21, 0.99) 55%, rgba(10, 10, 9, 1) 100%) !important;
+  color: #ffd478 !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton {
+  border-color: rgba(169, 113, 29, 0.46) !important;
+  background:
+    radial-gradient(ellipse at 50% -32%, rgba(255, 255, 255, 0.98), transparent 62%),
+    linear-gradient(180deg, #fffdf8 0%, #f4e9d6 58%, #e6d4b6 100%) !important;
+  color: #815010 !important;
+  box-shadow:
+    0 6px 11px rgba(91, 61, 22, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    inset 0 -9px 14px rgba(131, 84, 20, 0.055),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42) !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary {
+  border-color: rgba(151, 92, 13, 0.61) !important;
+  background:
+    radial-gradient(ellipse at 50% -32%, rgba(255, 255, 255, 1), transparent 62%),
+    linear-gradient(180deg, #fffdf8 0%, #f2e2c5 58%, #dec49a 100%) !important;
+  color: #75440a !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton > *,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton > * {
+  opacity: 1 !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButtonSheen,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButtonSheen {
+  position: absolute !important;
+  inset: 1px 3px auto !important;
+  z-index: 1 !important;
+  display: block !important;
+  height: 44% !important;
+  border-radius: 13px 13px 8px 8px !important;
+  background: linear-gradient(180deg, rgba(255, 255, 245, 0.15), rgba(255, 239, 196, 0.035) 58%, transparent) !important;
+  pointer-events: none !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButtonSheen,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButtonSheen {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.12) 62%, transparent) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu :is(.shooterStartPanelButtonDecor, .shooterStartPanelGhostGuitar),
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu :is(.shooterStartPanelButtonDecor, .shooterStartPanelGhostGuitar) {
+  display: none !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelIcon,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelIcon {
+  position: relative !important;
+  z-index: 3 !important;
+  grid-column: 1 !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  border: 1px solid rgba(236, 183, 82, 0.34) !important;
+  border-radius: 50% !important;
+  background: rgba(0, 0, 0, 0.16) !important;
+  color: currentColor !important;
+  box-shadow: inset 0 1px 0 rgba(255, 247, 221, 0.11) !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelIcon,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelIcon {
+  border-color: rgba(151, 92, 13, 0.28) !important;
+  background: rgba(255, 255, 255, 0.38) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelIcon svg,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelIcon svg,
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary .shooterStartPanelIcon svg,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary .shooterStartPanelIcon svg {
+  width: 22px !important;
+  height: 22px !important;
+  filter: drop-shadow(0 1px 0 rgba(255, 248, 221, 0.2)) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelLabel,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelLabel {
+  position: relative !important;
+  z-index: 3 !important;
+  grid-column: 2 !important;
+  display: grid !important;
+  justify-items: center !important;
+  align-content: center !important;
+  gap: 2px !important;
+  padding: 0 !important;
+  color: currentColor !important;
+  line-height: 1 !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong {
+  color: currentColor !important;
+  font-size: 20px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.035em !important;
+  line-height: 1 !important;
+  text-shadow: 0 1px 0 rgba(255, 246, 218, 0.18), 0 2px 4px rgba(0, 0, 0, 0.32) !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.92), 0 1px 2px rgba(92, 57, 10, 0.12) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small {
+  margin: 0 !important;
+  color: rgba(226, 168, 66, 0.82) !important;
+  font-size: 8px !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.22em !important;
+  line-height: 1 !important;
+  text-indent: 0.22em;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small {
+  color: rgba(123, 75, 13, 0.68) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton:focus-visible,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton:focus-visible {
+  border-color: rgba(255, 222, 148, 0.94) !important;
+  box-shadow: 0 0 0 3px rgba(240, 177, 62, 0.22), inset 0 1px 0 rgba(255, 249, 228, 0.22) !important;
+}
+
+@media (hover: hover) {
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton:hover:not(:disabled),
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton:hover:not(:disabled) {
+    border-color: rgba(255, 211, 121, 0.86) !important;
+    filter: brightness(1.045) saturate(1.03) !important;
+  }
+}
+
+@media (max-width: 420px) {
+  html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+  html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
+    width: min(288px, calc(100% - 58px)) !important;
+    padding: 7px !important;
+    border-radius: 18px !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel {
+    gap: 6px !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton {
+    grid-template-columns: 36px minmax(0, 1fr) 36px !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    padding: 4px 9px !important;
+    border-radius: 13px !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelIcon,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelIcon {
+    width: 31px !important;
+    height: 31px !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelIcon svg,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelIcon svg,
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary .shooterStartPanelIcon svg,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary .shooterStartPanelIcon svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong {
+    font-size: 18px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+  html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
+    width: min(272px, calc(100% - 48px)) !important;
+    border-radius: 17px !important;
+  }
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu > .shooterStartPanel,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu > .shooterStartPanel {
+  position: relative !important;
+  inset: auto !important;
+  display: grid !important;
+  grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+  width: 100% !important;
+  height: auto !important;
+  pointer-events: auto !important;
+}
+
+@media (max-width: 420px) {
+  html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu > .shooterStartPanel,
+  html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu > .shooterStartPanel {
+    gap: 6px !important;
+  }
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton > *,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton > * {
+  opacity: 1 !important;
+}
+
+/* Shooter pause panel uses the same crisp, resolution-independent treatment. */
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu {
+  width: min(328px, calc(100% - 30px)) !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  padding: 8px !important;
+  border: 1px solid rgba(231, 179, 84, 0.62) !important;
+  border-radius: 20px !important;
+  background:
+    radial-gradient(ellipse at 50% -24%, rgba(255, 232, 174, 0.18), transparent 55%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.055), transparent 34%),
+    linear-gradient(180deg, rgba(41, 39, 34, 0.98) 0%, rgba(19, 19, 17, 0.985) 54%, rgba(8, 8, 7, 0.99) 100%) !important;
+  color: #f6c66c !important;
+  box-shadow:
+    0 16px 28px rgba(0, 0, 0, 0.36),
+    0 2px 0 rgba(255, 245, 214, 0.08),
+    inset 0 1px 0 rgba(255, 247, 222, 0.18),
+    inset 0 -12px 22px rgba(0, 0, 0, 0.22),
+    inset 0 0 0 1px rgba(255, 218, 139, 0.08) !important;
+  filter: none !important;
+  opacity: 1 !important;
+  overflow: hidden !important;
+  backdrop-filter: blur(8px) saturate(1.08) !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu {
+  border-color: rgba(177, 124, 42, 0.56) !important;
+  background:
+    radial-gradient(ellipse at 50% -22%, rgba(255, 255, 255, 0.98), transparent 56%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.58), transparent 36%),
+    linear-gradient(180deg, #fbf6ec 0%, #eee2ce 58%, #dfceb1 100%) !important;
+  color: #82500f !important;
+  box-shadow:
+    0 15px 26px rgba(80, 53, 20, 0.2),
+    0 2px 0 rgba(255, 255, 255, 0.82),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -12px 22px rgba(132, 87, 24, 0.07),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.44) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu > .shooterPausePanel,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu > .shooterPausePanel {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 2 !important;
+  display: grid !important;
+  grid-template-rows: 42px repeat(2, 52px) !important;
+  gap: 7px !important;
+  width: 100% !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader,
+html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-width: 0;
+  color: #f2cc80 !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader {
+  color: #82500f !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader > svg,
+html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader > svg {
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border: 1px solid rgba(231, 179, 84, 0.34);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.14);
+  box-sizing: content-box;
+  filter: drop-shadow(0 1px 0 rgba(255, 248, 222, 0.14));
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader > svg,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader > svg {
+  border-color: rgba(151, 92, 13, 0.28);
+  background: rgba(255, 255, 255, 0.34);
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader > span,
+html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader > span {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  line-height: 1;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader strong,
+html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader strong {
+  color: currentColor !important;
+  font-size: 20px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.035em !important;
+  line-height: 1 !important;
+  text-shadow: 0 1px 0 rgba(255, 246, 218, 0.18), 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader strong,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader strong {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.92), 0 1px 2px rgba(92, 57, 10, 0.12) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader small,
+html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader small {
+  color: rgba(226, 168, 66, 0.8) !important;
+  font-size: 8px !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.2em !important;
+  line-height: 1 !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader small,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader small {
+  color: rgba(123, 75, 13, 0.68) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu .shooterPausePanelButton,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu .shooterPausePanelButton {
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  left: auto !important;
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr) 38px !important;
+  align-items: center !important;
+  width: 100% !important;
+  height: 52px !important;
+  min-width: 0 !important;
+  min-height: 52px !important;
+  padding: 4px 10px !important;
+  border: 1px solid rgba(218, 158, 57, 0.58) !important;
+  border-radius: 14px !important;
+  background:
+    radial-gradient(ellipse at 50% -35%, rgba(255, 235, 177, 0.16), transparent 58%),
+    linear-gradient(180deg, rgba(50, 47, 40, 0.98) 0%, rgba(25, 24, 21, 0.99) 54%, rgba(11, 11, 10, 1) 100%) !important;
+  color: #f3bf60 !important;
+  box-shadow:
+    0 7px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 245, 215, 0.16),
+    inset 0 -9px 14px rgba(0, 0, 0, 0.18),
+    inset 0 0 0 1px rgba(255, 221, 148, 0.06) !important;
+  filter: none !important;
+  outline: none !important;
+  overflow: hidden !important;
+  pointer-events: auto !important;
+  transform: translateZ(0) scale(1) !important;
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 95ms ease, filter 120ms ease !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelButton--continue,
+html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelButton--continue {
+  border-color: rgba(255, 203, 103, 0.76) !important;
+  background:
+    radial-gradient(ellipse at 50% -34%, rgba(255, 237, 179, 0.23), transparent 58%),
+    linear-gradient(180deg, rgba(59, 52, 39, 0.99) 0%, rgba(29, 26, 21, 0.99) 55%, rgba(10, 10, 9, 1) 100%) !important;
+  color: #ffd478 !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelButton,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelButton {
+  border-color: rgba(169, 113, 29, 0.46) !important;
+  background:
+    radial-gradient(ellipse at 50% -32%, rgba(255, 255, 255, 0.98), transparent 62%),
+    linear-gradient(180deg, #fffdf8 0%, #f4e9d6 58%, #e6d4b6 100%) !important;
+  color: #815010 !important;
+  box-shadow:
+    0 6px 11px rgba(91, 61, 22, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    inset 0 -9px 14px rgba(131, 84, 20, 0.055),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42) !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelButton--continue,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelButton--continue {
+  border-color: rgba(151, 92, 13, 0.61) !important;
+  background:
+    radial-gradient(ellipse at 50% -32%, rgba(255, 255, 255, 1), transparent 62%),
+    linear-gradient(180deg, #fffdf8 0%, #f2e2c5 58%, #dec49a 100%) !important;
+  color: #75440a !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelButtonSheen,
+html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelButtonSheen {
+  position: absolute !important;
+  inset: 1px 3px auto !important;
+  z-index: 1 !important;
+  display: block !important;
+  height: 44% !important;
+  border-radius: 13px 13px 8px 8px !important;
+  background: linear-gradient(180deg, rgba(255, 255, 245, 0.15), rgba(255, 239, 196, 0.035) 58%, transparent) !important;
+  pointer-events: none !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelButtonSheen,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelButtonSheen {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.12) 62%, transparent) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelIcon,
+html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelIcon {
+  position: relative !important;
+  z-index: 3 !important;
+  grid-column: 1 !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  border: 1px solid rgba(236, 183, 82, 0.34) !important;
+  border-radius: 50% !important;
+  background: rgba(0, 0, 0, 0.16) !important;
+  color: currentColor !important;
+  box-shadow: inset 0 1px 0 rgba(255, 247, 221, 0.11) !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelIcon,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelIcon {
+  border-color: rgba(151, 92, 13, 0.28) !important;
+  background: rgba(255, 255, 255, 0.38) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelIcon svg,
+html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelIcon svg {
+  width: 20px !important;
+  height: 20px !important;
+  filter: drop-shadow(0 1px 0 rgba(255, 248, 221, 0.2)) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelLabel,
+html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelLabel {
+  position: relative !important;
+  z-index: 3 !important;
+  grid-column: 2 !important;
+  display: grid !important;
+  justify-items: center !important;
+  align-content: center !important;
+  gap: 2px !important;
+  color: currentColor !important;
+  line-height: 1 !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelLabel strong,
+html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelLabel strong {
+  color: currentColor !important;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1 !important;
+  text-shadow: 0 1px 0 rgba(255, 246, 218, 0.18), 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelLabel strong,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelLabel strong {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.92), 0 1px 2px rgba(92, 57, 10, 0.12) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelLabel small,
+html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelLabel small {
+  margin: 0 !important;
+  color: rgba(226, 168, 66, 0.8) !important;
+  font-size: 8px !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.2em !important;
+  line-height: 1 !important;
+  text-indent: 0.2em;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelLabel small,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelLabel small {
+  color: rgba(123, 75, 13, 0.68) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelButton:focus-visible,
+html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelButton:focus-visible {
+  border-color: rgba(255, 222, 148, 0.94) !important;
+  box-shadow: 0 0 0 3px rgba(240, 177, 62, 0.22), inset 0 1px 0 rgba(255, 249, 228, 0.22) !important;
+}
+
+@media (hover: hover) {
+  html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelButton:hover:not(:disabled),
+  html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelButton:hover:not(:disabled) {
+    border-color: rgba(255, 211, 121, 0.86) !important;
+    filter: brightness(1.045) saturate(1.03) !important;
+  }
+}
+
+@media (max-width: 420px) {
+  html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu,
+  html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu {
+    width: min(288px, calc(100% - 58px)) !important;
+    padding: 7px !important;
+    border-radius: 18px !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu > .shooterPausePanel,
+  html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu > .shooterPausePanel {
+    grid-template-rows: 38px repeat(2, 50px) !important;
+    gap: 6px !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu .shooterPausePanelButton,
+  html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu .shooterPausePanelButton {
+    grid-template-columns: 36px minmax(0, 1fr) 36px !important;
+    height: 50px !important;
+    min-height: 50px !important;
+    padding: 4px 9px !important;
+    border-radius: 13px !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader strong,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader strong {
+    font-size: 18px !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelLabel strong,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelLabel strong {
+    font-size: 17px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu,
+  html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu {
+    width: min(272px, calc(100% - 48px)) !important;
+    border-radius: 17px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+  html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton {
+    grid-template-columns: 36px minmax(0, 1fr) 36px !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    padding: 4px 9px !important;
+    border-radius: 13px !important;
+  }
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu .shooterPausePanelHeader strong,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu .shooterPausePanelHeader strong {
+  color: #f2cc80 !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu .shooterPausePanelHeader strong,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu .shooterPausePanelHeader strong {
+  color: #82500f !important;
+}
+
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu > .shooterStartPanel,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu > .shooterStartPanel {
+  position: relative !important;
+  inset: auto !important;
+  display: grid !important;
+  grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+  width: 100% !important;
+  height: auto !important;
+  pointer-events: auto !important;
+}
+
+@media (max-width: 420px) {
+  html body .app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu > .shooterStartPanel,
+  html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu > .shooterStartPanel {
+    gap: 6px !important;
+  }
+}
+
+/* Mobile utility menu: keep every primary entry visible above the bottom navigation. */
+@media (max-width: 680px) {
+  html body .app.app.app .utilityMenuPanel {
+    top: auto !important;
+    right: 0 !important;
+    left: auto !important;
+    bottom: calc(max(10px, env(safe-area-inset-bottom)) + 76px) !important;
+    width: min(74vw, 286px) !important;
+    max-width: 286px !important;
+    height: auto !important;
+    max-height: calc(100dvh - 96px) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    transform: none !important;
+  }
+
+  html body .app.app.app .utilityMenuHeader {
+    align-items: center !important;
+    margin: -2px -2px 7px !important;
+    padding: 6px 7px !important;
+    border: 1px solid rgba(217, 170, 85, 0.28) !important;
+    border-radius: 14px !important;
+    background:
+      linear-gradient(135deg, rgba(217, 170, 85, 0.16), rgba(217, 170, 85, 0.035)),
+      rgba(8, 10, 11, 0.9) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 244, 210, 0.08),
+      0 7px 14px rgba(0, 0, 0, 0.14) !important;
+  }
+
+  html body .app.app.app .utilityMenuHeader > div {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 6px !important;
+  }
+
+  html body .app.app.app .utilityMenuHeader span {
+    color: rgba(241, 202, 122, 0.82) !important;
+    font-size: 7.5px !important;
+  }
+
+  html body .app.app.app .utilityMenuHeader strong {
+    color: rgba(255, 248, 232, 0.98) !important;
+    font-size: 16px !important;
+  }
+
+  html body .app.app.app .utilityThemePanel {
+    gap: 6px !important;
+    margin-bottom: 6px !important;
+    padding: 8px !important;
+  }
+
+  html body .app.app.app .utilityThemeOptions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+  }
+
+  html body .app.app.app .utilityThemeOptions button {
+    min-height: 52px !important;
+    padding: 6px 5px !important;
+  }
+
+  html body .app.app.app .utilityThemeOptions button small {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    font-size: 7.4px !important;
+    line-height: 1.1 !important;
+    letter-spacing: -0.02em !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body .app.app.app .utilityMenuList {
+    gap: 5px !important;
+  }
+
+  html body .app.app.app .utilityMenuVersion {
+    margin-top: 6px !important;
+    padding-top: 4px !important;
+  }
+
+  html body .app.app.app.theme-light .utilityMenuHeader {
+    border-color: rgba(151, 103, 92, 0.28) !important;
+    background:
+      linear-gradient(135deg, rgba(232, 201, 191, 0.56), rgba(255, 255, 255, 0.62)),
+      #f3e8e4 !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.86),
+      0 7px 14px rgba(96, 62, 56, 0.08) !important;
+  }
+
+  html body .app.app.app.theme-light .utilityMenuHeader span {
+    color: #9a6659 !important;
+  }
+
+  html body .app.app.app.theme-light .utilityMenuHeader strong {
+    color: #34231f !important;
   }
 }
