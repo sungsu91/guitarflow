@@ -76,6 +76,7 @@ function BackingLoopMainControls({ controller, mobile = false }) {
     <div className="backingLoopMainControls" aria-label="백킹 녹음 및 재생 컨트롤">
       <button
         aria-label={captureActive ? "기타 녹음 종료" : "기타 녹음 시작"}
+        aria-pressed={captureActive}
         className={`backingLoopButton backingLoopRecordButton ${captureActive ? "active" : ""}`}
         disabled={controller.isPlaying || isBusy}
         onClick={controller.toggleRecording}
@@ -92,6 +93,7 @@ function BackingLoopMainControls({ controller, mobile = false }) {
           : controller.isPaused
             ? "백킹 루프 이어서 재생"
             : "백킹 루프 무한 반복 재생"}
+        aria-pressed={controller.isPlaying}
         className={`backingLoopButton ${controller.isPlaying ? "backingLoopPauseButton active" : "backingLoopPlayButton"}`}
         disabled={!controller.hasRecording || mediaBusy}
         onClick={controller.togglePlayback}
@@ -517,25 +519,55 @@ function DeleteBackingLoopDialog({ controller }) {
 }
 
 function BackingLoopDialogLayer({ controller }) {
+  const dialogRef = useRef(null);
+  const previousFocusRef = useRef(null);
+  const dialogOpen = Boolean(controller.dialog);
+
   useEffect(() => {
+    if (!dialogOpen || typeof document === "undefined") return undefined;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    document.body.classList.add("backingLoopDialogOpen");
     const handleKeyDown = (event) => {
       if (event.key === "Escape") controller.closeDialog();
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [controller]);
+    return () => {
+      document.body.classList.remove("backingLoopDialogOpen");
+      window.removeEventListener("keydown", handleKeyDown);
+      const previousFocus = previousFocusRef.current;
+      previousFocusRef.current = null;
+      window.requestAnimationFrame(() => {
+        if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+      });
+    };
+  }, [controller.closeDialog, dialogOpen]);
+
+  useEffect(() => {
+    if (!dialogOpen || typeof window === "undefined") return undefined;
+    const frameId = window.requestAnimationFrame(() => {
+      const dialog = dialogRef.current;
+      if (!dialog || dialog.contains(document.activeElement)) return;
+      const focusTarget = dialog.querySelector(
+        "[data-dialog-initial-focus], input:not(:disabled), button:not(:disabled), [tabindex]:not([tabindex='-1'])",
+      );
+      (focusTarget || dialog).focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [controller.dialog, dialogOpen]);
 
   if (!controller.dialog || typeof document === "undefined") return null;
   return createPortal(
     <div
       aria-hidden="false"
       className={`backingLoopDialogLayer storageModalLayer ${controller.dialog === "clear-recording" ? "backingLoopDialogLayer--centered" : ""}`}
-      onMouseDown={(event) => {
+      onPointerDown={(event) => {
         if (event.target === event.currentTarget) controller.closeDialog();
       }}
       role="presentation"
     >
-      <div aria-modal="true" role="dialog">
+      <div aria-modal="true" ref={dialogRef} role="dialog" tabIndex="-1">
         {controller.dialog === "trim" ? <TrimBackingLoopDialog controller={controller} /> : null}
         {controller.dialog === "clear-recording" ? <ClearRecordingDialog controller={controller} /> : null}
         {controller.dialog === "save" ? <SaveBackingLoopDialog controller={controller} /> : null}

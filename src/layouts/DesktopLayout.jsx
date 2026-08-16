@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import BrandHeader from "../components/BrandHeader";
 
 const DESKTOP_NAV_ITEMS = [
   { href: "#rhythm-training", label: "훈련장" },
@@ -74,7 +73,6 @@ export default function DesktopLayout({ children }) {
   return (
     <div className="desktopLayout">
       <aside className="desktopSidebar" aria-label="RIFFLAB desktop navigation">
-        <BrandHeader />
         <nav className="desktopNav" aria-label="데스크톱 메뉴">
           {DESKTOP_NAV_ITEMS.map((item) => (
             <a href={item.href} key={item.href}>

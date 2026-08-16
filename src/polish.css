@@ -1,0 +1,1181 @@
+/*
+ * RIFFLAB release polish layer
+ *
+ * The product has several deliberately different screen compositions. This
+ * final layer only standardises the shared interaction language: colour roles,
+ * control states, touch targets, focus, rhythm and small-screen safety.
+ */
+
+:root {
+  --riff-gold-primary: #d9aa55;
+  --riff-gold-selected: #f1ca7a;
+  --riff-gold-border: rgba(217, 170, 85, 0.38);
+  --riff-gold-border-strong: rgba(241, 202, 122, 0.7);
+  --riff-bg-dark: #050708;
+  --riff-bg-panel: rgba(10, 10, 7, 0.94);
+  --riff-bg-panel-strong: rgba(4, 5, 5, 0.98);
+  --riff-text-main: #fff7e8;
+  --riff-text-secondary: rgba(236, 226, 212, 0.7);
+  --riff-disabled: rgba(236, 226, 212, 0.4);
+  --riff-control-enabled-opacity: 1;
+  --riff-control-disabled-opacity: 0.44;
+  --riff-control-disabled-filter: saturate(0.42) contrast(0.9);
+  --riff-control-disabled-text: var(--riff-disabled);
+  --riff-control-disabled-icon: currentColor;
+  --riff-control-disabled-border: rgba(236, 226, 212, 0.08);
+  --riff-control-disabled-background: rgba(255, 255, 255, 0.025);
+  --riff-control-disabled-shadow: none;
+  --riff-danger: #c85d54;
+  --riff-danger-strong: #e48678;
+  --riff-control-height: 42px;
+  --riff-control-height-compact: 36px;
+  --riff-control-radius: 12px;
+  --riff-control-radius-compact: 10px;
+  --riff-control-gap: 6px;
+  --riff-section-gap: 12px;
+  --riff-panel-padding: 14px;
+  --riff-transition-fast: 140ms;
+  --riff-focus-ring: 0 0 0 3px rgba(217, 170, 85, 0.22);
+  --riff-dropdown-hover-bg: rgba(126, 108, 70, 0.12);
+  --riff-dropdown-selected-bg: rgba(151, 119, 57, 0.19);
+  --riff-dropdown-hover-text: rgba(246, 229, 194, 0.96);
+  --riff-dropdown-selected-text: rgba(249, 233, 201, 0.98);
+  --riff-dropdown-hover-accent: rgba(217, 170, 85, 0.18);
+  --riff-dropdown-selected-accent: rgba(225, 181, 93, 0.34);
+  --riff-dropdown-state-radius: 6px;
+  --riff-dropdown-state-transition: 135ms;
+}
+
+:root[data-theme="classic-gold"] {
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="light"],
+.app.theme-light {
+  --riff-control-disabled-opacity: 0.62;
+  --riff-control-disabled-filter: saturate(0.32) contrast(0.94);
+  --riff-control-disabled-text: rgba(68, 61, 50, 0.38);
+  --riff-control-disabled-icon: rgba(99, 89, 73, 0.38);
+  --riff-control-disabled-border: rgba(126, 105, 72, 0.14);
+  --riff-control-disabled-background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(205, 193, 174, 0.08)),
+    rgba(236, 231, 221, 0.58);
+  --riff-control-disabled-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+html {
+  min-width: 320px;
+  overflow-x: hidden;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
+
+.app {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+  scroll-padding-bottom: calc(86px + env(safe-area-inset-bottom));
+}
+
+.app :where(button, select, input, textarea, summary, [role="button"], [role="radio"], [role="tab"]) {
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.app :where(button, [role="button"], [role="radio"], [role="tab"]) {
+  transition-duration: var(--riff-transition-fast) !important;
+  transition-timing-function: ease !important;
+}
+
+.app :where(button, [role="button"], [role="radio"], [role="tab"]):focus-visible,
+.desktopNav a:focus-visible {
+  outline: 2px solid var(--riff-gold-selected) !important;
+  outline-offset: 2px !important;
+  box-shadow: var(--riff-focus-ring) !important;
+}
+
+.app :where(button, [role="button"], [role="radio"], [role="tab"]):active:not(:disabled):not([aria-disabled="true"]) {
+  transform: translateY(1px) scale(0.985);
+  transition-duration: 90ms !important;
+}
+
+.app :where(button:disabled, select:disabled, input:disabled, textarea:disabled, [aria-disabled="true"]) {
+  cursor: not-allowed !important;
+  filter: var(--riff-control-disabled-filter) !important;
+  opacity: var(--riff-control-disabled-opacity) !important;
+}
+
+.app :where(button:disabled, [aria-disabled="true"]):active {
+  transform: none !important;
+}
+
+/* Keep the shared disabled state above the late Pearl White control locks. */
+html body main.app.app :is(
+  button:disabled,
+  select:disabled,
+  input:disabled,
+  textarea:disabled,
+  [aria-disabled="true"]
+) {
+  cursor: not-allowed !important;
+  filter: var(--riff-control-disabled-filter) !important;
+  opacity: var(--riff-control-disabled-opacity) !important;
+}
+
+html body main.app.app :is(button:disabled, [aria-disabled="true"]):active {
+  transform: none !important;
+}
+
+html body main.app.theme-light.theme-light
+  .backingLoopButton:not(:disabled):not([aria-disabled="true"]) {
+  cursor: pointer !important;
+  filter: none !important;
+  opacity: var(--riff-control-enabled-opacity) !important;
+}
+
+html body main.app.theme-light.theme-light
+  .backingLoopButton:is(:disabled, [aria-disabled="true"]) {
+  border-color: var(--riff-control-disabled-border) !important;
+  background: var(--riff-control-disabled-background) !important;
+  color: var(--riff-control-disabled-text) !important;
+  box-shadow: var(--riff-control-disabled-shadow) !important;
+  cursor: not-allowed !important;
+  filter: none !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  transform: none !important;
+}
+
+html body main.app.theme-light.theme-light
+  .backingLoopButton:is(:disabled, [aria-disabled="true"])
+  :is(span, svg) {
+  color: inherit !important;
+  opacity: 1 !important;
+  stroke: currentColor !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+html body main.app.theme-light.theme-light
+  .backingLoopButton:is(:disabled, [aria-disabled="true"])
+  .backingLoopRecordDot {
+  background: var(--riff-control-disabled-icon) !important;
+  box-shadow: none !important;
+}
+
+.app.theme-brand :where(
+  button.selected,
+  button[aria-pressed="true"],
+  button[aria-checked="true"],
+  button[aria-selected="true"],
+  [role="radio"][aria-checked="true"],
+  [role="tab"][aria-selected="true"]
+) {
+  border-color: var(--riff-gold-border-strong) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 214, 0.18),
+    0 0 0 1px rgba(217, 170, 85, 0.12),
+    0 0 10px rgba(217, 170, 85, 0.12) !important;
+}
+
+.app :where(button.primary, .primaryAction) {
+  min-height: var(--riff-control-height);
+  padding-inline: 14px;
+  border: 1px solid var(--riff-gold-border-strong) !important;
+  border-radius: var(--riff-control-radius);
+  background:
+    linear-gradient(180deg, rgba(255, 230, 166, 0.98), rgba(176, 116, 44, 0.98)) !important;
+  color: #1a1006 !important;
+  font-weight: 950;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    0 7px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+.app.theme-light :where(button.primary, .primaryAction) {
+  background:
+    linear-gradient(180deg, rgba(189, 139, 61, 0.96), rgba(134, 88, 34, 0.98)) !important;
+  color: #fff8e9 !important;
+}
+
+.app :where(button.danger, .dangerAction) {
+  min-height: var(--riff-control-height);
+  padding-inline: 14px;
+  border: 1px solid rgba(228, 134, 120, 0.58) !important;
+  border-radius: var(--riff-control-radius);
+  background:
+    linear-gradient(180deg, rgba(154, 57, 50, 0.84), rgba(72, 25, 22, 0.94)) !important;
+  color: #ffe4dc !important;
+  font-weight: 900;
+}
+
+.app :where(
+  .backingLoopDialogActions button,
+  .miniChordDialogActions button,
+  .storageModalActions button,
+  .helpGuideHeader > button,
+  .utilityMenuHeader > button
+) {
+  min-height: var(--riff-control-height);
+  border-radius: var(--riff-control-radius);
+}
+
+.app :where(
+  .contentTitle,
+  .referenceHeader,
+  .viewerMapHeader,
+  .backingLoopDialogHeading,
+  .miniChordHeader
+) :where(strong, h1, h2, h3) {
+  text-wrap: balance;
+}
+
+.app :where(
+  .contentTitle small,
+  .chordCatalogHint,
+  .backingLoopTrimHint,
+  .utilityMenuText small,
+  .helpAccordionContent
+) {
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.app :where(
+  .viewerMapTitleRow,
+  .referenceHeader,
+  .miniChordHeader,
+  .backingLoopDialogHeading,
+  .utilityMenuHeader
+) {
+  min-width: 0;
+}
+
+.app :where(
+  .viewerMapTitleRow,
+  .referenceHeader,
+  .miniChordHeader,
+  .backingLoopDialogHeading,
+  .utilityMenuHeader
+) > * {
+  min-width: 0;
+}
+
+.app :where(select, input[type="text"], input[type="number"], textarea) {
+  min-width: 0;
+}
+
+.app :where(select, .metronomeSelectButton) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app :where(.metronomeSelectMenu, .dropdown, [role="listbox"]) {
+  z-index: 4800 !important;
+  max-width: min(calc(100vw - 24px), 420px);
+  overscroll-behavior: contain;
+}
+
+.app :where(input[type="range"]) {
+  min-height: 28px;
+  touch-action: pan-x;
+}
+
+.desktopNav a {
+  min-height: 44px;
+  transition:
+    border-color var(--riff-transition-fast) ease,
+    background-color var(--riff-transition-fast) ease,
+    color var(--riff-transition-fast) ease,
+    transform var(--riff-transition-fast) ease;
+}
+
+.desktopNav a:active {
+  transform: translateY(1px);
+}
+
+@media (min-width: 1024px) {
+  /* DesktopLayout already provides the persistent navigation rail. Keep the
+     mobile bottom navigation out of that workspace to avoid duplicated UI. */
+  .desktopLayout .desktopWorkspaceContent .hud > .modeSwitch,
+  .desktopLayout .desktopWorkspaceContent .mainBottomNav {
+    display: none !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > .app {
+    padding-bottom: 18px;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .app button:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .app {
+    --riff-control-height: 42px;
+    --riff-control-height-compact: 38px;
+    --riff-panel-padding: 12px;
+  }
+
+  .app :where(
+    .metronomeSelectButton,
+    .viewerSelectGrid select,
+    .scalePickerPanel select,
+    .referenceScalePicker select,
+    .chordProgressionPicker select,
+    .stage3StorageSelectPanel select,
+    .stage3StorageEditor select
+  ) {
+    min-height: 40px !important;
+    padding-inline: 11px 28px !important;
+    border-radius: var(--riff-control-radius-compact) !important;
+  }
+
+  /* Late product-specific rules in style.css use intentionally high
+     specificity. Repeat the app scope here so the shared touch sizes win
+     without changing any component markup or behaviour. */
+  html body main.app.app.app :where(.metronomeSelectButton) {
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+  }
+
+  .app :where(
+    .viewerModeTabs button,
+    .viewerNotePanel button,
+    .viewerChordPositionGroup button,
+    .chordChipGroup button,
+    .chordBuilderChip
+  ) {
+    min-height: 40px !important;
+    border-radius: var(--riff-control-radius-compact) !important;
+  }
+
+  .app .chordBuilderChip {
+    min-width: 38px !important;
+    padding-inline: 7px !important;
+  }
+
+  html body main.app.app.app .fretboardViewerPanel :where(
+    .viewerModeTabs button,
+    .viewerNotePanel button,
+    .viewerChordPositionGroup button,
+    .chordChipGroup button,
+    .chordBuilderChip
+  ) {
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: none !important;
+  }
+
+  html body main.app.app.app .fretboardViewerPanel .chordBuilderChip {
+    min-width: 38px !important;
+  }
+
+  html body main.app.app.app.app.app .fretboardViewerPanel.fretboardViewerPanel
+    .viewerMapCard.viewerMapCard--chord .viewerAllButton.viewerAllButton {
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+  }
+
+  .app .viewerAllButton {
+    min-height: 38px !important;
+    padding-inline: 13px !important;
+    border-radius: 999px !important;
+  }
+
+  .app .stage3LoadToolbar {
+    gap: var(--riff-control-gap) !important;
+  }
+
+  .app .stage3StorageMoveButton {
+    min-height: 40px !important;
+    border-radius: var(--riff-control-radius-compact) !important;
+  }
+
+  .app .stage3BackingSelectRow {
+    gap: 5px !important;
+  }
+
+  .app .stage3BackingSelectRow button {
+    min-height: 34px !important;
+    padding-inline: 8px !important;
+    border-radius: 9px !important;
+  }
+
+  .app .stage3BackingPartSegment button {
+    min-height: 38px !important;
+    border-radius: 9px !important;
+  }
+
+  .app .metronomeBpmAdjustGroup {
+    grid-template-rows: 34px 6px 34px !important;
+    height: 78px !important;
+    min-height: 78px !important;
+    max-height: 78px !important;
+    padding-block: 2px !important;
+  }
+
+  .app .metronomeBpmAdjustGroup :where(.metronomeHeroBpmButton, .metronomeHeroBpmJumpButton) {
+    width: 100% !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    border-radius: 9px !important;
+  }
+
+  html body main.app.app.app .metronomeHeroCard .metronomeBpmAdjustGroup
+    > :is(.metronomeHeroBpmButton, .metronomeHeroBpmJumpButton) {
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    border-radius: 9px !important;
+  }
+
+  html body main.app.app.app .standaloneMetronomePanel .metronomeHeroCard .metronomeBpmAdjustGroup
+    > :is(.metronomeHeroBpmButton, .metronomeHeroBpmJumpButton),
+  html body main.app.app.app .miniChordMakerPanel .metronomeHeroCard .metronomeBpmAdjustGroup
+    > :is(.metronomeHeroBpmButton, .metronomeHeroBpmJumpButton) {
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    justify-self: center !important;
+  }
+
+  .app .metronomeVisualOptionsToggles {
+    gap: 6px !important;
+  }
+
+  .app .metronomeVisualOptionsToggles button {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    border-radius: 11px !important;
+  }
+
+  html body main.app.app.app .standaloneMetronomePanel.standaloneMetronomePanel
+    .metronomeVisualOptionsToggles button {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    max-width: 40px !important;
+    max-height: 40px !important;
+  }
+
+  html body main.app.app.app.app.app .standaloneMetronomePanel.standaloneMetronomePanel
+    .metronomeVisualOptionsToggles.metronomeVisualOptionsToggles button {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    max-width: 40px !important;
+    max-height: 40px !important;
+  }
+
+  .app :where(.trainingNoteGuideToggle, .shooterDifficultyButtons button, .shooterMicButton) {
+    min-height: 40px !important;
+    border-radius: var(--riff-control-radius-compact) !important;
+  }
+
+  html body main.app.app.app .shooterPanel :where(.shooterDifficultyButtons button, .shooterMicButton) {
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+  }
+
+  .app .referenceBeatMetronomeDot {
+    min-width: 34px !important;
+    min-height: 34px !important;
+  }
+
+  .app .backingLoopPanel--mobile {
+    grid-template-rows: 16px 17px 36px 36px !important;
+    height: 126px !important;
+    min-height: 126px !important;
+    padding-block: 6px !important;
+  }
+
+  .app .backingLoopPanel--mobile .backingLoopStorageControls .backingLoopButton {
+    min-height: 36px !important;
+    border-radius: 9px !important;
+    font-size: 10px !important;
+  }
+
+  .app .backingLoopProgress input {
+    height: 28px !important;
+    min-height: 28px !important;
+    margin-block: -6px !important;
+  }
+
+  .app .miniChordTransport button,
+  .app .miniChordQuickBar button,
+  .app .miniChordLoadPicker button {
+    min-height: 40px !important;
+    border-radius: var(--riff-control-radius-compact) !important;
+  }
+
+  html body main.app.app.app .miniChordMakerPanelCompact :where(
+    .miniChordTransport button,
+    .miniChordQuickBar button,
+    .miniChordLoadPicker button
+  ) {
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+  }
+
+
+  html body main.app.app.app.app.app .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard .metronomeBpmAdjustGroup
+    > :is(button.metronomeHeroBpmButton, button.metronomeHeroBpmJumpButton),
+  html body main.app.app.app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard .metronomeBpmAdjustGroup
+    > :is(button.metronomeHeroBpmButton, button.metronomeHeroBpmJumpButton),
+  html body main.app.app.app.app.app :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.metronomeHeroCard .metronomeBpmAdjustGroup
+    > :is(button.metronomeHeroBpmButton, button.metronomeHeroBpmJumpButton),
+  html body main.app.app.app.app.app .miniChordMakerPanelCompact .miniChordMetronomePanel
+    .metronomeHeroCard.metronomeHeroCard .metronomeBpmAdjustGroup
+    > :is(button.metronomeHeroBpmButton, button.metronomeHeroBpmJumpButton) {
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    line-height: 34px !important;
+    border-radius: 9px !important;
+  }
+
+  html body main.app.app.app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeHeroCard.metronomeHeroCard .metronomeBpmAdjustGroup
+    > :is(button.metronomeHeroBpmButton, button.metronomeHeroBpmJumpButton),
+  html body main.app.app.app.app.app .miniChordMakerPanelCompact .miniChordMetronomePanel
+    .metronomeHeroCard.metronomeHeroCard .metronomeBpmAdjustGroup
+    > :is(button.metronomeHeroBpmButton, button.metronomeHeroBpmJumpButton) {
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+  }
+
+  html body main.app.app.app.app.app .standaloneMetronomePanel.standaloneMetronomePanel
+    .standaloneMetronomeControl.standaloneMetronomeControl
+    button.metronomeSelectButton.metronomeSelectButton,
+  html body main.app.app.app.app.app .chordTransitionPanel.chordTransitionPanel
+    .stage3LoadToolbar .stage3LoadSelect.stage3LoadSelect
+    > button.metronomeSelectButton.metronomeSelectButton,
+  html body main.app.app.app.app.app :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    button.metronomeSelectButton.metronomeSelectButton {
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+  }
+
+  html body main.app.app.app.app.app button.metronomeSelectButton.metronomeSelectButton {
+    overflow: visible !important;
+  }
+
+  html body main.app.app.app.app.app button.metronomeSelectButton.metronomeSelectButton::after {
+    inset: -3px 0 !important;
+    background: transparent !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .app .miniChordBarCountOptions button,
+  .app .miniChordBarControls button,
+  .app .miniChordLengthOptions button {
+    min-width: 36px !important;
+    min-height: 36px !important;
+    border-radius: 9px !important;
+  }
+
+  html body main.app.app.app .miniChordMakerPanelCompact :where(
+    .miniChordSegment button,
+    .miniChordPageStepper button
+  ) {
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+  }
+
+  .app .miniChordMarkHotspotStart,
+  .app .miniChordMarkHotspotEnd {
+    min-width: 24px !important;
+  }
+
+  html body main.app.app.app .miniChordMakerPanelCompact :is(
+    .miniChordMarkHotspotStart,
+    .miniChordMarkHotspotEnd
+  ) {
+    width: 24px !important;
+    min-width: 24px !important;
+  }
+
+  .app .miniChordMarkHotspotEnding {
+    min-height: 24px !important;
+  }
+
+  html body main.app.app.app .miniChordMakerPanelCompact .miniChordMarkHotspotEnding {
+    height: 24px !important;
+    min-height: 24px !important;
+  }
+
+  html body main.app.app.app .miniChordMakerPanelCompact .miniChordPowerToggle {
+    width: 38px !important;
+    height: 36px !important;
+    min-width: 38px !important;
+    min-height: 36px !important;
+  }
+
+  html body main.app.app.app .miniChordMakerPanelCompact :where(
+    .miniChordBeatOptions button,
+    .miniChordPianoStyleOptions button
+  ) {
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+  }
+
+  .app :where(.utilityMenuItem, .helpAccordionTrigger) {
+    min-height: 48px;
+  }
+
+  .app :where(.utilityMenuHeader > button, .helpGuideHeader > button, .iconOnlyButton) {
+    min-width: 42px;
+    min-height: 42px;
+    padding: 0;
+  }
+
+  .app :where(
+    .viewerControlPanel,
+    .viewerMapCard,
+    .viewerNotePanel,
+    .chordBuilderPanel,
+    .chordCatalogPanel,
+    .referenceTrainingPanel,
+    .scaleBlockTrainingPanel,
+    .chordTransitionPanel,
+    .standaloneMetronomeControl
+  ) {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 390px) {
+  .app :where(.viewerModeTabs, .stage3LoadToolbar, .miniChordTransport, .miniChordQuickBar) {
+    min-width: 0;
+  }
+
+  .app .riffBrandHeader--logoLab {
+    max-width: 100%;
+  }
+
+  .app .riffBrandLogoBody,
+  .app .riffBrandLogoText {
+    max-width: 100%;
+  }
+
+  .app .stage3BackingSelectRow button {
+    font-size: 10px !important;
+  }
+}
+
+@media (max-width: 350px) {
+  .app .chordBuilderChip {
+    min-width: 34px !important;
+    padding-inline: 5px !important;
+  }
+
+  .app .stage3BackingSelectRow button {
+    min-height: 32px !important;
+    padding-inline: 6px !important;
+    font-size: 9.5px !important;
+  }
+}
+
+/* Navigation and state transitions: fast enough to preserve instrument feel. */
+@keyframes riffViewEnter {
+  from {
+    opacity: 0.965;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes riffMenuEnterDown {
+  from {
+    opacity: 0.92;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes riffMenuEnterUp {
+  from {
+    opacity: 0.92;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes riffDialogBackdropEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes riffDialogEnter {
+  from {
+    opacity: 0.94;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.app > :where(
+  .mainHub,
+  .curriculum,
+  .miniChordMakerPanel,
+  .designLabPanel,
+  .fretboardViewerPanel,
+  .standaloneMetronomePanel,
+  .shooterPanel,
+  .chordTransitionPanel,
+  .gamePanel
+) {
+  animation: riffViewEnter var(--riff-transition-fast) ease-out both;
+}
+
+.app :where(
+  .modeSwitch button,
+  .viewerModeTabs button,
+  .chordBuilderChip,
+  .metronomeBeatButton,
+  .metronomeSelectButton,
+  .metronomeSelectOption,
+  .backingLoopButton
+) {
+  transition-property: background-color, border-color, color, box-shadow, opacity, transform !important;
+}
+
+.metronomeSelectControl--down .metronomeSelectMenu {
+  animation: riffMenuEnterDown 120ms ease-out both;
+}
+
+.metronomeSelectControl--up .metronomeSelectMenu {
+  animation: riffMenuEnterUp 120ms ease-out both;
+}
+
+/* Dropdowns live at the app root so transformed screen cards cannot change
+   the containing block used by their fixed viewport coordinates. */
+.metronomeSelectPortal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 4800 !important;
+  display: block !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  pointer-events: none !important;
+  transform: none !important;
+}
+
+.metronomeSelectPortal > .metronomeSelectMenu {
+  z-index: 4801 !important;
+  width: min(var(--riff-dropdown-width, 168px), calc(100vw - 24px)) !important;
+  min-width: 0 !important;
+  max-width: calc(100vw - 24px) !important;
+  box-sizing: border-box !important;
+  pointer-events: auto !important;
+}
+
+/* Portalled menus are no longer descendants of their screen card. Carry the
+   active gold-dark theme at the app root so every shared dropdown (rhythm,
+   standalone metronome, scale, fretboard, and compact chord tools) stays in
+   the same visual system. */
+html body main.app.theme-brand.theme-brand
+  > .metronomeSelectPortal
+  > .metronomeSelectMenu {
+  border: 1px solid rgba(217, 170, 85, 0.5) !important;
+  border-radius: 12px !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(217, 170, 85, 0.15), transparent 42%),
+    linear-gradient(180deg, rgba(27, 22, 11, 0.99), rgba(7, 6, 3, 0.995)) !important;
+  color: #f4dfb3 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 232, 166, 0.1),
+    0 16px 32px rgba(0, 0, 0, 0.58),
+    0 0 0 1px rgba(0, 0, 0, 0.36) !important;
+  scrollbar-color: rgba(217, 170, 85, 0.74) rgba(12, 9, 4, 0.92) !important;
+}
+
+html body main.app.theme-brand.theme-brand
+  > .metronomeSelectPortal
+  > .metronomeSelectMenu::-webkit-scrollbar {
+  width: 5px !important;
+}
+
+html body main.app.theme-brand.theme-brand
+  > .metronomeSelectPortal
+  > .metronomeSelectMenu::-webkit-scrollbar-track {
+  border-radius: 999px !important;
+  background: rgba(12, 9, 4, 0.92) !important;
+}
+
+html body main.app.theme-brand.theme-brand
+  > .metronomeSelectPortal
+  > .metronomeSelectMenu::-webkit-scrollbar-thumb {
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, rgba(236, 194, 105, 0.92), rgba(151, 104, 43, 0.92)) !important;
+}
+
+html body main.app.theme-brand.theme-brand
+  > .metronomeSelectPortal
+  > .metronomeSelectMenu
+  > .metronomeSelectOption {
+  width: 100% !important;
+  min-height: 35px !important;
+  margin: 0 !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(217, 170, 85, 0.16) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: #f2ddb2 !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  transform: none !important;
+  transition:
+    background-color var(--riff-dropdown-state-transition) ease,
+    border-color var(--riff-dropdown-state-transition) ease,
+    color var(--riff-dropdown-state-transition) ease,
+    box-shadow var(--riff-dropdown-state-transition) ease !important;
+}
+
+html body main.app.theme-brand.theme-brand
+  > .metronomeSelectPortal
+  > .metronomeSelectMenu--twoColumn
+  > .metronomeSelectOption {
+  border-right: 1px solid rgba(217, 170, 85, 0.16) !important;
+}
+
+html body main.app.theme-brand.theme-brand
+  > .metronomeSelectPortal
+  > .metronomeSelectMenu--twoColumn
+  > .metronomeSelectOption:nth-child(2n) {
+  border-right: 0 !important;
+}
+
+html body main.app.theme-brand.theme-brand
+  > .metronomeSelectPortal
+  > .metronomeSelectMenu:not(.metronomeSelectMenu--twoColumn)
+  > .metronomeSelectOption:last-child,
+html body main.app.theme-brand.theme-brand
+  > .metronomeSelectPortal
+  > .metronomeSelectMenu--twoColumn
+  > .metronomeSelectOption:nth-last-child(-n + 2) {
+  border-bottom: 0 !important;
+}
+
+html body main.app.theme-brand.theme-brand
+  > .metronomeSelectPortal
+  > .metronomeSelectMenu
+  > .metronomeSelectOption:is(:hover, :focus, :focus-visible) {
+  border-color: rgba(217, 170, 85, 0.16) !important;
+  border-radius: var(--riff-dropdown-state-radius) !important;
+  background-color: var(--riff-dropdown-hover-bg) !important;
+  background-image: none !important;
+  color: var(--riff-dropdown-hover-text) !important;
+  box-shadow:
+    inset 2px 0 0 var(--riff-dropdown-hover-accent),
+    inset 0 0 0 1px rgba(217, 170, 85, 0.025) !important;
+  outline: 0 !important;
+  transform: none !important;
+}
+
+html body main.app.theme-brand.theme-brand
+  > .metronomeSelectPortal
+  > .metronomeSelectMenu
+  > .metronomeSelectOption:is(.selected, [aria-selected="true"]) {
+  border-color: rgba(217, 170, 85, 0.16) !important;
+  border-radius: var(--riff-dropdown-state-radius) !important;
+  background-color: var(--riff-dropdown-selected-bg) !important;
+  background-image: none !important;
+  color: var(--riff-dropdown-selected-text) !important;
+  box-shadow:
+    inset 2px 0 0 var(--riff-dropdown-selected-accent),
+    inset 0 0 0 1px rgba(217, 170, 85, 0.065),
+    inset 0 1px 0 rgba(255, 236, 185, 0.035) !important;
+  transform: none !important;
+}
+
+html body main.app.theme-brand.theme-brand
+  > .metronomeSelectPortal
+  > .metronomeSelectMenu
+  > .metronomeSelectOption:disabled {
+  color: rgba(242, 221, 178, 0.42) !important;
+  opacity: 0.56 !important;
+}
+
+.metronomeSelectMenu--down {
+  animation: riffMenuEnterDown 120ms ease-out both;
+  transform-origin: center top !important;
+}
+
+.metronomeSelectMenu--up {
+  animation: riffMenuEnterUp 120ms ease-out both;
+  transform-origin: center bottom !important;
+}
+
+@media (max-width: 767px) {
+  /* The bottom navigation is fixed. Collapse only its metronome-page wrapper
+     so removing the old brand plate does not leave a blank first grid row. */
+  html body main.app.app.app.metronomeMode > .hud {
+    display: block !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) {
+    margin-top: 0 !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .backingLoopPanel.backingLoopPanel--mobile {
+    grid-template-rows: 22px 28px 42px 42px !important;
+    align-content: space-between !important;
+    gap: 6px !important;
+    height: clamp(172px, 21.8dvh, 184px) !important;
+    min-height: clamp(172px, 21.8dvh, 184px) !important;
+    max-height: 184px !important;
+    margin-top: 8px !important;
+    padding: 10px 8px !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopHeader {
+    padding-inline: 2px !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile :is(.backingLoopTitle, .backingLoopTime) {
+    font-size: 10.5px !important;
+    line-height: 1.1 !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopProgress {
+    min-height: 28px !important;
+    margin: 0 3px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopProgress input {
+    display: block !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    appearance: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    -webkit-appearance: none !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopProgress input::-webkit-slider-runnable-track {
+    height: 5px !important;
+    border-radius: 999px !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopProgress input::-webkit-slider-thumb {
+    width: 12px !important;
+    height: 12px !important;
+    margin-top: -3.5px !important;
+    border-radius: 999px !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopProgress input::-moz-range-track,
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopProgress input::-moz-range-progress {
+    height: 5px !important;
+    border-radius: 999px !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopProgress input::-moz-range-thumb {
+    width: 12px !important;
+    height: 12px !important;
+    border-radius: 999px !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile :is(.backingLoopMainControls, .backingLoopStorageControls) {
+    gap: 6px !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopMainControls {
+    gap: 5px !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopMainControls .backingLoopButton {
+    gap: 2px !important;
+    padding-inline: 4px !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopButton,
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopStorageControls .backingLoopButton {
+    min-height: 42px !important;
+    padding-inline: 5px !important;
+    border-radius: 10px !important;
+    font-size: 10.5px !important;
+  }
+}
+
+.app :where(.viewerMapCard, .viewerControlPanel, .metronomeAdvancedCard),
+.backingLoopPanel {
+  transition:
+    border-color var(--riff-transition-fast) ease,
+    background-color var(--riff-transition-fast) ease,
+    box-shadow var(--riff-transition-fast) ease;
+}
+
+/* Small receiver-style corner signals keep the recorder panel decorative
+   without taking space from its controls or changing the panel geometry. */
+.backingLoopPanel {
+  --backing-loop-corner-signal: rgba(151, 103, 92, 0.38);
+  --backing-loop-corner-signal-soft: rgba(198, 118, 138, 0.18);
+  --backing-loop-corner-signal-faint: rgba(151, 103, 92, 0.09);
+  position: relative;
+  isolation: isolate;
+}
+
+html body main.app.theme-brand.theme-brand .backingLoopPanel {
+  --backing-loop-corner-signal: rgba(234, 190, 100, 0.5);
+  --backing-loop-corner-signal-soft: rgba(217, 170, 85, 0.22);
+  --backing-loop-corner-signal-faint: rgba(217, 170, 85, 0.1);
+}
+
+.backingLoopPanel::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 5px 5px, var(--backing-loop-corner-signal) 0 1.2px, transparent 1.5px),
+    radial-gradient(circle at 5px 5px, transparent 0 3.6px, var(--backing-loop-corner-signal-soft) 3.8px 4.4px, transparent 4.7px),
+    radial-gradient(circle at 5px 5px, transparent 0 7px, var(--backing-loop-corner-signal-faint) 7.2px 7.9px, transparent 8.2px),
+    radial-gradient(circle at calc(100% - 5px) 5px, var(--backing-loop-corner-signal) 0 1.2px, transparent 1.5px),
+    radial-gradient(circle at calc(100% - 5px) 5px, transparent 0 3.6px, var(--backing-loop-corner-signal-soft) 3.8px 4.4px, transparent 4.7px),
+    radial-gradient(circle at calc(100% - 5px) 5px, transparent 0 7px, var(--backing-loop-corner-signal-faint) 7.2px 7.9px, transparent 8.2px);
+  content: "";
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.backingLoopPanel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.backingLoopTime,
+.backingLoopDesktopNotice,
+.backingLoopScreenReaderStatus {
+  transition: color var(--riff-transition-fast) ease, opacity var(--riff-transition-fast) ease;
+}
+
+.backingLoopDialogLayer {
+  animation: riffDialogBackdropEnter var(--riff-transition-fast) ease-out both;
+}
+
+.backingLoopDialogLayer > [role="dialog"] {
+  animation: riffDialogEnter 150ms ease-out both;
+  outline: none;
+}
+
+body.backingLoopDialogOpen {
+  overflow: hidden;
+}
+
+.app details[open] > :not(summary) {
+  animation: riffViewEnter 130ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app *,
+  .app *::before,
+  .app *::after,
+  .desktopNav a {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

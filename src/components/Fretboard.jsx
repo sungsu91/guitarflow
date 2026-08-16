@@ -33,6 +33,54 @@ const NOTE_COLORS = {
   B: { fill: "#f472b6", text: "#2b0719" },
 };
 
+const notePressFeedbacks = new WeakMap();
+
+function triggerNotePressFeedback(element) {
+  if (!element) return;
+  const previousFeedback = notePressFeedbacks.get(element);
+  if (previousFeedback?.animation) {
+    previousFeedback.animation.oncancel = null;
+    previousFeedback.animation.onfinish = null;
+    previousFeedback.animation.cancel();
+  }
+  if (previousFeedback?.timer) window.clearTimeout(previousFeedback.timer);
+  element.classList.remove("is-pressed");
+  element.classList.remove("is-pressed--fallback");
+  element.classList.add("is-pressed");
+
+  const release = (feedback) => {
+    if (notePressFeedbacks.get(element) !== feedback) return;
+    element.classList.remove("is-pressed");
+    element.classList.remove("is-pressed--fallback");
+    notePressFeedbacks.delete(element);
+  };
+
+  if (typeof element.animate === "function" && !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+    const animation = element.animate(
+      [
+        { filter: "brightness(1)", transform: "translate(-50%, -50%) scale(1)" },
+        { filter: "brightness(1.1)", offset: 0.46, transform: "translate(-50%, -50%) scale(1.08)" },
+        { filter: "brightness(1)", transform: "translate(-50%, -50%) scale(1)" },
+      ],
+      {
+        duration: 160,
+        easing: "cubic-bezier(0.22, 0.72, 0.25, 1)",
+      },
+    );
+    const feedback = { animation };
+    animation.onfinish = () => release(feedback);
+    animation.oncancel = () => release(feedback);
+    notePressFeedbacks.set(element, feedback);
+    return;
+  }
+
+  element.classList.add("is-pressed--fallback");
+  const feedback = {
+    timer: window.setTimeout(() => release(feedback), 160),
+  };
+  notePressFeedbacks.set(element, feedback);
+}
+
 function pitchToMidi(pitch) {
   const match = /^([A-G]#?)(\d)$/.exec(pitch ?? "");
   if (!match) return null;
@@ -132,6 +180,7 @@ function Fretboard({
   stringStates = {},
   tabSteps = [],
   notation = "notes",
+  onNotePress,
 }) {
   const [startFret, endFret] = normalizeFretRange(fretRange);
   const visualStartFret = Math.max(1, startFret);
@@ -157,6 +206,17 @@ function Fretboard({
     return (fretNumber - visualStartFret + 0.5) / Math.max(1, fretNumbers.length);
   };
   const getTabXRatio = (tabIndex) => (Number(tabIndex) + 0.5) / tabSlotCount;
+  const activateNote = (event, note) => {
+    if (!onNotePress || !note) return;
+    event.stopPropagation();
+    triggerNotePressFeedback(event.currentTarget);
+    onNotePress(note);
+  };
+  const handleNoteKeyDown = (event, note) => {
+    if (!onNotePress || !note || !["Enter", " "].includes(event.key)) return;
+    event.preventDefault();
+    activateNote(event, note);
+  };
 
   return (
     <div
@@ -203,7 +263,17 @@ function Fretboard({
                     {String(stringState).toUpperCase()}
                   </em>
                 ) : !isTabMode && openNote ? (
-                  <em className={`fretboardStringState noteOpen ${openNote.noteName === rootNote || openNote.isRoot ? "root" : ""} ${openNote.isActive ? "active" : ""} ${isOpenCurrent ? "current-note" : ""} ${isOpenSelected ? "selected" : ""}`}>
+                  <em
+                    aria-label={onNotePress ? `${openNote.pitch ?? openLabel}, ${stringInfo.stringNumber}번줄 개방현 소리 듣기` : undefined}
+                    className={`fretboardStringState noteOpen ${openNote.noteName === rootNote || openNote.isRoot ? "root" : ""} ${openNote.isActive ? "active" : ""} ${isOpenCurrent ? "current-note" : ""} ${isOpenSelected ? "selected" : ""} ${onNotePress ? "is-interactive" : ""}`}
+                    data-fret-number="0"
+                    data-note-pitch={openNote.pitch}
+                    data-string-number={stringInfo.stringNumber}
+                    onClick={onNotePress ? (event) => activateNote(event, openNote) : undefined}
+                    onKeyDown={onNotePress ? (event) => handleNoteKeyDown(event, openNote) : undefined}
+                    role={onNotePress ? "button" : undefined}
+                    tabIndex={onNotePress ? 0 : undefined}
+                  >
                     {openLabel}
                   </em>
                 ) : null}
@@ -310,13 +380,21 @@ function Fretboard({
           const displayLabel = showFingering && note.finger ? note.finger : note.label ?? noteName;
           return (
             <span
-              className={`fretboardNoteChip ${isRoot ? "root" : ""} ${note.isActive ? "active" : ""} ${isCurrent ? "current-note" : ""} ${isSelected ? "selected" : ""}`}
+              aria-label={onNotePress ? `${note.pitch ?? noteName}, ${note.stringNumber}번줄 ${note.fretNumber}프렛 소리 듣기` : undefined}
+              className={`fretboardNoteChip ${isRoot ? "root" : ""} ${note.isActive ? "active" : ""} ${isCurrent ? "current-note" : ""} ${isSelected ? "selected" : ""} ${onNotePress ? "is-interactive" : ""}`}
+              data-fret-number={note.fretNumber}
+              data-note-pitch={note.pitch}
+              data-string-number={note.stringNumber}
               key={noteId}
+              onClick={onNotePress ? (event) => activateNote(event, note) : undefined}
+              onKeyDown={onNotePress ? (event) => handleNoteKeyDown(event, note) : undefined}
+              role={onNotePress ? "button" : undefined}
               style={{
                 "--fretboard-x-ratio": getXRatio(Number(note.fretNumber)),
                 "--fretboard-y-ratio": (Number(note.stringNumber) - 0.5) / 6,
                 ...getNoteStyle(noteName),
               }}
+              tabIndex={onNotePress ? 0 : undefined}
               title={`${note.pitch ?? noteName} · ${note.stringNumber}번줄 ${note.fretNumber}프렛`}
             >
               <b>{displayLabel}</b>

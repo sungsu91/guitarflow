@@ -1,4 +1,4 @@
-﻿import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -14,9 +14,12 @@ import {
   Radio,
   RotateCcw,
   Settings,
+  Shield,
   Square,
   Timer,
   Trash2,
+  Redo2,
+  Undo2,
   Volume2,
   VolumeX,
   X,
@@ -24,6 +27,7 @@ import {
 import { createPortal, flushSync } from "react-dom";
 import { acquireMicInput } from "./audio/micInputEngine";
 import { MIC_INPUT_PRESETS } from "./audio/micInputPresets";
+import { playGuitarPositions } from "./audio/fretboardPreviewEngine";
 import BrandHeader from "./components/BrandHeader";
 import BackingLoop from "./components/BackingLoop";
 import Fretboard from "./components/Fretboard";
@@ -42,6 +46,49 @@ import {
   solveShooterIntercept,
   sweepCircleAgainstMovingEllipse,
 } from "./shooter/collision";
+import {
+  applyMiniChordEndingRangesToBarMarks,
+  getMiniChordEndingRangeForBar,
+  getMiniChordEndingRangesFromBarMarks,
+  normalizeMiniChordEndingRanges,
+  stripMiniChordEndingsFromBarMarks,
+  toggleMiniChordEndingRange,
+} from "./mini-chord/endingRanges";
+import {
+  clampMiniChordFloatingPosition,
+  getMiniChordFloatingEditorPosition,
+} from "./mini-chord/floatingPosition";
+import {
+  createMiniChordEditHistory,
+  recordMiniChordEdit,
+  redoMiniChordEdit,
+  undoMiniChordEdit,
+} from "./mini-chord/editHistory";
+import {
+  validateMiniChordCommandEdit,
+  validateMiniChordEndingEdit,
+  validateMiniChordMarkerEdit,
+  validateMiniChordRepeatEdit,
+} from "./mini-chord/notationValidation";
+import {
+  MINI_CHORD_ACCIDENTAL_PREFERENCES,
+  clampMiniChordCapo,
+  getMiniChordBackingRootPitch,
+  normalizeMiniChordAccidentalPreference,
+  transposeMiniChordLabel,
+} from "./mini-chord/capo";
+import {
+  BEAT_PRESET_SLOT_IDS,
+  BEAT_PRESET_SLOT_LABELS,
+  createBeatPresetStore,
+  getBeatPresetSlot,
+  normalizeBeatPresetStore,
+} from "./rhythm/beatPresetStore";
+import {
+  METRONOME_SUBDIVISION_OPTIONS as SUBDIVISION_OPTIONS,
+  getMetronomeSubdivisionOption as getSubdivisionOption,
+  getMetronomeSubdivisionTickMs,
+} from "./metronome/subdivision";
 
 const CHROMATIC_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const NOTE_INDEX = Object.fromEntries(CHROMATIC_NOTES.map((note, index) => [note, index]));
@@ -79,6 +126,25 @@ function releaseControlPressState(element = null) {
   if (activeElement && activeElement !== document.body && activeElement !== element && typeof activeElement.blur === "function") {
     activeElement.blur();
   }
+}
+
+const chordSoundFeedbackTimers = new WeakMap();
+
+function triggerChordSoundFeedback(button) {
+  if (!button) return;
+  const card = button.closest?.(".viewerMapCard--chord");
+  const previousTimer = chordSoundFeedbackTimers.get(button);
+  if (previousTimer) window.clearTimeout(previousTimer);
+  button.classList.add("is-sounding");
+  button.setAttribute("aria-pressed", "true");
+  card?.classList.add("is-sounding");
+  const timer = window.setTimeout(() => {
+    button.classList.remove("is-sounding");
+    button.setAttribute("aria-pressed", "false");
+    card?.classList.remove("is-sounding");
+    chordSoundFeedbackTimers.delete(button);
+  }, 320);
+  chordSoundFeedbackTimers.set(button, timer);
 }
 
 function pitchToMidi(pitch) {
@@ -3107,12 +3173,6 @@ const TIME_SIGNATURE_OPTIONS = [
   { id: "12/8", label: "12/8", beats: 12 },
 ];
 
-const SUBDIVISION_OPTIONS = [
-  { id: "quarter", label: "♪", longLabel: "1박 1클릭", clicksPerBeat: 1 },
-  { id: "eighth", label: "♪♪", longLabel: "1박 2클릭", clicksPerBeat: 2 },
-  { id: "sixteenth", label: "♬", longLabel: "1박 4클릭", clicksPerBeat: 4 },
-];
-
 const METRONOME_TONE_OPTIONS = [
   { id: "tick", label: "Tick" },
   { id: "agogo", label: "Agogo", src: "/sounds/agogobell.wav" },
@@ -3230,6 +3290,89 @@ const MINI_CHORD_PIANO_STYLE_OPTIONS = [
   { id: "custom", label: "커스텀" },
 ];
 const MINI_CHORD_PIANO_STYLE_IDS = new Set(MINI_CHORD_PIANO_STYLE_OPTIONS.map((option) => option.id));
+const MINI_CHORD_CUSTOM_PATTERN_ID = "custom";
+const MINI_CHORD_GLOBAL_PATTERN_ID = "global";
+const MINI_CHORD_GROOVE_STEPS = 16;
+const MINI_CHORD_GROOVE_STEP_LABELS = [
+  "1", "1e", "1&", "1a",
+  "2", "2e", "2&", "2a",
+  "3", "3e", "3&", "3a",
+  "4", "4e", "4&", "4a",
+];
+const MINI_CHORD_DRUM_PATTERN_OPTIONS = [
+  { id: "basic", label: "기본" },
+  ...BACKING_DRUM_PATTERN_OPTIONS,
+  { id: MINI_CHORD_CUSTOM_PATTERN_ID, label: "CUSTOM" },
+];
+const MINI_CHORD_BASS_BEAT_OPTIONS = [
+  BACKING_BASS_BEAT_OPTIONS[0],
+  { id: "4beat", label: "4비트" },
+  ...BACKING_BASS_BEAT_OPTIONS.slice(1),
+  { id: MINI_CHORD_CUSTOM_PATTERN_ID, label: "CUSTOM" },
+];
+const MINI_CHORD_PIANO_BEAT_OPTIONS = [
+  ...BACKING_PIANO_BEAT_OPTIONS,
+  { id: MINI_CHORD_CUSTOM_PATTERN_ID, label: "CUSTOM" },
+];
+const MINI_CHORD_DRUM_INSTRUMENTS = [
+  { id: "kick", label: "Kick", name: "Kick", sample: "kick", volume: 0.98 },
+  { id: "snare", label: "Snare", name: "Snare", sample: "snare", volume: 0.84 },
+  { id: "closedHat", label: "Hat", name: "Closed Hat", sample: "hihat", volume: 0.13 },
+  { id: "shaker", label: "Shaker", name: "Shaker", sample: "shaker", volume: 0.1 },
+];
+const MINI_CHORD_BASS_STEP_VALUES = [
+  { id: "rest", label: "-", ariaLabel: "쉼" },
+  { id: "root", label: "R", ariaLabel: "루트" },
+  { id: "third", label: "3", ariaLabel: "3도" },
+  { id: "fifth", label: "5", ariaLabel: "5도" },
+  { id: "octave", label: "8", ariaLabel: "옥타브" },
+];
+const MINI_CHORD_BASS_STEP_VALUE_IDS = new Set(MINI_CHORD_BASS_STEP_VALUES.map((option) => option.id));
+const MINI_CHORD_PIANO_STEP_STYLES = [
+  { id: "chord", label: "Chord" },
+  { id: "stab", label: "Stab" },
+  { id: "arpUp", label: "Arp up", displayLabel: "Arp ↑" },
+  { id: "arpDown", label: "Arp down", displayLabel: "Arp ↓" },
+];
+const MINI_CHORD_PIANO_STEP_STYLE_IDS = new Set(MINI_CHORD_PIANO_STEP_STYLES.map((option) => option.id));
+const MINI_CHORD_ARRANGEMENT_OPTION_GROUPS = {
+  rhythmPattern: [
+    { id: MINI_CHORD_GLOBAL_PATTERN_ID, label: "전체" },
+    ...MINI_CHORD_DRUM_PATTERN_OPTIONS,
+  ],
+  bassBeat: [
+    { id: MINI_CHORD_GLOBAL_PATTERN_ID, label: "전체" },
+    ...MINI_CHORD_BASS_BEAT_OPTIONS,
+  ],
+  pianoBeat: [
+    { id: MINI_CHORD_GLOBAL_PATTERN_ID, label: "전체" },
+    ...MINI_CHORD_PIANO_BEAT_OPTIONS,
+  ],
+};
+const MINI_CHORD_ARRANGEMENT_PART_LABELS = {
+  rhythmPattern: "드럼",
+  bassBeat: "베이스",
+  pianoBeat: "피아노",
+};
+const MINI_CHORD_ARRANGEMENT_KEY_TO_PART = {
+  rhythmPattern: "drum",
+  bassBeat: "bass",
+  pianoBeat: "piano",
+};
+const MINI_CHORD_PART_TO_ARRANGEMENT_KEY = {
+  drum: "rhythmPattern",
+  bass: "bassBeat",
+  piano: "pianoBeat",
+};
+const MINI_CHORD_COMPACT_PATTERN_LABELS = {
+  ...BEAT_PRESET_SLOT_LABELS,
+};
+const MINI_CHORD_RHYTHM_SETTINGS_PRESET_IDS = BEAT_PRESET_SLOT_IDS;
+const MINI_CHORD_RHYTHM_SETTINGS_PARTS = [
+  { id: "drum", label: "DRUM" },
+  { id: "bass", label: "BASS" },
+  { id: "piano", label: "PIANO" },
+];
 const BACKING_SCHEDULER_MODES = {
   STAGE3: "stage3",
   MINI_CHORD: "miniChord",
@@ -3275,6 +3418,409 @@ function normalizeMiniChordPianoStyle(value) {
   return MINI_CHORD_PIANO_STYLE_IDS.has(style) ? style : MINI_CHORD_DEFAULT_PIANO_STYLE;
 }
 
+function createMiniChordBooleanSteps(activeIndexes = []) {
+  const activeSet = new Set(activeIndexes.map((index) => Math.max(0, Math.min(MINI_CHORD_GROOVE_STEPS - 1, Number(index) || 0))));
+  return Array.from({ length: MINI_CHORD_GROOVE_STEPS }, (_, index) => activeSet.has(index));
+}
+
+function createMiniChordDrumPresetPattern(patternId = "8beat") {
+  const safePattern = ["basic", "4beat", "8beat", "16beat", MINI_CHORD_CUSTOM_PATTERN_ID].includes(patternId)
+    ? patternId
+    : "8beat";
+  const factoryPattern = safePattern === MINI_CHORD_CUSTOM_PATTERN_ID ? "8beat" : safePattern;
+  const steps = {
+    kick: createMiniChordBooleanSteps(factoryPattern === "basic" ? [0, 8] : factoryPattern === "4beat" ? [0, 8] : factoryPattern === "16beat" ? [0, 6, 8, 14] : [0, 8, 10]),
+    snare: createMiniChordBooleanSteps(factoryPattern === "basic" ? [4, 12] : [4, 12]),
+    closedHat: createMiniChordBooleanSteps(
+      factoryPattern === "basic"
+        ? [0, 4, 8, 12]
+        : factoryPattern === "4beat"
+        ? [0, 4, 8, 12]
+        : factoryPattern === "16beat"
+          ? Array.from({ length: MINI_CHORD_GROOVE_STEPS }, (_, index) => index)
+          : [0, 2, 4, 6, 8, 10, 12, 14],
+    ),
+    shaker: createMiniChordBooleanSteps(factoryPattern === "basic" ? [] : factoryPattern === "16beat" ? [3, 7, 11, 15] : [6, 14]),
+  };
+  return { type: "drum", version: 1, presetId: safePattern, steps };
+}
+
+function createMiniChordBassPresetPattern(patternId = "basic") {
+  const safePattern = ["basic", "4beat", "8beat", "16beat", MINI_CHORD_CUSTOM_PATTERN_ID].includes(patternId) ? patternId : "basic";
+  const factoryPattern = safePattern === MINI_CHORD_CUSTOM_PATTERN_ID ? "basic" : safePattern;
+  const steps = Array.from({ length: MINI_CHORD_GROOVE_STEPS }, () => "rest");
+  if (factoryPattern === "basic") {
+    steps[0] = "root";
+  } else if (factoryPattern === "4beat") {
+    [0, 4, 8, 12].forEach((index, order) => {
+      steps[index] = order % 2 === 0 ? "root" : "fifth";
+    });
+  } else if (factoryPattern === "8beat") {
+    [0, 2, 4, 6, 8, 10, 12, 14].forEach((index, order) => {
+      steps[index] = order % 2 === 0 ? "root" : "fifth";
+    });
+  } else {
+    Array.from({ length: MINI_CHORD_GROOVE_STEPS }, (_, index) => index).forEach((index, order) => {
+      steps[index] = order % 8 === 7 ? "octave" : order % 4 === 2 ? "fifth" : order % 4 === 1 ? "root" : "root";
+    });
+  }
+  return { type: "bass", version: 1, presetId: safePattern, steps };
+}
+
+function createMiniChordPianoPresetPattern(patternId = "basic") {
+  const safePattern = ["basic", "4beat", "8beat", "16beat", MINI_CHORD_CUSTOM_PATTERN_ID].includes(patternId) ? patternId : "basic";
+  const factoryPattern = safePattern === MINI_CHORD_CUSTOM_PATTERN_ID ? "basic" : safePattern;
+  const steps = Array.from({ length: MINI_CHORD_GROOVE_STEPS }, () => ({ active: false, style: "chord" }));
+  const activeIndexes = factoryPattern === "basic"
+    ? [0]
+    : factoryPattern === "4beat"
+      ? [0, 4, 8, 12]
+      : factoryPattern === "8beat"
+        ? [0, 2, 4, 6, 8, 10, 12, 14]
+        : Array.from({ length: MINI_CHORD_GROOVE_STEPS }, (_, index) => index);
+  activeIndexes.forEach((index, order) => {
+    steps[index] = {
+      active: true,
+      style: factoryPattern === "16beat" && order % 2 === 1 ? "arpUp" : factoryPattern === "8beat" ? "stab" : "chord",
+    };
+  });
+  return { type: "piano", version: 1, presetId: safePattern, steps };
+}
+
+function normalizeMiniChordDrumPattern(value = null) {
+  const fallback = createMiniChordDrumPresetPattern("8beat");
+  const sourceSteps = value?.steps && typeof value.steps === "object" ? value.steps : {};
+  return {
+    type: "drum",
+    version: 1,
+    presetId: String(value?.presetId || fallback.presetId),
+    steps: Object.fromEntries(MINI_CHORD_DRUM_INSTRUMENTS.map((instrument) => {
+      const rawSteps = Array.isArray(sourceSteps[instrument.id]) ? sourceSteps[instrument.id] : fallback.steps[instrument.id];
+      return [
+        instrument.id,
+        Array.from({ length: MINI_CHORD_GROOVE_STEPS }, (_, index) => Boolean(rawSteps?.[index])),
+      ];
+    })),
+  };
+}
+
+function normalizeMiniChordBassPattern(value = null) {
+  const fallback = createMiniChordBassPresetPattern("basic");
+  const rawSteps = Array.isArray(value?.steps) ? value.steps : fallback.steps;
+  return {
+    type: "bass",
+    version: 1,
+    presetId: String(value?.presetId || fallback.presetId),
+    steps: Array.from({ length: MINI_CHORD_GROOVE_STEPS }, (_, index) => {
+      const step = String(rawSteps?.[index] || "rest");
+      return MINI_CHORD_BASS_STEP_VALUE_IDS.has(step) ? step : "rest";
+    }),
+  };
+}
+
+function normalizeMiniChordPianoPattern(value = null) {
+  const fallback = createMiniChordPianoPresetPattern("basic");
+  const rawSteps = Array.isArray(value?.steps) ? value.steps : fallback.steps;
+  return {
+    type: "piano",
+    version: 1,
+    presetId: String(value?.presetId || fallback.presetId),
+    steps: Array.from({ length: MINI_CHORD_GROOVE_STEPS }, (_, index) => {
+      const rawStep = rawSteps?.[index];
+      const active = Boolean(rawStep?.active ?? rawStep);
+      const style = String(rawStep?.style || "chord");
+      return {
+        active,
+        style: MINI_CHORD_PIANO_STEP_STYLE_IDS.has(style) ? style : "chord",
+      };
+    }),
+  };
+}
+
+function createDefaultMiniChordCustomPatterns() {
+  return {
+    drum: createMiniChordDrumPresetPattern("8beat"),
+    bass: createMiniChordBassPresetPattern("basic"),
+    piano: createMiniChordPianoPresetPattern("basic"),
+  };
+}
+
+function normalizeMiniChordCustomPatterns(value = {}) {
+  const fallback = createDefaultMiniChordCustomPatterns();
+  return {
+    drum: normalizeMiniChordDrumPattern(value?.drum ?? fallback.drum),
+    bass: normalizeMiniChordBassPattern(value?.bass ?? fallback.bass),
+    piano: normalizeMiniChordPianoPattern(value?.piano ?? fallback.piano),
+  };
+}
+
+function normalizeMiniChordPatternForPart(part, pattern) {
+  if (part === "bass") return normalizeMiniChordBassPattern(pattern);
+  if (part === "piano") return normalizeMiniChordPianoPattern(pattern);
+  return normalizeMiniChordDrumPattern(pattern);
+}
+
+function getMiniChordPresetIdsForPart(part) {
+  return MINI_CHORD_RHYTHM_SETTINGS_PRESET_IDS;
+}
+
+function createDefaultMiniChordUserDefaultPatterns() {
+  return createBeatPresetStore((part, presetId) => {
+    if (part === "bass") return createMiniChordBassPresetPattern(presetId);
+    if (part === "piano") return createMiniChordPianoPresetPattern(presetId);
+    return createMiniChordDrumPresetPattern(presetId);
+  });
+}
+
+function normalizeMiniChordUserDefaultPatterns(value = {}, legacyCustomPatterns = null) {
+  return normalizeBeatPresetStore(value, {
+    createPattern: (part, presetId) => {
+      if (part === "bass") return createMiniChordBassPresetPattern(presetId);
+      if (part === "piano") return createMiniChordPianoPresetPattern(presetId);
+      return createMiniChordDrumPresetPattern(presetId);
+    },
+    legacyCustomPatterns,
+    normalizePattern: (part, pattern, presetId) => normalizeMiniChordPatternForPart(part, {
+      ...pattern,
+      presetId,
+    }),
+  });
+}
+
+function getMiniChordUserDefaultPatternForPart(part, presetId, userDefaultPatterns = {}) {
+  const safePresetId = String(presetId || "");
+  return getBeatPresetSlot(userDefaultPatterns, part, safePresetId, {
+    createPattern: (safePart, slotId) => {
+      if (safePart === "bass") return createMiniChordBassPresetPattern(slotId);
+      if (safePart === "piano") return createMiniChordPianoPresetPattern(slotId);
+      return createMiniChordDrumPresetPattern(slotId);
+    },
+    normalizePattern: (safePart, pattern, slotId) => normalizeMiniChordPatternForPart(safePart, {
+      ...pattern,
+      presetId: slotId,
+    }),
+  });
+}
+
+function getMiniChordPatternKey(pattern) {
+  try {
+    return JSON.stringify(pattern ?? null);
+  } catch {
+    return "";
+  }
+}
+
+function normalizeMiniChordArrangementPatternValue(value, allowedIds) {
+  const patternValue = String(value || MINI_CHORD_GLOBAL_PATTERN_ID);
+  if (patternValue === MINI_CHORD_GLOBAL_PATTERN_ID || patternValue === MINI_CHORD_CUSTOM_PATTERN_ID) return patternValue;
+  return allowedIds.includes(patternValue) ? patternValue : MINI_CHORD_GLOBAL_PATTERN_ID;
+}
+
+function normalizeMiniChordArrangementOverride(value = {}, barCount = 4) {
+  const safeBarCount = normalizeMiniChordBarCount(barCount);
+  const startBar = Math.max(0, Math.min(safeBarCount - 1, Math.round(Number(value.startBar ?? value.start ?? 0) || 0)));
+  const endBar = Math.max(startBar, Math.min(safeBarCount - 1, Math.round(Number(value.endBar ?? value.end ?? startBar) || startBar)));
+  const rhythmPattern = normalizeMiniChordArrangementPatternValue(
+    value.rhythmPattern,
+    MINI_CHORD_DRUM_PATTERN_OPTIONS.map((option) => option.id),
+  );
+  const bassBeat = normalizeMiniChordArrangementPatternValue(
+    value.bassBeat,
+    MINI_CHORD_BASS_BEAT_OPTIONS.map((option) => option.id),
+  );
+  const pianoBeat = normalizeMiniChordArrangementPatternValue(
+    value.pianoBeat,
+    BACKING_PIANO_BEAT_OPTIONS.map((option) => option.id),
+  );
+  const tempoOverrideEnabled = Boolean(value.tempoOverrideEnabled);
+  const bpmOverride = clampBpm(value.bpmOverride ?? value.bpm ?? DEFAULT_BPM);
+  return {
+    id: String(value.id || `range-${startBar + 1}-${endBar + 1}-${Date.now()}`),
+    startBar,
+    endBar,
+    rhythmPattern,
+    bassBeat,
+    pianoBeat,
+    tempoOverrideEnabled,
+    bpmOverride,
+  };
+}
+
+function isMiniChordArrangementOverrideEmpty(override) {
+  return (
+    override.rhythmPattern === MINI_CHORD_GLOBAL_PATTERN_ID
+    && override.bassBeat === MINI_CHORD_GLOBAL_PATTERN_ID
+    && override.pianoBeat === MINI_CHORD_GLOBAL_PATTERN_ID
+    && !override.tempoOverrideEnabled
+  );
+}
+
+function normalizeMiniChordArrangementOverrides(value = [], barCount = 4) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => normalizeMiniChordArrangementOverride(item, barCount))
+    .filter((item) => !isMiniChordArrangementOverrideEmpty(item))
+    .sort((left, right) => left.startBar - right.startBar || left.endBar - right.endBar);
+}
+
+function splitMiniChordOverrideAroundRange(override, startBar, endBar) {
+  if (override.endBar < startBar || override.startBar > endBar) return [override];
+  const pieces = [];
+  if (override.startBar < startBar) {
+    pieces.push({ ...override, id: `${override.id}-left-${startBar}`, endBar: startBar - 1 });
+  }
+  if (override.endBar > endBar) {
+    pieces.push({ ...override, id: `${override.id}-right-${endBar}`, startBar: endBar + 1 });
+  }
+  return pieces;
+}
+
+function upsertMiniChordArrangementOverride(overrides = [], nextOverride = {}, barCount = 4) {
+  const normalizedNext = normalizeMiniChordArrangementOverride(nextOverride, barCount);
+  const trimmed = normalizeMiniChordArrangementOverrides(overrides, barCount)
+    .flatMap((override) => splitMiniChordOverrideAroundRange(override, normalizedNext.startBar, normalizedNext.endBar));
+  if (isMiniChordArrangementOverrideEmpty(normalizedNext)) {
+    return normalizeMiniChordArrangementOverrides(trimmed, barCount);
+  }
+  return normalizeMiniChordArrangementOverrides([...trimmed, normalizedNext], barCount);
+}
+
+function removeMiniChordArrangementOverrideRange(overrides = [], startBar = 0, endBar = startBar, barCount = 4) {
+  const safeBarCount = normalizeMiniChordBarCount(barCount);
+  const safeStart = Math.max(0, Math.min(safeBarCount - 1, Math.round(Number(startBar) || 0)));
+  const safeEnd = Math.max(safeStart, Math.min(safeBarCount - 1, Math.round(Number(endBar) || safeStart)));
+  return normalizeMiniChordArrangementOverrides(overrides, safeBarCount)
+    .flatMap((override) => splitMiniChordOverrideAroundRange(override, safeStart, safeEnd));
+}
+
+function getMiniChordArrangementOverrideForBar(overrides = [], barIndex = 0) {
+  const safeBarIndex = Math.max(0, Math.round(Number(barIndex) || 0));
+  return [...overrides].reverse().find((override) => safeBarIndex >= override.startBar && safeBarIndex <= override.endBar) ?? null;
+}
+
+function resolveMiniChordArrangementForBar({
+  barIndex = 0,
+  customPatterns = null,
+  userDefaultPatterns = null,
+  global = {},
+  overrides = [],
+} = {}) {
+  const override = getMiniChordArrangementOverrideForBar(overrides, barIndex);
+  const userPresetPatterns = normalizeMiniChordUserDefaultPatterns(userDefaultPatterns, customPatterns);
+  const rhythmPattern = override?.rhythmPattern && override.rhythmPattern !== MINI_CHORD_GLOBAL_PATTERN_ID
+    ? override.rhythmPattern
+    : global.rhythmPattern;
+  const bassBeat = override?.bassBeat && override.bassBeat !== MINI_CHORD_GLOBAL_PATTERN_ID
+    ? override.bassBeat
+    : global.bassBeat;
+  const pianoBeat = override?.pianoBeat && override.pianoBeat !== MINI_CHORD_GLOBAL_PATTERN_ID
+    ? override.pianoBeat
+    : global.pianoBeat;
+  const resolvedPatterns = {};
+  const presetPatternSources = {};
+  const resolvePartPattern = (part, mode) => {
+    const userDefaultPattern = getMiniChordUserDefaultPatternForPart(part, mode, userPresetPatterns);
+    if (userDefaultPattern) {
+      resolvedPatterns[part] = userDefaultPattern;
+      presetPatternSources[part] = "beat-preset";
+    }
+  };
+  resolvePartPattern("drum", rhythmPattern);
+  resolvePartPattern("bass", bassBeat);
+  resolvePartPattern("piano", pianoBeat);
+  return {
+    rhythmPattern,
+    bassBeat,
+    pianoBeat,
+    pianoStyle: normalizeMiniChordPianoStyle(global.pianoStyle),
+    bpmOverride: override?.tempoOverrideEnabled ? override.bpmOverride : null,
+    resolvedPatterns: {
+      drum: resolvedPatterns.drum ?? userPresetPatterns.drum.basic,
+      bass: resolvedPatterns.bass ?? userPresetPatterns.bass.basic,
+      piano: resolvedPatterns.piano ?? userPresetPatterns.piano.basic,
+    },
+    presetPatternSources,
+    overrideId: override?.id ?? "",
+  };
+}
+
+function getMiniChordArrangementKey(arrangement = null) {
+  if (!arrangement) return "";
+  return [
+    arrangement.rhythmPattern,
+    arrangement.bassBeat,
+    arrangement.pianoBeat,
+    arrangement.pianoStyle,
+    arrangement.bpmOverride ?? "",
+    arrangement.overrideId ?? "",
+    arrangement.presetPatternSources?.drum ?? "",
+    arrangement.presetPatternSources?.drum ? getMiniChordPatternKey(arrangement.resolvedPatterns?.drum) : "",
+    arrangement.presetPatternSources?.bass ?? "",
+    arrangement.presetPatternSources?.bass ? getMiniChordPatternKey(arrangement.resolvedPatterns?.bass) : "",
+    arrangement.presetPatternSources?.piano ?? "",
+    arrangement.presetPatternSources?.piano ? getMiniChordPatternKey(arrangement.resolvedPatterns?.piano) : "",
+  ].join("/");
+}
+
+function toggleMiniChordDrumPatternStep(pattern, instrumentId, stepIndex) {
+  const next = normalizeMiniChordDrumPattern(pattern);
+  const safeStep = Math.max(0, Math.min(MINI_CHORD_GROOVE_STEPS - 1, Number(stepIndex) || 0));
+  if (!next.steps[instrumentId]) return next;
+  next.steps[instrumentId] = next.steps[instrumentId].map((active, index) => (index === safeStep ? !active : active));
+  next.presetId = MINI_CHORD_CUSTOM_PATTERN_ID;
+  return next;
+}
+
+function setMiniChordDrumPatternStep(pattern, instrumentId, stepIndex, active) {
+  const next = normalizeMiniChordDrumPattern(pattern);
+  const safeStep = Math.max(0, Math.min(MINI_CHORD_GROOVE_STEPS - 1, Number(stepIndex) || 0));
+  if (!next.steps[instrumentId]) return next;
+  next.steps[instrumentId] = next.steps[instrumentId].map((current, index) => (index === safeStep ? Boolean(active) : current));
+  next.presetId = MINI_CHORD_CUSTOM_PATTERN_ID;
+  return next;
+}
+
+function cycleMiniChordBassPatternStep(pattern, stepIndex) {
+  const next = normalizeMiniChordBassPattern(pattern);
+  const safeStep = Math.max(0, Math.min(MINI_CHORD_GROOVE_STEPS - 1, Number(stepIndex) || 0));
+  const current = next.steps[safeStep] ?? "rest";
+  const valueIds = MINI_CHORD_BASS_STEP_VALUES.map((option) => option.id);
+  const nextValue = valueIds[(valueIds.indexOf(current) + 1) % valueIds.length] ?? "rest";
+  next.steps[safeStep] = nextValue;
+  next.presetId = MINI_CHORD_CUSTOM_PATTERN_ID;
+  return next;
+}
+
+function setMiniChordBassPatternStep(pattern, stepIndex, value) {
+  const next = normalizeMiniChordBassPattern(pattern);
+  const safeStep = Math.max(0, Math.min(MINI_CHORD_GROOVE_STEPS - 1, Number(stepIndex) || 0));
+  next.steps[safeStep] = MINI_CHORD_BASS_STEP_VALUE_IDS.has(value) ? value : "rest";
+  next.presetId = MINI_CHORD_CUSTOM_PATTERN_ID;
+  return next;
+}
+
+function cycleMiniChordPianoPatternStep(pattern, stepIndex) {
+  const next = normalizeMiniChordPianoPattern(pattern);
+  const safeStep = Math.max(0, Math.min(MINI_CHORD_GROOVE_STEPS - 1, Number(stepIndex) || 0));
+  const current = next.steps[safeStep] ?? { active: false, style: "chord" };
+  if (!current.active) next.steps[safeStep] = { active: true, style: "chord" };
+  else if (current.style === "chord") next.steps[safeStep] = { active: true, style: "stab" };
+  else if (current.style === "stab") next.steps[safeStep] = { active: true, style: "arpUp" };
+  else if (current.style === "arpUp") next.steps[safeStep] = { active: true, style: "arpDown" };
+  else next.steps[safeStep] = { active: false, style: "chord" };
+  next.presetId = MINI_CHORD_CUSTOM_PATTERN_ID;
+  return next;
+}
+
+function setMiniChordPianoPatternStep(pattern, stepIndex, active) {
+  const next = normalizeMiniChordPianoPattern(pattern);
+  const safeStep = Math.max(0, Math.min(MINI_CHORD_GROOVE_STEPS - 1, Number(stepIndex) || 0));
+  const current = next.steps[safeStep] ?? { active: false, style: "chord" };
+  next.steps[safeStep] = { active: Boolean(active), style: current.style || "chord" };
+  next.presetId = MINI_CHORD_CUSTOM_PATTERN_ID;
+  return next;
+}
+
 const BACKING_NOTE_MIDI = {
   B3: 59,
   C4: 60,
@@ -3304,13 +3850,14 @@ const BACKING_PIANO_VOICINGS = {
   G: ["B3", "D4", "G4"],
 };
 
-const getBackingRootLetter = (chord) => String(chord?.root || chord?.displayName || "C").match(/[A-G]/)?.[0] ?? "C";
+const getBackingRootPitch = (chord) => getMiniChordBackingRootPitch(chord?.root || chord?.displayName || "C");
+const getBackingRootLetter = (chord) => getBackingRootPitch(chord).rootLetter;
 
 const getBackingPianoVoicing = (chord) => {
   const chordName = String(chord?.displayName || "").replace(/\s+/g, "");
   if (BACKING_PIANO_VOICINGS[chordName]) return BACKING_PIANO_VOICINGS[chordName].map((note) => BACKING_NOTE_MIDI[note]);
-  const rootLetter = getBackingRootLetter(chord);
-  const rootMidi = BACKING_ROOT_MIDI[rootLetter] ?? 60;
+  const rootPitch = getBackingRootPitch(chord);
+  const rootMidi = (BACKING_ROOT_MIDI[rootPitch.rootLetter] ?? 60) + rootPitch.semitoneOffset;
   const isMinor = chord?.quality === "minor" || /m(?!aj)/.test(chordName);
   const isSeventh = chord?.extension === "7" || /7/.test(chordName);
   return [
@@ -3348,7 +3895,7 @@ const getBackingSessionKey = ({
   pianoBeat,
   smoothChordTransitions ? "smooth" : "plain",
   normalizeMiniChordPianoStyle(pianoStyle),
-  progression.map((chord) => `${chord?.id ?? ""}:${chord?.displayName ?? chord?.fretboardDisplayName ?? ""}`).join("|"),
+  progression.map((chord) => `${chord?.id ?? ""}:${chord?.displayName ?? chord?.fretboardDisplayName ?? ""}:${getMiniChordArrangementKey(chord?.backingArrangement)}`).join("|"),
 ].join("::");
 
 const getBackingChordLogLabel = (chord) => String(chord?.displayName || chord?.fretboardDisplayName || chord?.root || "C").replace(/\s+/g, "");
@@ -3356,6 +3903,83 @@ const getBackingPatternLogLabel = (pattern) => String(pattern || "").replace(/be
 const getBackingStepLogLabel = (beatInBar, offsetSeconds, sixteenthOffset) => {
   const unit = Math.max(0, Math.min(3, Math.round(offsetSeconds / sixteenthOffset)));
   return `${beatInBar + 1}${["", "e", "&", "a"][unit] ?? ""}`;
+};
+
+const getMiniChordBassIntervalRate = (chord, stepValue) => {
+  const root = getBackingRootLetter(chord);
+  const tones = getChordToneDescriptors(root, chord?.quality ?? "major", chord?.extension ?? "none");
+  const toneByDegree = new Map(tones.map((descriptor) => [descriptor.degreeOffset, descriptor.interval]));
+  if (stepValue === "third") return 2 ** ((toneByDegree.get(2) ?? 4) / 12);
+  if (stepValue === "fifth") return 2 ** ((toneByDegree.get(4) ?? 7) / 12);
+  if (stepValue === "octave") return 2;
+  return 1;
+};
+
+const getMiniChordCustomStepRange = (chord, measureSeconds) => {
+  const slotInBar = Number.isInteger(chord?.miniChordSlotInBar) ? chord.miniChordSlotInBar : null;
+  if (slotInBar == null) {
+    return {
+      end: MINI_CHORD_GROOVE_STEPS,
+      start: 0,
+      stepSeconds: measureSeconds / MINI_CHORD_GROOVE_STEPS,
+    };
+  }
+  const stepsPerSlot = MINI_CHORD_GROOVE_STEPS / MINI_CHORD_SLOTS_PER_BAR;
+  const start = Math.max(0, Math.min(MINI_CHORD_GROOVE_STEPS - stepsPerSlot, slotInBar * stepsPerSlot));
+  return {
+    end: start + stepsPerSlot,
+    start,
+    stepSeconds: measureSeconds / stepsPerSlot,
+  };
+};
+
+const getMiniChordGrooveStepAccent = (stepIndex) => {
+  const stepInBeat = stepIndex % 4;
+  const beatIndex = Math.floor(stepIndex / 4);
+  if (stepInBeat === 0) return beatIndex === 0 ? 1 : 0.88;
+  if (stepInBeat === 2) return 0.66;
+  return 0.46;
+};
+
+const getMiniChordDrumStepPlaybackRate = (instrumentId, stepIndex) => {
+  if (instrumentId !== "closedHat" && instrumentId !== "shaker") return 1;
+  const offsets = [-0.012, 0.004, -0.006, 0.01, -0.004, 0.007, -0.01, 0.003];
+  return 1 + (offsets[stepIndex % offsets.length] ?? 0);
+};
+
+const getResolvedBackingArrangementForChord = (chord, defaults = {}) => {
+  const arrangement = chord?.backingArrangement ?? {};
+  const rhythmPattern = arrangement.rhythmPattern ?? defaults.rhythmPattern;
+  const bassBeat = arrangement.bassBeat ?? defaults.bassBeat;
+  const normalizedPianoBeat = (arrangement.pianoBeat ?? defaults.pianoBeat) === "2beat"
+    ? "basic"
+    : (arrangement.pianoBeat ?? defaults.pianoBeat);
+  const drumPattern = ["basic", "4beat", "8beat", "16beat", MINI_CHORD_CUSTOM_PATTERN_ID].includes(rhythmPattern)
+    ? rhythmPattern
+    : defaults.rhythmPattern;
+  const bassPattern = ["basic", "4beat", "8beat", "16beat", MINI_CHORD_CUSTOM_PATTERN_ID].includes(bassBeat)
+    ? bassBeat
+    : defaults.bassBeat;
+  const pianoPattern = ["basic", "4beat", "8beat", "16beat", MINI_CHORD_CUSTOM_PATTERN_ID].includes(normalizedPianoBeat)
+    ? normalizedPianoBeat
+    : defaults.pianoBeat;
+  const selectedPatterns = normalizeMiniChordCustomPatterns(arrangement.resolvedPatterns ?? arrangement.customPatterns);
+  const presetPatternSources = arrangement.presetPatternSources && typeof arrangement.presetPatternSources === "object"
+    ? arrangement.presetPatternSources
+    : arrangement.customPatternSources && typeof arrangement.customPatternSources === "object"
+      ? arrangement.customPatternSources
+    : {};
+  return {
+    drumPattern,
+    bassPattern,
+    pianoPattern,
+    backingPianoStyle: defaults.smoothTransitions
+      ? normalizeMiniChordPianoStyle(arrangement.pianoStyle ?? defaults.pianoStyle)
+      : MINI_CHORD_DEFAULT_PIANO_STYLE,
+    customDrumPattern: presetPatternSources.drum || drumPattern === MINI_CHORD_CUSTOM_PATTERN_ID ? selectedPatterns.drum : null,
+    customBassPattern: presetPatternSources.bass || bassPattern === MINI_CHORD_CUSTOM_PATTERN_ID ? selectedPatterns.bass : null,
+    customPianoPattern: presetPatternSources.piano || pianoPattern === MINI_CHORD_CUSTOM_PATTERN_ID ? selectedPatterns.piano : null,
+  };
 };
 
 const createBackingTimelineEvents = ({
@@ -3371,10 +3995,10 @@ const createBackingTimelineEvents = ({
   const signature = getTimeSignatureOption(timeSignature);
   const beatsPerMeasure = signature.beats;
   const safeBpm = clampBpm(bpm);
-  const drumPattern = ["4beat", "8beat", "16beat"].includes(rhythmPattern) ? rhythmPattern : STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern;
-  const bassPattern = ["basic", "8beat", "16beat"].includes(bassBeat) ? bassBeat : STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat;
+  const defaultDrumPattern = ["4beat", "8beat", "16beat"].includes(rhythmPattern) ? rhythmPattern : STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern;
+  const defaultBassPattern = ["basic", "4beat", "8beat", "16beat"].includes(bassBeat) ? bassBeat : STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat;
   const normalizedPianoPattern = pianoBeat === "2beat" ? "basic" : pianoBeat;
-  const pianoPattern = ["basic", "4beat", "8beat", "16beat"].includes(normalizedPianoPattern)
+  const defaultPianoPattern = ["basic", "4beat", "8beat", "16beat"].includes(normalizedPianoPattern)
     ? normalizedPianoPattern
     : STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat;
   const beatSeconds = getBeatMs(safeBpm) / 1000;
@@ -3384,33 +4008,82 @@ const createBackingTimelineEvents = ({
   const measureSeconds = beatsPerMeasure * beatSeconds;
   const cycleSeconds = cycleMeasures * beatsPerMeasure * beatSeconds;
   const smoothTransitions = Boolean(smoothChordTransitions);
-  const backingPianoStyle = smoothTransitions
+  const defaultBackingPianoStyle = smoothTransitions
     ? normalizeMiniChordPianoStyle(pianoStyle)
     : MINI_CHORD_DEFAULT_PIANO_STYLE;
   const events = [];
   const addEvent = (offsetSeconds, instrument, sample, volume, playbackRate = 1, duration = null, stepIndex = 0, chordIndex = 0, shape = "", debugLog = "", options = {}) => {
     events.push({ offsetSeconds, instrument, sample, volume, playbackRate, duration, stepIndex, chordIndex, shape, debugLog, ...options });
   };
-  const addDrumEvent = (beatOffset, sample, offset = 0, volume = 0.5, beatInBar = 0, chordIndex = 0) => {
+  const addDrumEvent = (beatOffset, sample, offset = 0, volume = 0.5, beatInBar = 0, chordIndex = 0, patternLabel = defaultDrumPattern) => {
     const isKick = sample === "kick";
     const isDownbeatKick = isKick && beatInBar === 0;
     const drumDuration = isKick ? 0.18 : null;
     const drumShape = isDownbeatKick ? "round-kick" : isKick ? "kick" : "";
     const stepLabel = getBackingStepLogLabel(beatInBar, offset, sixteenthOffset);
-    addEvent(beatOffset + offset, "drum", sample, volume, 1, drumDuration, beatInBar, chordIndex, drumShape, `[DRUM] beat=${getBackingPatternLogLabel(drumPattern)} step=${stepLabel}`);
+    addEvent(beatOffset + offset, "drum", sample, volume, 1, drumDuration, beatInBar, chordIndex, drumShape, `[DRUM] beat=${getBackingPatternLogLabel(patternLabel)} step=${stepLabel}`);
   };
 
   progression.forEach((chord, chordIndex) => {
     const measureOffset = chordIndex * beatsPerMeasure * beatSeconds;
+    const {
+      drumPattern,
+      bassPattern,
+      pianoPattern,
+      backingPianoStyle,
+      customDrumPattern,
+      customBassPattern,
+      customPianoPattern,
+    } = getResolvedBackingArrangementForChord(chord, {
+      rhythmPattern: defaultDrumPattern,
+      bassBeat: defaultBassPattern,
+      pianoBeat: defaultPianoPattern,
+      pianoStyle: defaultBackingPianoStyle,
+      smoothTransitions,
+    });
+    const customStepRange = getMiniChordCustomStepRange(chord, measureSeconds);
+    const grooveStepSeconds = customStepRange.stepSeconds;
+
+    if (customDrumPattern) {
+      MINI_CHORD_DRUM_INSTRUMENTS.forEach((instrument) => {
+        const instrumentSteps = customDrumPattern.steps[instrument.id] ?? [];
+        instrumentSteps.forEach((active, stepIndex) => {
+          if (stepIndex < customStepRange.start || stepIndex >= customStepRange.end) return;
+          if (!active) return;
+          const stepOffset = (stepIndex - customStepRange.start) * grooveStepSeconds;
+          const isDownbeat = stepIndex === 0;
+          const isKick = instrument.sample === "kick";
+          const drumDuration = isKick ? 0.18 : null;
+          const drumShape = isKick ? (isDownbeat ? "round-kick" : "kick") : "";
+          const accent = instrument.id === "kick" || instrument.id === "snare"
+            ? (stepIndex % 4 === 0 ? 1 : 0.78)
+            : getMiniChordGrooveStepAccent(stepIndex);
+          addEvent(
+            measureOffset + stepOffset,
+            "drum",
+            instrument.sample,
+            instrument.volume * accent,
+            getMiniChordDrumStepPlaybackRate(instrument.id, stepIndex),
+            drumDuration,
+            stepIndex,
+            chordIndex,
+            drumShape,
+            `[DRUM] beat=custom step=${MINI_CHORD_GROOVE_STEP_LABELS[stepIndex] ?? stepIndex} part=${instrument.id}`,
+            { customPattern: true, drumPart: instrument.id },
+          );
+        });
+      });
+    }
+
     for (let beatInBar = 0; beatInBar < beatsPerMeasure; beatInBar += 1) {
       const beatOffset = measureOffset + beatInBar * beatSeconds;
-      const addDrum = (sample, offset = 0, volume = 0.5) => addDrumEvent(beatOffset, sample, offset, volume, beatInBar, chordIndex);
-      if (drumPattern === "4beat") {
+      const addDrum = (sample, offset = 0, volume = 0.5) => addDrumEvent(beatOffset, sample, offset, volume, beatInBar, chordIndex, drumPattern);
+      if (!customDrumPattern && drumPattern === "4beat") {
         if (beatInBar === 0) addDrum("kick", 0, 1);
         if (beatInBar === 1) addDrum("snare", 0, 0.9);
         if (beatInBar === 2) addDrum("kick", 0, 0.76);
         if (beatInBar === 3) addDrum("snare", 0, 0.84);
-      } else if (drumPattern === "16beat") {
+      } else if (!customDrumPattern && drumPattern === "16beat") {
         addDrum("shaker", sixteenthOffset, beatInBar === 0 || beatInBar === 2 ? 0.08 : 0.07);
         addDrum("shaker", eighthOffset, beatInBar === 0 || beatInBar === 2 ? 0.14 : 0.12);
         addDrum("shaker", sixteenthOffset * 3, beatInBar === 1 || beatInBar === 3 ? 0.09 : 0.07);
@@ -3429,7 +4102,7 @@ const createBackingTimelineEvents = ({
           addDrum("snare", 0, 0.86);
           addDrum("kick", sixteenthOffset * 3, 0.2);
         }
-      } else {
+      } else if (!customDrumPattern) {
         addDrum("shaker", eighthOffset, beatInBar === 0 || beatInBar === 2 ? 0.15 : 0.13);
         if (beatInBar === 0) addDrum("kick", 0, 1);
         if (beatInBar === 1) addDrum("snare", 0, 0.88);
@@ -3444,19 +4117,107 @@ const createBackingTimelineEvents = ({
 
       if (chord?.isRest) continue;
 
+      if (beatInBar === 0 && (customBassPattern || customPianoPattern)) {
+        const rootLetter = getBackingRootLetter(chord);
+        const rootPitch = getBackingRootPitch(chord);
+        const bassSampleRoot = rootPitch.sampleRoot;
+        const chordLabel = getBackingChordLogLabel(chord);
+        const previousChord = smoothTransitions && chordIndex > 0 ? progression[chordIndex - 1] : null;
+        const previousVoicing = previousChord && !previousChord.isRest
+          ? new Set(getBackingPianoVoicing(previousChord))
+          : null;
+
+        customBassPattern?.steps?.forEach((stepValue, stepIndex) => {
+          if (stepIndex < customStepRange.start || stepIndex >= customStepRange.end) return;
+          if (stepValue === "rest") return;
+          const stepOffset = (stepIndex - customStepRange.start) * grooveStepSeconds;
+          const bassDuration = Math.max(0.07, Math.min(0.2, grooveStepSeconds * 1.35));
+          const debugLog = `[BASS] pattern=custom step=${MINI_CHORD_GROOVE_STEP_LABELS[stepIndex] ?? stepIndex} note=${rootLetter}/${stepValue}`;
+          addEvent(
+            measureOffset + stepOffset,
+            "bass",
+            `bass_${bassSampleRoot}`,
+            stepIndex === 0 ? 0.8 : 0.58,
+            rootPitch.playbackRate * getMiniChordBassIntervalRate(chord, stepValue),
+            bassDuration,
+            stepIndex,
+            chordIndex,
+            "",
+            debugLog,
+            smoothTransitions
+              ? {
+                  releaseSeconds: MINI_CHORD_SMOOTH_BACKING.bassReleaseSeconds,
+                  bassMotionMode: stepValue,
+                }
+              : {},
+          );
+        });
+
+        customPianoPattern?.steps?.forEach((step, stepIndex) => {
+          if (stepIndex < customStepRange.start || stepIndex >= customStepRange.end) return;
+          if (!step?.active) return;
+          const voicing = getBackingPianoVoicing(chord);
+          const stepOffset = (stepIndex - customStepRange.start) * grooveStepSeconds;
+          const style = step.style || "chord";
+          const isArp = style === "arpUp" || style === "arpDown";
+          const notes = isArp
+            ? (style === "arpDown" ? [...voicing].reverse() : voicing)
+            : voicing;
+          const arpSpacing = Math.max(0.018, Math.min(0.055, grooveStepSeconds * 0.22));
+          const pianoDuration = style === "stab"
+            ? Math.max(0.08, Math.min(0.16, grooveStepSeconds * 0.95))
+            : isArp
+              ? Math.max(0.1, Math.min(0.3, grooveStepSeconds * 1.9))
+              : Math.max(0.2, Math.min(measureSeconds * MINI_CHORD_SMOOTH_BACKING.pianoSlotOverlapRatio, grooveStepSeconds * 2.4));
+          const pianoLevel = style === "stab" ? 0.22 : isArp ? 0.2 : 0.28;
+          notes.forEach((midi, index) => {
+            const isCommonTone = Boolean(smoothTransitions && previousVoicing?.has(midi));
+            addEvent(
+              measureOffset + stepOffset + (isArp ? index * arpSpacing : index * 0.004),
+              "piano",
+              "piano",
+              isCommonTone ? pianoLevel * MINI_CHORD_SMOOTH_BACKING.pianoCommonToneLevelRatio : pianoLevel,
+              2 ** ((midi - 67) / 12),
+              pianoDuration,
+              stepIndex,
+              chordIndex,
+              "",
+              index === 0 ? `[PIANO] pattern=custom step=${MINI_CHORD_GROOVE_STEP_LABELS[stepIndex] ?? stepIndex} style=${style} chord=${chordLabel}` : "",
+              smoothTransitions
+                ? {
+                    attackSeconds: isCommonTone ? MINI_CHORD_SMOOTH_BACKING.pianoCommonToneAttackSeconds : 0.006,
+                    commonTone: isCommonTone,
+                    pianoStyle: backingPianoStyle,
+                    releaseSeconds: MINI_CHORD_SMOOTH_BACKING.pianoReleaseSeconds,
+                  }
+                : {},
+            );
+          });
+        });
+      }
+
       const rootLetter = getBackingRootLetter(chord);
-      const bassSampleRoot = rootLetter.toLowerCase();
+      const rootPitch = getBackingRootPitch(chord);
+      const bassSampleRoot = rootPitch.sampleRoot;
       const chordLabel = getBackingChordLogLabel(chord);
       const bassDuration = bassPattern === "16beat"
         ? Math.min(0.11, sixteenthOffset * 0.88)
         : bassPattern === "8beat"
           ? Math.min(0.18, eighthOffset * 0.9)
-          : Math.max(0.18, measureSeconds * (smoothTransitions ? MINI_CHORD_SMOOTH_BACKING.bassSlotOverlapRatio : 0.92));
-      const bassOffsets = bassPattern === "16beat"
+          : bassPattern === "4beat"
+            ? Math.min(0.28, beatSeconds * 0.88)
+            : Math.max(0.18, measureSeconds * (smoothTransitions ? MINI_CHORD_SMOOTH_BACKING.bassSlotOverlapRatio : 0.92));
+      const bassOffsets = bassPattern === MINI_CHORD_CUSTOM_PATTERN_ID
+        ? []
+        : customBassPattern
+          ? []
+        : bassPattern === "16beat"
         ? [0, sixteenthOffset, eighthOffset, sixteenthOffset * 3]
         : bassPattern === "8beat"
           ? [0, eighthOffset]
-          : (beatInBar === 0 ? [0] : []);
+          : bassPattern === "4beat"
+            ? [0]
+            : (beatInBar === 0 ? [0] : []);
       const bassEventOptions = smoothTransitions
         ? {
             releaseSeconds: MINI_CHORD_SMOOTH_BACKING.bassReleaseSeconds,
@@ -3468,10 +4229,20 @@ const createBackingTimelineEvents = ({
         const debugLog = bassPattern === "basic"
           ? `[BASS] pattern=basic chord=${chordLabel} note=${rootLetter}`
           : `[BASS] pattern=${getBackingPatternLogLabel(bassPattern)} step=${stepLabel} note=${rootLetter}`;
-        addEvent(beatOffset + offset, "bass", `bass_${bassSampleRoot}`, index === 0 ? 0.82 : 0.64, 1, bassDuration, beatInBar, chordIndex, "", debugLog, bassEventOptions);
+      const bassRate = rootPitch.playbackRate * (
+        bassPattern === "4beat" && beatInBar % 2 === 1
+          ? getMiniChordBassIntervalRate(chord, "fifth")
+          : 1
+      );
+        const bassLevel = bassPattern === "4beat" && beatInBar % 2 === 1 ? 0.62 : (index === 0 ? 0.82 : 0.64);
+        addEvent(beatOffset + offset, "bass", `bass_${bassSampleRoot}`, bassLevel, bassRate, bassDuration, beatInBar, chordIndex, "", debugLog, bassEventOptions);
       });
 
-      const pianoOffsets = pianoPattern === "16beat"
+      const pianoOffsets = pianoPattern === MINI_CHORD_CUSTOM_PATTERN_ID
+        ? []
+        : customPianoPattern
+          ? []
+        : pianoPattern === "16beat"
         ? [0, sixteenthOffset, eighthOffset, sixteenthOffset * 3]
         : pianoPattern === "8beat"
           ? [0, eighthOffset]
@@ -3735,10 +4506,6 @@ function getTimeSignatureOption(id) {
   return TIME_SIGNATURE_OPTIONS.find((option) => option.id === id) ?? TIME_SIGNATURE_OPTIONS.find((option) => option.id === "4/4") ?? TIME_SIGNATURE_OPTIONS[0];
 }
 
-function getSubdivisionOption(id) {
-  return SUBDIVISION_OPTIONS.find((option) => option.id === id) ?? SUBDIVISION_OPTIONS[0];
-}
-
 function getMetronomeToneOption(id) {
   return METRONOME_TONE_OPTIONS.find((option) => option.id === id) ?? METRONOME_TONE_OPTIONS[0];
 }
@@ -3916,12 +4683,17 @@ function getStoredMetronomeTrackerProgress() {
 
 function MetronomeSelectControl({ ariaLabel = "", className = "", dropdownDirection = null, label, labelDot = "", options, value, onChange, layout = "native" }) {
   const [open, setOpen] = useState(false);
-  const [openDirection, setOpenDirection] = useState("up");
+  const openRef = useRef(false);
+  const [openDirection, setOpenDirection] = useState("down");
   const [menuStyle, setMenuStyle] = useState({});
   const controlRef = useRef(null);
   const dropdownIdRef = useRef(createLocalId("riff-dropdown"));
   const selectedOption = options.find((option) => String(option.id) === String(value));
   const gridOptions = layout === "grid" ? getTwoColumnVerticalFlowOptions(options) : options;
+  const setOpenImmediate = useCallback((nextOpen) => {
+    openRef.current = nextOpen;
+    setOpen(nextOpen);
+  }, []);
   const getOptionTextUnits = (option) => {
     const text = String(option?.label || option?.id || "");
     return Array.from(text).reduce((total, char) => {
@@ -3932,14 +4704,33 @@ function MetronomeSelectControl({ ariaLabel = "", className = "", dropdownDirect
 
   const updateOpenDirection = () => {
     if (typeof window === "undefined" || !controlRef.current) return;
-    const rect = controlRef.current.getBoundingClientRect();
+    const trigger = controlRef.current.querySelector(".metronomeSelectButton");
+    const rect = (trigger || controlRef.current).getBoundingClientRect();
     const rows = layout === "grid" ? Math.ceil(gridOptions.length / 2) : gridOptions.length;
     const estimatedMenuHeight = Math.min(244, 14 + rows * 36);
-    const topSpace = rect.top;
-    const bottomSpace = window.innerHeight - rect.bottom - 92;
-    const nextDirection = dropdownDirection || (topSpace >= estimatedMenuHeight + 10 || topSpace >= bottomSpace ? "up" : "down");
     const viewportPadding = 12;
-    const viewportWidth = window.innerWidth || 390;
+    const menuGap = 6;
+    const visualViewport = window.visualViewport;
+    const viewportTop = visualViewport?.offsetTop || 0;
+    const viewportHeight = visualViewport?.height || window.innerHeight;
+    const viewportBottom = viewportTop + viewportHeight;
+    const viewportWidth = visualViewport?.width || window.innerWidth || 390;
+    const mobileNavigation = document.querySelector(".hud > .modeSwitch");
+    const mobileNavigationRect = mobileNavigation?.getBoundingClientRect();
+    const usableViewportBottom = mobileNavigationRect
+      && mobileNavigationRect.top > rect.bottom
+      && mobileNavigationRect.top < viewportBottom
+      ? mobileNavigationRect.top - 8
+      : viewportBottom - viewportPadding;
+    const topSpace = Math.max(0, rect.top - viewportTop - viewportPadding - menuGap);
+    const bottomSpace = Math.max(0, usableViewportBottom - rect.bottom - menuGap);
+    const nextDirection = dropdownDirection || (
+      bottomSpace >= estimatedMenuHeight
+        ? "down"
+        : topSpace >= estimatedMenuHeight
+          ? "up"
+          : bottomSpace >= topSpace ? "down" : "up"
+    );
     const maxOptionUnits = Math.max(1, ...gridOptions.map(getOptionTextUnits));
     const visibleOptionCount = layout === "grid" ? 2 : 1;
     const basePadding = layout === "grid" ? 28 : 34;
@@ -3947,11 +4738,16 @@ function MetronomeSelectControl({ ariaLabel = "", className = "", dropdownDirect
     const contentWidth = layout === "grid"
       ? Math.ceil(maxOptionUnits * 8.5) * visibleOptionCount + basePadding
       : Math.ceil(maxOptionUnits * 8.8) + basePadding;
-    const desiredWidth = Math.min(Math.max(minContentWidth, contentWidth), viewportWidth - viewportPadding * 2);
+    const wideToneMenuWidth = className.includes("metronomeSelectControl--tonePicker")
+      ? Math.min(326, viewportWidth - viewportPadding * 2)
+      : 0;
+    const desiredWidth = Math.min(
+      Math.max(minContentWidth, contentWidth, wideToneMenuWidth, rect.width),
+      viewportWidth - viewportPadding * 2,
+    );
     const left = Math.max(viewportPadding, Math.min(rect.left, viewportWidth - desiredWidth - viewportPadding));
-    const maxHeight = nextDirection === "up"
-      ? Math.max(108, Math.min(244, rect.top - viewportPadding - 6))
-      : Math.max(108, Math.min(244, window.innerHeight - rect.bottom - 104));
+    const directionSpace = nextDirection === "up" ? topSpace : bottomSpace;
+    const maxHeight = Math.max(72, Math.min(244, directionSpace));
     setOpenDirection(nextDirection);
     setMenuStyle({
       "--riff-dropdown-left": `${left}px`,
@@ -3959,8 +4755,8 @@ function MetronomeSelectControl({ ariaLabel = "", className = "", dropdownDirect
       "--riff-dropdown-trigger-width": `${rect.width}px`,
       "--riff-dropdown-max-height": `${maxHeight}px`,
       ...(nextDirection === "up"
-        ? { "--riff-dropdown-bottom": `${window.innerHeight - rect.top + 6}px`, "--riff-dropdown-top": "auto" }
-        : { "--riff-dropdown-top": `${rect.bottom + 6}px`, "--riff-dropdown-bottom": "auto" }),
+        ? { "--riff-dropdown-bottom": `${window.innerHeight - rect.top + menuGap}px`, "--riff-dropdown-top": "auto" }
+        : { "--riff-dropdown-top": `${rect.bottom + menuGap}px`, "--riff-dropdown-bottom": "auto" }),
     });
   };
 
@@ -3970,13 +4766,13 @@ function MetronomeSelectControl({ ariaLabel = "", className = "", dropdownDirect
 
     const handlePointerDown = (event) => {
       if (controlRef.current?.contains(event.target)) return;
-      setOpen(false);
+      setOpenImmediate(false);
     };
     const handleKeyDown = (event) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") setOpenImmediate(false);
     };
     const handleDropdownOpen = (event) => {
-      if (event.detail !== dropdownIdRef.current) setOpen(false);
+      if (event.detail !== dropdownIdRef.current) setOpenImmediate(false);
     };
     const handleViewportChange = () => updateOpenDirection();
 
@@ -3984,15 +4780,21 @@ function MetronomeSelectControl({ ariaLabel = "", className = "", dropdownDirect
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("riffDropdownOpen", handleDropdownOpen);
     window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("orientationchange", handleViewportChange);
     window.addEventListener("scroll", handleViewportChange, true);
+    window.visualViewport?.addEventListener?.("resize", handleViewportChange);
+    window.visualViewport?.addEventListener?.("scroll", handleViewportChange);
     return () => {
       window.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("riffDropdownOpen", handleDropdownOpen);
       window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("orientationchange", handleViewportChange);
       window.removeEventListener("scroll", handleViewportChange, true);
+      window.visualViewport?.removeEventListener?.("resize", handleViewportChange);
+      window.visualViewport?.removeEventListener?.("scroll", handleViewportChange);
     };
-  }, [open, dropdownDirection]);
+  }, [open, dropdownDirection, setOpenImmediate]);
 
   return (
     <div
@@ -4004,6 +4806,7 @@ function MetronomeSelectControl({ ariaLabel = "", className = "", dropdownDirect
         {label}
       </span>
       <button
+        aria-controls={dropdownIdRef.current}
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-label={selectedOption?.longLabel ? `${ariaLabel || label}: ${selectedOption.longLabel}` : (ariaLabel || label)}
@@ -4011,7 +4814,8 @@ function MetronomeSelectControl({ ariaLabel = "", className = "", dropdownDirect
         onClick={(event) => {
           event.stopPropagation();
           updateOpenDirection();
-          const nextOpen = !open;
+          const nextOpen = !openRef.current;
+          openRef.current = nextOpen;
           if (nextOpen && typeof window !== "undefined") {
             window.dispatchEvent(new CustomEvent("riffDropdownOpen", { detail: dropdownIdRef.current }));
           }
@@ -4025,34 +4829,41 @@ function MetronomeSelectControl({ ariaLabel = "", className = "", dropdownDirect
         <b>{selectedOption?.label || value || label}</b>
         <i aria-hidden="true">⌄</i>
       </button>
-      {open ? (
+      {open && typeof document !== "undefined" ? createPortal(
         <div
-          className={`metronomeSelectMenu ${layout === "grid" ? "metronomeSelectMenu--twoColumn" : ""}`}
-          onClick={(event) => event.stopPropagation()}
-          onPointerDown={(event) => event.stopPropagation()}
-          onTouchStart={(event) => event.stopPropagation()}
-          role="listbox"
-          style={menuStyle}
+          className={`metronomeSelectPortal metronomeSelectControl ${className} ${layout === "grid" ? "metronomeSelectControl--grid" : "metronomeSelectControl--list"} metronomeSelectControl--${openDirection}`}
+          role="presentation"
         >
-          {gridOptions.map((option) => (
-            <button
-              aria-selected={String(option.id) === String(value)}
-              className={`metronomeSelectOption ${String(option.id) === String(value) ? "selected" : ""}`}
-              disabled={option.disabled}
-              key={option.id}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (option.disabled) return;
-                onChange(option.id);
-                setOpen(false);
-              }}
-              role="option"
-              type="button"
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+          <div
+            className={`metronomeSelectMenu metronomeSelectMenu--${openDirection} ${layout === "grid" ? "metronomeSelectMenu--twoColumn" : ""}`}
+            id={dropdownIdRef.current}
+            onClick={(event) => event.stopPropagation()}
+            onPointerDown={(event) => event.stopPropagation()}
+            onTouchStart={(event) => event.stopPropagation()}
+            role="listbox"
+            style={menuStyle}
+          >
+            {gridOptions.map((option) => (
+              <button
+                aria-selected={String(option.id) === String(value)}
+                className={`metronomeSelectOption ${String(option.id) === String(value) ? "selected" : ""}`}
+                disabled={option.disabled}
+                key={option.id}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (option.disabled) return;
+                  onChange(option.id);
+                  setOpenImmediate(false);
+                }}
+                role="option"
+                type="button"
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>,
+        controlRef.current?.closest(".app") || document.body,
       ) : null}
     </div>
   );
@@ -5104,6 +5915,7 @@ const SHOOTER_PLAYER_STORAGE_KEY = "rifflabSelectedPlayer";
 const SHOOTER_GUITAR_STORAGE_KEY = "rifflabSelectedGuitar";
 const SHOOTER_PICK_SKIN_STORAGE_KEY = "rifflabShooterPickSkin";
 const SHOOTER_EFFECT_STORAGE_KEY = "rifflabShooterEffect";
+const SHOOTER_EFFECT_LOADOUT_STORAGE_KEY = "rifflabShooterEffectLoadoutV2";
 const SHOOTER_MAP_STORAGE_KEY = "rifflabShooterMap";
 const SHOOTER_EMBLEM_STORAGE_KEY = "rifflabShooterEmblem";
 const GUITAR_LAB_STORAGE_KEY = "rifflab-shooter-guitar-v1";
@@ -5357,17 +6169,48 @@ const SHOOTER_EMBLEM_OPTIONS = [
     id: "none",
     label: "없음",
     description: "중앙 엠블럼 표시 안 함",
-    image: "",
+    images: {
+      showcase: "",
+      gameplay: "",
+    },
     className: "shooterCenterEmblem--none",
   },
   {
     id: "lion-gold",
     label: "골드 사자",
     description: "왕실 문장 느낌의 골드 사자 엠블럼",
-    image: "/assets/emblems/lion-gold-emblem.png",
+    images: {
+      showcase: "/assets/emblems/lion-gold-emblem.png",
+      gameplay: "/assets/emblems/lion-gold-emblem.png",
+    },
     className: "shooterCenterEmblem--lionGold",
+    pickerTone: "gold",
+  },
+  {
+    id: "wolf-hunter",
+    label: "WOLF",
+    description: "HUNTER",
+    images: {
+      showcase: "/assets/emblems/wolf-hunter-emblem.png",
+      gameplay: "/assets/emblems/wolf-gold-emblem.png",
+    },
+    className: "shooterCenterEmblem--wolfHunter",
+    arenaBlendMode: "screen",
+  },
+  {
+    id: "eagle-strike",
+    label: "EAGLE",
+    description: "STRIKE",
+    images: {
+      showcase: "/assets/emblems/eagle-strike-emblem.png",
+      gameplay: "/assets/emblems/eagle-strike-gold-emblem.png",
+    },
+    className: "shooterCenterEmblem--eagleStrike",
   },
 ];
+const SHOOTER_EMBLEM_LEGACY_ID_MAP = {
+  "wolf-gold": "wolf-hunter",
+};
 const SHOOTER_MAP_LEGACY_ID_MAP = {
   "classic-wood": "rifflab-studio",
   "simple-white": "rifflab-studio",
@@ -5375,22 +6218,25 @@ const SHOOTER_MAP_LEGACY_ID_MAP = {
 const SHOOTER_EFFECT_LAYER_SLOTS = {
   FLOOR: "floor",
   BACK: "back",
-  BODY: "body",
   FRONT: "front",
 };
-const SHOOTER_EFFECT_SECTION_IDS = {
-  NONE: "none",
+const SHOOTER_EFFECT_EQUIPMENT_SLOTS = {
   AURA: "aura",
   FLOOR: "floor",
-  DECORATION: "decoration",
 };
 const SHOOTER_EFFECT_SECTION_OPTIONS = [
-  { id: SHOOTER_EFFECT_SECTION_IDS.NONE, label: "없음" },
-  { id: SHOOTER_EFFECT_SECTION_IDS.AURA, label: "아우라" },
-  { id: SHOOTER_EFFECT_SECTION_IDS.FLOOR, label: "바닥" },
-  { id: SHOOTER_EFFECT_SECTION_IDS.DECORATION, label: "장식 / 파편 (세트)" },
+  {
+    id: SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
+    label: "AURA · 기타 주변",
+    description: "기타 뒤와 앞을 감싸는 독립 이펙트",
+  },
+  {
+    id: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
+    label: "FLOOR · 바닥",
+    description: "기타가 서 있는 지면 전용 이펙트",
+  },
 ];
-const SHOOTER_EFFECT_OPTIONS = [
+const SHOOTER_LEGACY_EFFECT_OPTIONS = [
   {
     id: "none",
     name: "None",
@@ -5411,7 +6257,7 @@ const SHOOTER_EFFECT_OPTIONS = [
     type: "animated",
     image: "/assets/effects/legendary-violet-reference.png",
     className: "effect-legendary-violet-png",
-    category: SHOOTER_EFFECT_SECTION_IDS.DECORATION,
+    category: "legacy-decoration",
     layer: SHOOTER_EFFECT_LAYER_SLOTS.BACK,
   },
   {
@@ -5579,7 +6425,14 @@ const SHOOTER_EFFECT_DECORATION_SECTION_IDS = new Set([
 ]);
 const SHOOTER_EFFECT_LEGACY_ID_MAP = {
   aura: "aura-blue",
+  "aura-blue": "fire-lava-aura",
   "circle-halo": "aura-blue",
+  "fire-lava-aura-crossing": "fire-lava-aura",
+  "fire-lava-aura-triangle": "fire-lava-aura",
+  "flame-aura": "fire-lava-aura",
+  "legendary-aura": "fire-lava-aura",
+  "mystic-aura": "fire-lava-aura",
+  "nature-aura": "fire-lava-aura",
   "ornament-light": "subtle-aura",
   "still-png": "subtle-aura",
 };
@@ -5660,8 +6513,120 @@ const SHOOTER_EFFECT_COMPOSITE_GROUP_BY_ID = {
   "flame-aura": "flame",
   "eclipse-aura": "eclipse",
 };
+const SHOOTER_AURA_EFFECT_OPTIONS = [
+  {
+    id: "none",
+    name: "NONE",
+    label: "없음",
+    description: "기타 주변 아우라 사용 안 함",
+    asset: "",
+    type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
+    layers: [],
+  },
+  {
+    id: "fire-lava-aura",
+    name: "Fire Lava Aura",
+    label: "불꽃 용암 아우라",
+    description: "기타 양옆을 은은하게 휘감는 불꽃 용암",
+    asset: "/assets/effects/fire-lava-aura.png",
+    type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
+    scale: 1,
+    offsetX: 0,
+    offsetY: 0,
+    opacity: 0.82,
+    previewScale: 0.62,
+    zIndex: 1,
+    blendMode: "normal",
+    animation: { preset: "lava-flow", durationMs: 2800 },
+    layers: [
+      {
+        layer: SHOOTER_EFFECT_LAYER_SLOTS.BACK,
+        className: "effect-fire-lava-aura",
+        width: 116,
+        height: 174,
+      },
+      {
+        layer: SHOOTER_EFFECT_LAYER_SLOTS.FRONT,
+        className: "effect-fire-lava-aura-front effect-fire-lava-aura-wearable-front",
+        width: 116,
+        height: 174,
+        offsetY: 0,
+        opacity: 0.48,
+        zIndex: 4,
+        blendMode: "screen",
+        animation: { preset: "lava-wearable-front", durationMs: 2300 },
+      },
+    ],
+  },
+];
+const SHOOTER_FLOOR_EFFECT_OPTIONS = [
+  {
+    id: "none",
+    name: "NONE",
+    label: "없음",
+    description: "기타 아래 바닥 효과 사용 안 함",
+    asset: "",
+    type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
+    layers: [],
+  },
+  {
+    id: "fire-portal",
+    name: "Fire Portal",
+    label: "불타는 포탈",
+    description: "기타 바로 아래에 깔리는 불타는 포탈",
+    asset: "/assets/effects/fire-portal-floor.png",
+    type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
+    scale: 1,
+    offsetX: 0,
+    offsetY: 38,
+    opacity: 1,
+    previewScale: 0.58,
+    zIndex: 0,
+    blendMode: "normal",
+    layers: [
+      {
+        layer: SHOOTER_EFFECT_LAYER_SLOTS.FLOOR,
+        className: "effect-floor-fire-portal",
+        width: 198,
+        height: 132,
+      },
+      {
+        layer: SHOOTER_EFFECT_LAYER_SLOTS.FLOOR,
+        className: "effect-floor-fire-portal-glow",
+        width: 198,
+        height: 132,
+        opacity: 0.34,
+        zIndex: 0,
+        blendMode: "screen",
+        animation: { preset: "portal-ember", durationMs: 2600 },
+      },
+    ],
+  },
+];
+const SHOOTER_EFFECT_OPTIONS_BY_SLOT = {
+  [SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA]: SHOOTER_AURA_EFFECT_OPTIONS,
+  [SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR]: SHOOTER_FLOOR_EFFECT_OPTIONS,
+};
+const SHOOTER_EFFECT_OPTIONS = [
+  ...SHOOTER_AURA_EFFECT_OPTIONS,
+  ...SHOOTER_FLOOR_EFFECT_OPTIONS,
+];
+const SHOOTER_EFFECT_LEGACY_LOADOUT_BY_GROUP = {
+  blue: { aura: "aura-blue", floor: "floor-light" },
+  nature: { aura: "nature-aura", floor: "nature-circle" },
+  mystic: { aura: "mystic-aura", floor: "mystic-circle" },
+  legendary: { aura: "legendary-aura", floor: "legendary-circle" },
+  flame: { aura: "flame-aura", floor: "legendary-circle" },
+  eclipse: { aura: "legendary-aura", floor: "eclipse-aura" },
+  subtle: { aura: "aura-blue", floor: "subtle-aura" },
+};
 const DEFAULT_SHOOTER_PICK_SKIN_ID = SHOOTER_PICK_SKINS[0].id;
-const DEFAULT_SHOOTER_EFFECT_ID = "flame-aura";
+const DEFAULT_SHOOTER_AURA_EFFECT_ID = "fire-lava-aura";
+const DEFAULT_SHOOTER_FLOOR_EFFECT_ID = "fire-portal";
+const DEFAULT_SHOOTER_EFFECT_LOADOUT = {
+  aura: DEFAULT_SHOOTER_AURA_EFFECT_ID,
+  floor: DEFAULT_SHOOTER_FLOOR_EFFECT_ID,
+};
 const DEFAULT_SHOOTER_MAP_ID = "rifflab-studio";
 const DEFAULT_SHOOTER_EMBLEM_ID = SHOOTER_EMBLEM_OPTIONS[1]?.id ?? SHOOTER_EMBLEM_OPTIONS[0].id;
 const SHOOTER_GUITAR_RARITY_BY_VARIANT_ID = {
@@ -5704,87 +6669,130 @@ function getShooterMapCssVars(map) {
 }
 
 function getShooterEmblemById(emblemId) {
-  return SHOOTER_EMBLEM_OPTIONS.find((emblem) => emblem.id === emblemId)
+  const normalizedEmblemId = SHOOTER_EMBLEM_LEGACY_ID_MAP[emblemId] ?? emblemId;
+  return SHOOTER_EMBLEM_OPTIONS.find((emblem) => emblem.id === normalizedEmblemId)
     ?? SHOOTER_EMBLEM_OPTIONS.find((emblem) => emblem.id === DEFAULT_SHOOTER_EMBLEM_ID)
     ?? SHOOTER_EMBLEM_OPTIONS[0];
 }
 
-function getShooterEffectById(effectId) {
+function getShooterEmblemImage(emblem, variant) {
+  return emblem?.images?.[variant]
+    ?? emblem?.images?.showcase
+    ?? emblem?.image
+    ?? "";
+}
+
+function getShooterEffectById(equipmentSlot, effectId) {
+  const options = SHOOTER_EFFECT_OPTIONS_BY_SLOT[equipmentSlot] ?? [];
   const normalizedEffectId = SHOOTER_EFFECT_LEGACY_ID_MAP[effectId] ?? effectId;
-  return SHOOTER_EFFECT_OPTIONS.find((effect) => effect.id === normalizedEffectId)
-    ?? SHOOTER_EFFECT_OPTIONS.find((effect) => effect.id === DEFAULT_SHOOTER_EFFECT_ID)
-    ?? SHOOTER_EFFECT_OPTIONS[0];
+  const defaultId = equipmentSlot === SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR
+    ? DEFAULT_SHOOTER_FLOOR_EFFECT_ID
+    : DEFAULT_SHOOTER_AURA_EFFECT_ID;
+  return options.find((effect) => effect.id === normalizedEffectId)
+    ?? options.find((effect) => effect.id === defaultId)
+    ?? options[0];
 }
 
-function getShooterEffectSectionId(effect) {
-  if (!effect || effect.id === "none") return SHOOTER_EFFECT_SECTION_IDS.NONE;
-  if (SHOOTER_EFFECT_SECTION_ID_SET.has(effect.category)) return effect.category;
-  if (SHOOTER_EFFECT_DECORATION_SECTION_IDS.has(effect.id)) return SHOOTER_EFFECT_SECTION_IDS.DECORATION;
-  if (effect.layer === SHOOTER_EFFECT_LAYER_SLOTS.FLOOR) return SHOOTER_EFFECT_SECTION_IDS.FLOOR;
-  if (effect.layer === SHOOTER_EFFECT_LAYER_SLOTS.BACK || effect.id.includes("aura")) return SHOOTER_EFFECT_SECTION_IDS.AURA;
-  if (effect.layer === SHOOTER_EFFECT_LAYER_SLOTS.FRONT) return SHOOTER_EFFECT_SECTION_IDS.DECORATION;
-  return SHOOTER_EFFECT_SECTION_IDS.DECORATION;
+function normalizeShooterEffectLoadout(value = DEFAULT_SHOOTER_EFFECT_LOADOUT) {
+  return {
+    aura: getShooterEffectById(SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA, value?.aura).id,
+    floor: getShooterEffectById(SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR, value?.floor).id,
+  };
 }
 
-function getShooterCompositeLayersForEffect(effect) {
-  const groupId = SHOOTER_EFFECT_COMPOSITE_GROUP_BY_ID[effect?.id];
-  const group = groupId ? SHOOTER_EFFECT_COMPOSITE_GROUPS[groupId] : null;
-  if (!group) return null;
+function getLegacyShooterEffectLoadout(effectId) {
+  const normalizedEffectId = SHOOTER_EFFECT_LEGACY_ID_MAP[effectId] ?? effectId;
+  if (normalizedEffectId === "none") return { aura: "none", floor: "none" };
+  if (normalizedEffectId === "legendary-violet") {
+    return { aura: "mystic-aura", floor: "mystic-circle" };
+  }
 
-  return [
-    {
-      slot: SHOOTER_EFFECT_LAYER_SLOTS.FLOOR,
-      image: group.floor,
-      className: group.floorClassName,
-    },
-    {
-      slot: SHOOTER_EFFECT_LAYER_SLOTS.BACK,
-      image: group.aura,
-      className: group.auraClassName,
-    },
-    {
-      slot: SHOOTER_EFFECT_LAYER_SLOTS.BODY,
-      image: group.aura,
-      className: group.bodyClassName,
-    },
-    {
-      slot: SHOOTER_EFFECT_LAYER_SLOTS.FRONT,
-      image: group.front,
-      className: group.frontClassName,
-    },
-  ];
+  const groupId = SHOOTER_EFFECT_COMPOSITE_GROUP_BY_ID[normalizedEffectId];
+  const groupedLoadout = groupId ? SHOOTER_EFFECT_LEGACY_LOADOUT_BY_GROUP[groupId] : null;
+  if (groupedLoadout) return normalizeShooterEffectLoadout(groupedLoadout);
+
+  const auraMatch = SHOOTER_AURA_EFFECT_OPTIONS.find((effect) => effect.id === normalizedEffectId);
+  if (auraMatch) return { aura: auraMatch.id, floor: "none" };
+  const floorMatch = SHOOTER_FLOOR_EFFECT_OPTIONS.find((effect) => effect.id === normalizedEffectId);
+  if (floorMatch) return { aura: "none", floor: floorMatch.id };
+  return { ...DEFAULT_SHOOTER_EFFECT_LOADOUT };
 }
 
 function getShooterEffectLayers(effect) {
-  if (!effect) return [];
-  const compositeLayers = getShooterCompositeLayersForEffect(effect);
-  const effectLayers = Array.isArray(compositeLayers) && compositeLayers.length > 0
-    ? compositeLayers
-    : Array.isArray(effect.layers) && effect.layers.length > 0
+  if (!effect || effect.id === "none") return [];
+  const defaultLayer = effect.type === SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR
+    ? SHOOTER_EFFECT_LAYER_SLOTS.FLOOR
+    : SHOOTER_EFFECT_LAYER_SLOTS.BACK;
+  const effectLayers = Array.isArray(effect.layers) && effect.layers.length > 0
     ? effect.layers
-    : effect.image
-      ? [
-          {
-            slot: effect.layer ?? SHOOTER_EFFECT_LAYER_SLOTS.BACK,
-            image: effect.image,
-            className: effect.className,
-          },
-        ]
-      : [];
+    : [{ layer: defaultLayer }];
 
   return effectLayers
-    .filter((layer) => layer?.image)
     .map((layer, index) => {
-      const slot = layer.slot ?? layer.layer ?? effect.layer ?? SHOOTER_EFFECT_LAYER_SLOTS.BACK;
+      const asset = layer.asset ?? effect.asset;
+      if (!asset) return null;
+      const slot = layer.layer ?? defaultLayer;
+      const width = layer.width ?? effect.width ?? (slot === SHOOTER_EFFECT_LAYER_SLOTS.FLOOR ? 206 : 188);
+      const height = layer.height ?? effect.height ?? (slot === SHOOTER_EFFECT_LAYER_SLOTS.FLOOR ? 122 : 224);
       return {
-        key: `${effect.id}-${slot}-${index}`,
+        key: `${effect.type}-${effect.id}-${slot}-${index}`,
         slot,
-        image: layer.image,
+        asset,
         className: layer.className ?? effect.className,
-        type: layer.type ?? effect.type,
+        type: effect.type,
         effectId: effect.id,
+        scale: layer.scale ?? effect.scale ?? 1,
+        offsetX: layer.offsetX ?? effect.offsetX ?? 0,
+        offsetY: layer.offsetY ?? effect.offsetY ?? 0,
+        opacity: layer.opacity ?? effect.opacity ?? 1,
+        previewScale: layer.previewScale ?? effect.previewScale ?? 0.5,
+        zIndex: layer.zIndex ?? effect.zIndex ?? (slot === SHOOTER_EFFECT_LAYER_SLOTS.FRONT ? 4 : slot === SHOOTER_EFFECT_LAYER_SLOTS.BACK ? 1 : 0),
+        blendMode: layer.blendMode ?? effect.blendMode ?? "screen",
+        width,
+        height,
+        animation: layer.animation ?? effect.animation ?? null,
       };
-    });
+    })
+    .filter(Boolean);
+}
+
+function getShooterEffectLayerStyle(layer) {
+  return {
+    "--guitar-effect-width": `${layer.width}px`,
+    "--guitar-effect-aspect": `${layer.width} / ${layer.height}`,
+    "--guitar-effect-scale": String(layer.scale),
+    "--guitar-effect-offset-x": `${layer.offsetX}px`,
+    "--guitar-effect-offset-y": `${layer.offsetY}px`,
+    "--guitar-effect-opacity": String(layer.opacity),
+    "--guitar-effect-z-index": String(layer.zIndex),
+    "--guitar-effect-blend-mode": layer.blendMode,
+    "--guitar-effect-animation-duration": `${layer.animation?.durationMs ?? 1800}ms`,
+  };
+}
+
+function getShooterEffectPreviewLayerClassName(layer) {
+  return [
+    "shooterEffectPreviewLayer",
+    `shooterEffectPreviewLayer--${layer.slot}`,
+    layer.className,
+    layer.animation?.preset ? "shooterEffectPreviewLayer--animated" : "",
+    layer.animation?.preset ? `shooterEffectPreviewLayer--animation-${layer.animation.preset}` : "",
+  ].filter(Boolean).join(" ");
+}
+
+function getShooterEffectPreviewLayerStyle(layer) {
+  const previewScale = layer.previewScale ?? 0.5;
+  return {
+    "--shooter-effect-preview-width": `${layer.width * previewScale}px`,
+    "--shooter-effect-preview-aspect": `${layer.width} / ${layer.height}`,
+    "--shooter-effect-preview-scale": String(layer.scale),
+    "--shooter-effect-preview-offset-x": `${layer.offsetX * previewScale}px`,
+    "--shooter-effect-preview-offset-y": `${layer.offsetY * previewScale}px`,
+    "--shooter-effect-preview-opacity": String(layer.opacity),
+    "--shooter-effect-preview-z-index": String(layer.zIndex),
+    "--shooter-effect-preview-blend-mode": layer.blendMode,
+    "--shooter-effect-preview-animation-duration": `${layer.animation?.durationMs ?? 1800}ms`,
+  };
 }
 
 const shooterEffectImagePreloadCache = new Map();
@@ -5823,7 +6831,7 @@ function preloadShooterEffectImage(src) {
 }
 
 function preloadShooterEffectImages(effect) {
-  const imageSources = [...new Set(getShooterEffectLayers(effect).map((layer) => layer.image).filter(Boolean))];
+  const imageSources = [...new Set(getShooterEffectLayers(effect).map((layer) => layer.asset).filter(Boolean))];
   return Promise.all(imageSources.map(preloadShooterEffectImage)).then(() => undefined);
 }
 
@@ -5839,6 +6847,8 @@ function getShooterEffectLayerClassName(layer) {
     `guitarPlayerEffectLayer--${layer.slot}`,
     `guitarPlayerEffectLayer--${layer.type}`,
     `guitarPlayerEffectLayer--${layer.effectId}`,
+    layer.animation ? "guitarPlayerEffectLayer--animated" : "guitarPlayerEffectLayer--static",
+    layer.animation?.preset ? `guitarPlayerEffectLayer--animation-${layer.animation.preset}` : "",
     layer.className,
   ].filter(Boolean).join(" ");
 }
@@ -6288,6 +7298,801 @@ function MiniChordSaveConfirmDialog({ onCancel, onConfirm, title }) {
           <div className="backingLoopDialogActions">
             <button onClick={onCancel} type="button">아니오</button>
             <button className="primary" onClick={onConfirm} type="button">저장</button>
+          </div>
+        </section>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+function MiniChordResetDialog({
+  confirmAllOpen = false,
+  onCancelAll,
+  onClose,
+  onResetAll,
+  onResetCodes,
+  onResetStructure,
+  onRequestAll,
+}) {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key !== "Escape") return;
+      if (confirmAllOpen) onCancelAll();
+      else onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [confirmAllOpen, onCancelAll, onClose]);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="backingLoopDialogLayer storageModalLayer miniChordResetDialogLayer"
+      onMouseDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        if (confirmAllOpen) onCancelAll();
+        else onClose();
+      }}
+      role="presentation"
+    >
+      <div aria-labelledby="mini-chord-reset-title" aria-modal="true" role="dialog">
+        <section className="backingLoopDialog miniChordResetDialog">
+          <div className="backingLoopDialogHeading">
+            <div>
+              <strong id="mini-chord-reset-title">{confirmAllOpen ? "전체 초기화" : "미니코드 초기화"}</strong>
+              <span>{confirmAllOpen ? "코드와 구조/기호를 함께 삭제" : "초기화할 정보만 선택"}</span>
+            </div>
+            <button aria-label="미니코드 초기화 닫기" onClick={onClose} type="button">
+              <X size={15} />
+            </button>
+          </div>
+          {confirmAllOpen ? (
+            <div className="miniChordResetWarning">
+              <p>전체 마디의 코드와 도돌이·엔딩·이동 기호를 모두 삭제합니다.</p>
+              <small>BPM, CAPO, 편곡 설정과 저장된 미니코드 곡은 유지됩니다. 실행 후 Undo로 복구할 수 있습니다.</small>
+            </div>
+          ) : (
+            <div className="miniChordResetChoices">
+              <button onClick={onResetCodes} type="button">
+                <strong>코드 초기화</strong>
+                <span>코드만 삭제하고 구조/기호는 유지</span>
+              </button>
+              <button onClick={onResetStructure} type="button">
+                <strong>구조/기호 초기화</strong>
+                <span>도돌이·엔딩·이동 기호만 삭제</span>
+              </button>
+              <button className="is-destructive" onClick={onRequestAll} type="button">
+                <strong>전체 초기화</strong>
+                <span>코드와 구조/기호를 함께 삭제</span>
+              </button>
+            </div>
+          )}
+          <div className="backingLoopDialogActions miniChordResetActions">
+            {confirmAllOpen ? (
+              <>
+                <button onClick={onCancelAll} type="button">취소</button>
+                <button className="primary miniChordResetAllButton" onClick={onResetAll} type="button">전체 초기화</button>
+              </>
+            ) : (
+              <button className="primary" onClick={onClose} type="button">닫기</button>
+            )}
+          </div>
+        </section>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+function MiniChordGrooveEditorDialog({
+  isPreviewing = false,
+  part,
+  pattern: initialPattern,
+  presetId = "",
+  scope = "global",
+  onApply,
+  onClose,
+  onDraftChange,
+  onPreview,
+  previewDisabled = false,
+}) {
+  const [pattern, setPattern] = useState(initialPattern);
+  const patternRef = useRef(initialPattern);
+  const paintGestureRef = useRef(null);
+  const previewActiveRef = useRef(isPreviewing);
+
+  useEffect(() => {
+    previewActiveRef.current = isPreviewing;
+  }, [isPreviewing]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  if (typeof document === "undefined" || !part || !pattern) return null;
+
+  const isDrumEditor = part === "drum";
+  const isUserDefaultEditor = scope === "user-default";
+  const scopeLabel = isUserDefaultEditor
+    ? ` · ${MINI_CHORD_COMPACT_PATTERN_LABELS[presetId] ?? presetId} SLOT`
+    : "";
+  const editorName = isDrumEditor ? "DRUM PATTERN" : part === "bass" ? "BASS PATTERN" : "PIANO PATTERN";
+  const title = `${editorName}${scopeLabel}`;
+  const helpText = part === "drum"
+    ? "Hat은 Closed Hi-Hat, Shaker는 흔드는 퍼커션 샘플입니다. 드래그로 연속 ON/OFF."
+    : part === "bass"
+      ? "R = 근음, 3 = 3도, 5 = 5도, 8 = 옥타브, - = 쉼"
+      : "Chord = 동시 코드, Stab = 짧은 코드, Arp ↑/↓ = 분산화음";
+  const getStepClasses = (stepIndex, selectedClass = "") => [
+    selectedClass,
+    stepIndex % 4 === 0 ? "is-downbeat" : "",
+    stepIndex % 4 === 3 ? "is-beat-end" : "",
+  ].filter(Boolean).join(" ");
+  const beatGroups = Array.from({ length: 4 }, (_, beatIndex) => (
+    Array.from({ length: 4 }, (__, stepInBeat) => beatIndex * 4 + stepInBeat)
+  ));
+  const commitPattern = (nextPattern) => {
+    if (previewActiveRef.current) {
+      previewActiveRef.current = false;
+      onDraftChange?.();
+    }
+    patternRef.current = nextPattern;
+    setPattern(nextPattern);
+  };
+  const getStepMetaFromElement = (element) => {
+    const stepElement = element?.closest?.("[data-groove-step-key]");
+    if (!stepElement || stepElement.dataset.groovePart !== part) return null;
+    return {
+      instrumentId: stepElement.dataset.instrumentId || "",
+      key: stepElement.dataset.grooveStepKey,
+      stepIndex: Math.max(0, Math.min(MINI_CHORD_GROOVE_STEPS - 1, Number(stepElement.dataset.stepIndex) || 0)),
+    };
+  };
+  const getPaintStepKey = (meta, stepIndex = meta?.stepIndex) => (
+    part === "drum" ? `${meta?.instrumentId ?? ""}-${stepIndex}` : `${part}-${stepIndex}`
+  );
+  const paintStepMetas = (metas = []) => {
+    const gesture = paintGestureRef.current;
+    if (!gesture || !metas.length) return;
+    let nextPattern = patternRef.current;
+    let didChange = false;
+    metas.forEach((meta) => {
+      if (!meta || gesture.visited.has(meta.key)) return;
+      gesture.visited.add(meta.key);
+      if (part === "drum") {
+        nextPattern = setMiniChordDrumPatternStep(nextPattern, meta.instrumentId, meta.stepIndex, gesture.targetValue);
+      } else if (part === "bass") {
+        nextPattern = setMiniChordBassPatternStep(nextPattern, meta.stepIndex, gesture.targetValue);
+      } else {
+        nextPattern = setMiniChordPianoPatternStep(nextPattern, meta.stepIndex, gesture.targetValue);
+      }
+      didChange = true;
+    });
+    if (!didChange) return;
+    gesture.didPaint = true;
+    commitPattern(nextPattern);
+  };
+  const paintStep = (meta) => paintStepMetas([meta]);
+  const paintStepRange = (fromMeta, toMeta) => {
+    if (!fromMeta || !toMeta) return;
+    if (part === "drum" && fromMeta.instrumentId !== toMeta.instrumentId) {
+      paintStep(toMeta);
+      return;
+    }
+    const start = Math.min(fromMeta.stepIndex, toMeta.stepIndex);
+    const end = Math.max(fromMeta.stepIndex, toMeta.stepIndex);
+    const metas = [];
+    for (let stepIndex = start; stepIndex <= end; stepIndex += 1) {
+      metas.push({
+        instrumentId: toMeta.instrumentId,
+        key: getPaintStepKey(toMeta, stepIndex),
+        stepIndex,
+      });
+    }
+    paintStepMetas(metas);
+  };
+  const cycleStep = (meta) => {
+    if (!meta) return;
+    let nextPattern = patternRef.current;
+    if (part === "drum") {
+      nextPattern = toggleMiniChordDrumPatternStep(nextPattern, meta.instrumentId, meta.stepIndex);
+    } else if (part === "bass") {
+      nextPattern = cycleMiniChordBassPatternStep(nextPattern, meta.stepIndex);
+    } else {
+      nextPattern = cycleMiniChordPianoPatternStep(nextPattern, meta.stepIndex);
+    }
+    commitPattern(nextPattern);
+  };
+  const beginStepPaint = (event, meta, active) => {
+    if (event.button != null && event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    try {
+      if (event.pointerId != null) event.currentTarget.setPointerCapture?.(event.pointerId);
+    } catch {
+      // Pointer capture is best-effort in embedded browser tests.
+    }
+    const paintTargets = part === "drum"
+      ? [...document.querySelectorAll(`[data-groove-part="${part}"][data-instrument-id="${meta.instrumentId}"]`)]
+        .map((element) => {
+          const rect = element.getBoundingClientRect();
+          return {
+            centerX: rect.left + rect.width / 2,
+            centerY: rect.top + rect.height / 2,
+            meta: {
+              instrumentId: element.dataset.instrumentId || "",
+              key: element.dataset.grooveStepKey,
+              stepIndex: Math.max(0, Math.min(MINI_CHORD_GROOVE_STEPS - 1, Number(element.dataset.stepIndex) || 0)),
+            },
+          };
+        })
+      : [];
+    paintGestureRef.current = {
+      didPaint: false,
+      paintTargets,
+      pointerId: event.pointerId ?? "mouse",
+      lastMeta: meta,
+      startPoint: { x: event.clientX, y: event.clientY },
+      startMeta: meta,
+      targetValue: part === "drum"
+        ? !active
+        : part === "bass"
+          ? (active ? "rest" : "root")
+          : !active,
+      visited: new Set(),
+    };
+  };
+  const beginMouseStepPaint = (event, meta, active) => {
+    if (paintGestureRef.current) return;
+    beginStepPaint(event, meta, active);
+  };
+  const isPaintGestureEvent = (gesture, event) => (
+    Boolean(gesture) && (event.pointerId == null || gesture.pointerId === event.pointerId)
+  );
+  const getDrumPaintMetasFromPoint = (gesture, point) => {
+    if (part !== "drum" || !gesture?.paintTargets?.length || !gesture.startPoint) return [];
+    const minX = Math.min(gesture.startPoint.x, point.x);
+    const maxX = Math.max(gesture.startPoint.x, point.x);
+    const minY = Math.min(gesture.startPoint.y, point.y);
+    const maxY = Math.max(gesture.startPoint.y, point.y);
+    const deltaX = point.x - gesture.startPoint.x;
+    const deltaY = point.y - gesture.startPoint.y;
+    const axis = Math.abs(deltaX) >= Math.abs(deltaY) ? "x" : "y";
+    const direction = axis === "x" ? deltaX : deltaY;
+    return gesture.paintTargets
+      .filter((target) => (
+        target.centerX >= minX - 2
+        && target.centerX <= maxX + 2
+        && target.centerY >= minY - 2
+        && target.centerY <= maxY + 2
+      ))
+      .sort((left, right) => (
+        direction >= 0
+          ? left.meta.stepIndex - right.meta.stepIndex
+          : right.meta.stepIndex - left.meta.stepIndex
+      ))
+      .map((target) => target.meta);
+  };
+  const handleGridPointerMove = (event) => {
+    const gesture = paintGestureRef.current;
+    if (!isPaintGestureEvent(gesture, event)) return;
+    const lineMetas = getDrumPaintMetasFromPoint(gesture, { x: event.clientX, y: event.clientY });
+    if (lineMetas.length > 1) {
+      if (!gesture.didPaint) paintStep(gesture.startMeta);
+      paintStepMetas(lineMetas);
+      gesture.lastMeta = lineMetas[lineMetas.length - 1];
+      event.preventDefault();
+      return;
+    }
+    const meta = getStepMetaFromElement(document.elementFromPoint(event.clientX, event.clientY));
+    continueStepPaint(event, meta);
+  };
+  const continueStepPaint = (event, meta) => {
+    const gesture = paintGestureRef.current;
+    if (!isPaintGestureEvent(gesture, event)) return;
+    if (!meta || (meta.key === gesture.startMeta.key && !gesture.didPaint)) return;
+    if (!gesture.didPaint) paintStep(gesture.startMeta);
+    paintStepRange(gesture.lastMeta ?? gesture.startMeta, meta);
+    gesture.lastMeta = meta;
+    event.preventDefault();
+  };
+  const finishStepPaint = (event) => {
+    const gesture = paintGestureRef.current;
+    if (!isPaintGestureEvent(gesture, event)) return;
+    event.preventDefault();
+    if (!gesture.didPaint) {
+      cycleStep(gesture.startMeta);
+    } else {
+      const lineMetas = getDrumPaintMetasFromPoint(gesture, { x: event.clientX, y: event.clientY });
+      if (lineMetas.length > 1) {
+        paintStepMetas(lineMetas);
+        paintGestureRef.current = null;
+        return;
+      }
+      const releaseMeta = getStepMetaFromElement(document.elementFromPoint(event.clientX, event.clientY) ?? event.target);
+      if (releaseMeta) paintStepRange(gesture.lastMeta ?? gesture.startMeta, releaseMeta);
+    }
+    paintGestureRef.current = null;
+  };
+  const cancelStepPaint = () => {
+    paintGestureRef.current = null;
+  };
+  const handleStepKeyDown = (event, meta) => {
+    if (event.key !== " " && event.key !== "Enter") return;
+    event.preventDefault();
+    cycleStep(meta);
+  };
+
+  const renderDrumGrid = () => {
+    const normalized = normalizeMiniChordDrumPattern(pattern);
+    return (
+      <div
+        className="miniChordGrooveGrid miniChordDrumEditorGrid"
+        onMouseMove={handleGridPointerMove}
+        onMouseUp={finishStepPaint}
+        onPointerCancel={cancelStepPaint}
+        onPointerMove={handleGridPointerMove}
+        onPointerUp={finishStepPaint}
+      >
+        <div className="miniChordDrumEditorHeaderRow" aria-hidden="true">
+          <span />
+          {beatGroups.map((steps, beatIndex) => (
+            <div className="miniChordDrumBeatGroup miniChordDrumBeatGroup--header" key={`beat-header-${beatIndex}`}>
+              {steps.map((stepIndex, stepInBeat) => (
+                <b className={getStepClasses(stepIndex)} key={MINI_CHORD_GROOVE_STEP_LABELS[stepIndex]}>
+                  {stepInBeat === 0 ? beatIndex + 1 : ["e", "&", "a"][stepInBeat - 1]}
+                </b>
+              ))}
+            </div>
+          ))}
+        </div>
+        {MINI_CHORD_DRUM_INSTRUMENTS.map((instrument) => (
+          <div className="miniChordDrumEditorRow" key={instrument.id}>
+            <strong title={instrument.name}>{instrument.label}</strong>
+            {beatGroups.map((steps, beatIndex) => (
+              <div className="miniChordDrumBeatGroup" key={`${instrument.id}-beat-${beatIndex}`}>
+                {steps.map((stepIndex) => {
+                  const active = Boolean(normalized.steps[instrument.id]?.[stepIndex]);
+                  const meta = { instrumentId: instrument.id, key: `${instrument.id}-${stepIndex}`, stepIndex };
+                  return (
+                    <button
+                      aria-label={`${instrument.name} ${MINI_CHORD_GROOVE_STEP_LABELS[stepIndex]} ${active ? "끄기" : "켜기"}`}
+                      aria-pressed={active}
+                      className={getStepClasses(stepIndex, active ? "selected" : "")}
+                      data-groove-part={part}
+                      data-groove-step-key={meta.key}
+                      data-instrument-id={instrument.id}
+                      data-step-index={stepIndex}
+                      key={meta.key}
+                      onKeyDown={(event) => handleStepKeyDown(event, meta)}
+                      onMouseDown={(event) => beginMouseStepPaint(event, meta, active)}
+                      onMouseEnter={(event) => continueStepPaint(event, meta)}
+                      onMouseUp={finishStepPaint}
+                      onPointerDown={(event) => beginStepPaint(event, meta, active)}
+                      onPointerEnter={(event) => continueStepPaint(event, meta)}
+                      type="button"
+                    >
+                      <span aria-hidden="true" />
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderBassGrid = () => {
+    const normalized = normalizeMiniChordBassPattern(pattern);
+    return (
+      <div
+        className="miniChordGrooveGrid miniChordGrooveGrid--single"
+        onPointerCancel={cancelStepPaint}
+        onPointerMove={handleGridPointerMove}
+        onPointerUp={finishStepPaint}
+      >
+        {beatGroups.map((steps, beatIndex) => (
+          <section aria-label={`${beatIndex + 1}박`} className="miniChordGrooveBeatRow" key={`bass-beat-${beatIndex}`}>
+            <span><b>{beatIndex + 1}박</b><small>e & a</small></span>
+            <div className="miniChordGrooveBeatSteps">
+              {steps.map((stepIndex, stepInBeat) => {
+                const label = MINI_CHORD_GROOVE_STEP_LABELS[stepIndex];
+                const value = normalized.steps[stepIndex];
+                const option = MINI_CHORD_BASS_STEP_VALUES.find((item) => item.id === value) ?? MINI_CHORD_BASS_STEP_VALUES[0];
+                const meta = { key: `bass-${stepIndex}`, stepIndex };
+                return (
+                  <button
+                    aria-label={`${label} ${option.ariaLabel}`}
+                    className={getStepClasses(stepIndex, value !== "rest" ? "selected" : "")}
+                    data-groove-part={part}
+                    data-groove-step-key={meta.key}
+                    data-step-index={stepIndex}
+                    key={label}
+                    onKeyDown={(event) => handleStepKeyDown(event, meta)}
+                    onPointerDown={(event) => beginStepPaint(event, meta, value !== "rest")}
+                    onPointerEnter={(event) => continueStepPaint(event, meta)}
+                    type="button"
+                  >
+                    <small>{stepInBeat === 0 ? beatIndex + 1 : ["e", "&", "a"][stepInBeat - 1]}</small>
+                    <strong>{option.label}</strong>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
+    );
+  };
+
+  const renderPianoGrid = () => {
+    const normalized = normalizeMiniChordPianoPattern(pattern);
+    return (
+      <div
+        className="miniChordGrooveGrid miniChordGrooveGrid--single"
+        onPointerCancel={cancelStepPaint}
+        onPointerMove={handleGridPointerMove}
+        onPointerUp={finishStepPaint}
+      >
+        {beatGroups.map((steps, beatIndex) => (
+          <section aria-label={`${beatIndex + 1}박`} className="miniChordGrooveBeatRow" key={`piano-beat-${beatIndex}`}>
+            <span><b>{beatIndex + 1}박</b><small>e & a</small></span>
+            <div className="miniChordGrooveBeatSteps">
+              {steps.map((stepIndex, stepInBeat) => {
+                const label = MINI_CHORD_GROOVE_STEP_LABELS[stepIndex];
+                const step = normalized.steps[stepIndex];
+                const styleOption = MINI_CHORD_PIANO_STEP_STYLES.find((item) => item.id === step.style) ?? MINI_CHORD_PIANO_STEP_STYLES[0];
+                const meta = { key: `piano-${stepIndex}`, stepIndex };
+                return (
+                  <button
+                    aria-label={`${label} ${step.active ? styleOption.label : "쉼"}`}
+                    className={getStepClasses(stepIndex, step.active ? `selected style-${step.style}` : "")}
+                    data-groove-part={part}
+                    data-groove-step-key={meta.key}
+                    data-step-index={stepIndex}
+                    key={label}
+                    onKeyDown={(event) => handleStepKeyDown(event, meta)}
+                    onPointerDown={(event) => beginStepPaint(event, meta, step.active)}
+                    onPointerEnter={(event) => continueStepPaint(event, meta)}
+                    type="button"
+                  >
+                    <small>{stepInBeat === 0 ? beatIndex + 1 : ["e", "&", "a"][stepInBeat - 1]}</small>
+                    <strong>{step.active ? styleOption.displayLabel ?? styleOption.label : "-"}</strong>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
+    );
+  };
+
+  return createPortal(
+    <div
+      className={`backingLoopDialogLayer storageModalLayer miniChordGrooveDialogLayer ${isDrumEditor ? "miniChordGrooveDialogLayer--drumLandscape" : ""}`}
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      role="presentation"
+    >
+      <div aria-labelledby="mini-chord-groove-title" aria-modal="true" role="dialog">
+        <section className={`backingLoopDialog miniChordGrooveDialog ${isDrumEditor ? "miniChordGrooveDialog--drumLandscape" : ""}`}>
+          {isDrumEditor ? (
+            <div className="miniChordDrumEditorTopbar">
+              <div className="miniChordDrumEditorTitle">
+                <strong id="mini-chord-groove-title">{title}</strong>
+                <span>16 Step 자유 패턴 · 1 e & a / 2 e & a / 3 e & a / 4 e & a</span>
+              </div>
+              <button aria-label="Pattern 편집 닫기" className="miniChordDrumEditorCloseButton" onClick={onClose} type="button">
+                <X size={15} />
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="backingLoopDialogHeading">
+                <div>
+                  <strong id="mini-chord-groove-title">{title}</strong>
+                  <span>16스텝 공통 타임라인 · 1 e & a / 2 e & a / 3 e & a / 4 e & a</span>
+                </div>
+                <button aria-label="Pattern 편집 닫기" onClick={onClose} type="button">
+                  <X size={15} />
+                </button>
+              </div>
+            </>
+          )}
+          {part === "drum" ? renderDrumGrid() : part === "bass" ? renderBassGrid() : renderPianoGrid()}
+          {isDrumEditor ? null : <p className="miniChordGrooveHelp">{helpText}</p>}
+          <div className={`backingLoopDialogActions miniChordGrooveActions ${isDrumEditor ? "miniChordGrooveActions--drum" : ""}`}>
+            <button
+              className={isPreviewing ? "selected" : ""}
+              disabled={previewDisabled}
+              onClick={() => onPreview(patternRef.current)}
+              title={previewDisabled ? "메인 반주를 정지한 뒤 미리듣기 할 수 있습니다" : undefined}
+              type="button"
+            >
+              {isDrumEditor ? (isPreviewing ? "미리듣기 정지" : "▶ 미리듣기") : (isPreviewing ? "프리뷰 정지" : "프리뷰")}
+            </button>
+            <button onClick={onClose} type="button">취소</button>
+            <button className="primary" onClick={() => onApply(patternRef.current)} type="button">
+              {isUserDefaultEditor ? "Pattern 저장" : "적용"}
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+function MiniChordRhythmSettingsDialog({
+  patterns,
+  onClose,
+  onEdit,
+  onResetAll,
+  onResetPart,
+}) {
+  const [resetRequest, setResetRequest] = useState(null);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key !== "Escape") return;
+      if (resetRequest) {
+        setResetRequest(null);
+        return;
+      }
+      onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose, resetRequest]);
+
+  if (typeof document === "undefined") return null;
+
+  const defaults = createDefaultMiniChordUserDefaultPatterns();
+  const isModified = (part, presetId) => (
+    getMiniChordPatternKey(normalizeMiniChordPatternForPart(part, patterns?.[part]?.[presetId]))
+    !== getMiniChordPatternKey(normalizeMiniChordPatternForPart(part, defaults?.[part]?.[presetId]))
+  );
+  const resetPartLabel = resetRequest?.part === "drum"
+    ? "드럼"
+    : resetRequest?.part === "bass"
+      ? "베이스"
+      : "피아노";
+  const confirmReset = () => {
+    if (!resetRequest) return;
+    if (resetRequest.scope === "all") {
+      onResetAll();
+    } else {
+      onResetPart(resetRequest.part);
+    }
+    setResetRequest(null);
+  };
+
+  return createPortal(
+    <div
+      className="backingLoopDialogLayer storageModalLayer miniChordRhythmSettingsDialogLayer"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      role="presentation"
+    >
+      <div aria-labelledby="mini-chord-rhythm-settings-title" aria-modal="true" role="dialog">
+        <section className="backingLoopDialog miniChordRhythmSettingsDialog">
+          <div className="backingLoopDialogHeading">
+            <div>
+              <strong id="mini-chord-rhythm-settings-title">리듬 설정</strong>
+              <span>악기별 Pattern Slot 제작 · 저장</span>
+            </div>
+            <button aria-label="리듬 설정 닫기" onClick={onClose} type="button">
+              <X size={15} />
+            </button>
+          </div>
+          <p className="miniChordRhythmSettingsIntro">
+            기본 · 4 · 8 · 16 · CUSTOM을 여기서 편집합니다. Mini Chord 반주 버튼은 저장된 Pattern을 선택만 합니다.
+          </p>
+          <div className="miniChordRhythmSettingsParts">
+            {MINI_CHORD_RHYTHM_SETTINGS_PARTS.map((part) => {
+              const partModified = MINI_CHORD_RHYTHM_SETTINGS_PRESET_IDS.some((presetId) => isModified(part.id, presetId));
+              return (
+                <section key={part.id}>
+                  <header>
+                    <strong>{part.label}</strong>
+                    <button
+                      aria-label={`${part.label} 리듬 설정 초기화`}
+                      disabled={!partModified}
+                      onClick={() => setResetRequest({ scope: "part", part: part.id })}
+                      type="button"
+                    >
+                      <RotateCcw aria-hidden="true" size={11} />
+                      초기화
+                    </button>
+                  </header>
+                  <div className="miniChordRhythmPresetCards">
+                    {MINI_CHORD_RHYTHM_SETTINGS_PRESET_IDS.map((presetId) => {
+                      const modified = isModified(part.id, presetId);
+                      return (
+                        <button
+                          aria-label={`${part.label} ${MINI_CHORD_COMPACT_PATTERN_LABELS[presetId]} Pattern 편집`}
+                          className={modified ? "is-modified" : ""}
+                          key={presetId}
+                          onClick={() => onEdit(part.id, presetId)}
+                          type="button"
+                        >
+                          <b>{MINI_CHORD_COMPACT_PATTERN_LABELS[presetId]}</b>
+                          <Settings aria-hidden="true" size={13} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+          <div className="backingLoopDialogActions miniChordRhythmSettingsActions">
+            <button onClick={() => setResetRequest({ scope: "all" })} type="button">
+              <RotateCcw aria-hidden="true" size={13} />
+              전체 기본값 복원
+            </button>
+            <button className="primary" onClick={onClose} type="button">닫기</button>
+          </div>
+        </section>
+      </div>
+      {resetRequest ? (
+        <div
+          className="miniChordRhythmResetConfirmLayer"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setResetRequest(null);
+          }}
+          role="presentation"
+        >
+          <section
+            aria-describedby="mini-chord-rhythm-reset-description"
+            aria-labelledby="mini-chord-rhythm-reset-title"
+            aria-modal="true"
+            className="miniChordRhythmResetConfirm"
+            role="alertdialog"
+          >
+            <strong id="mini-chord-rhythm-reset-title">
+              {resetRequest.scope === "all" ? "전체 리듬 설정 초기화" : `${resetPartLabel} 설정 초기화`}
+            </strong>
+            <div id="mini-chord-rhythm-reset-description">
+              <p>
+                {resetRequest.scope === "all"
+                  ? "드럼, 베이스, 피아노의 모든 사용자 리듬 설정을 RIFFLAB 기본값으로 되돌립니다."
+                  : `${resetPartLabel}의 리듬 설정을 기본값으로 되돌릴까요?`}
+              </p>
+              {resetRequest.scope === "all" ? <small>저장한 사용자 설정은 복구할 수 없습니다.</small> : null}
+            </div>
+            <div>
+              <button onClick={() => setResetRequest(null)} type="button">취소</button>
+              <button className="primary miniChordRhythmResetConfirmButton" onClick={confirmReset} type="button">
+                {resetRequest.scope === "all" ? "전체 초기화" : "초기화"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+    </div>,
+    document.body,
+  );
+}
+
+function MiniChordArrangementEditorDialog({
+  barCount,
+  draft,
+  previewDisabled = false,
+  previewMode = "",
+  onApply,
+  onChange,
+  onClear,
+  onClose,
+  onPreview,
+}) {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  if (typeof document === "undefined" || !draft) return null;
+
+  const updateDraft = (patch) => onChange(normalizeMiniChordArrangementOverride({ ...draft, ...patch }, barCount));
+
+  return createPortal(
+    <div
+      className="backingLoopDialogLayer storageModalLayer miniChordArrangementDialogLayer"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      role="presentation"
+    >
+      <div aria-labelledby="mini-chord-arrangement-title" aria-modal="true" role="dialog">
+        <section className="backingLoopDialog miniChordArrangementDialog">
+          <div className="backingLoopDialogHeading">
+            <div>
+              <strong id="mini-chord-arrangement-title">편곡 범위</strong>
+              <span>{draft.startBar + 1}-{draft.endBar + 1}마디</span>
+            </div>
+            <button aria-label="편곡 설정 닫기" onClick={onClose} type="button">
+              <X size={15} />
+            </button>
+          </div>
+          <div className="miniChordArrangementRows">
+            {Object.entries(MINI_CHORD_ARRANGEMENT_OPTION_GROUPS).map(([key, options]) => (
+              <section key={key}>
+                <span>{MINI_CHORD_ARRANGEMENT_PART_LABELS[key]}</span>
+                <div role="group" aria-label={`${MINI_CHORD_ARRANGEMENT_PART_LABELS[key]} 편곡 선택`}>
+                  {options.map((option) => {
+                    const label = MINI_CHORD_COMPACT_PATTERN_LABELS[option.id] ?? option.label;
+                    return (
+                      <button
+                        aria-pressed={draft[key] === option.id}
+                        className={draft[key] === option.id ? "selected" : ""}
+                        key={option.id}
+                        onClick={() => updateDraft({ [key]: option.id })}
+                        type="button"
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                  <button
+                    aria-label={`${MINI_CHORD_ARRANGEMENT_PART_LABELS[key]}만 미리듣기`}
+                    aria-pressed={previewMode === MINI_CHORD_ARRANGEMENT_KEY_TO_PART[key]}
+                    className={`miniChordArrangementSoloButton ${previewMode === MINI_CHORD_ARRANGEMENT_KEY_TO_PART[key] ? "selected" : ""}`}
+                    disabled={previewDisabled}
+                    onClick={() => onPreview(MINI_CHORD_ARRANGEMENT_KEY_TO_PART[key])}
+                    title={previewDisabled ? "메인 반주를 정지한 뒤 Preview할 수 있습니다" : `${MINI_CHORD_ARRANGEMENT_PART_LABELS[key]} Solo Preview`}
+                    type="button"
+                  >
+                    {previewMode === MINI_CHORD_ARRANGEMENT_KEY_TO_PART[key] ? "■" : "▶"}
+                  </button>
+                </div>
+              </section>
+            ))}
+            <section className="miniChordArrangementTempoRow">
+              <label>
+                <input
+                  checked={draft.tempoOverrideEnabled}
+                  onChange={(event) => updateDraft({ tempoOverrideEnabled: event.currentTarget.checked })}
+                  type="checkbox"
+                />
+                BPM override
+              </label>
+              <input
+                disabled={!draft.tempoOverrideEnabled}
+                max="240"
+                min="40"
+                onChange={(event) => updateDraft({ bpmOverride: event.currentTarget.value })}
+                type="number"
+                value={draft.bpmOverride}
+              />
+            </section>
+          </div>
+          <div className="backingLoopDialogActions miniChordArrangementActions">
+            <button
+              className={previewMode === "all" ? "selected" : ""}
+              disabled={previewDisabled}
+              onClick={() => onPreview("all")}
+              title={previewDisabled ? "메인 반주를 정지한 뒤 Preview할 수 있습니다" : undefined}
+              type="button"
+            >
+              {previewMode === "all" ? "■ Stop" : "▶ Preview"}
+            </button>
+            <button onClick={onClear} type="button">범위 초기화</button>
+            <button onClick={onClose} type="button">취소</button>
+            <button className="primary" onClick={onApply} type="button">적용</button>
           </div>
         </section>
       </div>
@@ -6862,9 +8667,17 @@ function getStoredShooterPickSkinId() {
   return getShooterPickSkinById(window.localStorage.getItem(SHOOTER_PICK_SKIN_STORAGE_KEY)).id;
 }
 
-function getStoredShooterEffectId() {
-  if (typeof window === "undefined") return DEFAULT_SHOOTER_EFFECT_ID;
-  return getShooterEffectById(window.localStorage.getItem(SHOOTER_EFFECT_STORAGE_KEY)).id;
+function getStoredShooterEffectLoadout() {
+  if (typeof window === "undefined") return { ...DEFAULT_SHOOTER_EFFECT_LOADOUT };
+  const storedLoadout = window.localStorage.getItem(SHOOTER_EFFECT_LOADOUT_STORAGE_KEY);
+  if (storedLoadout) {
+    try {
+      return normalizeShooterEffectLoadout(JSON.parse(storedLoadout));
+    } catch {
+      // Fall through to the legacy single-effect migration below.
+    }
+  }
+  return getLegacyShooterEffectLoadout(window.localStorage.getItem(SHOOTER_EFFECT_STORAGE_KEY));
 }
 
 function getStoredShooterMapId() {
@@ -8588,9 +10401,7 @@ function getRouteFromHash(hash) {
     case APP_ROUTES.SHOOTER:
       return { appMode: APP_MODES.SHOOTER, categoryId: MAIN_DEFAULT_CATEGORY.id };
     case APP_ROUTES.MINI_CHORD_MAKER:
-      return import.meta.env.DEV
-        ? { appMode: APP_MODES.MINI_CHORD_MAKER, categoryId: "rhythm" }
-        : { appMode: APP_MODES.PRACTICE, categoryId: "rhythm" };
+      return { appMode: APP_MODES.MINI_CHORD_MAKER, categoryId: "rhythm" };
     case APP_ROUTES.DESIGN_LAB:
       return isDesignLabEnabled()
         ? { appMode: APP_MODES.DESIGN_LAB, categoryId: MAIN_DEFAULT_CATEGORY.id }
@@ -8606,7 +10417,7 @@ function getHashFromRoute(appMode, categoryId = MAIN_DEFAULT_CATEGORY.id) {
   if (appMode === APP_MODES.CURRICULUM) return APP_ROUTES.CURRICULUM;
   if (appMode === APP_MODES.METRONOME) return APP_ROUTES.METRONOME;
   if (appMode === APP_MODES.SHOOTER) return APP_ROUTES.SHOOTER;
-  if (appMode === APP_MODES.MINI_CHORD_MAKER) return import.meta.env.DEV ? APP_ROUTES.MINI_CHORD_MAKER : APP_ROUTES.STAGE3;
+  if (appMode === APP_MODES.MINI_CHORD_MAKER) return APP_ROUTES.MINI_CHORD_MAKER;
   if (appMode === APP_MODES.DESIGN_LAB) return APP_ROUTES.DESIGN_LAB;
   if (appMode === APP_MODES.PRACTICE && categoryId === "open") return APP_ROUTES.MAIN;
   if (appMode === APP_MODES.PRACTICE && categoryId === "first-position") return APP_ROUTES.STAGE1;
@@ -8654,6 +10465,11 @@ function getDeviceSnapshot() {
   };
 }
 
+function getInitialMobileLayout() {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
+  return window.matchMedia("(max-width: 680px)").matches;
+}
+
 const FRETBOARD_VIEWER_MODES = {
   NOTE: "note",
   SCALE: "scale",
@@ -8663,8 +10479,8 @@ const FRETBOARD_VIEWER_MODES = {
 
 const FRETBOARD_VIEWER_MODE_ORDER = [
   FRETBOARD_VIEWER_MODES.CHORD,
-  FRETBOARD_VIEWER_MODES.SCALE,
   FRETBOARD_VIEWER_MODES.NOTE,
+  FRETBOARD_VIEWER_MODES.SCALE,
 ];
 
 const CHORD_VIEWER_POSITION_ALL = "all";
@@ -8803,6 +10619,28 @@ function normalizeStage3BackingSettings({
   };
 }
 
+function normalizeMiniChordBackingSettings({
+  rhythmPattern = STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern,
+  bassBeat = STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat,
+  pianoBeat = STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat,
+} = {}) {
+  const safeRhythmPattern = ["basic", "4beat", "8beat", "16beat", MINI_CHORD_CUSTOM_PATTERN_ID].includes(rhythmPattern)
+    ? rhythmPattern
+    : STAGE3_DEFAULT_BACKING_SETTINGS.rhythmPattern;
+  const safeBassBeat = ["basic", "4beat", "8beat", "16beat", MINI_CHORD_CUSTOM_PATTERN_ID].includes(bassBeat)
+    ? bassBeat
+    : STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat;
+  const normalizedPianoBeat = pianoBeat === "2beat" ? "basic" : pianoBeat;
+  const safePianoBeat = ["basic", "4beat", "8beat", "16beat", MINI_CHORD_CUSTOM_PATTERN_ID].includes(normalizedPianoBeat)
+    ? normalizedPianoBeat
+    : STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat;
+  return {
+    rhythmPattern: safeRhythmPattern,
+    bassBeat: safeBassBeat,
+    pianoBeat: safePianoBeat,
+  };
+}
+
 function getDefaultStage3ChordIds() {
   return [];
 }
@@ -8900,13 +10738,13 @@ function getStoredStage3QuickSlots() {
 
 const MINI_CHORD_MAKER_STORAGE_KEY = "guitarTrainer.miniChordMaker.v1";
 const MINI_CHORD_MAKER_DRAFT_STORAGE_KEY = "guitarTrainer.miniChordMakerDraft.v1";
+const RIFFLAB_BEAT_PRESET_STORAGE_KEY = "rifflab.userBeatPresets.v1";
 const MINI_CHORD_BAR_OPTIONS = [4, 8, 12, 16, 32];
 const MINI_CHORD_MIN_BARS = 4;
 const MINI_CHORD_MAX_BARS = 32;
 const MINI_CHORD_SLOTS_PER_BAR = 2;
 const MINI_CHORD_BARS_PER_PAGE = 4;
 const MINI_CHORD_REST_LABEL = "N.C.";
-const MINI_CHORD_MARKER_INDEX_OPTIONS = [1, 2, 3, 4, 5];
 const MINI_CHORD_LOCATION_MARKER_OPTIONS = [
   { value: "segno", label: "Segno", indexed: true },
   { value: "toCoda", label: "To Coda", indexed: true },
@@ -8917,18 +10755,40 @@ const MINI_CHORD_COMMAND_OPTIONS = [
   { value: "dc", label: "D.C.", source: "start", end: "none", target: false, family: "dc" },
   { value: "dcAlFine", label: "D.C. al Fine", source: "start", end: "fine", target: false, family: "dc" },
   { value: "dcAlCoda", label: "D.C. al Coda", source: "start", end: "coda", target: true, family: "dc" },
+  { value: "ds", label: "D.S.", source: "segno", end: "none", target: true, family: "ds" },
   { value: "dsAlFine", label: "D.S. al Fine", source: "segno", end: "fine", target: true, family: "ds" },
   { value: "dsAlCoda", label: "D.S. al Coda", source: "segno", end: "coda", target: true, family: "ds" },
 ];
+const MINI_CHORD_LOCATION_MARKER_COMPACT_LABELS = {
+  segno: "",
+  toCoda: "To Coda",
+  coda: "",
+  fine: "Fine",
+};
+const MINI_CHORD_COMMAND_COMPACT_LABELS = {
+  dc: "D.C.",
+  dcAlFine: "D.C. al Fine",
+  dcAlCoda: "D.C. al Coda",
+  ds: "D.S.",
+  dsAlFine: "D.S. al Fine",
+  dsAlCoda: "D.S. al Coda",
+};
 const MINI_CHORD_LOCATION_MARKER_VALUES = new Set(MINI_CHORD_LOCATION_MARKER_OPTIONS.map((option) => option.value));
 const MINI_CHORD_COMMAND_VALUES = new Set(MINI_CHORD_COMMAND_OPTIONS.map((option) => option.value));
+const MINI_CHORD_SYMBOL_MARKER_VALUES = new Set(["segno", "toCoda", "coda"]);
+const MINI_CHORD_TEXT_MARKER_VALUES = new Set(["fine"]);
 const MINI_CHORD_COMMAND_ALIASES = {
   daCapo: "dc",
   dcFine: "dcAlFine",
+  dalSegno: "ds",
+  ds: "ds",
   dsFine: "dsAlFine",
   dcCoda: "dcAlCoda",
   dsCoda: "dsAlCoda",
 };
+const MINI_CHORD_FLOATING_MARGIN = 8;
+const MINI_CHORD_MARK_POPOVER_SIZE = { width: 252, height: 286 };
+const MINI_CHORD_CHORD_POPOVER_SIZE = { width: 284, height: 440 };
 
 const MINI_CHORD_QUALITY_LABELS = {
   major: "메이저",
@@ -8959,20 +10819,6 @@ function getMiniChordLabelParts(label = "") {
 
 function getMiniChordPickerChord(baseRoot, accidental, quality, extension) {
   return getChordNameFromParts(baseRoot, accidental, quality, normalizeChordExtensionForQuality(quality, extension));
-}
-
-function transposeMiniChordLabel(label = "", semitones = 0) {
-  const token = String(label ?? "").trim();
-  if (!token || isMiniChordRestValue(token)) return token;
-  const parts = getMiniChordLabelParts(token);
-  const rootIndex = CHORD_ROOTS.indexOf(parts.root);
-  if (rootIndex < 0) return token;
-  const safeShift = Math.trunc(Number(semitones) || 0);
-  const nextRoot = CHORD_ROOTS[(rootIndex + safeShift + CHORD_ROOTS.length * 8) % CHORD_ROOTS.length];
-  const rootMatch = /^([A-G])(#?)/.exec(nextRoot);
-  const baseRoot = CHORD_NATURAL_ROOTS.includes(rootMatch?.[1]) ? rootMatch[1] : parts.baseRoot;
-  const accidental = rootMatch?.[2] === "#" ? "sharp" : "natural";
-  return getChordNameFromParts(baseRoot, accidental, parts.quality, parts.extension);
 }
 
 function getMiniChordPickerStateFromLabel(label = "", fallback = {}) {
@@ -9060,11 +10906,81 @@ function getMiniChordLocationMarkerLabel(marker, markerIndex = 1) {
 
 function getMiniChordCommandLabel(command, targetIndex = 1) {
   if (command === "dc") return "D.C.";
+  if (command === "ds") return `D.S. ${targetIndex}`;
   if (command === "dsAlFine") return `D.S. al Fine ${targetIndex}`;
   if (command === "dsAlCoda") return `D.S. al Coda ${targetIndex}`;
   if (command === "dcAlFine") return "D.C. al Fine";
   if (command === "dcAlCoda") return `D.C. al Coda ${targetIndex}`;
   return "";
+}
+
+function getMiniChordMarkerIconType(marker) {
+  if (marker === "segno") return "segno";
+  if (marker === "coda" || marker === "toCoda") return "coda";
+  return "";
+}
+
+function getMiniChordCommandVisual(command, targetIndex = 1, barIndex = null) {
+  const safeTargetIndex = normalizeMiniChordMarkerIndex(targetIndex);
+  const barPrefix = barIndex == null ? "" : `${barIndex + 1}마디 `;
+  const label = getMiniChordCommandLabel(command, safeTargetIndex);
+  if (!label) return null;
+  const common = {
+    ariaLabel: `${barPrefix}${label}`,
+    family: command.startsWith("ds") ? "ds" : "dc",
+    index: safeTargetIndex,
+    key: `command-${command}-${safeTargetIndex}`,
+    kind: "command",
+    type: command,
+  };
+  if (command === "dc") return { ...common, text: "D.C." };
+  if (command === "dcAlFine") return { ...common, caption: "Fine", text: "D.C." };
+  if (command === "dcAlCoda") return { ...common, caption: "Coda", text: "D.C." };
+  if (command === "ds") return { ...common, text: "D.S." };
+  if (command === "dsAlFine") return { ...common, caption: "Fine", text: "D.S." };
+  if (command === "dsAlCoda") return { ...common, caption: "Coda", text: "D.S." };
+  return null;
+}
+
+function getMiniChordMarkerVisual(marker, markerIndex = 1, barIndex = null) {
+  const safeMarkerIndex = normalizeMiniChordMarkerIndex(markerIndex);
+  const label = getMiniChordLocationMarkerLabel(marker, safeMarkerIndex);
+  if (!label) return null;
+  const barPrefix = barIndex == null ? "" : `${barIndex + 1}마디 `;
+  const common = {
+    ariaLabel: `${barPrefix}${label}`,
+    icon: getMiniChordMarkerIconType(marker),
+    index: safeMarkerIndex,
+    key: `marker-${marker}-${safeMarkerIndex}`,
+    kind: "marker",
+    type: marker,
+  };
+  if (marker === "segno") return { ...common };
+  if (marker === "toCoda") return { ...common, text: "To Coda" };
+  if (marker === "coda") return { ...common };
+  if (marker === "fine") return { ...common, icon: "", text: "Fine" };
+  return null;
+}
+
+function getMiniChordNavigationMarkerSymbols(mark = {}, barIndex = null) {
+  const marker = normalizeMiniChordLocationMarker(mark.marker);
+  if (!MINI_CHORD_SYMBOL_MARKER_VALUES.has(marker)) return [];
+  const visual = getMiniChordMarkerVisual(marker, mark.markerIndex, barIndex);
+  return visual ? [visual] : [];
+}
+
+function getMiniChordCommandMarkerSymbols(mark = {}, barIndex = null) {
+  const command = normalizeMiniChordCommand(mark.command);
+  if (command) {
+    const visual = getMiniChordCommandVisual(command, mark.targetIndex, barIndex);
+    return visual ? [visual] : [];
+  }
+  const marker = normalizeMiniChordLocationMarker(mark.marker);
+  if (MINI_CHORD_TEXT_MARKER_VALUES.has(marker)) {
+    const visual = getMiniChordMarkerVisual(marker, mark.markerIndex, barIndex);
+    return visual ? [visual] : [];
+  }
+  return [];
 }
 
 function getMiniChordMarkChipLabel(label = "") {
@@ -9075,6 +10991,7 @@ function getMiniChordMarkChipLabel(label = "") {
   if (text.startsWith("Coda")) return `C${index}`;
   if (text.startsWith("D.S. al Fine")) return `D.S.F${index}`;
   if (text.startsWith("D.S. al Coda")) return `D.S.C${index}`;
+  if (text.startsWith("D.S.")) return `D.S${index}`;
   if (text.startsWith("D.C. al Fine")) return "D.C.F";
   if (text.startsWith("D.C. al Coda")) return `D.C.C${index}`;
   return text;
@@ -9096,6 +11013,358 @@ function getMiniChordBarMarkLabels(mark = {}, barIndex = null) {
   return [];
 }
 
+function MiniChordMusicSymbolIcon({ type }) {
+  if (type === "segno") {
+    return (
+      <svg aria-hidden="true" className="miniChordMusicSymbolIcon miniChordMusicSymbolIcon--segno" viewBox="0 0 32 32">
+        <path d="M22.8 5.1C15.2 6 9.2 13.4 9.2 21.2c0 3.5 1.6 5.8 4.4 5.8 2.5 0 4.2-1.6 4.2-3.7 0-1.8-1.2-2.9-3-2.9-1.1 0-2 .4-2.7 1.2" />
+        <path d="M9.2 26.9C16.8 26 22.8 18.6 22.8 10.8c0-3.5-1.6-5.8-4.4-5.8-2.5 0-4.2 1.6-4.2 3.7 0 1.8 1.2 2.9 3 2.9 1.1 0 2-.4 2.7-1.2" />
+        <path d="M6.3 8.5h19.4M6.3 23.5h19.4" />
+        <circle cx="9" cy="13.4" r="1.45" />
+        <circle cx="23" cy="18.6" r="1.45" />
+      </svg>
+    );
+  }
+  if (type === "coda") {
+    return (
+      <svg aria-hidden="true" className="miniChordMusicSymbolIcon miniChordMusicSymbolIcon--coda" viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="8.8" />
+        <path d="M16 3.5v25M3.5 16h25" />
+        <circle cx="16" cy="16" r="2.7" />
+      </svg>
+    );
+  }
+  return null;
+}
+
+function MiniChordMarkVisual({ symbol }) {
+  if (!symbol) return null;
+  const showIndex = Number(symbol.index) > 1 && (symbol.type === "segno" || symbol.type === "coda" || symbol.type === "toCoda");
+  return (
+    <span
+      aria-label={symbol.ariaLabel}
+      className={`miniChordMarkBadge miniChordMarkBadge--${symbol.kind} miniChordMarkBadge--${symbol.type}`}
+      role="img"
+      title={symbol.ariaLabel}
+    >
+      {symbol.icon ? <MiniChordMusicSymbolIcon type={symbol.icon} /> : null}
+      {symbol.text ? <span className="miniChordMarkBadgeText">{symbol.text}</span> : null}
+      {symbol.secondaryIcon ? <MiniChordMusicSymbolIcon type={symbol.secondaryIcon} /> : null}
+      {symbol.caption ? <span className="miniChordMarkBadgeCaption">{symbol.caption}</span> : null}
+      {showIndex ? <span className="miniChordMarkBadgeIndex">{symbol.index}</span> : null}
+    </span>
+  );
+}
+
+function getMiniChordFloatingViewportMetrics() {
+  if (typeof window === "undefined") {
+    return {
+      bottomInset: 92,
+      viewportHeight: 844,
+      viewportLeft: 0,
+      viewportTop: 0,
+      viewportWidth: 390,
+    };
+  }
+  const visualViewport = window.visualViewport;
+  const viewportWidth = Math.min(
+    window.innerWidth,
+    visualViewport?.width ?? window.innerWidth,
+    document.documentElement?.clientWidth || window.innerWidth,
+  );
+  const viewportHeight = Math.min(
+    window.innerHeight,
+    visualViewport?.height ?? window.innerHeight,
+    document.documentElement?.clientHeight || window.innerHeight,
+  );
+  return {
+    bottomInset: viewportWidth <= 680 ? 92 : 0,
+    viewportHeight,
+    viewportLeft: visualViewport?.offsetLeft ?? 0,
+    viewportTop: visualViewport?.offsetTop ?? 0,
+    viewportWidth,
+  };
+}
+
+const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor({
+  barNumber,
+  beatLabel,
+  fallbackDraft,
+  initialChord,
+  onCommit,
+  position,
+  resolveChord,
+  slotIndex,
+}) {
+  const [draft, setDraft] = useState(() => getMiniChordPickerStateFromLabel(initialChord, fallbackDraft));
+  const panelRef = useRef(null);
+  const dragRef = useRef(null);
+  const dragFrameRef = useRef(null);
+  const safeExtension = normalizeChordExtensionForQuality(draft.quality, draft.extension);
+  const selectedLabel = getMiniChordPickerChord(
+    draft.baseRoot,
+    draft.accidental,
+    draft.quality,
+    safeExtension,
+  );
+  const selectedChord = resolveChord(
+    draft.baseRoot,
+    draft.accidental,
+    draft.quality,
+    safeExtension,
+  );
+  const extensionOptions = useMemo(() => CHORD_EXTENSION_OPTIONS
+    .filter((extension) => isChordExtensionAvailableForQuality(extension, draft.quality))
+    .map((extension) => ({
+      ...extension,
+      disabled: !isChordViewerSelectionSupported(draft.quality, extension.id),
+    })), [draft.quality]);
+  const {
+    anchorX = 24,
+    maxHeight = MINI_CHORD_CHORD_POPOVER_SIZE.height,
+    placement = "above",
+    ...panelPosition
+  } = position ?? {};
+
+  const flushDragFrame = useCallback(() => {
+    dragFrameRef.current = null;
+    const drag = dragRef.current;
+    if (!drag || !drag.popover) return;
+    const translateX = drag.nextLeft - drag.startLeft;
+    const translateY = drag.nextTop - drag.startTop;
+    drag.popover.style.transform = `translate3d(${translateX}px, ${translateY}px, 0)`;
+  }, []);
+
+  const scheduleDragFrame = useCallback(() => {
+    if (dragFrameRef.current != null || typeof window === "undefined") return;
+    dragFrameRef.current = window.requestAnimationFrame(flushDragFrame);
+  }, [flushDragFrame]);
+
+  const updateDragFromPointer = useCallback((event) => {
+    const drag = dragRef.current;
+    if (!drag || event.pointerId !== drag.pointerId) return false;
+    const latestEvent = event.getCoalescedEvents?.().at(-1) ?? event;
+    const nextPosition = clampMiniChordFloatingPosition({
+      left: drag.startLeft + latestEvent.clientX - drag.startClientX,
+      top: drag.startTop + latestEvent.clientY - drag.startClientY,
+      width: drag.width,
+      height: drag.height,
+      viewportLeft: drag.viewportLeft,
+      viewportTop: drag.viewportTop,
+      viewportWidth: drag.viewportWidth,
+      viewportHeight: Math.max(0, drag.viewportHeight - drag.bottomInset),
+      margin: MINI_CHORD_FLOATING_MARGIN,
+    });
+    drag.nextLeft = Math.round(nextPosition.left);
+    drag.nextTop = Math.round(nextPosition.top);
+    scheduleDragFrame();
+    return true;
+  }, [scheduleDragFrame]);
+
+  const finishDrag = useCallback((event = null) => {
+    const drag = dragRef.current;
+    if (!drag || (event?.pointerId != null && event.pointerId !== drag.pointerId)) return;
+    if (event?.type === "pointerup") updateDragFromPointer(event);
+    if (dragFrameRef.current != null && typeof window !== "undefined") {
+      window.cancelAnimationFrame(dragFrameRef.current);
+      dragFrameRef.current = null;
+    }
+    const translateX = drag.nextLeft - drag.startLeft;
+    const translateY = drag.nextTop - drag.startTop;
+    drag.popover.style.transform = `translate3d(${translateX}px, ${translateY}px, 0)`;
+    drag.popover.style.left = `${drag.nextLeft}px`;
+    drag.popover.style.top = `${drag.nextTop}px`;
+    drag.popover.style.transform = "translate3d(0, 0, 0)";
+    drag.popover.classList.remove("is-dragging");
+    drag.popover.classList.add("is-moved");
+    dragRef.current = null;
+    if (
+      event
+      && event.type !== "lostpointercapture"
+      && drag.handle?.hasPointerCapture?.(drag.pointerId)
+    ) {
+      drag.handle.releasePointerCapture?.(drag.pointerId);
+    }
+    if (event?.cancelable) event.preventDefault();
+    event?.stopPropagation?.();
+  }, [updateDragFromPointer]);
+
+  const startDrag = useCallback((event) => {
+    if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+    const popover = panelRef.current;
+    if (!popover) return;
+    const rect = popover.getBoundingClientRect();
+    const viewport = getMiniChordFloatingViewportMetrics();
+    dragRef.current = {
+      ...viewport,
+      handle: event.currentTarget,
+      height: rect.height,
+      nextLeft: rect.left,
+      nextTop: rect.top,
+      pointerId: event.pointerId,
+      popover,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startLeft: rect.left,
+      startTop: rect.top,
+      width: rect.width,
+    };
+    popover.classList.add("is-dragging");
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    if (event.cancelable) event.preventDefault();
+    event.stopPropagation();
+  }, []);
+
+  const moveDrag = useCallback((event) => {
+    if (!updateDragFromPointer(event)) return;
+    if (event.cancelable) event.preventDefault();
+    event.stopPropagation();
+  }, [updateDragFromPointer]);
+
+  useEffect(() => () => {
+    if (dragFrameRef.current != null && typeof window !== "undefined") {
+      window.cancelAnimationFrame(dragFrameRef.current);
+    }
+  }, []);
+
+  return (
+    <div
+      aria-label={`${barNumber}마디 ${beatLabel} 코드 설정`}
+      className="miniChordChordPopover miniChordFloatingChordPopover miniChordMeasureEditorPanel"
+      data-placement={placement}
+      onClick={(event) => event.stopPropagation()}
+      ref={panelRef}
+      role="dialog"
+      style={{
+        ...panelPosition,
+        "--mini-chord-editor-anchor-x": `${anchorX}px`,
+        "--mini-chord-editor-max-height": `${maxHeight}px`,
+      }}
+    >
+      <span aria-hidden="true" className="miniChordMeasureEditorAnchor" />
+      <div
+        aria-label="코드 입력창 이동 핸들"
+        className="miniChordPickerHeader miniChordPickerDragHandle"
+        data-drag-handle="mini-chord-chord-picker"
+        onDragStart={(event) => event.preventDefault()}
+        onLostPointerCapture={finishDrag}
+        onPointerCancel={finishDrag}
+        onPointerDown={startDrag}
+        onPointerMove={moveDrag}
+        onPointerUp={finishDrag}
+        title="드래그하여 코드 입력창 이동"
+      >
+        <span className="miniChordPickerHeaderCopy">
+          <small>{barNumber}마디 · {beatLabel}</small>
+          <b>선택 코드</b>
+        </span>
+        <strong>{selectedLabel}</strong>
+        <span aria-hidden="true" className="miniChordPickerDragGrip">•••</span>
+      </div>
+      <div className="miniChordBuilderMini">
+        <section className="miniChordBuilderMiniSection">
+          <span>변화표</span>
+          <div className="miniChordPickerSegment miniChordPickerSegment--accidental" role="group" aria-label="변화표 선택">
+            {CHORD_ACCIDENTAL_OPTIONS.map((accidental) => {
+              const isAvailable = Boolean(resolveChord(
+                draft.baseRoot,
+                accidental.id,
+                draft.quality,
+                safeExtension,
+              ));
+              return (
+                <button
+                  className={draft.accidental === accidental.id ? "selected" : ""}
+                  disabled={!isAvailable}
+                  key={`mini-accidental-${accidental.id}`}
+                  onClick={() => setDraft((current) => ({ ...current, accidental: accidental.id }))}
+                  type="button"
+                >
+                  {accidental.id === "flat" ? "♭" : accidental.label}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+        <section className="miniChordBuilderMiniSection">
+          <span>루트</span>
+          <div className="miniChordPickerRoots" aria-label="코드 루트 선택">
+            {CHORD_NATURAL_ROOTS.map((root) => (
+              <button
+                className={draft.baseRoot === root ? "selected" : ""}
+                key={`mini-root-${root}`}
+                onClick={() => setDraft((current) => ({ ...current, baseRoot: root }))}
+                type="button"
+              >
+                {root}
+              </button>
+            ))}
+          </div>
+        </section>
+        <section className="miniChordBuilderMiniSection">
+          <span>타입</span>
+          <div className="miniChordPickerQualities" role="group" aria-label="코드 타입 선택">
+            {CHORD_QUALITY_OPTIONS.map((quality) => {
+              const nextExtension = normalizeChordExtensionForQuality(quality.id, safeExtension);
+              const isSupported = isChordViewerSelectionSupported(quality.id, nextExtension);
+              return (
+                <button
+                  className={draft.quality === quality.id ? "selected" : ""}
+                  disabled={!isSupported}
+                  key={`mini-quality-${quality.id}`}
+                  onClick={() => setDraft((current) => ({
+                    ...current,
+                    extension: nextExtension,
+                    quality: quality.id,
+                  }))}
+                  type="button"
+                >
+                  {MINI_CHORD_QUALITY_LABELS[quality.id] ?? quality.label}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+        <section className="miniChordBuilderMiniSection">
+          <span>확장</span>
+          <div className="miniChordPickerExtensions" role="group" aria-label="확장 코드 선택">
+            {extensionOptions.map((extension) => (
+              <button
+                className={safeExtension === extension.id ? "selected" : ""}
+                disabled={extension.disabled}
+                key={`mini-extension-${extension.id}`}
+                onClick={() => setDraft((current) => ({ ...current, extension: extension.id }))}
+                type="button"
+              >
+                {extension.label}
+              </button>
+            ))}
+          </div>
+        </section>
+      </div>
+      <div className="miniChordPickerActions">
+        <button
+          className="primary"
+          disabled={!selectedChord}
+          onClick={() => selectedChord && onCommit(slotIndex, selectedLabel, {
+            ...draft,
+            extension: safeExtension,
+          })}
+          type="button"
+        >
+          적용
+        </button>
+        <button onClick={() => onCommit(slotIndex, MINI_CHORD_REST_LABEL)} type="button">
+          N.C.
+        </button>
+        <button onClick={() => onCommit(slotIndex, "")} type="button">
+          삭제
+        </button>
+      </div>
+    </div>
+  );
+});
+
 function getMiniChordMarkEntries(marks = {}, barCount = 4) {
   const safeBarCount = normalizeMiniChordBarCount(barCount);
   return Object.entries(marks && typeof marks === "object" ? marks : {})
@@ -9116,17 +11385,68 @@ function hasMiniChordCodaTarget(marks = {}, targetIndex = 1, barCount = 4) {
     .some(({ value }) => value.marker === "coda" && value.markerIndex === safeTargetIndex);
 }
 
+function hasMiniChordMarkerTarget(marks = {}, marker = "", targetIndex = 1, barCount = 4) {
+  const safeMarker = normalizeMiniChordLocationMarker(marker);
+  if (!safeMarker) return false;
+  const safeTargetIndex = normalizeMiniChordMarkerIndex(targetIndex);
+  return getMiniChordMarkEntries(normalizeMiniChordBarMarks(marks, barCount), barCount)
+    .some(({ value }) => {
+      if (value.marker !== safeMarker) return false;
+      return doesMiniChordMarkerNeedIndex(safeMarker)
+        ? normalizeMiniChordMarkerIndex(value.markerIndex) === safeTargetIndex
+        : true;
+    });
+}
+
+function getMiniChordMissingCodaTargetMessage(targetIndex = 1) {
+  return `${normalizeMiniChordMarkerIndex(targetIndex)}번 Coda 기호가 필요합니다`;
+}
+
+function getMiniChordMissingRequirementMessage(label = "", missingLabels = []) {
+  const cleanMissing = [...new Set(missingLabels.filter(Boolean))];
+  if (!cleanMissing.length) return "";
+  return `${label ? `${label}: ` : ""}필요한 기호 ${cleanMissing.join(", ")}`;
+}
+
+function getMiniChordMarkMissingRequirements(mark = {}, marks = {}, barCount = 4) {
+  const missing = [];
+  const marker = normalizeMiniChordLocationMarker(mark.marker);
+  const markerIndex = normalizeMiniChordMarkerIndex(mark.markerIndex);
+  const command = normalizeMiniChordCommand(mark.command);
+  const targetIndex = normalizeMiniChordMarkerIndex(mark.targetIndex);
+  if (marker === "toCoda" && !hasMiniChordMarkerTarget(marks, "coda", markerIndex, barCount)) {
+    missing.push("Coda");
+  }
+  if (command.startsWith("ds") && !hasMiniChordMarkerTarget(marks, "segno", targetIndex, barCount)) {
+    missing.push("Segno");
+  }
+  if ((command === "dcAlFine" || command === "dsAlFine") && !hasMiniChordMarkerTarget(marks, "fine", 1, barCount)) {
+    missing.push("Fine");
+  }
+  if (command === "dcAlCoda" || command === "dsAlCoda") {
+    if (!hasMiniChordMarkerTarget(marks, "toCoda", targetIndex, barCount)) missing.push("To Coda");
+    if (!hasMiniChordMarkerTarget(marks, "coda", targetIndex, barCount)) missing.push("Coda");
+  }
+  return [...new Set(missing)];
+}
+
+function getMiniChordMarkWarningMessage(mark = {}, marks = {}, barCount = 4) {
+  const marker = normalizeMiniChordLocationMarker(mark.marker);
+  const command = normalizeMiniChordCommand(mark.command);
+  const label = command
+    ? getMiniChordCommandLabel(command, mark.targetIndex)
+    : marker
+      ? getMiniChordLocationMarkerLabel(marker, mark.markerIndex)
+      : "";
+  return getMiniChordMissingRequirementMessage(label.replace(/\s+\d+$/, ""), getMiniChordMarkMissingRequirements(mark, marks, barCount));
+}
+
 function getMiniChordCodaValidationMessage(marks = {}, barCount = 4) {
   const normalizedMarks = normalizeMiniChordBarMarks(marks, barCount);
   const entries = getMiniChordMarkEntries(normalizedMarks, barCount);
   for (const { value } of entries) {
-    if (value.marker === "toCoda" && !hasMiniChordCodaTarget(normalizedMarks, value.markerIndex, barCount)) {
-      return `Coda ${value.markerIndex} 구간이 필요합니다`;
-    }
-    const commandOption = MINI_CHORD_COMMAND_OPTIONS.find((option) => option.value === value.command);
-    if (commandOption?.end === "coda" && !hasMiniChordCodaTarget(normalizedMarks, value.targetIndex, barCount)) {
-      return `Coda ${value.targetIndex} 구간이 필요합니다`;
-    }
+    const warning = getMiniChordMarkWarningMessage(value, normalizedMarks, barCount);
+    if (warning) return warning;
   }
   return "";
 }
@@ -9185,12 +11505,13 @@ function normalizeMiniChordBarMarks(marks = {}, barCount = 4, fallbackRepeatStar
     if (Object.keys(normalized).length > 0) next[barIndex] = { ...(next[barIndex] ?? {}), ...normalized };
   });
 
-  let firstToCodaBar = null;
+  const firstToCodaBarByIndex = new Map();
   Object.entries(next).forEach(([key, value]) => {
     const barIndex = Number(key);
     if (value?.marker !== "toCoda") return;
-    if (firstToCodaBar == null) {
-      firstToCodaBar = barIndex;
+    const markerIndex = normalizeMiniChordMarkerIndex(value.markerIndex);
+    if (!firstToCodaBarByIndex.has(markerIndex)) {
+      firstToCodaBarByIndex.set(markerIndex, barIndex);
       return;
     }
     const nextMark = removeMiniChordToCodaMarker(value);
@@ -9433,9 +11754,28 @@ function getMiniChordBackingChordFromLabel(label = "", barIndex = 0, sequenceInd
   };
 }
 
-function buildMiniChordBackingProgression({ slots = [], barCount = 4, slotSequence = null } = {}) {
+function buildMiniChordBackingProgression({
+  slots = [],
+  barCount = 4,
+  slotSequence = null,
+  capo = 0,
+  accidentalPreference = MINI_CHORD_ACCIDENTAL_PREFERENCES.SHARP,
+  customPatterns = null,
+  userDefaultPatterns = null,
+  arrangementOverrides = [],
+  globalArrangement = {},
+} = {}) {
   const safeBarCount = normalizeMiniChordBarCount(barCount);
+  const safeCapo = clampMiniChordCapo(capo);
+  const safeAccidentalPreference = normalizeMiniChordAccidentalPreference(accidentalPreference);
   const normalizedSlots = normalizeMiniChordSlots(slots, safeBarCount);
+  const normalizedUserDefaultPatterns = normalizeMiniChordUserDefaultPatterns(userDefaultPatterns, customPatterns);
+  const normalizedOverrides = normalizeMiniChordArrangementOverrides(arrangementOverrides, safeBarCount);
+  const normalizedGlobalArrangement = normalizeMiniChordBackingSettings({
+    rhythmPattern: globalArrangement.rhythmPattern,
+    bassBeat: globalArrangement.bassBeat,
+    pianoBeat: globalArrangement.pianoBeat,
+  });
   const playbackSlots = Array.isArray(slotSequence) && slotSequence.length
     ? slotSequence
     : Array.from({ length: safeBarCount * MINI_CHORD_SLOTS_PER_BAR }, (_, index) => index);
@@ -9446,13 +11786,33 @@ function buildMiniChordBackingProgression({ slots = [], barCount = 4, slotSequen
       const safeBarIndex = Math.floor(safeSlotIndex / MINI_CHORD_SLOTS_PER_BAR);
       const slotChord = String(normalizedSlots[safeSlotIndex] ?? "").trim();
       if (slotChord) activeChordLabel = slotChord;
+      const sourceChordLabel = activeChordLabel;
+      const soundingChordLabel = transposeMiniChordLabel(
+        sourceChordLabel,
+        safeCapo,
+        safeAccidentalPreference,
+      );
       const chord = getMiniChordBackingChordFromLabel(
-        activeChordLabel,
+        soundingChordLabel,
         safeBarIndex,
         sequenceIndex,
       );
+      const backingArrangement = resolveMiniChordArrangementForBar({
+        barIndex: safeBarIndex,
+        userDefaultPatterns: normalizedUserDefaultPatterns,
+        global: {
+          ...normalizedGlobalArrangement,
+          pianoStyle: globalArrangement.pianoStyle,
+        },
+        overrides: normalizedOverrides,
+      });
       return {
         ...chord,
+        sourceDisplayName: sourceChordLabel,
+        soundingDisplayName: chord.displayName,
+        miniChordCapo: safeCapo,
+        miniChordAccidentalPreference: safeAccidentalPreference,
+        backingArrangement,
         miniChordBarIndex: safeBarIndex,
         miniChordSlotIndex: safeSlotIndex,
         miniChordSlotInBar: safeSlotIndex % MINI_CHORD_SLOTS_PER_BAR,
@@ -9484,17 +11844,27 @@ function createDefaultMiniChordArrangement() {
     repeatStarts: [],
     repeatEnds: [],
     barMarks: {},
+    endingRanges: [],
     bpm: 80,
     capo: 0,
+    accidentalPreference: MINI_CHORD_ACCIDENTAL_PREFERENCES.SHARP,
     loop: true,
     pianoStyle: MINI_CHORD_DEFAULT_PIANO_STYLE,
+    arrangementOverrides: [],
   };
 }
 
 function normalizeMiniChordArrangement(value = {}) {
   const fallback = createDefaultMiniChordArrangement();
   const barCount = normalizeMiniChordBarCount(value.barCount ?? fallback.barCount);
-  const barMarks = normalizeMiniChordBarMarks(value.barMarks, barCount, value.repeatStarts, value.repeatEnds);
+  const legacyEndingRanges = getMiniChordEndingRangesFromBarMarks(value.barMarks, barCount);
+  const endingRanges = normalizeMiniChordEndingRanges(
+    Array.isArray(value.endingRanges) ? value.endingRanges : legacyEndingRanges,
+    barCount,
+  );
+  const barMarks = stripMiniChordEndingsFromBarMarks(
+    normalizeMiniChordBarMarks(value.barMarks, barCount, value.repeatStarts, value.repeatEnds),
+  );
   return {
     id: String(value.id || `mini-${Date.now()}`),
     title: String(value.title || fallback.title).slice(0, 40),
@@ -9503,10 +11873,15 @@ function normalizeMiniChordArrangement(value = {}) {
     repeatStarts: getMiniChordMarkersFromBarMarks(barMarks, "repeatStart", barCount),
     repeatEnds: getMiniChordMarkersFromBarMarks(barMarks, "repeatEnd", barCount),
     barMarks,
+    endingRanges,
     bpm: clampBpm(value.bpm ?? fallback.bpm),
-    capo: Math.max(0, Math.min(12, Number(value.capo) || 0)),
+    capo: clampMiniChordCapo(value.capo),
+    accidentalPreference: normalizeMiniChordAccidentalPreference(
+      value.accidentalPreference ?? fallback.accidentalPreference,
+    ),
     loop: value.loop == null ? fallback.loop : Boolean(value.loop),
     pianoStyle: normalizeMiniChordPianoStyle(value.pianoStyle ?? fallback.pianoStyle),
+    arrangementOverrides: normalizeMiniChordArrangementOverrides(value.arrangementOverrides, barCount),
   };
 }
 
@@ -9517,6 +11892,32 @@ function getStoredMiniChordDraftArrangement() {
     return parsed ? normalizeMiniChordArrangement({ ...parsed, id: "draft" }) : createDefaultMiniChordArrangement();
   } catch {
     return createDefaultMiniChordArrangement();
+  }
+}
+
+function getStoredBeatPresetLibrary() {
+  if (typeof window === "undefined") return createDefaultMiniChordUserDefaultPatterns();
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(RIFFLAB_BEAT_PRESET_STORAGE_KEY) ?? "null");
+    if (stored) return normalizeMiniChordUserDefaultPatterns(stored);
+
+    const legacyDraft = JSON.parse(window.localStorage.getItem(MINI_CHORD_MAKER_DRAFT_STORAGE_KEY) ?? "null");
+    if (legacyDraft?.userDefaultPatterns || legacyDraft?.customPatterns) {
+      return normalizeMiniChordUserDefaultPatterns(
+        legacyDraft.userDefaultPatterns,
+        legacyDraft.customPatterns,
+      );
+    }
+
+    const legacySongs = JSON.parse(window.localStorage.getItem(MINI_CHORD_MAKER_STORAGE_KEY) ?? "[]");
+    const legacySong = Array.isArray(legacySongs)
+      ? legacySongs.find((item) => item?.userDefaultPatterns || item?.customPatterns)
+      : null;
+    return legacySong
+      ? normalizeMiniChordUserDefaultPatterns(legacySong.userDefaultPatterns, legacySong.customPatterns)
+      : createDefaultMiniChordUserDefaultPatterns();
+  } catch {
+    return createDefaultMiniChordUserDefaultPatterns();
   }
 }
 
@@ -10217,7 +12618,7 @@ function parabolicInterpolation(values, index) {
   return index + (left - right) / (2 * divisor);
 }
 
-function App() {
+function App({ onReady }) {
   const initialRouteRef = useRef(getInitialAppRoute());
   const initialStage3SettingsRef = useRef(getStoredStage3Settings());
   const initialStage3QuickSlotsRef = useRef(getStoredStage3QuickSlots());
@@ -10229,7 +12630,6 @@ function App() {
   const designLabEnabled = isDesignLabEnabled();
   const themeOptions = useMemo(() => getSelectableAppThemeOptions(), [designLabEnabled]);
   const themeMenuVisible = true;
-  const miniChordMenuVisible = import.meta.env.DEV === true;
   const [designLabHeaderState, setDesignLabHeaderState] = useState(getStoredDesignLabHeaderState);
   const [designLabAppIconState, setDesignLabAppIconState] = useState(getStoredDesignLabAppIconState);
   const [designLabSection, setDesignLabSection] = useState("logo");
@@ -10289,6 +12689,7 @@ function App() {
   const [selectedScaleLick, setSelectedScaleLick] = useState(SCALE_LICK_OPTIONS[0].id);
   const [viewerMode, setViewerMode] = useState(FRETBOARD_VIEWER_MODES.CHORD);
   const [viewerSwipeFeedback, setViewerSwipeFeedback] = useState("");
+  const [viewerChordSwipeFeedback, setViewerChordSwipeFeedback] = useState("");
   const [viewerNoteFilter, setViewerNoteFilter] = useState("ALL");
   const [viewerOctaveRange] = useState("all");
   const [viewerScaleRoot, setViewerScaleRoot] = useState("C");
@@ -10358,6 +12759,7 @@ function App() {
   const [backingPianoBeat, setBackingPianoBeat] = useState(STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat);
   const [stage3BackingPrepareStatus, setStage3BackingPrepareStatus] = useState("idle");
   const initialMiniChordArrangementRef = useRef(getStoredMiniChordDraftArrangement());
+  const initialBeatPresetLibraryRef = useRef(getStoredBeatPresetLibrary());
   const [miniChordPianoStyle, setMiniChordPianoStyle] = useState(initialMiniChordArrangementRef.current.pianoStyle);
   const [miniChordSavedItems, setMiniChordSavedItems] = useState(getStoredMiniChordArrangements);
   const [miniChordLoadOpen, setMiniChordLoadOpen] = useState(false);
@@ -10366,15 +12768,38 @@ function App() {
   const [miniChordLoadEditMode, setMiniChordLoadEditMode] = useState(false);
   const [miniChordDeleteConfirmOpen, setMiniChordDeleteConfirmOpen] = useState(false);
   const [miniChordSaveConfirmOpen, setMiniChordSaveConfirmOpen] = useState(false);
+  const [miniChordResetOpen, setMiniChordResetOpen] = useState(false);
+  const [miniChordResetAllConfirmOpen, setMiniChordResetAllConfirmOpen] = useState(false);
+  const [miniChordHistoryEpoch, setMiniChordHistoryEpoch] = useState(0);
+  const [miniChordHistoryRenderVersion, setMiniChordHistoryRenderVersion] = useState(0);
   const [miniChordTitle, setMiniChordTitle] = useState(initialMiniChordArrangementRef.current.title);
   const [miniChordBarCount, setMiniChordBarCount] = useState(initialMiniChordArrangementRef.current.barCount);
   const [miniChordSlots, setMiniChordSlots] = useState(initialMiniChordArrangementRef.current.slots);
   const [miniChordRepeatStarts, setMiniChordRepeatStarts] = useState(initialMiniChordArrangementRef.current.repeatStarts);
   const [miniChordRepeatEnds, setMiniChordRepeatEnds] = useState(initialMiniChordArrangementRef.current.repeatEnds);
   const [miniChordBarMarks, setMiniChordBarMarks] = useState(initialMiniChordArrangementRef.current.barMarks);
+  const [miniChordEndingRanges, setMiniChordEndingRanges] = useState(initialMiniChordArrangementRef.current.endingRanges);
   const [miniChordBpm, setMiniChordBpm] = useState(initialMiniChordArrangementRef.current.bpm);
   const [miniChordCapo, setMiniChordCapo] = useState(initialMiniChordArrangementRef.current.capo);
+  const [miniChordAccidentalPreference, setMiniChordAccidentalPreference] = useState(
+    initialMiniChordArrangementRef.current.accidentalPreference,
+  );
   const [miniChordLoop, setMiniChordLoop] = useState(initialMiniChordArrangementRef.current.loop);
+  const [miniChordUserDefaultPatterns, setMiniChordUserDefaultPatterns] = useState(initialBeatPresetLibraryRef.current);
+  const [miniChordArrangementOverrides, setMiniChordArrangementOverrides] = useState(initialMiniChordArrangementRef.current.arrangementOverrides);
+  const [miniChordExpertMode, setMiniChordExpertMode] = useState(false);
+  const [miniChordRangeStartBar, setMiniChordRangeStartBar] = useState(null);
+  const [miniChordSelectedRange, setMiniChordSelectedRange] = useState(null);
+  const [miniChordArrangementConfirmOpen, setMiniChordArrangementConfirmOpen] = useState(false);
+  const [miniChordArrangementEditorOpen, setMiniChordArrangementEditorOpen] = useState(false);
+  const [miniChordArrangementDraft, setMiniChordArrangementDraft] = useState(null);
+  const [miniChordArrangementPreviewMode, setMiniChordArrangementPreviewMode] = useState("");
+  const [miniChordRhythmSettingsOpen, setMiniChordRhythmSettingsOpen] = useState(false);
+  const [miniChordGrooveEditorPart, setMiniChordGrooveEditorPart] = useState(null);
+  const [miniChordGrooveEditorScope, setMiniChordGrooveEditorScope] = useState("global");
+  const [miniChordGrooveEditorPresetId, setMiniChordGrooveEditorPresetId] = useState("");
+  const [miniChordGrooveDraftPattern, setMiniChordGrooveDraftPattern] = useState(null);
+  const [miniChordGroovePreviewing, setMiniChordGroovePreviewing] = useState(false);
   const [miniChordActiveSlot, setMiniChordActiveSlot] = useState(0);
   const [miniChordActiveBarIndex, setMiniChordActiveBarIndex] = useState(null);
   const [miniChordChordPickerSlot, setMiniChordChordPickerSlot] = useState(null);
@@ -10382,10 +12807,6 @@ function App() {
   const [miniChordChordPickerPosition, setMiniChordChordPickerPosition] = useState(null);
   const [miniChordMarkTargetIndex, setMiniChordMarkTargetIndex] = useState(1);
   const [miniChordNotice, setMiniChordNotice] = useState("");
-  const [miniChordPickerBaseRoot, setMiniChordPickerBaseRoot] = useState("C");
-  const [miniChordPickerAccidental, setMiniChordPickerAccidental] = useState("natural");
-  const [miniChordPickerQuality, setMiniChordPickerQuality] = useState("major");
-  const [miniChordPickerExtension, setMiniChordPickerExtension] = useState("none");
   const [miniChordPlayhead, setMiniChordPlayhead] = useState(null);
   const [miniChordPlayingBarIndex, setMiniChordPlayingBarIndex] = useState(null);
   const [miniChordIsPlaying, setMiniChordIsPlaying] = useState(false);
@@ -10404,6 +12825,11 @@ function App() {
   const [coachPlayBars, setCoachPlayBars] = useState(4);
   const [coachMuteBars, setCoachMuteBars] = useState(4);
   const [metronomeAdvancedPanel, setMetronomeAdvancedPanel] = useState("");
+  const metronomeAdvancedPanelRef = useRef("");
+  const setMetronomeAdvancedPanelImmediate = useCallback((nextPanel) => {
+    metronomeAdvancedPanelRef.current = nextPanel;
+    setMetronomeAdvancedPanel(nextPanel);
+  }, []);
   const initialMetronomeTrackerProgressRef = useRef(getStoredMetronomeTrackerProgress());
   const [metronomeTrackerMode, setMetronomeTrackerMode] = useState(initialMetronomeTrackerProgressRef.current.trackerMode);
   const [metronomeBarLimitEnabled, setMetronomeBarLimitEnabled] = useState(initialMetronomeTrackerProgressRef.current.barLimitEnabled);
@@ -10438,7 +12864,7 @@ function App() {
   const [feelPlaybackLoop, setFeelPlaybackLoop] = useState(true);
   const [feelPlaybackIndex, setFeelPlaybackIndex] = useState(-1);
   const [feelPlaybackProgress, setFeelPlaybackProgress] = useState(0);
-  const [isMobileLayout, setIsMobileLayout] = useState(false);
+  const [isMobileLayout, setIsMobileLayout] = useState(getInitialMobileLayout);
   const [trainingNoteGuideEnabled, setTrainingNoteGuideEnabled] = useState(true);
   const [hitZoneNote, setHitZoneNote] = useState(null);
   const [isHitWindowActive, setIsHitWindowActive] = useState(false);
@@ -10451,14 +12877,28 @@ function App() {
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
   const [shooterDifficulty, setShooterDifficulty] = useState(SHOOTER_DIFFICULTIES.EASY);
+  const [shooterDifficultyMenuOpen, setShooterDifficultyMenuOpen] = useState(false);
   const [shooterSkinTab, setShooterSkinTab] = useState(SHOOTER_SKIN_TABS[0].id);
   const [selectedShooterPickSkinId, setSelectedShooterPickSkinId] = useState(getStoredShooterPickSkinId);
-  const [selectedShooterEffectId, setSelectedShooterEffectId] = useState(getStoredShooterEffectId);
+  const [selectedShooterEffectLoadout, setSelectedShooterEffectLoadout] = useState(getStoredShooterEffectLoadout);
   const [selectedShooterMapId, setSelectedShooterMapId] = useState(getStoredShooterMapId);
   const [selectedShooterEmblemId, setSelectedShooterEmblemId] = useState(getStoredShooterEmblemId);
   const [shooterRecords, setShooterRecords] = useState(() => RecordService.getShooterRecords());
   const [showShooterRecords, setShowShooterRecords] = useState(false);
   const [shooterLives, setShooterLives] = useState(SHOOTER_MAX_LIVES);
+
+  useEffect(() => {
+    if (!shooterGuitarPickerOpen || isMobileLayout || typeof document === "undefined") return undefined;
+    const previousOverflow = document.body.style.overflow;
+    const previousOverscrollBehavior = document.body.style.overscrollBehavior;
+    document.body.style.overflow = "hidden";
+    document.body.style.overscrollBehavior = "none";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.overscrollBehavior = previousOverscrollBehavior;
+    };
+  }, [isMobileLayout, shooterGuitarPickerOpen]);
+
   const headerVariant = designLabHeaderState.activeHeader;
   const visibleHeaderVariants = useMemo(
     () => HEADER_VARIANTS.filter((variant) => !designLabHeaderState.deletedHeaders.includes(variant.id)),
@@ -10479,9 +12919,13 @@ function App() {
     () => getShooterPickSkinById(selectedShooterPickSkinId),
     [selectedShooterPickSkinId],
   );
-  const selectedShooterEffect = useMemo(
-    () => getShooterEffectById(selectedShooterEffectId),
-    [selectedShooterEffectId],
+  const selectedShooterAuraEffect = useMemo(
+    () => getShooterEffectById(SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA, selectedShooterEffectLoadout.aura),
+    [selectedShooterEffectLoadout.aura],
+  );
+  const selectedShooterFloorEffect = useMemo(
+    () => getShooterEffectById(SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR, selectedShooterEffectLoadout.floor),
+    [selectedShooterEffectLoadout.floor],
   );
   const selectedShooterMap = useMemo(
     () => getShooterMapById(selectedShooterMapId),
@@ -10493,9 +12937,13 @@ function App() {
   );
   const selectedGuitar = selectedGuitarVariant;
   const selectedPick = selectedShooterPickSkin;
-  const selectedEffect = selectedShooterEffect;
+  const selectedAuraEffect = selectedShooterAuraEffect;
+  const selectedFloorEffect = selectedShooterFloorEffect;
   const selectedMap = selectedShooterMap;
   const selectedEmblem = selectedShooterEmblem;
+  const selectedGuitarRarity = SHOOTER_GUITAR_RARITY_OPTIONS.find(
+    (option) => option.id === getShooterGuitarRarityId(selectedGuitar.id),
+  ) ?? SHOOTER_GUITAR_RARITY_OPTIONS[0];
   const selectedMapStyle = useMemo(() => getShooterMapCssVars(selectedMap), [selectedMap]);
   const selectedMapIsDefault = selectedMap.id === "none";
   const selectedMapSkinClassName = selectedMapIsDefault ? "" : `shooterMapSkin shooterMapSkin--${selectedMap.id}`;
@@ -10508,8 +12956,11 @@ function App() {
     [selectedEmblem],
   );
   const selectedEffectLayers = useMemo(
-    () => getShooterEffectLayers(selectedEffect),
-    [selectedEffect],
+    () => [
+      ...getShooterEffectLayers(selectedFloorEffect),
+      ...getShooterEffectLayers(selectedAuraEffect),
+    ],
+    [selectedAuraEffect, selectedFloorEffect],
   );
   const selectedEffectFloorLayers = useMemo(
     () => selectedEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.FLOOR),
@@ -10519,15 +12970,11 @@ function App() {
     () => selectedEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.BACK),
     [selectedEffectLayers],
   );
-  const selectedEffectBodyLayers = useMemo(
-    () => selectedEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.BODY),
-    [selectedEffectLayers],
-  );
   const selectedEffectFrontLayers = useMemo(
     () => selectedEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.FRONT),
     [selectedEffectLayers],
   );
-  const effectSelectionRequestRef = useRef(0);
+  const effectSelectionRequestRef = useRef({ aura: 0, floor: 0 });
   useEffect(() => {
     if (!shooterGuitarPickerOpen) return;
     void preloadShooterEffectCatalog();
@@ -10574,7 +13021,7 @@ function App() {
   const shooterEffectSections = useMemo(
     () => SHOOTER_EFFECT_SECTION_OPTIONS.map((section) => ({
       ...section,
-      options: SHOOTER_EFFECT_OPTIONS.filter((effect) => getShooterEffectSectionId(effect) === section.id),
+      options: SHOOTER_EFFECT_OPTIONS_BY_SLOT[section.id] ?? [],
     })).filter((section) => section.options.length > 0),
     [],
   );
@@ -10648,17 +13095,24 @@ function App() {
     }
   }, []);
 
-  const applyShooterEffect = useCallback((effectId) => {
-    const nextEffect = getShooterEffectById(effectId);
-    const requestId = effectSelectionRequestRef.current + 1;
-    effectSelectionRequestRef.current = requestId;
+  const applyShooterEffect = useCallback((equipmentSlot, effectId) => {
+    if (!SHOOTER_EFFECT_OPTIONS_BY_SLOT[equipmentSlot]) return;
+    const nextEffect = getShooterEffectById(equipmentSlot, effectId);
+    const requestId = (effectSelectionRequestRef.current[equipmentSlot] ?? 0) + 1;
+    effectSelectionRequestRef.current[equipmentSlot] = requestId;
 
     void preloadShooterEffectImages(nextEffect).then(() => {
-      if (effectSelectionRequestRef.current !== requestId) return;
-      setSelectedShooterEffectId(nextEffect.id);
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(SHOOTER_EFFECT_STORAGE_KEY, nextEffect.id);
-      }
+      if (effectSelectionRequestRef.current[equipmentSlot] !== requestId) return;
+      setSelectedShooterEffectLoadout((currentLoadout) => {
+        const nextLoadout = normalizeShooterEffectLoadout({
+          ...currentLoadout,
+          [equipmentSlot]: nextEffect.id,
+        });
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(SHOOTER_EFFECT_LOADOUT_STORAGE_KEY, JSON.stringify(nextLoadout));
+        }
+        return nextLoadout;
+      });
     });
   }, []);
 
@@ -10958,10 +13412,13 @@ function App() {
   const appModeRef = useRef(initialRouteRef.current.appMode);
   const selectedCategoryIdRef = useRef(initialRouteRef.current.categoryId);
   const routeSyncRef = useRef(false);
+  const routeScrollPositionsRef = useRef(new Map());
+  const activeRouteKeyRef = useRef(getHashFromRoute(initialRouteRef.current.appMode, initialRouteRef.current.categoryId));
+  const historyNavigationRef = useRef(false);
   const chordChartRef = useRef(null);
   const chordViewerRef = useRef(null);
   const gameStateRef = useRef(GAME_STATES.IDLE);
-  const isMobileLayoutRef = useRef(false);
+  const isMobileLayoutRef = useRef(isMobileLayout);
   const speedRef = useRef(RHYTHM_SUBDIVISIONS.One);
   const bpmRef = useRef(initialStage3SettingsRef.current.bpm);
   const metronomeOnRef = useRef(true);
@@ -11054,8 +13511,21 @@ function App() {
   const backingBassBeatRef = useRef(STAGE3_DEFAULT_BACKING_SETTINGS.bassBeat);
   const backingPianoBeatRef = useRef(STAGE3_DEFAULT_BACKING_SETTINGS.pianoBeat);
   const miniChordPianoStyleRef = useRef(MINI_CHORD_DEFAULT_PIANO_STYLE);
+  const miniChordUserDefaultPatternsRef = useRef(initialBeatPresetLibraryRef.current);
+  const miniChordArrangementOverridesRef = useRef(initialMiniChordArrangementRef.current.arrangementOverrides);
+  const miniChordGroovePreviewTimerRef = useRef(null);
+  const miniChordGroovePreviewTokenRef = useRef(0);
+  const miniChordEditHistoryRef = useRef(null);
+  const miniChordHistoryApplyingRef = useRef(false);
   const miniChordTapTempoTimesRef = useRef([]);
   const miniChordTapTempoPressTimerRef = useRef(null);
+  const miniChordFloatingFocusReturnRef = useRef(null);
+  const miniChordPickerDraftRef = useRef({
+    accidental: "natural",
+    baseRoot: "C",
+    extension: "none",
+    quality: "major",
+  });
   const metronomeBarLimitRef = useRef(initialMetronomeTrackerProgressRef.current.barLimit);
   const metronomeBarStopWhenReachedRef = useRef(false);
   const metronomeBarResetWhenReachedRef = useRef(false);
@@ -11082,6 +13552,8 @@ function App() {
   const metronomeOptionsSwipeStartRef = useRef(null);
   const fretboardSwipeStartRef = useRef(null);
   const fretboardSwipeFeedbackTimerRef = useRef(null);
+  const chordFretboardSwipeStartRef = useRef(null);
+  const chordFretboardSwipeFeedbackTimerRef = useRef(null);
   const stage3StorageSwipeStartRef = useRef(null);
   const stage3StorageOpenRef = useRef(false);
   const feelRecordingStartRef = useRef(0);
@@ -11419,6 +13891,9 @@ function App() {
     viewerChordPosition === CHORD_VIEWER_POSITION_ALL
       ? viewerChordPositionData.position1
       : viewerChordPositionData[viewerChordPosition] ?? null;
+  const viewerChordPositionLabel = CHORD_VIEWER_POSITIONS.find(
+    (position) => position.id === viewerChordPosition,
+  )?.label ?? "1구간";
   const viewerVisibleFrets = viewerMode === FRETBOARD_VIEWER_MODES.CHORD
     ? viewerCurrentChordPosition?.visibleFrets ?? []
     : viewerScaleBlock.visibleFrets;
@@ -12195,6 +14670,35 @@ function App() {
     return audio.state === "running";
   }, [ensureAudioContext]);
 
+  const handleViewerNotePress = useCallback(async (note) => {
+    if (!note) return;
+    const ready = await ensureAudioReady();
+    const audio = audioRef.current;
+    if (!ready || !audio) return;
+    playGuitarPositions(audio, [note], {
+      duration: 1.55,
+      volume: 0.48,
+    });
+  }, [ensureAudioReady]);
+
+  const handleViewerChordSound = useCallback(async (event) => {
+    const chordNotes = viewerCurrentChordPosition?.notes ?? [];
+    if (!chordNotes.length) return;
+    triggerChordSoundFeedback(event.currentTarget);
+
+    const ready = await ensureAudioReady();
+    const audio = audioRef.current;
+    if (!ready || !audio) return;
+    playGuitarPositions(audio, chordNotes, {
+      attackSeconds: 0.012,
+      duration: 2.45,
+      stringStates: viewerChordStringStates,
+      strumSeconds: 0.022,
+      velocityVariation: 0.1,
+      volume: 0.48,
+    });
+  }, [ensureAudioReady, viewerChordStringStates, viewerCurrentChordPosition]);
+
   const ensureMetronomeOutput = useCallback((audio) => {
     if (!audio) return false;
     if (metronomeMasterGainRef.current && metronomeAccentGainRef.current && metronomeWeakGainRef.current) {
@@ -12338,7 +14842,10 @@ function App() {
   }, [buildStage3Progression, chordTransitionProgression, ensureAudioContext, loadBackingBandSamples, prepareStage3BackingSession]);
 
   const requestStage3BackingPatternChange = useCallback((overrides = {}, options = {}) => {
-      const nextBacking = normalizeStage3BackingSettings({
+      const normalizeBackingSettings = options.allowMiniChordCustom
+        ? normalizeMiniChordBackingSettings
+        : normalizeStage3BackingSettings;
+      const nextBacking = normalizeBackingSettings({
         rhythmPattern: overrides.rhythmPattern ?? backingRhythmPattern,
         bassBeat: overrides.bassBeat ?? backingBassBeat,
         pianoBeat: overrides.pianoBeat ?? backingPianoBeat,
@@ -12798,9 +15305,11 @@ function App() {
 
   const schedulePreparedBackingEvent = useCallback((event, when) => {
     if (!event) return;
-    if (event.instrument === "drum" && !backingDrumEnabledRef.current) return;
-    if (event.instrument === "bass" && !backingBassEnabledRef.current) return;
-    if (event.instrument === "piano" && !backingPianoEnabledRef.current) return;
+    if (!event.previewForceEnabled) {
+      if (event.instrument === "drum" && !backingDrumEnabledRef.current) return;
+      if (event.instrument === "bass" && !backingBassEnabledRef.current) return;
+      if (event.instrument === "piano" && !backingPianoEnabledRef.current) return;
+    }
     if (event.debugLog && shouldLogBackingDebugEvents()) {
       console.log(event.debugLog);
     }
@@ -14125,7 +16634,7 @@ function App() {
       const beatsPerMeasure = signature.beats;
       const clicksPerBeat = subdivision.clicksPerBeat;
       const currentBeatMs = getBeatMs(bpmRef.current);
-      const currentTickMs = currentBeatMs / clicksPerBeat;
+      const currentTickMs = getMetronomeSubdivisionTickMs(bpmRef.current, subdivision);
       const currentMeasureMs = currentBeatMs * beatsPerMeasure;
 
       if (countInActiveRef.current) {
@@ -14418,7 +16927,7 @@ function App() {
       const beatsPerMeasure = signature.beats;
       const clicksPerBeat = subdivision.clicksPerBeat;
       const currentBeatMs = getBeatMs(bpmRef.current);
-      const currentTickMs = currentBeatMs / clicksPerBeat;
+      const currentTickMs = getMetronomeSubdivisionTickMs(bpmRef.current, subdivision);
       const currentMeasureMs = currentBeatMs * beatsPerMeasure;
 
       if (countInActiveRef.current) {
@@ -14567,7 +17076,7 @@ function App() {
       const beatsPerMeasure = signature.beats;
       const clicksPerBeat = subdivision.clicksPerBeat;
       const currentBeatMs = getBeatMs(bpmRef.current);
-      const currentTickMs = currentBeatMs / clicksPerBeat;
+      const currentTickMs = getMetronomeSubdivisionTickMs(bpmRef.current, subdivision);
       const currentMeasureMs = currentBeatMs * beatsPerMeasure;
 
       if (countInActiveRef.current) {
@@ -15451,21 +17960,22 @@ function App() {
   ]);
 
   const closeMetronomeAdvancedPanel = useCallback(() => {
-    commitMetronomeAdvancedDraft(metronomeAdvancedPanel);
-    setMetronomeAdvancedPanel("");
-  }, [commitMetronomeAdvancedDraft, metronomeAdvancedPanel]);
+    commitMetronomeAdvancedDraft(metronomeAdvancedPanelRef.current);
+    setMetronomeAdvancedPanelImmediate("");
+  }, [commitMetronomeAdvancedDraft, setMetronomeAdvancedPanelImmediate]);
 
   const toggleMetronomeAdvancedPanel = useCallback((panelId) => {
-    if (metronomeAdvancedPanel === panelId) {
+    const currentPanel = metronomeAdvancedPanelRef.current;
+    if (currentPanel === panelId) {
       closeMetronomeAdvancedPanel();
       return;
     }
-    if (metronomeAdvancedPanel) {
-      commitMetronomeAdvancedDraft(metronomeAdvancedPanel);
+    if (currentPanel) {
+      commitMetronomeAdvancedDraft(currentPanel);
     }
     primeMetronomeAdvancedDraft(panelId);
-    setMetronomeAdvancedPanel(panelId);
-  }, [closeMetronomeAdvancedPanel, commitMetronomeAdvancedDraft, metronomeAdvancedPanel, primeMetronomeAdvancedDraft]);
+    setMetronomeAdvancedPanelImmediate(panelId);
+  }, [closeMetronomeAdvancedPanel, commitMetronomeAdvancedDraft, primeMetronomeAdvancedDraft, setMetronomeAdvancedPanelImmediate]);
 
   useEffect(() => {
     if (metronomeAdvancedPanel !== "automator") {
@@ -16073,6 +18583,71 @@ function App() {
 
     changeFretboardViewerModeBySwipe(deltaX > 0 ? -1 : 1);
   }, [changeFretboardViewerModeBySwipe]);
+
+  const changeChordFretboardPositionBySwipe = useCallback((direction) => {
+    const availablePositions = CHORD_VIEWER_POSITIONS.filter(
+      (position) => viewerChordPositionData[position.id],
+    );
+    if (availablePositions.length < 2) return;
+
+    const currentIndex = availablePositions.findIndex(
+      (position) => position.id === viewerChordPosition,
+    );
+    const safeCurrentIndex = currentIndex >= 0 ? currentIndex : 0;
+    const nextIndex = Math.max(
+      0,
+      Math.min(availablePositions.length - 1, safeCurrentIndex + direction),
+    );
+    const nextPosition = availablePositions[nextIndex];
+    if (!nextPosition || nextPosition.id === viewerChordPosition) return;
+
+    setViewerChordPosition(nextPosition.id);
+    setViewerChordSwipeFeedback(direction > 0 ? "next" : "prev");
+    window.clearTimeout(chordFretboardSwipeFeedbackTimerRef.current);
+    chordFretboardSwipeFeedbackTimerRef.current = window.setTimeout(() => {
+      setViewerChordSwipeFeedback("");
+    }, 220);
+  }, [viewerChordPosition, viewerChordPositionData]);
+
+  const handleChordFretboardSwipeStart = useCallback((event) => {
+    if (event.isPrimary === false || (event.pointerType === "mouse" && event.button !== 0)) return;
+    chordFretboardSwipeStartRef.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+    };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }, []);
+
+  const handleChordFretboardSwipeCancel = useCallback((event) => {
+    const start = chordFretboardSwipeStartRef.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+    }
+    chordFretboardSwipeStartRef.current = null;
+  }, []);
+
+  const handleChordFretboardSwipeEnd = useCallback((event) => {
+    const start = chordFretboardSwipeStartRef.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+    }
+    chordFretboardSwipeStartRef.current = null;
+    const deltaX = event.clientX - start.x;
+    const deltaY = event.clientY - start.y;
+    if (Math.abs(deltaX) < 44 || Math.abs(deltaX) < Math.abs(deltaY) * 1.35) return;
+
+    changeChordFretboardPositionBySwipe(deltaX > 0 ? -1 : 1);
+  }, [changeChordFretboardPositionBySwipe]);
+
+  const handleChordFretboardKeyDown = useCallback((event) => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    changeChordFretboardPositionBySwipe(event.key === "ArrowLeft" ? -1 : 1);
+  }, [changeChordFretboardPositionBySwipe]);
 
   const stopFeelPlayback = useCallback(() => {
     feelPlaybackTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
@@ -16702,9 +19277,9 @@ function App() {
 
   useEffect(() => {
     if (appMode !== APP_MODES.METRONOME && metronomeAdvancedPanel) {
-      setMetronomeAdvancedPanel("");
+      setMetronomeAdvancedPanelImmediate("");
     }
-  }, [appMode, metronomeAdvancedPanel]);
+  }, [appMode, metronomeAdvancedPanel, setMetronomeAdvancedPanelImmediate]);
 
   useEffect(() => {
     if (!HEADER_VARIANT_IDS.has(selectedHeaderCandidateId)) setSelectedHeaderCandidateId(headerVariant);
@@ -16736,6 +19311,38 @@ function App() {
   useEffect(() => {
     stage3StorageOpenRef.current = stage3StorageOpen;
   }, [stage3StorageOpen]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const previousScrollRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+
+    const rememberRouteScroll = () => {
+      routeScrollPositionsRef.current.set(activeRouteKeyRef.current, window.scrollY || 0);
+    };
+
+    window.addEventListener("scroll", rememberRouteScroll, { passive: true });
+    return () => {
+      rememberRouteScroll();
+      window.removeEventListener("scroll", rememberRouteScroll);
+      window.history.scrollRestoration = previousScrollRestoration;
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const nextRouteKey = getHashFromRoute(appMode, selectedCategoryId);
+    const shouldRestore = historyNavigationRef.current;
+    activeRouteKeyRef.current = nextRouteKey;
+    historyNavigationRef.current = false;
+    const nextScrollTop = shouldRestore
+      ? routeScrollPositionsRef.current.get(nextRouteKey) || 0
+      : 0;
+    const restoreScroll = () => window.scrollTo({ left: 0, top: nextScrollTop, behavior: "auto" });
+    restoreScroll();
+    const frameId = window.requestAnimationFrame(restoreScroll);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [appMode, selectedCategoryId]);
 
   useEffect(() => {
     if (!stage3StorageOpen || typeof document === "undefined") return undefined;
@@ -16780,6 +19387,10 @@ function App() {
       const routeChanged =
         route.appMode !== appModeRef.current ||
         route.categoryId !== selectedCategoryIdRef.current;
+      if (routeChanged) {
+        routeScrollPositionsRef.current.set(activeRouteKeyRef.current, window.scrollY || 0);
+        historyNavigationRef.current = true;
+      }
       if (routeChanged) stopBackingScheduler();
       if (route.appMode !== APP_MODES.MINI_CHORD_MAKER) {
         miniChordStartTokenRef.current += 1;
@@ -16822,7 +19433,7 @@ function App() {
       setIsHitWindowActive(false);
       setBeat(0);
       setUtilityMenuOpen(false);
-      if (route.appMode !== APP_MODES.METRONOME) setMetronomeAdvancedPanel("");
+      if (route.appMode !== APP_MODES.METRONOME) setMetronomeAdvancedPanelImmediate("");
       setState(route.appMode === APP_MODES.SHOOTER && streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
     };
 
@@ -16847,7 +19458,7 @@ function App() {
       window.removeEventListener("hashchange", applyHashRoute);
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [getMetronomeScopeForCategory, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
+  }, [getMetronomeScopeForCategory, setMetronomeAdvancedPanelImmediate, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -17130,6 +19741,91 @@ function App() {
   }, [backingPianoBeat]);
 
   useEffect(() => {
+    const normalized = normalizeMiniChordUserDefaultPatterns(miniChordUserDefaultPatterns);
+    miniChordUserDefaultPatternsRef.current = normalized;
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(RIFFLAB_BEAT_PRESET_STORAGE_KEY, JSON.stringify(normalized));
+    } catch (error) {
+      console.warn("BEAT PRESET SAVE FAILED:", error);
+    }
+  }, [miniChordUserDefaultPatterns]);
+
+  const miniChordEditSnapshot = useMemo(() => ({
+    accidentalPreference: normalizeMiniChordAccidentalPreference(miniChordAccidentalPreference),
+    arrangementOverrides: normalizeMiniChordArrangementOverrides(miniChordArrangementOverrides, miniChordBarCount),
+    barCount: normalizeMiniChordBarCount(miniChordBarCount),
+    barMarks: normalizeMiniChordBarMarks(miniChordBarMarks, miniChordBarCount),
+    bpm: clampBpm(miniChordBpm),
+    capo: clampMiniChordCapo(miniChordCapo),
+    endingRanges: normalizeMiniChordEndingRanges(miniChordEndingRanges, miniChordBarCount),
+    loop: Boolean(miniChordLoop),
+    pianoStyle: normalizeMiniChordPianoStyle(miniChordPianoStyle),
+    slots: normalizeMiniChordSlots(miniChordSlots, miniChordBarCount),
+  }), [
+    miniChordAccidentalPreference,
+    miniChordArrangementOverrides,
+    miniChordBarCount,
+    miniChordBarMarks,
+    miniChordBpm,
+    miniChordCapo,
+    miniChordEndingRanges,
+    miniChordLoop,
+    miniChordPianoStyle,
+    miniChordSlots,
+  ]);
+
+  const applyMiniChordEditSnapshot = useCallback((snapshot) => {
+    if (!snapshot) return;
+    const safeBarCount = normalizeMiniChordBarCount(snapshot.barCount);
+    const safeMarks = normalizeMiniChordBarMarks(snapshot.barMarks, safeBarCount);
+    setMiniChordBarCount(safeBarCount);
+    setMiniChordSlots(normalizeMiniChordSlots(snapshot.slots, safeBarCount));
+    setMiniChordBarMarks(safeMarks);
+    setMiniChordRepeatStarts(getMiniChordMarkersFromBarMarks(safeMarks, "repeatStart", safeBarCount));
+    setMiniChordRepeatEnds(getMiniChordMarkersFromBarMarks(safeMarks, "repeatEnd", safeBarCount));
+    setMiniChordEndingRanges(normalizeMiniChordEndingRanges(snapshot.endingRanges, safeBarCount));
+    setMiniChordBpm(clampBpm(snapshot.bpm));
+    setMiniChordCapo(clampMiniChordCapo(snapshot.capo));
+    setMiniChordAccidentalPreference(normalizeMiniChordAccidentalPreference(snapshot.accidentalPreference));
+    setMiniChordLoop(Boolean(snapshot.loop));
+    setMiniChordPianoStyle(normalizeMiniChordPianoStyle(snapshot.pianoStyle));
+    setMiniChordArrangementOverrides(normalizeMiniChordArrangementOverrides(snapshot.arrangementOverrides, safeBarCount));
+    setMiniChordActiveSlot((slot) => Math.min(slot, safeBarCount * MINI_CHORD_SLOTS_PER_BAR - 1));
+    setMiniChordActiveBarIndex(null);
+    setMiniChordChordPickerSlot(null);
+    setMiniChordEndingPopoverPosition(null);
+    setMiniChordChordPickerPosition(null);
+    setMiniChordSelectedRange(null);
+    setMiniChordRangeStartBar(null);
+    setMiniChordArrangementConfirmOpen(false);
+    setMiniChordArrangementEditorOpen(false);
+    setMiniChordArrangementDraft(null);
+    setMiniChordNotice("");
+  }, []);
+
+  useEffect(() => {
+    if (!miniChordEditHistoryRef.current) {
+      miniChordEditHistoryRef.current = createMiniChordEditHistory(miniChordEditSnapshot);
+      miniChordHistoryApplyingRef.current = false;
+      setMiniChordHistoryRenderVersion((version) => version + 1);
+      return;
+    }
+    if (miniChordHistoryApplyingRef.current) {
+      miniChordHistoryApplyingRef.current = false;
+      return;
+    }
+    const nextHistory = recordMiniChordEdit(miniChordEditHistoryRef.current, miniChordEditSnapshot);
+    if (nextHistory === miniChordEditHistoryRef.current) return;
+    miniChordEditHistoryRef.current = nextHistory;
+    setMiniChordHistoryRenderVersion((version) => version + 1);
+  }, [miniChordEditSnapshot, miniChordHistoryEpoch]);
+
+  useEffect(() => {
+    miniChordArrangementOverridesRef.current = normalizeMiniChordArrangementOverrides(miniChordArrangementOverrides, miniChordBarCount);
+  }, [miniChordArrangementOverrides, miniChordBarCount]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return undefined;
     let idleId = null;
     let timerId = null;
@@ -17237,9 +19933,18 @@ function App() {
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 680px)");
     const updateMobileLayout = () => {
-      isMobileLayoutRef.current = mediaQuery.matches;
-      setIsMobileLayout(mediaQuery.matches);
-      setDeviceInfo(getDeviceSnapshot());
+      const nextIsMobileLayout = mediaQuery.matches;
+      const nextDeviceInfo = getDeviceSnapshot();
+      isMobileLayoutRef.current = nextIsMobileLayout;
+      setIsMobileLayout((current) => current === nextIsMobileLayout ? current : nextIsMobileLayout);
+      setDeviceInfo((current) => (
+        current.browser === nextDeviceInfo.browser &&
+        current.height === nextDeviceInfo.height &&
+        current.os === nextDeviceInfo.os &&
+        current.width === nextDeviceInfo.width
+          ? current
+          : nextDeviceInfo
+      ));
     };
     updateMobileLayout();
     window.addEventListener("resize", updateMobileLayout);
@@ -17262,9 +19967,26 @@ function App() {
     sequenceRef.current = getPracticeSequence(safeCategory);
   }, [getPlayableCategory, getPracticeSequence, selectedCategory, scaleDirection]);
 
+  const animationLoopActive =
+    gameState === GAME_STATES.PLAYING ||
+    (appMode === APP_MODES.SHOOTER && gameState === GAME_STATES.LISTENING);
+
   useEffect(() => {
+    if (!animationLoopActive) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      return undefined;
+    }
+
+    lastFrameRef.current = performance.now();
     rafRef.current = requestAnimationFrame(animationLoop);
     return () => {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
+  }, [animationLoop, animationLoopActive]);
+
+  useEffect(() => () => {
       cancelAnimationFrame(rafRef.current);
       window.clearTimeout(flashTimerRef.current);
       micInputSessionRef.current?.release?.();
@@ -17273,8 +19995,7 @@ function App() {
       analyserRef.current = null;
       bufferRef.current = null;
       streamRef.current = null;
-    };
-  }, [animationLoop]);
+  }, []);
 
   const visibleFrets = useMemo(
     () => (selectedCategory.id === "scale-block" ? selectedPentatonic.visibleFrets : [1, 2, 3]),
@@ -17481,15 +20202,44 @@ function App() {
         "--arm-aim": "0deg",
       };
   const isShooterDifficultyLocked = gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.PAUSED;
+  useEffect(() => {
+    if (appMode !== APP_MODES.SHOOTER || !isMobileLayout || isShooterDifficultyLocked) {
+      setShooterDifficultyMenuOpen(false);
+    }
+  }, [appMode, isMobileLayout, isShooterDifficultyLocked]);
   const hasDirectionPractice = selectedCategory.id === "scale-block" || selectedCategory.id === "first-position";
   const directionGuideSequence =
     selectedCategory.id === "first-position" ? FIRST_POSITION_ASCENDING_SEQUENCE : selectedPentatonic.sequence;
   const scaleStartPitch = directionGuideSequence[0] ?? selectedScaleRoot;
   const scaleEndPitch = directionGuideSequence[directionGuideSequence.length - 1] ?? selectedScaleRoot;
+  const normalizedMiniChordArrangementOverrides = useMemo(
+    () => normalizeMiniChordArrangementOverrides(miniChordArrangementOverrides, miniChordBarCount),
+    [miniChordArrangementOverrides, miniChordBarCount],
+  );
+  const normalizedMiniChordEndingRanges = useMemo(
+    () => normalizeMiniChordEndingRanges(miniChordEndingRanges, miniChordBarCount),
+    [miniChordBarCount, miniChordEndingRanges],
+  );
+  const miniChordPlaybackBarMarks = useMemo(
+    () => applyMiniChordEndingRangesToBarMarks(
+      miniChordBarMarks,
+      normalizedMiniChordEndingRanges,
+      miniChordBarCount,
+    ),
+    [miniChordBarCount, miniChordBarMarks, normalizedMiniChordEndingRanges],
+  );
   const miniChordTimelineBars = useMemo(() => (
     Array.from({ length: miniChordBarCount }, (_, barIndex) => {
       const mark = miniChordBarMarks[barIndex] ?? {};
-      const endings = normalizeMiniChordEndings(mark.endings ?? mark.ending);
+      const endingRange = getMiniChordEndingRangeForBar(
+        normalizedMiniChordEndingRanges,
+        barIndex,
+        miniChordBarCount,
+      );
+      const arrangementOverride = getMiniChordArrangementOverrideForBar(normalizedMiniChordArrangementOverrides, barIndex);
+      const navigationSymbols = getMiniChordNavigationMarkerSymbols(mark, barIndex);
+      const commandSymbols = getMiniChordCommandMarkerSymbols(mark, barIndex);
+      const markWarning = getMiniChordMarkWarningMessage(mark, miniChordBarMarks, miniChordBarCount);
       return {
         index: barIndex,
         slots: [0, 1].map((slotIndex) => {
@@ -17502,38 +20252,31 @@ function App() {
         }),
         repeatStart: Boolean(mark.repeatStart),
         repeatEnd: Boolean(mark.repeatEnd),
-        endings,
-        endingLabel: getMiniChordEndingLabel(endings),
+        endings: endingRange ? [endingRange.endingNumber] : [],
+        endingLabel: endingRange?.startBar === barIndex ? `${endingRange.endingNumber}.` : "",
+        endingRange,
         mark,
         markLabels: getMiniChordBarMarkLabels(mark, barIndex),
+        navigationSymbols,
+        commandSymbols,
+        markSymbols: [...navigationSymbols, ...commandSymbols],
+        markWarning,
+        arrangementOverride,
       };
     })
-  ), [miniChordBarCount, miniChordBarMarks, miniChordSlots]);
+  ), [
+    miniChordBarCount,
+    miniChordBarMarks,
+    miniChordSlots,
+    normalizedMiniChordArrangementOverrides,
+    normalizedMiniChordEndingRanges,
+  ]);
 
   const miniChordCanDecreaseBars = miniChordBarCount > MINI_CHORD_MIN_BARS;
   const miniChordCanIncreaseBars = miniChordBarCount < MINI_CHORD_MAX_BARS;
   const miniChordVisibleStartBar = 1;
   const miniChordVisibleEndBar = miniChordBarCount;
   const miniChordVisibleBars = miniChordTimelineBars;
-  const miniChordPickerSafeExtension = normalizeChordExtensionForQuality(miniChordPickerQuality, miniChordPickerExtension);
-  const miniChordPickerSelectedLabel = getMiniChordPickerChord(
-    miniChordPickerBaseRoot,
-    miniChordPickerAccidental,
-    miniChordPickerQuality,
-    miniChordPickerSafeExtension,
-  );
-  const miniChordPickerSelectedChord = getChordFromSelector(
-    miniChordPickerBaseRoot,
-    miniChordPickerAccidental,
-    miniChordPickerQuality,
-    miniChordPickerSafeExtension,
-  );
-  const miniChordPickerExtensionOptions = CHORD_EXTENSION_OPTIONS
-    .filter((extension) => isChordExtensionAvailableForQuality(extension, miniChordPickerQuality))
-    .map((extension) => ({
-      ...extension,
-      disabled: !isChordViewerSelectionSupported(miniChordPickerQuality, extension.id),
-    }));
 
   const miniChordActiveValue = miniChordSlots[miniChordActiveSlot] ?? "";
   const miniChordRepeatStartsFromMarks = useMemo(
@@ -17549,18 +20292,195 @@ function App() {
     const end = miniChordRepeatEndsFromMarks.find((marker) => start != null && marker >= start);
     return start != null && end != null ? { start, end } : null;
   }, [miniChordRepeatEndsFromMarks, miniChordRepeatStartsFromMarks]);
+  const miniChordSelectedRangeLabel = miniChordSelectedRange
+    ? `${miniChordSelectedRange.startBar + 1}-${miniChordSelectedRange.endBar + 1}마디`
+    : miniChordRangeStartBar != null
+      ? `${miniChordRangeStartBar + 1}마디부터`
+      : "범위 없음";
+  const miniChordArrangementInputLocked = miniChordExpertMode
+    && !miniChordArrangementEditorOpen
+    && !miniChordGrooveEditorPart;
+  const miniChordArrangementRangeSelecting = miniChordArrangementInputLocked
+    && !miniChordArrangementConfirmOpen;
 
-  const getMiniChordFloatingPosition = useCallback((rect, size) => {
-    const viewportWidth = typeof window === "undefined" ? 390 : window.innerWidth;
-    const viewportHeight = typeof window === "undefined" ? 844 : window.innerHeight;
-    const width = size?.width ?? 180;
-    const height = size?.height ?? 180;
-    const left = Math.max(8, Math.min(viewportWidth - width - 8, rect.left));
-    const belowTop = rect.bottom + 6;
-    const top = belowTop + height <= viewportHeight - 8
-      ? belowTop
-      : Math.max(8, rect.top - height - 6);
-    return { left, top };
+  const createMiniChordArrangementDraftForRange = useCallback((range, seedPatch = {}) => {
+    if (!range) {
+      return null;
+    }
+    const existingOverride = getMiniChordArrangementOverrideForBar(normalizedMiniChordArrangementOverrides, range.startBar);
+    return normalizeMiniChordArrangementOverride({
+      ...existingOverride,
+      startBar: range.startBar,
+      endBar: range.endBar,
+      rhythmPattern: seedPatch.rhythmPattern ?? existingOverride?.rhythmPattern ?? MINI_CHORD_GLOBAL_PATTERN_ID,
+      bassBeat: seedPatch.bassBeat ?? existingOverride?.bassBeat ?? MINI_CHORD_GLOBAL_PATTERN_ID,
+      pianoBeat: seedPatch.pianoBeat ?? existingOverride?.pianoBeat ?? MINI_CHORD_GLOBAL_PATTERN_ID,
+      tempoOverrideEnabled: seedPatch.tempoOverrideEnabled ?? existingOverride?.tempoOverrideEnabled ?? false,
+      bpmOverride: seedPatch.bpmOverride ?? existingOverride?.bpmOverride ?? miniChordBpm,
+    }, miniChordBarCount);
+  }, [
+    miniChordBarCount,
+    miniChordBpm,
+    normalizedMiniChordArrangementOverrides,
+  ]);
+
+  const openMiniChordArrangementEditor = useCallback((seedPatch = {}, explicitRange = null) => {
+    const range = explicitRange ?? miniChordSelectedRange ?? (
+      miniChordRangeStartBar != null
+        ? { startBar: miniChordRangeStartBar, endBar: miniChordRangeStartBar }
+        : null
+    );
+    const nextDraft = createMiniChordArrangementDraftForRange(range, seedPatch);
+    if (!nextDraft) {
+      setMiniChordNotice("편곡할 시작 마디와 끝 마디를 선택하세요");
+      return;
+    }
+    setMiniChordArrangementDraft(nextDraft);
+    setMiniChordArrangementConfirmOpen(false);
+    setMiniChordArrangementEditorOpen(true);
+    setMiniChordNotice("");
+  }, [
+    createMiniChordArrangementDraftForRange,
+    miniChordRangeStartBar,
+    miniChordSelectedRange,
+  ]);
+
+  const selectMiniChordArrangementRangeBar = useCallback((barIndex) => {
+    const safeBarIndex = Math.max(0, Math.min(miniChordBarCount - 1, Number(barIndex) || 0));
+    setMiniChordActiveBarIndex(null);
+    setMiniChordChordPickerSlot(null);
+    setMiniChordEndingPopoverPosition(null);
+    setMiniChordChordPickerPosition(null);
+    setMiniChordRangeStartBar((startBar) => {
+      if (startBar == null) {
+        setMiniChordArrangementConfirmOpen(false);
+        setMiniChordSelectedRange({ startBar: safeBarIndex, endBar: safeBarIndex });
+        setMiniChordNotice(`${safeBarIndex + 1}마디 시작 · 끝 마디를 선택하세요`);
+        return safeBarIndex;
+      }
+      const nextRange = {
+        startBar: Math.min(startBar, safeBarIndex),
+        endBar: Math.max(startBar, safeBarIndex),
+      };
+      setMiniChordSelectedRange(nextRange);
+      setMiniChordArrangementConfirmOpen(true);
+      setMiniChordNotice(`${nextRange.startBar + 1}-${nextRange.endBar + 1}마디 범위를 확인하세요`);
+      return null;
+    });
+  }, [miniChordBarCount]);
+
+  const captureMiniChordArrangementBarInput = useCallback((event, barIndex) => {
+    if (!miniChordArrangementInputLocked) return;
+    event.stopPropagation();
+    if (event.type === "contextmenu") {
+      event.preventDefault();
+      return;
+    }
+    if (event.type !== "click") return;
+    event.preventDefault();
+    if (!miniChordArrangementRangeSelecting) return;
+    selectMiniChordArrangementRangeBar(barIndex);
+  }, [
+    miniChordArrangementInputLocked,
+    miniChordArrangementRangeSelecting,
+    selectMiniChordArrangementRangeBar,
+  ]);
+
+  const cancelMiniChordArrangementConfirmation = useCallback(() => {
+    setMiniChordArrangementConfirmOpen(false);
+    setMiniChordArrangementEditorOpen(false);
+    setMiniChordArrangementDraft(null);
+    setMiniChordExpertMode(false);
+    setMiniChordRangeStartBar(null);
+    setMiniChordSelectedRange(null);
+    setMiniChordNotice("");
+  }, []);
+
+  const confirmMiniChordArrangementSelection = useCallback(() => {
+    if (!miniChordSelectedRange) return;
+    setMiniChordArrangementConfirmOpen(false);
+    openMiniChordArrangementEditor({}, miniChordSelectedRange);
+  }, [miniChordSelectedRange, openMiniChordArrangementEditor]);
+
+  const applyMiniChordArrangementDraft = useCallback(() => {
+    if (!miniChordArrangementDraft) return;
+    const nextDraft = normalizeMiniChordArrangementOverride(miniChordArrangementDraft, miniChordBarCount);
+    setMiniChordArrangementOverrides((overrides) => {
+      const nextOverrides = upsertMiniChordArrangementOverride(overrides, nextDraft, miniChordBarCount);
+      miniChordArrangementOverridesRef.current = nextOverrides;
+      return nextOverrides;
+    });
+    setMiniChordArrangementEditorOpen(false);
+    setMiniChordArrangementDraft(null);
+    setMiniChordArrangementConfirmOpen(false);
+    setMiniChordExpertMode(false);
+    setMiniChordRangeStartBar(null);
+    setMiniChordSelectedRange(null);
+    setMiniChordNotice(`${nextDraft.startBar + 1}-${nextDraft.endBar + 1}마디 편곡 적용`);
+  }, [miniChordArrangementDraft, miniChordBarCount]);
+
+  const clearMiniChordSelectedRangeArrangement = useCallback(() => {
+    const range = miniChordSelectedRange ?? (
+      miniChordRangeStartBar != null
+        ? { startBar: miniChordRangeStartBar, endBar: miniChordRangeStartBar }
+        : null
+    );
+    if (!range) return;
+    setMiniChordArrangementOverrides((overrides) => {
+      const nextOverrides = removeMiniChordArrangementOverrideRange(overrides, range.startBar, range.endBar, miniChordBarCount);
+      miniChordArrangementOverridesRef.current = nextOverrides;
+      return nextOverrides;
+    });
+    setMiniChordExpertMode(false);
+    setMiniChordArrangementConfirmOpen(false);
+    setMiniChordRangeStartBar(null);
+    setMiniChordSelectedRange(null);
+  }, [miniChordBarCount, miniChordRangeStartBar, miniChordSelectedRange]);
+
+  const getMiniChordFloatingPosition = useCallback((rect, size = {}) => {
+    const viewportWidth = typeof window === "undefined"
+      ? 390
+      : Math.min(
+          window.innerWidth,
+          window.visualViewport?.width ?? window.innerWidth,
+          document.documentElement?.clientWidth || window.innerWidth,
+        );
+    const viewportHeight = typeof window === "undefined"
+      ? 844
+      : Math.min(
+          window.innerHeight,
+          window.visualViewport?.height ?? window.innerHeight,
+          document.documentElement?.clientHeight || window.innerHeight,
+        );
+    const margin = size.margin ?? MINI_CHORD_FLOATING_MARGIN;
+    const gap = size.gap ?? 8;
+    const requestedWidth = size.width ?? 180;
+    const requestedHeight = size.height ?? 180;
+    const width = Math.max(120, Math.min(requestedWidth, viewportWidth - margin * 2));
+    const height = Math.max(120, Math.min(requestedHeight, viewportHeight - margin * 2));
+    const clampValue = (value, min, max) => Math.max(min, Math.min(max, value));
+    const spaceRight = viewportWidth - rect.right - margin;
+    const spaceLeft = rect.left - margin;
+    const placeRight = spaceRight >= width + gap || spaceRight >= spaceLeft;
+    const idealLeft = placeRight ? rect.right + gap : rect.left - width - gap;
+    const left = clampValue(idealLeft, margin, Math.max(margin, viewportWidth - width - margin));
+    const spaceBelow = viewportHeight - rect.bottom - margin;
+    const spaceAbove = rect.top - margin;
+    const verticalPlacement = size.verticalPlacement ?? "edge";
+    const placeBelow = spaceBelow >= height + gap || spaceBelow >= spaceAbove;
+    const idealTop = verticalPlacement === "anchorTop"
+      ? rect.top + (size.offsetY ?? 0)
+      : placeBelow
+        ? rect.bottom + gap
+        : rect.top - height - gap;
+    const top = clampValue(idealTop, margin, Math.max(margin, viewportHeight - height - margin));
+    return {
+      left: Math.round(left),
+      maxHeight: Math.round(height),
+      position: "fixed",
+      top: Math.round(top),
+      width: Math.round(width),
+    };
   }, []);
 
   const updateMiniChordBarCount = useCallback((nextBarCount) => {
@@ -17571,8 +20491,18 @@ function App() {
     setMiniChordRepeatStarts((markers) => normalizeMiniChordMarkers(markers, safeBarCount));
     setMiniChordRepeatEnds((markers) => normalizeMiniChordMarkers(markers, safeBarCount));
     setMiniChordBarMarks((marks) => normalizeMiniChordBarMarks(marks, safeBarCount));
+    setMiniChordEndingRanges((ranges) => normalizeMiniChordEndingRanges(ranges, safeBarCount));
+    setMiniChordArrangementOverrides((overrides) => normalizeMiniChordArrangementOverrides(overrides, safeBarCount));
+    setMiniChordSelectedRange((range) => {
+      if (!range) return null;
+      const startBar = Math.min(range.startBar, safeBarCount - 1);
+      const endBar = Math.min(range.endBar, safeBarCount - 1);
+      return startBar <= endBar ? { startBar, endBar } : null;
+    });
+    setMiniChordRangeStartBar((barIndex) => (barIndex == null ? null : Math.min(barIndex, safeBarCount - 1)));
     setMiniChordActiveSlot((slot) => Math.min(slot, safeBarCount * MINI_CHORD_SLOTS_PER_BAR - 1));
     setMiniChordActiveBarIndex((barIndex) => (barIndex == null ? null : Math.min(barIndex, safeBarCount - 1)));
+    setMiniChordArrangementConfirmOpen(false);
     setMiniChordChordPickerSlot(null);
     setMiniChordEndingPopoverPosition(null);
     setMiniChordChordPickerPosition(null);
@@ -17581,17 +20511,16 @@ function App() {
   }, []);
 
   const updateMiniChordCapoStep = useCallback((delta) => {
-    const currentCapo = Math.max(0, Math.min(12, Math.round(Number(miniChordCapo) || 0)));
-    const nextCapo = Math.max(0, Math.min(12, currentCapo + Math.trunc(Number(delta) || 0)));
-    const transposeStep = nextCapo - currentCapo;
-    if (!transposeStep) return;
+    const step = Math.trunc(Number(delta) || 0);
+    if (!step) return;
     setMiniChordNotice("");
-    setMiniChordCapo(nextCapo);
-    setMiniChordSlots((slots) => normalizeMiniChordSlots(
-      slots.map((slot) => transposeMiniChordLabel(slot, transposeStep)),
-      miniChordBarCount,
-    ));
-  }, [miniChordBarCount, miniChordCapo]);
+    setMiniChordCapo((currentCapo) => clampMiniChordCapo(currentCapo + step));
+  }, []);
+
+  const updateMiniChordAccidentalPreference = useCallback((preference) => {
+    setMiniChordNotice("");
+    setMiniChordAccidentalPreference(normalizeMiniChordAccidentalPreference(preference));
+  }, []);
 
   const updateMiniChordSlot = useCallback((slotIndex, value) => {
     const safeIndex = Math.max(0, Math.min(miniChordBarCount * MINI_CHORD_SLOTS_PER_BAR - 1, Number(slotIndex) || 0));
@@ -17604,24 +20533,78 @@ function App() {
     });
   }, [miniChordBarCount]);
 
+  const commitMiniChordChordPicker = useCallback((slotIndex, value, draft = null) => {
+    if (draft) miniChordPickerDraftRef.current = draft;
+    updateMiniChordSlot(slotIndex, value);
+    setMiniChordChordPickerSlot(null);
+    setMiniChordChordPickerPosition(null);
+  }, [updateMiniChordSlot]);
+
   const clearMiniChordSlot = useCallback(() => {
     updateMiniChordSlot(miniChordActiveSlot, "");
   }, [miniChordActiveSlot, updateMiniChordSlot]);
 
   const updateMiniChordBarMark = useCallback((barIndex, patch) => {
     const safeIndex = Math.max(0, Math.min(miniChordBarCount - 1, Number(barIndex) || 0));
+    const currentMark = miniChordBarMarks[safeIndex] ?? {};
+    let validation = { valid: true, message: "" };
+    if (Object.prototype.hasOwnProperty.call(patch, "repeatStart")) {
+      validation = validateMiniChordRepeatEdit({
+        barCount: miniChordBarCount,
+        barIndex: safeIndex,
+        enabled: Boolean(patch.repeatStart),
+        endingRanges: normalizedMiniChordEndingRanges,
+        marks: miniChordBarMarks,
+        type: "start",
+      });
+    } else if (Object.prototype.hasOwnProperty.call(patch, "repeatEnd")) {
+      validation = validateMiniChordRepeatEdit({
+        barCount: miniChordBarCount,
+        barIndex: safeIndex,
+        enabled: Boolean(patch.repeatEnd),
+        endingRanges: normalizedMiniChordEndingRanges,
+        marks: miniChordBarMarks,
+        type: "end",
+      });
+    } else if (Object.prototype.hasOwnProperty.call(patch, "marker")) {
+      const nextMarker = normalizeMiniChordLocationMarker(patch.marker);
+      if (currentMark.marker && currentMark.marker !== nextMarker) {
+        validation = validateMiniChordMarkerEdit({
+          barCount: miniChordBarCount,
+          barIndex: safeIndex,
+          marker: "",
+          marks: miniChordBarMarks,
+        });
+      }
+      if (validation.valid) {
+        validation = validateMiniChordMarkerEdit({
+          barCount: miniChordBarCount,
+          barIndex: safeIndex,
+          marker: nextMarker,
+          markerIndex: patch.markerIndex,
+          marks: miniChordBarMarks,
+        });
+      }
+    } else if (Object.prototype.hasOwnProperty.call(patch, "command")) {
+      validation = validateMiniChordCommandEdit({
+        barCount: miniChordBarCount,
+        barIndex: safeIndex,
+        command: normalizeMiniChordCommand(patch.command),
+        marks: miniChordBarMarks,
+        targetIndex: patch.targetIndex,
+      });
+    }
+    if (!validation.valid) {
+      setMiniChordNotice(validation.message);
+      return false;
+    }
     setMiniChordBarMarks((marks) => {
-      const currentMark = marks[safeIndex] ?? {};
-      const nextMark = { ...currentMark, ...patch };
+      const latestMark = marks[safeIndex] ?? {};
+      const nextMark = { ...latestMark, ...patch };
       if (nextMark.repeatStart === false) delete nextMark.repeatStart;
       if (nextMark.repeatEnd === false) delete nextMark.repeatEnd;
-      const endings = normalizeMiniChordEndings(nextMark.endings ?? nextMark.ending);
       delete nextMark.ending;
-      if (endings.length) {
-        nextMark.endings = endings;
-      } else {
-        delete nextMark.endings;
-      }
+      delete nextMark.endings;
 
       if (Object.prototype.hasOwnProperty.call(patch, "marker")) {
         const marker = normalizeMiniChordLocationMarker(patch.marker);
@@ -17689,32 +20672,72 @@ function App() {
       } else {
         delete next[safeIndex];
       }
-      if (nextMark.marker === "toCoda") {
-        Object.entries(next).forEach(([key, value]) => {
-          const barIndexNumber = Number(key);
-          if (barIndexNumber === safeIndex || value?.marker !== "toCoda") return;
-          const clearedMark = removeMiniChordToCodaMarker(value);
-          if (Object.keys(clearedMark).length > 0) {
-            next[barIndexNumber] = clearedMark;
-          } else {
-            delete next[barIndexNumber];
-          }
-        });
+      return normalizeMiniChordBarMarks(next, miniChordBarCount);
+    });
+    setMiniChordNotice("");
+    return true;
+  }, [miniChordBarCount, miniChordBarMarks, normalizedMiniChordEndingRanges]);
+
+  const toggleMiniChordEndingAtBar = useCallback((barIndex, endingNumber) => {
+    const validation = validateMiniChordEndingEdit({
+      barCount: miniChordBarCount,
+      barIndex,
+      endingNumber,
+      endingRanges: normalizedMiniChordEndingRanges,
+      marks: miniChordBarMarks,
+    });
+    if (!validation.valid) {
+      setMiniChordNotice(validation.message);
+      return false;
+    }
+    setMiniChordEndingRanges((ranges) => toggleMiniChordEndingRange(
+      ranges,
+      barIndex,
+      endingNumber,
+      miniChordBarCount,
+    ));
+    setMiniChordNotice("");
+    return true;
+  }, [miniChordBarCount, miniChordBarMarks, normalizedMiniChordEndingRanges]);
+
+  const clearMiniChordBarNavigationMark = useCallback((barIndex) => {
+    const safeIndex = Math.max(0, Math.min(miniChordBarCount - 1, Number(barIndex) || 0));
+    const currentMark = miniChordBarMarks[safeIndex] ?? {};
+    if (currentMark.marker) {
+      const validation = validateMiniChordMarkerEdit({
+        barCount: miniChordBarCount,
+        barIndex: safeIndex,
+        marker: "",
+        marks: miniChordBarMarks,
+      });
+      if (!validation.valid) {
+        setMiniChordNotice(validation.message);
+        return false;
+      }
+    }
+    setMiniChordBarMarks((marks) => {
+      const next = { ...marks };
+      const currentMark = next[safeIndex] ?? {};
+      const nextMark = { ...currentMark };
+      delete nextMark.marker;
+      delete nextMark.markerIndex;
+      delete nextMark.command;
+      delete nextMark.targetIndex;
+      delete nextMark.segno;
+      delete nextMark.toCoda;
+      delete nextMark.coda;
+      delete nextMark.fine;
+      delete nextMark.jump;
+      if (Object.keys(nextMark).length > 0) {
+        next[safeIndex] = nextMark;
+      } else {
+        delete next[safeIndex];
       }
       return normalizeMiniChordBarMarks(next, miniChordBarCount);
     });
     setMiniChordNotice("");
-  }, [miniChordBarCount]);
-
-  const clearMiniChordBarMark = useCallback((barIndex) => {
-    const safeIndex = Math.max(0, Math.min(miniChordBarCount - 1, Number(barIndex) || 0));
-    setMiniChordBarMarks((marks) => {
-      const next = { ...marks };
-      delete next[safeIndex];
-      return next;
-    });
-    setMiniChordNotice("");
-  }, [miniChordBarCount]);
+    return true;
+  }, [miniChordBarCount, miniChordBarMarks]);
 
   const getCurrentMiniChordArrangement = useCallback(() => normalizeMiniChordArrangement({
     id: `mini-${Date.now()}`,
@@ -17724,36 +20747,62 @@ function App() {
     repeatStarts: miniChordRepeatStartsFromMarks,
     repeatEnds: miniChordRepeatEndsFromMarks,
     barMarks: miniChordBarMarks,
+    endingRanges: normalizedMiniChordEndingRanges,
     bpm: miniChordBpm,
     capo: miniChordCapo,
+    accidentalPreference: miniChordAccidentalPreference,
     loop: miniChordLoop,
     pianoStyle: miniChordPianoStyle,
+    arrangementOverrides: miniChordArrangementOverrides,
   }), [
+    miniChordArrangementOverrides,
     miniChordBarMarks,
     miniChordBarCount,
     miniChordBpm,
     miniChordCapo,
+    miniChordAccidentalPreference,
     miniChordLoop,
     miniChordPianoStyle,
     miniChordRepeatEndsFromMarks,
     miniChordRepeatStartsFromMarks,
     miniChordSlots,
     miniChordTitle,
+    normalizedMiniChordEndingRanges,
   ]);
 
   const loadMiniChordArrangement = useCallback((item) => {
     const next = normalizeMiniChordArrangement(item);
+    miniChordEditHistoryRef.current = null;
+    miniChordHistoryApplyingRef.current = false;
+    setMiniChordHistoryEpoch((epoch) => epoch + 1);
+    setMiniChordHistoryRenderVersion((version) => version + 1);
     setMiniChordTitle(next.title);
     setMiniChordBarCount(next.barCount);
     setMiniChordSlots(next.slots);
     setMiniChordRepeatStarts(next.repeatStarts);
     setMiniChordRepeatEnds(next.repeatEnds);
     setMiniChordBarMarks(next.barMarks);
+    setMiniChordEndingRanges(next.endingRanges);
     setMiniChordBpm(next.bpm);
     setMiniChordCapo(next.capo);
+    setMiniChordAccidentalPreference(next.accidentalPreference);
     setMiniChordLoop(next.loop);
     miniChordPianoStyleRef.current = next.pianoStyle;
     setMiniChordPianoStyle(next.pianoStyle);
+    miniChordArrangementOverridesRef.current = next.arrangementOverrides;
+    setMiniChordArrangementOverrides(next.arrangementOverrides);
+    setMiniChordResetOpen(false);
+    setMiniChordResetAllConfirmOpen(false);
+    setMiniChordExpertMode(false);
+    setMiniChordArrangementConfirmOpen(false);
+    setMiniChordRangeStartBar(null);
+    setMiniChordSelectedRange(null);
+    setMiniChordArrangementEditorOpen(false);
+    setMiniChordArrangementDraft(null);
+    setMiniChordGrooveEditorPart(null);
+    setMiniChordGrooveEditorScope("global");
+    setMiniChordGrooveDraftPattern(null);
+    setMiniChordGroovePreviewing(false);
     setMiniChordActiveSlot(0);
     setMiniChordActiveBarIndex(null);
     setMiniChordChordPickerSlot(null);
@@ -17776,15 +20825,76 @@ function App() {
     setMiniChordLoadEditMode(false);
     setMiniChordDeleteConfirmOpen(false);
     setMiniChordSaveConfirmOpen(false);
+    setMiniChordResetOpen(false);
+    setMiniChordResetAllConfirmOpen(false);
   }, [getCurrentMiniChordArrangement]);
 
-  const resetMiniChordDraft = useCallback(() => {
-    loadMiniChordArrangement(createDefaultMiniChordArrangement());
-  }, [loadMiniChordArrangement]);
+  const miniChordCanUndo = Boolean(miniChordHistoryRenderVersion && miniChordEditHistoryRef.current?.past?.length);
+  const miniChordCanRedo = Boolean(miniChordHistoryRenderVersion && miniChordEditHistoryRef.current?.future?.length);
 
-  const getMiniChordBackingPlaybackData = useCallback(() => {
-    const slotSequence = createMiniChordPlaybackSequence(miniChordBarCount, miniChordBarMarks);
-    const barSequence = getMiniChordBarPlaybackSequence(miniChordBarCount, miniChordBarMarks);
+  const applyMiniChordHistoryDirection = useCallback((direction) => {
+    const result = direction === "redo"
+      ? redoMiniChordEdit(miniChordEditHistoryRef.current)
+      : undoMiniChordEdit(miniChordEditHistoryRef.current);
+    if (!result.snapshot) return;
+    miniChordEditHistoryRef.current = result.history;
+    miniChordHistoryApplyingRef.current = true;
+    applyMiniChordEditSnapshot(result.snapshot);
+    setMiniChordHistoryRenderVersion((version) => version + 1);
+    setMiniChordResetOpen(false);
+    setMiniChordResetAllConfirmOpen(false);
+    setMiniChordNotice(direction === "redo" ? "다시 실행했습니다" : "이전 편집 상태로 되돌렸습니다");
+  }, [applyMiniChordEditSnapshot]);
+
+  const resetMiniChordCodes = useCallback(() => {
+    setMiniChordSlots(Array.from(
+      { length: miniChordBarCount * MINI_CHORD_SLOTS_PER_BAR },
+      () => "",
+    ));
+    setMiniChordChordPickerSlot(null);
+    setMiniChordChordPickerPosition(null);
+    setMiniChordResetOpen(false);
+    setMiniChordNotice("전체 마디의 코드만 초기화했습니다");
+  }, [miniChordBarCount]);
+
+  const resetMiniChordStructure = useCallback(() => {
+    setMiniChordBarMarks({});
+    setMiniChordRepeatStarts([]);
+    setMiniChordRepeatEnds([]);
+    setMiniChordEndingRanges([]);
+    setMiniChordActiveBarIndex(null);
+    setMiniChordEndingPopoverPosition(null);
+    setMiniChordResetOpen(false);
+    setMiniChordNotice("도돌이와 엔딩, 이동 기호만 초기화했습니다");
+  }, []);
+
+  const resetAllMiniChordEdits = useCallback(() => {
+    setMiniChordSlots(Array.from(
+      { length: miniChordBarCount * MINI_CHORD_SLOTS_PER_BAR },
+      () => "",
+    ));
+    setMiniChordBarMarks({});
+    setMiniChordRepeatStarts([]);
+    setMiniChordRepeatEnds([]);
+    setMiniChordEndingRanges([]);
+    setMiniChordActiveBarIndex(null);
+    setMiniChordChordPickerSlot(null);
+    setMiniChordEndingPopoverPosition(null);
+    setMiniChordChordPickerPosition(null);
+    setMiniChordResetOpen(false);
+    setMiniChordResetAllConfirmOpen(false);
+    setMiniChordNotice("코드와 구조/기호를 모두 초기화했습니다");
+  }, [miniChordBarCount]);
+
+  const getMiniChordBackingPlaybackData = useCallback((globalArrangementOverride = {}) => {
+    const slotSequence = createMiniChordPlaybackSequence(miniChordBarCount, miniChordPlaybackBarMarks);
+    const barSequence = getMiniChordBarPlaybackSequence(miniChordBarCount, miniChordPlaybackBarMarks);
+    const globalArrangement = {
+      rhythmPattern: globalArrangementOverride.rhythmPattern ?? backingRhythmPatternRef.current,
+      bassBeat: globalArrangementOverride.bassBeat ?? backingBassBeatRef.current,
+      pianoBeat: globalArrangementOverride.pianoBeat ?? backingPianoBeatRef.current,
+      pianoStyle: globalArrangementOverride.pianoStyle ?? miniChordPianoStyleRef.current,
+    };
     return {
       slotSequence,
       barSequence,
@@ -17792,9 +20902,20 @@ function App() {
         slots: miniChordSlots,
         barCount: miniChordBarCount,
         slotSequence,
+        capo: miniChordCapo,
+        accidentalPreference: miniChordAccidentalPreference,
+        userDefaultPatterns: miniChordUserDefaultPatternsRef.current,
+        arrangementOverrides: miniChordArrangementOverridesRef.current,
+        globalArrangement,
       }),
     };
-  }, [miniChordBarCount, miniChordBarMarks, miniChordSlots]);
+  }, [
+    miniChordAccidentalPreference,
+    miniChordBarCount,
+    miniChordCapo,
+    miniChordPlaybackBarMarks,
+    miniChordSlots,
+  ]);
 
   const stopMiniChordPreview = useCallback(() => {
     miniChordStartTokenRef.current += 1;
@@ -17806,6 +20927,11 @@ function App() {
       window.cancelAnimationFrame(miniChordPlaybackFrameRef.current);
       miniChordPlaybackFrameRef.current = null;
     }
+    if (miniChordGroovePreviewTimerRef.current) {
+      window.clearTimeout(miniChordGroovePreviewTimerRef.current);
+      miniChordGroovePreviewTimerRef.current = null;
+    }
+    miniChordGroovePreviewTokenRef.current += 1;
     if (backingSchedulerModeRef.current === BACKING_SCHEDULER_MODES.MINI_CHORD) {
       stopBackingScheduler();
     }
@@ -17815,6 +20941,8 @@ function App() {
     miniChordPlayheadRef.current = null;
     miniChordIsPlayingRef.current = false;
     setMiniChordIsPlaying(false);
+    setMiniChordGroovePreviewing(false);
+    setMiniChordArrangementPreviewMode("");
     setMiniChordPlayhead(null);
     setMiniChordPlayingBarIndex(null);
   }, [stopBackingScheduler]);
@@ -17867,14 +20995,9 @@ function App() {
   }, [stopMiniChordPreview]);
 
   const startMiniChordPreview = useCallback(async () => {
-    const codaWarning = getMiniChordCodaValidationMessage(miniChordBarMarks, miniChordBarCount);
-    if (codaWarning) {
-      stopMiniChordPreview();
-      setMiniChordNotice(codaWarning);
-      return;
-    }
-    setMiniChordNotice("");
     stopMiniChordPreview();
+    const codaWarning = getMiniChordCodaValidationMessage(miniChordBarMarks, miniChordBarCount);
+    setMiniChordNotice(codaWarning || "");
     const startToken = miniChordStartTokenRef.current + 1;
     miniChordStartTokenRef.current = startToken;
 
@@ -17958,10 +21081,13 @@ function App() {
         repeatStarts: miniChordRepeatStartsFromMarks,
         repeatEnds: miniChordRepeatEndsFromMarks,
         barMarks: miniChordBarMarks,
+        endingRanges: normalizedMiniChordEndingRanges,
         bpm: miniChordBpm,
         capo: miniChordCapo,
+        accidentalPreference: miniChordAccidentalPreference,
         loop: miniChordLoop,
         pianoStyle: miniChordPianoStyle,
+        arrangementOverrides: miniChordArrangementOverrides,
       })));
     } catch (error) {
       console.warn("MINI CHORD DRAFT SAVE FAILED:", error);
@@ -17971,12 +21097,15 @@ function App() {
     miniChordBarMarks,
     miniChordBpm,
     miniChordCapo,
+    miniChordAccidentalPreference,
+    miniChordArrangementOverrides,
     miniChordLoop,
     miniChordPianoStyle,
     miniChordRepeatEndsFromMarks,
     miniChordRepeatStartsFromMarks,
     miniChordSlots,
     miniChordTitle,
+    normalizedMiniChordEndingRanges,
   ]);
 
   useEffect(() => () => {
@@ -18005,6 +21134,8 @@ function App() {
     setMiniChordLoadEditMode(false);
     setMiniChordDeleteConfirmOpen(false);
     setMiniChordSaveConfirmOpen(false);
+    setMiniChordResetOpen(false);
+    setMiniChordResetAllConfirmOpen(false);
   }, [appMode]);
 
   useEffect(() => {
@@ -18012,11 +21143,28 @@ function App() {
     setMiniChordPageIndex(Math.floor(miniChordPlayhead / (MINI_CHORD_BARS_PER_PAGE * MINI_CHORD_SLOTS_PER_BAR)));
   }, [miniChordPlayhead]);
 
-  const closeMiniChordFloatingEditors = useCallback(() => {
+  const closeMiniChordFloatingEditors = useCallback((options = {}) => {
+    const focusTarget = miniChordFloatingFocusReturnRef.current;
     setMiniChordChordPickerSlot(null);
     setMiniChordChordPickerPosition(null);
     setMiniChordActiveBarIndex(null);
     setMiniChordEndingPopoverPosition(null);
+    if (!options.keepFocusTarget) miniChordFloatingFocusReturnRef.current = null;
+    if (
+      options.restoreFocus
+      && focusTarget
+      && focusTarget.isConnected
+      && typeof focusTarget.focus === "function"
+      && typeof window !== "undefined"
+    ) {
+      window.requestAnimationFrame(() => {
+        try {
+          focusTarget.focus({ preventScroll: true });
+        } catch {
+          focusTarget.focus();
+        }
+      });
+    }
   }, []);
 
   const requestSaveMiniChordArrangement = useCallback(() => {
@@ -18098,11 +21246,14 @@ function App() {
       if (target.closest(".miniChordChordPopover, .barEndingPopover, .miniChordSlot, .miniChordMarkHotspot")) {
         return;
       }
-      closeMiniChordFloatingEditors();
+      closeMiniChordFloatingEditors({ restoreFocus: true });
     };
 
     const handleKeyDown = (event) => {
-      if (event.key === "Escape") closeMiniChordFloatingEditors();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeMiniChordFloatingEditors({ restoreFocus: true });
+      }
     };
 
     document.addEventListener("pointerdown", handlePointerDown, true);
@@ -18116,7 +21267,7 @@ function App() {
   const contentHeader = appMode === APP_MODES.FRETBOARD_VIEWER
       ? { title: "지판보기", subtitle: "음표와 코드 위치를 빠르게 확인" }
     : appMode === APP_MODES.MINI_CHORD_MAKER
-      ? { title: "미니코드 반주", subtitle: "4~16마디 코드 타임라인" }
+      ? { title: "미니코드 반주", subtitle: "4~32마디 코드 타임라인" }
     : appMode === APP_MODES.METRONOME
       ? { title: "메트로놈", subtitle: "템포와 박자를 빠르게 맞추는 독립 리듬 기준" }
     : appMode === APP_MODES.SHOOTER
@@ -18220,7 +21371,16 @@ function App() {
   };
 
   const requestMiniChordBackingPatternChange = (overrides = {}, options = {}) => {
-    const playbackData = getMiniChordBackingPlaybackData();
+    const nextBacking = normalizeMiniChordBackingSettings({
+      rhythmPattern: overrides.rhythmPattern ?? backingRhythmPatternRef.current,
+      bassBeat: overrides.bassBeat ?? backingBassBeatRef.current,
+      pianoBeat: overrides.pianoBeat ?? backingPianoBeatRef.current,
+    });
+    const nextPianoStyle = options.pianoStyle ?? miniChordPianoStyleRef.current;
+    const playbackData = getMiniChordBackingPlaybackData({
+      ...nextBacking,
+      pianoStyle: nextPianoStyle,
+    });
     if (miniChordIsPlayingRef.current) {
       miniChordPlaybackBarsRef.current = playbackData.barSequence;
       miniChordPlaybackSlotsRef.current = playbackData.slotSequence;
@@ -18229,8 +21389,9 @@ function App() {
       progression: playbackData.progression,
       bpmValue: miniChordBpm,
       timeSignatureValue: "2/4",
+      allowMiniChordCustom: true,
       smoothChordTransitions: true,
-      pianoStyle: options.pianoStyle ?? miniChordPianoStyleRef.current,
+      pianoStyle: nextPianoStyle,
       forceSessionUpdate: options.forceSessionUpdate,
     });
   };
@@ -18245,26 +21406,284 @@ function App() {
     });
   };
 
+  const stopMiniChordConfigurationPreview = () => {
+    if (miniChordGroovePreviewTimerRef.current) {
+      window.clearTimeout(miniChordGroovePreviewTimerRef.current);
+      miniChordGroovePreviewTimerRef.current = null;
+    }
+    miniChordGroovePreviewTokenRef.current += 1;
+    const hadConfigurationPreview = backingSchedulerModeRef.current === BACKING_SCHEDULER_MODES.MINI_CHORD
+      && !miniChordIsPlayingRef.current;
+    if (hadConfigurationPreview) {
+      stopBackingScheduler();
+      backingPreparedSessionRef.current = null;
+      backingPreparedSessionKeyRef.current = "";
+    }
+    setMiniChordGroovePreviewing(false);
+    setMiniChordArrangementPreviewMode("");
+  };
+
+  const openMiniChordGrooveEditor = (part, presetId = "") => {
+    const safePart = part === "bass" || part === "piano" ? part : "drum";
+    const safePresetId = MINI_CHORD_RHYTHM_SETTINGS_PRESET_IDS.includes(presetId) ? presetId : "";
+    if (!safePresetId) return;
+    stopMiniChordConfigurationPreview();
+    setMiniChordGrooveEditorPart(safePart);
+    setMiniChordGrooveEditorScope("user-default");
+    setMiniChordGrooveEditorPresetId(safePresetId);
+    setMiniChordGrooveDraftPattern(
+      getMiniChordUserDefaultPatternForPart(safePart, safePresetId, miniChordUserDefaultPatternsRef.current),
+    );
+  };
+
+  const closeMiniChordGrooveEditor = () => {
+    stopMiniChordConfigurationPreview();
+    setMiniChordGrooveEditorPart(null);
+    setMiniChordGrooveEditorScope("global");
+    setMiniChordGrooveEditorPresetId("");
+    setMiniChordGrooveDraftPattern(null);
+  };
+
+  const applyMiniChordGrooveDraft = (draftPattern = miniChordGrooveDraftPattern) => {
+    if (!miniChordGrooveEditorPart || !miniChordGrooveEditorPresetId || !draftPattern) return;
+    const part = miniChordGrooveEditorPart;
+    const presetId = miniChordGrooveEditorPresetId;
+    const nextUserPattern = normalizeMiniChordPatternForPart(part, {
+      ...draftPattern,
+      presetId,
+    });
+    setMiniChordUserDefaultPatterns((patterns) => {
+      const nextPatterns = normalizeMiniChordUserDefaultPatterns({
+        ...patterns,
+        [part]: {
+          ...(patterns?.[part] ?? {}),
+          [presetId]: nextUserPattern,
+        },
+      });
+      miniChordUserDefaultPatternsRef.current = nextPatterns;
+      return nextPatterns;
+    });
+    closeMiniChordGrooveEditor();
+    setMiniChordNotice(`${MINI_CHORD_RHYTHM_SETTINGS_PARTS.find((item) => item.id === part)?.label ?? part} ${MINI_CHORD_COMPACT_PATTERN_LABELS[presetId]} Pattern을 저장했습니다`);
+  };
+
+  const previewMiniChordGrooveDraft = async (draftPattern = miniChordGrooveDraftPattern) => {
+    if (!miniChordGrooveEditorPart || !draftPattern) return;
+    if (miniChordGroovePreviewing && backingSchedulerModeRef.current === BACKING_SCHEDULER_MODES.MINI_CHORD && !miniChordIsPlayingRef.current) {
+      stopMiniChordConfigurationPreview();
+      return;
+    }
+    if (miniChordIsPlayingRef.current) {
+      setMiniChordNotice("메인 반주를 정지한 뒤 Preview를 사용해주세요");
+      return;
+    }
+    stopMiniChordConfigurationPreview();
+    const previewToken = miniChordGroovePreviewTokenRef.current + 1;
+    miniChordGroovePreviewTokenRef.current = previewToken;
+    const previewPresetId = miniChordGrooveEditorPresetId;
+    if (!previewPresetId) return;
+    const arrangementKey = MINI_CHORD_PART_TO_ARRANGEMENT_KEY[miniChordGrooveEditorPart] ?? "rhythmPattern";
+    const previewPatterns = normalizeMiniChordUserDefaultPatterns({
+      ...miniChordUserDefaultPatternsRef.current,
+      [miniChordGrooveEditorPart]: {
+        ...(miniChordUserDefaultPatternsRef.current?.[miniChordGrooveEditorPart] ?? {}),
+        [previewPresetId]: {
+          ...draftPattern,
+          presetId: previewPresetId,
+        },
+      },
+    });
+    const override = {
+      startBar: 0,
+      endBar: 0,
+      rhythmPattern: MINI_CHORD_GLOBAL_PATTERN_ID,
+      bassBeat: MINI_CHORD_GLOBAL_PATTERN_ID,
+      pianoBeat: MINI_CHORD_GLOBAL_PATTERN_ID,
+      [arrangementKey]: previewPresetId,
+    };
+    try {
+      if (miniChordGroovePreviewTimerRef.current) {
+        window.clearTimeout(miniChordGroovePreviewTimerRef.current);
+        miniChordGroovePreviewTimerRef.current = null;
+      }
+      const audioReady = await ensureAudioReady();
+      if (miniChordGroovePreviewTokenRef.current !== previewToken || !miniChordGrooveEditorPart) return;
+      if (!audioReady || !audioRef.current) return;
+      await loadBackingBandSamples(audioRef.current);
+      if (miniChordGroovePreviewTokenRef.current !== previewToken || !miniChordGrooveEditorPart) return;
+      ensureBackingOutput(audioRef.current);
+      const session = await prepareStage3BackingSession({
+        progression: buildMiniChordBackingProgression({
+          slots: ["C", ""],
+          barCount: 4,
+          slotSequence: [0, 1],
+          capo: miniChordCapo,
+          accidentalPreference: miniChordAccidentalPreference,
+          userDefaultPatterns: previewPatterns,
+          arrangementOverrides: [override],
+          globalArrangement: {
+            rhythmPattern: backingRhythmPatternRef.current,
+            bassBeat: backingBassBeatRef.current,
+            pianoBeat: backingPianoBeatRef.current,
+            pianoStyle: miniChordPianoStyleRef.current,
+          },
+        }),
+        bpmValue: miniChordBpm,
+        timeSignatureValue: "2/4",
+        rhythmPattern: backingRhythmPatternRef.current,
+        bassBeat: backingBassBeatRef.current,
+        pianoBeat: backingPianoBeatRef.current,
+        smoothChordTransitions: true,
+        pianoStyle: miniChordPianoStyleRef.current,
+        preloadAudio: false,
+      });
+      if (miniChordGroovePreviewTokenRef.current !== previewToken || !miniChordGrooveEditorPart) return;
+      if (!session?.events?.length) return;
+      startBackingScheduler(0, BACKING_SCHEDULER_MODES.MINI_CHORD);
+      setMiniChordGroovePreviewing(true);
+    } catch (error) {
+      setMiniChordGroovePreviewing(false);
+      console.warn("Mini chord groove preview failed.", error);
+    }
+  };
+
+  const previewMiniChordArrangementDraft = async (requestedMode = "all") => {
+    if (!miniChordArrangementDraft) return;
+    const mode = requestedMode === "drum" || requestedMode === "bass" || requestedMode === "piano"
+      ? requestedMode
+      : "all";
+    if (miniChordArrangementPreviewMode === mode && !miniChordIsPlayingRef.current) {
+      stopMiniChordConfigurationPreview();
+      return;
+    }
+    if (miniChordIsPlayingRef.current) {
+      setMiniChordNotice("메인 반주를 정지한 뒤 Preview를 사용해주세요");
+      return;
+    }
+    stopMiniChordConfigurationPreview();
+    const previewToken = miniChordGroovePreviewTokenRef.current + 1;
+    miniChordGroovePreviewTokenRef.current = previewToken;
+    const previewOverride = normalizeMiniChordArrangementOverride({
+      ...miniChordArrangementDraft,
+      startBar: 0,
+      endBar: 1,
+    }, 4);
+    try {
+      const audioReady = await ensureAudioReady();
+      if (miniChordGroovePreviewTokenRef.current !== previewToken || !miniChordArrangementEditorOpen) return;
+      if (!audioReady || !audioRef.current) return;
+      await loadBackingBandSamples(audioRef.current);
+      if (miniChordGroovePreviewTokenRef.current !== previewToken || !miniChordArrangementEditorOpen) return;
+      ensureBackingOutput(audioRef.current);
+      const session = await prepareStage3BackingSession({
+        progression: buildMiniChordBackingProgression({
+          slots: ["C", "", "F", ""],
+          barCount: 4,
+          slotSequence: [0, 1, 2, 3],
+          capo: miniChordCapo,
+          accidentalPreference: miniChordAccidentalPreference,
+          userDefaultPatterns: miniChordUserDefaultPatternsRef.current,
+          arrangementOverrides: [previewOverride],
+          globalArrangement: {
+            rhythmPattern: backingRhythmPatternRef.current,
+            bassBeat: backingBassBeatRef.current,
+            pianoBeat: backingPianoBeatRef.current,
+            pianoStyle: miniChordPianoStyleRef.current,
+          },
+        }),
+        bpmValue: miniChordArrangementDraft.tempoOverrideEnabled
+          ? clampBpm(miniChordArrangementDraft.bpmOverride)
+          : miniChordBpm,
+        timeSignatureValue: "2/4",
+        rhythmPattern: backingRhythmPatternRef.current,
+        bassBeat: backingBassBeatRef.current,
+        pianoBeat: backingPianoBeatRef.current,
+        smoothChordTransitions: true,
+        pianoStyle: miniChordPianoStyleRef.current,
+        preloadAudio: false,
+      });
+      if (miniChordGroovePreviewTokenRef.current !== previewToken || !miniChordArrangementEditorOpen) return;
+      const previewSession = mode === "all"
+        ? session
+        : session
+          ? {
+              ...session,
+              events: session.events
+                .filter((event) => event.instrument === mode)
+                .map((event) => ({ ...event, previewForceEnabled: true })),
+            }
+          : null;
+      if (!previewSession?.events?.length) return;
+      if (previewSession !== session) {
+        backingPreparedSessionRef.current = previewSession;
+        backingPreparedSessionKeyRef.current = `mini-chord-arrangement-preview-${previewToken}-${mode}`;
+      }
+      startBackingScheduler(0, BACKING_SCHEDULER_MODES.MINI_CHORD);
+      setMiniChordArrangementPreviewMode(mode);
+    } catch (error) {
+      setMiniChordArrangementPreviewMode("");
+      console.warn("Mini chord arrangement preview failed.", error);
+    }
+  };
+
+  const resetMiniChordUserDefaultPatternsForPart = (part) => {
+    if (!MINI_CHORD_RHYTHM_SETTINGS_PARTS.some((item) => item.id === part)) return;
+    const defaults = createDefaultMiniChordUserDefaultPatterns();
+    stopMiniChordConfigurationPreview();
+    setMiniChordUserDefaultPatterns((patterns) => {
+      const nextPatterns = normalizeMiniChordUserDefaultPatterns({
+        ...patterns,
+        [part]: defaults[part],
+      });
+      miniChordUserDefaultPatternsRef.current = nextPatterns;
+      return nextPatterns;
+    });
+    setMiniChordNotice(`${MINI_CHORD_RHYTHM_SETTINGS_PARTS.find((item) => item.id === part)?.label ?? part} 기본 리듬을 복원했습니다`);
+  };
+
+  const resetAllMiniChordUserDefaultPatterns = () => {
+    const defaults = createDefaultMiniChordUserDefaultPatterns();
+    stopMiniChordConfigurationPreview();
+    miniChordUserDefaultPatternsRef.current = defaults;
+    setMiniChordUserDefaultPatterns(defaults);
+    setMiniChordNotice("전체 기본 리듬을 RIFFLAB 기본값으로 복원했습니다");
+  };
+
+  useEffect(() => {
+    if (appModeRef.current !== APP_MODES.MINI_CHORD_MAKER) return;
+    if (!miniChordIsPlayingRef.current && backingSchedulerModeRef.current !== BACKING_SCHEDULER_MODES.MINI_CHORD) return;
+    requestMiniChordBackingPatternChange({}, { forceSessionUpdate: true });
+  }, [
+    miniChordAccidentalPreference,
+    miniChordArrangementOverrides,
+    miniChordCapo,
+    miniChordUserDefaultPatterns,
+  ]);
+
+  useEffect(() => {
+    onReady?.();
+  }, [onReady]);
+
   const miniChordBackingParts = [
     {
       id: "drum",
       label: "드럼",
       beatValue: backingRhythmPattern,
-      options: BACKING_DRUM_PATTERN_OPTIONS,
+      options: MINI_CHORD_DRUM_PATTERN_OPTIONS,
       onBeatChange: (value) => requestMiniChordBackingPatternChange({ rhythmPattern: value }),
     },
     {
       id: "bass",
       label: "베이스",
       beatValue: backingBassBeat,
-      options: BACKING_BASS_BEAT_OPTIONS,
+      options: MINI_CHORD_BASS_BEAT_OPTIONS,
       onBeatChange: (value) => requestMiniChordBackingPatternChange({ bassBeat: value }),
     },
     {
       id: "piano",
       label: "피아노",
       beatValue: backingPianoBeat,
-      options: BACKING_PIANO_BEAT_OPTIONS,
+      options: MINI_CHORD_PIANO_BEAT_OPTIONS,
       onBeatChange: (value) => requestMiniChordBackingPatternChange({ pianoBeat: value }),
       styleValue: miniChordPianoStyle,
       styleOptions: MINI_CHORD_PIANO_STYLE_OPTIONS,
@@ -18296,7 +21715,7 @@ function App() {
     <main
       className={`app notranslate theme-${appTheme} ${appMode === APP_MODES.MENU ? "menuApp" : ""} ${
         appMode === APP_MODES.MINI_CHORD_MAKER ? "miniChordMakerMode" : ""
-      } ${utilityMenuOpen ? "utilityMenuOpen" : ""} ${isSignalActive ? "signalGlow" : ""}`}
+      } ${appMode === APP_MODES.METRONOME ? "metronomeMode" : ""} ${appMode === APP_MODES.SHOOTER ? "shooterMode" : ""} ${utilityMenuOpen ? "utilityMenuOpen" : ""} ${isSignalActive ? "signalGlow" : ""}`}
       onClickCapture={handleAppClickCapture}
       onPointerDownCapture={handleAppPointerDownCapture}
       onPointerUpCapture={handleAppPointerUpCapture}
@@ -18382,20 +21801,18 @@ function App() {
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true">›</span>
               </button>
-              {miniChordMenuVisible ? (
-                <button
-                  className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive miniChordDesktopMenuItem"
-                  onClick={showMiniChordMaker}
-                  type="button"
-                >
-                  <span className="utilityMenuIcon" aria-hidden="true">MC</span>
-                  <div className="utilityMenuText">
-                    <strong>미니코드 반주</strong>
-                    <small>4~16마디 코드 타임라인</small>
-                  </div>
-                  <span className="utilityMenuChevron" aria-hidden="true">›</span>
-                </button>
-              ) : null}
+              <button
+                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
+                onClick={showCurriculum}
+                type="button"
+              >
+                <span className="utilityMenuIcon" aria-hidden="true">03</span>
+                <div className="utilityMenuText">
+                  <strong>리듬 &amp; 코드</strong>
+                  <small>메트로놈 기반 코드 전환 훈련</small>
+                </div>
+                <span className="utilityMenuChevron" aria-hidden="true">›</span>
+              </button>
               <section className="utilitySoundPanel" aria-label="사운드 설정">
                 <details className="utilitySoundDetails">
                   <summary>
@@ -18541,25 +21958,18 @@ function App() {
       ) : null}
 
       {appMode !== APP_MODES.MENU && <section className="hud">
-        <BrandHeader variant={headerVariant} />
         <div className="modeSwitch">
           <button
-            className={
-              (
-                appMode === APP_MODES.CURRICULUM ||
-                appMode === APP_MODES.MINI_CHORD_MAKER ||
-                (appMode === APP_MODES.PRACTICE && selectedCategory.id === "rhythm")
-              )
-                ? "selected"
-                : ""
-            }
-            onClick={showCurriculum}
+            aria-pressed={appMode === APP_MODES.MINI_CHORD_MAKER}
+            className={appMode === APP_MODES.MINI_CHORD_MAKER ? "selected" : ""}
+            onClick={showMiniChordMaker}
             type="button"
           >
-            <Guitar size={17} aria-hidden="true" />
-            리듬 & 코드
+            <Music2 size={17} aria-hidden="true" />
+            미니반주
           </button>
           <button
+            aria-pressed={appMode === APP_MODES.FRETBOARD_VIEWER}
             className={appMode === APP_MODES.FRETBOARD_VIEWER ? "selected" : ""}
             onClick={showFretboardViewer}
             type="button"
@@ -18568,6 +21978,7 @@ function App() {
             지판 보기
           </button>
           <button
+            aria-pressed={appMode === APP_MODES.METRONOME}
             className={appMode === APP_MODES.METRONOME ? "selected" : ""}
             onClick={showMetronomeMode}
             type="button"
@@ -18576,6 +21987,7 @@ function App() {
             메트로놈
           </button>
           <button
+            aria-pressed={appMode === APP_MODES.SHOOTER}
             className={appMode === APP_MODES.SHOOTER ? "selected" : ""}
             onClick={showShooterMode}
             translate="no"
@@ -18623,9 +22035,9 @@ function App() {
               <strong>지판보기</strong>
               <i className="hubMenuArrow" aria-hidden="true">›</i>
             </button>
-            <button className="hubMenuButton rhythm" onClick={showCurriculum} type="button">
+            <button className="hubMenuButton rhythm" onClick={showMiniChordMaker} type="button">
               <span className="hubMenuBadge">02</span>
-              <strong>리듬 & 코드</strong>
+              <strong>미니반주</strong>
               <i className="hubMenuArrow" aria-hidden="true">›</i>
             </button>
             <button
@@ -18651,8 +22063,8 @@ function App() {
             <button onClick={showFretboardViewer} type="button">
               지판보기
             </button>
-            <button onClick={showCurriculum} type="button">
-              리듬 & 코드
+            <button onClick={showMiniChordMaker} type="button">
+              미니반주
             </button>
             <button onClick={showMetronomeMode} type="button">
               메트로놈
@@ -18715,7 +22127,6 @@ function App() {
                 {miniChordIsPlaying ? <Square size={15} aria-hidden="true" /> : <Play size={15} aria-hidden="true" />}
                 {miniChordIsPlaying ? "정지" : "시작"}
               </button>
-              <button onClick={resetMiniChordDraft} type="button">초기화</button>
             </div>
           </div>
 
@@ -18773,6 +22184,118 @@ function App() {
             />
           ) : null}
 
+          {miniChordResetOpen ? (
+            <MiniChordResetDialog
+              confirmAllOpen={miniChordResetAllConfirmOpen}
+              onCancelAll={() => setMiniChordResetAllConfirmOpen(false)}
+              onClose={() => {
+                setMiniChordResetAllConfirmOpen(false);
+                setMiniChordResetOpen(false);
+              }}
+              onResetAll={resetAllMiniChordEdits}
+              onResetCodes={resetMiniChordCodes}
+              onResetStructure={resetMiniChordStructure}
+              onRequestAll={() => setMiniChordResetAllConfirmOpen(true)}
+            />
+          ) : null}
+
+          <div className="miniChordEditToolbar" aria-label="미니코드 편집 기록과 초기화">
+            <button
+              aria-label="되돌리기"
+              disabled={!miniChordCanUndo}
+              onClick={() => applyMiniChordHistoryDirection("undo")}
+              title="되돌리기"
+              type="button"
+            >
+              <Undo2 aria-hidden="true" size={14} />
+              <span>Undo</span>
+            </button>
+            <button
+              aria-label="다시 실행"
+              disabled={!miniChordCanRedo}
+              onClick={() => applyMiniChordHistoryDirection("redo")}
+              title="다시 실행"
+              type="button"
+            >
+              <Redo2 aria-hidden="true" size={14} />
+              <span>Redo</span>
+            </button>
+            <button
+              aria-haspopup="dialog"
+              onClick={() => {
+                setMiniChordResetAllConfirmOpen(false);
+                setMiniChordResetOpen(true);
+              }}
+              type="button"
+            >
+              <RotateCcw aria-hidden="true" size={13} />
+              초기화
+            </button>
+          </div>
+
+          {miniChordRhythmSettingsOpen && !miniChordGrooveEditorPart ? (
+            <MiniChordRhythmSettingsDialog
+              patterns={miniChordUserDefaultPatterns}
+              onClose={() => {
+                stopMiniChordConfigurationPreview();
+                setMiniChordRhythmSettingsOpen(false);
+              }}
+              onEdit={openMiniChordGrooveEditor}
+              onResetAll={resetAllMiniChordUserDefaultPatterns}
+              onResetPart={resetMiniChordUserDefaultPatternsForPart}
+            />
+          ) : null}
+
+          {miniChordGrooveEditorPart ? (
+            <MiniChordGrooveEditorDialog
+              isPreviewing={miniChordGroovePreviewing}
+              key={`${miniChordGrooveEditorScope}-${miniChordGrooveEditorPart}-${miniChordGrooveEditorPresetId}`}
+              part={miniChordGrooveEditorPart}
+              pattern={miniChordGrooveDraftPattern}
+              presetId={miniChordGrooveEditorPresetId}
+              previewDisabled={miniChordIsPlaying}
+              scope={miniChordGrooveEditorScope}
+              onApply={applyMiniChordGrooveDraft}
+              onClose={closeMiniChordGrooveEditor}
+              onDraftChange={stopMiniChordConfigurationPreview}
+              onPreview={previewMiniChordGrooveDraft}
+            />
+          ) : null}
+
+          {miniChordArrangementEditorOpen && !miniChordGrooveEditorPart ? (
+            <MiniChordArrangementEditorDialog
+              barCount={miniChordBarCount}
+              draft={miniChordArrangementDraft}
+              previewDisabled={miniChordIsPlaying}
+              previewMode={miniChordArrangementPreviewMode}
+              onApply={() => {
+                stopMiniChordConfigurationPreview();
+                applyMiniChordArrangementDraft();
+              }}
+              onChange={(nextDraft) => {
+                stopMiniChordConfigurationPreview();
+                setMiniChordArrangementDraft(nextDraft);
+              }}
+              onPreview={previewMiniChordArrangementDraft}
+              onClear={() => {
+                stopMiniChordConfigurationPreview();
+                clearMiniChordSelectedRangeArrangement();
+                setMiniChordArrangementConfirmOpen(false);
+                setMiniChordArrangementEditorOpen(false);
+                setMiniChordArrangementDraft(null);
+              }}
+              onClose={() => {
+                stopMiniChordConfigurationPreview();
+                setMiniChordArrangementConfirmOpen(false);
+                setMiniChordArrangementEditorOpen(false);
+                setMiniChordArrangementDraft(null);
+                setMiniChordExpertMode(false);
+                setMiniChordRangeStartBar(null);
+                setMiniChordSelectedRange(null);
+              }}
+            />
+          ) : null}
+
           <div className="miniChordMeasureStrip" aria-label="마디와 페이지 선택">
             <span>마디</span>
             <div className="miniChordSegment" role="group" aria-label="마디 수 선택">
@@ -18816,6 +22339,36 @@ function App() {
                 +
               </button>
             </div>
+            <button
+              aria-pressed={miniChordExpertMode}
+              className={`miniChordExpertToggle ${miniChordExpertMode ? "selected" : ""}`}
+              onClick={() => {
+                setMiniChordExpertMode((enabled) => {
+                  const nextEnabled = !enabled;
+                  if (nextEnabled) {
+                    setMiniChordNotice("편곡 시작 마디를 선택하세요");
+                  } else {
+                    setMiniChordNotice("");
+                  }
+                  return nextEnabled;
+                });
+                setMiniChordActiveBarIndex(null);
+                setMiniChordChordPickerSlot(null);
+                setMiniChordEndingPopoverPosition(null);
+                setMiniChordChordPickerPosition(null);
+                setMiniChordRangeStartBar(null);
+                setMiniChordSelectedRange(null);
+                setMiniChordArrangementConfirmOpen(false);
+                setMiniChordArrangementEditorOpen(false);
+                setMiniChordArrangementDraft(null);
+                setMiniChordGrooveEditorPart(null);
+                setMiniChordGrooveEditorScope("global");
+                setMiniChordGrooveDraftPattern(null);
+              }}
+              type="button"
+            >
+              편곡
+            </button>
           </div>
 
           {miniChordNotice ? (
@@ -18824,19 +22377,156 @@ function App() {
             </div>
           ) : null}
 
+          {miniChordArrangementConfirmOpen && miniChordSelectedRange ? (
+            <section
+              aria-labelledby="mini-chord-arrangement-confirm-title"
+              className="miniChordArrangementRangeConfirm"
+              role="dialog"
+            >
+              <div>
+                <strong id="mini-chord-arrangement-confirm-title">
+                  {miniChordSelectedRange.startBar + 1}–{miniChordSelectedRange.endBar + 1}마디 편곡
+                </strong>
+                <span>선택한 구간의 반주를 설정할까요?</span>
+              </div>
+              <div className="miniChordArrangementRangeConfirmActions">
+                <button onClick={cancelMiniChordArrangementConfirmation} type="button">취소</button>
+                <button className="primary" onClick={confirmMiniChordArrangementSelection} type="button">반주 설정</button>
+              </div>
+            </section>
+          ) : null}
+
+          <div className="miniChordCapoControlBar" aria-label="미니코드 CAPO 및 변환음 표기 설정">
+            <div className="miniChordCapoReadout" aria-live="polite">
+              <span>CAPO</span>
+              <strong>{miniChordCapo}</strong>
+            </div>
+            <span className="miniChordCapoScope">전체 이조</span>
+            <div className="miniChordCapoStepControls" aria-label="CAPO 프렛 조절" role="group">
+              <button
+                aria-label="CAPO 낮추기"
+                disabled={miniChordCapo <= 0}
+                onClick={() => updateMiniChordCapoStep(-1)}
+                type="button"
+              >
+                <ChevronDown aria-hidden="true" size={14} strokeWidth={2.4} />
+              </button>
+              <button
+                aria-label="CAPO 올리기"
+                disabled={miniChordCapo >= 12}
+                onClick={() => updateMiniChordCapoStep(1)}
+                type="button"
+              >
+                <ChevronUp aria-hidden="true" size={14} strokeWidth={2.4} />
+              </button>
+            </div>
+            <div className="miniChordCapoAccidentalControls" aria-label="변환음 표기" role="group">
+              <button
+                aria-label="변환음을 샵으로 표기"
+                aria-pressed={miniChordAccidentalPreference === MINI_CHORD_ACCIDENTAL_PREFERENCES.SHARP}
+                className={miniChordAccidentalPreference === MINI_CHORD_ACCIDENTAL_PREFERENCES.SHARP ? "selected" : ""}
+                onClick={() => updateMiniChordAccidentalPreference(MINI_CHORD_ACCIDENTAL_PREFERENCES.SHARP)}
+                type="button"
+              >
+                #
+              </button>
+              <button
+                aria-label="변환음을 플랫으로 표기"
+                aria-pressed={miniChordAccidentalPreference === MINI_CHORD_ACCIDENTAL_PREFERENCES.FLAT}
+                className={miniChordAccidentalPreference === MINI_CHORD_ACCIDENTAL_PREFERENCES.FLAT ? "selected" : ""}
+                onClick={() => updateMiniChordAccidentalPreference(MINI_CHORD_ACCIDENTAL_PREFERENCES.FLAT)}
+                type="button"
+              >
+                ♭
+              </button>
+            </div>
+          </div>
+
           <div className="miniChordTimelinePanel miniChordTimelinePanelCompact" aria-label="코드 타임라인">
-            <div className="miniChordTimeline miniChordTimelineFour">
+            <div className={`miniChordTimeline miniChordTimelineFour ${miniChordArrangementInputLocked ? "is-arrangement-selection-mode" : ""}`}>
               {miniChordVisibleBars.map((bar) => {
                 const inRepeatRange = miniChordRepeatRange
                   ? bar.index >= miniChordRepeatRange.start && bar.index <= miniChordRepeatRange.end
                   : false;
+                const arrangementOverride = bar.arrangementOverride;
+                const hasArrangementOverride = Boolean(arrangementOverride);
+                const inArrangementRange = miniChordSelectedRange
+                  ? bar.index >= miniChordSelectedRange.startBar && bar.index <= miniChordSelectedRange.endBar
+                  : false;
+                const isArrangementRangeStart = inArrangementRange && miniChordSelectedRange?.startBar === bar.index;
+                const isArrangementRangeEnd = inArrangementRange && miniChordSelectedRange?.endBar === bar.index;
+                const isArrangementRowSegmentStart = inArrangementRange
+                  && (isArrangementRangeStart || bar.index % MINI_CHORD_BARS_PER_PAGE === 0);
+                const isArrangementRowSegmentEnd = inArrangementRange
+                  && (isArrangementRangeEnd || bar.index % MINI_CHORD_BARS_PER_PAGE === MINI_CHORD_BARS_PER_PAGE - 1);
+                const connectsToNextArrangementBar = inArrangementRange
+                  && !isArrangementRowSegmentEnd;
+                const isAppliedArrangementRangeStart = hasArrangementOverride
+                  && arrangementOverride.startBar === bar.index;
+                const isAppliedArrangementRangeEnd = hasArrangementOverride
+                  && arrangementOverride.endBar === bar.index;
+                const isAppliedArrangementRowSegmentStart = hasArrangementOverride
+                  && (isAppliedArrangementRangeStart || bar.index % MINI_CHORD_BARS_PER_PAGE === 0);
+                const isAppliedArrangementRowSegmentEnd = hasArrangementOverride
+                  && (
+                    isAppliedArrangementRangeEnd
+                    || bar.index % MINI_CHORD_BARS_PER_PAGE === MINI_CHORD_BARS_PER_PAGE - 1
+                  );
+                const connectsToNextAppliedArrangementBar = hasArrangementOverride
+                  && !isAppliedArrangementRowSegmentEnd;
+                const arrangementFrameRowSegmentStart = inArrangementRange
+                  ? isArrangementRowSegmentStart
+                  : isAppliedArrangementRowSegmentStart;
+                const arrangementFrameRowSegmentEnd = inArrangementRange
+                  ? isArrangementRowSegmentEnd
+                  : isAppliedArrangementRowSegmentEnd;
+                const arrangementFrameConnectsToNext = inArrangementRange
+                  ? connectsToNextArrangementBar
+                  : connectsToNextAppliedArrangementBar;
+                const isArrangementAnchor = miniChordRangeStartBar === bar.index;
                 const activeMarkIndex = getMiniChordActiveMarkIndex(bar.mark);
-                const hasEnding = bar.endings.length > 0;
+                const hasEnding = Boolean(bar.endingRange);
+                const isEndingStart = bar.endingRange?.startBar === bar.index;
+                const isEndingEnd = bar.endingRange?.endBar === bar.index;
+                const isEndingSegmentStart = isEndingStart || bar.index % 4 === 0;
+                const isEndingSegmentEnd = isEndingEnd || bar.index % 4 === 3 || bar.index === miniChordBarCount - 1;
+                const hasNavigationSymbol = bar.navigationSymbols.length > 0;
+                const hasCommandSymbol = bar.commandSymbols.length > 0;
+                const hasMarkWarning = Boolean(bar.markWarning);
                 return (
                   <article
-                    className={`miniChordBar ${bar.repeatStart ? "repeatStart" : ""} ${bar.repeatEnd ? "repeatEnd" : ""} ${hasEnding ? "hasEnding" : ""} ${bar.markLabels.length ? "hasSymbols" : ""} ${inRepeatRange ? "repeatRange" : ""} ${miniChordActiveBarIndex === bar.index ? "is-editing" : ""} ${miniChordPlayingBarIndex === bar.index ? "is-playing" : ""}`}
+                    className={`miniChordBar ${bar.repeatStart ? "repeatStart" : ""} ${bar.repeatEnd ? "repeatEnd" : ""} ${hasEnding ? "hasEnding" : ""} ${isEndingStart ? "endingRangeStart" : ""} ${isEndingEnd ? "endingRangeEnd" : ""} ${hasNavigationSymbol || hasCommandSymbol ? "hasSymbols" : ""} ${hasCommandSymbol ? "hasCommandMarker" : ""} ${hasMarkWarning ? "hasMarkerWarning" : ""} ${hasArrangementOverride ? "hasArrangementOverride" : ""} ${isAppliedArrangementRangeStart ? "is-applied-arrangement-range-start" : ""} ${isAppliedArrangementRangeEnd ? "is-applied-arrangement-range-end" : ""} ${miniChordArrangementInputLocked ? "is-expert" : ""} ${inArrangementRange ? "is-arrangement-selected" : ""} ${isArrangementRangeStart ? "is-arrangement-range-start" : ""} ${isArrangementRangeEnd ? "is-arrangement-range-end" : ""} ${isArrangementRowSegmentStart ? "is-arrangement-row-segment-start" : ""} ${isArrangementRowSegmentEnd ? "is-arrangement-row-segment-end" : ""} ${connectsToNextArrangementBar ? "is-arrangement-connected-next" : ""} ${isArrangementAnchor ? "is-arrangement-anchor" : ""} ${inRepeatRange ? "repeatRange" : ""} ${miniChordActiveBarIndex === bar.index ? "is-editing" : ""} ${miniChordPlayingBarIndex === bar.index ? "is-playing" : ""}`}
+                    data-ending-number={bar.endingRange?.endingNumber ?? undefined}
                     key={bar.index}
+                    onClickCapture={(event) => captureMiniChordArrangementBarInput(event, bar.index)}
+                    onContextMenuCapture={(event) => captureMiniChordArrangementBarInput(event, bar.index)}
+                    onDoubleClickCapture={(event) => captureMiniChordArrangementBarInput(event, bar.index)}
+                    onPointerDownCapture={(event) => captureMiniChordArrangementBarInput(event, bar.index)}
+                    onPointerUpCapture={(event) => captureMiniChordArrangementBarInput(event, bar.index)}
                   >
+                    {miniChordArrangementInputLocked ? (
+                      <button
+                        aria-label={`${bar.index + 1}마디 편곡 범위 선택`}
+                        aria-pressed={inArrangementRange || isArrangementAnchor}
+                        className="miniChordArrangementHitLayer"
+                        type="button"
+                      />
+                    ) : null}
+                    {(inArrangementRange || hasArrangementOverride) ? (
+                      <span
+                        aria-hidden="true"
+                        className={`miniChordArrangementRangeFrame ${inArrangementRange ? "is-selection" : "is-applied"} ${arrangementFrameRowSegmentStart ? "is-segment-start" : ""} ${arrangementFrameRowSegmentEnd ? "is-segment-end" : ""} ${arrangementFrameConnectsToNext ? "is-connected-next" : ""}`}
+                      />
+                    ) : null}
+                    {hasArrangementOverride && isAppliedArrangementRangeStart ? (
+                      <span
+                        aria-label={`${arrangementOverride.startBar + 1}-${arrangementOverride.endBar + 1}마디 편곡 설정 구간`}
+                        className="miniChordArrangementRangeTag"
+                        title={`${arrangementOverride.startBar + 1}-${arrangementOverride.endBar + 1}마디 편곡 설정 구간`}
+                      >
+                        ARR
+                      </span>
+                    ) : null}
                     <button
                       aria-label={`${bar.index + 1}마디 도돌이표 시작 ${bar.repeatStart ? "해제" : "설정"}`}
                       aria-pressed={bar.repeatStart}
@@ -18868,9 +22558,10 @@ function App() {
                     <button
                       aria-label={`${bar.index + 1}마디 헤드 반복 기호 설정`}
                       aria-expanded={miniChordActiveBarIndex === bar.index}
-                      className={`miniChordMarkHotspot miniChordMarkHotspotEnding ${hasEnding || bar.markLabels.length ? "active" : ""}`}
+                      className={`miniChordMarkHotspot miniChordMarkHotspotEnding ${hasEnding || hasNavigationSymbol || hasCommandSymbol ? "active" : ""}`}
                       onClick={(event) => {
                         event.stopPropagation();
+                        miniChordFloatingFocusReturnRef.current = event.currentTarget;
                         setMiniChordChordPickerSlot(null);
                         setMiniChordChordPickerPosition(null);
                         if (miniChordActiveBarIndex === bar.index) {
@@ -18882,149 +22573,195 @@ function App() {
                         setMiniChordMarkTargetIndex(activeMarkIndex);
                         setMiniChordEndingPopoverPosition(getMiniChordFloatingPosition(
                           event.currentTarget.getBoundingClientRect(),
-                          { width: 216, height: 380 },
+                          MINI_CHORD_MARK_POPOVER_SIZE,
                         ));
                       }}
                       type="button"
                     />
-                    <span className="miniChordBarGhostNumber" aria-hidden="true">
-                      {bar.index + 1}
-                    </span>
-                    <div className="miniChordBarMarkLane" aria-hidden="true">
-                      {bar.endingLabel ? (
-                        <span className="barEndingBracket">
-                          <b>{bar.endingLabel}</b>
-                        </span>
+                    {(bar.repeatStart || bar.repeatEnd) ? (
+                      <div className="miniChordRepeatBoundaryLayer" aria-hidden="true">
+                        {bar.repeatStart ? <span className="miniChordRepeatBoundary miniChordRepeatBoundary--start">|:</span> : null}
+                        {bar.repeatEnd ? <span className="miniChordRepeatBoundary miniChordRepeatBoundary--end">:|</span> : null}
+                      </div>
+                    ) : null}
+                    <div className="miniChordBarTopLayer" aria-label={`${bar.index + 1}마디 기호`}>
+                      {bar.endingRange ? (
+                        <div
+                          className={`miniChordVoltaLayer miniChordEndingLayer ${isEndingSegmentStart ? "is-segment-start" : "is-continuation"} ${isEndingSegmentEnd ? "is-segment-end" : ""}`}
+                          aria-label={`${bar.endingRange.endingNumber}번 엔딩, ${bar.endingRange.startBar + 1}마디부터 ${bar.endingRange.endBar + 1}마디까지`}
+                        >
+                          <span className="barEndingBracket">
+                            {bar.endingLabel ? <b>{bar.endingLabel}</b> : null}
+                          </span>
+                        </div>
                       ) : null}
-                      {bar.markLabels.length ? (
-                        <span className="miniChordSymbolStack">
-                          {bar.markLabels.map((label) => (
-                            <i key={label} title={label}>{getMiniChordMarkChipLabel(label)}</i>
-                          ))}
-                        </span>
+                      {hasNavigationSymbol ? (
+                        <div className={`miniChordNavigationMarkerLayer ${hasMarkWarning ? "is-warning" : ""}`} aria-label={`${bar.index + 1}마디 이동 기호`} title={bar.markWarning || undefined}>
+                          <span className="miniChordSymbolStack">
+                            {bar.navigationSymbols.map((symbol) => (
+                              <MiniChordMarkVisual key={symbol.key} symbol={symbol} />
+                            ))}
+                          </span>
+                        </div>
+                      ) : null}
+                      {bar.arrangementOverride ? (
+                        <div className="miniChordExpertIndicatorLayer">
+                          <span className="miniChordArrangementBadge" aria-label="편곡 설정 있음">
+                            ARR
+                          </span>
+                        </div>
                       ) : null}
                     </div>
-                    {miniChordActiveBarIndex === bar.index ? (
+                    {hasCommandSymbol ? (
                       <div
-                        className="barEndingPopover"
+                        className={`miniChordCommandMarkerLayer ${hasMarkWarning ? "is-warning" : ""}`}
+                        aria-label={`${bar.index + 1}마디 반복 명령${bar.markWarning ? `, ${bar.markWarning}` : ""}`}
+                        title={bar.markWarning || bar.commandSymbols[0]?.ariaLabel}
+                      >
+                        <span className="miniChordCommandStack">
+                          {bar.commandSymbols.map((symbol) => (
+                            <MiniChordMarkVisual key={symbol.key} symbol={symbol} />
+                          ))}
+                        </span>
+                      </div>
+                    ) : hasMarkWarning ? (
+                      <div
+                        className="miniChordCommandMarkerLayer miniChordCommandMarkerLayer--warningOnly is-warning"
+                        aria-label={`${bar.index + 1}마디 기호 경고, ${bar.markWarning}`}
+                        title={bar.markWarning}
+                      >
+                        !
+                      </div>
+                    ) : null}
+                    {miniChordActiveBarIndex === bar.index && typeof document !== "undefined" ? createPortal((
+                      <div
+                        className="barEndingPopover miniChordFloatingPopover miniChordFloatingMarkPopover"
                         onClick={(event) => event.stopPropagation()}
+                        role="dialog"
+                        aria-label={`${bar.index + 1}마디 기호 설정`}
                         style={miniChordEndingPopoverPosition ?? undefined}
                       >
-                        <div className="miniChordPickerTitle">마디 기호</div>
-                        <span className="barMarkSectionLabel">도돌이표 마디</span>
-                        <div className="barEndingOptions" aria-label="도돌이번호 설정">
-                          {[1, 2, 3, 4, 5].map((ending) => (
-                            <button
-                              className={bar.endings.includes(ending) ? "selected" : ""}
-                              key={ending}
-                              onClick={() => {
-                                const nextEndings = bar.endings.includes(ending)
-                                  ? bar.endings.filter((item) => item !== ending)
-                                  : [...bar.endings, ending];
-                                updateMiniChordBarMark(bar.index, { endings: nextEndings });
-                              }}
-                              type="button"
-                            >
-                              {ending}
-                            </button>
-                          ))}
+                        <div className="miniChordPickerTitle miniChordMarkPickerTitle">
+                          <span>기호</span>
+                          <small>{bar.index + 1}마디</small>
                         </div>
-                        <div className="barMarkerOptions" aria-label="위치 마커 설정">
-                          {MINI_CHORD_LOCATION_MARKER_OPTIONS.map((option) => (
-                            <button
-                              className={bar.mark.marker === option.value ? "selected" : ""}
-                              key={option.value}
-                              onClick={() => {
-                                const isSelected = bar.mark.marker === option.value;
-                                if (
-                                  option.value === "toCoda"
-                                  && !isSelected
-                                  && !hasMiniChordCodaTarget(miniChordBarMarks, miniChordMarkTargetIndex, miniChordBarCount)
-                                ) {
-                                  setMiniChordNotice(`Coda ${miniChordMarkTargetIndex} 구간이 필요합니다`);
-                                  return;
-                                }
-                                const replacesExistingToCoda = option.value === "toCoda" && !isSelected && getMiniChordMarkEntries(
-                                  normalizeMiniChordBarMarks(miniChordBarMarks, miniChordBarCount),
-                                  miniChordBarCount,
-                                ).some(({ barIndex, value }) => barIndex !== bar.index && value.marker === "toCoda");
-                                updateMiniChordBarMark(bar.index, {
-                                  marker: isSelected ? "" : option.value,
-                                  markerIndex: option.indexed ? miniChordMarkTargetIndex : null,
-                                });
-                                if (replacesExistingToCoda) {
-                                  setMiniChordNotice("To Coda는 하나만 사용할 수 있어 기존 To Coda를 해제했습니다");
-                                }
-                              }}
-                              type="button"
-                            >
-                              {option.label}
-                            </button>
-                          ))}
+                        <div className="barMarkCompactRow">
+                          <span className="barMarkSectionLabel">엔딩</span>
+                          <div className="barEndingOptions" aria-label="도돌이 엔딩 번호 설정">
+                            {[1, 2, 3, 4, 5].map((endingNumber) => (
+                              <button
+                                aria-label={`${endingNumber}번 엔딩 ${bar.endingRange?.endingNumber === endingNumber ? "해제" : "설정"}`}
+                                aria-pressed={bar.endingRange?.endingNumber === endingNumber}
+                                className={bar.endingRange?.endingNumber === endingNumber ? "selected" : ""}
+                                key={endingNumber}
+                                onClick={() => toggleMiniChordEndingAtBar(bar.index, endingNumber)}
+                                title="인접 마디에 같은 번호를 설정하면 하나의 엔딩 구간으로 연결됩니다"
+                                type="button"
+                              >
+                                {endingNumber}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                        <div className="barCommandOptions" aria-label="점프 명령 설정">
+                        <div className="barMarkerOptions barMarkerOptions--compact" aria-label="위치 마커 설정">
+                          {MINI_CHORD_LOCATION_MARKER_OPTIONS.map((option) => {
+                            const compactLabel = MINI_CHORD_LOCATION_MARKER_COMPACT_LABELS[option.value] ?? option.label;
+                            return (
+                              <button
+                                aria-label={option.label}
+                                aria-pressed={bar.mark.marker === option.value}
+                                className={bar.mark.marker === option.value ? "selected" : ""}
+                                key={option.value}
+                                onClick={() => {
+                                  const isSelected = bar.mark.marker === option.value;
+                                  const nextMarker = isSelected ? "" : option.value;
+                                  const nextMarkerIndex = option.indexed ? miniChordMarkTargetIndex : null;
+                                  updateMiniChordBarMark(bar.index, {
+                                    marker: nextMarker,
+                                    markerIndex: nextMarkerIndex,
+                                  });
+                                }}
+                                title={option.label}
+                                type="button"
+                              >
+                                <span className="barMarkButtonContent">
+                                  {getMiniChordMarkerIconType(option.value) ? (
+                                    <MiniChordMusicSymbolIcon type={getMiniChordMarkerIconType(option.value)} />
+                                  ) : null}
+                                  {compactLabel ? <span>{compactLabel}</span> : null}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="barCommandOptions barCommandOptions--compact" aria-label="점프 명령 설정">
                           {MINI_CHORD_COMMAND_OPTIONS.map((option) => (
                             <button
+                              aria-label={option.label}
+                              aria-pressed={bar.mark.command === option.value}
                               className={bar.mark.command === option.value ? "selected" : ""}
                               key={option.value}
                               onClick={() => {
                                 const isSelected = bar.mark.command === option.value;
-                                if (
-                                  option.end === "coda"
-                                  && !isSelected
-                                  && !hasMiniChordCodaTarget(miniChordBarMarks, miniChordMarkTargetIndex, miniChordBarCount)
-                                ) {
-                                  setMiniChordNotice(`Coda ${miniChordMarkTargetIndex} 구간이 필요합니다`);
-                                  return;
-                                }
+                                const nextCommand = isSelected ? "" : option.value;
+                                const nextTargetIndex = option.target ? miniChordMarkTargetIndex : null;
                                 updateMiniChordBarMark(bar.index, {
-                                  command: isSelected ? "" : option.value,
-                                  targetIndex: option.target ? miniChordMarkTargetIndex : null,
+                                  command: nextCommand,
+                                  targetIndex: nextTargetIndex,
                                 });
                               }}
+                              title={option.label}
                               type="button"
                             >
-                              {option.label}
+                              <span className="barMarkButtonContent">
+                                <span>{MINI_CHORD_COMMAND_COMPACT_LABELS[option.value] ?? option.label}</span>
+                              </span>
                             </button>
                           ))}
                         </div>
                         <button
-                          className="barEndingClear"
-                          onClick={() => clearMiniChordBarMark(bar.index)}
+                          aria-label={`${bar.index + 1}마디 기호 제거`}
+                          className="barEndingClear barEndingClear--full"
+                          onClick={() => clearMiniChordBarNavigationMark(bar.index)}
                           type="button"
                         >
                           기호 제거
                         </button>
                       </div>
-                    ) : null}
+                    ), document.body) : null}
                     <div className="miniChordSlots">
                       {bar.slots.map((slot) => (
                         <div
                           className={`miniChordSlotWrap ${slot.slotIndex === 1 ? "is-backbeat" : "is-frontbeat"}`}
                           key={slot.index}
                         >
+                          {slot.slotIndex === 0 ? (
+                            <span className="miniChordBarGhostNumber" aria-hidden="true">
+                              {bar.index + 1}
+                            </span>
+                          ) : null}
                           <button
                             className={`miniChordSlot ${miniChordActiveSlot === slot.index ? "active" : ""} ${miniChordPlayhead === slot.index ? "playing" : ""} ${slot.chord ? "filled" : ""}`}
                             onClick={(event) => {
                               event.stopPropagation();
-                              const pickerState = getMiniChordPickerStateFromLabel(slot.chord, {
-                                baseRoot: miniChordPickerBaseRoot,
-                                accidental: miniChordPickerAccidental,
-                                quality: miniChordPickerQuality,
-                                extension: miniChordPickerSafeExtension,
-                              });
+                              miniChordFloatingFocusReturnRef.current = event.currentTarget;
                               setMiniChordActiveSlot(slot.index);
                               setMiniChordActiveBarIndex(null);
                               setMiniChordEndingPopoverPosition(null);
-                              setMiniChordPickerBaseRoot(pickerState.baseRoot);
-                              setMiniChordPickerAccidental(pickerState.accidental);
-                              setMiniChordPickerQuality(pickerState.quality);
-                              setMiniChordPickerExtension(pickerState.extension);
                               setMiniChordChordPickerSlot(slot.index);
-                              setMiniChordChordPickerPosition(getMiniChordFloatingPosition(
-                                event.currentTarget.getBoundingClientRect(),
-                                { width: 284, height: 360 },
-                              ));
+                              const barRect = event.currentTarget.closest(".miniChordBar")?.getBoundingClientRect();
+                              const viewport = getMiniChordFloatingViewportMetrics();
+                              setMiniChordChordPickerPosition(getMiniChordFloatingEditorPosition({
+                                anchorRect: barRect ?? event.currentTarget.getBoundingClientRect(),
+                                bottomInset: viewport.bottomInset,
+                                gap: 8,
+                                requestedHeight: MINI_CHORD_CHORD_POPOVER_SIZE.height,
+                                requestedWidth: MINI_CHORD_CHORD_POPOVER_SIZE.width,
+                                viewportHeight: viewport.viewportHeight,
+                                viewportLeft: viewport.viewportLeft,
+                                viewportTop: viewport.viewportTop,
+                                viewportWidth: viewport.viewportWidth,
+                              }));
                               setMiniChordPageIndex(Math.floor(slot.index / (MINI_CHORD_BARS_PER_PAGE * MINI_CHORD_SLOTS_PER_BAR)));
                             }}
                             type="button"
@@ -19033,133 +22770,19 @@ function App() {
                               {getMiniChordSlotDisplayLabel(slot.chord)}
                             </strong>
                           </button>
-                          {miniChordChordPickerSlot === slot.index ? (
-                            <div
-                              className={`miniChordChordPopover ${slot.slotIndex === 1 ? "alignEnd" : ""}`}
-                              onClick={(event) => event.stopPropagation()}
-                              style={miniChordChordPickerPosition ?? undefined}
-                            >
-                              <div className="miniChordPickerHeader">
-                                <span>선택 코드</span>
-                                <strong>{miniChordPickerSelectedLabel}</strong>
-                              </div>
-                              <div className="miniChordBuilderMini">
-                                <section className="miniChordBuilderMiniSection">
-                                  <span>변화표</span>
-                                  <div className="miniChordPickerSegment miniChordPickerSegment--accidental" role="group" aria-label="변화표 선택">
-                                    {CHORD_ACCIDENTAL_OPTIONS.map((accidental) => {
-                                      const isAvailable = Boolean(getChordFromSelector(
-                                        miniChordPickerBaseRoot,
-                                        accidental.id,
-                                        miniChordPickerQuality,
-                                        miniChordPickerSafeExtension,
-                                      ));
-                                      return (
-                                        <button
-                                          className={miniChordPickerAccidental === accidental.id ? "selected" : ""}
-                                          disabled={!isAvailable}
-                                          key={`mini-accidental-${accidental.id}`}
-                                          onClick={() => setMiniChordPickerAccidental(accidental.id)}
-                                          type="button"
-                                        >
-                                          {accidental.id === "flat" ? "♭" : accidental.label}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                </section>
-                                <section className="miniChordBuilderMiniSection">
-                                  <span>루트</span>
-                                  <div className="miniChordPickerRoots" aria-label="코드 루트 선택">
-                                    {CHORD_NATURAL_ROOTS.map((root) => (
-                                      <button
-                                        className={miniChordPickerBaseRoot === root ? "selected" : ""}
-                                        key={`mini-root-${root}`}
-                                        onClick={() => setMiniChordPickerBaseRoot(root)}
-                                        type="button"
-                                      >
-                                        {root}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </section>
-                                <section className="miniChordBuilderMiniSection">
-                                  <span>타입</span>
-                                  <div className="miniChordPickerQualities" role="group" aria-label="코드 타입 선택">
-                                    {CHORD_QUALITY_OPTIONS.map((quality) => {
-                                      const nextExtension = normalizeChordExtensionForQuality(quality.id, miniChordPickerSafeExtension);
-                                      const isSupported = isChordViewerSelectionSupported(quality.id, nextExtension);
-                                      return (
-                                        <button
-                                          className={miniChordPickerQuality === quality.id ? "selected" : ""}
-                                          disabled={!isSupported}
-                                          key={`mini-quality-${quality.id}`}
-                                          onClick={() => {
-                                            setMiniChordPickerQuality(quality.id);
-                                            setMiniChordPickerExtension(nextExtension);
-                                          }}
-                                          type="button"
-                                        >
-                                          {MINI_CHORD_QUALITY_LABELS[quality.id] ?? quality.label}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                </section>
-                                <section className="miniChordBuilderMiniSection">
-                                  <span>확장</span>
-                                  <div className="miniChordPickerExtensions" role="group" aria-label="확장 코드 선택">
-                                    {miniChordPickerExtensionOptions.map((extension) => (
-                                      <button
-                                        className={miniChordPickerSafeExtension === extension.id ? "selected" : ""}
-                                        disabled={extension.disabled}
-                                        key={`mini-extension-${extension.id}`}
-                                        onClick={() => setMiniChordPickerExtension(extension.id)}
-                                        type="button"
-                                      >
-                                        {extension.label}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </section>
-                              </div>
-                              <div className="miniChordPickerActions">
-                                <button
-                                  className="primary"
-                                  disabled={!miniChordPickerSelectedChord}
-                                  onClick={() => {
-                                    if (!miniChordPickerSelectedChord) return;
-                                    updateMiniChordSlot(slot.index, miniChordPickerSelectedLabel);
-                                    setMiniChordChordPickerSlot(null);
-                                    setMiniChordChordPickerPosition(null);
-                                  }}
-                                  type="button"
-                                >
-                                  적용
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    updateMiniChordSlot(slot.index, MINI_CHORD_REST_LABEL);
-                                    setMiniChordChordPickerSlot(null);
-                                    setMiniChordChordPickerPosition(null);
-                                  }}
-                                  type="button"
-                                >
-                                  N.C.
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    updateMiniChordSlot(slot.index, "");
-                                    setMiniChordChordPickerSlot(null);
-                                    setMiniChordChordPickerPosition(null);
-                                  }}
-                                  type="button"
-                                >
-                                  삭제
-                                </button>
-                              </div>
-                            </div>
-                          ) : null}
+                          {miniChordChordPickerSlot === slot.index && typeof document !== "undefined" ? createPortal((
+                            <MiniChordFloatingChordEditor
+                              barNumber={bar.index + 1}
+                              beatLabel={slot.slotIndex === 0 ? "앞박" : "뒷박"}
+                              fallbackDraft={miniChordPickerDraftRef.current}
+                              initialChord={slot.chord}
+                              key={slot.index}
+                              onCommit={commitMiniChordChordPicker}
+                              position={miniChordChordPickerPosition}
+                              resolveChord={getChordFromSelector}
+                              slotIndex={slot.index}
+                            />
+                          ), document.body) : null}
                         </div>
                       ))}
                     </div>
@@ -19197,13 +22820,30 @@ function App() {
               <span>반주 사운드</span>
               <b>드럼 · 베이스 · 피아노</b>
             </summary>
+            <div className="miniChordRhythmSettingsBar">
+              <span>
+                <b>저장된 Pattern 선택</b>
+                <small>편집은 리듬 설정에서만</small>
+              </span>
+              <button
+                aria-haspopup="dialog"
+                onClick={() => {
+                  stopMiniChordConfigurationPreview();
+                  setMiniChordRhythmSettingsOpen(true);
+                }}
+                type="button"
+              >
+                <Settings aria-hidden="true" size={13} />
+                리듬 설정
+              </button>
+            </div>
             <div className="miniChordBackingRows">
               {miniChordBackingParts.map((part) => {
                 const volumeValue = getBackingVolumeValue(part.id);
                 const enabled = getBackingPartEnabled(part.id);
                 return (
                   <section
-                    className="miniChordBackingRow"
+                    className={`miniChordBackingRow miniChordBackingRow--${part.id}`}
                     key={part.id}
                     aria-label={`${part.label} 반주 설정`}
                   >
@@ -19244,7 +22884,7 @@ function App() {
                           onClick={() => part.onBeatChange(option.id)}
                           type="button"
                         >
-                          {option.label}
+                          {MINI_CHORD_COMPACT_PATTERN_LABELS[option.id] ?? option.label}
                         </button>
                       ))}
                     </div>
@@ -19809,6 +23449,7 @@ function App() {
           >
             <div className="viewerModeTabs" aria-label="지판 보기 종류">
               <button
+                aria-pressed={viewerMode === FRETBOARD_VIEWER_MODES.CHORD}
                 className={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "selected" : ""}
                 onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.CHORD)}
                 type="button"
@@ -19816,6 +23457,15 @@ function App() {
                 코드
               </button>
               <button
+                aria-pressed={viewerMode === FRETBOARD_VIEWER_MODES.NOTE}
+                className={viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "selected" : ""}
+                onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.NOTE)}
+                type="button"
+              >
+                음표
+              </button>
+              <button
+                aria-pressed={viewerMode === FRETBOARD_VIEWER_MODES.SCALE}
                 className={viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "selected" : ""}
                 onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.SCALE)}
                 type="button"
@@ -19825,13 +23475,6 @@ function App() {
                   <span>펜타토닉</span>
                 </span>
               </button>
-              <button
-                className={viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "selected" : ""}
-                onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.NOTE)}
-                type="button"
-              >
-                음표
-              </button>
             </div>
 
             <section className={`viewerMapCard viewerMapCard--${viewerMode}`} aria-label="전체 지판 음표" ref={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? chordViewerRef : null}>
@@ -19839,50 +23482,79 @@ function App() {
                 <div className="viewerMapHeaderTop">
                   <span>{viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "음표 위치" : viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "스케일 위치" : viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "참고지판" : "기준 지판"}</span>
                   {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
-                    <button
-                      className="viewerAllButton"
-                      onClick={scrollToChordChart}
-                      type="button"
-                    >
-                      전체보기
-                    </button>
+                    <>
+                      <button
+                        aria-label={`${viewerMapTitle} 현재 운지 소리 듣기`}
+                        aria-pressed={false}
+                        className="viewerChordSoundButton"
+                        disabled={!viewerCurrentChordPosition?.notes?.length}
+                        onClick={handleViewerChordSound}
+                        type="button"
+                      >
+                        <Volume2 aria-hidden="true" size={14} />
+                        <span>코드 듣기</span>
+                      </button>
+                      <button
+                        className="viewerAllButton"
+                        onClick={scrollToChordChart}
+                        type="button"
+                      >
+                        전체보기
+                      </button>
+                    </>
                   ) : null}
                 </div>
                 <div className="viewerMapTitleRow">
                   <strong>{viewerMapTitle}</strong>
-                  {viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? (
+                  {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
+                    <small className="viewerSwipeHint">
+                      {viewerChordPositionLabel} · ↔ 밀기
+                    </small>
+                  ) : viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? (
                     <small className="viewerSwipeHint">↔ Swipe</small>
                   ) : null}
                 </div>
               </div>
-              <Fretboard
-                className={`viewerSharedFretboard ${viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "allNotes" : ""} ${viewerMode === FRETBOARD_VIEWER_MODES.NOTE && viewerNoteFilter !== "ALL" ? "noteFilterActive" : ""} ${viewerShouldFitFretboard ? "fitRange" : ""}`}
-                barres={viewerChordBarres}
-                fretRange={viewerFretboardRange}
-                mode={viewerMode}
-                notes={viewerFretboardNotes.map((note) => ({
-                  ...note,
-                  label:
-                    viewerMode === FRETBOARD_VIEWER_MODES.NOTE
-                      ? note.noteName ?? getPitchClass(note.pitch) ?? note.label
-                      : viewerMode === FRETBOARD_VIEWER_MODES.CHORD && showChordFingeringGuide && note.finger
-                        ? note.finger
-                        : note.label,
-                  isRoot:
-                    viewerMode === FRETBOARD_VIEWER_MODES.CHORD
-                      ? Boolean(note.isRoot)
-                      : viewerMode === FRETBOARD_VIEWER_MODES.SCALE
-                        ? false
-                        : viewerNoteFilter !== "ALL" && note.noteName === viewerNoteFilter,
-                }))}
-                rootNote={viewerMode === FRETBOARD_VIEWER_MODES.CHORD || viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "" : viewerNoteFilter === "ALL" ? "" : viewerNoteFilter}
-                selectedNotes={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? ["__chord-shape-only__"] : viewerSelectedPitchClasses}
-                showFretNumbers
-                showFingering={viewerMode === FRETBOARD_VIEWER_MODES.CHORD && showChordFingeringGuide}
-                showOnlySelected
-                showStringNames
-                stringStates={viewerChordStringStates}
-              />
+              <div
+                aria-label={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? `${viewerMapTitle} ${viewerChordPositionLabel}. 좌우로 밀어 구간 변경` : undefined}
+                className={`viewerFretboardGestureSurface ${viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? `viewerFretboardGestureSurface--chord ${viewerChordSwipeFeedback ? `viewerFretboardGestureSurface--${viewerChordSwipeFeedback}` : ""}` : ""}`}
+                onKeyDown={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? handleChordFretboardKeyDown : undefined}
+                onPointerCancel={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? handleChordFretboardSwipeCancel : undefined}
+                onPointerDown={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? handleChordFretboardSwipeStart : undefined}
+                onPointerUp={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? handleChordFretboardSwipeEnd : undefined}
+                role={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "group" : undefined}
+                tabIndex={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? 0 : undefined}
+              >
+                <Fretboard
+                  className={`viewerSharedFretboard ${viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "allNotes" : ""} ${viewerMode === FRETBOARD_VIEWER_MODES.NOTE && viewerNoteFilter !== "ALL" ? "noteFilterActive" : ""} ${viewerShouldFitFretboard ? "fitRange" : ""}`}
+                  barres={viewerChordBarres}
+                  fretRange={viewerFretboardRange}
+                  mode={viewerMode}
+                  notes={viewerFretboardNotes.map((note) => ({
+                    ...note,
+                    label:
+                      viewerMode === FRETBOARD_VIEWER_MODES.NOTE
+                        ? note.noteName ?? getPitchClass(note.pitch) ?? note.label
+                        : viewerMode === FRETBOARD_VIEWER_MODES.CHORD && showChordFingeringGuide && note.finger
+                          ? note.finger
+                          : note.label,
+                    isRoot:
+                      viewerMode === FRETBOARD_VIEWER_MODES.CHORD
+                        ? Boolean(note.isRoot)
+                        : viewerMode === FRETBOARD_VIEWER_MODES.SCALE
+                          ? false
+                          : viewerNoteFilter !== "ALL" && note.noteName === viewerNoteFilter,
+                  }))}
+                  onNotePress={viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? handleViewerNotePress : undefined}
+                  rootNote={viewerMode === FRETBOARD_VIEWER_MODES.CHORD || viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "" : viewerNoteFilter === "ALL" ? "" : viewerNoteFilter}
+                  selectedNotes={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? ["__chord-shape-only__"] : viewerSelectedPitchClasses}
+                  showFretNumbers
+                  showFingering={viewerMode === FRETBOARD_VIEWER_MODES.CHORD && showChordFingeringGuide}
+                  showOnlySelected
+                  showStringNames
+                  stringStates={viewerChordStringStates}
+                />
+              </div>
             </section>
 
             <div className={`viewerModeControlSlot viewerModeControlSlot--${viewerMode}`}>
@@ -19928,19 +23600,6 @@ function App() {
               ) : viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
                 <div className="chordBuilderPanel chordBuilderPanel--composer" aria-label="코드 빌더">
                   <div className="chordBuilderPanelTitle">코드 빌더</div>
-
-                  <ChordBuilderOptionSection layout="cols-5" showTitle={isMobileLayout} title="구간">
-                    {CHORD_VIEWER_POSITIONS.map((position) => (
-                      <ChordBuilderChip
-                        disabled={!viewerChordPositionData[position.id]}
-                        key={position.id}
-                        onClick={() => setViewerChordPosition(position.id)}
-                        selected={viewerChordPosition === position.id}
-                      >
-                        {position.label}
-                      </ChordBuilderChip>
-                    ))}
-                  </ChordBuilderOptionSection>
 
                   <ChordBuilderOptionSection layout="cols-7" showTitle={isMobileLayout} title="루트">
                     {chordRootOptions.map((root) => (
@@ -20042,6 +23701,8 @@ function App() {
         <section className="standaloneMetronomePanel" aria-label="독립 메트로놈">
           <div className="metronomeAdvancedDock" aria-label="고급 메트로놈 상태 및 설정">
             <button
+              aria-controls="metronome-advanced-panel"
+              aria-expanded={metronomeAdvancedPanel === "automator"}
               className={`metronomeAdvancedSummary ${metronomeAdvancedPanel === "automator" ? "selected" : ""}`}
               onClick={() => toggleMetronomeAdvancedPanel("automator")}
               type="button"
@@ -20051,6 +23712,8 @@ function App() {
               <small>{automatorDetailLabel}</small>
             </button>
             <button
+              aria-controls="metronome-advanced-panel"
+              aria-expanded={metronomeAdvancedPanel === "tracker"}
               className={`metronomeAdvancedSummary ${metronomeAdvancedPanel === "tracker" ? "selected" : ""}`}
               onClick={() => toggleMetronomeAdvancedPanel("tracker")}
               type="button"
@@ -20079,6 +23742,7 @@ function App() {
               <section
                 className={`metronomeAdvancedPopover metronomeAdvancedPopover--${metronomeAdvancedPanel}`}
                 aria-label={`${metronomeAdvancedPanel === "automator" ? "Automator" : "Tracker"} 설정`}
+                id="metronome-advanced-panel"
               >
                 <div className="metronomeAdvancedPopoverTopbar">
                   <span>{metronomeAdvancedPanel === "automator" ? "AUTOMATOR" : "TRACKER"}</span>
@@ -20478,6 +24142,7 @@ function App() {
             반복 연습으로 지판 인식과 피킹 정확도를 키워보세요.
           </div>
 
+          {!isMobileLayout ? <>
           <div className="shooterDifficultyPanel" aria-label="슈팅게임 난이도">
             <div>
               <span>난이도</span>
@@ -20612,29 +24277,168 @@ function App() {
               마이크
             </button>
           </div>
+          </> : null}
 
           <div
-            className={`shooterArena ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapCenterEmblem ? "shooterArena--centerEmblem" : ""} shooterArena--effect-${selectedEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""}`}
-            onClick={handleShooterArenaClick}
+            className={`shooterArena ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapCenterEmblem ? "shooterArena--centerEmblem" : ""} shooterArena--aura-${selectedAuraEffect.id} shooterArena--floor-${selectedFloorEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""} ${gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterArena--lobby" : "shooterArena--session"}`}
+            onClick={(event) => {
+              if (shooterDifficultyMenuOpen) setShooterDifficultyMenuOpen(false);
+              handleShooterArenaClick(event);
+            }}
             ref={shooterArenaRef}
             style={selectedMapStyle}
           >
-            {selectedMapCenterEmblem ? (
-              <img
-                alt=""
-                aria-hidden="true"
-                className={`shooterCenterEmblem ${selectedMapCenterEmblem.className ?? ""}`}
-                draggable="false"
-                src={selectedMapCenterEmblem.image}
-              />
+            {isMobileLayout ? (
+              <>
+                <div
+                  className={`mobileShooterDifficultyControl ${shooterDifficultyMenuOpen ? "open" : ""} ${isShooterDifficultyLocked ? "locked" : ""}`}
+                  onClick={(event) => event.stopPropagation()}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") setShooterDifficultyMenuOpen(false);
+                  }}
+                >
+                  <button
+                    aria-expanded={shooterDifficultyMenuOpen}
+                    aria-haspopup="listbox"
+                    aria-label="슈팅게임 난이도"
+                    className={`mobileShooterDifficultyHud ${isShooterDifficultyLocked ? "locked" : ""}`}
+                    disabled={isShooterDifficultyLocked}
+                    onClick={() => setShooterDifficultyMenuOpen((isOpen) => !isOpen)}
+                    title={isShooterDifficultyLocked ? "게임 중에는 난이도를 변경할 수 없습니다." : "난이도 선택"}
+                    type="button"
+                  >
+                    <Shield aria-hidden="true" size={20} strokeWidth={1.7} />
+                    <span>
+                      <small>난이도</small>
+                      <strong>{shooterDifficultyLabel}</strong>
+                    </span>
+                    <ChevronDown aria-hidden="true" className="mobileShooterDifficultyChevron" size={11} strokeWidth={2.2} />
+                  </button>
+                  {shooterDifficultyMenuOpen && !isShooterDifficultyLocked ? (
+                    <div
+                      aria-label="슈팅게임 난이도 목록"
+                      className="mobileShooterDifficultyMenu"
+                      role="listbox"
+                    >
+                      {SHOOTER_DIFFICULTY_OPTIONS.map((option) => (
+                        <button
+                          aria-selected={shooterDifficulty === option.id}
+                          className={shooterDifficulty === option.id ? "selected" : ""}
+                          key={option.id}
+                          onClick={() => {
+                            setShooterDifficulty(option.id);
+                            setShooterDifficultyMenuOpen(false);
+                          }}
+                          role="option"
+                          title={option.hint}
+                          type="button"
+                        >
+                          <span>{option.label}</span>
+                          <i aria-hidden="true">{shooterDifficulty === option.id ? "✓" : ""}</i>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="mobileShooterTargetHud" aria-live="polite">
+                  <span>목표 음</span>
+                  <strong>{shooterGuidePitch || "대기"}</strong>
+                  <small>
+                    {shooterGuidePitch
+                      ? getSolfege(shooterGuidePitch) || getPitchClass(shooterGuidePitch)
+                      : "WAITING"}
+                  </small>
+                  <i className="mobileShooterWaveform" aria-hidden="true">
+                    {Array.from({ length: 7 }, (_, index) => <b key={index} />)}
+                  </i>
+                </div>
+
+                <button
+                  aria-label={streamRef.current ? "슈팅게임 마이크 켜짐" : "슈팅게임 마이크 켜기"}
+                  aria-pressed={Boolean(streamRef.current)}
+                  className={`mobileShooterMicHud ${streamRef.current ? "selected" : ""}`}
+                  onClick={startShooterMic}
+                  type="button"
+                >
+                  <Mic aria-hidden="true" size={27} strokeWidth={1.8} />
+                  <span>{streamRef.current ? "ON" : "MIC"}</span>
+                </button>
+
+                <div className="mobileShooterScoreHud" aria-label="슈팅게임 점수와 레벨">
+                  <div className="mobileShooterBestScore">
+                    <span>BEST SCORE</span>
+                    <strong>{shooterRecords.best.score.toLocaleString()}</strong>
+                  </div>
+                  <div>
+                    <span>SCORE</span>
+                    <strong>{score.toLocaleString()}</strong>
+                  </div>
+                  <div>
+                    <span>COMBO</span>
+                    <strong>{combo}</strong>
+                  </div>
+                  <div>
+                    <span>LEVEL</span>
+                    <strong>{shooterLevel.name.replace("레벨 ", "")}</strong>
+                    <small>{shooterLevel.phaseLabel}</small>
+                  </div>
+                </div>
+              </>
             ) : null}
 
-            <div className="shooterBestHud" aria-label="슈팅게임 최고 기록">
+            {selectedMapCenterEmblem ? (
+              <span
+                aria-hidden="true"
+                className={`shooterCenterEmblem ${selectedMapCenterEmblem.className ?? ""}`}
+                style={selectedMapCenterEmblem.arenaBlendMode
+                  ? { mixBlendMode: selectedMapCenterEmblem.arenaBlendMode }
+                  : undefined}
+              >
+                <img
+                  alt=""
+                  draggable="false"
+                  src={getShooterEmblemImage(selectedMapCenterEmblem, "gameplay")}
+                />
+              </span>
+            ) : null}
+
+            {isMobileLayout && shooterGuitarPickerOpen ? (
+              <div className="shooterSkinArenaLoadoutInfo" aria-label="현재 라이브 로드아웃">
+                <div className="shooterSkinArenaLoadoutSummary">
+                  <small><i aria-hidden="true" />LIVE LOADOUT</small>
+                  <strong>{selectedGuitar.title}</strong>
+                  <em>{selectedGuitarRarity.label} · {selectedEmblem.label}</em>
+                </div>
+                <div className="shooterSkinArenaEquipment">
+                  <span className="shooterSkinArenaEquipmentRow">
+                    <i className="shooterSkinArenaEquipmentIcon" aria-hidden="true">
+                      {selectedPick.assetSrc ? <img alt="" draggable="false" src={selectedPick.assetSrc} /> : "—"}
+                    </i>
+                    <span><small>PICK</small><strong>{selectedPick.label}</strong></span>
+                  </span>
+                  <span className="shooterSkinArenaEquipmentRow">
+                    <i className="shooterSkinArenaEquipmentIcon" aria-hidden="true">
+                      {selectedAuraEffect.asset ? <img alt="" draggable="false" src={selectedAuraEffect.asset} /> : "—"}
+                    </i>
+                    <span><small>AURA</small><strong>{selectedAuraEffect.label}</strong></span>
+                  </span>
+                  <span className="shooterSkinArenaEquipmentRow">
+                    <i className="shooterSkinArenaEquipmentIcon" aria-hidden="true">
+                      {selectedFloorEffect.asset ? <img alt="" draggable="false" src={selectedFloorEffect.asset} /> : "—"}
+                    </i>
+                    <span><small>FLOOR</small><strong>{selectedFloorEffect.label}</strong></span>
+                  </span>
+                </div>
+              </div>
+            ) : null}
+
+            {!isMobileLayout ? <div className="shooterBestHud" aria-label="슈팅게임 최고 기록">
               <span>BEST SCORE {shooterRecords.best.score.toLocaleString()}</span>
               <span>BEST COMBO {shooterRecords.best.combo}</span>
-            </div>
+            </div> : null}
 
-            <div className="shooterGameHud" aria-label="슈팅게임 현재 상태">
+            {!isMobileLayout ? <div className="shooterGameHud" aria-label="슈팅게임 현재 상태">
               <div>
                 <span>LEVEL</span>
                 <strong>{shooterLevel.name}</strong>
@@ -20648,7 +24452,7 @@ function App() {
                 <span>COMBO</span>
                 <strong>{combo}</strong>
               </div>
-            </div>
+            </div> : null}
 
             {shooterTargets.map((target) => {
               const targetDetail = target.detail ?? getShooterNoteDetail(target.note);
@@ -20876,29 +24680,21 @@ function App() {
               </svg>
             ) : null}
 
-            <div className={`guitarPlayer guitarPlayer--${selectedGuitar.id} guitarPlayer--effect-${selectedEffect.id} ${projectiles.length > 0 ? "shooting" : ""}`} ref={shooterGuitarPlayerRef} style={shooterMotion}>
+            <div className={`guitarPlayer guitarPlayer--${selectedGuitar.id} guitarPlayer--aura-${selectedAuraEffect.id} guitarPlayer--floor-${selectedFloorEffect.id} ${projectiles.length > 0 ? "shooting" : ""}`} ref={shooterGuitarPlayerRef} style={shooterMotion}>
               {selectedEffectFloorLayers.map((layer) => (
-                <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true">
-                  <img alt="" draggable="false" src={layer.image} />
+                <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true" style={getShooterEffectLayerStyle(layer)}>
+                  <img alt="" draggable="false" src={layer.asset} />
                 </span>
               ))}
-              <span className="guitarPlayerSkinFloor" aria-hidden="true" />
-              <span className="guitarPlayerSkinGlow" aria-hidden="true" />
               {selectedEffectBackLayers.map((layer) => (
-                <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true">
-                  <img alt="" draggable="false" src={layer.image} />
-                </span>
-              ))}
-              <div className="guitarPlayerAura" aria-hidden="true" />
-              {selectedEffectBodyLayers.map((layer) => (
-                <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true">
-                  <img alt="" draggable="false" src={layer.image} />
+                <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true" style={getShooterEffectLayerStyle(layer)}>
+                  <img alt="" draggable="false" src={layer.asset} />
                 </span>
               ))}
               <GuitarAssetSvg variant={selectedGuitar} className="guitarPlayerAsset" compact />
               {selectedEffectFrontLayers.map((layer) => (
-                <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true">
-                  <img alt="" draggable="false" src={layer.image} />
+                <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true" style={getShooterEffectLayerStyle(layer)}>
+                  <img alt="" draggable="false" src={layer.asset} />
                 </span>
               ))}
               <span className="guitarPlayerMuzzle" aria-hidden="true" />
@@ -20908,7 +24704,7 @@ function App() {
                 <i className={index < shooterLives ? "active" : ""} key={index}>♥</i>
               ))}
             </div>
-            {gameState !== GAME_STATES.PLAYING && (
+            {gameState !== GAME_STATES.PLAYING && !(isMobileLayout && shooterGuitarPickerOpen) && (
               <div className={`shooterCenterStatus ${gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterCenterStatus--startMenu" : ""} ${gameState === GAME_STATES.PAUSED ? "shooterCenterStatus--pauseMenu" : ""} ${classNameFromLabel(feedback)} ${gameState === GAME_STATES.GAMEOVER ? "gameOver" : ""}`}>
                 {gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? (
                   <div className="shooterStartPanel" aria-label="슈팅게임 시작 메뉴">
@@ -21069,12 +24865,76 @@ function App() {
             )}
           </div>
 
-          {shooterGuitarPickerOpen && (
+          {shooterGuitarPickerOpen && typeof document !== "undefined" ? createPortal(
             <div
-              className="shooterGuitarPickerOverlay"
+              className={`shooterGuitarPickerOverlay ${isMobileLayout ? "shooterGuitarPickerOverlay--arenaPreview" : ""}`}
               onClick={() => setShooterGuitarPickerOpen(false)}
               role="presentation"
             >
+              <div
+                className={`shooterSkinConfigurator ${isMobileLayout ? "shooterSkinConfigurator--arenaPreview" : ""}`}
+                onClick={(event) => event.stopPropagation()}
+              >
+                {!isMobileLayout ? (
+                <section className="shooterSkinLivePreview" aria-label="현재 슈팅게임 스킨 미리보기">
+                  <div className="shooterSkinLivePreviewHeader">
+                    <span><i aria-hidden="true" />LIVE LOADOUT</span>
+                    <div>
+                      <strong>{selectedGuitar.title}</strong>
+                      <em>{selectedGuitarRarity.label}</em>
+                    </div>
+                  </div>
+                  <div className="shooterSkinLiveShowcase">
+                    <div className="shooterSkinLiveEmblemBlock">
+                      <span className="shooterSkinLiveEmblem" aria-hidden="true">
+                        {selectedMapCenterEmblem ? (
+                          <img
+                            alt=""
+                            draggable="false"
+                            src={getShooterEmblemImage(selectedMapCenterEmblem, "gameplay")}
+                          />
+                        ) : null}
+                      </span>
+                      <small>EMBLEM</small>
+                      <strong>{selectedEmblem.label}</strong>
+                    </div>
+                    <div className="shooterSkinLivePlayer" aria-hidden="true">
+                      <div className="shooterSkinLivePlayerInner">
+                        {selectedEffectFloorLayers.map((layer) => (
+                          <span className={getShooterEffectLayerClassName(layer)} key={`live-${layer.key}`} style={getShooterEffectLayerStyle(layer)}>
+                            <img alt="" draggable="false" src={layer.asset} />
+                          </span>
+                        ))}
+                        {selectedEffectBackLayers.map((layer) => (
+                          <span className={getShooterEffectLayerClassName(layer)} key={`live-${layer.key}`} style={getShooterEffectLayerStyle(layer)}>
+                            <img alt="" draggable="false" src={layer.asset} />
+                          </span>
+                        ))}
+                        <GuitarAssetSvg variant={selectedGuitar} className="shooterSkinLiveGuitar" compact />
+                        {selectedEffectFrontLayers.map((layer) => (
+                          <span className={getShooterEffectLayerClassName(layer)} key={`live-${layer.key}`} style={getShooterEffectLayerStyle(layer)}>
+                            <img alt="" draggable="false" src={layer.asset} />
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="shooterSkinLiveEquipment">
+                      <div className="shooterSkinLiveEquipmentRow">
+                        <span className="shooterSkinLiveEquipmentIcon">
+                          {selectedAuraEffect.asset ? <img alt="" draggable="false" src={selectedAuraEffect.asset} /> : "—"}
+                        </span>
+                        <span><small>AURA</small><strong>{selectedAuraEffect.label}</strong></span>
+                      </div>
+                      <div className="shooterSkinLiveEquipmentRow">
+                        <span className="shooterSkinLiveEquipmentIcon">
+                          {selectedFloorEffect.asset ? <img alt="" draggable="false" src={selectedFloorEffect.asset} /> : "—"}
+                        </span>
+                        <span><small>FLOOR</small><strong>{selectedFloorEffect.label}</strong></span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+                ) : null}
               <div
                 aria-label="슈팅게임 스킨 설정"
                 aria-modal="true"
@@ -21173,19 +25033,19 @@ function App() {
                     </div>
                   ) : shooterSkinTab === "map" ? (
                     <div className="shooterSkinOptionStack" aria-label="슈팅 맵 선택">
-                      {defaultShooterMapOption ? (
-                        <button
-                          aria-pressed={selectedMap.id === defaultShooterMapOption.id}
-                          className={`shooterMapCard shooterMapCard--default shooterSkinDefaultButton ${
-                            selectedMap.id === defaultShooterMapOption.id ? "selected" : ""
-                          }`}
-                          onClick={() => applyShooterMap(defaultShooterMapOption.id)}
-                          type="button"
-                        >
-                          <strong>{defaultShooterMapOption.label}</strong>
-                        </button>
-                      ) : null}
                       <div className="shooterMapPickerGrid">
+                        {defaultShooterMapOption ? (
+                          <button
+                            aria-pressed={selectedMap.id === defaultShooterMapOption.id}
+                            className={`shooterMapCard shooterMapCard--default shooterSkinDefaultButton ${
+                              selectedMap.id === defaultShooterMapOption.id ? "selected" : ""
+                            }`}
+                            onClick={() => applyShooterMap(defaultShooterMapOption.id)}
+                            type="button"
+                          >
+                            <strong>{defaultShooterMapOption.label}</strong>
+                          </button>
+                        ) : null}
                         {shooterMapPickerOptions.map((map) => {
                           const isSelected = selectedMap.id === map.id;
                           const mapStyle = getShooterMapCssVars(map);
@@ -21215,32 +25075,35 @@ function App() {
                     </div>
                   ) : shooterSkinTab === "emblem" ? (
                     <div className="shooterSkinOptionStack" aria-label="중앙 엠블럼 선택">
-                      {defaultShooterEmblemOption ? (
-                        <button
-                          aria-pressed={selectedEmblem.id === defaultShooterEmblemOption.id}
-                          className={`shooterSkinOptionCard shooterSkinOptionCard--emblem shooterSkinDefaultButton ${
-                            selectedEmblem.id === defaultShooterEmblemOption.id ? "selected" : ""
-                          }`}
-                          onClick={() => applyShooterEmblem(defaultShooterEmblemOption.id)}
-                          type="button"
-                        >
-                          <strong>{defaultShooterEmblemOption.label}</strong>
-                        </button>
-                      ) : null}
                       <div className="shooterSkinOptionGrid shooterSkinOptionGrid--emblems">
+                        {defaultShooterEmblemOption ? (
+                          <button
+                            aria-pressed={selectedEmblem.id === defaultShooterEmblemOption.id}
+                            className={`shooterSkinOptionCard shooterSkinOptionCard--emblem shooterSkinDefaultButton ${
+                              selectedEmblem.id === defaultShooterEmblemOption.id ? "selected" : ""
+                            }`}
+                            onClick={() => applyShooterEmblem(defaultShooterEmblemOption.id)}
+                            type="button"
+                          >
+                            <strong>{defaultShooterEmblemOption.label}</strong>
+                          </button>
+                        ) : null}
                         {shooterEmblemPickerOptions.map((emblem) => {
                           const isSelected = selectedEmblem.id === emblem.id;
+                          const showcaseImage = getShooterEmblemImage(emblem, "showcase");
                           return (
                             <button
                               aria-pressed={isSelected}
-                              className={`shooterSkinOptionCard shooterSkinOptionCard--emblem ${isSelected ? "selected" : ""}`}
+                              className={`shooterSkinOptionCard shooterSkinOptionCard--emblem ${
+                                emblem.pickerTone ? `shooterSkinOptionCard--tone-${emblem.pickerTone}` : ""
+                              } ${isSelected ? "selected" : ""}`}
                               key={emblem.id}
                               onClick={() => applyShooterEmblem(emblem.id)}
                               type="button"
                             >
-                              {emblem.image ? (
+                              {showcaseImage ? (
                                 <span className="shooterEmblemPreview" aria-hidden="true">
-                                  <img alt="" draggable="false" src={emblem.image} />
+                                  <img alt="" draggable="false" src={showcaseImage} />
                                 </span>
                               ) : null}
                               <strong>{emblem.label}</strong>
@@ -21253,53 +25116,71 @@ function App() {
                     </div>
                   ) : (
                     <div className="shooterEffectPickerList" aria-label="슈팅 기타 효과 선택">
-                      {shooterEffectSections.map((section) => (
-                        <section className="shooterEffectSection" key={section.id}>
-                          <div className="shooterSkinSectionHeader">
-                            <span>{section.label}</span>
-                          </div>
-                          <div className="shooterSkinOptionGrid shooterSkinOptionGrid--effects">
-                            {section.options.map((effect) => {
-                              const isSelected = selectedEffect.id === effect.id;
-                              return (
-                                <button
-                                  aria-pressed={isSelected}
-                                  className={`shooterSkinOptionCard shooterSkinOptionCard--effect ${
-                                    effect.id === "none" ? "shooterSkinOptionCard--effectNone" : ""
-                                  } ${isSelected ? "selected" : ""}`}
-                                  key={effect.id}
-                                  onClick={() => applyShooterEffect(effect.id)}
-                                  type="button"
-                                >
-                                  {effect.id !== "none" ? (
-                                    <span
-                                      className={`shooterEffectPreview shooterEffectPreview--${effect.id} shooterEffectPreview--${effect.type} ${
-                                        effect.image ? "shooterEffectPreview--image" : ""
-                                      }`}
-                                      aria-hidden="true"
-                                    >
-                                      {effect.image ? <img alt="" draggable="false" src={effect.image} /> : null}
-                                    </span>
-                                  ) : null}
-                                  <strong>{effect.label}</strong>
-                                  {effect.id !== "none" ? (
-                                    <>
-                                      <small>{effect.description}</small>
-                                      <em>{isSelected ? "선택됨" : "선택"}</em>
-                                    </>
-                                  ) : null}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </section>
-                      ))}
+                      {shooterEffectSections.map((section) => {
+                        const selectedSlotEffect = section.id === SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR
+                          ? selectedFloorEffect
+                          : selectedAuraEffect;
+                        return (
+                          <section className={`shooterEffectSection shooterEffectSection--${section.id}`} key={section.id}>
+                            <div className="shooterSkinSectionHeader">
+                              <span>{section.label.split(" · ")[0]}</span>
+                              <em>{selectedSlotEffect.label}</em>
+                            </div>
+                            <p className="shooterEffectSectionDescription">{section.description}</p>
+                            <div className="shooterSkinOptionGrid shooterSkinOptionGrid--effects">
+                              {section.options.map((effect) => {
+                                const isSelected = selectedSlotEffect.id === effect.id;
+                                const effectPreviewLayers = getShooterEffectLayers(effect);
+                                return (
+                                  <button
+                                    aria-pressed={isSelected}
+                                    className={`shooterSkinOptionCard shooterSkinOptionCard--effect ${
+                                      effect.id === "none" ? "shooterSkinOptionCard--effectNone" : ""
+                                    } ${isSelected ? "selected" : ""}`}
+                                    key={effect.id}
+                                    onClick={() => applyShooterEffect(section.id, effect.id)}
+                                    type="button"
+                                  >
+                                    {effect.id !== "none" ? (
+                                      <span
+                                        className={`shooterEffectPreview shooterEffectPreview--${effect.id} shooterEffectPreview--${effect.type} ${
+                                          effect.asset ? "shooterEffectPreview--image" : ""
+                                        } ${effectPreviewLayers.some((layer) => layer.animation) ? "shooterEffectPreview--animated" : ""}`}
+                                        aria-hidden="true"
+                                      >
+                                        {effectPreviewLayers.map((layer) => (
+                                          <span
+                                            className={getShooterEffectPreviewLayerClassName(layer)}
+                                            key={`preview-${layer.key}`}
+                                            style={getShooterEffectPreviewLayerStyle(layer)}
+                                          >
+                                            <img alt="" draggable="false" src={layer.asset} />
+                                          </span>
+                                        ))}
+                                      </span>
+                                    ) : null}
+                                    <strong>{effect.label}</strong>
+                                    {effect.id !== "none" ? (
+                                      <>
+                                        <small>{effect.description}</small>
+                                        <em>{isSelected ? "선택됨" : "선택"}</em>
+                                      </>
+                                    ) : null}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </section>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
               </div>
-            </div>
-          )}
+              </div>
+            </div>,
+            document.body,
+          ) : null}
 
         </section>
       ) : selectedCategory.id === "rhythm" ? (
