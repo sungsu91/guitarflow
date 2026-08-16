@@ -4,7 +4,13 @@ import { APP_LAUNCH_TIMINGS } from "./appLaunch";
 const GUITAR_STRING_COUNT = 6;
 const BRAND_WORDS = ["JUST", "PLAY"];
 
-export default function SplashIntro({ onComplete, readyPromise }) {
+export default function SplashIntro({
+  exitMs = APP_LAUNCH_TIMINGS.exitMs,
+  fallbackMs = APP_LAUNCH_TIMINGS.fallbackMs,
+  minimumIntroMs = APP_LAUNCH_TIMINGS.minimumIntroMs,
+  onComplete,
+  readyPromise,
+}) {
   const [phase, setPhase] = useState("entering");
 
   useEffect(() => {
@@ -13,11 +19,13 @@ export default function SplashIntro({ onComplete, readyPromise }) {
     let fallbackTimerId = null;
     let minimumTimerId = null;
 
-    const minimumIntro = new Promise((resolve) => {
-      minimumTimerId = window.setTimeout(resolve, APP_LAUNCH_TIMINGS.minimumIntroMs);
-    });
+    const minimumIntro = minimumIntroMs > 0
+      ? new Promise((resolve) => {
+        minimumTimerId = window.setTimeout(resolve, minimumIntroMs);
+      })
+      : Promise.resolve();
     const fallback = new Promise((resolve) => {
-      fallbackTimerId = window.setTimeout(() => resolve("fallback"), APP_LAUNCH_TIMINGS.fallbackMs);
+      fallbackTimerId = window.setTimeout(() => resolve("fallback"), fallbackMs);
     });
     const appReady = Promise.resolve(readyPromise).then(
       () => "ready",
@@ -30,7 +38,7 @@ export default function SplashIntro({ onComplete, readyPromise }) {
         console.warn("JUST PLAY launch fallback released the splash before the app-ready signal.");
       }
       setPhase("exiting");
-      exitTimerId = window.setTimeout(onComplete, APP_LAUNCH_TIMINGS.exitMs);
+      exitTimerId = window.setTimeout(onComplete, exitMs);
     });
 
     return () => {
@@ -39,7 +47,7 @@ export default function SplashIntro({ onComplete, readyPromise }) {
       if (fallbackTimerId !== null) window.clearTimeout(fallbackTimerId);
       if (exitTimerId !== null) window.clearTimeout(exitTimerId);
     };
-  }, [onComplete, readyPromise]);
+  }, [exitMs, fallbackMs, minimumIntroMs, onComplete, readyPromise]);
 
   return (
     <section

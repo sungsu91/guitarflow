@@ -4,15 +4,23 @@ import { FolderOpen, Mic, Pause, Play, RotateCcw, Save, Scissors, Square, Trash2
 import { formatBackingLoopTime } from "../backing-loop/backingLoopUtils";
 import useBackingLoop from "../backing-loop/useBackingLoop";
 
-function BackingLoopHeader({ controller }) {
+function BackingLoopHeader({ controller, mobile = false }) {
   const showsTotalDuration = controller.hasRecording
     && !["requesting", "armed", "recording", "processing", "trimming", "applying"].includes(controller.phase);
-  const timeText = showsTotalDuration
-    ? `${formatBackingLoopTime(controller.currentTimeMs)} / ${formatBackingLoopTime(controller.durationMs)}`
-    : formatBackingLoopTime(controller.displayTimeMs);
+  const timeText = mobile
+    ? formatBackingLoopTime(controller.displayTimeMs)
+    : showsTotalDuration
+      ? `${formatBackingLoopTime(controller.currentTimeMs)} / ${formatBackingLoopTime(controller.durationMs)}`
+      : formatBackingLoopTime(controller.displayTimeMs);
   return (
     <header className="backingLoopHeader">
       <strong className="backingLoopTitle" title={controller.title}>{controller.title}</strong>
+      {mobile ? (
+        <i
+          aria-hidden="true"
+          className={`backingLoopRecLamp ${controller.isRecording ? "is-active" : ""}`}
+        />
+      ) : null}
       <span
         aria-label={controller.status.label}
         aria-live="polite"
@@ -23,6 +31,19 @@ function BackingLoopHeader({ controller }) {
       </span>
       <span className="backingLoopScreenReaderStatus">{controller.status.label}</span>
     </header>
+  );
+}
+
+function MobileBackingLoopHardware() {
+  return (
+    <div aria-hidden="true" className="backingLoopRecorderHardware">
+      <i className="backingLoopScrew backingLoopScrew--topLeft" />
+      <i className="backingLoopScrew backingLoopScrew--topRight" />
+      <i className="backingLoopScrew backingLoopScrew--bottomLeft" />
+      <i className="backingLoopScrew backingLoopScrew--bottomRight" />
+      <i className="backingLoopGrille backingLoopGrille--left" />
+      <i className="backingLoopGrille backingLoopGrille--right" />
+    </div>
   );
 }
 
@@ -63,6 +84,29 @@ function BackingLoopProgress({ controller }) {
         type="range"
         value={positionMs}
       />
+    </div>
+  );
+}
+
+function MobileBackingLoopDisplay({ controller }) {
+  const currentTime = formatBackingLoopTime(controller.currentTimeMs);
+  const totalTime = formatBackingLoopTime(controller.durationMs);
+  const statusText = !controller.hasRecording && controller.phase === "idle"
+    ? "NO LOOP LOADED"
+    : controller.status.label;
+
+  return (
+    <div className={`backingLoopDeckDisplay backingLoopDeckDisplay--${controller.status.tone}`}>
+      <div className="backingLoopDeckTimeline">
+        <span aria-hidden="true">{currentTime}</span>
+        <BackingLoopProgress controller={controller} />
+        <span aria-hidden="true">{totalTime}</span>
+      </div>
+      <div aria-hidden="true" className="backingLoopCassetteWindow">
+        <i className="backingLoopDeckReel backingLoopDeckReel--left" />
+        <strong className="backingLoopDeckStatus">{statusText}</strong>
+        <i className="backingLoopDeckReel backingLoopDeckReel--right" />
+      </div>
     </div>
   );
 }
@@ -588,8 +632,9 @@ function MobileBackingLoop({ controller }) {
       data-backing-loop-phase={controller.phase}
       title={controller.notice}
     >
-      <BackingLoopHeader controller={controller} />
-      <BackingLoopProgress controller={controller} />
+      <MobileBackingLoopHardware />
+      <BackingLoopHeader controller={controller} mobile />
+      <MobileBackingLoopDisplay controller={controller} />
       <BackingLoopMainControls controller={controller} mobile />
       <BackingLoopStorageControls controller={controller} mobile />
     </section>

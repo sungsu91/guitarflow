@@ -46,6 +46,580 @@
   --riff-dropdown-state-transition: 135ms;
 }
 
+/* Utility menu redesign: shared structure, theme-driven card surfaces. */
+html body .app.app.app .utilityMenuPanel {
+  --utility-menu-panel-border: rgba(232, 187, 101, 0.72);
+  --utility-menu-panel-outline: rgba(217, 170, 85, 0.2);
+  --utility-menu-panel-bg:
+    radial-gradient(circle at 85% 0%, rgba(217, 170, 85, 0.1), transparent 30%),
+    linear-gradient(180deg, rgba(27, 28, 27, 0.99), rgba(11, 12, 12, 0.99));
+  --utility-menu-section-bg: rgba(255, 255, 255, 0.018);
+  --utility-menu-section-border: rgba(217, 170, 85, 0.24);
+  --utility-menu-card-bg:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.012)),
+    rgba(17, 17, 16, 0.96);
+  --utility-menu-card-hover:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.105), rgba(255, 255, 255, 0.018)),
+    rgba(19, 18, 16, 0.98);
+  --utility-menu-card-border: rgba(232, 210, 168, 0.16);
+  --utility-menu-card-border-hover: rgba(241, 202, 122, 0.44);
+  --utility-menu-card-shadow: 0 7px 16px rgba(0, 0, 0, 0.18);
+  --utility-menu-text: #fff5df;
+  --utility-menu-muted: rgba(235, 216, 178, 0.7);
+  --utility-menu-accent: #e1b667;
+  --utility-menu-icon-bg: rgba(217, 170, 85, 0.09);
+  --utility-menu-icon-border: rgba(225, 182, 103, 0.42);
+  --utility-menu-selected-bg:
+    linear-gradient(145deg, rgba(217, 170, 85, 0.22), rgba(217, 170, 85, 0.055)),
+    rgba(24, 21, 16, 0.98);
+  --utility-menu-selected-border: rgba(243, 205, 132, 0.82);
+  --utility-menu-selected-shadow:
+    0 0 0 1px rgba(217, 170, 85, 0.12),
+    0 8px 18px rgba(0, 0, 0, 0.2);
+  right: 10px !important;
+  bottom: calc(max(10px, env(safe-area-inset-bottom)) + 76px) !important;
+  width: min(328px, calc(100vw - 20px)) !important;
+  max-width: 328px !important;
+  height: auto !important;
+  max-height: calc(100dvh - 100px) !important;
+  padding: 9px !important;
+  border: 2px solid var(--utility-menu-panel-border) !important;
+  border-radius: 21px !important;
+  background: var(--utility-menu-panel-bg) !important;
+  box-shadow:
+    0 0 0 2px var(--utility-menu-panel-outline),
+    0 22px 48px rgba(0, 0, 0, 0.44),
+    inset 0 0 0 1px rgba(255, 237, 191, 0.08),
+    inset 0 1px 0 rgba(255, 244, 210, 0.08) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(217, 170, 85, 0.36) transparent;
+}
+
+html body .app.app.app.theme-light .utilityMenuPanel.utilityMenuPanel {
+  --utility-menu-panel-border: rgba(117, 82, 35, 0.72);
+  --utility-menu-panel-outline: rgba(117, 82, 35, 0.16);
+  --utility-menu-panel-bg:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.92), transparent 36%),
+    linear-gradient(180deg, #fbf8f1 0%, #eee7da 100%);
+  --utility-menu-section-bg: rgba(255, 255, 255, 0.42);
+  --utility-menu-section-border: rgba(159, 122, 62, 0.22);
+  --utility-menu-card-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.2)),
+    #f7f2e9;
+  --utility-menu-card-hover:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.26)),
+    #eee5d6;
+  --utility-menu-card-border: rgba(127, 103, 67, 0.2);
+  --utility-menu-card-border-hover: rgba(164, 116, 45, 0.52);
+  --utility-menu-card-shadow: 0 6px 14px rgba(83, 64, 37, 0.08);
+  --utility-menu-text: #1b1c1d;
+  --utility-menu-muted: #746b5d;
+  --utility-menu-accent: #9a6b27;
+  --utility-menu-icon-bg:
+    linear-gradient(180deg, rgba(255, 252, 239, 0.92), rgba(222, 200, 158, 0.38)),
+    #eee0c5;
+  --utility-menu-icon-border: rgba(170, 123, 49, 0.42);
+  --utility-menu-selected-bg:
+    linear-gradient(180deg, rgba(255, 252, 242, 0.94), rgba(232, 213, 180, 0.52)),
+    #f4ead8;
+  --utility-menu-selected-border: rgba(174, 122, 41, 0.78);
+  --utility-menu-selected-shadow:
+    0 0 0 1px rgba(185, 133, 52, 0.1),
+    0 8px 18px rgba(91, 67, 31, 0.11);
+  border-color: var(--utility-menu-panel-border) !important;
+  box-shadow:
+    0 0 0 2px var(--utility-menu-panel-outline),
+    0 22px 46px rgba(56, 43, 25, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.64),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuHeader {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  min-height: 46px !important;
+  margin: 0 0 7px !important;
+  padding: 6px 7px 6px 11px !important;
+  border: 1px solid var(--utility-menu-section-border) !important;
+  border-radius: 14px !important;
+  background: var(--utility-menu-section-bg) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuHeader > div {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 8px !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuHeader span {
+  color: var(--utility-menu-accent) !important;
+  font-size: 9px !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.2em !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuHeader strong {
+  margin: 0 !important;
+  color: var(--utility-menu-text) !important;
+  font-size: 18px !important;
+  font-weight: 950 !important;
+  letter-spacing: -0.035em !important;
+  line-height: 1 !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuHeader > button {
+  display: grid !important;
+  place-items: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  border: 1px solid var(--utility-menu-card-border) !important;
+  border-radius: 11px !important;
+  background: var(--utility-menu-card-bg) !important;
+  color: var(--utility-menu-text) !important;
+  box-shadow: none !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuHeader > button:hover,
+html body .app.app.app .utilityMenuPanel .utilityMenuHeader > button:focus-visible {
+  border-color: var(--utility-menu-card-border-hover) !important;
+  background: var(--utility-menu-card-hover) !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityThemePanel {
+  display: grid !important;
+  gap: 7px !important;
+  margin: 0 0 7px !important;
+  padding: 9px !important;
+  border: 1px solid var(--utility-menu-section-border) !important;
+  border-radius: 14px !important;
+  background: var(--utility-menu-section-bg) !important;
+  box-shadow: none !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityThemeHeader strong {
+  color: var(--utility-menu-text) !important;
+  font-size: 14px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityThemeHeader p {
+  margin: 4px 0 0 !important;
+  color: var(--utility-menu-muted) !important;
+  font-size: 9px !important;
+  font-weight: 750 !important;
+  line-height: 1.2 !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityThemeOptions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityThemeOptions > button {
+  display: grid !important;
+  grid-template-columns: 24px minmax(0, 1fr) !important;
+  align-items: center !important;
+  align-content: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  min-height: 46px !important;
+  padding: 6px 8px !important;
+  border: 1px solid var(--utility-menu-card-border) !important;
+  border-radius: 11px !important;
+  background: var(--utility-menu-card-bg) !important;
+  color: var(--utility-menu-text) !important;
+  box-shadow: var(--utility-menu-card-shadow) !important;
+  text-align: left !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityThemeOptions > button:hover,
+html body .app.app.app .utilityMenuPanel .utilityThemeOptions > button:focus-visible {
+  border-color: var(--utility-menu-card-border-hover) !important;
+  background: var(--utility-menu-card-hover) !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityThemeOptions > button.selected {
+  border-color: var(--utility-menu-selected-border) !important;
+  background: var(--utility-menu-selected-bg) !important;
+  color: var(--utility-menu-text) !important;
+  box-shadow: var(--utility-menu-selected-shadow) !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityThemeOptions .utilityThemeIcon {
+  display: grid !important;
+  place-items: center !important;
+  width: 24px !important;
+  height: 24px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  color: var(--utility-menu-accent) !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityThemeOptions .utilityThemeIcon svg {
+  width: 17px !important;
+  height: 17px !important;
+  stroke-width: 1.9 !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityThemeOptions > button strong,
+html body .app.app.app.theme-light .utilityMenuPanel .utilityThemeOptions > button strong,
+html body .app.app.app.theme-light .utilityMenuPanel .utilityThemeOptions > button.selected strong {
+  color: var(--utility-menu-text) !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuList {
+  display: grid !important;
+  gap: 6px !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuList > .utilityMenuItem,
+html body .app.app.app .utilityMenuPanel .utilitySoundDetails > summary {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 36px minmax(0, 1fr) 18px !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 60px !important;
+  min-height: 60px !important;
+  max-height: 60px !important;
+  padding: 8px 10px !important;
+  border: 1px solid var(--utility-menu-card-border) !important;
+  border-radius: 13px !important;
+  background: var(--utility-menu-card-bg) !important;
+  color: var(--utility-menu-text) !important;
+  box-shadow: var(--utility-menu-card-shadow) !important;
+  text-align: left !important;
+  text-decoration: none !important;
+  transform: none !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuList > .utilityMenuItem:hover,
+html body .app.app.app .utilityMenuPanel .utilityMenuList > .utilityMenuItem:focus-visible,
+html body .app.app.app .utilityMenuPanel .utilitySoundDetails > summary:hover,
+html body .app.app.app .utilityMenuPanel .utilitySoundDetails > summary:focus-visible {
+  border-color: var(--utility-menu-card-border-hover) !important;
+  background: var(--utility-menu-card-hover) !important;
+  box-shadow:
+    var(--utility-menu-card-shadow),
+    0 0 0 1px rgba(217, 170, 85, 0.06) !important;
+  transform: none !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuList > .utilityMenuItem:active,
+html body .app.app.app .utilityMenuPanel .utilitySoundDetails > summary:active {
+  transform: translateY(1px) !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilitySoundDetails > summary {
+  cursor: pointer !important;
+  list-style: none !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilitySoundDetails > summary::-webkit-details-marker {
+  display: none !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilitySoundDetails[open] > summary {
+  border-color: var(--utility-menu-selected-border) !important;
+  background: var(--utility-menu-selected-bg) !important;
+  box-shadow: var(--utility-menu-selected-shadow) !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuIcon {
+  grid-area: auto !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  border: 1px solid var(--utility-menu-icon-border) !important;
+  border-radius: 50% !important;
+  background: var(--utility-menu-icon-bg) !important;
+  color: var(--utility-menu-accent) !important;
+  box-shadow: none !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuIndex {
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 19px !important;
+  font-weight: 700 !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuIcon svg {
+  width: 17px !important;
+  height: 17px !important;
+  stroke-width: 1.9 !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuText {
+  display: grid !important;
+  min-width: 0 !important;
+  gap: 3px !important;
+  text-align: left !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuText strong,
+html body .app.app.app.theme-light .utilityMenuPanel .utilityMenuText strong,
+html body .app.app.app .utilityMenuPanel .utilitySoundDetails summary strong {
+  color: var(--utility-menu-text) !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.15 !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuText small,
+html body .app.app.app.theme-light .utilityMenuPanel .utilityMenuText small,
+html body .app.app.app .utilityMenuPanel .utilitySoundDetails summary small {
+  margin: 0 !important;
+  color: var(--utility-menu-muted) !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.25 !important;
+  white-space: normal !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuChevron {
+  grid-area: auto !important;
+  display: grid !important;
+  place-items: center !important;
+  justify-self: end !important;
+  width: 18px !important;
+  height: 18px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--utility-menu-accent) !important;
+  box-shadow: none !important;
+  transition: transform var(--riff-transition-fast) ease !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuChevron svg {
+  width: 17px !important;
+  height: 17px !important;
+  stroke-width: 2 !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuItem:hover .utilityMenuChevron,
+html body .app.app.app .utilityMenuPanel .utilityMenuItem:focus-visible .utilityMenuChevron {
+  transform: translateX(2px) !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilitySoundDetails[open] .utilityMenuChevron {
+  transform: rotate(180deg) !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuInstagramIcon {
+  border-color: rgba(255, 255, 255, 0.42) !important;
+  background:
+    radial-gradient(circle at 30% 107%, #fdf497 0 12%, #fd5949 34%, #d6249f 58%, #285aeb 100%) !important;
+  color: #fff !important;
+  box-shadow:
+    0 3px 9px rgba(135, 38, 126, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32) !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuInstagramIcon svg {
+  color: #fff !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilitySoundSliders {
+  margin-top: 6px !important;
+  border-color: var(--utility-menu-card-border) !important;
+  border-radius: 14px !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuVersion {
+  margin: 7px 2px 0 !important;
+  padding-top: 6px !important;
+  border-top: 1px solid var(--utility-menu-section-border) !important;
+  color: var(--utility-menu-muted) !important;
+  font-size: 9px !important;
+  font-weight: 750 !important;
+  letter-spacing: 0.035em !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+}
+
+@media (min-width: 1024px) {
+  html body .app.app.app .utilityMenuPanel {
+    right: 28px !important;
+    bottom: 28px !important;
+    width: min(340px, calc(100vw - 56px)) !important;
+    max-width: 340px !important;
+    max-height: calc(100dvh - 56px) !important;
+  }
+}
+
+@media (max-width: 350px) {
+  html body .app.app.app .utilityMenuPanel {
+    right: 8px !important;
+    width: calc(100vw - 16px) !important;
+    padding: 8px !important;
+  }
+
+  html body .app.app.app .utilityMenuPanel .utilityMenuList > .utilityMenuItem,
+  html body .app.app.app .utilityMenuPanel .utilitySoundDetails > summary {
+    grid-template-columns: 34px minmax(0, 1fr) 17px !important;
+    gap: 8px !important;
+    padding-inline: 8px !important;
+  }
+
+  html body .app.app.app .utilityMenuPanel .utilityMenuText strong {
+    font-size: 12.5px !important;
+  }
+
+  html body .app.app.app .utilityMenuPanel .utilityMenuText small {
+    font-size: 9px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app.app.app .utilityMenuPanel,
+  html body .app.app.app .utilityMenuPanel * {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Theme changes are applied behind an opaque, low-cost transition surface. */
+.themeTransitionOverlay {
+  --theme-transition-accent: #d9aa55;
+  --theme-transition-text: #fff4d6;
+  --theme-transition-muted: rgba(236, 218, 181, 0.7);
+  position: fixed;
+  inset: 0;
+  z-index: 2147482900;
+  display: grid;
+  min-width: 320px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  place-items: center;
+  overflow: hidden;
+  contain: layout paint style;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 46%, rgba(217, 170, 85, 0.08), transparent 26%),
+    linear-gradient(180deg, #0b0c0c 0%, #050606 100%);
+  color: var(--theme-transition-text);
+  opacity: 0;
+  pointer-events: auto;
+  touch-action: none;
+  will-change: opacity;
+}
+
+.themeTransitionOverlay--light {
+  --theme-transition-accent: #9a6b27;
+  --theme-transition-text: #26221c;
+  --theme-transition-muted: #746b5d;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(185, 133, 52, 0.12), transparent 28%),
+    linear-gradient(180deg, #fbf8f1 0%, #eee7da 100%);
+}
+
+.themeTransitionOverlay--covering {
+  animation: themeTransitionCover 180ms cubic-bezier(0.22, 0.7, 0.24, 1) forwards;
+}
+
+.themeTransitionOverlay--applying {
+  opacity: 1;
+}
+
+.themeTransitionOverlay--revealing {
+  animation: themeTransitionReveal 280ms ease-in forwards;
+}
+
+.themeTransitionOverlay__content {
+  display: grid;
+  justify-items: center;
+  width: min(78vw, 310px);
+  gap: 14px;
+  transform: translateY(-2vh);
+}
+
+.themeTransitionOverlay__content > strong {
+  color: var(--theme-transition-text);
+  font-size: clamp(24px, 7vw, 34px);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  line-height: 1;
+}
+
+.themeTransitionOverlay__line {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--theme-transition-accent), transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--theme-transition-accent) 24%, transparent);
+}
+
+.themeTransitionOverlay__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--theme-transition-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.themeTransitionOverlay__status > span {
+  color: inherit;
+}
+
+.themeTransitionOverlay__status svg {
+  color: var(--theme-transition-accent);
+  animation: themeTransitionSpin 760ms linear infinite;
+}
+
+@keyframes themeTransitionCover {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes themeTransitionReveal {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes themeTransitionSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .themeTransitionOverlay--covering,
+  .themeTransitionOverlay--revealing {
+    animation-duration: 80ms;
+  }
+
+  .themeTransitionOverlay__status svg {
+    animation-duration: 1400ms;
+  }
+}
+
 :root[data-theme="classic-gold"] {
   color-scheme: dark;
 }
@@ -464,7 +1038,7 @@ html body main.app.theme-light.theme-light
     height: 40px !important;
     min-width: 40px !important;
     min-height: 40px !important;
-    border-radius: 11px !important;
+    border-radius: 8px !important;
   }
 
   html body main.app.app.app .standaloneMetronomePanel.standaloneMetronomePanel
@@ -989,16 +1563,16 @@ html body main.app.theme-brand.theme-brand
   html body main.app.app.app.metronomeMode
     .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
     .backingLoopPanel.backingLoopPanel--mobile {
-    grid-template-rows: 22px 28px 42px 42px !important;
-    align-content: space-between !important;
-    gap: 6px !important;
-    height: clamp(172px, 21.8dvh, 184px) !important;
-    min-height: clamp(172px, 21.8dvh, 184px) !important;
+    grid-template-rows: 20px minmax(54px, 1fr) 39px 35px !important;
+    align-content: stretch !important;
+    gap: 2px !important;
+    height: clamp(176px, 21.8dvh, 184px) !important;
+    min-height: clamp(176px, 21.8dvh, 184px) !important;
     max-height: 184px !important;
     margin-top: 8px !important;
-    padding: 10px 8px !important;
-    border-radius: 16px !important;
-    overflow: hidden !important;
+    padding: 7px !important;
+    border-radius: 8px !important;
+    overflow: visible !important;
   }
 
   html body main.app.app.app.metronomeMode
@@ -1074,12 +1648,12 @@ html body main.app.theme-brand.theme-brand
 
   html body main.app.app.app.metronomeMode
     .backingLoopPanel--mobile :is(.backingLoopMainControls, .backingLoopStorageControls) {
-    gap: 6px !important;
+    gap: 1px !important;
   }
 
   html body main.app.app.app.metronomeMode
     .backingLoopPanel--mobile .backingLoopMainControls {
-    gap: 5px !important;
+    gap: 1px !important;
   }
 
   html body main.app.app.app.metronomeMode
@@ -1092,10 +1666,10 @@ html body main.app.theme-brand.theme-brand
     .backingLoopPanel--mobile .backingLoopButton,
   html body main.app.app.app.metronomeMode
     .backingLoopPanel--mobile .backingLoopStorageControls .backingLoopButton {
-    min-height: 42px !important;
+    min-height: 0 !important;
     padding-inline: 5px !important;
-    border-radius: 10px !important;
-    font-size: 10.5px !important;
+    border-radius: 1px !important;
+    font-size: 9.5px !important;
   }
 }
 
@@ -1107,42 +1681,466 @@ html body main.app.theme-brand.theme-brand
     box-shadow var(--riff-transition-fast) ease;
 }
 
-/* Small receiver-style corner signals keep the recorder panel decorative
-   without taking space from its controls or changing the panel geometry. */
-.backingLoopPanel {
-  --backing-loop-corner-signal: rgba(151, 103, 92, 0.38);
-  --backing-loop-corner-signal-soft: rgba(198, 118, 138, 0.18);
-  --backing-loop-corner-signal-faint: rgba(151, 103, 92, 0.09);
-  position: relative;
-  isolation: isolate;
+/* Mobile Backing Loop: a compact recorder chassis, not a generic card. */
+@media (max-width: 767px) {
+  html body main.app.app.app.metronomeMode .backingLoopPanel.backingLoopPanel--mobile {
+    --backing-recorder-chassis-border: rgba(137, 93, 70, 0.42);
+    --backing-recorder-chassis-edge: rgba(255, 255, 255, 0.74);
+    --backing-recorder-chassis-shadow: rgba(82, 49, 38, 0.13);
+    --backing-recorder-header-bg: transparent;
+    --backing-recorder-header-border: rgba(145, 98, 72, 0.2);
+    --backing-recorder-display-bg: linear-gradient(180deg, #41362e, #2c241f 52%, #352a23);
+    --backing-recorder-display-border: rgba(111, 76, 57, 0.64);
+    --backing-recorder-display-text: rgba(231, 204, 160, 0.88);
+    --backing-recorder-status-bg: rgba(224, 202, 169, 0.9);
+    --backing-recorder-status-text: rgba(52, 39, 32, 0.9);
+    --backing-recorder-button-border: rgba(124, 84, 65, 0.42);
+    --backing-recorder-button-top: rgba(248, 242, 231, 0.98);
+    --backing-recorder-button-bottom: rgba(224, 210, 195, 0.96);
+    --backing-recorder-button-text: rgba(57, 40, 34, 0.92);
+    --backing-recorder-button-shadow: rgba(96, 59, 44, 0.24);
+    --backing-recorder-disabled-border: rgba(116, 84, 72, 0.13);
+    --backing-recorder-disabled-top: rgba(244, 238, 231, 0.66);
+    --backing-recorder-disabled-bottom: rgba(219, 207, 199, 0.52);
+    --backing-recorder-disabled-text: rgba(71, 54, 48, 0.34);
+    --backing-recorder-metal-dark: rgba(105, 67, 51, 0.92);
+    --backing-recorder-metal-mid: rgba(184, 135, 104, 0.94);
+    --backing-recorder-metal-light: rgba(255, 246, 217, 0.96);
+    grid-template-rows: 20px minmax(54px, 1fr) 39px 35px !important;
+    align-content: stretch !important;
+    gap: 2px !important;
+    height: clamp(176px, 21.8dvh, 184px) !important;
+    min-height: clamp(176px, 21.8dvh, 184px) !important;
+    max-height: 184px !important;
+    padding: 7px !important;
+    border: 1px solid var(--backing-recorder-chassis-border) !important;
+    border-radius: 11px !important;
+    background:
+      repeating-linear-gradient(102deg, rgba(103, 68, 48, 0.018) 0 1px, transparent 1px 13px),
+      radial-gradient(circle at 16% 0%, rgba(255, 255, 255, 0.48), transparent 34%),
+      linear-gradient(145deg, rgba(245, 237, 223, 0.99), rgba(224, 209, 193, 0.98)) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+      inset 0 -1px 2px rgba(117, 75, 57, 0.1),
+      0 2px 5px var(--backing-recorder-chassis-shadow) !important;
+    isolation: isolate;
+    overflow: visible !important;
+  }
+
+  html body main.app.app.app.theme-brand.theme-brand.metronomeMode
+    .backingLoopPanel.backingLoopPanel--mobile {
+    --backing-recorder-chassis-border: rgba(217, 170, 85, 0.44);
+    --backing-recorder-chassis-edge: rgba(255, 229, 163, 0.15);
+    --backing-recorder-chassis-shadow: rgba(0, 0, 0, 0.38);
+    --backing-recorder-header-bg: transparent;
+    --backing-recorder-header-border: rgba(217, 170, 85, 0.28);
+    --backing-recorder-display-bg: linear-gradient(180deg, #392d20, #251f18 54%, #2d241a);
+    --backing-recorder-display-border: rgba(217, 170, 85, 0.32);
+    --backing-recorder-display-text: rgba(236, 199, 120, 0.8);
+    --backing-recorder-status-bg: rgba(121, 91, 38, 0.48);
+    --backing-recorder-status-text: rgba(246, 220, 164, 0.9);
+    --backing-recorder-button-border: rgba(217, 170, 85, 0.3);
+    --backing-recorder-button-top: rgba(38, 32, 21, 0.98);
+    --backing-recorder-button-bottom: rgba(22, 19, 13, 0.98);
+    --backing-recorder-button-text: rgba(242, 219, 168, 0.9);
+    --backing-recorder-button-shadow: rgba(0, 0, 0, 0.58);
+    --backing-recorder-disabled-border: rgba(217, 170, 85, 0.12);
+    --backing-recorder-disabled-top: rgba(25, 22, 14, 0.78);
+    --backing-recorder-disabled-bottom: rgba(16, 14, 10, 0.84);
+    --backing-recorder-disabled-text: rgba(235, 216, 174, 0.28);
+    --backing-recorder-metal-dark: rgba(66, 43, 10, 0.98);
+    --backing-recorder-metal-mid: rgba(174, 126, 47, 0.94);
+    --backing-recorder-metal-light: rgba(255, 226, 151, 0.9);
+    background:
+      repeating-linear-gradient(102deg, rgba(217, 170, 85, 0.012) 0 1px, transparent 1px 13px),
+      radial-gradient(circle at 18% 0%, rgba(217, 170, 85, 0.08), transparent 34%),
+      linear-gradient(145deg, rgba(31, 26, 17, 0.99), rgba(12, 11, 8, 0.99)) !important;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 229, 163, 0.06),
+      inset 0 -1px 2px rgba(0, 0, 0, 0.34),
+      0 2px 5px var(--backing-recorder-chassis-shadow) !important;
+  }
+
+  html body main.app.app.app .backingLoopPanel.backingLoopPanel--mobile::before,
+  html body main.app.app.app .backingLoopPanel.backingLoopPanel--mobile::after {
+    content: none !important;
+  }
+
+  .backingLoopPanel--mobile > :not(.backingLoopRecorderHardware) {
+    position: relative;
+    z-index: 2;
+  }
+
+  .backingLoopRecorderHardware {
+    position: absolute !important;
+    z-index: 1 !important;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .backingLoopRecorderHardware::before {
+    position: absolute;
+    inset: 3px;
+    border: 1px solid var(--backing-recorder-chassis-edge);
+    border-radius: 5px;
+    box-shadow: inset 0 0 0 1px rgba(119, 80, 62, 0.06);
+    content: "";
+  }
+
+  .backingLoopScrew {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border: 1px solid rgba(100, 66, 51, 0.42);
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 28%, var(--backing-recorder-metal-light), var(--backing-recorder-metal-mid) 44%, var(--backing-recorder-metal-dark) 82%);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 1px 2px var(--backing-recorder-chassis-shadow);
+  }
+
+  .backingLoopScrew::after {
+    position: absolute;
+    top: 2px;
+    left: 1px;
+    width: 3px;
+    height: 1px;
+    border-radius: 999px;
+    background: rgba(54, 37, 30, 0.66);
+    content: "";
+    transform: rotate(42deg);
+  }
+
+  .backingLoopScrew--topLeft { top: 5px; left: 5px; }
+  .backingLoopScrew--topRight { top: 5px; right: 5px; }
+  .backingLoopScrew--bottomLeft { bottom: 5px; left: 5px; }
+  .backingLoopScrew--bottomRight { right: 5px; bottom: 5px; }
+
+  .backingLoopGrille {
+    position: absolute;
+    bottom: 10px;
+    width: 22px;
+    height: 14px;
+    opacity: 0.58;
+    background-image: radial-gradient(circle, rgba(75, 51, 42, 0.74) 0 1px, transparent 1.2px);
+    background-size: 4px 4px;
+  }
+
+  .backingLoopGrille--left { left: 9px; }
+  .backingLoopGrille--right { right: 9px; }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopHeader {
+    grid-template-columns: minmax(0, 1fr) 7px 66px !important;
+    gap: 5px !important;
+    height: 100%;
+    padding: 0 13px !important;
+    border: 0;
+    border-bottom: 1px solid var(--backing-recorder-header-border);
+    border-radius: 0;
+    background: var(--backing-recorder-header-bg);
+    box-shadow: none;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile :is(.backingLoopTitle, .backingLoopTime) {
+    font-size: 9.5px !important;
+    line-height: 1 !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopTitle {
+    color: var(--backing-loop-gold) !important;
+    letter-spacing: 0.055em;
+  }
+
+  .backingLoopRecLamp {
+    width: 6px;
+    height: 6px;
+    border: 1px solid rgba(107, 50, 47, 0.42);
+    border-radius: 50%;
+    background: rgba(117, 78, 69, 0.22);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  }
+
+  .backingLoopRecLamp.is-active {
+    background: #c8464b;
+    box-shadow: 0 0 0 2px rgba(200, 70, 75, 0.12), 0 0 5px rgba(200, 70, 75, 0.72);
+    animation: backingLoopRecordPulse 1.2s ease-in-out infinite;
+  }
+
+  .backingLoopDeckDisplay {
+    display: grid;
+    grid-template-rows: 15px minmax(28px, 1fr);
+    gap: 0;
+    min-width: 0;
+    padding: 4px 8px 5px;
+    border: 2px solid var(--backing-recorder-display-border);
+    border-radius: 4px;
+    background: var(--backing-recorder-display-bg);
+    color: var(--backing-recorder-display-text);
+    box-shadow:
+      inset 0 1px 3px rgba(28, 18, 13, 0.5),
+      inset 0 0 0 1px rgba(255, 232, 183, 0.045);
+    overflow: hidden;
+  }
+
+  .backingLoopDeckTimeline {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 28px;
+    align-items: center;
+    gap: 5px;
+    padding-inline: 0;
+    color: var(--backing-recorder-display-text);
+    font-size: 8px;
+    font-weight: 850;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-align: center;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopDeckDisplay .backingLoopProgress,
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopDeckDisplay .backingLoopInputMeter {
+    width: auto;
+    height: 9px !important;
+    min-height: 9px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopDeckDisplay .backingLoopProgress.is-disabled {
+    opacity: 0.7 !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopDeckDisplay .backingLoopProgress input {
+    height: 9px !important;
+    min-height: 9px !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopDeckDisplay .backingLoopProgress input::-webkit-slider-runnable-track {
+    height: 2px !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopDeckDisplay .backingLoopProgress input::-webkit-slider-thumb {
+    width: 7px !important;
+    height: 7px !important;
+    margin-top: -2.5px !important;
+  }
+
+  .backingLoopCassetteWindow {
+    position: relative;
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr) 26px;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    margin: 1px 7px 0;
+    padding: 3px 8px 6px;
+    border: 1px solid rgba(211, 174, 111, 0.28);
+    border-radius: 2px;
+    background:
+      linear-gradient(90deg, rgba(230, 189, 120, 0.035), transparent 24% 76%, rgba(230, 189, 120, 0.035)),
+      linear-gradient(180deg, rgba(58, 45, 36, 0.94), rgba(42, 32, 26, 0.96));
+    box-shadow: inset 0 1px 2px rgba(30, 19, 13, 0.5);
+  }
+
+  .backingLoopCassetteWindow::after {
+    position: absolute;
+    z-index: 0;
+    right: 20%;
+    bottom: 2px;
+    left: 20%;
+    height: 3px;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent 0 7px,
+      rgba(222, 185, 119, 0.58) 7px 8px
+    );
+    content: "";
+  }
+
+  .backingLoopCassetteWindow > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .backingLoopDeckReel {
+    width: 22px;
+    height: 22px;
+    border: 1px solid rgba(230, 194, 126, 0.56);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, #241b15 0 18%, transparent 20%),
+      repeating-conic-gradient(from 0deg, rgba(220, 181, 105, 0.78) 0 14deg, rgba(58, 44, 32, 0.94) 14deg 45deg);
+    box-shadow: inset 0 0 0 2px rgba(44, 31, 22, 0.42), 0 0 0 1px rgba(30, 20, 14, 0.52);
+  }
+
+  .backingLoopPanel--playing .backingLoopDeckReel,
+  .backingLoopPanel--recording .backingLoopDeckReel {
+    animation: backingLoopDeckReelSpin 1.8s linear infinite;
+  }
+
+  .backingLoopDeckReel--right {
+    animation-direction: reverse !important;
+  }
+
+  .backingLoopDeckStatus {
+    min-width: 0;
+    padding: 4px 4px;
+    overflow: hidden;
+    border: 1px solid rgba(79, 57, 42, 0.38);
+    border-radius: 1px;
+    background: var(--backing-recorder-status-bg);
+    color: var(--backing-recorder-status-text);
+    font-size: 7.5px;
+    font-weight: 950;
+    line-height: 1;
+    letter-spacing: 0.07em;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopMainControls {
+    gap: 1px !important;
+    padding: 1px;
+    border: 1px solid var(--backing-recorder-button-border);
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--backing-recorder-button-border) 72%, rgba(63, 42, 32, 0.56));
+    box-shadow: inset 0 1px 1px rgba(66, 42, 31, 0.18);
+    overflow: hidden;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopMainControls .backingLoopButton,
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopStorageControls .backingLoopButton {
+    min-height: 0 !important;
+    border: 1px solid var(--backing-recorder-button-border) !important;
+    background: linear-gradient(180deg, var(--backing-recorder-button-top), var(--backing-recorder-button-bottom)) !important;
+    color: var(--backing-recorder-button-text) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.36),
+      inset 0 -1px 0 color-mix(in srgb, var(--backing-recorder-button-border) 54%, transparent) !important;
+    filter: none !important;
+    opacity: 1 !important;
+    transition: transform 90ms ease, box-shadow 110ms ease, border-color 120ms ease !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopMainControls .backingLoopButton {
+    flex-direction: column;
+    gap: 2px !important;
+    height: 100% !important;
+    padding: 2px 1px 1px !important;
+    border-radius: 1px !important;
+    font-size: 8.75px !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopRecordButton:not(:disabled) {
+    color: #9b3f3d !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopStorageControls {
+    gap: 1px !important;
+    margin-inline: 27px;
+    padding: 1px;
+    border: 1px solid var(--backing-recorder-button-border);
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--backing-recorder-button-border) 72%, rgba(63, 42, 32, 0.56));
+    box-shadow: inset 0 1px 1px rgba(66, 42, 31, 0.16);
+    overflow: hidden;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopStorageControls .backingLoopButton {
+    height: 100% !important;
+    padding: 0 5px !important;
+    border-radius: 1px !important;
+    font-size: 9.5px !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopButton:active:not(:disabled) {
+    box-shadow: inset 0 1px 2px var(--backing-recorder-button-shadow) !important;
+    transform: translateY(1px) !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopButton:disabled {
+    border-color: var(--backing-recorder-disabled-border) !important;
+    background: linear-gradient(180deg, var(--backing-recorder-disabled-top), var(--backing-recorder-disabled-bottom)) !important;
+    color: var(--backing-recorder-disabled-text) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+    cursor: not-allowed !important;
+    filter: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .backingLoopPanel--mobile .backingLoopButton:disabled :is(span, svg) {
+    color: inherit !important;
+    opacity: 1 !important;
+    stroke: currentColor !important;
+  }
+
+  @media (max-width: 374px) {
+    html body main.app.app.app.metronomeMode .backingLoopPanel.backingLoopPanel--mobile {
+      padding-inline: 6px !important;
+    }
+
+    html body main.app.app.app.metronomeMode
+      .backingLoopPanel--mobile .backingLoopHeader {
+      grid-template-columns: minmax(0, 1fr) 6px 56px !important;
+      padding-inline: 11px !important;
+    }
+
+    html body main.app.app.app.metronomeMode
+      .backingLoopPanel--mobile :is(.backingLoopTitle, .backingLoopTime) {
+      font-size: 8.75px !important;
+    }
+
+    html body main.app.app.app.metronomeMode
+      .backingLoopPanel--mobile .backingLoopMainControls {
+      gap: 1px !important;
+    }
+
+    html body main.app.app.app.metronomeMode
+      .backingLoopPanel--mobile .backingLoopMainControls .backingLoopButton {
+      font-size: 8px !important;
+    }
+
+    html body main.app.app.app.metronomeMode
+      .backingLoopPanel--mobile .backingLoopStorageControls {
+      margin-inline: 24px;
+    }
+
+    .backingLoopGrille {
+      width: 19px;
+    }
+  }
 }
 
-html body main.app.theme-brand.theme-brand .backingLoopPanel {
-  --backing-loop-corner-signal: rgba(234, 190, 100, 0.5);
-  --backing-loop-corner-signal-soft: rgba(217, 170, 85, 0.22);
-  --backing-loop-corner-signal-faint: rgba(217, 170, 85, 0.1);
+@keyframes backingLoopDeckReelSpin {
+  to { transform: rotate(360deg); }
 }
 
-.backingLoopPanel::after {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  border-radius: inherit;
-  background:
-    radial-gradient(circle at 5px 5px, var(--backing-loop-corner-signal) 0 1.2px, transparent 1.5px),
-    radial-gradient(circle at 5px 5px, transparent 0 3.6px, var(--backing-loop-corner-signal-soft) 3.8px 4.4px, transparent 4.7px),
-    radial-gradient(circle at 5px 5px, transparent 0 7px, var(--backing-loop-corner-signal-faint) 7.2px 7.9px, transparent 8.2px),
-    radial-gradient(circle at calc(100% - 5px) 5px, var(--backing-loop-corner-signal) 0 1.2px, transparent 1.5px),
-    radial-gradient(circle at calc(100% - 5px) 5px, transparent 0 3.6px, var(--backing-loop-corner-signal-soft) 3.8px 4.4px, transparent 4.7px),
-    radial-gradient(circle at calc(100% - 5px) 5px, transparent 0 7px, var(--backing-loop-corner-signal-faint) 7.2px 7.9px, transparent 8.2px);
-  content: "";
-  opacity: 0.9;
-  pointer-events: none;
-}
-
-.backingLoopPanel > * {
-  position: relative;
-  z-index: 1;
+@media (prefers-reduced-motion: reduce) {
+  .backingLoopPanel--mobile :is(.backingLoopDeckReel, .backingLoopRecLamp) {
+    animation: none !important;
+  }
 }
 
 .backingLoopTime,
@@ -1178,4 +2176,868 @@ body.backingLoopDialogOpen {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* Mini accompaniment release polish ---------------------------------------
+   Portaled dialogs inherit these body tokens, while the main-screen rules
+   remain mobile-scoped so desktop presentation stays independent. */
+body:has(main.app.miniChordMakerMode) {
+  --mini-ui-bg: #fffaf1;
+  --mini-ui-panel: #fffdf8;
+  --mini-ui-surface: rgba(255, 255, 255, 0.7);
+  --mini-ui-surface-strong: #fffdfa;
+  --mini-ui-border: rgba(132, 88, 34, 0.22);
+  --mini-ui-border-strong: rgba(151, 101, 39, 0.44);
+  --mini-ui-divider: rgba(132, 88, 34, 0.13);
+  --mini-ui-text: #3f2a12;
+  --mini-ui-muted: rgba(75, 49, 20, 0.68);
+  --mini-ui-button: linear-gradient(180deg, #fffefa 0%, #f4ecdf 100%);
+  --mini-ui-button-hover: linear-gradient(180deg, #fffaf0 0%, #eee0c4 100%);
+  --mini-ui-selected: linear-gradient(180deg, #f9ebc8 0%, #e9ca89 100%);
+  --mini-ui-selected-text: #2b1b09;
+  --mini-ui-primary: linear-gradient(180deg, #edca82 0%, #be842f 100%);
+  --mini-ui-primary-text: #241708;
+  --mini-ui-danger: rgba(160, 79, 44, 0.09);
+  --mini-ui-danger-border: rgba(151, 72, 39, 0.31);
+  --mini-ui-danger-text: #7c3e24;
+  --mini-ui-backdrop: rgba(42, 29, 18, 0.3);
+  --mini-ui-shadow: 0 18px 45px rgba(63, 41, 18, 0.22), 0 2px 8px rgba(63, 41, 18, 0.1);
+  --mini-arrangement-line: #b87820;
+  --mini-arrangement-line-glow: rgba(184, 120, 32, 0.2);
+  --mini-arrangement-tag-bg: #fff8e8;
+  --mini-arrangement-tag-text: #78501b;
+  --mini-ui-radius: 14px;
+  --mini-ui-control-radius: 9px;
+}
+
+body:has(main.app.theme-brand.miniChordMakerMode) {
+  --mini-ui-bg: #26231f;
+  --mini-ui-panel: #302b25;
+  --mini-ui-surface: rgba(255, 247, 226, 0.055);
+  --mini-ui-surface-strong: #373129;
+  --mini-ui-border: rgba(232, 190, 105, 0.22);
+  --mini-ui-border-strong: rgba(238, 196, 109, 0.52);
+  --mini-ui-divider: rgba(232, 190, 105, 0.14);
+  --mini-ui-text: #fff2cf;
+  --mini-ui-muted: rgba(255, 235, 194, 0.68);
+  --mini-ui-button: linear-gradient(180deg, #3d362d 0%, #312b24 100%);
+  --mini-ui-button-hover: linear-gradient(180deg, #493e30 0%, #383027 100%);
+  --mini-ui-selected: linear-gradient(180deg, rgba(224, 181, 91, 0.34) 0%, rgba(155, 103, 36, 0.31) 100%);
+  --mini-ui-selected-text: #ffe5a8;
+  --mini-ui-primary: linear-gradient(180deg, #dfb55b 0%, #9e671f 100%);
+  --mini-ui-primary-text: #1d1408;
+  --mini-ui-danger: rgba(205, 114, 76, 0.11);
+  --mini-ui-danger-border: rgba(221, 132, 91, 0.35);
+  --mini-ui-danger-text: #f1b18d;
+  --mini-ui-backdrop: rgba(8, 7, 6, 0.58);
+  --mini-ui-shadow: 0 22px 52px rgba(0, 0, 0, 0.48), 0 2px 10px rgba(0, 0, 0, 0.34);
+  --mini-arrangement-line: #dfb35a;
+  --mini-arrangement-line-glow: rgba(223, 179, 90, 0.24);
+  --mini-arrangement-tag-bg: #3a3022;
+  --mini-arrangement-tag-text: #f4d892;
+}
+
+body:has(main.app.miniChordMakerMode) :is(
+  .miniChordLoadDialogLayer,
+  .miniChordSaveConfirmDialogLayer,
+  .miniChordResetDialogLayer,
+  .miniChordGrooveDialogLayer,
+  .miniChordRhythmSettingsDialogLayer,
+  .miniChordArrangementDialogLayer
+) {
+  box-sizing: border-box !important;
+  padding: max(12px, env(safe-area-inset-top)) 9px max(12px, env(safe-area-inset-bottom)) !important;
+  background: var(--mini-ui-backdrop) !important;
+  backdrop-filter: blur(3px) !important;
+}
+
+body:has(main.app.miniChordMakerMode) :is(
+  .miniChordLoadDialogLayer,
+  .miniChordSaveConfirmDialogLayer,
+  .miniChordResetDialogLayer,
+  .miniChordGrooveDialogLayer:not(.miniChordGrooveDialogLayer--drumLandscape),
+  .miniChordRhythmSettingsDialogLayer,
+  .miniChordArrangementDialogLayer
+) > div {
+  box-sizing: border-box !important;
+  width: min(420px, calc(100vw - 18px)) !important;
+  max-width: 420px !important;
+  min-width: 0 !important;
+}
+
+body:has(main.app.miniChordMakerMode) :is(
+  .miniChordLoadDialog,
+  .miniChordDeleteDialog,
+  .miniChordSaveConfirmDialog,
+  .miniChordResetDialog,
+  .miniChordGrooveDialog:not(.miniChordGrooveDialog--drumLandscape),
+  .miniChordRhythmSettingsDialog,
+  .miniChordArrangementDialog
+) {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  max-height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom))) !important;
+  margin: 0 !important;
+  padding: 13px !important;
+  border: 1px solid var(--mini-ui-border-strong) !important;
+  border-radius: var(--mini-ui-radius) !important;
+  background: var(--mini-ui-panel) !important;
+  box-shadow: var(--mini-ui-shadow) !important;
+  color: var(--mini-ui-text) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: auto !important;
+}
+
+body:has(main.app.miniChordMakerMode) .backingLoopDialogHeading {
+  min-height: 34px !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+body:has(main.app.miniChordMakerMode) .backingLoopDialogHeading > div {
+  gap: 3px !important;
+}
+
+body:has(main.app.miniChordMakerMode) .backingLoopDialogHeading strong {
+  color: var(--mini-ui-text) !important;
+  font-size: 15px !important;
+  font-weight: 950 !important;
+  letter-spacing: -0.015em !important;
+  line-height: 1.15 !important;
+}
+
+body:has(main.app.miniChordMakerMode) .backingLoopDialogHeading span {
+  color: var(--mini-ui-muted) !important;
+  font-size: 9px !important;
+  font-weight: 750 !important;
+  line-height: 1.25 !important;
+}
+
+body:has(main.app.miniChordMakerMode) :is(
+  .backingLoopDialogHeading > button,
+  .miniChordDrumEditorCloseButton,
+  .miniChordPopupCloseButton
+) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  width: 30px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding: 0 !important;
+  border: 1px solid var(--mini-ui-border) !important;
+  border-radius: 9px !important;
+  background: var(--mini-ui-button) !important;
+  color: var(--mini-ui-text) !important;
+  box-shadow: none !important;
+}
+
+body:has(main.app.miniChordMakerMode) :is(
+  .backingLoopDialogActions,
+  .miniChordGrooveActions,
+  .miniChordArrangementActions,
+  .miniChordRhythmSettingsActions,
+  .miniChordResetActions
+) {
+  gap: 7px !important;
+  margin-top: 2px !important;
+  padding-top: 10px !important;
+  border-top: 1px solid var(--mini-ui-divider) !important;
+}
+
+body:has(main.app.miniChordMakerMode) :is(
+  .backingLoopDialogActions,
+  .miniChordArrangementRows,
+  .miniChordGroovePresetRow,
+  .miniChordRhythmSettingsParts,
+  .miniChordResetChoices
+) button {
+  border: 1px solid var(--mini-ui-border) !important;
+  background: var(--mini-ui-button) !important;
+  color: var(--mini-ui-text) !important;
+  box-shadow: none !important;
+}
+
+body:has(main.app.miniChordMakerMode) :is(
+  .backingLoopDialogActions,
+  .miniChordArrangementRows,
+  .miniChordGroovePresetRow,
+  .miniChordRhythmSettingsParts
+) button:is(:hover, :focus-visible):not(:disabled):not(.selected):not(.primary) {
+  border-color: var(--mini-ui-border-strong) !important;
+  background: var(--mini-ui-button-hover) !important;
+}
+
+body:has(main.app.miniChordMakerMode) :is(
+  .backingLoopDialogActions,
+  .miniChordArrangementRows,
+  .miniChordGroovePresetRow,
+  .miniChordGrooveGrid
+) button.selected,
+body:has(main.app.miniChordMakerMode) button[aria-pressed="true"].selected {
+  border-color: var(--mini-ui-border-strong) !important;
+  background: var(--mini-ui-selected) !important;
+  color: var(--mini-ui-selected-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) :is(.backingLoopDialogActions, .miniChordRhythmResetConfirm) button.primary {
+  border-color: var(--mini-ui-border-strong) !important;
+  background: var(--mini-ui-primary) !important;
+  color: var(--mini-ui-primary-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) button:disabled {
+  opacity: 0.42 !important;
+  cursor: default !important;
+}
+
+body:has(main.app.miniChordMakerMode) main.app.miniChordMakerMode .miniChordEditToolbar {
+  border-color: var(--mini-ui-divider) !important;
+  background: var(--mini-ui-surface) !important;
+}
+
+body:has(main.app.miniChordMakerMode) main.app.miniChordMakerMode .miniChordEditToolbar > button {
+  border-color: var(--mini-ui-border) !important;
+  background: var(--mini-ui-button) !important;
+  color: var(--mini-ui-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .is-destructive-secondary,
+body:has(main.app.miniChordMakerMode) .miniChordResetAllButton {
+  border-color: var(--mini-ui-danger-border) !important;
+  background: var(--mini-ui-danger) !important;
+  color: var(--mini-ui-danger-text) !important;
+}
+
+/* Rhythm preset manager: modified is a saved-state marker, not a selection. */
+body:has(main.app.miniChordMakerMode) .miniChordRhythmSettingsDialog {
+  gap: 10px !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordRhythmSettingsParts {
+  gap: 8px !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordRhythmSettingsParts > section {
+  gap: 7px !important;
+  padding: 9px !important;
+  border: 1px solid var(--mini-ui-divider) !important;
+  border-radius: 11px !important;
+  background: var(--mini-ui-surface) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordRhythmSettingsParts header strong {
+  color: var(--mini-ui-text) !important;
+  font-size: 10.5px !important;
+  letter-spacing: 0.045em !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordRhythmSettingsParts header button {
+  min-height: 27px !important;
+  padding: 0 8px !important;
+  border-radius: 8px !important;
+  font-size: 8px !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordRhythmPresetCards > button {
+  position: relative !important;
+  min-height: 35px !important;
+  border-color: var(--mini-ui-border) !important;
+  background: var(--mini-ui-button) !important;
+  color: var(--mini-ui-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordRhythmPresetCards > button.is-modified {
+  border-color: var(--mini-ui-border-strong) !important;
+  background: var(--mini-ui-button) !important;
+  color: var(--mini-ui-text) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mini-ui-border-strong) 35%, transparent) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordRhythmPresetCards > button.is-modified::after {
+  position: absolute !important;
+  top: 4px !important;
+  right: 4px !important;
+  width: 4px !important;
+  height: 4px !important;
+  border-radius: 50% !important;
+  background: #ca9137 !important;
+  content: "" !important;
+}
+
+/* Arrangement editor */
+body:has(main.app.miniChordMakerMode) .miniChordArrangementRows {
+  gap: 9px !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordArrangementRows section > span,
+body:has(main.app.miniChordMakerMode) .miniChordArrangementTempoRow label {
+  color: var(--mini-ui-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordArrangementRows section > span {
+  font-size: 9.5px !important;
+  letter-spacing: 0.035em !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordArrangementRows button {
+  min-height: 32px !important;
+  border-radius: 8px !important;
+  background: var(--mini-ui-button) !important;
+  color: var(--mini-ui-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordArrangementRows .miniChordArrangementSoloButton {
+  border-color: var(--mini-ui-border) !important;
+  background: var(--mini-ui-surface) !important;
+  color: var(--mini-ui-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordArrangementTempoRow {
+  padding-top: 8px !important;
+  border-top: 1px solid var(--mini-ui-divider) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordArrangementTempoRow input[type="number"] {
+  border-color: var(--mini-ui-border) !important;
+  background: var(--mini-ui-surface-strong) !important;
+  color: var(--mini-ui-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordArrangementActions {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+/* Groove editors */
+body:has(main.app.miniChordMakerMode) .miniChordGrooveDialog {
+  gap: 9px !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordGrooveHelp {
+  margin: 0 !important;
+  padding: 7px 8px !important;
+  border-color: var(--mini-ui-divider) !important;
+  background: var(--mini-ui-surface) !important;
+  color: var(--mini-ui-muted) !important;
+  font-size: 8.5px !important;
+  line-height: 1.35 !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordGrooveBeatRow {
+  border-color: var(--mini-ui-divider) !important;
+  background: var(--mini-ui-surface) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordGrooveBeatRow > span {
+  border-color: var(--mini-ui-divider) !important;
+  color: var(--mini-ui-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordGrooveBeatRow > span small,
+body:has(main.app.miniChordMakerMode) .miniChordGrooveGrid--drum > b,
+body:has(main.app.miniChordMakerMode) .miniChordGrooveDialog .backingLoopDialogHeading span {
+  color: var(--mini-ui-muted) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordGrooveGrid button,
+body:has(main.app.miniChordMakerMode) .miniChordDrumEditorGrid button {
+  border-color: var(--mini-ui-border) !important;
+  background: var(--mini-ui-surface) !important;
+  color: var(--mini-ui-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordGrooveGrid button.is-downbeat,
+body:has(main.app.miniChordMakerMode) .miniChordDrumEditorGrid button.is-downbeat {
+  border-color: var(--mini-ui-border-strong) !important;
+  background: var(--mini-ui-surface-strong) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordGrooveGrid button.selected,
+body:has(main.app.miniChordMakerMode) .miniChordGrooveGrid button.selected.is-downbeat {
+  border-color: var(--mini-ui-border-strong) !important;
+  background: var(--mini-ui-selected) !important;
+  color: var(--mini-ui-selected-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordGrooveActions:not(.miniChordGrooveActions--drum) {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordGrooveDialog--drumLandscape {
+  border: 1px solid var(--mini-ui-border-strong) !important;
+  background: var(--mini-ui-panel) !important;
+  box-shadow: var(--mini-ui-shadow) !important;
+  color: var(--mini-ui-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordDrumEditorTopbar strong,
+body:has(main.app.miniChordMakerMode) .miniChordDrumEditorRow strong {
+  color: var(--mini-ui-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordDrumEditorTitle span,
+body:has(main.app.miniChordMakerMode) .miniChordDrumBeatGroup--header b {
+  color: var(--mini-ui-muted) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordDrumBeatGroup {
+  border-color: var(--mini-ui-divider) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordDrumEditorGrid button span {
+  border-color: var(--mini-ui-border-strong) !important;
+  background: var(--mini-ui-surface-strong) !important;
+}
+
+/* Destructive confirmations and reset choices */
+body:has(main.app.miniChordMakerMode) .miniChordRhythmResetConfirmLayer {
+  background: var(--mini-ui-backdrop) !important;
+  backdrop-filter: blur(3px) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordRhythmResetConfirm {
+  padding: 15px !important;
+  border-color: var(--mini-ui-border-strong) !important;
+  background: var(--mini-ui-panel) !important;
+  box-shadow: var(--mini-ui-shadow) !important;
+  color: var(--mini-ui-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordRhythmResetConfirm :is(p, small) {
+  color: var(--mini-ui-muted) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordRhythmResetConfirm > div:last-child button {
+  border: 1px solid var(--mini-ui-border) !important;
+  background: var(--mini-ui-button) !important;
+  color: var(--mini-ui-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordRhythmResetConfirm > div:last-child .miniChordRhythmResetConfirmButton {
+  border-color: var(--mini-ui-danger-border) !important;
+  background: var(--mini-ui-danger) !important;
+  color: var(--mini-ui-danger-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordResetChoices > button {
+  border-color: var(--mini-ui-border) !important;
+  background: var(--mini-ui-surface) !important;
+  color: var(--mini-ui-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordResetChoices > button span,
+body:has(main.app.miniChordMakerMode) .miniChordResetWarning :is(p, small) {
+  color: var(--mini-ui-muted) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordResetChoices > button.is-destructive,
+body:has(main.app.miniChordMakerMode) .miniChordResetWarning {
+  border-color: var(--mini-ui-danger-border) !important;
+  background: var(--mini-ui-danger) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordResetActions > button:only-child {
+  grid-column: 1 / -1 !important;
+}
+
+/* Compact floating editors */
+body:has(main.app.miniChordMakerMode) .miniChordChordPopover.miniChordFloatingChordPopover {
+  box-sizing: border-box !important;
+  width: min(320px, calc(100vw - 16px)) !important;
+  max-width: 320px !important;
+  max-height: min(400px, calc(100dvh - 16px)) !important;
+  padding: 8px !important;
+  border: 1px solid var(--mini-ui-border-strong) !important;
+  border-radius: var(--mini-ui-radius) !important;
+  background: var(--mini-ui-panel) !important;
+  box-shadow: var(--mini-ui-shadow) !important;
+  color: var(--mini-ui-text) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingChordPopover .miniChordPickerHeader {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto 18px 30px !important;
+  gap: 6px !important;
+  min-height: 42px !important;
+  padding: 5px 5px 5px 8px !important;
+  border: 1px solid var(--mini-ui-divider) !important;
+  border-radius: 10px !important;
+  background: var(--mini-ui-surface) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingChordPopover .miniChordPickerHeader span,
+body:has(main.app.miniChordMakerMode) .miniChordFloatingChordPopover .miniChordBuilderMiniSection > span {
+  color: var(--mini-ui-muted) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingChordPopover .miniChordPickerHeader strong {
+  color: var(--mini-ui-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingChordPopover .miniChordPopupCloseButton {
+  grid-column: 4 !important;
+  pointer-events: auto !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingChordPopover .miniChordBuilderMini {
+  gap: 5px !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingChordPopover .miniChordBuilderMiniSection {
+  gap: 4px !important;
+  padding: 0 1px 5px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--mini-ui-divider) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingChordPopover .miniChordBuilderMiniSection:last-child {
+  padding-bottom: 0 !important;
+  border-bottom: 0 !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingChordPopover :is(
+  .miniChordPickerSegment,
+  .miniChordPickerRoots,
+  .miniChordPickerQualities,
+  .miniChordPickerExtensions,
+  .miniChordPickerActions
+) button {
+  min-height: 29px !important;
+  padding: 0 4px !important;
+  border: 1px solid var(--mini-ui-border) !important;
+  border-radius: 8px !important;
+  background: var(--mini-ui-button) !important;
+  color: var(--mini-ui-text) !important;
+  box-shadow: none !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingChordPopover :is(
+  .miniChordPickerSegment,
+  .miniChordPickerRoots,
+  .miniChordPickerQualities,
+  .miniChordPickerExtensions
+) button.selected {
+  border-color: var(--mini-ui-border-strong) !important;
+  background: var(--mini-ui-selected) !important;
+  color: var(--mini-ui-selected-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingChordPopover .miniChordPickerActions {
+  gap: 6px !important;
+  padding-top: 1px !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingChordPopover .miniChordPickerActions button {
+  min-height: 34px !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingChordPopover .miniChordPickerActions button.primary {
+  border-color: var(--mini-ui-border-strong) !important;
+  background: var(--mini-ui-primary) !important;
+  color: var(--mini-ui-primary-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .barEndingPopover.miniChordFloatingMarkPopover {
+  box-sizing: border-box !important;
+  width: min(268px, calc(100vw - 16px)) !important;
+  max-width: 268px !important;
+  max-height: min(336px, calc(100dvh - 16px)) !important;
+  padding: 9px !important;
+  border: 1px solid var(--mini-ui-border-strong) !important;
+  border-radius: var(--mini-ui-radius) !important;
+  background: var(--mini-ui-panel) !important;
+  box-shadow: var(--mini-ui-shadow) !important;
+  color: var(--mini-ui-text) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordMarkPickerTitle {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 30px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 32px !important;
+  padding: 0 0 6px !important;
+  border-bottom: 1px solid var(--mini-ui-divider) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordMarkPickerTitleCopy {
+  display: grid !important;
+  gap: 2px !important;
+  color: var(--mini-ui-text) !important;
+  text-align: left !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordMarkPickerTitleCopy b {
+  font-size: 13px !important;
+  font-weight: 950 !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordMarkPickerTitleCopy small,
+body:has(main.app.miniChordMakerMode) .miniChordFloatingMarkPopover .barMarkSectionLabel {
+  color: var(--mini-ui-muted) !important;
+  font-size: 8px !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordMarkPickerTitleCopy small {
+  text-align: left !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingMarkPopover :is(
+  .barEndingOptions,
+  .barMarkerOptions--compact,
+  .barCommandOptions--compact
+) button,
+body:has(main.app.miniChordMakerMode) .miniChordFloatingMarkPopover .barEndingClear--full {
+  border: 1px solid var(--mini-ui-border) !important;
+  border-radius: 8px !important;
+  background: var(--mini-ui-button) !important;
+  color: var(--mini-ui-text) !important;
+  box-shadow: none !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingMarkPopover :is(
+  .barEndingOptions,
+  .barMarkerOptions--compact,
+  .barCommandOptions--compact
+) button.selected {
+  border-color: var(--mini-ui-border-strong) !important;
+  background: var(--mini-ui-selected) !important;
+  color: var(--mini-ui-selected-text) !important;
+}
+
+body:has(main.app.miniChordMakerMode) .miniChordFloatingMarkPopover .barEndingClear--full {
+  border-color: var(--mini-ui-danger-border) !important;
+  background: var(--mini-ui-danger) !important;
+  color: var(--mini-ui-danger-text) !important;
+}
+
+/* Main screen: mobile-only visual pass (shared logic remains untouched). */
+@media (max-width: 680px) {
+  html body main.app.miniChordMakerMode .miniChordEditToolbar {
+    margin-bottom: 7px !important;
+    border-color: var(--mini-ui-divider) !important;
+    background: var(--mini-ui-surface) !important;
+  }
+
+  html body main.app.miniChordMakerMode .miniChordEditToolbar > button {
+    border-color: var(--mini-ui-border) !important;
+    background: var(--mini-ui-button) !important;
+    color: var(--mini-ui-text) !important;
+  }
+
+  html body main.app.miniChordMakerMode .miniChordRhythmSettingsBar {
+    justify-content: flex-end !important;
+    min-height: 0 !important;
+    padding: 6px 0 5px !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  html body main.app.miniChordMakerMode .miniChordRhythmSettingsBar > button {
+    justify-self: end !important;
+    width: auto !important;
+    min-height: 29px !important;
+    padding: 0 9px !important;
+    border: 1px solid var(--mini-ui-border) !important;
+    border-radius: 8px !important;
+    background: var(--mini-ui-button) !important;
+    color: var(--mini-ui-text) !important;
+  }
+
+  html body main.app.miniChordMakerMode .miniChordBackingRows {
+    gap: 8px !important;
+  }
+
+  html body main.app.miniChordMakerMode .miniChordBackingRow {
+    gap: 7px !important;
+    padding: 8px !important;
+    border-color: var(--mini-ui-divider) !important;
+    background: var(--mini-ui-surface) !important;
+  }
+
+  html body main.app.miniChordMakerMode .miniChordBackingRow strong,
+  html body main.app.miniChordMakerMode .miniChordPianoStyleOptions > span {
+    color: var(--mini-ui-text) !important;
+  }
+
+  html body main.app.miniChordMakerMode :is(.miniChordBeatOptions, .miniChordPianoStyleOptions) button {
+    min-height: 30px !important;
+    border-color: var(--mini-ui-border) !important;
+    background: var(--mini-ui-button) !important;
+    color: var(--mini-ui-text) !important;
+    box-shadow: none !important;
+  }
+
+  html body main.app.miniChordMakerMode :is(.miniChordBeatOptions, .miniChordPianoStyleOptions) button.selected {
+    border-color: var(--mini-ui-border-strong) !important;
+    background: var(--mini-ui-selected) !important;
+    color: var(--mini-ui-selected-text) !important;
+  }
+
+  html body main.app.miniChordMakerMode .miniChordPianoStyleOptions {
+    grid-template-columns: auto repeat(2, minmax(0, 1fr)) !important;
+    align-items: center !important;
+    gap: 5px !important;
+  }
+
+  html body main.app.miniChordMakerMode .miniChordPianoStyleOptions > span {
+    padding-right: 2px !important;
+    font-size: 8px !important;
+    font-weight: 850 !important;
+    white-space: nowrap !important;
+  }
+
+  html body main.app.theme-brand.miniChordMakerMode .miniChordTimelineFour .miniChordBar.is-arrangement-selected {
+    background: rgba(205, 154, 67, 0.16) !important;
+  }
+
+  html body main.app.theme-brand.miniChordMakerMode .miniChordTimelineFour .miniChordArrangementRangeFrame {
+    border-color: rgba(238, 194, 101, 0.72) !important;
+    background: rgba(195, 135, 43, 0.1) !important;
+  }
+
+  html body main.app.theme-brand.miniChordMakerMode .miniChordTimelineFour .miniChordArrangementRangeFrame.is-applied {
+    border-color: rgba(226, 183, 92, 0.46) !important;
+    background: rgba(176, 116, 34, 0.06) !important;
+  }
+
+  html body main.app.theme-brand.miniChordMakerMode .miniChordTimelineFour .miniChordArrangementRangeTag {
+    border-color: rgba(234, 191, 100, 0.44) !important;
+    background: #3a3022 !important;
+    color: #f4d892 !important;
+  }
+}
+
+/* Applied arrangement ranges use a persistent score-like line. Selection
+   keeps the existing outline, so playback, editing, and saved state remain
+   visually distinct. The line is derived exclusively from range data. */
+html body main.app.app.app.miniChordMakerMode
+  .miniChordTimelineFour .miniChordBar.hasArrangementOverride {
+  overflow: visible !important;
+  isolation: isolate !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordTimelineFour .miniChordBar.hasArrangementOverride::after,
+html body main.app.app.app.miniChordMakerMode
+  .miniChordTimelineFour .miniChordBar.hasArrangementOverride .miniChordExpertIndicatorLayer {
+  display: none !important;
+  content: none !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordTimelineFour .miniChordArrangementRangeFrame.is-applied {
+  position: absolute !important;
+  top: auto !important;
+  right: 0 !important;
+  bottom: 3px !important;
+  left: 0 !important;
+  z-index: 60 !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  width: auto !important;
+  height: 5px !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--mini-arrangement-line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: 0 2px 4px var(--mini-arrangement-line-glow) !important;
+  pointer-events: none !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordTimelineFour .miniChordArrangementRangeFrame.is-applied.is-connected-next {
+  right: -7px !important;
+  background: transparent !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordTimelineFour .miniChordArrangementRangeFrame.is-applied.is-segment-start {
+  left: 5px !important;
+  border-left: 0 !important;
+  border-radius: 0 0 0 5px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordTimelineFour .miniChordArrangementRangeFrame.is-applied.is-segment-end {
+  right: 5px !important;
+  border-right: 0 !important;
+  border-radius: 0 0 5px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordTimelineFour .miniChordArrangementRangeFrame.is-applied.is-segment-start::before,
+html body main.app.app.app.miniChordMakerMode
+  .miniChordTimelineFour .miniChordArrangementRangeFrame.is-applied.is-segment-end::after {
+  position: absolute !important;
+  bottom: -2px !important;
+  width: 2px !important;
+  height: 5px !important;
+  border-radius: 999px !important;
+  background: var(--mini-arrangement-line) !important;
+  content: "" !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordTimelineFour .miniChordArrangementRangeFrame.is-applied.is-segment-start::before {
+  left: 0 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordTimelineFour .miniChordArrangementRangeFrame.is-applied.is-segment-end::after {
+  right: 0 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordTimelineFour .miniChordArrangementRangeTag {
+  position: absolute !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: 1px !important;
+  left: 6px !important;
+  z-index: 70 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 25px !important;
+  width: auto !important;
+  height: 17px !important;
+  min-height: 17px !important;
+  padding: 0 4px !important;
+  border: 1px solid color-mix(in srgb, var(--mini-arrangement-line) 48%, transparent) !important;
+  border-radius: 5px !important;
+  background: var(--mini-arrangement-tag-bg) !important;
+  color: var(--mini-arrangement-tag-text) !important;
+  box-shadow: 0 1px 4px var(--mini-arrangement-line-glow) !important;
+  font-size: 6px !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0.035em !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordTimelineFour .miniChordArrangementRangeTag:is(:hover, :focus-visible) {
+  border-color: var(--mini-arrangement-line) !important;
+  outline: 2px solid var(--mini-arrangement-line-glow) !important;
+  outline-offset: 1px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordTimelineFour .miniChordBar.is-arrangement-selected .miniChordArrangementRangeTag {
+  display: none !important;
 }

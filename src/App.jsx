@@ -1,7 +1,9 @@
 ﻿import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
+  ChevronRight,
   ChevronDown,
   ChevronUp,
+  CircleHelp,
   FolderOpen,
   Gamepad2,
   Grid3X3,
@@ -9,6 +11,7 @@ import {
   LoaderCircle,
   Mic,
   Music2,
+  Moon,
   Pause,
   Play,
   Radio,
@@ -16,6 +19,7 @@ import {
   Settings,
   Shield,
   Square,
+  Sun,
   Timer,
   Trash2,
   Redo2,
@@ -31,6 +35,7 @@ import { playGuitarPositions } from "./audio/fretboardPreviewEngine";
 import BrandHeader from "./components/BrandHeader";
 import BackingLoop from "./components/BackingLoop";
 import Fretboard from "./components/Fretboard";
+import SplashIntro from "./launch/SplashIntro";
 import { RIFFLAB_COMMON_CUTAWAY_SPRITE_SRC } from "./assets/rifflabCommonCutawaySprite";
 import {
   LICK_RELATION_TECHNIQUES,
@@ -46,6 +51,7 @@ import {
   solveShooterIntercept,
   sweepCircleAgainstMovingEllipse,
 } from "./shooter/collision";
+import { preloadShooterEntryImages } from "./shooter/assetPreload";
 import {
   applyMiniChordEndingRangesToBarMarks,
   getMiniChordEndingRangeForBar,
@@ -4435,14 +4441,38 @@ const APP_THEME_OPTIONS = [
   {
     id: APP_THEMES.LIGHT,
     label: "화이트",
-    description: "밝고 선명한 기본 화면",
   },
   {
     id: APP_THEMES.BRAND,
-    label: "골드다크",
-    description: "골드·브론즈 몰입 화면",
+    label: "골드 다크",
   },
 ];
+const THEME_TRANSITION_COVER_MS = 180;
+const THEME_TRANSITION_SETTLE_MS = 120;
+const THEME_TRANSITION_REVEAL_MS = 280;
+
+const ThemeTransitionOverlay = memo(function ThemeTransitionOverlay({ transition }) {
+  const themeLabel = transition.nextTheme === APP_THEMES.LIGHT ? "화이트" : "골드 다크";
+
+  return (
+    <section
+      aria-label={`${themeLabel} 테마 적용 중`}
+      aria-live="polite"
+      className={`themeTransitionOverlay themeTransitionOverlay--${transition.nextTheme} themeTransitionOverlay--${transition.phase}`}
+      role="status"
+    >
+      <div className="themeTransitionOverlay__content">
+        <strong>JUST PLAY</strong>
+        <span className="themeTransitionOverlay__line" aria-hidden="true" />
+        <div className="themeTransitionOverlay__status">
+          <LoaderCircle aria-hidden="true" size={18} />
+          <span>{themeLabel} 테마 적용 중</span>
+        </div>
+      </div>
+    </section>
+  );
+});
+
 function getSelectableAppThemeOptions() {
   return APP_THEME_OPTIONS;
 }
@@ -7296,7 +7326,7 @@ function MiniChordSaveConfirmDialog({ onCancel, onConfirm, title }) {
             </div>
           </div>
           <div className="backingLoopDialogActions">
-            <button onClick={onCancel} type="button">아니오</button>
+            <button onClick={onCancel} type="button">취소</button>
             <button className="primary" onClick={onConfirm} type="button">저장</button>
           </div>
         </section>
@@ -7376,7 +7406,7 @@ function MiniChordResetDialog({
                 <button className="primary miniChordResetAllButton" onClick={onResetAll} type="button">전체 초기화</button>
               </>
             ) : (
-              <button className="primary" onClick={onClose} type="button">닫기</button>
+              <button onClick={onClose} type="button">닫기</button>
             )}
           </div>
         </section>
@@ -7420,15 +7450,15 @@ function MiniChordGrooveEditorDialog({
   const isDrumEditor = part === "drum";
   const isUserDefaultEditor = scope === "user-default";
   const scopeLabel = isUserDefaultEditor
-    ? ` · ${MINI_CHORD_COMPACT_PATTERN_LABELS[presetId] ?? presetId} SLOT`
+    ? ` · ${MINI_CHORD_COMPACT_PATTERN_LABELS[presetId] ?? presetId}`
     : "";
-  const editorName = isDrumEditor ? "DRUM PATTERN" : part === "bass" ? "BASS PATTERN" : "PIANO PATTERN";
+  const editorName = isDrumEditor ? "DRUM 패턴" : part === "bass" ? "BASS 패턴" : "PIANO 패턴";
   const title = `${editorName}${scopeLabel}`;
   const helpText = part === "drum"
-    ? "Hat은 Closed Hi-Hat, Shaker는 흔드는 퍼커션 샘플입니다. 드래그로 연속 ON/OFF."
+    ? "Hat 하이햇 · Shaker 퍼커션 · 드래그로 연속 입력"
     : part === "bass"
-      ? "R = 근음, 3 = 3도, 5 = 5도, 8 = 옥타브, - = 쉼"
-      : "Chord = 동시 코드, Stab = 짧은 코드, Arp ↑/↓ = 분산화음";
+      ? "R 근음 · 3/5/8 음정 · - 쉼"
+      : "Chord 동시 · Stab 짧게 · Arp ↑/↓ 분산";
   const getStepClasses = (stepIndex, selectedClass = "") => [
     selectedClass,
     stepIndex % 4 === 0 ? "is-downbeat" : "",
@@ -7790,9 +7820,9 @@ function MiniChordGrooveEditorDialog({
             <div className="miniChordDrumEditorTopbar">
               <div className="miniChordDrumEditorTitle">
                 <strong id="mini-chord-groove-title">{title}</strong>
-                <span>16 Step 자유 패턴 · 1 e & a / 2 e & a / 3 e & a / 4 e & a</span>
+                <span>16 Step · 1 e & a / 2 e & a / 3 e & a / 4 e & a</span>
               </div>
-              <button aria-label="Pattern 편집 닫기" className="miniChordDrumEditorCloseButton" onClick={onClose} type="button">
+              <button aria-label="패턴 편집 닫기" className="miniChordDrumEditorCloseButton" onClick={onClose} type="button">
                 <X size={15} />
               </button>
             </div>
@@ -7801,9 +7831,9 @@ function MiniChordGrooveEditorDialog({
               <div className="backingLoopDialogHeading">
                 <div>
                   <strong id="mini-chord-groove-title">{title}</strong>
-                  <span>16스텝 공통 타임라인 · 1 e & a / 2 e & a / 3 e & a / 4 e & a</span>
+                  <span>16 Step · 1 e & a / 2 e & a / 3 e & a / 4 e & a</span>
                 </div>
-                <button aria-label="Pattern 편집 닫기" onClick={onClose} type="button">
+                <button aria-label="패턴 편집 닫기" onClick={onClose} type="button">
                   <X size={15} />
                 </button>
               </div>
@@ -7819,11 +7849,11 @@ function MiniChordGrooveEditorDialog({
               title={previewDisabled ? "메인 반주를 정지한 뒤 미리듣기 할 수 있습니다" : undefined}
               type="button"
             >
-              {isDrumEditor ? (isPreviewing ? "미리듣기 정지" : "▶ 미리듣기") : (isPreviewing ? "프리뷰 정지" : "프리뷰")}
+              {isPreviewing ? "■ 정지" : "▶ 미리듣기"}
             </button>
             <button onClick={onClose} type="button">취소</button>
             <button className="primary" onClick={() => onApply(patternRef.current)} type="button">
-              {isUserDefaultEditor ? "Pattern 저장" : "적용"}
+              {isUserDefaultEditor ? "패턴 저장" : "적용"}
             </button>
           </div>
         </section>
@@ -7890,15 +7920,12 @@ function MiniChordRhythmSettingsDialog({
           <div className="backingLoopDialogHeading">
             <div>
               <strong id="mini-chord-rhythm-settings-title">리듬 설정</strong>
-              <span>악기별 Pattern Slot 제작 · 저장</span>
+              <span>악기별 프리셋 편집</span>
             </div>
             <button aria-label="리듬 설정 닫기" onClick={onClose} type="button">
               <X size={15} />
             </button>
           </div>
-          <p className="miniChordRhythmSettingsIntro">
-            기본 · 4 · 8 · 16 · CUSTOM을 여기서 편집합니다. Mini Chord 반주 버튼은 저장된 Pattern을 선택만 합니다.
-          </p>
           <div className="miniChordRhythmSettingsParts">
             {MINI_CHORD_RHYTHM_SETTINGS_PARTS.map((part) => {
               const partModified = MINI_CHORD_RHYTHM_SETTINGS_PRESET_IDS.some((presetId) => isModified(part.id, presetId));
@@ -7921,7 +7948,7 @@ function MiniChordRhythmSettingsDialog({
                       const modified = isModified(part.id, presetId);
                       return (
                         <button
-                          aria-label={`${part.label} ${MINI_CHORD_COMPACT_PATTERN_LABELS[presetId]} Pattern 편집`}
+                          aria-label={`${part.label} ${MINI_CHORD_COMPACT_PATTERN_LABELS[presetId]} 패턴 편집`}
                           className={modified ? "is-modified" : ""}
                           key={presetId}
                           onClick={() => onEdit(part.id, presetId)}
@@ -8021,8 +8048,8 @@ function MiniChordArrangementEditorDialog({
         <section className="backingLoopDialog miniChordArrangementDialog">
           <div className="backingLoopDialogHeading">
             <div>
-              <strong id="mini-chord-arrangement-title">편곡 범위</strong>
-              <span>{draft.startBar + 1}-{draft.endBar + 1}마디</span>
+              <strong id="mini-chord-arrangement-title">편곡 설정</strong>
+              <span>{draft.startBar + 1}–{draft.endBar + 1}마디</span>
             </div>
             <button aria-label="편곡 설정 닫기" onClick={onClose} type="button">
               <X size={15} />
@@ -8068,7 +8095,7 @@ function MiniChordArrangementEditorDialog({
                   onChange={(event) => updateDraft({ tempoOverrideEnabled: event.currentTarget.checked })}
                   type="checkbox"
                 />
-                BPM override
+                구간 BPM
               </label>
               <input
                 disabled={!draft.tempoOverrideEnabled}
@@ -8088,9 +8115,9 @@ function MiniChordArrangementEditorDialog({
               title={previewDisabled ? "메인 반주를 정지한 뒤 Preview할 수 있습니다" : undefined}
               type="button"
             >
-              {previewMode === "all" ? "■ Stop" : "▶ Preview"}
+              {previewMode === "all" ? "■ 정지" : "▶ 미리듣기"}
             </button>
-            <button onClick={onClear} type="button">범위 초기화</button>
+            <button className="is-destructive-secondary" onClick={onClear} type="button">구간 초기화</button>
             <button onClick={onClose} type="button">취소</button>
             <button className="primary" onClick={onApply} type="button">적용</button>
           </div>
@@ -10787,8 +10814,8 @@ const MINI_CHORD_COMMAND_ALIASES = {
   dsCoda: "dsAlCoda",
 };
 const MINI_CHORD_FLOATING_MARGIN = 8;
-const MINI_CHORD_MARK_POPOVER_SIZE = { width: 252, height: 286 };
-const MINI_CHORD_CHORD_POPOVER_SIZE = { width: 284, height: 440 };
+const MINI_CHORD_MARK_POPOVER_SIZE = { width: 268, height: 300 };
+const MINI_CHORD_CHORD_POPOVER_SIZE = { width: 320, height: 400 };
 
 const MINI_CHORD_QUALITY_LABELS = {
   major: "메이저",
@@ -11091,6 +11118,7 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
   beatLabel,
   fallbackDraft,
   initialChord,
+  onClose,
   onCommit,
   position,
   resolveChord,
@@ -11256,10 +11284,22 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
       >
         <span className="miniChordPickerHeaderCopy">
           <small>{barNumber}마디 · {beatLabel}</small>
-          <b>선택 코드</b>
+          <b>코드 설정</b>
         </span>
         <strong>{selectedLabel}</strong>
         <span aria-hidden="true" className="miniChordPickerDragGrip">•••</span>
+        <button
+          aria-label="코드 설정 닫기"
+          className="miniChordPopupCloseButton"
+          onClick={(event) => {
+            event.stopPropagation();
+            onClose?.();
+          }}
+          onPointerDown={(event) => event.stopPropagation()}
+          type="button"
+        >
+          <X aria-hidden="true" size={14} />
+        </button>
       </div>
       <div className="miniChordBuilderMini">
         <section className="miniChordBuilderMiniSection">
@@ -11987,6 +12027,21 @@ function preloadShooterEnemyAssets() {
     [...new Set(Object.values(SHOOTER_ENEMY_ASSETS))].map(preloadShooterEffectImage),
   ).then(() => undefined);
 }
+
+const ShooterLaunchOverlay = memo(function ShooterLaunchOverlay({ onComplete, transition }) {
+  const handleComplete = useCallback(
+    () => onComplete(transition.token),
+    [onComplete, transition.token],
+  );
+
+  return (
+    <SplashIntro
+      minimumIntroMs={0}
+      onComplete={handleComplete}
+      readyPromise={transition.readyPromise}
+    />
+  );
+});
 const SHOOTER_RECORDS_STORAGE_KEY = "rifflabShooterRecords";
 const SHOOTER_GUITAR_PIVOT_PERCENT = { x: 50, y: 91.5 };
 const SHOOTER_GUITAR_AIM_LIMIT_DEG = 34;
@@ -12627,6 +12682,8 @@ function App({ onReady }) {
   const [helpGuideOpen, setHelpGuideOpen] = useState(false);
   const [openHelpSectionId, setOpenHelpSectionId] = useState("");
   const [appTheme, setAppTheme] = useState(getStoredAppTheme);
+  const [themeTransition, setThemeTransition] = useState(null);
+  const themeTransitionTokenRef = useRef(0);
   const designLabEnabled = isDesignLabEnabled();
   const themeOptions = useMemo(() => getSelectableAppThemeOptions(), [designLabEnabled]);
   const themeMenuVisible = true;
@@ -12886,6 +12943,8 @@ function App({ onReady }) {
   const [shooterRecords, setShooterRecords] = useState(() => RecordService.getShooterRecords());
   const [showShooterRecords, setShowShooterRecords] = useState(false);
   const [shooterLives, setShooterLives] = useState(SHOOTER_MAX_LIVES);
+  const [shooterLaunchTransition, setShooterLaunchTransition] = useState(null);
+  const shooterLaunchTokenRef = useRef(0);
 
   useEffect(() => {
     if (!shooterGuitarPickerOpen || isMobileLayout || typeof document === "undefined") return undefined;
@@ -12974,6 +13033,43 @@ function App({ onReady }) {
     () => selectedEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.FRONT),
     [selectedEffectLayers],
   );
+  const shooterEntryAssetsRef = useRef(null);
+  shooterEntryAssetsRef.current = {
+    effectLayers: selectedEffectLayers,
+    emblemAssetSrc: selectedMapCenterEmblem
+      ? getShooterEmblemImage(selectedMapCenterEmblem, "gameplay")
+      : "",
+    enemyAssetSources: Object.values(SHOOTER_ENEMY_ASSETS),
+    guitarAssetSrc: selectedGuitar.assetSrc,
+    guitarProjectileAssetSrc: selectedGuitar.projectileAssetSrc,
+    mapBackgroundSrc: selectedMap.backgroundImage,
+    mapPreviewSrc: selectedMap.previewImage,
+    pickAssetSrc: selectedPick.assetSrc,
+  };
+
+  const finishShooterLaunch = useCallback((token) => {
+    setShooterLaunchTransition((current) => (
+      current?.token === token ? null : current
+    ));
+  }, []);
+
+  useLayoutEffect(() => {
+    const token = shooterLaunchTokenRef.current + 1;
+    shooterLaunchTokenRef.current = token;
+
+    if (appMode !== APP_MODES.SHOOTER) {
+      setShooterLaunchTransition(null);
+      return undefined;
+    }
+
+    const readyPromise = preloadShooterEntryImages(
+      shooterEntryAssetsRef.current,
+      preloadShooterEffectImage,
+    );
+    setShooterLaunchTransition({ readyPromise, token });
+    return undefined;
+  }, [appMode]);
+
   const effectSelectionRequestRef = useRef({ aura: 0, floor: 0 });
   useEffect(() => {
     if (!shooterGuitarPickerOpen) return;
@@ -19249,11 +19345,55 @@ function App({ onReady }) {
 
   const selectAppTheme = useCallback((nextTheme) => {
     const normalizedTheme = normalizeAppTheme(nextTheme);
-    setAppTheme(normalizedTheme);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(APP_THEME_STORAGE_KEY, normalizedTheme);
+    if (normalizedTheme === appTheme || themeTransition) return;
+
+    const token = themeTransitionTokenRef.current + 1;
+    themeTransitionTokenRef.current = token;
+    setThemeTransition({
+      nextTheme: normalizedTheme,
+      phase: "covering",
+      token,
+    });
+  }, [appTheme, themeTransition]);
+
+  useEffect(() => {
+    if (!themeTransition || typeof window === "undefined") return undefined;
+
+    const { nextTheme, phase, token } = themeTransition;
+    let timerId = null;
+    let firstFrameId = null;
+    let secondFrameId = null;
+
+    if (phase === "covering") {
+      timerId = window.setTimeout(() => {
+        setAppTheme(nextTheme);
+        window.localStorage.setItem(APP_THEME_STORAGE_KEY, nextTheme);
+        setThemeTransition((current) => (
+          current?.token === token ? { ...current, phase: "applying" } : current
+        ));
+      }, THEME_TRANSITION_COVER_MS);
+    } else if (phase === "applying") {
+      firstFrameId = window.requestAnimationFrame(() => {
+        secondFrameId = window.requestAnimationFrame(() => {
+          timerId = window.setTimeout(() => {
+            setThemeTransition((current) => (
+              current?.token === token ? { ...current, phase: "revealing" } : current
+            ));
+          }, THEME_TRANSITION_SETTLE_MS);
+        });
+      });
+    } else if (phase === "revealing") {
+      timerId = window.setTimeout(() => {
+        setThemeTransition((current) => (current?.token === token ? null : current));
+      }, THEME_TRANSITION_REVEAL_MS);
     }
-  }, []);
+
+    return () => {
+      if (timerId !== null) window.clearTimeout(timerId);
+      if (firstFrameId !== null) window.cancelAnimationFrame(firstFrameId);
+      if (secondFrameId !== null) window.cancelAnimationFrame(secondFrameId);
+    };
+  }, [themeTransition]);
 
   useEffect(() => {
     gameStateRef.current = gameState;
@@ -20420,7 +20560,12 @@ function App({ onReady }) {
   }, [miniChordArrangementDraft, miniChordBarCount]);
 
   const clearMiniChordSelectedRangeArrangement = useCallback(() => {
-    const range = miniChordSelectedRange ?? (
+    const range = miniChordArrangementDraft
+      ? {
+          startBar: miniChordArrangementDraft.startBar,
+          endBar: miniChordArrangementDraft.endBar,
+        }
+      : miniChordSelectedRange ?? (
       miniChordRangeStartBar != null
         ? { startBar: miniChordRangeStartBar, endBar: miniChordRangeStartBar }
         : null
@@ -20435,7 +20580,7 @@ function App({ onReady }) {
     setMiniChordArrangementConfirmOpen(false);
     setMiniChordRangeStartBar(null);
     setMiniChordSelectedRange(null);
-  }, [miniChordBarCount, miniChordRangeStartBar, miniChordSelectedRange]);
+  }, [miniChordArrangementDraft, miniChordBarCount, miniChordRangeStartBar, miniChordSelectedRange]);
 
   const getMiniChordFloatingPosition = useCallback((rect, size = {}) => {
     const viewportWidth = typeof window === "undefined"
@@ -21396,16 +21541,6 @@ function App({ onReady }) {
     });
   };
 
-  const updateMiniChordPianoStyle = (value) => {
-    const nextStyle = normalizeMiniChordPianoStyle(value);
-    miniChordPianoStyleRef.current = nextStyle;
-    setMiniChordPianoStyle(nextStyle);
-    requestMiniChordBackingPatternChange({}, {
-      forceSessionUpdate: true,
-      pianoStyle: nextStyle,
-    });
-  };
-
   const stopMiniChordConfigurationPreview = () => {
     if (miniChordGroovePreviewTimerRef.current) {
       window.clearTimeout(miniChordGroovePreviewTimerRef.current);
@@ -21685,9 +21820,6 @@ function App({ onReady }) {
       beatValue: backingPianoBeat,
       options: MINI_CHORD_PIANO_BEAT_OPTIONS,
       onBeatChange: (value) => requestMiniChordBackingPatternChange({ pianoBeat: value }),
-      styleValue: miniChordPianoStyle,
-      styleOptions: MINI_CHORD_PIANO_STYLE_OPTIONS,
-      onStyleChange: updateMiniChordPianoStyle,
     },
   ];
 
@@ -21711,16 +21843,35 @@ function App({ onReady }) {
     gameState !== GAME_STATES.PLAYING &&
     stage3BackingPrepareStatus !== "ready";
 
+  const appInteractionLocked = Boolean(shooterLaunchTransition || themeTransition);
+
   return (
     <main
+      aria-hidden={appInteractionLocked ? true : undefined}
       className={`app notranslate theme-${appTheme} ${appMode === APP_MODES.MENU ? "menuApp" : ""} ${
         appMode === APP_MODES.MINI_CHORD_MAKER ? "miniChordMakerMode" : ""
       } ${appMode === APP_MODES.METRONOME ? "metronomeMode" : ""} ${appMode === APP_MODES.SHOOTER ? "shooterMode" : ""} ${utilityMenuOpen ? "utilityMenuOpen" : ""} ${isSignalActive ? "signalGlow" : ""}`}
       onClickCapture={handleAppClickCapture}
       onPointerDownCapture={handleAppPointerDownCapture}
       onPointerUpCapture={handleAppPointerUpCapture}
+      inert={appInteractionLocked}
       translate="no"
     >
+      {shooterLaunchTransition && typeof document !== "undefined"
+        ? createPortal(
+          <ShooterLaunchOverlay
+            onComplete={finishShooterLaunch}
+            transition={shooterLaunchTransition}
+          />,
+          document.body,
+        )
+        : null}
+      {themeTransition && typeof document !== "undefined"
+        ? createPortal(
+          <ThemeTransitionOverlay transition={themeTransition} />,
+          document.body,
+        )
+        : null}
       <MetronomeViewportFlash
         active={metronomeFlashEnabled && metronomeFlashPulse > 0}
         pulseKey={`metronome-global-flash-${metronomeFlashPulse}`}
@@ -21748,7 +21899,7 @@ function App({ onReady }) {
                 onClick={closeUtilityMenu}
                 type="button"
               >
-                ×
+                <X aria-hidden="true" size={22} />
               </button>
             </div>
             {themeMenuVisible ? (
@@ -21764,13 +21915,16 @@ function App({ onReady }) {
                     <button
                       aria-checked={appTheme === option.id}
                       className={appTheme === option.id ? "selected" : ""}
+                      disabled={Boolean(themeTransition)}
                       key={option.id}
                       onClick={() => selectAppTheme(option.id)}
                       role="radio"
                       type="button"
                     >
+                      <span className="utilityThemeIcon" aria-hidden="true">
+                        {option.id === APP_THEMES.LIGHT ? <Sun size={19} /> : <Moon size={19} />}
+                      </span>
                       <strong>{option.label}</strong>
-                      <small>{option.description}</small>
                     </button>
                   ))}
                 </div>
@@ -21782,36 +21936,36 @@ function App({ onReady }) {
                 onClick={() => showIndependentPracticeCategory("first-position")}
                 type="button"
               >
-                <span className="utilityMenuIcon" aria-hidden="true">01</span>
+                <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">1</span>
                 <div className="utilityMenuText">
                   <strong>단일 음 위치 익히기</strong>
-                  <small>0~3프렛 기본 음 위치를 찾는 훈련</small>
+                  <small>C ~ 3코드 기준 음 위치를 찾는 훈련</small>
                 </div>
-                <span className="utilityMenuChevron" aria-hidden="true">›</span>
+                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
               <button
                 className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
                 onClick={() => showIndependentPracticeCategory("scale-block")}
                 type="button"
               >
-                <span className="utilityMenuIcon" aria-hidden="true">02</span>
+                <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">2</span>
                 <div className="utilityMenuText">
-                  <strong>스케일 · 펜타토닉 · 릭</strong>
+                  <strong>스케일 · 펜타토닉</strong>
                   <small>구간별 위치 · 프레이즈 연습</small>
                 </div>
-                <span className="utilityMenuChevron" aria-hidden="true">›</span>
+                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
               <button
                 className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
                 onClick={showCurriculum}
                 type="button"
               >
-                <span className="utilityMenuIcon" aria-hidden="true">03</span>
+                <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">3</span>
                 <div className="utilityMenuText">
                   <strong>리듬 &amp; 코드</strong>
                   <small>메트로놈 기반 코드 전환 훈련</small>
                 </div>
-                <span className="utilityMenuChevron" aria-hidden="true">›</span>
+                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
               <section className="utilitySoundPanel" aria-label="사운드 설정">
                 <details className="utilitySoundDetails">
@@ -21823,6 +21977,7 @@ function App({ onReady }) {
                       <strong>사운드 설정</strong>
                       <small>드럼·베이스·피아노 밸런스</small>
                     </div>
+                    <span className="utilityMenuChevron" aria-hidden="true"><ChevronDown size={18} /></span>
                   </summary>
                   <div className="utilitySoundSliders">
                     {BACKING_PART_VOLUME_CONTROLS.map((control) => {
@@ -21868,12 +22023,12 @@ function App({ onReady }) {
                 }}
                 type="button"
               >
-                <span className="utilityMenuIcon" aria-hidden="true">?</span>
+                <span className="utilityMenuIcon" aria-hidden="true"><CircleHelp size={19} /></span>
                 <div className="utilityMenuText">
                   <strong>사용설명서 & 도움말</strong>
                   <small>훈련 기능과 사용 방법 안내</small>
                 </div>
-                <span className="utilityMenuChevron" aria-hidden="true">›</span>
+                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
               <a
                 className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive utilityMenuItemExternal utilityMenuItemInstagram"
@@ -21892,7 +22047,7 @@ function App({ onReady }) {
                   <strong>문의하기</strong>
                   <small>Instagram @sungsu91_</small>
                 </div>
-                <span className="utilityMenuChevron" aria-hidden="true">↗</span>
+                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </a>
             </nav>
             <p className="utilityMenuVersion" aria-label={`앱 ${APP_VERSION_LABEL}`}>
@@ -22516,16 +22671,31 @@ function App({ onReady }) {
                       <span
                         aria-hidden="true"
                         className={`miniChordArrangementRangeFrame ${inArrangementRange ? "is-selection" : "is-applied"} ${arrangementFrameRowSegmentStart ? "is-segment-start" : ""} ${arrangementFrameRowSegmentEnd ? "is-segment-end" : ""} ${arrangementFrameConnectsToNext ? "is-connected-next" : ""}`}
+                        data-arrangement-end={hasArrangementOverride ? arrangementOverride.endBar + 1 : undefined}
+                        data-arrangement-start={hasArrangementOverride ? arrangementOverride.startBar + 1 : undefined}
                       />
                     ) : null}
                     {hasArrangementOverride && isAppliedArrangementRangeStart ? (
-                      <span
+                      <button
                         aria-label={`${arrangementOverride.startBar + 1}-${arrangementOverride.endBar + 1}마디 편곡 설정 구간`}
                         className="miniChordArrangementRangeTag"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setMiniChordActiveBarIndex(null);
+                          setMiniChordChordPickerSlot(null);
+                          setMiniChordEndingPopoverPosition(null);
+                          setMiniChordChordPickerPosition(null);
+                          openMiniChordArrangementEditor({}, {
+                            startBar: arrangementOverride.startBar,
+                            endBar: arrangementOverride.endBar,
+                          });
+                        }}
+                        onPointerDown={(event) => event.stopPropagation()}
                         title={`${arrangementOverride.startBar + 1}-${arrangementOverride.endBar + 1}마디 편곡 설정 구간`}
+                        type="button"
                       >
                         ARR
-                      </span>
+                      </button>
                     ) : null}
                     <button
                       aria-label={`${bar.index + 1}마디 도돌이표 시작 ${bar.repeatStart ? "해제" : "설정"}`}
@@ -22642,8 +22812,18 @@ function App({ onReady }) {
                         style={miniChordEndingPopoverPosition ?? undefined}
                       >
                         <div className="miniChordPickerTitle miniChordMarkPickerTitle">
-                          <span>기호</span>
-                          <small>{bar.index + 1}마디</small>
+                          <span className="miniChordMarkPickerTitleCopy">
+                            <b>기호 설정</b>
+                            <small>{bar.index + 1}마디</small>
+                          </span>
+                          <button
+                            aria-label="기호 설정 닫기"
+                            className="miniChordPopupCloseButton"
+                            onClick={() => closeMiniChordFloatingEditors({ restoreFocus: true })}
+                            type="button"
+                          >
+                            <X aria-hidden="true" size={14} />
+                          </button>
                         </div>
                         <div className="barMarkCompactRow">
                           <span className="barMarkSectionLabel">엔딩</span>
@@ -22777,6 +22957,7 @@ function App({ onReady }) {
                               fallbackDraft={miniChordPickerDraftRef.current}
                               initialChord={slot.chord}
                               key={slot.index}
+                              onClose={() => closeMiniChordFloatingEditors({ restoreFocus: true })}
                               onCommit={commitMiniChordChordPicker}
                               position={miniChordChordPickerPosition}
                               resolveChord={getChordFromSelector}
@@ -22821,10 +23002,6 @@ function App({ onReady }) {
               <b>드럼 · 베이스 · 피아노</b>
             </summary>
             <div className="miniChordRhythmSettingsBar">
-              <span>
-                <b>저장된 Pattern 선택</b>
-                <small>편집은 리듬 설정에서만</small>
-              </span>
               <button
                 aria-haspopup="dialog"
                 onClick={() => {
@@ -22888,20 +23065,6 @@ function App({ onReady }) {
                         </button>
                       ))}
                     </div>
-                    {part.styleOptions ? (
-                      <div className="miniChordPianoStyleOptions" role="group" aria-label="피아노 연주 스타일 선택">
-                        {part.styleOptions.map((option) => (
-                          <button
-                            className={part.styleValue === option.id ? "selected" : ""}
-                            key={option.id}
-                            onClick={() => part.onStyleChange(option.id)}
-                            type="button"
-                          >
-                            {option.label}
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
                   </section>
                 );
               })}
