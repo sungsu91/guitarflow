@@ -1582,8 +1582,8 @@ html body main.app.theme-brand.theme-brand
 
   html body main.app.app.app.metronomeMode
     .backingLoopPanel--mobile :is(.backingLoopTitle, .backingLoopTime) {
-    font-size: 10.5px !important;
-    line-height: 1.1 !important;
+    font-size: 9.5px !important;
+    line-height: 1 !important;
   }
 
   html body main.app.app.app.metronomeMode
@@ -1683,7 +1683,7 @@ html body main.app.theme-brand.theme-brand
 
 /* Mobile Backing Loop: a compact recorder chassis, not a generic card. */
 @media (max-width: 767px) {
-  html body main.app.app.app.metronomeMode .backingLoopPanel.backingLoopPanel--mobile {
+  html body main.app.app.app .backingLoopPanel.backingLoopPanel--mobile {
     --backing-recorder-chassis-border: rgba(137, 93, 70, 0.42);
     --backing-recorder-chassis-edge: rgba(255, 255, 255, 0.74);
     --backing-recorder-chassis-shadow: rgba(82, 49, 38, 0.13);
@@ -1727,7 +1727,7 @@ html body main.app.theme-brand.theme-brand
     overflow: visible !important;
   }
 
-  html body main.app.app.app.theme-brand.theme-brand.metronomeMode
+  html body main.app.app.app.theme-brand.theme-brand
     .backingLoopPanel.backingLoopPanel--mobile {
     --backing-recorder-chassis-border: rgba(217, 170, 85, 0.44);
     --backing-recorder-chassis-edge: rgba(255, 229, 163, 0.15);
@@ -1828,7 +1828,7 @@ html body main.app.theme-brand.theme-brand
   .backingLoopGrille--left { left: 9px; }
   .backingLoopGrille--right { right: 9px; }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopHeader {
     grid-template-columns: minmax(0, 1fr) 7px 66px !important;
     gap: 5px !important;
@@ -1841,13 +1841,13 @@ html body main.app.theme-brand.theme-brand
     box-shadow: none;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile :is(.backingLoopTitle, .backingLoopTime) {
     font-size: 9.5px !important;
     line-height: 1 !important;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopTitle {
     color: var(--backing-loop-gold) !important;
     letter-spacing: 0.055em;
@@ -1891,17 +1891,17 @@ html body main.app.theme-brand.theme-brand
     gap: 5px;
     padding-inline: 0;
     color: var(--backing-recorder-display-text);
-    font-size: 8px;
+    font-size: 11px;
     font-weight: 850;
     font-variant-numeric: tabular-nums;
     line-height: 1;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.16px;
     text-align: center;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopDeckDisplay .backingLoopProgress,
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopDeckDisplay .backingLoopInputMeter {
     width: auto;
     height: 9px !important;
@@ -1911,23 +1911,23 @@ html body main.app.theme-brand.theme-brand
     overflow: visible !important;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopDeckDisplay .backingLoopProgress.is-disabled {
     opacity: 0.7 !important;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopDeckDisplay .backingLoopProgress input {
     height: 9px !important;
     min-height: 9px !important;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopDeckDisplay .backingLoopProgress input::-webkit-slider-runnable-track {
     height: 2px !important;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopDeckDisplay .backingLoopProgress input::-webkit-slider-thumb {
     width: 7px !important;
     height: 7px !important;
@@ -1999,7 +1999,7 @@ html body main.app.theme-brand.theme-brand
     border-radius: 1px;
     background: var(--backing-recorder-status-bg);
     color: var(--backing-recorder-status-text);
-    font-size: 7.5px;
+    font-size: 14px;
     font-weight: 950;
     line-height: 1;
     letter-spacing: 0.07em;
@@ -2009,7 +2009,7 @@ html body main.app.theme-brand.theme-brand
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopMainControls {
     gap: 1px !important;
     padding: 1px;
@@ -2020,9 +2020,9 @@ html body main.app.theme-brand.theme-brand
     overflow: hidden;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopMainControls .backingLoopButton,
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopStorageControls .backingLoopButton {
     min-height: 0 !important;
     border: 1px solid var(--backing-recorder-button-border) !important;
@@ -2036,22 +2036,23 @@ html body main.app.theme-brand.theme-brand
     transition: transform 90ms ease, box-shadow 110ms ease, border-color 120ms ease !important;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopMainControls .backingLoopButton {
     flex-direction: column;
     gap: 2px !important;
     height: 100% !important;
     padding: 2px 1px 1px !important;
     border-radius: 1px !important;
-    font-size: 8.75px !important;
+    font-size: 11px !important;
+    font-weight: 850 !important;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopRecordButton:not(:disabled) {
     color: #9b3f3d !important;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopStorageControls {
     gap: 1px !important;
     margin-inline: 27px;
@@ -2063,21 +2064,48 @@ html body main.app.theme-brand.theme-brand
     overflow: hidden;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopStorageControls .backingLoopButton {
     height: 100% !important;
     padding: 0 5px !important;
     border-radius: 1px !important;
-    font-size: 9.5px !important;
+    font-size: 11px !important;
+    font-weight: 850 !important;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
+    .backingLoopPanel.backingLoopPanel--mobile .backingLoopTime {
+    font-weight: 850 !important;
+    opacity: 0.92 !important;
+  }
+
+  html body main.app.app.app
+    .backingLoopPanel.backingLoopPanel--mobile .backingLoopButton > span {
+    font-size: 11px !important;
+    font-weight: 850 !important;
+    line-height: 1 !important;
+  }
+
+  html body main.app.app.app.theme-brand.metronomeMode
+    .backingLoopPanel--mobile .backingLoopDeckTimeline > span,
+  html body main.app.app.app.theme-brand.metronomeMode
+    .backingLoopPanel--mobile .backingLoopButton:not(:disabled) > span {
+    color: #d9aa55 !important;
+    opacity: 0.92 !important;
+  }
+
+  html body main.app.app.app.theme-brand.metronomeMode
+    .backingLoopPanel--mobile .backingLoopDeckStatus {
+    color: #f7f1e3 !important;
+  }
+
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopButton:active:not(:disabled) {
     box-shadow: inset 0 1px 2px var(--backing-recorder-button-shadow) !important;
     transform: translateY(1px) !important;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopButton:disabled {
     border-color: var(--backing-recorder-disabled-border) !important;
     background: linear-gradient(180deg, var(--backing-recorder-disabled-top), var(--backing-recorder-disabled-bottom)) !important;
@@ -2089,7 +2117,7 @@ html body main.app.theme-brand.theme-brand
     transform: none !important;
   }
 
-  html body main.app.app.app.metronomeMode
+  html body main.app.app.app
     .backingLoopPanel--mobile .backingLoopButton:disabled :is(span, svg) {
     color: inherit !important;
     opacity: 1 !important;
@@ -2097,14 +2125,19 @@ html body main.app.theme-brand.theme-brand
   }
 
   @media (max-width: 374px) {
-    html body main.app.app.app.metronomeMode .backingLoopPanel.backingLoopPanel--mobile {
+    html body main.app.app.app .backingLoopPanel.backingLoopPanel--mobile {
       padding-inline: 6px !important;
     }
 
-    html body main.app.app.app.metronomeMode
+    html body main.app.app.app
       .backingLoopPanel--mobile .backingLoopHeader {
       grid-template-columns: minmax(0, 1fr) 6px 56px !important;
       padding-inline: 11px !important;
+    }
+
+    html body main.app.app.app
+      .backingLoopPanel--mobile :is(.backingLoopTitle, .backingLoopTime) {
+      font-size: 8.75px !important;
     }
 
     html body main.app.app.app.metronomeMode
@@ -2113,16 +2146,23 @@ html body main.app.theme-brand.theme-brand
     }
 
     html body main.app.app.app.metronomeMode
+      .backingLoopPanel--mobile .backingLoopDeckTimeline > span,
+    html body main.app.app.app.metronomeMode
+      .backingLoopPanel--mobile .backingLoopButton:not(:disabled) > span {
+      opacity: 0.92 !important;
+    }
+
+    html body main.app.app.app
       .backingLoopPanel--mobile .backingLoopMainControls {
       gap: 1px !important;
     }
 
-    html body main.app.app.app.metronomeMode
+    html body main.app.app.app
       .backingLoopPanel--mobile .backingLoopMainControls .backingLoopButton {
       font-size: 8px !important;
     }
 
-    html body main.app.app.app.metronomeMode
+    html body main.app.app.app
       .backingLoopPanel--mobile .backingLoopStorageControls {
       margin-inline: 24px;
     }
@@ -3040,4 +3080,4060 @@ html body main.app.app.app.miniChordMakerMode
 html body main.app.app.app.miniChordMakerMode
   .miniChordTimelineFour .miniChordBar.is-arrangement-selected .miniChordArrangementRangeTag {
   display: none !important;
+}
+
+/* Fretboard viewer / chord mode: Design 3 rose-beige plate. */
+html body main.app.app.app .fretboardViewerPanel .viewerControlPanel--chord.viewerControlPanel {
+  --code-plate-bg: #f7f3f0;
+  --code-panel-bg: #f1e7e3;
+  --code-control-bg: #f7f0ed;
+  --code-selected-bg: #f3c6cc;
+  --code-text: #3a2f2f;
+  --code-muted: #765f5b;
+  --code-border: #dcc0b5;
+  --code-accent: #e3b7a7;
+  --code-shadow: rgba(75, 47, 39, 0.09);
+  color-scheme: light;
+  display: grid !important;
+  gap: 11px !important;
+  padding: 12px !important;
+  overflow: hidden !important;
+  border: 1px solid var(--code-accent) !important;
+  border-radius: 20px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.12)),
+    var(--code-plate-bg) !important;
+  box-shadow:
+    0 10px 24px var(--code-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerModeTabs.viewerModeTabs {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerModeTabs.viewerModeTabs > button {
+  min-width: 0 !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  max-height: 46px !important;
+  margin: 0 !important;
+  padding: 0 8px !important;
+  border: 1px solid var(--code-border) !important;
+  border-radius: 13px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.08)),
+    var(--code-control-bg) !important;
+  color: var(--code-text) !important;
+  box-shadow:
+    0 2px 5px rgba(75, 47, 39, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84) !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  line-height: 1.05 !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerModeTabs.viewerModeTabs > button.selected,
+html body main.app.app.app .viewerControlPanel--chord .viewerModeTabs.viewerModeTabs > button[aria-pressed="true"] {
+  border-color: #d59098 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(226, 146, 157, 0.12)),
+    var(--code-selected-bg) !important;
+  color: #302525 !important;
+  box-shadow:
+    0 3px 7px rgba(114, 63, 67, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerModeTabs .viewerModeTabStack,
+html body main.app.app.app .viewerControlPanel--chord .viewerModeTabs .viewerModeTabStack > span {
+  color: inherit !important;
+  font-size: inherit !important;
+  line-height: 1.02 !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerMapCard.viewerMapCard--chord {
+  display: grid !important;
+  gap: 9px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerMapHeader--chord.viewerMapHeader {
+  display: block !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 8px 9px !important;
+  border: 1px solid rgba(220, 192, 181, 0.78) !important;
+  border-radius: 14px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.05)),
+    var(--code-panel-bg) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerChordHeader {
+  display: grid !important;
+  grid-template-columns: minmax(66px, 1fr) auto auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerChordIdentity {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerChordIdentity > span {
+  flex: 0 0 auto !important;
+  color: var(--code-text) !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerChordIdentity > strong {
+  overflow: hidden !important;
+  color: var(--code-text) !important;
+  font-size: 33px !important;
+  font-weight: 950 !important;
+  line-height: 0.95 !important;
+  letter-spacing: -0.04em !important;
+  text-overflow: ellipsis !important;
+  text-shadow: none !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerChordHeader > .viewerSwipeHint {
+  margin: 0 !important;
+  color: var(--code-text) !important;
+  font-size: 10.5px !important;
+  font-weight: 850 !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerChordHeaderActions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerChordHeaderActions > button,
+html body main.app.app.app .viewerControlPanel--chord .viewerMapCard--chord .viewerAllButton.viewerAllButton,
+html body main.app.app.app .viewerControlPanel--chord .viewerMapCard--chord .viewerChordSoundButton.viewerChordSoundButton {
+  position: static !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  align-self: auto !important;
+  justify-self: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  width: auto !important;
+  min-width: 66px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
+  margin: 0 !important;
+  padding: 0 9px !important;
+  border: 1px solid var(--code-border) !important;
+  border-radius: 11px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.08)),
+    var(--code-control-bg) !important;
+  color: var(--code-text) !important;
+  box-shadow:
+    0 2px 5px rgba(75, 47, 39, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
+  font-size: 10.5px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  text-shadow: none !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerMapCard--chord .viewerChordSoundButton.viewerChordSoundButton {
+  min-width: 80px !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerMapCard--chord .viewerChordSoundButton > span {
+  color: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerChordHeaderActions > button:is(:hover, :focus-visible):not(:disabled) {
+  border-color: #ca968b !important;
+  background: #fffaf7 !important;
+  color: #2f2525 !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerFretboardGestureSurface--chord {
+  min-width: 0 !important;
+  padding: 7px !important;
+  overflow: hidden !important;
+  border: 1px solid #cba88f !important;
+  border-radius: 15px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(174, 115, 75, 0.05)),
+    #ead6c3 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 3px 8px rgba(91, 57, 41, 0.08) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard.fretboardComponent--chord {
+  --fretboard-label-left: 60px !important;
+  --fretboard-label-right: 8px !important;
+  --fretboard-board-top: 27px !important;
+  --fretboard-board-bottom: 14px !important;
+  --fretboard-board-height: 174px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardComponentScroller {
+  min-width: 100% !important;
+  min-height: 215px !important;
+  padding: var(--fretboard-board-top) var(--fretboard-label-right) var(--fretboard-board-bottom) var(--fretboard-label-left) !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.25), transparent 24%, rgba(111, 68, 43, 0.035) 67%, transparent),
+    repeating-linear-gradient(90deg, rgba(132, 82, 48, 0.025) 0 5px, rgba(255, 255, 255, 0.035) 5px 10px),
+    linear-gradient(180deg, #f1ddc8 0%, #e7c9ab 54%, #efd8c2 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -10px 18px rgba(107, 65, 40, 0.05) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardFretNumbers {
+  color: var(--code-text) !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardStringRow > span {
+  color: var(--code-text) !important;
+  font-size: 9.5px !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardGrid > i {
+  border-color: rgba(58, 47, 47, 0.44) !important;
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.38) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardStringRow > i {
+  height: 2px !important;
+  background: linear-gradient(90deg, #8f7c72, #6e6059) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.62) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardNut {
+  width: 5px !important;
+  border: 1px solid rgba(119, 68, 42, 0.45) !important;
+  background: linear-gradient(90deg, #f1c8a2, #bd7b50 56%, #f8d8b9) !important;
+  box-shadow:
+    inset 1px 0 0 rgba(255, 255, 255, 0.58),
+    1px 0 3px rgba(91, 52, 31, 0.18) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardStringState {
+  border: 1px solid #6b4d43 !important;
+  background: #493630 !important;
+  color: #fff8f2 !important;
+  box-shadow: 0 1px 3px rgba(50, 31, 25, 0.18) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardNoteChip,
+html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardNoteChip.root {
+  width: 30px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding: 0 !important;
+  border: 1px solid #cf8f96 !important;
+  background:
+    radial-gradient(circle at 36% 25%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.18) 38%, transparent 42%),
+    var(--code-selected-bg) !important;
+  color: #2f2727 !important;
+  box-shadow:
+    0 0 0 3px rgba(255, 247, 244, 0.9),
+    0 3px 7px rgba(92, 54, 50, 0.18) !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardNoteChip.root {
+  width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardNoteChip > b {
+  color: inherit !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardBarre {
+  border-color: #cf8f96 !important;
+  background: rgba(243, 198, 204, 0.88) !important;
+  color: var(--code-text) !important;
+  box-shadow: 0 2px 6px rgba(92, 54, 50, 0.16) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerModeControlSlot--chord.viewerModeControlSlot {
+  position: static !important;
+  top: auto !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .chordBuilderPanel--composer.chordBuilderPanel {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0 !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 7px 9px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(220, 192, 181, 0.82) !important;
+  border-radius: 14px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.04)),
+    var(--code-panel-bg) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .chordBuilderOptionSection--labeled {
+  display: grid !important;
+  grid-template-columns: 44px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+  min-height: 47px !important;
+  margin: 0 !important;
+  padding: 5px 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .chordBuilderOptionSection--labeled + .chordBuilderOptionSection--labeled {
+  border-top: 1px solid rgba(166, 122, 105, 0.2) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .chordBuilderOptionLabel {
+  display: flex !important;
+  align-items: center !important;
+  align-self: stretch !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: var(--code-text) !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.02em !important;
+  text-shadow: none !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .chordBuilderChipGrid {
+  display: grid !important;
+  align-items: stretch !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .chordBuilderOptionSection--cols-7 .chordBuilderChipGrid {
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .chordBuilderOptionSection--cols-3 .chordBuilderChipGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .chordBuilderOptionSection--cols-4 .chordBuilderChipGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .chordBuilderOptionSection--tensions-2row .chordBuilderChipGrid {
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .chordBuilderChipGrid > .chordBuilderChip {
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 37px !important;
+  min-height: 37px !important;
+  max-height: 37px !important;
+  margin: 0 !important;
+  padding: 0 5px !important;
+  border: 1px solid var(--code-border) !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.08)),
+    var(--code-control-bg) !important;
+  color: var(--code-text) !important;
+  box-shadow:
+    0 1px 3px rgba(75, 47, 39, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.01em !important;
+  text-shadow: none !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .chordBuilderChipGrid > .chordBuilderChip:is(:hover, :focus-visible):not(:disabled) {
+  border-color: #ca968b !important;
+  background: #fffaf7 !important;
+  color: #2f2525 !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .chordBuilderChipGrid > .chordBuilderChip.selected,
+html body main.app.app.app .viewerControlPanel--chord .chordBuilderChipGrid > .chordBuilderChip[aria-pressed="true"] {
+  border-color: #d59098 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.36), rgba(226, 146, 157, 0.12)),
+    var(--code-selected-bg) !important;
+  color: #302525 !important;
+  box-shadow:
+    0 2px 5px rgba(114, 63, 67, 0.11),
+    inset 0 1px 0 rgba(255, 255, 255, 0.66) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .chordBuilderChipGrid > .chordBuilderChip:disabled {
+  border-color: rgba(166, 129, 115, 0.24) !important;
+  background: rgba(247, 240, 237, 0.62) !important;
+  color: rgba(58, 47, 47, 0.42) !important;
+  opacity: 1 !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerChordReferenceFooter {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+  min-height: 58px !important;
+  margin: 0 !important;
+  padding: 9px 13px !important;
+  border: 1px solid var(--code-accent) !important;
+  border-radius: 15px !important;
+  background:
+    linear-gradient(90deg, rgba(243, 198, 204, 0.24), rgba(255, 255, 255, 0.28)),
+    #f8efec !important;
+  box-shadow:
+    0 2px 6px rgba(75, 47, 39, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84) !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerChordReferenceFooter > strong {
+  color: var(--code-text) !important;
+  font-size: 18px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.025em !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerChordReferenceFooter > div {
+  display: grid !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+  text-align: right !important;
+}
+
+html body main.app.app.app .viewerControlPanel--chord .viewerChordReferenceFooter span {
+  color: var(--code-muted) !important;
+  font-size: 9.5px !important;
+  font-weight: 760 !important;
+  line-height: 1.15 !important;
+  text-shadow: none !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app .fretboardViewerPanel .chordCatalogPanel.chordCatalogPanel {
+  color-scheme: light;
+  margin: 0 !important;
+  padding: 11px !important;
+  border: 1px solid #e3b7a7 !important;
+  border-radius: 18px !important;
+  background: #f7f3f0 !important;
+  box-shadow:
+    0 8px 20px rgba(75, 47, 39, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84) !important;
+}
+
+html body main.app.app.app .fretboardViewerPanel .chordCatalogPanel .chordCatalogScroll {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .fretboardViewerPanel .chordCatalogPanel .chordCatalogRow {
+  border-color: rgba(176, 130, 111, 0.22) !important;
+  background: #f1e7e3 !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .fretboardViewerPanel .chordCatalogPanel .chordRootLabel,
+html body main.app.app.app .fretboardViewerPanel .chordCatalogPanel .chordMiniCard > span,
+html body main.app.app.app .fretboardViewerPanel .chordCatalogPanel .chordMiniTones {
+  color: #3a2f2f !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app .fretboardViewerPanel .chordCatalogPanel .chordMiniCard {
+  border-color: #dcc0b5 !important;
+  background: #f7f0ed !important;
+  box-shadow: 0 2px 6px rgba(75, 47, 39, 0.07) !important;
+}
+
+@media (min-width: 768px) {
+  html body main.app.app.app .fretboardViewerPanel .viewerControlPanel--chord.viewerControlPanel {
+    gap: 14px !important;
+    padding: 17px !important;
+    border-radius: 22px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerModeTabs.viewerModeTabs > button {
+    height: 54px !important;
+    min-height: 54px !important;
+    max-height: 54px !important;
+    border-radius: 15px !important;
+    font-size: 15px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerMapHeader--chord.viewerMapHeader {
+    padding: 12px 15px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordHeader {
+    grid-template-columns: minmax(170px, 1fr) auto auto !important;
+    gap: 14px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordIdentity > span {
+    font-size: 13px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordIdentity > strong {
+    font-size: 39px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordHeader > .viewerSwipeHint {
+    font-size: 12px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordHeaderActions > button,
+  html body main.app.app.app .viewerControlPanel--chord .viewerMapCard--chord .viewerAllButton.viewerAllButton,
+  html body main.app.app.app .viewerControlPanel--chord .viewerMapCard--chord .viewerChordSoundButton.viewerChordSoundButton {
+    min-width: 82px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    padding-inline: 12px !important;
+    font-size: 11px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerMapCard--chord .viewerChordSoundButton.viewerChordSoundButton {
+    min-width: 98px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard.fretboardComponent--chord {
+    --fretboard-label-left: 78px !important;
+    --fretboard-label-right: 12px !important;
+    --fretboard-board-top: 31px !important;
+    --fretboard-board-bottom: 17px !important;
+    --fretboard-board-height: 210px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardComponentScroller {
+    min-height: 258px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardFretNumbers {
+    font-size: 12px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardStringRow > span {
+    font-size: 11px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardNoteChip,
+  html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardNoteChip.root {
+    width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardNoteChip.root {
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardNoteChip > b {
+    font-size: 14px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .chordBuilderPanel--composer.chordBuilderPanel {
+    padding: 10px 13px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .chordBuilderOptionSection--labeled {
+    grid-template-columns: 62px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    min-height: 55px !important;
+    padding: 7px 0 !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .chordBuilderOptionLabel {
+    font-size: 13px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .chordBuilderChipGrid {
+    gap: 7px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .chordBuilderChipGrid > .chordBuilderChip {
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    border-radius: 11px !important;
+    font-size: 13px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordReferenceFooter {
+    min-height: 68px !important;
+    padding: 12px 18px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordReferenceFooter > strong {
+    font-size: 22px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordReferenceFooter span {
+    font-size: 11px !important;
+  }
+}
+
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerModeTabs.viewerModeTabs {
+  width: auto !important;
+  max-width: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordRootLabel.chordRootLabel {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(151, 96, 73, 0.2) !important;
+  border-radius: 8px 0 0 8px !important;
+  background:
+    linear-gradient(90deg, rgba(242, 183, 182, 0.24), rgba(255, 255, 255, 0.2)),
+    rgba(247, 237, 232, 0.86) !important;
+  color: var(--pearl-ink) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.76),
+    inset -1px 0 0 rgba(255, 255, 255, 0.4) !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.76) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordRootLabel.chordRootLabel::before,
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordRootLabel.chordRootLabel::after {
+  display: none !important;
+  content: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordMiniGrid.chordMiniGrid {
+  scrollbar-width: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordMiniGrid.chordMiniGrid::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Chord viewer material pass: one pearl instrument chassis from the
+   reference neck through the full chord catalogue. */
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel.fretboardViewerPanel {
+  --pearl-ivory: #f7f0ec;
+  --pearl-highlight: #fffaf7;
+  --pearl-mid: #efe2dc;
+  --pearl-shadow: #dfcbc3;
+  --rose-pearl: #efb9b8;
+  --rose-pearl-deep: #d88e8d;
+  --rose-gold: #b77a65;
+  --rose-gold-soft: #d8aa98;
+  --pearl-ink: #332824;
+  --pearl-muted: #705851;
+  --maple-light: #f3d9ba;
+  --maple-mid: #e9c69f;
+  --maple-deep: #d9ae82;
+  position: relative !important;
+  display: grid !important;
+  gap: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 11px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(154, 94, 72, 0.62) !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(ellipse at 22% 0%, rgba(255, 255, 255, 0.92), transparent 36%),
+    radial-gradient(ellipse at 82% 16%, rgba(246, 205, 203, 0.25), transparent 34%),
+    linear-gradient(112deg, rgba(255, 255, 255, 0.52), transparent 28%, rgba(213, 167, 151, 0.08) 60%, transparent 82%),
+    linear-gradient(180deg, #fbf5f2 0%, #f2e7e2 46%, #eadbd5 100%) !important;
+  box-shadow:
+    0 0 0 3px rgba(255, 248, 244, 0.84),
+    0 0 0 5px rgba(174, 113, 89, 0.28),
+    0 10px 22px rgba(69, 42, 33, 0.13),
+    inset 0 1px 0 #fff,
+    inset 0 -2px 0 rgba(157, 99, 77, 0.12),
+    inset 0 0 18px rgba(197, 146, 129, 0.12) !important;
+  color: var(--pearl-ink) !important;
+  color-scheme: light;
+  isolation: isolate;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel.fretboardViewerPanel::before,
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel.fretboardViewerPanel::after {
+  position: absolute !important;
+  top: 17px !important;
+  z-index: 12 !important;
+  width: 13px !important;
+  height: 13px !important;
+  border: 1px solid rgba(111, 60, 44, 0.72) !important;
+  border-radius: 50% !important;
+  background:
+    radial-gradient(circle at 34% 28%, #fff1e8 0 9%, transparent 10%),
+    radial-gradient(circle at 48% 44%, #d99e83 0 23%, #985b44 49%, #603a2e 72%, #d4a38a 76% 100%) !important;
+  box-shadow:
+    0 1px 2px rgba(71, 39, 29, 0.3),
+    inset 1px 1px 1px rgba(255, 237, 225, 0.62),
+    inset -1px -1px 1px rgba(67, 35, 26, 0.38) !important;
+  content: "" !important;
+  pointer-events: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel.fretboardViewerPanel::before {
+  left: 13px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel.fretboardViewerPanel::after {
+  right: 13px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel.viewerControlPanel {
+  display: grid !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerModeTabs.viewerModeTabs {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  margin: 0 15px 1px !important;
+  padding: 3px !important;
+  border: 1px solid rgba(158, 103, 83, 0.46) !important;
+  border-radius: 13px !important;
+  background:
+    linear-gradient(180deg, rgba(217, 188, 177, 0.32), rgba(255, 255, 255, 0.62)),
+    var(--pearl-mid) !important;
+  box-shadow:
+    inset 0 1px 2px rgba(99, 62, 49, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.84) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerModeTabs.viewerModeTabs > button {
+  min-width: 0 !important;
+  height: 39px !important;
+  min-height: 39px !important;
+  max-height: 39px !important;
+  margin: 0 !important;
+  padding: 0 5px !important;
+  border: 1px solid rgba(168, 118, 99, 0.42) !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.26) 46%, rgba(210, 181, 170, 0.12) 100%),
+    var(--pearl-ivory) !important;
+  color: var(--pearl-ink) !important;
+  box-shadow:
+    0 1px 2px rgba(83, 51, 40, 0.11),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -1px 0 rgba(139, 88, 69, 0.11) !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.82) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerModeTabs.viewerModeTabs > button:is(.selected, [aria-pressed="true"]) {
+  border-color: rgba(184, 94, 92, 0.76) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 242, 240, 0.96) 0%, rgba(248, 199, 198, 0.74) 52%, rgba(220, 138, 138, 0.28) 100%),
+    var(--rose-pearl) !important;
+  color: #302321 !important;
+  box-shadow:
+    0 1px 2px rgba(103, 51, 48, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84),
+    inset 0 -1px 0 rgba(151, 70, 68, 0.18),
+    0 0 0 1px rgba(255, 226, 223, 0.58) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerModeTabs .viewerModeTabStack,
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerModeTabs .viewerModeTabStack > span {
+  color: inherit !important;
+  font-size: inherit !important;
+  line-height: 1.02 !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerMapCard--chord.viewerMapCard.viewerMapCard {
+  display: grid !important;
+  gap: 7px !important;
+  margin: 0 !important;
+  padding: 8px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(164, 108, 87, 0.42) !important;
+  border-radius: 15px !important;
+  background:
+    radial-gradient(ellipse at 16% 0%, rgba(255, 255, 255, 0.74), transparent 42%),
+    linear-gradient(180deg, #f8f0ec 0%, #eee0da 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    inset 0 -1px 0 rgba(144, 88, 68, 0.08),
+    0 1px 3px rgba(70, 43, 34, 0.08) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerMapHeader--chord.viewerMapHeader.viewerMapHeader {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 2px 7px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(157, 106, 87, 0.2) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerChordHeader.viewerChordHeader {
+  display: grid !important;
+  grid-template-columns: minmax(75px, 1fr) auto auto !important;
+  align-items: center !important;
+  gap: 6px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerChordIdentity.viewerChordIdentity {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerChordIdentity.viewerChordIdentity > span {
+  flex: 0 0 auto !important;
+  color: var(--pearl-ink) !important;
+  font-size: 9.5px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerChordIdentity.viewerChordIdentity > strong {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  color: var(--pearl-ink) !important;
+  font-size: 30px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.045em !important;
+  text-shadow: 0 1px 0 #fff !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerChordHeader > .viewerSwipeHint {
+  color: var(--pearl-ink) !important;
+  font-size: 9px !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerChordHeaderActions.viewerChordHeaderActions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerChordHeaderActions.viewerChordHeaderActions > button,
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerMapCard--chord .viewerAllButton.viewerAllButton,
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerMapCard--chord .viewerChordSoundButton.viewerChordSoundButton {
+  position: static !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  min-width: 58px !important;
+  width: auto !important;
+  height: 31px !important;
+  min-height: 31px !important;
+  max-height: 31px !important;
+  margin: 0 !important;
+  padding: 0 7px !important;
+  border: 1px solid rgba(161, 108, 87, 0.48) !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.26) 48%, rgba(202, 168, 155, 0.13)),
+    var(--pearl-ivory) !important;
+  color: var(--pearl-ink) !important;
+  box-shadow:
+    0 1px 2px rgba(73, 44, 34, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    inset 0 -1px 0 rgba(133, 78, 59, 0.11) !important;
+  font-size: 8.8px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerMapCard--chord .viewerChordSoundButton.viewerChordSoundButton {
+  min-width: 67px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerMapCard--chord .viewerChordSoundButton.viewerChordSoundButton > span {
+  color: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerFretboardGestureSurface--chord.viewerFretboardGestureSurface {
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 4px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(145, 87, 59, 0.55) !important;
+  border-radius: 13px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 241, 0.76), rgba(174, 108, 67, 0.08)),
+    #e5c19a !important;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 240, 221, 0.58),
+    inset 0 1px 3px rgba(94, 55, 34, 0.14),
+    0 1px 2px rgba(86, 52, 36, 0.1) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard.fretboardComponent--chord {
+  --fretboard-label-left: 60px !important;
+  --fretboard-label-right: 7px !important;
+  --fretboard-board-top: 26px !important;
+  --fretboard-board-bottom: 13px !important;
+  --fretboard-board-height: 168px !important;
+  overflow: hidden !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardComponentScroller {
+  position: relative !important;
+  min-width: 100% !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.34), transparent 11%, rgba(121, 75, 42, 0.035) 31%, transparent 53%, rgba(255, 255, 255, 0.16) 72%, rgba(117, 67, 37, 0.035)),
+    repeating-linear-gradient(90deg, transparent 0 9px, rgba(120, 71, 38, 0.018) 10px, transparent 13px, rgba(255, 255, 255, 0.05) 17px, transparent 23px),
+    linear-gradient(180deg, var(--maple-light) 0%, #edcda9 27%, var(--maple-mid) 56%, #efd0ad 78%, #e6bd94 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 235, 0.9),
+    inset 0 -1px 0 rgba(112, 63, 34, 0.22),
+    inset 7px 0 12px rgba(117, 69, 40, 0.055),
+    inset -7px 0 12px rgba(117, 69, 40, 0.045) !important;
+  isolation: isolate;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardComponentScroller {
+  min-height: 207px !important;
+  border-radius: 9px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardComponentScroller::before {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  background:
+    radial-gradient(ellipse 3px 72% at 7% 48%, rgba(125, 72, 38, 0.055), transparent 76%),
+    radial-gradient(ellipse 5px 90% at 21% 52%, rgba(111, 62, 33, 0.04), transparent 76%),
+    radial-gradient(ellipse 4px 68% at 39% 45%, rgba(132, 78, 42, 0.045), transparent 75%),
+    radial-gradient(ellipse 6px 92% at 63% 52%, rgba(119, 67, 35, 0.045), transparent 76%),
+    radial-gradient(ellipse 3px 78% at 86% 48%, rgba(119, 67, 35, 0.05), transparent 76%),
+    repeating-linear-gradient(90deg, transparent 0 4px, rgba(112, 66, 38, 0.018) 5px, transparent 7px) !important;
+  content: "" !important;
+  opacity: 0.9 !important;
+  pointer-events: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardComponentScroller::after {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  border-radius: inherit !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.19), transparent 12%, transparent 86%, rgba(104, 59, 32, 0.06)),
+    linear-gradient(90deg, rgba(105, 58, 33, 0.035), transparent 4%, transparent 96%, rgba(105, 58, 33, 0.04)) !important;
+  box-shadow: inset 0 0 0 1px rgba(128, 75, 43, 0.12) !important;
+  content: "" !important;
+  pointer-events: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardFretNumbers {
+  z-index: 3 !important;
+  color: #49372f !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.62) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardGrid {
+  z-index: 2 !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardGrid > i {
+  border-left: 1px solid rgba(80, 76, 70, 0.72) !important;
+  box-shadow:
+    1px 0 0 rgba(255, 255, 255, 0.76),
+    2px 0 1px rgba(81, 66, 54, 0.12) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardStringRow > i {
+  border: 0 !important;
+  background: linear-gradient(180deg, #fffaf2 0%, #a39b92 28%, #57534e 54%, #e8ddd0 78%, #7d746b 100%) !important;
+  box-shadow:
+    0 1px 0 rgba(71, 62, 55, 0.22),
+    0 -1px 0 rgba(255, 255, 255, 0.46) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow:nth-child(1) > i { height: 1px !important; }
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow:nth-child(2) > i { height: 1.2px !important; }
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow:nth-child(3) > i { height: 1.4px !important; }
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow:nth-child(4) > i { height: 1.6px !important; }
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow:nth-child(5) > i { height: 1.8px !important; }
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow:nth-child(6) > i { height: 2px !important; }
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow > span {
+  z-index: 4 !important;
+  color: #3b2d28 !important;
+  font-size: 8.8px !important;
+  font-weight: 950 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.74) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardNut {
+  z-index: 5 !important;
+  width: 5px !important;
+  border: 1px solid rgba(123, 71, 43, 0.68) !important;
+  background: linear-gradient(90deg, #fff0db 0%, #cd966b 30%, #a96842 58%, #e8bd91 78%, #fff0dc 100%) !important;
+  box-shadow:
+    1px 0 2px rgba(72, 40, 24, 0.32),
+    inset 1px 0 0 rgba(255, 255, 255, 0.68) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardStringState {
+  z-index: 8 !important;
+  border: 1px solid #7b584a !important;
+  background:
+    radial-gradient(circle at 36% 28%, #7c6258 0 8%, #3e302b 44%, #251c19 100%) !important;
+  color: #fff8f1 !important;
+  box-shadow:
+    0 1px 2px rgba(48, 29, 23, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardNoteChip,
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardNoteChip.root {
+  z-index: 9 !important;
+  border: 1px solid #c97f80 !important;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.98) 0 9%, rgba(255, 244, 244, 0.86) 15%, transparent 39%),
+    linear-gradient(145deg, #fff6f5 0%, #f4c9ca 47%, #e8a8aa 100%) !important;
+  color: #2f2422 !important;
+  box-shadow:
+    0 0 0 2px rgba(255, 242, 237, 0.88),
+    0 2px 4px rgba(92, 48, 43, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -1px 0 rgba(150, 73, 73, 0.13) !important;
+  opacity: 1 !important;
+  filter: none !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardNoteChip {
+  width: 29px !important;
+  height: 29px !important;
+  min-height: 29px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardNoteChip.root {
+  width: 33px !important;
+  height: 33px !important;
+  min-height: 33px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardNoteChip > b {
+  color: inherit !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  text-shadow: inherit !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerModeControlSlot--chord.viewerModeControlSlot {
+  position: static !important;
+  top: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderPanel--composer.chordBuilderPanel.chordBuilderPanel {
+  display: grid !important;
+  gap: 0 !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 6px 8px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(162, 108, 87, 0.4) !important;
+  border-radius: 14px !important;
+  background:
+    radial-gradient(ellipse at 15% 0%, rgba(255, 255, 255, 0.78), transparent 43%),
+    linear-gradient(180deg, #f7efeb, #ede0da) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 1px 3px rgba(73, 43, 33, 0.07) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderOptionSection--labeled.chordBuilderOptionSection {
+  display: grid !important;
+  grid-template-columns: 43px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-height: 43px !important;
+  margin: 0 !important;
+  padding: 4px 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderOptionSection--labeled.chordBuilderOptionSection + .chordBuilderOptionSection--labeled {
+  border-top: 1px solid rgba(150, 98, 79, 0.18) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderOptionLabel.chordBuilderOptionLabel {
+  color: var(--pearl-ink) !important;
+  font-size: 10.5px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderChipGrid.chordBuilderChipGrid {
+  gap: 4px !important;
+  min-width: 0 !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderChipGrid.chordBuilderChipGrid > .chordBuilderChip.chordBuilderChip {
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
+  margin: 0 !important;
+  padding: 0 3px !important;
+  border: 1px solid rgba(165, 111, 91, 0.44) !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.28) 48%, rgba(202, 166, 152, 0.12)),
+    var(--pearl-ivory) !important;
+  color: var(--pearl-ink) !important;
+  box-shadow:
+    0 1px 2px rgba(72, 43, 33, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    inset 0 -1px 0 rgba(132, 78, 59, 0.1) !important;
+  font-size: 9.7px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderChipGrid > .chordBuilderChip.chordBuilderChip:is(.selected, [aria-pressed="true"]) {
+  border-color: rgba(183, 91, 90, 0.72) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 241, 0.94), rgba(246, 195, 195, 0.72) 52%, rgba(214, 126, 127, 0.24)),
+    var(--rose-pearl) !important;
+  color: #2f2221 !important;
+  box-shadow:
+    0 1px 2px rgba(99, 50, 46, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    inset 0 -1px 0 rgba(151, 70, 69, 0.15) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderChipGrid > .chordBuilderChip.chordBuilderChip:disabled {
+  border-color: rgba(152, 107, 90, 0.2) !important;
+  background: rgba(247, 240, 236, 0.58) !important;
+  color: rgba(51, 40, 36, 0.38) !important;
+  opacity: 1 !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel.chordCatalogPanel.chordCatalogPanel {
+  display: grid !important;
+  gap: 0 !important;
+  min-width: 0 !important;
+  margin: 8px 0 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .viewerChordReferenceFooter.viewerChordReferenceFooter {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+  min-height: 51px !important;
+  margin: 0 !important;
+  padding: 8px 11px !important;
+  border: 1px solid rgba(168, 105, 85, 0.46) !important;
+  border-bottom-color: rgba(132, 79, 51, 0.34) !important;
+  border-radius: 14px 14px 0 0 !important;
+  background:
+    radial-gradient(ellipse at 15% 0%, rgba(255, 255, 255, 0.86), transparent 44%),
+    linear-gradient(90deg, rgba(244, 190, 190, 0.26), transparent 58%),
+    linear-gradient(180deg, #f8efec, #eddcd5) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -1px 0 rgba(139, 81, 60, 0.08) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .viewerChordReferenceFooter > strong {
+  color: var(--pearl-ink) !important;
+  font-size: 16px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.025em !important;
+  text-shadow: 0 1px 0 #fff !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .viewerChordReferenceFooter > div {
+  display: grid !important;
+  gap: 1px !important;
+  min-width: 0 !important;
+  text-align: right !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .viewerChordReferenceFooter span {
+  color: var(--pearl-muted) !important;
+  font-size: 7.7px !important;
+  font-weight: 760 !important;
+  line-height: 1.12 !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordCatalogScroll.chordCatalogScroll {
+  display: grid !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  margin: -1px 0 0 !important;
+  padding: 7px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(151, 91, 58, 0.48) !important;
+  border-radius: 0 0 14px 14px !important;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.22), transparent 18%, rgba(120, 69, 38, 0.035) 44%, transparent 69%, rgba(255, 255, 255, 0.12)),
+    repeating-linear-gradient(90deg, transparent 0 11px, rgba(116, 66, 35, 0.018) 12px, transparent 18px),
+    linear-gradient(180deg, var(--maple-light), var(--maple-mid) 56%, #e3b98e) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 247, 232, 0.78),
+    inset 0 0 13px rgba(103, 58, 31, 0.06) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordCatalogRow.chordCatalogRow {
+  border: 1px solid rgba(142, 88, 58, 0.25) !important;
+  border-radius: 10px !important;
+  background: rgba(255, 248, 239, 0.36) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.46),
+    0 1px 2px rgba(80, 47, 28, 0.07) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordRootLabel.chordRootLabel {
+  color: var(--pearl-ink) !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.68) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordMiniGrid.chordMiniGrid {
+  background: transparent !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordMiniCard.chordMiniCard {
+  border: 1px solid rgba(157, 101, 80, 0.38) !important;
+  border-radius: 9px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(235, 215, 205, 0.28)),
+    rgba(248, 239, 234, 0.82) !important;
+  color: var(--pearl-ink) !important;
+  box-shadow:
+    0 1px 2px rgba(73, 43, 31, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordMiniCard > span {
+  color: var(--pearl-ink) !important;
+  font-weight: 950 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.76) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordMiniSharedFretboard .fretboardComponentScroller {
+  border: 1px solid rgba(139, 81, 48, 0.42) !important;
+  border-radius: 7px !important;
+}
+
+@media (min-width: 768px) {
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel.fretboardViewerPanel {
+    padding: 17px !important;
+    border-radius: 28px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerControlPanel--chord.viewerControlPanel {
+    gap: 11px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerModeTabs.viewerModeTabs {
+    margin-inline: 28px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerModeTabs.viewerModeTabs > button {
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    font-size: 15px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerMapCard--chord.viewerMapCard {
+    padding: 13px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerChordHeader.viewerChordHeader {
+    grid-template-columns: minmax(180px, 1fr) auto auto !important;
+    gap: 12px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerChordIdentity > span {
+    font-size: 12px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerChordIdentity > strong {
+    font-size: 38px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerChordHeader > .viewerSwipeHint {
+    font-size: 11px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerChordHeaderActions > button,
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerMapCard--chord .viewerAllButton.viewerAllButton,
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerMapCard--chord .viewerChordSoundButton.viewerChordSoundButton {
+    min-width: 78px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    font-size: 10.5px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerMapCard--chord .viewerChordSoundButton.viewerChordSoundButton {
+    min-width: 94px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerSharedFretboard.fretboardComponent--chord {
+    --fretboard-label-left: 82px !important;
+    --fretboard-label-right: 11px !important;
+    --fretboard-board-top: 31px !important;
+    --fretboard-board-bottom: 17px !important;
+    --fretboard-board-height: 218px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerSharedFretboard .fretboardComponentScroller {
+    min-height: 266px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerSharedFretboard .fretboardStringRow > span {
+    font-size: 11px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerSharedFretboard .fretboardNoteChip {
+    width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerSharedFretboard .fretboardNoteChip.root {
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .chordBuilderPanel--composer.chordBuilderPanel {
+    padding: 9px 12px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .chordBuilderOptionSection--labeled.chordBuilderOptionSection {
+    grid-template-columns: 62px minmax(0, 1fr) !important;
+    gap: 9px !important;
+    min-height: 51px !important;
+    padding-block: 6px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .chordBuilderOptionLabel {
+    font-size: 12.5px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .chordBuilderChipGrid > .chordBuilderChip.chordBuilderChip {
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    font-size: 12px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .chordCatalogPanel .viewerChordReferenceFooter {
+    min-height: 64px !important;
+    padding-inline: 17px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .chordCatalogPanel .viewerChordReferenceFooter > strong {
+    font-size: 21px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .chordCatalogPanel .viewerChordReferenceFooter span {
+    font-size: 10px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  html body main.app.app.app .fretboardViewerPanel .viewerControlPanel--chord.viewerControlPanel {
+    gap: 9px !important;
+    padding: 9px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordHeader {
+    grid-template-columns: minmax(54px, 1fr) auto auto !important;
+    gap: 5px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordIdentity {
+    gap: 5px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordIdentity > span {
+    font-size: 9.5px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordIdentity > strong {
+    font-size: 29px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordHeader > .viewerSwipeHint {
+    font-size: 9px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordHeaderActions {
+    gap: 4px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordHeaderActions > button,
+  html body main.app.app.app .viewerControlPanel--chord .viewerMapCard--chord .viewerAllButton.viewerAllButton,
+  html body main.app.app.app .viewerControlPanel--chord .viewerMapCard--chord .viewerChordSoundButton.viewerChordSoundButton {
+    min-width: 57px !important;
+    padding-inline: 6px !important;
+    font-size: 9px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerMapCard--chord .viewerChordSoundButton.viewerChordSoundButton {
+    min-width: 68px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard.fretboardComponent--chord {
+    --fretboard-label-left: 56px !important;
+    --fretboard-board-height: 164px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerSharedFretboard .fretboardComponentScroller {
+    min-height: 205px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .chordBuilderOptionSection--labeled {
+    grid-template-columns: 39px minmax(0, 1fr) !important;
+    gap: 5px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .chordBuilderChipGrid {
+    gap: 4px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .chordBuilderChipGrid > .chordBuilderChip {
+    padding-inline: 3px !important;
+    font-size: 10px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordReferenceFooter {
+    gap: 5px !important;
+    padding-inline: 10px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordReferenceFooter > strong {
+    font-size: 16px !important;
+  }
+
+  html body main.app.app.app .viewerControlPanel--chord .viewerChordReferenceFooter span {
+    font-size: 8px !important;
+  }
+}
+
+/* Theme-specific legacy rules intentionally use very high specificity. Keep
+   the chord plate authoritative in every app theme without affecting the
+   note and scale modes. */
+html body main.app.app.app.app.app
+  .fretboardViewerPanel.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel.viewerControlPanel {
+  overflow: hidden !important;
+  border: 1px solid var(--code-accent) !important;
+  border-radius: 20px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.12)),
+    var(--code-plate-bg) !important;
+  box-shadow:
+    0 10px 24px var(--code-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .viewerChordHeader.viewerChordHeader {
+  width: auto !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .viewerChordIdentity.viewerChordIdentity > strong {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  line-height: 1 !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .viewerChordHeaderActions.viewerChordHeaderActions > button {
+  box-sizing: border-box !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .chordBuilderPanel--composer.chordBuilderPanel.chordBuilderPanel {
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 7px 9px !important;
+  border: 1px solid rgba(220, 192, 181, 0.82) !important;
+  border-radius: 14px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.04)),
+    var(--code-panel-bg) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .chordBuilderPanel--composer.chordBuilderPanel
+  .chordBuilderOptionLabel.chordBuilderOptionLabel {
+  color: var(--code-text) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .chordBuilderPanel--composer.chordBuilderPanel
+  .chordBuilderChipGrid.chordBuilderChipGrid > .chordBuilderChip.chordBuilderChip {
+  min-width: 0 !important;
+  border: 1px solid var(--code-border) !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.08)),
+    var(--code-control-bg) !important;
+  color: var(--code-text) !important;
+  box-shadow:
+    0 1px 3px rgba(75, 47, 39, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .chordBuilderPanel--composer.chordBuilderPanel
+  .chordBuilderChipGrid.chordBuilderChipGrid > .chordBuilderChip.chordBuilderChip:is(.selected, [aria-pressed="true"]) {
+  border-color: #d59098 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.36), rgba(226, 146, 157, 0.12)),
+    var(--code-selected-bg) !important;
+  color: #302525 !important;
+  box-shadow:
+    0 2px 5px rgba(114, 63, 67, 0.11),
+    inset 0 1px 0 rgba(255, 255, 255, 0.66) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .chordBuilderPanel--composer.chordBuilderPanel
+  .chordBuilderChipGrid.chordBuilderChipGrid > .chordBuilderChip.chordBuilderChip:disabled {
+  border-color: rgba(166, 129, 115, 0.24) !important;
+  background: rgba(247, 240, 237, 0.62) !important;
+  color: rgba(58, 47, 47, 0.42) !important;
+  opacity: 1 !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel.fretboardViewerPanel
+  .chordCatalogPanel.chordCatalogPanel.chordCatalogPanel {
+  border: 1px solid #e3b7a7 !important;
+  background: #f7f3f0 !important;
+  box-shadow:
+    0 8px 20px rgba(75, 47, 39, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84) !important;
+}
+
+@media (min-width: 768px) {
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel.fretboardViewerPanel
+    .viewerControlPanel--chord.viewerControlPanel.viewerControlPanel {
+    border-radius: 22px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel.fretboardViewerPanel
+    .viewerControlPanel--chord.viewerControlPanel
+    .viewerChordHeaderActions.viewerChordHeaderActions > button {
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel.fretboardViewerPanel
+    .viewerControlPanel--chord.viewerControlPanel
+    .chordBuilderPanel--composer.chordBuilderPanel.chordBuilderPanel {
+    padding: 10px 13px !important;
+  }
+}
+
+/* Ivory refinement: chord notes share one visual weight and the former pink
+   selection accents become warm champagne-ivory pearl. */
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel.fretboardViewerPanel {
+  --pearl-ivory: #f8f3e8;
+  --pearl-highlight: #fffdf7;
+  --pearl-mid: #eee6d7;
+  --pearl-shadow: #d8c8ae;
+  --rose-pearl: #eee1c6;
+  --rose-pearl-deep: #c9b184;
+  --code-plate-bg: #f5efe3;
+  --code-panel-bg: #f4ecdf;
+  --code-control-bg: #faf6ed;
+  --code-selected-bg: #eee1c6;
+  --code-accent: #d1b98f;
+  --code-border: #d8c8ad;
+  --code-shadow: rgba(74, 54, 31, 0.1);
+  background:
+    radial-gradient(ellipse at 22% 0%, rgba(255, 255, 255, 0.94), transparent 36%),
+    radial-gradient(ellipse at 82% 16%, rgba(245, 232, 199, 0.28), transparent 34%),
+    linear-gradient(112deg, rgba(255, 255, 255, 0.56), transparent 28%, rgba(191, 160, 106, 0.07) 60%, transparent 82%),
+    linear-gradient(180deg, #fcf9f1 0%, #f3ede1 46%, #e9dfcf 100%) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerModeTabs.viewerModeTabs {
+  border-color: rgba(160, 128, 78, 0.43) !important;
+  background:
+    linear-gradient(180deg, rgba(213, 196, 163, 0.28), rgba(255, 255, 255, 0.66)),
+    var(--pearl-mid) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerModeTabs.viewerModeTabs > button:is(.selected, [aria-pressed="true"]) {
+  border-color: rgba(168, 136, 81, 0.74) !important;
+  background:
+    linear-gradient(180deg, #fffdf5 0%, #f2e9d6 50%, #e5d4b4 100%),
+    var(--rose-pearl) !important;
+  color: var(--pearl-ink) !important;
+  box-shadow:
+    0 1px 2px rgba(84, 61, 31, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -1px 0 rgba(135, 105, 55, 0.15),
+    0 0 0 1px rgba(255, 250, 232, 0.68) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerMapCard--chord.viewerMapCard.viewerMapCard {
+  border-color: rgba(162, 128, 75, 0.4) !important;
+  background:
+    radial-gradient(ellipse at 16% 0%, rgba(255, 255, 255, 0.8), transparent 42%),
+    linear-gradient(180deg, #faf6ed 0%, #eee5d6 100%) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  :is(.fretboardNoteChip, .fretboardNoteChip.root) {
+  border-color: #b99d70 !important;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.99) 0 10%, rgba(255, 253, 244, 0.9) 16%, transparent 40%),
+    linear-gradient(145deg, #fffdf6 0%, #f1e7d2 49%, #decca9 100%) !important;
+  color: #302a21 !important;
+  box-shadow:
+    0 0 0 2px rgba(255, 250, 234, 0.9),
+    0 2px 4px rgba(78, 57, 29, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    inset 0 -1px 0 rgba(127, 97, 49, 0.12) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard :is(.fretboardNoteChip, .fretboardNoteChip.root) {
+  width: 29px !important;
+  height: 29px !important;
+  min-height: 29px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardBarre {
+  border-color: #aa8c5d !important;
+  background: rgba(235, 222, 193, 0.92) !important;
+  color: var(--pearl-ink) !important;
+  box-shadow: 0 2px 5px rgba(78, 56, 27, 0.14) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .chordBuilderPanel--composer.chordBuilderPanel.chordBuilderPanel {
+  border-color: rgba(203, 183, 146, 0.82) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.06)),
+    var(--code-panel-bg) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .chordBuilderPanel--composer.chordBuilderPanel
+  .chordBuilderChipGrid.chordBuilderChipGrid > .chordBuilderChip.chordBuilderChip:is(.selected, [aria-pressed="true"]) {
+  border-color: #b99c6b !important;
+  background:
+    linear-gradient(180deg, #fffdf6 0%, #f1e7d3 52%, #e1cfad 100%),
+    var(--code-selected-bg) !important;
+  color: #302a21 !important;
+  box-shadow:
+    0 1px 2px rgba(80, 58, 29, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -1px 0 rgba(126, 94, 43, 0.12) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .viewerChordReferenceFooter.viewerChordReferenceFooter {
+  border-color: rgba(175, 143, 91, 0.46) !important;
+  background:
+    radial-gradient(ellipse at 15% 0%, rgba(255, 255, 255, 0.9), transparent 44%),
+    linear-gradient(90deg, rgba(236, 220, 186, 0.3), transparent 58%),
+    linear-gradient(180deg, #faf6ec, #eee4d3) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordMiniCard.chordMiniCard {
+  border-color: rgba(169, 137, 87, 0.36) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(230, 217, 191, 0.25)),
+    rgba(249, 245, 235, 0.88) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordRootLabel.chordRootLabel {
+  border-right-color: rgba(157, 126, 77, 0.22) !important;
+  background:
+    linear-gradient(90deg, rgba(233, 219, 190, 0.28), rgba(255, 255, 255, 0.22)),
+    rgba(248, 244, 234, 0.9) !important;
+}
+
+@media (min-width: 768px) {
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerSharedFretboard :is(.fretboardNoteChip, .fretboardNoteChip.root) {
+    width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+  }
+}
+
+/* Fretboard clarity pass: remove decorative screws, sharpen the standalone
+   reference neck, and neutralize the full chord catalogue wood tone. */
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel.fretboardViewerPanel::before,
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel.fretboardViewerPanel::after {
+  display: none !important;
+  content: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerModeTabs.viewerModeTabs {
+  margin-inline: 3px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardComponentScroller {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.24), transparent 14%, rgba(111, 79, 46, 0.025) 36%, transparent 58%, rgba(255, 255, 255, 0.12) 78%, transparent),
+    repeating-linear-gradient(90deg, transparent 0 17px, rgba(112, 78, 43, 0.022) 18px, transparent 20px),
+    linear-gradient(180deg, #f2ddc0 0%, #ebd2af 48%, #e4c59c 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 250, 240, 0.9),
+    inset 0 -1px 0 rgba(102, 72, 43, 0.18),
+    inset 4px 0 7px rgba(95, 66, 39, 0.035),
+    inset -4px 0 7px rgba(95, 66, 39, 0.03) !important;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardComponentScroller::before {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 12px, rgba(96, 67, 38, 0.025) 13px, transparent 15px) !important;
+  opacity: 0.42 !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardComponentScroller::after {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 12%, transparent 88%, rgba(91, 63, 37, 0.04)),
+    linear-gradient(90deg, rgba(92, 62, 35, 0.025), transparent 4%, transparent 96%, rgba(92, 62, 35, 0.025)) !important;
+  box-shadow: inset 0 0 0 1px rgba(111, 78, 45, 0.16) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardGrid > i {
+  border-left: 1px solid rgba(68, 66, 61, 0.78) !important;
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.72) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow > i {
+  background: #696762 !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.52) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow:nth-child(1) > i,
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow:nth-child(2) > i,
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow:nth-child(3) > i {
+  height: 1px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow:nth-child(4) > i,
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow:nth-child(5) > i,
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow:nth-child(6) > i {
+  height: 2px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard :is(.fretboardFretNumbers, .fretboardStringRow > span) {
+  color: #342c25 !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardStringRow > span {
+  font-size: 9.2px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard :is(.fretboardNoteChip, .fretboardNoteChip.root) {
+  box-shadow:
+    0 0 0 1px rgba(255, 251, 239, 0.96),
+    0 1px 2px rgba(70, 52, 29, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel.chordCatalogPanel.chordCatalogPanel {
+  border-color: #d1c1a3 !important;
+  background: #f7f3e9 !important;
+  box-shadow:
+    0 7px 17px rgba(65, 51, 31, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .viewerChordReferenceFooter.viewerChordReferenceFooter {
+  border-color: #d3c3a6 !important;
+  border-bottom-color: #c7b591 !important;
+  background:
+    radial-gradient(ellipse at 15% 0%, rgba(255, 255, 255, 0.92), transparent 44%),
+    linear-gradient(90deg, rgba(234, 224, 203, 0.3), transparent 58%),
+    linear-gradient(180deg, #faf7ef, #eee7d9) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordCatalogScroll.chordCatalogScroll {
+  border-color: rgba(139, 116, 78, 0.42) !important;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.22), transparent 20%, rgba(105, 81, 48, 0.02) 46%, transparent 70%, rgba(255, 255, 255, 0.12)),
+    repeating-linear-gradient(90deg, transparent 0 15px, rgba(104, 80, 47, 0.018) 16px, transparent 19px),
+    linear-gradient(180deg, #eadbbf 0%, #e5d2b2 55%, #dfc7a3 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 252, 244, 0.84),
+    inset 0 0 10px rgba(81, 60, 34, 0.035) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordCatalogRow.chordCatalogRow {
+  border-color: rgba(145, 122, 83, 0.25) !important;
+  background: rgba(255, 252, 245, 0.62) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    0 1px 2px rgba(64, 50, 30, 0.05) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordRootLabel.chordRootLabel {
+  border-right-color: rgba(141, 117, 77, 0.2) !important;
+  background:
+    linear-gradient(90deg, rgba(231, 221, 202, 0.32), rgba(255, 255, 255, 0.25)),
+    rgba(249, 246, 238, 0.94) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordMiniCard.chordMiniCard {
+  border-color: #cbbd9f !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(225, 216, 197, 0.22)),
+    #f9f6ee !important;
+  box-shadow:
+    0 1px 2px rgba(58, 45, 28, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel .chordMiniSharedFretboard .fretboardComponentScroller {
+  border-color: #baa984 !important;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.2), transparent 17%, rgba(100, 78, 48, 0.018) 48%, transparent 72%),
+    repeating-linear-gradient(90deg, transparent 0 14px, rgba(100, 77, 45, 0.016) 15px, transparent 18px),
+    linear-gradient(180deg, #ecddc1 0%, #e6d2b0 52%, #dfc6a0 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 252, 243, 0.82),
+    inset 0 -1px 0 rgba(93, 70, 42, 0.12) !important;
+}
+
+@media (min-width: 768px) {
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerModeTabs.viewerModeTabs {
+    margin-inline: 6px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerSharedFretboard .fretboardStringRow > span {
+    font-size: 11.5px !important;
+  }
+}
+
+/* Keep the standalone reference neck on one aligned frame. The gesture layer
+   still owns swipe input, but no longer renders a second plate behind it. */
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerFretboardGestureSurface--chord.viewerFretboardGestureSurface {
+  padding: 0 !important;
+  border: 1px solid #bda77f !important;
+  border-radius: 11px !important;
+  background: transparent !important;
+  box-shadow:
+    0 1px 2px rgba(67, 50, 29, 0.08),
+    inset 0 0 0 1px rgba(255, 252, 243, 0.7) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard.fretboardComponent--chord {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardComponentScroller {
+  width: 100% !important;
+  border-radius: 10px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerMapCard--chord.viewerMapCard.viewerMapCard {
+  min-height: 0 !important;
+  height: auto !important;
+  grid-template-rows: auto auto !important;
+  align-content: start !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerFretboardGestureSurface--chord.viewerFretboardGestureSurface {
+  align-self: start !important;
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+/* Chord note labels need to read immediately inside the pearl markers. */
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardNoteChip {
+  color: #17130f !important;
+  -webkit-text-fill-color: #17130f !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardNoteChip > b {
+  color: #17130f !important;
+  -webkit-text-fill-color: #17130f !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.045em !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerSharedFretboard .fretboardNoteChip > b {
+  font-size: 12.5px !important;
+}
+
+html body main.app.app.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordMiniSharedFretboard .fretboardNoteChip > b {
+  font-size: 10.5px !important;
+}
+
+@media (min-width: 768px) {
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerSharedFretboard .fretboardNoteChip > b {
+    font-size: 14px !important;
+  }
+}
+
+/* Mobile chord controls: let the actual fretboard and builder panels stand on
+   their own, without the two pale legacy plates showing behind them. */
+@media (max-width: 767px) {
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerControlPanel--chord.viewerControlPanel.viewerControlPanel {
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerMapCard--chord.viewerMapCard.viewerMapCard {
+    gap: 8px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerControlPanel--chord.viewerControlPanel.viewerControlPanel {
+    grid-template-rows: auto auto auto !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerChordHeader.viewerChordHeader {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "identity actions"
+      ". hint" !important;
+    row-gap: 3px !important;
+    column-gap: 6px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerChordIdentity.viewerChordIdentity {
+    grid-area: identity !important;
+    align-self: center !important;
+    position: relative !important;
+    z-index: 3 !important;
+    min-height: 36px !important;
+    overflow: visible !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerChordIdentity.viewerChordIdentity > strong {
+    align-self: center !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 2px 0 4px !important;
+    overflow: visible !important;
+    line-height: 1.06 !important;
+    transform: none !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerChordHeaderActions.viewerChordHeaderActions {
+    grid-area: actions !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerChordHeader > .viewerSwipeHint.viewerSwipeHint {
+    grid-area: hint !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 5px !important;
+    justify-self: end !important;
+    font-size: 9.2px !important;
+    line-height: 1 !important;
+    text-align: right !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerSwipeGestureLabel.viewerSwipeGestureLabel {
+    color: var(--pearl-muted) !important;
+    font-size: 8.8px !important;
+    font-weight: 850 !important;
+    white-space: nowrap !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .viewerControlPanel--chord.viewerControlPanel
+    .viewerChordHeaderActions.viewerChordHeaderActions > button {
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    font-size: 9.6px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .chordBuilderOptionSection--labeled.chordBuilderOptionSection {
+    min-height: 47px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .chordBuilderOptionLabel.chordBuilderOptionLabel {
+    font-size: 11.5px !important;
+  }
+
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .chordBuilderChipGrid.chordBuilderChipGrid > .chordBuilderChip.chordBuilderChip {
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    border-radius: 9px !important;
+    font-size: 11.2px !important;
+  }
+
+  /* Restore the earlier translucent barre cue so strings and frets remain
+     readable through the finger span on the compact mobile fretboard. */
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+    .fretboardBarre {
+    border-color: rgba(31, 151, 139, 0.66) !important;
+    background: rgba(45, 212, 191, 0.3) !important;
+    color: #173f39 !important;
+    box-shadow:
+      0 3px 9px rgba(31, 151, 139, 0.13),
+      inset 0 1px 0 rgba(255, 255, 255, 0.42) !important;
+  }
+}
+
+/* Mobile metronome studio: one shallow, continuous hardware language from
+   the advanced controls through the recorder deck. */
+@media (max-width: 767px) {
+  html body main.app.app.app.metronomeMode {
+    --metro-base-cream: #eee2d7;
+    --metro-pearl-cream: #f8f1e9;
+    --metro-raised-cream: #fffaf4;
+    --metro-disabled-cream: #e7dbd2;
+    --metro-rose: #c77f90;
+    --metro-rose-soft: rgba(211, 145, 158, 0.18);
+    --metro-bronze: #9b6b43;
+    --metro-bronze-line: rgba(145, 96, 67, 0.34);
+    --metro-bronze-line-soft: rgba(145, 96, 67, 0.18);
+    --metro-warm-text: #4b3730;
+    --metro-muted-text: #816b62;
+    --metro-warm-dark: #302622;
+    --metro-chassis-shadow: rgba(81, 51, 41, 0.11);
+    --metro-control-shadow: rgba(81, 51, 41, 0.09);
+  }
+
+  html body main.app.app.app.theme-brand.metronomeMode {
+    --metro-base-cream: #15120d;
+    --metro-pearl-cream: #1d1912;
+    --metro-raised-cream: #252017;
+    --metro-disabled-cream: #2b251c;
+    --metro-rose: #c6818f;
+    --metro-rose-soft: rgba(198, 129, 143, 0.14);
+    --metro-bronze: #d9aa55;
+    --metro-bronze-line: rgba(217, 170, 85, 0.34);
+    --metro-bronze-line-soft: rgba(217, 170, 85, 0.18);
+    --metro-warm-text: #f2ddb2;
+    --metro-muted-text: rgba(228, 202, 151, 0.68);
+    --metro-warm-dark: #0b0a08;
+    --metro-chassis-shadow: rgba(0, 0, 0, 0.3);
+    --metro-control-shadow: rgba(0, 0, 0, 0.24);
+  }
+
+  html body main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) {
+    grid-template-rows: auto auto auto auto auto !important;
+    row-gap: 6px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 7px 9px 10px !important;
+    border: 1px solid var(--metro-bronze-line) !important;
+    border-radius: 15px !important;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.32), transparent 28%),
+      linear-gradient(180deg, var(--metro-pearl-cream), var(--metro-base-cream)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.42),
+      0 4px 12px var(--metro-chassis-shadow) !important;
+  }
+
+  html body main.app.app.app.theme-brand.metronomeMode
+    > .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) {
+    background:
+      radial-gradient(circle at 50% 0%, rgba(217, 170, 85, 0.075), transparent 31%),
+      linear-gradient(180deg, var(--metro-pearl-cream), #090a09) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 238, 197, 0.035),
+      0 4px 12px var(--metro-chassis-shadow) !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeAdvancedDock.metronomeAdvancedDock {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 54px !important;
+    grid-template-rows: 62px !important;
+    gap: 0 !important;
+    height: 64px !important;
+    min-height: 64px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid var(--metro-bronze-line) !important;
+    border-radius: 10px !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.32), transparent 52%),
+      var(--metro-pearl-cream) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.46),
+      0 2px 4px var(--metro-control-shadow) !important;
+  }
+
+  html body main.app.app.app.theme-brand.metronomeMode .metronomeAdvancedDock.metronomeAdvancedDock {
+    background:
+      linear-gradient(180deg, rgba(255, 233, 177, 0.035), transparent 60%),
+      var(--metro-pearl-cream) !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeAdvancedDock::after {
+    display: none !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeAdvancedDock > :is(.metronomeAdvancedSummary, .metronomeTrackerResetButton) {
+    height: 62px !important;
+    min-height: 62px !important;
+    max-height: 62px !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-left: 1px solid var(--metro-bronze-line-soft) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--metro-warm-text) !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeAdvancedDock > .metronomeAdvancedSummary:first-child {
+    border-left: 0 !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeAdvancedSummary.metronomeAdvancedSummary {
+    grid-template-rows: 12px 18px 12px !important;
+    align-content: center !important;
+    gap: 1px !important;
+    padding: 5px 8px !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeAdvancedSummary > span {
+    color: var(--metro-bronze) !important;
+    font-size: 8.5px !important;
+    font-weight: 950 !important;
+    line-height: 12px !important;
+    letter-spacing: 0.055em !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeAdvancedSummary > strong {
+    color: var(--metro-warm-text) !important;
+    font-size: 14px !important;
+    font-weight: 950 !important;
+    line-height: 18px !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeAdvancedSummary > small {
+    overflow: hidden !important;
+    color: var(--metro-muted-text) !important;
+    font-size: 7.8px !important;
+    font-weight: 750 !important;
+    line-height: 12px !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeAdvancedSummary:is(.active, .selected, [aria-expanded="true"]) {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 58%),
+      var(--metro-rose-soft) !important;
+    box-shadow:
+      inset 0 -2px 0 var(--metro-rose),
+      inset 0 0 0 1px rgba(199, 127, 144, 0.13) !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeAdvancedSummary:is(.active, .selected, [aria-expanded="true"]) > strong {
+    color: var(--metro-rose) !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeTrackerResetButton.metronomeTrackerResetButton {
+    display: grid !important;
+    grid-template-rows: 22px 10px !important;
+    place-content: center !important;
+    gap: 1px !important;
+    padding: 5px 2px !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeTrackerResetButton > b {
+    font-size: 20px !important;
+    font-weight: 650 !important;
+    line-height: 22px !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeTrackerResetButton > span {
+    color: var(--metro-muted-text) !important;
+    font-size: 6.8px !important;
+    font-weight: 900 !important;
+    line-height: 10px !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix.metronomeBeatMatrix--main {
+    box-sizing: border-box !important;
+    height: clamp(148px, 40vw, 156px) !important;
+    min-height: clamp(148px, 40vw, 156px) !important;
+    max-height: clamp(148px, 40vw, 156px) !important;
+    padding: 14px 6px 16px !important;
+    border-top: 1px solid var(--metro-bronze-line-soft) !important;
+    border-bottom: 1px solid var(--metro-bronze-line-soft) !important;
+    border-radius: 0 !important;
+    background:
+      radial-gradient(circle at 50% 46%, rgba(255, 255, 255, 0.26), transparent 56%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(133, 87, 67, 0.025)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -1px 0 rgba(105, 66, 53, 0.035) !important;
+  }
+
+  html body main.app.app.app.theme-brand.metronomeMode
+    .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix.metronomeBeatMatrix--main {
+    background:
+      radial-gradient(circle at 50% 44%, rgba(217, 170, 85, 0.045), transparent 57%),
+      linear-gradient(180deg, rgba(255, 235, 184, 0.012), rgba(0, 0, 0, 0.12)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 235, 184, 0.025),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeBeatMatrix--main .beatDot.metronomeBeatButton {
+    width: clamp(38px, 11vw, 44px) !important;
+    min-width: clamp(38px, 11vw, 44px) !important;
+    max-width: clamp(38px, 11vw, 44px) !important;
+    height: clamp(38px, 11vw, 44px) !important;
+    min-height: clamp(38px, 11vw, 44px) !important;
+    max-height: clamp(38px, 11vw, 44px) !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeBeatMatrix--main .beatDot.metronomeBeatButton .beatDot__glyph {
+    width: clamp(28px, 8.2vw, 32px) !important;
+    height: clamp(28px, 8.2vw, 32px) !important;
+    border: 1.5px solid var(--metro-bronze-line) !important;
+    background:
+      radial-gradient(circle at 38% 30%, rgba(255, 255, 255, 0.45), transparent 38%),
+      var(--metro-disabled-cream) !important;
+    box-shadow:
+      inset 0 1px 2px rgba(84, 53, 43, 0.1),
+      0 0 0 3px rgba(199, 127, 144, 0.055) !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeBeatMatrix--main .beatDot--strong.metronomeBeatButton .beatDot__glyph {
+    border-color: rgba(199, 127, 144, 0.68) !important;
+    background:
+      radial-gradient(circle at 36% 28%, rgba(255, 255, 255, 0.58), transparent 38%),
+      color-mix(in srgb, var(--metro-rose) 28%, var(--metro-raised-cream)) !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeBeatMatrix--main .beatDot--mute.metronomeBeatButton .beatDot__glyph {
+    border-color: var(--metro-bronze-line-soft) !important;
+    background: color-mix(in srgb, var(--metro-warm-dark) 18%, var(--metro-disabled-cream)) !important;
+    opacity: 0.68 !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeBeatMatrix--main .beatDot.metronomeBeatButton.active .beatDot__glyph {
+    border-color: var(--metro-rose) !important;
+    background:
+      radial-gradient(circle at 36% 28%, rgba(255, 255, 255, 0.74), transparent 38%),
+      var(--metro-rose) !important;
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--metro-rose) 18%, transparent),
+      0 0 11px color-mix(in srgb, var(--metro-rose) 28%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.48) !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeVisualOptionsHandle > span {
+    width: 42px !important;
+    height: 3px !important;
+    border: 0 !important;
+    background: color-mix(in srgb, var(--metro-rose) 62%, var(--metro-bronze)) !important;
+    box-shadow: none !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    > .metronomeHeroCard.metronomeHeroCard--interactive {
+    box-sizing: border-box !important;
+    grid-template-columns: 76px minmax(0, 1fr) 76px !important;
+    grid-template-rows: 78px 44px !important;
+    height: 124px !important;
+    min-height: 124px !important;
+    max-height: 124px !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid var(--metro-bronze-line) !important;
+    border-radius: 10px !important;
+    background:
+      radial-gradient(circle at 50% -18%, rgba(255, 255, 255, 0.5), transparent 52%),
+      linear-gradient(180deg, var(--metro-raised-cream), var(--metro-pearl-cream)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.54),
+      0 2px 5px var(--metro-control-shadow) !important;
+    transform: none !important;
+  }
+
+  html body main.app.app.app.theme-brand.metronomeMode
+    .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    > .metronomeHeroCard.metronomeHeroCard--interactive {
+    background:
+      radial-gradient(circle at 50% -20%, rgba(217, 170, 85, 0.09), transparent 54%),
+      linear-gradient(180deg, var(--metro-raised-cream), #0c0b08) !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeHeroCard.metronomeHeroCard--interactive::before,
+  html body main.app.app.app.metronomeMode
+    .metronomeHeroCard.metronomeHeroCard--interactive::after {
+    background: var(--metro-bronze-line-soft) !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeBpmAdjustGroup.metronomeBpmAdjustGroup {
+    grid-template-rows: 34px 1px 34px !important;
+    align-content: center !important;
+    gap: 0 !important;
+    height: 78px !important;
+    min-height: 78px !important;
+    max-height: 78px !important;
+    padding: 4px 0 !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeBpmAdjustGroup > :is(.metronomeHeroBpmButton, .metronomeHeroBpmJumpButton) {
+    width: 100% !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    border: 0 !important;
+    border-radius: 4px !important;
+    background: transparent !important;
+    color: var(--metro-warm-text) !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeBpmAdjustGroup > .metronomeHeroBpmButton {
+    font-size: 27px !important;
+    font-weight: 650 !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeBpmAdjustGroup > .metronomeHeroBpmJumpButton {
+    color: var(--metro-bronze) !important;
+    font-size: 15px !important;
+    font-weight: 900 !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeBpmAdjustDivider {
+    width: 28px !important;
+    height: 1px !important;
+    background: var(--metro-bronze-line-soft) !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeHeroBpmValue.metronomeHeroBpmValue {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeHeroBpmValue > span {
+    color: var(--metro-bronze) !important;
+    font-size: 10px !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.13em !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeHeroBpmValue > strong {
+    color: var(--metro-warm-dark) !important;
+    font-size: 52px !important;
+    font-weight: 950 !important;
+    letter-spacing: -0.055em !important;
+    text-shadow: none !important;
+  }
+
+  html body main.app.app.app.theme-brand.metronomeMode .metronomeHeroBpmValue > strong {
+    color: #fff5dc !important;
+    text-shadow: 0 0 11px rgba(217, 170, 85, 0.07) !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeHeroActionPanel.metronomeHeroActionPanel {
+    grid-template-columns: 1fr 1fr !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    border-top: 1px solid var(--metro-bronze-line-soft) !important;
+    background: color-mix(in srgb, var(--metro-base-cream) 42%, transparent) !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeHeroActionPanel::before {
+    background: var(--metro-bronze-line-soft) !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeHeroActionPanel > :is(.metronomeHeroPlayButton, .metronomeHeroTapTempoButton) {
+    height: 43px !important;
+    min-height: 43px !important;
+    max-height: 43px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--metro-warm-text) !important;
+    box-shadow: none !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeHeroActionPanel > .metronomeHeroPlayButton.reset,
+  html body main.app.app.app.metronomeMode
+    .metronomeHeroActionPanel > .metronomeHeroTapTempoButton.is-tapping {
+    background: var(--metro-rose-soft) !important;
+    color: var(--metro-rose) !important;
+    box-shadow: inset 0 -2px 0 var(--metro-rose) !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeHeroActionText {
+    color: currentColor !important;
+    font-size: 13px !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.07em !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .standaloneMetronomeControl.standaloneMetronomeControl {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .standaloneMetronomeControl > .metronomeOptions.metronomeOptions--splitTone {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 112px !important;
+    min-height: 112px !important;
+    max-height: 112px !important;
+    margin: 0 !important;
+    padding: 7px 4px 6px !important;
+    gap: 5px 6px !important;
+    border-top: 1px solid var(--metro-bronze-line-soft) !important;
+    border-bottom: 1px solid var(--metro-bronze-line-soft) !important;
+    border-radius: 0 !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(120, 76, 59, 0.025)) !important;
+    box-shadow: none !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .standaloneMetronomeControl .metronomeSelectControl.metronomeSelectControl {
+    min-width: 0 !important;
+    gap: 3px !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .standaloneMetronomeControl .metronomeSelectLabel.metronomeSelectLabel {
+    height: 11px !important;
+    min-height: 11px !important;
+    margin: 0 !important;
+    color: var(--metro-muted-text) !important;
+    font-size: 8.5px !important;
+    font-weight: 900 !important;
+    line-height: 11px !important;
+    letter-spacing: 0.015em !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .standaloneMetronomeControl button.metronomeSelectButton.metronomeSelectButton {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 35px !important;
+    min-height: 35px !important;
+    max-height: 35px !important;
+    padding: 0 10px !important;
+    border: 1px solid var(--metro-bronze-line) !important;
+    border-radius: 6px !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.34), transparent 58%),
+      var(--metro-raised-cream) !important;
+    color: var(--metro-warm-text) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.42),
+      0 1px 2px var(--metro-control-shadow) !important;
+  }
+
+  html body main.app.app.app.theme-brand.metronomeMode
+    .standaloneMetronomeControl button.metronomeSelectButton.metronomeSelectButton {
+    background:
+      linear-gradient(180deg, rgba(255, 238, 194, 0.035), transparent 62%),
+      var(--metro-raised-cream) !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .standaloneMetronomeControl button.metronomeSelectButton.metronomeSelectButton:is([aria-expanded="true"], :focus-visible) {
+    border-color: color-mix(in srgb, var(--metro-rose) 68%, var(--metro-bronze)) !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 58%),
+      var(--metro-rose-soft) !important;
+    box-shadow:
+      inset 0 -2px 0 var(--metro-rose),
+      0 0 0 2px color-mix(in srgb, var(--metro-rose) 10%, transparent) !important;
+    outline: 0 !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .standaloneMetronomeControl .metronomeSelectButton > :is(b, i) {
+    color: var(--metro-warm-text) !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .standaloneMetronomeControl .metronomeSelectButton > b {
+    font-size: 11.5px !important;
+    font-weight: 900 !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .standaloneMetronomeControl .metronomeSelectButton > i:last-child {
+    color: var(--metro-bronze) !important;
+    font-size: 11px !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .standaloneMetronomePanel .backingLoopPanel.backingLoopPanel--mobile {
+    margin-top: 0 !important;
+    border-color: var(--metro-bronze-line) !important;
+    border-radius: 10px !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.32),
+      0 2px 5px var(--metro-control-shadow) !important;
+  }
+
+  html body main.app.app.app.theme-brand.metronomeMode
+    .standaloneMetronomePanel .backingLoopPanel.backingLoopPanel--mobile {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 230, 165, 0.035),
+      0 2px 5px var(--metro-control-shadow) !important;
+  }
+
+  html body main.app.app.app.metronomeMode .metronomeAdvancedPopover.metronomeAdvancedPopover {
+    border: 1px solid var(--metro-bronze-line) !important;
+    border-radius: 10px !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 72px),
+      var(--metro-base-cream) !important;
+    box-shadow: 0 8px 20px var(--metro-chassis-shadow) !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeAdvancedPopover button:not(.metronomeHardwareToggle) {
+    border-color: var(--metro-bronze-line) !important;
+    border-radius: 6px !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.26), transparent 62%),
+      var(--metro-raised-cream) !important;
+    color: var(--metro-warm-text) !important;
+    box-shadow: 0 1px 2px var(--metro-control-shadow) !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeAdvancedPopover button:not(.metronomeHardwareToggle):is(.selected, [aria-pressed="true"]) {
+    border-color: color-mix(in srgb, var(--metro-rose) 58%, var(--metro-bronze)) !important;
+    background: var(--metro-rose-soft) !important;
+    color: var(--metro-warm-text) !important;
+    box-shadow: inset 0 -2px 0 var(--metro-rose) !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    :is(
+      .metronomeAdvancedDock > button,
+      .metronomeHeroCard button,
+      .standaloneMetronomeControl .metronomeSelectButton,
+      .metronomeAdvancedPopover button:not(.metronomeHardwareToggle)
+    ):active:not(:disabled) {
+    transform: translateY(1px) !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    .metronomeAdvancedPopover button:disabled {
+    border-color: var(--metro-bronze-line-soft) !important;
+    background: var(--metro-disabled-cream) !important;
+    color: var(--metro-muted-text) !important;
+    opacity: 0.62 !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    > .metronomeSelectPortal > .metronomeSelectMenu {
+    border-color: var(--metro-bronze-line) !important;
+    border-radius: 8px !important;
+    background: var(--metro-raised-cream) !important;
+    box-shadow: 0 8px 18px var(--metro-chassis-shadow) !important;
+  }
+
+  html body main.app.app.app.metronomeMode
+    > .metronomeSelectPortal > .metronomeSelectMenu > .metronomeSelectOption:is(.selected, [aria-selected="true"]) {
+    border-radius: 4px !important;
+    background: var(--metro-rose-soft) !important;
+    color: var(--metro-warm-text) !important;
+    box-shadow: inset 2px 0 0 var(--metro-rose) !important;
+  }
+}
+
+/* The legacy stylesheet intentionally carries high-specificity mobile sizing.
+   This final scoped pass owns only the standalone metronome geometry. */
+@media (max-width: 767px) {
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    > .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) {
+    grid-template-rows: auto auto auto auto auto !important;
+    row-gap: 6px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 7px 9px 10px !important;
+    border: 1px solid var(--metro-bronze-line) !important;
+    border-radius: 15px !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.42),
+      0 4px 12px var(--metro-chassis-shadow) !important;
+  }
+
+  html body main.app.theme-brand.metronomeMode:not(#riff-metronome-polish)
+    > .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 238, 197, 0.035),
+      0 4px 12px var(--metro-chassis-shadow) !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .metronomeAdvancedDock.metronomeAdvancedDock {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 54px !important;
+    grid-template-rows: 62px !important;
+    gap: 0 !important;
+    height: 64px !important;
+    min-height: 64px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border: 1px solid var(--metro-bronze-line) !important;
+    border-radius: 10px !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .metronomeAdvancedDock > .metronomeAdvancedSummary:first-child {
+    border-radius: 9px 0 0 9px !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .metronomeAdvancedDock > .metronomeTrackerResetButton:last-of-type {
+    border-radius: 0 9px 9px 0 !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix.metronomeBeatMatrix--main {
+    box-sizing: border-box !important;
+    height: clamp(148px, 40vw, 156px) !important;
+    min-height: clamp(148px, 40vw, 156px) !important;
+    max-height: clamp(148px, 40vw, 156px) !important;
+    padding: 14px 6px 16px !important;
+    border-top: 1px solid var(--metro-bronze-line-soft) !important;
+    border-bottom: 1px solid var(--metro-bronze-line-soft) !important;
+    border-radius: 0 !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .metronomeBeatMatrix--main .beatDot.metronomeBeatButton {
+    width: clamp(38px, 11vw, 44px) !important;
+    min-width: clamp(38px, 11vw, 44px) !important;
+    max-width: clamp(38px, 11vw, 44px) !important;
+    height: clamp(38px, 11vw, 44px) !important;
+    min-height: clamp(38px, 11vw, 44px) !important;
+    max-height: clamp(38px, 11vw, 44px) !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .metronomeBeatMatrix--main .beatDot.metronomeBeatButton .beatDot__glyph {
+    width: clamp(28px, 8.2vw, 32px) !important;
+    height: clamp(28px, 8.2vw, 32px) !important;
+    border: 1.5px solid var(--metro-bronze-line) !important;
+    background:
+      radial-gradient(circle at 38% 30%, rgba(255, 255, 255, 0.45), transparent 38%),
+      var(--metro-disabled-cream) !important;
+    box-shadow:
+      inset 0 1px 2px rgba(84, 53, 43, 0.1),
+      0 0 0 3px rgba(199, 127, 144, 0.055) !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .metronomeBeatMatrix--main .beatDot--strong.metronomeBeatButton .beatDot__glyph {
+    border-color: rgba(199, 127, 144, 0.68) !important;
+    background:
+      radial-gradient(circle at 36% 28%, rgba(255, 255, 255, 0.58), transparent 38%),
+      color-mix(in srgb, var(--metro-rose) 28%, var(--metro-raised-cream)) !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .metronomeBeatMatrix--main .beatDot.metronomeBeatButton.active .beatDot__glyph {
+    border-color: var(--metro-rose) !important;
+    background:
+      radial-gradient(circle at 36% 28%, rgba(255, 255, 255, 0.74), transparent 38%),
+      var(--metro-rose) !important;
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--metro-rose) 18%, transparent),
+      0 0 11px color-mix(in srgb, var(--metro-rose) 28%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.48) !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    > .metronomeHeroCard.metronomeHeroCard--interactive {
+    box-sizing: border-box !important;
+    grid-template-columns: 76px minmax(0, 1fr) 76px !important;
+    grid-template-rows: 78px 44px !important;
+    height: 124px !important;
+    min-height: 124px !important;
+    max-height: 124px !important;
+    margin: 0 !important;
+    border: 1px solid var(--metro-bronze-line) !important;
+    border-radius: 10px !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.54),
+      0 2px 5px var(--metro-control-shadow) !important;
+    transform: none !important;
+  }
+
+  html body main.app.theme-brand.metronomeMode:not(#riff-metronome-polish)
+    .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    > .metronomeHeroCard.metronomeHeroCard--interactive {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 238, 197, 0.035),
+      0 2px 5px var(--metro-control-shadow) !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .metronomeBpmAdjustGroup.metronomeBpmAdjustGroup {
+    grid-template-rows: 34px 1px 34px !important;
+    align-content: center !important;
+    gap: 0 !important;
+    height: 78px !important;
+    min-height: 78px !important;
+    max-height: 78px !important;
+    padding: 4px 0 !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .metronomeBpmAdjustGroup > :is(.metronomeHeroBpmButton, .metronomeHeroBpmJumpButton) {
+    width: 100% !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    border: 0 !important;
+    border-radius: 4px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .metronomeHeroActionPanel.metronomeHeroActionPanel {
+    grid-template-columns: 1fr 1fr !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    border-top: 1px solid var(--metro-bronze-line-soft) !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .standaloneMetronomeControl.standaloneMetronomeControl {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 112px !important;
+    min-height: 112px !important;
+    max-height: 112px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    align-items: stretch !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .standaloneMetronomeControl > .metronomeOptions.metronomeOptions--splitTone {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 112px !important;
+    min-height: 112px !important;
+    max-height: 112px !important;
+    margin: 0 !important;
+    padding: 7px 4px 6px !important;
+    gap: 5px 6px !important;
+    border-top: 1px solid var(--metro-bronze-line-soft) !important;
+    border-bottom: 1px solid var(--metro-bronze-line-soft) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .standaloneMetronomeControl button.metronomeSelectButton.metronomeSelectButton {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 35px !important;
+    min-height: 35px !important;
+    max-height: 35px !important;
+    padding: 0 10px !important;
+    border: 1px solid var(--metro-bronze-line) !important;
+    border-radius: 6px !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.42),
+      0 1px 2px var(--metro-control-shadow) !important;
+  }
+
+  html body main.app.metronomeMode:not(#riff-metronome-polish)
+    .standaloneMetronomePanel .backingLoopPanel.backingLoopPanel--mobile {
+    margin-top: 0 !important;
+    border-color: var(--metro-bronze-line) !important;
+    border-radius: 10px !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.32),
+      0 2px 5px var(--metro-control-shadow) !important;
+  }
+
+}
+
+/* Theme parity ------------------------------------------------------------
+   Navigation belongs to the shared shell, so individual screens must not
+   recolor their selected tab. Dark-mode content keeps the same geometry as
+   Pearl White while swapping only its material and text tokens. */
+html body main.app.app.app.theme-brand.miniChordMakerMode
+  .miniChordMakerPanelCompact
+  :is(
+    .miniChordLoadPicker > button,
+    .miniChordCompactSettings summary,
+    .miniChordPickerSegment button,
+    .miniChordPickerRoots button,
+    .miniChordPickerQualities button,
+    .miniChordPickerExtensions button,
+    .miniChordPickerActions button,
+    .barEndingOptions button,
+    .barMarkerOptions button,
+    .barCommandOptions button,
+    .barEndingClear
+  ) {
+  border-color: var(--mini-ui-border) !important;
+  background: var(--mini-ui-button) !important;
+  color: var(--mini-ui-text) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 240, 196, 0.07),
+    0 2px 6px rgba(0, 0, 0, 0.18) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.theme-brand.miniChordMakerMode
+  .miniChordMakerPanelCompact
+  :is(
+    .miniChordSegment button.selected,
+    .miniChordBeatOptions button.selected,
+    .miniChordPianoStyleOptions button.selected,
+    .miniChordPickerSegment button.selected,
+    .miniChordPickerRoots button.selected,
+    .miniChordPickerQualities button.selected,
+    .miniChordPickerExtensions button.selected,
+    .miniChordPickerActions button.primary,
+    .barEndingOptions button.selected,
+    .barMarkerOptions button.selected,
+    .barCommandOptions button.selected
+  ) {
+  border-color: var(--mini-ui-border-strong) !important;
+  background: var(--mini-ui-selected) !important;
+  color: var(--mini-ui-selected-text) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 164, 0.1),
+    0 2px 7px rgba(0, 0, 0, 0.2) !important;
+}
+
+html body main.app.app.app.theme-brand.miniChordMakerMode
+  .miniChordMakerPanelCompact
+  .miniChordCompactSettings summary :is(span, b) {
+  color: var(--mini-ui-text) !important;
+}
+
+html body main.app.app.app.theme-brand.miniChordMakerMode
+  .miniChordMakerPanelCompact
+  .miniChordExpertToggle {
+  border-color: var(--mini-ui-border) !important;
+  background: var(--mini-ui-button) !important;
+  color: var(--mini-ui-muted) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 240, 196, 0.055) !important;
+}
+
+html body main.app.app.app.theme-brand.miniChordMakerMode
+  .miniChordMakerPanelCompact
+  .miniChordExpertToggle:is(.selected, [aria-pressed="true"]) {
+  border-color: var(--mini-ui-border-strong) !important;
+  background: var(--mini-ui-selected) !important;
+  color: var(--mini-ui-selected-text) !important;
+}
+
+@media (min-width: 768px) {
+  html body main.app.app.app.theme-brand.miniChordMakerMode
+    .miniChordMakerPanelCompact
+    .miniChordMetronomePanel
+    > .metronomeHeroCard.metronomeHeroCard--interactive {
+    border-color: var(--mini-ui-border-strong) !important;
+    background:
+      radial-gradient(circle at 50% -18%, rgba(217, 170, 85, 0.11), transparent 48%),
+      linear-gradient(180deg, #1d1912 0%, #0d0c09 100%) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 232, 177, 0.055),
+      0 8px 18px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  html body main.app.app.app.theme-brand.miniChordMakerMode
+    .miniChordMakerPanelCompact
+    .miniChordMetronomePanel
+    .metronomeHeroBpmValue > :is(span, strong),
+  html body main.app.app.app.theme-brand.miniChordMakerMode
+    .miniChordMakerPanelCompact
+    .miniChordMetronomePanel
+    :is(.metronomeHeroBpmButton, .metronomeHeroBpmJumpButton, .metronomeHeroActionText, .metronomeHeroActionIcon) {
+    color: var(--mini-ui-text) !important;
+    text-shadow: none !important;
+  }
+
+  html body main.app.app.app.app.app.theme-brand.miniChordMakerMode
+    .miniChordMakerPanelCompact
+    .miniChordMetronomePanel
+    > .metronomeHeroCard.metronomeHeroCard--interactive
+    :is(
+      .metronomeHeroBpmButton,
+      .metronomeHeroBpmJumpButton,
+      .metronomeHeroBpmValue,
+      .metronomeHeroBpmValue > span,
+      .metronomeHeroBpmValue > strong,
+      .metronomeHeroActionPanel button,
+      .metronomeHeroActionPanel span,
+      .metronomeHeroActionPanel svg
+    ) {
+    color: var(--mini-ui-text) !important;
+    -webkit-text-fill-color: currentColor !important;
+    text-shadow: none !important;
+  }
+
+  html body main.app.app.app.theme-brand.miniChordMakerMode
+    .miniChordMakerPanelCompact
+    .miniChordMetronomePanel
+    :is(.metronomeBpmAdjustDivider, .metronomeHeroActionPanel) {
+    border-color: var(--mini-ui-divider) !important;
+  }
+
+  html body main.app.app.app.theme-brand.miniChordMakerMode
+    .miniChordMakerPanelCompact
+    .miniChordMetronomePanel
+    .metronomeHeroTapTempoButton :is(.tapTempoIconCrop, .tapTempoGlyph) {
+    color: #e4b75b !important;
+  }
+
+
+  html body main.app.app.app.app.app.theme-brand.miniChordMakerMode
+    .miniChordMakerPanelCompact
+    .miniChordMetronomePanel
+    > .metronomeHeroCard.metronomeHeroCard--interactive
+    .metronomeHeroTapTempoButton :is(.tapTempoIconCrop, .tapTempoGlyph) {
+    color: #e4b75b !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel.fretboardViewerPanel {
+  --pearl-ivory: #211c16;
+  --pearl-highlight: #31291e;
+  --pearl-mid: #191611;
+  --pearl-shadow: #070604;
+  --rose-pearl: #4b3034;
+  --rose-pearl-deep: #c6818f;
+  --rose-gold: #d9aa55;
+  --rose-gold-soft: #8f6f37;
+  --pearl-ink: #f2ddb2;
+  --pearl-muted: rgba(228, 202, 151, 0.7);
+  --code-plate-bg: #17140f;
+  --code-panel-bg: #201b14;
+  --code-control-bg: #252017;
+  --code-selected-bg: #4b3034;
+  --code-text: #f2ddb2;
+  --code-muted: rgba(228, 202, 151, 0.7);
+  --code-border: rgba(217, 170, 85, 0.28);
+  --code-accent: rgba(217, 170, 85, 0.42);
+  --code-shadow: rgba(0, 0, 0, 0.38);
+  color-scheme: dark;
+  border-color: rgba(217, 170, 85, 0.44) !important;
+  background:
+    radial-gradient(ellipse at 22% 0%, rgba(217, 170, 85, 0.1), transparent 37%),
+    radial-gradient(ellipse at 82% 16%, rgba(198, 129, 143, 0.07), transparent 35%),
+    linear-gradient(180deg, #1b1711 0%, #100e0b 48%, #080807 100%) !important;
+  box-shadow:
+    0 0 0 3px rgba(217, 170, 85, 0.055),
+    0 0 0 5px rgba(217, 170, 85, 0.1),
+    0 12px 26px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 231, 176, 0.06),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28) !important;
+  color: var(--pearl-ink) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerModeTabs.viewerModeTabs {
+  border-color: rgba(217, 170, 85, 0.3) !important;
+  background: linear-gradient(180deg, #242018, #15130f) !important;
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.42),
+    0 1px 0 rgba(255, 229, 169, 0.045) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerModeTabs.viewerModeTabs > button {
+  border-color: rgba(217, 170, 85, 0.22) !important;
+  background: linear-gradient(180deg, #29231a 0%, #1b1812 100%) !important;
+  color: var(--pearl-ink) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 229, 169, 0.055),
+    0 1px 2px rgba(0, 0, 0, 0.28) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerModeTabs.viewerModeTabs > button:is(.selected, [aria-pressed="true"]) {
+  border-color: rgba(198, 129, 143, 0.66) !important;
+  background: linear-gradient(180deg, #56373c 0%, #352328 100%) !important;
+  color: #ffe6b0 !important;
+  box-shadow:
+    inset 0 -2px 0 #c6818f,
+    inset 0 1px 0 rgba(255, 223, 196, 0.08) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerMapCard--chord.viewerMapCard.viewerMapCard {
+  border-color: rgba(217, 170, 85, 0.24) !important;
+  background:
+    radial-gradient(ellipse at 16% 0%, rgba(217, 170, 85, 0.065), transparent 42%),
+    linear-gradient(180deg, #1f1a13 0%, #13110d 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 229, 169, 0.05),
+    0 2px 6px rgba(0, 0, 0, 0.26) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerChordIdentity > span, .viewerChordIdentity > strong, .viewerChordHeader > .viewerSwipeHint) {
+  color: var(--pearl-ink) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(
+    .viewerChordHeaderActions > button,
+    .viewerMapCard--chord .viewerAllButton,
+    .viewerMapCard--chord .viewerChordSoundButton
+  ) {
+  border-color: rgba(217, 170, 85, 0.28) !important;
+  background: linear-gradient(180deg, #2a241a 0%, #1b1812 100%) !important;
+  color: var(--pearl-ink) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 229, 169, 0.06),
+    0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerFretboardGestureSurface--chord.viewerFretboardGestureSurface {
+  border-color: rgba(217, 170, 85, 0.36) !important;
+  background: linear-gradient(180deg, #3b2b1c 0%, #251b13 100%) !important;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 226, 169, 0.055),
+    inset 0 1px 3px rgba(0, 0, 0, 0.34) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderPanel--composer.chordBuilderPanel.chordBuilderPanel {
+  border-color: rgba(217, 170, 85, 0.24) !important;
+  background:
+    radial-gradient(ellipse at 15% 0%, rgba(217, 170, 85, 0.055), transparent 43%),
+    linear-gradient(180deg, #201b14, #14120e) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 229, 169, 0.05),
+    0 2px 6px rgba(0, 0, 0, 0.24) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderOptionSection--labeled + .chordBuilderOptionSection--labeled {
+  border-top-color: rgba(217, 170, 85, 0.13) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderOptionLabel {
+  color: var(--pearl-ink) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderChipGrid > .chordBuilderChip.chordBuilderChip {
+  border-color: rgba(217, 170, 85, 0.22) !important;
+  background: linear-gradient(180deg, #29231a 0%, #1b1812 100%) !important;
+  color: var(--pearl-ink) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 229, 169, 0.05) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderChipGrid > .chordBuilderChip.chordBuilderChip:is(.selected, [aria-pressed="true"]) {
+  border-color: rgba(198, 129, 143, 0.62) !important;
+  background: linear-gradient(180deg, #56373c 0%, #352328 100%) !important;
+  color: #ffe6b0 !important;
+  box-shadow: inset 0 -2px 0 #c6818f !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderChipGrid > .chordBuilderChip.chordBuilderChip:disabled {
+  border-color: rgba(217, 170, 85, 0.1) !important;
+  background: #17140f !important;
+  color: rgba(228, 202, 151, 0.34) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerChordReferenceFooter.viewerChordReferenceFooter {
+  border-color: rgba(217, 170, 85, 0.28) !important;
+  background:
+    radial-gradient(ellipse at 15% 0%, rgba(217, 170, 85, 0.08), transparent 44%),
+    linear-gradient(180deg, #251f17, #17140f) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 229, 169, 0.055) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerChordReferenceFooter :is(strong, span) {
+  color: var(--pearl-ink) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerChordReferenceFooter span {
+  color: var(--pearl-muted) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogScroll.chordCatalogScroll {
+  border-color: rgba(217, 170, 85, 0.3) !important;
+  background:
+    linear-gradient(90deg, rgba(217, 170, 85, 0.04), transparent 18%, rgba(0, 0, 0, 0.08) 48%, transparent 72%),
+    linear-gradient(180deg, #2d2217 0%, #1c160f 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 226, 169, 0.045),
+    inset 0 0 14px rgba(0, 0, 0, 0.24) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogRow.chordCatalogRow {
+  border-color: rgba(217, 170, 85, 0.18) !important;
+  background: rgba(7, 6, 5, 0.28) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 226, 169, 0.035) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordRootLabel.chordRootLabel {
+  color: var(--pearl-ink) !important;
+  background: rgba(18, 15, 11, 0.88) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordMiniCard.chordMiniCard {
+  border-color: rgba(217, 170, 85, 0.22) !important;
+  background: linear-gradient(180deg, #29231a 0%, #17140f 100%) !important;
+  color: var(--pearl-ink) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 229, 169, 0.045),
+    0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordMiniCard > span {
+  color: var(--pearl-ink) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardNoteChip {
+  border-color: rgba(217, 170, 85, 0.72) !important;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 233, 180, 0.42) 0 9%, transparent 34%),
+    linear-gradient(145deg, #e1b860 0%, #a96f28 100%) !important;
+  color: #1b1208 !important;
+  box-shadow:
+    0 0 0 2px rgba(217, 170, 85, 0.12),
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 231, 176, 0.22) !important;
+  text-shadow: none !important;
+}
+
+/* Late ivory refinements use a deliberately deep selector chain. Mirror that
+   chain for the dark material pass so the builder and catalogue cannot fall
+   back to Pearl White. */
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel.viewerControlPanel {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .chordBuilderPanel--composer.chordBuilderPanel.chordBuilderPanel {
+  border-color: rgba(217, 170, 85, 0.24) !important;
+  background:
+    radial-gradient(ellipse at 15% 0%, rgba(217, 170, 85, 0.055), transparent 43%),
+    linear-gradient(180deg, #201b14, #14120e) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 229, 169, 0.05),
+    0 2px 6px rgba(0, 0, 0, 0.24) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .chordBuilderPanel--composer.chordBuilderPanel
+  .chordBuilderOptionSection--labeled + .chordBuilderOptionSection--labeled {
+  border-top-color: rgba(217, 170, 85, 0.13) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .chordBuilderPanel--composer.chordBuilderPanel
+  .chordBuilderOptionLabel.chordBuilderOptionLabel {
+  color: var(--pearl-ink) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .chordBuilderPanel--composer.chordBuilderPanel
+  .chordBuilderChipGrid.chordBuilderChipGrid
+  > .chordBuilderChip.chordBuilderChip {
+  border-color: rgba(217, 170, 85, 0.22) !important;
+  background: linear-gradient(180deg, #29231a 0%, #1b1812 100%) !important;
+  color: var(--pearl-ink) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 229, 169, 0.05) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .chordBuilderPanel--composer.chordBuilderPanel
+  .chordBuilderChipGrid.chordBuilderChipGrid
+  > .chordBuilderChip.chordBuilderChip:is(.selected, [aria-pressed="true"]) {
+  border-color: rgba(198, 129, 143, 0.62) !important;
+  background: linear-gradient(180deg, #56373c 0%, #352328 100%) !important;
+  color: #ffe6b0 !important;
+  box-shadow: inset 0 -2px 0 #c6818f !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .chordBuilderPanel--composer.chordBuilderPanel
+  .chordBuilderChipGrid.chordBuilderChipGrid
+  > .chordBuilderChip.chordBuilderChip:disabled {
+  border-color: rgba(217, 170, 85, 0.1) !important;
+  background: #17140f !important;
+  color: rgba(228, 202, 151, 0.34) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel.chordCatalogPanel.chordCatalogPanel {
+  background: #0e0d0a !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel.chordCatalogPanel
+  .chordCatalogScroll.chordCatalogScroll {
+  border-color: rgba(217, 170, 85, 0.3) !important;
+  background:
+    linear-gradient(90deg, rgba(217, 170, 85, 0.04), transparent 18%, rgba(0, 0, 0, 0.08) 48%, transparent 72%),
+    linear-gradient(180deg, #2d2217 0%, #1c160f 100%) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel.chordCatalogPanel
+  .chordCatalogRow.chordCatalogRow {
+  border-color: rgba(217, 170, 85, 0.18) !important;
+  background: rgba(7, 6, 5, 0.28) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 226, 169, 0.035) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel.chordCatalogPanel
+  .chordRootLabel.chordRootLabel {
+  color: var(--pearl-ink) !important;
+  background: rgba(18, 15, 11, 0.88) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel.chordCatalogPanel
+  .chordMiniCard.chordMiniCard {
+  border-color: rgba(217, 170, 85, 0.22) !important;
+  background: linear-gradient(180deg, #29231a 0%, #17140f 100%) !important;
+  color: var(--pearl-ink) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 229, 169, 0.045),
+    0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordCatalogPanel.chordCatalogPanel
+  .chordMiniCard.chordMiniCard > span {
+  color: var(--pearl-ink) !important;
+  text-shadow: none !important;
+}
+
+/* The bottom navigation is a shared shell surface. Keep its active material
+   identical even when a screen exposes its own pressed-button tokens. */
+html body main.app.app.app.theme-brand
+  > .hud
+  .modeSwitch
+  > button:is(.selected, [aria-pressed="true"], [aria-expanded="true"]) {
+  border-color: rgba(236, 190, 103, 0.58) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 229, 168, 0.22), transparent 58%),
+    linear-gradient(145deg, rgba(217, 170, 85, 0.31), rgba(89, 63, 30, 0.38)),
+    rgba(31, 26, 19, 0.94) !important;
+  color: #ffe9ad !important;
+  box-shadow:
+    0 0 14px rgba(217, 170, 85, 0.16),
+    0 7px 16px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 244, 210, 0.12) !important;
+}
+
+html body main.app.app.app.theme-brand
+  > .hud
+  .modeSwitch
+  > button:is(.selected, [aria-pressed="true"], [aria-expanded="true"])
+  svg {
+  color: #f1c66f !important;
+}
+
+/* Scale play: BackingLoop keeps shared behavior while its platform-specific
+   panel sits after every metronome control at the bottom of the play deck. */
+.scaleBlockTrainingPanel .scaleTrainingBackingLoop {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  margin: 8px 0 10px;
+}
+
+.scaleBlockTrainingPanel .scaleTrainingBackingLoop > .backingLoopPanel {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+@media (max-width: 767px) {
+  .scaleBlockTrainingPanel .scaleTrainingBackingLoop {
+    margin-block: 7px 9px;
+  }
+
+  html body main.app.app.app
+    .scaleBlockTrainingPanel .scaleTrainingBackingLoop > .backingLoopPanel--mobile {
+    border-color: rgba(145, 96, 67, 0.34) !important;
+    border-radius: 10px !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.32),
+      0 2px 5px rgba(81, 51, 41, 0.09) !important;
+  }
+
+  html body main.app.app.app.theme-brand
+    .scaleBlockTrainingPanel .scaleTrainingBackingLoop > .backingLoopPanel--mobile {
+    border-color: rgba(217, 170, 85, 0.34) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.32),
+      0 2px 5px rgba(0, 0, 0, 0.24) !important;
+  }
+
+  html body main.app.app.app
+    .scaleTrainingBackingLoop .backingLoopPanel--mobile .backingLoopHeader {
+    padding-inline: 2px !important;
+  }
+
+  html body main.app.app.app
+    .scaleTrainingBackingLoop .backingLoopPanel--mobile
+    .backingLoopMainControls .backingLoopButton {
+    padding-inline: 4px !important;
+  }
+}
+
+/* Gold-dark fretboard viewer: pressed controls use the theme's brass/gold
+   material, and the neck stays a deep walnut instead of inheriting ivory. */
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerModeTabs.viewerModeTabs > button:is(.selected, [aria-pressed="true"]),
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .chordBuilderChipGrid.chordBuilderChipGrid
+  > .chordBuilderChip.chordBuilderChip:is(.selected, [aria-pressed="true"]) {
+  border-color: rgba(236, 190, 103, 0.68) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 229, 168, 0.17), transparent 62%),
+    linear-gradient(180deg, #684a22 0%, #3c2b17 100%) !important;
+  color: #ffe9ad !important;
+  box-shadow:
+    inset 0 -2px 0 #d9aa55,
+    inset 0 1px 0 rgba(255, 240, 196, 0.12),
+    0 2px 6px rgba(0, 0, 0, 0.26) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardComponentScroller {
+  border-color: rgba(217, 170, 85, 0.34) !important;
+  background:
+    linear-gradient(90deg, rgba(255, 222, 155, 0.075), transparent 15%, rgba(13, 9, 5, 0.1) 42%, transparent 68%, rgba(217, 170, 85, 0.045)),
+    repeating-linear-gradient(90deg, transparent 0 15px, rgba(234, 190, 106, 0.026) 16px, transparent 19px),
+    linear-gradient(180deg, #5a4125 0%, #40301e 48%, #2b2117 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 224, 164, 0.11),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    inset 5px 0 9px rgba(0, 0, 0, 0.12),
+    inset -5px 0 9px rgba(0, 0, 0, 0.12) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardComponentScroller::before {
+  background:
+    radial-gradient(ellipse 4px 82% at 14% 48%, rgba(235, 188, 104, 0.045), transparent 76%),
+    radial-gradient(ellipse 5px 90% at 47% 52%, rgba(8, 5, 3, 0.1), transparent 77%),
+    radial-gradient(ellipse 4px 76% at 82% 47%, rgba(235, 188, 104, 0.04), transparent 76%),
+    repeating-linear-gradient(90deg, transparent 0 12px, rgba(236, 193, 111, 0.028) 13px, transparent 16px) !important;
+  opacity: 0.72 !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardComponentScroller::after {
+  background:
+    linear-gradient(180deg, rgba(255, 225, 166, 0.055), transparent 14%, transparent 84%, rgba(0, 0, 0, 0.16)),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.12), transparent 5%, transparent 95%, rgba(0, 0, 0, 0.12)) !important;
+  box-shadow: inset 0 0 0 1px rgba(217, 170, 85, 0.2) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardNut {
+  border-color: rgba(217, 170, 85, 0.5) !important;
+  background: linear-gradient(90deg, #d8aa55 0%, #8d642b 34%, #5d431f 58%, #b9873a 80%, #e0b861 100%) !important;
+  box-shadow:
+    1px 0 2px rgba(0, 0, 0, 0.48),
+    inset 1px 0 0 rgba(255, 232, 178, 0.2) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardGrid > i {
+  border-left-color: rgba(225, 185, 105, 0.54) !important;
+  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.34) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardStringRow > i {
+  background: #c5a66d !important;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.48) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  :is(.fretboardFretNumbers, .fretboardStringRow > span) {
+  color: #f0d79d !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerControlPanel--chord.viewerControlPanel
+  .chordBuilderPanel--composer.chordBuilderPanel
+  .chordBuilderChipGrid.chordBuilderChipGrid
+  > .chordBuilderChip.chordBuilderChip:is(.selected, [aria-pressed="true"]) {
+  border-color: rgba(236, 190, 103, 0.68) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 229, 168, 0.17), transparent 62%),
+    linear-gradient(180deg, #684a22 0%, #3c2b17 100%) !important;
+  color: #ffe9ad !important;
+  box-shadow:
+    inset 0 -2px 0 #d9aa55,
+    inset 0 1px 0 rgba(255, 240, 196, 0.12),
+    0 2px 6px rgba(0, 0, 0, 0.26) !important;
+  text-shadow: none !important;
 }

@@ -23601,9 +23601,9 @@ function App({ onReady }) {
           </section>
         </section>
       ) : appMode === APP_MODES.FRETBOARD_VIEWER ? (
-        <section className="fretboardViewerPanel" aria-label="지판 보기">
+        <section className={`fretboardViewerPanel fretboardViewerPanel--${viewerMode}`} aria-label="지판 보기">
           <div
-            className={`viewerControlPanel compactControls viewerSwipeSurface ${viewerSwipeFeedback ? `viewerSwipeSurface--${viewerSwipeFeedback}` : ""}`}
+            className={`viewerControlPanel viewerControlPanel--${viewerMode} compactControls viewerSwipeSurface ${viewerSwipeFeedback ? `viewerSwipeSurface--${viewerSwipeFeedback}` : ""}`}
             onPointerCancel={() => {
               fretboardSwipeStartRef.current = null;
             }}
@@ -23641,11 +23641,27 @@ function App({ onReady }) {
             </div>
 
             <section className={`viewerMapCard viewerMapCard--${viewerMode}`} aria-label="전체 지판 음표" ref={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? chordViewerRef : null}>
-              <div className="viewerMapHeader">
-                <div className="viewerMapHeaderTop">
-                  <span>{viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "음표 위치" : viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "스케일 위치" : viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "참고지판" : "기준 지판"}</span>
-                  {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
-                    <>
+              <div className={`viewerMapHeader ${viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "viewerMapHeader--chord" : ""}`}>
+                {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
+                  <div className="viewerChordHeader">
+                    <div className="viewerChordIdentity">
+                      <span>참고지판</span>
+                      <strong>{viewerMapTitle}</strong>
+                    </div>
+                    <small className="viewerSwipeHint">
+                      {viewerChordPositionLabel} · 밀기
+                      {isMobileLayout ? (
+                        <span className="viewerSwipeGestureLabel" aria-hidden="true">↔ 스와이프</span>
+                      ) : null}
+                    </small>
+                    <div className="viewerChordHeaderActions">
+                      <button
+                        className="viewerAllButton"
+                        onClick={scrollToChordChart}
+                        type="button"
+                      >
+                        전체보기
+                      </button>
                       <button
                         aria-label={`${viewerMapTitle} 현재 운지 소리 듣기`}
                         aria-pressed={false}
@@ -23654,29 +23670,24 @@ function App({ onReady }) {
                         onClick={handleViewerChordSound}
                         type="button"
                       >
-                        <Volume2 aria-hidden="true" size={14} />
+                        <Volume2 aria-hidden="true" size={16} />
                         <span>코드 듣기</span>
                       </button>
-                      <button
-                        className="viewerAllButton"
-                        onClick={scrollToChordChart}
-                        type="button"
-                      >
-                        전체보기
-                      </button>
-                    </>
-                  ) : null}
-                </div>
-                <div className="viewerMapTitleRow">
-                  <strong>{viewerMapTitle}</strong>
-                  {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
-                    <small className="viewerSwipeHint">
-                      {viewerChordPositionLabel} · ↔ 밀기
-                    </small>
-                  ) : viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? (
-                    <small className="viewerSwipeHint">↔ Swipe</small>
-                  ) : null}
-                </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="viewerMapHeaderTop">
+                      <span>{viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "음표 위치" : viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "스케일 위치" : "기준 지판"}</span>
+                    </div>
+                    <div className="viewerMapTitleRow">
+                      <strong>{viewerMapTitle}</strong>
+                      {viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? (
+                        <small className="viewerSwipeHint">↔ Swipe</small>
+                      ) : null}
+                    </div>
+                  </>
+                )}
               </div>
               <div
                 aria-label={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? `${viewerMapTitle} ${viewerChordPositionLabel}. 좌우로 밀어 구간 변경` : undefined}
@@ -23703,7 +23714,7 @@ function App({ onReady }) {
                           : note.label,
                     isRoot:
                       viewerMode === FRETBOARD_VIEWER_MODES.CHORD
-                        ? Boolean(note.isRoot)
+                        ? false
                         : viewerMode === FRETBOARD_VIEWER_MODES.SCALE
                           ? false
                           : viewerNoteFilter !== "ALL" && note.noteName === viewerNoteFilter,
@@ -23762,9 +23773,7 @@ function App({ onReady }) {
                 </div>
               ) : viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
                 <div className="chordBuilderPanel chordBuilderPanel--composer" aria-label="코드 빌더">
-                  <div className="chordBuilderPanelTitle">코드 빌더</div>
-
-                  <ChordBuilderOptionSection layout="cols-7" showTitle={isMobileLayout} title="루트">
+                  <ChordBuilderOptionSection layout="cols-7" showTitle title="루트">
                     {chordRootOptions.map((root) => (
                       <ChordBuilderChip
                         key={root}
@@ -23776,7 +23785,7 @@ function App({ onReady }) {
                     ))}
                   </ChordBuilderOptionSection>
 
-                  <ChordBuilderOptionSection layout="cols-3" showTitle={isMobileLayout} title="변화">
+                  <ChordBuilderOptionSection layout="cols-3" showTitle title="변환">
                     {CHORD_ACCIDENTAL_OPTIONS.map((accidental) => {
                       const hasDiagram = Boolean(
                         getChordFromSelector(viewerChordBaseRoot, accidental.id, viewerChordQuality, viewerChordExtension),
@@ -23794,7 +23803,7 @@ function App({ onReady }) {
                     })}
                   </ChordBuilderOptionSection>
 
-                  <ChordBuilderOptionSection layout="cols-4" showTitle={isMobileLayout} title="타입">
+                  <ChordBuilderOptionSection layout="cols-4" showTitle title="타입">
                     {CHORD_QUALITY_OPTIONS.map((quality) => {
                       const isSupported = isChordViewerSelectionSupported(quality.id, "none");
                       return (
@@ -23812,7 +23821,7 @@ function App({ onReady }) {
                     })}
                   </ChordBuilderOptionSection>
 
-                  <ChordBuilderOptionSection layout="tensions-2row" showTitle={isMobileLayout} title="확장">
+                  <ChordBuilderOptionSection layout="tensions-2row" showTitle title="확장">
                     {availableChordExtensionOptions.map((extension) => {
                       const isDisabled = extension.disabled || !extension.hasDiagram;
                       return (
@@ -23837,13 +23846,11 @@ function App({ onReady }) {
 
           {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
             <section className="chordCatalogPanel" aria-label="전체 코드표" ref={chordChartRef}>
-              <div className="referenceHeader">
-                <div className="chordCatalogCopy">
-                  <strong className="chordCatalogTitle">전체 코드 운지</strong>
-                </div>
-                <div className="chordCatalogHints">
-                  <p className="chordCatalogHint">해당 코드를 누르면 크게 볼 수 있어요</p>
-                  <p className="chordCatalogHint">↔ 좌우 스와이프로 다른 코드 보기</p>
+              <div className="viewerChordReferenceFooter" aria-label="전체 코드 운지 안내">
+                <strong>전체 코드 운지</strong>
+                <div>
+                  <span>해당 코드를 누르면 크게 볼 수 있어요</span>
+                  <span>↔ 좌우 스와이프로 다른 코드 보기</span>
                 </div>
               </div>
               <div className="chordCatalogScroll">
@@ -23866,7 +23873,7 @@ function App({ onReady }) {
             <button
               aria-controls="metronome-advanced-panel"
               aria-expanded={metronomeAdvancedPanel === "automator"}
-              className={`metronomeAdvancedSummary ${metronomeAdvancedPanel === "automator" ? "selected" : ""}`}
+              className={`metronomeAdvancedSummary ${metronomeAdvancedPanel === "automator" ? "selected" : ""} ${autoBpmMode !== "off" || coachModeEnabled ? "active" : ""}`}
               onClick={() => toggleMetronomeAdvancedPanel("automator")}
               type="button"
             >
@@ -23877,7 +23884,7 @@ function App({ onReady }) {
             <button
               aria-controls="metronome-advanced-panel"
               aria-expanded={metronomeAdvancedPanel === "tracker"}
-              className={`metronomeAdvancedSummary ${metronomeAdvancedPanel === "tracker" ? "selected" : ""}`}
+              className={`metronomeAdvancedSummary ${metronomeAdvancedPanel === "tracker" ? "selected" : ""} ${metronomeTrackerMode !== "off" || metronomeCountInBars > 0 ? "active" : ""}`}
               onClick={() => toggleMetronomeAdvancedPanel("tracker")}
               type="button"
             >
@@ -23891,7 +23898,8 @@ function App({ onReady }) {
               onClick={resetMetronomePractice}
               type="button"
             >
-              ↻
+              <b aria-hidden="true">↻</b>
+              <span aria-hidden="true">RESET</span>
             </button>
 
             {metronomeAdvancedPanel ? (
@@ -26347,6 +26355,11 @@ function App({ onReady }) {
                     tone={metronomeTone}
                     weakTone={metronomeWeakTone}
                   />
+                  {selectedCategory.id === "scale-block" ? (
+                    <div className="scaleTrainingBackingLoop">
+                      <BackingLoop mobile={isMobileLayout} />
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <div className="trainingMetronomeShell referenceTrainingActions buttons playbackButtons">
