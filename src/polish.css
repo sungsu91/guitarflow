@@ -44,6 +44,50 @@
   --riff-dropdown-selected-accent: rgba(225, 181, 93, 0.34);
   --riff-dropdown-state-radius: 6px;
   --riff-dropdown-state-transition: 135ms;
+
+  /* JUST PLAY material system. These values are sampled from the current
+     fretboard chord view and are the shared visual contract for screens that
+     do not need their own instrument artwork. */
+  --riff-surface-canvas: #050607;
+  --riff-surface-shell:
+    radial-gradient(at 22% 0%, rgba(217, 170, 85, 0.1), transparent 37%),
+    radial-gradient(at 82% 16%, rgba(198, 129, 143, 0.07), transparent 35%),
+    linear-gradient(180deg, #1b1711 0%, #100e0b 48%, #080807 100%);
+  --riff-surface-panel:
+    radial-gradient(ellipse at 16% 0%, rgba(217, 170, 85, 0.065), transparent 42%),
+    linear-gradient(180deg, #1f1a13 0%, #13110d 100%);
+  --riff-surface-panel-raised:
+    radial-gradient(ellipse at 18% 0%, rgba(217, 170, 85, 0.08), transparent 44%),
+    linear-gradient(180deg, #292118 0%, #17130e 100%);
+  --riff-control-rest: linear-gradient(180deg, #29231a 0%, #1b1812 100%);
+  --riff-control-hover: linear-gradient(180deg, #342b1f 0%, #211c15 100%);
+  --riff-control-selected:
+    radial-gradient(circle at 50% 0%, rgba(255, 229, 168, 0.17), transparent 62%),
+    linear-gradient(180deg, #684a22 0%, #3c2b17 100%);
+  --riff-border-soft: rgba(217, 170, 85, 0.22);
+  --riff-border-panel: rgba(217, 170, 85, 0.3);
+  --riff-border-selected: rgba(236, 190, 103, 0.68);
+  --riff-shell-border: rgba(217, 170, 85, 0.44);
+  --riff-divider: rgba(217, 170, 85, 0.14);
+  --riff-text-primary: #f2ddb2;
+  --riff-text-strong: #fff1ca;
+  --riff-text-muted: rgba(226, 205, 163, 0.68);
+  --riff-shadow-control:
+    inset 0 1px 0 rgba(255, 229, 169, 0.055),
+    0 1px 2px rgba(0, 0, 0, 0.28);
+  --riff-shadow-selected:
+    inset 0 -2px 0 #d9aa55,
+    inset 0 1px 0 rgba(255, 240, 196, 0.12),
+    0 2px 6px rgba(0, 0, 0, 0.26);
+  --riff-shadow-panel:
+    inset 0 1px 0 rgba(255, 229, 169, 0.05),
+    0 2px 6px rgba(0, 0, 0, 0.24);
+  --riff-shadow-shell:
+    0 0 0 3px rgba(217, 170, 85, 0.055),
+    0 0 0 5px rgba(217, 170, 85, 0.1),
+    0 12px 26px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 231, 176, 0.06),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.28);
 }
 
 /* Utility menu redesign: shared structure, theme-driven card surfaces. */
@@ -639,6 +683,53 @@ html body .app.app.app .utilityMenuPanel .utilityMenuVersion {
     linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(205, 193, 174, 0.08)),
     rgba(236, 231, 221, 0.58);
   --riff-control-disabled-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  --riff-surface-canvas: #f4ece5;
+  --riff-surface-shell:
+    radial-gradient(at 22% 0%, rgba(255, 255, 255, 0.94), transparent 36%),
+    radial-gradient(at 82% 16%, rgba(245, 232, 199, 0.28), transparent 34%),
+    linear-gradient(180deg, #fcf9f1 0%, #f3ede1 46%, #e9dfcf 100%);
+  --riff-surface-panel:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.08)),
+    #f1e7e3;
+  --riff-surface-panel-raised:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(250, 246, 237, 0.22)),
+    #f7f3e9;
+  --riff-control-rest:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.26) 46%, rgba(210, 181, 170, 0.12) 100%),
+    #f8f3e8;
+  --riff-control-hover:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 226, 203, 0.52)),
+    #f6efe2;
+  --riff-control-selected:
+    linear-gradient(180deg, #fffdf5 0%, #f2e9d6 50%, #e5d4b4 100%),
+    #eee1c6;
+  --riff-border-soft: rgba(168, 118, 99, 0.42);
+  --riff-border-panel: rgba(203, 183, 146, 0.82);
+  --riff-border-selected: rgba(168, 136, 81, 0.74);
+  --riff-shell-border: rgba(154, 94, 72, 0.62);
+  --riff-divider: rgba(174, 137, 82, 0.18);
+  --riff-text-primary: #332824;
+  --riff-text-strong: #211813;
+  --riff-text-muted: rgba(83, 65, 55, 0.68);
+  --riff-shadow-control:
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -1px 0 rgba(139, 88, 69, 0.11),
+    0 1px 2px rgba(83, 51, 40, 0.11);
+  --riff-shadow-selected:
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -1px 0 rgba(135, 105, 55, 0.15),
+    0 0 0 1px rgba(255, 250, 232, 0.68),
+    0 1px 2px rgba(84, 61, 31, 0.13);
+  --riff-shadow-panel:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 5px 14px rgba(65, 51, 31, 0.075);
+  --riff-shadow-shell:
+    0 0 0 3px rgba(255, 248, 244, 0.84),
+    0 0 0 5px rgba(174, 113, 89, 0.28),
+    0 10px 22px rgba(69, 42, 33, 0.13),
+    inset 0 1px 0 #fff,
+    inset 0 -2px 0 rgba(157, 99, 77, 0.12),
+    inset 0 0 18px rgba(197, 146, 129, 0.12);
 }
 
 html {
@@ -671,13 +762,13 @@ body {
   transition-timing-function: ease !important;
 }
 
-.app :where(button, [role="button"], [role="radio"], [role="tab"]):focus-visible,
-.desktopNav a:focus-visible {
+.app :where(button, [role="button"], [role="radio"], [role="tab"]):focus-visible {
   outline: 2px solid var(--riff-gold-selected) !important;
   outline-offset: 2px !important;
   box-shadow: var(--riff-focus-ring) !important;
 }
 
+/* Momentary press feedback is physical only. Selection color belongs to persistent UI state. */
 .app :where(button, [role="button"], [role="radio"], [role="tab"]):active:not(:disabled):not([aria-disabled="true"]) {
   transform: translateY(1px) scale(0.985);
   transition-duration: 90ms !important;
@@ -863,32 +954,6 @@ html body main.app.theme-light.theme-light
 .app :where(input[type="range"]) {
   min-height: 28px;
   touch-action: pan-x;
-}
-
-.desktopNav a {
-  min-height: 44px;
-  transition:
-    border-color var(--riff-transition-fast) ease,
-    background-color var(--riff-transition-fast) ease,
-    color var(--riff-transition-fast) ease,
-    transform var(--riff-transition-fast) ease;
-}
-
-.desktopNav a:active {
-  transform: translateY(1px);
-}
-
-@media (min-width: 1024px) {
-  /* DesktopLayout already provides the persistent navigation rail. Keep the
-     mobile bottom navigation out of that workspace to avoid duplicated UI. */
-  .desktopLayout .desktopWorkspaceContent .hud > .modeSwitch,
-  .desktopLayout .desktopWorkspaceContent .mainBottomNav {
-    display: none !important;
-  }
-
-  .desktopLayout .desktopWorkspaceContent > .app {
-    padding-bottom: 18px;
-  }
 }
 
 @media (hover: none), (pointer: coarse) {
@@ -2209,8 +2274,7 @@ body.backingLoopDialogOpen {
 @media (prefers-reduced-motion: reduce) {
   .app *,
   .app *::before,
-  .app *::after,
-  .desktopNav a {
+  .app *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
@@ -6627,6 +6691,37 @@ html body main.app.app.app.app.app.theme-brand
   text-shadow: none !important;
 }
 
+/* Section manager overrides live after the shared polish layer. */
+html body .miniChordArrangementRows .miniChordArrangementSectionFields > .miniChordArrangementBarFields {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+  align-items: end !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerRow {
+  grid-template-columns: minmax(0, 1fr) 38px 38px 38px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerRange {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-items: center !important;
+  justify-content: stretch !important;
+  gap: 1px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerRange :is(strong, span) {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordArrangementRangeTag {
+  max-width: 62px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
 html body main.app.app.app.app.app.theme-brand
   .fretboardViewerPanel--chord.fretboardViewerPanel
   .viewerModeTabs.viewerModeTabs > button:is(.selected, [aria-pressed="true"]) {
@@ -7136,4 +7231,218 @@ html body main.app.app.app.app.app.theme-brand
     inset 0 1px 0 rgba(255, 240, 196, 0.12),
     0 2px 6px rgba(0, 0, 0, 0.26) !important;
   text-shadow: none !important;
+}
+/* Mini accompaniment: audio-clock-driven progress inside the active half-bar. */
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot.playing::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #a96f23, #edbd62);
+  box-shadow: 0 0 7px rgba(185, 125, 35, 0.34);
+  content: "";
+  pointer-events: none;
+  transform: scaleX(var(--mini-chord-playback-progress, 0));
+  transform-origin: left center;
+  will-change: transform;
+}
+
+/* JUST PLAY shared material pass ------------------------------------------
+   The chord viewer is the release reference. Reuse its material hierarchy
+   for sibling viewer modes and for the desktop shell without changing any
+   component structure or interaction. */
+html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+  .fretboardViewerPanel.fretboardViewerPanel
+  .viewerModeTabs.viewerModeTabs > button {
+  border-color: var(--riff-border-soft) !important;
+  background: var(--riff-control-rest) !important;
+  color: var(--riff-text-primary) !important;
+  box-shadow: var(--riff-shadow-control) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+  .fretboardViewerPanel.fretboardViewerPanel
+  .viewerModeTabs.viewerModeTabs > button:is(.selected, [aria-pressed="true"], [aria-selected="true"]) {
+  border-color: var(--riff-border-selected) !important;
+  background: var(--riff-control-selected) !important;
+  color: var(--riff-text-strong) !important;
+  box-shadow: var(--riff-shadow-selected) !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+    .fretboardViewerPanel.fretboardViewerPanel
+    .viewerModeTabs.viewerModeTabs > button:not(:disabled):not(.selected):not([aria-pressed="true"]):hover {
+    border-color: var(--riff-border-panel) !important;
+    background: var(--riff-control-hover) !important;
+    color: var(--riff-text-strong) !important;
+  }
+}
+
+html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+  .fretboardViewerPanel.fretboardViewerPanel:not(.fretboardViewerPanel--chord) {
+  border-color: var(--riff-shell-border) !important;
+  background: var(--riff-surface-shell) !important;
+  color: var(--riff-text-primary) !important;
+  box-shadow: var(--riff-shadow-shell) !important;
+}
+
+html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+  .fretboardViewerPanel:not(.fretboardViewerPanel--chord)
+  :is(.viewerMapCard--note, .viewerMapCard--scale) {
+  border-color: var(--riff-border-soft) !important;
+  background: var(--riff-surface-panel) !important;
+  color: var(--riff-text-primary) !important;
+  box-shadow: var(--riff-shadow-panel) !important;
+}
+
+html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+  .fretboardViewerPanel:not(.fretboardViewerPanel--chord)
+  :is(.viewerMapCard--note, .viewerMapCard--scale)
+  .viewerFretboardGestureSurface {
+  border-color: var(--riff-border-panel) !important;
+  background: var(--riff-surface-panel-raised) !important;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--riff-border-soft) 44%, transparent),
+    inset 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+}
+
+html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+  .fretboardViewerPanel:not(.fretboardViewerPanel--chord)
+  :is(.viewerModeControlSlot--note, .viewerModeControlSlot--scale) {
+  border: 1px solid var(--riff-border-soft) !important;
+  border-radius: 14px !important;
+  background: var(--riff-surface-panel) !important;
+  box-shadow: var(--riff-shadow-panel) !important;
+}
+
+/* The scale picker only needs the height of its two dropdown rows. The shared
+   chord-alignment minimum left an empty lower half in this panel. */
+html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+  .fretboardViewerPanel--scale.fretboardViewerPanel
+  .viewerControlPanel--scale.viewerControlPanel {
+  --viewer-control-slot-min: 0px !important;
+}
+
+/* Training modes 01/02/03 use the same shared Fretboard component as the code
+   viewer. Carry the code tab's walnut/brass material into those dark screens. */
+html body main.app.app.app.app.app.theme-brand
+  :is(.referenceTrainingPanel, .chordTransitionPanel)
+  :is(.trainingSharedFretboard, .stageChordSharedFretboard)
+  .fretboardComponentScroller {
+  border: 1px solid rgba(217, 170, 85, 0.34) !important;
+  background:
+    linear-gradient(90deg, rgba(255, 222, 155, 0.075), transparent 15%, rgba(13, 9, 5, 0.1) 42%, transparent 68%, rgba(217, 170, 85, 0.045)),
+    repeating-linear-gradient(90deg, transparent 0 15px, rgba(234, 190, 106, 0.026) 16px, transparent 19px),
+    linear-gradient(180deg, #5a4125 0%, #40301e 48%, #2b2117 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 224, 164, 0.11),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    inset 5px 0 9px rgba(0, 0, 0, 0.12),
+    inset -5px 0 9px rgba(0, 0, 0, 0.12) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  :is(.referenceTrainingPanel, .chordTransitionPanel)
+  :is(.trainingSharedFretboard, .stageChordSharedFretboard)
+  .fretboardNut {
+  border-color: rgba(217, 170, 85, 0.5) !important;
+  background: linear-gradient(90deg, #d8aa55 0%, #8d642b 34%, #5d431f 58%, #b9873a 80%, #e0b861 100%) !important;
+  box-shadow:
+    1px 0 2px rgba(0, 0, 0, 0.48),
+    inset 1px 0 0 rgba(255, 232, 178, 0.2) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  :is(.referenceTrainingPanel, .chordTransitionPanel)
+  :is(.trainingSharedFretboard, .stageChordSharedFretboard)
+  .fretboardGrid > i {
+  border-left-color: rgba(225, 185, 105, 0.54) !important;
+  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.34) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  :is(.referenceTrainingPanel, .chordTransitionPanel)
+  :is(.trainingSharedFretboard, .stageChordSharedFretboard)
+  .fretboardStringRow > i {
+  background: #c5a66d !important;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.48) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  :is(.referenceTrainingPanel, .chordTransitionPanel)
+  :is(.trainingSharedFretboard, .stageChordSharedFretboard)
+  :is(.fretboardFretNumbers, .fretboardStringRow > span) {
+  color: #f0d79d !important;
+  -webkit-text-fill-color: #f0d79d !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  :is(.referenceTrainingPanel, .chordTransitionPanel)
+  :is(.trainingSharedFretboard, .stageChordSharedFretboard)
+  .fretboardNoteChip {
+  border-color: rgba(217, 170, 85, 0.72) !important;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 233, 180, 0.42) 0 9%, transparent 34%),
+    linear-gradient(145deg, #e1b860 0%, #a96f28 100%) !important;
+  color: #1b1208 !important;
+  -webkit-text-fill-color: #1b1208 !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app.theme-brand
+  :is(.referenceTrainingPanel, .chordTransitionPanel)
+  :is(.trainingSharedFretboard, .stageChordSharedFretboard)
+  .fretboardNoteChip:not(.active):not(.current-note) {
+  box-shadow:
+    0 0 0 2px rgba(217, 170, 85, 0.12),
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 231, 176, 0.22) !important;
+}
+
+html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+  .fretboardViewerPanel:not(.fretboardViewerPanel--chord)
+  :is(.viewerNotePanel button, .viewerSelectGrid .metronomeSelectButton) {
+  border-color: var(--riff-border-soft) !important;
+  background: var(--riff-control-rest) !important;
+  color: var(--riff-text-primary) !important;
+  box-shadow: var(--riff-shadow-control) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+  .fretboardViewerPanel:not(.fretboardViewerPanel--chord)
+  .viewerNotePanel button:is(.selected, [aria-pressed="true"], [aria-selected="true"]) {
+  border-color: var(--riff-border-selected) !important;
+  background: var(--riff-control-selected) !important;
+  color: var(--riff-text-strong) !important;
+  box-shadow: var(--riff-shadow-selected) !important;
+}
+
+html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+  .fretboardViewerPanel:not(.fretboardViewerPanel--chord)
+  :is(.viewerMapHeaderTop, .viewerSwipeHint, .viewerNotePanel > span) {
+  color: var(--riff-text-muted) !important;
+  text-shadow: none !important;
+}
+
+/* Let the wider canvas follow the same active theme as the shared app shell. */
+@media (min-width: 1024px) {
+  body:has(.desktopLayout main.app) {
+    background:
+      radial-gradient(circle at 13% 0%, color-mix(in srgb, var(--riff-gold-primary) 11%, transparent), transparent 31%),
+      radial-gradient(circle at 86% 8%, color-mix(in srgb, var(--riff-shell-border) 9%, transparent), transparent 34%),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--riff-surface-canvas) 91%, white 9%) 0%,
+        var(--riff-surface-canvas) 100%
+      ) !important;
+    color: var(--riff-text-primary) !important;
+  }
+
 }

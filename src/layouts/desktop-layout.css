@@ -1,148 +1,60 @@
-.desktopLayout {
-  display: contents;
-}
-
-.desktopSidebar,
-.desktopWorkspaceHeader {
-  display: none;
-}
-
+.desktopLayout,
 .desktopWorkspace,
 .desktopWorkspaceContent {
   display: contents;
 }
 
+/*
+ * Desktop is the wide form of the mobile app. The application still owns one
+ * navigation, one set of panels, and one theme token contract; this wrapper
+ * only contributes the extra canvas and horizontal breathing room.
+ */
 @media (min-width: 1024px) {
   body {
     display: block;
-    min-height: 100vh;
-    background:
-      radial-gradient(circle at 12% 0%, rgba(217, 170, 85, 0.11), transparent 30%),
-      radial-gradient(circle at 82% 10%, rgba(56, 76, 86, 0.16), transparent 34%),
-      linear-gradient(180deg, #0c1318 0%, #05090d 100%);
+    min-height: 100dvh;
+    padding: 0;
   }
 
   #root {
     width: 100%;
     max-width: none;
     min-height: 100dvh;
-    border-inline: 0;
+    border: 0;
     background: transparent;
     box-shadow: none;
   }
 
-  .desktopLayout {
-    display: grid;
-    grid-template-columns: 248px minmax(0, 1fr);
-    min-height: 100dvh;
-  }
-
-  .desktopSidebar {
-    position: sticky;
-    top: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    height: 100dvh;
-    padding: 20px 18px;
-    border-right: 1px solid rgba(217, 170, 85, 0.16);
-    background:
-      radial-gradient(circle at 20% 0%, rgba(217, 170, 85, 0.12), transparent 34%),
-      linear-gradient(180deg, rgba(12, 18, 23, 0.92), rgba(5, 9, 13, 0.96));
-  }
-
-  .desktopSidebar .riffBrandHeader {
-    padding: 4px 0 14px;
-    margin: 0;
-  }
-
-  .desktopSidebar .riffBrandHeader::before {
-    inset: 0 0 7px 62px;
-  }
-
-  .desktopSidebar .riffBrandHeader::after {
-    right: 0;
-    left: 0;
-  }
-
-  .desktopNav {
-    display: grid;
-    gap: 8px;
-  }
-
-  .desktopNav a {
-    display: flex;
-    align-items: center;
-    min-height: 42px;
-    padding: 0 13px;
-    border: 1px solid rgba(217, 170, 85, 0.13);
-    border-radius: 12px;
-    background: rgba(11, 16, 20, 0.54);
-    color: rgba(246, 240, 228, 0.76);
-    font-size: 13px;
-    font-weight: 850;
-    text-decoration: none;
-  }
-
-  .desktopNav a:hover,
-  .desktopNav a:focus-visible {
-    border-color: rgba(217, 170, 85, 0.38);
-    color: #fff4d7;
-    background: rgba(217, 170, 85, 0.1);
-    outline: 0;
-  }
-
-  .desktopWorkspace {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
+  .desktopLayout,
+  .desktopWorkspace,
+  .desktopWorkspaceContent {
+    display: block;
+    width: 100%;
     min-width: 0;
     min-height: 100dvh;
-    padding: 28px clamp(28px, 4vw, 64px);
-  }
-
-  .desktopWorkspaceHeader {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 18px;
-    max-width: 1180px;
-    width: 100%;
-    margin: 0 auto 18px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid rgba(217, 170, 85, 0.14);
-  }
-
-  .desktopWorkspaceHeader strong {
-    color: #fff7e8;
-    font-size: 18px;
-    font-weight: 950;
-    letter-spacing: 0.02em;
-  }
-
-  .desktopWorkspaceHeader span {
-    color: rgba(236, 226, 212, 0.58);
-    font-size: 12px;
-    font-weight: 750;
   }
 
   .desktopWorkspaceContent {
-    display: flex;
-    justify-content: center;
-    align-items: stretch;
-    min-width: 0;
-    width: 100%;
+    padding-inline: clamp(24px, 4vw, 72px);
   }
 
   .desktopWorkspaceContent > .app {
-    width: min(100%, 920px);
-    max-width: 920px;
-    min-height: calc(100dvh - 88px);
-    margin: 0;
-    border: 1px solid rgba(217, 170, 85, 0.12);
-    border-radius: 28px;
-    box-shadow:
-      0 28px 80px rgba(0, 0, 0, 0.38),
-      inset 0 1px 0 rgba(255, 244, 210, 0.04);
+    width: min(100%, 1180px);
+    max-width: 1180px;
+    min-height: 100dvh;
+    margin: 0 auto;
+    padding-inline: clamp(14px, 2vw, 24px);
+    padding-bottom: 112px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .desktopWorkspaceContent > .app.menuApp {
+    width: min(100%, 980px);
+    max-width: 980px;
+    padding: 0;
+    overflow: hidden;
   }
 
   .desktopWorkspaceContent > .app.miniChordMakerMode {
@@ -150,8 +62,130 @@
     max-width: 1180px;
   }
 
-  .desktopWorkspaceContent > .app.menuApp {
-    overflow: hidden;
+  /* Use the current shared app navigation on desktop as well. */
+  .desktopLayout .desktopWorkspaceContent .hud > .modeSwitch,
+  .desktopLayout .desktopWorkspaceContent .mainBottomNav {
+    display: grid !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: max(14px, env(safe-area-inset-bottom)) !important;
+    width: min(720px, calc(100vw - 48px)) !important;
+    max-width: 720px !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent .hud > .modeSwitch button,
+  .desktopLayout .desktopWorkspaceContent .mainBottomNav button {
+    min-width: 0 !important;
+  }
+
+  /* Shared overlays stay anchored to the app instead of the removed sidebar. */
+  .desktopLayout .utilityMenuPanel {
+    right: max(20px, calc((100vw - min(1180px, 100vw - 48px)) / 2)) !important;
+    bottom: 104px !important;
+  }
+
+  .desktopLayout .helpGuidePanel,
+  .desktopLayout .stage3StorageDialog,
+  .desktopLayout .backingLoopDialog {
+    max-width: min(920px, calc(100vw - 64px));
+  }
+
+  /*
+   * The game keeps its portrait playfield, while its chrome now comes from
+   * the same immersive HUD used by the mobile master.
+   */
+  html body .desktopLayout .desktopWorkspaceContent
+    > main.app.app.app.shooterMode:not(:has(> .shooterPanel--mapEditorWorkspace)) {
+    position: relative !important;
+    inset: auto !important;
+    display: block !important;
+    width: min(100%, 1180px) !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    padding: 14px 14px 112px !important;
+    overflow: hidden !important;
+    background: var(--riff-surface-canvas) !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent
+    > main.app.app.app.shooterMode:not(:has(> .shooterPanel--mapEditorWorkspace)) > .hud {
+    position: static !important;
+    display: block !important;
+    width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.shooterMode
+    > .shooterPanel:not(.shooterPanel--mapEditorWorkspace) {
+    position: relative !important;
+    inset: auto !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.shooterMode
+    > .shooterPanel:not(.shooterPanel--mapEditorWorkspace) > .shooterArena {
+    position: relative !important;
+    inset: auto !important;
+    width: min(430px, 100%) !important;
+    max-width: 430px !important;
+    height: min(820px, calc(100dvh - 140px)) !important;
+    min-height: 620px !important;
+    margin: 0 auto !important;
+    border: 1px solid var(--riff-border-panel) !important;
+    border-radius: 24px !important;
+    box-shadow: var(--riff-shadow-shell) !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.shooterMode
+    :is(.shooterBestHud, .shooterGameHud) {
+    display: none !important;
+  }
+
+  /* Keep desktop-only transport functions without restoring the old HUD. */
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.shooterMode
+    > .shooterControlBar {
+    display: block !important;
+    width: min(430px, 100%) !important;
+    min-height: 0 !important;
+    margin: 10px auto 0 !important;
+    padding: 6px !important;
+    border: 1px solid var(--riff-border-soft) !important;
+    border-radius: 18px !important;
+    background: var(--riff-surface-panel) !important;
+    box-shadow: var(--riff-shadow-control) !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.shooterMode
+    > .shooterControlBar > .detector,
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.shooterMode
+    > .shooterControlBar .playbackButtons > :is(.primary, .shooterControlMicButton) {
+    display: none !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.shooterMode
+    > .shooterControlBar .playbackButtons {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+    width: 100% !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.shooterMode
+    > .shooterControlBar .playbackButtons > button {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 40px !important;
+    border-radius: var(--riff-control-radius-compact) !important;
   }
 }
 
@@ -160,10 +194,5 @@
   .desktopWorkspace,
   .desktopWorkspaceContent {
     display: contents !important;
-  }
-
-  .desktopSidebar,
-  .desktopWorkspaceHeader {
-    display: none !important;
   }
 }

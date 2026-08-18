@@ -72,6 +72,23 @@ test("guitar collision geometry rotates body, neck, head, and muzzle together", 
   assert.ok(geometry.body.radiusX < 30);
 });
 
+test("guitar muzzle scale can align a transparent source canvas to its physical head tip", () => {
+  const geometry = createShooterGuitarCollisionGeometry({
+    pivotX: 100,
+    pivotY: 200,
+    width: 50,
+    height: 152,
+    collisionHeight: 127,
+    muzzleHeight: 152,
+    muzzleHeightScale: (1536 - 13) / 1536,
+  });
+
+  assert.ok(Math.abs(geometry.muzzlePoint.x - 100) < 0.001);
+  assert.ok(Math.abs(geometry.muzzlePoint.y - (200 - 152 * (1523 / 1536))) < 0.001);
+  assert.equal(geometry.width, 50);
+  assert.equal(geometry.height, 127);
+});
+
 test("enemy and pick shapes stay inside their rendered boxes", () => {
   const enemy = createShooterEnemyHurtbox({
     centerX: 100,

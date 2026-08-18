@@ -17,6 +17,11 @@ const entryAssets = {
   guitarAssetSrc: "/guitars/player.png",
   guitarProjectileAssetSrc: "",
   mapBackgroundSrc: "/maps/studio.png",
+  mapLayerAssetSources: [
+    "/maps/river/background.png",
+    "/maps/river/reeds.png",
+    "/maps/river/background.png",
+  ],
   mapPreviewSrc: "/maps/studio.png",
   pickAssetSrc: "/picks/gold.png",
 };
@@ -26,6 +31,8 @@ test("shooter entry image list includes visible loadout assets once", () => {
     "/guitars/player.png",
     "/picks/gold.png",
     "/maps/studio.png",
+    "/maps/river/background.png",
+    "/maps/river/reeds.png",
     "/emblems/lion.png",
     "/effects/aura.png",
     "/effects/floor.png",

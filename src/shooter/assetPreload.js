@@ -5,6 +5,7 @@ export function collectShooterEntryImageSources({
   guitarAssetSrc = "",
   guitarProjectileAssetSrc = "",
   mapBackgroundSrc = "",
+  mapLayerAssetSources = [],
   mapPreviewSrc = "",
   pickAssetSrc = "",
 } = {}) {
@@ -14,6 +15,7 @@ export function collectShooterEntryImageSources({
     pickAssetSrc,
     mapBackgroundSrc,
     mapPreviewSrc,
+    ...mapLayerAssetSources,
     emblemAssetSrc,
     ...effectLayers.map((layer) => layer?.asset),
     ...enemyAssetSources,

@@ -23,7 +23,7 @@ class AppLoadBoundary extends React.Component {
   }
 
   componentDidCatch(error) {
-    console.error("RIFFLAB application chunk failed to load.", error);
+    console.error("JUST PLAY application chunk failed to load.", error);
     launchController.markReady("app-load-error");
   }
 

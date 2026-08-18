@@ -1,0 +1,588 @@
+.shooterArena.shooterArena--layeredMap {
+  background: #062f3a !important;
+}
+
+.shooterMapSkinStage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  contain: layout paint style;
+}
+
+.shooterMapSkinStage--underlay {
+  z-index: 0;
+}
+
+.shooterMapSkinStage--overlay {
+  z-index: 35;
+}
+
+.shooterMapSkinBackground {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  object-fit: var(--shooter-map-background-fit, cover);
+  object-position: var(--shooter-map-background-position, center);
+  image-rendering: auto;
+}
+
+.shooterMapFilterDefs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+html body .app .shooterArena .shooterMapSkinStage .shooterMapSkinAsset {
+  position: absolute;
+  display: block;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  transform: translate(
+      var(--shooter-map-anchor-x, -50%),
+      var(--shooter-map-anchor-y, -50%)
+    )
+    rotate(var(--shooter-map-rotation, 0deg))
+    scale(var(--shooter-map-scale, 1));
+  transform-origin: center;
+}
+
+html body .app .shooterArena .shooterMapSkinStage .shooterMapSkinAsset[data-animation] {
+  will-change: transform, opacity;
+}
+
+.shooterMapTransformSurface {
+  position: relative;
+  display: block;
+  width: 100%;
+  transform:
+    perspective(var(--shooter-map-perspective, 900px))
+    rotateX(var(--shooter-map-tilt-x, 0deg))
+    rotateY(var(--shooter-map-tilt-y, 0deg))
+    skewX(var(--shooter-map-skew-x, 0deg))
+    skewY(var(--shooter-map-skew-y, 0deg))
+    scaleX(var(--shooter-map-scale-x, 1))
+    scaleY(var(--shooter-map-scale-y, 1));
+  transform-origin: center;
+  transform-style: preserve-3d;
+}
+
+.shooterMapPerspectiveSurface {
+  position: relative;
+  display: block;
+  width: 100%;
+  transform-origin: 0 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.shooterMapSkinAsset img {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  pointer-events: none;
+}
+
+.shooterMapAmbientCreature {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 300 / 220;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.shooterMapSkinAsset .shooterMapAmbientCreatureFrame {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: var(--frog-opacity, 1);
+  transform: rotate(var(--frog-rotation, 0deg)) scaleX(var(--frog-facing, 1)) scaleY(var(--frog-squash, 1));
+  transform-origin: 50% 95.45%;
+  transition: opacity 70ms linear, transform 70ms ease-out;
+  backface-visibility: hidden;
+  image-rendering: auto;
+  will-change: transform;
+}
+
+.shooterMapAmbientCreature--sleeping {
+  aspect-ratio: 420 / 340;
+  overflow: visible;
+}
+
+.shooterMapSkinAsset .shooterMapAmbientCreature--sleeping .shooterMapAmbientCreatureFrame {
+  transform-origin: 50% 94.12%;
+  filter:
+    hue-rotate(var(--sleep-frog-hue, 0deg))
+    saturate(var(--sleep-frog-saturation, 1))
+    brightness(var(--sleep-frog-brightness, 1));
+  transition: transform 180ms cubic-bezier(0.2, 0.78, 0.28, 1), opacity 120ms linear;
+}
+
+.shooterMapAmbientCreature--sleeping[data-active="true"][data-state="idle"] .shooterMapAmbientCreatureFrame {
+  animation: shooterSleepingFrogBreathe var(--sleep-frog-breathe-duration, 4.8s) ease-in-out infinite;
+}
+
+.shooterMapAmbientCreature--sleeping[data-state="nodding"] .shooterMapAmbientCreatureFrame {
+  transform: translate3d(0, 1.2%, 0) rotate(1.6deg) scale3d(1.008, 0.985, 1);
+}
+
+.shooterMapAmbientCreature--sleeping[data-state="startled"] .shooterMapAmbientCreatureFrame {
+  transform: translate3d(0, -1.3%, 0) scale3d(0.995, 1.018, 1);
+  transition-duration: 85ms;
+}
+
+.shooterMapAmbientCreature--sleeping[data-state="falling"] .shooterMapAmbientCreatureFrame {
+  transform: translate3d(1.5%, 5.2%, 0) rotate(4.5deg) scale3d(1.015, 0.955, 1);
+  transition-duration: 410ms;
+}
+
+.shooterMapAmbientCreature--sleeping[data-state="landing"] .shooterMapAmbientCreatureFrame {
+  transform: translate3d(0, 1.5%, 0) scale3d(1.025, 0.94, 1);
+  transition-duration: 95ms;
+}
+
+.shooterMapAmbientCreature--sleeping[data-active="true"][data-state="flat"] .shooterMapAmbientCreatureFrame {
+  animation: shooterSleepingFrogFlatBreathe calc(var(--sleep-frog-breathe-duration, 4.8s) * 1.12) ease-in-out infinite;
+}
+
+.shooterMapAmbientCreature--sleeping[data-state="waking"] .shooterMapAmbientCreatureFrame {
+  transform: translate3d(0, -1.7%, 0) scale3d(0.99, 1.018, 1);
+  transition-duration: 470ms;
+}
+
+.shooterMapSleepingFrogBubble {
+  position: absolute;
+  top: var(--sleep-bubble-idle-y, 37.5%);
+  left: var(--sleep-bubble-idle-x, 49%);
+  z-index: 3;
+  display: block;
+  width: calc(8.5% * var(--sleep-bubble-base-scale, 0.82));
+  aspect-ratio: 1.12;
+  border: 1px solid rgba(81, 179, 192, 0.8);
+  border-radius: 55% 50% 52% 48%;
+  background:
+    radial-gradient(circle at 33% 28%, rgba(255, 255, 255, 0.96) 0 12%, transparent 15%),
+    radial-gradient(circle at 44% 42%, rgba(255, 255, 255, 0.62), transparent 72%),
+    var(--sleep-bubble-color, #8fe7ee);
+  box-shadow:
+    inset -1px -2px 3px rgba(50, 132, 148, 0.34),
+    0 1px 2px rgba(3, 44, 51, 0.28);
+  opacity: var(--sleep-bubble-opacity, 0.78);
+  transform: translate(-22%, -48%) scale(0.72);
+  transform-origin: 12% 58%;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.shooterMapSleepingFrogBubble > i {
+  position: absolute;
+  top: 34%;
+  left: -12%;
+  width: 22%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--sleep-bubble-color, #8fe7ee);
+}
+
+.shooterMapAmbientCreature--sleeping[data-active="true"] .shooterMapSleepingFrogBubble {
+  animation: shooterSleepingFrogBubble var(--sleep-bubble-duration, 4.6s) cubic-bezier(0.37, 0, 0.16, 1) infinite;
+}
+
+.shooterMapAmbientCreature--sleeping[data-pose="nod"] .shooterMapSleepingFrogBubble {
+  top: var(--sleep-bubble-nod-y, 39%);
+  left: var(--sleep-bubble-nod-x, 49%);
+}
+
+.shooterMapAmbientCreature--sleeping[data-pose="flat"] .shooterMapSleepingFrogBubble,
+.shooterMapAmbientCreature--sleeping[data-pose="flatBreathe"] .shooterMapSleepingFrogBubble {
+  top: var(--sleep-bubble-flat-y, 76%);
+  left: var(--sleep-bubble-flat-x, 50%);
+  transform-origin: 20% 55%;
+}
+
+.shooterMapAmbientCreature--sleeping[data-state="falling"] .shooterMapSleepingFrogBubble,
+.shooterMapAmbientCreature--sleeping[data-state="waking"] .shooterMapSleepingFrogBubble,
+.shooterMapAmbientCreature--sleeping[data-bubble="off"] .shooterMapSleepingFrogBubble {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.shooterMapAmbientCreature--sleeping[data-active="false"] .shooterMapSleepingFrogBubble {
+  animation: none;
+  transform: translate(-22%, -48%) scale(1);
+}
+
+.shooterMapAmbientCreature--diving .shooterMapAmbientCreatureSplash {
+  top: 91%;
+  left: 50%;
+  display: none;
+  width: 148%;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+}
+
+.shooterMapAmbientCreature--diving[data-splash="active"] .shooterMapAmbientCreatureSplash {
+  display: block;
+  opacity: 1;
+}
+
+.shooterMapAmbientCreature--diving[data-splash="active"] .shooterMapAmbientCreatureSplash .shooterMapWaterFoam {
+  animation-duration: 0.78s;
+}
+
+.shooterMapAmbientCreature--diving[data-splash="active"] .shooterMapAmbientCreatureSplash .shooterMapWaterRipple {
+  animation-duration: 1.05s;
+}
+
+.shooterMapAmbientCreature--diving[data-splash="active"] .shooterMapAmbientCreatureSplash .shooterMapWaterRipple--two {
+  animation-delay: 0.32s;
+}
+
+.shooterMapAmbientCreature--diving[data-splash="active"] .shooterMapAmbientCreatureSplash .shooterMapWaterDroplet {
+  animation-duration: 0.82s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shooterMapAmbientCreature {
+    transform: none !important;
+  }
+}
+
+.shooterMapComposite {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--shooter-map-composite-aspect-ratio, 1);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.shooterMapCompositeItem {
+  position: absolute;
+  display: block;
+  margin: 0;
+  padding: 0;
+  transform: translate(
+      var(--shooter-map-composite-anchor-x, -50%),
+      var(--shooter-map-composite-anchor-y, -50%)
+    )
+    perspective(var(--shooter-map-part-perspective, 1000px))
+    rotateX(var(--shooter-map-part-tilt-x, 0deg))
+    rotateY(var(--shooter-map-part-tilt-y, 0deg))
+    rotate(var(--shooter-map-part-rotation, 0deg));
+  transform-origin: var(--shooter-map-part-origin-x, 50%) var(--shooter-map-part-origin-y, 50%);
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.shooterMapCompositeArtwork,
+.shooterMapCompositeArtworkClip {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.shooterMapCompositeArtworkClip {
+  overflow: hidden;
+}
+
+.shooterMapCompositeArtworkImage {
+  position: absolute;
+  display: block;
+  max-width: none !important;
+  height: auto !important;
+  pointer-events: none;
+}
+
+.shooterMapCompositeArtwork[data-animation] {
+  transform-box: border-box;
+  transform-origin:
+    var(--shooter-map-part-animation-origin-x, 50%)
+    var(--shooter-map-part-animation-origin-y, 50%);
+}
+
+.shooterMapCompositeArtwork[data-animation="rotate"] {
+  animation: shooterMapCompositePartRotate var(--shooter-map-part-animation-duration, 9s) linear infinite;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.shooterMapCompositePart[data-map-part="wheel"] {
+  filter: drop-shadow(-2px 3px 2px rgba(2, 15, 18, 0.42));
+}
+
+.shooterMapCompositeArtwork[data-animation="water-flow"] {
+  animation: shooterMapWaterFlow var(--shooter-map-part-animation-duration, 6s) ease-in-out infinite;
+  transform-origin: 50% 8%;
+  will-change: transform, opacity;
+}
+
+.shooterMapCompositeArtwork[data-animation="water-flow"] .shooterMapCompositeArtworkClip::after {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: repeating-linear-gradient(
+    174deg,
+    transparent 0 11%,
+    rgba(226, 251, 255, 0.34) 13%,
+    rgba(126, 224, 248, 0.08) 16%,
+    transparent 20% 32%
+  );
+  clip-path: polygon(30% 19%, 70% 19%, 61% 93%, 8% 93%);
+  content: "";
+  mix-blend-mode: screen;
+  opacity: 0.42;
+  animation: shooterMapWaterGlint 1.15s linear infinite;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.shooterMapCompositeLight {
+  position: absolute;
+  z-index: 3;
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 225, 137, 0.4) 0,
+    rgba(255, 190, 72, 0.18) 28%,
+    transparent 68%
+  );
+  filter: blur(1.4px);
+  mix-blend-mode: screen;
+  transform: translate(-50%, -50%);
+  animation: shooterMapLanternGlow 3.8s ease-in-out infinite;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.shooterMapWaterSplash {
+  position: absolute;
+  z-index: 4;
+  display: block;
+  aspect-ratio: 2.5;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.shooterMapWaterFoam,
+.shooterMapWaterRipple,
+.shooterMapWaterDroplet {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.shooterMapWaterFoam {
+  right: 17%;
+  bottom: 18%;
+  left: 17%;
+  height: 30%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(232, 252, 255, 0.82), rgba(118, 222, 247, 0.26) 52%, transparent 72%);
+  animation: shooterMapWaterFoamPulse 1.8s ease-in-out infinite;
+  filter: blur(0.45px);
+  will-change: transform, opacity;
+}
+
+.shooterMapWaterRipple {
+  right: 5%;
+  bottom: 0;
+  left: 5%;
+  height: 36%;
+  border: 1px solid rgba(186, 242, 255, 0.72);
+  border-radius: 50%;
+  opacity: 0;
+  animation: shooterMapWaterRipple 2.4s ease-out infinite;
+  will-change: transform, opacity;
+}
+
+.shooterMapWaterRipple--two {
+  animation-delay: 1.2s;
+}
+
+.shooterMapWaterDroplet {
+  bottom: 28%;
+  width: 5%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(218, 249, 255, 0.9);
+  box-shadow: 0 0 3px rgba(88, 210, 245, 0.62);
+  opacity: 0;
+  animation: shooterMapWaterDroplet 1.65s ease-out infinite;
+  will-change: transform, opacity;
+}
+
+.shooterMapWaterDroplet--one {
+  left: 25%;
+  --shooter-water-drop-x: -165%;
+}
+
+.shooterMapWaterDroplet--two {
+  left: 52%;
+  --shooter-water-drop-x: 105%;
+  animation-delay: 0.55s;
+}
+
+.shooterMapWaterDroplet--three {
+  left: 68%;
+  --shooter-water-drop-x: 185%;
+  animation-delay: 1.05s;
+}
+
+.shooterMapSkinAsset[data-animation="float"] img {
+  animation: shooterMapAssetFloat var(--shooter-map-animation-duration, 6s) ease-in-out infinite;
+}
+
+.shooterMapSkinAsset[data-animation="sway"] img {
+  animation: shooterMapAssetSway var(--shooter-map-animation-duration, 6s) ease-in-out infinite;
+  transform-origin: 50% 82%;
+}
+
+.shooterMapSkinAsset[data-animation="rotate"] img {
+  animation: shooterMapAssetRotate var(--shooter-map-animation-duration, 6s) linear infinite;
+}
+
+.shooterMapSkinAsset[data-animation="pulse"] img {
+  animation: shooterMapAssetPulse var(--shooter-map-animation-duration, 6s) ease-in-out infinite;
+}
+
+@keyframes shooterMapAssetFloat {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -2.5%, 0); }
+}
+
+@keyframes shooterMapAssetSway {
+  0%, 100% { transform: rotate(-1.2deg); }
+  50% { transform: rotate(1.2deg); }
+}
+
+@keyframes shooterMapAssetRotate {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shooterMapAssetPulse {
+  0%, 100% { opacity: 0.88; }
+  50% { opacity: 1; }
+}
+
+@keyframes shooterSleepingFrogBreathe {
+  0%, 100% { transform: translate3d(0, 0, 0) scale3d(1, 1, 1); }
+  48% { transform: translate3d(0, -0.7%, 0) scale3d(1.006, 1.012, 1); }
+  62% { transform: translate3d(0, -0.35%, 0) scale3d(1.003, 1.006, 1); }
+}
+
+@keyframes shooterSleepingFrogFlatBreathe {
+  0%, 100% { transform: translate3d(0, 0, 0) scale3d(1, 1, 1); }
+  52% { transform: translate3d(0, -0.25%, 0) scale3d(1.01, 1.008, 1); }
+}
+
+@keyframes shooterSleepingFrogBubble {
+  0%, 8% { transform: translate(-22%, -48%) scale(0.68); opacity: var(--sleep-bubble-low-opacity, 0.56); }
+  58% { transform: translate(-22%, -48%) scale(var(--sleep-bubble-max-scale, 2.45)); opacity: var(--sleep-bubble-opacity, 0.78); }
+  70% { transform: translate(-22%, -48%) scale(var(--sleep-bubble-max-scale, 2.45)); opacity: var(--sleep-bubble-opacity, 0.78); }
+  100% { transform: translate(-22%, -48%) scale(0.74); opacity: var(--sleep-bubble-low-opacity, 0.56); }
+}
+
+@keyframes shooterMapCompositePartRotate {
+  from { transform: rotateZ(0turn); }
+  to { transform: rotateZ(1turn); }
+}
+
+@keyframes shooterMapWaterFlow {
+  0%, 100% { transform: translate3d(0, -0.35%, 0) scaleY(0.996); opacity: 0.965; }
+  45% { transform: translate3d(0, 0.85%, 0) scaleY(1.01); opacity: 1; }
+  72% { transform: translate3d(0, 0.35%, 0) scaleY(1.004); opacity: 0.985; }
+}
+
+@keyframes shooterMapWaterGlint {
+  from { transform: translate3d(0, -28%, 0); opacity: 0.22; }
+  45% { opacity: 0.5; }
+  to { transform: translate3d(0, 34%, 0); opacity: 0.18; }
+}
+
+@keyframes shooterMapLanternGlow {
+  0%, 100% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.42; }
+  48% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.78; }
+  62% { transform: translate(-50%, -50%) scale(1.02); opacity: 0.64; }
+}
+
+@keyframes shooterMapWaterFoamPulse {
+  0%, 100% { transform: scale3d(0.9, 0.82, 1); opacity: 0.48; }
+  50% { transform: scale3d(1.08, 1, 1); opacity: 0.88; }
+}
+
+@keyframes shooterMapWaterRipple {
+  0% { transform: scale3d(0.34, 0.52, 1); opacity: 0.76; }
+  70%, 100% { transform: scale3d(1.2, 1, 1); opacity: 0; }
+}
+
+@keyframes shooterMapWaterDroplet {
+  0%, 18% { transform: translate3d(0, 0, 0) scale(0.65); opacity: 0; }
+  32% { opacity: 0.82; }
+  82%, 100% { transform: translate3d(var(--shooter-water-drop-x, 100%), -220%, 0) scale(1); opacity: 0; }
+}
+
+.shooterArena.paused .shooterMapSkinAsset,
+.shooterArena.paused .shooterMapSkinAsset::before,
+.shooterArena.paused .shooterMapSkinAsset::after {
+  animation-play-state: paused !important;
+}
+
+.shooterArena.paused .shooterMapCompositeArtwork {
+  animation-play-state: paused !important;
+}
+
+.shooterArena.paused .shooterMapCompositeArtworkClip::after,
+.shooterArena.paused .shooterMapCompositeLight {
+  animation-play-state: paused !important;
+}
+
+.shooterArena.paused .shooterMapWaterSplash :is(i, b, em) {
+  animation-play-state: paused !important;
+}
+
+.shooterArena.paused .shooterMapAmbientCreature--sleeping :is(.shooterMapAmbientCreatureFrame, .shooterMapSleepingFrogBubble) {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shooterMapSkinAsset,
+  .shooterMapSkinAsset::before,
+  .shooterMapSkinAsset::after {
+    animation: none !important;
+  }
+
+
+  .shooterMapCompositeArtwork {
+    animation: none !important;
+  }
+
+  .shooterMapCompositeArtworkClip::after,
+  .shooterMapCompositeLight {
+    animation: none !important;
+  }
+
+
+  .shooterMapWaterSplash :is(i, b, em) {
+    animation: none !important;
+  }
+
+  .shooterMapAmbientCreature--sleeping :is(.shooterMapAmbientCreatureFrame, .shooterMapSleepingFrogBubble) {
+    animation: none !important;
+  }
+}

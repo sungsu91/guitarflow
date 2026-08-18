@@ -1,12 +1,8 @@
-export default function BrandHeader({ brand = "RIFFLAB", icon, logo, variant = "v1" }) {
+export default function BrandHeader({ brand = "JUST PLAY", icon, logo, variant = "v1" }) {
   const splitWordmark = (
     <div className="riffBrandWordmark" aria-label={brand}>
-      <span className="riffBrandWordmark__ri">RI</span>
-      <span className="riffBrandWordmark__ff" aria-hidden="true">
-        <span>F</span>
-        <span>F</span>
-      </span>
-      <span className="riffBrandWordmark__lab">LAB</span>
+      <span className="riffBrandWordmark__ri">JUST</span>
+      <span className="riffBrandWordmark__lab">PLAY</span>
     </div>
   );
 
@@ -52,21 +48,17 @@ export default function BrandHeader({ brand = "RIFFLAB", icon, logo, variant = "
         {v11DerivativeIndex > 0 ? <span className="riffBrandDerivativeLight riffBrandDerivativeLight--right" aria-hidden="true" /> : null}
         {v11DerivativeIndex > 0 ? <span className="riffBrandDerivativeRail" aria-hidden="true" /> : null}
         {variant === "v5" || variant === "v19" || variant === "v36" || variant === "v46" ? <span className="riffBrandLogoWave" aria-hidden="true" /> : null}
-        {variant === "v6" || variant === "v12" || variant === "v40" ? <span className="riffBrandLogoBox" aria-hidden="true">R</span> : null}
+        {variant === "v6" || variant === "v12" || variant === "v40" ? <span className="riffBrandLogoBox" aria-hidden="true">J</span> : null}
         {variant === "v15" || variant === "v31" || variant === "v32" || variant === "v43" ? <span className="riffBrandDataGrid" aria-hidden="true" /> : null}
         {variant === "v16" || variant === "v23" || variant === "v34" || variant === "v44" ? <span className="riffBrandLaserLine" aria-hidden="true" /> : null}
         <div className="riffBrandLogoBody">
-          {variant === "v7" || variant === "v9" || variant === "v20" ? <span className="riffBrandBrushR" aria-hidden="true">R</span> : null}
-          {[5, 10, 15].includes(v11FamilyIndex) ? <span className="riffBrandMiniSymbol" aria-hidden="true">R</span> : null}
+          {variant === "v7" || variant === "v9" || variant === "v20" ? <span className="riffBrandBrushR" aria-hidden="true">J</span> : null}
+          {[5, 10, 15].includes(v11FamilyIndex) ? <span className="riffBrandMiniSymbol" aria-hidden="true">J</span> : null}
           {isNumberedLogoLabVariant || isDerivedLogoLabVariant ? (
             <div className="riffBrandLogoText" aria-label={brand}>
-              <span>R</span>
-              <span>I</span>
-              <span>F</span>
-              <span>F</span>
-              <span>L</span>
-              <span>A</span>
-              <span>B</span>
+              {[...brand.replace(/\s+/g, "")].map((letter, index) => (
+                <span key={`${letter}-${index}`}>{letter}</span>
+              ))}
             </div>
           ) : null}
           <span className="riffBrandSlogan">Repeat. Refine. Master.</span>
@@ -79,7 +71,7 @@ export default function BrandHeader({ brand = "RIFFLAB", icon, logo, variant = "
     return (
       <header className="riffBrandHeader riffBrandHeader--v3" aria-label={`${brand} brand header V3`}>
         <span className="riffBrandSymbol riffBrandSymbol--abstract" aria-hidden="true">
-          <span>R</span>
+          <span>J</span>
         </span>
         <div className="riffBrandStack">
           {splitWordmark}
@@ -105,7 +97,7 @@ export default function BrandHeader({ brand = "RIFFLAB", icon, logo, variant = "
       ) : (
         <>
           <span className="riffBrandIcon" aria-hidden="true">
-            {icon ? <img src={icon} alt="" /> : "R"}
+            {icon ? <img src={icon} alt="" /> : "J"}
           </span>
           <strong className="riffBrandName">{brand}</strong>
         </>

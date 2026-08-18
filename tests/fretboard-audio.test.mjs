@@ -45,9 +45,7 @@ test("chord preview derives every voice from its played string and fret", () => 
     { stringNumber: 6, fretNumber: 8, pitch: "C9" },
     { stringNumber: 5, fretNumber: 3 },
     { stringNumber: 4, fretNumber: 2 },
-    { stringNumber: 3, fretNumber: 0 },
     { stringNumber: 2, fretNumber: 1 },
-    { stringNumber: 1, fretNumber: 0 },
   ], { 6: "x", 5: "", 4: "", 3: "o", 2: "", 1: "o" });
 
   assert.deepEqual(
@@ -82,11 +80,24 @@ test("down strum schedules only played strings from low to high with velocity va
     { stringNumber: 6, fretNumber: 0 },
   ], {
     stringStates: { 6: "x" },
-    strumSeconds: 0.022,
-    velocityVariation: 0.1,
+    strumSeconds: 0.028,
+    velocityVariation: 0.13,
+    humanizeSeed: 3,
   });
 
   assert.deepEqual(voices.map(({ stringNumber }) => stringNumber), [5, 4, 3, 2, 1]);
-  assert.deepEqual(voices.map(({ delaySeconds }) => delaySeconds), [0, 0.022, 0.044, 0.066, 0.088]);
-  assert.deepEqual(voices.map(({ velocity }) => velocity), [1, 0.945, 0.98, 0.915, 0.96]);
+  assert.equal(voices[0].delaySeconds, 0);
+  assert.ok(voices.at(-1).delaySeconds > 0.095);
+  assert.ok(voices.at(-1).delaySeconds < 0.13);
+  voices.slice(1).forEach((voice, index) => {
+    const interval = voice.delaySeconds - voices[index].delaySeconds;
+    assert.ok(interval > 0.021, `interval ${index} is too short: ${interval}`);
+    assert.ok(interval < 0.034, `interval ${index} is too long: ${interval}`);
+  });
+  assert.ok(new Set(voices.map(({ velocity }) => velocity.toFixed(4))).size > 2);
+  assert.ok(voices.every(({ velocity }) => velocity >= 0.78 && velocity <= 1.05));
+  assert.ok(new Set(voices.map(({ attackScale }) => attackScale.toFixed(4))).size > 2);
+  assert.ok(new Set(voices.map(({ brightnessScale }) => brightnessScale.toFixed(4))).size > 2);
+  assert.ok(voices.find(({ stringNumber }) => stringNumber === 3).durationScale > 1.05);
+  assert.ok(voices.find(({ stringNumber }) => stringNumber === 4).durationScale < 1.05);
 });

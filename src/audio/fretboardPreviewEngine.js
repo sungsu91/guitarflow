@@ -13,6 +13,8 @@ export const GUITAR_OPEN_STRING_MIDI = Object.freeze({
 const outputGraphs = new WeakMap();
 const pluckBufferCaches = new WeakMap();
 const STRUM_VELOCITY_ATTENUATION = [0, 0.55, 0.2, 0.85, 0.4, 1];
+const STRUM_INTERVAL_SHAPE = [1.02, 1.1, 0.97, 0.9, 0.84];
+const STRUM_ATTACK_SHAPE = [0.93, 1.08, 0.98, 1.12, 0.95, 1.04];
 const CLEAN_GUITAR_STRING_PROFILES = Object.freeze({
   1: Object.freeze({ brightness: 1.08, body: 0.68, pickPosition: 0.76, sustain: 0.76 }),
   2: Object.freeze({ brightness: 1.03, body: 0.72, pickPosition: 0.73, sustain: 0.8 }),
@@ -74,11 +76,12 @@ export function getCleanGuitarVoiceProfile(position = {}) {
   const frequency = Math.max(40, Number(position.frequency) || 110);
   const stringProfile = CLEAN_GUITAR_STRING_PROFILES[stringNumber];
   const frettedDamping = Math.min(0.18, fretNumber * 0.0065);
+  const openStringRing = fretNumber === 0 ? 0.11 : 0;
   return {
-    bodyGainDb: 1.2 + stringProfile.body * 2.2,
+    bodyGainDb: 1.2 + stringProfile.body * 2.2 + (fretNumber === 0 ? 0.22 : 0),
     bodyHighFrequency: 410 + (6 - stringNumber) * 16,
     bodyLowFrequency: 102 + (6 - stringNumber) * 7,
-    dampingSeconds: clamp(stringProfile.sustain - frettedDamping, 0.62, 1.08),
+    dampingSeconds: clamp(stringProfile.sustain - frettedDamping + openStringRing, 0.62, 1.19),
     pickPosition: clamp(stringProfile.pickPosition - fretNumber * 0.0025, 0.52, 0.78),
     stereoPan: ((3.5 - stringNumber) / 2.5) * 0.075,
     toneCutoff: clamp(3050 * stringProfile.brightness + frequency * 2.25 - fretNumber * 18, 2450, 5200),
@@ -100,10 +103,18 @@ export function getPlayableGuitarPositions(notes = [], stringStates = {}) {
     const position = getGuitarPitchAtPosition(stringNumber, fretNumber);
     if (position) positionsByString.set(stringNumber, position);
   });
+  Object.entries(stringStates ?? {}).forEach(([stringNumberValue, state]) => {
+    if (String(state).toLowerCase() !== "o") return;
+    const stringNumber = Number(stringNumberValue);
+    if (positionsByString.has(stringNumber)) return;
+    const openPosition = getGuitarPitchAtPosition(stringNumber, 0);
+    if (openPosition) positionsByString.set(stringNumber, openPosition);
+  });
   return [...positionsByString.values()].sort((a, b) => b.stringNumber - a.stringNumber);
 }
 
 export function getGuitarStrumVoices(notes = [], {
+  humanizeSeed = 0,
   stringStates = {},
   strumSeconds = 0,
   velocityVariation = 0,
@@ -111,11 +122,36 @@ export function getGuitarStrumVoices(notes = [], {
   const positions = getPlayableGuitarPositions(notes, stringStates);
   const delay = clamp(Number(strumSeconds) || 0, 0, 0.08);
   const variation = clamp(Number(velocityVariation) || 0, 0, 0.2);
-  return positions.map((position, index) => ({
-    ...position,
-    delaySeconds: delay * index,
-    velocity: 1 - variation * STRUM_VELOCITY_ATTENUATION[index % STRUM_VELOCITY_ATTENUATION.length],
-  }));
+  const seed = Math.round(Number(humanizeSeed) || 0);
+  let elapsed = 0;
+
+  return positions.map((position, index) => {
+    if (index > 0 && delay > 0) {
+      const timingHumanize = 1 + getHumanizedUnit(seed, index, 1) * 0.055;
+      const intervalShape = STRUM_INTERVAL_SHAPE[(index - 1) % STRUM_INTERVAL_SHAPE.length];
+      elapsed += delay * clamp(intervalShape * timingHumanize, 0.78, 1.18);
+    }
+    const velocityBase = 1
+      - variation * STRUM_VELOCITY_ATTENUATION[index % STRUM_VELOCITY_ATTENUATION.length]
+      - index * 0.007;
+    const velocityHumanize = getHumanizedUnit(seed, index, 2) * variation * 0.14;
+    const openStringSustain = position.fretNumber === 0 ? 1.1 : 1;
+
+    return {
+      ...position,
+      attackScale: STRUM_ATTACK_SHAPE[index % STRUM_ATTACK_SHAPE.length]
+        * (1 + getHumanizedUnit(seed, index, 3) * 0.035),
+      brightnessScale: 1 + getHumanizedUnit(seed, index, 4) * 0.035,
+      delaySeconds: elapsed,
+      durationScale: openStringSustain * (1 + getHumanizedUnit(seed, index, 5) * 0.025),
+      velocity: clamp(velocityBase + velocityHumanize, 0.78, 1.05),
+    };
+  });
+}
+
+function getHumanizedUnit(seed, index, salt) {
+  const raw = Math.sin((seed + 1) * 12.9898 + (index + 1) * 78.233 + salt * 37.719) * 43758.5453;
+  return (raw - Math.floor(raw)) * 2 - 1;
 }
 
 function getOutputGraph(audio) {
@@ -124,16 +160,34 @@ function getOutputGraph(audio) {
 
   const master = audio.createGain();
   const compressor = audio.createDynamicsCompressor();
-  master.gain.setValueAtTime(0.64, audio.currentTime);
-  compressor.threshold.setValueAtTime(-17, audio.currentTime);
+  const bodyInput = audio.createGain();
+  const bodyLow = audio.createBiquadFilter();
+  const bodyMid = audio.createBiquadFilter();
+  const bodyOutput = audio.createGain();
+  master.gain.setValueAtTime(0.6, audio.currentTime);
+  compressor.threshold.setValueAtTime(-18, audio.currentTime);
   compressor.knee.setValueAtTime(12, audio.currentTime);
-  compressor.ratio.setValueAtTime(6, audio.currentTime);
+  compressor.ratio.setValueAtTime(4.2, audio.currentTime);
   compressor.attack.setValueAtTime(0.004, audio.currentTime);
-  compressor.release.setValueAtTime(0.18, audio.currentTime);
+  compressor.release.setValueAtTime(0.2, audio.currentTime);
+  bodyInput.gain.setValueAtTime(1, audio.currentTime);
+  bodyLow.type = "peaking";
+  bodyLow.frequency.setValueAtTime(108, audio.currentTime);
+  bodyLow.Q.setValueAtTime(1.05, audio.currentTime);
+  bodyLow.gain.setValueAtTime(4.1, audio.currentTime);
+  bodyMid.type = "peaking";
+  bodyMid.frequency.setValueAtTime(218, audio.currentTime);
+  bodyMid.Q.setValueAtTime(0.82, audio.currentTime);
+  bodyMid.gain.setValueAtTime(2.3, audio.currentTime);
+  bodyOutput.gain.setValueAtTime(0.15, audio.currentTime);
+  bodyInput.connect(bodyLow);
+  bodyLow.connect(bodyMid);
+  bodyMid.connect(bodyOutput);
+  bodyOutput.connect(master);
   master.connect(compressor);
   compressor.connect(audio.destination);
 
-  const graph = { compressor, master };
+  const graph = { bodyInput, bodyLow, bodyMid, bodyOutput, compressor, master };
   outputGraphs.set(audio, graph);
   return graph;
 }
@@ -203,7 +257,17 @@ function getPluckBuffer(audio, position, duration) {
   return buffer;
 }
 
-function schedulePluck(audio, position, when, level, duration, output, attackSeconds) {
+function schedulePluck(
+  audio,
+  position,
+  when,
+  level,
+  duration,
+  output,
+  bodyInput,
+  attackSeconds,
+  brightnessScale,
+) {
   const source = audio.createBufferSource();
   const lowCut = audio.createBiquadFilter();
   const tone = audio.createBiquadFilter();
@@ -217,7 +281,10 @@ function schedulePluck(audio, position, when, level, duration, output, attackSec
   lowCut.frequency.setValueAtTime(48, when);
   lowCut.Q.setValueAtTime(0.58, when);
   tone.type = "lowpass";
-  tone.frequency.setValueAtTime(profile.toneCutoff, when);
+  tone.frequency.setValueAtTime(
+    clamp(profile.toneCutoff * (Number(brightnessScale) || 1), 2350, 5400),
+    when,
+  );
   tone.Q.setValueAtTime(0.52, when);
   bodyLow.type = "peaking";
   bodyLow.frequency.setValueAtTime(profile.bodyLowFrequency, when);
@@ -241,8 +308,10 @@ function schedulePluck(audio, position, when, level, duration, output, attackSec
   if (panner) {
     gain.connect(panner);
     panner.connect(output);
+    panner.connect(bodyInput);
   } else {
     gain.connect(output);
+    gain.connect(bodyInput);
   }
   source.start(when);
   source.stop(when + duration + 0.02);
@@ -265,29 +334,47 @@ function schedulePluck(audio, position, when, level, duration, output, attackSec
 export function playGuitarPositions(audio, notes, {
   attackSeconds = 0.007,
   duration = 1.7,
+  humanizeSeed = null,
   stringStates = {},
   strumSeconds = 0,
   velocityVariation = 0,
   volume = 0.52,
 } = {}) {
   if (!audio || audio.state !== "running") return [];
-  const voices = getGuitarStrumVoices(notes, { stringStates, strumSeconds, velocityVariation });
+  const resolvedHumanizeSeed = humanizeSeed == null
+    ? (strumSeconds > 0 ? nextStrumHumanizeSeed() : 0)
+    : humanizeSeed;
+  const voices = getGuitarStrumVoices(notes, {
+    humanizeSeed: resolvedHumanizeSeed,
+    stringStates,
+    strumSeconds,
+    velocityVariation,
+  });
   if (!voices.length) return [];
-  const { master } = getOutputGraph(audio);
+  const { bodyInput, master } = getOutputGraph(audio);
   const safeDuration = clamp(Number(duration) || 1.7, 0.35, 3.2);
   const perStringLevel = clamp((Number(volume) || 0.52) / Math.sqrt(voices.length), 0.07, 0.5);
   const startTime = audio.currentTime + 0.008;
 
-  return voices.map((voice, index) => ({
+  return voices.map((voice) => ({
     ...voice,
     source: schedulePluck(
       audio,
       voice,
       startTime + voice.delaySeconds,
       perStringLevel * voice.velocity,
-      safeDuration,
+      safeDuration * voice.durationScale,
       master,
-      Number(attackSeconds) * (1 + index * 0.035),
+      bodyInput,
+      Number(attackSeconds) * voice.attackScale,
+      voice.brightnessScale,
     ),
   }));
+}
+
+let strumHumanizeSequence = 0;
+
+function nextStrumHumanizeSeed() {
+  strumHumanizeSequence = (strumHumanizeSequence + 1) % 9;
+  return strumHumanizeSequence;
 }

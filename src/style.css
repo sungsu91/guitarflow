@@ -17,6 +17,419 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* Responsive layout is selected by viewport width; keep this override free of
+   desktop/mobile wrapper assumptions so the 390px PWA frame receives it. */
+@media (max-width: 767px) {
+  html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+  html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
+    top: 59% !important;
+    width: min(174px, calc(100% - 88px)) !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel {
+    gap: 1px !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+  html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+  html body .app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+  html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton {
+    position: relative !important;
+    width: 100% !important;
+    height: 39px !important;
+    min-height: 39px !important;
+    padding: 3px 8px 5px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    backdrop-filter: none !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton::after,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton::after {
+    position: absolute !important;
+    right: 31% !important;
+    bottom: 2px !important;
+    left: 31% !important;
+    display: block !important;
+    height: 1px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    content: "" !important;
+    background: linear-gradient(90deg, transparent, rgba(255, 221, 145, 0.7), transparent) !important;
+    box-shadow: 0 0 7px rgba(255, 201, 95, 0.18) !important;
+    opacity: 0.8 !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelLabel,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelLabel {
+    gap: 0 !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+  html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+  html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong {
+    color: #ffe2a3 !important;
+    font-size: 17px !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.035em !important;
+    line-height: 1.05 !important;
+    text-shadow: 0 1px 0 rgba(37, 22, 6, 0.98), 0 2px 5px rgba(0, 7, 10, 0.95), 0 0 8px rgba(255, 191, 75, 0.38) !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+  html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+  html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small {
+    color: rgba(255, 236, 194, 0.84) !important;
+    font-size: 6px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.24em !important;
+    line-height: 1.1 !important;
+    text-shadow: 0 1px 3px rgba(0, 7, 10, 0.98) !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--secondary .shooterStartPanelLabel strong,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--secondary .shooterStartPanelLabel strong {
+    color: #f7d98d !important;
+    font-size: 15px !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--mapEdit .shooterStartPanelLabel strong,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--mapEdit .shooterStartPanelLabel strong {
+    color: #b9f4ef !important;
+    font-size: 13px !important;
+    text-shadow: 0 1px 4px rgba(0, 9, 12, 0.98), 0 0 7px rgba(81, 230, 219, 0.26) !important;
+  }
+}
+
+/* Mini chord long-song pagination: shared paging state, platform-specific controls. */
+html body main.app.app.app.miniChordMakerMode .miniChordBottomPagination {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 24px;
+  padding: 10px;
+  border: 1px solid rgba(151, 117, 60, 0.24);
+  border-radius: 14px;
+  background: rgba(255, 251, 242, 0.78);
+  box-shadow: 0 6px 18px rgba(83, 58, 22, 0.08);
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordBottomPagination > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 42px;
+  padding: 7px 10px;
+  border: 1px solid rgba(151, 117, 60, 0.3);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fffdf8 0%, #f6ead2 100%);
+  color: #62451d;
+  font-weight: 900;
+  box-shadow: 0 2px 6px rgba(101, 69, 25, 0.08);
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordBottomPagination > button:disabled {
+  opacity: 0.38;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordBottomPagination > button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordBottomPagination > div {
+  display: grid;
+  justify-items: center;
+  min-width: 58px;
+  color: #5b4424;
+  line-height: 1;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordBottomPagination > div strong {
+  color: #8b5c18;
+  font-size: 18px;
+  font-weight: 1000;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordBottomPagination > div span,
+html body main.app.app.app.miniChordMakerMode .miniChordBottomPagination > div small,
+html body main.app.app.app.miniChordMakerMode .miniChordBottomPagination > button small {
+  color: #8b7657;
+  font-size: 9px;
+  font-weight: 850;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordBottomPagination--desktop {
+  width: min(620px, 100%);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+@media (max-width: 767px) {
+  html body main.app.app.app.miniChordMakerMode .miniChordTimelinePanelCompact.is-paged {
+    touch-action: pan-y;
+  }
+
+  html body main.app.app.app.miniChordMakerMode .miniChordInlinePagination--mobile {
+    display: grid;
+    grid-template-columns: 28px auto 28px;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: max-content;
+    margin: 5px auto 9px;
+    padding: 2px 3px;
+    border: 1px solid rgba(183, 137, 59, 0.22);
+    border-radius: 999px;
+    background: rgba(151, 105, 35, 0.06);
+  }
+
+  html body main.app.app.app.miniChordMakerMode .miniChordInlinePagination--mobile > button {
+    display: inline-grid;
+    width: 28px;
+    height: 24px;
+    min-width: 28px;
+    min-height: 24px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #a36d1f;
+    box-shadow: none;
+  }
+
+  html body main.app.app.app.miniChordMakerMode .miniChordInlinePagination--mobile > button:disabled {
+    opacity: 0.28;
+  }
+
+  html body main.app.app.app.miniChordMakerMode .miniChordInlinePagination--mobile > button:not(:disabled):active {
+    transform: scale(0.92);
+  }
+
+  html body main.app.app.app.miniChordMakerMode .miniChordInlinePagination--mobile > span {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 5px;
+    min-width: 56px;
+    color: #765326;
+    line-height: 1;
+  }
+
+  html body main.app.app.app.miniChordMakerMode .miniChordInlinePagination--mobile > span strong {
+    font-size: 10px;
+    font-weight: 950;
+  }
+
+  html body main.app.app.app.miniChordMakerMode .miniChordInlinePagination--mobile > span small {
+    color: #9a805c;
+    font-size: 8px;
+    font-weight: 800;
+  }
+
+  html body main.app.app.app.theme-brand.miniChordMakerMode .miniChordInlinePagination--mobile {
+    border-color: rgba(222, 172, 70, 0.28);
+    background: rgba(222, 172, 70, 0.07);
+  }
+
+  html body main.app.app.app.theme-brand.miniChordMakerMode .miniChordInlinePagination--mobile > button {
+    color: #e4b453;
+  }
+
+  html body main.app.app.app.theme-brand.miniChordMakerMode .miniChordInlinePagination--mobile > span {
+    color: #f0ce82;
+  }
+
+  html body main.app.app.app.theme-brand.miniChordMakerMode .miniChordInlinePagination--mobile > span small {
+    color: rgba(239, 211, 151, 0.64);
+  }
+}
+
+/* Mini-chord Section arrangement: shared data, compact mobile-first editor. */
+html body .miniChordArrangementRows .miniChordArrangementSectionFields > div,
+html body .miniChordArrangementRows .miniChordArrangementPatternFields > div {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+
+html body .miniChordArrangementRows .miniChordArrangementSectionFields label,
+html body .miniChordArrangementRows .miniChordArrangementPatternFields label,
+html body .miniChordArrangementRows .miniChordArrangementBarFields label {
+  display: grid !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+}
+
+html body .miniChordArrangementRows :is(.miniChordArrangementSectionFields, .miniChordArrangementPatternFields) small {
+  color: rgba(98, 62, 21, 0.72) !important;
+  font-size: 8px !important;
+  font-weight: 900 !important;
+  line-height: 1.2 !important;
+}
+
+html body .miniChordArrangementRows :is(.miniChordArrangementSectionFields, .miniChordArrangementPatternFields) :is(input, select) {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 34px !important;
+  padding: 0 8px !important;
+  border: 1px solid rgba(126, 84, 25, 0.26) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 253, 247, 0.92) !important;
+  color: #4f3516 !important;
+  font-size: 10px !important;
+  font-weight: 850 !important;
+}
+
+html body .miniChordArrangementRows .miniChordArrangementBarFields {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+  align-items: end !important;
+}
+
+html body .miniChordArrangementRows .miniChordArrangementBarFields > span {
+  padding-bottom: 10px !important;
+  color: rgba(98, 62, 21, 0.65) !important;
+  font-weight: 1000 !important;
+}
+
+html body .miniChordArrangementRows .miniChordArrangementNewPatternButton {
+  grid-column: 1 / -1 !important;
+  min-height: 30px !important;
+  border-color: rgba(151, 101, 31, 0.38) !important;
+  background: rgba(241, 205, 137, 0.5) !important;
+  color: #563512 !important;
+}
+
+html body .miniChordArrangementRows .miniChordArrangementPatternHint {
+  display: block !important;
+  margin-top: -1px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerRow {
+  grid-template-columns: minmax(0, 1fr) 38px 38px 38px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerRange {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 1px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerRange :is(strong, span) {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerDuplicate {
+  border-color: rgba(100, 116, 87, 0.32) !important;
+  background: rgba(238, 242, 228, 0.8) !important;
+  color: #4e593b !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerAdd {
+  min-height: 31px !important;
+  border: 1px solid rgba(126, 84, 25, 0.42) !important;
+  border-radius: 7px !important;
+  background: linear-gradient(180deg, rgba(255, 248, 228, 0.96), rgba(235, 207, 151, 0.9)) !important;
+  color: #543514 !important;
+  font-size: 9px !important;
+  font-weight: 1000 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSectionRangeBar {
+  --section-tone: rgba(175, 121, 43, 0.68);
+  position: absolute !important;
+  top: 2px !important;
+  right: 0 !important;
+  left: 0 !important;
+  z-index: 65 !important;
+  display: flex !important;
+  align-items: center !important;
+  height: 9px !important;
+  padding: 0 3px !important;
+  overflow: hidden !important;
+  border-top: 2px solid var(--section-tone) !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--section-tone) 14%, transparent), transparent) !important;
+  color: color-mix(in srgb, var(--section-tone) 78%, #39240c) !important;
+  font-size: 5.5px !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0.03em !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSectionRangeBar.is-connected-next {
+  right: -7px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSectionRangeBar.is-segment-start {
+  left: 2px !important;
+  border-radius: 4px 0 0 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSectionRangeBar.is-segment-end {
+  right: 2px !important;
+  border-radius: 0 4px 0 0 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSectionRangeBar.is-intro {
+  --section-tone: rgba(177, 127, 53, 0.7);
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSectionRangeBar.is-verse {
+  --section-tone: rgba(126, 137, 91, 0.68);
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSectionRangeBar.is-pre-chorus {
+  --section-tone: rgba(158, 115, 92, 0.68);
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSectionRangeBar.is-chorus {
+  --section-tone: rgba(164, 91, 48, 0.72);
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSectionRangeBar.is-bridge {
+  --section-tone: rgba(114, 91, 128, 0.68);
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSectionRangeBar.is-outro {
+  --section-tone: rgba(93, 111, 116, 0.68);
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordArrangementRangeTag {
+  max-width: 62px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+@media (min-width: 681px) {
+  html body .miniChordArrangementRows .miniChordArrangementNewPatternButton {
+    grid-column: auto !important;
+  }
+
+  html body .miniChordArrangementRows .miniChordArrangementPatternFields > div {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto !important;
+    align-items: end !important;
+  }
+}
+
 /* Compact skin configurator: isolated dark stage + live loadout preview. */
 .shooterGuitarPickerOverlay {
   place-items: center;
@@ -363,7 +776,7 @@
   background: linear-gradient(180deg, rgba(217, 170, 85, 0.62), rgba(132, 87, 36, 0.42));
 }
 
-.shooterSkinConfigurator :is(.shooterGuitarRaritySection, .shooterEffectSection) {
+.shooterSkinConfigurator :is(.shooterGuitarCategorySection, .shooterEffectSection) {
   gap: 3px;
 }
 
@@ -1249,7 +1662,6 @@ button:disabled {
 
 .utilityMenuList .utilityMenuItem:active {
   transform: translateY(1px) scale(0.992) !important;
-  border-color: rgba(247, 206, 128, 0.58) !important;
 }
 
 .utilityMenuList .utilityMenuItemPrimary {
@@ -1476,7 +1888,8 @@ button:disabled {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.34) !important;
 }
 
-.utilitySoundResetButton {
+.utilitySoundResetButton,
+.utilityRhythmSettingsButton {
   display: block !important;
   grid-template-columns: none !important;
   width: 100% !important;
@@ -1494,8 +1907,20 @@ button:disabled {
   box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.045) !important;
 }
 
+.utilityRhythmSettingsButton {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  border-color: rgba(238, 195, 112, 0.42) !important;
+  background: linear-gradient(180deg, rgba(217, 170, 85, 0.24), rgba(89, 59, 22, 0.28)) !important;
+  color: #f7d99e !important;
+}
+
 .utilitySoundResetButton:hover,
-.utilitySoundResetButton:focus-visible {
+.utilitySoundResetButton:focus-visible,
+.utilityRhythmSettingsButton:hover,
+.utilityRhythmSettingsButton:focus-visible {
   border-color: rgba(238, 195, 112, 0.44) !important;
   color: rgba(255, 248, 232, 0.98) !important;
   outline: none !important;
@@ -2679,6 +3104,142 @@ h1 {
   }
   100% {
     transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+/* Shooter lobby controls: preserve the map as the hero. The buttons keep
+   fully legible text while their surfaces remain only faint hit targets. */
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
+  width: min(216px, calc(100% - 46px)) !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+  backdrop-filter: none !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu::before,
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu::after,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu::before,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu::after {
+  display: none !important;
+  content: none !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel {
+  gap: 5px !important;
+  width: 100% !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  place-items: center !important;
+  width: 100% !important;
+  height: 41px !important;
+  min-height: 41px !important;
+  padding: 4px 12px !important;
+  border: 1px solid rgba(255, 225, 164, 0.2) !important;
+  border-radius: 12px !important;
+  background: rgba(3, 10, 13, 0.09) !important;
+  color: rgba(255, 224, 158, 0.94) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  filter: none !important;
+  overflow: hidden !important;
+  backdrop-filter: blur(0.8px) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary,
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary {
+  border-color: rgba(255, 226, 164, 0.28) !important;
+  background: rgba(3, 10, 13, 0.13) !important;
+  color: rgba(255, 231, 178, 0.98) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton::before,
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton::after,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton::before,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton::after,
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButtonSheen,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButtonSheen,
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu :is(.shooterStartPanelIcon, .shooterStartPanelButtonDecor, .shooterStartPanelGhostGuitar),
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu :is(.shooterStartPanelIcon, .shooterStartPanelButtonDecor, .shooterStartPanelGhostGuitar) {
+  display: none !important;
+  content: none !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelLabel,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelLabel {
+  grid-column: 1 !important;
+  gap: 2px !important;
+  padding: 0 !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong {
+  color: currentColor !important;
+  font-size: 17px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.02em !important;
+  text-shadow: 0 1px 3px rgba(0, 7, 10, 0.92), 0 0 8px rgba(0, 7, 10, 0.42) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small {
+  color: rgba(255, 220, 150, 0.72) !important;
+  font-size: 7px !important;
+  letter-spacing: 0.18em !important;
+  text-shadow: 0 1px 3px rgba(0, 7, 10, 0.96) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton:focus-visible,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton:focus-visible {
+  border-color: rgba(255, 233, 187, 0.72) !important;
+  box-shadow: 0 0 0 2px rgba(255, 220, 151, 0.16) !important;
+}
+
+@media (hover: hover) {
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton:hover:not(:disabled),
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton:hover:not(:disabled) {
+    border-color: rgba(255, 229, 174, 0.42) !important;
+    background: rgba(3, 10, 13, 0.2) !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+  html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
+    top: 72% !important;
+    width: min(208px, calc(100% - 54px)) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  html body .desktopLayout .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+  html body .desktopLayout main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
+    top: 68% !important;
+    width: min(216px, calc(100% - 46px)) !important;
   }
 }
 
@@ -9510,8 +10071,7 @@ html body main.app.app.app.theme-brand.theme-brand
     line-height: 1.25;
   }
 
-  .hubMenuButton:hover:not(:disabled),
-  .hubMenuButton:active:not(:disabled) {
+  .hubMenuButton:hover:not(:disabled) {
     transform: translateY(1px) scale(0.99);
     border-color: rgba(255, 255, 255, 0.28);
   }
@@ -14775,7 +15335,6 @@ button.primary svg {
 
 .mainHub .hubMenuButton:active:not(:disabled) {
   transform: translateY(1px) scale(0.985);
-  border-color: rgba(236, 190, 103, 0.72);
   box-shadow:
     0 7px 15px rgba(0, 0, 0, 0.24),
     inset 0 2px 8px rgba(0, 0, 0, 0.22);
@@ -14845,7 +15404,6 @@ button.primary svg {
 
 .mainHub .hubMenuButton:focus,
 .mainHub .hubMenuButton:focus-visible,
-.mainHub .hubMenuButton:active,
 .mainHub .hubMenuButton:visited {
   outline: none;
   background:
@@ -14863,10 +15421,6 @@ button.primary svg {
 .mainHub .hubMenuButton:active:not(:disabled),
 .mainHub .hubMenuButton:hover:active:not(:disabled) {
   transform: scale(0.98);
-  border-color: rgba(236, 190, 103, 0.72);
-  background:
-    linear-gradient(145deg, rgba(217, 170, 85, 0.105), rgba(255, 255, 255, 0.006)),
-    rgba(28, 27, 24, 0.96);
   box-shadow:
     0 0 12px rgba(217, 170, 85, 0.12),
     0 7px 15px rgba(0, 0, 0, 0.22),
@@ -15433,8 +15987,7 @@ button.primary svg {
 }
 
 .curriculum .stageMenuCard:not(.selected):focus,
-.curriculum .stageMenuCard:not(.selected):focus-visible,
-.curriculum .stageMenuCard:not(.selected):active:not(:disabled) {
+.curriculum .stageMenuCard:not(.selected):focus-visible {
   border-color: rgba(217, 170, 85, 0.36) !important;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.01)),
@@ -15746,8 +16299,7 @@ button.primary svg {
 
 .fretboardViewerPanel .viewerNotePanel button:hover:not(:disabled),
 .fretboardViewerPanel .viewerNotePanel button:focus,
-.fretboardViewerPanel .viewerNotePanel button:focus-visible,
-.fretboardViewerPanel .viewerNotePanel button:active:not(:disabled) {
+.fretboardViewerPanel .viewerNotePanel button:focus-visible {
   outline: none;
   border-color: rgba(217, 170, 85, 0.34);
   background:
@@ -16697,7 +17249,7 @@ button.primary svg {
   min-height: 0;
 }
 
-.shooterGuitarRaritySection,
+.shooterGuitarCategorySection,
 .shooterEffectSection {
   display: grid;
   gap: 8px;
@@ -16996,9 +17548,9 @@ html body .app.theme-light .shooterSkinOptionGrid--emblems button.shooterSkinOpt
   background-image:
     linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.2)),
     var(--shooter-map-image) !important;
-  background-position: center, center !important;
+  background-position: center, var(--shooter-map-position, center) !important;
   background-repeat: no-repeat, no-repeat !important;
-  background-size: 100% 100%, cover !important;
+  background-size: 100% 100%, var(--shooter-map-size, cover) !important;
 }
 
 .shooterMapPreview::before {
@@ -18551,21 +19103,6 @@ textarea,
     inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
 }
 
-.app :where(button, [role="button"], .trainingCard, .stageMenuCard, .hubMenuButton, .chordMiniCard, .viewerModeTabs button, .viewerNotePanel button, .chordChipGroup button, .metronomeToggleRow button):active:not(:disabled) {
-  background:
-    linear-gradient(145deg, rgba(217, 170, 85, 0.13), rgba(255, 255, 255, 0.008)),
-    rgba(18, 21, 25, 0.92) !important;
-  border-color: rgba(217, 170, 85, 0.34) !important;
-  filter: none !important;
-}
-
-.app :where(button.primary, .primaryAction):active:not(:disabled),
-.app :where(button.selected, .viewerModeTabs .selected, .viewerNotePanel button.selected, .chordChipGroup button.selected, .metronomeToggleRow button.selected, .modeSwitch button.selected):active:not(:disabled) {
-  background:
-    linear-gradient(145deg, rgba(241, 202, 122, 0.9), rgba(141, 96, 48, 0.92)) !important;
-  color: #181109 !important;
-}
-
 .app select option,
 .app select optgroup {
   color: rgba(247, 241, 227, 0.94);
@@ -19422,10 +19959,6 @@ textarea,
   font-size: 11px;
   line-height: 1;
   box-shadow: none !important;
-}
-
-.chordTransitionPanel .chordPreviewStack strong button:active:not(:disabled) {
-  background: rgba(82, 62, 34, 0.76) !important;
 }
 
 .chordTransitionChart .chordGuideToggle {
@@ -20962,7 +21495,6 @@ textarea,
 
 .stage3CollapsedBpmButton:active {
   transform: scale(0.96) !important;
-  border-color: rgba(241, 202, 122, 0.58) !important;
 }
 
 .stage3CollapsedBpmValue {
@@ -21105,11 +21637,6 @@ textarea,
   line-height: 1.15 !important;
   text-align: center !important;
   white-space: nowrap !important;
-}
-
-.stage3PracticeUtilityPanel .stage3StorageMoveButton:active {
-  border-color: rgba(217, 170, 85, 0.45) !important;
-  background: rgba(137, 93, 34, 0.42) !important;
 }
 
 .stage3PracticeUtilityPanel .stage3LoadToolbar .stage3LoadCollapseButton {
@@ -22479,7 +23006,6 @@ textarea,
 
 .curriculum .trainingGrid.stageMenu .stageMenuCard:active:not(:disabled) {
   transform: scale(0.975) !important;
-  border-color: rgba(241, 202, 122, 0.68) !important;
   box-shadow:
     0 10px 22px rgba(0, 0, 0, 0.34),
     0 0 20px rgba(217, 170, 85, 0.18),
@@ -23782,13 +24308,6 @@ body {
     0 10px 18px rgba(0, 0, 0, 0.18) !important;
 }
 
-.standaloneMetronomePanel .metronomeHeroBpmButton:active {
-  border-color: rgba(241, 202, 122, 0.58) !important;
-  background:
-    linear-gradient(145deg, rgba(217, 170, 85, 0.24), rgba(116, 78, 36, 0.48)),
-    rgba(8, 7, 5, 0.92) !important;
-}
-
 .standaloneMetronomePanel .metronomeHeroCard span {
   color: rgba(239, 198, 119, 0.92) !important;
   font-size: 12px !important;
@@ -24083,12 +24602,6 @@ body {
 
 .curriculum .trainingGrid.stageMenu .stageMenuCard:active:not(:disabled) {
   transform: scale(0.97) !important;
-  border-color: rgba(248, 210, 132, 0.76) !important;
-  background:
-    radial-gradient(circle at 10% 28%, rgba(241, 202, 122, 0.25), transparent 26%),
-    radial-gradient(circle at 91% 50%, rgba(241, 202, 122, 0.24), transparent 27%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.092), rgba(255, 255, 255, 0.018) 42%, rgba(0, 0, 0, 0.13)),
-    rgba(24, 27, 31, 0.98) !important;
   box-shadow:
     0 10px 22px rgba(0, 0, 0, 0.35),
     0 0 24px rgba(217, 170, 85, 0.22),
@@ -24155,11 +24668,6 @@ body {
 .curriculum .trainingGrid.stageMenu .stageMenuCard:active:not(:disabled) .stageMenuCard__arrow {
   animation: none !important;
   transform: translateX(4px) scale(1.08) !important;
-  border-color: rgba(255, 226, 157, 0.82) !important;
-  background:
-    radial-gradient(circle at 34% 22%, rgba(255, 248, 221, 0.7), transparent 38%),
-    linear-gradient(145deg, rgba(248, 206, 124, 0.62), rgba(157, 99, 38, 0.62) 57%, rgba(45, 30, 17, 0.96)),
-    rgba(28, 23, 17, 0.98) !important;
   box-shadow:
     0 0 0 8px rgba(217, 170, 85, 0.12),
     0 0 28px rgba(241, 202, 122, 0.36),
@@ -24444,12 +24952,6 @@ body {
 
 .curriculum .trainingGrid.stageMenu > .stageMenuCard:active:not(:disabled) {
   transform: scale(0.974) !important;
-  border-color: rgba(241, 202, 122, 0.58) !important;
-  background:
-    radial-gradient(ellipse at 13% 50%, rgba(217, 170, 85, 0.18), transparent 36%),
-    radial-gradient(ellipse at 90% 50%, rgba(217, 170, 85, 0.16), transparent 34%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.078), rgba(255, 255, 255, 0.016) 46%, rgba(0, 0, 0, 0.12)),
-    rgba(22, 26, 30, 0.98) !important;
   box-shadow:
     0 10px 22px rgba(0, 0, 0, 0.34),
     0 0 18px rgba(217, 170, 85, 0.14),
@@ -24508,11 +25010,6 @@ body {
 .curriculum .trainingGrid.stageMenu > .stageMenuCard:active:not(:disabled) .stageMenuCard__arrow {
   animation: none !important;
   transform: translateX(3px) scale(1.045) !important;
-  border-color: rgba(255, 224, 152, 0.66) !important;
-  background:
-    radial-gradient(circle at 34% 22%, rgba(255, 246, 218, 0.48), transparent 40%),
-    linear-gradient(145deg, rgba(241, 202, 122, 0.42), rgba(132, 84, 35, 0.5) 58%, rgba(32, 24, 16, 0.97)),
-    rgba(23, 20, 16, 0.98) !important;
   box-shadow:
     0 0 0 5px rgba(217, 170, 85, 0.08),
     0 0 20px rgba(217, 170, 85, 0.22),
@@ -24643,7 +25140,6 @@ body {
 .curriculum .trainingGrid.stageMenu > .stageMenuCard:active:not(:disabled) .stageMenuCard__arrow {
   animation: none !important;
   transform: translate(3px, 0) scale(1.04) !important;
-  border-color: rgba(255, 224, 152, 0.65) !important;
   box-shadow:
     0 0 0 5px rgba(217, 170, 85, 0.075),
     0 0 18px rgba(217, 170, 85, 0.2),
@@ -27391,8 +27887,7 @@ html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChord
   font-size: 10px;
 }
 
-.metronomeAdvancedPopoverHeader button.selected,
-.metronomeStepperRow button:active:not(:disabled) {
+.metronomeAdvancedPopoverHeader button.selected {
   border-color: rgba(241, 202, 122, 0.5);
   background: linear-gradient(145deg, rgba(217, 170, 85, 0.34), rgba(112, 75, 34, 0.46));
   color: #fff2ca;
@@ -31881,6 +32376,17 @@ html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChord
   width: min(var(--guitar-effect-width, 142px), 54vw);
 }
 
+/* The transparent source keeps generous side gutters. Its visible deck is
+   intentionally compact so the guitar reads as standing on top of it. */
+html body .shooterArena .effect-floor-jp-tropical-stand {
+  width: min(var(--guitar-effect-width, 275px), 72vw);
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.34));
+}
+
+.shooterSkinLivePlayer .effect-floor-jp-tropical-stand {
+  width: 190px;
+}
+
 .shooterArena .guitarPlayerEffectLayer img {
   position: absolute;
   inset: 0;
@@ -34655,9 +35161,7 @@ html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChord
   text-shadow: none !important;
 }
 
-.fretboardViewerPanel .viewerChordPositionGroup button:active,
 .fretboardViewerPanel .viewerChordPositionGroup button:focus-visible,
-.fretboardViewerPanel .chordChipGroup button:active,
 .fretboardViewerPanel .chordChipGroup button:focus-visible {
   border-color: rgba(231, 190, 104, 0.74) !important;
   box-shadow:
@@ -34684,7 +35188,6 @@ html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChord
 }
 
 .fretboardViewerPanel .viewerMapCard--chord .viewerAllButton.selected,
-.fretboardViewerPanel .viewerMapCard--chord .viewerAllButton:active,
 .fretboardViewerPanel .viewerMapCard--chord .viewerAllButton:focus-visible {
   border-color: rgba(217, 170, 85, 0.52) !important;
   background:
@@ -37622,9 +38125,7 @@ html body .app.app.app .fretboardViewerPanel.fretboardViewerPanel .viewerMapCard
   text-shadow: none !important;
 }
 
-.fretboardViewerPanel .viewerChordPositionGroup button:active,
 .fretboardViewerPanel .viewerChordPositionGroup button:focus-visible,
-.fretboardViewerPanel .chordChipGroup button:active,
 .fretboardViewerPanel .chordChipGroup button:focus-visible {
   border-color: rgba(241, 202, 122, 0.64) !important;
   box-shadow:
@@ -42783,9 +43284,6 @@ body:has(.app.theme-light) {
   [role="tab"]:active,
   [role="option"]:active
 ) {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08)),
-    var(--pearl-control-pressed) !important;
   box-shadow:
     inset 0 2px 6px rgba(92, 67, 28, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.58) !important;
@@ -43345,9 +43843,9 @@ html body .app .shooterArena.shooterMapSkin.shooterArena--imageMap {
     linear-gradient(90deg, rgba(2, 1, 0, 0.5) 0%, rgba(2, 1, 0, 0.14) 24%, rgba(3, 2, 1, 0.08) 50%, rgba(2, 1, 0, 0.14) 76%, rgba(2, 1, 0, 0.52) 100%),
     linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, transparent 18%, transparent 72%, rgba(0, 0, 0, 0.24) 100%),
     var(--shooter-map-image) !important;
-  background-position: center, center, center !important;
+  background-position: center, center, var(--shooter-map-position, center) !important;
   background-repeat: no-repeat, no-repeat, no-repeat !important;
-  background-size: 100% 100%, 100% 100%, cover !important;
+  background-size: 100% 100%, 100% 100%, var(--shooter-map-size, cover) !important;
 }
 
 html body .app.theme-light .shooterDifficultyPanel strong,
@@ -44840,7 +45338,6 @@ html body .app.theme-light.theme-light :is(
   .stage3BackingPartSegment button.selected,
   .stage3BackingBandRow button.selected,
   .stage3SegmentControl button.selected,
-  .stage3CollapsedBpmButton:active,
   .metronomeSelectButton[aria-expanded="true"]
 ),
 html body .app.theme-light.theme-light .fretboardViewerPanel.fretboardViewerPanel .chordBuilderPanel.chordBuilderPanel :is(
@@ -45216,7 +45713,8 @@ html body .app.theme-light .utilitySoundSliderRow input[type="range"] {
   accent-color: var(--pearl-bronze) !important;
 }
 
-html body .app.theme-light .utilitySoundResetButton {
+html body .app.theme-light .utilitySoundResetButton,
+html body .app.theme-light .utilityRhythmSettingsButton {
   border-color: rgba(132, 85, 66, 0.28) !important;
   background:
     linear-gradient(180deg, rgba(255, 250, 244, 0.88), rgba(230, 207, 191, 0.72)),
@@ -45376,7 +45874,8 @@ html body .app.theme-light :is(
   .utilitySoundPanel,
   .utilitySoundSliders,
   .utilitySoundSliderRow,
-  .utilitySoundResetButton
+  .utilitySoundResetButton,
+  .utilityRhythmSettingsButton
 ) {
   border-color: var(--pearl-soft-line) !important;
   background:
@@ -45693,7 +46192,8 @@ html body .app.theme-light .utilityMenuPanel.utilityMenuPanel .utilityMenuChevro
 
 html body .app.theme-light .utilityMenuPanel.utilityMenuPanel .utilitySoundSliders,
 html body .app.theme-light .utilityMenuPanel.utilityMenuPanel .utilitySoundSliderRow,
-html body .app.theme-light .utilityMenuPanel.utilityMenuPanel .utilitySoundResetButton {
+html body .app.theme-light .utilityMenuPanel.utilityMenuPanel .utilitySoundResetButton,
+html body .app.theme-light .utilityMenuPanel.utilityMenuPanel .utilityRhythmSettingsButton {
   border-color: rgba(108, 63, 45, 0.3) !important;
   background:
     radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.76), transparent 42%),
@@ -46681,13 +47181,20 @@ html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metro
   -webkit-tap-highlight-color: transparent;
 }
 
-html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroTapTempoButton:active,
+html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroTapTempoButton:active {
+  transform: translate3d(0, 3px, 0) scale(0.94);
+}
+
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroTapTempoButton.is-tapping {
   transform: translate3d(0, 3px, 0) scale(0.94);
   filter: brightness(0.975) saturate(1.03);
 }
 
-html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroTapTempoButton:active .tapTempoButtonImage,
+html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroTapTempoButton:active .tapTempoButtonImage {
+  transform: translateY(2px) scale(0.97);
+  animation: tapTempoButtonPulse 150ms ease-out;
+}
+
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroTapTempoButton.is-tapping .tapTempoButtonImage {
   transform: translateY(2px) scale(0.97);
   filter:
@@ -52254,12 +52761,10 @@ html body .app .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStart
 
 html body .app .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton:active:not(:disabled) {
   transform: translateZ(0) scale(0.97) !important;
-  background-color: rgba(255, 215, 132, 0.08) !important;
   box-shadow: inset 0 4px 18px rgba(0, 0, 0, 0.18) !important;
 }
 
 html body .app.theme-light .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton:active:not(:disabled) {
-  background-color: rgba(128, 86, 23, 0.08) !important;
   box-shadow: inset 0 4px 18px rgba(108, 72, 20, 0.12) !important;
 }
 
@@ -52657,8 +53162,6 @@ html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metro
 }
 
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroBpmJumpButton:active {
-  background: rgba(151, 102, 39, 0.1);
-  filter: brightness(0.98);
   transform: translate3d(0, 1px, 0) scale(0.97);
 }
 
@@ -52726,7 +53229,10 @@ html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metro
 }
 
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroActionPanel .metronomeHeroPlayButton:active,
-html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroActionPanel .metronomeHeroTapTempoButton:active,
+html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroActionPanel .metronomeHeroTapTempoButton:active {
+  transform: translate3d(0, 2px, 0) scale(0.982) !important;
+}
+
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroActionPanel .metronomeHeroTapTempoButton.is-tapping {
   background: rgba(151, 102, 39, 0.09) !important;
   filter: brightness(0.985) saturate(1.02);
@@ -52779,7 +53285,10 @@ html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .tapTe
   user-select: none;
 }
 
-html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroActionPanel .metronomeHeroTapTempoButton:active .tapTempoButtonImage,
+html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroActionPanel .metronomeHeroTapTempoButton:active .tapTempoButtonImage {
+  transform: translate(-22px, -7px) scale(0.95) !important;
+}
+
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel .metronomeHeroActionPanel .metronomeHeroTapTempoButton.is-tapping .tapTempoButtonImage {
   filter: brightness(0.96) saturate(1.03);
   transform: translate(-22px, -7px) scale(0.95) !important;
@@ -52899,7 +53408,6 @@ html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.r
 }
 
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) .metronomeHeroCard.metronomeHeroCard .metronomeHeroBpmButton:active {
-  filter: brightness(0.98);
   transform: translate3d(0, 1px, 0) scale(0.96) !important;
 }
 
@@ -53076,7 +53584,6 @@ html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatu
 html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton:active:not(:disabled),
 html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton:active:not(:disabled) {
   transform: translateZ(0) scale(0.97) !important;
-  background-color: rgba(255, 215, 132, 0.08) !important;
 }
 
 @media (max-width: 420px) {
@@ -53182,7 +53689,6 @@ html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.r
 
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) .metronomeBpmAdjustGroup .metronomeHeroBpmButton:active,
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) .metronomeBpmAdjustGroup .metronomeHeroBpmJumpButton:active {
-  color: #6f4515 !important;
   transform: translate3d(0, 1px, 0) scale(0.96) !important;
 }
 
@@ -53272,7 +53778,10 @@ html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.r
 }
 
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) .metronomeHeroCard.metronomeHeroCard .metronomeHeroActionPanel .metronomeHeroPlayButton:active,
-html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) .metronomeHeroCard.metronomeHeroCard .metronomeHeroActionPanel .metronomeHeroTapTempoButton:active,
+html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) .metronomeHeroCard.metronomeHeroCard .metronomeHeroActionPanel .metronomeHeroTapTempoButton:active {
+  transform: translate3d(0, 1px, 0) scale(0.985) !important;
+}
+
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) .metronomeHeroCard.metronomeHeroCard .metronomeHeroActionPanel .metronomeHeroTapTempoButton.is-tapping {
   background: rgba(169, 123, 66, 0.06) !important;
   filter: none !important;
@@ -53730,7 +54239,6 @@ html body main.app.app.app .shooterArena .shooterCenterStatus--pauseMenu .shoote
 html body .app.app.app .shooterArena .shooterCenterStatus:is(.shooterCenterStatus--startMenu, .shooterCenterStatus--pauseMenu) :is(.shooterStartPanelButton, .shooterPausePanelButton):active:not(:disabled),
 html body main.app.app.app .shooterArena .shooterCenterStatus:is(.shooterCenterStatus--startMenu, .shooterCenterStatus--pauseMenu) :is(.shooterStartPanelButton, .shooterPausePanelButton):active:not(:disabled) {
   transform: translateZ(0) scale(0.97) !important;
-  background-color: rgba(255, 215, 132, 0.08) !important;
 }
 
 @media (max-width: 420px) {
@@ -53965,7 +54473,10 @@ html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.r
 }
 
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) .metronomeHeroCard.metronomeHeroCard .metronomeHeroActionPanel .metronomeHeroPlayButton:active,
-html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) .metronomeHeroCard.metronomeHeroCard .metronomeHeroActionPanel .metronomeHeroTapTempoButton:active,
+html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) .metronomeHeroCard.metronomeHeroCard .metronomeHeroActionPanel .metronomeHeroTapTempoButton:active {
+  transform: translateY(1px) scale(0.985) !important;
+}
+
 html body .app.app.app .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) .metronomeHeroCard.metronomeHeroCard .metronomeHeroActionPanel .metronomeHeroTapTempoButton.is-tapping {
   background: rgba(169, 123, 66, 0.055) !important;
   transform: translateY(1px) scale(0.985) !important;
@@ -57821,10 +58332,6 @@ html body main.app.app.app .miniChordMakerPanelCompact .miniChordCapoStepper but
   opacity: 0.28 !important;
 }
 
-html body main.app.app.app .miniChordMakerPanelCompact .miniChordCapoStepper button:not(:disabled):active {
-  background: rgba(217, 170, 85, 0.14) !important;
-}
-
 html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordSettingsGrid .miniChordField,
 html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordSettingsGrid .miniChordSwitch {
   border-color: rgba(143, 123, 88, 0.2) !important;
@@ -57853,10 +58360,6 @@ html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChord
 
 html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoStepper button + button {
   border-top-color: rgba(143, 123, 88, 0.16) !important;
-}
-
-html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoStepper button:not(:disabled):active {
-  background: rgba(185, 133, 52, 0.16) !important;
 }
 
 /* Mini chord saved-list dropdown: replace native select with a themed load menu. */
@@ -57986,11 +58489,6 @@ html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadDelete {
   color: rgba(255, 229, 174, 0.72) !important;
 }
 
-html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadItemMain:active,
-html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadDelete:active {
-  background: rgba(229, 190, 118, 0.14) !important;
-}
-
 html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordLoadPicker > button {
   border-color: rgba(143, 123, 88, 0.22) !important;
   background:
@@ -58023,11 +58521,6 @@ html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChord
 html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordLoadDelete {
   border-left-color: rgba(143, 123, 88, 0.16) !important;
   color: rgba(69, 48, 25, 0.6) !important;
-}
-
-html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordLoadItemMain:active,
-html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordLoadDelete:active {
-  background: rgba(185, 133, 52, 0.13) !important;
 }
 
 /* Mini chord storage uses the same modal library pattern as Backing Loop LOAD. */
@@ -61753,7 +62246,7 @@ html body main.app.app.app.miniChordMakerMode .miniChordExpertToggle {
 }
 
 html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordMeasureStrip {
-  grid-template-columns: auto minmax(0, 1fr) auto auto !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
   gap: 4px !important;
   align-items: center !important;
 }
@@ -61791,6 +62284,106 @@ html body main.app.app.app.miniChordMakerMode .miniChordExpertToggle[aria-presse
   border-color: rgba(128, 85, 45, 0.6) !important;
   background: linear-gradient(180deg, #edcf91 0%, #c58b3d 100%) !important;
   color: #1d1206 !important;
+}
+
+/* Keep CAPO arrangement controls simple: one Section manager button. */
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordArrangementControlGroup {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  gap: 2px !important;
+  min-width: 36px !important;
+  max-width: unset !important;
+  margin-left: 1px !important;
+  overflow: visible !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordArrangementControlGroup :is(
+  .miniChordArrangementMainButton,
+  .miniChordArrangementNumberButton,
+  .miniChordArrangementAddButton
+) {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  padding: 0 5px !important;
+  border: 1px solid rgba(126, 84, 25, 0.28) !important;
+  border-radius: 6px !important;
+  background: rgba(255, 248, 232, 0.42) !important;
+  color: #684314 !important;
+  font-size: 8px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordArrangementControlGroup .miniChordArrangementMainButton {
+  min-width: 36px !important;
+  width: auto !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordArrangementControlGroup .miniChordArrangementNumberButton {
+  width: 20px !important;
+  min-width: 20px !important;
+  padding: 0 !important;
+  font-size: 9px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordArrangementControlGroup .miniChordArrangementAddButton {
+  width: 22px !important;
+  min-width: 22px !important;
+  padding: 0 !important;
+  font-size: 15px !important;
+  line-height: 1 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordArrangementControlGroup button:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.36 !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordArrangementControlGroup :is(
+  .miniChordArrangementMainButton,
+  .miniChordArrangementNumberButton,
+  .miniChordArrangementAddButton
+) {
+  border-color: rgba(151, 105, 53, 0.28) !important;
+  background: rgba(255, 252, 244, 0.82) !important;
+  color: #4d3518 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordArrangementControlGroup .miniChordArrangementMainButton.selected,
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordArrangementControlGroup .miniChordArrangementMainButton[aria-pressed="true"],
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordArrangementControlGroup .miniChordArrangementNumberButton.selected,
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordArrangementControlGroup .miniChordArrangementNumberButton[aria-pressed="true"] {
+  border-color: rgba(128, 85, 45, 0.6) !important;
+  background: linear-gradient(180deg, #edcf91 0%, #c58b3d 100%) !important;
+  color: #1d1206 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordArrangementMainButton > span {
+  font-size: 8px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordArrangementMainButton > b {
+  display: inline-grid !important;
+  place-items: center !important;
+  min-width: 14px !important;
+  height: 14px !important;
+  padding: 0 3px !important;
+  border-radius: 999px !important;
+  background: rgba(120, 77, 24, 0.14) !important;
+  color: currentColor !important;
+  font-size: 8px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
 }
 
 html body main.app.app.app.miniChordMakerMode .miniChordArrangementToolbar {
@@ -61895,6 +62488,125 @@ html body main.app.app.app.miniChordMakerMode .miniChordArrangementRangeConfirmA
   color: #1d1206 !important;
 }
 
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManager {
+  display: grid !important;
+  gap: 7px !important;
+  width: 100% !important;
+  padding: 8px !important;
+  border: 1px solid rgba(151, 101, 31, 0.42) !important;
+  border-radius: 9px !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.72), transparent 48%),
+    linear-gradient(180deg, #fff8e8 0%, #ecd39d 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 7px 16px rgba(91, 59, 20, 0.12) !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerHeading {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 27px !important;
+  align-items: start !important;
+  gap: 7px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerHeading > div {
+  display: grid !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerHeading strong {
+  color: #4d3010 !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  line-height: 1.1 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerHeading span {
+  color: rgba(91, 57, 17, 0.76) !important;
+  font-size: 8.5px !important;
+  font-weight: 850 !important;
+  line-height: 1.25 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerHeading > button {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 27px !important;
+  min-width: 27px !important;
+  height: 27px !important;
+  min-height: 27px !important;
+  padding: 0 !important;
+  border-radius: 7px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerList {
+  display: grid !important;
+  gap: 4px !important;
+  width: 100% !important;
+  max-height: 154px !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerRow {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 48px 44px !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 4px !important;
+  border: 1px solid rgba(126, 84, 25, 0.18) !important;
+  border-radius: 7px !important;
+  background: rgba(255, 252, 244, 0.6) !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerRow > button {
+  min-width: 0 !important;
+  min-height: 29px !important;
+  padding: 0 5px !important;
+  border: 1px solid rgba(126, 84, 25, 0.24) !important;
+  border-radius: 6px !important;
+  background: rgba(255, 252, 244, 0.82) !important;
+  color: #563512 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
+  font-size: 8px !important;
+  font-weight: 950 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerRange {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 7px !important;
+  text-align: left !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerRange strong {
+  color: #4d3010 !important;
+  font-size: 9px !important;
+  font-weight: 1000 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerRange span {
+  color: rgba(91, 57, 17, 0.72) !important;
+  font-size: 7.5px !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerReset {
+  border-color: rgba(151, 101, 31, 0.36) !important;
+  background: rgba(241, 205, 137, 0.68) !important;
+  color: #563512 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerClear {
+  border-color: rgba(151, 75, 40, 0.28) !important;
+  background: rgba(255, 242, 228, 0.72) !important;
+  color: #87411f !important;
+}
+
 html body main.app.app.app.miniChordMakerMode .miniChordArrangementHitLayer {
   position: absolute !important;
   inset: 0 !important;
@@ -61907,6 +62619,41 @@ html body main.app.app.app.miniChordMakerMode .miniChordArrangementHitLayer {
   background: transparent !important;
   cursor: crosshair !important;
   touch-action: pan-y !important;
+}
+
+/* During playback each measure becomes a transport target. The audio session
+   remains the source of truth; edit controls below this transparent layer are
+   intentionally unreachable until playback stops. */
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordBar.is-playback-seek-enabled {
+  cursor: pointer !important;
+  isolation: isolate !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordPlaybackSeekLayer {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 320 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: inherit !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordBar.is-playback-seek-enabled > :not(.miniChordPlaybackSeekLayer) {
+  pointer-events: none !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordBar:has(> .miniChordPlaybackSeekLayer:focus-visible) {
+  outline: 2px solid rgba(151, 96, 27, 0.76) !important;
+  outline-offset: -2px !important;
 }
 
 html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour.is-arrangement-selection-mode .miniChordBar {
@@ -62179,7 +62926,7 @@ html body .miniChordGrooveDialog--drumLandscape {
 
 html body .miniChordDrumEditorTopbar {
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) 34px !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
   align-items: center !important;
   gap: 9px !important;
   min-width: 0 !important;
@@ -62231,6 +62978,202 @@ html body .miniChordDrumEditorCloseButton {
   min-height: 32px !important;
   padding: 0 !important;
   border-radius: 9px !important;
+}
+
+html body .miniChordDrumEditorTopbarActions {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+}
+
+html body .miniChordGrooveViewToggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  width: auto !important;
+  min-width: 36px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 8px !important;
+  border: 1px solid var(--mini-ui-border, rgba(126, 84, 25, 0.24)) !important;
+  border-radius: 9px !important;
+  background: var(--mini-ui-button, rgba(255, 249, 237, 0.8)) !important;
+  color: var(--mini-ui-text, #4d3111) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+html body .miniChordGrooveViewToggle:is(:hover, :focus-visible) {
+  border-color: var(--mini-ui-border-strong, rgba(126, 84, 25, 0.48)) !important;
+  background: var(--mini-ui-button-hover, rgba(245, 225, 184, 0.88)) !important;
+}
+
+html body .miniChordGrooveViewToggle > span:not(.miniChordGrooveRotateIcon) {
+  font-size: 8px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+}
+
+html body .miniChordGrooveRotateIcon {
+  position: relative !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+html body .miniChordGrooveRotateIcon > svg:last-child {
+  position: absolute !important;
+  right: -4px !important;
+  bottom: -3px !important;
+  padding: 1px !important;
+  border-radius: 50% !important;
+  background: var(--mini-ui-button, #fff8e8) !important;
+  stroke-width: 2.6 !important;
+}
+
+html body .miniChordGrooveDialog--drumPortrait {
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto auto !important;
+  gap: 8px !important;
+  width: min(420px, calc(100vw - 18px)) !important;
+  max-width: 420px !important;
+  max-height: calc(100dvh - max(20px, env(safe-area-inset-top) + env(safe-area-inset-bottom))) !important;
+  padding: 11px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  transform: none !important;
+}
+
+html body .miniChordDrumPortraitGrid {
+  display: grid !important;
+  gap: 8px !important;
+  min-height: 0 !important;
+  padding: 1px 3px 1px 1px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: stable !important;
+  user-select: none !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+html body .miniChordDrumPortraitGrid::-webkit-scrollbar {
+  width: 4px !important;
+}
+
+html body .miniChordDrumPortraitGrid::-webkit-scrollbar-thumb {
+  border-radius: 999px !important;
+  background: var(--mini-ui-border-strong, rgba(126, 84, 25, 0.32)) !important;
+}
+
+html body .miniChordDrumPortraitBeat {
+  display: grid !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  border: 1px solid var(--mini-ui-divider, rgba(126, 84, 25, 0.16)) !important;
+  border-radius: 10px !important;
+  background: var(--mini-ui-surface, rgba(255, 249, 237, 0.5)) !important;
+}
+
+html body .miniChordDrumPortraitBeatHeading {
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  padding: 0 2px 2px !important;
+}
+
+html body .miniChordDrumPortraitBeatHeading strong {
+  color: var(--mini-ui-text, #4d3111) !important;
+  font-size: 10px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+}
+
+html body .miniChordDrumPortraitBeatHeading span {
+  color: var(--mini-ui-muted, rgba(104, 64, 18, 0.64)) !important;
+  font-size: 7px !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+}
+
+html body .miniChordDrumPortraitStepHeader,
+html body .miniChordDrumPortraitRow {
+  display: grid !important;
+  grid-template-columns: 52px repeat(4, minmax(0, 1fr)) !important;
+  align-items: center !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+}
+
+html body .miniChordDrumPortraitStepHeader {
+  min-height: 17px !important;
+}
+
+html body .miniChordDrumPortraitStepHeader :is(span, b) {
+  display: inline-grid !important;
+  place-items: center !important;
+  min-width: 0 !important;
+  color: var(--mini-ui-muted, rgba(104, 64, 18, 0.65)) !important;
+  font-size: 7px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+
+html body .miniChordDrumPortraitStepHeader span {
+  justify-content: start !important;
+  padding-left: 2px !important;
+}
+
+html body .miniChordDrumPortraitStepHeader b.is-downbeat {
+  min-height: 17px !important;
+  border-radius: 5px !important;
+  background: rgba(197, 139, 61, 0.16) !important;
+  color: var(--mini-ui-text, #4d3111) !important;
+  font-size: 9px !important;
+}
+
+html body .miniChordDrumPortraitRow > strong {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: var(--mini-ui-text, #5b3a15) !important;
+  font-size: 8px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body .miniChordDrumPortraitRow button {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 0 !important;
+  min-height: 30px !important;
+  padding: 0 !important;
+  border-radius: 7px !important;
+  touch-action: none !important;
+}
+
+html body .miniChordDrumPortraitRow button > span {
+  width: 10px !important;
+  height: 10px !important;
+  border: 1px solid var(--mini-ui-border-strong, rgba(94, 61, 24, 0.42)) !important;
+  border-radius: 3px !important;
+  background: var(--mini-ui-surface-strong, rgba(255, 255, 255, 0.5)) !important;
+}
+
+html body .miniChordDrumPortraitRow button.selected > span {
+  border-color: rgba(62, 40, 15, 0.7) !important;
+  background: var(--mini-ui-selected-text, #4f3517) !important;
+  box-shadow: 0 0 0 2px rgba(189, 125, 37, 0.16) !important;
 }
 
 html body .miniChordDrumEditorGrid {
@@ -62349,6 +63292,18 @@ html body .miniChordGrooveActions--drum button {
   min-height: 34px !important;
   border-radius: 9px !important;
   font-size: 11px !important;
+}
+
+html body .miniChordGrooveActions--drum.miniChordGrooveActions--portrait {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+
+html body .miniChordGrooveActions--drum.miniChordGrooveActions--portrait button {
+  min-width: 0 !important;
+  min-height: 32px !important;
+  padding: 0 5px !important;
+  font-size: 9px !important;
 }
 
 @media (max-width: 719px) and (orientation: portrait) {
@@ -62540,6 +63495,53 @@ html body .miniChordArrangementRows .miniChordArrangementSoloButton {
   font-size: 10px !important;
 }
 
+html body .miniChordArrangementRhythmHint {
+  margin: 0 !important;
+  padding: 8px 9px !important;
+  border: 1px solid rgba(126, 84, 25, 0.14) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 248, 232, 0.48) !important;
+  color: rgba(78, 49, 17, 0.78) !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  line-height: 1.45 !important;
+}
+
+html body .miniChordArrangementRows section > .miniChordArrangementPartControls {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 5px !important;
+}
+
+html body .miniChordArrangementBeatChoices {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+}
+
+html body .miniChordArrangementBeatChoices .miniChordArrangementSoloButton {
+  padding-inline: 2px !important;
+  font-size: 7.5px !important;
+}
+
+html body .miniChordArrangementRows .miniChordArrangementEditPatternButton {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  min-height: 30px !important;
+  border-style: dashed !important;
+  background: rgba(255, 255, 255, 0.54) !important;
+  color: #604017 !important;
+}
+
+html body .miniChordArrangementRows .miniChordArrangementEditPatternButton.is-section-custom {
+  border-style: solid !important;
+  border-color: rgba(128, 85, 45, 0.54) !important;
+  background: linear-gradient(180deg, #f6e3b8 0%, #e5bd72 100%) !important;
+  color: #2a1909 !important;
+}
+
 html body .miniChordArrangementActions button.selected {
   border-color: rgba(128, 85, 45, 0.6) !important;
   background: linear-gradient(180deg, #edcf91 0%, #c58b3d 100%) !important;
@@ -62602,6 +63604,12 @@ html body .miniChordRhythmSettingsParts header button {
   font-weight: 900 !important;
 }
 
+html body .miniChordRhythmDefaultLabel {
+  color: rgba(78, 49, 17, 0.72) !important;
+  font-size: 8px !important;
+  font-weight: 950 !important;
+}
+
 html body .miniChordRhythmPresetCards {
   display: grid !important;
   grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.25fr) !important;
@@ -62639,10 +63647,58 @@ html body .miniChordRhythmPresetCards > button svg {
   opacity: 0.78 !important;
 }
 
+html body .miniChordRhythmPresetCards > button i {
+  padding: 2px 3px !important;
+  border-radius: 4px !important;
+  background: rgba(99, 61, 20, 0.12) !important;
+  font-size: 5.5px !important;
+  font-style: normal !important;
+  font-weight: 1000 !important;
+}
+
 html body .miniChordRhythmPresetCards > button.is-modified {
   border-color: rgba(128, 85, 45, 0.54) !important;
   background: linear-gradient(180deg, #f6e3b8 0%, #e5bd72 100%) !important;
   color: #2a1909 !important;
+}
+
+html body .miniChordRhythmPresetCards > button.selected {
+  border-color: rgba(83, 52, 17, 0.74) !important;
+  box-shadow: inset 0 0 0 1px rgba(83, 52, 17, 0.3) !important;
+}
+
+html body .miniChordRhythmEditSelectedButton {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  min-height: 31px !important;
+  border: 1px dashed rgba(126, 84, 25, 0.34) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  color: #604017 !important;
+  font-size: 8px !important;
+  font-weight: 950 !important;
+}
+
+@media (max-width: 719px) {
+  html body .miniChordArrangementActions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+  }
+
+  html body .miniChordArrangementActions > button:last-child {
+    grid-column: 2 !important;
+  }
+}
+
+@media (min-width: 720px) {
+  html body .miniChordArrangementActions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+  }
 }
 
 html body .miniChordRhythmSettingsActions button {
@@ -62711,6 +63767,309 @@ html body .miniChordRhythmResetConfirmButton {
   border-color: rgba(139, 73, 38, 0.5) !important;
   background: linear-gradient(180deg, #d8a45e 0%, #a66532 100%) !important;
   color: #fffaf0 !important;
+}
+
+/* Shared accompaniment surface: Mini Chord and rhythm training render this exact component. */
+html body .sharedAccompanimentPanel {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 6px 0 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(207, 157, 73, 0.42) !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(180deg, rgba(238, 203, 132, 0.12), rgba(56, 37, 16, 0.18)),
+    rgba(9, 9, 7, 0.94) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 238, 188, 0.08),
+    0 12px 24px rgba(0, 0, 0, 0.26) !important;
+}
+
+html body .sharedAccompanimentPanel > summary {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 36px !important;
+  padding: 0 10px !important;
+  cursor: pointer !important;
+  list-style: none !important;
+  border-bottom: 1px solid rgba(207, 157, 73, 0.22) !important;
+  color: #ffe7aa !important;
+}
+
+html body .sharedAccompanimentPanel > summary::-webkit-details-marker {
+  display: none !important;
+}
+
+html body .sharedAccompanimentPanel > summary span {
+  min-width: 0 !important;
+  color: #ffe7aa !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+}
+
+html body .sharedAccompanimentPanel > summary b {
+  color: rgba(244, 215, 154, 0.72) !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+html body .sharedAccompanimentPanel > summary::after {
+  content: "접기" !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  min-width: 34px !important;
+  height: 22px !important;
+  border: 1px solid rgba(207, 157, 73, 0.32) !important;
+  border-radius: 999px !important;
+  background: rgba(0, 0, 0, 0.22) !important;
+  color: rgba(244, 215, 154, 0.8) !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+}
+
+html body .sharedAccompanimentPanel:not([open]) > summary {
+  border-bottom: 0 !important;
+}
+
+html body .sharedAccompanimentPanel:not([open]) > summary::after {
+  content: "펼침" !important;
+}
+
+html body .sharedAccompanimentPanel .sharedAccompanimentSettingsBar {
+  display: flex !important;
+  justify-content: flex-end !important;
+  min-width: 0 !important;
+  padding: 7px 10px !important;
+  border-bottom: 1px solid rgba(207, 157, 73, 0.22) !important;
+  background: rgba(0, 0, 0, 0.11) !important;
+}
+
+html body .sharedAccompanimentPanel .sharedAccompanimentSettingsBar button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  min-height: 28px !important;
+  padding: 0 9px !important;
+  border: 1px solid rgba(207, 157, 73, 0.34) !important;
+  border-radius: 8px !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  color: rgba(255, 231, 170, 0.88) !important;
+  font-size: 9px !important;
+  font-weight: 950 !important;
+  white-space: nowrap !important;
+}
+
+html body .sharedAccompanimentPanel .sharedAccompanimentRows {
+  display: grid !important;
+  gap: 0 !important;
+}
+
+html body .sharedAccompanimentPanel .miniChordBackingRow {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  padding: 7px 10px 8px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(207, 157, 73, 0.22) !important;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(90deg, rgba(255, 225, 156, 0.04), transparent 48%),
+    rgba(0, 0, 0, 0.08) !important;
+}
+
+html body .sharedAccompanimentPanel .miniChordBackingRow:last-child {
+  border-bottom: 0 !important;
+}
+
+html body .sharedAccompanimentPanel .miniChordBackingControlLine {
+  display: grid !important;
+  grid-template-columns: 40px minmax(0, 1fr) 34px !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+}
+
+html body .sharedAccompanimentPanel .miniChordPartMeter,
+html body .sharedAccompanimentPanel .miniChordPartMeter strong {
+  color: #ffe7aa !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+}
+
+html body .sharedAccompanimentPanel .miniChordPowerToggle {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  min-height: 24px !important;
+  padding: 0 !important;
+  border: 1px solid rgba(207, 157, 73, 0.34) !important;
+  border-radius: 8px !important;
+  background: linear-gradient(180deg, rgba(34, 28, 20, 0.96), rgba(8, 8, 7, 0.98)) !important;
+  color: rgba(244, 215, 154, 0.72) !important;
+}
+
+html body .sharedAccompanimentPanel .miniChordPowerToggle.is-on {
+  border-color: rgba(124, 222, 145, 0.58) !important;
+  background: linear-gradient(180deg, rgba(36, 77, 42, 0.95), rgba(13, 30, 16, 0.98)) !important;
+  color: #e8ffdd !important;
+  box-shadow: 0 0 12px rgba(100, 229, 126, 0.16) !important;
+}
+
+html body .sharedAccompanimentPanel .miniChordVolumeRail,
+html body .sharedAccompanimentPanel .miniChordVolumeRail input {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+html body .sharedAccompanimentPanel .miniChordVolumeRail input {
+  accent-color: #d8a94e !important;
+}
+
+html body .sharedAccompanimentPanel .miniChordBeatOptions {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+}
+
+html body .sharedAccompanimentPanel .miniChordBeatOptions button {
+  min-width: 0 !important;
+  min-height: 30px !important;
+  padding: 0 2px !important;
+  border: 1px solid rgba(207, 157, 73, 0.28) !important;
+  border-radius: 7px !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  color: rgba(244, 215, 154, 0.78) !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+html body .sharedAccompanimentPanel .miniChordBeatOptions button.selected,
+html body .sharedAccompanimentPanel .miniChordBeatOptions button:hover {
+  border-color: rgba(255, 218, 137, 0.86) !important;
+  background: linear-gradient(180deg, #d8a94e 0%, #7b521d 100%) !important;
+  color: #080705 !important;
+}
+
+html body .chordTransitionPanel > .sharedAccompanimentPanel--training {
+  align-self: stretch !important;
+  margin-top: 8px !important;
+}
+
+html body .app.theme-light.theme-light .sharedAccompanimentPanel {
+  border-color: #d0bb8e !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(247, 239, 224, 0.96)), #fbf8ef !important;
+  color: #1f2429 !important;
+  box-shadow: 0 10px 18px rgba(91, 78, 55, 0.11), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+html body .app.theme-light.theme-light .sharedAccompanimentPanel > summary {
+  border-bottom-color: rgba(151, 117, 60, 0.22) !important;
+  background: rgba(255, 255, 255, 0.28) !important;
+  color: #1f2429 !important;
+}
+
+html body .app.theme-light.theme-light .sharedAccompanimentPanel > summary span {
+  color: #15191d !important;
+}
+
+html body .app.theme-light.theme-light .sharedAccompanimentPanel > summary b {
+  color: #75674f !important;
+}
+
+html body .app.theme-light.theme-light .sharedAccompanimentPanel > summary::after {
+  border-color: #d3c6aa !important;
+  background: #f4ead8 !important;
+  color: #675335 !important;
+}
+
+html body .app.theme-light.theme-light .sharedAccompanimentPanel .sharedAccompanimentSettingsBar,
+html body .app.theme-light.theme-light .sharedAccompanimentPanel .miniChordBackingRow {
+  border-bottom-color: rgba(151, 117, 60, 0.18) !important;
+  background: rgba(255, 255, 255, 0.36) !important;
+}
+
+html body .app.theme-light.theme-light .sharedAccompanimentPanel .sharedAccompanimentSettingsBar button,
+html body .app.theme-light.theme-light .sharedAccompanimentPanel .miniChordBeatOptions button {
+  border-color: #d3c6aa !important;
+  background: linear-gradient(180deg, #fffdf8, #f1eadf) !important;
+  color: #1f2429 !important;
+}
+
+html body .app.theme-light.theme-light .sharedAccompanimentPanel .miniChordPartMeter,
+html body .app.theme-light.theme-light .sharedAccompanimentPanel .miniChordPartMeter strong {
+  color: #15191d !important;
+}
+
+html body .app.theme-light.theme-light .sharedAccompanimentPanel .miniChordPowerToggle {
+  border-color: #c7b893 !important;
+  background: linear-gradient(180deg, #fffdf8, #eee5d5) !important;
+  color: #6f6250 !important;
+}
+
+html body .app.theme-light.theme-light .sharedAccompanimentPanel .miniChordPowerToggle.is-on {
+  border-color: #7ca46d !important;
+  background: linear-gradient(180deg, #edf8e7, #d8eccf) !important;
+  color: #2f7d42 !important;
+}
+
+html body .app.theme-light.theme-light .sharedAccompanimentPanel .miniChordBeatOptions button.selected,
+html body .app.theme-light.theme-light .sharedAccompanimentPanel .miniChordBeatOptions button:hover {
+  border-color: #2b2f32 !important;
+  background: #2b2f32 !important;
+  color: #fff7e4 !important;
+}
+
+@media (max-width: 719px) {
+  html body .chordTransitionPanel > .sharedAccompanimentPanel--training {
+    margin-top: 5px !important;
+  }
+
+  html body .sharedAccompanimentPanel > summary {
+    min-height: 34px !important;
+    padding: 0 8px !important;
+  }
+
+  html body .sharedAccompanimentPanel > summary b {
+    display: none !important;
+  }
+
+  html body .sharedAccompanimentPanel .sharedAccompanimentSettingsBar {
+    padding: 6px 8px !important;
+  }
+
+  html body .sharedAccompanimentPanel .miniChordBackingRow {
+    padding: 7px 8px 8px !important;
+  }
+
+  html body .sharedAccompanimentPanel .miniChordBackingControlLine {
+    grid-template-columns: 39px minmax(0, 1fr) 32px !important;
+    gap: 5px !important;
+  }
+
+  html body .sharedAccompanimentPanel .miniChordBeatOptions {
+    gap: 3px !important;
+  }
+
+  html body .sharedAccompanimentPanel .miniChordBeatOptions button {
+    min-height: 29px !important;
+    padding: 0 1px !important;
+    font-size: 10px !important;
+  }
 }
 
 html body .miniChordEditToolbar {
@@ -63075,24 +64434,24 @@ html body .shooterSkinConfigurator .shooterMapPickerGrid .shooterMapCard--defaul
   align-content: center;
 }
 
-/* Three vertical rarity lines: Normal, Epic and Legendary. */
+/* Three vertical instrument lines: acoustic, electric and bass. */
 html body .shooterSkinConfigurator .shooterGuitarPickerList {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: start;
   gap: 5px;
 }
 
-html body .shooterSkinConfigurator .shooterGuitarRaritySection {
+html body .shooterSkinConfigurator .shooterGuitarCategorySection {
   align-content: start;
   min-width: 0;
 }
 
-html body .shooterSkinConfigurator .shooterGuitarRaritySection .shooterSkinSectionHeader {
+html body .shooterSkinConfigurator .shooterGuitarCategorySection .shooterSkinSectionHeader {
   justify-content: center;
   text-align: center;
 }
 
-html body .shooterSkinConfigurator .shooterGuitarRaritySection .shooterSkinSectionHeader::after {
+html body .shooterSkinConfigurator .shooterGuitarCategorySection .shooterSkinSectionHeader::after {
   display: none;
 }
 
@@ -63758,8 +65117,8 @@ html body .shooterSkinConfigurator :is(
   }
 }
 
-/* Mobile shooter stage: one continuous map with a lightweight game HUD. */
-@media (max-width: 680px) {
+/* Shared shooter stage: the mobile HUD is the visual master at every app size. */
+@media (max-width: 680px), (min-width: 1024px) {
   html body main.app.app.app.shooterMode {
     --shooter-mobile-nav-space: calc(88px + env(safe-area-inset-bottom, 0px));
     position: fixed !important;
@@ -63819,7 +65178,7 @@ html body .shooterSkinConfigurator :is(
     touch-action: manipulation;
   }
 
-  html body main.app.app.app.shooterMode .shooterArena:not(.shooterArena--imageMap) {
+  html body main.app.app.app.shooterMode .shooterArena:not(.shooterArena--imageMap):not(.shooterArena--layeredMap) {
     background-image:
       linear-gradient(90deg, rgba(1, 5, 7, 0.7), transparent 22%, transparent 78%, rgba(1, 5, 7, 0.72)),
       linear-gradient(180deg, rgba(0, 0, 0, 0.24), transparent 20%, transparent 70%, rgba(0, 0, 0, 0.32)),
@@ -63830,8 +65189,8 @@ html body .shooterSkinConfigurator :is(
   }
 
   html body main.app.app.app.shooterMode .shooterArena.shooterArena--imageMap {
-    background-position: center, center, center top !important;
-    background-size: 100% 100%, 100% 100%, cover !important;
+    background-position: center, center, var(--shooter-map-position, center top) !important;
+    background-size: 100% 100%, 100% 100%, var(--shooter-map-size, cover) !important;
   }
 
   html body main.app.app.app.shooterMode .shooterArena::after {
@@ -64963,5 +66322,666 @@ html body .miniChordChordPopover.miniChordFloatingChordPopover.miniChordMeasureE
 
   html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordBar.is-arrangement-selected .miniChordArrangementRangeTag {
     display: none !important;
+  }
+}
+
+/* Final shooter lobby transparency lock. Keep this after theme polish so the
+   current map remains visible behind the Start and Skin Settings controls. */
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
+  width: min(216px, calc(100% - 46px)) !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+  backdrop-filter: none !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu::before,
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu::after,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu::before,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu::after {
+  display: none !important;
+  content: none !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel {
+  gap: 5px !important;
+  width: 100% !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  place-items: center !important;
+  width: 100% !important;
+  height: 41px !important;
+  min-height: 41px !important;
+  padding: 4px 12px !important;
+  border: 1px solid rgba(255, 225, 164, 0.2) !important;
+  border-radius: 12px !important;
+  background: rgba(3, 10, 13, 0.09) !important;
+  color: rgba(255, 224, 158, 0.94) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  filter: none !important;
+  overflow: hidden !important;
+  backdrop-filter: blur(0.8px) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary,
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--primary {
+  border-color: rgba(255, 226, 164, 0.28) !important;
+  background: rgba(3, 10, 13, 0.13) !important;
+  color: rgba(255, 231, 178, 0.98) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton::before,
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton::after,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton::before,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton::after,
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButtonSheen,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButtonSheen,
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu :is(.shooterStartPanelIcon, .shooterStartPanelButtonDecor, .shooterStartPanelGhostGuitar),
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu :is(.shooterStartPanelIcon, .shooterStartPanelButtonDecor, .shooterStartPanelGhostGuitar) {
+  display: none !important;
+  content: none !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelLabel,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelLabel {
+  grid-column: 1 !important;
+  gap: 2px !important;
+  padding: 0 !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong {
+  color: currentColor !important;
+  font-size: 17px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.02em !important;
+  text-shadow: 0 1px 3px rgba(0, 7, 10, 0.92), 0 0 8px rgba(0, 7, 10, 0.42) !important;
+}
+
+html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small {
+  color: rgba(255, 220, 150, 0.72) !important;
+  font-size: 7px !important;
+  letter-spacing: 0.18em !important;
+  text-shadow: 0 1px 3px rgba(0, 7, 10, 0.96) !important;
+}
+
+@media (max-width: 1023px) {
+  html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+  html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
+    top: 72% !important;
+    width: min(208px, calc(100% - 54px)) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  html body .desktopLayout .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+  html body .desktopLayout main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
+    top: 68% !important;
+  }
+}
+
+/* Mobile shooter lobby: a legible text menu that leaves the map artwork open. */
+@media (max-width: 767px) {
+  html body .mobileLayout .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+  html body .mobileLayout main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
+    top: 59% !important;
+    width: min(174px, calc(100% - 88px)) !important;
+  }
+
+  html body .mobileLayout .app.app.app .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel,
+  html body .mobileLayout main.app.app.app .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel {
+    gap: 1px !important;
+  }
+
+  html body .mobileLayout .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+  html body .mobileLayout main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+  html body .mobileLayout .app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+  html body .mobileLayout main.app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton {
+    position: relative !important;
+    width: 100% !important;
+    height: 39px !important;
+    min-height: 39px !important;
+    padding: 3px 8px 5px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    backdrop-filter: none !important;
+  }
+
+  html body .mobileLayout .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton::after,
+  html body .mobileLayout main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton::after {
+    position: absolute !important;
+    right: 31% !important;
+    bottom: 2px !important;
+    left: 31% !important;
+    display: block !important;
+    height: 1px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    content: "" !important;
+    background: linear-gradient(90deg, transparent, rgba(255, 221, 145, 0.7), transparent) !important;
+    box-shadow: 0 0 7px rgba(255, 201, 95, 0.18) !important;
+    opacity: 0.8 !important;
+  }
+
+  html body .mobileLayout .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelLabel,
+  html body .mobileLayout main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelLabel {
+    gap: 0 !important;
+  }
+
+  html body .mobileLayout .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+  html body .mobileLayout main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+  html body .mobileLayout .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+  html body .mobileLayout main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong {
+    color: #ffe2a3 !important;
+    font-size: 17px !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.035em !important;
+    line-height: 1.05 !important;
+    text-shadow:
+      0 1px 0 rgba(37, 22, 6, 0.98),
+      0 2px 5px rgba(0, 7, 10, 0.95),
+      0 0 8px rgba(255, 191, 75, 0.38) !important;
+  }
+
+  html body .mobileLayout .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+  html body .mobileLayout main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+  html body .mobileLayout .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+  html body .mobileLayout main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small {
+    color: rgba(255, 236, 194, 0.84) !important;
+    font-size: 6px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.24em !important;
+    line-height: 1.1 !important;
+    text-shadow: 0 1px 3px rgba(0, 7, 10, 0.98) !important;
+  }
+
+  html body .mobileLayout .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--secondary .shooterStartPanelLabel strong,
+  html body .mobileLayout main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--secondary .shooterStartPanelLabel strong {
+    color: #f7d98d !important;
+    font-size: 15px !important;
+  }
+
+  html body .mobileLayout .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--mapEdit .shooterStartPanelLabel strong,
+  html body .mobileLayout main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--mapEdit .shooterStartPanelLabel strong {
+    color: #b9f4ef !important;
+    font-size: 13px !important;
+    text-shadow: 0 1px 4px rgba(0, 9, 12, 0.98), 0 0 7px rgba(81, 230, 219, 0.26) !important;
+  }
+
+  html body .mobileLayout .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton:is(:hover, :focus-visible)::after,
+  html body .mobileLayout main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton:is(:hover, :focus-visible)::after {
+    right: 22% !important;
+    left: 22% !important;
+    opacity: 1 !important;
+  }
+}
+
+@media (max-width: 767px) {
+  html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu,
+  html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
+    top: 59% !important;
+    width: min(174px, calc(100% - 88px)) !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel {
+    gap: 1px !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+  html body main.app.app.app .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+  html body .app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton,
+  html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu .shooterStartPanelButton {
+    position: relative !important;
+    width: 100% !important;
+    height: 39px !important;
+    min-height: 39px !important;
+    padding: 3px 8px 5px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    backdrop-filter: none !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton::after,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton::after {
+    position: absolute !important;
+    right: 31% !important;
+    bottom: 2px !important;
+    left: 31% !important;
+    display: block !important;
+    height: 1px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    content: "" !important;
+    background: linear-gradient(90deg, transparent, rgba(255, 221, 145, 0.7), transparent) !important;
+    box-shadow: 0 0 7px rgba(255, 201, 95, 0.18) !important;
+    opacity: 0.8 !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelLabel,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelLabel {
+    gap: 0 !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+  html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong,
+  html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel strong {
+    color: #ffe2a3 !important;
+    font-size: 17px !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.035em !important;
+    line-height: 1.05 !important;
+    text-shadow: 0 1px 0 rgba(37, 22, 6, 0.98), 0 2px 5px rgba(0, 7, 10, 0.95), 0 0 8px rgba(255, 191, 75, 0.38) !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+  html body .app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small,
+  html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton .shooterStartPanelLabel small {
+    color: rgba(255, 236, 194, 0.84) !important;
+    font-size: 6px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.24em !important;
+    line-height: 1.1 !important;
+    text-shadow: 0 1px 3px rgba(0, 7, 10, 0.98) !important;
+  }
+
+  html body .app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--secondary .shooterStartPanelLabel strong,
+  html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shooterStartPanelButton--secondary .shooterStartPanelLabel strong {
+    color: #f7d98d !important;
+    font-size: 15px !important;
+  }
+}
+
+/* Desktop shooter keeps the mobile 390×844 composition without raster
+   scaling; the editor workspace remains a separate wide inspector layout. */
+@media (min-width: 681px) {
+  html body .desktopLayout main.app.app.app.shooterMode > .shooterPanel:not(.shooterPanel--mapEditorWorkspace),
+  html body .desktopLayout .app.app.app.shooterMode > .shooterPanel:not(.shooterPanel--mapEditorWorkspace) {
+    justify-items: center !important;
+  }
+
+  html body .desktopLayout main.app.app.app.shooterMode > .shooterPanel:not(.shooterPanel--mapEditorWorkspace) > :is(
+    .modeHelper,
+    .shooterDifficultyPanel,
+    .shooterFretGuide,
+    .shooterRecordsPanel
+  ),
+  html body .desktopLayout .app.app.app.shooterMode > .shooterPanel:not(.shooterPanel--mapEditorWorkspace) > :is(
+    .modeHelper,
+    .shooterDifficultyPanel,
+    .shooterFretGuide,
+    .shooterRecordsPanel
+  ) {
+    width: min(390px, 100%) !important;
+    max-width: 390px !important;
+  }
+
+  html body .desktopLayout main.app.app.app.shooterMode .shooterArena.shooterArena--desktopPortrait,
+  html body .desktopLayout .app.app.app.shooterMode .shooterArena.shooterArena--desktopPortrait {
+    width: auto !important;
+    max-width: 390px !important;
+    height: min(844px, calc(100dvh - 190px)) !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 190px) !important;
+    aspect-ratio: 390 / 844 !important;
+    margin-inline: auto !important;
+    contain: layout paint !important;
+  }
+
+  html body .desktopLayout main.app.app.app.shooterMode > .hud > .modeSwitch,
+  html body .desktopLayout .app.app.app.shooterMode > .hud > .modeSwitch {
+    width: min(390px, calc(100vw - 24px)) !important;
+    max-width: 390px !important;
+  }
+
+  html body .desktopLayout .shooterArena--desktopPortrait .guitarPlayer {
+    left: 50% !important;
+    width: 56px !important;
+    height: 83px !important;
+  }
+
+  html body .desktopLayout .shooterArena--desktopPortrait .guitarPlayer:is(
+    .guitarPlayer--acoustic-real-trace,
+    .guitarPlayer--acoustic-epic-trace,
+    .guitarPlayer--acoustic-legendary-core-trace,
+    .guitarPlayer--rifflab-legendary-cutaway,
+    .guitarPlayer--rifflab-common-cutaway,
+    .guitarPlayer--rifflab-epic-cutaway,
+    .guitarPlayer--rifflab-onyx-pearl-dreadnought,
+    .guitarPlayer--rifflab-astral-relic-cutaway,
+    .guitarPlayer--rifflab-temple-grace-cutaway,
+    .guitarPlayer--rifflab-frost-spirit-cutaway
+  ) {
+    width: 57px !important;
+    height: 127px !important;
+  }
+
+  html body .desktopLayout .shooterArena--desktopPortrait .guitarPlayerAsset {
+    width: 56px !important;
+  }
+
+  html body .desktopLayout .shooterArena--desktopPortrait .guitarPlayerAsset.guitarAssetImage {
+    width: auto !important;
+    height: 88px !important;
+    max-height: 88px !important;
+  }
+
+  html body .desktopLayout .shooterArena--desktopPortrait .guitarPlayerAsset.guitarAssetImage:is(
+    .guitarAssetImage--acoustic-real-trace,
+    .guitarAssetImage--acoustic-epic-trace,
+    .guitarAssetImage--acoustic-legendary-core-trace,
+    .guitarAssetImage--rifflab-legendary-cutaway,
+    .guitarAssetImage--rifflab-common-cutaway,
+    .guitarAssetImage--rifflab-epic-cutaway,
+    .guitarAssetImage--rifflab-onyx-pearl-dreadnought,
+    .guitarAssetImage--rifflab-astral-relic-cutaway,
+    .guitarAssetImage--rifflab-temple-grace-cutaway,
+    .guitarAssetImage--rifflab-frost-spirit-cutaway
+  ) {
+    bottom: 0 !important;
+    height: 127px !important;
+    max-height: 127px !important;
+  }
+}
+
+/* High-resolution JP sprites: the PNG edge is the complete visual boundary. */
+html body .shooterArena .guitarPlayer:is(.guitarPlayer--acoustic-real-trace, .guitarPlayer--jp-d-black, .guitarPlayer--jp-c-mahogany, .guitarPlayer--jp-c-green, .guitarPlayer--jp-d-bloom, .guitarPlayer--jp-d-phoenix, .guitarPlayer--jp-sunburst-classic, .guitarPlayer--jp-e-black-gold, .guitarPlayer--jp-jazz, .guitarPlayer--jp-resonator, .guitarPlayer--jp-phoenix, .guitarPlayer--jp-sunburst-gold-bass, .guitarPlayer--jp-aqua-blue),
+html body .shooterArena .guitarPlayer:is(.guitarPlayer--acoustic-real-trace, .guitarPlayer--jp-d-black, .guitarPlayer--jp-c-mahogany, .guitarPlayer--jp-c-green, .guitarPlayer--jp-d-bloom, .guitarPlayer--jp-d-phoenix, .guitarPlayer--jp-sunburst-classic, .guitarPlayer--jp-e-black-gold, .guitarPlayer--jp-jazz, .guitarPlayer--jp-resonator, .guitarPlayer--jp-phoenix, .guitarPlayer--jp-sunburst-gold-bass, .guitarPlayer--jp-aqua-blue).shooting,
+html body .shooterArena .guitarPlayer:is(.guitarPlayer--acoustic-real-trace, .guitarPlayer--jp-d-black, .guitarPlayer--jp-c-mahogany, .guitarPlayer--jp-c-green, .guitarPlayer--jp-d-bloom, .guitarPlayer--jp-d-phoenix, .guitarPlayer--jp-sunburst-classic, .guitarPlayer--jp-e-black-gold, .guitarPlayer--jp-jazz, .guitarPlayer--jp-resonator, .guitarPlayer--jp-phoenix, .guitarPlayer--jp-sunburst-gold-bass, .guitarPlayer--jp-aqua-blue) .guitarPlayerAsset,
+html body .shooterSkinLiveGuitar:is(.guitarAssetImage--acoustic-real-trace, .guitarAssetImage--jp-d-black, .guitarAssetImage--jp-c-mahogany, .guitarAssetImage--jp-c-green, .guitarAssetImage--jp-d-bloom, .guitarAssetImage--jp-d-phoenix, .guitarAssetImage--jp-sunburst-classic, .guitarAssetImage--jp-e-black-gold, .guitarAssetImage--jp-jazz, .guitarAssetImage--jp-resonator, .guitarAssetImage--jp-phoenix, .guitarAssetImage--jp-sunburst-gold-bass, .guitarAssetImage--jp-aqua-blue),
+html body .shooterSkinConfigurator .shooterGuitarPickerAsset:is(.guitarAssetImage--acoustic-real-trace, .guitarAssetImage--jp-d-black, .guitarAssetImage--jp-c-mahogany, .guitarAssetImage--jp-c-green, .guitarAssetImage--jp-d-bloom, .guitarAssetImage--jp-d-phoenix, .guitarAssetImage--jp-sunburst-classic, .guitarAssetImage--jp-e-black-gold, .guitarAssetImage--jp-jazz, .guitarAssetImage--jp-resonator, .guitarAssetImage--jp-phoenix, .guitarAssetImage--jp-sunburst-gold-bass, .guitarAssetImage--jp-aqua-blue),
+html body .shooterSkinConfigurator .shooterGuitarPickerItem.selected .shooterGuitarPickerAsset:is(.guitarAssetImage--acoustic-real-trace, .guitarAssetImage--jp-d-black, .guitarAssetImage--jp-c-mahogany, .guitarAssetImage--jp-c-green, .guitarAssetImage--jp-d-bloom, .guitarAssetImage--jp-d-phoenix, .guitarAssetImage--jp-sunburst-classic, .guitarAssetImage--jp-e-black-gold, .guitarAssetImage--jp-jazz, .guitarAssetImage--jp-resonator, .guitarAssetImage--jp-phoenix, .guitarAssetImage--jp-sunburst-gold-bass, .guitarAssetImage--jp-aqua-blue) {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html body .shooterArena .guitarPlayer:is(.guitarPlayer--jp-d-black, .guitarPlayer--jp-c-mahogany, .guitarPlayer--jp-c-green, .guitarPlayer--jp-d-bloom, .guitarPlayer--jp-d-phoenix, .guitarPlayer--jp-sunburst-classic, .guitarPlayer--jp-e-black-gold, .guitarPlayer--jp-jazz, .guitarPlayer--jp-resonator, .guitarPlayer--jp-phoenix, .guitarPlayer--jp-sunburst-gold-bass, .guitarPlayer--jp-aqua-blue) {
+  width: 60px !important;
+  height: 137px !important;
+}
+
+html body .shooterArena .guitarPlayer:is(.guitarPlayer--acoustic-real-trace, .guitarPlayer--jp-d-black, .guitarPlayer--jp-c-mahogany, .guitarPlayer--jp-c-green, .guitarPlayer--jp-d-bloom, .guitarPlayer--jp-d-phoenix, .guitarPlayer--jp-sunburst-classic, .guitarPlayer--jp-e-black-gold, .guitarPlayer--jp-jazz, .guitarPlayer--jp-resonator, .guitarPlayer--jp-phoenix, .guitarPlayer--jp-sunburst-gold-bass, .guitarPlayer--jp-aqua-blue) .guitarPlayerMuzzle {
+  top: 1px !important;
+}
+
+html body .shooterArena .guitarPlayer:is(.guitarPlayer--acoustic-real-trace, .guitarPlayer--jp-d-black, .guitarPlayer--jp-c-mahogany, .guitarPlayer--jp-c-green, .guitarPlayer--jp-d-bloom, .guitarPlayer--jp-d-phoenix, .guitarPlayer--jp-sunburst-classic, .guitarPlayer--jp-e-black-gold, .guitarPlayer--jp-jazz, .guitarPlayer--jp-resonator, .guitarPlayer--jp-phoenix, .guitarPlayer--jp-sunburst-gold-bass, .guitarPlayer--jp-aqua-blue) .guitarPlayerAsset.guitarAssetImage {
+  width: auto !important;
+  height: 137px !important;
+  max-height: 137px !important;
+  max-width: none !important;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
+}
+
+@media (max-width: 680px) {
+  html body .shooterArena .guitarPlayer:is(.guitarPlayer--jp-d-black, .guitarPlayer--jp-c-mahogany, .guitarPlayer--jp-c-green, .guitarPlayer--jp-d-bloom, .guitarPlayer--jp-d-phoenix, .guitarPlayer--jp-sunburst-classic, .guitarPlayer--jp-e-black-gold, .guitarPlayer--jp-jazz, .guitarPlayer--jp-resonator, .guitarPlayer--jp-phoenix, .guitarPlayer--jp-sunburst-gold-bass, .guitarPlayer--jp-aqua-blue) {
+    width: 57px !important;
+    height: 127px !important;
+  }
+
+  html body .shooterArena .guitarPlayer:is(.guitarPlayer--acoustic-real-trace, .guitarPlayer--jp-d-black, .guitarPlayer--jp-c-mahogany, .guitarPlayer--jp-c-green, .guitarPlayer--jp-d-bloom, .guitarPlayer--jp-d-phoenix, .guitarPlayer--jp-sunburst-classic, .guitarPlayer--jp-e-black-gold, .guitarPlayer--jp-jazz, .guitarPlayer--jp-resonator, .guitarPlayer--jp-phoenix, .guitarPlayer--jp-sunburst-gold-bass, .guitarPlayer--jp-aqua-blue) .guitarPlayerAsset.guitarAssetImage {
+    height: 152px !important;
+    max-height: 152px !important;
+  }
+
+  html body .shooterArena .guitarPlayer:is(.guitarPlayer--acoustic-real-trace, .guitarPlayer--jp-d-black, .guitarPlayer--jp-c-mahogany, .guitarPlayer--jp-c-green, .guitarPlayer--jp-d-bloom, .guitarPlayer--jp-d-phoenix, .guitarPlayer--jp-sunburst-classic, .guitarPlayer--jp-e-black-gold, .guitarPlayer--jp-jazz, .guitarPlayer--jp-resonator, .guitarPlayer--jp-phoenix, .guitarPlayer--jp-sunburst-gold-bass, .guitarPlayer--jp-aqua-blue) .guitarPlayerMuzzle {
+    top: -24px !important;
+  }
+}
+
+@media (min-width: 681px) {
+  html body .desktopLayout .shooterArena--desktopPortrait .guitarPlayer:is(.guitarPlayer--jp-d-black, .guitarPlayer--jp-c-mahogany, .guitarPlayer--jp-c-green, .guitarPlayer--jp-d-bloom, .guitarPlayer--jp-d-phoenix, .guitarPlayer--jp-sunburst-classic, .guitarPlayer--jp-e-black-gold, .guitarPlayer--jp-jazz, .guitarPlayer--jp-resonator, .guitarPlayer--jp-phoenix, .guitarPlayer--jp-sunburst-gold-bass, .guitarPlayer--jp-aqua-blue) {
+    width: 57px !important;
+    height: 127px !important;
+  }
+
+  html body .desktopLayout .shooterArena--desktopPortrait .guitarPlayer:is(.guitarPlayer--jp-d-black, .guitarPlayer--jp-c-mahogany, .guitarPlayer--jp-c-green, .guitarPlayer--jp-d-bloom, .guitarPlayer--jp-d-phoenix, .guitarPlayer--jp-sunburst-classic, .guitarPlayer--jp-e-black-gold, .guitarPlayer--jp-jazz, .guitarPlayer--jp-resonator, .guitarPlayer--jp-phoenix, .guitarPlayer--jp-sunburst-gold-bass, .guitarPlayer--jp-aqua-blue) .guitarPlayerAsset.guitarAssetImage {
+    bottom: 0 !important;
+    height: 127px !important;
+    max-height: 127px !important;
+  }
+}
+
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-d-black .guitarPlayerMuzzle {
+  top: 2px !important;
+}
+
+@media (max-width: 680px) {
+  html body .shooterArena .guitarPlayer.guitarPlayer--jp-d-black .guitarPlayerMuzzle {
+    top: -23px !important;
+  }
+}
+
+html body .shooterArena .guitarPlayer:is(.guitarPlayer--jp-d-phoenix, .guitarPlayer--jp-resonator, .guitarPlayer--jp-e-black-gold, .guitarPlayer--jp-sunburst-gold-bass) .guitarPlayerMuzzle {
+  top: 0 !important;
+}
+
+@media (max-width: 680px) {
+  html body .shooterArena .guitarPlayer:is(.guitarPlayer--jp-d-phoenix, .guitarPlayer--jp-resonator, .guitarPlayer--jp-e-black-gold, .guitarPlayer--jp-sunburst-gold-bass) .guitarPlayerMuzzle {
+    top: -25px !important;
+  }
+}
+
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-aqua-blue .guitarPlayerMuzzle {
+  top: 1.35px !important;
+}
+
+@media (max-width: 680px) {
+  html body .shooterArena .guitarPlayer.guitarPlayer--jp-aqua-blue .guitarPlayerMuzzle {
+    top: -23.5px !important;
+  }
+}
+
+/* JP B. RED keeps the source PNG proportions while sharing legacy gameplay geometry. */
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-b-red,
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-b-red.shooting,
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-b-red .guitarPlayerAsset,
+html body .shooterSkinLiveGuitar.guitarAssetImage--jp-b-red,
+html body .shooterSkinConfigurator .shooterGuitarPickerAsset.guitarAssetImage--jp-b-red,
+html body .shooterSkinConfigurator .shooterGuitarPickerItem.selected .shooterGuitarPickerAsset.guitarAssetImage--jp-b-red {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-b-red {
+  width: 60px !important;
+  height: 137px !important;
+}
+
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-b-red .guitarPlayerAsset.guitarAssetImage {
+  width: auto !important;
+  height: 137px !important;
+  max-height: 137px !important;
+  max-width: none !important;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
+}
+
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-b-red .guitarPlayerMuzzle {
+  top: 0 !important;
+}
+
+@media (max-width: 680px) {
+  html body .shooterArena .guitarPlayer.guitarPlayer--jp-b-red {
+    width: 57px !important;
+    height: 127px !important;
+  }
+
+  html body .shooterArena .guitarPlayer.guitarPlayer--jp-b-red .guitarPlayerAsset.guitarAssetImage {
+    height: 152px !important;
+    max-height: 152px !important;
+  }
+
+  html body .shooterArena .guitarPlayer.guitarPlayer--jp-b-red .guitarPlayerMuzzle {
+    top: -25px !important;
+  }
+}
+
+@media (min-width: 681px) {
+  html body .desktopLayout .shooterArena--desktopPortrait .guitarPlayer.guitarPlayer--jp-b-red {
+    width: 57px !important;
+    height: 127px !important;
+  }
+
+  html body .desktopLayout .shooterArena--desktopPortrait .guitarPlayer.guitarPlayer--jp-b-red .guitarPlayerAsset.guitarAssetImage {
+    bottom: 0 !important;
+    height: 127px !important;
+    max-height: 127px !important;
+  }
+}
+
+/* JP E. Natural Wood preserves its high-resolution source and legacy hitbox. */
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-e-natural-wood,
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-e-natural-wood.shooting,
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-e-natural-wood .guitarPlayerAsset,
+html body .shooterSkinLiveGuitar.guitarAssetImage--jp-e-natural-wood,
+html body .shooterSkinConfigurator .shooterGuitarPickerAsset.guitarAssetImage--jp-e-natural-wood,
+html body .shooterSkinConfigurator .shooterGuitarPickerItem.selected .shooterGuitarPickerAsset.guitarAssetImage--jp-e-natural-wood {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-e-natural-wood {
+  width: 60px !important;
+  height: 137px !important;
+}
+
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-e-natural-wood .guitarPlayerAsset.guitarAssetImage {
+  width: auto !important;
+  height: 137px !important;
+  max-height: 137px !important;
+  max-width: none !important;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
+}
+
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-e-natural-wood .guitarPlayerMuzzle {
+  top: 0.36px !important;
+}
+
+@media (max-width: 680px) {
+  html body .shooterArena .guitarPlayer.guitarPlayer--jp-e-natural-wood {
+    width: 57px !important;
+    height: 127px !important;
+  }
+
+  html body .shooterArena .guitarPlayer.guitarPlayer--jp-e-natural-wood .guitarPlayerAsset.guitarAssetImage {
+    height: 152px !important;
+    max-height: 152px !important;
+  }
+
+  html body .shooterArena .guitarPlayer.guitarPlayer--jp-e-natural-wood .guitarPlayerMuzzle {
+    top: -24.6px !important;
+  }
+}
+
+@media (min-width: 681px) {
+  html body .desktopLayout .shooterArena--desktopPortrait .guitarPlayer.guitarPlayer--jp-e-natural-wood {
+    width: 57px !important;
+    height: 127px !important;
+  }
+
+  html body .desktopLayout .shooterArena--desktopPortrait .guitarPlayer.guitarPlayer--jp-e-natural-wood .guitarPlayerAsset.guitarAssetImage {
+    bottom: 0 !important;
+    height: 127px !important;
+    max-height: 127px !important;
+  }
+}
+
+/* JP D. CELESTIAL preserves its pearl artwork and shares legacy gameplay geometry. */
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-d-celestial,
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-d-celestial.shooting,
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-d-celestial .guitarPlayerAsset,
+html body .shooterSkinLiveGuitar.guitarAssetImage--jp-d-celestial,
+html body .shooterSkinConfigurator .shooterGuitarPickerAsset.guitarAssetImage--jp-d-celestial,
+html body .shooterSkinConfigurator .shooterGuitarPickerItem.selected .shooterGuitarPickerAsset.guitarAssetImage--jp-d-celestial {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-d-celestial {
+  width: 60px !important;
+  height: 137px !important;
+}
+
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-d-celestial .guitarPlayerAsset.guitarAssetImage {
+  width: auto !important;
+  height: 137px !important;
+  max-height: 137px !important;
+  max-width: none !important;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
+}
+
+html body .shooterArena .guitarPlayer.guitarPlayer--jp-d-celestial .guitarPlayerMuzzle {
+  top: 0 !important;
+}
+
+@media (max-width: 680px) {
+  html body .shooterArena .guitarPlayer.guitarPlayer--jp-d-celestial {
+    width: 57px !important;
+    height: 127px !important;
+  }
+
+  html body .shooterArena .guitarPlayer.guitarPlayer--jp-d-celestial .guitarPlayerAsset.guitarAssetImage {
+    height: 152px !important;
+    max-height: 152px !important;
+  }
+
+  html body .shooterArena .guitarPlayer.guitarPlayer--jp-d-celestial .guitarPlayerMuzzle {
+    top: -25px !important;
+  }
+}
+
+@media (min-width: 681px) {
+  html body .desktopLayout .shooterArena--desktopPortrait .guitarPlayer.guitarPlayer--jp-d-celestial {
+    width: 57px !important;
+    height: 127px !important;
+  }
+
+  html body .desktopLayout .shooterArena--desktopPortrait .guitarPlayer.guitarPlayer--jp-d-celestial .guitarPlayerAsset.guitarAssetImage {
+    bottom: 0 !important;
+    height: 127px !important;
+    max-height: 127px !important;
   }
 }

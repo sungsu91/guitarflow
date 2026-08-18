@@ -225,6 +225,10 @@ export default function useBackingLoop() {
   }, [clearPlaybackTimer, phase]);
 
   useEffect(() => () => {
+    const phaseBeforeDeactivate = phaseRef.current;
+    const playbackPositionMs = audioRef.current
+      ? Math.max(0, audioRef.current.currentTime * 1000)
+      : null;
     clearArmTimer();
     clearPlaybackTimer();
     clearRecordingTimer();
@@ -237,8 +241,17 @@ export default function useBackingLoop() {
     }
     audioRef.current?.pause();
     trimPreviewAudioRef.current?.pause();
+    setTrimPreviewPlaying(false);
     releaseMicrophone();
-  }, [clearArmTimer, clearPlaybackTimer, clearRecordingTimer, clearTrimPreviewTimer, releaseMicrophone]);
+    if (phaseBeforeDeactivate === "playing") {
+      if (playbackPositionMs != null) setCurrentTimeMs(playbackPositionMs);
+      setNotice("화면 이동으로 일시정지 · PLAY로 이어서 재생");
+      setPhaseImmediate("paused");
+    } else if (["armed", "recording", "requesting"].includes(phaseBeforeDeactivate)) {
+      setNotice("화면 이동으로 녹음을 안전하게 정지했어요.");
+      setPhaseImmediate("idle");
+    }
+  }, [clearArmTimer, clearPlaybackTimer, clearRecordingTimer, clearTrimPreviewTimer, releaseMicrophone, setPhaseImmediate]);
 
   const stopRecording = useCallback(() => {
     const mediaRecorder = mediaRecorderRef.current;
@@ -918,9 +931,16 @@ export default function useBackingLoop() {
           return { ...currentRecording, durationMs: actualDurationMs };
         });
       }
+      if (phase === "paused" && currentTimeMs > 0) {
+        try {
+          audio.currentTime = Math.min(currentTimeMs, actualDurationMs || currentTimeMs) / 1000;
+        } catch {
+          // The next PLAY action will retry from the preserved position.
+        }
+      }
     }
     if (phase !== "paused" && phase !== "playing") setCurrentTimeMs(0);
-  }, [phase]);
+  }, [currentTimeMs, phase]);
 
   const hasRecording = Boolean(recording?.blob);
   const durationMs = hasRecording ? Math.max(0, Number(recording.durationMs) || 0) : 0;

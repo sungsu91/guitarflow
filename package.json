@@ -1,4 +1,6 @@
 {
+  "name": "just-play",
+  "version": "0.9.4",
   "type": "module",
   "scripts": {
     "dev": "vite",

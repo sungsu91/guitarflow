@@ -39,19 +39,24 @@ function transformShooterPoint(point, pivot, angleDeg) {
 
 export function createShooterGuitarCollisionGeometry({
   angleDeg = 0,
+  collisionHeight,
   height,
+  muzzleHeight,
+  muzzleHeightScale = 1.008,
   pivotX,
   pivotY,
   width,
 }) {
   const safeWidth = Math.max(1, Number(width) || 1);
-  const safeHeight = Math.max(1, Number(height) || 1);
+  const safeHeight = Math.max(1, Number(collisionHeight) || Number(height) || 1);
+  const safeMuzzleHeight = Math.max(1, Number(muzzleHeight) || Number(height) || safeHeight);
   const pivot = { x: Number(pivotX) || 0, y: Number(pivotY) || 0 };
   const bodyCenter = transformShooterPoint({ x: 0, y: -safeHeight * 0.225 }, pivot, angleDeg);
   const neckStart = transformShooterPoint({ x: 0, y: -safeHeight * 0.78 }, pivot, angleDeg);
   const neckEnd = transformShooterPoint({ x: 0, y: -safeHeight * 0.43 }, pivot, angleDeg);
   const headCenter = transformShooterPoint({ x: 0, y: -safeHeight * 0.895 }, pivot, angleDeg);
-  const muzzlePoint = transformShooterPoint({ x: 0, y: -safeHeight * 1.008 }, pivot, angleDeg);
+  const safeMuzzleHeightScale = Math.max(0, Number(muzzleHeightScale) || 0);
+  const muzzlePoint = transformShooterPoint({ x: 0, y: -safeMuzzleHeight * safeMuzzleHeightScale }, pivot, angleDeg);
 
   return {
     angleDeg,
