@@ -15,5 +15,6 @@ test("app launch and shooter use the requested operational defaults", async () =
     /`\$\{window\.location\.pathname\}\$\{window\.location\.search\}\$\{APP_DEFAULT_ROUTE\}`/,
   );
   assert.match(appSource, /const DEFAULT_SHOOTER_MAP_ID = "river-garden";/);
+  assert.match(appSource, /const SHOOTER_MAP_STORAGE_KEY = "rifflabShooterMapV2";/);
   assert.match(appSource, /localStorage\.setItem\(SHOOTER_MAP_STORAGE_KEY, nextMap\.id\)/);
 });
