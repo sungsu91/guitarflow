@@ -7306,7 +7306,7 @@ const DEFAULT_SHOOTER_EFFECT_LOADOUT = {
   aura: DEFAULT_SHOOTER_AURA_EFFECT_ID,
   floor: DEFAULT_SHOOTER_FLOOR_EFFECT_ID,
 };
-const DEFAULT_SHOOTER_MAP_ID = "rifflab-studio";
+const DEFAULT_SHOOTER_MAP_ID = "river-garden";
 const DEFAULT_SHOOTER_EMBLEM_ID = SHOOTER_EMBLEM_OPTIONS[1]?.id ?? SHOOTER_EMBLEM_OPTIONS[0].id;
 const SHOOTER_GUITAR_CATEGORY_BY_VARIANT_ID = {
   [SHOOTER_TRACE_GUITAR_VARIANT_ID]: SHOOTER_GUITAR_CATEGORIES.ACOUSTIC,
@@ -11407,6 +11407,7 @@ const APP_ROUTES = {
   MINI_CHORD_MAKER: "#mini-chord",
   DESIGN_LAB: "#design-lab",
 };
+const APP_DEFAULT_ROUTE = APP_ROUTES.FRETBOARD_VIEWER;
 
 function isDesignLabEnabled() {
   if (import.meta.env.DEV) return true;
@@ -11416,7 +11417,7 @@ function isDesignLabEnabled() {
 }
 
 function getRouteFromHash(hash) {
-  const normalizedHash = hash || APP_ROUTES.MAIN;
+  const normalizedHash = hash || APP_DEFAULT_ROUTE;
   switch (normalizedHash) {
     case APP_ROUTES.FRETBOARD_VIEWER:
       return { appMode: APP_MODES.FRETBOARD_VIEWER, categoryId: MAIN_DEFAULT_CATEGORY.id };
@@ -11464,7 +11465,7 @@ function getHashFromRoute(appMode, categoryId = MAIN_DEFAULT_CATEGORY.id) {
 }
 
 function getInitialAppRoute() {
-  if (typeof window === "undefined") return getRouteFromHash(APP_ROUTES.MAIN);
+  if (typeof window === "undefined") return getRouteFromHash(APP_DEFAULT_ROUTE);
   return getRouteFromHash(window.location.hash);
 }
 
@@ -20641,9 +20642,9 @@ function App({ onReady }) {
     if (typeof window === "undefined") return undefined;
     if (!window.location.hash) {
       window.history.replaceState(
-        { appRoute: APP_ROUTES.STAGE3 },
+        { appRoute: APP_DEFAULT_ROUTE },
         "",
-        `${window.location.pathname}${window.location.search}${APP_ROUTES.STAGE3}`,
+        `${window.location.pathname}${window.location.search}${APP_DEFAULT_ROUTE}`,
       );
     }
 
