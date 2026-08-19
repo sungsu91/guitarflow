@@ -1,0 +1,299 @@
+[
+  {
+    "instanceId": "lava-guitar-platform-01",
+    "assetId": "lava-guitar-platform",
+    "x": 0.5,
+    "y": 0.9524802938106168,
+    "scale": 2.1500000000000004,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 25,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "lava-geyser-left-upper",
+    "assetId": "lava-geyser",
+    "x": 0.35279728816105765,
+    "y": 0.5598710824376464,
+    "scale": 0.15000000000000002,
+    "rotation": -1,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 41,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 20,
+    "animation": "lava-geyser",
+    "animationSpeed": 2.2
+  },
+  {
+    "instanceId": "lava-boiling-pool-right-upper",
+    "assetId": "lava-boiling-pool",
+    "x": 0.6379695928322341,
+    "y": 0.29575969697653093,
+    "scale": 0.2999999999999999,
+    "rotation": 2,
+    "scaleX": -1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": -28,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 21,
+    "animation": "lava-boil",
+    "animationSpeed": 2.7
+  },
+  {
+    "instanceId": "lava-boiling-pool-left-lower",
+    "assetId": "lava-boiling-pool",
+    "x": 0.3414532230779087,
+    "y": 0.5905342691566453,
+    "scale": 0.31999999999999995,
+    "rotation": -2,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 1470,
+    "tiltX": 0,
+    "tiltY": -40,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 22,
+    "animation": "lava-boil",
+    "animationSpeed": 2.5
+  },
+  {
+    "instanceId": "lava-geyser-right-lower",
+    "assetId": "lava-geyser",
+    "x": 0.6611888396434296,
+    "y": 0.8353156292360616,
+    "scale": 0.18,
+    "rotation": 2,
+    "scaleX": -1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": -50,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 23,
+    "animation": "lava-geyser",
+    "animationSpeed": 2.45
+  },
+  {
+    "instanceId": "lava-baby-dragon-01",
+    "assetId": "ambient-baby-dragon",
+    "x": 0.15677452451880464,
+    "y": 0.9580412197079186,
+    "scale": 0.4899999999999998,
+    "rotation": 0,
+    "scaleX": -1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 27,
+    "animation": "none",
+    "animationSpeed": 1,
+    "creature": {
+      "enabled": true,
+      "idleInterval": 5,
+      "breathChance": 0.5,
+      "sleepChance": 0.2,
+      "sleepDuration": 7.2,
+      "animationSpeed": 1.5,
+      "anchors": []
+    }
+  },
+  {
+    "instanceId": "lava-flying-baby-dragon-01",
+    "assetId": "ambient-flying-baby-dragon",
+    "x": 0.10633902124565192,
+    "y": 0.35558687566828184,
+    "scale": 0.9342240504084847,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1.1104799906412761,
+        "y": 1.063131120469835
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 28,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "lava-tattered-dragon-banner-right-01",
+    "assetId": "tattered-dragon-banner",
+    "x": 0.8207839566841648,
+    "y": 0.922751862856753,
+    "scale": 0.5917389385055488,
+    "rotation": -1,
+    "scaleX": 1,
+    "scaleY": 0.86,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 0.6840268343486604,
+        "y": -0.016057089969936652
+      },
+      {
+        "x": 0.6758345757809665,
+        "y": 0.9655173265312698
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 29,
+    "animation": "none",
+    "animationSpeed": 1
+  }
+]

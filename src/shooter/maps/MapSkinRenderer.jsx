@@ -1,6 +1,7 @@
-import { memo, useLayoutEffect, useRef } from "react";
+import { memo, useCallback, useLayoutEffect, useRef, useState } from "react";
 
 import AmbientCreature from "./AmbientCreature.jsx";
+import MapAmbientEvents from "./FlyingDragonCrossing.jsx";
 import {
   DEFAULT_PERSPECTIVE_CORNERS,
   getPerspectiveMatrix3d,
@@ -17,6 +18,25 @@ const UNDERLAY_SLOTS = new Set([
 const OVERLAY_SLOTS = new Set([
   "foreground",
   "effect",
+]);
+
+const LAVA_GEYSER_PARTICLES = Object.freeze([
+  Object.freeze({ left: 17, bottom: 7, size: 9, drift: -150, rise: 620, rate: 0.46 }),
+  Object.freeze({ left: 31, bottom: 9, size: 6, drift: -80, rise: 840, rate: 0.38 }),
+  Object.freeze({ left: 43, bottom: 8, size: 12, drift: -35, rise: 560, rate: 0.52 }),
+  Object.freeze({ left: 55, bottom: 10, size: 7, drift: 60, rise: 760, rate: 0.41 }),
+  Object.freeze({ left: 67, bottom: 7, size: 10, drift: 120, rise: 650, rate: 0.48 }),
+  Object.freeze({ left: 78, bottom: 6, size: 5, drift: 180, rise: 900, rate: 0.36 }),
+]);
+
+const LAVA_POOL_BUBBLES = Object.freeze([
+  Object.freeze({ left: 12, bottom: 24, size: 8, drift: -24, rise: 90, rate: 0.58 }),
+  Object.freeze({ left: 27, bottom: 28, size: 12, drift: -12, rise: 65, rate: 0.72 }),
+  Object.freeze({ left: 41, bottom: 22, size: 7, drift: 8, rise: 120, rate: 0.51 }),
+  Object.freeze({ left: 54, bottom: 30, size: 14, drift: 14, rise: 72, rate: 0.78 }),
+  Object.freeze({ left: 68, bottom: 23, size: 6, drift: 20, rise: 135, rate: 0.47 }),
+  Object.freeze({ left: 80, bottom: 27, size: 10, drift: 30, rise: 86, rate: 0.64 }),
+  Object.freeze({ left: 90, bottom: 21, size: 5, drift: 38, rise: 145, rate: 0.43 }),
 ]);
 
 function getLayerPlacement(layer, layout) {
@@ -305,7 +325,240 @@ function CompositeMapAsset({ composite, src }) {
   );
 }
 
+function SpriteSheetMapAsset({ layer }) {
+  if (layer.eventActor?.readySrc) {
+    return (
+      <img
+        alt=""
+        className="shooterMapEventActorReady"
+        decoding="async"
+        draggable="false"
+        src={layer.eventActor.readySrc}
+      />
+    );
+  }
+
+  const sheet = layer.spriteSheet ?? {};
+  const columns = Math.max(1, Number(sheet.columns) || 1);
+  const rows = Math.max(1, Number(sheet.rows) || 1);
+  const frameCount = Math.max(1, Number(sheet.frameCount) || columns * rows);
+  const frame = Math.abs(Number(sheet.previewFrame) || 0) % frameCount;
+  const column = frame % columns;
+  const row = Math.floor(frame / columns) % rows;
+  const backgroundX = columns === 1 ? 0 : (column / (columns - 1)) * 100;
+  const backgroundY = rows === 1 ? 0 : (row / (rows - 1)) * 100;
+  const playbackType = sheet.animation;
+  const playbackFps = Math.max(1, Number(sheet.framesPerSecond) || 10);
+  const playbackSpeed = Number.isFinite(layer.animationSpeed)
+    ? Math.max(0.1, layer.animationSpeed)
+    : Number.isFinite(layer.animation?.speed)
+      ? Math.max(0.1, layer.animation.speed)
+    : 1;
+  const windFlagFrames = Array.isArray(sheet.frames)
+    ? sheet.frames.filter((entry) => typeof entry === "string" || entry?.src)
+    : [];
+  const isLayeredWindFlag = playbackType === "wind-flag"
+    && windFlagFrames.length === 3
+    && Boolean(sheet.staticSrc);
+  const isWindFlag = playbackType === "wind-flag" && (
+    isLayeredWindFlag || (columns === 3 && rows === 1 && frameCount === 3)
+  );
+  const playbackDuration = frameCount / (playbackFps * playbackSpeed);
+
+  if (isLayeredWindFlag) {
+    return (
+      <span
+        aria-hidden="true"
+        className="shooterMapSpriteSheetAsset shooterMapSpriteSheetAsset--wind-flag shooterMapSpriteSheetAsset--layered-wind-flag"
+        style={{ "--shooter-map-sprite-duration": `${playbackDuration}s` }}
+      >
+        {windFlagFrames.map((entry, index) => {
+          const frameEntry = typeof entry === "string" ? { src: entry } : entry;
+          return (
+            <img
+              alt=""
+              className="shooterMapWindFlagClothFrame"
+              data-frame-index={index}
+              decoding="async"
+              draggable="false"
+              key={frameEntry.src}
+              src={frameEntry.src}
+              style={{
+                animationDelay: `${(index * playbackDuration) / frameCount}s`,
+                transform: `translate(${Number(frameEntry.translateX) || 0}%, ${Number(frameEntry.translateY) || 0}%) scale(${Number(frameEntry.scale) || 1})`,
+              }}
+            />
+          );
+        })}
+        <img
+          alt=""
+          className="shooterMapWindFlagPole"
+          decoding="async"
+          draggable="false"
+          src={sheet.staticSrc}
+        />
+      </span>
+    );
+  }
+
+  return (
+    <span
+      aria-hidden="true"
+      className={`shooterMapSpriteSheetAsset${isWindFlag ? " shooterMapSpriteSheetAsset--wind-flag" : ""}`}
+      style={{
+        backgroundImage: `url(${layer.src})`,
+        backgroundPosition: `${backgroundX}% ${backgroundY}%`,
+        backgroundSize: `${columns * 100}% ${rows * 100}%`,
+        ...(isWindFlag ? {
+          "--shooter-map-sprite-duration": `${playbackDuration}s`,
+        } : {}),
+      }}
+    />
+  );
+}
+
+function LavaEnvironmentAsset({ layer }) {
+  const animationType = layer.animation?.type;
+  if (animationType !== "lava-geyser" && animationType !== "lava-boil") {
+    return <img alt="" decoding="async" draggable="false" src={layer.src} />;
+  }
+
+  const speed = Number.isFinite(layer.animation?.speed) ? Math.max(0.1, layer.animation.speed) : 1;
+  const cycleDuration = Math.max(1.25, 6 / speed);
+  const particles = animationType === "lava-geyser" ? LAVA_GEYSER_PARTICLES : LAVA_POOL_BUBBLES;
+  const effectType = animationType === "lava-geyser" ? "geyser" : "boil";
+
+  return (
+    <span
+      className={`shooterMapLavaEffect shooterMapLavaEffect--${effectType}`}
+      style={{ "--shooter-lava-cycle-duration": `${cycleDuration}s` }}
+    >
+      <i aria-hidden="true" className="shooterMapLavaEffectBase" />
+      <img
+        alt=""
+        className="shooterMapLavaEffectArtwork"
+        decoding="async"
+        draggable="false"
+        src={layer.src}
+      />
+      <span aria-hidden="true" className="shooterMapLavaParticles">
+        {particles.map((particle, index) => (
+          <i
+            className="shooterMapLavaParticle"
+            key={`${effectType}-${particle.left}-${index}`}
+            style={{
+              "--shooter-lava-bottom": `${particle.bottom}%`,
+              "--shooter-lava-delay": animationType === "lava-geyser"
+                ? `${index * 0.045 * cycleDuration}s`
+                : `${-(index * 0.23 * cycleDuration)}s`,
+              "--shooter-lava-drift": `${particle.drift}%`,
+              "--shooter-lava-duration": `${Math.max(0.72, cycleDuration * particle.rate)}s`,
+              "--shooter-lava-left": `${particle.left}%`,
+              "--shooter-lava-rise-42": `${particle.rise * -0.42}%`,
+              "--shooter-lava-rise-54": `${particle.rise * -0.54}%`,
+              "--shooter-lava-rise-72": `${particle.rise * -0.72}%`,
+              "--shooter-lava-rise-90": `${particle.rise * -0.9}%`,
+              "--shooter-lava-rise-full": `${particle.rise * -1}%`,
+              "--shooter-lava-rise-over": `${particle.rise * -1.14}%`,
+              "--shooter-lava-size": `${particle.size}%`,
+            }}
+          />
+        ))}
+      </span>
+    </span>
+  );
+}
+
+function MapBoundaryGlowOverlay({ overlay, skinId }) {
+  if (!overlay?.enabled || !overlay.paths?.length) return null;
+
+  const viewBox = Array.isArray(overlay.viewBox) && overlay.viewBox.length === 4
+    ? overlay.viewBox
+    : [0, 0, 100, 100];
+  const [, , viewBoxWidth, viewBoxHeight] = viewBox;
+  const intensity = Number.isFinite(overlay.intensity) ? Math.max(0.1, overlay.intensity) : 1;
+  const offsetX = Number.isFinite(overlay.offsetX) ? overlay.offsetX : 0;
+  const offsetY = Number.isFinite(overlay.offsetY) ? overlay.offsetY : 0;
+  const scale = Number.isFinite(overlay.scale) ? overlay.scale : 1;
+  const duration = Number.isFinite(overlay.duration) ? Math.max(4, overlay.duration) : 9.4;
+  const centerX = viewBox[0] + viewBoxWidth / 2;
+  const centerY = viewBox[1] + viewBoxHeight / 2;
+  const fixedTransform = [
+    `translate(${offsetX} ${offsetY})`,
+    `translate(${centerX} ${centerY})`,
+    `scale(${scale})`,
+    `translate(${-centerX} ${-centerY})`,
+  ].join(" ");
+  const safeSkinId = String(skinId).replace(/[^a-z0-9_-]/gi, "");
+  const outerFilterId = `shooter-map-boundary-outer-${safeSkinId}`;
+  const middleFilterId = `shooter-map-boundary-middle-${safeSkinId}`;
+  const coreFilterId = `shooter-map-boundary-core-${safeSkinId}`;
+  const renderPaths = (layer) => overlay.paths.map((path, index) => {
+    const phase = Math.abs(Number.isFinite(path.phase) ? path.phase : index) % 3;
+    return (
+      <path
+        className={`shooterMapBoundaryGlowPath shooterMapBoundaryGlowPath--${layer} shooterMapBoundaryGlowPath--phase-${phase}`}
+        d={path.d}
+        data-boundary-path={path.id}
+        key={`${layer}-${path.id}`}
+        style={{
+          "--shooter-map-boundary-phase-delay": `${-(phase * duration * 0.37)}s`,
+          "--shooter-map-boundary-strength": path.strength ?? 1,
+        }}
+      />
+    );
+  });
+
+  return (
+    <svg
+      aria-hidden="true"
+      className="shooterMapBoundaryGlow"
+      data-map-overlay={overlay.id}
+      preserveAspectRatio={overlay.preserveAspectRatio ?? "xMidYMid slice"}
+      style={{
+        "--shooter-map-boundary-core-color": overlay.colors?.core ?? "#fff4a8",
+        "--shooter-map-boundary-core-width-max": String(3.1 * intensity),
+        "--shooter-map-boundary-core-width-min": String(2.1 * intensity),
+        "--shooter-map-boundary-duration": `${duration}s`,
+        "--shooter-map-boundary-middle-color": overlay.colors?.middle ?? "#ff8a00",
+        "--shooter-map-boundary-middle-width-max": String(9 * intensity),
+        "--shooter-map-boundary-middle-width-min": String(6.4 * intensity),
+        "--shooter-map-boundary-opacity": overlay.opacity ?? 0.9,
+        "--shooter-map-boundary-outer-color": overlay.colors?.outer ?? "#ff2a00",
+        "--shooter-map-boundary-outer-width-max": String(21 * intensity),
+        "--shooter-map-boundary-outer-width-min": String(15 * intensity),
+      }}
+      viewBox={viewBox.join(" ")}
+    >
+      <defs>
+        <filter
+          colorInterpolationFilters="sRGB"
+          height="180%"
+          id={outerFilterId}
+          width="180%"
+          x="-40%"
+          y="-40%"
+        >
+          <feGaussianBlur stdDeviation={(overlay.blur?.outer ?? 11) * intensity} />
+        </filter>
+        <filter height="150%" id={middleFilterId} width="150%" x="-25%" y="-25%">
+          <feGaussianBlur stdDeviation={(overlay.blur?.middle ?? 4.2) * intensity} />
+        </filter>
+        <filter height="130%" id={coreFilterId} width="130%" x="-15%" y="-15%">
+          <feGaussianBlur stdDeviation={(overlay.blur?.core ?? 0.7) * intensity} />
+        </filter>
+      </defs>
+      <g transform={fixedTransform}>
+        <g filter={`url(#${outerFilterId})`}>{renderPaths("outer")}</g>
+        <g filter={`url(#${middleFilterId})`}>{renderPaths("middle")}</g>
+        <g filter={`url(#${coreFilterId})`}>{renderPaths("core")}</g>
+      </g>
+    </svg>
+  );
+}
+
 function MapSkinRenderer({
+  ambientEventsActive = false,
   editMode = false,
   layout = "mobile",
   onAssetPointerDown,
@@ -316,6 +569,18 @@ function MapSkinRenderer({
   skin,
   stage = "underlay",
 }) {
+  const [eventHiddenLayerIds, setEventHiddenLayerIds] = useState(() => new Set());
+  const handleEventOriginHiddenChange = useCallback((instanceId, hidden) => {
+    if (!instanceId) return;
+    setEventHiddenLayerIds((current) => {
+      if (current.has(instanceId) === hidden) return current;
+      const next = new Set(current);
+      if (hidden) next.add(instanceId);
+      else next.delete(instanceId);
+      return next;
+    });
+  }, []);
+
   if (!isLayeredShooterMap(skin)) return null;
 
   const stageSlots = stage === "overlay" ? OVERLAY_SLOTS : UNDERLAY_SLOTS;
@@ -333,23 +598,26 @@ function MapSkinRenderer({
       onPointerDown={editMode ? onStagePointerDown : undefined}
     >
       {stage === "underlay" && skin.background?.src ? (
-        <img
-          alt=""
-          className="shooterMapSkinBackground"
-          decoding="async"
-          draggable="false"
-          src={skin.background.src}
-          style={{
-            "--shooter-map-background-fit": skin.background.fit ?? "cover",
-            "--shooter-map-background-position": skin.background.position ?? "center",
-          }}
-        />
+        <>
+          <img
+            alt=""
+            className="shooterMapSkinBackground"
+            decoding="async"
+            draggable="false"
+            src={skin.background.src}
+            style={{
+              "--shooter-map-background-fit": skin.background.fit ?? "cover",
+              "--shooter-map-background-position": skin.background.position ?? "center",
+            }}
+          />
+          <MapBoundaryGlowOverlay overlay={skin.boundaryGlowOverlay} skinId={skin.id} />
+        </>
       ) : null}
 
       {layers.map((layer) => (
         <span
           aria-label={editMode ? `${layer.label} 배치 오브젝트` : undefined}
-          className={`shooterMapSkinAsset shooterMapSkinAsset--${layer.slot} ${selectedAssetId === layer.instanceId ? "shooterMapSkinAsset--selected" : ""}`}
+          className={`shooterMapSkinAsset shooterMapSkinAsset--${layer.slot} ${selectedAssetId === layer.instanceId ? "shooterMapSkinAsset--selected" : ""} ${eventHiddenLayerIds.has(layer.instanceId) ? "shooterMapSkinAsset--event-hidden" : ""} ${layer.eventActor ? "shooterMapSkinAsset--event-actor" : ""}`}
           data-animation={layer.composite ? undefined : layer.animation?.type || undefined}
           key={layer.id}
           onPointerDown={editMode
@@ -391,8 +659,10 @@ function MapSkinRenderer({
               />
             ) : layer.creature ? (
               <AmbientCreature creature={layer.creature} editMode={editMode} placement={layer.placement} />
+            ) : layer.spriteSheet ? (
+              <SpriteSheetMapAsset layer={layer} />
             ) : (
-              <img alt="" decoding="async" draggable="false" src={layer.src} />
+              <LavaEnvironmentAsset layer={layer} />
             )}
           </FreeTransformSurface>
           {editMode && selectedAssetId === layer.instanceId ? (
@@ -408,6 +678,14 @@ function MapSkinRenderer({
           ) : null}
         </span>
       ))}
+      {stage === "underlay" ? (
+        <MapAmbientEvents
+          active={ambientEventsActive && !editMode}
+          events={skin.ambientEvents ?? []}
+          layers={layers}
+          onOriginHiddenChange={handleEventOriginHiddenChange}
+        />
+      ) : null}
       {selectedCreatureLayer ? (
         <CreatureAnchorOverlay
           layer={selectedCreatureLayer}

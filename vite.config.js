@@ -3,16 +3,23 @@ import react from "@vitejs/plugin-react";
 import { writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
+import { LAVA_CANYON_ENVIRONMENT_ASSETS } from "./src/shooter/maps/assets/lavaCanyonAssets.js";
 import { RIVER_ENVIRONMENT_ASSETS } from "./src/shooter/maps/assets/riverAssets.js";
+import { MAP_EDIT_ANIMATION_TYPES } from "./src/shooter/maps/editor/editorState.js";
 import { DEFAULT_PERSPECTIVE_CORNERS } from "./src/shooter/maps/freeTransform.js";
 
 const MAP_LAYOUT_ENDPOINT = "/__rifflab/map-editor/layout";
 const RIVER_LAYOUT_PATH = fileURLToPath(
   new URL("./src/shooter/maps/skins/river-layout.json", import.meta.url),
 );
-const RIVER_ASSET_IDS = new Set(RIVER_ENVIRONMENT_ASSETS.map((asset) => asset.id));
-const RIVER_ASSETS_BY_ID = new Map(RIVER_ENVIRONMENT_ASSETS.map((asset) => [asset.id, asset]));
-const MAP_ANIMATION_IDS = new Set(["none", "float", "sway", "rotate", "pulse"]);
+const LAVA_CANYON_LAYOUT_PATH = fileURLToPath(
+  new URL("./src/shooter/maps/skins/lava-canyon-layout.json", import.meta.url),
+);
+export const MAP_EDIT_SKINS = new Map([
+  ["river-garden", { assetCatalog: RIVER_ENVIRONMENT_ASSETS, layoutPath: RIVER_LAYOUT_PATH }],
+  ["lava-canyon", { assetCatalog: LAVA_CANYON_ENVIRONMENT_ASSETS, layoutPath: LAVA_CANYON_LAYOUT_PATH }],
+]);
+const MAP_ANIMATION_IDS = new Set(MAP_EDIT_ANIMATION_TYPES.map((animation) => animation.id));
 const FROG_MOVEMENT_MODES = new Set(["sequence", "random"]);
 
 function isFrogLandingAssetId(assetId = "", creatureType = "") {
@@ -55,10 +62,24 @@ function validatePerspectiveCorners(input) {
   }));
 }
 
-function validateCreatureSettings(placement, assetId, inputByInstanceId) {
-  const asset = RIVER_ASSETS_BY_ID.get(assetId);
+function validateCreatureSettings(placement, assetId, inputByInstanceId, assetsById) {
+  const asset = assetsById.get(assetId);
   if (!asset?.creature) return undefined;
   const source = placement?.creature;
+  if (asset.creature.type === "baby-dragon") {
+    if (!source || !Array.isArray(source.anchors) || source.anchors.length !== 0) {
+      throw new Error("Invalid free creature anchor list");
+    }
+    return {
+      enabled: source.enabled !== false,
+      idleInterval: finiteNumber(source.idleInterval, 3, 20),
+      breathChance: finiteNumber(source.breathChance, 0.03, 0.5),
+      sleepChance: finiteNumber(source.sleepChance, 0, 0.75),
+      sleepDuration: finiteNumber(source.sleepDuration, 2, 24),
+      animationSpeed: finiteNumber(source.animationSpeed, 0.4, 2.5),
+      anchors: [],
+    };
+  }
   if (!source || !Array.isArray(source.anchors) || source.anchors.length < 1 || source.anchors.length > 20) {
     throw new Error("Invalid creature anchor list");
   }
@@ -135,18 +156,27 @@ function validateCreatureSettings(placement, assetId, inputByInstanceId) {
   };
 }
 
-export function validateRiverPlacements(input) {
+export function validateMapPlacements(input, assetCatalog = []) {
   if (!Array.isArray(input) || input.length > 300) throw new Error("Invalid placement list");
+  const assetIds = new Set(assetCatalog.map((asset) => asset.id));
+  const assetsById = new Map(assetCatalog.map((asset) => [asset.id, asset]));
   const instanceIds = new Set();
+  const assetInstanceCounts = new Map();
   const inputByInstanceId = new Map(input.map((placement) => [String(placement?.instanceId ?? ""), placement]));
 
   return input.map((placement) => {
     const instanceId = String(placement?.instanceId ?? "").slice(0, 120);
     const assetId = String(placement?.assetId ?? "");
-    if (!instanceId || instanceIds.has(instanceId) || !RIVER_ASSET_IDS.has(assetId)) {
+    if (!instanceId || instanceIds.has(instanceId) || !assetIds.has(assetId)) {
       throw new Error("Invalid map asset identity");
     }
+    const asset = assetsById.get(assetId);
+    const instanceCount = (assetInstanceCounts.get(assetId) ?? 0) + 1;
+    if (Number.isFinite(asset?.maxInstances) && instanceCount > asset.maxInstances) {
+      throw new Error("Map asset instance limit exceeded");
+    }
     instanceIds.add(instanceId);
+    assetInstanceCounts.set(assetId, instanceCount);
 
     const animation = String(placement?.animation ?? "none");
     if (!MAP_ANIMATION_IDS.has(animation)) throw new Error("Invalid animation type");
@@ -162,17 +192,21 @@ export function validateRiverPlacements(input) {
       scaleY: validateAxisScale(placement.scaleY),
       skewX: finiteNumber(placement.skewX ?? 0, -60, 60),
       skewY: finiteNumber(placement.skewY ?? 0, -60, 60),
-      perspective: finiteNumber(placement.perspective ?? 900, 150, 3000),
-      tiltX: finiteNumber(placement.tiltX ?? 0, -75, 75),
-      tiltY: finiteNumber(placement.tiltY ?? 0, -75, 75),
+      perspective: finiteNumber(placement.perspective ?? 900, 80, 3000),
+      tiltX: finiteNumber(placement.tiltX ?? 0, -88, 88),
+      tiltY: finiteNumber(placement.tiltY ?? 0, -88, 88),
       perspectiveCorners: validatePerspectiveCorners(placement.perspectiveCorners),
       layer: Math.round(finiteNumber(placement.layer, -999, 999)),
       animation,
       animationSpeed: finiteNumber(placement.animationSpeed, 0.1, 5),
     };
-    const creature = validateCreatureSettings(placement, assetId, inputByInstanceId);
+    const creature = validateCreatureSettings(placement, assetId, inputByInstanceId, assetsById);
     return creature ? { ...normalized, creature } : normalized;
   });
+}
+
+export function validateRiverPlacements(input) {
+  return validateMapPlacements(input, RIVER_ENVIRONMENT_ASSETS);
 }
 
 function mapEditorSavePlugin() {
@@ -200,9 +234,10 @@ function mapEditorSavePlugin() {
             if (body.length > 262_144) throw new Error("Map layout payload is too large");
           }
           const payload = JSON.parse(body);
-          if (payload?.skinId !== "river-garden") throw new Error("Unknown map skin");
-          const placements = validateRiverPlacements(payload.placements);
-          await writeFile(RIVER_LAYOUT_PATH, `${JSON.stringify(placements, null, 2)}\n`, "utf8");
+          const skinConfig = MAP_EDIT_SKINS.get(payload?.skinId);
+          if (!skinConfig) throw new Error("Unknown map skin");
+          const placements = validateMapPlacements(payload.placements, skinConfig.assetCatalog);
+          await writeFile(skinConfig.layoutPath, `${JSON.stringify(placements, null, 2)}\n`, "utf8");
           response.statusCode = 200;
           response.end(JSON.stringify({ ok: true, count: placements.length, placements }));
         } catch (error) {

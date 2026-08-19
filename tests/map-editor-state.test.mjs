@@ -17,7 +17,7 @@ import {
   projectUnitPoint,
   solveUnitSquareHomography,
 } from "../src/shooter/maps/freeTransform.js";
-import { validateRiverPlacements } from "../vite.config.js";
+import { validateMapPlacements, validateRiverPlacements } from "../vite.config.js";
 
 const assets = [
   { id: "rock-a" },
@@ -74,6 +74,24 @@ test("map editor can add, update, duplicate, and reorder instances without chang
   assert.deepEqual(deleteMapPlacement(reordered, "rock-a-2").map((placement) => placement.instanceId), ["rock-a-1"]);
 });
 
+test("map editor keeps single-instance event actors unique", () => {
+  const eventAssets = [{ id: "flying-dragon", maxInstances: 1 }];
+  const placements = normalizeMapPlacements([
+    { instanceId: "flying-dragon-home", assetId: "flying-dragon", x: 0.18, y: 0.96 },
+    { instanceId: "flying-dragon-duplicate", assetId: "flying-dragon", x: 0.5, y: 0.5 },
+  ], eventAssets);
+
+  assert.equal(placements.length, 1);
+  assert.equal(placements[0].instanceId, "flying-dragon-home");
+  assert.throws(
+    () => validateMapPlacements([
+      { ...placements[0] },
+      { ...placements[0], instanceId: "flying-dragon-duplicate" },
+    ], eventAssets),
+    /Map asset instance limit exceeded/,
+  );
+});
+
 test("free transform maps every unit-square corner to the saved four-corner perspective", () => {
   const corners = [
     { x: 0.08, y: 0.14 },
@@ -128,6 +146,20 @@ test("map editor and save validation preserve plane and perspective transform da
   assert.equal(saved.tiltX, 52);
   assert.equal(saved.tiltY, -18);
   assert.deepEqual(saved.perspectiveCorners, corners);
+});
+
+test("map editor allows near-flat tilts while keeping perspective transforms numerically safe", () => {
+  const [placement] = normalizeMapPlacements([{
+    instanceId: "rock-a-flat",
+    assetId: "rock-a",
+    perspective: 40,
+    tiltX: 95,
+    tiltY: -96,
+  }], assets);
+
+  assert.equal(placement.perspective, 80);
+  assert.equal(placement.tiltX, 88);
+  assert.equal(placement.tiltY, -88);
 });
 
 test("map editor nudges by actual preview pixels and resizes in predictable increments", () => {
@@ -401,4 +433,57 @@ test("sleeping frog editor supports the bottom dock and clamps color tuning with
   assert.equal(saved.creature.anchors[0].surfaceInstanceId, "dock-1");
   assert.equal(saved.creature.bodyColor, "#7f50ff");
   assert.equal(saved.creature.bubbleColor, "#ff88cc");
+});
+
+test("baby dragon stays freely placeable while preserving ambient action tuning", () => {
+  const dragonAsset = {
+    id: "ambient-baby-dragon",
+    creature: {
+      type: "baby-dragon",
+      defaults: {
+        enabled: true,
+        idleInterval: 5.8,
+        breathChance: 0.14,
+        sleepChance: 0.3,
+        sleepDuration: 7.2,
+        animationSpeed: 1,
+      },
+    },
+  };
+  const created = createMapPlacement(
+    dragonAsset.id,
+    [],
+    () => "dragon-1",
+    dragonAsset,
+  );
+  assert.deepEqual(created.creature.anchors, []);
+
+  const [normalized] = normalizeMapPlacements([{
+    ...created,
+    x: 0.82,
+    y: 0.57,
+    creature: {
+      ...created.creature,
+      idleInterval: 99,
+      breathChance: 0.01,
+      sleepChance: 0.9,
+      sleepDuration: 1,
+      animationSpeed: 4,
+    },
+  }], [dragonAsset]);
+  assert.equal(normalized.creature.idleInterval, 20);
+  assert.equal(normalized.creature.breathChance, 0.03);
+  assert.equal(normalized.creature.sleepChance, 0.75);
+  assert.equal(normalized.creature.sleepDuration, 2);
+  assert.equal(normalized.creature.animationSpeed, 2.5);
+  assert.deepEqual(normalized.creature.anchors, []);
+
+  const [nudged] = nudgeMapPlacement([normalized], normalized.instanceId, { x: 5, y: -5 }, { width: 390, height: 756 });
+  assert.ok(nudged.x > normalized.x);
+  assert.ok(nudged.y < normalized.y);
+  assert.deepEqual(nudged.creature.anchors, []);
+
+  const [saved] = validateMapPlacements([normalized], [dragonAsset]);
+  assert.equal(saved.creature.breathChance, 0.03);
+  assert.deepEqual(saved.creature.anchors, []);
 });

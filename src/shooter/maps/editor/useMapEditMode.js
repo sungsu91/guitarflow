@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { isLayeredShooterMap, resolveLayeredShooterMap } from "../registry.js";
+import { isEditableShooterMap, resolveLayeredShooterMap } from "../registry.js";
 import { normalizePerspectiveCorners } from "../freeTransform.js";
 import {
   createMapPlacement,
@@ -15,6 +15,17 @@ import {
 
 const MAP_EDIT_SAVE_ENDPOINT = "/__rifflab/map-editor/layout";
 
+async function requestMapLayoutSave(skinId, placements) {
+  const response = await fetch(MAP_EDIT_SAVE_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ skinId, placements }),
+  });
+  const responsePayload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(responsePayload?.error || `Map save failed (${response.status})`);
+  return responsePayload?.placements ?? placements;
+}
+
 function getSaveErrorMessage(error) {
   const message = String(error?.message ?? error ?? "");
   if (message.includes("Invalid creature landing surface")) {
@@ -22,6 +33,9 @@ function getSaveErrorMessage(error) {
   }
   if (message.includes("Invalid map asset identity")) {
     return "등록이 해제된 맵 오브젝트가 포함되어 있습니다.";
+  }
+  if (message.includes("Map asset instance limit exceeded")) {
+    return "한 개만 배치할 수 있는 맵 오브젝트가 중복되어 있습니다.";
   }
   if (message.includes("Local editor access only")) {
     return "맵 저장은 이 PC의 로컬 개발 화면에서만 가능합니다.";
@@ -50,6 +64,13 @@ function clampAnchor(value) {
   return Math.min(1.25, Math.max(-0.25, value));
 }
 
+function getMapEditorViewport(referenceViewport) {
+  return {
+    width: Math.max(1, referenceViewport?.deviceWidth ?? referenceViewport?.width ?? 390),
+    height: Math.max(1, referenceViewport?.deviceHeight ?? referenceViewport?.height ?? 844),
+  };
+}
+
 function clonePlacementSnapshot(placements) {
   return placements.map((placement) => ({
     ...placement,
@@ -74,6 +95,10 @@ function isFrogLandingAssetId(assetId = "", creatureType = "") {
 
 function isWaterCreatureAnchor(asset, anchor) {
   return asset?.creature?.type === "diving-frog" && anchor?.kind === "water";
+}
+
+function isFreePlacedCreatureType(creatureType = "") {
+  return creatureType === "baby-dragon";
 }
 
 function projectAnchorToLandingSurface(surface, asset, desired = null) {
@@ -123,8 +148,7 @@ function projectAnchorToLandingSurface(surface, asset, desired = null) {
 }
 
 function findNearestLandingSurface(placements, point, referenceViewport, creatureType = "") {
-  const width = Math.max(1, referenceViewport?.width ?? 390);
-  const height = Math.max(1, referenceViewport?.height ?? 844);
+  const { width, height } = getMapEditorViewport(referenceViewport);
   return placements
     .filter((placement) => isFrogLandingAssetId(placement.assetId, creatureType))
     .reduce((nearest, placement) => {
@@ -137,12 +161,9 @@ export default function useMapEditMode(skin, editingAllowed = true) {
   const requested = isMapEditModeRequested();
   const available = editingAllowed
     && import.meta.env.DEV
-    && isLayeredShooterMap(skin)
-    && (skin.assetCatalog?.length ?? 0) > 0;
-  const [editingSkinId, setEditingSkinId] = useState(() => (
-    requested && available ? skin?.id ?? "" : ""
-  ));
-  const enabled = available && editingSkinId === skin?.id;
+    && isEditableShooterMap(skin);
+  const [editingActive, setEditingActive] = useState(() => requested && available);
+  const enabled = available && editingActive;
   const defaultPlacements = useMemo(
     () => normalizeMapPlacements(skin?.layout, skin?.assetCatalog),
     [skin],
@@ -160,6 +181,9 @@ export default function useMapEditMode(skin, editingAllowed = true) {
   const gestureCleanupRef = useRef(null);
   const sessionBaseRef = useRef({ skinId: "", placements: [] });
   const historyRef = useRef({ skinId: "", past: [], future: [] });
+  const draftCacheRef = useRef(new Map());
+  const sessionBaseCacheRef = useRef(new Map());
+  const historyCacheRef = useRef(new Map());
 
   const committedPlacements = committedState.skinId === skin?.id
     ? committedState.placements
@@ -185,15 +209,8 @@ export default function useMapEditMode(skin, editingAllowed = true) {
   }, [defaultPlacements, skin?.id]);
 
   useEffect(() => {
-    if (!available) {
-      setEditingSkinId("");
-      return;
-    }
-
-    if (editingSkinId && editingSkinId !== skin.id) {
-      setEditingSkinId("");
-    }
-  }, [available, editingSkinId, skin?.id]);
+    if (!editingAllowed) setEditingActive(false);
+  }, [editingAllowed]);
 
   useEffect(() => {
     gestureCleanupRef.current?.();
@@ -202,17 +219,32 @@ export default function useMapEditMode(skin, editingAllowed = true) {
     setCreaturePreviewState({ instanceId: "", mode: "" });
     setSaveStatus("idle");
     setSaveError("");
-    historyRef.current = { skinId: skin?.id ?? "", past: [], future: [] };
     if (!enabled) {
       setDraftState({ skinId: skin?.id ?? "", placements: committedPlacements });
       return;
     }
 
-    const sessionPlacements = clonePlacementSnapshot(committedPlacements);
+    const cachedDraft = draftCacheRef.current.get(skin.id);
+    const sessionPlacements = clonePlacementSnapshot(cachedDraft ?? committedPlacements);
+    if (!sessionBaseCacheRef.current.has(skin.id)) {
+      sessionBaseCacheRef.current.set(skin.id, clonePlacementSnapshot(committedPlacements));
+    }
     sessionBaseRef.current = {
       skinId: skin.id,
-      placements: sessionPlacements,
+      placements: clonePlacementSnapshot(sessionBaseCacheRef.current.get(skin.id)),
     };
+    historyRef.current = historyCacheRef.current.get(skin.id) ?? {
+      skinId: skin.id,
+      past: [],
+      future: [],
+    };
+    historyCacheRef.current.set(skin.id, historyRef.current);
+    draftCacheRef.current.set(skin.id, sessionPlacements);
+    setSaveStatus(
+      JSON.stringify(sessionPlacements) === JSON.stringify(sessionBaseRef.current.placements)
+        ? "idle"
+        : "dirty",
+    );
     setDraftState({
       skinId: skin.id,
       placements: sessionPlacements,
@@ -243,10 +275,13 @@ export default function useMapEditMode(skin, editingAllowed = true) {
           past: [...history.past, clonePlacementSnapshot(currentPlacements)].slice(-100),
           future: [],
         };
+        historyCacheRef.current.set(skin.id, historyRef.current);
       }
+      const nextSnapshot = clonePlacementSnapshot(normalizedPlacements);
+      draftCacheRef.current.set(skin.id, nextSnapshot);
       return {
         skinId: skin.id,
-        placements: normalizedPlacements,
+        placements: nextSnapshot,
       };
     });
     setSaveStatus("dirty");
@@ -262,6 +297,7 @@ export default function useMapEditMode(skin, editingAllowed = true) {
       past: [...history.past, clonePlacementSnapshot(snapshot)].slice(-100),
       future: [],
     };
+    historyCacheRef.current.set(skin.id, historyRef.current);
   }, [placements, skin?.id]);
 
   const selectInstance = useCallback((instanceId) => {
@@ -279,15 +315,18 @@ export default function useMapEditMode(skin, editingAllowed = true) {
 
   const startEditing = useCallback(() => {
     if (!available) return;
-    setEditingSkinId(skin.id);
-  }, [available, skin?.id]);
+    setEditingActive(true);
+  }, [available]);
 
   const finishEditing = useCallback(() => {
     gestureCleanupRef.current?.();
     gestureCleanupRef.current = null;
     setSelectedInstanceId("");
     setCreaturePreviewState({ instanceId: "", mode: "" });
-    setEditingSkinId("");
+    draftCacheRef.current.clear();
+    sessionBaseCacheRef.current.clear();
+    historyCacheRef.current.clear();
+    setEditingActive(false);
   }, []);
 
   const closeEditing = useCallback(() => {
@@ -305,14 +344,18 @@ export default function useMapEditMode(skin, editingAllowed = true) {
     if (!selectedInstanceId) return;
     replacePlacements((current) => {
       const selected = current.find((placement) => placement.instanceId === selectedInstanceId);
-      if (!selected?.creature || (!Number.isFinite(updates.x) && !Number.isFinite(updates.y))) {
+      const creatureType = assetsById.get(selected?.assetId)?.creature?.type ?? "";
+      if (
+        !selected?.creature
+        || isFreePlacedCreatureType(creatureType)
+        || (!Number.isFinite(updates.x) && !Number.isFinite(updates.y))
+      ) {
         return updateMapPlacement(current, selectedInstanceId, updates);
       }
       const desired = {
         x: Number.isFinite(updates.x) ? updates.x : selected.x,
         y: Number.isFinite(updates.y) ? updates.y : selected.y,
       };
-      const creatureType = assetsById.get(selected.assetId)?.creature?.type ?? "";
       const surface = findNearestLandingSurface(current, desired, skin.referenceViewport, creatureType);
       if (!surface) return current;
       const projected = projectAnchorToLandingSurface(surface, assetsById.get(surface.assetId), desired);
@@ -470,12 +513,11 @@ export default function useMapEditMode(skin, editingAllowed = true) {
   const nudgeSelected = useCallback((deltaX, deltaY) => {
     if (!selectedInstanceId) return;
     const selected = placements.find((placement) => placement.instanceId === selectedInstanceId);
+    const editorViewport = getMapEditorViewport(skin.referenceViewport);
     if (selected?.creature) {
-      const width = Math.max(1, skin.referenceViewport?.width ?? 390);
-      const height = Math.max(1, skin.referenceViewport?.height ?? 844);
       updateSelected({
-        x: selected.x + deltaX / width,
-        y: selected.y + deltaY / height,
+        x: selected.x + deltaX / editorViewport.width,
+        y: selected.y + deltaY / editorViewport.height,
       });
       return;
     }
@@ -483,7 +525,7 @@ export default function useMapEditMode(skin, editingAllowed = true) {
       current,
       selectedInstanceId,
       { x: deltaX, y: deltaY },
-      skin.referenceViewport,
+      editorViewport,
     ));
   }, [placements, replacePlacements, selectedInstanceId, skin.referenceViewport, updateSelected]);
 
@@ -503,7 +545,10 @@ export default function useMapEditMode(skin, editingAllowed = true) {
         past: history.past.slice(0, -1),
         future: [clonePlacementSnapshot(current.placements), ...history.future].slice(0, 100),
       };
-      return { skinId: skin.id, placements: clonePlacementSnapshot(previous) };
+      historyCacheRef.current.set(skin.id, historyRef.current);
+      const previousSnapshot = clonePlacementSnapshot(previous);
+      draftCacheRef.current.set(skin.id, previousSnapshot);
+      return { skinId: skin.id, placements: previousSnapshot };
     });
     setSaveStatus("dirty");
   }, [enabled, skin?.id]);
@@ -519,7 +564,10 @@ export default function useMapEditMode(skin, editingAllowed = true) {
         past: [...history.past, clonePlacementSnapshot(current.placements)].slice(-100),
         future: remaining,
       };
-      return { skinId: skin.id, placements: clonePlacementSnapshot(next) };
+      historyCacheRef.current.set(skin.id, historyRef.current);
+      const nextSnapshot = clonePlacementSnapshot(next);
+      draftCacheRef.current.set(skin.id, nextSnapshot);
+      return { skinId: skin.id, placements: nextSnapshot };
     });
     setSaveStatus("dirty");
   }, [enabled, skin?.id]);
@@ -561,13 +609,21 @@ export default function useMapEditMode(skin, editingAllowed = true) {
   const addAsset = useCallback((assetId) => {
     const asset = skin.assetCatalog?.find((candidate) => candidate.id === assetId);
     if (!asset) return;
+    const existingInstances = placements.filter((placement) => placement.assetId === assetId);
+    const maxInstances = Number.isFinite(asset.maxInstances)
+      ? Math.max(1, Math.floor(asset.maxInstances))
+      : Infinity;
+    if (existingInstances.length >= maxInstances) {
+      setSelectedInstanceId(existingInstances[0]?.instanceId ?? "");
+      return;
+    }
     let nextInstance = createMapPlacement(
       assetId,
       placements,
       () => createInstanceId(assetId),
       asset,
     );
-    if (nextInstance.creature) {
+    if (nextInstance.creature && !isFreePlacedCreatureType(asset.creature?.type)) {
       const surface = findNearestLandingSurface(
         placements,
         nextInstance,
@@ -606,6 +662,11 @@ export default function useMapEditMode(skin, editingAllowed = true) {
   const duplicateSelected = useCallback(() => {
     if (!selectedInstanceId) return;
     const selectedAssetId = placements.find((item) => item.instanceId === selectedInstanceId)?.assetId || "asset";
+    const selectedAsset = assetsById.get(selectedAssetId);
+    const maxInstances = Number.isFinite(selectedAsset?.maxInstances)
+      ? Math.max(1, Math.floor(selectedAsset.maxInstances))
+      : Infinity;
+    if (placements.filter((placement) => placement.assetId === selectedAssetId).length >= maxInstances) return;
     const result = duplicateMapPlacement(
       placements,
       selectedInstanceId,
@@ -613,7 +674,7 @@ export default function useMapEditMode(skin, editingAllowed = true) {
     );
     replacePlacements(result.placements);
     if (result.duplicate) setSelectedInstanceId(result.duplicate.instanceId);
-  }, [placements, replacePlacements, selectedInstanceId]);
+  }, [assetsById, placements, replacePlacements, selectedInstanceId]);
 
   const deleteSelected = useCallback(() => {
     if (!selectedInstanceId) return;
@@ -713,8 +774,8 @@ export default function useMapEditMode(skin, editingAllowed = true) {
             x: placement.x + (moveEvent.clientX - startX) / arenaRect.width,
             y: placement.y + (moveEvent.clientY - startY) / arenaRect.height,
           };
-          if (!placement.creature) return desired;
           const creatureType = assetsById.get(placement.assetId)?.creature?.type ?? "";
+          if (!placement.creature || isFreePlacedCreatureType(creatureType)) return desired;
           const surface = findNearestLandingSurface(current, desired, skin.referenceViewport, creatureType);
           if (!surface) return {};
           const projected = projectAnchorToLandingSurface(surface, assetsById.get(surface.assetId), desired);
@@ -827,15 +888,8 @@ export default function useMapEditMode(skin, editingAllowed = true) {
     setSaveError("");
     try {
       const normalizedPlacements = normalizeMapPlacements(placements, skin.assetCatalog);
-      const response = await fetch(MAP_EDIT_SAVE_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ skinId: skin.id, placements: normalizedPlacements }),
-      });
-      const responsePayload = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(responsePayload?.error || `Map save failed (${response.status})`);
       const savedPlacements = normalizeMapPlacements(
-        responsePayload?.placements ?? normalizedPlacements,
+        await requestMapLayoutSave(skin.id, normalizedPlacements),
         skin.assetCatalog,
       );
       window.localStorage.removeItem(getDraftStorageKey(skin.id));
@@ -852,12 +906,43 @@ export default function useMapEditMode(skin, editingAllowed = true) {
   const sessionBasePlacements = sessionBaseRef.current.skinId === skin?.id
     ? sessionBaseRef.current.placements
     : committedPlacements;
-  const hasChanges = JSON.stringify(placements) !== JSON.stringify(sessionBasePlacements);
+  const currentHasChanges = JSON.stringify(placements) !== JSON.stringify(sessionBasePlacements);
+  const hasChanges = currentHasChanges || [...draftCacheRef.current.entries()].some(([skinId, draft]) => {
+    const base = sessionBaseCacheRef.current.get(skinId);
+    return base && JSON.stringify(draft) !== JSON.stringify(base);
+  });
   const activeHistory = historyRef.current.skinId === skin?.id
     ? historyRef.current
     : { past: [], future: [] };
   const canUndo = activeHistory.past.length > 0;
   const canRedo = activeHistory.future.length > 0;
+
+  const saveSessionPlacements = useCallback(async () => {
+    if (!enabled) return null;
+    const changedDrafts = [...draftCacheRef.current.entries()].filter(([skinId, draft]) => {
+      const base = sessionBaseCacheRef.current.get(skinId);
+      return base && JSON.stringify(draft) !== JSON.stringify(base);
+    });
+    if (!changedDrafts.length) return clonePlacementSnapshot(placements);
+
+    setSaveStatus("saving");
+    setSaveError("");
+    try {
+      const savedEntries = await Promise.all(changedDrafts.map(async ([skinId, draft]) => [
+        skinId,
+        await requestMapLayoutSave(skinId, draft),
+      ]));
+      savedEntries.forEach(([skinId]) => window.localStorage.removeItem(getDraftStorageKey(skinId)));
+      const currentSaved = savedEntries.find(([skinId]) => skinId === skin.id)?.[1] ?? placements;
+      setSaveStatus("saved");
+      return normalizeMapPlacements(currentSaved, skin.assetCatalog);
+    } catch (error) {
+      console.error("Map session save failed", error);
+      setSaveStatus("error");
+      setSaveError(getSaveErrorMessage(error));
+      return null;
+    }
+  }, [enabled, placements, skin]);
 
   const applyEditing = useCallback(async (beforeFinish) => {
     if (!enabled) return false;
@@ -871,7 +956,7 @@ export default function useMapEditMode(skin, editingAllowed = true) {
       finishEditing();
       return true;
     }
-    const savedPlacements = await savePlacements();
+    const savedPlacements = await saveSessionPlacements();
     if (!savedPlacements) return false;
     if (typeof beforeFinish === "function" && await beforeFinish() === false) {
       setSaveStatus("error");
@@ -884,9 +969,14 @@ export default function useMapEditMode(skin, editingAllowed = true) {
     historyRef.current = { skinId: skin.id, past: [], future: [] };
     finishEditing();
     return true;
-  }, [enabled, finishEditing, hasChanges, savePlacements, skin?.id]);
+  }, [enabled, finishEditing, hasChanges, saveSessionPlacements, skin?.id]);
 
   const selectedPlacement = placements.find((item) => item.instanceId === selectedInstanceId) ?? null;
+  const selectedAsset = selectedPlacement ? assetsById.get(selectedPlacement.assetId) : null;
+  const canDuplicateSelected = Boolean(selectedPlacement) && (
+    !Number.isFinite(selectedAsset?.maxInstances)
+    || placements.filter((placement) => placement.assetId === selectedPlacement.assetId).length < selectedAsset.maxInstances
+  );
   const renderSkin = useMemo(() => {
     const resolvedSkin = resolveLayeredShooterMap(skin, placements);
     if (!enabled || !creaturePreviewState.mode || !creaturePreviewState.instanceId) {
@@ -911,6 +1001,7 @@ export default function useMapEditMode(skin, editingAllowed = true) {
     available,
     beginAssetGesture,
     beginCreatureAnchorGesture,
+    canDuplicateSelected,
     canRedo,
     canUndo,
     closeEditing,
@@ -933,7 +1024,7 @@ export default function useMapEditMode(skin, editingAllowed = true) {
     saveError,
     saveStatus,
     selectInstance,
-    selectedAsset: selectedPlacement ? assetsById.get(selectedPlacement.assetId) : null,
+    selectedAsset,
     selectedInstanceId,
     selectedPlacement,
     creaturePreviewMode: creaturePreviewState.instanceId === selectedInstanceId

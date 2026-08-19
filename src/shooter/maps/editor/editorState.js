@@ -9,6 +9,8 @@ export const MAP_EDIT_ANIMATION_TYPES = Object.freeze([
   Object.freeze({ id: "sway", label: "미세 흔들림" }),
   Object.freeze({ id: "rotate", label: "지속 회전" }),
   Object.freeze({ id: "pulse", label: "빛 변화" }),
+  Object.freeze({ id: "lava-geyser", label: "용암 대분출" }),
+  Object.freeze({ id: "lava-boil", label: "용암 보글거림" }),
 ]);
 
 export const FROG_MOVEMENT_MODES = Object.freeze([
@@ -111,6 +113,18 @@ function normalizeCreatureSettings(placement, asset) {
     }];
   });
 
+  if (asset.creature.type === "baby-dragon") {
+    return {
+      enabled: source.enabled ?? defaults.enabled ?? true,
+      idleInterval: clamp(finiteNumber(source.idleInterval, defaults.idleInterval ?? 5.8), 3, 20),
+      breathChance: clamp(finiteNumber(source.breathChance, defaults.breathChance ?? 0.14), 0.03, 0.5),
+      sleepChance: clamp(finiteNumber(source.sleepChance, defaults.sleepChance ?? 0.3), 0, 0.75),
+      sleepDuration: clamp(finiteNumber(source.sleepDuration, defaults.sleepDuration ?? 7.2), 2, 24),
+      animationSpeed: clamp(finiteNumber(source.animationSpeed, defaults.animationSpeed ?? 1), 0.4, 2.5),
+      anchors: [],
+    };
+  }
+
   if (asset.creature.type === "sleeping-frog") {
     return {
       enabled: source.enabled ?? defaults.enabled ?? true,
@@ -169,9 +183,9 @@ export function normalizeMapPlacement(placement, assetCatalog = []) {
     scaleY: normalizedAxisScale(placement?.scaleY),
     skewX: clamp(finiteNumber(placement?.skewX, 0), -60, 60),
     skewY: clamp(finiteNumber(placement?.skewY, 0), -60, 60),
-    perspective: clamp(finiteNumber(placement?.perspective, 900), 150, 3000),
-    tiltX: clamp(finiteNumber(placement?.tiltX, 0), -75, 75),
-    tiltY: clamp(finiteNumber(placement?.tiltY, 0), -75, 75),
+    perspective: clamp(finiteNumber(placement?.perspective, 900), 80, 3000),
+    tiltX: clamp(finiteNumber(placement?.tiltX, 0), -88, 88),
+    tiltY: clamp(finiteNumber(placement?.tiltY, 0), -88, 88),
     perspectiveCorners: normalizePerspectiveCorners(placement?.perspectiveCorners),
     layer: Math.round(clamp(finiteNumber(placement?.layer, 1), -999, 999)),
     animation,
@@ -183,11 +197,19 @@ export function normalizeMapPlacement(placement, assetCatalog = []) {
 
 export function normalizeMapPlacements(placements, assetCatalog = []) {
   const seenInstanceIds = new Set();
+  const assetInstanceCounts = new Map();
 
   const normalizedPlacements = (Array.isArray(placements) ? placements : []).flatMap((placement) => {
     const normalized = normalizeMapPlacement(placement, assetCatalog);
     if (!normalized || seenInstanceIds.has(normalized.instanceId)) return [];
+    const asset = getAssetCatalogEntry(assetCatalog, normalized.assetId);
+    const maxInstances = typeof asset === "object" && Number.isFinite(asset?.maxInstances)
+      ? Math.max(1, Math.floor(asset.maxInstances))
+      : Infinity;
+    const instanceCount = assetInstanceCounts.get(normalized.assetId) ?? 0;
+    if (instanceCount >= maxInstances) return [];
     seenInstanceIds.add(normalized.instanceId);
+    assetInstanceCounts.set(normalized.assetId, instanceCount + 1);
     return [normalized];
   });
 

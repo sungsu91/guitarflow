@@ -27,11 +27,50 @@ const SLEEPING_FROG_PREVIEW_MODES = Object.freeze([
   Object.freeze({ id: "cycle", label: "전체 동작" }),
 ]);
 
+const BABY_DRAGON_PREVIEW_MODES = Object.freeze([
+  Object.freeze({ id: "idle", label: "편하게 쉬기" }),
+  Object.freeze({ id: "sleep", label: "엎드려 자기" }),
+  Object.freeze({ id: "breath", label: "화염 브레스" }),
+  Object.freeze({ id: "cycle", label: "전체 동작" }),
+]);
+
 function getReferenceViewport(editor) {
   return {
-    height: editor.skin.referenceViewport?.height || 756,
-    width: editor.skin.referenceViewport?.width || 390,
+    height: editor.skin.referenceViewport?.deviceHeight || editor.skin.referenceViewport?.height || 844,
+    width: editor.skin.referenceViewport?.deviceWidth || editor.skin.referenceViewport?.width || 390,
   };
+}
+
+function AssetPreview({ asset }) {
+  if (asset?.eventActor?.readySrc) {
+    return <img alt="" decoding="async" draggable="false" src={asset.eventActor.readySrc} />;
+  }
+
+  const sheet = asset?.spriteSheet;
+  if (!sheet) {
+    return asset?.src ? <img alt="" decoding="async" draggable="false" src={asset.src} /> : null;
+  }
+
+  const columns = Math.max(1, Number(sheet.columns) || 1);
+  const rows = Math.max(1, Number(sheet.rows) || 1);
+  const frameCount = Math.max(1, Number(sheet.frameCount) || columns * rows);
+  const frame = Math.abs(Number(sheet.previewFrame) || 0) % frameCount;
+  const column = frame % columns;
+  const row = Math.floor(frame / columns) % rows;
+  const backgroundX = columns === 1 ? 0 : (column / (columns - 1)) * 100;
+  const backgroundY = rows === 1 ? 0 : (row / (rows - 1)) * 100;
+
+  return (
+    <span
+      aria-hidden="true"
+      className="mapEditSpriteSheetThumbnail"
+      style={{
+        backgroundImage: `url(${asset.src})`,
+        backgroundPosition: `${backgroundX}% ${backgroundY}%`,
+        backgroundSize: `${columns * 100}% ${rows * 100}%`,
+      }}
+    />
+  );
 }
 
 function SelectedObjectSummary({ editor }) {
@@ -55,7 +94,7 @@ function SelectedObjectSummary({ editor }) {
   return (
     <div className="mapEditSelectedCard">
       <span className="mapEditSelectedPreview" aria-hidden="true">
-        <img alt="" decoding="async" draggable="false" src={asset.src} />
+        <AssetPreview asset={asset} />
       </span>
       <span>
         <small>SELECTED OBJECT</small>
@@ -234,7 +273,7 @@ function InstalledObjectSelector({ editor }) {
               type="button"
             >
               <span aria-hidden="true">
-                {option.asset?.src ? <img alt="" decoding="async" draggable="false" src={option.asset.src} /> : null}
+                <AssetPreview asset={option.asset} />
               </span>
               <b>{option.label}</b>
               <small>#{String(option.index + 1).padStart(2, "0")} · {Math.round(option.scale * 100)}%</small>
@@ -493,9 +532,79 @@ function SleepingFrogControls({ creature, editor }) {
   );
 }
 
+function BabyDragonControls({ creature, editor }) {
+  const updateNumber = (key, value) => {
+    const number = Number(value);
+    if (Number.isFinite(number)) editor.updateSelectedCreature({ [key]: number });
+  };
+
+  return (
+    <EditorSection title="용암계곡 아기 용" value="AMBIENT CREATURE">
+      <label className="mapEditCreatureToggle">
+        <span><strong>환경 행동</strong><small>휴식·졸기·수면과 가끔 발생하는 화염 브레스를 재생합니다</small></span>
+        <input
+          aria-label="아기 용 환경 행동"
+          checked={creature.enabled}
+          onChange={(event) => editor.updateSelectedCreature({ enabled: event.target.checked })}
+          type="checkbox"
+        />
+      </label>
+
+      <div className="mapEditCoordinateGrid">
+        <label className="mapEditField">
+          <span>평균 행동 간격 (초)</span>
+          <input aria-label="아기 용 행동 간격" max="20" min="3" onChange={(event) => updateNumber("idleInterval", event.target.value)} step="0.1" type="number" value={creature.idleInterval} />
+        </label>
+        <label className="mapEditField">
+          <span>수면 유지 (초)</span>
+          <input aria-label="아기 용 수면 유지 시간" max="24" min="2" onChange={(event) => updateNumber("sleepDuration", event.target.value)} step="0.1" type="number" value={creature.sleepDuration} />
+        </label>
+      </div>
+
+      <label className="mapEditRangeField">
+        <span><b>브레스 발생 확률</b><strong>{Math.round(creature.breathChance * 100)}%</strong></span>
+        <input aria-label="아기 용 브레스 발생 확률" max="0.5" min="0.03" onChange={(event) => updateNumber("breathChance", event.target.value)} step="0.01" type="range" value={creature.breathChance} />
+      </label>
+      <label className="mapEditRangeField">
+        <span><b>엎드려 잘 확률</b><strong>{Math.round(creature.sleepChance * 100)}%</strong></span>
+        <input aria-label="아기 용 수면 발생 확률" max="0.75" min="0" onChange={(event) => updateNumber("sleepChance", event.target.value)} step="0.01" type="range" value={creature.sleepChance} />
+      </label>
+      <label className="mapEditRangeField">
+        <span><b>동작 속도</b><strong>{creature.animationSpeed.toFixed(2)}×</strong></span>
+        <input aria-label="아기 용 동작 속도" max="2.5" min="0.4" onChange={(event) => updateNumber("animationSpeed", event.target.value)} step="0.05" type="range" value={creature.animationSpeed} />
+      </label>
+
+      <div className="mapEditCreaturePreview" aria-label="아기 용 동작 미리보기">
+        <span><strong>동작 미리보기</strong><small>저장값을 바꾸지 않고 Preview에서만 재생합니다</small></span>
+        <div>
+          {BABY_DRAGON_PREVIEW_MODES.map((mode) => (
+            <button
+              aria-pressed={editor.creaturePreviewMode === mode.id}
+              className={editor.creaturePreviewMode === mode.id ? "active" : ""}
+              key={mode.id}
+              onClick={() => editor.previewSelectedCreature(mode.id)}
+              type="button"
+            >{mode.label}</button>
+          ))}
+          <button
+            aria-label="아기 용 동작 미리보기 끄기"
+            className="mapEditCreaturePreviewStop"
+            disabled={!editor.creaturePreviewMode}
+            onClick={() => editor.previewSelectedCreature("")}
+            type="button"
+          >정지</button>
+        </div>
+      </div>
+    </EditorSection>
+  );
+}
+
 function FrogCreatureControls({ editor }) {
   const creature = editor.selectedPlacement?.creature;
   if (!creature || !editor.selectedAsset?.creature) return null;
+  if (editor.selectedAsset.creature.type === "baby-dragon") {
+    return <BabyDragonControls creature={creature} editor={editor} />;
+  }
   if (editor.selectedAsset.creature.type === "sleeping-frog") {
     return <SleepingFrogControls creature={creature} editor={editor} />;
   }
@@ -612,7 +721,7 @@ function ObjectActionBar({ editor }) {
       <div className="mapEditObjectActionBar">
         <button onClick={() => editor.moveSelectedLayer("front")} type="button"><span aria-hidden="true">↑</span><b>앞으로</b></button>
         <button onClick={() => editor.moveSelectedLayer("back")} type="button"><span aria-hidden="true">↓</span><b>뒤로</b></button>
-        <button onClick={editor.duplicateSelected} type="button"><span aria-hidden="true">⧉</span><b>복제</b></button>
+        <button disabled={!editor.canDuplicateSelected} onClick={editor.duplicateSelected} type="button"><span aria-hidden="true">⧉</span><b>복제</b></button>
         <button aria-label="선택 오브젝트 삭제" className="danger" onClick={editor.deleteSelected} type="button"><span aria-hidden="true">×</span><b>삭제</b></button>
       </div>
       <p className="mapEditDeleteHint"><kbd>Delete</kbd> 키로도 삭제할 수 있으며 <kbd>Ctrl</kbd>+<kbd>Z</kbd>로 복구됩니다.</p>
@@ -673,22 +782,22 @@ function AdvancedObjectTools({ editor }) {
         <label className="mapEditRangeField">
           <span><b>Tilt X · 앞뒤 눕힘</b><strong>{Math.round(selected.tiltX)}°</strong></span>
           <span className="mapEditRangeControl">
-            <input aria-label="오브젝트 앞뒤 원근 기울기" max="75" min="-75" onChange={(event) => updateNumber("tiltX", event.target.value)} step="1" type="range" value={selected.tiltX} />
-            <input aria-label="오브젝트 앞뒤 원근 각도" max="75" min="-75" onChange={(event) => updateNumber("tiltX", event.target.value)} step="1" type="number" value={selected.tiltX} />
+            <input aria-label="오브젝트 앞뒤 원근 기울기" max="88" min="-88" onChange={(event) => updateNumber("tiltX", event.target.value)} step="1" type="range" value={selected.tiltX} />
+            <input aria-label="오브젝트 앞뒤 원근 각도" max="88" min="-88" onChange={(event) => updateNumber("tiltX", event.target.value)} step="1" type="number" value={selected.tiltX} />
           </span>
         </label>
         <label className="mapEditRangeField">
           <span><b>Tilt Y · 좌우 원근</b><strong>{Math.round(selected.tiltY)}°</strong></span>
           <span className="mapEditRangeControl">
-            <input aria-label="오브젝트 좌우 원근 기울기" max="75" min="-75" onChange={(event) => updateNumber("tiltY", event.target.value)} step="1" type="range" value={selected.tiltY} />
-            <input aria-label="오브젝트 좌우 원근 각도" max="75" min="-75" onChange={(event) => updateNumber("tiltY", event.target.value)} step="1" type="number" value={selected.tiltY} />
+            <input aria-label="오브젝트 좌우 원근 기울기" max="88" min="-88" onChange={(event) => updateNumber("tiltY", event.target.value)} step="1" type="range" value={selected.tiltY} />
+            <input aria-label="오브젝트 좌우 원근 각도" max="88" min="-88" onChange={(event) => updateNumber("tiltY", event.target.value)} step="1" type="number" value={selected.tiltY} />
           </span>
         </label>
         <label className="mapEditRangeField">
           <span><b>Perspective · 원근 거리</b><strong>{Math.round(selected.perspective)}px</strong></span>
           <span className="mapEditRangeControl">
-            <input aria-label="오브젝트 원근 거리" max="3000" min="150" onChange={(event) => updateNumber("perspective", event.target.value)} step="10" type="range" value={selected.perspective} />
-            <input aria-label="오브젝트 원근 거리 수치" max="3000" min="150" onChange={(event) => updateNumber("perspective", event.target.value)} step="10" type="number" value={selected.perspective} />
+            <input aria-label="오브젝트 원근 거리" max="3000" min="80" onChange={(event) => updateNumber("perspective", event.target.value)} step="10" type="range" value={selected.perspective} />
+            <input aria-label="오브젝트 원근 거리 수치" max="3000" min="80" onChange={(event) => updateNumber("perspective", event.target.value)} step="10" type="number" value={selected.perspective} />
           </span>
         </label>
         <div className="mapEditCornerSummary">
@@ -726,21 +835,25 @@ function AdvancedAssetLibrary({ editor }) {
       <div className="mapEditAdvancedSectionBody">
         <p className="mapEditInlineLibraryHelp">기본 배치에 없는 오브젝트가 필요할 때만 사용하세요.</p>
         <div className="mapEditInlineLibraryGrid">
-          {editor.assetCatalog.map((asset) => (
-            <button
-              aria-label={`${asset.label} 오브젝트 추가`}
-              className="mapEditInlineAssetCard"
-              key={asset.id}
-              onClick={() => editor.addAsset(asset.id)}
-              type="button"
-            >
-              <span>
-                <img alt="" decoding="async" draggable="false" src={asset.src} />
-                <i>{instanceCounts.get(asset.id) ?? 0}</i>
-              </span>
-              <strong>{asset.label}</strong>
-            </button>
-          ))}
+          {editor.assetCatalog.map((asset) => {
+            const instanceCount = instanceCounts.get(asset.id) ?? 0;
+            const reachedLimit = Number.isFinite(asset.maxInstances) && instanceCount >= asset.maxInstances;
+            return (
+              <button
+                aria-label={reachedLimit ? `${asset.label} 배치 위치 선택` : `${asset.label} 오브젝트 추가`}
+                className="mapEditInlineAssetCard"
+                key={asset.id}
+                onClick={() => editor.addAsset(asset.id)}
+                type="button"
+              >
+                <span>
+                  <AssetPreview asset={asset} />
+                  <i>{reachedLimit ? "배치됨" : instanceCount}</i>
+                </span>
+                <strong>{asset.label}</strong>
+              </button>
+            );
+          })}
         </div>
       </div>
     </details>
@@ -806,7 +919,35 @@ function MapEditSessionActions({ editor, effectEditor }) {
   );
 }
 
-function DesktopMapEditPanel({ editor, effectEditor }) {
+function MapEditMapSwitcher({ editor, mapOptions, onMapChange }) {
+  const options = Array.isArray(mapOptions) ? mapOptions : [];
+  const selectedIndex = Math.max(0, options.findIndex((map) => map.id === editor.skin.id));
+  const switchBy = (offset) => {
+    if (options.length < 2 || typeof onMapChange !== "function") return;
+    const nextIndex = (selectedIndex + offset + options.length) % options.length;
+    onMapChange(options[nextIndex].id);
+  };
+
+  return (
+    <section className="mapEditMapSwitcher" aria-label="편집할 맵 변경">
+      <span><small>EDITING MAP</small><strong>맵 비교 전환</strong><em>왕복해도 현재 세션의 임시 배치를 유지합니다.</em></span>
+      <div>
+        <button aria-label="이전 맵 편집" disabled={options.length < 2 || editor.saveStatus === "saving"} onClick={() => switchBy(-1)} type="button">‹</button>
+        <select
+          aria-label="편집할 슈팅 맵"
+          disabled={editor.saveStatus === "saving"}
+          onChange={(event) => onMapChange?.(event.target.value)}
+          value={editor.skin.id}
+        >
+          {options.map((map) => <option key={map.id} value={map.id}>{map.label}</option>)}
+        </select>
+        <button aria-label="다음 맵 편집" disabled={options.length < 2 || editor.saveStatus === "saving"} onClick={() => switchBy(1)} type="button">›</button>
+      </div>
+    </section>
+  );
+}
+
+function DesktopMapEditPanel({ editor, effectEditor, mapOptions, onMapChange }) {
   return (
     <aside className="mapEditPanel mapEditPanel--desktop" onClick={(event) => event.stopPropagation()}>
       <header className="mapEditPanelHeader">
@@ -814,13 +955,21 @@ function DesktopMapEditPanel({ editor, effectEditor }) {
         <span className="mapEditPanelHeading"><span>JUST PLAY · MAP STUDIO</span><strong>{editor.skin.label}</strong><small>390 × 844 LIVE PREVIEW</small></span>
         <i className="mapEditDevBadge">TUNE</i>
       </header>
+      <MapEditMapSwitcher editor={editor} mapOptions={mapOptions} onMapChange={onMapChange} />
       <div className="mapEditPanelScroll"><MapEditControls effectEditor={effectEditor} editor={editor} /></div>
       <MapEditSessionActions effectEditor={effectEditor} editor={editor} />
     </aside>
   );
 }
 
-export default function MapEditPanel({ effectEditor, editor, layout }) {
+export default function MapEditPanel({ effectEditor, editor, layout, mapOptions, onMapChange }) {
   if (!editor.enabled || layout !== "desktop") return null;
-  return <DesktopMapEditPanel effectEditor={effectEditor} editor={editor} />;
+  return (
+    <DesktopMapEditPanel
+      effectEditor={effectEditor}
+      editor={editor}
+      mapOptions={mapOptions}
+      onMapChange={onMapChange}
+    />
+  );
 }

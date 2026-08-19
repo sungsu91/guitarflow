@@ -6457,7 +6457,6 @@ const SHOOTER_PICK_SKIN_STORAGE_KEY = "rifflabShooterPickSkin";
 const SHOOTER_EFFECT_STORAGE_KEY = "rifflabShooterEffect";
 const SHOOTER_EFFECT_LOADOUT_STORAGE_KEY = "rifflabShooterEffectLoadoutV2";
 const SHOOTER_MAP_STORAGE_KEY = "rifflabShooterMapV2";
-const SHOOTER_EMBLEM_STORAGE_KEY = "rifflabShooterEmblem";
 const GUITAR_LAB_STORAGE_KEY = "rifflab-shooter-guitar-v1";
 const GUITAR_LAB_AVAILABILITY_STORAGE_KEY = "rifflabGuitarLabAvailability";
 const GUITAR_LAB_DELETED_STORAGE_KEY = "rifflabGuitarLabDeletedIds";
@@ -6786,7 +6785,6 @@ const SHOOTER_SKIN_TABS = [
   { id: "guitar", label: "기타" },
   { id: "pick", label: "피크" },
   { id: "map", label: "맵" },
-  { id: "emblem", label: "엠블럼" },
   { id: "effect", label: "이펙트" },
 ];
 const SHOOTER_PICK_SKINS = [
@@ -6809,69 +6807,14 @@ const SHOOTER_MAP_OPTIONS = [
     label: "없음",
     description: "기본 슈팅 배경",
   },
-  {
-    id: "rifflab-studio",
-    label: "JUST PLAY 연습실",
-    description: "고급 기타 공방과 빈티지 작업실",
-    backgroundImage: "/images/maps/rifflab-practice-studio-clean.png",
-    previewImage: "/images/maps/rifflab-practice-studio-clean.png",
-  },
-  {
-    id: "ocean-resort",
-    label: "오션 리조트",
-    description: "해양 차원문이 열린 열대 해변 리조트",
-    backgroundImage: "/images/maps/ocean-resort.png",
-    previewImage: "/images/maps/ocean-resort.png",
-  },
-  {
-    id: "orbital-galaxy",
-    label: "오비탈 갤럭시",
-    description: "황금 우주 정거장과 은하 차원문",
-    backgroundImage: "/images/maps/orbital-galaxy.png",
-    previewImage: "/images/maps/orbital-galaxy.png",
-    backgroundPosition: "center 48%",
-    backgroundSize: "128% auto",
-  },
   ...LAYERED_SHOOTER_MAP_SKINS,
 ];
-const SHOOTER_EMBLEM_OPTIONS = [
-  {
-    id: "none",
-    label: "없음",
-    description: "중앙 엠블럼 표시 안 함",
-    image: "",
-    className: "shooterCenterEmblem--none",
-  },
-  {
-    id: "lion-gold",
-    label: "골드 사자",
-    description: "왕실 문장 느낌의 골드 사자 엠블럼",
-    image: "/assets/emblems/lion-gold-emblem.png",
-    className: "shooterCenterEmblem--lionGold",
-    pickerTone: "gold",
-  },
-  {
-    id: "wolf-hunter",
-    label: "WOLF",
-    description: "HUNTER",
-    image: "/assets/emblems/wolf-gold-emblem.png",
-    className: "shooterCenterEmblem--wolfHunter",
-    arenaBlendMode: "screen",
-  },
-  {
-    id: "eagle-strike",
-    label: "EAGLE",
-    description: "STRIKE",
-    image: "/assets/emblems/eagle-strike-gold-emblem.png",
-    className: "shooterCenterEmblem--eagleStrike",
-  },
-];
-const SHOOTER_EMBLEM_LEGACY_ID_MAP = {
-  "wolf-gold": "wolf-hunter",
-};
 const SHOOTER_MAP_LEGACY_ID_MAP = {
-  "classic-wood": "rifflab-studio",
-  "simple-white": "rifflab-studio",
+  "classic-wood": "river-garden",
+  "simple-white": "river-garden",
+  "rifflab-studio": "river-garden",
+  "ocean-resort": "river-garden",
+  "orbital-galaxy": "river-garden",
 };
 const SHOOTER_EFFECT_LAYER_SLOTS = {
   FLOOR: "floor",
@@ -7309,7 +7252,6 @@ const DEFAULT_SHOOTER_EFFECT_LOADOUT = {
   floor: DEFAULT_SHOOTER_FLOOR_EFFECT_ID,
 };
 const DEFAULT_SHOOTER_MAP_ID = "river-garden";
-const DEFAULT_SHOOTER_EMBLEM_ID = SHOOTER_EMBLEM_OPTIONS[1]?.id ?? SHOOTER_EMBLEM_OPTIONS[0].id;
 const SHOOTER_GUITAR_CATEGORY_BY_VARIANT_ID = {
   [SHOOTER_TRACE_GUITAR_VARIANT_ID]: SHOOTER_GUITAR_CATEGORIES.ACOUSTIC,
   [SHOOTER_JP_D_BLACK_VARIANT_ID]: SHOOTER_GUITAR_CATEGORIES.ACOUSTIC,
@@ -7358,32 +7300,6 @@ function getShooterMapCssVars(map) {
     ...(map.backgroundPosition ? { "--shooter-map-position": map.backgroundPosition } : {}),
     ...(map.backgroundSize ? { "--shooter-map-size": map.backgroundSize } : {}),
   };
-}
-
-function getShooterEmblemById(emblemId) {
-  const normalizedEmblemId = SHOOTER_EMBLEM_LEGACY_ID_MAP[emblemId] ?? emblemId;
-  return SHOOTER_EMBLEM_OPTIONS.find((emblem) => emblem.id === normalizedEmblemId)
-    ?? SHOOTER_EMBLEM_OPTIONS.find((emblem) => emblem.id === DEFAULT_SHOOTER_EMBLEM_ID)
-    ?? SHOOTER_EMBLEM_OPTIONS[0];
-}
-
-function getShooterEmblemImage(emblem) {
-  return emblem?.image ?? "";
-}
-
-function ShooterEmblemArtwork({ className = "", emblem }) {
-  const imageSource = getShooterEmblemImage(emblem);
-  if (!imageSource) return null;
-
-  return (
-    <span
-      aria-hidden="true"
-      className={[className, emblem?.className].filter(Boolean).join(" ")}
-      style={emblem?.arenaBlendMode ? { mixBlendMode: emblem.arenaBlendMode } : undefined}
-    >
-      <img alt="" draggable="false" src={imageSource} />
-    </span>
-  );
 }
 
 function getShooterEffectById(equipmentSlot, effectId) {
@@ -9709,11 +9625,6 @@ function getStoredShooterEffectLoadout() {
 function getStoredShooterMapId() {
   if (typeof window === "undefined") return DEFAULT_SHOOTER_MAP_ID;
   return getShooterMapById(window.localStorage.getItem(SHOOTER_MAP_STORAGE_KEY)).id;
-}
-
-function getStoredShooterEmblemId() {
-  if (typeof window === "undefined") return DEFAULT_SHOOTER_EMBLEM_ID;
-  return getShooterEmblemById(window.localStorage.getItem(SHOOTER_EMBLEM_STORAGE_KEY)).id;
 }
 
 function normalizeShooterPlayerSlots(value = {}) {
@@ -13976,7 +13887,6 @@ function App({ onReady }) {
   const [selectedShooterPickSkinId, setSelectedShooterPickSkinId] = useState(getStoredShooterPickSkinId);
   const [selectedShooterEffectLoadout, setSelectedShooterEffectLoadout] = useState(getStoredShooterEffectLoadout);
   const [selectedShooterMapId, setSelectedShooterMapId] = useState(getStoredShooterMapId);
-  const [selectedShooterEmblemId, setSelectedShooterEmblemId] = useState(getStoredShooterEmblemId);
   const [shooterRecords, setShooterRecords] = useState(() => RecordService.getShooterRecords());
   const [showShooterRecords, setShowShooterRecords] = useState(false);
   const [shooterLives, setShooterLives] = useState(SHOOTER_MAX_LIVES);
@@ -14028,10 +13938,6 @@ function App({ onReady }) {
     () => getShooterMapById(selectedShooterMapId),
     [selectedShooterMapId],
   );
-  const selectedShooterEmblem = useMemo(
-    () => getShooterEmblemById(selectedShooterEmblemId),
-    [selectedShooterEmblemId],
-  );
   const selectedGuitar = selectedGuitarVariant;
   const selectedPick = selectedShooterPickSkin;
   const selectedAuraEffect = selectedShooterAuraEffect;
@@ -14067,9 +13973,8 @@ function App({ onReady }) {
   const previewAuraEffect = shooterEffectEditor.previewEffects.find(
     (effect) => effect.slot === SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
   ) ?? selectedAuraEffect;
-  const shooterUsesMobileMapLayout = isMobileLayout || !mapEditor.enabled;
+  const shooterMapRenderLayout = "mobile";
   const selectedMapRenderSkin = mapEditor.renderSkin;
-  const selectedEmblem = selectedShooterEmblem;
   const selectedGuitarCategory = SHOOTER_GUITAR_CATEGORY_OPTIONS.find(
     (option) => option.id === getShooterGuitarCategoryId(selectedGuitar.id),
   ) ?? SHOOTER_GUITAR_CATEGORY_OPTIONS[0];
@@ -14079,12 +13984,6 @@ function App({ onReady }) {
   const selectedMapSkinClassName = selectedMapIsDefault ? "" : `shooterMapSkin shooterMapSkin--${selectedMap.id}`;
   const defaultShooterMapOption = SHOOTER_MAP_OPTIONS.find((map) => map.id === "none");
   const shooterMapPickerOptions = SHOOTER_MAP_OPTIONS.filter((map) => map.id !== "none");
-  const defaultShooterEmblemOption = SHOOTER_EMBLEM_OPTIONS.find((emblem) => emblem.id === "none");
-  const shooterEmblemPickerOptions = SHOOTER_EMBLEM_OPTIONS.filter((emblem) => emblem.id !== "none");
-  const selectedMapCenterEmblem = useMemo(
-    () => (selectedEmblem.id === "none" ? null : selectedEmblem),
-    [selectedEmblem],
-  );
   const selectedEffectLayers = useMemo(
     () => applyShooterEffectTuning([
         ...getShooterEffectLayers(previewFloorEffect),
@@ -14107,9 +14006,6 @@ function App({ onReady }) {
   const shooterEntryAssetsRef = useRef(null);
   shooterEntryAssetsRef.current = {
     effectLayers: selectedEffectLayers,
-    emblemAssetSrc: selectedMapCenterEmblem
-      ? getShooterEmblemImage(selectedMapCenterEmblem)
-      : "",
     enemyAssetSources: Object.values(SHOOTER_ENEMY_ASSETS),
     guitarAssetSrc: selectedGuitar.assetSrc,
     guitarProjectileAssetSrc: selectedGuitar.projectileAssetSrc,
@@ -14297,14 +14193,6 @@ function App({ onReady }) {
     setSelectedShooterMapId(nextMap.id);
     if (typeof window !== "undefined") {
       window.localStorage.setItem(SHOOTER_MAP_STORAGE_KEY, nextMap.id);
-    }
-  }, []);
-
-  const applyShooterEmblem = useCallback((emblemId) => {
-    const nextEmblem = getShooterEmblemById(emblemId);
-    setSelectedShooterEmblemId(nextEmblem.id);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(SHOOTER_EMBLEM_STORAGE_KEY, nextEmblem.id);
     }
   }, []);
 
@@ -26553,7 +26441,7 @@ function App({ onReady }) {
           </> : null}
 
           <div
-            className={`shooterArena ${!isMobileLayout && !mapEditor.enabled ? "shooterArena--desktopPortrait" : ""} ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapIsLayered ? "shooterArena--layeredMap" : ""} ${mapEditor.enabled ? "shooterArena--mapEdit" : ""} ${selectedMapCenterEmblem ? "shooterArena--centerEmblem" : ""} shooterArena--aura-${selectedAuraEffect.id} shooterArena--floor-${selectedFloorEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""} ${gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterArena--lobby" : "shooterArena--session"}`}
+            className={`shooterArena ${!isMobileLayout && !mapEditor.enabled ? "shooterArena--desktopPortrait" : ""} ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapIsLayered ? "shooterArena--layeredMap" : ""} ${mapEditor.enabled ? "shooterArena--mapEdit" : ""} shooterArena--aura-${selectedAuraEffect.id} shooterArena--floor-${selectedFloorEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""} ${gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterArena--lobby" : "shooterArena--session"}`}
             onClick={(event) => {
               if (mapEditor.enabled) return;
               if (shooterDifficultyMenuOpen) setShooterDifficultyMenuOpen(false);
@@ -26563,8 +26451,9 @@ function App({ onReady }) {
             style={selectedMapStyle}
           >
             <MapSkinRenderer
+              ambientEventsActive={gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER}
               editMode={mapEditor.enabled}
-              layout={shooterUsesMobileMapLayout ? "mobile" : "desktop"}
+              layout={shooterMapRenderLayout}
               onAssetPointerDown={mapEditor.beginAssetGesture}
               onAssetSelect={mapEditor.selectInstance}
               onCreatureAnchorPointerDown={mapEditor.beginCreatureAnchorGesture}
@@ -26674,16 +26563,12 @@ function App({ onReady }) {
             ) : null}
 
             {!mapEditor.enabled ? <>
-            {selectedMapCenterEmblem ? (
-              <ShooterEmblemArtwork className="shooterCenterEmblem" emblem={selectedMapCenterEmblem} />
-            ) : null}
-
             {isMobileLayout && shooterGuitarPickerOpen ? (
               <div className="shooterSkinArenaLoadoutInfo" aria-label="현재 라이브 로드아웃">
                 <div className="shooterSkinArenaLoadoutSummary">
                   <small><i aria-hidden="true" />LIVE LOADOUT</small>
                   <strong>{selectedGuitar.title}</strong>
-                  <em>{selectedGuitarCategory.label} · {selectedEmblem.label}</em>
+                  <em>{selectedGuitarCategory.label}</em>
                 </div>
                 <div className="shooterSkinArenaEquipment">
                   <span className="shooterSkinArenaEquipmentRow">
@@ -26999,8 +26884,9 @@ function App({ onReady }) {
               </div>
             ) : null}
             <MapSkinRenderer
+              ambientEventsActive={gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER}
               editMode={mapEditor.enabled}
-              layout={shooterUsesMobileMapLayout ? "mobile" : "desktop"}
+              layout={shooterMapRenderLayout}
               onAssetPointerDown={mapEditor.beginAssetGesture}
               onAssetSelect={mapEditor.selectInstance}
               onStagePointerDown={mapEditor.handleStagePointerDown}
@@ -27203,7 +27089,9 @@ function App({ onReady }) {
             <MapEditPanel
               effectEditor={shooterEffectEditor}
               editor={mapEditor}
-              layout={shooterUsesMobileMapLayout ? "mobile" : "desktop"}
+              layout={isMobileLayout ? "mobile" : "desktop"}
+              mapOptions={LAYERED_SHOOTER_MAP_SKINS}
+              onMapChange={applyShooterMap}
             />
           ) : null}
 
@@ -27227,15 +27115,6 @@ function App({ onReady }) {
                     </div>
                   </div>
                   <div className="shooterSkinLiveShowcase">
-                    <div className="shooterSkinLiveEmblemBlock">
-                      {selectedMapCenterEmblem ? (
-                        <ShooterEmblemArtwork className="shooterSkinLiveEmblem" emblem={selectedMapCenterEmblem} />
-                      ) : (
-                        <span className="shooterSkinLiveEmblem" aria-hidden="true" />
-                      )}
-                      <small>EMBLEM</small>
-                      <strong>{selectedEmblem.label}</strong>
-                    </div>
                     <div className="shooterSkinLivePlayer" aria-hidden="true">
                       <div className="shooterSkinLivePlayerInner">
                         {selectedEffectFloorLayers.map((layer) => (
@@ -27283,8 +27162,8 @@ function App({ onReady }) {
                 <div className="shooterGuitarPickerHeader">
                   <div>
                     <strong>스킨 설정</strong>
-                    <span title={`${selectedGuitar.title} · ${selectedPick.label} · ${selectedMap.label} · ${selectedEmblem.label}`}>
-                      {selectedGuitar.title} · {selectedPick.label} · {selectedMap.label} · {selectedEmblem.label}
+                    <span title={`${selectedGuitar.title} · ${selectedPick.label} · ${selectedMap.label}`}>
+                      {selectedGuitar.title} · {selectedPick.label} · {selectedMap.label}
                     </span>
                   </div>
                   <button aria-label="스킨 설정 창 닫기" onClick={() => setShooterGuitarPickerOpen(false)} type="button">
@@ -27405,42 +27284,6 @@ function App({ onReady }) {
                                 <i />
                               </span>
                               <small>{map.description}</small>
-                              <em>{isSelected ? "선택됨" : "선택"}</em>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : shooterSkinTab === "emblem" ? (
-                    <div className="shooterSkinOptionStack" aria-label="중앙 엠블럼 선택">
-                      <div className="shooterSkinOptionGrid shooterSkinOptionGrid--emblems">
-                        {defaultShooterEmblemOption ? (
-                          <button
-                            aria-pressed={selectedEmblem.id === defaultShooterEmblemOption.id}
-                            className={`shooterSkinOptionCard shooterSkinOptionCard--emblem shooterSkinDefaultButton ${
-                              selectedEmblem.id === defaultShooterEmblemOption.id ? "selected" : ""
-                            }`}
-                            onClick={() => applyShooterEmblem(defaultShooterEmblemOption.id)}
-                            type="button"
-                          >
-                            <strong>{defaultShooterEmblemOption.label}</strong>
-                          </button>
-                        ) : null}
-                        {shooterEmblemPickerOptions.map((emblem) => {
-                          const isSelected = selectedEmblem.id === emblem.id;
-                          return (
-                            <button
-                              aria-pressed={isSelected}
-                              className={`shooterSkinOptionCard shooterSkinOptionCard--emblem ${
-                                emblem.pickerTone ? `shooterSkinOptionCard--tone-${emblem.pickerTone}` : ""
-                              } ${isSelected ? "selected" : ""}`}
-                              key={emblem.id}
-                              onClick={() => applyShooterEmblem(emblem.id)}
-                              type="button"
-                            >
-                              <ShooterEmblemArtwork className="shooterEmblemPreview" emblem={emblem} />
-                              <strong>{emblem.label}</strong>
-                              <small>{emblem.description}</small>
                               <em>{isSelected ? "선택됨" : "선택"}</em>
                             </button>
                           );

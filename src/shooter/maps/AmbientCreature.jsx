@@ -506,6 +506,243 @@ function SleepingFrogCreature({ creature, editMode = false, placement }) {
   );
 }
 
+function BabyDragonCreature({ creature, editMode = false, placement }) {
+  const rootRef = useRef(null);
+  const imageRef = useRef(null);
+  const personalityRef = useRef(null);
+  if (!personalityRef.current) {
+    personalityRef.current = {
+      sleep: 0.82 + Math.random() * 0.36,
+      tempo: 0.88 + Math.random() * 0.24,
+    };
+  }
+
+  const frames = creature?.frames ?? {};
+  const settings = creature?.settings ?? {};
+  const previewMode = creature?.previewMode ?? "";
+  const frameSignature = Object.values(frames).join("|");
+  const settingsSignature = JSON.stringify(settings);
+  const placementSignature = [placement?.x, placement?.y, placement?.scale].join("|");
+
+  useEffect(() => {
+    const root = rootRef.current;
+    const image = imageRef.current;
+    if (!root || !image || typeof window === "undefined") return undefined;
+
+    const personality = personalityRef.current;
+    const speed = clamp(Number(settings.animationSpeed) || 1, 0.4, 2.5);
+    const idleInterval = clamp(Number(settings.idleInterval) || 5.8, 3, 20);
+    const breathChance = clamp(Number(settings.breathChance) || 0.14, 0.03, 0.5);
+    const sleepChance = clamp(Number(settings.sleepChance) || 0.3, 0, 0.75);
+    const sleepDuration = clamp(Number(settings.sleepDuration) || 7.2, 2, 24);
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    const animationAllowed = !editMode && settings.enabled !== false && !reducedMotion;
+    const preloadedFrames = Object.values(frames).map((src) => {
+      const frame = new window.Image();
+      frame.src = src;
+      return frame;
+    });
+    let timer = 0;
+    let active = true;
+    let intersecting = true;
+    let visible = document.visibilityState !== "hidden";
+    let pose = "";
+    let scheduleNext;
+
+    const randomDuration = (seconds, variance = 0.36) => (
+      Math.max(250, seconds * 1000 * personality.tempo * (1 - variance + Math.random() * variance * 2))
+    );
+
+    const setPose = (nextPose) => {
+      if (pose === nextPose) return;
+      pose = nextPose;
+      image.src = frames[nextPose] || frames.idle || image.src;
+      root.dataset.pose = nextPose;
+    };
+
+    const setState = (nextState) => {
+      root.dataset.state = nextState;
+    };
+
+    const clearWork = () => {
+      window.clearTimeout(timer);
+      timer = 0;
+    };
+
+    const canAnimate = () => active && visible && intersecting && animationAllowed;
+    const canRunPreview = () => active && visible && editMode && Boolean(previewMode);
+    const canContinue = () => canAnimate() || canRunPreview();
+    const later = (callback, milliseconds) => {
+      timer = window.setTimeout(() => {
+        if (canContinue()) callback();
+      }, milliseconds / speed);
+    };
+
+    const returnToIdle = () => {
+      if (!canAnimate()) return;
+      setPose("idle");
+      setState("idle");
+      scheduleNext(randomDuration(idleInterval));
+    };
+
+    const runBlink = () => {
+      setPose("blink");
+      setState("blinking");
+      later(returnToIdle, 165);
+    };
+
+    const runRest = () => {
+      setPose("rest");
+      setState("resting");
+      later(returnToIdle, randomDuration(3.1, 0.34));
+    };
+
+    const runSleep = (onComplete = returnToIdle) => {
+      setPose("rest");
+      setState("settling");
+      later(() => {
+        setPose("sleep");
+        setState("sleeping");
+        later(() => {
+          setPose("blink");
+          setState("waking");
+          later(onComplete, 260);
+        }, randomDuration(sleepDuration * personality.sleep, 0.28));
+      }, 720);
+    };
+
+    const runBreath = (onComplete = returnToIdle) => {
+      setPose("rest");
+      setState("settling");
+      later(() => {
+        setPose("inhale");
+        setState("inhaling");
+        later(() => {
+          setPose("openMouth");
+          setState("opening");
+          later(() => {
+            setPose("breath");
+            setState("breathing");
+            later(() => {
+              setPose("smoke");
+              setState("smoking");
+              later(() => {
+                setPose("rest");
+                setState("resting");
+                later(onComplete, 980);
+              }, 860);
+            }, 1320);
+          }, 420);
+        }, 780);
+      }, 560);
+    };
+
+    scheduleNext = (delay) => {
+      if (!canAnimate()) return;
+      setPose("idle");
+      setState("idle");
+      timer = window.setTimeout(() => {
+        if (!canAnimate()) return;
+        const roll = Math.random();
+        if (roll < breathChance) {
+          runBreath();
+          return;
+        }
+        if (roll < breathChance + sleepChance) {
+          runSleep();
+          return;
+        }
+        if (Math.random() < 0.62) runBlink();
+        else runRest();
+      }, delay);
+    };
+
+    const runPreviewCycle = () => {
+      if (!canRunPreview() || previewMode !== "cycle") return;
+      runBreath(() => runSleep(() => later(runPreviewCycle, 900)));
+    };
+
+    const showPreview = () => {
+      clearWork();
+      root.dataset.active = "true";
+      if (previewMode === "cycle") {
+        runPreviewCycle();
+        return;
+      }
+      if (previewMode === "breath") {
+        runBreath(() => {
+          setPose("rest");
+          setState("resting");
+        });
+        return;
+      }
+      if (previewMode === "sleep") {
+        setPose("sleep");
+        setState("sleeping");
+        return;
+      }
+      setPose("idle");
+      setState("idle");
+    };
+
+    const syncActivity = () => {
+      visible = document.visibilityState !== "hidden";
+      if (editMode && previewMode) {
+        if (visible) showPreview();
+        else clearWork();
+        return;
+      }
+      clearWork();
+      root.dataset.active = canAnimate() ? "true" : "false";
+      if (!canAnimate()) {
+        setPose("idle");
+        setState("idle");
+        return;
+      }
+      scheduleNext(randomDuration(idleInterval, 0.42));
+    };
+
+    const observer = !editMode && typeof IntersectionObserver === "function"
+      ? new IntersectionObserver(([entry]) => {
+        intersecting = Boolean(entry?.isIntersecting);
+        syncActivity();
+      }, { threshold: 0.01 })
+      : null;
+    observer?.observe(root);
+    document.addEventListener("visibilitychange", syncActivity);
+
+    if (editMode && previewMode) {
+      showPreview();
+    } else {
+      setPose("idle");
+      setState("idle");
+      root.dataset.active = animationAllowed ? "true" : "false";
+      if (animationAllowed) scheduleNext(randomDuration(idleInterval));
+    }
+
+    return () => {
+      active = false;
+      clearWork();
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", syncActivity);
+      preloadedFrames.forEach((frame) => { frame.src = ""; });
+    };
+  }, [editMode, frameSignature, placementSignature, previewMode, settingsSignature]);
+
+  return (
+    <span
+      className="shooterMapAmbientCreature shooterMapAmbientCreature--baby-dragon"
+      data-active="false"
+      data-creature="baby-dragon"
+      data-pose="idle"
+      data-state="idle"
+      ref={rootRef}
+    >
+      <img alt="" className="shooterMapAmbientCreatureFrame" decoding="async" draggable="false" ref={imageRef} src={frames.idle} />
+    </span>
+  );
+}
+
 function DivingFrogCreature({ creature, editMode = false, placement }) {
   const rootRef = useRef(null);
   const imageRef = useRef(null);
@@ -678,6 +915,7 @@ function DivingFrogCreature({ creature, editMode = false, placement }) {
 }
 
 function AmbientCreature(props) {
+  if (props.creature?.type === "baby-dragon") return <BabyDragonCreature {...props} />;
   if (props.creature?.type === "sleeping-frog") return <SleepingFrogCreature {...props} />;
   if (props.creature?.type === "diving-frog") return <DivingFrogCreature {...props} />;
   return <HoppingFrogCreature {...props} />;

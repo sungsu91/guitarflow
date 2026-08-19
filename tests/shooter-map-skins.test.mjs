@@ -142,7 +142,7 @@ test("sleeping frog stays on one surface and exposes an independent nose bubble"
   );
   assert.equal(frog.creature.settings.bubbleEnabled, true);
   assert.ok(frog.creature.settings.bubbleMaxScale >= 1.2 && frog.creature.settings.bubbleMaxScale <= 3);
-  assert.equal(frog.creature.settings.openMouthDuration, 1.8);
+  assert.equal(frog.creature.settings.openMouthDuration, 3.2);
   assert.match(frog.creature.settings.bodyColor, /^#[0-9a-f]{6}$/i);
   assert.match(frog.creature.settings.bubbleColor, /^#[0-9a-f]{6}$/i);
   assert.deepEqual(frog.creature.bubbleAnchors.flat, { x: 50, y: 76 });

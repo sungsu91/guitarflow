@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const appSourceUrl = new URL("../src/App.jsx", import.meta.url);
+const appStyleUrl = new URL("../src/style.css", import.meta.url);
 
 test("app launch and shooter use the requested operational defaults", async () => {
   const appSource = await readFile(appSourceUrl, "utf8");
@@ -17,4 +18,20 @@ test("app launch and shooter use the requested operational defaults", async () =
   assert.match(appSource, /const DEFAULT_SHOOTER_MAP_ID = "river-garden";/);
   assert.match(appSource, /const SHOOTER_MAP_STORAGE_KEY = "rifflabShooterMapV2";/);
   assert.match(appSource, /localStorage\.setItem\(SHOOTER_MAP_STORAGE_KEY, nextMap\.id\)/);
+});
+
+test("shooter exposes only the current layered maps and no emblem catalog", async () => {
+  const [appSource, appStyle] = await Promise.all([
+    readFile(appSourceUrl, "utf8"),
+    readFile(appStyleUrl, "utf8"),
+  ]);
+
+  assert.doesNotMatch(appSource, /JUST PLAY 연습실|오션 리조트|오비탈 갤럭시/);
+  assert.doesNotMatch(appSource, /rifflab-practice-studio-clean\.png|ocean-resort\.png|orbital-galaxy\.png/);
+  assert.doesNotMatch(appStyle, /rifflab-practice-studio-clean\.png|ocean-resort\.png|orbital-galaxy\.png/);
+  assert.match(appSource, /"rifflab-studio": "river-garden"/);
+  assert.match(appSource, /"ocean-resort": "river-garden"/);
+  assert.match(appSource, /"orbital-galaxy": "river-garden"/);
+  assert.doesNotMatch(appSource, /SHOOTER_EMBLEM_OPTIONS|ShooterEmblemArtwork|selectedShooterEmblem|applyShooterEmblem/);
+  assert.doesNotMatch(appSource, /\{ id: "emblem", label: "엠블럼" \}/);
 });

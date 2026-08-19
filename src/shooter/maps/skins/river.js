@@ -20,6 +20,7 @@ export const RIVER_MAP_SKIN = Object.freeze({
     src: RIVER_BACKGROUND_SRC,
     fit: "cover",
     position: "center center",
+    locked: true,
   }),
   assetCatalog: RIVER_ENVIRONMENT_ASSETS,
   layout: Object.freeze(riverLayout.map((placement) => Object.freeze(placement))),

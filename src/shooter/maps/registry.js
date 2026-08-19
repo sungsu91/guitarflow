@@ -1,11 +1,17 @@
+import { LAVA_CANYON_MAP_SKIN } from "./skins/lavaCanyon.js";
 import { RIVER_MAP_SKIN } from "./skins/river.js";
 
 export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
   RIVER_MAP_SKIN,
+  LAVA_CANYON_MAP_SKIN,
 ]);
 
 export function isLayeredShooterMap(map) {
   return map?.kind === "layered";
+}
+
+export function isEditableShooterMap(map) {
+  return isLayeredShooterMap(map);
 }
 
 export function getShooterMapAssetSources(map) {
@@ -15,8 +21,16 @@ export function getShooterMapAssetSources(map) {
     map.background?.src,
     ...(map.assetCatalog ?? []).flatMap((asset) => [
       asset?.src,
+      asset?.spriteSheet?.staticSrc,
+      ...(asset?.spriteSheet?.frames ?? []).map((frame) => (
+        typeof frame === "string" ? frame : frame?.src
+      )),
       ...(asset?.composite?.parts ?? []).map((part) => part?.src),
       ...Object.values(asset?.creature?.frames ?? {}),
+    ]),
+    ...(map.ambientEvents ?? []).flatMap((event) => [
+      event?.flightSheet?.src,
+      event?.breathSheet?.src,
     ]),
     ...(map.layers ?? []).flatMap((layer) => [
       layer?.src,
@@ -77,6 +91,8 @@ export function resolveLayeredShooterMap(map, placements = map?.layout) {
       label: asset.label,
       src: asset.src,
       composite: asset.composite,
+      eventActor: asset.eventActor,
+      spriteSheet: asset.spriteSheet,
       creature: asset.creature ? {
         ...asset.creature,
         settings: resolveCreatureSettings(
@@ -105,6 +121,7 @@ export function resolveLayeredShooterMap(map, placements = map?.layout) {
         anchorY: asset.anchorY,
       },
       zIndex: placement.layer,
+      animationSpeed: placement.animationSpeed,
       animation: animationType ? {
         type: animationType,
         speed: placement.animationSpeed,

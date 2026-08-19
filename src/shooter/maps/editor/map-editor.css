@@ -602,7 +602,6 @@ html body .app.shooterMode .shooterArena--mapEdit .shooterMapCreatureAnchor--wat
   .shooterCenterStatus,
   .shooterBestHud,
   .shooterGameHud,
-  .shooterCenterEmblem,
   .guitarPlayer,
   .enemy,
   .energyProjectile
@@ -623,7 +622,7 @@ html body .app.shooterMode .shooterArena--mapEdit .shooterMapCreatureAnchor--wat
   --map-studio-surface: rgba(8, 20, 25, 0.985);
   --map-studio-line: rgba(121, 220, 235, 0.18);
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   padding: 0;
   border: 1px solid rgba(101, 218, 239, 0.3);
   color: #eafaff;
@@ -699,6 +698,69 @@ html body .app.shooterMode .shooterArena--mapEdit .shooterMapCreatureAnchor--wat
   font-style: normal;
   font-weight: 900;
   letter-spacing: 0.1em;
+}
+
+.mapEditMapSwitcher {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--map-studio-line);
+  background: rgba(4, 15, 20, 0.66);
+}
+
+.mapEditMapSwitcher > span {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.mapEditMapSwitcher > span small {
+  color: var(--map-studio-accent);
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.mapEditMapSwitcher > span strong {
+  color: #effcff;
+  font-size: 12px;
+}
+
+.mapEditMapSwitcher > span em {
+  overflow: hidden;
+  color: rgba(207, 235, 240, 0.48);
+  font-size: 8px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mapEditMapSwitcher > div {
+  display: grid;
+  grid-template-columns: 28px minmax(106px, 1fr) 28px;
+  gap: 5px;
+}
+
+html body .app.shooterMode .mapEditMapSwitcher :is(button, select) {
+  min-height: 30px !important;
+  border: 1px solid rgba(98, 232, 255, 0.25) !important;
+  border-radius: 8px !important;
+  color: #eaffff !important;
+  background: rgba(15, 44, 52, 0.86) !important;
+  font-size: 10px !important;
+  font-weight: 850 !important;
+}
+
+html body .app.shooterMode .mapEditMapSwitcher button {
+  padding: 0 !important;
+  font-size: 18px !important;
+}
+
+html body .app.shooterMode .mapEditMapSwitcher select {
+  width: 100%;
+  padding: 0 8px !important;
 }
 
 .mapEditPanelScroll {
@@ -918,6 +980,15 @@ html body .app.shooterMode .shooterArena--mapEdit .shooterMapCreatureAnchor--wat
   max-width: 94%;
   max-height: 50px;
   object-fit: contain;
+}
+
+.mapEditSpriteSheetThumbnail {
+  display: block;
+  width: min(94%, 50px);
+  aspect-ratio: 1;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 2px 3px rgba(28, 0, 0, 0.5));
 }
 
 .mapEditInlineAssetCard i {
@@ -1392,9 +1463,9 @@ html body .app.shooterMode .shooterPanel--mapEditorWorkspace > .shooterArena {
   max-width: 390px !important;
   height: auto !important;
   min-height: 0 !important;
-  /* Keep the 390×756 gameplay field above the editor controls so the
-     MAP STUDIO entry starts in the same slot as the normal bottom nav. */
-  aspect-ratio: 390 / 756 !important;
+  /* Match the real 390×844 shooter arena exactly. Normalized placements and
+     cover-cropped map backgrounds must not shift when the editor closes. */
+  aspect-ratio: 390 / 844 !important;
   margin: 0 auto !important;
   border: 1px solid rgba(115, 220, 237, 0.36) !important;
   border-radius: 22px !important;
@@ -1479,7 +1550,7 @@ html body .app.shooterMode .shooterPanel--mapEditorWorkspace > .mapObjectPickerB
     grid-row: 1;
     align-self: center;
     justify-self: center;
-    width: min(390px, calc((100dvh - 48px) * 0.515873)) !important;
+    width: min(390px, calc((100dvh - 48px) * 0.462085)) !important;
   }
 
   html body main.app.app.app.shooterMode .shooterPanel--mapEditorWorkspace > .mapEditPanel--desktop,
@@ -1489,7 +1560,7 @@ html body .app.shooterMode .shooterPanel--mapEditorWorkspace > .mapObjectPickerB
     align-self: center;
     justify-self: start;
     display: grid !important;
-    grid-template-rows: auto minmax(0, 1fr) auto !important;
+    grid-template-rows: auto auto minmax(0, 1fr) auto !important;
     width: min(100%, 460px) !important;
     height: min(844px, calc(100dvh - 48px)) !important;
     min-height: 0 !important;
