@@ -8,6 +8,7 @@ import "./polish.css";
 import "./shooter/maps/map-skins.css";
 import "./shooter/maps/editor/map-editor.css";
 import "./layouts/desktop-layout.css";
+import "./audio-studio/audio-studio.css";
 
 const NAVIGATION_PROBE_KEY = "__RIFFLAB_NAVIGATION_PROBE__";
 const NAVIGATION_PROBE_META_NAME = "rifflab-navigation-performance";

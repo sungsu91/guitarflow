@@ -1,7 +1,30 @@
+import {
+  BACKING_AUDIO_SOURCE_TYPES,
+  normalizeBackingAudioFileName,
+} from "./backingAudioSource.js";
+import { normalizeBackingLoopTitle } from "./backingLoopUtils.js";
+
 const BACKING_LOOP_DB_NAME = "rifflab-backing-loop-v1";
 const BACKING_LOOP_DB_VERSION = 1;
 const BACKING_LOOP_STORE_NAME = "recordings";
 const LEGACY_BACKING_LOOP_RECORD_ID = "current";
+const backingLoopLibraryListeners = new Set();
+let libraryNotificationQueued = false;
+
+function notifyBackingLoopLibraryChanged() {
+  if (libraryNotificationQueued) return;
+  libraryNotificationQueued = true;
+  queueMicrotask(() => {
+    libraryNotificationQueued = false;
+    backingLoopLibraryListeners.forEach((listener) => listener());
+  });
+}
+
+export function subscribeBackingLoopLibrary(listener) {
+  if (typeof listener !== "function") return () => {};
+  backingLoopLibraryListeners.add(listener);
+  return () => backingLoopLibraryListeners.delete(listener);
+}
 
 function openBackingLoopDatabase() {
   return new Promise((resolve, reject) => {
@@ -27,6 +50,7 @@ function runBackingLoopTransaction(mode, operation) {
     const transaction = database.transaction(BACKING_LOOP_STORE_NAME, mode);
     const store = transaction.objectStore(BACKING_LOOP_STORE_NAME);
     const request = operation(store);
+    let requestResult = null;
     let settled = false;
 
     request.onerror = () => {
@@ -35,11 +59,14 @@ function runBackingLoopTransaction(mode, operation) {
       reject(request.error ?? new Error("Backing loop storage request failed."));
     };
     request.onsuccess = () => {
+      requestResult = request.result ?? null;
+    };
+    transaction.oncomplete = () => {
+      database.close();
       if (settled) return;
       settled = true;
-      resolve(request.result ?? null);
+      resolve(requestResult);
     };
-    transaction.oncomplete = () => database.close();
     transaction.onerror = () => {
       database.close();
       if (settled) return;
@@ -53,13 +80,22 @@ function runBackingLoopTransaction(mode, operation) {
 function normalizeStoredBackingLoop(recording) {
   if (!(recording?.blob instanceof Blob) || recording.blob.size === 0) return null;
   const createdAt = Number(recording.createdAt) || Date.now();
+  const sourceType = recording.sourceType === BACKING_AUDIO_SOURCE_TYPES.IMPORT
+    ? BACKING_AUDIO_SOURCE_TYPES.IMPORT
+    : BACKING_AUDIO_SOURCE_TYPES.RECORDING;
+  const fileName = sourceType === BACKING_AUDIO_SOURCE_TYPES.IMPORT
+    ? normalizeBackingAudioFileName(recording.fileName || recording.title)
+    : "";
   return {
     blob: recording.blob,
     createdAt,
     durationMs: Math.max(0, Number(recording.durationMs) || 0),
+    fileName,
     id: String(recording.id || LEGACY_BACKING_LOOP_RECORD_ID),
     mimeType: recording.mimeType || recording.blob.type || "audio/webm",
-    title: String(recording.title || "Backing Loop").trim().slice(0, 40) || "Backing Loop",
+    sourceModifiedAt: Math.max(0, Number(recording.sourceModifiedAt) || 0),
+    sourceType,
+    title: normalizeBackingLoopTitle(recording.title || "Backing Loop") || "Backing Loop",
     updatedAt: Number(recording.updatedAt) || createdAt,
   };
 }
@@ -92,10 +128,12 @@ export async function saveBackingLoopRecording(recording) {
   if (!storedRecording) throw new Error("The backing loop is invalid.");
 
   await runBackingLoopTransaction("readwrite", (store) => store.put(storedRecording));
+  notifyBackingLoopLibraryChanged();
   return storedRecording;
 }
 
 export async function deleteBackingLoopRecording(id) {
   if (!id) return;
   await runBackingLoopTransaction("readwrite", (store) => store.delete(String(id)));
+  notifyBackingLoopLibraryChanged();
 }

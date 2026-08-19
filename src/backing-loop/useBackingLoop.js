@@ -14,7 +14,13 @@ import {
   loadBackingLoopLibrary,
   loadBackingLoopRecording,
   saveBackingLoopRecording,
+  subscribeBackingLoopLibrary,
 } from "./backingLoopStorage";
+import {
+  BACKING_AUDIO_FILE_ACCEPT,
+  BACKING_AUDIO_SOURCE_TYPES,
+  prepareImportedBackingAudioSources,
+} from "./backingAudioSource";
 import {
   BACKING_LOOP_DEFAULT_TITLE,
   createBackingLoopId,
@@ -53,7 +59,10 @@ export default function useBackingLoop() {
   const [recording, setRecording] = useState(null);
   const [recordingAudioData, setRecordingAudioData] = useState(null);
   const [inputLevel, setInputLevel] = useState(EMPTY_INPUT_LEVEL);
+  const [importCandidates, setImportCandidates] = useState([]);
+  const [importRejectedCount, setImportRejectedCount] = useState(0);
   const [saveError, setSaveError] = useState("");
+  const [selectedImportCandidateId, setSelectedImportCandidateId] = useState("");
   const [selectedLibraryId, setSelectedLibraryId] = useState("");
   const [titleDraft, setTitleDraft] = useState("");
   const [trimDraft, setTrimDraft] = useState(null);
@@ -70,6 +79,7 @@ export default function useBackingLoop() {
   const mediaRecorderRef = useRef(null);
   const micSessionRef = useRef(null);
   const meterStopRef = useRef(null);
+  const importInputRef = useRef(null);
   const mountedRef = useRef(true);
   const operationVersionRef = useRef(0);
   const phaseRef = useRef("idle");
@@ -175,17 +185,22 @@ export default function useBackingLoop() {
     mountedRef.current = true;
     let cancelled = false;
 
-    loadBackingLoopLibrary()
+    const refreshLibrary = (showStorageNotice = false) => loadBackingLoopLibrary()
       .then((savedRecordings) => {
         if (!cancelled) setLibrary(savedRecordings);
       })
       .catch(() => {
-        if (!cancelled) setNotice("저장 공간을 사용할 수 없지만 녹음과 재생은 가능합니다.");
+        if (!cancelled && showStorageNotice) {
+          setNotice("저장 공간을 사용할 수 없지만 녹음과 재생은 가능합니다.");
+        }
       });
+    const unsubscribe = subscribeBackingLoopLibrary(() => refreshLibrary(false));
+    refreshLibrary(true);
 
     return () => {
       cancelled = true;
       mountedRef.current = false;
+      unsubscribe();
     };
   }, []);
 
@@ -360,8 +375,11 @@ export default function useBackingLoop() {
           blob: processed.blob,
           createdAt: Date.now(),
           durationMs: processed.durationMs || durationMs,
+          fileName: "",
           id: "",
           mimeType: processed.mimeType || blobType,
+          sourceModifiedAt: 0,
+          sourceType: BACKING_AUDIO_SOURCE_TYPES.RECORDING,
           title: BACKING_LOOP_DEFAULT_TITLE,
         };
         setEditSourceRecording(nextRecording);
@@ -508,7 +526,7 @@ export default function useBackingLoop() {
       setNotice("무한 반복 재생 중");
       setPhaseImmediate("playing");
     } catch {
-      setNotice("녹음을 재생할 수 없어요. 다시 녹음하거나 다른 백킹을 LOAD해주세요.");
+      setNotice("백킹을 재생할 수 없어요. 다시 녹음하거나 다른 백킹을 LOAD해주세요.");
       setPhaseImmediate("error");
     } finally {
       playbackRequestRef.current = false;
@@ -544,6 +562,105 @@ export default function useBackingLoop() {
     setLibraryEditMode(false);
     setDialog("load");
   }, []);
+
+  const openImportPicker = useCallback(() => {
+    if (["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
+    const input = importInputRef.current;
+    if (!input) return;
+    input.value = "";
+    input.click();
+  }, []);
+
+  const activateImportedRecording = useCallback((importedRecording, nextNotice = "") => {
+    if (!importedRecording?.blob) return;
+    resetAudioPosition();
+    setRecording(importedRecording);
+    setRecordingAudioData(null);
+    setEditSourceRecording(importedRecording);
+    setEditSourceAudioData(null);
+    setAppliedTrimRange({ endMs: importedRecording.durationMs, startMs: 0 });
+    setTrimDraft(null);
+    setSelectedLibraryId("");
+    setSelectedLibraryIds([]);
+    setSelectedImportCandidateId("");
+    setLibraryEditMode(false);
+    setImportCandidates([]);
+    setImportRejectedCount(0);
+    setCurrentTimeMs(0);
+    setDialog("");
+    setNotice(nextNotice || `“${importedRecording.fileName}” 가져오기 완료 · PLAY하거나 SAVE하세요.`);
+    setPhaseImmediate("idle");
+  }, [resetAudioPosition, setPhaseImmediate]);
+
+  const importBackingAudio = useCallback(async (event) => {
+    const input = event.currentTarget;
+    const files = Array.from(input.files || []);
+    input.value = "";
+    if (!files.length) return;
+    if (["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
+
+    const operationVersion = ++operationVersionRef.current;
+    resetAudioPosition();
+    setDialog("");
+    setSaveError("");
+    setImportCandidates([]);
+    setImportRejectedCount(0);
+    setSelectedImportCandidateId("");
+    setNotice(`${files.length}개 파일을 확인하고 있어요.`);
+    setPhaseImmediate("loading");
+
+    try {
+      const { imported, rejected } = await prepareImportedBackingAudioSources(files, {
+        onProgress: ({ completed, total }) => {
+          if (mountedRef.current && operationVersion === operationVersionRef.current) {
+            setNotice(`${completed}/${total} 백킹 파일 확인 중...`);
+          }
+        },
+      });
+      if (!mountedRef.current || operationVersion !== operationVersionRef.current) return;
+      if (!imported.length) {
+        setNotice("가져올 수 있는 오디오가 없습니다. MP3, WAV, M4A, AAC 파일을 확인해주세요.");
+        setPhaseImmediate("error");
+        return;
+      }
+      const candidates = imported.map((candidate) => ({
+        id: createBackingLoopId(),
+        recording: candidate,
+      }));
+      setImportCandidates(candidates);
+      setImportRejectedCount(rejected.length);
+      if (candidates.length === 1) {
+        activateImportedRecording(
+          candidates[0].recording,
+          rejected.length
+            ? `“${candidates[0].recording.fileName}” 준비 완료 · ${rejected.length}개 파일은 제외했습니다.`
+            : "",
+        );
+        return;
+      }
+      setSelectedImportCandidateId(candidates[0].id);
+      setNotice(rejected.length
+        ? `${candidates.length}개 준비 완료 · ${rejected.length}개 파일은 제외했습니다.`
+        : `${candidates.length}개 준비 완료 · 현재 백킹으로 사용할 파일을 선택하세요.`);
+      setDialog("import-select");
+      setPhaseImmediate("idle");
+    } catch {
+      if (!mountedRef.current || operationVersion !== operationVersionRef.current) return;
+      setNotice("이 브라우저에서 디코딩할 수 있는 오디오 파일인지 확인해주세요.");
+      setPhaseImmediate("error");
+    }
+  }, [activateImportedRecording, resetAudioPosition, setPhaseImmediate]);
+
+  const useSelectedImportCandidate = useCallback(() => {
+    const selected = importCandidates.find((candidate) => candidate.id === selectedImportCandidateId);
+    if (!selected) return;
+    activateImportedRecording(
+      selected.recording,
+      importRejectedCount
+        ? `“${selected.recording.fileName}” 선택 완료 · ${importRejectedCount}개 파일은 제외했습니다.`
+        : "",
+    );
+  }, [activateImportedRecording, importCandidates, importRejectedCount, selectedImportCandidateId]);
 
   const openDeleteDialog = useCallback(() => {
     const targetIds = libraryEditMode ? selectedLibraryIds : [selectedLibraryId].filter(Boolean);
@@ -771,6 +888,11 @@ export default function useBackingLoop() {
       setDialog("save");
       return;
     }
+    if (dialog === "import-select") {
+      setImportCandidates([]);
+      setImportRejectedCount(0);
+      setSelectedImportCandidateId("");
+    }
     setDialog("");
     setSaveError("");
     setSelectedLibraryId("");
@@ -979,6 +1101,11 @@ export default function useBackingLoop() {
     handleLoadedMetadata,
     handlePlaybackEnded,
     hasRecording,
+    importAccept: BACKING_AUDIO_FILE_ACCEPT,
+    importBackingAudio,
+    importCandidates,
+    importInputRef,
+    importRejectedCount,
     inputLevel,
     isArmed: phase === "armed",
     isPaused: phase === "paused",
@@ -989,6 +1116,7 @@ export default function useBackingLoop() {
     loadRecording,
     notice,
     openDeleteDialog,
+    openImportPicker,
     openLoadDialog,
     openSaveDialog,
     openTrimEditor,
@@ -1000,12 +1128,16 @@ export default function useBackingLoop() {
     resetPlayback,
     resetTrimSelection,
     saveError,
+    selectedImportCandidateId,
     selectedLibraryId,
     selectedLibraryIds,
     selectLibraryRecording: setSelectedLibraryId,
+    selectImportCandidate: setSelectedImportCandidateId,
     seekPlayback,
     setTitleDraft,
     status,
+    sourceFileName: recording?.fileName || "",
+    sourceType: recording?.sourceType || BACKING_AUDIO_SOURCE_TYPES.RECORDING,
     title: recording?.title || BACKING_LOOP_DEFAULT_TITLE,
     titleDraft,
     toggleLibraryEditMode,
@@ -1019,6 +1151,7 @@ export default function useBackingLoop() {
     trimSelection,
     updateTrimEnd,
     updateTrimStart,
+    useSelectedImportCandidate,
     useOriginalTrimRecording,
   };
 }

@@ -39,6 +39,36 @@ test("menu owns sound and rhythm entry while the rhythm dialog contains no dupli
   assert.doesNotMatch(rhythmDialogSource, /miniChordRhythmSoundRow|기본 볼륨|onSoundToggle/);
 });
 
+test("rhythm settings keep editing compact and expose part and full previews", () => {
+  const rhythmDialogSource = getSourceRange(
+    "function MiniChordRhythmSettingsDialog",
+    "function MiniChordArrangementEditorDialog",
+  );
+
+  assert.match(rhythmDialogSource, /miniChordRhythmPartHeaderActions/);
+  assert.match(rhythmDialogSource, /선택 편집/);
+  assert.match(rhythmDialogSource, /miniChordRhythmPartPreviewButton/);
+  assert.match(rhythmDialogSource, /전체 미리듣기/);
+  assert.doesNotMatch(rhythmDialogSource, /기본 비트 \/ SUBDIVISION/);
+});
+
+test("pattern editor and settings part previews schedule only the requested instrument", () => {
+  const groovePreviewSource = getSourceRange(
+    "const previewMiniChordGrooveDraft",
+    "const previewMiniChordGlobalRhythm",
+  );
+  const settingsPreviewSource = getSourceRange(
+    "const previewMiniChordGlobalRhythm",
+    "const previewMiniChordArrangementDraft",
+  );
+
+  assert.match(groovePreviewSource, /event\.instrument === miniChordGrooveEditorPart/);
+  assert.match(groovePreviewSource, /previewForceEnabled: true/);
+  assert.match(settingsPreviewSource, /mode === "all"/);
+  assert.match(settingsPreviewSource, /event\.instrument === mode/);
+  assert.match(settingsPreviewSource, /setMiniChordRhythmSettingsPreviewMode\(mode\)/);
+});
+
 test("shared volume sliders stay mounted and coalesce rapid audio updates", () => {
   assert.match(panelSource, /function SharedAccompanimentVolumeSlider/);
   assert.match(panelSource, /ref=\{inputRef\}/);

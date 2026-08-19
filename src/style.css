@@ -258,29 +258,27 @@ html body main.app.app.app.miniChordMakerMode .miniChordBottomPagination--deskto
 }
 
 /* Mini-chord Section arrangement: shared data, compact mobile-first editor. */
-html body .miniChordArrangementRows .miniChordArrangementSectionFields > div,
-html body .miniChordArrangementRows .miniChordArrangementPatternFields > div {
+html body .miniChordArrangementRows .miniChordArrangementSectionFields > div {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 6px !important;
 }
 
 html body .miniChordArrangementRows .miniChordArrangementSectionFields label,
-html body .miniChordArrangementRows .miniChordArrangementPatternFields label,
 html body .miniChordArrangementRows .miniChordArrangementBarFields label {
   display: grid !important;
   gap: 3px !important;
   min-width: 0 !important;
 }
 
-html body .miniChordArrangementRows :is(.miniChordArrangementSectionFields, .miniChordArrangementPatternFields) small {
+html body .miniChordArrangementRows .miniChordArrangementSectionFields small {
   color: rgba(98, 62, 21, 0.72) !important;
   font-size: 8px !important;
   font-weight: 900 !important;
   line-height: 1.2 !important;
 }
 
-html body .miniChordArrangementRows :is(.miniChordArrangementSectionFields, .miniChordArrangementPatternFields) :is(input, select) {
+html body .miniChordArrangementRows .miniChordArrangementSectionFields :is(input, select) {
   box-sizing: border-box !important;
   width: 100% !important;
   min-width: 0 !important;
@@ -303,19 +301,6 @@ html body .miniChordArrangementRows .miniChordArrangementBarFields > span {
   padding-bottom: 10px !important;
   color: rgba(98, 62, 21, 0.65) !important;
   font-weight: 1000 !important;
-}
-
-html body .miniChordArrangementRows .miniChordArrangementNewPatternButton {
-  grid-column: 1 / -1 !important;
-  min-height: 30px !important;
-  border-color: rgba(151, 101, 31, 0.38) !important;
-  background: rgba(241, 205, 137, 0.5) !important;
-  color: #563512 !important;
-}
-
-html body .miniChordArrangementRows .miniChordArrangementPatternHint {
-  display: block !important;
-  margin-top: -1px !important;
 }
 
 html body main.app.app.app.miniChordMakerMode .miniChordArrangementManagerRow {
@@ -417,17 +402,6 @@ html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordA
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
-}
-
-@media (min-width: 681px) {
-  html body .miniChordArrangementRows .miniChordArrangementNewPatternButton {
-    grid-column: auto !important;
-  }
-
-  html body .miniChordArrangementRows .miniChordArrangementPatternFields > div {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto !important;
-    align-items: end !important;
-  }
 }
 
 /* Compact skin configurator: isolated dark stage + live loadout preview. */
@@ -63477,7 +63451,7 @@ html body .miniChordArrangementRows button {
   min-height: 32px !important;
   padding: 0 3px !important;
   border-radius: 7px !important;
-  font-size: 8.5px !important;
+  font-size: 10.5px !important;
   font-weight: 950 !important;
   letter-spacing: 0 !important;
 }
@@ -63492,7 +63466,7 @@ html body .miniChordArrangementRows .miniChordArrangementSoloButton {
   border-color: rgba(128, 85, 45, 0.36) !important;
   background: rgba(240, 219, 178, 0.48) !important;
   color: #604017 !important;
-  font-size: 10px !important;
+  font-size: 12.5px !important;
 }
 
 html body .miniChordArrangementRhythmHint {
@@ -63515,24 +63489,26 @@ html body .miniChordArrangementRows section > .miniChordArrangementPartControls 
 
 html body .miniChordArrangementBeatChoices {
   display: grid !important;
-  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.2fr) minmax(0, 1.4fr) minmax(0, 0.7fr) !important;
   gap: 4px !important;
 }
 
 html body .miniChordArrangementBeatChoices .miniChordArrangementSoloButton {
   padding-inline: 2px !important;
-  font-size: 7.5px !important;
+  font-size: 12.5px !important;
 }
 
 html body .miniChordArrangementRows .miniChordArrangementEditPatternButton {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 5px !important;
-  min-height: 30px !important;
+  gap: 4px !important;
+  min-height: 32px !important;
+  padding: 0 3px !important;
   border-style: dashed !important;
   background: rgba(255, 255, 255, 0.54) !important;
   color: #604017 !important;
+  font-size: 9.5px !important;
 }
 
 html body .miniChordArrangementRows .miniChordArrangementEditPatternButton.is-section-custom {
@@ -63604,15 +63580,16 @@ html body .miniChordRhythmSettingsParts header button {
   font-weight: 900 !important;
 }
 
-html body .miniChordRhythmDefaultLabel {
-  color: rgba(78, 49, 17, 0.72) !important;
-  font-size: 8px !important;
-  font-weight: 950 !important;
+html body .miniChordRhythmPartHeaderActions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 4px !important;
 }
 
 html body .miniChordRhythmPresetCards {
   display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.25fr) !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.2fr) minmax(31px, 0.68fr) !important;
   gap: 4px !important;
 }
 
@@ -63667,14 +63644,22 @@ html body .miniChordRhythmPresetCards > button.selected {
   box-shadow: inset 0 0 0 1px rgba(83, 52, 17, 0.3) !important;
 }
 
+html body .miniChordRhythmPresetCards > .miniChordRhythmPartPreviewButton {
+  justify-content: center !important;
+  padding-inline: 2px !important;
+  border-color: rgba(128, 85, 45, 0.36) !important;
+  background: rgba(240, 219, 178, 0.48) !important;
+}
+
 html body .miniChordRhythmEditSelectedButton {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 6px !important;
-  min-height: 31px !important;
+  gap: 4px !important;
+  min-height: 25px !important;
+  padding: 0 7px !important;
   border: 1px dashed rgba(126, 84, 25, 0.34) !important;
-  border-radius: 8px !important;
+  border-radius: 7px !important;
   background: rgba(255, 255, 255, 0.5) !important;
   color: #604017 !important;
   font-size: 8px !important;
@@ -63705,6 +63690,16 @@ html body .miniChordRhythmSettingsActions button {
   min-height: 34px !important;
   border-radius: 8px !important;
   font-size: 9px !important;
+}
+
+html body .miniChordRhythmSettingsActions {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 5px !important;
+}
+
+html body .miniChordRhythmSettingsActions button {
+  min-width: 0 !important;
+  padding-inline: 4px !important;
 }
 
 html body .miniChordRhythmResetConfirmLayer {

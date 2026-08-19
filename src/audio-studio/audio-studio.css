@@ -1,0 +1,3714 @@
+.audioStudio,
+.audioStudio *,
+.audioStudio *::before,
+.audioStudio *::after {
+  box-sizing: border-box;
+}
+
+.audioStudio {
+  --studio-bg: #241f1a;
+  --studio-panel: #302920;
+  --studio-panel-2: #3a3026;
+  --studio-panel-3: #493b2e;
+  --studio-line: #68543d;
+  --studio-line-soft: #4d4033;
+  --studio-text: #f5e7d1;
+  --studio-muted: #b9a68d;
+  --studio-gold: #c99a52;
+  --studio-gold-strong: #e2b96f;
+  --studio-purple: #9271d0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: calc(100dvh - 132px);
+  padding: 16px 14px 104px;
+  overflow-x: clip;
+  color: var(--studio-text);
+  background: var(--studio-bg);
+  color-scheme: dark;
+}
+
+.audioStudio button,
+.audioStudio input,
+.audioStudio select,
+.audioStudio output {
+  font: inherit;
+}
+
+.audioStudio button {
+  min-width: 0;
+  border: 1px solid var(--studio-line);
+  color: var(--studio-text);
+  background: var(--studio-panel-2);
+  cursor: pointer;
+}
+
+.audioStudio button:hover:not(:disabled) {
+  border-color: #596168;
+  background: var(--studio-panel-3);
+}
+
+.audioStudio button:focus-visible,
+.audioStudio input:focus-visible,
+.audioStudio summary:focus-visible,
+.audioStudio [tabindex="0"]:focus-visible {
+  outline: 2px solid var(--studio-gold-strong);
+  outline-offset: 2px;
+}
+
+.audioStudio button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.audioStudio h1,
+.audioStudio h2,
+.audioStudio p {
+  margin: 0;
+}
+
+.audioStudio small,
+.audioStudio time,
+.audioStudio output {
+  color: var(--studio-muted);
+}
+
+.audioStudioFileInput {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.audioStudioLibrary,
+.audioStudioConstruction {
+  width: min(100%, 900px);
+  min-width: 0;
+  margin: 0 auto;
+}
+
+.audioStudioLibraryHeader {
+  padding: 16px 2px 20px;
+  border-bottom: 1px solid var(--studio-line);
+}
+
+.audioStudioLibraryHeader > span,
+.audioStudioConstructionHeader > div > span,
+.audioStudioLibrarySectionHeader span,
+.audioStudioDialog header span,
+.audioStudioMixerHeader span {
+  color: var(--studio-gold);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.audioStudioLibraryHeader h1 {
+  margin: 6px 0 4px;
+  font-size: clamp(27px, 5vw, 40px);
+  line-height: 1;
+}
+
+.audioStudioLibraryHeader p {
+  color: var(--studio-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+}
+
+.audioStudioLibraryActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 18px 0 28px;
+}
+
+.audioStudioLibraryActions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 14px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.audioStudioLibraryActions button:first-child {
+  border-color: #7a6038;
+  color: #17120c;
+  background: var(--studio-gold-strong);
+}
+
+.audioStudioLibraryActions button:first-child:hover:not(:disabled) {
+  background: #efc77f;
+}
+
+.audioStudioLibrarySectionHeader,
+.audioStudioConstructionHeader,
+.audioStudioMixerHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.audioStudioLibrarySectionHeader h2,
+.audioStudioConstructionHeader h1,
+.audioStudioMixerHeader h1 {
+  margin-top: 3px;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.audioStudioLibrarySectionHeader > small,
+.audioStudioConstructionHeader > strong {
+  flex: 0 0 auto;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.audioStudioProjectList {
+  display: grid;
+  gap: 9px;
+}
+
+.audioStudioProjectCard {
+  position: relative;
+  min-width: 0;
+  border: 1px solid var(--studio-line-soft);
+  border-radius: 8px;
+  background: var(--studio-panel);
+}
+
+.audioStudioProjectCard:focus-within,
+.audioStudioProjectCard:hover {
+  border-color: #4c555e;
+}
+
+.audioStudioProjectOpen {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 86px;
+  padding: 12px 52px 12px 13px;
+  border: 0;
+  border-radius: 8px;
+  text-align: left;
+  background: transparent;
+}
+
+.audioStudioProjectOpen:hover:not(:disabled) {
+  background: #181d22;
+}
+
+.audioStudioProjectGlyph {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid #52452f;
+  border-radius: 7px;
+  color: var(--studio-gold-strong);
+  background: #211d17;
+}
+
+.audioStudioProjectCopy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.audioStudioProjectCopy > strong,
+.audioStudioProjectCopy > small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audioStudioProjectCopy > strong {
+  font-size: 14px;
+}
+
+.audioStudioProjectCopy > small {
+  font-size: 11px;
+}
+
+.audioStudioProjectCopy > span {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.audioStudioProjectCopy b {
+  color: var(--studio-gold-strong);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.audioStudioProjectOpenIcon {
+  color: #68717a;
+}
+
+.audioStudioProjectMenu,
+.audioStudioTopbarMenu {
+  position: absolute;
+  z-index: 20;
+}
+
+.audioStudioProjectMenu {
+  top: 12px;
+  right: 12px;
+}
+
+.audioStudioProjectMenu > summary,
+.audioStudioTopbarMenu > summary {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 6px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.audioStudioProjectMenu > summary::-webkit-details-marker,
+.audioStudioTopbarMenu > summary::-webkit-details-marker,
+.audioStudioMobileInspector > summary::-webkit-details-marker {
+  display: none;
+}
+
+.audioStudioProjectMenu[open] > summary,
+.audioStudioTopbarMenu[open] > summary {
+  color: var(--studio-gold-strong);
+  background: var(--studio-panel-3);
+}
+
+.audioStudioProjectMenu > div,
+.audioStudioTopbarMenu > div {
+  position: absolute;
+  z-index: 50;
+  top: 39px;
+  right: 0;
+  display: grid;
+  width: 176px;
+  padding: 5px;
+  border: 1px solid #765f45;
+  border-radius: 7px;
+  background: #3a3027;
+  box-shadow: 0 12px 36px rgb(0 0 0 / 42%);
+}
+
+.audioStudioProjectMenu button,
+.audioStudioTopbarMenu > div > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 4px;
+  text-align: left;
+  background: transparent;
+}
+
+.audioStudioProjectMenu button:last-child {
+  color: #e78f85;
+}
+
+.audioStudioLibraryEmpty,
+.audioStudioConstructionEmpty {
+  display: grid;
+  min-height: 260px;
+  padding: 32px 20px;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  border: 1px dashed #394149;
+  border-radius: 9px;
+  color: var(--studio-muted);
+  text-align: center;
+  background: var(--studio-panel);
+}
+
+.audioStudioLibraryEmpty h2 {
+  color: var(--studio-text);
+  font-size: 17px;
+}
+
+.audioStudioLibraryEmpty p,
+.audioStudioConstructionEmpty span {
+  font-size: 12px;
+}
+
+.audioStudioLibraryEmpty button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  margin-top: 8px;
+  padding: 8px 14px;
+  border-color: #735a35;
+  border-radius: 6px;
+  color: var(--studio-gold-strong);
+}
+
+.audioStudioLibraryNotice {
+  min-height: 22px;
+  padding-top: 8px;
+  color: var(--studio-muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.audioStudioDialogBackdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  padding: 18px;
+  place-items: center;
+  background: rgb(0 0 0 / 72%);
+}
+
+.audioStudioDialog {
+  width: min(100%, 480px);
+  max-height: calc(100dvh - 36px);
+  padding: 18px;
+  overflow-y: auto;
+  border: 1px solid #7c664c;
+  border-radius: 10px;
+  background: #382f27;
+  box-shadow: 0 24px 64px rgb(0 0 0 / 58%);
+}
+
+.audioStudioDialog--compact {
+  width: min(100%, 400px);
+}
+
+.audioStudioDialog > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.audioStudioDialog h2 {
+  margin-top: 3px;
+  font-size: 20px;
+}
+
+.audioStudioDialog > header > button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 6px;
+}
+
+.audioStudioDialogName {
+  display: grid;
+  gap: 7px;
+}
+
+.audioStudioDialogName > span,
+.audioStudioInspectorField > span {
+  color: var(--studio-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.audioStudioDialogName input,
+.audioStudioInspectorField input,
+.audioStudioTopbarMenu input {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--studio-line);
+  border-radius: 5px;
+  color: var(--studio-text);
+  background: #2b241d;
+}
+
+.audioStudioCreateChoices {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.audioStudioCreateChoices button {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 70px;
+  padding: 12px;
+  border-radius: 7px;
+  text-align: left;
+}
+
+.audioStudioCreateChoices button > svg {
+  color: var(--studio-gold-strong);
+}
+
+.audioStudioCreateChoices button span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.audioStudioCreateChoices small {
+  overflow-wrap: anywhere;
+  font-size: 11px;
+}
+
+.audioStudioDialogCancel {
+  width: 100%;
+  min-height: 40px;
+  margin-top: 10px;
+  border-radius: 6px;
+}
+
+.audioStudioDialogActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.audioStudioDialogActions button {
+  min-height: 40px;
+  border-radius: 6px;
+}
+
+.audioStudioDialogActions button:last-child {
+  border-color: #755d39;
+  color: var(--studio-gold-strong);
+}
+
+.audioStudioProjectTopbar {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 5px 7px;
+  border: 1px solid var(--studio-line-soft);
+  border-radius: 8px;
+  background: var(--studio-panel);
+}
+
+.audioStudioProjectTopbar > button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+}
+
+.audioStudioProjectTopbar > div {
+  display: grid;
+  min-width: 0;
+  justify-items: center;
+  gap: 2px;
+}
+
+.audioStudioProjectTopbar > div strong {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audioStudioProjectTopbar > div span {
+  color: #8ca993;
+  font-size: 9px;
+}
+
+.audioStudioProjectTopbar > div span.is-saving,
+.audioStudioProjectTopbar > div span.is-dirty {
+  color: var(--studio-gold-strong);
+}
+
+.audioStudioProjectTopbar > div span.is-error {
+  color: #ed8d84;
+}
+
+.audioStudioTopbarMenu {
+  top: 9px;
+  right: 9px;
+}
+
+.audioStudioTopbarMenu > div {
+  width: 222px;
+}
+
+.audioStudioTopbarMenu section {
+  display: grid;
+  gap: 5px;
+  margin-top: 4px;
+  padding: 8px;
+  border-top: 1px solid var(--studio-line);
+}
+
+.audioStudioTopbarMenu section > span {
+  color: var(--studio-gold);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.audioStudioTopbarMenu section > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 68px 28px;
+  gap: 4px;
+}
+
+.audioStudioTopbarMenu section input {
+  height: 30px;
+  padding: 5px 7px;
+  font-size: 11px;
+}
+
+.audioStudioTopbarMenu section button {
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+}
+
+.audioStudioConstruction {
+  display: grid;
+  gap: 16px;
+}
+
+.audioStudioConstructionHeader {
+  align-items: center;
+  margin: 6px 2px 0;
+}
+
+.audioStudioConstructionHeader p {
+  margin-top: 5px;
+  color: var(--studio-muted);
+  font-size: 12px;
+}
+
+.audioStudioConstructionList {
+  display: grid;
+  gap: 7px;
+}
+
+.audioStudioConstructionSource {
+  display: grid;
+  grid-template-columns: 36px 30px minmax(120px, 1fr) minmax(120px, 2fr) 46px 36px;
+  align-items: center;
+  min-width: 0;
+  min-height: 66px;
+  border: 1px solid var(--studio-line);
+  border-radius: 7px;
+  background: var(--studio-panel);
+}
+
+.audioStudioConstructionSource:active {
+  border-color: var(--studio-gold);
+}
+
+.audioStudioConstructionGrip,
+.audioStudioConstructionRemove {
+  display: grid;
+  width: 34px;
+  height: 46px;
+  place-items: center;
+  border: 0;
+  color: #7c858d;
+  background: transparent;
+  touch-action: none;
+}
+
+.audioStudioConstructionIndex {
+  color: var(--studio-gold);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.audioStudioConstructionInfo,
+.audioStudioSourceName {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.audioStudioConstructionInfo strong,
+.audioStudioConstructionInfo small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audioStudioConstructionInfo strong {
+  font-size: 13px;
+}
+
+.audioStudioConstructionInfo small {
+  font-size: 10px;
+}
+
+.audioStudioConstructionWave,
+.audioStudioWaveform {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: stretch;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.audioStudioConstructionWave {
+  height: 38px;
+  padding: 5px 3px;
+  border-left: 1px solid var(--studio-line-soft);
+  border-right: 1px solid var(--studio-line-soft);
+}
+
+.audioStudioConstructionWave i,
+.audioStudioWaveform i {
+  width: 2px;
+  max-width: 3px;
+  flex: 1 1 2px;
+  border-radius: 1px;
+  background: #8c9b87;
+}
+
+.audioStudioConstructionSource time {
+  justify-self: center;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.audioStudioConstructionEmpty {
+  min-height: 170px;
+}
+
+.audioStudioAddSource {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  border-style: dashed;
+  border-radius: 7px;
+  color: var(--studio-gold-strong);
+}
+
+.audioStudioConstructionFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 2px;
+}
+
+.audioStudioConstructionFooter p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--studio-muted);
+  font-size: 11px;
+}
+
+.audioStudioConstructionFooter button {
+  display: inline-flex;
+  min-width: 190px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-color: #755e8d;
+  border-radius: 6px;
+  background: #59416f;
+}
+
+.audioStudioEditor,
+.audioStudioMixerWorkspace {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.audioStudioWorkspaceNav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 460px;
+  margin: 9px auto;
+  border: 1px solid var(--studio-line-soft);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.audioStudioWorkspaceNav button {
+  min-height: 34px;
+  border: 0;
+  border-right: 1px solid var(--studio-line-soft);
+  color: var(--studio-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  background: var(--studio-panel);
+}
+
+.audioStudioWorkspaceNav button:last-child {
+  border-right: 0;
+}
+
+.audioStudioWorkspaceNav button[aria-current="page"] {
+  color: var(--studio-gold-strong);
+  background: var(--studio-panel-3);
+}
+
+.audioStudioTransport {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) auto minmax(150px, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 48px;
+  padding: 6px 10px;
+  border: 1px solid var(--studio-line-soft);
+  border-radius: 7px;
+  background: var(--studio-panel);
+}
+
+.audioStudioTransport > output {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audioStudioTransport > output strong {
+  color: var(--studio-text);
+}
+
+.audioStudioTransportPlayback,
+.audioStudioTimelineNavigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.audioStudioTransportPlayback button,
+.audioStudioTimelineNavigation button {
+  display: inline-flex;
+  min-width: 36px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 5px;
+}
+
+.audioStudioTransportPlayback button.is-primary {
+  width: 43px;
+  color: #17120d;
+  background: var(--studio-gold-strong);
+}
+
+.audioStudioTimelineNavigation {
+  justify-content: flex-end;
+}
+
+.audioStudioTimelineNavigation button span {
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.audioStudioContextToolbar {
+  display: grid;
+  grid-template-columns: 138px minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+  margin: 7px 0;
+  padding: 6px;
+  border: 1px solid var(--studio-line-soft);
+  border-radius: 7px;
+  background: var(--studio-panel);
+}
+
+.audioStudioContextLabel {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  padding: 0 7px;
+}
+
+.audioStudioContextLabel span {
+  overflow: hidden;
+  color: var(--studio-gold-strong);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audioStudioContextLabel small {
+  margin-top: 2px;
+  overflow: hidden;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audioStudioContextActions {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(54px, 1fr));
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.audioStudioContextActions button {
+  display: grid;
+  min-width: 54px;
+  min-height: 40px;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  padding: 3px;
+  border-width: 0 1px 0 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.audioStudioContextActions button span {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 8px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audioStudioContextActions button:last-child {
+  border-right: 0;
+}
+
+.audioStudioEditModes {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  align-items: stretch;
+  gap: 3px;
+}
+
+.audioStudioEditModes button {
+  min-height: 38px;
+  padding: 4px 7px;
+  border-radius: 4px;
+  color: var(--studio-muted);
+  font-size: 8px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.audioStudioEditModes button[aria-pressed="true"] {
+  border-color: #7a633c;
+  color: var(--studio-gold-strong);
+}
+
+.audioStudioEditorGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 266px;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+}
+
+.audioStudioEditorGrid > main {
+  min-width: 0;
+}
+
+.audioStudioTimelineFrame {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: clamp(330px, 55dvh, 680px);
+  overflow: hidden;
+  border: 1px solid var(--studio-line);
+  border-radius: 7px;
+  background: #211c18;
+}
+
+.audioStudioTimelineScroller {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #80684c #2a231d;
+  touch-action: pan-x pan-y;
+}
+
+.audioStudioTimelineCanvas {
+  position: relative;
+  width: calc(var(--audio-studio-timeline-width) + 150px);
+  min-width: calc(var(--audio-studio-timeline-width) + 150px);
+}
+
+.audioStudioRulerRow,
+.audioStudioTrackRow {
+  display: grid;
+  grid-template-columns: 150px var(--audio-studio-timeline-width);
+  min-width: 0;
+}
+
+.audioStudioRulerRow {
+  position: sticky;
+  z-index: 11;
+  top: 0;
+  height: 38px;
+}
+
+.audioStudioRulerRow > strong {
+  position: sticky;
+  z-index: 15;
+  left: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  border-right: 1px solid var(--studio-line);
+  border-bottom: 1px solid var(--studio-line);
+  color: var(--studio-muted);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  background: #3a3027;
+}
+
+.audioStudioRuler {
+  position: relative;
+  min-width: 0;
+  border-bottom: 1px solid var(--studio-line);
+  background: #302820;
+}
+
+.audioStudioRulerTick {
+  position: absolute;
+  top: 7px;
+  color: #c1ad91;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+  transform: translateX(3px);
+  pointer-events: none;
+}
+
+.audioStudioMarker {
+  position: absolute;
+  z-index: 6;
+  top: 0;
+  display: inline-flex;
+  height: 20px;
+  max-width: 90px;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 0 0 4px 4px;
+  color: #16110b;
+  background: var(--studio-gold-strong);
+  transform: translateX(-1px);
+}
+
+.audioStudioMarker span {
+  overflow: hidden;
+  font-size: 8px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audioStudioLoopRange {
+  position: absolute;
+  z-index: 2;
+  inset-block: 0;
+  border-inline: 2px solid #d09547;
+  background: rgb(201 154 82 / 16%);
+  pointer-events: none;
+}
+
+.audioStudioTrackRow {
+  min-height: 84px;
+  border-bottom: 1px solid var(--studio-line-soft);
+}
+
+.audioStudioTrackHeader {
+  position: sticky;
+  z-index: 10;
+  left: 0;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-content: center;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 84px;
+  padding: 8px 7px;
+  border-right: 1px solid var(--studio-line);
+  background: #382f26;
+}
+
+.audioStudioTrackRow.is-active .audioStudioTrackHeader {
+  box-shadow: inset 3px 0 0 var(--studio-gold);
+  background: #47392b;
+}
+
+.audioStudioTrackHeader strong {
+  display: grid;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audioStudioTrackHeader strong b,
+.audioStudioTrackHeader strong span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audioStudioTrackHeader strong b {
+  color: var(--studio-gold-strong);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+}
+
+.audioStudioTrackHeader strong span {
+  color: var(--studio-text);
+  font-size: 9px;
+}
+
+.audioStudioTrackDrag {
+  display: grid;
+  grid-column: 1;
+  grid-row: 1 / 3;
+  color: #9e896e;
+  cursor: grab;
+  touch-action: none;
+}
+
+.audioStudioTrackSwitches {
+  display: grid;
+  grid-column: 3;
+  grid-row: 1;
+  grid-template-columns: repeat(2, auto);
+  gap: 3px;
+}
+
+.audioStudioTrackHeader button {
+  display: grid;
+  width: auto;
+  min-width: 32px;
+  height: 24px;
+  place-items: center;
+  border-radius: 4px;
+  color: #969da3;
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.audioStudioTrackVolume {
+  display: grid;
+  grid-column: 2 / 4;
+  grid-row: 2;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.audioStudioTrackVolume > span {
+  color: var(--studio-muted);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.audioStudioTrackHeader button.is-on:first-of-type {
+  color: #18110b;
+  background: #c77e56;
+}
+
+.audioStudioTrackHeader button.is-on:last-of-type {
+  color: #18110b;
+  background: var(--studio-gold-strong);
+}
+
+.audioStudioTrackHeader input[type="range"] {
+  width: 100%;
+  min-width: 0;
+  height: 14px;
+  accent-color: var(--studio-gold);
+}
+
+.audioStudioTrackLane {
+  position: relative;
+  min-width: 0;
+  min-height: 84px;
+  overflow: hidden;
+  background: #28211b;
+}
+
+.audioStudioTrackLaneEmpty {
+  position: sticky;
+  z-index: 3;
+  left: 12px;
+  display: inline-grid;
+  width: min(230px, calc(100vw - 150px));
+  height: 100%;
+  min-height: 84px;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-content: center;
+  align-items: center;
+  column-gap: 7px;
+  padding: 8px 10px;
+  color: var(--studio-muted);
+  pointer-events: none;
+}
+
+.audioStudioTrackLaneEmpty svg {
+  grid-row: 1 / 3;
+  color: var(--studio-gold);
+}
+
+.audioStudioTrackLaneEmpty b {
+  color: var(--studio-text);
+  font-size: 10px;
+}
+
+.audioStudioTrackLaneEmpty small {
+  overflow: hidden;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audioStudioClip {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  display: grid;
+  height: 68px;
+  min-width: 10px;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: 5px 7px 4px;
+  overflow: hidden;
+  border: 1px solid #84996f;
+  border-radius: 4px;
+  color: #e9f0dc;
+  text-align: left;
+  background: rgb(104 133 84 / 16%);
+  cursor: grab;
+  touch-action: none;
+}
+
+.audioStudioTrackRow:nth-child(3n) .audioStudioClip {
+  border-color: #718da8;
+  background: rgb(82 112 146 / 17%);
+}
+
+.audioStudioTrackRow:nth-child(3n + 1) .audioStudioClip {
+  border-color: #9872a0;
+  background: rgb(126 84 137 / 17%);
+}
+
+.audioStudioClip.is-selected {
+  z-index: 3;
+  border-color: #f0c77f;
+  box-shadow: inset 0 0 0 1px #f0c77f, 0 0 0 2px rgb(240 199 127 / 18%);
+}
+
+.audioStudioClip.is-muted {
+  opacity: 0.45;
+}
+
+.audioStudioClip.is-locked {
+  cursor: not-allowed;
+}
+
+.audioStudioClip.is-grouped::after {
+  position: absolute;
+  right: 4px;
+  bottom: 3px;
+  content: "GROUP";
+  color: rgb(255 255 255 / 62%);
+  font-size: 6px;
+  font-weight: 900;
+}
+
+.audioStudioClipName {
+  position: relative;
+  z-index: 3;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audioStudioWaveform {
+  position: relative;
+  z-index: 1;
+  height: 43px;
+  opacity: 1;
+}
+
+.audioStudioWaveform i {
+  position: relative;
+  z-index: 1;
+  background: #bed0a5;
+}
+
+.audioStudioClipEdge {
+  position: absolute;
+  z-index: 6;
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.audioStudioClipEdge--start {
+  left: 0;
+}
+
+.audioStudioClipEdge--end {
+  right: 0;
+}
+
+.audioStudioFadeHandle {
+  position: absolute;
+  z-index: 8;
+  top: 2px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #f2d49d;
+  border-radius: 50%;
+  background: #17130e;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.audioStudioFadeHandle--in {
+  left: 2px;
+}
+
+.audioStudioFadeHandle--out {
+  right: 2px;
+}
+
+.audioStudioFade {
+  position: absolute;
+  z-index: 2;
+  inset-block: 0;
+  border-bottom: 2px solid rgb(255 255 255 / 55%);
+  background: rgb(8 10 12 / 26%);
+  pointer-events: none;
+}
+
+.audioStudioFade--in {
+  left: 0;
+  clip-path: polygon(0 100%, 100% 0, 100% 100%);
+}
+
+.audioStudioFade--out {
+  right: 0;
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+
+.audioStudioGap {
+  position: absolute;
+  z-index: 1;
+  top: 31px;
+  height: 22px;
+  border: 1px dashed rgb(201 154 82 / 55%);
+  background: rgb(201 154 82 / 9%);
+  pointer-events: none;
+}
+
+.audioStudioRangeSelection {
+  position: absolute;
+  z-index: 7;
+  inset-block: 2px;
+  border: 1px solid rgb(226 185 111 / 82%);
+  background: rgb(226 185 111 / 15%);
+  pointer-events: none;
+}
+
+.audioStudioPlayhead,
+.audioStudioSnapGuide {
+  position: absolute;
+  z-index: 9;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  pointer-events: none;
+}
+
+.audioStudioPlayhead {
+  left: calc(150px + var(--audio-studio-playhead-x));
+  background: #f4f2ec;
+}
+
+.audioStudioPlayhead::before {
+  position: absolute;
+  top: 0;
+  left: -4px;
+  width: 9px;
+  height: 7px;
+  content: "";
+  background: #f4f2ec;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.audioStudioSnapGuide {
+  left: calc(150px + var(--audio-studio-snap-x));
+  border-left: 1px dashed var(--studio-gold-strong);
+}
+
+.audioStudioSnapGuide i {
+  position: absolute;
+  top: 38px;
+  left: 3px;
+  padding: 2px 4px;
+  color: #15110b;
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 900;
+  background: var(--studio-gold-strong);
+}
+
+.audioStudioPinchHint {
+  position: absolute;
+  right: 7px;
+  bottom: 6px;
+  z-index: 17;
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 8px;
+  color: #e8d7bd;
+  background: rgb(61 49 38 / 88%);
+  pointer-events: none;
+}
+
+.audioStudioInspector {
+  min-width: 0;
+  height: clamp(330px, 55dvh, 680px);
+  padding: 8px;
+  overflow-y: auto;
+  border: 1px solid var(--studio-line);
+  border-radius: 7px;
+  background: var(--studio-panel);
+}
+
+.audioStudioInspectorTabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 9px;
+  border: 1px solid var(--studio-line);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.audioStudioInspectorTabs button {
+  min-height: 32px;
+  padding: 5px 3px;
+  border: 0;
+  border-right: 1px solid var(--studio-line);
+  color: var(--studio-muted);
+  font-size: 8px;
+  font-weight: 800;
+  background: #302820;
+}
+
+.audioStudioInspectorTabs button:last-child {
+  border-right: 0;
+}
+
+.audioStudioInspectorTabs button[aria-selected="true"] {
+  color: var(--studio-gold-strong);
+  background: var(--studio-panel-3);
+}
+
+.audioStudioInspectorPanel {
+  display: grid;
+  gap: 9px;
+  min-width: 0;
+}
+
+.audioStudioSourceName,
+.audioStudioInspectorContext {
+  padding: 9px;
+  border: 1px solid var(--studio-line-soft);
+  border-radius: 5px;
+  background: #2a231d;
+}
+
+.audioStudioSourceName > span,
+.audioStudioInspectorContext > span {
+  color: var(--studio-gold);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.audioStudioSourceName strong {
+  overflow-wrap: anywhere;
+  font-size: 11px;
+}
+
+.audioStudioInspectorContext {
+  display: grid;
+  gap: 3px;
+}
+
+.audioStudioInspectorContext strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audioStudioInspectorField {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.audioStudioInspectorField input {
+  height: 34px;
+  padding: 5px 7px;
+  font-size: 11px;
+}
+
+.audioStudioInspectorPair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.audioStudioInspectorCommands {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.audioStudioInspectorCommands button {
+  min-height: 34px;
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 8px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.audioStudioToggleRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.audioStudioToggleRow label,
+.audioStudioProcessorGrid label {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 7px;
+  border: 1px solid var(--studio-line);
+  border-radius: 4px;
+  color: var(--studio-muted);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.audioStudioToggleRow input,
+.audioStudioProcessorGrid input {
+  accent-color: var(--studio-gold);
+}
+
+.audioStudioProcessorGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  min-width: 0;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--studio-line);
+}
+
+.audioStudioProcessorGrid legend {
+  padding: 0 4px;
+  color: var(--studio-muted);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.audioStudioGroupStatus {
+  padding: 6px;
+  color: var(--studio-gold-strong);
+  font-size: 9px;
+  text-align: center;
+  background: #211d16;
+}
+
+.audioStudioMobileInspector {
+  display: none;
+}
+
+.audioStudioMixerWorkspace {
+  display: grid;
+  gap: 10px;
+}
+
+.audioStudioMixerHeader {
+  align-items: center;
+  min-height: 68px;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--studio-line-soft);
+  border-radius: 7px;
+  background: var(--studio-panel);
+}
+
+.audioStudioMasterMeter {
+  position: relative;
+  width: 12px;
+  height: 46px;
+  overflow: hidden;
+  border: 1px solid #465048;
+  background: #0d110f;
+}
+
+.audioStudioMasterMeter i {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  left: 1px;
+  background: #73a56e;
+}
+
+.audioStudioMasterMeter.is-clipping i {
+  background: #d36b5f;
+}
+
+.audioStudioMixerChannels {
+  display: flex;
+  min-width: 0;
+  min-height: 410px;
+  gap: 8px;
+  padding: 2px 2px 12px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+}
+
+.audioStudioMixerChannel {
+  display: grid;
+  width: 172px;
+  min-width: 172px;
+  min-height: 390px;
+  padding: 12px;
+  align-content: start;
+  gap: 16px;
+  border: 1px solid var(--studio-line);
+  border-radius: 7px;
+  background: var(--studio-panel);
+  scroll-snap-align: start;
+}
+
+.audioStudioMixerChannel--master {
+  border-color: #755d37;
+  background: #1b1814;
+}
+
+.audioStudioMixerChannel > header {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--studio-line);
+}
+
+.audioStudioMixerChannel > header span {
+  color: var(--studio-gold);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.audioStudioMixerChannel > header strong {
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audioStudioMixerChannelButtons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.audioStudioMixerChannelButtons button {
+  min-height: 34px;
+  border-radius: 4px;
+  color: var(--studio-muted);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.audioStudioMixerChannelButtons button[aria-pressed="true"] {
+  color: #15110b;
+  background: var(--studio-gold-strong);
+}
+
+.audioStudioMixerChannel > label {
+  display: grid;
+  gap: 7px;
+  color: var(--studio-muted);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.audioStudioMixerChannel input[type="range"] {
+  width: 100%;
+  accent-color: var(--studio-gold);
+}
+
+.audioStudioMixerChannel output {
+  justify-self: end;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.audioStudioMixerExport {
+  min-height: 40px;
+  margin-top: auto;
+  border-color: #725936;
+  border-radius: 5px;
+  color: var(--studio-gold-strong);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.audioStudioMixerMobileHint {
+  color: var(--studio-muted);
+  font-size: 9px;
+  text-align: center;
+}
+
+.is-spinning {
+  animation: audio-studio-spin 0.9s linear infinite;
+}
+
+@keyframes audio-studio-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (min-width: 768px) {
+  .audioStudio--desktop {
+    padding: 20px 18px 64px;
+  }
+
+  .audioStudio--mobile {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .audioStudio {
+    min-height: calc(100dvh - 118px);
+    padding: 8px 7px 100px;
+  }
+
+  .audioStudio--desktop {
+    display: none;
+  }
+
+  .audioStudioLibraryHeader {
+    padding: 12px 2px 16px;
+  }
+
+  .audioStudioLibraryActions {
+    padding: 12px 0 22px;
+  }
+
+  .audioStudioLibraryActions button {
+    min-height: 44px;
+    padding-inline: 8px;
+    font-size: 11px;
+  }
+
+  .audioStudioLibrarySectionHeader h2,
+  .audioStudioConstructionHeader h1,
+  .audioStudioMixerHeader h1 {
+    font-size: 17px;
+  }
+
+  .audioStudioProjectOpen {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 9px;
+    min-height: 82px;
+    padding: 10px 46px 10px 10px;
+  }
+
+  .audioStudioProjectGlyph {
+    width: 36px;
+    height: 36px;
+  }
+
+  .audioStudioProjectOpenIcon {
+    display: none;
+  }
+
+  .audioStudioProjectCopy > span {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .audioStudioProjectMenu {
+    top: 9px;
+    right: 8px;
+  }
+
+  .audioStudioProjectMenu > summary,
+  .audioStudioTopbarMenu > summary {
+    width: 38px;
+    height: 38px;
+  }
+
+  .audioStudioDialogBackdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .audioStudioDialog,
+  .audioStudioDialog--compact {
+    width: 100%;
+    max-height: 92dvh;
+    padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+    border-width: 1px 0 0;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .audioStudioCreateChoices button {
+    min-height: 72px;
+  }
+
+  .audioStudioProjectTopbar {
+    min-height: 50px;
+  }
+
+  .audioStudioConstruction {
+    gap: 12px;
+  }
+
+  .audioStudioConstructionHeader {
+    align-items: flex-end;
+  }
+
+  .audioStudioConstructionHeader p {
+    max-width: 260px;
+    font-size: 10px;
+  }
+
+  .audioStudioConstructionSource {
+    grid-template-columns: 34px 25px minmax(0, 1fr) 42px 36px;
+    min-height: 64px;
+  }
+
+  .audioStudioConstructionWave {
+    display: none;
+  }
+
+  .audioStudioConstructionInfo strong {
+    font-size: 12px;
+  }
+
+  .audioStudioConstructionInfo small {
+    max-width: 100%;
+  }
+
+  .audioStudioConstructionFooter {
+    display: grid;
+  }
+
+  .audioStudioConstructionFooter button {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+  }
+
+  .audioStudioWorkspaceNav {
+    max-width: none;
+    margin: 6px 0;
+  }
+
+  .audioStudioWorkspaceNav button {
+    min-height: 38px;
+  }
+
+  .audioStudioTransport {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px;
+    min-height: 50px;
+    padding: 5px 6px;
+  }
+
+  .audioStudioTransportPlayback {
+    justify-content: flex-end;
+  }
+
+  .audioStudioTransportPlayback button {
+    min-width: 36px;
+    height: 38px;
+  }
+
+  .audioStudioTimelineNavigation {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+    border-top: 1px solid var(--studio-line-soft);
+    padding-top: 4px;
+  }
+
+  .audioStudioTimelineNavigation button {
+    height: 34px;
+    flex: 1;
+  }
+
+  .audioStudioContextToolbar {
+    grid-template-columns: 1fr;
+    gap: 5px;
+    margin: 5px 0;
+    padding: 5px;
+  }
+
+  .audioStudioContextLabel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 22px;
+  }
+
+  .audioStudioContextLabel small {
+    margin: 0;
+  }
+
+  .audioStudioContextActions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .audioStudioContextActions button {
+    min-width: 0;
+    min-height: 42px;
+    border-bottom: 1px solid var(--studio-line-soft);
+  }
+
+  .audioStudioEditModes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .audioStudioEditModes button {
+    min-height: 34px;
+  }
+
+  .audioStudioEditorGrid,
+  .audioStudioEditorGrid.is-mobile {
+    display: block;
+    min-width: 0;
+  }
+
+  .audioStudioTimelineFrame {
+    position: relative;
+    height: min(48dvh, 450px);
+    min-height: 290px;
+  }
+
+  .audioStudioTimelineCanvas {
+    width: calc(var(--audio-studio-timeline-width) + 112px);
+    min-width: calc(var(--audio-studio-timeline-width) + 112px);
+  }
+
+  .audioStudioRulerRow,
+  .audioStudioTrackRow {
+    grid-template-columns: 112px var(--audio-studio-timeline-width);
+  }
+
+  .audioStudioTrackHeader {
+    grid-template-columns: 13px minmax(0, 1fr) 24px 24px;
+    padding: 7px 4px;
+  }
+
+  .audioStudioTrackDrag {
+    transform: translateX(-2px);
+  }
+
+  .audioStudioTrackHeader strong {
+    font-size: 9px;
+  }
+
+  .audioStudioRulerRow > strong {
+    padding-left: 7px;
+  }
+
+  .audioStudioPlayhead {
+    left: calc(112px + var(--audio-studio-playhead-x));
+  }
+
+  .audioStudioSnapGuide {
+    left: calc(112px + var(--audio-studio-snap-x));
+  }
+
+  .audioStudioMobileInspector {
+    position: sticky;
+    z-index: 30;
+    bottom: 0;
+    display: block;
+    max-height: 58dvh;
+    margin-top: 7px;
+    overflow-y: auto;
+    border: 1px solid var(--studio-line);
+    border-radius: 8px 8px 0 0;
+    background: #382f27;
+  }
+
+  .audioStudioMobileInspector > summary {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 7px 10px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .audioStudioMobileInspector > summary > span {
+    display: grid;
+    min-width: 0;
+  }
+
+  .audioStudioMobileInspector > summary strong,
+  .audioStudioMobileInspector > summary small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .audioStudioMobileInspector > summary strong {
+    font-size: 11px;
+  }
+
+  .audioStudioMobileInspector > summary small {
+    font-size: 8px;
+  }
+
+  .audioStudioMobileInspector[open] {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+
+  .audioStudioMobileInspector[open] > .audioStudioInspectorTabs,
+  .audioStudioMobileInspector[open] > .audioStudioInspectorPanel {
+    margin-inline: 8px;
+  }
+
+  .audioStudioInspectorPair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .audioStudioInspectorField input {
+    height: 40px;
+  }
+
+  .audioStudioInspectorCommands button,
+  .audioStudioToggleRow label,
+  .audioStudioProcessorGrid label {
+    min-height: 38px;
+  }
+
+  .audioStudioMixerHeader {
+    min-height: 58px;
+  }
+
+  .audioStudioMixerChannels {
+    min-height: 385px;
+  }
+
+  .audioStudioMixerChannel {
+    width: min(76vw, 270px);
+    min-width: min(76vw, 270px);
+    min-height: 370px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-spinning {
+    animation: none;
+  }
+}
+
+/* Audio Studio keeps its own warm editing workspace when the shared app theme changes. */
+.audioStudio.audioStudio {
+  color: var(--studio-text) !important;
+  background: var(--studio-bg) !important;
+}
+
+html body main.app.audioStudioMode {
+  background: #241f1a !important;
+}
+
+.audioStudio.audioStudio button::after,
+.audioStudioOverlay button::after {
+  display: none !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio :where(h1, h2, h3, strong, b, p, span, label) {
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor !important;
+  text-shadow: none !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio :where(small, time, output) {
+  color: var(--studio-muted) !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+.audioStudio.audioStudio button {
+  border-color: var(--studio-line) !important;
+  border-radius: 6px;
+  background: var(--studio-panel-2) !important;
+  color: var(--studio-text) !important;
+  -webkit-text-fill-color: currentColor !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.audioStudio.audioStudio button:hover:not(:disabled) {
+  border-color: #596168 !important;
+  background: var(--studio-panel-3) !important;
+}
+
+.audioStudio.audioStudio :where(input, select, textarea) {
+  border-color: var(--studio-line) !important;
+  background: #2b241d !important;
+  color: var(--studio-text) !important;
+  -webkit-text-fill-color: currentColor !important;
+  box-shadow: none !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioLibraryHeader > span,
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioConstructionHeader > div > span,
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioLibrarySectionHeader span,
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioMixerHeader span,
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioSourceName > span,
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioInspectorContext > span,
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioContextLabel span {
+  color: var(--studio-gold) !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioProjectCopy b,
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioConstructionIndex {
+  color: var(--studio-gold-strong) !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioLibraryActions button:first-child,
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioTransportPlayback button.is-primary {
+  border-color: #7a6038 !important;
+  background: var(--studio-gold-strong) !important;
+  color: #17120c !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioProjectOpen {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioProjectOpen:hover:not(:disabled) {
+  background: #43372b !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioWorkspaceNav button,
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioContextActions button {
+  border-radius: 0;
+  background: transparent !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioWorkspaceNav button[aria-current="page"] {
+  background: var(--studio-panel-3) !important;
+  color: var(--studio-gold-strong) !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioProjectTopbar > button {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioProjectTopbar > div span {
+  color: #8ca993 !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioProjectTopbar > div span.is-saving,
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioProjectTopbar > div span.is-dirty {
+  color: var(--studio-gold-strong) !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioProjectTopbar > div span.is-error {
+  color: #ed8d84 !important;
+}
+
+.audioStudio.audioStudio .audioStudioTrackHeader button.is-on {
+  border-color: #755d37 !important;
+  background: var(--studio-gold-strong) !important;
+  color: #18110b !important;
+}
+
+.audioStudio.audioStudio .audioStudioEditModes button[aria-pressed="true"],
+.audioStudio.audioStudio .audioStudioMobileTimelineToolbar > button[aria-pressed="true"],
+.audioStudio.audioStudio .audioStudioTransportLoop[aria-pressed="true"] {
+  border-color: #755d37 !important;
+  background: #4a3925 !important;
+  color: var(--studio-gold-strong) !important;
+}
+
+.audioStudioOverlay,
+.audioStudioOverlay *,
+.audioStudioOverlay *::before,
+.audioStudioOverlay *::after {
+  box-sizing: border-box;
+}
+
+.audioStudioOverlay {
+  --studio-panel: #302920;
+  --studio-panel-2: #3a3026;
+  --studio-panel-3: #493b2e;
+  --studio-line: #68543d;
+  --studio-text: #f5e7d1;
+  --studio-muted: #b9a68d;
+  --studio-gold: #c99a52;
+  --studio-gold-strong: #e2b96f;
+  color: var(--studio-text);
+  color-scheme: dark;
+}
+
+body.audio-studio-modal-open {
+  overflow: hidden !important;
+}
+
+.audioStudioOverlay.audioStudioDialogBackdrop {
+  z-index: 2147483000;
+  background: rgb(0 0 0 / 78%);
+  overscroll-behavior: contain;
+}
+
+.audioStudioOverlay .audioStudioDialog {
+  border-color: #7c664c;
+  background: #382f27;
+  color: var(--studio-text);
+}
+
+.audioStudioOverlay :where(h1, h2, h3, strong, b, p, span, label) {
+  color: inherit;
+  -webkit-text-fill-color: currentColor;
+  text-shadow: none;
+}
+
+.audioStudioOverlay :where(small, time) {
+  color: var(--studio-muted);
+}
+
+.audioStudioOverlay button {
+  border: 1px solid var(--studio-line);
+  border-radius: 6px;
+  background: var(--studio-panel-2);
+  color: var(--studio-text);
+  box-shadow: none;
+}
+
+.audioStudioOverlay input {
+  border: 1px solid var(--studio-line);
+  background: #2b241d;
+  color: var(--studio-text);
+}
+
+.audioStudioTimelineFrame {
+  position: relative;
+}
+
+.audioStudioTimelineEmpty {
+  position: absolute;
+  z-index: 18;
+  top: 50%;
+  left: calc(50% + 70px);
+  display: grid;
+  width: min(290px, calc(100% - 180px));
+  justify-items: center;
+  gap: 5px;
+  color: var(--studio-muted);
+  text-align: center;
+  padding: 14px 12px;
+  border: 1px dashed var(--studio-line);
+  border-radius: 7px;
+  background: rgb(58 48 39 / 92%);
+  box-shadow: 0 10px 28px rgb(18 14 10 / 28%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.audioStudioTimelineEmpty strong {
+  color: var(--studio-text) !important;
+  font-size: 13px;
+}
+
+.audioStudioTimelineEmpty span {
+  font-size: 9px;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioTimelineEmpty button,
+.audioStudioTimelineEmpty button {
+  display: inline-flex;
+  min-height: 38px;
+  margin-top: 5px;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-color: #735a35 !important;
+  color: var(--studio-gold-strong) !important;
+  pointer-events: auto;
+}
+
+.audioStudioMobileTimelineToolbar,
+.audioStudioMobileContextToolbar,
+.audioStudioInspectorSheetLayer {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  body.audio-studio-focus-mode {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+  }
+
+  html body.audio-studio-focus-mode main.app.audioStudioMode > .hud {
+    display: none !important;
+  }
+
+  html body.audio-studio-focus-mode main.app.audioStudioMode {
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .audioStudio--mobile[data-audio-studio-focus="true"] {
+    position: fixed;
+    z-index: 100000;
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    padding: max(5px, env(safe-area-inset-top)) 6px max(5px, env(safe-area-inset-bottom));
+    overflow: hidden;
+    background: var(--studio-bg) !important;
+  }
+
+  .audioStudio--mobile[data-audio-studio-focus="true"] > :where(.audioStudioConstruction, .audioStudioEditor, .audioStudioMixerWorkspace) {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .audioStudio--mobile[data-audio-studio-current-screen="construct"] .audioStudioConstruction,
+  .audioStudio--mobile[data-audio-studio-current-screen="mix"] .audioStudioMixerWorkspace {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .audioStudioProjectTopbar {
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+    min-height: 42px;
+    padding: 2px 4px;
+    border-radius: 6px;
+  }
+
+  .audioStudioProjectTopbar > button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .audioStudioProjectTopbar > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+  }
+
+  .audioStudioProjectTopbar > div strong {
+    font-size: 12px;
+  }
+
+  .audioStudioProjectTopbar > div span {
+    flex: 0 0 auto;
+    font-size: 8px;
+  }
+
+  .audioStudioTopbarMenu {
+    top: 4px;
+    right: 4px;
+  }
+
+  .audioStudioWorkspaceNav {
+    height: 30px;
+    margin: 4px 0;
+    border-radius: 5px;
+  }
+
+  .audioStudioWorkspaceNav button {
+    min-height: 28px;
+    padding: 0 4px;
+    font-size: 8px;
+  }
+
+  .audioStudioEditor--mobile {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .audioStudioTransport.is-mobile {
+    display: grid;
+    grid-template-columns: minmax(76px, 1fr) auto;
+    min-height: 40px;
+    padding: 3px 5px;
+    border-radius: 5px;
+  }
+
+  .audioStudioTransport.is-mobile > output {
+    font-size: 10px;
+  }
+
+  .audioStudioTransport.is-mobile > output span {
+    display: none;
+  }
+
+  .audioStudioTransport.is-mobile .audioStudioTransportPlayback {
+    gap: 2px;
+  }
+
+  .audioStudioTransport.is-mobile .audioStudioTransportPlayback button {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+  }
+
+  .audioStudioTransport.is-mobile .audioStudioTransportPlayback .audioStudioTransportLoop {
+    width: 38px;
+    color: var(--studio-muted) !important;
+    font-size: 7px;
+  }
+
+  .audioStudioTransport.is-mobile .audioStudioTransportPlayback .audioStudioTransportLoop[aria-pressed="true"] {
+    border-color: #755d37 !important;
+    color: var(--studio-gold-strong) !important;
+    background: #211d16 !important;
+  }
+
+  .audioStudioMobileTimelineToolbar {
+    position: relative;
+    z-index: 40;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    min-height: 36px;
+    margin: 4px 0;
+    border: 1px solid var(--studio-line-soft);
+    border-radius: 5px;
+    background: var(--studio-panel);
+  }
+
+  .audioStudioMobileTimelineToolbar > button,
+  .audioStudioMobileTimelineToolbar > details > summary {
+    display: flex;
+    min-width: 0;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 2px 4px;
+    border: 0;
+    border-right: 1px solid var(--studio-line-soft);
+    border-radius: 0;
+    color: var(--studio-muted) !important;
+    font-size: 8px;
+    font-weight: 800;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .audioStudioMobileTimelineToolbar > details:last-child > summary {
+    border-right: 0;
+  }
+
+  .audioStudioMobileTimelineToolbar summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .audioStudioMobileTimelineToolbar > button[aria-pressed="true"] {
+    color: var(--studio-gold-strong) !important;
+    background: #211d16 !important;
+  }
+
+  .audioStudioMobileTimelineToolbar > details > div {
+    position: absolute;
+    z-index: 80;
+    top: 39px;
+    display: grid;
+    width: min(230px, calc(100vw - 20px));
+    padding: 5px;
+    border: 1px solid #765f45;
+    border-radius: 7px;
+    background: #3a3027;
+    box-shadow: 0 12px 32px rgb(0 0 0 / 54%);
+  }
+
+  .audioStudioMobileTimelineToolbar > details:first-child > div {
+    left: 0;
+  }
+
+  .audioStudioMobileTimelineToolbar > details:last-child > div {
+    right: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioMobileTimelineToolbar > details > div button {
+    display: flex;
+    min-height: 38px;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 7px;
+    padding: 6px 8px;
+    font-size: 9px;
+    text-align: left;
+  }
+
+  .audioStudioMobileTimelineStage {
+    display: block;
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .audioStudioMobileTimelineStage .audioStudioTimelineFrame {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border-radius: 5px;
+  }
+
+  .audioStudioTimelineCanvas {
+    width: calc(var(--audio-studio-timeline-width) + 104px);
+    min-width: calc(var(--audio-studio-timeline-width) + 104px);
+  }
+
+  .audioStudioRulerRow,
+  .audioStudioTrackRow {
+    grid-template-columns: 104px var(--audio-studio-timeline-width);
+  }
+
+  .audioStudioRulerRow {
+    height: 30px;
+  }
+
+  .audioStudioRulerRow > strong {
+    padding-left: 5px;
+    font-size: 7px;
+  }
+
+  .audioStudioTrackRow,
+  .audioStudioTrackHeader,
+  .audioStudioTrackLane {
+    min-height: 108px;
+  }
+
+  .audioStudioTrackHeader {
+    grid-template-columns: 13px minmax(0, 1fr);
+    grid-template-rows: 20px 30px 24px;
+    align-content: center;
+    gap: 3px 4px;
+    padding: 6px 5px;
+  }
+
+  .audioStudioTrackHeader strong {
+    display: flex;
+    grid-column: 2;
+    grid-row: 1;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .audioStudioTrackHeader strong span {
+    display: block;
+    font-size: 8px;
+  }
+
+  .audioStudioTrackDrag {
+    grid-column: 1;
+    grid-row: 1;
+    transform: none;
+  }
+
+  .audioStudioTrackSwitches {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .audioStudioTrackHeader button {
+    width: 100%;
+    height: 28px;
+    min-height: 28px;
+    padding: 0;
+    font-size: 7px;
+  }
+
+  .audioStudioTrackVolume {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+
+  .audioStudioTrackVolume > span {
+    font-size: 7px;
+  }
+
+  .audioStudioClip {
+    top: 7px;
+    height: 94px;
+  }
+
+  .audioStudioPlayhead {
+    left: calc(104px + var(--audio-studio-playhead-x));
+  }
+
+  .audioStudioSnapGuide {
+    left: calc(104px + var(--audio-studio-snap-x));
+  }
+
+  .audioStudioTimelineEmpty {
+    left: calc(50% + 42px);
+    width: min(230px, calc(100% - 118px));
+  }
+
+  .audioStudioPinchHint {
+    right: 5px;
+    bottom: 4px;
+    font-size: 7px;
+  }
+
+  .audioStudioMobileContextToolbar {
+    display: block;
+    flex: 0 0 auto;
+    margin-top: 4px;
+    padding: 4px;
+    border: 1px solid var(--studio-line-soft);
+    border-radius: 5px;
+    background: var(--studio-panel);
+  }
+
+  .audioStudioMobileContextToolbar > small {
+    display: block;
+    margin: 0 3px 3px;
+    overflow: hidden;
+    color: var(--studio-gold) !important;
+    font-size: 7px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .audioStudioMobileContextToolbar > div {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioMobileContextToolbar button {
+    display: grid;
+    min-width: 0;
+    min-height: 40px;
+    padding: 3px 2px;
+    place-items: center;
+    align-content: center;
+    gap: 2px;
+    border-width: 0 1px 1px 0 !important;
+    border-radius: 0;
+    background: transparent !important;
+  }
+
+  .audioStudioMobileContextToolbar button:last-child {
+    border-right: 0 !important;
+  }
+
+  .audioStudioMobileContextToolbar button span {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 9px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .audioStudioInspectorSheetLayer {
+    position: fixed;
+    z-index: 2147482000;
+    inset: 0;
+    display: block;
+  }
+
+  html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioInspectorSheetDim,
+  .audioStudioInspectorSheetDim {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+    border: 0 !important;
+    border-radius: 0;
+    background: rgb(0 0 0 / 62%) !important;
+  }
+
+  .audioStudioInspectorSheet {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    max-height: min(72dvh, 620px);
+    padding: 8px 10px calc(12px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    border: 1px solid #7c664c;
+    border-width: 1px 0 0;
+    border-radius: 14px 14px 0 0;
+    background: #382f27;
+    box-shadow: 0 -18px 50px rgb(0 0 0 / 48%);
+  }
+
+  .audioStudioInspectorSheet > header {
+    position: sticky;
+    z-index: 3;
+    top: -8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 46px;
+    margin: -8px -2px 8px;
+    padding: 7px 2px;
+    background: #382f27;
+  }
+
+  .audioStudioInspectorSheet > header > span {
+    display: grid;
+    min-width: 0;
+  }
+
+  .audioStudioInspectorSheet > header strong,
+  .audioStudioInspectorSheet > header small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .audioStudioInspectorSheet > header strong {
+    font-size: 12px;
+  }
+
+  .audioStudioInspectorSheet > header small {
+    font-size: 8px;
+  }
+
+  .audioStudioInspectorSheet > header button {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+    padding: 0;
+  }
+
+  .audioStudioInspectorSheetBody {
+    min-width: 0;
+  }
+
+  .audioStudioOverlay.audioStudioDialogBackdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .audioStudioOverlay .audioStudioDialog,
+  .audioStudioOverlay .audioStudioDialog--compact {
+    width: 100%;
+    max-height: min(88dvh, 720px);
+    padding: 16px 12px calc(20px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-width: 1px 0 0;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .audioStudioOverlay .audioStudioCreateChoices button {
+    min-height: 68px;
+  }
+}
+
+@media (max-width: 379px) {
+  .audioStudio--mobile[data-audio-studio-focus="true"] {
+    padding-inline: 4px;
+  }
+
+  .audioStudioTransport.is-mobile .audioStudioTransportPlayback button {
+    width: 30px;
+    min-width: 30px;
+  }
+
+  .audioStudioTransport.is-mobile .audioStudioTransportPlayback .audioStudioTransportLoop {
+    display: none;
+  }
+
+  .audioStudioMobileTimelineToolbar > button,
+  .audioStudioMobileTimelineToolbar > details > summary {
+    font-size: 7px;
+  }
+}
+
+/* Keep timeline clips waveform-first. Clip buttons must not inherit the solid
+   surface used by ordinary controls. */
+html body main.app.audioStudioMode .audioStudio.audioStudio button.audioStudioClip {
+  border-color: #84996f !important;
+  color: #e9f0dc !important;
+  background: rgb(104 133 84 / 16%) !important;
+  box-shadow: inset 0 0 0 1px rgb(184 210 159 / 7%) !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio button.audioStudioClip:hover:not(:disabled) {
+  border-color: #a7ba91 !important;
+  background: rgb(104 133 84 / 23%) !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioTrackRow:nth-child(3n) button.audioStudioClip {
+  border-color: #718da8 !important;
+  color: #dcebf3 !important;
+  background: rgb(82 112 146 / 17%) !important;
+  box-shadow: inset 0 0 0 1px rgb(169 210 231 / 7%) !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioTrackRow:nth-child(3n) button.audioStudioClip:hover:not(:disabled) {
+  border-color: #94aec6 !important;
+  background: rgb(82 112 146 / 24%) !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioTrackRow:nth-child(3n + 1) button.audioStudioClip {
+  border-color: #9872a0 !important;
+  color: #f0dff1 !important;
+  background: rgb(126 84 137 / 17%) !important;
+  box-shadow: inset 0 0 0 1px rgb(226 183 229 / 7%) !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioTrackRow:nth-child(3n + 1) button.audioStudioClip:hover:not(:disabled) {
+  border-color: #b793bd !important;
+  background: rgb(126 84 137 / 24%) !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio button.audioStudioClip.is-selected {
+  border-color: #f0c77f !important;
+  background-color: rgb(201 154 82 / 19%) !important;
+  box-shadow: inset 0 0 0 1px #f0c77f, 0 0 0 2px rgb(240 199 127 / 18%) !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio button.audioStudioClip.has-no-waveform {
+  border-style: dashed;
+  background: rgb(201 154 82 / 7%) !important;
+}
+
+.audioStudioClipName {
+  align-self: start;
+  background: transparent;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 0 rgb(24 19 14 / 75%);
+}
+
+.audioStudioWaveform::before {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: rgb(190 208 165 / 28%);
+  content: "";
+}
+
+.audioStudioWaveform.is-empty {
+  display: grid;
+  place-items: center;
+}
+
+.audioStudioWaveform.is-empty::before {
+  display: none;
+}
+
+.audioStudioWaveform.is-empty em {
+  color: var(--studio-muted);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.audioStudioTrackRow:nth-child(3n) .audioStudioWaveform::before {
+  background: rgb(169 210 231 / 28%);
+}
+
+.audioStudioTrackRow:nth-child(3n) .audioStudioWaveform i {
+  background: #a9d2e7;
+}
+
+.audioStudioTrackRow:nth-child(3n + 1) .audioStudioWaveform::before {
+  background: rgb(226 183 229 / 28%);
+}
+
+.audioStudioTrackRow:nth-child(3n + 1) .audioStudioWaveform i {
+  background: #e2b7e5;
+}
+
+@media (max-width: 720px) {
+  .audioStudioWaveform {
+    height: 48px;
+  }
+
+  .audioStudioClipName {
+    font-size: 8px;
+  }
+}
+
+/* Performance editor: keep the visible workflow to add, record, waveform edit,
+   and synchronized playback. Shared state remains layout-independent. */
+.audioStudioWorkspaceNav {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.audioStudioProjectCard {
+  padding-bottom: 42px;
+}
+
+.audioStudioProjectQuickPlay {
+  position: absolute;
+  z-index: 4;
+  right: 44px;
+  bottom: 7px;
+  left: 54px;
+  display: grid;
+  min-height: 30px;
+  grid-template-columns: auto auto minmax(28px, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-color: #725b3c !important;
+  color: var(--studio-gold-strong) !important;
+  background: #2b241d !important;
+  font-size: 8px;
+  font-weight: 850;
+}
+
+.audioStudioProjectQuickPlay i {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--studio-gold) 0 16%, #5b4a37 16% 100%);
+}
+
+.audioStudioProjectQuickPlay time {
+  color: var(--studio-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.audioStudioProjectQuickPlay[aria-pressed="true"] {
+  border-color: #bd7d5b !important;
+  color: #ffd1bf !important;
+  background: #4a2b23 !important;
+}
+
+.audioStudioTransport {
+  position: relative;
+  grid-template-columns: minmax(118px, 0.75fr) auto minmax(190px, 1fr) auto;
+  gap: 8px;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioTransportPlayback button,
+.audioStudioTransportPlayback button {
+  width: auto;
+  min-width: 42px;
+  padding-inline: 10px;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioTransportPlayback button.is-primary {
+  border-color: #8c6c3c !important;
+  color: #17120c !important;
+  background: var(--studio-gold-strong) !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioTransportRecord {
+  display: inline-flex;
+  min-width: 66px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-color: #765044 !important;
+  color: #f3b29f !important;
+  background: #3b2823 !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioTransportRecord[aria-pressed="true"] {
+  border-color: #c7715b !important;
+  color: #ffe1d7 !important;
+  background: #6a3028 !important;
+}
+
+.audioStudioTransportRecord.is-recording {
+  animation: audioStudioRecordPulse 1s ease-in-out infinite;
+}
+
+.audioStudioTransportLoop {
+  display: inline-flex !important;
+  min-width: 74px !important;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.audioStudioTransportLoop span {
+  color: inherit !important;
+  font-size: 7px;
+}
+
+.audioStudioTempoControls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.audioStudioTempoControls label {
+  display: grid;
+  grid-template-columns: auto 54px;
+  align-items: center;
+  gap: 5px;
+  color: var(--studio-muted);
+  font-size: 7px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.audioStudioTempoControls input,
+.audioStudioTempoControls select {
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  padding: 3px 5px;
+  border: 1px solid var(--studio-line);
+  border-radius: 4px;
+  color: var(--studio-text);
+  background: #2a231d;
+  font-size: 9px;
+}
+
+.audioStudioCountIn {
+  position: fixed;
+  z-index: 2147481500;
+  inset: 50% auto auto 50%;
+  display: grid;
+  width: min(220px, calc(100vw - 32px));
+  min-height: 160px;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  border: 1px solid #a77e48;
+  border-radius: 14px;
+  color: var(--studio-text);
+  background: rgb(42 34 26 / 97%);
+  box-shadow: 0 22px 70px rgb(0 0 0 / 58%);
+  transform: translate(-50%, -50%);
+}
+
+.audioStudioCountIn span,
+.audioStudioCountIn small {
+  color: var(--studio-muted) !important;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+.audioStudioCountIn strong {
+  color: var(--studio-gold-strong) !important;
+  font-size: 70px;
+  line-height: 0.95;
+}
+
+.audioStudioRecordingBanner {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 5px);
+  left: 50%;
+  display: flex;
+  min-height: 26px;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border: 1px solid #875346;
+  border-radius: 999px;
+  color: #ffd5c9;
+  background: #542b25;
+  font-size: 8px;
+  font-weight: 850;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.audioStudioRecordingBanner i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff8268;
+  box-shadow: 0 0 0 3px rgb(255 130 104 / 15%);
+}
+
+.audioStudioContextToolbar {
+  grid-template-columns: 170px auto minmax(0, 1fr);
+}
+
+.audioStudioDesktopAddMenu {
+  position: relative;
+}
+
+.audioStudioDesktopAddMenu > summary {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid #735a35;
+  border-radius: 4px;
+  color: var(--studio-gold-strong);
+  background: #3a2f23;
+  font-size: 9px;
+  font-weight: 850;
+  list-style: none;
+  cursor: pointer;
+}
+
+.audioStudioDesktopAddMenu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.audioStudioDesktopAddMenu > div {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 4px);
+  left: 0;
+  display: grid;
+  width: 190px;
+  padding: 5px;
+  border: 1px solid #765f45;
+  border-radius: 6px;
+  background: #3a3027;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 45%);
+}
+
+.audioStudioDesktopAddMenu button {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+}
+
+.audioStudioTrackRow,
+.audioStudioTrackHeader,
+.audioStudioTrackLane {
+  min-height: 126px;
+}
+
+.audioStudioTrackHeader {
+  grid-template-rows: auto auto auto auto;
+}
+
+.audioStudioTrackDrag {
+  grid-row: 1 / 5;
+}
+
+.audioStudioTrackBpm {
+  display: grid;
+  grid-column: 2 / 4;
+  grid-row: 3;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.audioStudioTrackBpm > span {
+  color: var(--studio-muted);
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.audioStudioTrackBpm input {
+  width: 100%;
+  min-width: 0;
+  height: 21px;
+  padding: 2px 4px;
+  border: 1px solid var(--studio-line-soft);
+  border-radius: 3px;
+  color: var(--studio-text);
+  background: #2a231d;
+  font-size: 8px;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioBpmMatch {
+  grid-column: 2 / 4;
+  grid-row: 4;
+  width: 100%;
+  height: 22px;
+  min-height: 22px;
+  color: var(--studio-gold-strong) !important;
+  background: #362b20 !important;
+  font-size: 7px;
+}
+
+.audioStudioClip {
+  height: 110px;
+}
+
+.audioStudioWaveform {
+  height: 78px;
+  cursor: crosshair;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.audioStudioClipEdge {
+  width: 13px;
+  border-inline: 2px solid rgb(240 199 127 / 70%);
+  background: linear-gradient(90deg, rgb(240 199 127 / 10%), transparent);
+}
+
+.audioStudioRangeSelection {
+  z-index: 12;
+  inset-block: 4px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border: 2px solid #f0c77f;
+  background: rgb(240 199 127 / 16%);
+  box-shadow: inset 0 0 0 1px rgb(36 27 17 / 55%);
+  pointer-events: none;
+}
+
+.audioStudioRangeSelection > button {
+  position: relative;
+  z-index: 2;
+  width: 18px;
+  min-width: 18px;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0;
+  background: linear-gradient(90deg, #f0c77f 0 4px, rgb(240 199 127 / 18%) 4px 100%) !important;
+  cursor: ew-resize;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.audioStudioRangeSelection > button.is-end {
+  background: linear-gradient(90deg, rgb(240 199 127 / 18%) 0 calc(100% - 4px), #f0c77f calc(100% - 4px)) !important;
+}
+
+.audioStudioRangeSelection > small {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  max-width: calc(100% - 42px);
+  padding: 2px 5px;
+  overflow: hidden;
+  border-radius: 3px;
+  color: #1d160f !important;
+  background: #f0c77f;
+  font-size: 7px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.audioStudioTrackLaneEmpty {
+  width: min(300px, calc(100vw - 160px));
+  min-height: 126px;
+  grid-template-rows: auto auto;
+  pointer-events: auto;
+}
+
+.audioStudioTrackLaneEmpty svg {
+  grid-row: 1 / 3;
+}
+
+.audioStudioTrackLaneEmpty > div {
+  display: flex;
+  grid-column: 2;
+  gap: 5px;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioTrackLaneEmpty button {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-color: #70583a !important;
+  color: var(--studio-gold-strong) !important;
+  background: #352b21 !important;
+  font-size: 8px;
+}
+
+.audioStudioInspectorBpmMatch {
+  width: 100%;
+  min-height: 38px;
+  color: var(--studio-gold-strong) !important;
+  background: #3b2f22 !important;
+}
+
+@keyframes audioStudioRecordPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(255 123 95 / 0%); }
+  50% { box-shadow: 0 0 0 4px rgb(255 123 95 / 20%); }
+}
+
+@media (max-width: 767px) {
+  .audioStudioTransport.is-mobile {
+    min-height: 72px;
+    grid-template-columns: minmax(68px, 1fr) auto;
+    grid-template-rows: 34px 30px;
+    gap: 2px 5px;
+  }
+
+  .audioStudioTransport.is-mobile .audioStudioTransportPlayback button {
+    width: auto;
+    min-width: 42px;
+    padding-inline: 7px;
+  }
+
+  .audioStudioTransport.is-mobile .audioStudioTransportPlayback .audioStudioTransportRecord {
+    min-width: 54px;
+  }
+
+  .audioStudioTransport.is-mobile .audioStudioTransportPlayback .audioStudioTransportLoop {
+    display: inline-flex;
+    width: auto;
+    min-width: 58px !important;
+  }
+
+  .audioStudioTempoControls {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: stretch;
+  }
+
+  .audioStudioTempoControls label {
+    flex: 1 1 0;
+    grid-template-columns: auto minmax(48px, 1fr);
+  }
+
+  .audioStudioTempoControls input,
+  .audioStudioTempoControls select {
+    height: 27px;
+  }
+
+  .audioStudioRecordingBanner {
+    top: calc(100% + 2px);
+    max-width: calc(100vw - 24px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .audioStudioTrackRow,
+  .audioStudioTrackHeader,
+  .audioStudioTrackLane {
+    min-height: 134px;
+  }
+
+  .audioStudioTrackHeader {
+    grid-template-rows: 20px 28px 22px 22px;
+    padding: 5px 4px;
+  }
+
+  .audioStudioTrackVolume {
+    grid-row: 3;
+  }
+
+  .audioStudioTrackBpm {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  .audioStudioBpmMatch {
+    display: none !important;
+  }
+
+  .audioStudioClip {
+    top: 7px;
+    height: 120px;
+  }
+
+  .audioStudioWaveform {
+    height: 86px;
+  }
+
+  .audioStudioTrackLaneEmpty {
+    left: 6px;
+    width: min(244px, calc(100vw - 122px));
+    min-height: 134px;
+    padding: 8px 6px;
+  }
+
+  .audioStudioTrackLaneEmpty > div {
+    flex-wrap: wrap;
+  }
+
+  html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioTrackLaneEmpty button {
+    min-height: 36px;
+    padding-inline: 7px;
+  }
+
+  .audioStudioProjectCard {
+    padding-bottom: 44px;
+  }
+
+  .audioStudioProjectQuickPlay {
+    right: 40px;
+    left: 50px;
+  }
+
+  .audioStudioWorkspaceNav button {
+    font-size: 10px;
+  }
+}
+
+/* Explicit contrast for the two navigation bars. Shared app button rules must
+   never make inactive workspace labels disappear. */
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioWorkspaceNav button {
+  color: #ead9bd !important;
+  -webkit-text-fill-color: #ead9bd !important;
+  background: #352c24 !important;
+  opacity: 1;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioWorkspaceNav button[aria-current="page"] {
+  border-bottom: 2px solid var(--studio-gold-strong) !important;
+  color: #f4c979 !important;
+  -webkit-text-fill-color: #f4c979 !important;
+  background: #4a3928 !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioMobileContextToolbar button {
+  color: #f3e2c8 !important;
+  -webkit-text-fill-color: #f3e2c8 !important;
+  background: #3a3027 !important;
+  opacity: 1;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioMobileContextToolbar button:hover:not(:disabled) {
+  background: #493b2e !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioTrackLaneEmpty b {
+  color: #f5e7d1 !important;
+  -webkit-text-fill-color: #f5e7d1 !important;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioTrackLaneEmpty small {
+  color: #b9a68d !important;
+  -webkit-text-fill-color: #b9a68d !important;
+}
+
+@media (max-width: 720px) {
+  .audioStudioWorkspaceNav {
+    height: 36px;
+  }
+
+  .audioStudioWorkspaceNav button {
+    min-height: 34px;
+    font-size: 10px;
+  }
+
+  .audioStudioMobileContextToolbar button:nth-child(3n) {
+    border-right: 0 !important;
+  }
+
+  .audioStudioMobileContextToolbar button:nth-last-child(-n + 3) {
+    border-bottom: 0 !important;
+  }
+
+  .audioStudioTrackLaneEmpty {
+    left: 8px;
+    width: min(220px, calc(100vw - 132px));
+    min-height: 108px;
+  }
+}
+
+/* Practical editor pass: imported identity, analysis feedback, and compact mix. */
+.audioStudioWaveformAnalyzing {
+  position: absolute;
+  z-index: 40;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: min(250px, calc(100% - 32px));
+  min-height: 104px;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-content: center;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 14px;
+  border: 1px solid var(--studio-gold);
+  border-radius: 8px;
+  color: var(--studio-text);
+  background: rgb(58 48 39 / 96%);
+  box-shadow: 0 14px 36px rgb(18 14 10 / 38%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.audioStudioWaveformAnalyzing svg {
+  grid-row: 1 / 3;
+  color: var(--studio-gold-strong);
+}
+
+.audioStudioWaveformAnalyzing strong {
+  font-size: 12px;
+}
+
+.audioStudioWaveformAnalyzing span {
+  color: var(--studio-muted) !important;
+  font-size: 9px;
+}
+
+html body main.app.audioStudioMode .audioStudio.audioStudio .audioStudioClipName {
+  color: #fff0d5 !important;
+  -webkit-text-fill-color: #fff0d5 !important;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.audioStudioContextToolbar {
+  grid-template-columns: 150px minmax(0, 1fr);
+}
+
+.audioStudioContextActions {
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+}
+
+.audioStudioInspectorHint {
+  padding: 8px;
+  border: 1px solid var(--studio-line-soft);
+  border-radius: 5px;
+  color: var(--studio-muted);
+  font-size: 9px;
+  line-height: 1.5;
+  background: #2a231d;
+}
+
+.audioStudioMixerChannels,
+.audioStudioMixerChannels.is-mobile,
+.audioStudioMixerChannels.is-desktop {
+  display: grid;
+  min-height: 0;
+  align-content: start;
+  gap: 7px;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-snap-type: none;
+}
+
+.audioStudioMixerChannels.is-desktop {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.audioStudioMixerChannels .audioStudioMixerChannel {
+  display: grid;
+  width: auto;
+  min-width: 0;
+  min-height: 64px;
+  grid-template-columns: minmax(88px, 1fr) auto minmax(150px, 1.5fr);
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  scroll-snap-align: none;
+}
+
+.audioStudioMixerChannels .audioStudioMixerChannel > header {
+  gap: 2px;
+  padding: 0;
+  border: 0;
+}
+
+.audioStudioMixerChannels .audioStudioMixerChannelButtons {
+  grid-template-columns: repeat(2, 44px);
+  gap: 4px;
+}
+
+.audioStudioMixerChannels .audioStudioMixerChannelButtons button {
+  min-height: 34px;
+  padding: 3px;
+  font-size: 8px;
+}
+
+.audioStudioMixerChannels .audioStudioMixerChannel > label {
+  display: grid;
+  grid-template-columns: auto minmax(64px, 1fr) 38px;
+  align-items: center;
+  gap: 7px;
+}
+
+.audioStudioMixerChannels .audioStudioMixerChannel output {
+  justify-self: end;
+  color: var(--studio-text) !important;
+}
+
+.audioStudioMixerChannels .audioStudioMixerChannel--master {
+  grid-template-columns: minmax(88px, 1fr) minmax(160px, 2fr);
+}
+
+.audioStudioMixerExport {
+  width: min(100%, 340px);
+  margin: 0 auto;
+}
+
+@media (max-width: 720px) {
+  .audioStudioMixerWorkspace {
+    min-height: 0;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+    overflow: hidden;
+  }
+
+  .audioStudioMixerHeader p {
+    display: none;
+  }
+
+  .audioStudioMixerChannels.is-mobile {
+    grid-template-columns: 1fr;
+  }
+
+  .audioStudioMixerChannels .audioStudioMixerChannel,
+  .audioStudioMixerChannels .audioStudioMixerChannel--master {
+    width: 100%;
+    min-width: 0;
+    min-height: 70px;
+    grid-template-columns: minmax(82px, 0.9fr) 88px minmax(110px, 1.4fr);
+    gap: 6px;
+    padding: 7px;
+  }
+
+  .audioStudioMixerChannels .audioStudioMixerChannel--master {
+    grid-template-columns: minmax(82px, 0.9fr) minmax(0, 2.3fr);
+  }
+
+  .audioStudioMixerChannels .audioStudioMixerChannelButtons {
+    grid-template-columns: repeat(2, 42px);
+  }
+
+  .audioStudioMixerChannels .audioStudioMixerChannel > label {
+    grid-template-columns: minmax(0, 1fr) 34px;
+  }
+
+  .audioStudioMixerChannels .audioStudioMixerChannel > label > span {
+    display: none;
+  }
+
+  .audioStudioContextToolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .audioStudioWaveformAnalyzing {
+    left: calc(50% + 42px);
+    width: min(220px, calc(100% - 124px));
+  }
+}
+
+/* Final cascade guard for the performance-editor controls added above. */
+@media (min-width: 768px) {
+  .audioStudioContextToolbar {
+    grid-template-columns: 170px auto minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .audioStudioTrackRow,
+  .audioStudioTrackHeader,
+  .audioStudioTrackLane {
+    min-height: 134px;
+  }
+
+  .audioStudioTrackLaneEmpty {
+    left: 6px;
+    width: min(244px, calc(100vw - 122px));
+    min-height: 134px;
+  }
+
+  .audioStudioClip {
+    top: 7px;
+    height: 120px;
+  }
+
+  .audioStudioWaveform {
+    height: 86px;
+  }
+}

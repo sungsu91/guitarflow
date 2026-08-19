@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { FolderOpen, Mic, Pause, Play, RotateCcw, Save, Scissors, Square, Trash2, X } from "lucide-react";
+import { FileUp, FolderOpen, Mic, Pause, Play, RotateCcw, Save, Scissors, Square, Trash2, X } from "lucide-react";
+import { BACKING_AUDIO_SOURCE_TYPES } from "../backing-loop/backingAudioSource";
 import { formatBackingLoopTime } from "../backing-loop/backingLoopUtils";
 import useBackingLoop from "../backing-loop/useBackingLoop";
 
@@ -91,9 +92,14 @@ function BackingLoopProgress({ controller }) {
 function MobileBackingLoopDisplay({ controller }) {
   const currentTime = formatBackingLoopTime(controller.currentTimeMs);
   const totalTime = formatBackingLoopTime(controller.durationMs);
-  const statusText = !controller.hasRecording && controller.phase === "idle"
-    ? "NO LOOP LOADED"
-    : controller.status.label;
+  const importedFileName = controller.sourceType === BACKING_AUDIO_SOURCE_TYPES.IMPORT
+    ? controller.sourceFileName
+    : "";
+  const statusText = controller.phase === "loading"
+    ? controller.status.label
+    : !controller.hasRecording && controller.phase === "idle"
+      ? "NO LOOP LOADED"
+      : importedFileName || controller.status.label;
 
   return (
     <div className={`backingLoopDeckDisplay backingLoopDeckDisplay--${controller.status.tone}`}>
@@ -104,7 +110,7 @@ function MobileBackingLoopDisplay({ controller }) {
       </div>
       <div aria-hidden="true" className="backingLoopCassetteWindow">
         <i className="backingLoopDeckReel backingLoopDeckReel--left" />
-        <strong className="backingLoopDeckStatus">{statusText}</strong>
+        <strong className="backingLoopDeckStatus" title={statusText}>{statusText}</strong>
         <i className="backingLoopDeckReel backingLoopDeckReel--right" />
       </div>
     </div>
@@ -185,7 +191,7 @@ function BackingLoopMainControls({ controller, mobile = false }) {
 function BackingLoopStorageControls({ controller, mobile = false }) {
   const isBusy = ["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(controller.phase);
   return (
-    <div className="backingLoopStorageControls" aria-label="백킹 저장 및 불러오기">
+    <div className="backingLoopStorageControls" aria-label="백킹 저장, 불러오기 및 파일 가져오기">
       <button
         aria-label="현재 백킹 제목 지정 후 저장"
         className="backingLoopButton backingLoopSaveButton"
@@ -206,6 +212,26 @@ function BackingLoopStorageControls({ controller, mobile = false }) {
         <FolderOpen aria-hidden="true" size={mobile ? 10 : 13} />
         <span>LOAD</span>
       </button>
+      <button
+        aria-label="휴대폰 또는 PC에서 오디오 파일 가져오기"
+        className="backingLoopButton backingLoopImportButton"
+        disabled={isBusy}
+        onClick={controller.openImportPicker}
+        type="button"
+      >
+        <FileUp aria-hidden="true" size={mobile ? 10 : 13} />
+        <span>IMPORT</span>
+      </button>
+      <input
+        accept={controller.importAccept}
+        aria-label="가져올 백킹 오디오 파일 선택"
+        className="backingLoopImportInput"
+        onChange={controller.importBackingAudio}
+        ref={controller.importInputRef}
+        multiple
+        tabIndex="-1"
+        type="file"
+      />
     </div>
   );
 }
@@ -536,6 +562,45 @@ function LoadBackingLoopDialog({ controller }) {
   );
 }
 
+function ImportBackingLoopDialog({ controller }) {
+  const selectedItem = controller.importCandidates.find((item) => item.id === controller.selectedImportCandidateId);
+  return (
+    <section className="backingLoopDialog backingLoopImportSelectDialog">
+      <div className="backingLoopDialogHeading">
+        <div>
+          <strong>현재 백킹 선택</strong>
+          <span>
+            {controller.importCandidates.length}개 파일 중 반복 재생할 하나를 선택하세요.
+            {controller.importRejectedCount ? ` · ${controller.importRejectedCount}개 제외` : ""}
+          </span>
+        </div>
+        <button aria-label="가져온 파일 선택 창 닫기" onClick={controller.closeDialog} type="button"><X size={15} /></button>
+      </div>
+      <div className="backingLoopLibrary backingLoopImportLibrary">
+        {controller.importCandidates.map((item) => (
+          <button
+            aria-label={`${item.recording.fileName} 현재 백킹 후보 선택`}
+            aria-pressed={item.id === controller.selectedImportCandidateId}
+            className={item.id === controller.selectedImportCandidateId ? "selected" : ""}
+            key={item.id}
+            onClick={() => controller.selectImportCandidate(item.id)}
+            type="button"
+          >
+            <span title={item.recording.fileName}>{item.recording.fileName}</span>
+            <small>{formatBackingLoopTime(item.recording.durationMs)}</small>
+          </button>
+        ))}
+      </div>
+      <div className="backingLoopDialogActions">
+        <button onClick={controller.closeDialog} type="button">취소</button>
+        <button className="primary" disabled={!selectedItem} onClick={controller.useSelectedImportCandidate} type="button">
+          현재 백킹으로 사용
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function DeleteBackingLoopDialog({ controller }) {
   const selectedItems = controller.libraryEditMode
     ? controller.library.filter((item) => controller.selectedLibraryIds.includes(item.id))
@@ -617,6 +682,7 @@ function BackingLoopDialogLayer({ controller }) {
         {controller.dialog === "save" ? <SaveBackingLoopDialog controller={controller} /> : null}
         {controller.dialog === "save-confirm" ? <ConfirmSaveBackingLoopDialog controller={controller} /> : null}
         {controller.dialog === "load" ? <LoadBackingLoopDialog controller={controller} /> : null}
+        {controller.dialog === "import-select" ? <ImportBackingLoopDialog controller={controller} /> : null}
         {controller.dialog === "delete" ? <DeleteBackingLoopDialog controller={controller} /> : null}
       </div>
     </div>,
