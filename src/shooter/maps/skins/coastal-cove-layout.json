@@ -1,0 +1,326 @@
+[
+  {
+    "instanceId": "coastal-hermit-crab-01",
+    "assetId": "ambient-hermit-crab",
+    "x": 0.3869930639022436,
+    "y": 0.6193062768998749,
+    "scale": 0.4199999999999997,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 24,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "coastal-shark-01",
+    "assetId": "ambient-shark-fin",
+    "x": 0.5,
+    "y": 0.3,
+    "scale": 0.84,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 9,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "coastal-net-fisher-01",
+    "assetId": "ambient-net-fisher",
+    "x": 0.1740559582832532,
+    "y": 0.5141757083078682,
+    "scale": 0.78,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 13,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "coastal-treasure-chest-01",
+    "assetId": "interactive-treasure-chest",
+    "x": 0.14,
+    "y": 0.63,
+    "scale": 0.7,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 26,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "coastal-mimic-chest-01",
+    "assetId": "interactive-mimic-chest",
+    "x": 0.86,
+    "y": 0.65,
+    "scale": 0.69,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 27,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "coastal-treasure-chest-02",
+    "assetId": "interactive-treasure-chest",
+    "x": 0.2,
+    "y": 0.73,
+    "scale": 0.66,
+    "rotation": 1,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 28,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "coastal-mimic-chest-02",
+    "assetId": "interactive-mimic-chest",
+    "x": 0.8,
+    "y": 0.75,
+    "scale": 0.65,
+    "rotation": -1,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 29,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "coastal-treasure-chest-03",
+    "assetId": "interactive-treasure-chest",
+    "x": 0.27,
+    "y": 0.83,
+    "scale": 0.62,
+    "rotation": -1,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 30,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "ambient-hermit-crab-mt1dzxyr-5q4ij",
+    "assetId": "ambient-hermit-crab",
+    "x": 0.6527622946714744,
+    "y": 0.8346828812041779,
+    "scale": 0.4199999999999997,
+    "rotation": 0,
+    "scaleX": -1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 28,
+    "animation": "none",
+    "animationSpeed": 1
+  }
+]

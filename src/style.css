@@ -5216,6 +5216,7 @@ html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shoote
 
 .shooterArena.paused .enemy.shooterEnemy.fallingTarget,
 .shooterArena.paused .enemy.shooterEnemy.locked,
+.shooterArena.paused .shooterEnemyMonsterBreakFrame,
 .shooterArena.paused .lockOnBeam,
 .shooterArena.paused .energyProjectile,
 .shooterArena.paused .laserBeam {
@@ -5290,154 +5291,84 @@ html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shoote
 }
 
 .shooterArena .enemy.shooterEnemy.shooterEnemy--monster {
-  width: calc(var(--hit-note-size, 36px) * 1.14) !important;
-  height: calc(var(--hit-note-size, 36px) * 1.14) !important;
+  width: var(--target-render-size, 86.4px) !important;
+  height: var(--target-render-size, 86.4px) !important;
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
   overflow: visible;
+  filter: drop-shadow(0 9px 10px rgba(0, 0, 0, 0.34));
 }
 
-.shooterArena .enemy.shooterEnemy.shooterEnemy--easy {
-  width: calc(var(--hit-note-size, 36px) * 1.46) !important;
-  height: calc(var(--hit-note-size, 36px) * 1.46) !important;
+.shooterEnemyMonsterVisual {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .shooterEnemyMonsterAsset {
   position: absolute;
-  inset: -17%;
+  inset: 0;
   z-index: 0;
-  width: 134%;
-  height: 134%;
+  width: 100%;
+  height: 100%;
   max-width: none;
   object-fit: contain;
   pointer-events: none;
 }
 
-.shooterArena .enemy.shooterEnemy.shooterEnemy--easy .shooterEnemyMonsterAsset {
-  inset: -8%;
-  width: 116%;
-  height: 116%;
+.shooterEnemyMonsterIdleFrame {
+  opacity: 1;
 }
 
-.shooterArena .enemy.shooterEnemy.shooterEnemy--monster em,
-.shooterArena .enemy.shooterEnemy.shooterEnemy--monster span {
-  position: relative !important;
-  z-index: 3;
-  color: #ffffff !important;
-  letter-spacing: 0;
-  text-align: center;
-  text-shadow:
-    0 2px 5px rgba(0, 0, 0, 0.94),
-    0 0 4px rgba(0, 0, 0, 0.84),
-    0 0 10px var(--note-glow, rgba(255, 255, 255, 0.54));
+.shooterEnemyMonsterBreakFrame {
+  opacity: 0;
+  will-change: opacity;
+  animation: shooterNoteMonsterBreakFrame var(--target-destroy-frame-ms, 52ms) linear forwards;
 }
 
-.shooterArena .enemy.shooterEnemy.shooterEnemy--monster em {
-  margin-top: 8px !important;
-  font-size: 17px !important;
-  font-weight: 1000 !important;
-  line-height: 1 !important;
-}
-
-.shooterArena .enemy.shooterEnemy.shooterEnemy--monster span {
-  margin-top: 1px !important;
-  font-size: 16px !important;
-  font-weight: 1000 !important;
-  line-height: 1 !important;
-  opacity: 1 !important;
-}
-
-.shooterArena .enemy.shooterEnemy.shooterEnemy--easy em {
-  margin-top: 5px !important;
-  color: #10220a !important;
-  font-size: 15px !important;
-  line-height: 0.9 !important;
-  text-shadow:
-    0 1px 0 rgba(255, 255, 220, 0.46),
-    0 0 5px rgba(196, 255, 86, 0.38) !important;
-  -webkit-text-stroke: 0.18px rgba(255, 255, 220, 0.24);
-}
-
-.shooterArena .enemy.shooterEnemy.shooterEnemy--easy span {
-  margin-top: 0 !important;
-  color: #10220a !important;
-  font-size: 14px !important;
-  line-height: 0.9 !important;
-  text-shadow:
-    0 1px 0 rgba(255, 255, 220, 0.46),
-    0 0 5px rgba(196, 255, 86, 0.38) !important;
-  -webkit-text-stroke: 0.16px rgba(255, 255, 220, 0.22);
-}
-
-.shooterArena .enemy.shooterEnemy.shooterEnemy--normal span,
-.shooterArena .enemy.shooterEnemy.shooterEnemy--difficult span {
+.shooterArena .enemy.shooterEnemy .shooterEnemyPitchLabel {
   position: absolute !important;
-  left: 50%;
-  bottom: 4px;
+  left: var(--target-label-x, 50%);
+  top: var(--target-label-y, 50%);
+  margin-left: var(--target-label-offset-x, 0px);
+  margin-top: var(--target-label-offset-y, 0px);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
-  margin-top: 0 !important;
   padding: 0;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  font-size: clamp(14px, calc(var(--hit-note-size, 36px) * 0.48), 19px) !important;
-  font-weight: 1000 !important;
-  line-height: 0.9 !important;
-  color: #ffffff !important;
-  text-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.92),
-    0 0 5px rgba(0, 0, 0, 0.82),
-    0 0 10px var(--note-glow, rgba(255, 255, 255, 0.46)) !important;
+  color: var(--target-label-color, #fff8dc) !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: var(--target-label-font-size, 13px) !important;
+  font-style: normal !important;
+  font-weight: 800 !important;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05 !important;
+  letter-spacing: 0.01em;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.68) !important;
   white-space: nowrap;
-  -webkit-text-stroke: 0.56px rgba(0, 0, 0, 0.86);
+  opacity: 1 !important;
+  paint-order: stroke fill;
+  -webkit-text-fill-color: var(--target-label-color, #fff8dc) !important;
+  -webkit-text-stroke: 0.9px var(--target-label-outline, #081536);
 }
 
-.shooterArena .enemy.shooterEnemy.shooterEnemy--normal span::before,
-.shooterArena .enemy.shooterEnemy.shooterEnemy--difficult span::before {
-  content: none;
-}
-
-.shooterArena .enemy.shooterEnemy.shooterEnemy--normal span {
-  bottom: 5px;
-  text-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.94),
-    0 0 5px rgba(0, 0, 0, 0.86),
-    0 0 10px rgba(88, 190, 255, 0.9),
-    0 0 16px rgba(48, 134, 255, 0.56) !important;
-}
-
-.shooterArena .enemy.shooterEnemy.shooterEnemy--difficult span {
-  bottom: -2px;
-  font-size: clamp(14px, calc(var(--hit-note-size, 36px) * 0.48), 18px) !important;
-  -webkit-text-stroke: 0.72px rgba(31, 0, 50, 0.95);
-  text-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.94),
-    0 0 5px rgba(0, 0, 0, 0.86),
-    0 0 9px rgba(255, 236, 255, 0.82),
-    0 0 13px rgba(218, 142, 255, 0.9),
-    0 0 20px rgba(142, 73, 255, 0.64) !important;
-}
-
-.shooterArena .enemy.shooterEnemy.shooterEnemy--easy {
-  filter:
-    drop-shadow(0 0 12px rgba(122, 255, 54, 0.42))
-    drop-shadow(0 10px 16px rgba(0, 0, 0, 0.28));
-}
-
-.shooterArena .enemy.shooterEnemy.shooterEnemy--normal {
-  filter:
-    drop-shadow(0 0 12px rgba(45, 156, 255, 0.42))
-    drop-shadow(0 10px 16px rgba(0, 0, 0, 0.3));
-}
-
-.shooterArena .enemy.shooterEnemy.shooterEnemy--difficult {
-  filter:
-    drop-shadow(0 0 14px rgba(186, 89, 255, 0.46))
-    drop-shadow(0 12px 18px rgba(0, 0, 0, 0.34));
+.shooterArena .enemy.shooterEnemy .shooterEnemyPitchLabel > b {
+  display: block;
+  color: var(--target-label-color, #fff8dc) !important;
+  font: inherit;
+  line-height: 1;
+  -webkit-text-fill-color: var(--target-label-color, #fff8dc) !important;
 }
 
 .hitZone {
@@ -10706,6 +10637,127 @@ body {
   .metronomeOptions {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
+  }
+}
+
+/* Shooter monster skins: shared selection state with platform-sized previews. */
+html body .shooterSkinConfigurator .shooterSkinTabs {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+html body .shooterSkinConfigurator .shooterSkinOptionGrid--monsters {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+html body .shooterSkinConfigurator .shooterSkinOptionCard--monster {
+  grid-template-rows: 112px minmax(24px, auto) minmax(28px, auto) auto !important;
+  justify-items: center;
+  gap: 6px;
+  min-height: 188px !important;
+  padding: 7px !important;
+  text-align: center;
+}
+
+html body .shooterSkinConfigurator .shooterMonsterSkinPreview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
+  width: 100%;
+  height: 112px;
+  padding: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(217, 170, 85, 0.2);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(255, 226, 160, 0.1), transparent 68%),
+    rgba(0, 0, 0, 0.16);
+}
+
+html body .shooterSkinConfigurator .shooterMonsterSkinPreview img {
+  width: 100%;
+  height: 50px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.3));
+}
+
+html body .shooterSkinConfigurator .shooterSkinOptionCard--monster strong {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 11px !important;
+  line-height: 1.15;
+  text-align: center;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+html body .shooterSkinConfigurator .shooterSkinOptionCard--monster small {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 28px;
+  color: rgba(245, 232, 201, 0.62);
+  font-size: 9px;
+  line-height: 1.3;
+  text-align: center;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+html body .shooterSkinConfigurator .shooterSkinOptionCard--monster em {
+  place-self: center;
+}
+
+:root[data-theme="light"] .shooterSkinConfigurator .shooterMonsterSkinPreview {
+  border-color: rgba(139, 94, 37, 0.22);
+  background:
+    radial-gradient(circle at 50% 40%, rgba(217, 170, 85, 0.14), transparent 68%),
+    rgba(255, 251, 243, 0.7);
+}
+
+:root[data-theme="light"] .shooterSkinConfigurator .shooterSkinOptionCard--monster small {
+  color: rgba(54, 39, 25, 0.66);
+}
+
+@media (max-width: 719px) {
+  html body .shooterSkinConfigurator .shooterSkinOptionCard--monster {
+    grid-template-rows: 92px minmax(22px, auto) minmax(26px, auto) !important;
+    min-height: 154px !important;
+    padding: 5px !important;
+  }
+
+  html body .shooterSkinConfigurator .shooterMonsterSkinPreview {
+    height: 92px;
+    padding: 2px;
+  }
+
+  html body .shooterSkinConfigurator .shooterMonsterSkinPreview img {
+    height: 42px;
+  }
+
+  html body .shooterSkinConfigurator .shooterSkinOptionCard--monster em {
+    display: none;
+  }
+}
+
+@media (min-width: 720px) {
+  html body .shooterSkinConfigurator .shooterSkinOptionCard--monster {
+    grid-template-rows: 136px minmax(28px, auto) minmax(30px, auto) auto !important;
+    min-height: 226px !important;
+    padding: 9px !important;
+  }
+
+  html body .shooterSkinConfigurator .shooterMonsterSkinPreview {
+    height: 136px;
+    padding: 6px;
+  }
+
+  html body .shooterSkinConfigurator .shooterMonsterSkinPreview img {
+    height: 60px;
+  }
+
+  html body .shooterSkinConfigurator .shooterSkinOptionCard--monster strong {
+    font-size: 12px !important;
   }
 }
 
@@ -32505,9 +32557,8 @@ html body .shooterArena .effect-floor-jp-tropical-stand {
   border-color: transparent;
   background: transparent;
   box-shadow: none;
-  animation: shooterTargetDefeated 220ms linear both;
   transform-origin: 50% 50%;
-  will-change: opacity, transform;
+  will-change: transform;
 }
 
 .shooterArena .enemy.shooterEnemy.defeated :is(em, span, small) {
@@ -32515,7 +32566,10 @@ html body .shooterArena .effect-floor-jp-tropical-stand {
 }
 
 .shooterArena .enemy.shooterEnemy.impacting {
-  filter: brightness(1.22) contrast(1.08);
+  filter:
+    brightness(1.08)
+    contrast(1.04)
+    drop-shadow(0 9px 10px rgba(0, 0, 0, 0.34));
 }
 
 .targetBreakEffect {
@@ -32755,16 +32809,13 @@ html body .shooterArena .effect-floor-jp-tropical-stand {
   }
 }
 
-@keyframes shooterTargetDefeated {
-  0% {
+@keyframes shooterNoteMonsterBreakFrame {
+  0%,
+  96% {
     opacity: 1;
-    filter: brightness(1.06) contrast(1.04);
-    transform: translate3d(var(--target-x-px, 0px), var(--target-y-px, 0px), 0) translate(-50%, -50%) scale(1);
   }
   100% {
-    opacity: 1;
-    filter: brightness(1) contrast(1);
-    transform: translate3d(var(--target-x-px, 0px), calc(var(--target-y-px, 0px) + var(--target-break-fall-px, 8px)), 0) translate(-50%, -50%) scale(1);
+    opacity: 0;
   }
 }
 
@@ -64738,7 +64789,7 @@ html body .shooterSkinConfigurator :is(
     pointer-events: none;
   }
 
-  html body .app:is(.theme-light, .theme-dark) .shooterSkinArenaLoadoutSummary > small {
+  html body .app:is(.theme-brand, .theme-light, .theme-dark) .shooterSkinArenaLoadoutSummary > small {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -64764,13 +64815,13 @@ html body .shooterSkinConfigurator :is(
     white-space: nowrap;
   }
 
-  html body .app:is(.theme-light, .theme-dark) .shooterSkinArenaLoadoutSummary strong {
+  html body .app:is(.theme-brand, .theme-light, .theme-dark) .shooterSkinArenaLoadoutSummary strong {
     color: #fffaf0 !important;
     font-size: 12px;
     font-weight: 950;
   }
 
-  html body .app:is(.theme-light, .theme-dark) .shooterSkinArenaLoadoutSummary em {
+  html body .app:is(.theme-brand, .theme-light, .theme-dark) .shooterSkinArenaLoadoutSummary em {
     color: rgba(255, 239, 204, 0.94) !important;
     font-size: 8.5px;
     font-style: normal;
@@ -64842,7 +64893,7 @@ html body .shooterSkinConfigurator :is(
     min-width: 0;
   }
 
-  html body .app:is(.theme-light, .theme-dark) .shooterSkinArenaEquipmentRow small {
+  html body .app:is(.theme-brand, .theme-light, .theme-dark) .shooterSkinArenaEquipmentRow small {
     color: #ffd37c !important;
     font-size: 8px;
     font-weight: 950;
@@ -64852,7 +64903,7 @@ html body .shooterSkinConfigurator :is(
       0 0 7px rgba(0, 0, 0, 0.94);
   }
 
-  html body .app:is(.theme-light, .theme-dark) .shooterSkinArenaEquipmentRow strong {
+  html body .app:is(.theme-brand, .theme-light, .theme-dark) .shooterSkinArenaEquipmentRow strong {
     overflow: hidden;
     color: #fffaf0 !important;
     font-size: 9.5px;
@@ -66485,12 +66536,12 @@ html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--start
 
   html body .desktopLayout main.app.app.app.shooterMode .shooterArena.shooterArena--desktopPortrait,
   html body .desktopLayout .app.app.app.shooterMode .shooterArena.shooterArena--desktopPortrait {
-    width: auto !important;
+    width: min(390px, calc((100dvh - 190px) * var(--shooter-map-reference-ratio, 0.515873))) !important;
     max-width: 390px !important;
-    height: min(844px, calc(100dvh - 190px)) !important;
+    height: auto !important;
     min-height: 0 !important;
     max-height: calc(100dvh - 190px) !important;
-    aspect-ratio: 390 / 844 !important;
+    aspect-ratio: var(--shooter-map-reference-aspect, 390 / 756) !important;
     margin-inline: auto !important;
     contain: layout paint !important;
   }

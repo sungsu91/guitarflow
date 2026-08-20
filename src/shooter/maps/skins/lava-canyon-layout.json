@@ -295,5 +295,185 @@
     "layer": 29,
     "animation": "none",
     "animationSpeed": 1
+  },
+  {
+    "instanceId": "lava-torch-flame-left-top",
+    "assetId": "lava-torch-flame",
+    "x": 0.18896713615023475,
+    "y": 0.1297456982476003,
+    "scale": 0.4933333333333333,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 17,
+    "animation": "torch-flame",
+    "animationSpeed": 2.4
+  },
+  {
+    "instanceId": "lava-torch-flame-right-top",
+    "assetId": "lava-torch-flame",
+    "x": 0.8571563702957078,
+    "y": 0.1323475415567275,
+    "scale": 0.4933333333333333,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 17,
+    "animation": "torch-flame",
+    "animationSpeed": 2.7
+  },
+  {
+    "instanceId": "lava-torch-flame-left-upper",
+    "assetId": "lava-torch-flame",
+    "x": 0.096465179536488,
+    "y": 0.3636301292361146,
+    "scale": 0.49876161093412785,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 17,
+    "animation": "torch-flame",
+    "animationSpeed": 3.1
+  },
+  {
+    "instanceId": "lava-torch-flame-left-middle",
+    "assetId": "lava-torch-flame",
+    "x": 0.11150226276369067,
+    "y": 0.5621402163904586,
+    "scale": 0.3924926489963767,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 17,
+    "animation": "torch-flame",
+    "animationSpeed": 2.6
+  },
+  {
+    "instanceId": "lava-torch-flame-right-middle",
+    "assetId": "lava-torch-flame",
+    "x": 0.9097988424248492,
+    "y": 0.6174640069132799,
+    "scale": 0.3714898837878584,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 17,
+    "animation": "torch-flame",
+    "animationSpeed": 2.9
   }
 ]

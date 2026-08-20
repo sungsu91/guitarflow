@@ -3,6 +3,13 @@ import { memo, useCallback, useLayoutEffect, useRef, useState } from "react";
 import AmbientCreature from "./AmbientCreature.jsx";
 import MapAmbientEvents from "./FlyingDragonCrossing.jsx";
 import {
+  getCoastalChestFacingScaleX,
+  getHermitCrabAnimationPhase,
+  getHermitCrabFacingScaleX,
+} from "./animationPhase.js";
+import CoastalChestActor from "./events/CoastalChestActor.jsx";
+import { assignRandomEventActorPlacements } from "./events/coastalChestState.js";
+import {
   DEFAULT_PERSPECTIVE_CORNERS,
   getPerspectiveMatrix3d,
   normalizePerspectiveCorners,
@@ -75,7 +82,17 @@ function getLayerStyle(layer, layout, referenceViewport) {
 
 function getTransformSurfaceStyle(layer, layout) {
   const placement = getLayerPlacement(layer, layout);
-  const scaleX = Number.isFinite(placement.scaleX) ? placement.scaleX : 1;
+  const configuredScaleX = Number.isFinite(placement.scaleX) ? placement.scaleX : 1;
+  const animatedScaleX = getHermitCrabFacingScaleX({
+    animation: layer.coordinateSpace === "normalized" ? layer.spriteSheet?.animation : "",
+    scaleX: configuredScaleX,
+    x: placement.x,
+  });
+  const scaleX = getCoastalChestFacingScaleX({
+    eventType: layer.eventActor?.type,
+    scaleX: animatedScaleX,
+    x: placement.x,
+  });
   const scaleY = Number.isFinite(placement.scaleY) ? placement.scaleY : 1;
   return {
     "--shooter-map-scale-x": scaleX,
@@ -325,7 +342,7 @@ function CompositeMapAsset({ composite, src }) {
   );
 }
 
-function SpriteSheetMapAsset({ layer }) {
+function SpriteSheetMapAsset({ layer, layout }) {
   if (layer.eventActor?.readySrc) {
     return (
       <img
@@ -354,16 +371,343 @@ function SpriteSheetMapAsset({ layer }) {
     : Number.isFinite(layer.animation?.speed)
       ? Math.max(0.1, layer.animation.speed)
     : 1;
-  const windFlagFrames = Array.isArray(sheet.frames)
+  const spriteFrames = Array.isArray(sheet.frames)
     ? sheet.frames.filter((entry) => typeof entry === "string" || entry?.src)
     : [];
   const isLayeredWindFlag = playbackType === "wind-flag"
-    && windFlagFrames.length === 3
+    && spriteFrames.length === 3
     && Boolean(sheet.staticSrc);
   const isWindFlag = playbackType === "wind-flag" && (
     isLayeredWindFlag || (columns === 3 && rows === 1 && frameCount === 3)
   );
   const playbackDuration = frameCount / (playbackFps * playbackSpeed);
+  const isHermitCrabRoam = playbackType === "hermit-crab-roam"
+    && spriteFrames.length >= 2;
+  const isSharkSwim = playbackType === "shark-swim"
+    && spriteFrames.length >= 2;
+  const isNetFisherCast = playbackType === "net-fisher-cast"
+    && spriteFrames.length === 10;
+  const isMiniPoodleTilt = playbackType === "mini-poodle-tilt"
+    && spriteFrames.length === 15;
+  const isBorderCollieAcrobat = playbackType === "border-collie-acrobat"
+    && spriteFrames.length === 22;
+  const isBritishShorthairPlay = playbackType === "british-shorthair-play"
+    && spriteFrames.length === 61;
+  const isMunchkinPlay = playbackType === "munchkin-play"
+    && spriteFrames.length === 49;
+  const isGardenSwing = playbackType === "garden-swing"
+    && spriteFrames.length === 10;
+  const isParkFountainFlow = playbackType === "park-fountain-flow"
+    && spriteFrames.length === 32
+    && Boolean(sheet.staticSrc);
+
+  if (isParkFountainFlow) {
+    const loopDuration = spriteFrames.length / (playbackFps * playbackSpeed);
+    return (
+      <span
+        aria-hidden="true"
+        className="shooterMapSpriteSheetAsset shooterMapSpriteSheetAsset--park-fountain-flow"
+        data-playback-type={playbackType}
+        style={{ "--shooter-park-fountain-loop-duration": `${loopDuration}s` }}
+      >
+        <img
+          alt=""
+          className="shooterMapParkFountainBody"
+          decoding="async"
+          draggable="false"
+          src={sheet.staticSrc}
+        />
+        {spriteFrames.map((entry, index) => {
+          const frameEntry = typeof entry === "string" ? { src: entry } : entry;
+          return (
+            <img
+              alt=""
+              className="shooterMapParkFountainWaterFrame"
+              data-frame-index={index}
+              data-preview-frame={index === frame}
+              decoding="async"
+              draggable="false"
+              key={frameEntry.src}
+              src={frameEntry.src}
+              style={{ animationDelay: `${(index * loopDuration) / spriteFrames.length}s` }}
+            />
+          );
+        })}
+      </span>
+    );
+  }
+
+  if (isGardenSwing) {
+    const authoredSequence = Array.isArray(sheet.sequence)
+      ? sheet.sequence
+        .map(Number)
+        .filter((sourceIndex) => Number.isInteger(sourceIndex) && sourceIndex >= 0 && sourceIndex < spriteFrames.length)
+      : [];
+    const timelineFrames = (authoredSequence.length > 0 ? authoredSequence : spriteFrames.map((_, index) => index))
+      .map((sourceIndex) => ({
+        frameEntry: typeof spriteFrames[sourceIndex] === "string"
+          ? { src: spriteFrames[sourceIndex] }
+          : spriteFrames[sourceIndex],
+        sourceIndex,
+      }));
+    const previewTimelineIndex = timelineFrames.findIndex(({ sourceIndex }) => sourceIndex === frame);
+    const loopDuration = timelineFrames.length / (playbackFps * playbackSpeed);
+    return (
+      <span
+        aria-hidden="true"
+        className="shooterMapSpriteSheetAsset shooterMapSpriteSheetAsset--garden-swing"
+        data-playback-type={playbackType}
+        style={{ "--shooter-garden-swing-loop-duration": `${loopDuration}s` }}
+      >
+        {timelineFrames.map(({ frameEntry, sourceIndex }, timelineIndex) => (
+          <img
+            alt=""
+            className="shooterMapGardenSwingFrame"
+            data-frame-index={sourceIndex}
+            data-preview-frame={timelineIndex === previewTimelineIndex}
+            decoding="async"
+            draggable="false"
+            key={`${frameEntry.src}-${timelineIndex}`}
+            src={frameEntry.src}
+            style={{ animationDelay: `${(timelineIndex * loopDuration) / timelineFrames.length}s` }}
+          />
+        ))}
+      </span>
+    );
+  }
+
+  if (isBritishShorthairPlay || isMunchkinPlay) {
+    const authoredSequence = Array.isArray(sheet.sequence)
+      ? sheet.sequence
+        .map(Number)
+        .filter((sourceIndex) => Number.isInteger(sourceIndex) && sourceIndex >= 0 && sourceIndex < spriteFrames.length)
+      : [];
+    const timelineFrames = authoredSequence.length > 0
+      ? authoredSequence.map((sourceIndex) => ({
+        frameEntry: typeof spriteFrames[sourceIndex] === "string"
+          ? { src: spriteFrames[sourceIndex] }
+          : spriteFrames[sourceIndex],
+        sourceIndex,
+      }))
+      : spriteFrames.map((entry, sourceIndex) => ({
+        frameEntry: typeof entry === "string" ? { src: entry } : entry,
+        sourceIndex,
+      }));
+    const previewTimelineIndex = timelineFrames.findIndex(({ sourceIndex }) => sourceIndex === frame);
+    const loopDuration = timelineFrames.length / (playbackFps * playbackSpeed);
+    const wrapperModifier = isMunchkinPlay ? "munchkin-play" : "british-shorthair-play";
+    const frameClassName = isMunchkinPlay
+      ? "shooterMapMunchkinFrame"
+      : "shooterMapBritishShorthairFrame";
+    const durationVariable = isMunchkinPlay
+      ? "--shooter-munchkin-loop-duration"
+      : "--shooter-british-shorthair-loop-duration";
+    return (
+      <span
+        aria-hidden="true"
+        className={`shooterMapSpriteSheetAsset shooterMapSpriteSheetAsset--${wrapperModifier}`}
+        data-playback-type={playbackType}
+        style={{ [durationVariable]: `${loopDuration}s` }}
+      >
+        {timelineFrames.map(({ frameEntry, sourceIndex }, timelineIndex) => (
+          <img
+            alt=""
+            className={frameClassName}
+            data-frame-index={sourceIndex}
+            data-preview-frame={timelineIndex === previewTimelineIndex}
+            decoding="async"
+            draggable="false"
+            key={`${frameEntry.src}-${timelineIndex}`}
+            src={frameEntry.src}
+            style={{ animationDelay: `${(timelineIndex * loopDuration) / timelineFrames.length}s` }}
+          />
+        ))}
+      </span>
+    );
+  }
+
+  if (isBorderCollieAcrobat) {
+    const authoredSequence = Array.isArray(sheet.sequence)
+      ? sheet.sequence
+        .map(Number)
+        .filter((sourceIndex) => Number.isInteger(sourceIndex) && sourceIndex >= 0 && sourceIndex < spriteFrames.length)
+      : [];
+    const timelineFrames = authoredSequence.length > 0
+      ? authoredSequence.map((sourceIndex) => ({
+        frameEntry: typeof spriteFrames[sourceIndex] === "string"
+          ? { src: spriteFrames[sourceIndex] }
+          : spriteFrames[sourceIndex],
+        sourceIndex,
+      }))
+      : spriteFrames.flatMap((entry, sourceIndex) => {
+        const frameEntry = typeof entry === "string" ? { src: entry } : entry;
+        const hold = Math.max(1, Math.round(Number(frameEntry.hold) || 1));
+        return Array.from({ length: hold }, () => ({ frameEntry, sourceIndex }));
+      });
+    const previewTimelineIndex = timelineFrames.findIndex(({ sourceIndex }) => sourceIndex === frame);
+    const loopDuration = timelineFrames.length / (playbackFps * playbackSpeed);
+    return (
+      <span
+        aria-hidden="true"
+        className="shooterMapSpriteSheetAsset shooterMapSpriteSheetAsset--border-collie-acrobat"
+        style={{ "--shooter-border-collie-loop-duration": `${loopDuration}s` }}
+      >
+        {timelineFrames.map(({ frameEntry, sourceIndex }, timelineIndex) => (
+          <img
+            alt=""
+            className="shooterMapBorderCollieAcrobatFrame"
+            data-frame-index={sourceIndex}
+            data-preview-frame={timelineIndex === previewTimelineIndex}
+            decoding="async"
+            draggable="false"
+            key={`${frameEntry.src}-${timelineIndex}`}
+            src={frameEntry.src}
+            style={{ animationDelay: `${(timelineIndex * loopDuration) / timelineFrames.length}s` }}
+          />
+        ))}
+      </span>
+    );
+  }
+
+  if (isMiniPoodleTilt) {
+    const loopDuration = spriteFrames.length / (playbackFps * playbackSpeed);
+    return (
+      <span
+        aria-hidden="true"
+        className="shooterMapSpriteSheetAsset shooterMapSpriteSheetAsset--mini-poodle"
+        style={{ "--shooter-mini-poodle-loop-duration": `${loopDuration}s` }}
+      >
+        {spriteFrames.map((entry, index) => {
+          const frameEntry = typeof entry === "string" ? { src: entry } : entry;
+          return (
+            <img
+              alt=""
+              className="shooterMapMiniPoodleFrame"
+              data-frame-index={index}
+              data-preview-frame={index === frame}
+              decoding="async"
+              draggable="false"
+              key={frameEntry.src}
+              src={frameEntry.src}
+              style={{ animationDelay: `${(index * loopDuration) / spriteFrames.length}s` }}
+            />
+          );
+        })}
+      </span>
+    );
+  }
+
+  if (isHermitCrabRoam) {
+    const placement = getLayerPlacement(layer, layout);
+    const frameDuration = spriteFrames.length / (playbackFps * playbackSpeed);
+    const roamDuration = Math.max(
+      3,
+      (Number(sheet.roamDurationSeconds) || 9.6) / playbackSpeed,
+    );
+    const animationPhase = getHermitCrabAnimationPhase({
+      instanceId: layer.instanceId,
+      x: placement.x,
+      y: placement.y,
+    });
+    const framePhaseDelay = -(animationPhase * frameDuration);
+    return (
+      <span
+        aria-hidden="true"
+        className="shooterMapSpriteSheetAsset shooterMapSpriteSheetAsset--hermit-crab"
+        data-animation-phase={animationPhase.toFixed(4)}
+        style={{
+          "--shooter-hermit-crab-frame-duration": `${frameDuration}s`,
+          "--shooter-hermit-crab-roam-duration": `${roamDuration}s`,
+          animationDelay: `${-(animationPhase * roamDuration)}s`,
+        }}
+      >
+        {spriteFrames.map((entry, index) => {
+          const frameEntry = typeof entry === "string" ? { src: entry } : entry;
+          return (
+            <img
+              alt=""
+              className="shooterMapHermitCrabFrame"
+              data-frame-index={index}
+              data-preview-frame={index === frame}
+              decoding="async"
+              draggable="false"
+              key={frameEntry.src}
+              src={frameEntry.src}
+              style={{
+                animationDelay: `${(index * frameDuration) / spriteFrames.length + framePhaseDelay}s`,
+              }}
+            />
+          );
+        })}
+      </span>
+    );
+  }
+
+  if (isSharkSwim) {
+    const frameDuration = spriteFrames.length / (playbackFps * playbackSpeed);
+    const roamDuration = Math.max(
+      4,
+      (Number(sheet.roamDurationSeconds) || 12.8) / playbackSpeed,
+    );
+    return (
+      <span
+        aria-hidden="true"
+        className="shooterMapSpriteSheetAsset shooterMapSpriteSheetAsset--shark"
+        style={{
+          "--shooter-shark-frame-duration": `${frameDuration}s`,
+          "--shooter-shark-roam-duration": `${roamDuration}s`,
+        }}
+      >
+        {spriteFrames.map((entry, index) => {
+          const frameEntry = typeof entry === "string" ? { src: entry } : entry;
+          return (
+            <img
+              alt=""
+              className="shooterMapSharkFrame"
+              data-frame-index={index}
+              data-preview-frame={index === frame}
+              decoding="async"
+              draggable="false"
+              key={frameEntry.src}
+              src={frameEntry.src}
+              style={{ animationDelay: `${(index * frameDuration) / spriteFrames.length}s` }}
+            />
+          );
+        })}
+      </span>
+    );
+  }
+
+  if (isNetFisherCast) {
+    const timelineFrames = spriteFrames.flatMap((entry, sourceIndex) => {
+      const frameEntry = typeof entry === "string" ? { src: entry } : entry;
+      const hold = Math.max(1, Math.round(Number(frameEntry.hold) || 1));
+      return Array.from({ length: hold }, () => ({ frameEntry, sourceIndex }));
+    });
+    const previewTimelineIndex = timelineFrames.findIndex(({ sourceIndex }) => sourceIndex === frame);
+    const loopDuration = timelineFrames.length / (playbackFps * playbackSpeed);
+    return (
+      <span
+        aria-hidden="true"
+        className="shooterMapSpriteSheetAsset shooterMapSpriteSheetAsset--net-fisher"
+        style={{ "--shooter-net-fisher-loop-duration": `${loopDuration}s` }}
+      >
+        {timelineFrames.map(({ frameEntry, sourceIndex }, timelineIndex) => (
+          <img
+            alt=""
+            className="shooterMapNetFisherFrame"
+            data-frame-index={sourceIndex}
+            data-preview-frame={timelineIndex === previewTimelineIndex}
+            decoding="async"
+            draggable="false"
+            key={`${frameEntry.src}-${timelineIndex}`}
+            src={frameEntry.src}
+            style={{ animationDelay: `${(timelineIndex * loopDuration) / timelineFrames.length}s` }}
+          />
+        ))}
+      </span>
+    );
+  }
 
   if (isLayeredWindFlag) {
     return (
@@ -372,7 +716,7 @@ function SpriteSheetMapAsset({ layer }) {
         className="shooterMapSpriteSheetAsset shooterMapSpriteSheetAsset--wind-flag shooterMapSpriteSheetAsset--layered-wind-flag"
         style={{ "--shooter-map-sprite-duration": `${playbackDuration}s` }}
       >
-        {windFlagFrames.map((entry, index) => {
+        {spriteFrames.map((entry, index) => {
           const frameEntry = typeof entry === "string" ? { src: entry } : entry;
           return (
             <img
@@ -419,6 +763,25 @@ function SpriteSheetMapAsset({ layer }) {
 
 function LavaEnvironmentAsset({ layer }) {
   const animationType = layer.animation?.type;
+  if (animationType === "torch-flame") {
+    const speed = Number.isFinite(layer.animation?.speed) ? Math.max(0.1, layer.animation.speed) : 1;
+    const cycleDuration = Math.max(0.85, 5.4 / speed);
+    return (
+      <span
+        className="shooterMapTorchFlame"
+        style={{ "--shooter-torch-cycle-duration": `${cycleDuration}s` }}
+      >
+        <i aria-hidden="true" className="shooterMapTorchFlameGlow" />
+        <img
+          alt=""
+          className="shooterMapTorchFlameArtwork"
+          decoding="async"
+          draggable="false"
+          src={layer.src}
+        />
+      </span>
+    );
+  }
   if (animationType !== "lava-geyser" && animationType !== "lava-boil") {
     return <img alt="" decoding="async" draggable="false" src={layer.src} />;
   }
@@ -564,12 +927,14 @@ function MapSkinRenderer({
   onAssetPointerDown,
   onAssetSelect,
   onCreatureAnchorPointerDown,
+  onEventSound,
   onStagePointerDown,
   selectedAssetId = "",
   skin,
   stage = "underlay",
 }) {
   const [eventHiddenLayerIds, setEventHiddenLayerIds] = useState(() => new Set());
+  const runtimeEventPlacementsRef = useRef({ key: "", layers: [] });
   const handleEventOriginHiddenChange = useCallback((instanceId, hidden) => {
     if (!instanceId) return;
     setEventHiddenLayerIds((current) => {
@@ -585,14 +950,25 @@ function MapSkinRenderer({
 
   const stageSlots = stage === "overlay" ? OVERLAY_SLOTS : UNDERLAY_SLOTS;
   const layers = (skin.layers ?? []).filter((layer) => stageSlots.has(layer.slot));
+  const runtimeSpawnKey = `${skin.id}:${stage}:${layers.map((layer) => layer.instanceId).join("|")}`;
+  if (!editMode && runtimeEventPlacementsRef.current.key !== runtimeSpawnKey) {
+    runtimeEventPlacementsRef.current = {
+      key: runtimeSpawnKey,
+      layers: assignRandomEventActorPlacements(layers),
+    };
+  }
+  const renderLayers = editMode ? layers : runtimeEventPlacementsRef.current.layers;
+  const hasInteractiveActor = renderLayers.some(
+    (layer) => layer.eventActor?.type === "coastal-chest",
+  );
   const selectedCreatureLayer = editMode
-    ? layers.find((layer) => layer.instanceId === selectedAssetId && layer.creature)
+    ? renderLayers.find((layer) => layer.instanceId === selectedAssetId && layer.creature)
     : null;
-  if (stage === "overlay" && layers.length === 0) return null;
+  if (stage === "overlay" && renderLayers.length === 0) return null;
 
   return (
     <div
-      aria-hidden={editMode ? undefined : "true"}
+      aria-hidden={editMode || hasInteractiveActor ? undefined : "true"}
       className={`shooterMapSkinStage shooterMapSkinStage--${stage} ${editMode ? "shooterMapSkinStage--editing" : ""}`}
       data-map-skin={skin.id}
       onPointerDown={editMode ? onStagePointerDown : undefined}
@@ -614,11 +990,13 @@ function MapSkinRenderer({
         </>
       ) : null}
 
-      {layers.map((layer) => (
+      {renderLayers.map((layer) => (
         <span
           aria-label={editMode ? `${layer.label} 배치 오브젝트` : undefined}
-          className={`shooterMapSkinAsset shooterMapSkinAsset--${layer.slot} ${selectedAssetId === layer.instanceId ? "shooterMapSkinAsset--selected" : ""} ${eventHiddenLayerIds.has(layer.instanceId) ? "shooterMapSkinAsset--event-hidden" : ""} ${layer.eventActor ? "shooterMapSkinAsset--event-actor" : ""}`}
+          className={`shooterMapSkinAsset shooterMapSkinAsset--${layer.slot} ${selectedAssetId === layer.instanceId ? "shooterMapSkinAsset--selected" : ""} ${eventHiddenLayerIds.has(layer.instanceId) ? "shooterMapSkinAsset--event-hidden" : ""} ${layer.eventActor ? "shooterMapSkinAsset--event-actor" : ""} ${layer.eventActor?.type === "coastal-chest" ? "shooterMapSkinAsset--interactive-event" : ""}`}
           data-animation={layer.composite ? undefined : layer.animation?.type || undefined}
+          data-asset-id={layer.assetId}
+          data-instance-id={layer.instanceId}
           key={layer.id}
           onPointerDown={editMode
             ? (event) => {
@@ -652,7 +1030,14 @@ function MapSkinRenderer({
             onAssetPointerDown={onAssetPointerDown}
             selected={selectedAssetId === layer.instanceId}
           >
-            {layer.composite ? (
+            {layer.eventActor?.type === "coastal-chest" ? (
+              <CoastalChestActor
+                editMode={editMode}
+                eventActor={layer.eventActor}
+                instanceId={layer.instanceId}
+                onSound={onEventSound}
+              />
+            ) : layer.composite ? (
               <CompositeMapAsset
                 composite={layer.composite}
                 src={layer.src}
@@ -660,7 +1045,7 @@ function MapSkinRenderer({
             ) : layer.creature ? (
               <AmbientCreature creature={layer.creature} editMode={editMode} placement={layer.placement} />
             ) : layer.spriteSheet ? (
-              <SpriteSheetMapAsset layer={layer} />
+              <SpriteSheetMapAsset layer={layer} layout={layout} />
             ) : (
               <LavaEnvironmentAsset layer={layer} />
             )}
@@ -682,7 +1067,7 @@ function MapSkinRenderer({
         <MapAmbientEvents
           active={ambientEventsActive && !editMode}
           events={skin.ambientEvents ?? []}
-          layers={layers}
+          layers={renderLayers}
           onOriginHiddenChange={handleEventOriginHiddenChange}
         />
       ) : null}

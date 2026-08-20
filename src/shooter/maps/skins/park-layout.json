@@ -1,0 +1,434 @@
+[
+  {
+    "instanceId": "park-mini-poodle-01",
+    "assetId": "ambient-mini-poodle",
+    "x": 0.21902096479366984,
+    "y": 0.9538551663503203,
+    "scale": 0.46,
+    "rotation": 0,
+    "scaleX": 1.12,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 320,
+    "tiltX": 0,
+    "tiltY": -34,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1.016548686696224,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 24,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "park-border-collie-acrobat-01",
+    "assetId": "ambient-border-collie-acrobat",
+    "x": 0.5881117600661058,
+    "y": 0.28392806193339204,
+    "scale": 0.46,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 24,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "park-british-shorthair-play-01",
+    "assetId": "ambient-british-shorthair-play",
+    "x": 0.7522146371694711,
+    "y": 0.7305054411317102,
+    "scale": 0.5,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 25,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "park-munchkin-play-01",
+    "assetId": "ambient-munchkin-play",
+    "x": 0.15044283353365387,
+    "y": 0.5945556550389506,
+    "scale": 0.54,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 25,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "park-fountain-flow-01",
+    "assetId": "ambient-park-fountain-flow",
+    "x": 0.49067586263020835,
+    "y": 0.552150601354248,
+    "scale": 0.63,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 3000,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 23,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "park-wood-plank-floor-01",
+    "assetId": "park-wood-plank-floor-01",
+    "x": 0.49766908303285257,
+    "y": 0.5591773997049945,
+    "scale": 0.52,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 22,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "park-wood-plank-floor-02",
+    "assetId": "park-wood-plank-floor-02",
+    "x": 0.5,
+    "y": 0.6267724267552383,
+    "scale": 0.52,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 22,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "park-wood-plank-floor-03",
+    "assetId": "park-wood-plank-floor-03",
+    "x": 0.5046619904346955,
+    "y": 0.6931649067793941,
+    "scale": 0.52,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 22,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "park-wood-plank-floor-04",
+    "assetId": "park-wood-plank-floor-04",
+    "x": 0.5023310734675481,
+    "y": 0.7607598127272185,
+    "scale": 0.52,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 22,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "park-garden-swing-01",
+    "assetId": "ambient-garden-swing",
+    "x": 0.8222960799779648,
+    "y": 0.2544334929732339,
+    "scale": 0.62,
+    "rotation": 0,
+    "scaleX": 0.94,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 650,
+    "tiltX": -7,
+    "tiltY": 18,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 21,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "park-fountain-fence-back-01",
+    "assetId": "park-fountain-fence-back",
+    "x": 0.5023309169671475,
+    "y": 0.37829205220967516,
+    "scale": 0.8800000000000001,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 1200,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1.0367635124055978,
+        "y": 1.2872672890017318
+      },
+      {
+        "x": -0.058821743262003096,
+        "y": 1.3038405444822556
+      }
+    ],
+    "layer": 21,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "park-fountain-fence-front-01",
+    "assetId": "park-fountain-fence-front",
+    "x": 0.4790211212940706,
+    "y": 0.43841754661030286,
+    "scale": 0.8800000000000001,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 1200,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0.051469040780883504,
+        "y": -0.24307243558580455
+      },
+      {
+        "x": 1.0220581074433588,
+        "y": -0.2154504667512989
+      },
+      {
+        "x": 1.0497721398721942,
+        "y": 0.9626041455767731
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 24,
+    "animation": "none",
+    "animationSpeed": 1
+  }
+]

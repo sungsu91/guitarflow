@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { encodePcmWav } from "../audio/audioPostProcessing";
+import {
+  AUDIO_BUS_IDS,
+  getAudioBusInput,
+  getSharedAudioContext,
+} from "../audio/audioBus";
 import { getPreferredBackingLoopMimeType } from "../backing-loop/backingLoopUtils";
 import {
   AUDIO_STUDIO_FILE_ACCEPT,
@@ -131,10 +136,9 @@ export default function useAudioStudio() {
   }, [cancelPlaybackFrame]);
 
   const ensurePlaybackContext = useCallback(async () => {
-    if (audioContextRef.current) return audioContextRef.current;
-    const AudioContextApi = typeof window !== "undefined" ? window.AudioContext || window.webkitAudioContext : null;
-    if (!AudioContextApi) throw new Error("AUDIO_CONTEXT_UNAVAILABLE");
-    const context = new AudioContextApi();
+    if (audioContextRef.current?.state !== "closed") return audioContextRef.current;
+    const context = getSharedAudioContext();
+    if (!context) throw new Error("AUDIO_CONTEXT_UNAVAILABLE");
     audioContextRef.current = context;
     return context;
   }, []);
@@ -213,6 +217,7 @@ export default function useAudioStudio() {
           audioBuffers: audioBuffersRef.current,
           audioContext: context,
           fromMs,
+          outputNode: getAudioBusInput(AUDIO_BUS_IDS.BACKING, context),
           project: playbackProject,
         });
         playbackRef.current = { ...session, fromMs, repeatIteration };
@@ -318,9 +323,7 @@ export default function useAudioStudio() {
       try { recorder.stop(); } catch { /* Best-effort cleanup while leaving the route. */ }
     }
     recordingStreamRef.current?.getTracks?.().forEach((track) => track.stop());
-    const context = audioContextRef.current;
     audioContextRef.current = null;
-    context?.close?.();
   }, [clearScheduledPlayback]);
 
   const refreshSavedProjects = useCallback(async (preferredId = "") => {
@@ -395,7 +398,7 @@ export default function useAudioStudio() {
       gain.gain.exponentialRampToValueAtTime(0.14, startAt + 0.006);
       gain.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.08);
       oscillator.connect(gain);
-      gain.connect(context.destination);
+      gain.connect(getAudioBusInput(AUDIO_BUS_IDS.METRONOME, context) || context.destination);
       oscillator.start(startAt);
       oscillator.stop(startAt + 0.09);
     } catch {
@@ -495,7 +498,8 @@ export default function useAudioStudio() {
             Object.defineProperty(file, "name", { value: `Recording ${recordingNumber}.${extension}` });
             Object.defineProperty(file, "lastModified", { value: Date.now() });
           }
-          const { decoded } = await decodeAudioStudioFiles([file]);
+          const context = await ensurePlaybackContext();
+          const { decoded } = await decodeAudioStudioFiles([file], { context });
           if (!decoded.length) throw new Error("RECORDING_DECODE_FAILED");
           const [{ audioBuffer, source }] = decoded;
           audioBuffersRef.current.set(source.id, audioBuffer);
@@ -562,7 +566,7 @@ export default function useAudioStudio() {
       setRecordingState({ beat: 0, phase: "idle", targetTrackId: "" });
       setNotice("마이크 권한을 허용해야 바로 녹음할 수 있습니다.");
     }
-  }, [clearScheduledPlayback, currentTimeMs, playCountInClick, releaseRecordingInput, startPlayback, stopRecording]);
+  }, [clearScheduledPlayback, currentTimeMs, ensurePlaybackContext, playCountInClick, releaseRecordingInput, startPlayback, stopRecording]);
 
   const selectTimelineRange = useCallback((selection) => {
     if (!selection?.trackId || Number(selection.endMs) - Number(selection.startMs) < 10) {
@@ -1326,7 +1330,9 @@ export default function useAudioStudio() {
     setImporting(true);
     setNotice(`${files.length}개 파일의 재생시간과 파형을 분석하고 있습니다.`);
     try {
+      const context = await ensurePlaybackContext();
       const { decoded, rejected } = await decodeAudioStudioFiles(files, {
+        context,
         onProgress: ({ completed, total }) => {
           setNotice(`${completed}/${total} 파일 파형 생성 중...`);
         },
@@ -1384,7 +1390,7 @@ export default function useAudioStudio() {
       importTargetTrackIdRef.current = "";
       setImporting(false);
     }
-  }, [activeTrackId, importing]);
+  }, [activeTrackId, ensurePlaybackContext, importing]);
 
   const selectedClipIdSet = useMemo(() => new Set(selectedClipIds), [selectedClipIds]);
   const selectedClips = useMemo(() => project.tracks.flatMap((track) => track.clips)

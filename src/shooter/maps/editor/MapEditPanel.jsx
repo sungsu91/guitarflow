@@ -1,5 +1,11 @@
 import { useMemo } from "react";
 
+import {
+  getShooterNoteMonsterLabelLayout,
+  getShooterNoteMonsterLabelPalette,
+  getShooterNoteMonsterRenderScale,
+} from "../../noteMonsterAssets.js";
+import { getShooterNoteMonsterRenderedScales } from "../../noteMonsterTuning.js";
 import { DEFAULT_PERSPECTIVE_CORNERS } from "../freeTransform.js";
 import { FROG_MOVEMENT_MODES, MAP_EDIT_ANIMATION_TYPES } from "./editorState.js";
 
@@ -36,8 +42,8 @@ const BABY_DRAGON_PREVIEW_MODES = Object.freeze([
 
 function getReferenceViewport(editor) {
   return {
-    height: editor.skin.referenceViewport?.deviceHeight || editor.skin.referenceViewport?.height || 844,
-    width: editor.skin.referenceViewport?.deviceWidth || editor.skin.referenceViewport?.width || 390,
+    height: editor.skin.referenceViewport?.height || editor.skin.referenceViewport?.deviceHeight || 756,
+    width: editor.skin.referenceViewport?.width || editor.skin.referenceViewport?.deviceWidth || 390,
   };
 }
 
@@ -118,6 +124,190 @@ function EditorSection({ children, title, value }) {
   );
 }
 
+function CollapsibleEditorSection({ children, title, value, variant = "effects" }) {
+  if (variant === "effects") {
+    return (
+      <details className="mapEditAdvancedSection mapEditAdvancedSection--effects">
+        <summary>
+          <span>{title}</span>
+          <small>{value}</small>
+        </summary>
+        <div className="mapEditAdvancedSectionBody">{children}</div>
+      </details>
+    );
+  }
+  return (
+    <details className={`mapEditAdvancedSection mapEditAdvancedSection--${variant}`}>
+      <summary>
+        <span>{title}</span>
+        <small>{value}</small>
+      </summary>
+      <div className="mapEditAdvancedSectionBody">{children}</div>
+    </details>
+  );
+}
+
+function MonsterTuningControls({ monsterEditor }) {
+  if (!monsterEditor) return null;
+
+  const noteName = `${monsterEditor.activeRoot}#4`;
+  const activeTuning = monsterEditor.activeTuning;
+  const labelLayout = getShooterNoteMonsterLabelLayout(noteName, monsterEditor.activeSkin.id);
+  const labelPalette = getShooterNoteMonsterLabelPalette(noteName, monsterEditor.activeSkin.id);
+  const labelColor = activeTuning.labelColor || labelPalette.color;
+  const labelOutline = activeTuning.labelOutline || labelPalette.outline;
+  const renderedScales = getShooterNoteMonsterRenderedScales(activeTuning);
+  const renderScale = renderedScales.monsterScale * getShooterNoteMonsterRenderScale(noteName);
+  const jointScalePercent = Math.round(activeTuning.jointScale * 100);
+  const labelScalePercent = Math.round(activeTuning.labelScale * 100);
+  const scalePercent = Math.round(activeTuning.scale * 100);
+  const updateNumber = (key, value, divisor = 1) => {
+    const number = Number(value);
+    if (Number.isFinite(number)) monsterEditor.updateActiveTuning({ [key]: number / divisor });
+  };
+
+  return (
+    <CollapsibleEditorSection
+      title="몹 스킨·텍스트 보정"
+      value={`${monsterEditor.activeSkin.label} · ${monsterEditor.activeRoot}`}
+      variant="monster"
+    >
+      <div className="mapEditMonsterSkinSummary">
+        <span>
+          <small>현재 몹 스킨</small>
+          <strong>{monsterEditor.activeSkin.label}</strong>
+        </span>
+        <em>음별 저장</em>
+      </div>
+
+      <div aria-label="보정할 몹 음 선택" className="mapEditMonsterRootTabs">
+        {monsterEditor.roots.map((noteRoot) => {
+          const isSelected = monsterEditor.activeRoot === noteRoot;
+          return (
+            <button
+              aria-label={`${noteRoot} 몹 보정`}
+              aria-pressed={isSelected}
+              className={isSelected ? "is-selected" : ""}
+              key={noteRoot}
+              onClick={() => monsterEditor.selectRoot(noteRoot)}
+              type="button"
+            >
+              <img alt="" decoding="async" draggable="false" src={monsterEditor.activeSkin.assets[noteRoot][0]} />
+              <b>{noteRoot}</b>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mapEditMonsterPreview" aria-label={`${noteName} 몹 실시간 미리보기`}>
+        <div
+          className="mapEditMonsterPreviewTarget"
+          style={{
+            "--monster-preview-label-color": labelColor,
+            "--monster-preview-label-glow": labelPalette.glow,
+            "--monster-preview-label-outline": labelOutline,
+            "--monster-preview-label-size": `${13 * renderedScales.labelScale}px`,
+            "--monster-preview-label-x": `${labelLayout.x}%`,
+            "--monster-preview-label-y": `${labelLayout.y}%`,
+            "--monster-preview-offset-x": `${activeTuning.labelOffsetX}px`,
+            "--monster-preview-offset-y": `${activeTuning.labelOffsetY}px`,
+            "--monster-preview-size": `${86.4 * renderScale}px`,
+          }}
+        >
+          <img alt="" decoding="async" draggable="false" src={monsterEditor.activeFrames[0]} />
+          <span className="mapEditMonsterPreviewLabel">
+            <b>{noteName}</b>
+          </span>
+        </div>
+        <span><b>{noteName}</b><small>실제 게임 위치·크기 미리보기</small></span>
+      </div>
+
+      <div className="mapEditPrecisionLayout mapEditPrecisionLayout--monster">
+        <div className="mapEditNudgePad" aria-label="몹 텍스트 1픽셀 위치 조정">
+          <span />
+          <button aria-label="몹 텍스트 위로 1픽셀" onClick={() => monsterEditor.nudgeLabel(0, -1)} type="button">↑</button>
+          <span />
+          <button aria-label="몹 텍스트 왼쪽으로 1픽셀" onClick={() => monsterEditor.nudgeLabel(-1, 0)} type="button">←</button>
+          <i>글자</i>
+          <button aria-label="몹 텍스트 오른쪽으로 1픽셀" onClick={() => monsterEditor.nudgeLabel(1, 0)} type="button">→</button>
+          <span />
+          <button aria-label="몹 텍스트 아래로 1픽셀" onClick={() => monsterEditor.nudgeLabel(0, 1)} type="button">↓</button>
+          <span />
+        </div>
+        <div className="mapEditPixelFields">
+          <label className="mapEditField">
+            <span>텍스트 좌·우 (px)</span>
+            <input aria-label="몹 텍스트 좌우 보정값" max="80" min="-80" onChange={(event) => updateNumber("labelOffsetX", event.target.value)} step="1" type="number" value={Math.round(activeTuning.labelOffsetX)} />
+          </label>
+          <label className="mapEditField">
+            <span>텍스트 위·아래 (px)</span>
+            <input aria-label="몹 텍스트 상하 보정값" max="80" min="-80" onChange={(event) => updateNumber("labelOffsetY", event.target.value)} step="1" type="number" value={Math.round(activeTuning.labelOffsetY)} />
+          </label>
+        </div>
+      </div>
+
+      <div className="mapEditMonsterColorEditor">
+        <header>
+          <span><b>텍스트 색감</b><small>구체 밝기에 맞춰 직접 선택</small></span>
+          <button onClick={monsterEditor.resetActiveColors} type="button">자동색</button>
+        </header>
+        <div>
+          <label>
+            <span>글자색</span>
+            <span className="mapEditMonsterColorField">
+              <input aria-label="몹 텍스트 글자색" onChange={(event) => monsterEditor.updateActiveTuning({ labelColor: event.target.value })} type="color" value={labelColor} />
+              <input aria-label="몹 텍스트 글자색 HEX" className="mapEditMonsterColorHex" maxLength="7" onChange={(event) => monsterEditor.updateActiveTuning({ labelColor: event.target.value })} spellCheck="false" type="text" value={labelColor.toUpperCase()} />
+            </span>
+          </label>
+          <label>
+            <span>테두리색</span>
+            <span className="mapEditMonsterColorField">
+              <input aria-label="몹 텍스트 테두리색" onChange={(event) => monsterEditor.updateActiveTuning({ labelOutline: event.target.value })} type="color" value={labelOutline} />
+              <input aria-label="몹 텍스트 테두리색 HEX" className="mapEditMonsterColorHex" maxLength="7" onChange={(event) => monsterEditor.updateActiveTuning({ labelOutline: event.target.value })} spellCheck="false" type="text" value={labelOutline.toUpperCase()} />
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div className="mapEditScaleEditor mapEditScaleEditor--monsterLabel">
+        <span><b>텍스트 크기</b><strong>{labelScalePercent}%</strong></span>
+        <div className="mapEditScaleQuickButtons">
+          <button aria-label="몹 텍스트 크기 5퍼센트 줄이기" onClick={() => monsterEditor.resizeActiveLabel(-0.05)} type="button">−5</button>
+          <button aria-label="몹 텍스트 크기 1퍼센트 줄이기" onClick={() => monsterEditor.resizeActiveLabel(-0.01)} type="button">−1</button>
+          <input aria-label="몹 텍스트 크기" max="200" min="50" onChange={(event) => monsterEditor.setActiveLabelScale(Number(event.target.value) / 100)} step="1" type="range" value={labelScalePercent} />
+          <button aria-label="몹 텍스트 크기 1퍼센트 키우기" onClick={() => monsterEditor.resizeActiveLabel(0.01)} type="button">+1</button>
+          <button aria-label="몹 텍스트 크기 5퍼센트 키우기" onClick={() => monsterEditor.resizeActiveLabel(0.05)} type="button">+5</button>
+        </div>
+      </div>
+
+      <div className="mapEditScaleEditor mapEditScaleEditor--monster">
+        <span><b>몹 스킨 크기</b><strong>{scalePercent}%</strong></span>
+        <div className="mapEditScaleQuickButtons">
+          <button aria-label="몹 크기 5퍼센트 줄이기" onClick={() => monsterEditor.resizeActive(-0.05)} type="button">−5</button>
+          <button aria-label="몹 크기 1퍼센트 줄이기" onClick={() => monsterEditor.resizeActive(-0.01)} type="button">−1</button>
+          <input aria-label="몹 스킨 크기" max="250" min="50" onChange={(event) => updateNumber("scale", event.target.value, 100)} step="1" type="range" value={scalePercent} />
+          <button aria-label="몹 크기 1퍼센트 키우기" onClick={() => monsterEditor.resizeActive(0.01)} type="button">+1</button>
+          <button aria-label="몹 크기 5퍼센트 키우기" onClick={() => monsterEditor.resizeActive(0.05)} type="button">+5</button>
+        </div>
+      </div>
+
+      <div className="mapEditScaleEditor mapEditScaleEditor--monsterJoint">
+        <span><b>텍스트·몹 공동 조절</b><strong>{jointScalePercent}%</strong></span>
+        <div className="mapEditScaleQuickButtons">
+          <button aria-label="텍스트 몹 공동 크기 5퍼센트 줄이기" onClick={() => monsterEditor.resizeActiveJoint(-0.05)} type="button">−5</button>
+          <button aria-label="텍스트 몹 공동 크기 1퍼센트 줄이기" onClick={() => monsterEditor.resizeActiveJoint(-0.01)} type="button">−1</button>
+          <input aria-label="텍스트 몹 공동 크기" max="200" min="50" onChange={(event) => monsterEditor.setActiveJointScale(Number(event.target.value) / 100)} step="1" type="range" value={jointScalePercent} />
+          <button aria-label="텍스트 몹 공동 크기 1퍼센트 키우기" onClick={() => monsterEditor.resizeActiveJoint(0.01)} type="button">+1</button>
+          <button aria-label="텍스트 몹 공동 크기 5퍼센트 키우기" onClick={() => monsterEditor.resizeActiveJoint(0.05)} type="button">+5</button>
+        </div>
+      </div>
+
+      <p className="mapEditMonsterTuningHelp">텍스트와 몹을 각각 조절하거나, 공동 조절로 두 크기를 함께 바꿀 수 있습니다. 원형 피격판정과 음 생성 규칙은 그대로 유지됩니다.</p>
+      <button className="mapEditRestoreButton" onClick={monsterEditor.resetActive} type="button">이 음의 몹 보정값만 기본으로</button>
+    </CollapsibleEditorSection>
+  );
+}
+
 function EffectTuningControls({ effectEditor }) {
   if (!effectEditor) return null;
 
@@ -132,7 +322,7 @@ function EffectTuningControls({ effectEditor }) {
   };
 
   return (
-    <EditorSection title="기타 이펙트 보정" value="FLOOR · AURA">
+    <CollapsibleEditorSection title="기타 이펙트 보정" value="FLOOR · AURA · 필요할 때만">
       <div aria-label="보정할 기타 이펙트 종류" className="mapEditEffectSlotTabs">
         {["floor", "aura"].map((slot) => (
           <button
@@ -223,9 +413,9 @@ function EffectTuningControls({ effectEditor }) {
           <button className="mapEditRestoreButton" onClick={effectEditor.resetActive} type="button">이 이펙트 보정값만 기본으로</button>
         </>
       ) : (
-        <p className="mapEditEffectEmpty">스킨 설정에서 이 슬롯의 이펙트를 고르면 위치·크기·투명도를 조절할 수 있습니다.</p>
+        <p className="mapEditEffectEmpty">스킨변경에서 이 슬롯의 이펙트를 고르면 위치·크기·투명도를 조절할 수 있습니다.</p>
       )}
-    </EditorSection>
+    </CollapsibleEditorSection>
   );
 }
 
@@ -860,9 +1050,10 @@ function AdvancedAssetLibrary({ editor }) {
   );
 }
 
-function MapEditControls({ editor, effectEditor }) {
+function MapEditControls({ editor, effectEditor, monsterEditor }) {
   return (
     <div className="mapEditControls mapEditControls--desktop">
+      <MonsterTuningControls monsterEditor={monsterEditor} />
       <EffectTuningControls effectEditor={effectEditor} />
       <InstalledObjectSelector editor={editor} />
       <div className="mapEditHistoryToolbar" aria-label="편집 이력">
@@ -886,8 +1077,8 @@ function MapEditControls({ editor, effectEditor }) {
   );
 }
 
-function MapEditSessionActions({ editor, effectEditor }) {
-  const hasChanges = editor.hasChanges || Boolean(effectEditor?.hasChanges);
+function MapEditSessionActions({ editor, effectEditor, monsterEditor }) {
+  const hasChanges = editor.hasChanges || Boolean(effectEditor?.hasChanges) || Boolean(monsterEditor?.hasChanges);
   const statusLabel = editor.saveStatus === "error" && editor.saveError
     ? editor.saveError
     : hasChanges
@@ -895,11 +1086,14 @@ function MapEditSessionActions({ editor, effectEditor }) {
       : "적용된 배치와 동일합니다";
   const closeEditing = () => {
     effectEditor?.cancelEditing();
+    monsterEditor?.cancelEditing();
     editor.closeEditing();
   };
-  const applyEditing = () => editor.applyEditing(
-    () => effectEditor?.applyEditing() ?? true,
-  );
+  const applyEditing = () => editor.applyEditing(async () => {
+    if (await (effectEditor?.applyEditing() ?? true) === false) return false;
+    if (await (monsterEditor?.applyEditing() ?? true) === false) return false;
+    return true;
+  });
   return (
     <footer className="mapEditSessionActions">
       <span>
@@ -947,28 +1141,30 @@ function MapEditMapSwitcher({ editor, mapOptions, onMapChange }) {
   );
 }
 
-function DesktopMapEditPanel({ editor, effectEditor, mapOptions, onMapChange }) {
+function DesktopMapEditPanel({ editor, effectEditor, mapOptions, monsterEditor, onMapChange }) {
+  const viewport = getReferenceViewport(editor);
   return (
     <aside className="mapEditPanel mapEditPanel--desktop" onClick={(event) => event.stopPropagation()}>
       <header className="mapEditPanelHeader">
         <span className="mapEditPanelBrand" aria-hidden="true">JP</span>
-        <span className="mapEditPanelHeading"><span>JUST PLAY · MAP STUDIO</span><strong>{editor.skin.label}</strong><small>390 × 844 LIVE PREVIEW</small></span>
+        <span className="mapEditPanelHeading"><span>JUST PLAY · MAP STUDIO</span><strong>{editor.skin.label}</strong><small>{viewport.width} × {viewport.height} LIVE PREVIEW</small></span>
         <i className="mapEditDevBadge">TUNE</i>
       </header>
       <MapEditMapSwitcher editor={editor} mapOptions={mapOptions} onMapChange={onMapChange} />
-      <div className="mapEditPanelScroll"><MapEditControls effectEditor={effectEditor} editor={editor} /></div>
-      <MapEditSessionActions effectEditor={effectEditor} editor={editor} />
+      <div className="mapEditPanelScroll"><MapEditControls effectEditor={effectEditor} editor={editor} monsterEditor={monsterEditor} /></div>
+      <MapEditSessionActions effectEditor={effectEditor} editor={editor} monsterEditor={monsterEditor} />
     </aside>
   );
 }
 
-export default function MapEditPanel({ effectEditor, editor, layout, mapOptions, onMapChange }) {
+export default function MapEditPanel({ effectEditor, editor, layout, mapOptions, monsterEditor, onMapChange }) {
   if (!editor.enabled || layout !== "desktop") return null;
   return (
     <DesktopMapEditPanel
       effectEditor={effectEditor}
       editor={editor}
       mapOptions={mapOptions}
+      monsterEditor={monsterEditor}
       onMapChange={onMapChange}
     />
   );

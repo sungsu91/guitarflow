@@ -133,17 +133,17 @@ function setAudioParam(param, value, time) {
   else param.value = value;
 }
 
-export function scheduleAudioStudioPlayback({ audioBuffers, audioContext, fromMs = 0, leadTimeSeconds = 0.035, project }) {
+export function scheduleAudioStudioPlayback({ audioBuffers, audioContext, fromMs = 0, leadTimeSeconds = 0.035, outputNode = null, project }) {
   const plan = createAudioStudioPlaybackPlan(project, { fromMs });
   const nodes = [];
   const startAt = audioContext.currentTime + Math.max(0, Number(leadTimeSeconds) || 0);
-  let output = audioContext.destination;
+  let output = outputNode || audioContext.destination;
   let analyser = null;
   if (typeof audioContext.createAnalyser === "function") {
     analyser = audioContext.createAnalyser();
     analyser.fftSize = 256;
     analyser.smoothingTimeConstant = 0.72;
-    analyser.connect(audioContext.destination);
+    analyser.connect(output);
     nodes.push(analyser);
     output = analyser;
   }

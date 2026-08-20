@@ -1,8 +1,11 @@
+import { getSharedAudioContext } from "./audioBus.js";
+
 const DEFAULT_TARGET_PEAK_DB = -1.5;
 const DEFAULT_FADE_MS = 6;
 const DEFAULT_MAX_BOOST_DB = 12;
 export const DEFAULT_MIN_TRIM_MS = 300;
 const DEFAULT_ZERO_CROSSING_WINDOW_MS = 4;
+const decodedLoopCache = new WeakMap();
 
 const dbToGain = (value) => 10 ** (value / 20);
 
@@ -107,22 +110,21 @@ function copyDecodedAudio(decoded) {
 }
 
 export async function decodeLoopRecording(blob) {
-  const AudioContextApi = typeof window !== "undefined"
-    ? window.AudioContext || window.webkitAudioContext
-    : null;
-  if (!AudioContextApi || !blob?.arrayBuffer) throw new Error("AUDIO_DECODE_UNAVAILABLE");
-
-  let context;
-  try {
-    context = new AudioContextApi();
+  if (!blob?.arrayBuffer) throw new Error("AUDIO_DECODE_UNAVAILABLE");
+  const cached = decodedLoopCache.get(blob);
+  if (cached) return cached;
+  const decodePromise = (async () => {
+    const context = getSharedAudioContext();
+    if (!context) throw new Error("AUDIO_DECODE_UNAVAILABLE");
     const decoded = await decodeAudioData(context, await blob.arrayBuffer());
     return copyDecodedAudio(decoded);
-  } finally {
-    try {
-      await context?.close?.();
-    } catch {
-      // Safari may close a decode context while the app is backgrounded.
-    }
+  })();
+  decodedLoopCache.set(blob, decodePromise);
+  try {
+    return await decodePromise;
+  } catch (error) {
+    decodedLoopCache.delete(blob);
+    throw error;
   }
 }
 
@@ -219,11 +221,13 @@ export function trimLoopAudioData(audioData, startMs, endMs, options = {}) {
   for (const channel of trimmedChannels) {
     for (let index = 0; index < channel.length; index += 1) peak = Math.max(peak, Math.abs(channel[index]));
   }
-  const normalizationGain = calculatePeakNormalizationGain(
-    peak,
-    options.targetPeakDb ?? DEFAULT_TARGET_PEAK_DB,
-    options.maxBoostDb ?? DEFAULT_MAX_BOOST_DB,
-  );
+  const normalizationGain = options.normalize === true
+    ? calculatePeakNormalizationGain(
+      peak,
+      options.targetPeakDb ?? DEFAULT_TARGET_PEAK_DB,
+      options.maxBoostDb ?? DEFAULT_MAX_BOOST_DB,
+    )
+    : 1;
   for (const channel of trimmedChannels) {
     for (let index = 0; index < channel.length; index += 1) channel[index] *= normalizationGain;
     applyEdgeFades(channel, sampleRate, options.fadeMs ?? DEFAULT_FADE_MS);
@@ -247,52 +251,28 @@ export function trimLoopAudioData(audioData, startMs, endMs, options = {}) {
 }
 
 export async function processLoopRecording(blob, fallbackDurationMs = 0, options = {}) {
-  const AudioContextApi = typeof window !== "undefined"
-    ? window.AudioContext || window.webkitAudioContext
-    : null;
-  if (!AudioContextApi || !blob?.arrayBuffer) {
+  if (!blob?.arrayBuffer || !getSharedAudioContext()) {
     return { blob, durationMs: fallbackDurationMs, mimeType: blob?.type || "audio/webm", processed: false };
   }
 
-  let context;
   try {
-    context = new AudioContextApi();
-    const decoded = await decodeAudioData(context, await blob.arrayBuffer());
-    const mono = new Float32Array(decoded.length);
+    const audioData = await decodeLoopRecording(blob);
     let peak = 0;
-    for (let channel = 0; channel < decoded.numberOfChannels; channel += 1) {
-      const source = decoded.getChannelData(channel);
-      for (let index = 0; index < decoded.length; index += 1) mono[index] += source[index] / decoded.numberOfChannels;
-    }
-    for (let index = 0; index < mono.length; index += 1) peak = Math.max(peak, Math.abs(mono[index]));
-    const normalizationGain = calculatePeakNormalizationGain(
-      peak,
-      options.targetPeakDb ?? DEFAULT_TARGET_PEAK_DB,
-      options.maxBoostDb ?? DEFAULT_MAX_BOOST_DB,
-    );
-    for (let index = 0; index < mono.length; index += 1) mono[index] *= normalizationGain;
-    applyEdgeFades(mono, decoded.sampleRate, options.fadeMs ?? DEFAULT_FADE_MS);
+    audioData.channels.forEach((channel) => {
+      for (let index = 0; index < channel.length; index += 1) peak = Math.max(peak, Math.abs(channel[index]));
+    });
     return {
-      audioData: {
-        channels: [mono],
-        durationMs: (decoded.length / decoded.sampleRate) * 1000,
-        length: decoded.length,
-        sampleRate: decoded.sampleRate,
-      },
-      blob: encodeMonoPcmWav(mono, decoded.sampleRate),
-      durationMs: (decoded.length / decoded.sampleRate) * 1000,
-      mimeType: "audio/wav",
-      normalizationGain,
+      audioData,
+      // Decoding is used only for the waveform/trim editor. Normal playback
+      // keeps the exact MediaRecorder blob and avoids an unnecessary PCM pass.
+      blob,
+      durationMs: audioData.durationMs,
+      mimeType: blob.type || "audio/webm",
+      normalizationGain: 1,
       peakBefore: peak,
-      processed: true,
+      processed: false,
     };
   } catch {
     return { blob, durationMs: fallbackDurationMs, mimeType: blob?.type || "audio/webm", processed: false };
-  } finally {
-    try {
-      await context?.close?.();
-    } catch {
-      // Safari may close a decode context while the app is backgrounded.
-    }
   }
 }

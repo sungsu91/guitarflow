@@ -32,6 +32,12 @@ test("shooter exposes only the current layered maps and no emblem catalog", asyn
   assert.match(appSource, /"rifflab-studio": "river-garden"/);
   assert.match(appSource, /"ocean-resort": "river-garden"/);
   assert.match(appSource, /"orbital-galaxy": "river-garden"/);
+  assert.match(
+    appSource,
+    /const SHOOTER_SKIN_TABS = \[\s*\{ id: "guitar", label: "기타" \},\s*\{ id: "monster", label: "몹 스킨" \},\s*\{ id: "map", label: "맵" \},\s*\{ id: "effect", label: "이펙트" \},\s*\{ id: "pick", label: "피크" \},\s*\];/,
+  );
+  assert.match(appSource, /const SHOOTER_MONSTER_SKIN_STORAGE_KEY = "rifflabShooterMonsterSkin";/);
+  assert.match(appSource, /localStorage\.setItem\(SHOOTER_MONSTER_SKIN_STORAGE_KEY, nextSkin\.id\)/);
   assert.doesNotMatch(appSource, /SHOOTER_EMBLEM_OPTIONS|ShooterEmblemArtwork|selectedShooterEmblem|applyShooterEmblem/);
   assert.doesNotMatch(appSource, /\{ id: "emblem", label: "엠블럼" \}/);
 });

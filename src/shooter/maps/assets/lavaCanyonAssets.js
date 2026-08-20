@@ -31,6 +31,17 @@ export const LAVA_CANYON_ENVIRONMENT_ASSETS = Object.freeze([
     anchorY: 92,
   }),
   Object.freeze({
+    id: "lava-torch-flame",
+    label: "횃불 타오르는 불꽃",
+    src: `${LAVA_CANYON_EFFECT_ROOT}/torch-flame.png`,
+    slot: "animated-environment",
+    baseWidth: 0.095,
+    anchorX: 50,
+    anchorY: 96,
+    defaultAnimation: "torch-flame",
+    defaultAnimationSpeed: 2.7,
+  }),
+  Object.freeze({
     id: "ambient-baby-dragon",
     label: "쉬고 있는 아기 용",
     src: `${LAVA_CANYON_DRAGON_ROOT}/dragon-idle.png`,

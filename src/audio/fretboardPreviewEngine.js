@@ -1,3 +1,5 @@
+import { AUDIO_BUS_IDS, getAudioBusInput } from "./audioBus.js";
+
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 // Standard tuning, numbered from the thinnest string (1) to the thickest (6).
@@ -165,11 +167,11 @@ function getOutputGraph(audio) {
   const bodyMid = audio.createBiquadFilter();
   const bodyOutput = audio.createGain();
   master.gain.setValueAtTime(0.6, audio.currentTime);
-  compressor.threshold.setValueAtTime(-18, audio.currentTime);
-  compressor.knee.setValueAtTime(12, audio.currentTime);
-  compressor.ratio.setValueAtTime(4.2, audio.currentTime);
+  compressor.threshold.setValueAtTime(-6, audio.currentTime);
+  compressor.knee.setValueAtTime(3, audio.currentTime);
+  compressor.ratio.setValueAtTime(3, audio.currentTime);
   compressor.attack.setValueAtTime(0.004, audio.currentTime);
-  compressor.release.setValueAtTime(0.2, audio.currentTime);
+  compressor.release.setValueAtTime(0.12, audio.currentTime);
   bodyInput.gain.setValueAtTime(1, audio.currentTime);
   bodyLow.type = "peaking";
   bodyLow.frequency.setValueAtTime(108, audio.currentTime);
@@ -185,7 +187,7 @@ function getOutputGraph(audio) {
   bodyMid.connect(bodyOutput);
   bodyOutput.connect(master);
   master.connect(compressor);
-  compressor.connect(audio.destination);
+  compressor.connect(getAudioBusInput(AUDIO_BUS_IDS.INSTRUMENT, audio) || audio.destination);
 
   const graph = { bodyInput, bodyLow, bodyMid, bodyOutput, compressor, master };
   outputGraphs.set(audio, graph);

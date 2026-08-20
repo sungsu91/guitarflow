@@ -39,6 +39,12 @@ import { createPortal, flushSync } from "react-dom";
 import { acquireMicInput } from "./audio/micInputEngine";
 import { MIC_INPUT_PRESETS } from "./audio/micInputPresets";
 import { playGuitarPositions } from "./audio/fretboardPreviewEngine";
+import {
+  AUDIO_BUS_IDS,
+  getAudioBusInput,
+  getSharedAudioContext,
+  resumeSharedAudioContext,
+} from "./audio/audioBus";
 import AudioStudio from "./audio-studio/AudioStudio";
 import BrandHeader from "./components/BrandHeader";
 import BackingLoop from "./components/BackingLoop";
@@ -60,6 +66,24 @@ import {
   sweepCircleAgainstMovingEllipse,
 } from "./shooter/collision";
 import { collectShooterEntryImageSources, preloadShooterEntryImages } from "./shooter/assetPreload";
+import {
+  DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID,
+  SHOOTER_NOTE_MONSTER_BREAK_FRAME_COUNT,
+  SHOOTER_NOTE_MONSTER_ROOTS,
+  SHOOTER_NOTE_MONSTER_SKINS,
+  getShooterNoteMonsterAssetSources,
+  getShooterNoteMonsterFrames,
+  getShooterNoteMonsterLabelLayout,
+  getShooterNoteMonsterLabelPalette,
+  getShooterNoteMonsterLabelParts,
+  getShooterNoteMonsterRenderScale,
+  getShooterNoteMonsterSkin,
+} from "./shooter/noteMonsterAssets";
+import {
+  getShooterNoteMonsterRenderedScales,
+  getShooterNoteMonsterTuning,
+} from "./shooter/noteMonsterTuning.js";
+import useShooterNoteMonsterTuning from "./shooter/useShooterNoteMonsterTuning.js";
 import MapSkinRenderer from "./shooter/maps/MapSkinRenderer";
 import MapEditPanel from "./shooter/maps/editor/MapEditPanel";
 import useMapEditMode from "./shooter/maps/editor/useMapEditMode";
@@ -6454,6 +6478,7 @@ const SHOOTER_HIT_SOUND_CANDIDATES = [
 const SHOOTER_PLAYER_STORAGE_KEY = "rifflabSelectedPlayer";
 const SHOOTER_GUITAR_STORAGE_KEY = "rifflabSelectedGuitar";
 const SHOOTER_PICK_SKIN_STORAGE_KEY = "rifflabShooterPickSkin";
+const SHOOTER_MONSTER_SKIN_STORAGE_KEY = "rifflabShooterMonsterSkin";
 const SHOOTER_EFFECT_STORAGE_KEY = "rifflabShooterEffect";
 const SHOOTER_EFFECT_LOADOUT_STORAGE_KEY = "rifflabShooterEffectLoadoutV2";
 const SHOOTER_MAP_STORAGE_KEY = "rifflabShooterMapV2";
@@ -6783,9 +6808,10 @@ const SHOOTER_GUITAR_CATEGORY_OPTIONS = [
 ];
 const SHOOTER_SKIN_TABS = [
   { id: "guitar", label: "기타" },
-  { id: "pick", label: "피크" },
+  { id: "monster", label: "몹 스킨" },
   { id: "map", label: "맵" },
   { id: "effect", label: "이펙트" },
+  { id: "pick", label: "피크" },
 ];
 const SHOOTER_PICK_SKINS = [
   { id: "leather-black", label: "Leather Black Pick", description: "블랙 레더 질감 피크", assetSrc: "/images/shooter-pick-leather-black.png" },
@@ -6804,7 +6830,7 @@ const SHOOTER_PICK_SKINS = [
 const SHOOTER_MAP_OPTIONS = [
   {
     id: "none",
-    label: "없음",
+    label: "DEFAULT",
     description: "기본 슈팅 배경",
   },
   ...LAYERED_SHOOTER_MAP_SKINS,
@@ -7285,6 +7311,10 @@ function getShooterPickSkinById(skinId) {
   return SHOOTER_PICK_SKINS.find((skin) => skin.id === skinId) ?? SHOOTER_PICK_SKINS[0];
 }
 
+function getShooterMonsterSkinById(skinId) {
+  return getShooterNoteMonsterSkin(skinId);
+}
+
 function getShooterMapById(mapId) {
   const normalizedMapId = SHOOTER_MAP_LEGACY_ID_MAP[mapId] ?? mapId;
   return SHOOTER_MAP_OPTIONS.find((map) => map.id === normalizedMapId)
@@ -7295,8 +7325,12 @@ function getShooterMapById(mapId) {
 function getShooterMapCssVars(map) {
   const image = map?.backgroundImage ?? map?.previewImage;
   if (!image) return undefined;
+  const referenceWidth = Number(map?.referenceViewport?.width) || 390;
+  const referenceHeight = Number(map?.referenceViewport?.height) || 756;
   return {
     "--shooter-map-image": `url(${image})`,
+    "--shooter-map-reference-aspect": `${referenceWidth} / ${referenceHeight}`,
+    "--shooter-map-reference-ratio": referenceWidth / referenceHeight,
     ...(map.backgroundPosition ? { "--shooter-map-position": map.backgroundPosition } : {}),
     ...(map.backgroundSize ? { "--shooter-map-size": map.backgroundSize } : {}),
   };
@@ -9609,6 +9643,11 @@ function getStoredShooterPickSkinId() {
   return getShooterPickSkinById(window.localStorage.getItem(SHOOTER_PICK_SKIN_STORAGE_KEY)).id;
 }
 
+function getStoredShooterMonsterSkinId() {
+  if (typeof window === "undefined") return DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID;
+  return getShooterMonsterSkinById(window.localStorage.getItem(SHOOTER_MONSTER_SKIN_STORAGE_KEY)).id;
+}
+
 function getStoredShooterEffectLoadout() {
   if (typeof window === "undefined") return { ...DEFAULT_SHOOTER_EFFECT_LOADOUT };
   const storedLoadout = window.localStorage.getItem(SHOOTER_EFFECT_LOADOUT_STORAGE_KEY);
@@ -10969,23 +11008,14 @@ const HIT_WINDOW_MS = 150;
 const PERFECT_WINDOW_MS = 55;
 const HIT_LINE_PERCENT = 88;
 const SHOOTER_LIFE_LINE_PERCENT = 86;
-const SHOOTER_TARGET_HIT_EFFECT_MS = 220;
-const SHOOTER_TARGET_BREAK_EFFECT_MS = 450;
+const SHOOTER_TARGET_DESTROY_ANIMATION_MS = 260;
+const SHOOTER_TARGET_DESTROY_FRAME_MS = SHOOTER_TARGET_DESTROY_ANIMATION_MS / SHOOTER_NOTE_MONSTER_BREAK_FRAME_COUNT;
 const SHOOTER_PROJECTILE_MS = 640;
 const SHOOTER_PROJECTILE_CONTACT_HOLD_MS = 58;
 const SHOOTER_EMPTY_REFILL_MS = 420;
 const SHOOTER_HITBOX_DEBUG_INTERVAL_MS = 32;
 // Default-off developer overlay. In dev builds it can also be enabled with ?debugHitbox=1#shooter.
 const DEBUG_HITBOX = false;
-const SHOOTER_TARGET_BREAK_PIECES = [
-  { clip: "polygon(0 0, 47% 0, 42% 36%, 0 46%)", dx: "-12px", dy: "-10px", rotate: "-22deg", origin: "72% 68%" },
-  { clip: "polygon(47% 0, 100% 0, 100% 38%, 58% 33%)", dx: "13px", dy: "-9px", rotate: "21deg", origin: "22% 72%" },
-  { clip: "polygon(0 46%, 42% 36%, 49% 54%, 24% 100%, 0 100%)", dx: "-11px", dy: "7px", rotate: "16deg", origin: "72% 20%" },
-  { clip: "polygon(42% 36%, 58% 33%, 67% 62%, 49% 54%)", dx: "0px", dy: "-3px", rotate: "-11deg", origin: "50% 50%" },
-  { clip: "polygon(58% 33%, 100% 38%, 100% 100%, 75% 100%, 67% 62%)", dx: "12px", dy: "8px", rotate: "-18deg", origin: "28% 28%" },
-  { clip: "polygon(24% 100%, 49% 54%, 67% 62%, 75% 100%)", dx: "1px", dy: "13px", rotate: "14deg", origin: "50% 18%" },
-];
-
 function getInitialShooterHitboxDebugMode() {
   if (DEBUG_HITBOX) return true;
   if (!import.meta.env.DEV || typeof window === "undefined") return false;
@@ -12924,14 +12954,14 @@ const SHOOTER_DIFFICULTIES = {
   DIFFICULT: "difficult",
 };
 const SHOOTER_DIFFICULTY_OPTIONS = [
-  { id: SHOOTER_DIFFICULTIES.EASY, label: "쉬움", hint: "7.2초 낙하 · 1.8초 생성" },
-  { id: SHOOTER_DIFFICULTIES.NORMAL, label: "보통", hint: "5.8초 낙하 · 1.4초 생성" },
-  { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "4.8초 낙하 · 1.1초 생성" },
+  { id: SHOOTER_DIFFICULTIES.EASY, label: "쉬움", hint: "7.9초 낙하 · 1.8초 생성" },
+  { id: SHOOTER_DIFFICULTIES.NORMAL, label: "보통", hint: "6.3초 낙하 · 1.4초 생성" },
+  { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "5.2초 낙하 · 1.1초 생성" },
 ];
 const SHOOTER_DIFFICULTY_PACING = {
-  [SHOOTER_DIFFICULTIES.EASY]: { durationMs: 7200, spawnGapMinMs: 1800, spawnGapMaxMs: 1800, maxTargets: 3 },
-  [SHOOTER_DIFFICULTIES.NORMAL]: { durationMs: 5760, spawnGapMinMs: 1400, spawnGapMaxMs: 1400, maxTargets: 4 },
-  [SHOOTER_DIFFICULTIES.DIFFICULT]: { durationMs: 4752, spawnGapMinMs: 1100, spawnGapMaxMs: 1100, maxTargets: 4 },
+  [SHOOTER_DIFFICULTIES.EASY]: { durationMs: 7920, spawnGapMinMs: 1800, spawnGapMaxMs: 1800, maxTargets: 3 },
+  [SHOOTER_DIFFICULTIES.NORMAL]: { durationMs: 6336, spawnGapMinMs: 1400, spawnGapMaxMs: 1400, maxTargets: 4 },
+  [SHOOTER_DIFFICULTIES.DIFFICULT]: { durationMs: 5227, spawnGapMinMs: 1100, spawnGapMaxMs: 1100, maxTargets: 4 },
 };
 const SHOOTER_EASY_PHASES = [
   { label: "개방현", minMs: 0, minSpawn: 0, minFret: 0, maxFret: 0, poolRatioCap: 1, randomnessBonus: -0.16, jumpBiasBonus: -0.14 },
@@ -12942,15 +12972,11 @@ const SHOOTER_EASY_PHASES = [
   { label: "전 음역", minMs: 150_000, minSpawn: 52, minFret: 0, maxFret: MAX_FRETBOARD_GUIDE_FRET, poolRatioCap: 1, poolRatioFloor: 1, randomnessBonus: 0.1, jumpBiasBonus: 0.08 },
 ];
 const SHOOTER_NORMAL_MAX_FRET = 11;
-const SHOOTER_ENEMY_ASSETS = {
-  [SHOOTER_DIFFICULTIES.EASY]: "/images/shooter-monster-easy.svg",
-  [SHOOTER_DIFFICULTIES.NORMAL]: "/images/shooter-monster-normal.svg",
-  [SHOOTER_DIFFICULTIES.DIFFICULT]: "/images/shooter-monster-hard.svg",
-};
+const SHOOTER_NOTE_MONSTER_RENDER_SIZE = NOTE_SIZE * 2.4;
 
-function preloadShooterEnemyAssets() {
+function preloadShooterEnemyAssets(skinId = DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID) {
   return Promise.all(
-    [...new Set(Object.values(SHOOTER_ENEMY_ASSETS))].map(preloadShooterEffectImage),
+    getShooterNoteMonsterAssetSources(skinId).map(preloadShooterEffectImage),
   ).then(() => undefined);
 }
 
@@ -13212,10 +13238,6 @@ function getShooterSpawnGap(difficulty) {
   return pacing.spawnGapMinMs + Math.random() * (pacing.spawnGapMaxMs - pacing.spawnGapMinMs);
 }
 
-function getShooterEnemyAssetSrc(difficulty) {
-  return SHOOTER_ENEMY_ASSETS[difficulty] ?? SHOOTER_ENEMY_ASSETS[SHOOTER_DIFFICULTIES.EASY];
-}
-
 function getShooterEnemyDifficultyClass(difficulty) {
   if (difficulty === SHOOTER_DIFFICULTIES.DIFFICULT) return "shooterEnemy--difficult";
   if (difficulty === SHOOTER_DIFFICULTIES.NORMAL) return "shooterEnemy--normal";
@@ -13300,7 +13322,7 @@ function getShooterFullRangeNotes(includeSharps = false, maxFret = MAX_FRETBOARD
 
 function getShooterPrimaryAimTarget(targets) {
   return [...(targets ?? [])]
-    .filter((target) => target && !target.defeated)
+    .filter((target) => target && !target.defeated && target.hitboxActive !== false)
     .sort((a, b) => (b.y ?? 0) - (a.y ?? 0))[0] ?? null;
 }
 
@@ -13875,7 +13897,6 @@ function App({ onReady }) {
   const [isHitWindowActive, setIsHitWindowActive] = useState(false);
   const [shooterTargets, setShooterTargets] = useState([]);
   const [projectiles, setProjectiles] = useState([]);
-  const [shooterBreakEffects, setShooterBreakEffects] = useState([]);
   const shooterHitboxDebugEnabled = useMemo(getInitialShooterHitboxDebugMode, []);
   const [shooterDebugGeometry, setShooterDebugGeometry] = useState(null);
   const [shooterAim, setShooterAim] = useState(undefined);
@@ -13885,6 +13906,7 @@ function App({ onReady }) {
   const [shooterDifficultyMenuOpen, setShooterDifficultyMenuOpen] = useState(false);
   const [shooterSkinTab, setShooterSkinTab] = useState(SHOOTER_SKIN_TABS[0].id);
   const [selectedShooterPickSkinId, setSelectedShooterPickSkinId] = useState(getStoredShooterPickSkinId);
+  const [selectedShooterMonsterSkinId, setSelectedShooterMonsterSkinId] = useState(getStoredShooterMonsterSkinId);
   const [selectedShooterEffectLoadout, setSelectedShooterEffectLoadout] = useState(getStoredShooterEffectLoadout);
   const [selectedShooterMapId, setSelectedShooterMapId] = useState(getStoredShooterMapId);
   const [shooterRecords, setShooterRecords] = useState(() => RecordService.getShooterRecords());
@@ -13926,6 +13948,10 @@ function App({ onReady }) {
     () => getShooterPickSkinById(selectedShooterPickSkinId),
     [selectedShooterPickSkinId],
   );
+  const selectedShooterMonsterSkin = useMemo(
+    () => getShooterMonsterSkinById(selectedShooterMonsterSkinId),
+    [selectedShooterMonsterSkinId],
+  );
   const selectedShooterAuraEffect = useMemo(
     () => getShooterEffectById(SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA, selectedShooterEffectLoadout.aura),
     [selectedShooterEffectLoadout.aura],
@@ -13940,6 +13966,7 @@ function App({ onReady }) {
   );
   const selectedGuitar = selectedGuitarVariant;
   const selectedPick = selectedShooterPickSkin;
+  const selectedMonsterSkin = selectedShooterMonsterSkin;
   const selectedAuraEffect = selectedShooterAuraEffect;
   const selectedFloorEffect = selectedShooterFloorEffect;
   const selectedMap = selectedShooterMap;
@@ -13966,6 +13993,10 @@ function App({ onReady }) {
     enabled: mapEditor.enabled,
     onApplyEffectIds: commitShooterEffectEditorLoadout,
     selectedEffectIds: selectedShooterEffectLoadout,
+  });
+  const shooterMonsterEditor = useShooterNoteMonsterTuning({
+    enabled: mapEditor.enabled,
+    selectedSkinId: selectedMonsterSkin.id,
   });
   const previewFloorEffect = shooterEffectEditor.previewEffects.find(
     (effect) => effect.slot === SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
@@ -14006,7 +14037,7 @@ function App({ onReady }) {
   const shooterEntryAssetsRef = useRef(null);
   shooterEntryAssetsRef.current = {
     effectLayers: selectedEffectLayers,
-    enemyAssetSources: Object.values(SHOOTER_ENEMY_ASSETS),
+    enemyAssetSources: getShooterNoteMonsterAssetSources(selectedMonsterSkin.id),
     guitarAssetSrc: selectedGuitar.assetSrc,
     guitarProjectileAssetSrc: selectedGuitar.projectileAssetSrc,
     mapBackgroundSrc: selectedMap.backgroundImage,
@@ -14052,8 +14083,8 @@ function App({ onReady }) {
     void preloadShooterEffectCatalog();
   }, [shooterGuitarPickerOpen]);
   useEffect(() => {
-    void preloadShooterEnemyAssets();
-  }, []);
+    void preloadShooterEnemyAssets(selectedMonsterSkin.id);
+  }, [selectedMonsterSkin.id]);
   const assignedGuitarVariantIds = useMemo(
     () => new Set(Object.values(shooterPlayerSlots).filter((variantId) => GUITAR_LAB_VARIANT_IDS.has(variantId))),
     [shooterPlayerSlots],
@@ -14165,6 +14196,15 @@ function App({ onReady }) {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(SHOOTER_PICK_SKIN_STORAGE_KEY, nextSkin.id);
     }
+  }, []);
+
+  const applyShooterMonsterSkin = useCallback((skinId) => {
+    const nextSkin = getShooterMonsterSkinById(skinId);
+    setSelectedShooterMonsterSkinId(nextSkin.id);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SHOOTER_MONSTER_SKIN_STORAGE_KEY, nextSkin.id);
+    }
+    void preloadShooterEnemyAssets(nextSkin.id);
   }, []);
 
   const applyShooterEffect = useCallback((equipmentSlot, effectId) => {
@@ -14660,7 +14700,6 @@ function App({ onReady }) {
   const lastDetectedDisplayUpdateRef = useRef(0);
   const shooterTargetsRef = useRef([]);
   const projectilesRef = useRef([]);
-  const shooterBreakEffectsRef = useRef([]);
   const shooterArenaRef = useRef(null);
   const shooterArenaSizeRef = useRef({ height: 0, node: null, width: 0 });
   const shooterGuitarPlayerRef = useRef(null);
@@ -14670,13 +14709,14 @@ function App({ onReady }) {
   const projectileNodesRef = useRef(new Map());
   const shooterTargetIdRef = useRef(1);
   const projectileIdRef = useRef(1);
-  const shooterBreakEffectIdRef = useRef(1);
   const shooterNextSpawnAtRef = useRef(0);
   const lastShooterNoteRef = useRef(null);
   const lastShooterXRef = useRef(50);
   const shooterReleaseLockRef = useRef(null);
   const shooterLivesRef = useRef(SHOOTER_MAX_LIVES);
   const shooterSoundOnRef = useRef(true);
+  const shooterActiveSoundGroupsRef = useRef(new Map());
+  const shooterNoiseBufferCacheRef = useRef(new Map());
   const shooterDifficultyRef = useRef(SHOOTER_DIFFICULTIES.EASY);
   const shooterSessionSavedRef = useRef(true);
   const shooterAimResetTimerRef = useRef(null);
@@ -15573,7 +15613,6 @@ function App({ onReady }) {
     setReferenceStepTick((value) => value + 1);
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
-    shooterBreakEffectsRef.current = [];
     shooterTargetNodesRef.current.clear();
     shooterTargetRefCallbacksRef.current.clear();
     projectileNodesRef.current.clear();
@@ -15585,7 +15624,6 @@ function App({ onReady }) {
     lastShotRef.current = { note: null, time: 0 };
     setShooterTargets([]);
     setProjectiles([]);
-    setShooterBreakEffects([]);
     setShooterAim(undefined);
     setShooterLives(SHOOTER_MAX_LIVES);
     setFeedback("Ready");
@@ -15695,22 +15733,16 @@ function App({ onReady }) {
   }, []);
 
   const ensureAudioContext = useCallback(() => {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    let audio = audioRef.current;
-    if (!audio || audio.state === "closed") {
-      audio = AudioContext ? new AudioContext() : null;
-    }
+    const audio = getSharedAudioContext();
     if (!audio) return null;
     audioRef.current = audio;
     return audio;
   }, []);
 
   const ensureAudioReady = useCallback(async () => {
-    const audio = ensureAudioContext();
+    const audio = await resumeSharedAudioContext() || ensureAudioContext();
     if (!audio) return false;
-    if (audio.state === "suspended") {
-      await audio.resume();
-    }
+    audioRef.current = audio;
     return audio.state === "running";
   }, [ensureAudioContext]);
 
@@ -15756,7 +15788,7 @@ function App({ onReady }) {
     weakGain.gain.setValueAtTime(0.5, audio.currentTime);
     accentGain.connect(masterGain);
     weakGain.connect(masterGain);
-    masterGain.connect(audio.destination);
+    masterGain.connect(getAudioBusInput(AUDIO_BUS_IDS.METRONOME, audio) || audio.destination);
     metronomeMasterGainRef.current = masterGain;
     metronomeAccentGainRef.current = accentGain;
     metronomeWeakGainRef.current = weakGain;
@@ -16053,10 +16085,10 @@ function App({ onReady }) {
     oscillator.connect(filter);
     overtone.connect(filter);
     filter.connect(gain);
-    gain.connect(audio.destination);
+    gain.connect(getAudioBusInput(AUDIO_BUS_IDS.METRONOME, audio) || audio.destination);
     noise.connect(noiseFilter);
     noiseFilter.connect(noiseGain);
-    noiseGain.connect(audio.destination);
+    noiseGain.connect(getAudioBusInput(AUDIO_BUS_IDS.METRONOME, audio) || audio.destination);
     oscillator.start(now);
     overtone.start(now + 0.001);
     noise.start(now);
@@ -16188,7 +16220,7 @@ function App({ onReady }) {
       gain.gain.exponentialRampToValueAtTime(tickLevel * 0.4, now + (accent ? 0.003 : 0.008));
       gain.gain.exponentialRampToValueAtTime(0.0001, now + (accent ? 0.07 : 0.05));
       oscillator.connect(gain);
-      gain.connect(audio.destination);
+      gain.connect(getAudioBusInput(AUDIO_BUS_IDS.METRONOME, audio) || audio.destination);
       oscillator.start(now);
       oscillator.stop(now + 0.07);
       return;
@@ -16204,7 +16236,7 @@ function App({ onReady }) {
       gain.gain.exponentialRampToValueAtTime(tickLevel * 0.4, now + (accent ? 0.003 : 0.008));
       gain.gain.exponentialRampToValueAtTime(0.0001, now + (accent ? 0.07 : 0.05));
       oscillator.connect(gain);
-      gain.connect(audio.destination);
+      gain.connect(getAudioBusInput(AUDIO_BUS_IDS.METRONOME, audio) || audio.destination);
       oscillator.start(now);
       oscillator.stop(now + 0.07);
       return;
@@ -16216,7 +16248,7 @@ function App({ onReady }) {
     source.playbackRate.setValueAtTime(useSplitTone ? 1 : (accent ? 1.08 : 0.96), now);
     gain.gain.setValueAtTime(tickLevel, now);
     source.connect(gain);
-    gain.connect(audio.destination);
+    gain.connect(getAudioBusInput(AUDIO_BUS_IDS.METRONOME, audio) || audio.destination);
     source.start(now);
   }, []);
 
@@ -16256,16 +16288,16 @@ function App({ onReady }) {
       backingPianoEnabledRef.current ? getBackingPartOutputGain("piano", backingPianoVolumeRef.current) : 0,
       audio.currentTime,
     );
-    limiter.threshold.setValueAtTime(-10, audio.currentTime);
-    limiter.knee.setValueAtTime(8, audio.currentTime);
-    limiter.ratio.setValueAtTime(12, audio.currentTime);
-    limiter.attack.setValueAtTime(0.004, audio.currentTime);
-    limiter.release.setValueAtTime(0.12, audio.currentTime);
+    limiter.threshold.setValueAtTime(-2.5, audio.currentTime);
+    limiter.knee.setValueAtTime(0, audio.currentTime);
+    limiter.ratio.setValueAtTime(20, audio.currentTime);
+    limiter.attack.setValueAtTime(0.003, audio.currentTime);
+    limiter.release.setValueAtTime(0.08, audio.currentTime);
     drumGain.connect(master);
     bassGain.connect(master);
     pianoGain.connect(master);
     master.connect(limiter);
-    limiter.connect(audio.destination);
+    limiter.connect(getAudioBusInput(AUDIO_BUS_IDS.BACKING, audio) || audio.destination);
     backingMasterGainRef.current = master;
     backingLimiterRef.current = limiter;
     backingDrumGainRef.current = drumGain;
@@ -16667,7 +16699,7 @@ function App({ onReady }) {
     gain.gain.exponentialRampToValueAtTime((hold ? 0.34 : 0.22) * metronomeVolumeRef.current, now + 0.012);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + (hold ? 0.34 : 0.085));
     oscillator.connect(gain);
-    gain.connect(audio.destination);
+    gain.connect(getAudioBusInput(AUDIO_BUS_IDS.METRONOME, audio) || audio.destination);
     oscillator.start(now);
     oscillator.stop(now + (hold ? 0.38 : 0.1));
   }, [ensureAudioReady]);
@@ -16681,8 +16713,30 @@ function App({ onReady }) {
 
     const now = audio.currentTime;
     const master = audio.createGain();
-    master.gain.setValueAtTime(1, now);
-    master.connect(audio.destination);
+    master.gain.setValueAtTime(0.5, now);
+    master.connect(getAudioBusInput(AUDIO_BUS_IDS.SFX, audio) || audio.destination);
+    const groupLimit = { gameover: 1, hit: 6, "mimic-hit": 5, miss: 2, spawn: 3 }[type] || 4;
+    const groupLifetime = { gameover: 0.55, hit: 0.18, "mimic-hit": 0.24, miss: 0.42, spawn: 0.24 }[type] || 0.3;
+    const activeGroups = (shooterActiveSoundGroupsRef.current.get(type) || [])
+      .filter((group) => group.endAt > now);
+    while (activeGroups.length >= groupLimit) {
+      const oldest = activeGroups.shift();
+      try {
+        oldest.master.gain.cancelScheduledValues(now);
+        oldest.master.gain.setTargetAtTime(0.0001, now, 0.003);
+      } catch {
+        // The previous short voice may already have naturally ended.
+      }
+      window.setTimeout(() => oldest.master.disconnect?.(), 14);
+    }
+    const soundGroup = { endAt: now + groupLifetime, master };
+    activeGroups.push(soundGroup);
+    shooterActiveSoundGroupsRef.current.set(type, activeGroups);
+    window.setTimeout(() => {
+      const current = shooterActiveSoundGroupsRef.current.get(type) || [];
+      shooterActiveSoundGroupsRef.current.set(type, current.filter((group) => group !== soundGroup));
+      try { master.disconnect(); } catch { /* Safari can throw for detached nodes. */ }
+    }, Math.round((groupLifetime + 0.05) * 1000));
 
     const playTone = ({ wave = "sine", from = 440, to = from, start = 0, length = 0.2, level = 0.45 }) => {
       const oscillator = audio.createOscillator();
@@ -16709,14 +16763,19 @@ function App({ onReady }) {
     const playNoiseHit = ({ start = 0, length = 0.06, level = 0.38, frequency = 1400, q = 4 }) => {
       const sampleRate = audio.sampleRate;
       const frameCount = Math.max(1, Math.floor(sampleRate * length));
-      const buffer = audio.createBuffer(1, frameCount, sampleRate);
-      const data = buffer.getChannelData(0);
-      let seed = 22222;
-      for (let index = 0; index < frameCount; index += 1) {
-        const fade = 1 - index / frameCount;
-        seed = (seed * 1664525 + 1013904223) >>> 0;
-        const grain = (seed / 2147483648) - 1;
-        data[index] = grain * fade * fade;
+      const cacheKey = `${sampleRate}:${frameCount}`;
+      let buffer = shooterNoiseBufferCacheRef.current.get(cacheKey);
+      if (!buffer) {
+        buffer = audio.createBuffer(1, frameCount, sampleRate);
+        const data = buffer.getChannelData(0);
+        let seed = 22222;
+        for (let index = 0; index < frameCount; index += 1) {
+          const fade = 1 - index / frameCount;
+          seed = (seed * 1664525 + 1013904223) >>> 0;
+          const grain = (seed / 2147483648) - 1;
+          data[index] = grain * fade * fade;
+        }
+        shooterNoiseBufferCacheRef.current.set(cacheKey, buffer);
       }
 
       const source = audio.createBufferSource();
@@ -16747,7 +16806,7 @@ function App({ onReady }) {
         SHOOTER_HIT_SOUND_CANDIDATES.find((item) => item.id === candidateId)
         ?? SHOOTER_HIT_SOUND_CANDIDATES[0];
       const comboBoost = combo >= 20 ? 1.18 : combo >= 10 ? 1.08 : 1;
-      master.gain.setValueAtTime(1.55 * comboBoost, now);
+      master.gain.setValueAtTime(0.5 * comboBoost, now);
       (candidate.chime ?? []).forEach((frequency, index) => {
         playTone({
           wave: index % 2 === 0 ? "triangle" : "sine",
@@ -16755,14 +16814,14 @@ function App({ onReady }) {
           to: frequency,
           start: index * 0.003,
           length: candidate.tail * (index === 0 ? 0.82 : 0.58),
-          level: ((candidate.chimeLevel * 1.5) / Math.max(1, candidate.chime.length)) * comboBoost,
+          level: ((candidate.chimeLevel * 1.08) / Math.max(1, candidate.chime.length)) * comboBoost,
         });
       });
       if (candidate.clap && candidate.clapLevel) {
         playNoiseHit({
           start: 0,
           length: Math.max(0.032, candidate.tail * 0.68),
-          level: candidate.clapLevel * 1.42 * comboBoost,
+          level: candidate.clapLevel * 1.02 * comboBoost,
           frequency: candidate.clap,
           q: 2.8,
         });
@@ -16771,7 +16830,7 @@ function App({ onReady }) {
         playNoiseHit({
           start: 0.006,
           length: 0.034,
-          level: (candidate.accent || combo >= 20 ? candidate.hatLevel * 1.58 : candidate.hatLevel * 1.34) * comboBoost,
+          level: (candidate.accent || combo >= 20 ? candidate.hatLevel * 1.15 : candidate.hatLevel * 1.05) * comboBoost,
           frequency: candidate.hat,
           q: 9,
         });
@@ -16780,7 +16839,7 @@ function App({ onReady }) {
         playNoiseHit({
           start: 0.018,
           length: 0.038,
-          level: candidate.sparkleLevel * 1.52 * comboBoost,
+          level: candidate.sparkleLevel * 1.1 * comboBoost,
           frequency: candidate.sparkle,
           q: 12,
         });
@@ -16788,21 +16847,30 @@ function App({ onReady }) {
     };
 
     if (type === "spawn") {
-      master.gain.setValueAtTime(0.13, now);
+      master.gain.setValueAtTime(0.18, now);
       playTone({ wave: "triangle", from: 620, to: 920, length: 0.11, level: 0.42 });
       playTone({ wave: "sine", from: 1240, to: 980, start: 0.035, length: 0.08, level: 0.18 });
       return;
     }
 
+    if (type === "mimic-hit") {
+      master.gain.setValueAtTime(0.24, now);
+      playTone({ wave: "square", from: 760, to: 250, length: 0.075, level: 0.42 });
+      playTone({ wave: "sine", from: 1180, to: 520, start: 0.018, length: 0.14, level: 0.34 });
+      playTone({ wave: "triangle", from: 390, to: 610, start: 0.065, length: 0.13, level: 0.28 });
+      playNoiseHit({ start: 0, length: 0.028, level: 0.16, frequency: 920, q: 2.4 });
+      return;
+    }
+
     if (type === "miss") {
-      master.gain.setValueAtTime(0.1, now);
+      master.gain.setValueAtTime(0.16, now);
       playTone({ wave: "triangle", from: 220, to: 110, length: 0.26, level: 0.34 });
       playTone({ wave: "sine", from: 165, to: 82, start: 0.08, length: 0.22, level: 0.2 });
       return;
     }
 
     if (type === "gameover") {
-      master.gain.setValueAtTime(0.12, now);
+      master.gain.setValueAtTime(0.18, now);
       playTone({ wave: "sine", from: 330, to: 220, length: 0.24, level: 0.38 });
       playTone({ wave: "sine", from: 247, to: 123, start: 0.14, length: 0.3, level: 0.3 });
       return;
@@ -16885,6 +16953,7 @@ function App({ onReady }) {
         previousY: 8,
         bornAt: gameTimeRef.current,
         duration: getShooterTargetDuration(difficulty),
+        hitboxActive: true,
         difficulty,
         level: level.name,
         phaseLabel: level.phaseLabel,
@@ -17117,10 +17186,10 @@ function App({ onReady }) {
   }, [getShooterGuitarBaseMetrics, selectedGuitar.id]);
 
   const getShooterTargetHurtbox = useCallback((target, y = target?.y) => {
-    if (!target) return null;
+    if (!target || target.defeated || target.hitboxActive === false) return null;
     const center = getShooterArenaPoint(target.x, Number(y) || 0);
     if (!center) return null;
-    const renderSize = target.difficulty === SHOOTER_DIFFICULTIES.EASY ? NOTE_SIZE * 1.46 : NOTE_SIZE * 1.14;
+    const renderSize = SHOOTER_NOTE_MONSTER_RENDER_SIZE;
     return createShooterEnemyHurtbox({
       centerX: center.x,
       centerY: center.y,
@@ -17163,7 +17232,7 @@ function App({ onReady }) {
     lastShooterHitboxDebugAtRef.current = now;
     const guitar = getShooterGuitarCollisionGeometry();
     const targets = shooterTargetsRef.current
-      .filter((target) => !target.defeated)
+      .filter((target) => !target.defeated && target.hitboxActive !== false)
       .map((target) => ({ id: target.id, ...getShooterTargetHurtbox(target, target.y) }))
       .filter((target) => target.center);
     const debugProjectiles = projectilesRef.current.map((projectile) => {
@@ -17185,9 +17254,9 @@ function App({ onReady }) {
         hitbox: getShooterProjectileHitbox(projectile, current),
       };
     }).filter(Boolean);
-    const collisionPoints = shooterBreakEffectsRef.current
-      .filter((effect) => effect.collisionPoint)
-      .map((effect) => getShooterArenaPoint(effect.collisionPoint.x, effect.collisionPoint.y))
+    const collisionPoints = projectilesRef.current
+      .filter((projectile) => projectile.collisionPoint)
+      .map((projectile) => getShooterArenaPoint(projectile.collisionPoint.x, projectile.collisionPoint.y))
       .filter(Boolean);
     setShooterDebugGeometry({
       width: arenaSize.width,
@@ -17337,26 +17406,10 @@ function App({ onReady }) {
     applyShooterTargetTransform(target, y, true);
 
     const node = shooterTargetNodesRef.current.get(target.id);
-    const arenaHeight = getShooterArenaSize().height;
-    const fallDistancePx = arenaHeight && target.duration
-      ? Math.max(2, Math.min(18, ((arenaHeight * 0.8) / target.duration) * SHOOTER_TARGET_HIT_EFFECT_MS))
-      : 8;
-    node?.style.setProperty("--target-break-fall-px", `${fallDistancePx}px`);
     node?.classList.remove("fallingTarget");
     node?.classList.add("impacting", "defeated");
 
     const effectPoint = collisionPoint ?? { x: target.x, y };
-    const breakEffect = {
-      id: shooterBreakEffectIdRef.current++,
-      targetId: target.id,
-      note: target.note,
-      x: effectPoint.x,
-      y: effectPoint.y,
-      collisionPoint: effectPoint,
-      bornAt: gameTimeRef.current,
-    };
-    shooterBreakEffectsRef.current = [...shooterBreakEffectsRef.current, breakEffect].slice(-12);
-    setShooterBreakEffects([...shooterBreakEffectsRef.current]);
 
     shooterTargetsRef.current = shooterTargetsRef.current.map((currentTarget) => (
       currentTarget.id === target.id
@@ -17364,6 +17417,7 @@ function App({ onReady }) {
             ...currentTarget,
             y,
             defeated: true,
+            hitboxActive: false,
             hitAt: gameTimeRef.current,
             impactX: effectPoint.x,
             impactY: effectPoint.y,
@@ -17376,7 +17430,7 @@ function App({ onReady }) {
     flashStage("hit");
     playShooterSound("hit", { combo: Number(target.hitCombo) || 1 });
     setShooterTargets([...shooterTargetsRef.current]);
-  }, [applyShooterTargetTransform, flashStage, getShooterArenaSize, playShooterSound]);
+  }, [applyShooterTargetTransform, flashStage, playShooterSound]);
 
   const fireProjectile = useCallback((target, noteName) => {
     const arenaSize = refreshShooterArenaSize();
@@ -17446,7 +17500,7 @@ function App({ onReady }) {
   ]);
 
   const resolveShooterProjectileHit = useCallback((projectile, target, collisionPoint) => {
-    if (!projectile || projectile.resolvedAt != null || !target || target.defeated) return false;
+    if (!projectile || projectile.resolvedAt != null || !target || target.defeated || target.hitboxActive === false) return false;
     projectile.resolvedAt = gameTimeRef.current;
     projectile.collisionPoint = collisionPoint;
     const nextCombo = comboRef.current + 1;
@@ -17457,6 +17511,7 @@ function App({ onReady }) {
             hitCombo: nextCombo,
             impactX: collisionPoint.x,
             impactY: collisionPoint.y,
+            hitboxActive: false,
             pendingProjectileId: undefined,
           }
         : currentTarget
@@ -17485,7 +17540,7 @@ function App({ onReady }) {
 
       const orderedTargets = shooterTargetsRef.current
         .map((target, index) => ({ target, index }))
-        .filter(({ target }) => !target.defeated && !target.pendingProjectileId)
+        .filter(({ target }) => !target.defeated && target.hitboxActive !== false && !target.pendingProjectileId)
         .sort((a, b) => b.target.y - a.target.y || a.target.bornAt - b.target.bornAt);
       const frontTarget = orderedTargets[0] ?? null;
       const target = frontTarget?.target ?? null;
@@ -17522,7 +17577,7 @@ function App({ onReady }) {
   const fireShooterDebugTestShot = useCallback(() => {
     if (!shooterHitboxDebugEnabled || gameStateRef.current !== GAME_STATES.PLAYING) return;
     const target = [...shooterTargetsRef.current]
-      .filter((candidate) => !candidate.defeated && !candidate.pendingProjectileId)
+      .filter((candidate) => !candidate.defeated && candidate.hitboxActive !== false && !candidate.pendingProjectileId)
       .sort((left, right) => right.y - left.y || left.bornAt - right.bornAt)[0];
     const pitch = target?.detail?.pitch ?? target?.note;
     if (!pitch) return;
@@ -17911,7 +17966,7 @@ function App({ onReady }) {
         applyShooterProjectileTransform(projectile, currentPercent, currentProgress);
 
         const target = shooterTargetsRef.current.find((candidate) => candidate.id === projectile.targetId);
-        if (!target || target.defeated) return;
+        if (!target || target.defeated || target.hitboxActive === false) return;
         const previousPoint = getShooterArenaPoint(previousPercent.x, previousPercent.y);
         const currentPoint = getShooterArenaPoint(currentPercent.x, currentPercent.y);
         const targetStart = getShooterTargetHurtbox(target, target.previousY ?? target.y);
@@ -17949,7 +18004,7 @@ function App({ onReady }) {
       });
 
       const defeatedExpiredTargets = shooterTargetsRef.current.filter(
-        (target) => target.defeated && gameTimeRef.current - (target.hitAt ?? target.bornAt) >= SHOOTER_TARGET_HIT_EFFECT_MS,
+        (target) => target.defeated && gameTimeRef.current - (target.hitAt ?? target.bornAt) >= SHOOTER_TARGET_DESTROY_ANIMATION_MS,
       );
       const missedTargets = shooterTargetsRef.current.filter((target) => (
         !target.defeated
@@ -18004,13 +18059,6 @@ function App({ onReady }) {
         projectilesRef.current = nextProjectiles;
         setProjectiles([...projectilesRef.current]);
       }
-  const nextBreakEffects = shooterBreakEffectsRef.current.filter(
-    (effect) => gameTimeRef.current - effect.bornAt <= SHOOTER_TARGET_BREAK_EFFECT_MS,
-  );
-  if (nextBreakEffects.length !== shooterBreakEffectsRef.current.length) {
-    shooterBreakEffectsRef.current = nextBreakEffects;
-    setShooterBreakEffects([...shooterBreakEffectsRef.current]);
-  }
       updateShooterHitboxDebug();
       if (removedTargetIds.size > 0 || targetsChanged) {
         setShooterTargets([...shooterTargetsRef.current]);
@@ -20038,7 +20086,6 @@ function App({ onReady }) {
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
-    shooterBreakEffectsRef.current = [];
     shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
@@ -20047,7 +20094,6 @@ function App({ onReady }) {
     setEnemies([]);
     setShooterTargets([]);
     setProjectiles([]);
-    setShooterBreakEffects([]);
     setShooterAim(undefined);
     setShooterLives(SHOOTER_MAX_LIVES);
     setHitZoneNote(null);
@@ -20083,11 +20129,9 @@ function App({ onReady }) {
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
-    shooterBreakEffectsRef.current = [];
     setEnemies([]);
     setShooterTargets([]);
     setProjectiles([]);
-    setShooterBreakEffects([]);
     setHitZoneNote(null);
     setIsHitWindowActive(false);
     setBeat(0);
@@ -20269,7 +20313,6 @@ function App({ onReady }) {
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
-    shooterBreakEffectsRef.current = [];
     shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
@@ -20278,7 +20321,6 @@ function App({ onReady }) {
     setEnemies([]);
     setShooterTargets([]);
     setProjectiles([]);
-    setShooterBreakEffects([]);
     setShooterAim(undefined);
     setShooterLives(SHOOTER_MAX_LIVES);
     setBeat(0);
@@ -20299,11 +20341,9 @@ function App({ onReady }) {
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
-    shooterBreakEffectsRef.current = [];
     setEnemies([]);
     setShooterTargets([]);
     setProjectiles([]);
-    setShooterBreakEffects([]);
     setHitZoneNote(null);
     setIsHitWindowActive(false);
     gameTimeRef.current = 0;
@@ -20327,11 +20367,9 @@ function App({ onReady }) {
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
-    shooterBreakEffectsRef.current = [];
     setEnemies([]);
     setShooterTargets([]);
     setProjectiles([]);
-    setShooterBreakEffects([]);
     setHitZoneNote(null);
     setIsHitWindowActive(false);
     setBeat(0);
@@ -20349,11 +20387,9 @@ function App({ onReady }) {
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
-    shooterBreakEffectsRef.current = [];
     setEnemies([]);
     setShooterTargets([]);
     setProjectiles([]);
-    setShooterBreakEffects([]);
     setHitZoneNote(null);
     setIsHitWindowActive(false);
     setBeat(0);
@@ -20372,7 +20408,6 @@ function App({ onReady }) {
     setEnemies([]);
     setShooterTargets([]);
     setProjectiles([]);
-    setShooterBreakEffects([]);
     setHitZoneNote(null);
     setIsHitWindowActive(false);
     setBeat(0);
@@ -20829,6 +20864,16 @@ function App({ onReady }) {
   useEffect(() => () => {
     feelPlaybackTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
     feelPlaybackTimersRef.current = [];
+  }, []);
+
+  useEffect(() => () => {
+    shooterActiveSoundGroupsRef.current.forEach((groups) => {
+      groups.forEach(({ master }) => {
+        try { master.disconnect?.(); } catch { /* The short SFX voice may already be detached. */ }
+      });
+    });
+    shooterActiveSoundGroupsRef.current.clear();
+    shooterNoiseBufferCacheRef.current.clear();
   }, []);
 
   useEffect(() => () => {
@@ -26457,6 +26502,7 @@ function App({ onReady }) {
               onAssetPointerDown={mapEditor.beginAssetGesture}
               onAssetSelect={mapEditor.selectInstance}
               onCreatureAnchorPointerDown={mapEditor.beginCreatureAnchorGesture}
+              onEventSound={playShooterSound}
               onStagePointerDown={mapEditor.handleStagePointerDown}
               selectedAssetId={mapEditor.selectedInstanceId}
               skin={selectedMapRenderSkin}
@@ -26615,12 +26661,25 @@ function App({ onReady }) {
             </div> : null}
 
             {shooterTargets.map((target) => {
-              const targetDetail = target.detail ?? getShooterNoteDetail(target.note);
               const targetDifficulty = target.difficulty ?? shooterDifficulty;
-              const showKoreanNoteName = targetDifficulty === SHOOTER_DIFFICULTIES.EASY;
+              const targetPitch = target.note ?? target.detail?.pitch ?? "C4";
+              const monsterFrames = getShooterNoteMonsterFrames(targetPitch, selectedMonsterSkin.id);
+              const monsterLabel = getShooterNoteMonsterLabelParts(targetPitch);
+              const monsterLabelLayout = getShooterNoteMonsterLabelLayout(targetPitch, selectedMonsterSkin.id);
+              const monsterLabelPalette = getShooterNoteMonsterLabelPalette(targetPitch, selectedMonsterSkin.id);
+              const monsterTuning = getShooterNoteMonsterTuning(
+                shooterMonsterEditor.previewTunings,
+                selectedMonsterSkin.id,
+                targetPitch,
+              );
+              const monsterRenderedScales = getShooterNoteMonsterRenderedScales(monsterTuning);
+              const monsterRenderScale = getShooterNoteMonsterRenderScale(targetPitch)
+                * monsterRenderedScales.monsterScale;
               return (
               <div
+                aria-label={`목표 음 ${targetPitch}`}
                 className={`enemy shooterEnemy shooterEnemy--monster ${getShooterEnemyDifficultyClass(targetDifficulty)} ${!target.defeated ? "fallingTarget" : ""} ${target.defeated ? "defeated" : ""}`}
+                data-note-root={monsterLabel.root}
                 key={target.id}
                 ref={getShooterTargetNodeRef(target.id)}
                 style={{
@@ -26629,72 +26688,48 @@ function App({ onReady }) {
                   "--target-x": `${target.x}%`,
                   "--target-y": `${target.y}%`,
                   "--hit-note-size": `${NOTE_SIZE}px`,
+                  "--target-render-size": `${SHOOTER_NOTE_MONSTER_RENDER_SIZE * monsterRenderScale}px`,
                   "--target-duration-ms": `${target.duration}ms`,
+                  "--target-destroy-duration-ms": `${SHOOTER_TARGET_DESTROY_ANIMATION_MS}ms`,
+                  "--target-destroy-frame-ms": `${SHOOTER_TARGET_DESTROY_FRAME_MS}ms`,
+                  "--target-label-x": `${monsterLabelLayout.x}%`,
+                  "--target-label-y": `${monsterLabelLayout.y}%`,
+                  "--target-label-offset-x": `${monsterTuning.labelOffsetX}px`,
+                  "--target-label-offset-y": `${monsterTuning.labelOffsetY}px`,
+                  "--target-label-font-size": `${13 * monsterRenderedScales.labelScale}px`,
+                  "--target-label-color": monsterTuning.labelColor || monsterLabelPalette.color,
+                  "--target-label-outline": monsterTuning.labelOutline || monsterLabelPalette.outline,
+                  "--target-label-glow": monsterLabelPalette.glow,
                   ...getNoteColorStyle(target.note),
                 }}
               >
-                <img
-                  alt=""
-                  aria-hidden="true"
-                  className="shooterEnemyMonsterAsset"
-                  draggable="false"
-                  src={getShooterEnemyAssetSrc(targetDifficulty)}
-                />
-                <i className="enemyEar enemyEar--left" aria-hidden="true" />
-                <i className="enemyEar enemyEar--right" aria-hidden="true" />
-                <i className="enemyFace" aria-hidden="true" />
-                {showKoreanNoteName ? <em>{targetDetail?.solfege ?? getSolfege(target.note)}</em> : null}
-                <span>{targetDetail?.octaveNote ?? target.note}</span>
-                <small>{getFretLabel(targetDetail)}</small>
-                <div className="targetBreakLayer" aria-hidden="true">
-                  {SHOOTER_TARGET_BREAK_PIECES.map((piece, pieceIndex) => (
-                    <i
-                      className="targetBreakShard"
-                      key={pieceIndex}
-                      style={{
-                        clipPath: piece.clip,
-                        "--break-dx": piece.dx,
-                        "--break-dy": piece.dy,
-                        "--break-rotate": piece.rotate,
-                        "--break-origin": piece.origin,
-                      }}
+                <div className="shooterEnemyMonsterVisual" aria-hidden="true">
+                  {target.defeated ? monsterFrames.slice(1).map((frameSrc, frameIndex) => (
+                    <img
+                      alt=""
+                      className="shooterEnemyMonsterAsset shooterEnemyMonsterBreakFrame"
+                      draggable="false"
+                      key={frameSrc}
+                      src={frameSrc}
+                      style={{ animationDelay: `${frameIndex * SHOOTER_TARGET_DESTROY_FRAME_MS}ms` }}
                     />
-                  ))}
+                  )) : (
+                    <img
+                      alt=""
+                      className="shooterEnemyMonsterAsset shooterEnemyMonsterIdleFrame"
+                      draggable="false"
+                      src={monsterFrames[0]}
+                    />
+                  )}
                 </div>
+                {!target.defeated ? (
+                  <span className="shooterEnemyPitchLabel">
+                    <b>{targetPitch}</b>
+                  </span>
+                ) : null}
               </div>
               );
             })}
-
-
-            {shooterBreakEffects.map((effect) => (
-              <div
-                className="targetBreakEffect"
-                key={`break-${effect.id}`}
-                style={{
-                  left: `${effect.x}%`,
-                  top: `${effect.y}%`,
-                  "--hit-note-size": `${NOTE_SIZE}px`,
-                  "--target-break-duration-ms": `${SHOOTER_TARGET_BREAK_EFFECT_MS}ms`,
-                  ...getNoteColorStyle(effect.note),
-                }}
-              >
-                <div className="targetBreakLayer" aria-hidden="true">
-                  {SHOOTER_TARGET_BREAK_PIECES.map((piece, pieceIndex) => (
-                    <i
-                      className="targetBreakShard"
-                      key={pieceIndex}
-                      style={{
-                        clipPath: piece.clip,
-                        "--break-dx": piece.dx,
-                        "--break-dy": piece.dy,
-                        "--break-rotate": piece.rotate,
-                        "--break-origin": piece.origin,
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
 
             {false && shooterTargets
               .filter((target) => target.lockedAt != null && !target.defeated)
@@ -26754,7 +26789,7 @@ function App({ onReady }) {
               <div className="shooterHitboxDebugToolbar">
                 <span>DEBUG HITBOX</span>
                 <button
-                  disabled={gameState !== GAME_STATES.PLAYING || !shooterTargets.some((target) => !target.defeated && !target.pendingProjectileId)}
+                  disabled={gameState !== GAME_STATES.PLAYING || !shooterTargets.some((target) => !target.defeated && target.hitboxActive !== false && !target.pendingProjectileId)}
                   onClick={(event) => {
                     event.stopPropagation();
                     fireShooterDebugTestShot();
@@ -26889,6 +26924,7 @@ function App({ onReady }) {
               layout={shooterMapRenderLayout}
               onAssetPointerDown={mapEditor.beginAssetGesture}
               onAssetSelect={mapEditor.selectInstance}
+              onEventSound={playShooterSound}
               onStagePointerDown={mapEditor.handleStagePointerDown}
               selectedAssetId={mapEditor.selectedInstanceId}
               skin={selectedMapRenderSkin}
@@ -26929,7 +26965,7 @@ function App({ onReady }) {
                       <Guitar className="shooterStartPanelGhostGuitar" size={82} strokeWidth={1.15} aria-hidden="true" />
                     </button>
                     <button
-                      aria-label="슈팅게임 스킨 설정"
+                      aria-label="슈팅게임 스킨변경"
                       className="mobileShooterStartButton shooterStartPanelButton shooterStartPanelButton--secondary"
                       onClick={(event) => {
                         event.stopPropagation();
@@ -26944,8 +26980,8 @@ function App({ onReady }) {
                         <Guitar size={28} strokeWidth={1.85} />
                       </span>
                       <span className="shooterStartPanelLabel">
-                        <strong>스킨 설정</strong>
-                        <small>SKIN SETTING</small>
+                        <strong>스킨변경</strong>
+                        <small>CHANGE SKIN</small>
                       </span>
                       <Guitar className="shooterStartPanelGhostGuitar" size={86} strokeWidth={1.05} aria-hidden="true" />
                     </button>
@@ -27051,7 +27087,7 @@ function App({ onReady }) {
                         }}
                         type="button"
                       >
-                        스킨 설정
+                        스킨변경
                       </button>
                     )}
                     {gameState === GAME_STATES.PAUSED && (
@@ -27091,6 +27127,7 @@ function App({ onReady }) {
               editor={mapEditor}
               layout={isMobileLayout ? "mobile" : "desktop"}
               mapOptions={LAYERED_SHOOTER_MAP_SKINS}
+              monsterEditor={shooterMonsterEditor}
               onMapChange={applyShooterMap}
             />
           ) : null}
@@ -27153,7 +27190,7 @@ function App({ onReady }) {
                 </section>
                 ) : null}
               <div
-                aria-label="슈팅게임 스킨 설정"
+                aria-label="슈팅게임 스킨변경"
                 aria-modal="true"
                 className="shooterGuitarPickerModal"
                 onClick={(event) => event.stopPropagation()}
@@ -27161,12 +27198,12 @@ function App({ onReady }) {
               >
                 <div className="shooterGuitarPickerHeader">
                   <div>
-                    <strong>스킨 설정</strong>
-                    <span title={`${selectedGuitar.title} · ${selectedPick.label} · ${selectedMap.label}`}>
-                      {selectedGuitar.title} · {selectedPick.label} · {selectedMap.label}
+                    <strong>스킨변경</strong>
+                    <span title={`${selectedGuitar.title} · ${selectedMonsterSkin.label} · ${selectedPick.label} · ${selectedMap.label}`}>
+                      {selectedGuitar.title} · {selectedMonsterSkin.label} · {selectedPick.label} · {selectedMap.label}
                     </span>
                   </div>
-                  <button aria-label="스킨 설정 창 닫기" onClick={() => setShooterGuitarPickerOpen(false)} type="button">
+                  <button aria-label="스킨변경 창 닫기" onClick={() => setShooterGuitarPickerOpen(false)} type="button">
                     <X aria-hidden="true" size={15} />
                   </button>
                 </div>
@@ -27220,6 +27257,35 @@ function App({ onReady }) {
                           <span>새 기타가 추가되면 여기에 표시됩니다.</span>
                         </div>
                       )}
+                    </div>
+                  ) : shooterSkinTab === "monster" ? (
+                    <div className="shooterSkinOptionGrid shooterSkinOptionGrid--monsters" aria-label="몹 스킨 선택">
+                      {SHOOTER_NOTE_MONSTER_SKINS.map((skin) => {
+                        const isSelected = selectedMonsterSkin.id === skin.id;
+                        return (
+                          <button
+                            aria-pressed={isSelected}
+                            className={`shooterSkinOptionCard shooterSkinOptionCard--monster ${isSelected ? "selected" : ""}`}
+                            key={skin.id}
+                            onClick={() => applyShooterMonsterSkin(skin.id)}
+                            type="button"
+                          >
+                            <span className="shooterMonsterSkinPreview" aria-hidden="true">
+                              {SHOOTER_NOTE_MONSTER_ROOTS.map((noteRoot) => (
+                                <img
+                                  alt=""
+                                  draggable="false"
+                                  key={noteRoot}
+                                  src={skin.assets[noteRoot][0]}
+                                />
+                              ))}
+                            </span>
+                            <strong>{skin.label}</strong>
+                            <small>{skin.description}</small>
+                            <em>{isSelected ? "선택됨" : "선택"}</em>
+                          </button>
+                        );
+                      })}
                     </div>
                   ) : shooterSkinTab === "pick" ? (
                     <div className="shooterSkinOptionGrid shooterSkinOptionGrid--picks" aria-label="피크 스킨 선택">

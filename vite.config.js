@@ -3,7 +3,9 @@ import react from "@vitejs/plugin-react";
 import { writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
+import { COASTAL_COVE_ENVIRONMENT_ASSETS } from "./src/shooter/maps/assets/coastalCoveAssets.js";
 import { LAVA_CANYON_ENVIRONMENT_ASSETS } from "./src/shooter/maps/assets/lavaCanyonAssets.js";
+import { PARK_ENVIRONMENT_ASSETS } from "./src/shooter/maps/assets/parkAssets.js";
 import { RIVER_ENVIRONMENT_ASSETS } from "./src/shooter/maps/assets/riverAssets.js";
 import { MAP_EDIT_ANIMATION_TYPES } from "./src/shooter/maps/editor/editorState.js";
 import { DEFAULT_PERSPECTIVE_CORNERS } from "./src/shooter/maps/freeTransform.js";
@@ -15,9 +17,17 @@ const RIVER_LAYOUT_PATH = fileURLToPath(
 const LAVA_CANYON_LAYOUT_PATH = fileURLToPath(
   new URL("./src/shooter/maps/skins/lava-canyon-layout.json", import.meta.url),
 );
+const COASTAL_COVE_LAYOUT_PATH = fileURLToPath(
+  new URL("./src/shooter/maps/skins/coastal-cove-layout.json", import.meta.url),
+);
+const PARK_LAYOUT_PATH = fileURLToPath(
+  new URL("./src/shooter/maps/skins/park-layout.json", import.meta.url),
+);
 export const MAP_EDIT_SKINS = new Map([
   ["river-garden", { assetCatalog: RIVER_ENVIRONMENT_ASSETS, layoutPath: RIVER_LAYOUT_PATH }],
   ["lava-canyon", { assetCatalog: LAVA_CANYON_ENVIRONMENT_ASSETS, layoutPath: LAVA_CANYON_LAYOUT_PATH }],
+  ["coastal-cove", { assetCatalog: COASTAL_COVE_ENVIRONMENT_ASSETS, layoutPath: COASTAL_COVE_LAYOUT_PATH }],
+  ["park", { assetCatalog: PARK_ENVIRONMENT_ASSETS, layoutPath: PARK_LAYOUT_PATH }],
 ]);
 const MAP_ANIMATION_IDS = new Set(MAP_EDIT_ANIMATION_TYPES.map((animation) => animation.id));
 const FROG_MOVEMENT_MODES = new Set(["sequence", "random"]);

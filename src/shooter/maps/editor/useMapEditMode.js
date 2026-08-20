@@ -66,8 +66,8 @@ function clampAnchor(value) {
 
 function getMapEditorViewport(referenceViewport) {
   return {
-    width: Math.max(1, referenceViewport?.deviceWidth ?? referenceViewport?.width ?? 390),
-    height: Math.max(1, referenceViewport?.deviceHeight ?? referenceViewport?.height ?? 844),
+    width: Math.max(1, referenceViewport?.width ?? referenceViewport?.deviceWidth ?? 390),
+    height: Math.max(1, referenceViewport?.height ?? referenceViewport?.deviceHeight ?? 756),
   };
 }
 

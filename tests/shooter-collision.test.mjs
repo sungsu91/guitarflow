@@ -89,7 +89,7 @@ test("guitar muzzle scale can align a transparent source canvas to its physical 
   assert.equal(geometry.height, 127);
 });
 
-test("enemy and pick shapes stay inside their rendered boxes", () => {
+test("enemy and pick use small body-only circular hitboxes", () => {
   const enemy = createShooterEnemyHurtbox({
     centerX: 100,
     centerY: 80,
@@ -99,9 +99,12 @@ test("enemy and pick shapes stay inside their rendered boxes", () => {
   });
   const pick = createShooterProjectileHitbox({ centerX: 10, centerY: 20, width: 40, height: 52 });
 
-  assert.ok(enemy.radiusX < 26);
-  assert.ok(enemy.radiusY < 26);
-  assert.ok(pick.radius < 20);
+  assert.equal(enemy.type, "circle");
+  assert.equal(enemy.center.x, 100);
+  assert.equal(enemy.center.y, 80);
+  assert.equal(enemy.radius, 52 * 0.165);
+  assert.equal(enemy.radiusX, enemy.radiusY);
+  assert.equal(pick.radius, 40 * 0.18);
 });
 
 test("intercept solver leads a falling target", () => {

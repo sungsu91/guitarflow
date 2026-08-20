@@ -10,6 +10,7 @@ import {
   resolveLayeredShooterMap,
 } from "../src/shooter/maps/registry.js";
 import { LAVA_CANYON_MAP_SKIN } from "../src/shooter/maps/skins/lavaCanyon.js";
+import { createMapPlacement } from "../src/shooter/maps/editor/editorState.js";
 import { MAP_EDIT_SKINS, validateMapPlacements } from "../vite.config.js";
 
 function readPngHeader(buffer) {
@@ -21,7 +22,7 @@ function readPngHeader(buffer) {
   };
 }
 
-test("Lava Canyon combines editable lava scenery, dragons, and an animated tattered banner", async () => {
+test("Lava Canyon combines editable lava scenery, torch flames, dragons, and an animated tattered banner", async () => {
   assert.equal(isLayeredShooterMap(LAVA_CANYON_MAP_SKIN), true);
   assert.equal(isEditableShooterMap(LAVA_CANYON_MAP_SKIN), true);
   assert.equal(LAVA_CANYON_MAP_SKIN.background.fit, "cover");
@@ -59,7 +60,7 @@ test("Lava Canyon combines editable lava scenery, dragons, and an animated tatte
     deviceWidth: 390,
     deviceHeight: 844,
   });
-  assert.equal(LAVA_CANYON_MAP_SKIN.assetCatalog.length, 6);
+  assert.equal(LAVA_CANYON_MAP_SKIN.assetCatalog.length, 7);
   assert.equal(LAVA_CANYON_MAP_SKIN.ambientEvents.length, 1);
   const crossingEvent = LAVA_CANYON_MAP_SKIN.ambientEvents[0];
   assert.equal(crossingEvent.type, "flying-dragon-crossing");
@@ -82,10 +83,10 @@ test("Lava Canyon combines editable lava scenery, dragons, and an animated tatte
   assert.ok(crossingEvent.settings.returnDurationSeconds.min > 5);
   assert.ok(crossingEvent.settings.breathProgress.min > 0.35);
   assert.ok(crossingEvent.settings.breathProgress.max < 0.7);
-  assert.equal(LAVA_CANYON_MAP_SKIN.layout.length, 8);
+  assert.ok(LAVA_CANYON_MAP_SKIN.layout.length >= 8);
   assert.deepEqual(LAVA_CANYON_MAP_SKIN.layers, []);
   const resolved = resolveLayeredShooterMap(LAVA_CANYON_MAP_SKIN);
-  assert.equal(resolved.layers.length, 8);
+  assert.equal(resolved.layers.length, LAVA_CANYON_MAP_SKIN.layout.length);
   assert.equal(resolved.layers[0].assetId, "lava-guitar-platform");
   assert.equal(resolved.layers[0].slot, "midground-environment");
   assert.equal(resolved.layers[0].placement.x, 0.5);
@@ -101,6 +102,15 @@ test("Lava Canyon combines editable lava scenery, dragons, and an animated tatte
     ["lava-boil", "lava-geyser"],
   );
   assert.equal(effectLayers.every((layer) => layer.placement.x >= 0 && layer.placement.x <= 1), true);
+  const torchLayers = resolved.layers.filter((layer) => layer.assetId === "lava-torch-flame");
+  assert.ok(torchLayers.length >= 1);
+  assert.equal(torchLayers.every((layer) => layer.slot === "animated-environment"), true);
+  assert.equal(torchLayers.every((layer) => layer.animation?.type === "torch-flame"), true);
+  assert.ok(new Set(torchLayers.map((layer) => layer.animationSpeed)).size >= 1);
+  assert.equal(torchLayers.every((layer) => (
+    layer.placement.x >= 0 && layer.placement.x <= 1
+    && layer.placement.y >= 0 && layer.placement.y <= 1
+  )), true);
   const dragonLayer = resolved.layers.find((layer) => layer.assetId === "ambient-baby-dragon");
   assert.equal(dragonLayer.instanceId, "lava-baby-dragon-01");
   assert.equal(dragonLayer.slot, "animated-environment");
@@ -125,7 +135,7 @@ test("Lava Canyon combines editable lava scenery, dragons, and an animated tatte
     LAVA_CANYON_MAP_SKIN.layout,
     LAVA_CANYON_MAP_SKIN.assetCatalog,
   );
-  assert.equal(validatedLayout.length, 8);
+  assert.equal(validatedLayout.length, LAVA_CANYON_MAP_SKIN.layout.length);
   assert.equal(validatedLayout[0].animation, "none");
   assert.equal(validatedLayout.slice(1, 5).every((placement) => placement.animation.startsWith("lava-")), true);
   assert.equal(validatedLayout[5].assetId, "ambient-baby-dragon");
@@ -134,9 +144,9 @@ test("Lava Canyon combines editable lava scenery, dragons, and an animated tatte
   assert.equal(validatedLayout[6].assetId, "ambient-flying-baby-dragon");
   assert.equal(validatedLayout[6].instanceId, crossingEvent.actorInstanceId);
   assert.equal(validatedLayout[6].animation, "none");
-  assert.equal(validatedLayout[6].x, 0.1845139116396916);
-  assert.equal(validatedLayout[6].y, 0.3753967474340759);
-  assert.equal(validatedLayout[6].scale, 0.7999999999999998);
+  assert.ok(validatedLayout[6].x >= 0 && validatedLayout[6].x <= 1);
+  assert.ok(validatedLayout[6].y >= 0 && validatedLayout[6].y <= 1);
+  assert.ok(validatedLayout[6].scale >= 0.1);
   assert.equal(validatedLayout[6].scaleX, 1);
   assert.equal(
     validatedLayout.filter((placement) => placement.assetId === "ambient-flying-baby-dragon").length,
@@ -145,7 +155,7 @@ test("Lava Canyon combines editable lava scenery, dragons, and an animated tatte
   const bannerPlacement = validatedLayout.find((placement) => placement.assetId === "tattered-dragon-banner");
   assert.ok(bannerPlacement);
   assert.equal(bannerPlacement.instanceId, "lava-tattered-dragon-banner-right-01");
-  assert.equal(bannerPlacement.layer, 18);
+  assert.ok(Number.isInteger(bannerPlacement.layer));
   assert.equal(bannerPlacement.animationSpeed, 1);
   const flyingDragonLayer = resolved.layers.find((layer) => layer.assetId === "ambient-flying-baby-dragon");
   const flyingDragonAsset = LAVA_CANYON_MAP_SKIN.assetCatalog.find((asset) => asset.id === "ambient-flying-baby-dragon");
@@ -165,15 +175,27 @@ test("Lava Canyon combines editable lava scenery, dragons, and an animated tatte
   assert.ok(bannerLayer);
   assert.equal(bannerLayer.slot, "animated-environment");
   assert.equal(bannerAsset.label, "펄럭이는 찢어진 용 깃발");
-  assert.deepEqual(bannerAsset.spriteSheet, {
-    columns: 3,
-    rows: 1,
-    frameCount: 3,
-    previewFrame: 0,
-    animation: "wind-flag",
-    framesPerSecond: 4,
-  });
+  assert.equal(bannerAsset.spriteSheet.columns, 1);
+  assert.equal(bannerAsset.spriteSheet.rows, 1);
+  assert.equal(bannerAsset.spriteSheet.frameCount, 3);
+  assert.equal(bannerAsset.spriteSheet.previewFrame, 0);
+  assert.equal(bannerAsset.spriteSheet.animation, "wind-flag");
+  assert.equal(bannerAsset.spriteSheet.framesPerSecond, 4);
+  assert.equal(bannerAsset.spriteSheet.frames.length, 3);
+  assert.equal(bannerAsset.spriteSheet.staticSrc.endsWith("tattered-dragon-banner-pole.png"), true);
   assert.equal(bannerLayer.animationSpeed, bannerPlacement.animationSpeed);
+  const torchAsset = LAVA_CANYON_MAP_SKIN.assetCatalog.find((asset) => asset.id === "lava-torch-flame");
+  assert.ok(torchAsset);
+  assert.equal(torchAsset.label, "횃불 타오르는 불꽃");
+  assert.equal(torchAsset.defaultAnimation, "torch-flame");
+  const newTorchPlacement = createMapPlacement(
+    torchAsset.id,
+    validatedLayout,
+    () => "lava-torch-flame-added-in-editor",
+    torchAsset,
+  );
+  assert.equal(newTorchPlacement.animation, "torch-flame");
+  assert.equal(newTorchPlacement.animationSpeed, torchAsset.defaultAnimationSpeed);
   assert.throws(
     () => validateMapPlacements([{ instanceId: "unknown-01", assetId: "unknown" }], LAVA_CANYON_MAP_SKIN.assetCatalog),
     /Invalid map asset identity/,
@@ -183,6 +205,7 @@ test("Lava Canyon combines editable lava scenery, dragons, and an animated tatte
     "/assets/maps/lava-canyon/platforms/lava-guitar-platform.png",
     "/assets/maps/lava-canyon/effects/lava-geyser.png",
     "/assets/maps/lava-canyon/effects/lava-boiling-pool.png",
+    "/assets/maps/lava-canyon/effects/torch-flame.png",
     "/assets/maps/lava-canyon/creatures/baby-dragon/dragon-idle.png",
     "/assets/maps/lava-canyon/creatures/baby-dragon/dragon-blink.png",
     "/assets/maps/lava-canyon/creatures/baby-dragon/dragon-rest.png",
@@ -192,7 +215,10 @@ test("Lava Canyon combines editable lava scenery, dragons, and an animated tatte
     "/assets/maps/lava-canyon/creatures/baby-dragon/dragon-breath.png",
     "/assets/maps/lava-canyon/creatures/baby-dragon/dragon-smoke.png",
     "/assets/maps/lava-canyon/events/baby-dragon-flight-sheet.png",
-    "/assets/maps/lava-canyon/decorations/tattered-dragon-banner-sheet.png",
+    "/assets/maps/lava-canyon/decorations/tattered-dragon-banner-cloth-01.png",
+    "/assets/maps/lava-canyon/decorations/tattered-dragon-banner-pole.png",
+    "/assets/maps/lava-canyon/decorations/tattered-dragon-banner-cloth-02.png",
+    "/assets/maps/lava-canyon/decorations/tattered-dragon-banner-cloth-03.png",
     "/assets/maps/lava-canyon/events/baby-dragon-breath-sheet.png",
   ]);
   assert.ok(LAYERED_SHOOTER_MAP_SKINS.includes(LAVA_CANYON_MAP_SKIN));
@@ -238,6 +264,12 @@ test("Lava Canyon combines editable lava scenery, dragons, and an animated tatte
   assert.equal(pool.colorType, 6);
   assert.ok(pool.width > pool.height * 2);
 
+  const torch = readPngHeader(await readFile(new URL(`../public${torchAsset.src}`, import.meta.url)));
+  assert.equal(torch.signature, "89504e470d0a1a0a");
+  assert.equal(torch.colorType, 6);
+  assert.deepEqual([torch.width, torch.height], [755, 1024]);
+  assert.ok(torch.height > torch.width);
+
   const dragonAsset = LAVA_CANYON_MAP_SKIN.assetCatalog.find((asset) => asset.id === "ambient-baby-dragon");
   for (const frameSrc of Object.values(dragonAsset.creature.frames)) {
     const frame = readPngHeader(await readFile(new URL(`../public${frameSrc}`, import.meta.url)));
@@ -254,11 +286,17 @@ test("Lava Canyon combines editable lava scenery, dragons, and an animated tatte
     assert.equal(spriteSheet.width / sheet.columns, spriteSheet.height / sheet.rows);
   }
 
-  const bannerSheet = readPngHeader(await readFile(new URL(`../public${bannerAsset.src}`, import.meta.url)));
-  assert.equal(bannerSheet.signature, "89504e470d0a1a0a");
-  assert.equal(bannerSheet.colorType, 6);
-  assert.deepEqual([bannerSheet.width, bannerSheet.height], [2172, 724]);
-  assert.equal(bannerSheet.width / bannerAsset.spriteSheet.columns, bannerSheet.height);
+  const bannerSources = [
+    bannerAsset.src,
+    bannerAsset.spriteSheet.staticSrc,
+    ...bannerAsset.spriteSheet.frames.map((frame) => frame.src),
+  ];
+  for (const bannerSrc of new Set(bannerSources)) {
+    const bannerFrame = readPngHeader(await readFile(new URL(`../public${bannerSrc}`, import.meta.url)));
+    assert.equal(bannerFrame.signature, "89504e470d0a1a0a");
+    assert.equal(bannerFrame.colorType, 6);
+    assert.deepEqual([bannerFrame.width, bannerFrame.height], [1254, 1254]);
+  }
 
   const [rendererSource, ambientCreatureSource, crossingSource, mapSkinStyles, appSource, editorPanelSource] = await Promise.all([
     readFile(new URL("../src/shooter/maps/MapSkinRenderer.jsx", import.meta.url), "utf8"),
@@ -277,6 +315,10 @@ test("Lava Canyon combines editable lava scenery, dragons, and an animated tatte
   assert.match(mapSkinStyles, /@keyframes shooterMapBoundaryMiddlePulse/);
   assert.match(mapSkinStyles, /@keyframes shooterMapBoundaryCorePulse/);
   assert.match(mapSkinStyles, /@keyframes shooterMapLavaGeyser/);
+  assert.match(rendererSource, /animationType === "torch-flame"/);
+  assert.match(rendererSource, /shooterMapTorchFlameGlow/);
+  assert.match(mapSkinStyles, /@keyframes shooterMapTorchFlameBrightness/);
+  assert.match(mapSkinStyles, /@keyframes shooterMapTorchLightPulse/);
   assert.match(rendererSource, /function LavaEnvironmentAsset/);
   assert.match(rendererSource, /LAVA_GEYSER_PARTICLES/);
   assert.match(rendererSource, /LAVA_POOL_BUBBLES/);

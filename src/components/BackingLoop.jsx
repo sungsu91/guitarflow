@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { FileUp, FolderOpen, Mic, Pause, Play, RotateCcw, Save, Scissors, Square, Trash2, X } from "lucide-react";
+import { FileUp, FolderOpen, Mic, Pause, Play, RotateCcw, Save, Scissors, Square, Trash2, Volume2, VolumeX, X } from "lucide-react";
 import { BACKING_AUDIO_SOURCE_TYPES } from "../backing-loop/backingAudioSource";
 import { formatBackingLoopTime } from "../backing-loop/backingLoopUtils";
 import useBackingLoop from "../backing-loop/useBackingLoop";
@@ -85,6 +85,43 @@ function BackingLoopProgress({ controller }) {
         type="range"
         value={positionMs}
       />
+    </div>
+  );
+}
+
+function BackingLoopVolume({ controller, mobile = false }) {
+  const percentage = controller.backingVolumePercent;
+  const muted = controller.isBackingMuted;
+  return (
+    <div
+      className={`backingLoopVolume ${mobile ? "backingLoopVolume--mobile" : "backingLoopVolume--desktop"}`}
+      style={{ "--backing-loop-volume": `${percentage}%` }}
+    >
+      <button
+        aria-label={muted ? "백킹 볼륨 음소거 해제" : "백킹 볼륨 음소거"}
+        aria-pressed={muted}
+        className="backingLoopVolumeMute"
+        onClick={controller.toggleBackingMute}
+        title={muted ? "이전 백킹 볼륨으로 복원" : "백킹 음소거"}
+        type="button"
+      >
+        {muted
+          ? <VolumeX aria-hidden="true" size={mobile ? 13 : 15} />
+          : <Volume2 aria-hidden="true" size={mobile ? 13 : 15} />}
+      </button>
+      <label className="backingLoopVolumeSlider">
+        <span className="backingLoopScreenReaderStatus">백킹 볼륨</span>
+        <input
+          aria-label="백킹 볼륨"
+          max="100"
+          min="0"
+          onChange={(event) => controller.setBackingVolume(Number(event.target.value) / 100)}
+          step="1"
+          type="range"
+          value={percentage}
+        />
+      </label>
+      <output aria-live="polite" className="backingLoopVolumeValue">{percentage}%</output>
     </div>
   );
 }
@@ -701,6 +738,7 @@ function MobileBackingLoop({ controller }) {
       <MobileBackingLoopHardware />
       <BackingLoopHeader controller={controller} mobile />
       <MobileBackingLoopDisplay controller={controller} />
+      <BackingLoopVolume controller={controller} mobile />
       <BackingLoopMainControls controller={controller} mobile />
       <BackingLoopStorageControls controller={controller} mobile />
     </section>
@@ -716,6 +754,7 @@ function DesktopBackingLoop({ controller }) {
     >
       <BackingLoopHeader controller={controller} />
       <BackingLoopProgress controller={controller} />
+      <BackingLoopVolume controller={controller} />
       <BackingLoopMainControls controller={controller} />
       <BackingLoopStorageControls controller={controller} />
       <p className="backingLoopDesktopNotice" aria-live="polite">
@@ -735,7 +774,8 @@ export default function BackingLoop({ mobile = false }) {
         loop
         onEnded={controller.handlePlaybackEnded}
         onLoadedMetadata={controller.handleLoadedMetadata}
-        preload="metadata"
+        playsInline
+        preload="auto"
         ref={controller.audioRef}
         src={controller.audioUrl || undefined}
       />

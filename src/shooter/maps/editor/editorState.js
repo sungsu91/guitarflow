@@ -9,6 +9,7 @@ export const MAP_EDIT_ANIMATION_TYPES = Object.freeze([
   Object.freeze({ id: "sway", label: "미세 흔들림" }),
   Object.freeze({ id: "rotate", label: "지속 회전" }),
   Object.freeze({ id: "pulse", label: "빛 변화" }),
+  Object.freeze({ id: "torch-flame", label: "횃불 타오름" }),
   Object.freeze({ id: "lava-geyser", label: "용암 대분출" }),
   Object.freeze({ id: "lava-boil", label: "용암 보글거림" }),
 ]);
@@ -222,6 +223,9 @@ export function createMapPlacement(assetId, placements, createId = () => `${asse
     0,
   );
 
+  const defaultAnimation = MAP_EDIT_ANIMATION_TYPES.some((option) => option.id === asset?.defaultAnimation)
+    ? asset.defaultAnimation
+    : "none";
   const placement = {
     instanceId: createId(),
     assetId,
@@ -238,8 +242,8 @@ export function createMapPlacement(assetId, placements, createId = () => `${asse
     tiltY: 0,
     perspectiveCorners: DEFAULT_PERSPECTIVE_CORNERS.map((corner) => ({ ...corner })),
     layer: highestLayer + 1,
-    animation: "none",
-    animationSpeed: 1,
+    animation: defaultAnimation,
+    animationSpeed: clamp(finiteNumber(asset?.defaultAnimationSpeed, 1), 0.1, 5),
   };
   const creature = normalizeCreatureSettings(placement, asset);
   return creature ? { ...placement, creature } : placement;

@@ -36,19 +36,29 @@ test("shooter uses the mobile-master HUD at mobile and desktop sizes", async () 
 });
 
 test("desktop map studio keeps its editor panel beside the preview", async () => {
-  const [appSource, desktopCss, mapEditorCss] = await Promise.all([
+  const [appSource, desktopCss, mapEditorCss, mapEditPanelSource, useMapEditModeSource] = await Promise.all([
     readFile(appSourceUrl, "utf8"),
     readFile(desktopStyleUrl, "utf8"),
     readFile(mapEditorStyleUrl, "utf8"),
+    readFile(mapEditorPanelUrl, "utf8"),
+    readFile(mapEditorHookUrl, "utf8"),
   ]);
 
   assert.match(desktopCss, /shooterMode:not\(:has\(> \.shooterPanel--mapEditorWorkspace\)\)/);
   assert.match(desktopCss, /> \.shooterPanel:not\(\.shooterPanel--mapEditorWorkspace\) > \.shooterArena/);
-  assert.match(desktopCss, /aspect-ratio: 390 \/ 844 !important/);
+  assert.match(desktopCss, /aspect-ratio: var\(--shooter-map-reference-aspect, 390 \/ 756\) !important/);
   assert.match(mapEditorCss, /grid-template-columns: minmax\(340px, 390px\) minmax\(340px, 460px\) !important/);
   assert.match(mapEditorCss, /justify-content: center !important/);
-  assert.match(mapEditorCss, /aspect-ratio: 390 \/ 844 !important/);
-  assert.match(mapEditorCss, /calc\(\(100dvh - 48px\) \* 0\.462085\)/);
+  assert.match(mapEditorCss, /aspect-ratio: var\(--shooter-map-reference-aspect, 390 \/ 756\) !important/);
+  assert.match(mapEditorCss, /calc\(\(100dvh - 48px\) \* var\(--shooter-map-reference-ratio, 0\.515873\)\)/);
+  assert.match(mapEditorCss, /border: 0 !important/);
+  assert.doesNotMatch(mapEditorCss, /aspect-ratio: 390 \/ 844 !important/);
+  assert.match(appSource, /"--shooter-map-reference-aspect": `\$\{referenceWidth\} \/ \$\{referenceHeight\}`/);
+  assert.match(appSource, /"--shooter-map-reference-ratio": referenceWidth \/ referenceHeight/);
+  assert.match(mapEditPanelSource, /referenceViewport\?\.height \|\| editor\.skin\.referenceViewport\?\.deviceHeight \|\| 756/);
+  assert.match(mapEditPanelSource, /\{viewport\.width\} × \{viewport\.height\} LIVE PREVIEW/);
+  assert.doesNotMatch(mapEditPanelSource, /390 × 844 LIVE PREVIEW/);
+  assert.match(useMapEditModeSource, /referenceViewport\?\.height \?\? referenceViewport\?\.deviceHeight \?\? 756/);
   assert.match(appSource, /const shooterMapRenderLayout = "mobile"/);
   assert.doesNotMatch(appSource, /shooterUsesMobileMapLayout/);
   assert.match(mapEditorCss, /\.mapEditEffectSlotTabs > button\.is-selected/);
@@ -62,7 +72,9 @@ test("map studio starts with a collapsed installed-object list and separates sel
   ]);
 
   assert.match(panelSource, /<details className="mapEditAdvancedSection mapEditAdvancedSection--installed">/);
-  assert.match(panelSource, /title="기타 이펙트 보정" value="FLOOR · AURA"/);
+  assert.match(panelSource, /<details className="mapEditAdvancedSection mapEditAdvancedSection--effects">/);
+  assert.match(panelSource, /<CollapsibleEditorSection title="기타 이펙트 보정" value="FLOOR · AURA · 필요할 때만">/);
+  assert.doesNotMatch(panelSource, /<details className="mapEditAdvancedSection mapEditAdvancedSection--effects" open>/);
   assert.match(panelSource, /className="mapEditEffectLibrary"/);
   assert.match(panelSource, /effectEditor\.selectEffect/);
   assert.match(panelSource, /effectEditor\.nudgeActive/);

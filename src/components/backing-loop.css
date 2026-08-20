@@ -28,11 +28,11 @@
 .backingLoopPanel--mobile {
   position: relative;
   display: grid;
-  grid-template-rows: 16px 17px 36px 28px;
+  grid-template-rows: 16px 17px 20px 36px 28px;
   gap: 3px;
   width: 100%;
-  height: 118px;
-  min-height: 118px;
+  height: 141px;
+  min-height: 141px;
   margin: 7px 0 0;
   padding: 6px 4px;
   border-color: rgba(151, 103, 92, 0.27);
@@ -270,6 +270,112 @@
   opacity: 0.56;
 }
 
+.backingLoopVolume {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding-inline: 4px;
+}
+
+.backingLoopVolumeMute {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--backing-loop-gold);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.backingLoopVolumeMute:focus-visible {
+  outline: 2px solid rgba(154, 98, 48, 0.5);
+  outline-offset: 1px;
+}
+
+.backingLoopVolumeMute[aria-pressed="true"] {
+  color: rgba(89, 61, 54, 0.52);
+}
+
+.backingLoopVolumeSlider {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.backingLoopVolumeSlider input {
+  width: 100%;
+  height: 20px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.backingLoopVolumeSlider input::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--backing-loop-gold) 0 var(--backing-loop-volume),
+    rgba(93, 70, 58, 0.26) var(--backing-loop-volume) 100%
+  );
+  box-shadow: inset 0 1px 1px rgba(81, 54, 47, 0.14);
+}
+
+.backingLoopVolumeSlider input::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  border: 1px solid rgba(116, 73, 39, 0.52);
+  border-radius: 50%;
+  appearance: none;
+  background: linear-gradient(145deg, #f1c989, #a8682f);
+  box-shadow: 0 1px 3px rgba(66, 42, 31, 0.3);
+}
+
+.backingLoopVolumeSlider input::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(93, 70, 58, 0.26);
+}
+
+.backingLoopVolumeSlider input::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--backing-loop-gold);
+}
+
+.backingLoopVolumeSlider input::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(116, 73, 39, 0.52);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f1c989, #a8682f);
+}
+
+.backingLoopVolumeValue {
+  color: var(--backing-loop-ink);
+  font-size: 10px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: right;
+}
+
 .backingLoopMainControls,
 .backingLoopStorageControls {
   display: grid;
@@ -393,11 +499,11 @@
 .backingLoopPanel--desktop {
   display: grid;
   grid-template-columns: minmax(420px, 2fr) minmax(220px, 0.9fr);
-  grid-template-rows: 17px 10px 40px 16px;
+  grid-template-rows: 17px 28px 32px 40px 16px;
   align-items: center;
   gap: 4px 10px;
   width: 100%;
-  min-height: 112px;
+  min-height: 169px;
   margin: 12px 0 0;
   padding: 9px 12px;
   border-radius: 15px;
@@ -420,6 +526,25 @@
 .backingLoopPanel--desktop .backingLoopProgress {
   grid-column: 1 / -1;
   padding-inline: 2px;
+}
+
+.backingLoopPanel--desktop .backingLoopVolume {
+  grid-column: 1 / -1;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding-inline: 2px;
+}
+
+.backingLoopPanel--desktop .backingLoopVolumeMute {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+}
+
+.backingLoopPanel--desktop .backingLoopVolumeSlider input {
+  height: 28px !important;
+  min-height: 28px !important;
 }
 
 .backingLoopPanel--desktop .backingLoopMainControls {

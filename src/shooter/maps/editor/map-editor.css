@@ -480,6 +480,14 @@ html body main.app.app.app .shooterArena.shooterArena--mapEdit .shooterCenterSta
   cursor: grab;
 }
 
+.shooterArena--mapEdit .shooterMapSkinAsset[data-asset-id="park-fountain-fence-back"] {
+  z-index: 119 !important;
+}
+
+.shooterArena--mapEdit .shooterMapSkinAsset[data-asset-id="park-fountain-fence-front"] {
+  z-index: 121 !important;
+}
+
 .shooterArena--mapEdit .shooterMapSkinAsset:active {
   cursor: grabbing;
 }
@@ -1463,13 +1471,13 @@ html body .app.shooterMode .shooterPanel--mapEditorWorkspace > .shooterArena {
   max-width: 390px !important;
   height: auto !important;
   min-height: 0 !important;
-  /* Match the real 390×844 shooter arena exactly. Normalized placements and
-     cover-cropped map backgrounds must not shift when the editor closes. */
-  aspect-ratio: 390 / 844 !important;
+  /* The editor uses the map's gameplay coordinate viewport, not the device
+     viewport that also contains the 88px bottom navigation. */
+  aspect-ratio: var(--shooter-map-reference-aspect, 390 / 756) !important;
   margin: 0 auto !important;
-  border: 1px solid rgba(115, 220, 237, 0.36) !important;
+  border: 0 !important;
   border-radius: 22px !important;
-  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.5), 0 0 0 5px rgba(8, 24, 29, 0.88) !important;
+  box-shadow: inset 0 0 0 1px rgba(115, 220, 237, 0.36), 0 22px 54px rgba(0, 0, 0, 0.5), 0 0 0 5px rgba(8, 24, 29, 0.88) !important;
   overflow: hidden !important;
   contain: layout paint !important;
   isolation: isolate;
@@ -1550,7 +1558,7 @@ html body .app.shooterMode .shooterPanel--mapEditorWorkspace > .mapObjectPickerB
     grid-row: 1;
     align-self: center;
     justify-self: center;
-    width: min(390px, calc((100dvh - 48px) * 0.462085)) !important;
+    width: min(390px, calc((100dvh - 48px) * var(--shooter-map-reference-ratio, 0.515873))) !important;
   }
 
   html body main.app.app.app.shooterMode .shooterPanel--mapEditorWorkspace > .mapEditPanel--desktop,
@@ -2312,6 +2320,345 @@ html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shoote
 
 /* Desktop-only guitar effect tuning. The gameplay effect model is shared,
    while these controls stay inside the Map Studio inspector. */
+.mapEditAdvancedSection--monster {
+  border-color: rgba(240, 200, 119, 0.28);
+  background: linear-gradient(145deg, rgba(230, 189, 114, 0.08), rgba(255, 255, 255, 0.018));
+}
+
+.mapEditAdvancedSection--monster > summary > span {
+  color: #fff3d5 !important;
+}
+
+.mapEditAdvancedSection--monster > summary > small {
+  color: #efcb82 !important;
+}
+
+.mapEditMonsterSkinSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  padding: 8px 9px;
+  border: 1px solid rgba(240, 200, 119, 0.18);
+  border-radius: 9px;
+  background: rgba(0, 9, 13, 0.34);
+}
+
+.mapEditMonsterSkinSummary > span {
+  display: grid;
+  gap: 2px;
+}
+
+.mapEditMonsterSkinSummary small {
+  color: rgba(226, 240, 242, 0.56);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.mapEditMonsterSkinSummary strong {
+  color: #fff4da;
+  font-size: 10px;
+}
+
+.mapEditMonsterSkinSummary em {
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: #f6d38e;
+  background: rgba(230, 189, 114, 0.1);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.mapEditMonsterRootTabs {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.mapEditPanel.mapEditPanel .mapEditMonsterRootTabs > button {
+  display: grid;
+  place-items: center;
+  gap: 1px;
+  min-width: 0;
+  min-height: 49px;
+  padding: 3px 1px !important;
+  opacity: 0.68;
+}
+
+.mapEditMonsterRootTabs img {
+  display: block;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.mapEditMonsterRootTabs b {
+  color: rgba(230, 245, 248, 0.74);
+  font-size: 8px;
+}
+
+html body main.app.app.app.shooterMode
+  .mapEditPanel.mapEditPanel
+  .mapEditControls
+  .mapEditMonsterRootTabs
+  > button.is-selected,
+html body main.app.app.app.shooterMode
+  .mapEditPanel.mapEditPanel
+  .mapEditControls
+  .mapEditMonsterRootTabs
+  > button.is-selected:active {
+  border-color: #ffd98a !important;
+  background: linear-gradient(180deg, rgba(255, 215, 132, 0.3), rgba(107, 73, 26, 0.42)) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 243, 208, 0.2), 0 0 12px rgba(240, 200, 119, 0.18) !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.mapEditMonsterPreview {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 142px;
+  overflow: hidden;
+  padding: 7px 11px;
+  border: 1px solid rgba(113, 218, 235, 0.16);
+  border-radius: 11px;
+  background:
+    radial-gradient(circle at 40% 48%, rgba(72, 204, 226, 0.16), transparent 34%),
+    linear-gradient(145deg, rgba(0, 7, 10, 0.72), rgba(8, 29, 35, 0.54));
+}
+
+.mapEditMonsterPreview::before,
+.mapEditMonsterPreview::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.mapEditMonsterPreview::before {
+  left: 10px;
+  right: 88px;
+  top: 50%;
+  border-top: 1px dashed rgba(126, 231, 248, 0.16);
+}
+
+.mapEditMonsterPreview::after {
+  top: 10px;
+  bottom: 10px;
+  left: calc((100% - 88px) / 2);
+  border-left: 1px dashed rgba(126, 231, 248, 0.16);
+}
+
+.mapEditMonsterPreviewTarget {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  width: var(--monster-preview-size, 99.36px);
+  height: var(--monster-preview-size, 99.36px);
+  filter: drop-shadow(0 7px 8px rgba(0, 0, 0, 0.38));
+}
+
+.mapEditMonsterPreviewTarget > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.mapEditMonsterPreviewLabel {
+  position: absolute;
+  left: var(--monster-preview-label-x, 50%);
+  top: var(--monster-preview-label-y, 50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: var(--monster-preview-offset-x, 0px);
+  margin-top: var(--monster-preview-offset-y, 0px);
+  color: var(--monster-preview-label-color, #fff8dc) !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: var(--monster-preview-label-size, 13px);
+  font-style: normal !important;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  transform: translate(-50%, -50%);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.68);
+  white-space: nowrap;
+  paint-order: stroke fill;
+  -webkit-text-fill-color: var(--monster-preview-label-color, #fff8dc);
+  -webkit-text-stroke: 0.9px var(--monster-preview-label-outline, #081536);
+}
+
+.mapEditMonsterPreviewLabel > b {
+  color: inherit !important;
+  font: inherit;
+  line-height: 1;
+  -webkit-text-fill-color: inherit;
+}
+
+html body main.app.app.app.shooterMode
+  .mapEditPanel.mapEditPanel
+  .mapEditAdvancedSection--monster
+  .mapEditScaleEditor
+  > span
+  > strong {
+  min-width: 46px;
+  padding: 3px 7px;
+  border: 1px solid rgba(255, 224, 154, 0.34);
+  border-radius: 999px;
+  color: #fff4c7 !important;
+  background: rgba(239, 190, 91, 0.15);
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 1.1;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.72);
+}
+
+.mapEditMonsterPreview > span:last-child {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 3px;
+  width: 75px;
+  text-align: right;
+}
+
+.mapEditMonsterPreview > span:last-child b {
+  color: #fff0c9;
+  font-size: 13px;
+}
+
+.mapEditMonsterPreview > span:last-child small {
+  color: rgba(203, 236, 241, 0.54);
+  font-size: 7px;
+  line-height: 1.4;
+}
+
+.mapEditPrecisionLayout--monster {
+  padding-top: 1px;
+}
+
+.mapEditMonsterColorEditor {
+  display: grid;
+  gap: 8px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(119, 218, 234, 0.1);
+}
+
+.mapEditMonsterColorEditor > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+}
+
+.mapEditMonsterColorEditor > header > span {
+  display: grid;
+  gap: 2px;
+}
+
+.mapEditMonsterColorEditor > header b {
+  color: #e8f9fc;
+  font-size: 9px;
+}
+
+.mapEditMonsterColorEditor > header small {
+  color: rgba(203, 236, 241, 0.54);
+  font-size: 7px;
+}
+
+.mapEditPanel.mapEditPanel .mapEditMonsterColorEditor > header > button {
+  min-height: 27px;
+  padding: 0 8px !important;
+  border-color: rgba(240, 200, 119, 0.24) !important;
+  color: #f6d38e !important;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.mapEditMonsterColorEditor > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.mapEditMonsterColorEditor > div > label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.mapEditMonsterColorEditor > div > label > span:first-child {
+  color: rgba(219, 244, 248, 0.68);
+  font-size: 8px;
+  font-weight: 850;
+}
+
+.mapEditMonsterColorField {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 4px 7px 4px 4px;
+  border: 1px solid rgba(115, 216, 233, 0.17);
+  border-radius: 8px;
+  background: rgba(0, 9, 13, 0.54);
+}
+
+.mapEditMonsterColorField input[type="color"] {
+  width: 38px;
+  height: 30px;
+  padding: 2px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mapEditMonsterColorField input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.mapEditMonsterColorField input[type="color"]::-webkit-color-swatch {
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  border-radius: 5px;
+}
+
+.mapEditMonsterColorField .mapEditMonsterColorHex {
+  width: 100%;
+  min-width: 0;
+  height: 26px;
+  padding: 0 3px;
+  border: 0 !important;
+  color: rgba(231, 247, 249, 0.78) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: hidden;
+  font: 800 8px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+  text-overflow: ellipsis;
+}
+
+.mapEditMonsterTuningHelp {
+  margin: 0;
+  padding: 8px 9px;
+  border-radius: 8px;
+  color: rgba(207, 235, 239, 0.68);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 8px;
+  line-height: 1.55;
+}
+
 .mapEditEffectSlotTabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

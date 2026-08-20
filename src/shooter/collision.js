@@ -1,12 +1,14 @@
 const DEG_TO_RAD = Math.PI / 180;
 
-export const SHOOTER_ENEMY_HURTBOX_PROFILES = {
-  easy: { centerX: 0.5, centerY: 0.5, radiusX: 0.36, radiusY: 0.36 },
-  normal: { centerX: 0.5, centerY: 0.5, radiusX: 0.485, radiusY: 0.485 },
-  difficult: { centerX: 0.5, centerY: 0.535, radiusX: 0.465, radiusY: 0.465 },
-};
+const SHOOTER_NOTE_MONSTER_CORE_PROFILE = Object.freeze({ centerX: 0.5, centerY: 0.5, radius: 0.165 });
 
-export const SHOOTER_PICK_HITBOX_RADIUS_SCALE = 0.34;
+export const SHOOTER_ENEMY_HURTBOX_PROFILES = Object.freeze({
+  easy: SHOOTER_NOTE_MONSTER_CORE_PROFILE,
+  normal: SHOOTER_NOTE_MONSTER_CORE_PROFILE,
+  difficult: SHOOTER_NOTE_MONSTER_CORE_PROFILE,
+});
+
+export const SHOOTER_PICK_HITBOX_RADIUS_SCALE = 0.18;
 
 export function lerpNumber(start, end, ratio) {
   return start + (end - start) * ratio;
@@ -97,14 +99,16 @@ export function createShooterEnemyHurtbox({
   const profile = SHOOTER_ENEMY_HURTBOX_PROFILES[difficulty] ?? SHOOTER_ENEMY_HURTBOX_PROFILES.easy;
   const safeWidth = Math.max(1, Number(width) || 1);
   const safeHeight = Math.max(1, Number(height) || 1);
+  const radius = Math.min(safeWidth, safeHeight) * profile.radius;
   return {
-    type: "ellipse",
+    type: "circle",
     center: {
       x: Number(centerX) + (profile.centerX - 0.5) * safeWidth,
       y: Number(centerY) + (profile.centerY - 0.5) * safeHeight,
     },
-    radiusX: safeWidth * profile.radiusX,
-    radiusY: safeHeight * profile.radiusY,
+    radius,
+    radiusX: radius,
+    radiusY: radius,
   };
 }
 

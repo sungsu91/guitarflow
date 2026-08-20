@@ -1143,9 +1143,9 @@ html body main.app.theme-light.theme-light
   }
 
   .app .backingLoopPanel--mobile {
-    grid-template-rows: 16px 17px 36px 36px !important;
-    height: 126px !important;
-    min-height: 126px !important;
+    grid-template-rows: 16px 17px 20px 36px 36px !important;
+    height: 149px !important;
+    min-height: 149px !important;
     padding-block: 6px !important;
   }
 
@@ -1628,12 +1628,12 @@ html body main.app.theme-brand.theme-brand
   html body main.app.app.app.metronomeMode
     .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
     .backingLoopPanel.backingLoopPanel--mobile {
-    grid-template-rows: 20px minmax(54px, 1fr) 39px 35px !important;
+    grid-template-rows: 20px minmax(54px, 1fr) 30px 36px 32px !important;
     align-content: stretch !important;
     gap: 2px !important;
-    height: clamp(176px, 21.8dvh, 184px) !important;
-    min-height: clamp(176px, 21.8dvh, 184px) !important;
-    max-height: 184px !important;
+    height: clamp(194px, 24dvh, 202px) !important;
+    min-height: clamp(194px, 24dvh, 202px) !important;
+    max-height: 202px !important;
     margin-top: 8px !important;
     padding: 7px !important;
     border-radius: 8px !important;
@@ -1771,12 +1771,16 @@ html body main.app.theme-brand.theme-brand
     --backing-recorder-metal-dark: rgba(105, 67, 51, 0.92);
     --backing-recorder-metal-mid: rgba(184, 135, 104, 0.94);
     --backing-recorder-metal-light: rgba(255, 246, 217, 0.96);
-    grid-template-rows: 20px minmax(54px, 1fr) 39px 35px !important;
+    --backing-recorder-volume-well: rgba(79, 55, 42, 0.16);
+    --backing-recorder-volume-empty: rgba(79, 55, 42, 0.32);
+    --backing-recorder-volume-display: linear-gradient(180deg, rgba(67, 48, 38, 0.94), rgba(43, 32, 27, 0.98));
+    --backing-recorder-volume-display-text: rgba(250, 228, 181, 0.96);
+    grid-template-rows: 20px minmax(54px, 1fr) 30px 36px 32px !important;
     align-content: stretch !important;
     gap: 2px !important;
-    height: clamp(176px, 21.8dvh, 184px) !important;
-    min-height: clamp(176px, 21.8dvh, 184px) !important;
-    max-height: 184px !important;
+    height: clamp(194px, 24dvh, 202px) !important;
+    min-height: clamp(194px, 24dvh, 202px) !important;
+    max-height: 202px !important;
     padding: 7px !important;
     border: 1px solid var(--backing-recorder-chassis-border) !important;
     border-radius: 11px !important;
@@ -1816,6 +1820,10 @@ html body main.app.theme-brand.theme-brand
     --backing-recorder-metal-dark: rgba(66, 43, 10, 0.98);
     --backing-recorder-metal-mid: rgba(174, 126, 47, 0.94);
     --backing-recorder-metal-light: rgba(255, 226, 151, 0.9);
+    --backing-recorder-volume-well: rgba(0, 0, 0, 0.42);
+    --backing-recorder-volume-empty: rgba(217, 170, 85, 0.2);
+    --backing-recorder-volume-display: linear-gradient(180deg, rgba(10, 9, 6, 0.94), rgba(3, 4, 3, 0.98));
+    --backing-recorder-volume-display-text: rgba(244, 208, 126, 0.96);
     background:
       repeating-linear-gradient(102deg, rgba(217, 170, 85, 0.012) 0 1px, transparent 1px 13px),
       radial-gradient(circle at 18% 0%, rgba(217, 170, 85, 0.08), transparent 34%),
@@ -2072,6 +2080,172 @@ html body main.app.theme-brand.theme-brand
     text-overflow: ellipsis;
     white-space: nowrap;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  html body main.app.app.app
+    .backingLoopPanel--mobile .backingLoopVolume {
+    grid-template-columns: 24px minmax(0, 1fr) 40px;
+    gap: 6px;
+    height: 100%;
+    margin-inline: 3px;
+    padding: 2px 4px;
+    border: 1px solid color-mix(in srgb, var(--backing-recorder-button-border) 86%, transparent);
+    border-radius: 5px;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--backing-recorder-button-top) 74%, transparent), color-mix(in srgb, var(--backing-recorder-button-bottom) 82%, transparent));
+    box-shadow:
+      inset 0 1px 2px color-mix(in srgb, var(--backing-recorder-button-shadow) 54%, transparent),
+      0 1px 0 rgba(255, 255, 255, 0.26);
+    overflow: hidden;
+  }
+
+  html body main.app.app.app
+    .backingLoopPanel--mobile .backingLoopVolumeMute {
+    width: 24px !important;
+    min-width: 24px !important;
+    max-width: 24px !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+    padding: 0 !important;
+    border: 1px solid var(--backing-recorder-button-border) !important;
+    border-radius: 50% !important;
+    background: radial-gradient(
+      circle at 34% 28%,
+      var(--backing-recorder-metal-light),
+      var(--backing-recorder-metal-mid) 48%,
+      var(--backing-recorder-metal-dark) 88%
+    ) !important;
+    color: color-mix(in srgb, var(--backing-recorder-metal-dark) 88%, #1e120d) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.42),
+      0 1px 2px var(--backing-recorder-button-shadow) !important;
+    filter: none !important;
+  }
+
+  html body main.app.app.app
+    .backingLoopPanel--mobile .backingLoopVolumeMute[aria-pressed="true"] {
+    border-color: var(--backing-recorder-disabled-border) !important;
+    background: radial-gradient(
+      circle at 34% 28%,
+      var(--backing-recorder-disabled-top),
+      var(--backing-recorder-disabled-bottom) 76%
+    ) !important;
+    color: var(--backing-recorder-disabled-text) !important;
+    box-shadow: inset 0 1px 2px var(--backing-recorder-button-shadow) !important;
+  }
+
+  html body main.app.app.app
+    .backingLoopPanel--mobile .backingLoopVolumeSlider {
+    height: 20px;
+    min-height: 20px;
+    padding: 0 7px;
+    border: 1px solid color-mix(in srgb, var(--backing-recorder-button-border) 76%, transparent);
+    border-radius: 999px;
+    background: var(--backing-recorder-volume-well);
+    box-shadow:
+      inset 0 1px 2px color-mix(in srgb, var(--backing-recorder-button-shadow) 72%, transparent),
+      0 1px 0 rgba(255, 255, 255, 0.16);
+  }
+
+  html body main.app.app.app
+    .backingLoopPanel--mobile .backingLoopVolumeSlider input {
+    width: 100% !important;
+    height: 18px !important;
+    min-height: 18px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    filter: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+  }
+
+  html body main.app.app.app
+    .backingLoopPanel--mobile .backingLoopVolumeSlider input::-webkit-slider-runnable-track {
+    height: 5px;
+    border: 1px solid color-mix(in srgb, var(--backing-recorder-metal-dark) 62%, transparent);
+    border-radius: 999px;
+    background: linear-gradient(
+      90deg,
+      var(--backing-recorder-metal-mid) 0 var(--backing-loop-volume),
+      var(--backing-recorder-volume-empty) var(--backing-loop-volume) 100%
+    );
+    box-shadow: inset 0 1px 2px color-mix(in srgb, var(--backing-recorder-button-shadow) 74%, transparent);
+  }
+
+  html body main.app.app.app
+    .backingLoopPanel--mobile .backingLoopVolumeSlider input::-webkit-slider-thumb {
+    width: 14px;
+    height: 14px;
+    margin-top: -5.5px;
+    border-color: var(--backing-recorder-metal-dark);
+    background: radial-gradient(
+      circle at 34% 28%,
+      var(--backing-recorder-metal-light),
+      var(--backing-recorder-metal-mid) 48%,
+      var(--backing-recorder-metal-dark) 88%
+    );
+    box-shadow:
+      0 0 0 2px var(--backing-recorder-volume-well),
+      0 1px 2px var(--backing-recorder-button-shadow);
+  }
+
+  html body main.app.app.app
+    .backingLoopPanel--mobile .backingLoopVolumeSlider input::-moz-range-track {
+    height: 5px;
+    border: 1px solid color-mix(in srgb, var(--backing-recorder-metal-dark) 62%, transparent);
+    border-radius: 999px;
+    background: var(--backing-recorder-volume-empty);
+    box-shadow: inset 0 1px 2px color-mix(in srgb, var(--backing-recorder-button-shadow) 74%, transparent);
+  }
+
+  html body main.app.app.app
+    .backingLoopPanel--mobile .backingLoopVolumeSlider input::-moz-range-progress {
+    height: 5px;
+    border-radius: 999px;
+    background: var(--backing-recorder-metal-mid);
+  }
+
+  html body main.app.app.app
+    .backingLoopPanel--mobile .backingLoopVolumeSlider input::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--backing-recorder-metal-dark);
+    background: radial-gradient(
+      circle at 34% 28%,
+      var(--backing-recorder-metal-light),
+      var(--backing-recorder-metal-mid) 48%,
+      var(--backing-recorder-metal-dark) 88%
+    );
+    box-shadow:
+      0 0 0 2px var(--backing-recorder-volume-well),
+      0 1px 2px var(--backing-recorder-button-shadow);
+  }
+
+  html body main.app.app.app
+    .backingLoopPanel--mobile .backingLoopVolumeValue {
+    display: grid !important;
+    place-items: center;
+    width: 40px;
+    height: 22px;
+    min-height: 22px;
+    padding: 0 3px;
+    border: 1px solid var(--backing-recorder-button-border);
+    border-radius: 3px;
+    background: var(--backing-recorder-volume-display);
+    box-shadow:
+      inset 0 1px 2px var(--backing-recorder-button-shadow),
+      0 1px 0 rgba(255, 255, 255, 0.14);
+    color: var(--backing-recorder-volume-display-text);
+    font-size: 9px;
+    font-weight: 950;
+    letter-spacing: -0.02em;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.34);
   }
 
   html body main.app.app.app

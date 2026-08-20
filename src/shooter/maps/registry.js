@@ -1,9 +1,13 @@
+import { COASTAL_COVE_MAP_SKIN } from "./skins/coastalCove.js";
 import { LAVA_CANYON_MAP_SKIN } from "./skins/lavaCanyon.js";
+import { PARK_MAP_SKIN } from "./skins/park.js";
 import { RIVER_MAP_SKIN } from "./skins/river.js";
 
 export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
   RIVER_MAP_SKIN,
   LAVA_CANYON_MAP_SKIN,
+  COASTAL_COVE_MAP_SKIN,
+  PARK_MAP_SKIN,
 ]);
 
 export function isLayeredShooterMap(map) {

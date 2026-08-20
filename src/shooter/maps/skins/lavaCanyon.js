@@ -22,7 +22,7 @@ const LAVA_CANYON_BOUNDARY_PATHS = Object.freeze([
 export const LAVA_CANYON_MAP_SKIN = Object.freeze({
   id: "lava-canyon",
   kind: "layered",
-  label: "용암 계곡",
+  label: "LAVA",
   description: "넓은 용암 통로를 중심으로 조립하는 모듈형 협곡 맵",
   previewImage: LAVA_CANYON_BACKGROUND_SRC,
   referenceViewport: Object.freeze({

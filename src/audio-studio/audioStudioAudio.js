@@ -157,11 +157,13 @@ export function stretchAudioStudioPcm(audioBuffer, tempoRatio = 1) {
 export async function decodeAudioStudioFiles(files, {
   AudioContextApi = typeof window !== "undefined" ? window.AudioContext || window.webkitAudioContext : null,
   bucketCount = 180,
+  context: providedContext = null,
   onProgress = null,
 } = {}) {
   const candidates = Array.from(files || []);
-  if (!AudioContextApi) throw new Error("AUDIO_CONTEXT_UNAVAILABLE");
-  const context = new AudioContextApi();
+  if (!providedContext && !AudioContextApi) throw new Error("AUDIO_CONTEXT_UNAVAILABLE");
+  const context = providedContext || new AudioContextApi();
+  const ownsContext = !providedContext;
   const decoded = [];
   const rejected = [];
   try {
@@ -200,10 +202,12 @@ export async function decodeAudioStudioFiles(files, {
       await new Promise((resolve) => globalThis.setTimeout(resolve, 0));
     }
   } finally {
-    try {
-      await context.close?.();
-    } catch {
-      // A decode-only context may already be closed by Safari when backgrounded.
+    if (ownsContext) {
+      try {
+        await context.close?.();
+      } catch {
+        // A decode-only context may already be closed by Safari when backgrounded.
+      }
     }
   }
   return { decoded, rejected };
