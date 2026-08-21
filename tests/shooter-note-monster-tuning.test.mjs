@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   DEFAULT_SHOOTER_NOTE_MONSTER_TUNING,
+  SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS,
   getShooterNoteMonsterLabelPosition,
   getShooterNoteMonsterRenderedScales,
   getShooterNoteMonsterTuning,
@@ -23,6 +24,18 @@ test("monster visuals are fifteen percent larger by default without changing col
     scale: 1.15,
   });
   assert.equal(getShooterNoteMonsterTuning({}, "cute-object", "F#4").scale, 1.15);
+});
+
+test("deployed defaults include the desktop editor calibration for every monster root", () => {
+  assert.deepEqual(Object.keys(SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS["cute-object"]), [
+    "C", "D", "E", "F", "G", "A", "B",
+  ]);
+  assert.deepEqual(Object.keys(SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS.elemental), [
+    "C", "D", "E", "F", "G", "A", "B",
+  ]);
+  assert.equal(getShooterNoteMonsterTuning(undefined, "cute-object", "C3").labelOffsetX, 10);
+  assert.equal(getShooterNoteMonsterTuning(undefined, "cute-object", "B2").labelOffsetX, 8);
+  assert.equal(getShooterNoteMonsterTuning(undefined, "elemental", "C4").labelOffsetX, 3);
 });
 
 test("monster size and label offsets stay isolated by skin and root note", () => {
