@@ -15,6 +15,7 @@ import {
   normalizePerspectiveCorners,
 } from "./freeTransform.js";
 import { isLayeredShooterMap } from "./registry.js";
+import { getMapCoverPlaneSize } from "./mapCoordinateSpace.js";
 import { getLoopFrameIndex, subscribeSharedMapAnimation } from "./sharedSpriteClock.js";
 
 const UNDERLAY_SLOTS = new Set([
@@ -26,25 +27,6 @@ const UNDERLAY_SLOTS = new Set([
 const OVERLAY_SLOTS = new Set([
   "foreground",
   "effect",
-]);
-
-const LAVA_GEYSER_PARTICLES = Object.freeze([
-  Object.freeze({ left: 17, bottom: 7, size: 9, drift: -150, rise: 620, rate: 0.46 }),
-  Object.freeze({ left: 31, bottom: 9, size: 6, drift: -80, rise: 840, rate: 0.38 }),
-  Object.freeze({ left: 43, bottom: 8, size: 12, drift: -35, rise: 560, rate: 0.52 }),
-  Object.freeze({ left: 55, bottom: 10, size: 7, drift: 60, rise: 760, rate: 0.41 }),
-  Object.freeze({ left: 67, bottom: 7, size: 10, drift: 120, rise: 650, rate: 0.48 }),
-  Object.freeze({ left: 78, bottom: 6, size: 5, drift: 180, rise: 900, rate: 0.36 }),
-]);
-
-const LAVA_POOL_BUBBLES = Object.freeze([
-  Object.freeze({ left: 12, bottom: 24, size: 8, drift: -24, rise: 90, rate: 0.58 }),
-  Object.freeze({ left: 27, bottom: 28, size: 12, drift: -12, rise: 65, rate: 0.72 }),
-  Object.freeze({ left: 41, bottom: 22, size: 7, drift: 8, rise: 120, rate: 0.51 }),
-  Object.freeze({ left: 54, bottom: 30, size: 14, drift: 14, rise: 72, rate: 0.78 }),
-  Object.freeze({ left: 68, bottom: 23, size: 6, drift: 20, rise: 135, rate: 0.47 }),
-  Object.freeze({ left: 80, bottom: 27, size: 10, drift: 30, rise: 86, rate: 0.64 }),
-  Object.freeze({ left: 90, bottom: 21, size: 5, drift: 38, rise: 145, rate: 0.43 }),
 ]);
 
 function getLayerPlacement(layer, layout) {
@@ -797,7 +779,6 @@ function LavaEnvironmentAsset({ layer }) {
 
   const speed = Number.isFinite(layer.animation?.speed) ? Math.max(0.1, layer.animation.speed) : 1;
   const cycleDuration = Math.max(1.25, 6 / speed);
-  const particles = animationType === "lava-geyser" ? LAVA_GEYSER_PARTICLES : LAVA_POOL_BUBBLES;
   const effectType = animationType === "lava-geyser" ? "geyser" : "boil";
 
   return (
@@ -805,7 +786,6 @@ function LavaEnvironmentAsset({ layer }) {
       className={`shooterMapLavaEffect shooterMapLavaEffect--${effectType}`}
       style={{ "--shooter-lava-cycle-duration": `${cycleDuration}s` }}
     >
-      <i aria-hidden="true" className="shooterMapLavaEffectBase" />
       <img
         alt=""
         className="shooterMapLavaEffectArtwork"
@@ -813,30 +793,6 @@ function LavaEnvironmentAsset({ layer }) {
         draggable="false"
         src={layer.src}
       />
-      <span aria-hidden="true" className="shooterMapLavaParticles">
-        {particles.map((particle, index) => (
-          <i
-            className="shooterMapLavaParticle"
-            key={`${effectType}-${particle.left}-${index}`}
-            style={{
-              "--shooter-lava-bottom": `${particle.bottom}%`,
-              "--shooter-lava-delay": animationType === "lava-geyser"
-                ? `${index * 0.045 * cycleDuration}s`
-                : `${-(index * 0.23 * cycleDuration)}s`,
-              "--shooter-lava-drift": `${particle.drift}%`,
-              "--shooter-lava-duration": `${Math.max(0.72, cycleDuration * particle.rate)}s`,
-              "--shooter-lava-left": `${particle.left}%`,
-              "--shooter-lava-rise-42": `${particle.rise * -0.42}%`,
-              "--shooter-lava-rise-54": `${particle.rise * -0.54}%`,
-              "--shooter-lava-rise-72": `${particle.rise * -0.72}%`,
-              "--shooter-lava-rise-90": `${particle.rise * -0.9}%`,
-              "--shooter-lava-rise-full": `${particle.rise * -1}%`,
-              "--shooter-lava-rise-over": `${particle.rise * -1.14}%`,
-              "--shooter-lava-size": `${particle.size}%`,
-            }}
-          />
-        ))}
-      </span>
     </span>
   );
 }
@@ -857,6 +813,7 @@ function MapSkinRenderer({
 }) {
   const [eventHiddenLayerIds, setEventHiddenLayerIds] = useState(() => new Set());
   const runtimeEventPlacementsRef = useRef({ key: "", layers: [] });
+  const stageRef = useRef(null);
   const handleEventOriginHiddenChange = useCallback((instanceId, hidden) => {
     if (!instanceId) return;
     setEventHiddenLayerIds((current) => {
@@ -867,6 +824,31 @@ function MapSkinRenderer({
       return next;
     });
   }, []);
+
+  useLayoutEffect(() => {
+    const stageElement = stageRef.current;
+    if (!stageElement || !isLayeredShooterMap(skin)) return undefined;
+
+    const syncCoordinatePlane = () => {
+      const bounds = stageElement.getBoundingClientRect();
+      const plane = getMapCoverPlaneSize(bounds.width, bounds.height, skin.referenceViewport);
+      stageElement.style.setProperty("--shooter-map-cover-width", `${plane.width}px`);
+      stageElement.style.setProperty("--shooter-map-cover-height", `${plane.height}px`);
+      stageElement.style.setProperty("--shooter-map-cover-offset-x", `${plane.offsetX}px`);
+      stageElement.style.setProperty("--shooter-map-cover-offset-y", `${plane.offsetY}px`);
+    };
+
+    syncCoordinatePlane();
+    const observer = typeof ResizeObserver === "function"
+      ? new ResizeObserver(syncCoordinatePlane)
+      : null;
+    observer?.observe(stageElement);
+    window.addEventListener("resize", syncCoordinatePlane);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", syncCoordinatePlane);
+    };
+  }, [skin, stage]);
 
   if (!isLayeredShooterMap(skin)) return null;
 
@@ -880,6 +862,9 @@ function MapSkinRenderer({
     };
   }
   const renderLayers = editMode ? layers : runtimeEventPlacementsRef.current.layers;
+  const visibleRenderLayers = editMode
+    ? renderLayers
+    : renderLayers.filter((layer) => !eventHiddenLayerIds.has(layer.instanceId));
   const hasInteractiveActor = renderLayers.some(
     (layer) => layer.eventActor?.type === "coastal-chest",
   );
@@ -895,7 +880,9 @@ function MapSkinRenderer({
       data-animations-active={animationsActive ? "true" : "false"}
       data-map-skin={skin.id}
       onPointerDown={editMode ? onStagePointerDown : undefined}
+      ref={stageRef}
     >
+      <div className="shooterMapCoordinatePlane">
       {stage === "underlay" && skin.background?.src ? (
         <img
           alt=""
@@ -910,10 +897,10 @@ function MapSkinRenderer({
         />
       ) : null}
 
-      {renderLayers.map((layer) => (
+      {visibleRenderLayers.map((layer) => (
         <span
           aria-label={editMode ? `${layer.label} 배치 오브젝트` : undefined}
-          className={`shooterMapSkinAsset shooterMapSkinAsset--${layer.slot} ${selectedAssetId === layer.instanceId ? "shooterMapSkinAsset--selected" : ""} ${eventHiddenLayerIds.has(layer.instanceId) ? "shooterMapSkinAsset--event-hidden" : ""} ${layer.eventActor ? "shooterMapSkinAsset--event-actor" : ""} ${layer.eventActor?.type === "coastal-chest" ? "shooterMapSkinAsset--interactive-event" : ""}`}
+          className={`shooterMapSkinAsset shooterMapSkinAsset--${layer.slot} ${selectedAssetId === layer.instanceId ? "shooterMapSkinAsset--selected" : ""} ${layer.eventActor ? "shooterMapSkinAsset--event-actor" : ""} ${layer.eventActor?.type === "coastal-chest" ? "shooterMapSkinAsset--interactive-event" : ""}`}
           data-animation={layer.composite ? undefined : layer.animation?.type || undefined}
           data-asset-id={layer.assetId}
           data-instance-id={layer.instanceId}
@@ -1007,6 +994,7 @@ function MapSkinRenderer({
           onAnchorPointerDown={onCreatureAnchorPointerDown}
         />
       ) : null}
+      </div>
     </div>
   );
 }

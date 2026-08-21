@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { APP_LAUNCH_TIMINGS } from "./appLaunch";
 
 export const APP_MASTER_LOGO_SRC = "/assets/branding/just-play-master-logo.png?v=21b0905a";
@@ -43,6 +43,7 @@ export default function SplashIntro({
   statusText = "JUST PLAY 앱을 준비하고 있습니다.",
 }) {
   const [phase, setPhase] = useState("entering");
+  const launchStartedAtRef = useRef(Date.now());
   const instanceId = useId().replace(/:/g, "");
   const logoAssetId = `just-play-launch-asset-${instanceId}`;
   const wordMaskFilterId = `just-play-word-mask-filter-${instanceId}`;
@@ -90,11 +91,21 @@ export default function SplashIntro({
         console.warn("JUST PLAY launch fallback released the splash before the app-ready signal.");
       }
       setPhase("ready");
+      const elapsedMs = Date.now() - launchStartedAtRef.current;
+      const autonomousCompletionRemainingMs = Math.max(
+        0,
+        APP_LAUNCH_TIMINGS.autonomousSequenceMs
+          + APP_LAUNCH_TIMINGS.completeHoldMs
+          - elapsedMs,
+      );
+      const settleBeforeExitMs = controlledProgress
+        ? readySettleMs
+        : Math.max(readySettleMs, autonomousCompletionRemainingMs);
       readyTimerId = window.setTimeout(() => {
         if (cancelled) return;
         setPhase("exiting");
         exitTimerId = window.setTimeout(() => onComplete?.(), exitMs);
-      }, readySettleMs);
+      }, settleBeforeExitMs);
     });
 
     return () => {
@@ -104,7 +115,7 @@ export default function SplashIntro({
       if (exitTimerId !== null) window.clearTimeout(exitTimerId);
       if (readyTimerId !== null) window.clearTimeout(readyTimerId);
     };
-  }, [exitMs, fallbackMs, minimumIntroMs, onComplete, readyPromise, readySettleMs]);
+  }, [controlledProgress, exitMs, fallbackMs, minimumIntroMs, onComplete, readyPromise, readySettleMs]);
 
   return (
     <section

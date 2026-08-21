@@ -16,10 +16,10 @@ export const LAVA_CANYON_MAP_SKIN = Object.freeze({
       audit: Object.freeze({
         completed: true,
         contentFingerprint: "a87432e3",
-        activeCssAnimations: 45,
+        activeCssAnimations: 17,
         ambientEventLayers: 1,
-        filteredElements: 16,
-        particleElements: 26,
+        filteredElements: 15,
+        particleElements: 0,
         sharedSpriteSubscribers: 1,
       }),
     }),

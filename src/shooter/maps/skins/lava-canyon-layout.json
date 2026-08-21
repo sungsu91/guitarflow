@@ -111,7 +111,7 @@
     "instanceId": "lava-boiling-pool-left-lower",
     "assetId": "lava-boiling-pool",
     "x": 0.3414532230779087,
-    "y": 0.5905342691566453,
+    "y": 0.5893317624980307,
     "scale": 0.31999999999999995,
     "rotation": -2,
     "scaleX": 1,
@@ -227,8 +227,8 @@
   {
     "instanceId": "lava-flying-baby-dragon-01",
     "assetId": "ambient-flying-baby-dragon",
-    "x": 0.10633902124565192,
-    "y": 0.35558687566828184,
+    "x": 0.1809311029513811,
+    "y": 0.3519793556924377,
     "scale": 0.9342240504084847,
     "rotation": 0,
     "scaleX": 1,
@@ -257,42 +257,6 @@
       }
     ],
     "layer": 28,
-    "animation": "none",
-    "animationSpeed": 1
-  },
-  {
-    "instanceId": "lava-tattered-dragon-banner-right-01",
-    "assetId": "tattered-dragon-banner",
-    "x": 0.8207839566841648,
-    "y": 0.922751862856753,
-    "scale": 0.5917389385055488,
-    "rotation": -1,
-    "scaleX": 1,
-    "scaleY": 0.86,
-    "skewX": 0,
-    "skewY": 0,
-    "perspective": 900,
-    "tiltX": 0,
-    "tiltY": 0,
-    "perspectiveCorners": [
-      {
-        "x": 0,
-        "y": 0
-      },
-      {
-        "x": 0.6840268343486604,
-        "y": -0.016057089969936652
-      },
-      {
-        "x": 0.6758345757809665,
-        "y": 0.9655173265312698
-      },
-      {
-        "x": 0,
-        "y": 1
-      }
-    ],
-    "layer": 29,
     "animation": "none",
     "animationSpeed": 1
   },
@@ -372,7 +336,7 @@
     "instanceId": "lava-torch-flame-left-upper",
     "assetId": "lava-torch-flame",
     "x": 0.096465179536488,
-    "y": 0.3636301292361146,
+    "y": 0.3624276225774999,
     "scale": 0.49876161093412785,
     "rotation": 0,
     "scaleX": 1,

@@ -26676,6 +26676,7 @@ function App({ onReady }) {
             <MapSkinRenderer
               ambientEventsActive={shooterMapRuntimePerformance.ambientEventsActive}
               animationsActive={shooterMapAnimationsActive}
+              enhancedEffectsActive={shooterMapRuntimePerformance.enhancedEffectsActive}
               editMode={mapEditor.enabled}
               layout={shooterMapRenderLayout}
               onAssetPointerDown={mapEditor.beginAssetGesture}
@@ -27037,6 +27038,7 @@ function App({ onReady }) {
             <MapSkinRenderer
               ambientEventsActive={shooterMapRuntimePerformance.ambientEventsActive}
               animationsActive={shooterMapAnimationsActive}
+              enhancedEffectsActive={shooterMapRuntimePerformance.enhancedEffectsActive}
               editMode={mapEditor.enabled}
               layout={shooterMapRenderLayout}
               onAssetPointerDown={mapEditor.beginAssetGesture}

@@ -22,6 +22,10 @@ test("launch controller resolves readiness once without remounting app state", a
 test("launch timings fast-forward ready apps and keep a bounded loading fallback", () => {
   assert.ok(APP_LAUNCH_TIMINGS.minimumIntroMs >= 200);
   assert.ok(APP_LAUNCH_TIMINGS.minimumIntroMs <= 400);
+  assert.ok(APP_LAUNCH_TIMINGS.autonomousSequenceMs >= 700);
+  assert.ok(APP_LAUNCH_TIMINGS.autonomousSequenceMs <= 1000);
+  assert.ok(APP_LAUNCH_TIMINGS.completeHoldMs >= 180);
+  assert.ok(APP_LAUNCH_TIMINGS.completeHoldMs <= 300);
   assert.ok(APP_LAUNCH_TIMINGS.readySettleMs >= 160);
   assert.ok(APP_LAUNCH_TIMINGS.readySettleMs <= 260);
   assert.ok(APP_LAUNCH_TIMINGS.fallbackMs > APP_LAUNCH_TIMINGS.minimumIntroMs);
@@ -44,5 +48,7 @@ test("launch screen uses the original transparent master logo", () => {
   );
   assert.match(splashSource, /APP_MASTER_LOGO_SRC = "\/assets\/branding\/just-play-master-logo\.png\?v=21b0905a"/);
   assert.equal((splashSource.match(/<image/g) ?? []).length, 1);
+  assert.match(splashSource, /autonomousCompletionRemainingMs/);
+  assert.match(splashSource, /Math\.max\(readySettleMs, autonomousCompletionRemainingMs\)/);
   assert.match(indexSource, /<link rel="preload" as="image" href="\/assets\/branding\/just-play-master-logo\.png\?v=21b0905a" fetchpriority="high"/);
 });

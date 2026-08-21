@@ -83,8 +83,9 @@ export function getShooterMapRuntimePerformance({
   );
 
   return {
-    ambientEventsActive: animationsAllowed && !reduceEffects,
-    animationsActive: animationsAllowed && !reduceEffects,
+    ambientEventsActive: animationsAllowed,
+    animationsActive: animationsAllowed,
+    enhancedEffectsActive: !reduceEffects,
     reduceEffects,
   };
 }

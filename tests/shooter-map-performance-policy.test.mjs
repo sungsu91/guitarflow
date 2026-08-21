@@ -88,8 +88,9 @@ test("reduced effects apply only to mobile gameplay and never to the editor", ()
     map: LAVA_CANYON_MAP_SKIN,
   });
   assert.deepEqual(mobilePlay, {
-    ambientEventsActive: false,
-    animationsActive: false,
+    ambientEventsActive: true,
+    animationsActive: true,
+    enhancedEffectsActive: false,
     reduceEffects: true,
   });
 
@@ -127,6 +128,9 @@ test("the app and renderer consume the common map policy instead of a map-specif
   assert.match(appSource, /shooterMapRuntimePerformance\.reduceEffects/);
   assert.doesNotMatch(appSource, /mobileLavaGameplayPerformanceMode/);
   assert.match(creatureSource, /animationActive && !editMode/);
-  assert.match(styles, /\.shooterArena--mapEffectsReduced \.shooterMapSkinAsset/);
+  assert.doesNotMatch(styles, /shooterMapLavaParticles|shooterMapLavaParticle|shooterMapLavaEffectBase/);
+  assert.match(styles, /\.shooterArena--mapEffectsReduced \.shooterMapFlyingDragonSprite/);
+  assert.doesNotMatch(styles, /\.shooterArena--mapEffectsReduced \.shooterMapAmbientEvents/);
+  assert.doesNotMatch(styles, /\.shooterArena--mapEffectsReduced \.shooterMapSkinAsset[^\n]*animation: none/);
   assert.doesNotMatch(styles, /shooterMapSkin--lava-canyon\.shooterArena--mapEffectsReduced/);
 });

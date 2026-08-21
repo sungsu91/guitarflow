@@ -1680,11 +1680,16 @@ html body .app .tunerPresetList button.selected {
 
   .tunerModeBody--mobile .tunerHeadstockPanel[data-instrument="bass"] .tunerHeadstockAsset,
   .tunerModeBody--mobile .tunerHeadstockPanel[data-instrument="ukulele"] .tunerHeadstockAsset {
-    transform: translateY(24px);
+    transform: translateY(38px);
   }
 
   .tunerModeBody--mobile .tunerHeadstockTarget {
-    transform: translate(-50%, -64%);
+    transform: translate(-50%, -68%);
+  }
+
+  .tunerModeBody--mobile .tunerHeadstockPanel[data-instrument="bass"] .tunerHeadstockTarget,
+  .tunerModeBody--mobile .tunerHeadstockPanel[data-instrument="ukulele"] .tunerHeadstockTarget {
+    transform: translate(-50%, -100%);
   }
 
   html body .app .tunerPegHotspot {
@@ -1764,7 +1769,7 @@ html body .app .tunerPresetList button.selected {
   .tunerGaugeLabels strong { padding: 4px 9px; }
   .tunerCentScale { right: 8%; bottom: 42px; left: 8%; height: 34px; font-size: 10px; }
   .tunerCentScale i { height: 17px; }
-  .tunerGaugeGuidance { right: 8px; bottom: 4px; left: 8px; min-height: 30px; }
+  .tunerGaugeGuidance { right: 8px; bottom: 2px; left: 8px; min-height: 30px; }
   .tunerGaugeGuidance--badge { min-height: 58px; }
   .tunerGaugeGuidance strong { font-size: 11px; }
   .tunerGaugeGuidance small { display: none; }
@@ -1883,7 +1888,7 @@ html body .app .tunerPresetList button.selected {
   }
   .tunerModeBody--mobile .tunerHeadstockPanel[data-instrument="bass"] .tunerHeadstockAsset,
   .tunerModeBody--mobile .tunerHeadstockPanel[data-instrument="ukulele"] .tunerHeadstockAsset {
-    transform: translateY(16px);
+    transform: translateY(42px);
   }
   html body .app .tunerPegHotspot { width: 48px; height: 36px; }
   .tunerPegLabel { width: 18px; height: 18px; min-width: 18px; font-size: 12px; }

@@ -177,36 +177,20 @@ html.app-is-launching::-webkit-scrollbar-track {
   transform: none;
 }
 
-.launchSplash--autonomous.launchSplash--entering .launchSplash__piece--just {
-  animation: launchPieceJustIn 400ms cubic-bezier(0.16, 0.84, 0.22, 1) 100ms both;
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__piece--just {
+  animation: launchPieceJustIn 260ms cubic-bezier(0.16, 0.84, 0.22, 1) 40ms both;
 }
 
-.launchSplash--autonomous.launchSplash--entering .launchSplash__piece--play {
-  animation: launchPiecePlayIn 410ms cubic-bezier(0.16, 0.84, 0.22, 1) 440ms both;
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__piece--play {
+  animation: launchPiecePlayIn 270ms cubic-bezier(0.16, 0.84, 0.22, 1) 200ms both;
 }
 
-.launchSplash--autonomous.launchSplash--entering .launchSplash__piece--guitar {
-  animation: launchPieceGuitarIn 440ms cubic-bezier(0.16, 0.84, 0.22, 1) 780ms both;
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__piece--guitar {
+  animation: launchPieceGuitarIn 300ms cubic-bezier(0.16, 0.84, 0.22, 1) 380ms both;
 }
 
-.launchSplash--autonomous.launchSplash--entering .launchSplash__pieceFinal {
-  animation: launchPieceFinalIn 300ms cubic-bezier(0.2, 0.78, 0.24, 1) 1140ms both;
-}
-
-.launchSplash--autonomous.launchSplash--ready .launchSplash__piece--just {
-  animation: launchPieceJustIn 170ms cubic-bezier(0.16, 0.84, 0.22, 1) both;
-}
-
-.launchSplash--autonomous.launchSplash--ready .launchSplash__piece--play {
-  animation: launchPiecePlayIn 180ms cubic-bezier(0.16, 0.84, 0.22, 1) 20ms both;
-}
-
-.launchSplash--autonomous.launchSplash--ready .launchSplash__piece--guitar {
-  animation: launchPieceGuitarIn 190ms cubic-bezier(0.16, 0.84, 0.22, 1) 40ms both;
-}
-
-.launchSplash--autonomous.launchSplash--ready .launchSplash__pieceFinal {
-  animation: launchPieceFinalIn 170ms ease-out 70ms both;
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__pieceFinal {
+  animation: launchPieceFinalIn 220ms cubic-bezier(0.2, 0.78, 0.24, 1) 600ms both;
 }
 
 .launchSplash--exiting .launchSplash__pieceFinal {
@@ -214,8 +198,8 @@ html.app-is-launching::-webkit-scrollbar-track {
   transform: none;
 }
 
-.launchSplash--autonomous.launchSplash--entering .launchSplash__stage::before {
-  animation: launchLogoAura 3000ms ease-in-out 1380ms infinite;
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stage::before {
+  animation: launchLogoAura 3000ms ease-in-out 800ms infinite;
 }
 
 .launchSplash--ready .launchSplash__stage::before,
@@ -230,10 +214,9 @@ html.app-is-launching::-webkit-scrollbar-track {
   transform-box: fill-box;
 }
 
-.launchSplash--autonomous.launchSplash--entering .launchSplash__sheen,
-.launchSplash--autonomous.launchSplash--ready .launchSplash__sheen,
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__sheen,
 .launchSplash--controlled.launchSplash--step-complete .launchSplash__sheen {
-  animation: launchGoldSheen 2600ms ease-in-out 1780ms infinite;
+  animation: launchGoldSheen 2600ms ease-in-out 800ms infinite;
 }
 
 .launchSplash--controlled.launchSplash--step-complete .launchSplash__sheen {
@@ -255,54 +238,47 @@ html.app-is-launching::-webkit-scrollbar-track {
   transform-origin: center;
 }
 
-.launchSplash--autonomous.launchSplash--entering .launchSplash__stringMotion,
-.launchSplash--autonomous.launchSplash--ready .launchSplash__stringMotion,
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stringMotion,
 .launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion {
-  animation: launchStringsVisible 1ms linear 1780ms forwards;
+  animation: launchStringsVisible 1ms linear 820ms forwards;
 }
 
 .launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion {
   animation-delay: 0ms;
 }
 
-.launchSplash--autonomous.launchSplash--entering .launchSplash__stringMotion path,
-.launchSplash--autonomous.launchSplash--ready .launchSplash__stringMotion path,
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stringMotion path,
 .launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path {
-  animation: launchStringWait 1680ms ease-in-out 1780ms infinite;
+  animation: launchStringWait 1680ms ease-in-out 820ms infinite;
 }
 
 .launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path {
   animation-delay: 0ms;
 }
 
-.launchSplash--autonomous.launchSplash--entering .launchSplash__stringMotion path:nth-child(2),
-.launchSplash--autonomous.launchSplash--ready .launchSplash__stringMotion path:nth-child(2),
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stringMotion path:nth-child(2),
 .launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(2) {
-  animation-delay: 1810ms;
+  animation-delay: 850ms;
 }
 
-.launchSplash--autonomous.launchSplash--entering .launchSplash__stringMotion path:nth-child(3),
-.launchSplash--autonomous.launchSplash--ready .launchSplash__stringMotion path:nth-child(3),
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stringMotion path:nth-child(3),
 .launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(3) {
-  animation-delay: 1840ms;
+  animation-delay: 880ms;
 }
 
-.launchSplash--autonomous.launchSplash--entering .launchSplash__stringMotion path:nth-child(4),
-.launchSplash--autonomous.launchSplash--ready .launchSplash__stringMotion path:nth-child(4),
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stringMotion path:nth-child(4),
 .launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(4) {
-  animation-delay: 1870ms;
+  animation-delay: 910ms;
 }
 
-.launchSplash--autonomous.launchSplash--entering .launchSplash__stringMotion path:nth-child(5),
-.launchSplash--autonomous.launchSplash--ready .launchSplash__stringMotion path:nth-child(5),
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stringMotion path:nth-child(5),
 .launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(5) {
-  animation-delay: 1900ms;
+  animation-delay: 940ms;
 }
 
-.launchSplash--autonomous.launchSplash--entering .launchSplash__stringMotion path:nth-child(6),
-.launchSplash--autonomous.launchSplash--ready .launchSplash__stringMotion path:nth-child(6),
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stringMotion path:nth-child(6),
 .launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(6) {
-  animation-delay: 1930ms;
+  animation-delay: 970ms;
 }
 
 .launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(2) {

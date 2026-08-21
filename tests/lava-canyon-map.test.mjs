@@ -22,7 +22,7 @@ function readPngHeader(buffer) {
   };
 }
 
-test("Lava Canyon combines editable lava scenery, torch flames, dragons, and an animated tattered banner", async () => {
+test("Lava Canyon combines visible lava scenery, torch flames, dragons, and reusable map assets", async () => {
   assert.equal(isLayeredShooterMap(LAVA_CANYON_MAP_SKIN), true);
   assert.equal(isEditableShooterMap(LAVA_CANYON_MAP_SKIN), true);
   assert.equal(LAVA_CANYON_MAP_SKIN.background.fit, "cover");
@@ -135,10 +135,7 @@ test("Lava Canyon combines editable lava scenery, torch flames, dragons, and an 
     1,
   );
   const bannerPlacement = validatedLayout.find((placement) => placement.assetId === "tattered-dragon-banner");
-  assert.ok(bannerPlacement);
-  assert.equal(bannerPlacement.instanceId, "lava-tattered-dragon-banner-right-01");
-  assert.ok(Number.isInteger(bannerPlacement.layer));
-  assert.equal(bannerPlacement.animationSpeed, 1);
+  assert.equal(bannerPlacement, undefined);
   const flyingDragonLayer = resolved.layers.find((layer) => layer.assetId === "ambient-flying-baby-dragon");
   const flyingDragonAsset = LAVA_CANYON_MAP_SKIN.assetCatalog.find((asset) => asset.id === "ambient-flying-baby-dragon");
   assert.ok(flyingDragonLayer);
@@ -154,8 +151,7 @@ test("Lava Canyon combines editable lava scenery, torch flames, dragons, and an 
   });
   const bannerLayer = resolved.layers.find((layer) => layer.assetId === "tattered-dragon-banner");
   const bannerAsset = LAVA_CANYON_MAP_SKIN.assetCatalog.find((asset) => asset.id === "tattered-dragon-banner");
-  assert.ok(bannerLayer);
-  assert.equal(bannerLayer.slot, "animated-environment");
+  assert.equal(bannerLayer, undefined);
   assert.equal(bannerAsset.label, "펄럭이는 찢어진 용 깃발");
   assert.equal(bannerAsset.spriteSheet.columns, 1);
   assert.equal(bannerAsset.spriteSheet.rows, 1);
@@ -165,7 +161,6 @@ test("Lava Canyon combines editable lava scenery, torch flames, dragons, and an 
   assert.equal(bannerAsset.spriteSheet.framesPerSecond, 4);
   assert.equal(bannerAsset.spriteSheet.frames.length, 3);
   assert.equal(bannerAsset.spriteSheet.staticSrc.endsWith("tattered-dragon-banner-pole.png"), true);
-  assert.equal(bannerLayer.animationSpeed, bannerPlacement.animationSpeed);
   const torchAsset = LAVA_CANYON_MAP_SKIN.assetCatalog.find((asset) => asset.id === "lava-torch-flame");
   assert.ok(torchAsset);
   assert.equal(torchAsset.label, "횃불 타오르는 불꽃");
@@ -296,11 +291,9 @@ test("Lava Canyon combines editable lava scenery, torch flames, dragons, and an 
   assert.match(mapSkinStyles, /@keyframes shooterMapTorchFlameBrightness/);
   assert.match(mapSkinStyles, /@keyframes shooterMapTorchLightPulse/);
   assert.match(rendererSource, /function LavaEnvironmentAsset/);
-  assert.match(rendererSource, /LAVA_GEYSER_PARTICLES/);
-  assert.match(rendererSource, /LAVA_POOL_BUBBLES/);
-  assert.match(mapSkinStyles, /@keyframes shooterMapLavaGeyserParticle/);
-  assert.match(mapSkinStyles, /@keyframes shooterMapLavaPoolBubble/);
-  assert.match(mapSkinStyles, /@keyframes shooterMapLavaBubbleRipple/);
+  assert.doesNotMatch(rendererSource, /LAVA_GEYSER_PARTICLES|LAVA_POOL_BUBBLES/);
+  assert.doesNotMatch(rendererSource, /shooterMapLavaParticles|shooterMapLavaParticle|shooterMapLavaEffectBase/);
+  assert.doesNotMatch(mapSkinStyles, /shooterMapLavaGeyserParticle|shooterMapLavaPoolBubble|shooterMapLavaBubbleRipple/);
   const lavaGeyserKeyframes = mapSkinStyles.match(/@keyframes shooterMapLavaGeyser\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
   assert.doesNotMatch(lavaGeyserKeyframes, /clip-path|filter:/);
   assert.match(mapSkinStyles, /@keyframes shooterBabyDragonIdle/);
@@ -327,7 +320,10 @@ test("Lava Canyon combines editable lava scenery, torch flames, dragons, and an 
   assert.match(crossingSource, /instanceId: actorLayer\.instanceId/);
   assert.doesNotMatch(crossingSource, /getHomeLayer/);
   assert.match(crossingSource, /prefers-reduced-motion/);
-  assert.match(rendererSource, /shooterMapSkinAsset--event-hidden/);
+  assert.match(rendererSource, /const visibleRenderLayers = editMode/);
+  assert.match(rendererSource, /renderLayers\.filter\(\(layer\) => !eventHiddenLayerIds\.has\(layer\.instanceId\)\)/);
+  assert.doesNotMatch(rendererSource, /className=\{`[^`]*shooterMapSkinAsset--event-hidden/);
+  assert.doesNotMatch(mapSkinStyles, /shooterMapSkinAsset--event-hidden/);
   assert.match(rendererSource, /shooterMapSkinAsset--event-actor/);
   assert.match(rendererSource, /function SpriteSheetMapAsset/);
   assert.match(rendererSource, /shooterMapEventActorReady/);
@@ -350,7 +346,10 @@ test("Lava Canyon combines editable lava scenery, torch flames, dragons, and an 
   assert.match(appSource, /ambientEventsActive=\{shooterMapRuntimePerformance\.ambientEventsActive\}/);
   assert.match(rendererSource, /data-animations-active=\{animationsActive \? "true" : "false"\}/);
   assert.match(rendererSource, /animationActive=\{animationsActive\}/);
-  assert.match(mapSkinStyles, /shooterArena--mapEffectsReduced \.shooterMapLavaParticles/);
-  assert.match(mapSkinStyles, /shooterArena--mapEffectsReduced \.shooterMapAmbientEvents/);
+  assert.match(rendererSource, /<i aria-hidden="true" className="shooterMapTorchFlameGlow"/);
+  assert.doesNotMatch(mapSkinStyles, /shooterMapLavaEffectBase|shooterMapLavaParticle/);
+  assert.doesNotMatch(mapSkinStyles, /shooterArena--mapEffectsReduced \.shooterMapAmbientEvents/);
+  assert.match(mapSkinStyles, /@keyframes shooterMapTorchLightPulseLite/);
+  assert.match(mapSkinStyles, /shooterArena--mapEffectsReduced \.shooterMapTorchFlameGlow/);
   assert.doesNotMatch(mapSkinStyles, /@keyframes shooterMapLavaBoil/);
 });
