@@ -5,7 +5,10 @@ import {
   getShooterNoteMonsterLabelPalette,
   getShooterNoteMonsterRenderScale,
 } from "../../noteMonsterAssets.js";
-import { getShooterNoteMonsterRenderedScales } from "../../noteMonsterTuning.js";
+import {
+  getShooterNoteMonsterLabelPosition,
+  getShooterNoteMonsterRenderedScales,
+} from "../../noteMonsterTuning.js";
 import { DEFAULT_PERSPECTIVE_CORNERS } from "../freeTransform.js";
 import { FROG_MOVEMENT_MODES, MAP_EDIT_ANIMATION_TYPES } from "./editorState.js";
 
@@ -157,6 +160,7 @@ function MonsterTuningControls({ monsterEditor }) {
   const labelColor = activeTuning.labelColor || labelPalette.color;
   const labelOutline = activeTuning.labelOutline || labelPalette.outline;
   const renderedScales = getShooterNoteMonsterRenderedScales(activeTuning);
+  const labelPosition = getShooterNoteMonsterLabelPosition(labelLayout, activeTuning);
   const renderScale = renderedScales.monsterScale * getShooterNoteMonsterRenderScale(noteName);
   const jointScalePercent = Math.round(activeTuning.jointScale * 100);
   const labelScalePercent = Math.round(activeTuning.labelScale * 100);
@@ -207,10 +211,8 @@ function MonsterTuningControls({ monsterEditor }) {
             "--monster-preview-label-glow": labelPalette.glow,
             "--monster-preview-label-outline": labelOutline,
             "--monster-preview-label-size": `${13 * renderedScales.labelScale}px`,
-            "--monster-preview-label-x": `${labelLayout.x}%`,
-            "--monster-preview-label-y": `${labelLayout.y}%`,
-            "--monster-preview-offset-x": `${activeTuning.labelOffsetX}px`,
-            "--monster-preview-offset-y": `${activeTuning.labelOffsetY}px`,
+            "--monster-preview-label-x": `${labelPosition.x}%`,
+            "--monster-preview-label-y": `${labelPosition.y}%`,
             "--monster-preview-size": `${86.4 * renderScale}px`,
           }}
         >
@@ -236,11 +238,11 @@ function MonsterTuningControls({ monsterEditor }) {
         </div>
         <div className="mapEditPixelFields">
           <label className="mapEditField">
-            <span>텍스트 좌·우 (px)</span>
+            <span>텍스트 좌·우 (기준 px)</span>
             <input aria-label="몹 텍스트 좌우 보정값" max="80" min="-80" onChange={(event) => updateNumber("labelOffsetX", event.target.value)} step="1" type="number" value={Math.round(activeTuning.labelOffsetX)} />
           </label>
           <label className="mapEditField">
-            <span>텍스트 위·아래 (px)</span>
+            <span>텍스트 위·아래 (기준 px)</span>
             <input aria-label="몹 텍스트 상하 보정값" max="80" min="-80" onChange={(event) => updateNumber("labelOffsetY", event.target.value)} step="1" type="number" value={Math.round(activeTuning.labelOffsetY)} />
           </label>
         </div>
@@ -302,7 +304,7 @@ function MonsterTuningControls({ monsterEditor }) {
         </div>
       </div>
 
-      <p className="mapEditMonsterTuningHelp">텍스트와 몹을 각각 조절하거나, 공동 조절로 두 크기를 함께 바꿀 수 있습니다. 원형 피격판정과 음 생성 규칙은 그대로 유지됩니다.</p>
+      <p className="mapEditMonsterTuningHelp">텍스트 위치는 몹 크기에 비례해 함께 움직이며, 적용하면 배포본에도 같은 값이 저장됩니다. 원형 피격판정과 음 생성 규칙은 그대로 유지됩니다.</p>
       <button className="mapEditRestoreButton" onClick={monsterEditor.resetActive} type="button">이 음의 몹 보정값만 기본으로</button>
     </CollapsibleEditorSection>
   );

@@ -80,6 +80,7 @@ import {
   getShooterNoteMonsterSkin,
 } from "./shooter/noteMonsterAssets";
 import {
+  getShooterNoteMonsterLabelPosition,
   getShooterNoteMonsterRenderedScales,
   getShooterNoteMonsterTuning,
 } from "./shooter/noteMonsterTuning.js";
@@ -26673,6 +26674,10 @@ function App({ onReady }) {
                 targetPitch,
               );
               const monsterRenderedScales = getShooterNoteMonsterRenderedScales(monsterTuning);
+              const monsterLabelPosition = getShooterNoteMonsterLabelPosition(
+                monsterLabelLayout,
+                monsterTuning,
+              );
               const monsterRenderScale = getShooterNoteMonsterRenderScale(targetPitch)
                 * monsterRenderedScales.monsterScale;
               return (
@@ -26692,10 +26697,8 @@ function App({ onReady }) {
                   "--target-duration-ms": `${target.duration}ms`,
                   "--target-destroy-duration-ms": `${SHOOTER_TARGET_DESTROY_ANIMATION_MS}ms`,
                   "--target-destroy-frame-ms": `${SHOOTER_TARGET_DESTROY_FRAME_MS}ms`,
-                  "--target-label-x": `${monsterLabelLayout.x}%`,
-                  "--target-label-y": `${monsterLabelLayout.y}%`,
-                  "--target-label-offset-x": `${monsterTuning.labelOffsetX}px`,
-                  "--target-label-offset-y": `${monsterTuning.labelOffsetY}px`,
+                  "--target-label-x": `${monsterLabelPosition.x}%`,
+                  "--target-label-y": `${monsterLabelPosition.y}%`,
                   "--target-label-font-size": `${13 * monsterRenderedScales.labelScale}px`,
                   "--target-label-color": monsterTuning.labelColor || monsterLabelPalette.color,
                   "--target-label-outline": monsterTuning.labelOutline || monsterLabelPalette.outline,
@@ -26703,7 +26706,7 @@ function App({ onReady }) {
                   ...getNoteColorStyle(target.note),
                 }}
               >
-                <div className="shooterEnemyMonsterVisual" aria-hidden="true">
+                <div className="shooterEnemyMonsterVisual">
                   {target.defeated ? monsterFrames.slice(1).map((frameSrc, frameIndex) => (
                     <img
                       alt=""
@@ -26721,12 +26724,12 @@ function App({ onReady }) {
                       src={monsterFrames[0]}
                     />
                   )}
+                  {!target.defeated ? (
+                    <span aria-hidden="true" className="shooterEnemyPitchLabel">
+                      <b>{targetPitch}</b>
+                    </span>
+                  ) : null}
                 </div>
-                {!target.defeated ? (
-                  <span className="shooterEnemyPitchLabel">
-                    <b>{targetPitch}</b>
-                  </span>
-                ) : null}
               </div>
               );
             })}

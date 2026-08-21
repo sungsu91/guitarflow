@@ -5333,8 +5333,6 @@ html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shoote
   position: absolute !important;
   left: var(--target-label-x, 50%);
   top: var(--target-label-y, 50%);
-  margin-left: var(--target-label-offset-x, 0px);
-  margin-top: var(--target-label-offset-y, 0px);
   z-index: 3;
   display: inline-flex;
   align-items: center;

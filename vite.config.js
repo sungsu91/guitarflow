@@ -9,8 +9,16 @@ import { PARK_ENVIRONMENT_ASSETS } from "./src/shooter/maps/assets/parkAssets.js
 import { RIVER_ENVIRONMENT_ASSETS } from "./src/shooter/maps/assets/riverAssets.js";
 import { MAP_EDIT_ANIMATION_TYPES } from "./src/shooter/maps/editor/editorState.js";
 import { DEFAULT_PERSPECTIVE_CORNERS } from "./src/shooter/maps/freeTransform.js";
+import {
+  SHOOTER_NOTE_MONSTER_ROOTS,
+  SHOOTER_NOTE_MONSTER_SKINS,
+} from "./src/shooter/noteMonsterAssets.js";
 
 const MAP_LAYOUT_ENDPOINT = "/__rifflab/map-editor/layout";
+const NOTE_MONSTER_TUNING_ENDPOINT = "/__rifflab/shooter-editor/note-monster-tuning";
+const NOTE_MONSTER_TUNING_DEFAULTS_PATH = fileURLToPath(
+  new URL("./src/shooter/noteMonsterTuningDefaults.js", import.meta.url),
+);
 const RIVER_LAYOUT_PATH = fileURLToPath(
   new URL("./src/shooter/maps/skins/river-layout.json", import.meta.url),
 );
@@ -31,6 +39,16 @@ export const MAP_EDIT_SKINS = new Map([
 ]);
 const MAP_ANIMATION_IDS = new Set(MAP_EDIT_ANIMATION_TYPES.map((animation) => animation.id));
 const FROG_MOVEMENT_MODES = new Set(["sequence", "random"]);
+const NOTE_MONSTER_SKIN_IDS = new Set(SHOOTER_NOTE_MONSTER_SKINS.map((skin) => skin.id));
+const DEFAULT_NOTE_MONSTER_TUNING = Object.freeze({
+  jointScale: 1,
+  labelColor: "",
+  labelOffsetX: 0,
+  labelOffsetY: 0,
+  labelOutline: "",
+  labelScale: 1,
+  scale: 1.15,
+});
 
 function isFrogLandingAssetId(assetId = "", creatureType = "") {
   return assetId.startsWith("rock-")
@@ -43,6 +61,45 @@ function validateHexColor(value) {
   const color = String(value ?? "").trim();
   if (!/^#[0-9a-f]{6}$/i.test(color)) throw new Error("Invalid creature color");
   return color.toLowerCase();
+}
+
+function validateOptionalHexColor(value) {
+  const color = String(value ?? "").trim();
+  if (!color) return "";
+  if (!/^#[0-9a-f]{6}$/i.test(color)) throw new Error("Invalid monster label color");
+  return color.toLowerCase();
+}
+
+export function validateNoteMonsterTunings(input) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new Error("Invalid monster tuning store");
+  }
+
+  const output = {};
+  for (const [skinId, rootTunings] of Object.entries(input)) {
+    if (!NOTE_MONSTER_SKIN_IDS.has(skinId)) throw new Error("Unknown monster skin");
+    if (!rootTunings || typeof rootTunings !== "object" || Array.isArray(rootTunings)) {
+      throw new Error("Invalid monster root tuning store");
+    }
+    const roots = {};
+    for (const [noteRoot, tuning] of Object.entries(rootTunings)) {
+      if (!SHOOTER_NOTE_MONSTER_ROOTS.includes(noteRoot)) throw new Error("Unknown monster note root");
+      if (!tuning || typeof tuning !== "object" || Array.isArray(tuning)) {
+        throw new Error("Invalid monster tuning");
+      }
+      roots[noteRoot] = {
+        jointScale: finiteNumber(tuning.jointScale ?? DEFAULT_NOTE_MONSTER_TUNING.jointScale, 0.5, 2),
+        labelColor: validateOptionalHexColor(tuning.labelColor),
+        labelOffsetX: finiteNumber(tuning.labelOffsetX ?? DEFAULT_NOTE_MONSTER_TUNING.labelOffsetX, -80, 80),
+        labelOffsetY: finiteNumber(tuning.labelOffsetY ?? DEFAULT_NOTE_MONSTER_TUNING.labelOffsetY, -80, 80),
+        labelOutline: validateOptionalHexColor(tuning.labelOutline),
+        labelScale: finiteNumber(tuning.labelScale ?? DEFAULT_NOTE_MONSTER_TUNING.labelScale, 0.5, 2),
+        scale: finiteNumber(tuning.scale ?? DEFAULT_NOTE_MONSTER_TUNING.scale, 0.5, 2.5),
+      };
+    }
+    if (Object.keys(roots).length) output[skinId] = roots;
+  }
+  return output;
 }
 
 function isLoopbackAddress(address = "") {
@@ -259,6 +316,50 @@ function mapEditorSavePlugin() {
   };
 }
 
+function noteMonsterTuningSavePlugin() {
+  return {
+    name: "rifflab-note-monster-tuning-save",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use(async (request, response, next) => {
+        if (request.url !== NOTE_MONSTER_TUNING_ENDPOINT || request.method !== "POST") {
+          next();
+          return;
+        }
+
+        response.setHeader("Content-Type", "application/json; charset=utf-8");
+        if (!isLoopbackAddress(request.socket.remoteAddress)) {
+          response.statusCode = 403;
+          response.end(JSON.stringify({ ok: false, error: "Local editor access only" }));
+          return;
+        }
+
+        try {
+          let body = "";
+          for await (const chunk of request) {
+            body += chunk;
+            if (body.length > 131_072) throw new Error("Monster tuning payload is too large");
+          }
+          const payload = JSON.parse(body);
+          const tunings = validateNoteMonsterTunings(payload?.tunings);
+          const moduleSource = [
+            "// The local map editor rewrites this file when monster tuning is applied.",
+            "// Keeping the values in source makes the same composition available after deployment.",
+            `export default Object.freeze(${JSON.stringify(tunings, null, 2)});`,
+            "",
+          ].join("\n");
+          await writeFile(NOTE_MONSTER_TUNING_DEFAULTS_PATH, moduleSource, "utf8");
+          response.statusCode = 200;
+          response.end(JSON.stringify({ ok: true, tunings }));
+        } catch (error) {
+          response.statusCode = 400;
+          response.end(JSON.stringify({ ok: false, error: error.message }));
+        }
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), mapEditorSavePlugin()],
+  plugins: [react(), mapEditorSavePlugin(), noteMonsterTuningSavePlugin()],
 });

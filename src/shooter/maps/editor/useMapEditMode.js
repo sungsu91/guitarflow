@@ -949,7 +949,7 @@ export default function useMapEditMode(skin, editingAllowed = true) {
     if (!hasChanges) {
       if (typeof beforeFinish === "function" && await beforeFinish() === false) {
         setSaveStatus("error");
-        setSaveError("이펙트 보정값을 저장하지 못했습니다.");
+        setSaveError("화면 보정값을 저장하지 못했습니다.");
         return false;
       }
       setSaveError("");
@@ -960,7 +960,7 @@ export default function useMapEditMode(skin, editingAllowed = true) {
     if (!savedPlacements) return false;
     if (typeof beforeFinish === "function" && await beforeFinish() === false) {
       setSaveStatus("error");
-      setSaveError("이펙트 보정값을 저장하지 못했습니다.");
+      setSaveError("화면 보정값을 저장하지 못했습니다.");
       return false;
     }
     const appliedPlacements = clonePlacementSnapshot(savedPlacements);

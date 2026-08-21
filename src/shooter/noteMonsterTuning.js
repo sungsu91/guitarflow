@@ -4,8 +4,13 @@ import {
   getShooterNoteMonsterRoot,
   getShooterNoteMonsterSkin,
 } from "./noteMonsterAssets.js";
+import shooterNoteMonsterTuningDefaults from "./noteMonsterTuningDefaults.js";
 
 export const SHOOTER_NOTE_MONSTER_TUNING_STORAGE_KEY = "rifflabShooterMonsterTuningV1";
+export const SHOOTER_NOTE_MONSTER_TUNING_SAVE_ENDPOINT = "/__rifflab/shooter-editor/note-monster-tuning";
+// Tuning offsets are authored on the default 86.4px monster at its 115% base scale.
+// They are converted to percentages before rendering so the label stays attached at every size.
+export const SHOOTER_NOTE_MONSTER_TUNING_REFERENCE_SIZE = 86.4 * 1.15;
 
 export const DEFAULT_SHOOTER_NOTE_MONSTER_TUNING = Object.freeze({
   jointScale: 1,
@@ -63,8 +68,32 @@ export function normalizeShooterNoteMonsterTuningStore(value = {}) {
   }));
 }
 
+export const SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS = Object.freeze(
+  normalizeShooterNoteMonsterTuningStore(shooterNoteMonsterTuningDefaults),
+);
+
+export function mergeShooterNoteMonsterTuningStores(baseStore = {}, overrideStore = {}) {
+  const base = normalizeShooterNoteMonsterTuningStore(baseStore);
+  const override = normalizeShooterNoteMonsterTuningStore(overrideStore);
+  const skinIds = new Set([...Object.keys(base), ...Object.keys(override)]);
+
+  return Object.fromEntries([...skinIds].flatMap((skinId) => {
+    const roots = { ...(base[skinId] ?? {}), ...(override[skinId] ?? {}) };
+    return Object.keys(roots).length ? [[skinId, roots]] : [];
+  }));
+}
+
+export function getShooterNoteMonsterLabelPosition(layout = {}, tuning = {}) {
+  const normalizedTuning = normalizeShooterNoteMonsterTuning(tuning);
+  const toPercent = (offset) => (offset / SHOOTER_NOTE_MONSTER_TUNING_REFERENCE_SIZE) * 100;
+  return {
+    x: clamp(layout?.x, -100, 200, 50) + toPercent(normalizedTuning.labelOffsetX),
+    y: clamp(layout?.y, -100, 200, 50) + toPercent(normalizedTuning.labelOffsetY),
+  };
+}
+
 export function getShooterNoteMonsterTuning(
-  tuningStore = {},
+  tuningStore = SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS,
   skinId = DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID,
   noteName = "C4",
 ) {

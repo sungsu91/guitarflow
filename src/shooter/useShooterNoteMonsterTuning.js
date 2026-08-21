@@ -7,8 +7,11 @@ import {
 } from "./noteMonsterAssets.js";
 import {
   DEFAULT_SHOOTER_NOTE_MONSTER_TUNING,
+  SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS,
+  SHOOTER_NOTE_MONSTER_TUNING_SAVE_ENDPOINT,
   SHOOTER_NOTE_MONSTER_TUNING_STORAGE_KEY,
   getShooterNoteMonsterTuning,
+  mergeShooterNoteMonsterTuningStores,
   normalizeShooterNoteMonsterTuning,
   normalizeShooterNoteMonsterTuningStore,
 } from "./noteMonsterTuning.js";
@@ -18,14 +21,32 @@ function cloneTunings(value) {
 }
 
 function getStoredTunings() {
-  if (typeof window === "undefined") return {};
+  if (typeof window === "undefined") return cloneTunings(SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS);
+  // Deployed builds must use the source-backed values so every browser and phone matches.
+  if (!import.meta.env.DEV) return cloneTunings(SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS);
   try {
-    return normalizeShooterNoteMonsterTuningStore(JSON.parse(
+    const localTunings = normalizeShooterNoteMonsterTuningStore(JSON.parse(
       window.localStorage.getItem(SHOOTER_NOTE_MONSTER_TUNING_STORAGE_KEY) || "{}",
     ));
+    return mergeShooterNoteMonsterTuningStores(
+      SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS,
+      localTunings,
+    );
   } catch {
-    return {};
+    return cloneTunings(SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS);
   }
+}
+
+async function saveSharedTunings(tunings) {
+  if (!import.meta.env.DEV) return tunings;
+  const response = await fetch(SHOOTER_NOTE_MONSTER_TUNING_SAVE_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ tunings }),
+  });
+  const result = await response.json();
+  if (!response.ok || !result?.ok) throw new Error(result?.error || "Monster tuning save failed");
+  return normalizeShooterNoteMonsterTuningStore(result.tunings);
 }
 
 export default function useShooterNoteMonsterTuning({
@@ -116,12 +137,13 @@ export default function useShooterNoteMonsterTuning({
   const applyEditing = useCallback(async () => {
     const normalizedTunings = cloneTunings(draftTunings);
     try {
+      const sharedTunings = await saveSharedTunings(normalizedTunings);
       window.localStorage.setItem(
         SHOOTER_NOTE_MONSTER_TUNING_STORAGE_KEY,
-        JSON.stringify(normalizedTunings),
+        JSON.stringify(sharedTunings),
       );
-      setCommittedTunings(normalizedTunings);
-      sessionBaseTuningsRef.current = cloneTunings(normalizedTunings);
+      setCommittedTunings(sharedTunings);
+      sessionBaseTuningsRef.current = cloneTunings(sharedTunings);
       return true;
     } catch (error) {
       console.error("Shooter monster tuning save failed", error);
