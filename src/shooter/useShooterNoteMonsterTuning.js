@@ -20,21 +20,42 @@ function cloneTunings(value) {
   return normalizeShooterNoteMonsterTuningStore(value);
 }
 
+function getLocalTunings() {
+  if (typeof window === "undefined" || !import.meta.env.DEV) return {};
+  try {
+    return normalizeShooterNoteMonsterTuningStore(JSON.parse(
+      window.localStorage.getItem(SHOOTER_NOTE_MONSTER_TUNING_STORAGE_KEY) || "{}",
+    ));
+  } catch {
+    return {};
+  }
+}
+
 function getStoredTunings() {
   if (typeof window === "undefined") return cloneTunings(SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS);
   // Deployed builds must use the source-backed values so every browser and phone matches.
   if (!import.meta.env.DEV) return cloneTunings(SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS);
   try {
-    const localTunings = normalizeShooterNoteMonsterTuningStore(JSON.parse(
-      window.localStorage.getItem(SHOOTER_NOTE_MONSTER_TUNING_STORAGE_KEY) || "{}",
-    ));
     return mergeShooterNoteMonsterTuningStores(
       SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS,
-      localTunings,
+      getLocalTunings(),
     );
   } catch {
     return cloneTunings(SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS);
   }
+}
+
+function hasUnsharedLocalTunings() {
+  if (typeof window === "undefined" || !import.meta.env.DEV) return false;
+  const localTunings = getLocalTunings();
+  if (!Object.keys(localTunings).length) return false;
+  const mergedTunings = mergeShooterNoteMonsterTuningStores(
+    SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS,
+    localTunings,
+  );
+  return JSON.stringify(mergedTunings) !== JSON.stringify(
+    cloneTunings(SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS),
+  );
 }
 
 async function saveSharedTunings(tunings) {
@@ -55,10 +76,43 @@ export default function useShooterNoteMonsterTuning({
 } = {}) {
   const [committedTunings, setCommittedTunings] = useState(getStoredTunings);
   const [draftTunings, setDraftTunings] = useState(getStoredTunings);
+  const [hasUnsharedTunings, setHasUnsharedTunings] = useState(hasUnsharedLocalTunings);
   const [activeRoot, setActiveRoot] = useState("C");
   const sessionBaseTuningsRef = useRef(cloneTunings(committedTunings));
+  const legacyMigrationStartedRef = useRef(false);
   const wasEnabledRef = useRef(false);
   const activeSkin = getShooterNoteMonsterSkin(selectedSkinId);
+
+  useEffect(() => {
+    const sharedDefaultsAreEmpty = !Object.keys(SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS).length;
+    if (
+      !import.meta.env.DEV
+      || !sharedDefaultsAreEmpty
+      || !hasUnsharedTunings
+      || legacyMigrationStartedRef.current
+    ) return undefined;
+
+    legacyMigrationStartedRef.current = true;
+    let cancelled = false;
+    const legacyTunings = cloneTunings(committedTunings);
+    saveSharedTunings(legacyTunings).then((sharedTunings) => {
+      if (cancelled) return;
+      window.localStorage.setItem(
+        SHOOTER_NOTE_MONSTER_TUNING_STORAGE_KEY,
+        JSON.stringify(sharedTunings),
+      );
+      setCommittedTunings(sharedTunings);
+      sessionBaseTuningsRef.current = cloneTunings(sharedTunings);
+      setHasUnsharedTunings(false);
+    }).catch((error) => {
+      legacyMigrationStartedRef.current = false;
+      console.error("Legacy shooter monster tuning migration failed", error);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [committedTunings, hasUnsharedTunings]);
 
   useEffect(() => {
     if (enabled && !wasEnabledRef.current) {
@@ -131,7 +185,7 @@ export default function useShooterNoteMonsterTuning({
     updateActiveTuning({ labelColor: "", labelOutline: "" });
   }, [updateActiveTuning]);
 
-  const hasChanges = JSON.stringify(cloneTunings(draftTunings))
+  const hasChanges = hasUnsharedTunings || JSON.stringify(cloneTunings(draftTunings))
     !== JSON.stringify(cloneTunings(sessionBaseTuningsRef.current));
 
   const applyEditing = useCallback(async () => {
@@ -144,6 +198,7 @@ export default function useShooterNoteMonsterTuning({
       );
       setCommittedTunings(sharedTunings);
       sessionBaseTuningsRef.current = cloneTunings(sharedTunings);
+      setHasUnsharedTunings(false);
       return true;
     } catch (error) {
       console.error("Shooter monster tuning save failed", error);
@@ -164,6 +219,7 @@ export default function useShooterNoteMonsterTuning({
     cancelEditing,
     defaultTuning: DEFAULT_SHOOTER_NOTE_MONSTER_TUNING,
     hasChanges,
+    hasUnsharedTunings,
     nudgeLabel,
     previewTunings: enabled ? draftTunings : committedTunings,
     resetActive,
@@ -186,6 +242,7 @@ export default function useShooterNoteMonsterTuning({
     draftTunings,
     enabled,
     hasChanges,
+    hasUnsharedTunings,
     nudgeLabel,
     resetActive,
     resetActiveColors,

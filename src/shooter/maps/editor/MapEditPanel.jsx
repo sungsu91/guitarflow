@@ -304,7 +304,7 @@ function MonsterTuningControls({ monsterEditor }) {
         </div>
       </div>
 
-      <p className="mapEditMonsterTuningHelp">텍스트 위치는 몹 크기에 비례해 함께 움직이며, 적용하면 배포본에도 같은 값이 저장됩니다. 원형 피격판정과 음 생성 규칙은 그대로 유지됩니다.</p>
+      <p className="mapEditMonsterTuningHelp">텍스트는 몹과 동일한 크기의 고정 레이어에서 움직입니다. 이 브라우저에만 남은 보정값이 있으면 변경 상태로 표시되며, 적용하면 배포 공용값으로 저장됩니다.</p>
       <button className="mapEditRestoreButton" onClick={monsterEditor.resetActive} type="button">이 음의 몹 보정값만 기본으로</button>
     </CollapsibleEditorSection>
   );
@@ -1083,9 +1083,11 @@ function MapEditSessionActions({ editor, effectEditor, monsterEditor }) {
   const hasChanges = editor.hasChanges || Boolean(effectEditor?.hasChanges) || Boolean(monsterEditor?.hasChanges);
   const statusLabel = editor.saveStatus === "error" && editor.saveError
     ? editor.saveError
-    : hasChanges
-      ? editor.saveStatus === "saving" ? SAVE_STATUS_LABELS.saving : "적용하지 않은 변경사항이 있습니다"
-      : "적용된 배치와 동일합니다";
+    : monsterEditor?.hasUnsharedTunings
+      ? "이 브라우저의 몹 보정값이 배포에 아직 반영되지 않았습니다"
+      : hasChanges
+        ? editor.saveStatus === "saving" ? SAVE_STATUS_LABELS.saving : "적용하지 않은 변경사항이 있습니다"
+        : "적용된 배치와 동일합니다";
   const closeEditing = () => {
     effectEditor?.cancelEditing();
     monsterEditor?.cancelEditing();

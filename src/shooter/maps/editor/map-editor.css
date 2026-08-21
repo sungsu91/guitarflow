@@ -2473,12 +2473,12 @@ html body main.app.app.app.shooterMode
 
 .mapEditMonsterPreviewLabel {
   position: absolute;
-  left: var(--monster-preview-label-x, 50%);
-  top: var(--monster-preview-label-y, 50%);
+  inset: 0;
   z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
   color: var(--monster-preview-label-color, #fff8dc) !important;
   font-family: Arial, Helvetica, sans-serif !important;
   font-size: var(--monster-preview-label-size, 13px);
@@ -2487,18 +2487,30 @@ html body main.app.app.app.shooterMode
   font-variant-numeric: tabular-nums;
   line-height: 1.05;
   letter-spacing: 0.01em;
-  transform: translate(-50%, -50%);
+  transform: translate(
+    calc(var(--monster-preview-label-x, 50%) - 50%),
+    calc(var(--monster-preview-label-y, 50%) - 50%)
+  );
+  transform-origin: center;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.68);
   white-space: nowrap;
   paint-order: stroke fill;
   -webkit-text-fill-color: var(--monster-preview-label-color, #fff8dc);
   -webkit-text-stroke: 0.9px var(--monster-preview-label-outline, #081536);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 .mapEditMonsterPreviewLabel > b {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
   color: inherit !important;
   font: inherit;
   line-height: 1;
+  text-align: center;
   -webkit-text-fill-color: inherit;
 }
 
