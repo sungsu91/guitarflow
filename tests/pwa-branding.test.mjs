@@ -5,18 +5,20 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const iconVersion = "57683a1d";
+const iconVersion = "0e162583";
 
 function readProjectFile(relativePath) {
   return readFileSync(path.join(projectRoot, relativePath));
 }
 
-function readPngSize(relativePath) {
+function readPngHeader(relativePath) {
   const image = readProjectFile(relativePath);
   assert.deepEqual([...image.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
   return {
     width: image.readUInt32BE(16),
     height: image.readUInt32BE(20),
+    bitDepth: image[24],
+    colorType: image[25],
   };
 }
 
@@ -57,7 +59,15 @@ test("PWA, iOS, and favicon PNG assets have their declared dimensions", () => {
   ]);
 
   for (const [relativePath, size] of expectedSizes) {
-    assert.deepEqual(readPngSize(relativePath), { width: size, height: size });
+    assert.deepEqual(
+      readPngHeader(relativePath),
+      {
+        width: size,
+        height: size,
+        bitDepth: 8,
+        colorType: relativePath.includes("favicon") ? 6 : 2,
+      },
+    );
   }
 
   assert.ok(readProjectFile("public/just-play-favicon.ico").length > 0);
@@ -65,6 +75,25 @@ test("PWA, iOS, and favicon PNG assets have their declared dimensions", () => {
     readProjectFile("public/favicon.ico"),
     readProjectFile("public/just-play-favicon.ico"),
   );
+});
+
+test("installable icons are opaque RGB assets so platforms cannot add a white alpha background", () => {
+  const installableIcons = [
+    "public/icons/just-play-apple-touch-icon.png",
+    "public/icons/just-play-icon-192.png",
+    "public/icons/just-play-icon-512.png",
+    "public/icons/just-play-icon-maskable-192.png",
+    "public/icons/just-play-icon-maskable-512.png",
+    "public/icons/apple-touch-icon.png",
+    "public/icons/icon-192.png",
+    "public/icons/icon-512.png",
+    "public/icons/icon-maskable-192.png",
+    "public/icons/icon-maskable-512.png",
+  ];
+
+  for (const relativePath of installableIcons) {
+    assert.equal(readPngHeader(relativePath).colorType, 2, `${relativePath} must not contain alpha`);
+  }
 });
 
 test("document metadata connects JUST PLAY names and platform icons", () => {

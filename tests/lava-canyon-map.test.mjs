@@ -288,8 +288,12 @@ test("Lava Canyon combines visible lava scenery, torch flames, dragons, and reus
   assert.match(mapSkinStyles, /@keyframes shooterMapLavaGeyser/);
   assert.match(rendererSource, /animationType === "torch-flame"/);
   assert.match(rendererSource, /shooterMapTorchFlameGlow/);
+  assert.match(rendererSource, /--shooter-torch-animation-delay/);
   assert.match(mapSkinStyles, /@keyframes shooterMapTorchFlameBrightness/);
   assert.match(mapSkinStyles, /@keyframes shooterMapTorchLightPulse/);
+  assert.match(mapSkinStyles, /opacity: 0\.58; transform: scale3d\(0\.88, 0\.82, 1\)/);
+  assert.match(mapSkinStyles, /opacity: 1; transform: scale3d\(1\.13, 1\.18, 1\)/);
+  assert.match(mapSkinStyles, /shooterMapTorchLightPulse var\(--shooter-torch-cycle-duration/);
   assert.match(rendererSource, /function LavaEnvironmentAsset/);
   assert.doesNotMatch(rendererSource, /LAVA_GEYSER_PARTICLES|LAVA_POOL_BUBBLES/);
   assert.doesNotMatch(rendererSource, /shooterMapLavaParticles|shooterMapLavaParticle|shooterMapLavaEffectBase/);

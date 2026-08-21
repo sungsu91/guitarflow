@@ -757,10 +757,15 @@ function LavaEnvironmentAsset({ layer }) {
   if (animationType === "torch-flame") {
     const speed = Number.isFinite(layer.animation?.speed) ? Math.max(0.1, layer.animation.speed) : 1;
     const cycleDuration = Math.max(0.85, 5.4 / speed);
+    const phase = [...String(layer.instanceId ?? layer.id ?? "torch")]
+      .reduce((total, character) => total + character.charCodeAt(0), 0) % 100 / 100;
     return (
       <span
         className="shooterMapTorchFlame"
-        style={{ "--shooter-torch-cycle-duration": `${cycleDuration}s` }}
+        style={{
+          "--shooter-torch-animation-delay": `${-(cycleDuration * phase)}s`,
+          "--shooter-torch-cycle-duration": `${cycleDuration}s`,
+        }}
       >
         <i aria-hidden="true" className="shooterMapTorchFlameGlow" />
         <img
