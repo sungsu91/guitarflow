@@ -106,6 +106,11 @@ test("coastal cove includes the supplied transparent ambient animations as edita
   assert.equal(mimicAsset.eventActor.defeatFrames.length, 8);
   assert.equal(mimicAsset.spriteSheet.frameCount, 23);
   assert.equal(mimicAsset.eventActor.readySrc, treasureAsset.eventActor.readySrc);
+  assert.equal(
+    mimicAsset.eventActor.frames.at(-1),
+    mimicAsset.eventActor.idleFrames[0],
+    "the completed reveal must hand off to the identical first idle pose",
+  );
 
   const resolved = resolveLayeredShooterMap(COASTAL_COVE_MAP_SKIN);
   assert.equal(resolved.layers.length, COASTAL_COVE_MAP_SKIN.layout.length);

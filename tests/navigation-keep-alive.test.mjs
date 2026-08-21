@@ -5,6 +5,7 @@ import {
   createMountedModeSet,
   getCachedModeElement,
   getModeActivityState,
+  isNavigationKeepAliveMode,
   registerMountedMode,
   shouldMountMode,
 } from "../src/navigation/keepAlive.js";
@@ -35,6 +36,14 @@ test("registering an already mounted mode keeps set identity stable", () => {
 
   assert.equal(registerMountedMode(mountedModes, "mini-chord-maker"), mountedModes);
   assert.equal(getModeActivityState("mini-chord-maker", "mini-chord-maker"), "visible");
+});
+
+test("shooter unmounts outside its active route so maps do not render in the background", () => {
+  const mountedModes = new Set(["practice", "shooter"]);
+
+  assert.equal(isNavigationKeepAliveMode("shooter"), false);
+  assert.equal(shouldMountMode("practice", mountedModes, "shooter"), false);
+  assert.equal(shouldMountMode("shooter", mountedModes, "shooter"), true);
 });
 
 test("hidden screens reuse their last element without rebuilding the subtree", () => {

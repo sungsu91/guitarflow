@@ -35,6 +35,9 @@ class FakeNode {
     this.connections.push(node);
     return node;
   }
+  disconnect() {
+    this.connections = [];
+  }
 }
 
 class FakeCompressor extends FakeNode {
@@ -96,6 +99,13 @@ test("shared audio graph creates one context and routes independent buses throug
     assert.equal(mediaGraph.programGain.connections[0], graph.buses.backing);
     mediaGraph.setLevel(0.25);
     assert.equal(mediaGraph.programGain.gain.value, 0.25);
+    mediaGraph.disconnect();
+    assert.equal(mediaGraph.connected, false);
+    assert.equal(mediaGraph.programGain.connections.length, 0);
+    const reconnectedGraph = connectMediaElementToBus(element, { level: 0.5 });
+    assert.equal(reconnectedGraph, mediaGraph);
+    assert.equal(reconnectedGraph.connected, true);
+    assert.equal(reconnectedGraph.programGain.gain.value, 0.5);
   } finally {
     resetSharedAudioForTests();
     globalThis.window = previousWindow;

@@ -549,121 +549,6 @@ html body .app.app.app .utilityMenuPanel .utilityMenuVersion {
   }
 }
 
-/* Theme changes are applied behind an opaque, low-cost transition surface. */
-.themeTransitionOverlay {
-  --theme-transition-accent: #d9aa55;
-  --theme-transition-text: #fff4d6;
-  --theme-transition-muted: rgba(236, 218, 181, 0.7);
-  position: fixed;
-  inset: 0;
-  z-index: 2147482900;
-  display: grid;
-  min-width: 320px;
-  min-height: 100vh;
-  min-height: 100dvh;
-  place-items: center;
-  overflow: hidden;
-  contain: layout paint style;
-  isolation: isolate;
-  background:
-    radial-gradient(circle at 50% 46%, rgba(217, 170, 85, 0.08), transparent 26%),
-    linear-gradient(180deg, #0b0c0c 0%, #050606 100%);
-  color: var(--theme-transition-text);
-  opacity: 0;
-  pointer-events: auto;
-  touch-action: none;
-  will-change: opacity;
-}
-
-.themeTransitionOverlay--light {
-  --theme-transition-accent: #9a6b27;
-  --theme-transition-text: #26221c;
-  --theme-transition-muted: #746b5d;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(185, 133, 52, 0.12), transparent 28%),
-    linear-gradient(180deg, #fbf8f1 0%, #eee7da 100%);
-}
-
-.themeTransitionOverlay--covering {
-  animation: themeTransitionCover 180ms cubic-bezier(0.22, 0.7, 0.24, 1) forwards;
-}
-
-.themeTransitionOverlay--applying {
-  opacity: 1;
-}
-
-.themeTransitionOverlay--revealing {
-  animation: themeTransitionReveal 280ms ease-in forwards;
-}
-
-.themeTransitionOverlay__content {
-  display: grid;
-  justify-items: center;
-  width: min(78vw, 310px);
-  gap: 14px;
-  transform: translateY(-2vh);
-}
-
-.themeTransitionOverlay__content > strong {
-  color: var(--theme-transition-text);
-  font-size: clamp(24px, 7vw, 34px);
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  line-height: 1;
-}
-
-.themeTransitionOverlay__line {
-  display: block;
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--theme-transition-accent), transparent);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--theme-transition-accent) 24%, transparent);
-}
-
-.themeTransitionOverlay__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--theme-transition-muted);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-
-.themeTransitionOverlay__status > span {
-  color: inherit;
-}
-
-.themeTransitionOverlay__status svg {
-  color: var(--theme-transition-accent);
-  animation: themeTransitionSpin 760ms linear infinite;
-}
-
-@keyframes themeTransitionCover {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes themeTransitionReveal {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
-@keyframes themeTransitionSpin {
-  to { transform: rotate(360deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .themeTransitionOverlay--covering,
-  .themeTransitionOverlay--revealing {
-    animation-duration: 80ms;
-  }
-
-  .themeTransitionOverlay__status svg {
-    animation-duration: 1400ms;
-  }
-}
-
 :root[data-theme="classic-gold"] {
   color-scheme: dark;
 }
@@ -7619,4 +7504,36 @@ html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
     color: var(--riff-text-primary) !important;
   }
 
+}
+
+/* Keep the chord-view strings single-edged. Their height already communicates
+   the wound-string gauge; an offset shadow reads as a second string. */
+html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  :is(.viewerSharedFretboard, .chordMiniSharedFretboard)
+  .fretboardStringRow > i {
+  box-shadow: none !important;
+}
+
+/* The compact chart is six equal string rows. Use a height divisible by six
+   and a solid string color so fractional-pixel sampling cannot make alternate
+   strings look lighter or darker on mobile. */
+@media (max-width: 767px) {
+  html body main.app.app.app.app.app
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .chordCatalogPanel .chordMiniSharedFretboard {
+    --fretboard-board-height: 138px !important;
+  }
+
+  html body main.app.app.app.app.app.theme-light
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .chordMiniSharedFretboard .fretboardStringRow > i {
+    background: #696762 !important;
+  }
+
+  html body main.app.app.app.app.app.theme-brand
+    .fretboardViewerPanel--chord.fretboardViewerPanel
+    .chordMiniSharedFretboard .fretboardStringRow > i {
+    background: #c5a66d !important;
+  }
 }

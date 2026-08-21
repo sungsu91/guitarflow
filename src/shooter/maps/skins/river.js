@@ -9,6 +9,20 @@ export const RIVER_MAP_SKIN = Object.freeze({
   label: "RIVER",
   description: "맑은 강물부터 조립하는 모듈형 강가 맵",
   previewImage: "/assets/maps/river/exports/river-garden-full-map.png",
+  performance: Object.freeze({
+    mobileGameplay: Object.freeze({
+      mode: "full",
+      audit: Object.freeze({
+        completed: true,
+        contentFingerprint: "e21cf2c1",
+        activeCssAnimations: 5,
+        ambientEventLayers: 0,
+        filteredElements: 1,
+        particleElements: 0,
+        sharedSpriteSubscribers: 0,
+      }),
+    }),
+  }),
   referenceViewport: Object.freeze({
     width: 390,
     height: 756,

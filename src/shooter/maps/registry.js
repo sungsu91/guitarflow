@@ -10,6 +10,16 @@ export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
   PARK_MAP_SKIN,
 ]);
 
+export function getNextShooterMapId(currentMapId) {
+  if (LAYERED_SHOOTER_MAP_SKINS.length === 0) return currentMapId;
+
+  const currentIndex = LAYERED_SHOOTER_MAP_SKINS.findIndex((map) => map.id === currentMapId);
+  const nextIndex = currentIndex < 0
+    ? 0
+    : (currentIndex + 1) % LAYERED_SHOOTER_MAP_SKINS.length;
+  return LAYERED_SHOOTER_MAP_SKINS[nextIndex].id;
+}
+
 export function isLayeredShooterMap(map) {
   return map?.kind === "layered";
 }

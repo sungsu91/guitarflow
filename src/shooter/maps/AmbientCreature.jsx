@@ -34,7 +34,7 @@ function distance(left, right) {
   return Math.hypot(left.x - right.x, left.y - right.y);
 }
 
-function HoppingFrogCreature({ creature, editMode = false, placement }) {
+function HoppingFrogCreature({ animationActive = true, creature, editMode = false, placement }) {
   const rootRef = useRef(null);
   const imageRef = useRef(null);
   const motionRef = useRef(null);
@@ -63,7 +63,7 @@ function HoppingFrogCreature({ creature, editMode = false, placement }) {
     const jumpDistance = clamp(Number(settings.jumpDistance) || 0.4, 0.04, 1.5);
     const jumpInterval = clamp(Number(settings.jumpInterval) || 4.8, 1, 20);
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    const animationAllowed = !editMode && settings.enabled !== false && anchors.length > 1 && !reducedMotion;
+    const animationAllowed = animationActive && !editMode && settings.enabled !== false && anchors.length > 1 && !reducedMotion;
     const savedMotion = motionRef.current;
     const firstLanding = anchors[0] ?? base;
     let current = !editMode && savedMotion?.current
@@ -239,7 +239,7 @@ function HoppingFrogCreature({ creature, editMode = false, placement }) {
       observer?.disconnect();
       document.removeEventListener("visibilitychange", syncActivity);
     };
-  }, [creature?.type, editMode, frameSignature, placementSignature, settingsSignature]);
+  }, [animationActive, creature?.type, editMode, frameSignature, placementSignature, settingsSignature]);
 
   return (
     <span className="shooterMapAmbientCreature" data-creature={creature?.type || "ambient"} ref={rootRef}>
@@ -248,7 +248,7 @@ function HoppingFrogCreature({ creature, editMode = false, placement }) {
   );
 }
 
-function SleepingFrogCreature({ creature, editMode = false, placement }) {
+function SleepingFrogCreature({ animationActive = true, creature, editMode = false, placement }) {
   const rootRef = useRef(null);
   const imageRef = useRef(null);
   const personalityRef = useRef(null);
@@ -298,7 +298,7 @@ function SleepingFrogCreature({ creature, editMode = false, placement }) {
     const bubbleSpeed = clamp(Number(settings.bubbleSpeed) || 1, 0.4, 2);
     const bubbleOpacity = clamp(Number(settings.bubbleOpacity) || 0.78, 0.2, 1);
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    const animationAllowed = !editMode && settings.enabled !== false && !reducedMotion;
+    const animationAllowed = animationActive && !editMode && settings.enabled !== false && !reducedMotion;
     let timer = 0;
     let active = true;
     let intersecting = true;
@@ -487,7 +487,7 @@ function SleepingFrogCreature({ creature, editMode = false, placement }) {
       observer?.disconnect();
       document.removeEventListener("visibilitychange", syncActivity);
     };
-  }, [editMode, frameSignature, placementSignature, previewMode, settingsSignature]);
+  }, [animationActive, editMode, frameSignature, placementSignature, previewMode, settingsSignature]);
 
   return (
     <span
@@ -506,7 +506,7 @@ function SleepingFrogCreature({ creature, editMode = false, placement }) {
   );
 }
 
-function BabyDragonCreature({ creature, editMode = false, placement }) {
+function BabyDragonCreature({ animationActive = true, creature, editMode = false, placement }) {
   const rootRef = useRef(null);
   const imageRef = useRef(null);
   const personalityRef = useRef(null);
@@ -536,12 +536,7 @@ function BabyDragonCreature({ creature, editMode = false, placement }) {
     const sleepChance = clamp(Number(settings.sleepChance) || 0.3, 0, 0.75);
     const sleepDuration = clamp(Number(settings.sleepDuration) || 7.2, 2, 24);
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    const animationAllowed = !editMode && settings.enabled !== false && !reducedMotion;
-    const preloadedFrames = Object.values(frames).map((src) => {
-      const frame = new window.Image();
-      frame.src = src;
-      return frame;
-    });
+    const animationAllowed = animationActive && !editMode && settings.enabled !== false && !reducedMotion;
     let timer = 0;
     let active = true;
     let intersecting = true;
@@ -725,9 +720,8 @@ function BabyDragonCreature({ creature, editMode = false, placement }) {
       clearWork();
       observer?.disconnect();
       document.removeEventListener("visibilitychange", syncActivity);
-      preloadedFrames.forEach((frame) => { frame.src = ""; });
     };
-  }, [editMode, frameSignature, placementSignature, previewMode, settingsSignature]);
+  }, [animationActive, editMode, frameSignature, placementSignature, previewMode, settingsSignature]);
 
   return (
     <span
@@ -743,7 +737,7 @@ function BabyDragonCreature({ creature, editMode = false, placement }) {
   );
 }
 
-function DivingFrogCreature({ creature, editMode = false, placement }) {
+function DivingFrogCreature({ animationActive = true, creature, editMode = false, placement }) {
   const rootRef = useRef(null);
   const imageRef = useRef(null);
   const frames = creature?.frames ?? {};
@@ -772,7 +766,7 @@ function DivingFrogCreature({ creature, editMode = false, placement }) {
     const diveHeight = clamp(Number(settings.jumpHeight) || 0.07, 0.02, 0.3);
     const diveInterval = clamp(Number(settings.jumpInterval) || 7.2, 1, 20);
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    const animationAllowed = !editMode && settings.enabled !== false && Boolean(destination) && !reducedMotion;
+    const animationAllowed = animationActive && !editMode && settings.enabled !== false && Boolean(destination) && !reducedMotion;
     let timer = 0;
     let animationFrame = 0;
     let active = true;
@@ -897,7 +891,7 @@ function DivingFrogCreature({ creature, editMode = false, placement }) {
       observer?.disconnect();
       document.removeEventListener("visibilitychange", syncActivity);
     };
-  }, [editMode, frameSignature, placementSignature, settingsSignature]);
+  }, [animationActive, editMode, frameSignature, placementSignature, settingsSignature]);
 
   return (
     <span className="shooterMapAmbientCreature shooterMapAmbientCreature--diving" data-creature="diving-frog" data-splash="idle" ref={rootRef}>

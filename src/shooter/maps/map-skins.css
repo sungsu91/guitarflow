@@ -31,46 +31,6 @@
   image-rendering: auto;
 }
 
-.shooterMapBoundaryGlow {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  overflow: visible;
-  opacity: var(--shooter-map-boundary-opacity, 0.9);
-  mix-blend-mode: screen;
-  pointer-events: none;
-}
-
-.shooterMapBoundaryGlowPath {
-  --shooter-map-boundary-strength: 1;
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  animation-duration: var(--shooter-map-boundary-duration, 9.4s);
-  animation-delay: var(--shooter-map-boundary-phase-delay, 0s);
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  will-change: opacity, stroke-width;
-}
-
-.shooterMapBoundaryGlowPath--outer {
-  stroke: var(--shooter-map-boundary-outer-color, #ff2a00);
-  animation-name: shooterMapBoundaryOuterPulse;
-}
-
-.shooterMapBoundaryGlowPath--middle {
-  stroke: var(--shooter-map-boundary-middle-color, #ff8a00);
-  animation-name: shooterMapBoundaryMiddlePulse;
-}
-
-.shooterMapBoundaryGlowPath--core {
-  stroke: var(--shooter-map-boundary-core-color, #fff4a8);
-  animation-name: shooterMapBoundaryCorePulse;
-}
-
 .shooterMapAmbientEvents {
   position: absolute;
   z-index: 32;
@@ -1336,65 +1296,34 @@ html body .app:not(.theme-light) .shooterArena.shooterMapSkin .shooterMapSkinSta
   opacity: 0.54;
   transform: translateX(-50%);
   animation: shooterMapTorchLightPulse calc(var(--shooter-torch-cycle-duration, 2s) * 1.07) linear infinite;
-  will-change: opacity, filter;
+  will-change: opacity, transform;
 }
 
 .shooterMapTorchFlameArtwork {
   position: relative;
   z-index: 1;
   filter:
-    brightness(0.92)
+    brightness(1.04)
     saturate(1.12)
-    drop-shadow(0 0 4px rgba(255, 225, 100, 0.9))
-    drop-shadow(0 0 11px rgba(255, 58, 0, 0.78));
+    drop-shadow(0 0 7px rgba(255, 79, 0, 0.78));
   animation: shooterMapTorchFlameBrightness var(--shooter-torch-cycle-duration, 2s) linear infinite;
-  will-change: opacity, filter;
+  transform-origin: 50% 94%;
+  will-change: opacity, transform;
 }
 
 @keyframes shooterMapTorchFlameBrightness {
-  0%, 100% {
-    filter: brightness(0.82) saturate(1.08) drop-shadow(0 0 3px rgba(255, 222, 92, 0.78)) drop-shadow(0 0 9px rgba(255, 55, 0, 0.66));
-    opacity: 0.84;
-  }
-
-  11% {
-    filter: brightness(1.28) saturate(1.22) drop-shadow(0 0 5px rgba(255, 241, 151, 0.96)) drop-shadow(0 0 15px rgba(255, 70, 0, 0.9));
-    opacity: 1;
-  }
-
-  23% {
-    filter: brightness(0.91) saturate(1.14) drop-shadow(0 0 4px rgba(255, 224, 104, 0.82)) drop-shadow(0 0 10px rgba(255, 50, 0, 0.7));
-    opacity: 0.9;
-  }
-
-  41% {
-    filter: brightness(1.43) saturate(1.25) drop-shadow(0 0 6px rgba(255, 246, 169, 1)) drop-shadow(0 0 17px rgba(255, 79, 0, 0.94));
-    opacity: 1;
-  }
-
-  56% {
-    filter: brightness(1.02) saturate(1.16) drop-shadow(0 0 4px rgba(255, 228, 114, 0.86)) drop-shadow(0 0 12px rgba(255, 55, 0, 0.75));
-    opacity: 0.93;
-  }
-
-  68% {
-    filter: brightness(1.34) saturate(1.2) drop-shadow(0 0 5px rgba(255, 240, 145, 0.96)) drop-shadow(0 0 15px rgba(255, 66, 0, 0.9));
-    opacity: 1;
-  }
-
-  83% {
-    filter: brightness(0.88) saturate(1.1) drop-shadow(0 0 3px rgba(255, 218, 88, 0.8)) drop-shadow(0 0 9px rgba(255, 47, 0, 0.68));
-    opacity: 0.87;
-  }
+  0%, 100% { opacity: 0.86; transform: scale3d(0.98, 0.96, 1); }
+  18% { opacity: 1; transform: scale3d(1.02, 1.04, 1); }
+  43% { opacity: 0.9; transform: scale3d(0.99, 0.98, 1); }
+  67% { opacity: 1; transform: scale3d(1.01, 1.05, 1); }
+  84% { opacity: 0.88; transform: scale3d(0.98, 0.97, 1); }
 }
 
 @keyframes shooterMapTorchLightPulse {
-  0%, 100% { opacity: 0.34; filter: blur(5px) brightness(0.9); }
-  16% { opacity: 0.62; filter: blur(6px) brightness(1.18); }
-  31% { opacity: 0.41; filter: blur(5px) brightness(0.98); }
-  48% { opacity: 0.72; filter: blur(7px) brightness(1.3); }
-  63% { opacity: 0.46; filter: blur(5px) brightness(1.02); }
-  79% { opacity: 0.66; filter: blur(6px) brightness(1.22); }
+  0%, 100% { opacity: 0.36; transform: translateX(-50%) scale(0.96); }
+  22% { opacity: 0.62; transform: translateX(-50%) scale(1.04); }
+  48% { opacity: 0.46; transform: translateX(-50%) scale(0.99); }
+  73% { opacity: 0.68; transform: translateX(-50%) scale(1.06); }
 }
 
 .shooterMapLavaEffect {
@@ -1410,11 +1339,10 @@ html body .app:not(.theme-light) .shooterArena.shooterMapSkin .shooterMapSkinSta
   position: relative;
   z-index: 2;
   filter: drop-shadow(0 0 12px rgba(255, 82, 0, 0.82));
-  will-change: clip-path, transform, opacity, filter;
+  will-change: transform, opacity;
 }
 
 .shooterMapLavaEffect--geyser .shooterMapLavaEffectArtwork {
-  clip-path: inset(98% 10% 0 10% round 50%);
   opacity: 0;
   transform-origin: 50% 96%;
   animation: shooterMapLavaGeyser var(--shooter-lava-cycle-duration, 2.45s) cubic-bezier(0.22, 0.72, 0.26, 1) infinite;
@@ -1507,6 +1435,48 @@ html body .app:not(.theme-light) .shooterArena.shooterMapSkin .shooterMapSkinSta
 
 .shooterMapLavaEffect--boil .shooterMapLavaParticle::after {
   animation: shooterMapLavaBubbleRipple var(--shooter-lava-duration, 1.4s) ease-out var(--shooter-lava-delay, 0s) infinite;
+}
+
+/* Every unaudited future map enters this mobile-gameplay budget by default.
+   Lobby/editor previews stay animated, and audited low-cost maps can opt in to full effects. */
+.shooterArena--mapEffectsReduced .shooterMapAmbientEvents,
+.shooterArena--mapEffectsReduced .shooterMapCompositeArtworkClip::after,
+.shooterArena--mapEffectsReduced .shooterMapCompositeLight,
+.shooterArena--mapEffectsReduced .shooterMapLavaParticles,
+.shooterArena--mapEffectsReduced .shooterMapLavaEffectBase,
+.shooterArena--mapEffectsReduced .shooterMapTorchFlameGlow,
+.shooterArena--mapEffectsReduced .shooterMapWaterSplash {
+  display: none !important;
+}
+
+.shooterArena--mapEffectsReduced .shooterMapSkinAsset:not(.shooterMapSkinAsset--interactive-event),
+.shooterArena--mapEffectsReduced .shooterMapSkinAsset:not(.shooterMapSkinAsset--interactive-event) *,
+.shooterArena--mapEffectsReduced .shooterMapSkinAsset:not(.shooterMapSkinAsset--interactive-event)::before,
+.shooterArena--mapEffectsReduced .shooterMapSkinAsset:not(.shooterMapSkinAsset--interactive-event)::after {
+  animation: none !important;
+  transition: none !important;
+  will-change: auto !important;
+}
+
+.shooterArena--mapEffectsReduced .shooterMapLavaEffect--geyser .shooterMapLavaEffectArtwork {
+  opacity: 0 !important;
+  transform: none !important;
+}
+
+.shooterArena--mapEffectsReduced .shooterMapLavaEffect--boil .shooterMapLavaEffectArtwork {
+  opacity: 0.82 !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+.shooterArena--mapEffectsReduced .shooterMapTorchFlameArtwork {
+  opacity: 0.9 !important;
+  filter: brightness(1.02) saturate(1.05) !important;
+  transform: none !important;
+}
+
+.shooterArena--mapEffectsReduced .shooterMapWindFlagClothFrame {
+  opacity: 1 !important;
 }
 
 @keyframes shooterMapAssetFloat {
@@ -1605,42 +1575,13 @@ html body .app:not(.theme-light) .shooterArena.shooterMapSkin .shooterMapSkinSta
   50% { opacity: 1; }
 }
 
-@keyframes shooterMapBoundaryOuterPulse {
-  0%, 100% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.22); stroke-width: var(--shooter-map-boundary-outer-width-min, 15); }
-  13% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.34); stroke-width: var(--shooter-map-boundary-outer-width-max, 21); }
-  31% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.28); stroke-width: var(--shooter-map-boundary-outer-width-min, 15); }
-  47% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.44); stroke-width: var(--shooter-map-boundary-outer-width-max, 21); }
-  69% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.25); stroke-width: var(--shooter-map-boundary-outer-width-min, 15); }
-  84% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.38); stroke-width: var(--shooter-map-boundary-outer-width-max, 21); }
-}
-
-@keyframes shooterMapBoundaryMiddlePulse {
-  0%, 100% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.48); stroke-width: var(--shooter-map-boundary-middle-width-min, 6.4); }
-  17% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.72); stroke-width: var(--shooter-map-boundary-middle-width-max, 9); }
-  38% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.58); stroke-width: var(--shooter-map-boundary-middle-width-min, 6.4); }
-  55% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.84); stroke-width: var(--shooter-map-boundary-middle-width-max, 9); }
-  73% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.54); stroke-width: var(--shooter-map-boundary-middle-width-min, 6.4); }
-  89% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.76); stroke-width: var(--shooter-map-boundary-middle-width-max, 9); }
-}
-
-@keyframes shooterMapBoundaryCorePulse {
-  0%, 100% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.74); stroke-width: var(--shooter-map-boundary-core-width-min, 2.1); }
-  11% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.92); stroke-width: var(--shooter-map-boundary-core-width-max, 3.1); }
-  29% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.8); stroke-width: var(--shooter-map-boundary-core-width-min, 2.1); }
-  49% { opacity: var(--shooter-map-boundary-strength, 1); stroke-width: var(--shooter-map-boundary-core-width-max, 3.1); }
-  67% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.78); stroke-width: var(--shooter-map-boundary-core-width-min, 2.1); }
-  86% { opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.96); stroke-width: var(--shooter-map-boundary-core-width-max, 3.1); }
-}
-
 @keyframes shooterMapLavaGeyser {
-  0%, 8%, 100% { clip-path: inset(98% 10% 0 10% round 50%); transform: translate3d(0, 4%, 0) scale3d(0.08, 0.02, 1); opacity: 0; filter: brightness(0.78) saturate(1); }
-  15% { clip-path: inset(86% 8% 0 8% round 42%); transform: translate3d(0, 3%, 0) scale3d(0.28, 0.12, 1); opacity: 0.72; filter: brightness(1.24) saturate(1.18); }
-  27% { clip-path: inset(54% 5% 0 5% round 30%); transform: translate3d(0, 1.4%, 0) scale3d(0.62, 0.46, 1); opacity: 0.96; filter: brightness(1.38) saturate(1.2); }
-  42% { clip-path: inset(14% 1% 0 1% round 16%); transform: translate3d(0, -1.2%, 0) scale3d(0.94, 1.06, 1); opacity: 1; filter: brightness(1.18) saturate(1.13); }
-  52% { clip-path: inset(0 0 0 0); transform: translate3d(0, -2.8%, 0) scale3d(1.08, 1.16, 1); opacity: 1; filter: brightness(1.34) saturate(1.18); }
-  65% { clip-path: inset(2% 0 0 0); transform: translate3d(0, -1.2%, 0) scale3d(0.98, 1.02, 1); opacity: 0.94; filter: brightness(1.05) saturate(1.08); }
-  77% { clip-path: inset(48% 5% 0 5% round 28%); transform: translate3d(0, 1.5%, 0) scale3d(0.58, 0.42, 1); opacity: 0.7; filter: brightness(1.12) saturate(1.1); }
-  89% { clip-path: inset(90% 9% 0 9% round 45%); transform: translate3d(0, 3.6%, 0) scale3d(0.18, 0.07, 1); opacity: 0.18; filter: brightness(0.9) saturate(1.02); }
+  0%, 8%, 100% { transform: translate3d(0, 4%, 0) scale3d(0.08, 0.02, 1); opacity: 0; }
+  20% { transform: translate3d(0, 2%, 0) scale3d(0.38, 0.22, 1); opacity: 0.78; }
+  42% { transform: translate3d(0, -1.2%, 0) scale3d(0.94, 1.06, 1); opacity: 1; }
+  55% { transform: translate3d(0, -2.8%, 0) scale3d(1.08, 1.16, 1); opacity: 1; }
+  72% { transform: translate3d(0, 0, 0) scale3d(0.82, 0.74, 1); opacity: 0.82; }
+  90% { transform: translate3d(0, 3.6%, 0) scale3d(0.18, 0.07, 1); opacity: 0.12; }
 }
 
 @keyframes shooterMapLavaGeyserBase {
@@ -1660,10 +1601,10 @@ html body .app:not(.theme-light) .shooterArena.shooterMapSkin .shooterMapSkinSta
 }
 
 @keyframes shooterMapLavaPoolHeat {
-  0%, 100% { opacity: 0.92; filter: brightness(0.94) saturate(1.03) drop-shadow(0 0 10px rgba(255, 70, 0, 0.74)); }
-  23% { opacity: 1; filter: brightness(1.14) saturate(1.12) drop-shadow(0 0 15px rgba(255, 122, 0, 0.9)); }
-  51% { opacity: 0.95; filter: brightness(1.02) saturate(1.06) drop-shadow(0 0 11px rgba(255, 76, 0, 0.78)); }
-  76% { opacity: 1; filter: brightness(1.2) saturate(1.14) drop-shadow(0 0 17px rgba(255, 143, 0, 0.92)); }
+  0%, 100% { opacity: 0.92; transform: scale3d(0.99, 0.98, 1); }
+  26% { opacity: 1; transform: scale3d(1.02, 1.03, 1); }
+  55% { opacity: 0.95; transform: scale3d(1, 0.99, 1); }
+  78% { opacity: 1; transform: scale3d(1.03, 1.02, 1); }
 }
 
 @keyframes shooterMapLavaPoolSurface {
@@ -1761,38 +1702,47 @@ html body .app:not(.theme-light) .shooterArena.shooterMapSkin .shooterMapSkinSta
   82%, 100% { transform: translate3d(var(--shooter-water-drop-x, 100%), -220%, 0) scale(1); opacity: 0; }
 }
 
-.shooterArena.paused .shooterMapSkinAsset,
-.shooterArena.paused .shooterMapSkinAsset img,
-.shooterArena.paused .shooterMapSpriteSheetAsset,
-.shooterArena.paused .shooterMapBoundaryGlowPath,
-.shooterArena.paused .shooterMapLavaEffectBase,
-.shooterArena.paused .shooterMapLavaParticle,
-.shooterArena.paused .shooterMapLavaParticle::after,
-.shooterArena.paused .shooterMapTorchFlameGlow,
-.shooterArena.paused .shooterMapSkinAsset::before,
-.shooterArena.paused .shooterMapSkinAsset::after {
+.shooterMapSkinAsset img.shooterMapSpriteFrame--shared {
+  animation: none !important;
+  opacity: 1 !important;
+  will-change: auto !important;
+}
+
+.shooterMapSpriteSheetAsset[data-map-animation-visible="false"] {
   animation-play-state: paused !important;
 }
 
-.shooterArena.paused .shooterMapFlyingDragonRun,
-.shooterArena.paused .shooterMapFlyingDragonBob {
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapSkinAsset,
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapSkinAsset img,
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapSpriteSheetAsset,
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapLavaEffectBase,
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapLavaParticle,
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapLavaParticle::after,
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapTorchFlameGlow,
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapSkinAsset::before,
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapSkinAsset::after {
   animation-play-state: paused !important;
 }
 
-.shooterArena.paused .shooterMapCompositeArtwork {
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapFlyingDragonRun,
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapFlyingDragonBob {
   animation-play-state: paused !important;
 }
 
-.shooterArena.paused .shooterMapCompositeArtworkClip::after,
-.shooterArena.paused .shooterMapCompositeLight {
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapCompositeArtwork {
   animation-play-state: paused !important;
 }
 
-.shooterArena.paused .shooterMapWaterSplash :is(i, b, em) {
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapCompositeArtworkClip::after,
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapCompositeLight {
   animation-play-state: paused !important;
 }
 
-.shooterArena.paused .shooterMapAmbientCreature--sleeping :is(.shooterMapAmbientCreatureFrame, .shooterMapSleepingFrogBubble) {
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapWaterSplash :is(i, b, em) {
+  animation-play-state: paused !important;
+}
+
+.shooterArena:is(.paused, .shooterArena--animationsPaused) .shooterMapAmbientCreature--sleeping :is(.shooterMapAmbientCreatureFrame, .shooterMapSleepingFrogBubble) {
   animation-play-state: paused !important;
 }
 
@@ -1800,7 +1750,6 @@ html body .app:not(.theme-light) .shooterArena.shooterMapSkin .shooterMapSkinSta
   .shooterMapSkinAsset,
   .shooterMapSkinAsset img,
   .shooterMapSpriteSheetAsset,
-  .shooterMapBoundaryGlowPath,
   .shooterMapLavaEffectBase,
   .shooterMapLavaParticle,
   .shooterMapLavaParticle::after,
@@ -1880,21 +1829,6 @@ html body .app:not(.theme-light) .shooterArena.shooterMapSkin .shooterMapSkinSta
 
   .shooterMapAmbientEvents {
     display: none;
-  }
-
-  .shooterMapBoundaryGlowPath--outer {
-    opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.3);
-    stroke-width: var(--shooter-map-boundary-outer-width-min, 15);
-  }
-
-  .shooterMapBoundaryGlowPath--middle {
-    opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.62);
-    stroke-width: var(--shooter-map-boundary-middle-width-min, 6.4);
-  }
-
-  .shooterMapBoundaryGlowPath--core {
-    opacity: calc(var(--shooter-map-boundary-strength, 1) * 0.86);
-    stroke-width: var(--shooter-map-boundary-core-width-min, 2.1);
   }
 
   .shooterMapLavaEffect--geyser .shooterMapLavaEffectArtwork {

@@ -28,11 +28,31 @@ test("shooter uses the mobile-master HUD at mobile and desktop sizes", async () 
     readFile(appStyleUrl, "utf8"),
   ]);
 
-  assert.match(appSource, /\{!mapEditor\.enabled \? \(\s*<>\s*<div\s+className=\{`mobileShooterDifficultyControl/);
+  assert.match(appSource, /\{!mapEditor\.enabled \? \(\s*<div\s+className="mobileShooterTopHud"/);
+  assert.ok(appSource.indexOf('className="mobileShooterTopHud"') < appSource.indexOf('className={`shooterArena'));
+  assert.match(appSource, /className=\{`mobileShooterPlayHelpHud/);
+  assert.match(appSource, /className=\{`mobileShooterPlayHelpOption/);
+  assert.match(appSource, /aria-pressed=\{shooterPlayHelpLevel === level\}/);
+  assert.match(appSource, /shooterPlayHelpLevel > 0 \? \(\s*<div className="mobileShooterPlayHelpMessageBar"/);
+  assert.match(appSource, /className="mobileShooterPrimaryHudRow"/);
+  assert.match(appSource, /className=\{`mobileShooterDifficultyControl/);
   assert.match(appSource, /className="mobileShooterTargetHud"/);
   assert.match(appSource, /className=\{`mobileShooterMicHud/);
   assert.match(appSource, /className="mobileShooterScoreHud"/);
   assert.match(appCss, /@media \(max-width: 680px\), \(min-width: 1024px\) \{/);
+  assert.match(appCss, /\.mobileShooterPlayHelpHud \{[\s\S]*height: 40px/);
+  assert.match(appCss, /\.mobileShooterPrimaryHudRow \{[\s\S]*grid-template-columns: 104px minmax\(0, 1fr\) 64px/);
+  assert.match(appCss, /\.mobileShooterPrimaryHudRow \{[\s\S]*background: rgba\(8, 14, 13, 0\.82\)/);
+  assert.match(appCss, /\.mobileShooterPlayHelpMessageBar \{[\s\S]*width: 100%/);
+  assert.match(appCss, /\.mobileShooterTopHud \{[\s\S]*user-select: none/);
+  assert.match(appCss, /\.mobileShooterTopHud \{[\s\S]*min-height: 40px;[\s\S]*padding: 0/);
+  assert.match(appCss, /padding-inline: 0 !important/);
+  assert.match(appCss, /\.mobileShooterPrimaryHudRow \{[\s\S]*margin-inline: 0 !important/);
+  assert.match(appCss, /button\.mobileShooterMicHud svg \{[\s\S]*opacity: 1 !important/);
+  assert.match(appCss, /--shooter-hud-dock-height: 40px/);
+  assert.match(appCss, /> \.shooterArena \{[\s\S]*inset: var\(--shooter-hud-dock-height\) 0 0 !important/);
+  assert.match(appCss, /\.mobileShooterTargetHud \{[\s\S]*position: absolute;[\s\S]*top: 7px/);
+  assert.match(appCss, /\.mobileShooterTopHud:has\(\.mobileShooterPlayHelpMessageBar\)[\s\S]*\+ \.shooterArena :is\(\.mobileShooterTargetHud, \.mobileShooterScoreHud\)/);
 });
 
 test("desktop map studio keeps its editor panel beside the preview", async () => {

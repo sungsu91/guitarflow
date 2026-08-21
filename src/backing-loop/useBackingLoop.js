@@ -12,8 +12,10 @@ import { getMicInputPreset, MIC_INPUT_PRESETS } from "../audio/micInputPresets";
 import {
   AUDIO_BUS_IDS,
   connectMediaElementToBus,
+  disconnectMediaElementFromBus,
   resumeSharedAudioContext,
 } from "../audio/audioBus";
+import { registerBackingLoopActivity } from "./activityRegistry.js";
 import {
   deleteBackingLoopRecording,
   loadBackingLoopLibrary,
@@ -51,7 +53,7 @@ const EMPTY_INPUT_LEVEL = Object.freeze({
   state: "low",
 });
 
-export default function useBackingLoop() {
+export default function useBackingLoop(ownerMode = "") {
   const backingVolume = useBackingVolume();
   const [audioUrl, setAudioUrl] = useState("");
   const [appliedTrimRange, setAppliedTrimRange] = useState(null);
@@ -94,6 +96,7 @@ export default function useBackingLoop() {
   const meterStopRef = useRef(null);
   const importInputRef = useRef(null);
   const mountedRef = useRef(true);
+  const modeActiveRef = useRef(true);
   const operationVersionRef = useRef(0);
   const phaseRef = useRef("idle");
   const playbackRequestRef = useRef(false);
@@ -165,6 +168,7 @@ export default function useBackingLoop() {
       });
       audioGraphRef.current = graph;
       if (graph) {
+        graph.connect?.();
         audio.volume = 1;
         graph.setLevel(backingVolumeRef.current, { immediate: true });
       } else {
@@ -335,7 +339,8 @@ export default function useBackingLoop() {
     return clearPlaybackTimer;
   }, [clearPlaybackTimer, phase]);
 
-  useEffect(() => () => {
+  const deactivateBackingLoop = useCallback(() => {
+    modeActiveRef.current = false;
     const phaseBeforeDeactivate = phaseRef.current;
     const playbackPositionMs = audioRef.current
       ? Math.max(0, audioRef.current.currentTime * 1000)
@@ -349,14 +354,24 @@ export default function useBackingLoop() {
       trimPreviewFadeTimerRef.current = null;
     }
     clearTransportFadeTimer();
+    playbackRequestRef.current = false;
+    trimPreviewRequestRef.current = false;
+    recordingRequestVersionRef.current += 1;
+    operationVersionRef.current += 1;
     const mediaRecorder = mediaRecorderRef.current;
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.ondataavailable = null;
       mediaRecorder.onstop = null;
       mediaRecorder.stop();
     }
+    mediaRecorderRef.current = null;
+    chunksRef.current = [];
     audioRef.current?.pause();
     trimPreviewAudioRef.current?.pause();
+    audioGraphRef.current?.setTransportLevel(1, { immediate: true });
+    trimPreviewAudioGraphRef.current?.setTransportLevel(1, { immediate: true });
+    disconnectMediaElementFromBus(audioRef.current);
+    disconnectMediaElementFromBus(trimPreviewAudioRef.current);
     setTrimPreviewPlaying(false);
     releaseMicrophone();
     if (phaseBeforeDeactivate === "playing") {
@@ -368,6 +383,20 @@ export default function useBackingLoop() {
       setPhaseImmediate("idle");
     }
   }, [clearArmTimer, clearPlaybackTimer, clearRecordingTimer, clearTransportFadeTimer, clearTrimPreviewTimer, releaseMicrophone, setPhaseImmediate]);
+
+  useEffect(() => () => deactivateBackingLoop(), [deactivateBackingLoop]);
+
+  useEffect(
+    () => registerBackingLoopActivity(
+      ownerMode,
+      deactivateBackingLoop,
+      () => {
+        mountedRef.current = true;
+        modeActiveRef.current = true;
+      },
+    ),
+    [deactivateBackingLoop, ownerMode],
+  );
 
   const stopRecording = useCallback(() => {
     const mediaRecorder = mediaRecorderRef.current;
@@ -612,7 +641,7 @@ export default function useBackingLoop() {
   }, [clearArmTimer, clearRecordingTimer, releaseMicrophone, resetAudioPosition, setPhaseImmediate, stopTrimPreview]);
 
   const playRecording = useCallback(async () => {
-    if (!recording?.blob || !audioRef.current || !audioUrl) return;
+    if (!modeActiveRef.current || !recording?.blob || !audioRef.current || !audioUrl) return;
     if (playbackRequestRef.current) return;
     if (["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
 
@@ -621,6 +650,7 @@ export default function useBackingLoop() {
       const audio = audioRef.current;
       clearTransportFadeTimer();
       const graph = await ensurePlaybackAudioGraph();
+      if (!mountedRef.current || !modeActiveRef.current) return;
       audio.loop = true;
       audio.defaultPlaybackRate = 1;
       audio.playbackRate = 1;
@@ -629,10 +659,17 @@ export default function useBackingLoop() {
       }
       graph?.setTransportLevel(0, { immediate: true });
       await audio.play();
+      if (!mountedRef.current || !modeActiveRef.current) {
+        audio.pause();
+        graph?.setTransportLevel(1, { immediate: true });
+        graph?.disconnect?.();
+        return;
+      }
       graph?.setTransportLevel(1, { timeConstant: 0.006 });
       setNotice("무한 반복 재생 중");
       setPhaseImmediate("playing");
     } catch {
+      if (!mountedRef.current || !modeActiveRef.current) return;
       setNotice("백킹을 재생할 수 없어요. 다시 녹음하거나 다른 백킹을 LOAD해주세요.");
       setPhaseImmediate("error");
     } finally {
@@ -917,7 +954,7 @@ export default function useBackingLoop() {
   }, [setPhaseImmediate, stopTrimPreview, trimDraft, trimEndMs, trimStartMs]);
 
   const toggleTrimPreview = useCallback(async () => {
-    if (!trimDraft?.recording || !trimPreviewAudioRef.current || phaseRef.current === "applying") return;
+    if (!modeActiveRef.current || !trimDraft?.recording || !trimPreviewAudioRef.current || phaseRef.current === "applying") return;
     if (trimPreviewPlaying) {
       stopTrimPreview();
       return;
@@ -935,6 +972,7 @@ export default function useBackingLoop() {
       });
       trimPreviewAudioGraphRef.current = graph;
       if (graph) {
+        graph.connect?.();
         audio.volume = 1;
         graph.setLevel(backingVolumeRef.current, { immediate: true });
         graph.setTransportLevel(0, { immediate: true });
@@ -945,7 +983,14 @@ export default function useBackingLoop() {
       audio.defaultPlaybackRate = 1;
       audio.playbackRate = 1;
       audio.currentTime = trimStartMs / 1000;
+      if (!mountedRef.current || !modeActiveRef.current) return;
       await audio.play();
+      if (!mountedRef.current || !modeActiveRef.current) {
+        audio.pause();
+        graph?.setTransportLevel(1, { immediate: true });
+        graph?.disconnect?.();
+        return;
+      }
       graph?.setTransportLevel(1, { timeConstant: 0.006 });
       setTrimPreviewPositionMs(trimStartMs);
       setTrimPreviewPlaying(true);
@@ -960,6 +1005,7 @@ export default function useBackingLoop() {
     } catch {
       clearTrimPreviewTimer();
       setTrimPreviewPlaying(false);
+      if (!mountedRef.current || !modeActiveRef.current) return;
       setNotice("선택 구간을 미리 재생할 수 없어요.");
     } finally {
       trimPreviewRequestRef.current = false;

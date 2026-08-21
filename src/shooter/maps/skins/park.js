@@ -9,6 +9,20 @@ export const PARK_MAP_SKIN = Object.freeze({
   label: "PARK",
   description: "햇살이 드는 잔디 공원을 중심으로 꾸미는 모듈형 공원 맵",
   previewImage: PARK_BACKGROUND_SRC,
+  performance: Object.freeze({
+    mobileGameplay: Object.freeze({
+      mode: "full",
+      audit: Object.freeze({
+        completed: true,
+        contentFingerprint: "30c756a1",
+        activeCssAnimations: 3,
+        ambientEventLayers: 0,
+        filteredElements: 6,
+        particleElements: 0,
+        sharedSpriteSubscribers: 6,
+      }),
+    }),
+  }),
   referenceViewport: Object.freeze({
     width: 390,
     height: 756,

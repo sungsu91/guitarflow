@@ -23,7 +23,6 @@ import {
   RotateCcw,
   RotateCw,
   Settings,
-  Shield,
   Square,
   Smartphone,
   Sun,
@@ -46,8 +45,16 @@ import {
   resumeSharedAudioContext,
 } from "./audio/audioBus";
 import AudioStudio from "./audio-studio/AudioStudio";
+import TunerMode, { TUNER_BACKGROUND_COUNT } from "./tuner/TunerMode";
+import {
+  detectPitchAutocorrelation,
+  detectPitchYin,
+  frequencyToNearest,
+  getRms,
+} from "./tuner/tunerMath.js";
 import BrandHeader from "./components/BrandHeader";
 import BackingLoop from "./components/BackingLoop";
+import { deactivateBackingLoopsExcept } from "./backing-loop/activityRegistry.js";
 import Fretboard from "./components/Fretboard";
 import SplashIntro from "./launch/SplashIntro";
 import { RIFFLAB_COMMON_CUTAWAY_SPRITE_SRC } from "./assets/rifflabCommonCutawaySprite";
@@ -85,13 +92,19 @@ import {
   getShooterNoteMonsterTuning,
 } from "./shooter/noteMonsterTuning.js";
 import useShooterNoteMonsterTuning from "./shooter/useShooterNoteMonsterTuning.js";
+import {
+  SHOOTER_PLAY_HELP_LEVELS,
+  getShooterPlayHelpMessage,
+} from "./shooter/playHelp.js";
 import MapSkinRenderer from "./shooter/maps/MapSkinRenderer";
 import MapEditPanel from "./shooter/maps/editor/MapEditPanel";
 import useMapEditMode from "./shooter/maps/editor/useMapEditMode";
+import { getShooterMapRuntimePerformance } from "./shooter/maps/performancePolicy.js";
 import { applyShooterEffectTuning } from "./shooter/effects/effectTuning.js";
 import useShooterEffectTuning from "./shooter/effects/useShooterEffectTuning.js";
 import {
   LAYERED_SHOOTER_MAP_SKINS,
+  getNextShooterMapId,
   getShooterMapAssetSources,
   isLayeredShooterMap,
 } from "./shooter/maps/registry";
@@ -183,7 +196,7 @@ import {
 
 const CHROMATIC_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const NOTE_INDEX = Object.fromEntries(CHROMATIC_NOTES.map((note, index) => [note, index]));
-const APP_VERSION_LABEL = "Version 0.9.4";
+const APP_VERSION_LABEL = "Version 0.9.5";
 
 const SOLFEGE = {
   C: "도",
@@ -4982,29 +4995,31 @@ const APP_THEME_OPTIONS = [
     label: "골드 다크",
   },
 ];
-const THEME_TRANSITION_COVER_MS = 180;
-const THEME_TRANSITION_SETTLE_MS = 120;
-const THEME_TRANSITION_REVEAL_MS = 280;
+const THEME_TRANSITION_TIMINGS = Object.freeze({
+  blankMs: 120,
+  justMs: 220,
+  playMs: 220,
+  settleMs: 200,
+  completeMs: 160,
+});
 
-const ThemeTransitionOverlay = memo(function ThemeTransitionOverlay({ transition }) {
+const ThemeTransitionOverlay = memo(function ThemeTransitionOverlay({ onComplete, transition }) {
   const themeLabel = transition.nextTheme === APP_THEMES.LIGHT ? "화이트" : "골드 다크";
+  const handleComplete = useCallback(
+    () => onComplete(transition.token),
+    [onComplete, transition.token],
+  );
 
   return (
-    <section
-      aria-label={`${themeLabel} 테마 적용 중`}
-      aria-live="polite"
-      className={`themeTransitionOverlay themeTransitionOverlay--${transition.nextTheme} themeTransitionOverlay--${transition.phase}`}
-      role="status"
-    >
-      <div className="themeTransitionOverlay__content">
-        <strong>JUST PLAY</strong>
-        <span className="themeTransitionOverlay__line" aria-hidden="true" />
-        <div className="themeTransitionOverlay__status">
-          <LoaderCircle aria-hidden="true" size={18} />
-          <span>{themeLabel} 테마 적용 중</span>
-        </div>
-      </div>
-    </section>
+    <SplashIntro
+      ariaLabel={`${themeLabel} 테마 적용 중`}
+      fallbackMs={15000}
+      minimumIntroMs={0}
+      onComplete={handleComplete}
+      progress={transition.progress}
+      readyPromise={transition.readyPromise}
+      statusText={`${themeLabel} 테마를 적용하고 있습니다.`}
+    />
   );
 });
 
@@ -7458,7 +7473,7 @@ function preloadShooterEffectImage(src) {
   }
 
   const cached = shooterEffectImagePreloadCache.get(src);
-  if (cached) return cached.promise;
+  if (cached) return cached;
 
   const image = new window.Image();
   image.decoding = "async";
@@ -7481,7 +7496,7 @@ function preloadShooterEffectImage(src) {
     image.src = src;
   });
 
-  shooterEffectImagePreloadCache.set(src, { image, promise });
+  shooterEffectImagePreloadCache.set(src, promise);
   return promise;
 }
 
@@ -11319,6 +11334,7 @@ const APP_MODES = {
   CURRICULUM: "curriculum",
   PRACTICE: "practice",
   METRONOME: "metronome",
+  TUNER: "tuner",
   SHOOTER: "shooter",
   FRETBOARD_VIEWER: "fretboard-viewer",
   MINI_CHORD_MAKER: "mini-chord-maker",
@@ -11336,6 +11352,7 @@ const APP_ROUTES = {
   STAGE3: "#stage3",
   STAGE4: "#stage4",
   METRONOME: "#metronome",
+  TUNER: "#tuner",
   SHOOTER: "#shooter",
   MINI_CHORD_MAKER: "#mini-chord",
   DESIGN_LAB: "#design-lab",
@@ -11373,6 +11390,8 @@ function getRouteFromHash(hash) {
       return { appMode: APP_MODES.PRACTICE, categoryId: "melody" };
     case APP_ROUTES.METRONOME:
       return { appMode: APP_MODES.METRONOME, categoryId: MAIN_DEFAULT_CATEGORY.id };
+    case APP_ROUTES.TUNER:
+      return { appMode: APP_MODES.TUNER, categoryId: MAIN_DEFAULT_CATEGORY.id };
     case APP_ROUTES.SHOOTER:
       return { appMode: APP_MODES.SHOOTER, categoryId: MAIN_DEFAULT_CATEGORY.id };
     case APP_ROUTES.MINI_CHORD_MAKER:
@@ -11395,6 +11414,7 @@ function getHashFromRoute(appMode, categoryId = MAIN_DEFAULT_CATEGORY.id) {
   if (appMode === APP_MODES.FRETBOARD_VIEWER) return APP_ROUTES.FRETBOARD_VIEWER;
   if (appMode === APP_MODES.CURRICULUM) return APP_ROUTES.CURRICULUM;
   if (appMode === APP_MODES.METRONOME) return APP_ROUTES.METRONOME;
+  if (appMode === APP_MODES.TUNER) return APP_ROUTES.TUNER;
   if (appMode === APP_MODES.SHOOTER) return APP_ROUTES.SHOOTER;
   if (appMode === APP_MODES.MINI_CHORD_MAKER) return APP_ROUTES.MINI_CHORD_MAKER;
   if (appMode === APP_MODES.DESIGN_LAB) return APP_ROUTES.DESIGN_LAB;
@@ -13155,6 +13175,7 @@ const UI_LABELS = {
   "No Signal": "신호 없음",
   curriculum: "연습 목차",
   practice: "훈련장 트레이너",
+  tuner: "튜너",
   shooter: "슈팅게임",
   "fretboard-viewer": "지판 보기",
   idle: "대기",
@@ -13519,116 +13540,16 @@ function getJudgmentMode(modeId) {
   return Object.values(JUDGMENT_MODES).find((mode) => mode.id === modeId) ?? JUDGMENT_MODES.PITCH;
 }
 
-function getRms(buffer) {
-  let total = 0;
-  for (let i = 0; i < buffer.length; i += 1) total += buffer[i] * buffer[i];
-  return Math.sqrt(total / buffer.length);
-}
-
-function centsBetween(frequency, targetFrequency) {
-  return 1200 * Math.log2(frequency / targetFrequency);
-}
-
-function frequencyToNearest(frequency, noteList, maxCents = Infinity) {
-  if (!frequency) return null;
-
-  let closest = noteList[0];
-  let closestCents = Infinity;
-  let signedCents = 0;
-
-  for (const note of noteList) {
-    const cents = centsBetween(frequency, note.frequency);
-    if (Math.abs(cents) < closestCents) {
-      closest = note;
-      closestCents = Math.abs(cents);
-      signedCents = cents;
-    }
-  }
-
-  return closestCents <= maxCents
-    ? { ...closest, cents: Math.round(signedCents), detectedFrequency: frequency }
-    : null;
-}
-
-function detectPitchYin(buffer, sampleRate, minFrequency = MIN_FREQ, maxFrequency = MAX_FREQ, threshold = 0.12) {
-  const minTau = Math.floor(sampleRate / maxFrequency);
-  const maxTau = Math.floor(sampleRate / minFrequency);
-  const yin = new Float32Array(maxTau + 1);
-  let runningSum = 0;
-
-  for (let tau = 1; tau <= maxTau; tau += 1) {
-    let sum = 0;
-    for (let i = 0; i < maxTau; i += 1) {
-      const delta = buffer[i] - buffer[i + tau];
-      sum += delta * delta;
-    }
-
-    runningSum += sum;
-    yin[tau] = runningSum === 0 ? 1 : (sum * tau) / runningSum;
-  }
-
-  let tauEstimate = -1;
-  for (let tau = minTau; tau <= maxTau; tau += 1) {
-    if (yin[tau] < threshold) {
-      while (tau + 1 <= maxTau && yin[tau + 1] < yin[tau]) tau += 1;
-      tauEstimate = tau;
-      break;
-    }
-  }
-
-  if (tauEstimate === -1) return null;
-
-  const betterTau = parabolicInterpolation(yin, tauEstimate);
-  const frequency = sampleRate / betterTau;
-  return Number.isFinite(frequency) ? frequency : null;
-}
-
-function detectPitchAutocorrelation(
-  buffer,
-  sampleRate,
-  minFrequency = MIN_FREQ,
-  maxFrequency = MAX_FREQ,
-  minCorrelation = 0.006,
-) {
-  const minLag = Math.floor(sampleRate / maxFrequency);
-  const maxLag = Math.floor(sampleRate / minFrequency);
-  let bestLag = -1;
-  let bestCorrelation = 0;
-
-  for (let lag = minLag; lag <= maxLag; lag += 1) {
-    let correlation = 0;
-    for (let i = 0; i < buffer.length - lag; i += 1) {
-      correlation += buffer[i] * buffer[i + lag];
-    }
-
-    correlation /= buffer.length - lag;
-    if (correlation > bestCorrelation) {
-      bestCorrelation = correlation;
-      bestLag = lag;
-    }
-  }
-
-  if (bestLag < 0 || bestCorrelation < minCorrelation) return null;
-  return sampleRate / bestLag;
-}
-
-function parabolicInterpolation(values, index) {
-  const left = values[index - 1] ?? values[index];
-  const center = values[index];
-  const right = values[index + 1] ?? values[index];
-  const divisor = left - 2 * center + right;
-
-  if (divisor === 0) return index;
-  return index + (left - right) / (2 * divisor);
-}
-
 function App({ onReady }) {
   const initialRouteRef = useRef(getInitialAppRoute());
   const initialStage3SettingsRef = useRef(getStoredStage3Settings());
   const initialStage3QuickSlotsRef = useRef(getStoredStage3QuickSlots());
   const [appMode, setAppModeState] = useState(initialRouteRef.current.appMode);
+  const [tunerBackgroundIndex, setTunerBackgroundIndex] = useState(0);
+  const tunerHasEnteredRef = useRef(initialRouteRef.current.appMode === APP_MODES.TUNER);
   const [mountedAppModes, setMountedAppModes] = useState(() => createMountedModeSet(initialRouteRef.current.appMode));
   const setAppMode = useCallback((nextMode) => {
+    deactivateBackingLoopsExcept(nextMode);
     setMountedAppModes((currentModes) => registerMountedMode(currentModes, nextMode));
     setAppModeState(nextMode);
   }, []);
@@ -13905,17 +13826,29 @@ function App({ onReady }) {
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
   const [shooterDifficulty, setShooterDifficulty] = useState(SHOOTER_DIFFICULTIES.EASY);
   const [shooterDifficultyMenuOpen, setShooterDifficultyMenuOpen] = useState(false);
+  const [shooterPlayHelpInfoOpen, setShooterPlayHelpInfoOpen] = useState(false);
+  const [shooterPlayHelpLevel, setShooterPlayHelpLevel] = useState(1);
   const [shooterSkinTab, setShooterSkinTab] = useState(SHOOTER_SKIN_TABS[0].id);
   const [selectedShooterPickSkinId, setSelectedShooterPickSkinId] = useState(getStoredShooterPickSkinId);
   const [selectedShooterMonsterSkinId, setSelectedShooterMonsterSkinId] = useState(getStoredShooterMonsterSkinId);
   const [selectedShooterEffectLoadout, setSelectedShooterEffectLoadout] = useState(getStoredShooterEffectLoadout);
-  const [selectedShooterMapId, setSelectedShooterMapId] = useState(getStoredShooterMapId);
+  const [selectedShooterMapId, setSelectedShooterMapId] = useState(() => {
+    const storedMapId = getStoredShooterMapId();
+    return initialRouteRef.current.appMode === APP_MODES.SHOOTER
+      ? getNextShooterMapId(storedMapId)
+      : storedMapId;
+  });
   const [shooterRecords, setShooterRecords] = useState(() => RecordService.getShooterRecords());
   const [showShooterRecords, setShowShooterRecords] = useState(false);
   const [shooterLives, setShooterLives] = useState(SHOOTER_MAX_LIVES);
   const [shooterLaunchTransition, setShooterLaunchTransition] = useState(null);
   const shooterLaunchTokenRef = useRef(0);
   const readyShooterEntryKeysRef = useRef(new Set());
+
+  useEffect(() => {
+    if (initialRouteRef.current.appMode !== APP_MODES.SHOOTER || typeof window === "undefined") return;
+    window.localStorage.setItem(SHOOTER_MAP_STORAGE_KEY, selectedShooterMapId);
+  }, [selectedShooterMapId]);
 
   useEffect(() => {
     if (!shooterGuitarPickerOpen || isMobileLayout || typeof document === "undefined") return undefined;
@@ -14014,6 +13947,14 @@ function App({ onReady }) {
   const selectedMapIsDefault = selectedMap.id === "none";
   const selectedMapIsLayered = isLayeredShooterMap(selectedMap);
   const selectedMapSkinClassName = selectedMapIsDefault ? "" : `shooterMapSkin shooterMapSkin--${selectedMap.id}`;
+  const shooterMapRuntimePerformance = getShooterMapRuntimePerformance({
+    animationsAllowed: gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER,
+    isEditing: mapEditor.enabled,
+    isMobileLayout,
+    isPlaying: gameState === GAME_STATES.PLAYING,
+    map: selectedMap,
+  });
+  const shooterMapAnimationsActive = shooterMapRuntimePerformance.animationsActive;
   const defaultShooterMapOption = SHOOTER_MAP_OPTIONS.find((map) => map.id === "none");
   const shooterMapPickerOptions = SHOOTER_MAP_OPTIONS.filter((map) => map.id !== "none");
   const selectedEffectLayers = useMemo(
@@ -14036,16 +13977,18 @@ function App({ onReady }) {
     [selectedEffectLayers],
   );
   const shooterEntryAssetsRef = useRef(null);
-  shooterEntryAssetsRef.current = {
-    effectLayers: selectedEffectLayers,
-    enemyAssetSources: getShooterNoteMonsterAssetSources(selectedMonsterSkin.id),
-    guitarAssetSrc: selectedGuitar.assetSrc,
-    guitarProjectileAssetSrc: selectedGuitar.projectileAssetSrc,
-    mapBackgroundSrc: selectedMap.backgroundImage,
-    mapLayerAssetSources: getShooterMapAssetSources(selectedMapRenderSkin),
-    mapPreviewSrc: selectedMap.previewImage,
-    pickAssetSrc: selectedPick.assetSrc,
-  };
+  shooterEntryAssetsRef.current = appMode === APP_MODES.SHOOTER
+    ? {
+        effectLayers: selectedEffectLayers,
+        enemyAssetSources: getShooterNoteMonsterAssetSources(selectedMonsterSkin.id),
+        guitarAssetSrc: selectedGuitar.assetSrc,
+        guitarProjectileAssetSrc: selectedGuitar.projectileAssetSrc,
+        mapBackgroundSrc: selectedMap.backgroundImage,
+        mapLayerAssetSources: getShooterMapAssetSources(selectedMapRenderSkin),
+        mapPreviewSrc: selectedMap.previewImage,
+        pickAssetSrc: selectedPick.assetSrc,
+      }
+    : null;
 
   const finishShooterLaunch = useCallback((token) => {
     setShooterLaunchTransition((current) => (
@@ -14083,9 +14026,6 @@ function App({ onReady }) {
     if (!shooterGuitarPickerOpen) return;
     void preloadShooterEffectCatalog();
   }, [shooterGuitarPickerOpen]);
-  useEffect(() => {
-    void preloadShooterEnemyAssets(selectedMonsterSkin.id);
-  }, [selectedMonsterSkin.id]);
   const assignedGuitarVariantIds = useMemo(
     () => new Set(Object.values(shooterPlayerSlots).filter((variantId) => GUITAR_LAB_VARIANT_IDS.has(variantId))),
     [shooterPlayerSlots],
@@ -14235,6 +14175,16 @@ function App({ onReady }) {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(SHOOTER_MAP_STORAGE_KEY, nextMap.id);
     }
+  }, []);
+
+  const advanceShooterMap = useCallback(() => {
+    setSelectedShooterMapId((currentMapId) => {
+      const nextMapId = getNextShooterMapId(getShooterMapById(currentMapId).id);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(SHOOTER_MAP_STORAGE_KEY, nextMapId);
+      }
+      return nextMapId;
+    });
   }, []);
 
   const persistGuitarLabDeletedIds = useCallback((nextIds) => {
@@ -20309,6 +20259,7 @@ function App({ onReady }) {
     stopBackingScheduler();
     setUtilityMenuOpen(false);
     setStage3StorageOpen(false);
+    if (appModeRef.current !== APP_MODES.SHOOTER) advanceShooterMap();
     appModeRef.current = APP_MODES.SHOOTER;
     setAppMode(APP_MODES.SHOOTER);
     enemiesRef.current = [];
@@ -20327,7 +20278,7 @@ function App({ onReady }) {
     setBeat(0);
     setFeedback("Start Shooter");
     setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
-  }, [setState, stopBackingScheduler]);
+  }, [advanceShooterMap, setState, stopBackingScheduler]);
 
   const showMetronomeMode = useCallback(() => {
     releaseControlPressState();
@@ -20356,6 +20307,34 @@ function App({ onReady }) {
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
   }, [cancelCountInVoice, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
+
+  const showTunerMode = useCallback(() => {
+    if (appModeRef.current !== APP_MODES.TUNER) {
+      if (tunerHasEnteredRef.current) {
+        setTunerBackgroundIndex((current) => (current + 1) % TUNER_BACKGROUND_COUNT);
+      }
+      else tunerHasEnteredRef.current = true;
+    }
+    releaseControlPressState();
+    stopBackingScheduler();
+    stopMic();
+    cancelCountInVoice();
+    setUtilityMenuOpen(false);
+    setStage3StorageOpen(false);
+    appModeRef.current = APP_MODES.TUNER;
+    setAppMode(APP_MODES.TUNER);
+    enemiesRef.current = [];
+    shooterTargetsRef.current = [];
+    projectilesRef.current = [];
+    setEnemies([]);
+    setShooterTargets([]);
+    setProjectiles([]);
+    setHitZoneNote(null);
+    setIsHitWindowActive(false);
+    setBeat(0);
+    setFeedback("Ready");
+    setState(GAME_STATES.IDLE);
+  }, [cancelCountInVoice, setState, stopBackingScheduler, stopMic]);
 
   const showFretboardViewer = useCallback(() => {
     releaseControlPressState();
@@ -20421,44 +20400,92 @@ function App({ onReady }) {
     if (normalizedTheme === appTheme || themeTransition) return;
 
     const token = themeTransitionTokenRef.current + 1;
+    let resolveReady;
+    const readyPromise = new Promise((resolve) => {
+      resolveReady = resolve;
+    });
     themeTransitionTokenRef.current = token;
     setThemeTransition({
       nextTheme: normalizedTheme,
       phase: "covering",
+      progress: 0,
+      readyPromise,
+      resolveReady,
       token,
     });
   }, [appTheme, themeTransition]);
 
+  const finishThemeTransition = useCallback((token) => {
+    setThemeTransition((current) => (
+      current?.token === token ? null : current
+    ));
+  }, []);
+
+  const themeTransitionActive = Boolean(themeTransition);
+
+  useLayoutEffect(() => {
+    if (!themeTransitionActive || typeof document === "undefined") return undefined;
+
+    const root = document.documentElement;
+    root.classList.add("app-is-theme-loading");
+    return () => {
+      root.classList.remove("app-is-theme-loading");
+    };
+  }, [themeTransitionActive]);
+
   useEffect(() => {
     if (!themeTransition || typeof window === "undefined") return undefined;
 
-    const { nextTheme, phase, token } = themeTransition;
+    const { nextTheme, phase, resolveReady, token } = themeTransition;
     let timerId = null;
     let firstFrameId = null;
     let secondFrameId = null;
 
     if (phase === "covering") {
       timerId = window.setTimeout(() => {
+        setThemeTransition((current) => (
+          current?.token === token ? { ...current, phase: "just", progress: 25 } : current
+        ));
+      }, THEME_TRANSITION_TIMINGS.blankMs);
+    } else if (phase === "just") {
+      timerId = window.setTimeout(() => {
+        setThemeTransition((current) => (
+          current?.token === token ? { ...current, phase: "play", progress: 55 } : current
+        ));
+      }, THEME_TRANSITION_TIMINGS.justMs);
+    } else if (phase === "play") {
+      timerId = window.setTimeout(() => {
         setAppTheme(nextTheme);
         window.localStorage.setItem(APP_THEME_STORAGE_KEY, nextTheme);
         setThemeTransition((current) => (
           current?.token === token ? { ...current, phase: "applying" } : current
         ));
-      }, THEME_TRANSITION_COVER_MS);
+      }, THEME_TRANSITION_TIMINGS.playMs);
     } else if (phase === "applying") {
       firstFrameId = window.requestAnimationFrame(() => {
         secondFrameId = window.requestAnimationFrame(() => {
-          timerId = window.setTimeout(() => {
-            setThemeTransition((current) => (
-              current?.token === token ? { ...current, phase: "revealing" } : current
-            ));
-          }, THEME_TRANSITION_SETTLE_MS);
+          setThemeTransition((current) => (
+            current?.token === token ? { ...current, phase: "settling", progress: 80 } : current
+          ));
         });
       });
-    } else if (phase === "revealing") {
+    } else if (phase === "settling") {
       timerId = window.setTimeout(() => {
-        setThemeTransition((current) => (current?.token === token ? null : current));
-      }, THEME_TRANSITION_REVEAL_MS);
+        setThemeTransition((current) => (
+          current?.token === token ? { ...current, phase: "complete", progress: 100 } : current
+        ));
+      }, THEME_TRANSITION_TIMINGS.settleMs);
+    } else if (phase === "complete") {
+      timerId = window.setTimeout(() => {
+        firstFrameId = window.requestAnimationFrame(() => {
+          secondFrameId = window.requestAnimationFrame(() => {
+            resolveReady?.("theme-ready");
+            setThemeTransition((current) => (
+              current?.token === token ? { ...current, phase: "ready" } : current
+            ));
+          });
+        });
+      }, THEME_TRANSITION_TIMINGS.completeMs);
     }
 
     return () => {
@@ -20597,6 +20624,9 @@ function App({ onReady }) {
     const applyHashRoute = () => {
       const route = getRouteFromHash(window.location.hash);
       if (route.appMode !== APP_MODES.SHOOTER) stopMic();
+      if (route.appMode === APP_MODES.SHOOTER && appModeRef.current !== APP_MODES.SHOOTER) {
+        advanceShooterMap();
+      }
       const routeChanged =
         route.appMode !== appModeRef.current ||
         route.categoryId !== selectedCategoryIdRef.current;
@@ -20671,7 +20701,7 @@ function App({ onReady }) {
       window.removeEventListener("hashchange", applyHashRoute);
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [getMetronomeScopeForCategory, setMetronomeAdvancedPanelImmediate, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
+  }, [advanceShooterMap, getMetronomeScopeForCategory, setMetronomeAdvancedPanelImmediate, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -21471,6 +21501,11 @@ function App({ onReady }) {
   const shooterTargetDetail = shooterTarget?.detail ?? (shooterTarget ? getShooterNoteDetail(shooterTarget.note) : null);
   const shooterGuidePitch = shooterTargetDetail?.octaveNote ?? shooterTargetDetail?.pitch;
   const shooterGuidePositions = shooterGuidePitch ? getFretboardPositionsForPitch(shooterGuidePitch) : [];
+  const shooterPlayHelpMessage = getShooterPlayHelpMessage(
+    shooterPlayHelpLevel,
+    shooterGuidePositions,
+    Boolean(shooterGuidePitch),
+  );
   const shooterDifficultyPhase = getShooterDifficultyPhase(shooterDifficulty, gameTimeRef.current, patternRef.current);
   const shooterLevel = getShooterEffectiveLevel(getShooterLevel(hits), shooterDifficulty, gameTimeRef.current, patternRef.current);
   const shooterDifficultyLabel = SHOOTER_DIFFICULTY_OPTIONS.find((option) => option.id === shooterDifficulty)?.label ?? "쉬움";
@@ -21505,6 +21540,9 @@ function App({ onReady }) {
       setShooterDifficultyMenuOpen(false);
     }
   }, [appMode, isMobileLayout, isShooterDifficultyLocked]);
+  useEffect(() => {
+    if (appMode !== APP_MODES.SHOOTER) setShooterPlayHelpInfoOpen(false);
+  }, [appMode]);
   const hasDirectionPractice = selectedCategory.id === "scale-block" || selectedCategory.id === "first-position";
   const directionGuideSequence =
     selectedCategory.id === "first-position" ? FIRST_POSITION_ASCENDING_SEQUENCE : selectedPentatonic.sequence;
@@ -23666,7 +23704,7 @@ function App({ onReady }) {
       aria-hidden={appInteractionLocked ? true : undefined}
       className={`app notranslate theme-${appTheme} ${appMode === APP_MODES.MENU ? "menuApp" : ""} ${
         appMode === APP_MODES.MINI_CHORD_MAKER ? "miniChordMakerMode" : ""
-      } ${appMode === APP_MODES.METRONOME ? "metronomeMode" : ""} ${appMode === APP_MODES.SHOOTER ? "shooterMode" : ""} ${appMode === APP_MODES.AUDIO_STUDIO ? "audioStudioMode" : ""} ${utilityMenuOpen ? "utilityMenuOpen" : ""} ${isSignalActive ? "signalGlow" : ""}`}
+      } ${appMode === APP_MODES.METRONOME ? "metronomeMode" : ""} ${appMode === APP_MODES.TUNER ? "tunerMode" : ""} ${appMode === APP_MODES.SHOOTER ? "shooterMode" : ""} ${appMode === APP_MODES.AUDIO_STUDIO ? "audioStudioMode" : ""} ${utilityMenuOpen ? "utilityMenuOpen" : ""} ${isSignalActive ? "signalGlow" : ""}`}
       onClickCapture={handleAppClickCapture}
       onPointerDownCapture={handleAppPointerDownCapture}
       onPointerUpCapture={handleAppPointerUpCapture}
@@ -23684,7 +23722,10 @@ function App({ onReady }) {
         : null}
       {themeTransition && typeof document !== "undefined"
         ? createPortal(
-          <ThemeTransitionOverlay transition={themeTransition} />,
+          <ThemeTransitionOverlay
+            onComplete={finishThemeTransition}
+            transition={themeTransition}
+          />,
           document.body,
         )
         : null}
@@ -23794,6 +23835,18 @@ function App({ onReady }) {
                 <div className="utilityMenuText">
                   <strong>리듬 &amp; 코드</strong>
                   <small>메트로놈 기반 코드 전환 훈련</small>
+                </div>
+                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
+              </button>
+              <button
+                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
+                onClick={showMiniChordMaker}
+                type="button"
+              >
+                <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">4</span>
+                <div className="utilityMenuText">
+                  <strong>미니반주</strong>
+                  <small>코드 진행과 반주를 빠르게 만들기</small>
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
@@ -23959,13 +24012,13 @@ function App({ onReady }) {
       {appMode !== APP_MODES.MENU && !(appMode === APP_MODES.SHOOTER && mapEditor.enabled) && <section className="hud">
         <div className="modeSwitch">
           <button
-            aria-pressed={appMode === APP_MODES.MINI_CHORD_MAKER}
-            className={appMode === APP_MODES.MINI_CHORD_MAKER ? "selected" : ""}
-            onClick={showMiniChordMaker}
+            aria-pressed={appMode === APP_MODES.TUNER}
+            className={appMode === APP_MODES.TUNER ? "selected" : ""}
+            onClick={showTunerMode}
             type="button"
           >
-            <Music2 size={17} aria-hidden="true" />
-            미니반주
+            <Radio size={17} aria-hidden="true" />
+            튜너
           </button>
           <button
             aria-pressed={appMode === APP_MODES.FRETBOARD_VIEWER}
@@ -24009,6 +24062,15 @@ function App({ onReady }) {
         </div>
       </section>}
 
+      {appMode === APP_MODES.TUNER ? (
+        <TunerMode
+          active
+          backgroundEntryIndex={tunerBackgroundIndex}
+          mobile={isMobileLayout}
+          onBackgroundChange={setTunerBackgroundIndex}
+        />
+      ) : null}
+
       {isAppModeMounted(APP_MODES.MENU) ? (
         <Activity mode={getModeActivityState(appMode, APP_MODES.MENU)}>
         {renderAppMode(APP_MODES.MENU, () => (
@@ -24041,6 +24103,11 @@ function App({ onReady }) {
               <strong>미니반주</strong>
               <i className="hubMenuArrow" aria-hidden="true">›</i>
             </button>
+            <button className="hubMenuButton tuner" onClick={showTunerMode} type="button">
+              <span className="hubMenuBadge">03</span>
+              <strong>튜너</strong>
+              <i className="hubMenuArrow" aria-hidden="true">›</i>
+            </button>
             <button
               aria-label="슈팅게임"
               className="hubMenuButton shooter notranslate"
@@ -24049,12 +24116,12 @@ function App({ onReady }) {
               translate="no"
               type="button"
             >
-              <span className="hubMenuBadge">03</span>
+              <span className="hubMenuBadge">04</span>
               <strong>슈팅게임</strong>
               <i className="hubMenuArrow" aria-hidden="true">›</i>
             </button>
             <button className="hubMenuButton metronome" onClick={showMetronomeMode} type="button">
-              <span className="hubMenuBadge">04</span>
+              <span className="hubMenuBadge">05</span>
               <strong>메트로놈</strong>
               <i className="hubMenuArrow" aria-hidden="true">›</i>
             </button>
@@ -24064,8 +24131,8 @@ function App({ onReady }) {
             <button onClick={showFretboardViewer} type="button">
               지판보기
             </button>
-            <button onClick={showMiniChordMaker} type="button">
-              미니반주
+            <button onClick={showTunerMode} type="button">
+              튜너
             </button>
             <button onClick={showMetronomeMode} type="button">
               메트로놈
@@ -26303,7 +26370,7 @@ function App({ onReady }) {
             weakTone={metronomeWeakTone}
           />
 
-          <BackingLoop mobile={isMobileLayout} />
+          <BackingLoop mobile={isMobileLayout} ownerMode={APP_MODES.METRONOME} />
 
           <div className="metronomePresetStrip" aria-label="메트로놈 설정 저장 및 불러오기">
             <input
@@ -26486,35 +26553,15 @@ function App({ onReady }) {
           </div>
           </> : null}
 
-          <div
-            className={`shooterArena ${!isMobileLayout && !mapEditor.enabled ? "shooterArena--desktopPortrait" : ""} ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapIsLayered ? "shooterArena--layeredMap" : ""} ${mapEditor.enabled ? "shooterArena--mapEdit" : ""} shooterArena--aura-${selectedAuraEffect.id} shooterArena--floor-${selectedFloorEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""} ${gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterArena--lobby" : "shooterArena--session"}`}
-            onClick={(event) => {
-              if (mapEditor.enabled) return;
-              if (shooterDifficultyMenuOpen) setShooterDifficultyMenuOpen(false);
-              handleShooterArenaClick(event);
-            }}
-            ref={shooterArenaRef}
-            style={selectedMapStyle}
-          >
-            <MapSkinRenderer
-              ambientEventsActive={gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER}
-              editMode={mapEditor.enabled}
-              layout={shooterMapRenderLayout}
-              onAssetPointerDown={mapEditor.beginAssetGesture}
-              onAssetSelect={mapEditor.selectInstance}
-              onCreatureAnchorPointerDown={mapEditor.beginCreatureAnchorGesture}
-              onEventSound={playShooterSound}
-              onStagePointerDown={mapEditor.handleStagePointerDown}
-              selectedAssetId={mapEditor.selectedInstanceId}
-              skin={selectedMapRenderSkin}
-              stage="underlay"
-            />
-
-            {!mapEditor.enabled ? (
-              <>
+          {!mapEditor.enabled ? (
+            <div
+              className="mobileShooterTopHud"
+              onClick={(event) => event.stopPropagation()}
+              onPointerDown={(event) => event.stopPropagation()}
+            >
+              <div className="mobileShooterPrimaryHudRow">
                 <div
                   className={`mobileShooterDifficultyControl ${shooterDifficultyMenuOpen ? "open" : ""} ${isShooterDifficultyLocked ? "locked" : ""}`}
-                  onClick={(event) => event.stopPropagation()}
                   onKeyDown={(event) => {
                     if (event.key === "Escape") setShooterDifficultyMenuOpen(false);
                   }}
@@ -26529,9 +26576,9 @@ function App({ onReady }) {
                     title={isShooterDifficultyLocked ? "게임 중에는 난이도를 변경할 수 없습니다." : "난이도 선택"}
                     type="button"
                   >
-                    <Shield aria-hidden="true" size={20} strokeWidth={1.7} />
                     <span>
                       <small>난이도</small>
+                      <i aria-hidden="true">·</i>
                       <strong>{shooterDifficultyLabel}</strong>
                     </span>
                     <ChevronDown aria-hidden="true" className="mobileShooterDifficultyChevron" size={11} strokeWidth={2.2} />
@@ -26563,17 +26610,34 @@ function App({ onReady }) {
                   ) : null}
                 </div>
 
-                <div className="mobileShooterTargetHud" aria-live="polite">
-                  <span>목표 음</span>
-                  <strong>{shooterGuidePitch || "대기"}</strong>
-                  <small>
-                    {shooterGuidePitch
-                      ? getSolfege(shooterGuidePitch) || getPitchClass(shooterGuidePitch)
-                      : "WAITING"}
-                  </small>
-                  <i className="mobileShooterWaveform" aria-hidden="true">
-                    {Array.from({ length: 7 }, (_, index) => <b key={index} />)}
-                  </i>
+                <div className={`mobileShooterPlayHelpHud mobileShooterPlayHelpHud--level-${shooterPlayHelpLevel}`}>
+                  <span className="mobileShooterPlayHelpLabel">도움</span>
+                  {SHOOTER_PLAY_HELP_LEVELS.map((level) => (
+                    <button
+                      aria-label={`연주 도움 ${level === 0 ? "끄기" : `${level}단계`}`}
+                      aria-pressed={shooterPlayHelpLevel === level}
+                      className={`mobileShooterPlayHelpOption ${shooterPlayHelpLevel === level ? "selected" : ""}`}
+                      key={level}
+                      onClick={() => setShooterPlayHelpLevel(level)}
+                      type="button"
+                    >
+                      {level === 0 ? "OFF" : level}
+                    </button>
+                  ))}
+                  <button
+                    aria-expanded={shooterPlayHelpInfoOpen}
+                    aria-label="연주 도움 기능 설명"
+                    className="mobileShooterPlayHelpInfoButton"
+                    onClick={() => setShooterPlayHelpInfoOpen((isOpen) => !isOpen)}
+                    type="button"
+                  >
+                    <CircleHelp aria-hidden="true" size={14} strokeWidth={2} />
+                  </button>
+                  {shooterPlayHelpInfoOpen ? (
+                    <div className="mobileShooterPlayHelpTooltip" role="tooltip">
+                      OFF는 숨김, 1은 프렛, 2는 프렛과 줄을 안내합니다.
+                    </div>
+                  ) : null}
                 </div>
 
                 <button
@@ -26583,9 +26647,58 @@ function App({ onReady }) {
                   onClick={startShooterMic}
                   type="button"
                 >
-                  <Mic aria-hidden="true" size={27} strokeWidth={1.8} />
-                  <span>{streamRef.current ? "ON" : "MIC"}</span>
+                  <span>
+                    <Mic aria-hidden="true" size={13} strokeWidth={2} />
+                    <b>{streamRef.current ? "ON" : "OFF"}</b>
+                  </span>
                 </button>
+              </div>
+
+              {shooterPlayHelpLevel > 0 ? (
+                <div className="mobileShooterPlayHelpMessageBar">
+                  <p aria-live="polite">{shooterPlayHelpMessage}</p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div
+            className={`shooterArena ${!isMobileLayout && !mapEditor.enabled ? "shooterArena--desktopPortrait" : ""} ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapIsLayered ? "shooterArena--layeredMap" : ""} ${mapEditor.enabled ? "shooterArena--mapEdit" : ""} ${shooterMapRuntimePerformance.reduceEffects ? "shooterArena--mapEffectsReduced" : ""} shooterArena--aura-${selectedAuraEffect.id} shooterArena--floor-${selectedFloorEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""} ${gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER ? "shooterArena--animationsPaused" : ""} ${gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterArena--lobby" : "shooterArena--session"}`}
+            onClick={(event) => {
+              if (mapEditor.enabled) return;
+              if (shooterDifficultyMenuOpen) setShooterDifficultyMenuOpen(false);
+              if (shooterPlayHelpInfoOpen) setShooterPlayHelpInfoOpen(false);
+              handleShooterArenaClick(event);
+            }}
+            ref={shooterArenaRef}
+            style={selectedMapStyle}
+          >
+            <MapSkinRenderer
+              ambientEventsActive={shooterMapRuntimePerformance.ambientEventsActive}
+              animationsActive={shooterMapAnimationsActive}
+              editMode={mapEditor.enabled}
+              layout={shooterMapRenderLayout}
+              onAssetPointerDown={mapEditor.beginAssetGesture}
+              onAssetSelect={mapEditor.selectInstance}
+              onCreatureAnchorPointerDown={mapEditor.beginCreatureAnchorGesture}
+              onEventSound={playShooterSound}
+              onStagePointerDown={mapEditor.handleStagePointerDown}
+              selectedAssetId={mapEditor.selectedInstanceId}
+              skin={selectedMapRenderSkin}
+              stage="underlay"
+            />
+
+            {!mapEditor.enabled ? (
+              <>
+                <div className="mobileShooterTargetHud" aria-live="polite">
+                  <span>목표 음</span>
+                  <strong>{shooterGuidePitch || "대기"}</strong>
+                  <small>
+                    {shooterGuidePitch
+                      ? getSolfege(shooterGuidePitch) || getPitchClass(shooterGuidePitch)
+                      : "WAITING"}
+                  </small>
+                </div>
 
                 <div className="mobileShooterScoreHud" aria-label="슈팅게임 점수와 레벨">
                   <div className="mobileShooterBestScore">
@@ -26922,7 +27035,8 @@ function App({ onReady }) {
               </div>
             ) : null}
             <MapSkinRenderer
-              ambientEventsActive={gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER}
+              ambientEventsActive={shooterMapRuntimePerformance.ambientEventsActive}
+              animationsActive={shooterMapAnimationsActive}
               editMode={mapEditor.enabled}
               layout={shooterMapRenderLayout}
               onAssetPointerDown={mapEditor.beginAssetGesture}
@@ -28364,7 +28478,7 @@ function App({ onReady }) {
                   />
                   {selectedCategory.id === "scale-block" ? (
                     <div className="scaleTrainingBackingLoop">
-                      <BackingLoop mobile={isMobileLayout} />
+                      <BackingLoop mobile={isMobileLayout} ownerMode={APP_MODES.PRACTICE} />
                     </div>
                   ) : null}
                 </div>

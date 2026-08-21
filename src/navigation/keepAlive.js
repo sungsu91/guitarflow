@@ -3,7 +3,6 @@ export const NAVIGATION_KEEP_ALIVE_MODES = Object.freeze([
   "mini-chord-maker",
   "fretboard-viewer",
   "metronome",
-  "shooter",
 ]);
 
 const NAVIGATION_KEEP_ALIVE_MODE_SET = new Set(NAVIGATION_KEEP_ALIVE_MODES);
@@ -24,7 +23,7 @@ export function registerMountedMode(mountedModes, mode) {
 }
 
 export function shouldMountMode(activeMode, mountedModes, mode) {
-  return activeMode === mode || mountedModes.has(mode);
+  return activeMode === mode || (isNavigationKeepAliveMode(mode) && mountedModes.has(mode));
 }
 
 export function getModeActivityState(activeMode, mode) {

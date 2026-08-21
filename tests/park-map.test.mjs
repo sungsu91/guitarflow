@@ -739,6 +739,9 @@ test("park uses the supplied background in the shared layered map system", async
   assert.match(rendererSource, /isGardenSwing/);
   assert.match(rendererSource, /shooterMapParkFountainBody/);
   assert.match(rendererSource, /shooterMapParkFountainWaterFrame/);
+  assert.match(rendererSource, /SharedSpriteFrameImage/);
+  assert.match(rendererSource, /subscribeSharedMapAnimation/);
+  assert.match(mapStyles, /shooterMapSpriteFrame--shared/);
   assert.match(mapStyles, /@keyframes shooterMapMiniPoodleFrame/);
   assert.match(mapStyles, /@keyframes shooterMapBorderCollieAcrobatFrame/);
   assert.match(mapStyles, /@keyframes shooterMapBorderCollieRoam/);

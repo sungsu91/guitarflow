@@ -44,240 +44,582 @@
 }
 
 html.app-is-launching {
-  scrollbar-color: transparent #030609;
+  scrollbar-color: transparent #020817;
+}
+
+html.app-is-theme-loading,
+html.app-is-theme-loading body {
+  overflow: hidden;
 }
 
 html.app-is-launching::-webkit-scrollbar {
   width: 12px;
-  background: #030609;
+  background: #020817;
 }
 
 html.app-is-launching::-webkit-scrollbar-thumb,
 html.app-is-launching::-webkit-scrollbar-track {
-  background: #030609;
+  background: #020817;
 }
 
 .launchSplash {
+  --launch-exit-ms: 320ms;
   position: fixed;
   inset: 0;
   z-index: 2147483000;
+  box-sizing: border-box;
   display: grid;
-  min-width: 320px;
+  width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
   overflow: hidden;
+  padding:
+    max(20px, env(safe-area-inset-top))
+    max(20px, env(safe-area-inset-right))
+    max(20px, env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
   place-items: center;
   contain: layout paint style;
   isolation: isolate;
   overscroll-behavior: none;
   touch-action: none;
-  background:
-    radial-gradient(circle at 50% 48%, rgba(217, 170, 85, 0.035), transparent 24%),
-    radial-gradient(circle at 50% 0%, rgba(23, 33, 40, 0.22), transparent 42%),
-    linear-gradient(180deg, #030609 0%, #05080b 52%, #020406 100%);
-  color: #d9aa55;
+  background: #020817;
+  color: #f3cb79;
 }
 
 .launchSplash::before {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(90deg, transparent 0 49.9%, rgba(255, 240, 204, 0.018) 50%, transparent 50.1%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent 22%, transparent 78%, rgba(0, 0, 0, 0.22));
+  background: radial-gradient(circle at 50% 48%, rgba(21, 54, 96, 0.2), transparent 54%);
   content: "";
   pointer-events: none;
 }
 
+.launchSplash__content {
+  display: grid;
+  justify-items: center;
+  width: min(88vw, 72vh, 560px);
+}
+
 .launchSplash__stage {
   position: relative;
-  width: min(100vw, 520px);
-  height: 180px;
-  transform: translateY(-2vh);
+  width: 100%;
+  max-width: 1254px;
+  aspect-ratio: 1;
+  isolation: isolate;
 }
 
-.launchSplash__strings,
-.launchSplash__goldLine,
-.launchSplash__wordmark {
+.launchSplash__stage::before {
   position: absolute;
-  left: 50%;
+  z-index: -1;
+  inset: 16%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(243, 191, 79, 0.22), rgba(27, 74, 126, 0.1) 46%, transparent 72%);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.9);
+  transition:
+    opacity 180ms ease-out,
+    transform 180ms ease-out;
 }
 
-.launchSplash__strings {
-  top: 50%;
-  display: grid;
-  width: min(86vw, 430px);
-  height: 54px;
-  align-content: space-between;
-  transform: translate(-50%, -50%);
-}
-
-.launchSplash__strings span {
+.launchSplash__logo {
   display: block;
   width: 100%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(217, 170, 85, 0.7) 12%, rgba(241, 202, 122, 0.86) 50%, rgba(217, 170, 85, 0.7) 88%, transparent);
+  height: auto;
+  overflow: visible;
+  transform: translate3d(0, 1.4%, 0);
+  transform-origin: center;
+}
+
+.launchSplash__piece,
+.launchSplash__pieceFinal {
   opacity: 0;
-  transform: scaleX(0.84) translateY(0);
-  animation: riffLaunchStringIn 300ms cubic-bezier(0.22, 0.7, 0.24, 1) var(--string-delay) forwards;
+  transform-box: fill-box;
   transform-origin: center;
   will-change: opacity, transform;
 }
 
-.launchSplash__goldLine {
-  top: 50%;
-  z-index: 1;
-  width: min(88vw, 440px);
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, #a87327 12%, #f1ca7a 50%, #a87327 88%, transparent 100%);
-  box-shadow: 0 0 7px rgba(217, 170, 85, 0.16);
+.launchSplash__piece--just {
+  transform: translate3d(-105%, -4%, 0) rotate(-6deg) scale(0.96);
+}
+
+.launchSplash__piece--play {
+  transform: translate3d(105%, 5%, 0) rotate(6deg) scale(0.96);
+}
+
+.launchSplash__piece--guitar {
+  transform: translate3d(82%, -9%, 0) rotate(7deg) scale(0.96);
+}
+
+.launchSplash__pieceFinal {
+  transform: scale(0.965);
+}
+
+.launchSplash--controlled .launchSplash__piece {
+  transition:
+    opacity 100ms ease-out,
+    transform 360ms cubic-bezier(0.16, 0.88, 0.22, 1.08);
+}
+
+.launchSplash--controlled .launchSplash__pieceFinal {
+  transition:
+    opacity 220ms ease-out,
+    transform 260ms cubic-bezier(0.2, 0.78, 0.24, 1);
+}
+
+.launchSplash--controlled :is(
+  .launchSplash__piece,
+  .launchSplash__pieceFinal
+).launchSplash__piece--visible {
+  opacity: 1;
+  transform: none;
+}
+
+.launchSplash--autonomous.launchSplash--entering .launchSplash__piece--just {
+  animation: launchPieceJustIn 400ms cubic-bezier(0.16, 0.84, 0.22, 1) 100ms both;
+}
+
+.launchSplash--autonomous.launchSplash--entering .launchSplash__piece--play {
+  animation: launchPiecePlayIn 410ms cubic-bezier(0.16, 0.84, 0.22, 1) 440ms both;
+}
+
+.launchSplash--autonomous.launchSplash--entering .launchSplash__piece--guitar {
+  animation: launchPieceGuitarIn 440ms cubic-bezier(0.16, 0.84, 0.22, 1) 780ms both;
+}
+
+.launchSplash--autonomous.launchSplash--entering .launchSplash__pieceFinal {
+  animation: launchPieceFinalIn 300ms cubic-bezier(0.2, 0.78, 0.24, 1) 1140ms both;
+}
+
+.launchSplash--autonomous.launchSplash--ready .launchSplash__piece--just {
+  animation: launchPieceJustIn 170ms cubic-bezier(0.16, 0.84, 0.22, 1) both;
+}
+
+.launchSplash--autonomous.launchSplash--ready .launchSplash__piece--play {
+  animation: launchPiecePlayIn 180ms cubic-bezier(0.16, 0.84, 0.22, 1) 20ms both;
+}
+
+.launchSplash--autonomous.launchSplash--ready .launchSplash__piece--guitar {
+  animation: launchPieceGuitarIn 190ms cubic-bezier(0.16, 0.84, 0.22, 1) 40ms both;
+}
+
+.launchSplash--autonomous.launchSplash--ready .launchSplash__pieceFinal {
+  animation: launchPieceFinalIn 170ms ease-out 70ms both;
+}
+
+.launchSplash--exiting .launchSplash__pieceFinal {
+  opacity: 1;
+  transform: none;
+}
+
+.launchSplash--autonomous.launchSplash--entering .launchSplash__stage::before {
+  animation: launchLogoAura 3000ms ease-in-out 1380ms infinite;
+}
+
+.launchSplash--ready .launchSplash__stage::before,
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stage::before {
+  opacity: 0.2;
+  transform: scale(1);
+}
+
+.launchSplash__sheen {
   opacity: 0;
-  transform: translate(-50%, -50%) scaleX(0);
-  animation: riffLaunchGoldLineIn 360ms cubic-bezier(0.22, 0.7, 0.24, 1) 250ms forwards;
-  transform-origin: left center;
-  will-change: opacity, transform;
+  pointer-events: none;
+  transform-box: fill-box;
 }
 
-.launchSplash__wordmark {
-  top: 50%;
-  z-index: 2;
-  display: flex;
-  gap: clamp(20px, 6vw, 34px);
-  align-items: center;
-  justify-content: center;
-  width: max-content;
-  margin: 0;
-  background: linear-gradient(180deg, #fff0bd 0%, #d9aa55 46%, #8f6326 100%);
-  background-clip: text;
-  color: transparent;
-  font-family: Inter, "Pretendard", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(31px, 9.2vw, 48px);
-  font-weight: 720;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  opacity: 0.08;
-  transform: translate(-50%, -50%) translateY(2px);
-  animation: riffLaunchWordmarkIn 430ms cubic-bezier(0.22, 0.7, 0.24, 1) 70ms forwards;
-  -webkit-background-clip: text;
-  will-change: opacity, transform;
+.launchSplash--autonomous.launchSplash--entering .launchSplash__sheen,
+.launchSplash--autonomous.launchSplash--ready .launchSplash__sheen,
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__sheen {
+  animation: launchGoldSheen 2600ms ease-in-out 1780ms infinite;
 }
 
-.launchSplash__word {
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__sheen {
+  animation-delay: 0ms;
+}
+
+.launchSplash__stringMotion {
+  fill: none;
+  opacity: 0;
+  pointer-events: none;
+  stroke: rgba(255, 236, 181, 0.5);
+  stroke-linecap: round;
+  stroke-width: 1.15;
+  vector-effect: non-scaling-stroke;
+}
+
+.launchSplash__stringMotion path {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.launchSplash--autonomous.launchSplash--entering .launchSplash__stringMotion,
+.launchSplash--autonomous.launchSplash--ready .launchSplash__stringMotion,
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion {
+  animation: launchStringsVisible 1ms linear 1780ms forwards;
+}
+
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion {
+  animation-delay: 0ms;
+}
+
+.launchSplash--autonomous.launchSplash--entering .launchSplash__stringMotion path,
+.launchSplash--autonomous.launchSplash--ready .launchSplash__stringMotion path,
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path {
+  animation: launchStringWait 1680ms ease-in-out 1780ms infinite;
+}
+
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path {
+  animation-delay: 0ms;
+}
+
+.launchSplash--autonomous.launchSplash--entering .launchSplash__stringMotion path:nth-child(2),
+.launchSplash--autonomous.launchSplash--ready .launchSplash__stringMotion path:nth-child(2),
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(2) {
+  animation-delay: 1810ms;
+}
+
+.launchSplash--autonomous.launchSplash--entering .launchSplash__stringMotion path:nth-child(3),
+.launchSplash--autonomous.launchSplash--ready .launchSplash__stringMotion path:nth-child(3),
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(3) {
+  animation-delay: 1840ms;
+}
+
+.launchSplash--autonomous.launchSplash--entering .launchSplash__stringMotion path:nth-child(4),
+.launchSplash--autonomous.launchSplash--ready .launchSplash__stringMotion path:nth-child(4),
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(4) {
+  animation-delay: 1870ms;
+}
+
+.launchSplash--autonomous.launchSplash--entering .launchSplash__stringMotion path:nth-child(5),
+.launchSplash--autonomous.launchSplash--ready .launchSplash__stringMotion path:nth-child(5),
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(5) {
+  animation-delay: 1900ms;
+}
+
+.launchSplash--autonomous.launchSplash--entering .launchSplash__stringMotion path:nth-child(6),
+.launchSplash--autonomous.launchSplash--ready .launchSplash__stringMotion path:nth-child(6),
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(6) {
+  animation-delay: 1930ms;
+}
+
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(2) {
+  animation-delay: 30ms;
+}
+
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(3) {
+  animation-delay: 60ms;
+}
+
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(4) {
+  animation-delay: 90ms;
+}
+
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(5) {
+  animation-delay: 120ms;
+}
+
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(6) {
+  animation-delay: 150ms;
+}
+
+.launchSplash__progress {
+  display: grid;
+  justify-items: center;
+  width: min(82%, 460px);
+  gap: 9px;
+  margin-top: clamp(-18px, -2.4vw, -8px);
+  color: #f7c14d;
+  font-size: clamp(10px, 2.8vw, 13px);
+  letter-spacing: 0.055em;
+}
+
+.launchSplash__progressTrack {
+  position: relative;
   display: block;
+  width: 100%;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 233, 181, 0.18);
+}
+
+.launchSplash__progressValue {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #c48222, #ffd267 72%, #fff0b0);
+  transform: scaleX(var(--launch-progress-scale, 0));
+  transform-origin: left center;
+  transition: transform 200ms cubic-bezier(0.2, 0.78, 0.24, 1);
+}
+
+.launchSplash__progressValue::after {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff2b2;
+  content: "";
+  opacity: 0.8;
+  transform: translate(50%, -50%);
+}
+
+.launchSplash__progress strong {
+  font: inherit;
+  font-weight: 600;
+}
+
+.launchSplash--ready .launchSplash__progress strong,
+.launchSplash--exiting .launchSplash__progress strong {
+  color: #ffe27f;
+  letter-spacing: 0.12em;
+}
+
+.launchSplash__statusText {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .launchSplash--exiting {
-  animation: riffLaunchBackdropOut 480ms ease-in forwards;
+  animation: launchBackdropOut var(--launch-exit-ms) ease-in forwards;
 }
 
-.launchSplash--exiting .launchSplash__strings span {
-  animation: riffLaunchStringOut 150ms ease-in forwards;
+.launchSplash--exiting .launchSplash__logo {
+  animation: launchLogoOut var(--launch-exit-ms) ease-in forwards;
 }
 
-.launchSplash--exiting .launchSplash__goldLine {
-  animation: riffLaunchGoldLineOut 190ms ease-in 45ms forwards;
+.launchSplash--exiting .launchSplash__stage::before {
+  opacity: 0;
+  transform: scale(1.05);
 }
 
-.launchSplash--exiting .launchSplash__wordmark {
-  animation: riffLaunchMarkOut 260ms ease-in 120ms forwards;
-}
-
-@keyframes riffLaunchWordmarkIn {
+@keyframes launchPieceJustIn {
   0% {
-    opacity: 0.08;
-    transform: translate(-50%, -50%) translateY(2px);
+    opacity: 0;
+    transform: translate3d(-105%, -4%, 0) rotate(-6deg) scale(0.96);
   }
 
-  55% {
-    opacity: 0.52;
+  22% {
+    opacity: 1;
+  }
+
+  72% {
+    opacity: 1;
+    transform: translate3d(2.8%, 0.6%, 0) rotate(1.2deg) scale(1.012);
+  }
+
+  86% {
+    transform: translate3d(-0.8%, -0.2%, 0) rotate(-0.35deg) scale(0.997);
   }
 
   100% {
     opacity: 1;
-    transform: translate(-50%, -50%) translateY(0);
+    transform: translate3d(0, 0, 0) rotate(0) scale(1);
   }
 }
 
-@keyframes riffLaunchGoldLineIn {
+@keyframes launchPiecePlayIn {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) scaleX(0);
+    transform: translate3d(105%, 5%, 0) rotate(6deg) scale(0.96);
   }
 
-  25% {
-    opacity: 0.82;
+  22% {
+    opacity: 1;
+  }
+
+  72% {
+    opacity: 1;
+    transform: translate3d(-2.8%, -0.5%, 0) rotate(-1.2deg) scale(1.012);
+  }
+
+  86% {
+    transform: translate3d(0.8%, 0.2%, 0) rotate(0.35deg) scale(0.997);
   }
 
   100% {
-    opacity: 0.92;
-    transform: translate(-50%, -50%) scaleX(1);
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0) scale(1);
   }
 }
 
-@keyframes riffLaunchStringIn {
+@keyframes launchPieceGuitarIn {
   0% {
     opacity: 0;
-    transform: scaleX(0.84) translateY(0);
+    transform: translate3d(82%, -9%, 0) rotate(7deg) scale(0.96);
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  72% {
+    opacity: 1;
+    transform: translate3d(-2%, 1%, 0) rotate(-1.15deg) scale(1.01);
+  }
+
+  87% {
+    transform: translate3d(0.65%, -0.3%, 0) rotate(0.3deg) scale(0.998);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0) scale(1);
+  }
+}
+
+@keyframes launchPieceFinalIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.965);
+  }
+
+  72% {
+    opacity: 1;
+    transform: scale(1.006);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes launchLogoAura {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  14%,
+  100% {
+    opacity: 0.16;
+    transform: scale(1);
+  }
+
+  56% {
+    opacity: 0.24;
+    transform: scale(1.015);
+  }
+}
+
+@keyframes launchGoldSheen {
+  0%,
+  8% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+
+  28% {
+    opacity: 0.28;
+  }
+
+  72% {
+    opacity: 0.18;
+  }
+
+  90%,
+  100% {
+    opacity: 0;
+    transform: translateX(1900px);
+  }
+}
+
+@keyframes launchStringsVisible {
+  to {
+    opacity: 0.34;
+  }
+}
+
+@keyframes launchStringWait {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  44% {
+    transform: translateX(0.8px);
   }
 
   58% {
-    opacity: var(--string-opacity);
-    transform: scaleX(1) translateY(-0.45px);
+    transform: translateX(-0.55px);
   }
+}
 
-  76% {
-    transform: scaleX(1) translateY(0.35px);
-  }
-
-  89% {
-    transform: scaleX(1) translateY(-0.18px);
+@keyframes launchLogoOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
   }
 
   100% {
-    opacity: var(--string-opacity);
-    transform: scaleX(1) translateY(0);
-  }
-}
-
-@keyframes riffLaunchStringOut {
-  to {
     opacity: 0;
-    transform: scaleX(0.96);
+    transform: scale(0.985);
   }
 }
 
-@keyframes riffLaunchGoldLineOut {
-  to {
-    opacity: 0;
-    transform: translate(-50%, -50%) scaleX(0.72);
-  }
-}
-
-@keyframes riffLaunchMarkOut {
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes riffLaunchBackdropOut {
+@keyframes launchBackdropOut {
   0%,
-  38% {
+  32% {
     opacity: 1;
   }
 
   100% {
     opacity: 0;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .launchSplash__content {
+    width: min(76vh, 64vw, 480px);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .launchSplash--entering :is(.launchSplash__strings span, .launchSplash__goldLine, .launchSplash__wordmark) {
-    animation-duration: 1ms;
-    animation-delay: 0ms;
+  .launchSplash :is(
+    .launchSplash__piece,
+    .launchSplash__pieceFinal
+  ) {
+    animation-delay: 0ms !important;
+    animation-duration: 1ms !important;
+  }
+
+  .launchSplash__progressValue {
+    transition-duration: 1ms;
+  }
+
+  .launchSplash--controlled :is(
+    .launchSplash__piece,
+    .launchSplash__pieceFinal
+  ) {
+    transition-duration: 1ms;
+  }
+
+  .launchSplash__stage::before {
+    animation: none !important;
+    transition-duration: 1ms;
+  }
+
+  .launchSplash__sheen,
+  .launchSplash__stringMotion,
+  .launchSplash__stringMotion path {
+    animation: none !important;
+    opacity: 0;
   }
 
   .launchSplash--exiting,
-  .launchSplash--exiting :is(.launchSplash__strings span, .launchSplash__goldLine, .launchSplash__wordmark) {
+  .launchSplash--exiting .launchSplash__logo {
     animation-duration: 160ms;
-    animation-delay: 0ms;
   }
 }

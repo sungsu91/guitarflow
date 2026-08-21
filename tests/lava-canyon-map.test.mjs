@@ -30,25 +30,7 @@ test("Lava Canyon combines editable lava scenery, torch flames, dragons, and an 
   assert.equal(LAVA_CANYON_MAP_SKIN.background.animation, undefined);
   assert.equal(LAVA_CANYON_MAP_SKIN.background.locked, true);
   assert.equal(LAVA_CANYON_MAP_SKIN.background.glow, undefined);
-  assert.equal(LAVA_CANYON_MAP_SKIN.boundaryGlowOverlay.enabled, true);
-  assert.deepEqual(LAVA_CANYON_MAP_SKIN.boundaryGlowOverlay.viewBox, [0, 0, 852, 1846]);
-  assert.equal(LAVA_CANYON_MAP_SKIN.boundaryGlowOverlay.preserveAspectRatio, "xMidYMid slice");
-  assert.equal(LAVA_CANYON_MAP_SKIN.boundaryGlowOverlay.paths.length, 2);
-  assert.deepEqual(
-    LAVA_CANYON_MAP_SKIN.boundaryGlowOverlay.paths.map((path) => path.id),
-    ["lava-bank-left", "lava-bank-right"],
-  );
-  assert.equal(
-    LAVA_CANYON_MAP_SKIN.boundaryGlowOverlay.paths.every((path) => (
-      path.d.startsWith("M") && path.d.includes(" L") && path.d.split(" L").length > 40
-    )),
-    true,
-  );
-  assert.deepEqual(LAVA_CANYON_MAP_SKIN.boundaryGlowOverlay.colors, {
-    outer: "#ff2a00",
-    middle: "#ff8a00",
-    core: "#fff4a8",
-  });
+  assert.equal(LAVA_CANYON_MAP_SKIN.boundaryGlowOverlay, undefined);
   assert.equal(
     LAVA_CANYON_MAP_SKIN.background.src,
     "/assets/maps/lava-canyon/lava-canyon-background.png",
@@ -306,14 +288,8 @@ test("Lava Canyon combines editable lava scenery, torch flames, dragons, and an 
     readFile(new URL("../src/App.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/shooter/maps/editor/MapEditPanel.jsx", import.meta.url), "utf8"),
   ]);
-  assert.match(rendererSource, /function MapBoundaryGlowOverlay/);
-  assert.match(rendererSource, /data-map-overlay=\{overlay\.id\}/);
-  assert.match(rendererSource, /<MapBoundaryGlowOverlay overlay=\{skin\.boundaryGlowOverlay\}/);
-  assert.doesNotMatch(rendererSource, /luminanceToAlpha/);
-  assert.doesNotMatch(rendererSource, /href=\{background\.src\}/);
-  assert.match(mapSkinStyles, /@keyframes shooterMapBoundaryOuterPulse/);
-  assert.match(mapSkinStyles, /@keyframes shooterMapBoundaryMiddlePulse/);
-  assert.match(mapSkinStyles, /@keyframes shooterMapBoundaryCorePulse/);
+  assert.doesNotMatch(rendererSource, /MapBoundaryGlowOverlay|boundaryGlowOverlay/);
+  assert.doesNotMatch(mapSkinStyles, /shooterMapBoundaryGlow|--shooter-map-boundary/);
   assert.match(mapSkinStyles, /@keyframes shooterMapLavaGeyser/);
   assert.match(rendererSource, /animationType === "torch-flame"/);
   assert.match(rendererSource, /shooterMapTorchFlameGlow/);
@@ -325,10 +301,12 @@ test("Lava Canyon combines editable lava scenery, torch flames, dragons, and an 
   assert.match(mapSkinStyles, /@keyframes shooterMapLavaGeyserParticle/);
   assert.match(mapSkinStyles, /@keyframes shooterMapLavaPoolBubble/);
   assert.match(mapSkinStyles, /@keyframes shooterMapLavaBubbleRipple/);
-  assert.match(mapSkinStyles, /clip-path: inset\(98% 10% 0 10% round 50%\)/);
+  const lavaGeyserKeyframes = mapSkinStyles.match(/@keyframes shooterMapLavaGeyser\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
+  assert.doesNotMatch(lavaGeyserKeyframes, /clip-path|filter:/);
   assert.match(mapSkinStyles, /@keyframes shooterBabyDragonIdle/);
   assert.match(mapSkinStyles, /@keyframes shooterBabyDragonBreath/);
   assert.match(ambientCreatureSource, /function BabyDragonCreature/);
+  assert.match(ambientCreatureSource, /animationActive && !editMode/);
   assert.match(ambientCreatureSource, /setPose\("inhale"\)/);
   assert.match(ambientCreatureSource, /setPose\("openMouth"\)/);
   assert.match(ambientCreatureSource, /setPose\("breath"\)/);
@@ -367,10 +345,12 @@ test("Lava Canyon combines editable lava scenery, torch flames, dragons, and an 
   assert.doesNotMatch(mapSkinStyles, /shooterMapSkinStage:not\(\.shooterMapSkinStage--editing\) \.shooterMapSkinAsset--event-actor/);
   assert.match(mapSkinStyles, /\.shooterMapFlyingDragonRun\[data-sequence="breath"\]/);
   assert.match(mapSkinStyles, /pointer-events: none/);
-  assert.match(
-    appSource,
-    /ambientEventsActive=\{gameState !== GAME_STATES\.PAUSED && gameState !== GAME_STATES\.GAMEOVER\}/,
-  );
-  assert.match(mapSkinStyles, /\.shooterArena\.paused \.shooterMapBoundaryGlowPath/);
+  assert.match(appSource, /getShooterMapRuntimePerformance/);
+  assert.match(appSource, /shooterArena--mapEffectsReduced/);
+  assert.match(appSource, /ambientEventsActive=\{shooterMapRuntimePerformance\.ambientEventsActive\}/);
+  assert.match(rendererSource, /data-animations-active=\{animationsActive \? "true" : "false"\}/);
+  assert.match(rendererSource, /animationActive=\{animationsActive\}/);
+  assert.match(mapSkinStyles, /shooterArena--mapEffectsReduced \.shooterMapLavaParticles/);
+  assert.match(mapSkinStyles, /shooterArena--mapEffectsReduced \.shooterMapAmbientEvents/);
   assert.doesNotMatch(mapSkinStyles, /@keyframes shooterMapLavaBoil/);
 });

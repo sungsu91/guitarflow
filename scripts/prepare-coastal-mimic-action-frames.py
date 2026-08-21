@@ -4,6 +4,11 @@ The source contains more transitional poses than the authored runtime spec.
 This script keeps the six-pose idle row, selects four readable hit poses, and
 uses seven progressively destroyed poses plus a fully transparent last frame.
 Every output is bottom-aligned on the same transparent 448px canvas.
+
+Idle poses four and five overlap in the authored sheet. A rectangular crop
+would either cut pose five's water/tongue on a hard vertical edge or leave that
+piece attached to pose four. Those two poses are therefore separated by their
+connected alpha regions before being placed on the shared canvas.
 """
 
 from __future__ import annotations
@@ -28,6 +33,8 @@ IDLE_CROPS = (
     (1015, 0, 1248, 288),
     (1248, 0, 1536, 288),
 )
+
+OVERLAPPING_IDLE_CROP = (767, 0, 1248, 288)
 
 HIT_ROW_CROPS = (
     (0, 280, 346, 530),
@@ -87,14 +94,91 @@ def fit_to_shared_canvas(image: Image.Image) -> Image.Image:
     return frame
 
 
+def get_alpha_components(image: Image.Image) -> list[dict[str, object]]:
+    """Return four-way connected visible regions without repainting pixels."""
+
+    alpha = image.getchannel("A")
+    width, height = image.size
+    visited = bytearray(width * height)
+    components: list[dict[str, object]] = []
+
+    for y in range(height):
+        for x in range(width):
+            start_index = y * width + x
+            if visited[start_index] or alpha.getpixel((x, y)) <= VISIBLE_ALPHA_THRESHOLD:
+                continue
+
+            visited[start_index] = 1
+            stack = [(x, y)]
+            pixels: list[tuple[int, int]] = []
+            min_x = max_x = x
+            min_y = max_y = y
+
+            while stack:
+                pixel_x, pixel_y = stack.pop()
+                pixels.append((pixel_x, pixel_y))
+                min_x = min(min_x, pixel_x)
+                max_x = max(max_x, pixel_x)
+                min_y = min(min_y, pixel_y)
+                max_y = max(max_y, pixel_y)
+
+                for next_x, next_y in (
+                    (pixel_x - 1, pixel_y),
+                    (pixel_x + 1, pixel_y),
+                    (pixel_x, pixel_y - 1),
+                    (pixel_x, pixel_y + 1),
+                ):
+                    if not (0 <= next_x < width and 0 <= next_y < height):
+                        continue
+                    next_index = next_y * width + next_x
+                    if visited[next_index]:
+                        continue
+                    if alpha.getpixel((next_x, next_y)) <= VISIBLE_ALPHA_THRESHOLD:
+                        continue
+                    visited[next_index] = 1
+                    stack.append((next_x, next_y))
+
+            components.append({
+                "area": len(pixels),
+                "center_x": (min_x + max_x) / 2,
+                "pixels": pixels,
+            })
+
+    return components
+
+
+def split_overlapping_idle_frames(sheet: Image.Image) -> tuple[Image.Image, Image.Image]:
+    overlap = clean_alpha(sheet.crop(OVERLAPPING_IDLE_CROP))
+    components = get_alpha_components(overlap)
+    main_components = sorted(components, key=lambda component: component["area"], reverse=True)[:2]
+    if len(main_components) != 2:
+        raise ValueError("Expected two overlapping mimic idle poses")
+
+    anchor_centers = sorted(float(component["center_x"]) for component in main_components)
+    masks = [Image.new("L", overlap.size, 0), Image.new("L", overlap.size, 0)]
+    for component in components:
+        center_x = float(component["center_x"])
+        frame_index = min(
+            range(2),
+            key=lambda index: abs(center_x - anchor_centers[index]),
+        )
+        mask = masks[frame_index]
+        for pixel in component["pixels"]:
+            mask.putpixel(pixel, 255)
+
+    transparent = Image.new("RGBA", overlap.size, (0, 0, 0, 0))
+    return tuple(Image.composite(overlap, transparent, mask) for mask in masks)
+
+
 def save_frames(
     sheet: Image.Image,
     crop_boxes: tuple[tuple[int, int, int, int], ...],
     destination: Path,
     prefix: str,
+    start_index: int = 1,
 ) -> None:
     destination.mkdir(parents=True, exist_ok=True)
-    for index, crop_box in enumerate(crop_boxes, start=1):
+    for index, crop_box in enumerate(crop_boxes, start=start_index):
         frame = fit_to_shared_canvas(clean_alpha(sheet.crop(crop_box)))
         frame.save(destination / f"mimic-{prefix}-{index:02d}.png", optimize=True)
 
@@ -104,7 +188,12 @@ def extract_frames(source: Path, destination: Path) -> None:
     if sheet.size != SOURCE_SIZE:
         raise ValueError(f"Unexpected mimic action source size: {sheet.size}")
 
-    save_frames(sheet, IDLE_CROPS, destination / "idle", "idle")
+    idle_destination = destination / "idle"
+    save_frames(sheet, IDLE_CROPS[:3], idle_destination, "idle")
+    for index, pose in enumerate(split_overlapping_idle_frames(sheet), start=4):
+        frame = fit_to_shared_canvas(pose)
+        frame.save(idle_destination / f"mimic-idle-{index:02d}.png", optimize=True)
+    save_frames(sheet, IDLE_CROPS[5:], idle_destination, "idle", start_index=6)
 
     selected_hit_crops = tuple(HIT_ROW_CROPS[index] for index in (0, 1, 3, 4))
     save_frames(sheet, selected_hit_crops, destination / "hit", "hit")

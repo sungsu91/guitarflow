@@ -764,8 +764,8 @@ function DesktopBackingLoop({ controller }) {
   );
 }
 
-export default function BackingLoop({ mobile = false }) {
-  const controller = useBackingLoop();
+export default function BackingLoop({ mobile = false, ownerMode = "" }) {
+  const controller = useBackingLoop(ownerMode);
   return (
     <>
       {mobile ? <MobileBackingLoop controller={controller} /> : <DesktopBackingLoop controller={controller} />}

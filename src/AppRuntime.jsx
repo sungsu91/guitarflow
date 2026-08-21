@@ -9,12 +9,14 @@ import "./shooter/maps/map-skins.css";
 import "./shooter/maps/editor/map-editor.css";
 import "./layouts/desktop-layout.css";
 import "./audio-studio/audio-studio.css";
+import "./tuner/tuner-mode.css";
 
 const NAVIGATION_PROBE_KEY = "__RIFFLAB_NAVIGATION_PROBE__";
 const NAVIGATION_PROBE_META_NAME = "rifflab-navigation-performance";
 const NAVIGATION_PROBE_SELECTORS = Object.freeze({
   "#fretboard": ".fretboardViewerPanel",
   "#metronome": ".standaloneMetronomePanel",
+  "#tuner": ".tunerModeShell",
   "#mini-chord": ".miniChordMakerPanelCompact",
   "#shooter": ".shooterPanel",
   "#stage1": ".referenceTrainingPanel",
@@ -22,7 +24,7 @@ const NAVIGATION_PROBE_SELECTORS = Object.freeze({
   "#stage3": ".chordTransitionPanel",
   "#stage4": ".referenceTrainingPanel",
 });
-const NAVIGATION_CONTROL_LABELS = new Set(["미니반주", "지판 보기", "지판보기", "메트로놈", "슈팅게임", "훈련장"]);
+const NAVIGATION_CONTROL_LABELS = new Set(["미니반주", "지판 보기", "지판보기", "메트로놈", "튜너", "슈팅게임", "훈련장"]);
 
 function getElementCount(nodes) {
   return nodes.reduce((count, node) => (

@@ -36,13 +36,6 @@ const COASTAL_TREASURE_FRAMES = Object.freeze(
     (_, index) => `${COASTAL_CHEST_ROOT}/treasure/coastal-treasure-${String(index + 1).padStart(2, "0")}.png`,
   ),
 );
-const COASTAL_MIMIC_FRAMES = Object.freeze([
-  COASTAL_TREASURE_FRAMES[0],
-  ...Array.from(
-    { length: 4 },
-    (_, index) => `${COASTAL_CHEST_ROOT}/mimic/coastal-mimic-${String(index + 2).padStart(2, "0")}.png`,
-  ),
-]);
 const COASTAL_MIMIC_ACTION_ROOT = `${COASTAL_CHEST_ROOT}/mimic-action`;
 const COASTAL_MIMIC_IDLE_FRAMES = Object.freeze(
   Array.from(
@@ -50,6 +43,14 @@ const COASTAL_MIMIC_IDLE_FRAMES = Object.freeze(
     (_, index) => `${COASTAL_MIMIC_ACTION_ROOT}/idle/mimic-idle-${String(index + 1).padStart(2, "0")}.png`,
   ),
 );
+const COASTAL_MIMIC_FRAMES = Object.freeze([
+  COASTAL_TREASURE_FRAMES[0],
+  ...Array.from(
+    { length: 3 },
+    (_, index) => `${COASTAL_CHEST_ROOT}/mimic/coastal-mimic-${String(index + 2).padStart(2, "0")}.png`,
+  ),
+  COASTAL_MIMIC_IDLE_FRAMES[0],
+]);
 const COASTAL_MIMIC_HIT_FRAMES = Object.freeze(
   Array.from(
     { length: 4 },
@@ -63,7 +64,11 @@ const COASTAL_MIMIC_DEFEAT_FRAMES = Object.freeze(
   ),
 );
 const COASTAL_MIMIC_ALL_FRAMES = Object.freeze([
-  ...COASTAL_MIMIC_FRAMES,
+  COASTAL_TREASURE_FRAMES[0],
+  ...Array.from(
+    { length: 4 },
+    (_, index) => `${COASTAL_CHEST_ROOT}/mimic/coastal-mimic-${String(index + 2).padStart(2, "0")}.png`,
+  ),
   ...COASTAL_MIMIC_IDLE_FRAMES,
   ...COASTAL_MIMIC_HIT_FRAMES,
   ...COASTAL_MIMIC_DEFEAT_FRAMES,

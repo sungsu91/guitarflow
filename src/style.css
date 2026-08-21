@@ -65528,6 +65528,390 @@ html body .shooterSkinConfigurator :is(
   }
 }
 
+/* Shooter compact top HUD: shared behavior, responsive mobile/desktop presentation. */
+@media (max-width: 680px), (min-width: 1024px) {
+  html body main.app.app.app.shooterMode .mobileShooterTopHud {
+    position: relative;
+    top: auto;
+    right: auto;
+    left: auto;
+    z-index: 34;
+    display: grid;
+    gap: 1px;
+    align-content: start;
+    width: 100%;
+    min-height: 40px;
+    padding: 0;
+    padding-inline: 0 !important;
+    background: #020503;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterTopHud ::selection {
+    background: transparent;
+    color: inherit;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpHud {
+    position: relative;
+    justify-self: stretch;
+    display: grid;
+    grid-template-columns: 36px repeat(3, minmax(30px, 1fr)) 28px;
+    align-items: center;
+    width: 100%;
+    height: 40px;
+    min-height: 40px;
+    overflow: visible;
+    border: 0;
+    border-right: 1px solid rgba(239, 193, 105, 0.22);
+    border-left: 1px solid rgba(239, 193, 105, 0.22);
+    border-radius: 0;
+    background: transparent;
+    color: #f3c66d;
+    box-shadow: none;
+    pointer-events: auto;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpOption,
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpOption:hover,
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpOption:focus,
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpOption:active,
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpInfoButton,
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpInfoButton:hover,
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpInfoButton:focus,
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpInfoButton:active {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: inherit !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+    touch-action: manipulation;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpLabel {
+    display: grid;
+    place-items: center;
+    color: rgba(245, 213, 151, 0.76) !important;
+    font-size: 8.5px !important;
+    font-weight: 850 !important;
+    letter-spacing: -0.01em;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpOption {
+    border-left: 1px solid rgba(239, 193, 105, 0.15) !important;
+    color: rgba(231, 218, 191, 0.58) !important;
+    font-size: 9px !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.01em;
+    line-height: 1 !important;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpOption.selected {
+    background: transparent !important;
+    color: #ffe09d !important;
+    box-shadow: inset 0 -2px rgba(245, 190, 84, 0.72) !important;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpInfoButton {
+    border-left: 1px solid rgba(239, 193, 105, 0.15) !important;
+    opacity: 0.78;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpMessageBar {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    z-index: 35;
+    justify-self: stretch;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 27px;
+    min-height: 27px;
+    padding: 0 10px;
+    overflow: hidden;
+    border: 1px solid rgba(238, 185, 82, 0.34);
+    border-radius: 0;
+    background: rgba(8, 14, 13, 0.76);
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.18);
+    box-sizing: border-box;
+    margin-inline: 0 !important;
+    pointer-events: none;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpMessageBar > p {
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    overflow: hidden;
+    color: #f7d58e !important;
+    font-size: 10.5px !important;
+    font-weight: 850 !important;
+    line-height: 1 !important;
+    text-align: center;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+    white-space: nowrap;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterPlayHelpTooltip {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0;
+    left: 0;
+    z-index: 5;
+    padding: 7px 10px;
+    border: 1px solid rgba(238, 185, 82, 0.38);
+    border-radius: 9px;
+    background: rgba(6, 11, 10, 0.94);
+    color: rgba(250, 225, 175, 0.9) !important;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+    font-size: 9px;
+    font-weight: 750;
+    line-height: 1.35;
+    text-align: center;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterPrimaryHudRow {
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr) 64px;
+    align-items: center;
+    width: 100%;
+    height: 40px;
+    min-height: 40px;
+    overflow: visible;
+    border: 1px solid rgba(238, 185, 82, 0.46);
+    border-radius: 0;
+    background: rgba(8, 14, 13, 0.82);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+    box-sizing: border-box;
+    margin-inline: 0 !important;
+    pointer-events: none;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterDifficultyControl {
+    position: relative;
+    top: auto;
+    left: auto;
+    justify-self: start;
+    width: min(104px, 100%);
+    pointer-events: auto;
+  }
+
+  html body main.app.app.app.shooterMode button.mobileShooterDifficultyHud,
+  html body main.app.app.app.shooterMode button.mobileShooterDifficultyHud:hover,
+  html body main.app.app.app.shooterMode button.mobileShooterDifficultyHud:focus,
+  html body main.app.app.app.shooterMode button.mobileShooterDifficultyHud:active {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 10px !important;
+    gap: 3px !important;
+    width: 100% !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 8px 0 9px !important;
+    border: 0 !important;
+    border-radius: 11px 0 0 11px !important;
+    background: transparent !important;
+    color: #f4ce82 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterDifficultyHud > span {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterDifficultyHud small,
+  html body main.app.app.app.shooterMode .mobileShooterDifficultyHud strong,
+  html body main.app.app.app.shooterMode .mobileShooterDifficultyHud > span > i {
+    display: inline !important;
+    margin: 0 !important;
+    color: inherit !important;
+    font-style: normal !important;
+    line-height: 1 !important;
+    text-shadow: none !important;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterDifficultyHud small {
+    font-size: 8.5px !important;
+    font-weight: 750 !important;
+    letter-spacing: -0.02em !important;
+    opacity: 0.72;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterDifficultyHud > span > i {
+    font-size: 9px !important;
+    opacity: 0.46;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterDifficultyHud strong {
+    font-size: 12.5px !important;
+    font-weight: 950 !important;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterDifficultyMenu {
+    top: calc(100% + 4px);
+    width: 104px;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterTargetHud {
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    z-index: 31;
+    width: 108px;
+    min-height: 46px;
+    padding: 0 4px 3px;
+    transform: translateX(-50%);
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterTargetHud::after {
+    display: none;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterTargetHud > span {
+    font-size: 9px !important;
+    letter-spacing: 0.04em;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterTargetHud > strong {
+    margin-top: 2px;
+    font-size: 20px !important;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterTargetHud > small {
+    min-height: 7px;
+    margin-top: 2px;
+    font-size: 6.5px !important;
+    letter-spacing: 0.13em;
+  }
+
+  html body main.app.app.app.shooterMode button.mobileShooterMicHud,
+  html body main.app.app.app.shooterMode button.mobileShooterMicHud:hover,
+  html body main.app.app.app.shooterMode button.mobileShooterMicHud:focus,
+  html body main.app.app.app.shooterMode button.mobileShooterMicHud:active,
+  html body main.app.app.app.shooterMode button.mobileShooterMicHud.selected {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    z-index: auto !important;
+    justify-self: end !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 64px !important;
+    min-width: 64px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 11px 11px 0 !important;
+    background: transparent !important;
+    color: rgba(239, 213, 164, 0.68) !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    transform: none !important;
+    pointer-events: auto;
+  }
+
+  html body main.app.app.app.shooterMode button.mobileShooterMicHud > span {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: inherit;
+    background: transparent;
+    color: inherit !important;
+    box-shadow: none;
+  }
+
+  html body main.app.app.app.shooterMode button.mobileShooterMicHud svg {
+    display: block !important;
+    flex: 0 0 auto;
+    width: 15px !important;
+    height: 15px !important;
+    color: #f4ce82 !important;
+    opacity: 1 !important;
+    stroke: currentColor !important;
+  }
+
+  html body main.app.app.app.shooterMode button.mobileShooterMicHud > span > b {
+    color: inherit !important;
+    font-size: 9px !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.05em;
+    line-height: 1 !important;
+  }
+
+  html body main.app.app.app.shooterMode button.mobileShooterMicHud.selected {
+    color: #ffe09a !important;
+  }
+
+  html body main.app.app.app.shooterMode button.mobileShooterMicHud.selected > span {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterScoreHud {
+    top: 7px;
+  }
+}
+
+@media (max-width: 680px) {
+  html body main.app.app.app.shooterMode > .shooterPanel:not(.shooterPanel--mapEditorWorkspace) {
+    --shooter-hud-dock-height: 40px;
+  }
+
+  html body main.app.app.app.shooterMode > .shooterPanel:not(.shooterPanel--mapEditorWorkspace) > .shooterArena {
+    inset: var(--shooter-hud-dock-height) 0 0 !important;
+    height: auto !important;
+  }
+
+  html body main.app.app.app.shooterMode > .shooterPanel:not(.shooterPanel--mapEditorWorkspace)
+    > .mobileShooterTopHud:has(.mobileShooterPlayHelpMessageBar)
+    + .shooterArena :is(.mobileShooterTargetHud, .mobileShooterScoreHud) {
+    top: 34px;
+  }
+}
+
+@media (min-width: 1024px) {
+  html body main.app.app.app.shooterMode .mobileShooterTopHud {
+    width: min(390px, calc((100dvh - 190px) * var(--shooter-map-reference-ratio, 0.515873)));
+    max-width: 390px;
+    min-height: 40px;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  html body main.app.app.app.shooterMode .mobileShooterTopHud:has(.mobileShooterPlayHelpMessageBar)
+    + .shooterArena :is(.mobileShooterTargetHud, .mobileShooterScoreHud) {
+    top: 34px;
+  }
+}
+
 /* Mobile mini-chord score: notation is an overlay and never reserves chord space. */
 @media (max-width: 680px) {
   html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordBar,

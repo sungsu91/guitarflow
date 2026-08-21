@@ -119,7 +119,11 @@ export function connectMediaElementToBus(element, {
 } = {}) {
   if (!element) return null;
   const cached = mediaElementGraphs.get(element);
-  if (cached) return cached;
+  if (cached) {
+    cached.connect();
+    cached.setLevel(level, { immediate: true });
+    return cached;
+  }
   const context = getSharedAudioContext();
   const output = getAudioBusInput(busId, context);
   if (!context || !output || typeof context.createMediaElementSource !== "function") return null;
@@ -129,12 +133,27 @@ export function connectMediaElementToBus(element, {
   const programGain = context.createGain();
   setParamValue(transportGain.gain, 1, context.currentTime);
   setParamValue(programGain.gain, clamp(level), context.currentTime);
-  source.connect(transportGain);
-  transportGain.connect(programGain);
-  programGain.connect(output);
+  let connected = false;
 
   const graph = {
+    connect() {
+      if (connected) return;
+      source.connect(transportGain);
+      transportGain.connect(programGain);
+      programGain.connect(output);
+      connected = true;
+    },
     context,
+    disconnect() {
+      if (!connected) return;
+      source.disconnect?.();
+      transportGain.disconnect?.();
+      programGain.disconnect?.();
+      connected = false;
+    },
+    get connected() {
+      return connected;
+    },
     programGain,
     setLevel(nextLevel, options) {
       smoothAudioParam(programGain.gain, clamp(nextLevel), context, options);
@@ -145,8 +164,14 @@ export function connectMediaElementToBus(element, {
     source,
     transportGain,
   };
+  graph.connect();
   mediaElementGraphs.set(element, graph);
   return graph;
+}
+
+export function disconnectMediaElementFromBus(element) {
+  const graph = element ? mediaElementGraphs.get(element) : null;
+  graph?.disconnect();
 }
 
 export function resetSharedAudioForTests() {

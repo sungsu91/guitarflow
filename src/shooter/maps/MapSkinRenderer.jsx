@@ -1,4 +1,4 @@
-import { memo, useCallback, useLayoutEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import AmbientCreature from "./AmbientCreature.jsx";
 import MapAmbientEvents from "./FlyingDragonCrossing.jsx";
@@ -15,6 +15,7 @@ import {
   normalizePerspectiveCorners,
 } from "./freeTransform.js";
 import { isLayeredShooterMap } from "./registry.js";
+import { getLoopFrameIndex, subscribeSharedMapAnimation } from "./sharedSpriteClock.js";
 
 const UNDERLAY_SLOTS = new Set([
   "background-environment",
@@ -342,7 +343,114 @@ function CompositeMapAsset({ composite, src }) {
   );
 }
 
-function SpriteSheetMapAsset({ layer, layout }) {
+function getFrameEntry(entry) {
+  return typeof entry === "string" ? { src: entry } : entry;
+}
+
+function getTimelineFrames(spriteFrames, sequence, { respectHold = false } = {}) {
+  const authoredSequence = Array.isArray(sequence)
+    ? sequence
+      .map(Number)
+      .filter((sourceIndex) => Number.isInteger(sourceIndex) && sourceIndex >= 0 && sourceIndex < spriteFrames.length)
+    : [];
+  if (authoredSequence.length > 0) {
+    return authoredSequence.map((sourceIndex) => ({
+      frameEntry: getFrameEntry(spriteFrames[sourceIndex]),
+      sourceIndex,
+    }));
+  }
+  if (!respectHold) {
+    return spriteFrames.map((entry, sourceIndex) => ({
+      frameEntry: getFrameEntry(entry),
+      sourceIndex,
+    }));
+  }
+  return spriteFrames.flatMap((entry, sourceIndex) => {
+    const frameEntry = getFrameEntry(entry);
+    const hold = Math.max(1, Math.round(Number(frameEntry.hold) || 1));
+    return Array.from({ length: hold }, () => ({ frameEntry, sourceIndex }));
+  });
+}
+
+function SharedSpriteFrameImage({
+  active,
+  className,
+  editMode,
+  frames,
+  framesPerSecond,
+  phaseOffsetSeconds = 0,
+  playbackSpeed,
+  previewFrame,
+  transformFrame = false,
+}) {
+  const imageRef = useRef(null);
+  const framesRef = useRef(frames);
+  framesRef.current = frames;
+  const previewTimelineIndex = Math.max(0, frames.findIndex(({ sourceIndex }) => sourceIndex === previewFrame));
+  const previewEntry = frames[previewTimelineIndex] ?? frames[0];
+  const previewSrc = previewEntry?.frameEntry.src ?? "";
+  const previewSourceIndex = previewEntry?.sourceIndex ?? 0;
+  const previewTransform = transformFrame && previewEntry
+    ? `translate(${Number(previewEntry.frameEntry.translateX) || 0}%, ${Number(previewEntry.frameEntry.translateY) || 0}%) scale(${Number(previewEntry.frameEntry.scale) || 1})`
+    : "";
+  const frameSignature = frames
+    .map(({ frameEntry, sourceIndex }) => `${sourceIndex}:${frameEntry?.src ?? ""}:${frameEntry?.translateX ?? ""}:${frameEntry?.translateY ?? ""}:${frameEntry?.scale ?? ""}`)
+    .join("|");
+
+  useLayoutEffect(() => {
+    const image = imageRef.current;
+    if (!image || !previewSrc) return;
+    image.src = previewSrc;
+    image.dataset.spriteSrc = previewSrc;
+    image.dataset.frameIndex = String(previewSourceIndex);
+    if (transformFrame) image.style.transform = previewTransform;
+  }, [previewSourceIndex, previewSrc, previewTransform, transformFrame]);
+
+  useEffect(() => {
+    const image = imageRef.current;
+    const container = image?.parentElement;
+    if (!image || !container || !active || editMode || frames.length <= 1) return undefined;
+    let renderedTimelineIndex = -1;
+    const renderFrame = (timestampMs) => {
+      const timelineIndex = getLoopFrameIndex(
+        timestampMs,
+        frames.length,
+        framesPerSecond,
+        playbackSpeed,
+        phaseOffsetSeconds,
+      );
+      if (timelineIndex === renderedTimelineIndex) return;
+      renderedTimelineIndex = timelineIndex;
+      const nextFrame = framesRef.current[timelineIndex];
+      if (!nextFrame) return;
+      if (image.dataset.spriteSrc !== nextFrame.frameEntry.src) {
+        image.src = nextFrame.frameEntry.src;
+        image.dataset.spriteSrc = nextFrame.frameEntry.src;
+      }
+      image.dataset.frameIndex = String(nextFrame.sourceIndex);
+      if (transformFrame) {
+        image.style.transform = `translate(${Number(nextFrame.frameEntry.translateX) || 0}%, ${Number(nextFrame.frameEntry.translateY) || 0}%) scale(${Number(nextFrame.frameEntry.scale) || 1})`;
+      }
+    };
+    return subscribeSharedMapAnimation(container, renderFrame);
+  }, [active, editMode, frameSignature, framesPerSecond, phaseOffsetSeconds, playbackSpeed, transformFrame]);
+
+  if (!previewEntry) return null;
+  return (
+    <img
+      alt=""
+      className={`${className} shooterMapSpriteFrame--shared`}
+      data-frame-index={previewEntry.sourceIndex}
+      data-sprite-src={previewEntry.frameEntry.src}
+      decoding="async"
+      draggable="false"
+      ref={imageRef}
+      src={previewEntry.frameEntry.src}
+    />
+  );
+}
+
+function SpriteSheetMapAsset({ active = true, editMode = false, layer, layout }) {
   if (layer.eventActor?.readySrc) {
     return (
       <img
@@ -403,6 +511,7 @@ function SpriteSheetMapAsset({ layer, layout }) {
 
   if (isParkFountainFlow) {
     const loopDuration = spriteFrames.length / (playbackFps * playbackSpeed);
+    const timelineFrames = getTimelineFrames(spriteFrames);
     return (
       <span
         aria-hidden="true"
@@ -417,40 +526,21 @@ function SpriteSheetMapAsset({ layer, layout }) {
           draggable="false"
           src={sheet.staticSrc}
         />
-        {spriteFrames.map((entry, index) => {
-          const frameEntry = typeof entry === "string" ? { src: entry } : entry;
-          return (
-            <img
-              alt=""
-              className="shooterMapParkFountainWaterFrame"
-              data-frame-index={index}
-              data-preview-frame={index === frame}
-              decoding="async"
-              draggable="false"
-              key={frameEntry.src}
-              src={frameEntry.src}
-              style={{ animationDelay: `${(index * loopDuration) / spriteFrames.length}s` }}
-            />
-          );
-        })}
+        <SharedSpriteFrameImage
+          active={active}
+          className="shooterMapParkFountainWaterFrame"
+          editMode={editMode}
+          frames={timelineFrames}
+          framesPerSecond={playbackFps}
+          playbackSpeed={playbackSpeed}
+          previewFrame={frame}
+        />
       </span>
     );
   }
 
   if (isGardenSwing) {
-    const authoredSequence = Array.isArray(sheet.sequence)
-      ? sheet.sequence
-        .map(Number)
-        .filter((sourceIndex) => Number.isInteger(sourceIndex) && sourceIndex >= 0 && sourceIndex < spriteFrames.length)
-      : [];
-    const timelineFrames = (authoredSequence.length > 0 ? authoredSequence : spriteFrames.map((_, index) => index))
-      .map((sourceIndex) => ({
-        frameEntry: typeof spriteFrames[sourceIndex] === "string"
-          ? { src: spriteFrames[sourceIndex] }
-          : spriteFrames[sourceIndex],
-        sourceIndex,
-      }));
-    const previewTimelineIndex = timelineFrames.findIndex(({ sourceIndex }) => sourceIndex === frame);
+    const timelineFrames = getTimelineFrames(spriteFrames, sheet.sequence);
     const loopDuration = timelineFrames.length / (playbackFps * playbackSpeed);
     return (
       <span
@@ -459,41 +549,21 @@ function SpriteSheetMapAsset({ layer, layout }) {
         data-playback-type={playbackType}
         style={{ "--shooter-garden-swing-loop-duration": `${loopDuration}s` }}
       >
-        {timelineFrames.map(({ frameEntry, sourceIndex }, timelineIndex) => (
-          <img
-            alt=""
-            className="shooterMapGardenSwingFrame"
-            data-frame-index={sourceIndex}
-            data-preview-frame={timelineIndex === previewTimelineIndex}
-            decoding="async"
-            draggable="false"
-            key={`${frameEntry.src}-${timelineIndex}`}
-            src={frameEntry.src}
-            style={{ animationDelay: `${(timelineIndex * loopDuration) / timelineFrames.length}s` }}
-          />
-        ))}
+        <SharedSpriteFrameImage
+          active={active}
+          className="shooterMapGardenSwingFrame"
+          editMode={editMode}
+          frames={timelineFrames}
+          framesPerSecond={playbackFps}
+          playbackSpeed={playbackSpeed}
+          previewFrame={frame}
+        />
       </span>
     );
   }
 
   if (isBritishShorthairPlay || isMunchkinPlay) {
-    const authoredSequence = Array.isArray(sheet.sequence)
-      ? sheet.sequence
-        .map(Number)
-        .filter((sourceIndex) => Number.isInteger(sourceIndex) && sourceIndex >= 0 && sourceIndex < spriteFrames.length)
-      : [];
-    const timelineFrames = authoredSequence.length > 0
-      ? authoredSequence.map((sourceIndex) => ({
-        frameEntry: typeof spriteFrames[sourceIndex] === "string"
-          ? { src: spriteFrames[sourceIndex] }
-          : spriteFrames[sourceIndex],
-        sourceIndex,
-      }))
-      : spriteFrames.map((entry, sourceIndex) => ({
-        frameEntry: typeof entry === "string" ? { src: entry } : entry,
-        sourceIndex,
-      }));
-    const previewTimelineIndex = timelineFrames.findIndex(({ sourceIndex }) => sourceIndex === frame);
+    const timelineFrames = getTimelineFrames(spriteFrames, sheet.sequence);
     const loopDuration = timelineFrames.length / (playbackFps * playbackSpeed);
     const wrapperModifier = isMunchkinPlay ? "munchkin-play" : "british-shorthair-play";
     const frameClassName = isMunchkinPlay
@@ -509,42 +579,21 @@ function SpriteSheetMapAsset({ layer, layout }) {
         data-playback-type={playbackType}
         style={{ [durationVariable]: `${loopDuration}s` }}
       >
-        {timelineFrames.map(({ frameEntry, sourceIndex }, timelineIndex) => (
-          <img
-            alt=""
-            className={frameClassName}
-            data-frame-index={sourceIndex}
-            data-preview-frame={timelineIndex === previewTimelineIndex}
-            decoding="async"
-            draggable="false"
-            key={`${frameEntry.src}-${timelineIndex}`}
-            src={frameEntry.src}
-            style={{ animationDelay: `${(timelineIndex * loopDuration) / timelineFrames.length}s` }}
-          />
-        ))}
+        <SharedSpriteFrameImage
+          active={active}
+          className={frameClassName}
+          editMode={editMode}
+          frames={timelineFrames}
+          framesPerSecond={playbackFps}
+          playbackSpeed={playbackSpeed}
+          previewFrame={frame}
+        />
       </span>
     );
   }
 
   if (isBorderCollieAcrobat) {
-    const authoredSequence = Array.isArray(sheet.sequence)
-      ? sheet.sequence
-        .map(Number)
-        .filter((sourceIndex) => Number.isInteger(sourceIndex) && sourceIndex >= 0 && sourceIndex < spriteFrames.length)
-      : [];
-    const timelineFrames = authoredSequence.length > 0
-      ? authoredSequence.map((sourceIndex) => ({
-        frameEntry: typeof spriteFrames[sourceIndex] === "string"
-          ? { src: spriteFrames[sourceIndex] }
-          : spriteFrames[sourceIndex],
-        sourceIndex,
-      }))
-      : spriteFrames.flatMap((entry, sourceIndex) => {
-        const frameEntry = typeof entry === "string" ? { src: entry } : entry;
-        const hold = Math.max(1, Math.round(Number(frameEntry.hold) || 1));
-        return Array.from({ length: hold }, () => ({ frameEntry, sourceIndex }));
-      });
-    const previewTimelineIndex = timelineFrames.findIndex(({ sourceIndex }) => sourceIndex === frame);
+    const timelineFrames = getTimelineFrames(spriteFrames, sheet.sequence, { respectHold: true });
     const loopDuration = timelineFrames.length / (playbackFps * playbackSpeed);
     return (
       <span
@@ -552,47 +601,37 @@ function SpriteSheetMapAsset({ layer, layout }) {
         className="shooterMapSpriteSheetAsset shooterMapSpriteSheetAsset--border-collie-acrobat"
         style={{ "--shooter-border-collie-loop-duration": `${loopDuration}s` }}
       >
-        {timelineFrames.map(({ frameEntry, sourceIndex }, timelineIndex) => (
-          <img
-            alt=""
-            className="shooterMapBorderCollieAcrobatFrame"
-            data-frame-index={sourceIndex}
-            data-preview-frame={timelineIndex === previewTimelineIndex}
-            decoding="async"
-            draggable="false"
-            key={`${frameEntry.src}-${timelineIndex}`}
-            src={frameEntry.src}
-            style={{ animationDelay: `${(timelineIndex * loopDuration) / timelineFrames.length}s` }}
-          />
-        ))}
+        <SharedSpriteFrameImage
+          active={active}
+          className="shooterMapBorderCollieAcrobatFrame"
+          editMode={editMode}
+          frames={timelineFrames}
+          framesPerSecond={playbackFps}
+          playbackSpeed={playbackSpeed}
+          previewFrame={frame}
+        />
       </span>
     );
   }
 
   if (isMiniPoodleTilt) {
     const loopDuration = spriteFrames.length / (playbackFps * playbackSpeed);
+    const timelineFrames = getTimelineFrames(spriteFrames);
     return (
       <span
         aria-hidden="true"
         className="shooterMapSpriteSheetAsset shooterMapSpriteSheetAsset--mini-poodle"
         style={{ "--shooter-mini-poodle-loop-duration": `${loopDuration}s` }}
       >
-        {spriteFrames.map((entry, index) => {
-          const frameEntry = typeof entry === "string" ? { src: entry } : entry;
-          return (
-            <img
-              alt=""
-              className="shooterMapMiniPoodleFrame"
-              data-frame-index={index}
-              data-preview-frame={index === frame}
-              decoding="async"
-              draggable="false"
-              key={frameEntry.src}
-              src={frameEntry.src}
-              style={{ animationDelay: `${(index * loopDuration) / spriteFrames.length}s` }}
-            />
-          );
-        })}
+        <SharedSpriteFrameImage
+          active={active}
+          className="shooterMapMiniPoodleFrame"
+          editMode={editMode}
+          frames={timelineFrames}
+          framesPerSecond={playbackFps}
+          playbackSpeed={playbackSpeed}
+          previewFrame={frame}
+        />
       </span>
     );
   }
@@ -609,7 +648,7 @@ function SpriteSheetMapAsset({ layer, layout }) {
       x: placement.x,
       y: placement.y,
     });
-    const framePhaseDelay = -(animationPhase * frameDuration);
+    const timelineFrames = getTimelineFrames(spriteFrames);
     return (
       <span
         aria-hidden="true"
@@ -621,30 +660,23 @@ function SpriteSheetMapAsset({ layer, layout }) {
           animationDelay: `${-(animationPhase * roamDuration)}s`,
         }}
       >
-        {spriteFrames.map((entry, index) => {
-          const frameEntry = typeof entry === "string" ? { src: entry } : entry;
-          return (
-            <img
-              alt=""
-              className="shooterMapHermitCrabFrame"
-              data-frame-index={index}
-              data-preview-frame={index === frame}
-              decoding="async"
-              draggable="false"
-              key={frameEntry.src}
-              src={frameEntry.src}
-              style={{
-                animationDelay: `${(index * frameDuration) / spriteFrames.length + framePhaseDelay}s`,
-              }}
-            />
-          );
-        })}
+        <SharedSpriteFrameImage
+          active={active}
+          className="shooterMapHermitCrabFrame"
+          editMode={editMode}
+          frames={timelineFrames}
+          framesPerSecond={playbackFps}
+          phaseOffsetSeconds={animationPhase * frameDuration}
+          playbackSpeed={playbackSpeed}
+          previewFrame={frame}
+        />
       </span>
     );
   }
 
   if (isSharkSwim) {
     const frameDuration = spriteFrames.length / (playbackFps * playbackSpeed);
+    const timelineFrames = getTimelineFrames(spriteFrames);
     const roamDuration = Math.max(
       4,
       (Number(sheet.roamDurationSeconds) || 12.8) / playbackSpeed,
@@ -658,33 +690,21 @@ function SpriteSheetMapAsset({ layer, layout }) {
           "--shooter-shark-roam-duration": `${roamDuration}s`,
         }}
       >
-        {spriteFrames.map((entry, index) => {
-          const frameEntry = typeof entry === "string" ? { src: entry } : entry;
-          return (
-            <img
-              alt=""
-              className="shooterMapSharkFrame"
-              data-frame-index={index}
-              data-preview-frame={index === frame}
-              decoding="async"
-              draggable="false"
-              key={frameEntry.src}
-              src={frameEntry.src}
-              style={{ animationDelay: `${(index * frameDuration) / spriteFrames.length}s` }}
-            />
-          );
-        })}
+        <SharedSpriteFrameImage
+          active={active}
+          className="shooterMapSharkFrame"
+          editMode={editMode}
+          frames={timelineFrames}
+          framesPerSecond={playbackFps}
+          playbackSpeed={playbackSpeed}
+          previewFrame={frame}
+        />
       </span>
     );
   }
 
   if (isNetFisherCast) {
-    const timelineFrames = spriteFrames.flatMap((entry, sourceIndex) => {
-      const frameEntry = typeof entry === "string" ? { src: entry } : entry;
-      const hold = Math.max(1, Math.round(Number(frameEntry.hold) || 1));
-      return Array.from({ length: hold }, () => ({ frameEntry, sourceIndex }));
-    });
-    const previewTimelineIndex = timelineFrames.findIndex(({ sourceIndex }) => sourceIndex === frame);
+    const timelineFrames = getTimelineFrames(spriteFrames, null, { respectHold: true });
     const loopDuration = timelineFrames.length / (playbackFps * playbackSpeed);
     return (
       <span
@@ -692,48 +712,37 @@ function SpriteSheetMapAsset({ layer, layout }) {
         className="shooterMapSpriteSheetAsset shooterMapSpriteSheetAsset--net-fisher"
         style={{ "--shooter-net-fisher-loop-duration": `${loopDuration}s` }}
       >
-        {timelineFrames.map(({ frameEntry, sourceIndex }, timelineIndex) => (
-          <img
-            alt=""
-            className="shooterMapNetFisherFrame"
-            data-frame-index={sourceIndex}
-            data-preview-frame={timelineIndex === previewTimelineIndex}
-            decoding="async"
-            draggable="false"
-            key={`${frameEntry.src}-${timelineIndex}`}
-            src={frameEntry.src}
-            style={{ animationDelay: `${(timelineIndex * loopDuration) / timelineFrames.length}s` }}
-          />
-        ))}
+        <SharedSpriteFrameImage
+          active={active}
+          className="shooterMapNetFisherFrame"
+          editMode={editMode}
+          frames={timelineFrames}
+          framesPerSecond={playbackFps}
+          playbackSpeed={playbackSpeed}
+          previewFrame={frame}
+        />
       </span>
     );
   }
 
   if (isLayeredWindFlag) {
+    const timelineFrames = getTimelineFrames(spriteFrames);
     return (
       <span
         aria-hidden="true"
         className="shooterMapSpriteSheetAsset shooterMapSpriteSheetAsset--wind-flag shooterMapSpriteSheetAsset--layered-wind-flag"
         style={{ "--shooter-map-sprite-duration": `${playbackDuration}s` }}
       >
-        {spriteFrames.map((entry, index) => {
-          const frameEntry = typeof entry === "string" ? { src: entry } : entry;
-          return (
-            <img
-              alt=""
-              className="shooterMapWindFlagClothFrame"
-              data-frame-index={index}
-              decoding="async"
-              draggable="false"
-              key={frameEntry.src}
-              src={frameEntry.src}
-              style={{
-                animationDelay: `${(index * playbackDuration) / frameCount}s`,
-                transform: `translate(${Number(frameEntry.translateX) || 0}%, ${Number(frameEntry.translateY) || 0}%) scale(${Number(frameEntry.scale) || 1})`,
-              }}
-            />
-          );
-        })}
+        <SharedSpriteFrameImage
+          active={active}
+          className="shooterMapWindFlagClothFrame"
+          editMode={editMode}
+          frames={timelineFrames}
+          framesPerSecond={playbackFps}
+          playbackSpeed={playbackSpeed}
+          previewFrame={frame}
+          transformFrame
+        />
         <img
           alt=""
           className="shooterMapWindFlagPole"
@@ -832,96 +841,9 @@ function LavaEnvironmentAsset({ layer }) {
   );
 }
 
-function MapBoundaryGlowOverlay({ overlay, skinId }) {
-  if (!overlay?.enabled || !overlay.paths?.length) return null;
-
-  const viewBox = Array.isArray(overlay.viewBox) && overlay.viewBox.length === 4
-    ? overlay.viewBox
-    : [0, 0, 100, 100];
-  const [, , viewBoxWidth, viewBoxHeight] = viewBox;
-  const intensity = Number.isFinite(overlay.intensity) ? Math.max(0.1, overlay.intensity) : 1;
-  const offsetX = Number.isFinite(overlay.offsetX) ? overlay.offsetX : 0;
-  const offsetY = Number.isFinite(overlay.offsetY) ? overlay.offsetY : 0;
-  const scale = Number.isFinite(overlay.scale) ? overlay.scale : 1;
-  const duration = Number.isFinite(overlay.duration) ? Math.max(4, overlay.duration) : 9.4;
-  const centerX = viewBox[0] + viewBoxWidth / 2;
-  const centerY = viewBox[1] + viewBoxHeight / 2;
-  const fixedTransform = [
-    `translate(${offsetX} ${offsetY})`,
-    `translate(${centerX} ${centerY})`,
-    `scale(${scale})`,
-    `translate(${-centerX} ${-centerY})`,
-  ].join(" ");
-  const safeSkinId = String(skinId).replace(/[^a-z0-9_-]/gi, "");
-  const outerFilterId = `shooter-map-boundary-outer-${safeSkinId}`;
-  const middleFilterId = `shooter-map-boundary-middle-${safeSkinId}`;
-  const coreFilterId = `shooter-map-boundary-core-${safeSkinId}`;
-  const renderPaths = (layer) => overlay.paths.map((path, index) => {
-    const phase = Math.abs(Number.isFinite(path.phase) ? path.phase : index) % 3;
-    return (
-      <path
-        className={`shooterMapBoundaryGlowPath shooterMapBoundaryGlowPath--${layer} shooterMapBoundaryGlowPath--phase-${phase}`}
-        d={path.d}
-        data-boundary-path={path.id}
-        key={`${layer}-${path.id}`}
-        style={{
-          "--shooter-map-boundary-phase-delay": `${-(phase * duration * 0.37)}s`,
-          "--shooter-map-boundary-strength": path.strength ?? 1,
-        }}
-      />
-    );
-  });
-
-  return (
-    <svg
-      aria-hidden="true"
-      className="shooterMapBoundaryGlow"
-      data-map-overlay={overlay.id}
-      preserveAspectRatio={overlay.preserveAspectRatio ?? "xMidYMid slice"}
-      style={{
-        "--shooter-map-boundary-core-color": overlay.colors?.core ?? "#fff4a8",
-        "--shooter-map-boundary-core-width-max": String(3.1 * intensity),
-        "--shooter-map-boundary-core-width-min": String(2.1 * intensity),
-        "--shooter-map-boundary-duration": `${duration}s`,
-        "--shooter-map-boundary-middle-color": overlay.colors?.middle ?? "#ff8a00",
-        "--shooter-map-boundary-middle-width-max": String(9 * intensity),
-        "--shooter-map-boundary-middle-width-min": String(6.4 * intensity),
-        "--shooter-map-boundary-opacity": overlay.opacity ?? 0.9,
-        "--shooter-map-boundary-outer-color": overlay.colors?.outer ?? "#ff2a00",
-        "--shooter-map-boundary-outer-width-max": String(21 * intensity),
-        "--shooter-map-boundary-outer-width-min": String(15 * intensity),
-      }}
-      viewBox={viewBox.join(" ")}
-    >
-      <defs>
-        <filter
-          colorInterpolationFilters="sRGB"
-          height="180%"
-          id={outerFilterId}
-          width="180%"
-          x="-40%"
-          y="-40%"
-        >
-          <feGaussianBlur stdDeviation={(overlay.blur?.outer ?? 11) * intensity} />
-        </filter>
-        <filter height="150%" id={middleFilterId} width="150%" x="-25%" y="-25%">
-          <feGaussianBlur stdDeviation={(overlay.blur?.middle ?? 4.2) * intensity} />
-        </filter>
-        <filter height="130%" id={coreFilterId} width="130%" x="-15%" y="-15%">
-          <feGaussianBlur stdDeviation={(overlay.blur?.core ?? 0.7) * intensity} />
-        </filter>
-      </defs>
-      <g transform={fixedTransform}>
-        <g filter={`url(#${outerFilterId})`}>{renderPaths("outer")}</g>
-        <g filter={`url(#${middleFilterId})`}>{renderPaths("middle")}</g>
-        <g filter={`url(#${coreFilterId})`}>{renderPaths("core")}</g>
-      </g>
-    </svg>
-  );
-}
-
 function MapSkinRenderer({
   ambientEventsActive = false,
+  animationsActive = true,
   editMode = false,
   layout = "mobile",
   onAssetPointerDown,
@@ -970,24 +892,22 @@ function MapSkinRenderer({
     <div
       aria-hidden={editMode || hasInteractiveActor ? undefined : "true"}
       className={`shooterMapSkinStage shooterMapSkinStage--${stage} ${editMode ? "shooterMapSkinStage--editing" : ""}`}
+      data-animations-active={animationsActive ? "true" : "false"}
       data-map-skin={skin.id}
       onPointerDown={editMode ? onStagePointerDown : undefined}
     >
       {stage === "underlay" && skin.background?.src ? (
-        <>
-          <img
-            alt=""
-            className="shooterMapSkinBackground"
-            decoding="async"
-            draggable="false"
-            src={skin.background.src}
-            style={{
-              "--shooter-map-background-fit": skin.background.fit ?? "cover",
-              "--shooter-map-background-position": skin.background.position ?? "center",
-            }}
-          />
-          <MapBoundaryGlowOverlay overlay={skin.boundaryGlowOverlay} skinId={skin.id} />
-        </>
+        <img
+          alt=""
+          className="shooterMapSkinBackground"
+          decoding="async"
+          draggable="false"
+          src={skin.background.src}
+          style={{
+            "--shooter-map-background-fit": skin.background.fit ?? "cover",
+            "--shooter-map-background-position": skin.background.position ?? "center",
+          }}
+        />
       ) : null}
 
       {renderLayers.map((layer) => (
@@ -1043,9 +963,19 @@ function MapSkinRenderer({
                 src={layer.src}
               />
             ) : layer.creature ? (
-              <AmbientCreature creature={layer.creature} editMode={editMode} placement={layer.placement} />
+              <AmbientCreature
+                animationActive={animationsActive}
+                creature={layer.creature}
+                editMode={editMode}
+                placement={layer.placement}
+              />
             ) : layer.spriteSheet ? (
-              <SpriteSheetMapAsset layer={layer} layout={layout} />
+              <SpriteSheetMapAsset
+                active={animationsActive}
+                editMode={editMode}
+                layer={layer}
+                layout={layout}
+              />
             ) : (
               <LavaEnvironmentAsset layer={layer} />
             )}
