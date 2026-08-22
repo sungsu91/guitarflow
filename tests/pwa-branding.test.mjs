@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const iconVersion = "0e162583";
+const iconVersion = "3ee3714f";
 
 function readProjectFile(relativePath) {
   return readFileSync(path.join(projectRoot, relativePath));
@@ -22,26 +23,36 @@ function readPngHeader(relativePath) {
   };
 }
 
-test("PWA manifest exposes JUST PLAY with separate regular and maskable icons", () => {
+test("PWA manifest exposes FRETIVA LAB with separate regular and maskable icons", () => {
   const manifest = JSON.parse(readProjectFile("public/manifest.webmanifest").toString("utf8"));
 
-  assert.equal(manifest.name, "JUST PLAY");
-  assert.equal(manifest.short_name, "JUST PLAY");
+  assert.equal(manifest.name, "FRETIVA LAB");
+  assert.equal(manifest.short_name, "FRETIVA LAB");
   assert.equal(manifest.start_url, "/");
   assert.equal(manifest.scope, "/");
   assert.deepEqual(
     manifest.icons.map(({ src, sizes, type, purpose }) => ({ src, sizes, type, purpose })),
     [
-      { src: `/icons/just-play-icon-192.png?v=${iconVersion}`, sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: `/icons/just-play-icon-512.png?v=${iconVersion}`, sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: `/icons/just-play-icon-maskable-192.png?v=${iconVersion}`, sizes: "192x192", type: "image/png", purpose: "maskable" },
-      { src: `/icons/just-play-icon-maskable-512.png?v=${iconVersion}`, sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: `/icons/fretiva-lab-icon-192.png?v=${iconVersion}`, sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: `/icons/fretiva-lab-icon-512.png?v=${iconVersion}`, sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: `/icons/fretiva-lab-icon-maskable-192.png?v=${iconVersion}`, sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: `/icons/fretiva-lab-icon-maskable-512.png?v=${iconVersion}`, sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   );
 });
 
 test("PWA, iOS, and favicon PNG assets have their declared dimensions", () => {
   const expectedSizes = new Map([
+    ["public/assets/branding/fretiva-lab-app-icon-master.png", 1254],
+    ["public/icons/fretiva-lab-icon-1024.png", 1024],
+    ["public/icons/fretiva-lab-icon-192.png", 192],
+    ["public/icons/fretiva-lab-icon-512.png", 512],
+    ["public/icons/fretiva-lab-icon-maskable-192.png", 192],
+    ["public/icons/fretiva-lab-icon-maskable-512.png", 512],
+    ["public/icons/fretiva-lab-apple-touch-icon.png", 180],
+    ["public/icons/fretiva-lab-favicon-32.png", 32],
+    ["public/icons/fretiva-lab-favicon-48.png", 48],
+    ["public/icons/just-play-icon-1024.png", 1024],
     ["public/icons/just-play-icon-192.png", 192],
     ["public/icons/just-play-icon-512.png", 512],
     ["public/icons/just-play-icon-maskable-192.png", 192],
@@ -65,20 +76,37 @@ test("PWA, iOS, and favicon PNG assets have their declared dimensions", () => {
         width: size,
         height: size,
         bitDepth: 8,
-        colorType: relativePath.includes("favicon") ? 6 : 2,
+        colorType: 2,
       },
     );
   }
 
-  assert.ok(readProjectFile("public/just-play-favicon.ico").length > 0);
+  assert.ok(readProjectFile("public/fretiva-lab-favicon.ico").length > 0);
   assert.deepEqual(
     readProjectFile("public/favicon.ico"),
+    readProjectFile("public/fretiva-lab-favicon.ico"),
+  );
+  assert.deepEqual(
     readProjectFile("public/just-play-favicon.ico"),
+    readProjectFile("public/fretiva-lab-favicon.ico"),
+  );
+});
+
+test("the supplied FRETIVA LAB icon remains the exact deployment master", () => {
+  const master = readProjectFile("public/assets/branding/fretiva-lab-app-icon-master.png");
+  assert.equal(
+    createHash("sha256").update(master).digest("hex"),
+    "d11bae15769f3baabe4e0ecf0b2a0c48db6715b498ae2b4380a1b3103408bfae",
   );
 });
 
 test("installable icons are opaque RGB assets so platforms cannot add a white alpha background", () => {
   const installableIcons = [
+    "public/icons/fretiva-lab-apple-touch-icon.png",
+    "public/icons/fretiva-lab-icon-192.png",
+    "public/icons/fretiva-lab-icon-512.png",
+    "public/icons/fretiva-lab-icon-maskable-192.png",
+    "public/icons/fretiva-lab-icon-maskable-512.png",
     "public/icons/just-play-apple-touch-icon.png",
     "public/icons/just-play-icon-192.png",
     "public/icons/just-play-icon-512.png",
@@ -96,18 +124,18 @@ test("installable icons are opaque RGB assets so platforms cannot add a white al
   }
 });
 
-test("document metadata connects JUST PLAY names and platform icons", () => {
+test("document metadata connects FRETIVA LAB names and platform icons", () => {
   const html = readProjectFile("index.html").toString("utf8");
 
-  assert.match(html, /<meta name="application-name" content="JUST PLAY"/);
-  assert.match(html, /<meta name="apple-mobile-web-app-title" content="JUST PLAY"/);
+  assert.match(html, /<meta name="application-name" content="FRETIVA LAB"/);
+  assert.match(html, /<meta name="apple-mobile-web-app-title" content="FRETIVA LAB"/);
   assert.match(html, new RegExp(`<link rel="manifest" href="/manifest\\.webmanifest\\?v=${iconVersion}"`));
-  assert.match(html, new RegExp(`<link rel="apple-touch-icon" sizes="180x180" href="/icons/just-play-apple-touch-icon\\.png\\?v=${iconVersion}"`));
-  assert.match(html, new RegExp(`<link rel="shortcut icon" href="/just-play-favicon\\.ico\\?v=${iconVersion}"`));
-  assert.match(html, /<title>JUST PLAY<\/title>/);
+  assert.match(html, new RegExp(`<link rel="apple-touch-icon" sizes="180x180" href="/icons/fretiva-lab-apple-touch-icon\\.png\\?v=${iconVersion}"`));
+  assert.match(html, new RegExp(`<link rel="shortcut icon" href="/fretiva-lab-favicon\\.ico\\?v=${iconVersion}"`));
+  assert.match(html, /<title>FRETIVA LAB<\/title>/);
 });
 
-test("Vercel revalidates manifest and JUST PLAY icon metadata", () => {
+test("Vercel revalidates manifest and FRETIVA LAB icon metadata", () => {
   const config = JSON.parse(readProjectFile("vercel.json").toString("utf8"));
   const cacheControlBySource = new Map(
     config.headers.map(({ source, headers }) => [
@@ -119,6 +147,7 @@ test("Vercel revalidates manifest and JUST PLAY icon metadata", () => {
 
   assert.equal(cacheControlBySource.get("/manifest.webmanifest"), revalidate);
   assert.equal(cacheControlBySource.get("/icons/(.*)"), revalidate);
+  assert.equal(cacheControlBySource.get("/fretiva-lab-favicon.ico"), revalidate);
   assert.equal(cacheControlBySource.get("/just-play-favicon.ico"), revalidate);
   assert.equal(cacheControlBySource.get("/favicon.ico"), revalidate);
 });

@@ -46509,17 +46509,26 @@ html body .app .standaloneMetronomePanel .metronomeTimerWheelPicker::after {
   z-index: 8 !important;
   display: block !important;
   height: 36px !important;
-  border: 1px solid rgba(255, 234, 177, 0.34) !important;
+  box-sizing: border-box !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(195, 118, 132, 0.48) !important;
+  border-right: 1px solid rgba(195, 118, 132, 0.2) !important;
+  border-bottom: 1px solid rgba(185, 105, 120, 0.46) !important;
+  border-left: 1px solid rgba(195, 118, 132, 0.2) !important;
   border-radius: 10px !important;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 244, 210, 0.035)),
-    linear-gradient(90deg, rgba(255, 229, 163, 0.045), rgba(255, 229, 163, 0.16) 50%, rgba(255, 229, 163, 0.045)) !important;
+    linear-gradient(180deg, rgba(255, 252, 248, 0.24), rgba(244, 219, 210, 0.08)),
+    radial-gradient(ellipse at 50% 14%, rgba(255, 247, 235, 0.24), transparent 64%),
+    rgba(205, 135, 145, 0.16) !important;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.34),
-    0 0 0 1px rgba(0, 0, 0, 0.14),
-    0 0 12px rgba(217, 170, 85, 0.1) !important;
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -1px 0 rgba(116, 51, 64, 0.14),
+    0 0 0 1px rgba(103, 49, 58, 0.06),
+    0 2px 11px rgba(155, 80, 94, 0.1) !important;
+  -webkit-backdrop-filter: saturate(1.06) contrast(1.04) !important;
+  backdrop-filter: saturate(1.06) contrast(1.04) !important;
   pointer-events: none !important;
+  transform: none !important;
 }
 
 html body .app .standaloneMetronomePanel .metronomeTimerWheelPicker::before {
@@ -67259,4 +67268,155 @@ html body .shooterArena .guitarPlayer.guitarPlayer--jp-d-celestial .guitarPlayer
     height: 127px !important;
     max-height: 127px !important;
   }
+}
+
+/* Timer wheel: the values move underneath one permanently fixed selector pane. */
+html body main.app.app.app.metronomeMode
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker {
+  isolation: isolate !important;
+}
+
+html body main.app.app.app.metronomeMode
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker::after {
+  display: none !important;
+  content: none !important;
+}
+
+html body main.app.app.app.metronomeMode
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker::before {
+  z-index: 21 !important;
+}
+
+html body main.app.app.app.metronomeMode
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker
+  .metronomeWheelSelectionOverlay {
+  position: absolute !important;
+  top: 60px !important;
+  right: 8px !important;
+  left: 8px !important;
+  z-index: 20 !important;
+  display: block !important;
+  height: 36px !important;
+  box-sizing: border-box !important;
+  border: 1px solid rgba(255, 234, 177, 0.34) !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 244, 210, 0.035)),
+    linear-gradient(90deg, rgba(255, 229, 163, 0.045), rgba(255, 229, 163, 0.16) 50%, rgba(255, 229, 163, 0.045)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(0, 0, 0, 0.14),
+    0 0 12px rgba(217, 170, 85, 0.1) !important;
+  pointer-events: none !important;
+  transform: none !important;
+}
+
+html body main.app.app.app.metronomeMode
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker
+  .metronomeWheelColumnViewport button,
+html body main.app.app.app.metronomeMode
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker
+  .metronomeWheelColumnViewport button:hover,
+html body main.app.app.app.metronomeMode
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker
+  .metronomeWheelColumnViewport button:focus,
+html body main.app.app.app.metronomeMode
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker
+  .metronomeWheelColumnViewport button:focus-visible,
+html body main.app.app.app.metronomeMode
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker
+  .metronomeWheelColumnViewport button:active,
+html body main.app.app.app.metronomeMode
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker
+  .metronomeWheelColumnViewport button.selected,
+html body main.app.app.app.metronomeMode
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker
+  .metronomeWheelColumnViewport button[aria-selected="true"] {
+  z-index: 8 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: rgba(236, 226, 212, 0.58) !important;
+  -webkit-text-fill-color: rgba(236, 226, 212, 0.58) !important;
+  opacity: 0.62 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app.metronomeMode.theme-light.theme-light
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker
+  .metronomeWheelColumnViewport button,
+html body main.app.app.app.metronomeMode.theme-light.theme-light
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker
+  .metronomeWheelColumnViewport button[aria-selected="true"] {
+  color: rgba(55, 37, 25, 0.72) !important;
+  -webkit-text-fill-color: rgba(55, 37, 25, 0.72) !important;
+}
+
+html body main.app.app.app.metronomeMode.theme-light.theme-light
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker
+  .metronomeWheelSelectionOverlay {
+  border-top-color: rgba(185, 105, 120, 0.52) !important;
+  border-right-color: rgba(185, 105, 120, 0.22) !important;
+  border-bottom-color: rgba(176, 91, 108, 0.5) !important;
+  border-left-color: rgba(185, 105, 120, 0.22) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.5), rgba(250, 234, 228, 0.18)),
+    radial-gradient(ellipse at 50% 10%, rgba(255, 250, 240, 0.46), transparent 66%),
+    rgba(205, 135, 145, 0.2) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.76),
+    inset 0 -1px 0 rgba(137, 63, 78, 0.11),
+    0 0 0 1px rgba(148, 75, 88, 0.045),
+    0 2px 10px rgba(172, 92, 107, 0.09) !important;
+}
+
+html body main.app.app.app.metronomeMode.theme-brand.theme-brand
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker
+  .metronomeWheelColumnViewport button,
+html body main.app.app.app.metronomeMode.theme-brand.theme-brand
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker
+  .metronomeWheelColumnViewport button[aria-selected="true"] {
+  color: rgba(255, 232, 181, 0.7) !important;
+  -webkit-text-fill-color: rgba(255, 232, 181, 0.7) !important;
+  opacity: 0.66 !important;
+}
+
+html body main.app.app.app.metronomeMode.theme-brand.theme-brand
+  .standaloneMetronomePanel.standaloneMetronomePanel
+  .metronomeTimerWheelPicker.metronomeTimerWheelPicker
+  .metronomeWheelSelectionOverlay {
+  border-top-color: rgba(225, 148, 160, 0.46) !important;
+  border-right-color: rgba(225, 148, 160, 0.2) !important;
+  border-bottom-color: rgba(206, 125, 140, 0.44) !important;
+  border-left-color: rgba(225, 148, 160, 0.2) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 232, 0.18), rgba(165, 83, 99, 0.08)),
+    radial-gradient(ellipse at 50% 12%, rgba(255, 230, 211, 0.2), transparent 64%),
+    rgba(206, 125, 140, 0.18) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 232, 0.24),
+    inset 0 -1px 0 rgba(66, 19, 29, 0.3),
+    0 0 0 1px rgba(74, 27, 36, 0.18),
+    0 2px 13px rgba(184, 93, 110, 0.13) !important;
 }

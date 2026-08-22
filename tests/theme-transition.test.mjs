@@ -21,21 +21,47 @@ test("theme changes advance the shared launch logo through the storyboard milest
   assert.match(splashStyles, /html\.app-is-theme-loading[\s\S]*?overflow: hidden/);
 });
 
-test("controlled splash reveals one high-resolution master asset with lightweight stages", () => {
-  const masterImageReferences = splashSource.match(/href=\{APP_MASTER_LOGO_SRC\}/g) ?? [];
+test("controlled splash crossfades the supplied FRETIVA storyboard with lightweight stages", () => {
+  const frameReferences = splashSource.match(/fretiva-intro-\d{2}\.png/g) ?? [];
 
-  assert.equal(masterImageReferences.length, 1);
-  assert.match(splashSource, /const JUST_PIECE_CLIP_PATH/);
-  assert.match(splashSource, /const PLAY_PIECE_CLIP_PATH/);
-  assert.match(splashSource, /launchSplash__piece--visible/);
+  assert.equal(frameReferences.length, 4);
+  assert.match(splashSource, /INTRO_FRAMES\.map/);
+  assert.match(splashSource, /launchSplash__frame--visible/);
+  assert.match(splashSource, /launchSplash__frame--hint/);
+  assert.match(splashSource, /launchSplash__brand/);
+  assert.match(splashSource, />FRETIVA</);
+  assert.match(splashSource, />LAB</);
   assert.match(splashSource, /role="progressbar"/);
   assert.match(splashSource, /launchSplash--step-\$\{progressStep\}/);
   assert.match(splashStyles, /\.launchSplash--controlled/);
-  assert.match(splashStyles, /\.launchSplash--controlled \.launchSplash__piece[\s\S]*?transition:/);
+  assert.match(splashStyles, /\.launchSplash--controlled \.launchSplash__frame[\s\S]*?transition:/);
   assert.match(splashStyles, /transform:/);
   assert.match(splashStyles, /opacity:/);
-  assert.match(splashStyles, /clip-path:/);
-  assert.doesNotMatch(splashStyles, /launchSplash__maskJust/);
+  assert.match(splashStyles, /aspect-ratio: 768 \/ 1840/);
+  assert.match(splashStyles, /object-fit: contain/);
+  assert.match(
+    splashStyles,
+    /@media \(orientation: portrait\)[\s\S]*?width: 100vw;[\s\S]*?height: 100dvh;[\s\S]*?object-fit: cover/,
+  );
+  assert.match(splashStyles, /\.launchSplash__progress[\s\S]*?position: fixed/);
+  assert.match(splashStyles, /will-change: opacity/);
+  assert.match(splashStyles, /@keyframes launchIntroBrandIn/);
+  assert.match(splashStyles, /\.launchSplash__brand[\s\S]*?top: 43%/);
+  assert.match(splashStyles, /font-size: clamp\(48px, 14\.2vw, 96px\)/);
+  assert.match(splashStyles, /\.launchSplash--controlled\.launchSplash--step-logo-hint[\s\S]*?opacity: 0\.82/);
+  assert.doesNotMatch(splashStyles, /transform: scale\(1\.018\)/);
+  assert.doesNotMatch(splashStyles, /transform: scale\(1\.015\)/);
+  assert.match(splashStyles, /\.launchSplash__content[\s\S]*?min-width: 0/);
+  assert.match(splashStyles, /\.launchSplash \{[\s\S]*?width: 100vw/);
+  assert.match(splashStyles, /--launch-stage-shift-x: 0px/);
+  assert.match(
+    splashStyles,
+    /\.launchSplash__stage[\s\S]*?left: 50%[\s\S]*?transform: translate3d\(calc\(-50% \+ var\(--launch-stage-shift-x\)\), 0, 0\)/,
+  );
+  assert.doesNotMatch(splashSource, /<svg|ClipPath|JUST_PIECE_CLIP_PATH|PLAY_PIECE_CLIP_PATH/);
+  assert.doesNotMatch(splashSource, /--launch-backdrop-image/);
+  assert.doesNotMatch(splashStyles, /background-image: var\(--launch-backdrop-image\)/);
+  assert.doesNotMatch(splashStyles, /filter:\s*blur/);
   assert.doesNotMatch(polishStyles, /\.themeTransitionOverlay/);
 });
 

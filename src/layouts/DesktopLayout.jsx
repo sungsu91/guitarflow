@@ -65,7 +65,7 @@ export default function DesktopLayout({ children }) {
 
   return (
     <div className="desktopLayout">
-      <section className="desktopWorkspace" aria-label="JUST PLAY workspace">
+      <section className="desktopWorkspace" aria-label="FRETIVA LAB workspace">
         <div className="desktopWorkspaceContent">
           {children}
         </div>

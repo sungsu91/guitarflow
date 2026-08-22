@@ -23,7 +23,7 @@ class AppLoadBoundary extends React.Component {
   }
 
   componentDidCatch(error) {
-    console.error("JUST PLAY application chunk failed to load.", error);
+    console.error("FRETIVA LAB application chunk failed to load.", error);
     launchController.markReady("app-load-error");
   }
 
@@ -31,7 +31,7 @@ class AppLoadBoundary extends React.Component {
     if (this.state.failed) {
       return (
         <section className="appLoadFallback" role="alert">
-          <strong>JUST PLAY</strong>
+          <strong>FRETIVA LAB</strong>
           <p>앱을 준비하지 못했습니다.</p>
           <button onClick={() => window.location.reload()} type="button">다시 시도</button>
         </section>

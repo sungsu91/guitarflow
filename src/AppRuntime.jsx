@@ -155,7 +155,7 @@ export default function AppRuntime({ onReady }) {
   return (
     <DesktopLayout>
       <NavigationPerformanceProbe />
-      <Profiler id="JUST PLAY App" onRender={recordAppRender}>
+      <Profiler id="FRETIVA LAB App" onRender={recordAppRender}>
         <App onReady={onReady} />
       </Profiler>
     </DesktopLayout>

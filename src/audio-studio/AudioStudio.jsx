@@ -107,7 +107,7 @@ function AudioStudioHiddenImport({ controller }) {
 function LibraryHeader() {
   return (
     <header className="audioStudioLibraryHeader">
-      <span>JUST PLAY · DEV</span>
+      <span>FRETIVA LAB · DEV</span>
       <h1>Audio Studio</h1>
       <p>TRACK CONSTRUCTION</p>
     </header>

@@ -1675,7 +1675,7 @@ html body .app .tunerPresetList button.selected {
   .tunerModeBody--mobile .tunerHeadstockAsset {
     width: 250px;
     max-height: none;
-    transform: translateY(18px);
+    transform: translateY(38px);
   }
 
   .tunerModeBody--mobile .tunerHeadstockPanel[data-instrument="bass"] .tunerHeadstockAsset,
@@ -1684,7 +1684,7 @@ html body .app .tunerPresetList button.selected {
   }
 
   .tunerModeBody--mobile .tunerHeadstockTarget {
-    transform: translate(-50%, -68%);
+    transform: translate(-50%, -100%);
   }
 
   .tunerModeBody--mobile .tunerHeadstockPanel[data-instrument="bass"] .tunerHeadstockTarget,
@@ -1884,7 +1884,7 @@ html body .app .tunerPresetList button.selected {
   .tunerModeBody--mobile .tunerTuningPanel { grid-template-rows: minmax(0, 1fr); }
   .tunerModeBody--mobile .tunerHeadstockAsset {
     width: 165px;
-    transform: translateY(12px);
+    transform: translateY(42px);
   }
   .tunerModeBody--mobile .tunerHeadstockPanel[data-instrument="bass"] .tunerHeadstockAsset,
   .tunerModeBody--mobile .tunerHeadstockPanel[data-instrument="ukulele"] .tunerHeadstockAsset {

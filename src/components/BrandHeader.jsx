@@ -1,4 +1,4 @@
-export default function BrandHeader({ brand = "JUST PLAY", icon, logo, variant = "v1" }) {
+export default function BrandHeader({ brand = "FRETIVA LAB", icon, logo, variant = "v1" }) {
   const splitWordmark = (
     <div className="riffBrandWordmark" aria-label={brand}>
       <span className="riffBrandWordmark__ri">JUST</span>

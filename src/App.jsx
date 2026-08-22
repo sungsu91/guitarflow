@@ -44,6 +44,17 @@ import {
   getSharedAudioContext,
   resumeSharedAudioContext,
 } from "./audio/audioBus";
+import {
+  WHEEL_PICKER_ITEM_HEIGHT,
+  clampWheelIndex,
+  clampWheelPosition,
+  getWheelDragPosition,
+  getWheelReleaseVelocity,
+  getWheelSnapIndex,
+  getWheelSnapDuration,
+  shouldContinueWheelInertia,
+  stepWheelInertia,
+} from "./metronome/wheelPickerPhysics";
 import AudioStudio from "./audio-studio/AudioStudio";
 import TunerMode, { TUNER_BACKGROUND_COUNT } from "./tuner/TunerMode";
 import {
@@ -4935,7 +4946,7 @@ const METRONOME_BEAT_STATE_LABELS = {
 const METRONOME_VISUAL_LAB_MODES = [
   { id: "dot", label: "Dot", title: "Dot Mode", description: "현재 점자 방식. 점자 자체의 glow만 비교합니다." },
   { id: "line", label: "Line", title: "Rhythm Line Mode", description: "좌에서 우로 흐르는 박자 위치를 비교합니다." },
-  { id: "circle", label: "Circle", title: "Circle Mode", description: "JUST PLAY 정식 후보로 승격한 원형 박자 훈련 시각화입니다." },
+  { id: "circle", label: "Circle", title: "Circle Mode", description: "FRETIVA LAB 정식 후보로 승격한 원형 박자 훈련 시각화입니다." },
   { id: "pick", label: "Pick Swing", title: "Pick Swing Mode", description: "기타 피크 스윙으로 스트로크 감각을 비교합니다." },
 ];
 const METRONOME_DISPLAY_MODES = [
@@ -4972,7 +4983,7 @@ const SVG_LOGO_LAB_CANDIDATES = [
   ["svg-logo-09-p", "Logo 09-P", "Soft Bowl R", "R의 곡선부를 부드럽게 다듬어 현의 자연스러운 휨을 강조한 안."],
   ["svg-logo-09-q", "Logo 09-Q", "Hardware Plate R", "앰프 명판과 장비 플레이트에 어울리는 수평 기준선 중심 안."],
   ["svg-logo-09-r", "Logo 09-R", "Monochrome Ready R", "색을 제거해도 R 실루엣이 남도록 대비와 구조를 정리한 안."],
-  ["svg-logo-09-s", "Logo 09-S", "Master Symbol R", "JUST PLAY 공식 심볼 후보로 현, R, 웨이브를 가장 균형 있게 통합한 안."],
+  ["svg-logo-09-s", "Logo 09-S", "Master Symbol R", "FRETIVA LAB 공식 심볼 후보로 현, R, 웨이브를 가장 균형 있게 통합한 안."],
   ["svg-logo-09-t", "Logo 09-T", "Signature String R", "향후 헤더, 피크, 티셔츠까지 확장 가능한 최종 후보형 안."],
 ].map(([id, label, title, description], index) => ({ id, label, title, description, index: index + 1 }));
 const FEEL_RECORDER_STORAGE_KEY = "rifflab-feel-recorder-patterns";
@@ -5864,69 +5875,50 @@ function MetronomeTimeline({
   );
 }
 
-const WHEEL_PICKER_ITEM_HEIGHT = 34;
-const WHEEL_PICKER_MOMENTUM_DISTANCE_MS = 680;
-const WHEEL_PICKER_MAX_MOMENTUM_ITEMS = 18;
-const WHEEL_PICKER_MIN_ANIMATION_MS = 260;
-const WHEEL_PICKER_MAX_ANIMATION_MS = 980;
 const WHEEL_PICKER_DRAG_CLICK_CANCEL_PX = 5;
 
 function easeOutPickerWheel(progress) {
-  return 1 - Math.pow(1 - progress, 4);
+  return 1 - Math.pow(1 - progress, 3);
 }
 
-function WheelPickerColumn({ label, options, value, onChange }) {
+const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onDetent, onInteractionStart, options, value }) {
   const selectedIndex = Math.max(0, options.findIndex((option) => Number(option.value) === Number(value)));
+  const [settledIndex, setSettledIndex] = useState(selectedIndex);
   const frameRef = useRef(null);
   const dragFrameRef = useRef(null);
-  const optionRefs = useRef([]);
+  const clickResetTimerRef = useRef(null);
   const trackRef = useRef(null);
+  const viewportRef = useRef(null);
   const committedIndexRef = useRef(selectedIndex);
-  const previewIndexRef = useRef(selectedIndex);
+  const detentIndexRef = useRef(selectedIndex);
   const scrollPositionRef = useRef(selectedIndex);
   const pendingScrollPositionRef = useRef(selectedIndex);
   const dragRef = useRef(null);
   const interactingRef = useRef(false);
   const suppressClickRef = useRef(false);
-  const [isInteracting, setIsInteracting] = useState(false);
 
   useEffect(() => () => {
     if (frameRef.current != null) window.cancelAnimationFrame(frameRef.current);
     if (dragFrameRef.current != null) window.cancelAnimationFrame(dragFrameRef.current);
+    if (clickResetTimerRef.current != null) window.clearTimeout(clickResetTimerRef.current);
   }, []);
 
-  const clampIndex = useCallback((index) => Math.max(0, Math.min(options.length - 1, index)), [options.length]);
-  const clampPosition = useCallback((position) => Math.max(0, Math.min(options.length - 1, position)), [options.length]);
+  const updateDetentIndex = useCallback((nextIndex, notify = false) => {
+    const safeIndex = clampWheelIndex(nextIndex, options.length);
+    const previousIndex = detentIndexRef.current;
+    if (previousIndex === safeIndex) return;
 
-  const updatePreviewIndex = useCallback((nextIndex, force = false) => {
-    const safeIndex = clampIndex(nextIndex);
-    if (!force && previewIndexRef.current === safeIndex) return;
+    detentIndexRef.current = safeIndex;
 
-    if (force) {
-      optionRefs.current.forEach((node, optionIndex) => {
-        if (!node) return;
-        const selected = optionIndex === safeIndex;
-        node.classList.toggle("selected", selected);
-        node.setAttribute("aria-selected", selected ? "true" : "false");
-      });
-    } else {
-      const previousNode = optionRefs.current[previewIndexRef.current];
-      if (previousNode) {
-        previousNode.classList.remove("selected");
-        previousNode.setAttribute("aria-selected", "false");
-      }
-      const nextNode = optionRefs.current[safeIndex];
-      if (nextNode) {
-        nextNode.classList.add("selected");
-        nextNode.setAttribute("aria-selected", "true");
-      }
+    if (!notify) return;
+    const direction = safeIndex > previousIndex ? 1 : -1;
+    for (let index = previousIndex + direction; direction > 0 ? index <= safeIndex : index >= safeIndex; index += direction) {
+      onDetent?.();
     }
+  }, [onDetent, options.length]);
 
-    previewIndexRef.current = safeIndex;
-  }, [clampIndex]);
-
-  const renderWheelPosition = useCallback((nextPosition, syncSelection = false) => {
-    const safePosition = clampPosition(nextPosition);
+  const renderWheelPosition = useCallback((nextPosition, notifySelection = false) => {
+    const safePosition = clampWheelPosition(nextPosition, options.length);
     scrollPositionRef.current = safePosition;
     pendingScrollPositionRef.current = safePosition;
 
@@ -5934,79 +5926,83 @@ function WheelPickerColumn({ label, options, value, onChange }) {
       trackRef.current.style.transform = `translate3d(0, ${-safePosition * WHEEL_PICKER_ITEM_HEIGHT}px, 0)`;
     }
 
-    if (syncSelection) {
-      updatePreviewIndex(Math.round(safePosition), true);
-    }
-  }, [clampPosition, updatePreviewIndex]);
+    updateDetentIndex(Math.round(safePosition), notifySelection);
+  }, [options.length, updateDetentIndex]);
 
   const scheduleWheelPosition = useCallback((nextPosition) => {
-    pendingScrollPositionRef.current = clampPosition(nextPosition);
+    pendingScrollPositionRef.current = clampWheelPosition(nextPosition, options.length);
     if (dragFrameRef.current != null) return;
     dragFrameRef.current = window.requestAnimationFrame(() => {
       dragFrameRef.current = null;
-      renderWheelPosition(pendingScrollPositionRef.current);
+      renderWheelPosition(pendingScrollPositionRef.current, true);
     });
-  }, [clampPosition, renderWheelPosition]);
+  }, [options.length, renderWheelPosition]);
 
   const syncWheelToIndex = useCallback((nextIndex) => {
-    const safeIndex = clampIndex(nextIndex);
+    const safeIndex = clampWheelIndex(nextIndex, options.length);
     committedIndexRef.current = safeIndex;
-    previewIndexRef.current = safeIndex;
-    renderWheelPosition(safeIndex, true);
-  }, [clampIndex, renderWheelPosition]);
+    detentIndexRef.current = safeIndex;
+    renderWheelPosition(safeIndex);
+  }, [options.length, renderWheelPosition]);
 
   useEffect(() => {
     if (interactingRef.current) return;
+    setSettledIndex(selectedIndex);
     syncWheelToIndex(selectedIndex);
   }, [selectedIndex, syncWheelToIndex]);
 
-  const commitIndex = useCallback((nextIndex) => {
-    const safeIndex = clampIndex(nextIndex);
-    const nextValue = options[safeIndex]?.value;
-    const previousValue = options[committedIndexRef.current]?.value;
-    syncWheelToIndex(safeIndex);
-
-    if (nextValue != null && Number(nextValue) !== Number(previousValue)) {
-      onChange(Number(nextValue));
-    }
-  }, [clampIndex, onChange, options, syncWheelToIndex]);
-
   const finishInteraction = useCallback(() => {
     interactingRef.current = false;
-    setIsInteracting(false);
+    viewportRef.current?.classList.remove("dragging");
   }, []);
 
-  const animateToIndex = useCallback((fromPosition, targetIndex, releaseVelocity = 0) => {
+  const settleWheelAtIndex = useCallback((nextIndex) => {
+    const safeIndex = clampWheelIndex(nextIndex, options.length);
+    renderWheelPosition(safeIndex, true);
+    const previousIndex = committedIndexRef.current;
+    committedIndexRef.current = safeIndex;
+    finishInteraction();
+    if (safeIndex !== settledIndex) setSettledIndex(safeIndex);
+    const nextValue = options[safeIndex]?.value;
+    if (nextValue != null && safeIndex !== previousIndex) onChange(Number(nextValue));
+  }, [finishInteraction, onChange, options, renderWheelPosition, settledIndex]);
+
+  const cancelWheelFrames = useCallback(() => {
     if (dragFrameRef.current != null) {
       window.cancelAnimationFrame(dragFrameRef.current);
       dragFrameRef.current = null;
     }
-    if (frameRef.current != null) window.cancelAnimationFrame(frameRef.current);
-    const safeFromPosition = clampPosition(fromPosition);
-    const safeTargetIndex = clampIndex(targetIndex);
+    if (frameRef.current != null) {
+      window.cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+  }, []);
+
+  const animateToIndex = useCallback((fromPosition, targetIndex) => {
+    cancelWheelFrames();
+    const safeFromPosition = clampWheelPosition(fromPosition, options.length);
+    const safeTargetIndex = clampWheelIndex(targetIndex, options.length);
     const distance = safeTargetIndex - safeFromPosition;
 
     if (Math.abs(distance) < 0.001) {
-      renderWheelPosition(safeTargetIndex, true);
-      commitIndex(safeTargetIndex);
-      finishInteraction();
+      settleWheelAtIndex(safeTargetIndex);
       return;
     }
 
     const startedAt = performance.now();
-    const duration = Math.min(
-      WHEEL_PICKER_MAX_ANIMATION_MS,
-      Math.max(
-        WHEEL_PICKER_MIN_ANIMATION_MS,
-        220 + (Math.abs(distance) * 46) + Math.min(240, Math.abs(releaseVelocity) * 120),
-      ),
-    );
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+    const duration = getWheelSnapDuration(distance, reduceMotion);
+
+    if (duration === 0) {
+      settleWheelAtIndex(safeTargetIndex);
+      return;
+    }
 
     const animate = (now) => {
       const progress = Math.min(1, (now - startedAt) / duration);
       const eased = easeOutPickerWheel(progress);
       const nextPosition = safeFromPosition + distance * eased;
-      renderWheelPosition(nextPosition);
+      renderWheelPosition(nextPosition, true);
 
       if (progress < 1) {
         frameRef.current = window.requestAnimationFrame(animate);
@@ -6014,13 +6010,52 @@ function WheelPickerColumn({ label, options, value, onChange }) {
       }
 
       frameRef.current = null;
-      renderWheelPosition(safeTargetIndex, true);
-      commitIndex(safeTargetIndex);
-      finishInteraction();
+      settleWheelAtIndex(safeTargetIndex);
     };
 
     frameRef.current = window.requestAnimationFrame(animate);
-  }, [clampIndex, clampPosition, commitIndex, finishInteraction, renderWheelPosition]);
+  }, [cancelWheelFrames, options.length, renderWheelPosition, settleWheelAtIndex]);
+
+  const startWheelInertia = useCallback((fromPosition, releaseVelocity, releaseDirection = 0) => {
+    cancelWheelFrames();
+    let position = clampWheelPosition(fromPosition, options.length);
+    let velocity = releaseVelocity;
+    const motionDirection = Math.sign(releaseVelocity) || Math.sign(releaseDirection);
+    let elapsedTotal = 0;
+    let previousTime = performance.now();
+    renderWheelPosition(position, true);
+
+    if (!shouldContinueWheelInertia(velocity, elapsedTotal)) {
+      animateToIndex(position, getWheelSnapIndex(position, motionDirection, options.length));
+      return;
+    }
+
+    const glide = (now) => {
+      const elapsed = Math.max(0, now - previousTime);
+      previousTime = now;
+      elapsedTotal += elapsed;
+      const next = stepWheelInertia(position, velocity, elapsed, options.length);
+      position = next.position;
+      velocity = next.velocity;
+      renderWheelPosition(position, true);
+
+      if (shouldContinueWheelInertia(velocity, elapsedTotal)) {
+        frameRef.current = window.requestAnimationFrame(glide);
+        return;
+      }
+
+      frameRef.current = null;
+      animateToIndex(position, getWheelSnapIndex(position, motionDirection, options.length));
+    };
+
+    frameRef.current = window.requestAnimationFrame(glide);
+  }, [animateToIndex, cancelWheelFrames, options.length, renderWheelPosition]);
+
+  const beginInteraction = useCallback(() => {
+    interactingRef.current = true;
+    onInteractionStart?.();
+    viewportRef.current?.classList.add("dragging");
+  }, [onInteractionStart]);
 
   const handleOptionClick = useCallback((nextValue, event) => {
     if (suppressClickRef.current) {
@@ -6032,110 +6067,140 @@ function WheelPickerColumn({ label, options, value, onChange }) {
 
     const nextIndex = options.findIndex((option) => Number(option.value) === Number(nextValue));
     if (nextIndex < 0) return;
-    if (frameRef.current != null) {
-      window.cancelAnimationFrame(frameRef.current);
-      frameRef.current = null;
-    }
-    interactingRef.current = false;
-    commitIndex(nextIndex);
-    setIsInteracting(false);
-  }, [commitIndex, options]);
+    beginInteraction();
+    animateToIndex(scrollPositionRef.current, nextIndex);
+  }, [animateToIndex, beginInteraction, options]);
 
   const handlePointerDown = useCallback((event) => {
-    if (frameRef.current != null) window.cancelAnimationFrame(frameRef.current);
-    frameRef.current = null;
-    if (dragFrameRef.current != null) {
-      window.cancelAnimationFrame(dragFrameRef.current);
-      dragFrameRef.current = null;
+    if (event.button != null && event.button !== 0) return;
+    cancelWheelFrames();
+    if (clickResetTimerRef.current != null) {
+      window.clearTimeout(clickResetTimerRef.current);
+      clickResetTimerRef.current = null;
     }
 
     const now = performance.now();
     const startPosition = scrollPositionRef.current;
-    interactingRef.current = true;
+    beginInteraction();
     suppressClickRef.current = false;
     dragRef.current = {
       pointerId: event.pointerId,
       startY: event.clientY,
-      lastY: event.clientY,
-      lastTime: now,
       startPosition,
-      velocity: 0,
       moved: false,
       samples: [{ y: event.clientY, time: now }],
     };
-    setIsInteracting(true);
     renderWheelPosition(startPosition);
     event.currentTarget.setPointerCapture?.(event.pointerId);
-  }, [renderWheelPosition]);
+  }, [beginInteraction, cancelWheelFrames, renderWheelPosition]);
 
   const handlePointerMove = useCallback((event) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     const now = performance.now();
     const deltaY = event.clientY - drag.startY;
-    const elapsed = Math.max(1, now - drag.lastTime);
-    drag.velocity = (event.clientY - drag.lastY) / elapsed;
-    drag.lastY = event.clientY;
-    drag.lastTime = now;
-    drag.samples ??= [];
     drag.samples.push({ y: event.clientY, time: now });
-    while (drag.samples.length > 1 && now - drag.samples[0].time > 120) drag.samples.shift();
+    while (drag.samples.length > 2 && now - drag.samples[0].time > 100) drag.samples.shift();
 
     if (Math.abs(deltaY) > WHEEL_PICKER_DRAG_CLICK_CANCEL_PX) {
       drag.moved = true;
       suppressClickRef.current = true;
     }
 
-    const nextPosition = clampPosition(drag.startPosition - (deltaY / WHEEL_PICKER_ITEM_HEIGHT));
-    scheduleWheelPosition(nextPosition);
+    scheduleWheelPosition(getWheelDragPosition(
+      drag.startPosition,
+      drag.startY,
+      event.clientY,
+      options.length,
+    ));
     if (event.cancelable) event.preventDefault();
-  }, [clampPosition, scheduleWheelPosition]);
+  }, [options.length, scheduleWheelPosition]);
 
-  const handlePointerUp = useCallback((event) => {
+  const completePointerDrag = useCallback((event) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
-    const deltaY = event.clientY - drag.startY;
-    const samples = drag.samples ?? [];
-    const firstSample = samples[0];
-    const lastSample = samples[samples.length - 1];
-    const sampleVelocity = firstSample && lastSample && lastSample.time > firstSample.time
-      ? (lastSample.y - firstSample.y) / (lastSample.time - firstSample.time)
-      : drag.velocity;
-    const velocity = Number.isFinite(sampleVelocity) ? sampleVelocity : drag.velocity;
-    const currentPosition = clampPosition(drag.startPosition - (deltaY / WHEEL_PICKER_ITEM_HEIGHT));
-    const rawMomentumItems = (velocity * WHEEL_PICKER_MOMENTUM_DISTANCE_MS) / WHEEL_PICKER_ITEM_HEIGHT;
-    const momentumItems = Math.sign(rawMomentumItems) * Math.min(WHEEL_PICKER_MAX_MOMENTUM_ITEMS, Math.abs(rawMomentumItems));
-    const projectedPosition = clampPosition(currentPosition - momentumItems);
-    const targetIndex = clampIndex(Math.round(projectedPosition));
+    const now = performance.now();
+    drag.samples.push({ y: event.clientY, time: now });
+    const currentPosition = getWheelDragPosition(
+      drag.startPosition,
+      drag.startY,
+      event.clientY,
+      options.length,
+    );
+    const releaseVelocity = drag.moved ? getWheelReleaseVelocity(drag.samples, now) : 0;
 
     dragRef.current = null;
-    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    if (viewportRef.current?.hasPointerCapture?.(event.pointerId)) {
+      viewportRef.current.releasePointerCapture(event.pointerId);
+    }
     if (drag.moved) {
-      window.setTimeout(() => {
+      if (clickResetTimerRef.current != null) window.clearTimeout(clickResetTimerRef.current);
+      clickResetTimerRef.current = window.setTimeout(() => {
+        clickResetTimerRef.current = null;
         suppressClickRef.current = false;
       }, 180);
     }
-    animateToIndex(currentPosition, targetIndex, velocity);
-  }, [animateToIndex, clampIndex, clampPosition]);
+    const releaseDirection = drag.moved ? Math.sign(currentPosition - drag.startPosition) : 0;
+    startWheelInertia(currentPosition, releaseVelocity, releaseDirection);
+  }, [options.length, startWheelInertia]);
+
+  const handlePointerUp = useCallback((event) => {
+    completePointerDrag(event);
+  }, [completePointerDrag]);
 
   const handlePointerCancel = useCallback((event) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     dragRef.current = null;
-    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    if (viewportRef.current?.hasPointerCapture?.(event.pointerId)) {
+      viewportRef.current.releasePointerCapture(event.pointerId);
+    }
     suppressClickRef.current = false;
     animateToIndex(scrollPositionRef.current, Math.round(scrollPositionRef.current));
   }, [animateToIndex]);
+
+  useEffect(() => {
+    const handleWindowPointerUp = (event) => completePointerDrag(event);
+    const handleWindowPointerCancel = (event) => handlePointerCancel(event);
+    window.addEventListener("pointerup", handleWindowPointerUp);
+    window.addEventListener("pointercancel", handleWindowPointerCancel);
+    return () => {
+      window.removeEventListener("pointerup", handleWindowPointerUp);
+      window.removeEventListener("pointercancel", handleWindowPointerCancel);
+    };
+  }, [completePointerDrag, handlePointerCancel]);
+
+  const handleKeyDown = useCallback((event) => {
+    const keyOffsets = {
+      ArrowDown: 1,
+      ArrowUp: -1,
+      PageDown: 5,
+      PageUp: -5,
+    };
+    let nextIndex;
+    if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = options.length - 1;
+    else if (keyOffsets[event.key] != null) nextIndex = Math.round(scrollPositionRef.current) + keyOffsets[event.key];
+    else return;
+
+    event.preventDefault();
+    beginInteraction();
+    animateToIndex(scrollPositionRef.current, clampWheelIndex(nextIndex, options.length));
+  }, [animateToIndex, beginInteraction, options.length]);
 
   return (
     <label className="metronomeWheelColumn">
       <span>{label}</span>
       <div
-        className={`metronomeWheelColumnViewport ${isInteracting ? "dragging" : ""}`}
+        aria-label={`${label} wheel picker`}
+        className="metronomeWheelColumnViewport"
+        onKeyDown={handleKeyDown}
+        onLostPointerCapture={handlePointerCancel}
         onPointerCancel={handlePointerCancel}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
+        ref={viewportRef}
         role="listbox"
         tabIndex={0}
       >
@@ -6143,17 +6208,13 @@ function WheelPickerColumn({ label, options, value, onChange }) {
         <div
           className="metronomeWheelOptionTrack"
           ref={trackRef}
-          style={{ transform: `translate3d(0, ${-selectedIndex * WHEEL_PICKER_ITEM_HEIGHT}px, 0)` }}
+          style={{ transform: `translate3d(0, ${-settledIndex * WHEEL_PICKER_ITEM_HEIGHT}px, 0)` }}
         >
           {options.map((option, optionIndex) => (
             <button
-              aria-selected={optionIndex === selectedIndex}
-              className={optionIndex === selectedIndex ? "selected" : ""}
+              aria-selected={optionIndex === settledIndex}
               key={option.id}
               onClick={(event) => handleOptionClick(Number(option.value), event)}
-              ref={(node) => {
-                optionRefs.current[optionIndex] = node;
-              }}
               role="option"
               style={{ transform: `translate3d(0, ${optionIndex * WHEEL_PICKER_ITEM_HEIGHT}px, 0)` }}
               type="button"
@@ -6165,9 +6226,9 @@ function WheelPickerColumn({ label, options, value, onChange }) {
       </div>
     </label>
   );
-}
+});
 
-function MetronomeWheelPicker({ ariaLabel, minuteOptions, minutes, onMinutesChange, onSecondsChange, secondOptions, seconds }) {
+function MetronomeWheelPicker({ ariaLabel, minuteOptions, minutes, onDetent, onInteractionStart, onMinutesChange, onSecondsChange, secondOptions, seconds }) {
   const handleMinutesPreviewChange = useCallback((nextMinutes) => {
     onMinutesChange(nextMinutes);
   }, [onMinutesChange]);
@@ -6178,8 +6239,9 @@ function MetronomeWheelPicker({ ariaLabel, minuteOptions, minutes, onMinutesChan
 
   return (
     <div className="metronomeTimerWheelPicker" aria-label={ariaLabel}>
-      <WheelPickerColumn label="Minutes" options={minuteOptions} value={minutes} onChange={handleMinutesPreviewChange} />
-      <WheelPickerColumn label="Seconds" options={secondOptions} value={seconds} onChange={handleSecondsPreviewChange} />
+      <WheelPickerColumn label="Minutes" onChange={handleMinutesPreviewChange} onDetent={onDetent} onInteractionStart={onInteractionStart} options={minuteOptions} value={minutes} />
+      <WheelPickerColumn label="Seconds" onChange={handleSecondsPreviewChange} onDetent={onDetent} onInteractionStart={onInteractionStart} options={secondOptions} value={seconds} />
+      <div aria-hidden="true" className="metronomeWheelSelectionOverlay" />
     </div>
   );
 }
@@ -6391,7 +6453,7 @@ const LOGO_V11_VARIANT_DEFINITIONS = [
   ["037", "Amp Control Label", "앰프 컨트롤 패널 라벨 컨셉"],
   ["038", "Guitar Shop Sign", "부티크 기타샵 간판 같은 워드마크"],
   ["039", "Master Line", "숙련을 한 줄의 골드 라인으로 표현"],
-  ["040", "JUST PLAY Seal", "최종 브랜드 도장 후보처럼 구성"],
+  ["040", "FRETIVA LAB Seal", "최종 브랜드 도장 후보처럼 구성"],
 ];
 const createLogoV11Variants = () =>
   LOGO_V11_VARIANT_DEFINITIONS.map(([serial, name, description]) => ({
@@ -6415,7 +6477,7 @@ const LEGACY_HEADER_VARIANT_MAP = {
   "plate-v4": "v10",
 };
 const APP_ICON_VARIANTS = [
-  { id: "icon-v1", title: "App Icon V1", description: "JUST PLAY 전체 워드마크" },
+  { id: "icon-v1", title: "App Icon V1", description: "FRETIVA LAB 전체 워드마크" },
   { id: "icon-v2", title: "App Icon V2", description: "RIFF 반복 포인트" },
 ];
 const ARCHIVED_APP_ICON_VARIANTS = [];
@@ -8838,7 +8900,7 @@ function MiniChordRhythmSettingsDialog({
             <div id="mini-chord-rhythm-reset-description">
               <p>
                 {resetRequest.scope === "all"
-                  ? "드럼, 베이스, 피아노의 모든 사용자 리듬 설정을 JUST PLAY 기본값으로 되돌립니다."
+                  ? "드럼, 베이스, 피아노의 모든 사용자 리듬 설정을 FRETIVA LAB 기본값으로 되돌립니다."
                   : `${resetPartLabel}의 리듬 설정을 기본값으로 되돌릴까요?`}
               </p>
               {resetRequest.scope === "all" ? <small>저장한 사용자 설정은 복구할 수 없습니다.</small> : null}
@@ -9563,7 +9625,7 @@ function SvgLogoHeaderPreview({ candidate }) {
         <RiffLoopLogoSvg candidate={candidate} compact />
       </div>
       <div className="svgLogoHeaderPlate__word">
-        <strong>JUST PLAY</strong>
+        <strong>FRETIVA LAB</strong>
         <span>Repeat. Refine. Master.</span>
       </div>
     </div>
@@ -10280,7 +10342,7 @@ function AppIconSvgPreview({ variantId }) {
             {[28, 38, 48, 58, 68, 78, 88].map((x, index) => (
               <rect key={x} x={x} y={58 - [8, 18, 28, 36, 28, 18, 8][index] / 2} width="5" height={[8, 18, 28, 36, 28, 18, 8][index]} rx="3" fill={gold} />
             ))}
-            <text x="60" y="91" textAnchor="middle" fill={ink} fontFamily="Georgia, Times New Roman, serif" fontSize="13" fontWeight="900" letterSpacing="3">JUST PLAY</text>
+            <text x="60" y="91" textAnchor="middle" fill={ink} fontFamily="Georgia, Times New Roman, serif" fontSize="13" fontWeight="900" letterSpacing="3">FRETIVA LAB</text>
           </>
         ) : null}
         {variantNumber === 24 ? (
@@ -10399,8 +10461,8 @@ function AppIconSvgPreview({ variantId }) {
             <text x="60" y="66" textAnchor="middle" fill="#080907" fontFamily="Arial Black, Arial, sans-serif" fontSize="16" fontWeight="900" letterSpacing="3">RIFF</text>
           </>
         ) : null}
-        {showWord ? <text x="60" y="103" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="7" fontWeight="900" letterSpacing="2">JUST PLAY</text> : null}
-        {showRiff ? <text x="60" y="103" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="7" fontWeight="900" letterSpacing="2">JUST PLAY</text> : null}
+        {showWord ? <text x="60" y="103" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="7" fontWeight="900" letterSpacing="2">FRETIVA LAB</text> : null}
+        {showRiff ? <text x="60" y="103" textAnchor="middle" fill={muted} fontFamily="Arial Black, Arial, sans-serif" fontSize="7" fontWeight="900" letterSpacing="2">FRETIVA LAB</text> : null}
       </svg>
     );
   }
@@ -10477,14 +10539,14 @@ function AppIconPreview({ variantId, size = "large" }) {
       {isSvg ? <AppIconSvgPreview variantId={variantId} /> : null}
       {isWordmark ? (
         <span className="appIconPreview__wordmark">
-          <b>JUST PLAY</b>
+          <b>FRETIVA LAB</b>
           {variantId === "icon-v2" ? <i>RIFF</i> : null}
         </span>
       ) : null}
       {isSignature ? (
         <span className="appIconPreview__signature">
           <b>R</b>
-          <small>JUST PLAY</small>
+          <small>FRETIVA LAB</small>
         </span>
       ) : null}
       {isR ? <span className="appIconPreview__visualR">R</span> : null}
@@ -11166,7 +11228,7 @@ const HELP_GUIDE_SECTIONS = [
     title: "안녕하세요",
     content: (
       <>
-        <p>JUST PLAY는 기타 지판, 스케일, 코드 전환, 리듬 감각을 한 화면 안에서 반복 연습할 수 있도록 만든 기타 훈련 앱입니다.</p>
+        <p>FRETIVA LAB은 기타 지판, 스케일, 코드 전환, 리듬 감각을 한 화면 안에서 반복 연습할 수 있도록 만든 기타 훈련 앱입니다.</p>
         <p>리듬 & 코드에서는 코드 진행과 반주를 보며 연습하고, 지판 보기에서는 음·코드·스케일 위치를 확인할 수 있습니다.</p>
         <p>연습 중에는 메트로놈과 반주 기능을 함께 사용해 실제 연주에 가까운 감각으로 반복할 수 있습니다.</p>
       </>
@@ -11289,7 +11351,7 @@ const HELP_GUIDE_SECTIONS = [
       <>
         <p>사용 중 불편한 점, 오류, 추가되었으면 하는 기능이 있다면 알려주세요.</p>
         <p>훈련 흐름, 모바일 화면, 사운드, 저장 기능에 대한 의견도 환영합니다.</p>
-        <p>보내주신 피드백은 JUST PLAY를 더 사용하기 좋은 기타 훈련 앱으로 다듬는 데 활용됩니다.</p>
+        <p>보내주신 피드백은 FRETIVA LAB을 더 사용하기 좋은 기타 훈련 앱으로 다듬는 데 활용됩니다.</p>
         <a className="helpInstagramLink" href="https://www.instagram.com/sungsu91_/" rel="noreferrer" target="_blank">
           <svg aria-hidden="true" viewBox="0 0 24 24">
             <rect x="4" y="4" width="16" height="16" rx="5" />
@@ -14624,7 +14686,9 @@ function App({ onReady }) {
   const feelLastReleaseRef = useRef(0);
   const feelPlaybackTimersRef = useRef([]);
   const feelPlaybackLoopRef = useRef(true);
-  const metronomeDialClickLastAtRef = useRef(0);
+  const metronomeDialTickBufferRef = useRef(null);
+  const metronomeDialTickScheduleRef = useRef({ context: null, time: 0 });
+  const metronomeWheelHapticLastAtRef = useRef(0);
   const metronomeSampleBuffersRef = useRef({});
   const metronomeSampleFailedIdsRef = useRef(new Set());
   const metronomeSampleLoadPromiseRef = useRef(null);
@@ -15982,71 +16046,65 @@ function App({ onReady }) {
     }, BACKING_PATTERN_CHANGE_DEBOUNCE_MS);
   }, [applyBackingPatternSession, chordTransitionProgression]);
 
+  const getMetronomeDialTickBuffer = useCallback((audio) => {
+    if (metronomeDialTickBufferRef.current?.context === audio) {
+      return metronomeDialTickBufferRef.current.buffer;
+    }
+
+    const durationSeconds = 0.014;
+    const buffer = audio.createBuffer(1, Math.max(1, Math.floor(audio.sampleRate * durationSeconds)), audio.sampleRate);
+    const data = buffer.getChannelData(0);
+    let noiseSeed = 0x51f15e;
+    for (let index = 0; index < data.length; index += 1) {
+      const time = index / audio.sampleRate;
+      const envelope = Math.exp(-time * 360);
+      noiseSeed = (Math.imul(noiseSeed, 1664525) + 1013904223) >>> 0;
+      const noise = ((noiseSeed / 0xffffffff) * 2) - 1;
+      const mechanicalBody =
+        (Math.sin(2 * Math.PI * 1380 * time) * 0.58)
+        + (Math.sin(2 * Math.PI * 2480 * time) * 0.24)
+        + (noise * 0.18);
+      data[index] = mechanicalBody * envelope;
+    }
+
+    metronomeDialTickBufferRef.current = { buffer, context: audio };
+    return buffer;
+  }, []);
+
+  const primeMetronomeWheelTick = useCallback(async () => {
+    const ready = await ensureAudioReady();
+    const audio = audioRef.current;
+    if (ready && audio) getMetronomeDialTickBuffer(audio);
+  }, [ensureAudioReady, getMetronomeDialTickBuffer]);
+
   const playMetronomeDialClick = useCallback(async () => {
     if (typeof window === "undefined") return;
-    const nowMs = performance.now();
-    if (nowMs - metronomeDialClickLastAtRef.current < 42) return;
-    metronomeDialClickLastAtRef.current = nowMs;
+    const requestedAt = performance.now();
 
     const ready = await ensureAudioReady();
     const audio = audioRef.current;
     if (!ready || !audio) return;
+    if (performance.now() - requestedAt > 60) return;
 
     const now = audio.currentTime;
-    const oscillator = audio.createOscillator();
-    const overtone = audio.createOscillator();
-    const noise = audio.createBufferSource();
-    const noiseBuffer = audio.createBuffer(1, Math.max(1, Math.floor(audio.sampleRate * 0.018)), audio.sampleRate);
-    const noiseData = noiseBuffer.getChannelData(0);
-    const filter = audio.createBiquadFilter();
-    const noiseFilter = audio.createBiquadFilter();
-    const gain = audio.createGain();
-    const noiseGain = audio.createGain();
-
-    for (let index = 0; index < noiseData.length; index += 1) {
-      const decay = 1 - index / noiseData.length;
-      noiseData[index] = (Math.random() * 2 - 1) * decay * decay;
+    const schedule = metronomeDialTickScheduleRef.current;
+    if (schedule.context !== audio) {
+      schedule.context = audio;
+      schedule.time = 0;
     }
+    const scheduledAt = Math.max(now, schedule.time + 0.006);
+    if (scheduledAt - now > 0.024) return;
+    schedule.time = scheduledAt;
 
-    oscillator.type = "triangle";
-    oscillator.frequency.setValueAtTime(1450, now);
-    oscillator.frequency.exponentialRampToValueAtTime(980, now + 0.018);
-
-    overtone.type = "square";
-    overtone.frequency.setValueAtTime(2550, now);
-    overtone.frequency.exponentialRampToValueAtTime(1900, now + 0.012);
-
-    filter.type = "bandpass";
-    filter.frequency.setValueAtTime(1800, now);
-    filter.Q.setValueAtTime(9, now);
-
-    noise.buffer = noiseBuffer;
-    noiseFilter.type = "highpass";
-    noiseFilter.frequency.setValueAtTime(2100, now);
-    noiseFilter.Q.setValueAtTime(0.8, now);
-
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.014, now + 0.003);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.024);
-
-    noiseGain.gain.setValueAtTime(0.0001, now);
-    noiseGain.gain.exponentialRampToValueAtTime(0.006, now + 0.002);
-    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.012);
-
-    oscillator.connect(filter);
-    overtone.connect(filter);
-    filter.connect(gain);
+    const source = audio.createBufferSource();
+    const gain = audio.createGain();
+    source.buffer = getMetronomeDialTickBuffer(audio);
+    gain.gain.setValueAtTime(0.018, scheduledAt);
+    source.connect(gain);
     gain.connect(getAudioBusInput(AUDIO_BUS_IDS.METRONOME, audio) || audio.destination);
-    noise.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
-    noiseGain.connect(getAudioBusInput(AUDIO_BUS_IDS.METRONOME, audio) || audio.destination);
-    oscillator.start(now);
-    overtone.start(now + 0.001);
-    noise.start(now);
-    oscillator.stop(now + 0.024);
-    overtone.stop(now + 0.02);
-    noise.stop(now + 0.018);
-  }, [ensureAudioReady]);
+    source.start(scheduledAt);
+    source.stop(scheduledAt + source.buffer.duration);
+  }, [ensureAudioReady, getMetronomeDialTickBuffer]);
 
   const triggerMetronomeHardwareToggle = useCallback(() => {
     playMetronomeDialClick();
@@ -16057,8 +16115,20 @@ function App({ onReady }) {
 
   const triggerMetronomeWheelDetent = useCallback(() => {
     playMetronomeDialClick();
-    if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
-      navigator.vibrate(3);
+    if (typeof window === "undefined" || typeof navigator === "undefined") return;
+    const now = performance.now();
+    const isCoarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches ?? false;
+    if (
+      isCoarsePointer
+      && typeof navigator.vibrate === "function"
+      && now - metronomeWheelHapticLastAtRef.current >= 55
+    ) {
+      metronomeWheelHapticLastAtRef.current = now;
+      try {
+        navigator.vibrate(2);
+      } catch {
+        // Haptic support differs by browser; audio feedback remains primary.
+      }
     }
   }, [playMetronomeDialClick]);
 
@@ -19058,8 +19128,6 @@ function App({ onReady }) {
     if (panelId === "tracker") {
       const nextMinutes = normalizeTrackerTimerMinutes(metronomeTrackerTimerDraftRef.current.minutes);
       const nextSeconds = normalizeTrackerTimerSeconds(metronomeTrackerTimerDraftRef.current.seconds);
-      const changed = nextMinutes !== metronomeTrackerTimerMinutes || nextSeconds !== metronomeTrackerTimerSeconds;
-      if (changed) triggerMetronomeWheelDetent();
       if (nextMinutes !== metronomeTrackerTimerMinutes) setMetronomeTrackerTimerMinutes(nextMinutes);
       if (nextSeconds !== metronomeTrackerTimerSeconds) setMetronomeTrackerTimerSeconds(nextSeconds);
     }
@@ -19069,7 +19137,6 @@ function App({ onReady }) {
     metronomeAdvancedPanel,
     metronomeTrackerTimerMinutes,
     metronomeTrackerTimerSeconds,
-    triggerMetronomeWheelDetent,
   ]);
 
   const closeMetronomeAdvancedPanel = useCallback(() => {
@@ -23565,7 +23632,7 @@ function App({ onReady }) {
       bassBeat: globalDefaults.bassBeat,
       pianoBeat: globalDefaults.pianoBeat,
     }, { forceSessionUpdate: true });
-    setMiniChordNotice("전체 기본 리듬을 JUST PLAY 기본값으로 복원했습니다");
+    setMiniChordNotice("전체 기본 리듬을 FRETIVA LAB 기본값으로 복원했습니다");
   };
 
   useEffect(() => {
@@ -23946,7 +24013,7 @@ function App({ onReady }) {
               </a>
             </nav>
             <p className="utilityMenuVersion" aria-label={`앱 ${APP_VERSION_LABEL}`}>
-              JUST PLAY {APP_VERSION_LABEL}
+              FRETIVA LAB {APP_VERSION_LABEL}
             </p>
           </aside>
         </div>
@@ -23968,7 +24035,7 @@ function App({ onReady }) {
           <section className="helpGuidePanel" aria-label="사용설명서 및 도움말">
             <div className="helpGuideHeader">
               <div>
-                <span>JUST PLAY Guide</span>
+                <span>FRETIVA LAB Guide</span>
                 <strong>사용설명서 & 도움말</strong>
               </div>
               <button
@@ -25147,8 +25214,8 @@ function App({ onReady }) {
       {isAppModeMounted(APP_MODES.DESIGN_LAB) ? (
         <Activity mode={getModeActivityState(appMode, APP_MODES.DESIGN_LAB)}>
         {renderAppMode(APP_MODES.DESIGN_LAB, () => (
-        <section className="designLabPanel" aria-label="JUST PLAY UI 실험실" style={logoPreviewStyle}>
-          <ContentTitle title="Design Lab" subtitle="제작, 등록, 비교, 채택을 위한 JUST PLAY 전용 테스트 공간" />
+        <section className="designLabPanel" aria-label="FRETIVA LAB UI 실험실" style={logoPreviewStyle}>
+          <ContentTitle title="Design Lab" subtitle="제작, 등록, 비교, 채택을 위한 FRETIVA LAB 전용 테스트 공간" />
           <div className="designLabStickyPreview" aria-label="현재 적용 헤더 미리보기">
             <div>
               <span>Live Header</span>
@@ -25349,7 +25416,7 @@ function App({ onReady }) {
               <div className="guitarLab">
                 <article className="headerPreviewCard guitarLabRulesCard">
                   <div className="headerPreviewMeta">
-                    <span>JUST PLAY 기타 디자인 규칙</span>
+                    <span>FRETIVA LAB 기타 디자인 규칙</span>
                     <small>Martin, Gibson, Taylor, Yamaha 계열 정면 구조를 참고한 신규 실제 비율 라인 기준</small>
                   </div>
                   <ul>
@@ -26082,6 +26149,8 @@ function App({ onReady }) {
                           ariaLabel="AUTOMATOR 시간 간격 선택"
                           minuteOptions={AUTOMATOR_TIME_MINUTE_OPTIONS}
                           minutes={autoBpmTimeMinutes}
+                          onDetent={triggerMetronomeWheelDetent}
+                          onInteractionStart={primeMetronomeWheelTick}
                           onMinutesChange={handleAutoBpmDraftMinutesChange}
                           onSecondsChange={handleAutoBpmDraftSecondsChange}
                           secondOptions={AUTOMATOR_TIME_SECOND_OPTIONS}
@@ -26253,6 +26322,8 @@ function App({ onReady }) {
                           ariaLabel="TRACKER 타이머 선택"
                           minuteOptions={TRACKER_TIMER_MINUTE_OPTIONS}
                           minutes={metronomeTrackerTimerMinutes}
+                          onDetent={triggerMetronomeWheelDetent}
+                          onInteractionStart={primeMetronomeWheelTick}
                           onMinutesChange={handleTrackerTimerDraftMinutesChange}
                           onSecondsChange={handleTrackerTimerDraftSecondsChange}
                           secondOptions={TRACKER_TIMER_SECOND_OPTIONS}

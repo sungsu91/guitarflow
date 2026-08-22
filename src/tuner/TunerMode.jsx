@@ -85,26 +85,26 @@ const TUNER_EXACT_HOLD_MS = 420;
 const TUNER_BACKGROUND_ROTATION_MS = 20_000;
 
 const GUITAR_HEADSTOCK_HOTSPOTS = Object.freeze({
-  6: { left: 21.9, top: 48.3 },
-  5: { left: 22.0, top: 35.1 },
-  4: { left: 21.9, top: 21.5 },
-  3: { left: 77.9, top: 21.5 },
-  2: { left: 77.6, top: 35.0 },
-  1: { left: 77.9, top: 48.0 },
+  6: { left: 11.0, top: 58.6 },
+  5: { left: 11.9, top: 40.5 },
+  4: { left: 12.0, top: 21.2 },
+  3: { left: 88.0, top: 21.3 },
+  2: { left: 88.1, top: 40.3 },
+  1: { left: 89.0, top: 58.6 },
 });
 
 const BASS_HEADSTOCK_HOTSPOTS = Object.freeze({
-  4: { left: 15.8, top: 56.8 },
-  3: { left: 20.3, top: 40.8 },
-  2: { left: 25.8, top: 24.5 },
-  1: { left: 30.5, top: 8.2 },
+  4: { left: 14.8, top: 67.3 },
+  3: { left: 20.0, top: 50.0 },
+  2: { left: 25.0, top: 32.8 },
+  1: { left: 31.5, top: 15.1 },
 });
 
 const UKULELE_HEADSTOCK_HOTSPOTS = Object.freeze({
-  4: { left: 19.6, top: 20.3 },
-  3: { left: 19.5, top: 40.8 },
-  2: { left: 82.8, top: 41.8 },
-  1: { left: 82.8, top: 21.2 },
+  4: { left: 12.5, top: 27.4 },
+  3: { left: 12.5, top: 50.5 },
+  2: { left: 87.5, top: 50.5 },
+  1: { left: 87.5, top: 27.4 },
 });
 
 const INSTRUMENT_DEFINITIONS = Object.freeze({
@@ -1033,7 +1033,7 @@ function TunerTopbar({ controller, onOpenSettings, presetInteractive = true }) {
   const micConnected = micState === "listening";
   return (
     <header className="tunerTopbar">
-      <div className="tunerTitle"><span>JUST PLAY</span><strong>TUNER</strong></div>
+      <div className="tunerTitle"><span>FRETIVA LAB</span><strong>TUNER</strong></div>
       <div className={`tunerMicBadge ${micConnected ? "connected" : ""} ${reading.hasSignal ? "hearing" : ""}`}>
         <i aria-hidden="true" />
         <span>{selectedString == null ? "AUTO" : "MANUAL"}</span>

@@ -15,15 +15,15 @@
   justify-items: center;
   gap: 10px;
   padding: 24px;
-  background: #030609;
-  color: rgba(245, 232, 201, 0.72);
+  background: #030303;
+  color: rgba(230, 230, 228, 0.72);
   text-align: center;
 }
 
 .appLoadFallback strong {
-  color: #d9aa55;
+  color: #e4e4e2;
   font-size: 24px;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.2em;
 }
 
 .appLoadFallback p {
@@ -35,16 +35,16 @@
   min-height: 38px;
   margin-top: 6px;
   padding: 0 18px;
-  border: 1px solid rgba(217, 170, 85, 0.46);
+  border: 1px solid rgba(214, 214, 211, 0.42);
   border-radius: 999px;
-  background: rgba(217, 170, 85, 0.08);
-  color: #f1ca7a;
+  background: rgba(255, 255, 255, 0.06);
+  color: #eeeeeb;
   font: inherit;
   cursor: pointer;
 }
 
 html.app-is-launching {
-  scrollbar-color: transparent #020817;
+  scrollbar-color: transparent #020202;
 }
 
 html.app-is-theme-loading,
@@ -54,307 +54,342 @@ html.app-is-theme-loading body {
 
 html.app-is-launching::-webkit-scrollbar {
   width: 12px;
-  background: #020817;
+  background: #020202;
 }
 
 html.app-is-launching::-webkit-scrollbar-thumb,
 html.app-is-launching::-webkit-scrollbar-track {
-  background: #020817;
+  background: #020202;
 }
 
 .launchSplash {
   --launch-exit-ms: 320ms;
+  --launch-stage-shift-x: clamp(-8px, -0.45vw, -4px);
   position: fixed;
   inset: 0;
   z-index: 2147483000;
   box-sizing: border-box;
   display: grid;
-  width: 100%;
+  width: 100vw;
   min-height: 100vh;
   min-height: 100dvh;
   overflow: hidden;
-  padding:
-    max(20px, env(safe-area-inset-top))
-    max(20px, env(safe-area-inset-right))
-    max(20px, env(safe-area-inset-bottom))
-    max(20px, env(safe-area-inset-left));
+  padding: 0;
   place-items: center;
   contain: layout paint style;
   isolation: isolate;
   overscroll-behavior: none;
   touch-action: none;
-  background: #020817;
-  color: #f3cb79;
+  background: #020202;
+  color: #dededb;
 }
 
-.launchSplash::before {
+.launchSplash::after {
   position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 48%, rgba(21, 54, 96, 0.2), transparent 54%);
+  inset: -5%;
   content: "";
   pointer-events: none;
 }
 
+.launchSplash::after {
+  z-index: -1;
+  background:
+    radial-gradient(circle at 50% 52%, transparent 0 24%, rgba(0, 0, 0, 0.38) 70%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 35% 65%, rgba(0, 0, 0, 0.58));
+}
+
 .launchSplash__content {
+  position: relative;
+  z-index: 1;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
-  width: min(88vw, 72vh, 560px);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  align-content: center;
 }
 
 .launchSplash__stage {
   position: relative;
-  width: 100%;
-  max-width: 1254px;
-  aspect-ratio: 1;
+  left: 50%;
+  justify-self: start;
+  width: min(100vw, calc(100dvh * 0.4173913043), 768px);
+  max-width: none;
+  aspect-ratio: 768 / 1840;
   isolation: isolate;
+  transform: translate3d(calc(-50% + var(--launch-stage-shift-x)), 0, 0);
 }
 
-.launchSplash__stage::before {
+.launchSplash--controlled .launchSplash__stage {
+  width: min(100vw, calc(80dvh * 0.4173913043), 768px);
+}
+
+.launchSplash__frameStack {
   position: absolute;
-  z-index: -1;
-  inset: 16%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(243, 191, 79, 0.22), rgba(27, 74, 126, 0.1) 46%, transparent 72%);
-  content: "";
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(0.9);
-  transition:
-    opacity 180ms ease-out,
-    transform 180ms ease-out;
+  inset: 0;
+  overflow: hidden;
+  background: #050505;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.52);
 }
 
-.launchSplash__logo {
+.launchSplash__frame {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
-  height: auto;
-  overflow: visible;
-  transform: translate3d(0, 1.4%, 0);
-  transform-origin: center;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  opacity: 0;
+  user-select: none;
+  will-change: opacity;
 }
 
-.launchSplash__piece,
-.launchSplash__pieceFinal {
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__frame--shadow {
+  animation: launchIntroShadowIn 240ms ease-out both;
+}
+
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__frame--light {
+  animation: launchIntroFrameIn 520ms cubic-bezier(0.18, 0.76, 0.24, 1) 190ms both;
+}
+
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__frame--flash {
+  animation: launchIntroFlashFrameIn 380ms ease-out 600ms both;
+}
+
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__frame--logo {
+  animation: launchIntroLogoIn 520ms cubic-bezier(0.16, 0.76, 0.2, 1) 930ms both;
+}
+
+.launchSplash--controlled .launchSplash__frame {
+  transition: opacity 300ms ease-out;
+}
+
+.launchSplash--controlled .launchSplash__frame--shadow {
+  animation: launchIntroShadowIn 220ms ease-out both;
+}
+
+.launchSplash--controlled .launchSplash__frame--visible {
+  opacity: 1;
+}
+
+.launchSplash--controlled .launchSplash__frame--hint {
+  opacity: 0.18;
+}
+
+.launchSplash--exiting .launchSplash__frame--logo {
+  opacity: 1;
+}
+
+.launchSplash__lightSweep,
+.launchSplash__centerFlash,
+.launchSplash__completionLight {
+  position: absolute;
+  z-index: 5;
+  display: block;
   opacity: 0;
-  transform-box: fill-box;
+  pointer-events: none;
+}
+
+.launchSplash__lightSweep {
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 16%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 252, 0.2), transparent);
+  transform: translate3d(-150%, 0, 0) skewX(-7deg);
+}
+
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__lightSweep,
+.launchSplash--controlled.launchSplash--step-light .launchSplash__lightSweep {
+  animation: launchIntroLightSweep 760ms cubic-bezier(0.22, 0.72, 0.28, 1) 170ms both;
+}
+
+.launchSplash--controlled.launchSplash--step-light .launchSplash__lightSweep {
+  animation-delay: 0ms;
+}
+
+.launchSplash__centerFlash {
+  inset: 18% 10%;
+  background: radial-gradient(circle at 50% 53%, rgba(255, 255, 255, 0.88), rgba(239, 239, 234, 0.2) 12%, transparent 42%);
+  transform: scale(0.72);
+}
+
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__centerFlash,
+.launchSplash--controlled.launchSplash--step-flash .launchSplash__centerFlash {
+  animation: launchIntroCenterFlash 440ms ease-out 590ms both;
+}
+
+.launchSplash--controlled.launchSplash--step-flash .launchSplash__centerFlash {
+  animation-delay: 0ms;
+}
+
+.launchSplash__completionLight {
+  inset: 20% 4%;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.13) 49%, transparent 63%);
+  transform: translate3d(-36%, 0, 0);
+}
+
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__completionLight,
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__completionLight {
+  animation: launchIntroCompletionLight 2600ms ease-in-out 1280ms infinite;
+}
+
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__completionLight {
+  animation-delay: 0ms;
+}
+
+.launchSplash__brand {
+  position: absolute;
+  top: 43%;
+  left: 50%;
+  z-index: 6;
+  display: grid;
+  justify-items: center;
+  width: min(88%, 680px);
+  color: #e8e8e6;
+  opacity: 0;
+  pointer-events: none;
+  text-align: center;
+  transform: translate3d(-50%, 16px, 0) scale(0.97);
   transform-origin: center;
   will-change: opacity, transform;
 }
 
-.launchSplash__piece--just {
-  transform: translate3d(-105%, -4%, 0) rotate(-6deg) scale(0.96);
+.launchSplash__brand::before {
+  position: absolute;
+  inset: -54% -12% -72%;
+  z-index: -1;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.58), transparent 68%);
+  content: "";
 }
 
-.launchSplash__piece--play {
-  transform: translate3d(105%, 5%, 0) rotate(6deg) scale(0.96);
+.launchSplash__brand strong {
+  display: block;
+  margin-left: 0.17em;
+  background: linear-gradient(180deg, #ffffff 0%, #d7d7d4 34%, #8f9092 62%, #f4f4f1 100%);
+  background-clip: text;
+  color: transparent;
+  font-family: "Arial Narrow", "Segoe UI", sans-serif;
+  font-size: clamp(48px, 14.2vw, 96px);
+  font-stretch: condensed;
+  font-weight: 300;
+  letter-spacing: 0.17em;
+  line-height: 0.92;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.34), 0 5px 18px rgba(0, 0, 0, 0.72);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.launchSplash__piece--guitar {
-  transform: translate3d(82%, -9%, 0) rotate(7deg) scale(0.96);
+.launchSplash__brandSubline {
+  display: grid;
+  grid-template-columns: minmax(46px, 1fr) auto minmax(46px, 1fr);
+  align-items: center;
+  width: min(72%, 430px);
+  gap: clamp(14px, 4vw, 28px);
+  margin-top: clamp(14px, 2.4vh, 24px);
+  color: rgba(242, 242, 239, 0.94);
+  font-family: "Segoe UI", sans-serif;
+  font-size: clamp(13px, 3.9vw, 22px);
+  font-weight: 400;
+  letter-spacing: 0.56em;
+  line-height: 1;
+  text-indent: 0.56em;
 }
 
-.launchSplash__pieceFinal {
-  transform: scale(0.965);
+.launchSplash__brandSubline i {
+  display: block;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(239, 239, 236, 0.88));
 }
 
-.launchSplash--controlled .launchSplash__piece {
-  transition:
-    opacity 100ms ease-out,
-    transform 360ms cubic-bezier(0.16, 0.88, 0.22, 1.08);
+.launchSplash__brandSubline i:last-child {
+  background: linear-gradient(90deg, rgba(239, 239, 236, 0.88), transparent);
 }
 
-.launchSplash--controlled .launchSplash__pieceFinal {
-  transition:
-    opacity 220ms ease-out,
-    transform 260ms cubic-bezier(0.2, 0.78, 0.24, 1);
+.launchSplash__brandMark {
+  width: clamp(8px, 2.4vw, 14px);
+  aspect-ratio: 1;
+  margin-top: clamp(17px, 2.8vh, 28px);
+  border: 1px solid rgba(255, 255, 252, 0.72);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(145, 146, 148, 0.82));
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.24);
+  transform: rotate(45deg);
 }
 
-.launchSplash--controlled :is(
-  .launchSplash__piece,
-  .launchSplash__pieceFinal
-).launchSplash__piece--visible {
+.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__brand {
+  animation: launchIntroBrandIn 560ms cubic-bezier(0.16, 0.76, 0.2, 1) 930ms both;
+}
+
+.launchSplash--controlled .launchSplash__brand {
+  transition: opacity 160ms ease-out, transform 220ms cubic-bezier(0.18, 0.76, 0.24, 1);
+}
+
+.launchSplash--controlled.launchSplash--step-logo-hint .launchSplash__brand {
+  opacity: 0.82;
+  transform: translate3d(-50%, 2px, 0) scale(0.997);
+}
+
+.launchSplash--controlled.launchSplash--step-complete .launchSplash__brand,
+.launchSplash--exiting .launchSplash__brand {
   opacity: 1;
-  transform: none;
-}
-
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__piece--just {
-  animation: launchPieceJustIn 260ms cubic-bezier(0.16, 0.84, 0.22, 1) 40ms both;
-}
-
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__piece--play {
-  animation: launchPiecePlayIn 270ms cubic-bezier(0.16, 0.84, 0.22, 1) 200ms both;
-}
-
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__piece--guitar {
-  animation: launchPieceGuitarIn 300ms cubic-bezier(0.16, 0.84, 0.22, 1) 380ms both;
-}
-
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__pieceFinal {
-  animation: launchPieceFinalIn 220ms cubic-bezier(0.2, 0.78, 0.24, 1) 600ms both;
-}
-
-.launchSplash--exiting .launchSplash__pieceFinal {
-  opacity: 1;
-  transform: none;
-}
-
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stage::before {
-  animation: launchLogoAura 3000ms ease-in-out 800ms infinite;
-}
-
-.launchSplash--ready .launchSplash__stage::before,
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stage::before {
-  opacity: 0.2;
-  transform: scale(1);
-}
-
-.launchSplash__sheen {
-  opacity: 0;
-  pointer-events: none;
-  transform-box: fill-box;
-}
-
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__sheen,
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__sheen {
-  animation: launchGoldSheen 2600ms ease-in-out 800ms infinite;
-}
-
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__sheen {
-  animation-delay: 0ms;
-}
-
-.launchSplash__stringMotion {
-  fill: none;
-  opacity: 0;
-  pointer-events: none;
-  stroke: rgba(255, 236, 181, 0.5);
-  stroke-linecap: round;
-  stroke-width: 1.15;
-  vector-effect: non-scaling-stroke;
-}
-
-.launchSplash__stringMotion path {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stringMotion,
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion {
-  animation: launchStringsVisible 1ms linear 820ms forwards;
-}
-
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion {
-  animation-delay: 0ms;
-}
-
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stringMotion path,
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path {
-  animation: launchStringWait 1680ms ease-in-out 820ms infinite;
-}
-
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path {
-  animation-delay: 0ms;
-}
-
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stringMotion path:nth-child(2),
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(2) {
-  animation-delay: 850ms;
-}
-
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stringMotion path:nth-child(3),
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(3) {
-  animation-delay: 880ms;
-}
-
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stringMotion path:nth-child(4),
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(4) {
-  animation-delay: 910ms;
-}
-
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stringMotion path:nth-child(5),
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(5) {
-  animation-delay: 940ms;
-}
-
-.launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__stringMotion path:nth-child(6),
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(6) {
-  animation-delay: 970ms;
-}
-
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(2) {
-  animation-delay: 30ms;
-}
-
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(3) {
-  animation-delay: 60ms;
-}
-
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(4) {
-  animation-delay: 90ms;
-}
-
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(5) {
-  animation-delay: 120ms;
-}
-
-.launchSplash--controlled.launchSplash--step-complete .launchSplash__stringMotion path:nth-child(6) {
-  animation-delay: 150ms;
+  transform: translate3d(-50%, 0, 0) scale(1);
 }
 
 .launchSplash__progress {
   display: grid;
   justify-items: center;
-  width: min(82%, 460px);
+  width: min(74vw, 460px);
   gap: 9px;
-  margin-top: clamp(-18px, -2.4vw, -8px);
-  color: #f7c14d;
+  margin-top: clamp(12px, 2.2vh, 20px);
+  color: rgba(223, 223, 220, 0.76);
   font-size: clamp(10px, 2.8vw, 13px);
-  letter-spacing: 0.055em;
+  letter-spacing: 0.12em;
 }
 
 .launchSplash__progressTrack {
   position: relative;
   display: block;
   width: 100%;
-  height: 2px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(255, 233, 181, 0.18);
+  height: 1px;
+  overflow: visible;
+  background: rgba(255, 255, 255, 0.17);
 }
 
 .launchSplash__progressValue {
   position: absolute;
-  inset: 0;
+  inset: -0.5px 0;
   display: block;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #c48222, #ffd267 72%, #fff0b0);
+  background: linear-gradient(90deg, #777775, #e8e8e4 76%, #ffffff);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.26);
   transform: scaleX(var(--launch-progress-scale, 0));
   transform-origin: left center;
-  transition: transform 200ms cubic-bezier(0.2, 0.78, 0.24, 1);
+  transition: transform 220ms cubic-bezier(0.2, 0.78, 0.24, 1);
 }
 
 .launchSplash__progressValue::after {
   position: absolute;
   top: 50%;
   right: 0;
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: #fff2b2;
+  background: #ffffff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.72);
   content: "";
-  opacity: 0.8;
   transform: translate(50%, -50%);
 }
 
 .launchSplash__progress strong {
   font: inherit;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .launchSplash--ready .launchSplash__progress strong,
 .launchSplash--exiting .launchSplash__progress strong {
-  color: #ffe27f;
-  letter-spacing: 0.12em;
+  color: #f2f2ef;
+  letter-spacing: 0.18em;
 }
 
 .launchSplash__statusText {
@@ -371,183 +406,149 @@ html.app-is-launching::-webkit-scrollbar-track {
   animation: launchBackdropOut var(--launch-exit-ms) ease-in forwards;
 }
 
-.launchSplash--exiting .launchSplash__logo {
-  animation: launchLogoOut var(--launch-exit-ms) ease-in forwards;
+.launchSplash--exiting .launchSplash__content {
+  animation: launchSceneOut var(--launch-exit-ms) ease-in forwards;
 }
 
-.launchSplash--exiting .launchSplash__stage::before {
-  opacity: 0;
-  transform: scale(1.05);
-}
-
-@keyframes launchPieceJustIn {
-  0% {
+@keyframes launchIntroShadowIn {
+  from {
     opacity: 0;
-    transform: translate3d(-105%, -4%, 0) rotate(-6deg) scale(0.96);
   }
 
-  22% {
-    opacity: 1;
-  }
-
-  72% {
-    opacity: 1;
-    transform: translate3d(2.8%, 0.6%, 0) rotate(1.2deg) scale(1.012);
-  }
-
-  86% {
-    transform: translate3d(-0.8%, -0.2%, 0) rotate(-0.35deg) scale(0.997);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) rotate(0) scale(1);
-  }
-}
-
-@keyframes launchPiecePlayIn {
-  0% {
-    opacity: 0;
-    transform: translate3d(105%, 5%, 0) rotate(6deg) scale(0.96);
-  }
-
-  22% {
-    opacity: 1;
-  }
-
-  72% {
-    opacity: 1;
-    transform: translate3d(-2.8%, -0.5%, 0) rotate(-1.2deg) scale(1.012);
-  }
-
-  86% {
-    transform: translate3d(0.8%, 0.2%, 0) rotate(0.35deg) scale(0.997);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) rotate(0) scale(1);
-  }
-}
-
-@keyframes launchPieceGuitarIn {
-  0% {
-    opacity: 0;
-    transform: translate3d(82%, -9%, 0) rotate(7deg) scale(0.96);
-  }
-
-  18% {
-    opacity: 1;
-  }
-
-  72% {
-    opacity: 1;
-    transform: translate3d(-2%, 1%, 0) rotate(-1.15deg) scale(1.01);
-  }
-
-  87% {
-    transform: translate3d(0.65%, -0.3%, 0) rotate(0.3deg) scale(0.998);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) rotate(0) scale(1);
-  }
-}
-
-@keyframes launchPieceFinalIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.965);
-  }
-
-  72% {
-    opacity: 1;
-    transform: scale(1.006);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes launchLogoAura {
-  0% {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-
-  14%,
-  100% {
-    opacity: 0.16;
-    transform: scale(1);
-  }
-
-  56% {
-    opacity: 0.24;
-    transform: scale(1.015);
-  }
-}
-
-@keyframes launchGoldSheen {
-  0%,
-  8% {
-    opacity: 0;
-    transform: translateX(0);
-  }
-
-  28% {
-    opacity: 0.28;
-  }
-
-  72% {
-    opacity: 0.18;
-  }
-
-  90%,
-  100% {
-    opacity: 0;
-    transform: translateX(1900px);
-  }
-}
-
-@keyframes launchStringsVisible {
   to {
+    opacity: 1;
+  }
+}
+
+@keyframes launchIntroFrameIn {
+  0% {
+    opacity: 0;
+  }
+
+  35% {
     opacity: 0.34;
   }
+
+  100% {
+    opacity: 1;
+  }
 }
 
-@keyframes launchStringWait {
+@keyframes launchIntroFlashFrameIn {
+  0% {
+    opacity: 0;
+  }
+
+  45% {
+    opacity: 0.74;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes launchIntroLogoIn {
+  0% {
+    opacity: 0;
+  }
+
+  48% {
+    opacity: 0.42;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes launchIntroBrandIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(-50%, 16px, 0) scale(0.97);
+  }
+
+  52% {
+    opacity: 0.46;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0) scale(1);
+  }
+}
+
+@keyframes launchIntroLightSweep {
+  0% {
+    opacity: 0;
+    transform: translate3d(-150%, 0, 0) skewX(-7deg);
+  }
+
+  24% {
+    opacity: 0.4;
+  }
+
+  72% {
+    opacity: 0.22;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(360%, 0, 0) skewX(-7deg);
+  }
+}
+
+@keyframes launchIntroCenterFlash {
   0%,
   100% {
-    transform: translateX(0);
+    opacity: 0;
+    transform: scale(0.72);
   }
 
   44% {
-    transform: translateX(0.8px);
+    opacity: 0.72;
+    transform: scale(1);
   }
 
-  58% {
-    transform: translateX(-0.55px);
+  68% {
+    opacity: 0.28;
+    transform: scale(1.08);
   }
 }
 
-@keyframes launchLogoOut {
-  0% {
+@keyframes launchIntroCompletionLight {
+  0%,
+  18% {
+    opacity: 0;
+    transform: translate3d(-36%, 0, 0);
+  }
+
+  48% {
+    opacity: 0.22;
+  }
+
+  76%,
+  100% {
+    opacity: 0;
+    transform: translate3d(36%, 0, 0);
+  }
+}
+
+@keyframes launchSceneOut {
+  from {
     opacity: 1;
     transform: scale(1);
   }
 
-  100% {
+  to {
     opacity: 0;
-    transform: scale(0.985);
+    transform: scale(0.99);
   }
 }
 
 @keyframes launchBackdropOut {
   0%,
-  32% {
+  28% {
     opacity: 1;
   }
 
@@ -556,46 +557,72 @@ html.app-is-launching::-webkit-scrollbar-track {
   }
 }
 
+@media (orientation: portrait) {
+  .launchSplash {
+    --launch-stage-shift-x: 0px;
+  }
+
+  .launchSplash__stage,
+  .launchSplash--controlled .launchSplash__stage {
+    width: 100vw;
+    height: 100dvh;
+    aspect-ratio: auto;
+  }
+
+  .launchSplash__frame {
+    object-fit: cover;
+  }
+
+  .launchSplash__frameStack {
+    box-shadow: none;
+  }
+
+  .launchSplash__progress {
+    position: fixed;
+    bottom: max(28px, calc(env(safe-area-inset-bottom) + 18px));
+    left: 50%;
+    z-index: 10;
+    margin-top: 0;
+    transform: translateX(-50%);
+  }
+}
+
 @media (max-height: 520px) and (orientation: landscape) {
-  .launchSplash__content {
-    width: min(76vh, 64vw, 480px);
+  .launchSplash--controlled .launchSplash__stage {
+    width: min(100vw, calc(72dvh * 0.4173913043), 768px);
+  }
+
+  .launchSplash__progress {
+    margin-top: 8px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .launchSplash :is(
-    .launchSplash__piece,
-    .launchSplash__pieceFinal
-  ) {
+  .launchSplash--autonomous .launchSplash__frame,
+  .launchSplash--controlled .launchSplash__frame,
+  .launchSplash--autonomous .launchSplash__brand {
     animation-delay: 0ms !important;
     animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+
+  .launchSplash--controlled .launchSplash__brand {
+    transition-duration: 1ms !important;
   }
 
   .launchSplash__progressValue {
     transition-duration: 1ms;
   }
 
-  .launchSplash--controlled :is(
-    .launchSplash__piece,
-    .launchSplash__pieceFinal
-  ) {
-    transition-duration: 1ms;
-  }
-
-  .launchSplash__stage::before {
-    animation: none !important;
-    transition-duration: 1ms;
-  }
-
-  .launchSplash__sheen,
-  .launchSplash__stringMotion,
-  .launchSplash__stringMotion path {
+  .launchSplash__lightSweep,
+  .launchSplash__centerFlash,
+  .launchSplash__completionLight {
     animation: none !important;
     opacity: 0;
   }
 
   .launchSplash--exiting,
-  .launchSplash--exiting .launchSplash__logo {
+  .launchSplash--exiting .launchSplash__content {
     animation-duration: 160ms;
   }
 }

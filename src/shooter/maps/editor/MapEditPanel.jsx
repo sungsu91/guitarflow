@@ -1151,7 +1151,7 @@ function DesktopMapEditPanel({ editor, effectEditor, mapOptions, monsterEditor, 
     <aside className="mapEditPanel mapEditPanel--desktop" onClick={(event) => event.stopPropagation()}>
       <header className="mapEditPanelHeader">
         <span className="mapEditPanelBrand" aria-hidden="true">JP</span>
-        <span className="mapEditPanelHeading"><span>JUST PLAY · MAP STUDIO</span><strong>{editor.skin.label}</strong><small>{viewport.width} × {viewport.height} LIVE PREVIEW</small></span>
+        <span className="mapEditPanelHeading"><span>FRETIVA LAB · MAP STUDIO</span><strong>{editor.skin.label}</strong><small>{viewport.width} × {viewport.height} LIVE PREVIEW</small></span>
         <i className="mapEditDevBadge">TUNE</i>
       </header>
       <MapEditMapSwitcher editor={editor} mapOptions={mapOptions} onMapChange={onMapChange} />
