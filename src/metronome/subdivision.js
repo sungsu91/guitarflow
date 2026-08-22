@@ -13,8 +13,9 @@ export const METRONOME_SUBDIVISION_OPTIONS = Object.freeze([
   }),
   Object.freeze({
     id: "eighth-triplet",
-    label: "8분 셋잇단음표",
+    label: null,
     longLabel: "8분 셋잇단음표 — 1박당 3회",
+    notation: "eighth-triplet",
     clicksPerBeat: 3,
   }),
   Object.freeze({
@@ -25,8 +26,9 @@ export const METRONOME_SUBDIVISION_OPTIONS = Object.freeze([
   }),
   Object.freeze({
     id: "sixteenth-triplet",
-    label: "16분 셋잇단음표",
+    label: null,
     longLabel: "16분 셋잇단음표 — 1박당 6회",
+    notation: "sixteenth-triplet",
     clicksPerBeat: 6,
   }),
 ]);

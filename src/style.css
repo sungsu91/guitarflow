@@ -8411,6 +8411,45 @@ button.primary:hover:not(:disabled) {
     0 0 13px rgba(217, 170, 85, 0.13);
 }
 
+.metronomeSubdivisionNotation {
+  display: block;
+  width: 34px;
+  height: 19px;
+  flex: 0 0 auto;
+  color: inherit;
+  overflow: visible;
+}
+
+.metronomeSubdivisionNotationNotes {
+  fill: currentColor;
+}
+
+.metronomeSubdivisionNotationNotes > path:not(.metronomeSubdivisionNotationBeam) {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.metronomeSubdivisionNotationBeam {
+  fill: currentColor;
+  stroke: none;
+}
+
+.metronomeSubdivisionNotationNumber {
+  fill: currentColor;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 9px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.metronomeSelectButtonNotation {
+  display: flex;
+  align-items: center;
+  min-height: 19px;
+}
+
 .metronomeToggleRow {
   display: flex;
   flex-wrap: wrap;
@@ -36461,6 +36500,36 @@ html body .shooterArena .effect-floor-jp-tropical-stand {
   line-height: 1.25;
 }
 
+.helpAccordionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.helpAccordionBadge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 7px;
+  border: 1px solid rgba(241, 202, 122, 0.35);
+  border-radius: 999px;
+  background: rgba(217, 170, 85, 0.1);
+  color: var(--premium-gold-bright, #f1ca7a);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.helpAccordionBadge--hot {
+  border-color: rgba(255, 126, 116, 0.4);
+  background: rgba(255, 94, 84, 0.1);
+  color: #ffaaa2;
+}
+
 .helpAccordionContent {
   max-height: none;
   padding: 0 14px 14px 41px;
@@ -36486,6 +36555,11 @@ html body .shooterArena .effect-floor-jp-tropical-stand {
   font-weight: 950;
 }
 
+.helpAccordionContent b {
+  color: #fff3d5;
+  font-weight: 950;
+}
+
 .helpAccordionContent ul {
   margin: 0 0 10px;
   padding-left: 16px;
@@ -36493,6 +36567,122 @@ html body .shooterArena .effect-floor-jp-tropical-stand {
 
 .helpAccordionContent li {
   margin: 3px 0;
+}
+
+.helpClosingMessage,
+.helpSlogan {
+  color: #fff3d5;
+  font-size: 13px;
+}
+
+.helpFlow,
+.helpChordProgression {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 12px;
+}
+
+.helpFlow span,
+.helpChordProgression span,
+.helpSectionTags span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 8px;
+  border: 1px solid rgba(217, 170, 85, 0.22);
+  border-radius: 9px;
+  background: rgba(217, 170, 85, 0.07);
+  color: #f8e4bb;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.helpFlow i,
+.helpChordProgression i {
+  color: rgba(241, 202, 122, 0.72);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.helpChordProgression {
+  flex-wrap: nowrap;
+  justify-content: center;
+  padding: 5px 0;
+}
+
+.helpChordProgression span {
+  justify-content: center;
+  min-width: 36px;
+  color: #fff3d5;
+  font-size: 12px;
+}
+
+.helpSectionTags {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 2px 0 12px;
+}
+
+.helpSectionTags span {
+  justify-content: center;
+  letter-spacing: 0.05em;
+}
+
+.helpFeatureMap {
+  display: grid;
+  gap: 5px;
+  padding: 0 !important;
+  list-style: none;
+}
+
+.helpFeatureMap li {
+  display: grid;
+  grid-template-columns: minmax(96px, 0.8fr) minmax(0, 1.2fr);
+  gap: 8px;
+  align-items: baseline;
+  margin: 0;
+  padding: 7px 9px;
+  border: 1px solid rgba(217, 170, 85, 0.14);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.helpFeatureMap li b {
+  color: #f8e4bb;
+  font-size: 10px;
+}
+
+.helpFeatureMap li span {
+  color: rgba(246, 238, 225, 0.78);
+  font-size: 10px;
+}
+
+.helpSignature {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  margin-top: 16px;
+  padding: 13px;
+  border-top: 1px solid rgba(217, 170, 85, 0.18);
+  color: #f8e4bb;
+  text-align: center;
+}
+
+.helpSignature b {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.helpSignature span {
+  color: rgba(241, 202, 122, 0.72);
+  font-size: 10px;
+  font-style: italic;
+  letter-spacing: 0.05em;
 }
 
 .helpInstagramLink {

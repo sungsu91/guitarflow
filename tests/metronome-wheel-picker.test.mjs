@@ -12,12 +12,45 @@ import {
   stepWheelInertia,
 } from "../src/metronome/wheelPickerPhysics.js";
 
-test("timer wheel follows short drags immediately with a near 1:1 sensitive ratio", () => {
+test("mouse timer wheel follows short drags immediately with a near 1:1 sensitive ratio", () => {
   const upwardOneRow = getWheelDragPosition(10, 200, 200 - WHEEL_PICKER_ITEM_HEIGHT, 30);
   assert.ok(upwardOneRow > 11, `expected more than one item, received ${upwardOneRow}`);
   assert.ok(upwardOneRow < 11.2, `expected a near 1:1 ratio, received ${upwardOneRow}`);
   assert.equal(getWheelDragPosition(0, 100, 180, 30), 0);
   assert.equal(getWheelDragPosition(29, 100, 0, 30), 29);
+});
+
+test("touch timer wheel uses a lighter drag ratio and longer glide than mouse", () => {
+  const mouseDragPosition = getWheelDragPosition(10, 200, 188, 60, "mouse");
+  const touchDragPosition = getWheelDragPosition(10, 200, 188, 60, "touch");
+  assert.ok(touchDragPosition > mouseDragPosition, "the same small touch drag should move farther");
+
+  const releaseSamples = [
+    { y: 200, time: 0 },
+    { y: 190, time: 20 },
+    { y: 180, time: 40 },
+  ];
+  const mouseVelocity = getWheelReleaseVelocity(releaseSamples, 40, "mouse");
+  const touchVelocity = getWheelReleaseVelocity(releaseSamples, 40, "touch");
+  assert.ok(touchVelocity > mouseVelocity, "the same touch flick should start with more velocity");
+
+  const glideDistance = (pointerType) => {
+    let position = 10;
+    let velocity = 0.02;
+    let elapsed = 0;
+    while (shouldContinueWheelInertia(velocity, elapsed, pointerType)) {
+      const next = stepWheelInertia(position, velocity, 16, 60, pointerType);
+      position = next.position;
+      velocity = next.velocity;
+      elapsed += 16;
+    }
+    return position - 10;
+  };
+
+  assert.ok(
+    glideDistance("touch") > glideDistance("mouse") + 0.5,
+    "touch inertia should coast farther before its one final snap",
+  );
 });
 
 test("timer wheel release velocity follows flick direction and ignores a held release", () => {
@@ -108,6 +141,9 @@ test("moving the wheel updates only its track and commits once after exact settl
 
   assert.doesNotMatch(liveDetentBlock, /onChange|classList|setAttribute/);
   assert.doesNotMatch(wheelComponentBlock, /onScroll|scrollTo|scrollIntoView/);
+  assert.match(source, /getCoalescedEvents/);
+  assert.match(wheelComponentBlock, /getWheelDragPosition\([\s\S]*?drag\.pointerType/);
+  assert.match(wheelComponentBlock, /startWheelInertia\(currentPosition, releaseVelocity, releaseDirection, drag\.pointerType\)/);
   assert.doesNotMatch(fixedWheelCssBlock, /scroll-snap/);
   assert.match(wheelComponentBlock, /animateToIndex\(position, getWheelSnapIndex\(position, motionDirection, options\.length\)\)/);
   assert.match(source, /const settleWheelAtIndex[\s\S]*renderWheelPosition\(safeIndex, true\);[\s\S]*finishInteraction\(\);[\s\S]*setSettledIndex\(safeIndex\);[\s\S]*onChange\(Number\(nextValue\)\)/);

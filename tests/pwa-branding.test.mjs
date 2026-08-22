@@ -6,7 +6,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const iconVersion = "3ee3714f";
+const iconVersion = "b06184cb";
 
 function readProjectFile(relativePath) {
   return readFileSync(path.join(projectRoot, relativePath));
@@ -96,7 +96,7 @@ test("the supplied FRETIVA LAB icon remains the exact deployment master", () => 
   const master = readProjectFile("public/assets/branding/fretiva-lab-app-icon-master.png");
   assert.equal(
     createHash("sha256").update(master).digest("hex"),
-    "d11bae15769f3baabe4e0ecf0b2a0c48db6715b498ae2b4380a1b3103408bfae",
+    "e65aa4a498f43dcf3ddeaaeaf10696818c7bc430e141890dd72d80a756b90173",
   );
 });
 

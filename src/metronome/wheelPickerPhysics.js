@@ -4,9 +4,33 @@ export const WHEEL_PICKER_MAX_VELOCITY_ITEMS_PER_MS = 0.055;
 export const WHEEL_PICKER_MIN_INERTIA_VELOCITY = 0.0015;
 export const WHEEL_PICKER_INERTIA_TIME_CONSTANT_MS = 210;
 export const WHEEL_PICKER_MAX_INERTIA_MS = 900;
+export const WHEEL_PICKER_TOUCH_DRAG_RATIO = 1.32;
+export const WHEEL_PICKER_TOUCH_MAX_VELOCITY_ITEMS_PER_MS = 0.065;
+export const WHEEL_PICKER_TOUCH_MIN_INERTIA_VELOCITY = 0.0011;
+export const WHEEL_PICKER_TOUCH_INERTIA_TIME_CONSTANT_MS = 260;
+export const WHEEL_PICKER_TOUCH_MAX_INERTIA_MS = 1050;
 
 const WHEEL_PICKER_RELEASE_SAMPLE_MS = 80;
 const WHEEL_PICKER_RELEASE_IDLE_MS = 70;
+const WHEEL_PICKER_MOUSE_PROFILE = Object.freeze({
+  dragRatio: WHEEL_PICKER_DRAG_RATIO,
+  inertiaTimeConstantMs: WHEEL_PICKER_INERTIA_TIME_CONSTANT_MS,
+  maxInertiaMs: WHEEL_PICKER_MAX_INERTIA_MS,
+  maxVelocityItemsPerMs: WHEEL_PICKER_MAX_VELOCITY_ITEMS_PER_MS,
+  minInertiaVelocity: WHEEL_PICKER_MIN_INERTIA_VELOCITY,
+});
+const WHEEL_PICKER_TOUCH_PROFILE = Object.freeze({
+  dragRatio: WHEEL_PICKER_TOUCH_DRAG_RATIO,
+  inertiaTimeConstantMs: WHEEL_PICKER_TOUCH_INERTIA_TIME_CONSTANT_MS,
+  maxInertiaMs: WHEEL_PICKER_TOUCH_MAX_INERTIA_MS,
+  maxVelocityItemsPerMs: WHEEL_PICKER_TOUCH_MAX_VELOCITY_ITEMS_PER_MS,
+  minInertiaVelocity: WHEEL_PICKER_TOUCH_MIN_INERTIA_VELOCITY,
+});
+
+export function getWheelInputProfile(pointerType = "mouse") {
+  const usesTouchMotion = pointerType === "touch" || pointerType === "pen";
+  return usesTouchMotion ? WHEEL_PICKER_TOUCH_PROFILE : WHEEL_PICKER_MOUSE_PROFILE;
+}
 
 export function clampWheelIndex(index, optionCount) {
   const lastIndex = Math.max(0, Number(optionCount) - 1);
@@ -28,15 +52,16 @@ export function getWheelSnapIndex(position, direction, optionCount) {
   return clampWheelIndex(safePosition, optionCount);
 }
 
-export function getWheelDragPosition(startPosition, startY, currentY, optionCount) {
+export function getWheelDragPosition(startPosition, startY, currentY, optionCount, pointerType = "mouse") {
   const deltaY = Number(currentY) - Number(startY);
+  const { dragRatio } = getWheelInputProfile(pointerType);
   return clampWheelPosition(
-    Number(startPosition) - ((deltaY * WHEEL_PICKER_DRAG_RATIO) / WHEEL_PICKER_ITEM_HEIGHT),
+    Number(startPosition) - ((deltaY * dragRatio) / WHEEL_PICKER_ITEM_HEIGHT),
     optionCount,
   );
 }
 
-export function getWheelReleaseVelocity(samples, releasedAt) {
+export function getWheelReleaseVelocity(samples, releasedAt, pointerType = "mouse") {
   const safeSamples = (Array.isArray(samples) ? samples : [])
     .filter((sample) => Number.isFinite(sample?.y) && Number.isFinite(sample?.time));
   const lastSample = safeSamples[safeSamples.length - 1];
@@ -49,16 +74,18 @@ export function getWheelReleaseVelocity(samples, releasedAt) {
   if (elapsedMs < 8) return 0;
 
   const pointerVelocity = (lastSample.y - firstSample.y) / elapsedMs;
-  const wheelVelocity = -(pointerVelocity * WHEEL_PICKER_DRAG_RATIO) / WHEEL_PICKER_ITEM_HEIGHT;
+  const { dragRatio, maxVelocityItemsPerMs } = getWheelInputProfile(pointerType);
+  const wheelVelocity = -(pointerVelocity * dragRatio) / WHEEL_PICKER_ITEM_HEIGHT;
   return Math.max(
-    -WHEEL_PICKER_MAX_VELOCITY_ITEMS_PER_MS,
-    Math.min(WHEEL_PICKER_MAX_VELOCITY_ITEMS_PER_MS, wheelVelocity),
+    -maxVelocityItemsPerMs,
+    Math.min(maxVelocityItemsPerMs, wheelVelocity),
   );
 }
 
-export function stepWheelInertia(position, velocity, elapsedMs, optionCount) {
+export function stepWheelInertia(position, velocity, elapsedMs, optionCount, pointerType = "mouse") {
   const frameMs = Math.max(0, Math.min(32, Number(elapsedMs) || 0));
-  const nextVelocity = velocity * Math.exp(-frameMs / WHEEL_PICKER_INERTIA_TIME_CONSTANT_MS);
+  const { inertiaTimeConstantMs } = getWheelInputProfile(pointerType);
+  const nextVelocity = velocity * Math.exp(-frameMs / inertiaTimeConstantMs);
   const unboundedPosition = position + (((velocity + nextVelocity) / 2) * frameMs);
   const nextPosition = clampWheelPosition(unboundedPosition, optionCount);
   const reachedBoundary = Math.abs(nextPosition - unboundedPosition) > 0.000001;
@@ -69,9 +96,10 @@ export function stepWheelInertia(position, velocity, elapsedMs, optionCount) {
   };
 }
 
-export function shouldContinueWheelInertia(velocity, elapsedMs) {
-  return Math.abs(velocity) >= WHEEL_PICKER_MIN_INERTIA_VELOCITY
-    && elapsedMs < WHEEL_PICKER_MAX_INERTIA_MS;
+export function shouldContinueWheelInertia(velocity, elapsedMs, pointerType = "mouse") {
+  const { maxInertiaMs, minInertiaVelocity } = getWheelInputProfile(pointerType);
+  return Math.abs(velocity) >= minInertiaVelocity
+    && elapsedMs < maxInertiaMs;
 }
 
 export function getWheelSnapDuration(distanceInItems, reduceMotion = false) {

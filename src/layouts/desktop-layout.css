@@ -91,6 +91,10 @@
     max-width: min(920px, calc(100vw - 64px));
   }
 
+  .desktopLayout .helpGuidePanel {
+    width: min(620px, calc(100vw - 64px)) !important;
+  }
+
   /*
    * The game keeps its portrait playfield, while its chrome now comes from
    * the same immersive HUD used by the mobile master.

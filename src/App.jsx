@@ -55,6 +55,12 @@ import {
   shouldContinueWheelInertia,
   stepWheelInertia,
 } from "./metronome/wheelPickerPhysics";
+import {
+  advanceMetronomeRuntime,
+  createMetronomeRuntimeState,
+  normalizeAutomatorTimerParts,
+  normalizeTrackerTimerParts,
+} from "./metronome/runtime";
 import AudioStudio from "./audio-studio/AudioStudio";
 import TunerMode, { TUNER_BACKGROUND_COUNT } from "./tuner/TunerMode";
 import {
@@ -5128,19 +5134,19 @@ function normalizeNumberRange(value, min, max, fallback = min) {
 }
 
 function normalizeAutoBpmTimeMinutes(value) {
-  return normalizeNumberRange(value, AUTOMATOR_TIME_MINUTE_MIN, AUTOMATOR_TIME_MINUTE_MAX, AUTOMATOR_TIME_MINUTE_MIN);
+  return normalizeAutomatorTimerParts(value, 30).minutes;
 }
 
 function normalizeAutoBpmTimeSeconds(value) {
-  return normalizeNumberRange(value, AUTOMATOR_TIME_SECOND_MIN, AUTOMATOR_TIME_SECOND_MAX, 30);
+  return normalizeAutomatorTimerParts(1, value).seconds;
 }
 
 function normalizeTrackerTimerMinutes(value) {
-  return normalizeNumberRange(value, TRACKER_TIMER_MINUTE_MIN, TRACKER_TIMER_MINUTE_MAX, TRACKER_TIMER_MINUTE_MIN);
+  return normalizeTrackerTimerParts(value, 0).minutes;
 }
 
 function normalizeTrackerTimerSeconds(value) {
-  return Math.max(0, Math.min(59, Math.round(Number(value) || 0)));
+  return normalizeTrackerTimerParts(1, value).seconds;
 }
 
 function normalizeTrackerBarLimit(value, fallback = 1) {
@@ -5270,6 +5276,39 @@ function getStoredMetronomeTrackerProgress() {
   } catch {
     return fallback;
   }
+}
+
+function MetronomeTripletNotation({ notation }) {
+  const beamCount = notation === "sixteenth-triplet" ? 2 : 1;
+
+  return (
+    <svg
+      aria-hidden="true"
+      className={`metronomeSubdivisionNotation metronomeSubdivisionNotation--${beamCount === 2 ? "sixteenth" : "eighth"}`}
+      data-subdivision-notation={notation}
+      focusable="false"
+      viewBox="0 0 56 30"
+    >
+      <text className="metronomeSubdivisionNotationNumber" x="28" y="7.5">3</text>
+      <g className="metronomeSubdivisionNotationNotes">
+        <ellipse cx="9" cy="24" rx="5" ry="3.45" transform="rotate(-18 9 24)" />
+        <ellipse cx="26" cy="24" rx="5" ry="3.45" transform="rotate(-18 26 24)" />
+        <ellipse cx="43" cy="24" rx="5" ry="3.45" transform="rotate(-18 43 24)" />
+        <path d="M12.8 23V10.5M29.8 23V10.5M46.8 23V10.5" />
+        <path className="metronomeSubdivisionNotationBeam" d="M12.2 9.5H47.4V13H12.2Z" />
+        {beamCount === 2 ? (
+          <path className="metronomeSubdivisionNotationBeam" d="M12.2 15H47.4V18.5H12.2Z" />
+        ) : null}
+      </g>
+    </svg>
+  );
+}
+
+function renderMetronomeOptionLabel(option, fallback) {
+  if (option?.notation === "eighth-triplet" || option?.notation === "sixteenth-triplet") {
+    return <MetronomeTripletNotation notation={option.notation} />;
+  }
+  return option?.label || fallback;
 }
 
 function MetronomeSelectControl({ ariaLabel = "", className = "", dropdownDirection = null, label, labelDot = "", options, value, onChange, layout = "native" }) {
@@ -5417,7 +5456,9 @@ function MetronomeSelectControl({ ariaLabel = "", className = "", dropdownDirect
         title={selectedOption?.longLabel || selectedOption?.label || label}
         type="button"
       >
-        <b>{selectedOption?.label || value || label}</b>
+        <b className={selectedOption?.notation ? "metronomeSelectButtonNotation" : undefined}>
+          {renderMetronomeOptionLabel(selectedOption, value || label)}
+        </b>
         <i aria-hidden="true">⌄</i>
       </button>
       {open && typeof document !== "undefined" ? createPortal(
@@ -5436,6 +5477,7 @@ function MetronomeSelectControl({ ariaLabel = "", className = "", dropdownDirect
           >
             {gridOptions.map((option) => (
               <button
+                aria-label={option.longLabel || option.label || String(option.id)}
                 aria-selected={String(option.id) === String(value)}
                 className={`metronomeSelectOption ${String(option.id) === String(value) ? "selected" : ""}`}
                 disabled={option.disabled}
@@ -5449,7 +5491,7 @@ function MetronomeSelectControl({ ariaLabel = "", className = "", dropdownDirect
                 role="option"
                 type="button"
               >
-                {option.label}
+                {renderMetronomeOptionLabel(option, option.id)}
               </button>
             ))}
           </div>
@@ -5881,6 +5923,30 @@ function easeOutPickerWheel(progress) {
   return 1 - Math.pow(1 - progress, 3);
 }
 
+function getWheelPointerType(event) {
+  const declaredPointerType = event.pointerType || event.nativeEvent?.pointerType;
+  if (declaredPointerType) return declaredPointerType;
+  return window.matchMedia?.("(pointer: coarse)")?.matches ? "touch" : "mouse";
+}
+
+function getWheelPointerSamples(event, sampledAt) {
+  const nativeEvent = event.nativeEvent ?? event;
+  const coalescedEvents = typeof nativeEvent.getCoalescedEvents === "function"
+    ? nativeEvent.getCoalescedEvents()
+    : [];
+  const pointerEvents = coalescedEvents.length > 0 ? [...coalescedEvents, nativeEvent] : [nativeEvent];
+  const validEvents = pointerEvents.filter((pointerEvent) => Number.isFinite(pointerEvent?.clientY));
+  const latestTimestamp = validEvents[validEvents.length - 1]?.timeStamp;
+
+  return validEvents.map((pointerEvent, index) => {
+    const fallbackAge = (validEvents.length - 1 - index) * 0.5;
+    const timestampAge = Number.isFinite(latestTimestamp) && Number.isFinite(pointerEvent.timeStamp)
+      ? Math.max(0, Math.min(32, latestTimestamp - pointerEvent.timeStamp))
+      : fallbackAge;
+    return { y: pointerEvent.clientY, time: sampledAt - timestampAge };
+  });
+}
+
 const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onDetent, onInteractionStart, options, value }) {
   const selectedIndex = Math.max(0, options.findIndex((option) => Number(option.value) === Number(value)));
   const [settledIndex, setSettledIndex] = useState(selectedIndex);
@@ -6016,7 +6082,7 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
     frameRef.current = window.requestAnimationFrame(animate);
   }, [cancelWheelFrames, options.length, renderWheelPosition, settleWheelAtIndex]);
 
-  const startWheelInertia = useCallback((fromPosition, releaseVelocity, releaseDirection = 0) => {
+  const startWheelInertia = useCallback((fromPosition, releaseVelocity, releaseDirection = 0, pointerType = "mouse") => {
     cancelWheelFrames();
     let position = clampWheelPosition(fromPosition, options.length);
     let velocity = releaseVelocity;
@@ -6025,7 +6091,7 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
     let previousTime = performance.now();
     renderWheelPosition(position, true);
 
-    if (!shouldContinueWheelInertia(velocity, elapsedTotal)) {
+    if (!shouldContinueWheelInertia(velocity, elapsedTotal, pointerType)) {
       animateToIndex(position, getWheelSnapIndex(position, motionDirection, options.length));
       return;
     }
@@ -6034,12 +6100,12 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
       const elapsed = Math.max(0, now - previousTime);
       previousTime = now;
       elapsedTotal += elapsed;
-      const next = stepWheelInertia(position, velocity, elapsed, options.length);
+      const next = stepWheelInertia(position, velocity, elapsed, options.length, pointerType);
       position = next.position;
       velocity = next.velocity;
       renderWheelPosition(position, true);
 
-      if (shouldContinueWheelInertia(velocity, elapsedTotal)) {
+      if (shouldContinueWheelInertia(velocity, elapsedTotal, pointerType)) {
         frameRef.current = window.requestAnimationFrame(glide);
         return;
       }
@@ -6081,11 +6147,14 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
 
     const now = performance.now();
     const startPosition = scrollPositionRef.current;
+    const pointerType = getWheelPointerType(event);
     beginInteraction();
     suppressClickRef.current = false;
     dragRef.current = {
       pointerId: event.pointerId,
+      pointerType,
       startY: event.clientY,
+      currentY: event.clientY,
       startPosition,
       moved: false,
       samples: [{ y: event.clientY, time: now }],
@@ -6098,8 +6167,11 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     const now = performance.now();
-    const deltaY = event.clientY - drag.startY;
-    drag.samples.push({ y: event.clientY, time: now });
+    const pointerSamples = getWheelPointerSamples(event, now);
+    const latestY = pointerSamples[pointerSamples.length - 1]?.y ?? event.clientY;
+    const deltaY = latestY - drag.startY;
+    drag.currentY = latestY;
+    drag.samples.push(...pointerSamples);
     while (drag.samples.length > 2 && now - drag.samples[0].time > 100) drag.samples.shift();
 
     if (Math.abs(deltaY) > WHEEL_PICKER_DRAG_CLICK_CANCEL_PX) {
@@ -6110,8 +6182,9 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
     scheduleWheelPosition(getWheelDragPosition(
       drag.startPosition,
       drag.startY,
-      event.clientY,
+      latestY,
       options.length,
+      drag.pointerType,
     ));
     if (event.cancelable) event.preventDefault();
   }, [options.length, scheduleWheelPosition]);
@@ -6120,14 +6193,17 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     const now = performance.now();
-    drag.samples.push({ y: event.clientY, time: now });
+    const pointerSamples = getWheelPointerSamples(event, now);
+    const releaseY = pointerSamples[pointerSamples.length - 1]?.y ?? drag.currentY;
+    drag.samples.push(...pointerSamples);
     const currentPosition = getWheelDragPosition(
       drag.startPosition,
       drag.startY,
-      event.clientY,
+      releaseY,
       options.length,
+      drag.pointerType,
     );
-    const releaseVelocity = drag.moved ? getWheelReleaseVelocity(drag.samples, now) : 0;
+    const releaseVelocity = drag.moved ? getWheelReleaseVelocity(drag.samples, now, drag.pointerType) : 0;
 
     dragRef.current = null;
     if (viewportRef.current?.hasPointerCapture?.(event.pointerId)) {
@@ -6141,7 +6217,7 @@ const WheelPickerColumn = memo(function WheelPickerColumn({ label, onChange, onD
       }, 180);
     }
     const releaseDirection = drag.moved ? Math.sign(currentPosition - drag.startPosition) : 0;
-    startWheelInertia(currentPosition, releaseVelocity, releaseDirection);
+    startWheelInertia(currentPosition, releaseVelocity, releaseDirection, drag.pointerType);
   }, [options.length, startWheelInertia]);
 
   const handlePointerUp = useCallback((event) => {
@@ -11224,123 +11300,192 @@ const LEGACY_PRACTICE_CATEGORIES = [
 
 const HELP_GUIDE_SECTIONS = [
   {
-    id: "hello",
-    title: "안녕하세요",
+    id: "welcome",
+    title: "Welcome to FRETIVA LAB",
     content: (
       <>
-        <p>FRETIVA LAB은 기타 지판, 스케일, 코드 전환, 리듬 감각을 한 화면 안에서 반복 연습할 수 있도록 만든 기타 훈련 앱입니다.</p>
-        <p>리듬 & 코드에서는 코드 진행과 반주를 보며 연습하고, 지판 보기에서는 음·코드·스케일 위치를 확인할 수 있습니다.</p>
-        <p>연습 중에는 메트로놈과 반주 기능을 함께 사용해 실제 연주에 가까운 감각으로 반복할 수 있습니다.</p>
+        <p>안녕하세요. FRETIVA LAB을 사용해주셔서 감사합니다.</p>
+        <p>
+          기타를 배우면서 단순히 연습만 하기보다, <b>조금 더 재미있게 연습하고 내가 만든 연습이나 결과를 주변 사람들과 공유할 수 있으면 좋겠다</b>는 생각에서 시작한 앱입니다.
+        </p>
+        <p>
+          전문적인 개발이나 음악을 전공한 사람이 만든 서비스가 아니라, 기타를 취미로 배우면서 <b>“이런 기능이 있으면 연습할 때 편하겠다”, “이렇게 하면 조금 더 재미있게 기타를 배울 수 있겠다”</b>고 생각했던 것들을 하나씩 직접 만들어보았습니다.
+        </p>
+        <p>그래서 아직 부족하거나 예상하지 못한 부분이 있을 수 있습니다. 조금 너그럽게 봐주시고 편하게 사용해주시면 감사하겠습니다.</p>
+        <p>
+          대신 사용하면서 불편했던 점이나 오류, <b>“이건 이렇게 바뀌면 더 좋겠다”</b> 싶은 아이디어가 있다면 피드백은 언제든 환영합니다.
+        </p>
+        <p>FRETIVA LAB이 거창한 무언가라기보다, 기타를 연습할 때 한 번 더 손이 가는 <b>작고 재미있는 연습 도구</b>가 되었으면 좋겠습니다.</p>
+        <p className="helpClosingMessage">즐겁게 연습하세요. 🎸</p>
       </>
     ),
   },
   {
-    id: "stage1",
-    title: "🎯 단일 음 위치 익히기",
+    id: "single-note",
+    title: "01 · 단일음",
     content: (
       <>
-        <p>0~3프렛 기본 음 위치를 지판에서 빠르게 찾는 훈련입니다.</p>
-        <p>화면에 표시되는 목표 음을 보고 같은 줄과 프렛 위치를 반복해서 익힙니다.</p>
-        <strong>사용 방법</strong>
-        <ul>
-          <li>START를 누르면 훈련이 시작됩니다.</li>
-          <li>지판 아래 점자 메트로놈을 보며 박자에 맞춰 음 위치를 확인합니다.</li>
-          <li>박자, 세분, 1박 음색, 나머지 박 음색을 선택해 연습감을 맞춥니다.</li>
-          <li>BPM의 - / + 버튼으로 속도를 조절합니다.</li>
-        </ul>
+        <p>기타 지판을 처음 익힐 때 사용하는 기초 훈련입니다.</p>
+        <p><b>개방현부터 3프렛까지의 음 위치</b>를 시작으로 기타의 기본적인 음 배치를 눈과 손으로 익힐 수 있습니다.</p>
+        <p>처음부터 지판 전체를 외우려고 하기보다 개방현과 낮은 프렛부터 천천히 익혀보세요.</p>
+        <strong>추천 흐름</strong>
+        <div className="helpFlow" aria-label="개방현 확인, 1에서 3프렛 음 위치, 화면을 보면서 직접 연주">
+          <span>개방현 확인</span><i aria-hidden="true">→</i><span>1~3프렛 음 위치</span><i aria-hidden="true">→</i><span>화면을 보면서 직접 연주</span>
+        </div>
       </>
     ),
   },
   {
-    id: "stage2",
-    title: "🎸 스케일 · 펜타토닉 · 릭",
+    id: "scale-pentatonic",
+    title: "02 · 스케일 · 펜타토닉",
     content: (
       <>
-        <p>메이저, 마이너, 펜타토닉 스케일과 짧은 기타 프레이즈를 연습하는 훈련입니다.</p>
-        <p>키, 성격, 훈련 종류, 세부 항목을 선택하면 해당 위치가 지판에 표시됩니다.</p>
-        <strong>연습 포인트</strong>
-        <ul>
-          <li>Box별 음 위치를 반복해서 익힙니다.</li>
-          <li>상행, 하행, 왕복 흐름으로 지판 이동 감각을 만듭니다.</li>
-          <li>점자 메트로놈의 1박, 나머지 박, 무음 표시를 보며 박자에 맞춰 연습합니다.</li>
-          <li>박자, 세분, 1박 음색, 나머지 박 음색을 바꿔 원하는 연습 흐름을 만들 수 있습니다.</li>
-        </ul>
+        <p>Major / Minor Scale과 Pentatonic을 지판 위에서 연습할 수 있습니다.</p>
+        <p>각 Key와 <b>BOX 1~5</b>를 바로 선택할 수 있도록 구성되어 있습니다.</p>
+        <p>BOX 패턴은 하나의 구조를 익히면 Key에 따라 지판에서 위치를 이동하여 활용할 수 있습니다. 예를 들어 C에서 패턴을 충분히 익힌 뒤 다른 Key로 이동하면서 같은 구조를 연결해서 연습할 수 있습니다.</p>
+        <p>원하는 Key와 BOX를 선택하면 해당 위치를 바로 확인할 수 있습니다.</p>
+        <strong>Backing Loop</strong>
+        <p>스케일 화면 하단의 Backing Loop를 함께 활용할 수 있습니다.</p>
+        <div className="helpFlow helpFlow--example" aria-label="C Key 코드 진행을 녹음하고 반복 재생한 뒤 C Scale 또는 C Pentatonic 연주">
+          <span>C Key 코드 진행 녹음</span><i aria-hidden="true">→</i><span>Loop 재생</span><i aria-hidden="true">→</i><span>C Scale 또는 C Pentatonic 연주</span>
+        </div>
+        <p>패턴의 위치만 반복해서 외우는 것보다 실제 반주 위에서 직접 음을 사용해보는 데 도움이 됩니다.</p>
       </>
     ),
   },
   {
-    id: "stage3",
-    title: "🔥 리듬 · 코드전환",
+    id: "rhythm-chord",
+    title: "03 · 리듬코드",
     content: (
       <>
-        <p>코드 진행을 보면서 코드 전환과 리듬을 함께 연습하는 화면입니다.</p>
-        <p>상단의 추천 드롭다운에서는 앱에서 고정 제공하는 대표 진행을 바로 불러올 수 있습니다.</p>
-        <p>사용자 드롭다운에서는 저장된 진행 팝업에 보관한 내 코드 진행을 불러올 수 있습니다.</p>
-        <strong>추천 진행</strong>
-        <ul>
-          <li>추천 진행을 선택하면 코드 진행, BPM, 드럼·베이스·피아노 비트가 자동 적용됩니다.</li>
-          <li>적용 후에는 BPM과 반주 비트를 자유롭게 바꿀 수 있습니다.</li>
-          <li>추천 진행은 운영자가 고정 제공하는 항목이라 저장된 진행 팝업에서 삭제하거나 수정하지 않습니다.</li>
-        </ul>
-        <strong>저장된 진행</strong>
-        <ul>
-          <li>저장된 진행 팝업은 사용자가 만든 코드 진행과 주법을 보관하는 공간입니다.</li>
-          <li>루트, 성격, 옵션을 선택해 코드를 추가하고 진행순서를 만듭니다.</li>
-          <li>주법을 추가한 뒤 저장하면 사용자 드롭다운에서 불러올 수 있습니다.</li>
-          <li>사용자 저장 진행만 수정하거나 삭제할 수 있습니다.</li>
-        </ul>
-        <strong>반주 설정</strong>
-        <ul>
-          <li>드럼 리듬은 4비트, 8비트, 16비트, Shuffle 중 선택할 수 있습니다.</li>
-          <li>베이스와 피아노 비트를 따로 선택해 반주 느낌을 조절할 수 있습니다.</li>
-        </ul>
+        <p><b>코드 전환을 박자에 맞춰 연습하는 모드</b>입니다.</p>
+        <p>내가 연습하고 싶은 코드 진행을 직접 입력하고, 화면에 진행되는 코드를 눈으로 따라가면서 일정한 박자에 맞춰 코드를 전환할 수 있습니다.</p>
+        <div className="helpChordProgression" aria-label="C, G, A minor, F 코드 진행">
+          <span>C</span><i aria-hidden="true">→</i><span>G</span><i aria-hidden="true">→</i><span>Am</span><i aria-hidden="true">→</i><span>F</span>
+        </div>
+        <p>진행을 입력한 뒤 반복해서 연주하며 코드 전환 속도와 리듬을 함께 연습할 수 있습니다.</p>
+        <p>코드는 알고 있지만 실제 곡에서 코드가 바뀔 때 손이 늦는다면 활용해보세요.</p>
       </>
     ),
   },
   {
-    id: "fretboard",
-    title: "🗺️ 지판보기",
+    id: "mini-backing",
+    title: "04 · 미니반주",
     content: (
       <>
-        <p>기타 지판을 자유롭게 확인하는 보기 모드입니다.</p>
-        <strong>기능</strong>
-        <ul>
-          <li>단일음 위치 확인</li>
-          <li>코드 운지 확인</li>
-          <li>스케일과 펜타토닉 위치 확인</li>
-          <li>개방현과 구간별 지판 확인</li>
-        </ul>
-        <p>훈련 전에 음이나 코드 위치를 확인하거나, 연습 중 헷갈리는 위치를 복습할 때 사용합니다.</p>
+        <p>직접 코드와 마디를 입력하여 <b>나만의 간단한 연습용 반주</b>를 만들 수 있습니다.</p>
+        <p>악보를 입력한 뒤 <b>Piano / Bass / Drum</b>을 설정하고 각 악기의 리듬을 조절하여 기타 연습용 반주로 사용할 수 있습니다.</p>
+        <strong>Arrangement</strong>
+        <p>편곡 기능을 이용하면 곡 전체를 같은 반주로 재생하지 않아도 됩니다.</p>
+        <p>원하는 마디 구간을 선택하고 구간별로 서로 다른 리듬과 반주를 설정할 수 있습니다.</p>
+        <div className="helpSectionTags" aria-label="인트로, 벌스, 코러스, 브리지">
+          <span>INTRO</span><span>VERSE</span><span>CHORUS</span><span>BRIDGE</span>
+        </div>
+        <p>Verse는 차분하게, Chorus는 조금 더 강하게 만드는 식으로 직접 곡의 흐름을 만들어보세요.</p>
       </>
     ),
   },
   {
     id: "metronome",
-    title: "⏱️ 메트로놈",
+    title: "METRONOME",
+    badge: "CORE",
     content: (
       <>
-        <p>단독 메트로놈으로 사용할 수 있는 모드입니다.</p>
-        <strong>주요 기능</strong>
-        <ul>
-          <li>BPM, 박자, 세분 설정</li>
-          <li>1박 음색과 나머지 박 음색을 각각 선택</li>
-          <li>점자 표시에서 1박, 나머지 박, 무음 박을 직접 확인</li>
-          <li>무음 박, Count In, 반복 연습 설정</li>
-          <li>Timer와 Bar Counter 기반 연습</li>
-          <li>좌우 스와이프로 표시 모드 전환</li>
-        </ul>
-        <p>기본 박자 연습, 속도 유지 연습, 특정 시간 또는 마디 수 반복 연습에 활용할 수 있습니다.</p>
+        <p>FRETIVA LAB의 주요 연습 기능 중 하나입니다.</p>
+        <p>기본적인 BPM과 박자 설정뿐 아니라 반복 연습을 위한 여러 보조 기능을 함께 사용할 수 있습니다.</p>
+        <strong>Accent</strong>
+        <p>메인 화면의 각 박을 직접 눌러 <b>강박 · 약박 · Mute</b>를 지정할 수 있습니다.</p>
+        <p>같은 박자에서도 원하는 위치에 Accent를 주어 다양한 리듬으로 연습할 수 있습니다.</p>
+        <strong>빠른 조작</strong>
+        <p>메인 화면에서 <b>좌우 조작으로 박자를 변경</b>할 수 있습니다.</p>
+        <p>화면 하단의 구분 영역을 위로 올리면 추가 연습 기능도 사용할 수 있습니다.</p>
+        <strong>Backing Loop</strong>
+        <p>메트로놈을 사용하면서 반주나 연주를 <b>바로 녹음하고 반복 재생</b>할 수 있습니다.</p>
+        <p>기기에 저장된 오디오 파일을 불러와 재생하는 것도 가능합니다. 특정 구간이나 반주를 계속 반복하면서 메트로놈과 함께 연습하고 싶을 때 활용해보세요.</p>
+        <strong>Coach Mode</strong>
+        <p>메트로놈 소리가 들리는 구간과 들리지 않는 구간을 반복하여 <b>내부 박자감</b>을 훈련합니다.</p>
+        <p>Sound / Mute 마디를 설정하면 클릭이 일정 마디 동안 재생된 뒤 사라집니다. 소리가 사라져도 같은 템포를 유지해보고, 클릭이 다시 돌아왔을 때 내 박자가 얼마나 정확했는지 확인해보세요.</p>
+        <strong>Automator</strong>
+        <p>연습 중 BPM을 자동으로 변화시킬 수 있습니다.</p>
+        <p>시간 또는 마디를 기준으로 BPM을 단계적으로 올리거나 내려서, 천천히 시작해 점차 속도를 높이는 반복 연습에 활용할 수 있습니다.</p>
+        <strong>Tracker</strong>
+        <p>연습 진행량을 확인하고 반복 연습을 관리하는 데 사용할 수 있습니다.</p>
       </>
     ),
   },
   {
     id: "shooter",
-    title: "👾 슈팅게임",
+    title: "SHOOTING GAME",
+    badge: "CORE",
     content: (
       <>
-        <p>지판 음 위치를 게임처럼 반복하는 모드입니다.</p>
-        <p>화면에 등장하는 목표 음을 보고 지판에서 해당 음을 찾아 반응합니다.</p>
-        <p>기본 훈련보다 가볍게 즐기면서 음 위치 반응 속도를 높이고 싶을 때 사용합니다.</p>
+        <p className="helpSlogan"><b>지판 암기를 조금 더 재미있게 해보자!</b></p>
+        <p>라는 생각으로 만든 게임형 훈련입니다.</p>
+        <p>화면에 나타나는 목표음을 확인하고 해당 음이 있는 프렛 위치를 찾아 플레이합니다.</p>
+        <p>단순히 지판을 보고 외우는 대신 반복적으로 게임을 하면서 자연스럽게 프렛 위치에 익숙해지는 것이 목적입니다.</p>
+        <strong>Skin</strong>
+        <p>기타와 다양한 시각 효과를 원하는 스타일로 변경할 수 있습니다.</p>
+        <p>마음에 드는 조합으로 꾸미고 편하게 플레이해보세요.</p>
+        <p>점수만 올리는 게임이라기보다 <b>놀면서 지판 위치를 반복해서 보는 연습</b>으로 활용하면 좋습니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "tuner",
+    title: "TUNER",
+    content: (
+      <>
+        <p>악기의 음정을 확인하고 조율할 수 있습니다.</p>
+        <p>기타의 <b>Standard Tuning</b>을 비롯한 다양한 튜닝을 선택할 수 있으며 <b>Guitar / Bass / Ukulele</b>에 맞춰 사용할 수 있습니다.</p>
+        <p>연습을 시작하기 전에 먼저 악기의 튜닝을 확인해보세요.</p>
+      </>
+    ),
+  },
+  {
+    id: "fretboard-viewer",
+    title: "지판 보기",
+    badge: "HOT",
+    content: (
+      <>
+        <p>연습 중 필요한 음과 코드의 위치를 빠르게 확인할 수 있는 <b>지판 참고 도구</b>입니다.</p>
+        <p>특정 음이 어디에 있는지 기억나지 않거나 코드의 지판 위치를 확인하고 싶을 때 사용할 수 있습니다.</p>
+        <p>연습 도중 필요할 때 바로 꺼내보는 <b>나만의 지판 사전</b>처럼 활용해보세요.</p>
+      </>
+    ),
+  },
+  {
+    id: "sound-rhythm",
+    title: "SOUND & RHYTHM",
+    content: (
+      <>
+        <p>리듬코드와 미니반주에서 사용하는 <b>공통 사운드 및 기본 리듬 설정</b>을 관리합니다.</p>
+        <p>Drum / Bass / Piano 등의 기본 리듬과 관련 설정을 한 곳에서 조정하고, 관련 연습 모드에서 공통으로 활용할 수 있습니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "shared-features",
+    title: "알아두면 좋은 공통 기능",
+    content: (
+      <>
+        <p>메트로놈의 박자 표시를 직접 눌러 각 박을 <b>강박 / 약박 / Mute</b>로 설정할 수 있습니다.</p>
+        <p>처음부터 빠른 BPM으로 연주하기보다는 정확하게 연주할 수 있는 속도에서 시작해 조금씩 올려보세요. Automator를 이용하면 이러한 단계별 연습을 편하게 진행할 수 있습니다.</p>
+        <p>그리고 각 기능을 꼭 따로 사용할 필요는 없습니다.</p>
+        <ul className="helpFeatureMap">
+          <li><b>단일음</b><span>지판의 기초</span></li>
+          <li><b>지판 보기</b><span>필요한 음과 코드 확인</span></li>
+          <li><b>Scale / Pentatonic</b><span>지판 패턴 연결</span></li>
+          <li><b>Backing Loop</b><span>반주 위에서 스케일 연주</span></li>
+          <li><b>리듬코드</b><span>코드 전환 연습</span></li>
+          <li><b>미니반주</b><span>직접 만든 반주와 기타 연주</span></li>
+          <li><b>Metronome</b><span>박자와 템포 훈련</span></li>
+          <li><b>Shooting Game</b><span>게임으로 지판 반복 학습</span></li>
+        </ul>
+        <p>자신에게 지금 필요한 기능부터 하나씩 사용해보세요.</p>
+        <div className="helpSignature" aria-label="FRETIVA LAB, Play Practice Enjoy">
+          <b>FRETIVA LAB</b>
+          <span>Play · Practice · Enjoy</span>
+        </div>
       </>
     ),
   },
@@ -11350,7 +11495,7 @@ const HELP_GUIDE_SECTIONS = [
     content: (
       <>
         <p>사용 중 불편한 점, 오류, 추가되었으면 하는 기능이 있다면 알려주세요.</p>
-        <p>훈련 흐름, 모바일 화면, 사운드, 저장 기능에 대한 의견도 환영합니다.</p>
+        <p>“이건 이렇게 바뀌면 더 좋겠다” 싶은 아이디어도 언제든 환영합니다.</p>
         <p>보내주신 피드백은 FRETIVA LAB을 더 사용하기 좋은 기타 훈련 앱으로 다듬는 데 활용됩니다.</p>
         <a className="helpInstagramLink" href="https://www.instagram.com/sungsu91_/" rel="noreferrer" target="_blank">
           <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -13826,7 +13971,6 @@ function App({ onReady }) {
   const [metronomeRepeat, setMetronomeRepeat] = useState(false);
   const [autoBpmMode, setAutoBpmMode] = useState("off");
   const [autoBpmDirection, setAutoBpmDirection] = useState("increase");
-  const [autoBpmEnabled, setAutoBpmEnabled] = useState(false);
   const [autoBpmStep, setAutoBpmStep] = useState(1);
   const [autoBpmBars, setAutoBpmBars] = useState(50);
   const [autoBpmTimeMinutes, setAutoBpmTimeMinutes] = useState(AUTOMATOR_TIME_MINUTE_MIN);
@@ -14569,7 +14713,6 @@ function App({ onReady }) {
   const metronomeVisualLabTimerRef = useRef(null);
   const autoBpmModeRef = useRef("off");
   const autoBpmDirectionRef = useRef("increase");
-  const autoBpmEnabledRef = useRef(false);
   const autoBpmStepRef = useRef(1);
   const autoBpmBarsRef = useRef(50);
   const autoBpmTimeMsRef = useRef(30000);
@@ -14655,9 +14798,8 @@ function App({ onReady }) {
   const metronomeTimerStopWhenReachedRef = useRef(false);
   const metronomeTimerResetWhenReachedRef = useRef(false);
   const metronomeTrackerTimerTotalMsRef = useRef(0);
+  const metronomeRuntimeRef = useRef(createMetronomeRuntimeState());
   const metronomeTrackerStorageTimerRef = useRef(null);
-  const lastAutoBpmMeasureRef = useRef(0);
-  const lastAutoBpmTimeRef = useRef(0);
   const tapTempoTimesRef = useRef([]);
   const tapTempoPressTimerRef = useRef(null);
   const bpmSwipeStartRef = useRef(null);
@@ -15571,6 +15713,8 @@ function App({ onReady }) {
     : metronomeTrackerMode === "timer" && metronomeTimerCountdown
       ? trackerTimerLabel
       : "OFF";
+  const trackerIsActive = metronomeTrackerMode === "bars"
+    || (metronomeTrackerMode === "timer" && metronomeTimerCountdown);
   const trackerDetailLabel = metronomeTrackerMode === "bars"
     ? (metronomeBarLimitEnabled ? "Bar Counter Progress" : "Bar Counter")
     : metronomeTrackerMode === "timer" && metronomeTimerCountdown
@@ -18259,7 +18403,6 @@ function App({ onReady }) {
       const beatsPerMeasure = signature.beats;
       const clicksPerBeat = subdivision.clicksPerBeat;
       const currentBeatMs = getBeatMs(bpmRef.current);
-      const currentTickMs = getMetronomeSubdivisionTickMs(bpmRef.current, subdivision);
       const currentMeasureMs = currentBeatMs * beatsPerMeasure;
 
       if (countInActiveRef.current) {
@@ -18289,85 +18432,73 @@ function App({ onReady }) {
         return;
       }
 
-      gameTimeRef.current += deltaMs;
-      setStage3MeasureProgress((gameTimeRef.current % currentMeasureMs) / currentMeasureMs);
+      const runtimeFrame = advanceMetronomeRuntime(metronomeRuntimeRef.current, deltaMs, {
+        bpm: bpmRef.current,
+        beatsPerMeasure,
+        clicksPerBeat,
+        automatorMode: autoBpmModeRef.current,
+        automatorDirection: autoBpmDirectionRef.current,
+        automatorStep: autoBpmStepRef.current,
+        automatorEveryBars: autoBpmBarsRef.current,
+        automatorEveryMs: autoBpmTimeMsRef.current,
+        coachEnabled: coachModeEnabledRef.current,
+        coachPlayBars: coachPlayBarsRef.current,
+        coachMuteBars: coachMuteBarsRef.current,
+        trackerMode: metronomeTrackerModeRef.current,
+        trackerBarLimitEnabled: metronomeBarLimitEnabledRef.current,
+        trackerBarLimit: metronomeBarLimitRef.current,
+        trackerBarStopWhenReached: metronomeBarStopWhenReachedRef.current,
+        trackerBarResetWhenReached: metronomeBarResetWhenReachedRef.current,
+        trackerTimerTotalMs: metronomeTrackerTimerTotalMsRef.current,
+        trackerTimerStopWhenReached: metronomeTimerStopWhenReachedRef.current,
+        trackerTimerResetWhenReached: metronomeTimerResetWhenReachedRef.current,
+      });
+      metronomeRuntimeRef.current = runtimeFrame.state;
+      gameTimeRef.current = runtimeFrame.state.elapsedMs;
+      setStage3MeasureProgress(runtimeFrame.state.measureProgress);
 
+      if (metronomeTrackerModeRef.current === "bars" && runtimeFrame.trackerBarsChanged) {
+        setMetronomeMeasureCount(runtimeFrame.state.trackerBars);
+      }
       if (metronomeTrackerModeRef.current === "timer") {
-        const totalTimerMs = metronomeTrackerTimerTotalMsRef.current;
-        const elapsedMs = metronomeTrackerBaseElapsedMsRef.current + gameTimeRef.current;
-        const cappedElapsedMs = totalTimerMs > 0 ? Math.min(elapsedMs, totalTimerMs) : elapsedMs;
+        const trackerElapsedMs = runtimeFrame.state.trackerElapsedMs;
         if (
-          (totalTimerMs > 0 && cappedElapsedMs >= totalTimerMs) ||
-          cappedElapsedMs - metronomeTrackerElapsedUpdateRef.current >= 250
+          runtimeFrame.trackerTimerLimitReached ||
+          Math.abs(trackerElapsedMs - metronomeTrackerElapsedUpdateRef.current) >= 250
         ) {
-          metronomeTrackerElapsedUpdateRef.current = cappedElapsedMs;
-          setMetronomeTrackerElapsedMs(cappedElapsedMs);
-        }
-
-        if (totalTimerMs > 0 && elapsedMs >= totalTimerMs) {
-          setMetronomeTrackerElapsedMs(totalTimerMs);
-          if (metronomeTimerResetWhenReachedRef.current) {
-            gameTimeRef.current = 0;
-            lastBeatRef.current = -1;
-            metronomeTrackerBaseElapsedMsRef.current = 0;
-            metronomeTrackerElapsedUpdateRef.current = 0;
-            setBeat(0);
-            setMetronomeTrackerElapsedMs(0);
-            setStage3MeasureProgress(0);
-          }
-          if (metronomeTimerStopWhenReachedRef.current) {
-            setFeedback("Complete");
-            setState(GAME_STATES.IDLE);
-            return;
-          }
+          metronomeTrackerElapsedUpdateRef.current = trackerElapsedMs;
+          setMetronomeTrackerElapsedMs(trackerElapsedMs);
         }
       }
+      if (runtimeFrame.trackerBarLimitReached && metronomeBarResetWhenReachedRef.current) {
+        setMetronomeMeasureCount(runtimeFrame.state.trackerBars);
+      }
+      if (runtimeFrame.trackerTimerLimitReached && metronomeTimerResetWhenReachedRef.current) {
+        metronomeTrackerElapsedUpdateRef.current = runtimeFrame.state.trackerElapsedMs;
+        setMetronomeTrackerElapsedMs(runtimeFrame.state.trackerElapsedMs);
+      }
+      if (runtimeFrame.shouldStop) {
+        setFeedback("Complete");
+        setState(GAME_STATES.IDLE);
+        return;
+      }
 
-      const currentTick = Math.floor(gameTimeRef.current / currentTickMs);
-      if (currentTick === lastBeatRef.current) return;
+      if (runtimeFrame.autoBpmChanges > 0) {
+        bpmRef.current = runtimeFrame.nextBpm;
+        setBpm(runtimeFrame.nextBpm);
+        setAutoBpmIncrements((value) => value + runtimeFrame.autoBpmChanges);
+      }
 
-      lastBeatRef.current = currentTick;
-      const currentBeat = Math.floor(currentTick / clicksPerBeat);
-      const beatInBar = currentBeat % beatsPerMeasure;
-      const subdivisionIndex = currentTick % clicksPerBeat;
-      const measureIndex = Math.floor(currentBeat / beatsPerMeasure);
-      const measureNumber = measureIndex + 1;
-      const coachCycleBars = Math.max(1, coachPlayBarsRef.current + coachMuteBarsRef.current);
-      const coachCycleIndex = measureIndex % coachCycleBars;
-      const isCoachMuted =
-        coachModeEnabledRef.current &&
-        coachMuteBarsRef.current > 0 &&
-        coachCycleIndex >= coachPlayBarsRef.current;
+      if (!runtimeFrame.tickChanged) return;
+
+      lastBeatRef.current = runtimeFrame.state.tickSerial;
+      const { beatInBar, subdivisionIndex } = runtimeFrame;
+      const isCoachMuted = runtimeFrame.state.coachMuted;
 
       if (subdivisionIndex === 0) {
         flushSync(() => {
           setBeat(beatInBar);
         });
-      }
-      if (metronomeTrackerModeRef.current === "bars") {
-        const completedBars = metronomeTrackerBaseBarsRef.current + Math.floor(gameTimeRef.current / currentMeasureMs);
-        setMetronomeMeasureCount(completedBars);
-        if (
-          metronomeBarLimitEnabledRef.current &&
-          completedBars >= metronomeBarLimitRef.current &&
-          metronomeBarLimitRef.current > 0
-        ) {
-          if (metronomeBarResetWhenReachedRef.current) {
-            gameTimeRef.current = 0;
-            lastBeatRef.current = -1;
-            metronomeTrackerBaseBarsRef.current = 0;
-            setBeat(0);
-            setMetronomeMeasureCount(0);
-            setStage3MeasureProgress(0);
-          }
-          if (metronomeBarStopWhenReachedRef.current) {
-            setFeedback("Complete");
-            setState(GAME_STATES.IDLE);
-            return;
-          }
-        }
-      } else if (autoBpmEnabledRef.current) {
-        setMetronomeMeasureCount(measureNumber);
       }
       setMetronomeIsMutedCycle(isCoachMuted);
 
@@ -18378,34 +18509,6 @@ function App({ onReady }) {
         playTick(isBeatAccent, subdivisionIndex, false);
       }
 
-      const applyAutoBpmChange = () => {
-        const direction = autoBpmDirectionRef.current === "decrease" ? -1 : 1;
-        const nextBpm = clampBpm(bpmRef.current + (autoBpmStepRef.current * direction));
-        bpmRef.current = nextBpm;
-        setBpm(nextBpm);
-        setAutoBpmIncrements((value) => value + 1);
-      };
-
-      if (
-        autoBpmModeRef.current === "bars" &&
-        subdivisionIndex === 0 &&
-        beatInBar === 0 &&
-        measureNumber > 1 &&
-        measureNumber % Math.max(1, autoBpmBarsRef.current) === 0 &&
-        lastAutoBpmMeasureRef.current !== measureNumber
-      ) {
-        lastAutoBpmMeasureRef.current = measureNumber;
-        applyAutoBpmChange();
-      }
-
-      if (
-        autoBpmModeRef.current === "time" &&
-        gameTimeRef.current >= autoBpmTimeMsRef.current &&
-        gameTimeRef.current - lastAutoBpmTimeRef.current >= autoBpmTimeMsRef.current
-      ) {
-        lastAutoBpmTimeRef.current = gameTimeRef.current;
-        applyAutoBpmChange();
-      }
     },
     [playCountInVoice, playTick],
   );
@@ -18713,6 +18816,15 @@ function App({ onReady }) {
     await startMic();
   }, [startMic]);
 
+  const syncMetronomeTrackerFromRuntime = useCallback(() => {
+    const runtime = metronomeRuntimeRef.current;
+    metronomeTrackerBaseBarsRef.current = runtime.trackerBars;
+    metronomeTrackerBaseElapsedMsRef.current = runtime.trackerElapsedMs;
+    metronomeTrackerElapsedUpdateRef.current = runtime.trackerElapsedMs;
+    setMetronomeMeasureCount(runtime.trackerBars);
+    setMetronomeTrackerElapsedMs(runtime.trackerElapsedMs);
+  }, []);
+
   const startMetronomePractice = useCallback(async () => {
     stopBackingScheduler();
     ensureAudioContext();
@@ -18731,11 +18843,14 @@ function App({ onReady }) {
     lastBeatRef.current = -1;
     countInActiveRef.current = metronomeCountInRef.current;
     countInTimeRef.current = 0;
-    lastAutoBpmMeasureRef.current = 0;
-    lastAutoBpmTimeRef.current = 0;
     metronomeTrackerBaseBarsRef.current = metronomeMeasureCount;
     metronomeTrackerBaseElapsedMsRef.current = metronomeTrackerElapsedMs;
     metronomeTrackerElapsedUpdateRef.current = metronomeTrackerElapsedMs;
+    metronomeRuntimeRef.current = createMetronomeRuntimeState({
+      trackerBars: metronomeMeasureCount,
+      trackerElapsedMs: metronomeTrackerElapsedMs,
+      trackerMode: metronomeTrackerModeRef.current,
+    });
     setBeat(0);
     setAutoBpmIncrements(0);
     setMetronomeIsMutedCycle(false);
@@ -18754,11 +18869,10 @@ function App({ onReady }) {
     lastBeatRef.current = -1;
     countInActiveRef.current = false;
     countInTimeRef.current = 0;
-    lastAutoBpmMeasureRef.current = 0;
-    lastAutoBpmTimeRef.current = 0;
     metronomeTrackerBaseBarsRef.current = 0;
     metronomeTrackerBaseElapsedMsRef.current = 0;
     metronomeTrackerElapsedUpdateRef.current = 0;
+    metronomeRuntimeRef.current = createMetronomeRuntimeState();
     setBeat(0);
     setMetronomeMeasureCount(0);
     setMetronomeTrackerElapsedMs(0);
@@ -18772,22 +18886,18 @@ function App({ onReady }) {
   const stopMetronomePlayback = useCallback(() => {
     if (appModeRef.current !== APP_MODES.METRONOME) return;
     cancelCountInVoice();
+    syncMetronomeTrackerFromRuntime();
     gameTimeRef.current = 0;
     lastBeatRef.current = -1;
     countInActiveRef.current = false;
     countInTimeRef.current = 0;
-    lastAutoBpmMeasureRef.current = 0;
-    lastAutoBpmTimeRef.current = 0;
-    metronomeTrackerBaseBarsRef.current = metronomeMeasureCount;
-    metronomeTrackerBaseElapsedMsRef.current = metronomeTrackerElapsedMs;
-    metronomeTrackerElapsedUpdateRef.current = metronomeTrackerElapsedMs;
     setBeat(0);
     setAutoBpmIncrements(0);
     setMetronomeIsMutedCycle(false);
     setStage3MeasureProgress(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, metronomeMeasureCount, metronomeTrackerElapsedMs, setState]);
+  }, [cancelCountInVoice, setState, syncMetronomeTrackerFromRuntime]);
 
   const pauseGame = useCallback(() => {
     if (gameStateRef.current !== GAME_STATES.PLAYING) return;
@@ -18877,6 +18987,7 @@ function App({ onReady }) {
     const nextBpm = clampBpm(value);
     bpmRef.current = nextBpm;
     setBpm(nextBpm);
+    if (appModeRef.current === APP_MODES.METRONOME) return;
     patternRef.current = 0;
     practiceCompletedRef.current = false;
     gameTimeRef.current = 0;
@@ -20323,6 +20434,7 @@ function App({ onReady }) {
   }, []);
 
   const showShooterMode = useCallback(() => {
+    if (appModeRef.current === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
     stopBackingScheduler();
     setUtilityMenuOpen(false);
     setStage3StorageOpen(false);
@@ -20345,7 +20457,7 @@ function App({ onReady }) {
     setBeat(0);
     setFeedback("Start Shooter");
     setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
-  }, [advanceShooterMap, setState, stopBackingScheduler]);
+  }, [advanceShooterMap, setState, stopBackingScheduler, syncMetronomeTrackerFromRuntime]);
 
   const showMetronomeMode = useCallback(() => {
     releaseControlPressState();
@@ -20376,6 +20488,7 @@ function App({ onReady }) {
   }, [cancelCountInVoice, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
 
   const showTunerMode = useCallback(() => {
+    if (appModeRef.current === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
     if (appModeRef.current !== APP_MODES.TUNER) {
       if (tunerHasEnteredRef.current) {
         setTunerBackgroundIndex((current) => (current + 1) % TUNER_BACKGROUND_COUNT);
@@ -20401,9 +20514,10 @@ function App({ onReady }) {
     setBeat(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, setState, stopBackingScheduler, stopMic]);
+  }, [cancelCountInVoice, setState, stopBackingScheduler, stopMic, syncMetronomeTrackerFromRuntime]);
 
   const showFretboardViewer = useCallback(() => {
+    if (appModeRef.current === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
     releaseControlPressState();
     stopBackingScheduler();
     stopMic();
@@ -20422,10 +20536,11 @@ function App({ onReady }) {
     setBeat(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
-  }, [setState, stopBackingScheduler, stopMic]);
+  }, [setState, stopBackingScheduler, stopMic, syncMetronomeTrackerFromRuntime]);
 
   const showDesignLab = useCallback(() => {
     if (!designLabEnabled) return;
+    if (appModeRef.current === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
     stopMic();
     setUtilityMenuOpen(false);
     setStage3StorageOpen(false);
@@ -20442,10 +20557,11 @@ function App({ onReady }) {
     setBeat(0);
     setFeedback("Design Lab");
     setState(GAME_STATES.IDLE);
-  }, [designLabEnabled, setState, stopMic]);
+  }, [designLabEnabled, setState, stopMic, syncMetronomeTrackerFromRuntime]);
 
   const showAudioStudio = useCallback(() => {
     if (!audioStudioEnabled) return;
+    if (appModeRef.current === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
     stopBackingScheduler();
     stopMic();
     setUtilityMenuOpen(false);
@@ -20460,7 +20576,7 @@ function App({ onReady }) {
     setBeat(0);
     setFeedback("Audio Studio");
     setState(GAME_STATES.IDLE);
-  }, [audioStudioEnabled, setState, stopBackingScheduler, stopMic]);
+  }, [audioStudioEnabled, setState, stopBackingScheduler, stopMic, syncMetronomeTrackerFromRuntime]);
 
   const selectAppTheme = useCallback((nextTheme) => {
     const normalizedTheme = normalizeAppTheme(nextTheme);
@@ -20844,8 +20960,6 @@ function App({ onReady }) {
 
   useEffect(() => {
     autoBpmModeRef.current = autoBpmMode;
-    autoBpmEnabledRef.current = autoBpmMode !== "off";
-    setAutoBpmEnabled(autoBpmMode !== "off");
     if (autoBpmMode === "off" && metronomeTrackerModeRef.current !== "bars") {
       setMetronomeMeasureCount(0);
     }
@@ -24061,7 +24175,10 @@ function App({ onReady }) {
                       type="button"
                     >
                       <span aria-hidden="true">{expanded ? "▾" : "▸"}</span>
-                      <strong>{section.title}</strong>
+                      <span className="helpAccordionTitle">
+                        <strong>{section.title}</strong>
+                        {section.badge ? <em className={`helpAccordionBadge helpAccordionBadge--${section.badge.toLowerCase()}`}>{section.badge}</em> : null}
+                      </span>
                     </button>
                     {expanded ? (
                       <div className="helpAccordionContent">
@@ -26045,7 +26162,7 @@ function App({ onReady }) {
             <button
               aria-controls="metronome-advanced-panel"
               aria-expanded={metronomeAdvancedPanel === "tracker"}
-              className={`metronomeAdvancedSummary ${metronomeAdvancedPanel === "tracker" ? "selected" : ""} ${metronomeTrackerMode !== "off" || metronomeCountInBars > 0 ? "active" : ""}`}
+              className={`metronomeAdvancedSummary ${metronomeAdvancedPanel === "tracker" ? "selected" : ""} ${trackerIsActive ? "active" : ""}`}
               onClick={() => toggleMetronomeAdvancedPanel("tracker")}
               type="button"
             >
