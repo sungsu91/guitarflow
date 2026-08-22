@@ -113,18 +113,25 @@ import {
   SHOOTER_PLAY_HELP_LEVELS,
   getShooterPlayHelpMessage,
 } from "./shooter/playHelp.js";
-import MapSkinRenderer from "./shooter/maps/MapSkinRenderer";
+import ShootingMapRenderer from "./shooter/maps/ShootingMapRenderer";
 import MapEditPanel from "./shooter/maps/editor/MapEditPanel";
 import useMapEditMode from "./shooter/maps/editor/useMapEditMode";
 import { getShooterMapRuntimePerformance } from "./shooter/maps/performancePolicy.js";
 import { applyShooterEffectTuning } from "./shooter/effects/effectTuning.js";
 import useShooterEffectTuning from "./shooter/effects/useShooterEffectTuning.js";
 import {
+  DEVELOPER_SHOOTER_MAP_SKINS,
   LAYERED_SHOOTER_MAP_SKINS,
   getNextShooterMapId,
   getShooterMapAssetSources,
   isLayeredShooterMap,
+  isPseudo3DShooterMap,
 } from "./shooter/maps/registry";
+import {
+  DEFAULT_PSEUDO3D_SETTINGS,
+  normalizePseudo3DSettings,
+  projectGameplayPointToPseudo3D,
+} from "./shooter/pseudo3d/projection.js";
 import {
   createMountedModeSet,
   getCachedModeElement,
@@ -6988,6 +6995,7 @@ const SHOOTER_MAP_OPTIONS = [
     description: "기본 슈팅 배경",
   },
   ...LAYERED_SHOOTER_MAP_SKINS,
+  ...(import.meta.env.DEV ? DEVELOPER_SHOOTER_MAP_SKINS : []),
 ];
 const SHOOTER_MAP_LEGACY_ID_MAP = {
   "classic-wood": "river-garden",
@@ -11301,7 +11309,9 @@ const LEGACY_PRACTICE_CATEGORIES = [
 const HELP_GUIDE_SECTIONS = [
   {
     id: "welcome",
-    title: "Welcome to FRETIVA LAB",
+    title: "👋 FRETIVA LAB에 오신 것을 환영합니다",
+    summary: "앱을 만든 이유와 전하고 싶은 이야기",
+    group: "start",
     content: (
       <>
         <p>안녕하세요. FRETIVA LAB을 사용해주셔서 감사합니다.</p>
@@ -11322,7 +11332,9 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "single-note",
-    title: "01 · 단일음",
+    title: "🎯 01 · 단일음 연습",
+    summary: "개방현과 0~3프렛을 익히는 첫 단계",
+    group: "practice",
     content: (
       <>
         <p>기타 지판을 처음 익힐 때 사용하는 기초 훈련입니다.</p>
@@ -11337,17 +11349,19 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "scale-pentatonic",
-    title: "02 · 스케일 · 펜타토닉",
+    title: "🎸 02 · 스케일 · 펜타토닉",
+    summary: "조성과 박스 패턴을 지판에서 연결하기",
+    group: "practice",
     content: (
       <>
-        <p>Major / Minor Scale과 Pentatonic을 지판 위에서 연습할 수 있습니다.</p>
-        <p>각 Key와 <b>BOX 1~5</b>를 바로 선택할 수 있도록 구성되어 있습니다.</p>
-        <p>BOX 패턴은 하나의 구조를 익히면 Key에 따라 지판에서 위치를 이동하여 활용할 수 있습니다. 예를 들어 C에서 패턴을 충분히 익힌 뒤 다른 Key로 이동하면서 같은 구조를 연결해서 연습할 수 있습니다.</p>
-        <p>원하는 Key와 BOX를 선택하면 해당 위치를 바로 확인할 수 있습니다.</p>
-        <strong>Backing Loop</strong>
-        <p>스케일 화면 하단의 Backing Loop를 함께 활용할 수 있습니다.</p>
-        <div className="helpFlow helpFlow--example" aria-label="C Key 코드 진행을 녹음하고 반복 재생한 뒤 C Scale 또는 C Pentatonic 연주">
-          <span>C Key 코드 진행 녹음</span><i aria-hidden="true">→</i><span>Loop 재생</span><i aria-hidden="true">→</i><span>C Scale 또는 C Pentatonic 연주</span>
+        <p>메이저·마이너 스케일과 펜타토닉을 지판 위에서 연습할 수 있습니다.</p>
+        <p>각 조성(Key)과 <b>박스 1~5</b>를 바로 선택할 수 있도록 구성되어 있습니다.</p>
+        <p>박스 패턴은 하나의 구조를 익히면 조성에 따라 지판에서 위치를 이동하여 활용할 수 있습니다. 예를 들어 C에서 패턴을 충분히 익힌 뒤 다른 조성으로 이동하면서 같은 구조를 연결해보세요.</p>
+        <p>원하는 조성과 박스를 선택하면 해당 위치를 바로 확인할 수 있습니다.</p>
+        <strong>반복 반주 · Backing Loop</strong>
+        <p>스케일 화면 하단의 반복 반주 기능을 함께 활용할 수 있습니다.</p>
+        <div className="helpFlow helpFlow--example" aria-label="C 조성 코드 진행을 녹음하고 반복 재생한 뒤 C 스케일 또는 C 펜타토닉 연주">
+          <span>C 조성 코드 진행 녹음</span><i aria-hidden="true">→</i><span>반복 재생</span><i aria-hidden="true">→</i><span>C 스케일 또는 펜타토닉 연주</span>
         </div>
         <p>패턴의 위치만 반복해서 외우는 것보다 실제 반주 위에서 직접 음을 사용해보는 데 도움이 됩니다.</p>
       </>
@@ -11355,7 +11369,9 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "rhythm-chord",
-    title: "03 · 리듬코드",
+    title: "🔥 03 · 리듬코드",
+    summary: "박자에 맞춰 코드 전환 속도 높이기",
+    group: "practice",
     content: (
       <>
         <p><b>코드 전환을 박자에 맞춰 연습하는 모드</b>입니다.</p>
@@ -11370,60 +11386,68 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "mini-backing",
-    title: "04 · 미니반주",
+    title: "🎼 04 · 미니반주",
+    summary: "코드와 마디를 입력해 연습 반주 만들기",
+    group: "practice",
     content: (
       <>
         <p>직접 코드와 마디를 입력하여 <b>나만의 간단한 연습용 반주</b>를 만들 수 있습니다.</p>
-        <p>악보를 입력한 뒤 <b>Piano / Bass / Drum</b>을 설정하고 각 악기의 리듬을 조절하여 기타 연습용 반주로 사용할 수 있습니다.</p>
-        <strong>Arrangement</strong>
+        <p>악보를 입력한 뒤 <b>피아노 / 베이스 / 드럼</b>을 설정하고 각 악기의 리듬을 조절하여 기타 연습용 반주로 사용할 수 있습니다.</p>
+        <strong>구간별 편곡 · Arrangement</strong>
         <p>편곡 기능을 이용하면 곡 전체를 같은 반주로 재생하지 않아도 됩니다.</p>
         <p>원하는 마디 구간을 선택하고 구간별로 서로 다른 리듬과 반주를 설정할 수 있습니다.</p>
         <div className="helpSectionTags" aria-label="인트로, 벌스, 코러스, 브리지">
-          <span>INTRO</span><span>VERSE</span><span>CHORUS</span><span>BRIDGE</span>
+          <span>인트로 · INTRO</span><span>벌스 · VERSE</span><span>코러스 · CHORUS</span><span>브리지 · BRIDGE</span>
         </div>
-        <p>Verse는 차분하게, Chorus는 조금 더 강하게 만드는 식으로 직접 곡의 흐름을 만들어보세요.</p>
+        <p>벌스는 차분하게, 코러스는 조금 더 강하게 만드는 식으로 직접 곡의 흐름을 만들어보세요.</p>
       </>
     ),
   },
   {
     id: "metronome",
-    title: "METRONOME",
-    badge: "CORE",
+    title: "⏱️ 메트로놈",
+    summary: "박자부터 무음 훈련·자동 템포까지",
+    group: "tools",
+    badge: "핵심",
+    badgeTone: "core",
     content: (
       <>
         <p>FRETIVA LAB의 주요 연습 기능 중 하나입니다.</p>
         <p>기본적인 BPM과 박자 설정뿐 아니라 반복 연습을 위한 여러 보조 기능을 함께 사용할 수 있습니다.</p>
-        <strong>Accent</strong>
+        <strong>악센트 설정 · Accent</strong>
         <p>메인 화면의 각 박을 직접 눌러 <b>강박 · 약박 · Mute</b>를 지정할 수 있습니다.</p>
         <p>같은 박자에서도 원하는 위치에 Accent를 주어 다양한 리듬으로 연습할 수 있습니다.</p>
         <strong>빠른 조작</strong>
         <p>메인 화면에서 <b>좌우 조작으로 박자를 변경</b>할 수 있습니다.</p>
         <p>화면 하단의 구분 영역을 위로 올리면 추가 연습 기능도 사용할 수 있습니다.</p>
-        <strong>Backing Loop</strong>
+        <strong>반복 반주 · Backing Loop</strong>
         <p>메트로놈을 사용하면서 반주나 연주를 <b>바로 녹음하고 반복 재생</b>할 수 있습니다.</p>
         <p>기기에 저장된 오디오 파일을 불러와 재생하는 것도 가능합니다. 특정 구간이나 반주를 계속 반복하면서 메트로놈과 함께 연습하고 싶을 때 활용해보세요.</p>
-        <strong>Coach Mode</strong>
+        <strong>무음 박자 훈련 · Coach Mode</strong>
         <p>메트로놈 소리가 들리는 구간과 들리지 않는 구간을 반복하여 <b>내부 박자감</b>을 훈련합니다.</p>
-        <p>Sound / Mute 마디를 설정하면 클릭이 일정 마디 동안 재생된 뒤 사라집니다. 소리가 사라져도 같은 템포를 유지해보고, 클릭이 다시 돌아왔을 때 내 박자가 얼마나 정확했는지 확인해보세요.</p>
-        <strong>Automator</strong>
+        <p>소리(Sound) / 무음(Mute) 마디를 설정하면 클릭이 일정 마디 동안 재생된 뒤 사라집니다. 소리가 사라져도 같은 템포를 유지해보고, 클릭이 다시 돌아왔을 때 내 박자가 얼마나 정확했는지 확인해보세요.</p>
+        <strong>자동 템포 조절 · Automator</strong>
         <p>연습 중 BPM을 자동으로 변화시킬 수 있습니다.</p>
         <p>시간 또는 마디를 기준으로 BPM을 단계적으로 올리거나 내려서, 천천히 시작해 점차 속도를 높이는 반복 연습에 활용할 수 있습니다.</p>
-        <strong>Tracker</strong>
+        <strong>연습량 기록 · Tracker</strong>
         <p>연습 진행량을 확인하고 반복 연습을 관리하는 데 사용할 수 있습니다.</p>
       </>
     ),
   },
   {
     id: "shooter",
-    title: "SHOOTING GAME",
-    badge: "CORE",
+    title: "👾 슈팅게임",
+    summary: "게임으로 프렛 위치를 반복 학습하기",
+    group: "tools",
+    badge: "핵심",
+    badgeTone: "core",
     content: (
       <>
         <p className="helpSlogan"><b>지판 암기를 조금 더 재미있게 해보자!</b></p>
         <p>라는 생각으로 만든 게임형 훈련입니다.</p>
         <p>화면에 나타나는 목표음을 확인하고 해당 음이 있는 프렛 위치를 찾아 플레이합니다.</p>
         <p>단순히 지판을 보고 외우는 대신 반복적으로 게임을 하면서 자연스럽게 프렛 위치에 익숙해지는 것이 목적입니다.</p>
-        <strong>Skin</strong>
+        <strong>꾸미기 · Skin</strong>
         <p>기타와 다양한 시각 효과를 원하는 스타일로 변경할 수 있습니다.</p>
         <p>마음에 드는 조합으로 꾸미고 편하게 플레이해보세요.</p>
         <p>점수만 올리는 게임이라기보다 <b>놀면서 지판 위치를 반복해서 보는 연습</b>으로 활용하면 좋습니다.</p>
@@ -11432,19 +11456,24 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "tuner",
-    title: "TUNER",
+    title: "🎵 튜너",
+    summary: "연습 전에 악기의 음정을 정확하게 맞추기",
+    group: "tools",
     content: (
       <>
         <p>악기의 음정을 확인하고 조율할 수 있습니다.</p>
-        <p>기타의 <b>Standard Tuning</b>을 비롯한 다양한 튜닝을 선택할 수 있으며 <b>Guitar / Bass / Ukulele</b>에 맞춰 사용할 수 있습니다.</p>
+        <p>기타의 <b>표준 튜닝(Standard Tuning)</b>을 비롯한 다양한 튜닝을 선택할 수 있으며 <b>기타 / 베이스 / 우쿨렐레</b>에 맞춰 사용할 수 있습니다.</p>
         <p>연습을 시작하기 전에 먼저 악기의 튜닝을 확인해보세요.</p>
       </>
     ),
   },
   {
     id: "fretboard-viewer",
-    title: "지판 보기",
-    badge: "HOT",
+    title: "🗺️ 지판 보기",
+    summary: "음·코드·스케일 위치를 빠르게 찾아보기",
+    group: "tools",
+    badge: "인기",
+    badgeTone: "hot",
     content: (
       <>
         <p>연습 중 필요한 음과 코드의 위치를 빠르게 확인할 수 있는 <b>지판 참고 도구</b>입니다.</p>
@@ -11455,31 +11484,51 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "sound-rhythm",
-    title: "SOUND & RHYTHM",
+    title: "🎛️ 사운드 & 리듬 설정",
+    summary: "반주 악기와 공통 리듬을 한곳에서 관리하기",
+    group: "settings",
     content: (
       <>
         <p>리듬코드와 미니반주에서 사용하는 <b>공통 사운드 및 기본 리듬 설정</b>을 관리합니다.</p>
-        <p>Drum / Bass / Piano 등의 기본 리듬과 관련 설정을 한 곳에서 조정하고, 관련 연습 모드에서 공통으로 활용할 수 있습니다.</p>
+        <p>드럼 / 베이스 / 피아노 등의 기본 리듬과 관련 설정을 한 곳에서 조정하고, 관련 연습 모드에서 공통으로 활용할 수 있습니다.</p>
       </>
     ),
   },
   {
     id: "shared-features",
-    title: "알아두면 좋은 공통 기능",
+    title: "🧭 화면과 공통 기능",
+    summary: "아래 내비게이션과 기능 연결부터 확인하세요",
+    group: "start",
     content: (
       <>
-        <p>메트로놈의 박자 표시를 직접 눌러 각 박을 <b>강박 / 약박 / Mute</b>로 설정할 수 있습니다.</p>
-        <p>처음부터 빠른 BPM으로 연주하기보다는 정확하게 연주할 수 있는 속도에서 시작해 조금씩 올려보세요. Automator를 이용하면 이러한 단계별 연습을 편하게 진행할 수 있습니다.</p>
-        <p>그리고 각 기능을 꼭 따로 사용할 필요는 없습니다.</p>
+        <div className="helpFactCard">
+          <strong>화면 아래 내비게이션</strong>
+          <p>자주 사용하는 도구는 어느 화면에서든 아래 고정 메뉴로 바로 이동할 수 있습니다.</p>
+        </div>
+        <div className="helpNavMap" aria-label="화면 아래 내비게이션 안내">
+          <div><b>🎵 튜너</b><span>악기 음정 맞추기</span></div>
+          <div><b>🗺️ 지판 보기</b><span>음·코드 위치 찾기</span></div>
+          <div><b>⏱️ 메트로놈</b><span>박자와 템포 연습</span></div>
+          <div><b>👾 슈팅게임</b><span>게임으로 지판 익히기</span></div>
+          <div><b>⚙️ 메뉴</b><span>연습 모드와 설정 열기</span></div>
+        </div>
+        <p className="helpInfoNote"><b>단일음·스케일·리듬코드·미니반주</b>는 메뉴에서 선택할 수 있습니다.</p>
+        <strong>공통으로 알아두기</strong>
+        <ul className="helpFactList">
+          <li>메트로놈의 박자 표시를 누르면 각 박을 <b>강박 / 약박 / 무음</b>으로 바꿀 수 있습니다.</li>
+          <li>정확하게 연주할 수 있는 속도에서 시작한 뒤 자동 템포 조절 기능으로 조금씩 올려보세요.</li>
+          <li>각 기능은 따로 쓰기보다 서로 연결해서 사용할 때 연습 효과가 더 좋습니다.</li>
+        </ul>
+        <strong>함께 쓰면 좋은 기능</strong>
         <ul className="helpFeatureMap">
           <li><b>단일음</b><span>지판의 기초</span></li>
           <li><b>지판 보기</b><span>필요한 음과 코드 확인</span></li>
-          <li><b>Scale / Pentatonic</b><span>지판 패턴 연결</span></li>
-          <li><b>Backing Loop</b><span>반주 위에서 스케일 연주</span></li>
+          <li><b>스케일 · 펜타토닉</b><span>지판 패턴 연결</span></li>
+          <li><b>반복 반주</b><span>반주 위에서 스케일 연주</span></li>
           <li><b>리듬코드</b><span>코드 전환 연습</span></li>
           <li><b>미니반주</b><span>직접 만든 반주와 기타 연주</span></li>
-          <li><b>Metronome</b><span>박자와 템포 훈련</span></li>
-          <li><b>Shooting Game</b><span>게임으로 지판 반복 학습</span></li>
+          <li><b>메트로놈</b><span>박자와 템포 훈련</span></li>
+          <li><b>슈팅게임</b><span>게임으로 지판 반복 학습</span></li>
         </ul>
         <p>자신에게 지금 필요한 기능부터 하나씩 사용해보세요.</p>
         <div className="helpSignature" aria-label="FRETIVA LAB, Play Practice Enjoy">
@@ -11492,6 +11541,8 @@ const HELP_GUIDE_SECTIONS = [
   {
     id: "feedback",
     title: "💬 피드백 보내기",
+    summary: "불편한 점과 새로운 아이디어를 알려주세요",
+    group: "settings",
     content: (
       <>
         <p>사용 중 불편한 점, 오류, 추가되었으면 하는 기능이 있다면 알려주세요.</p>
@@ -11509,6 +11560,32 @@ const HELP_GUIDE_SECTIONS = [
     ),
   },
 ];
+
+const HELP_GUIDE_SECTION_ORDER = [
+  "welcome",
+  "shared-features",
+  "single-note",
+  "scale-pentatonic",
+  "rhythm-chord",
+  "mini-backing",
+  "metronome",
+  "shooter",
+  "tuner",
+  "fretboard-viewer",
+  "sound-rhythm",
+  "feedback",
+];
+
+const HELP_GUIDE_GROUP_LABELS = {
+  start: "먼저 보기",
+  practice: "기초 연습",
+  tools: "핵심 도구",
+  settings: "설정과 지원",
+};
+
+const ORDERED_HELP_GUIDE_SECTIONS = HELP_GUIDE_SECTION_ORDER
+  .map((sectionId) => HELP_GUIDE_SECTIONS.find((section) => section.id === sectionId))
+  .filter(Boolean);
 // Legacy backup:
 // The old falling-note / hitbox rhythm game renderer is preserved behind
 // LEGACY_PRACTICE_RENDERING_ENABLED. Active stages now use reference-fretboard
@@ -14044,6 +14121,10 @@ function App({ onReady }) {
       ? getNextShooterMapId(storedMapId)
       : storedMapId;
   });
+  const [pseudo3dTuningState, setPseudo3dTuningState] = useState(() => ({
+    mapId: "",
+    settings: normalizePseudo3DSettings(DEFAULT_PSEUDO3D_SETTINGS),
+  }));
   const [shooterRecords, setShooterRecords] = useState(() => RecordService.getShooterRecords());
   const [showShooterRecords, setShowShooterRecords] = useState(false);
   const [shooterLives, setShooterLives] = useState(SHOOTER_MAX_LIVES);
@@ -14110,6 +14191,21 @@ function App({ onReady }) {
   const selectedAuraEffect = selectedShooterAuraEffect;
   const selectedFloorEffect = selectedShooterFloorEffect;
   const selectedMap = selectedShooterMap;
+  const selectedMapIsPseudo3D = isPseudo3DShooterMap(selectedMap);
+  const selectedPseudo3DDefaults = useMemo(
+    () => normalizePseudo3DSettings(selectedMap?.pseudo3d ?? DEFAULT_PSEUDO3D_SETTINGS),
+    [selectedMap],
+  );
+  const selectedPseudo3DSettings = pseudo3dTuningState.mapId === selectedMap.id
+    ? pseudo3dTuningState.settings
+    : selectedPseudo3DDefaults;
+  const updateSelectedPseudo3DSettings = useCallback((nextSettings) => {
+    if (!isPseudo3DShooterMap(selectedMap)) return;
+    setPseudo3dTuningState({
+      mapId: selectedMap.id,
+      settings: normalizePseudo3DSettings(nextSettings),
+    });
+  }, [selectedMap]);
   const mapEditor = useMapEditMode(selectedMap, !isMobileLayout);
   const commitShooterEffectEditorLoadout = useCallback(async (effectIds) => {
     const nextLoadout = normalizeShooterEffectLoadout(effectIds);
@@ -14149,7 +14245,12 @@ function App({ onReady }) {
   const selectedGuitarCategory = SHOOTER_GUITAR_CATEGORY_OPTIONS.find(
     (option) => option.id === getShooterGuitarCategoryId(selectedGuitar.id),
   ) ?? SHOOTER_GUITAR_CATEGORY_OPTIONS[0];
-  const selectedMapStyle = useMemo(() => getShooterMapCssVars(selectedMap), [selectedMap]);
+  const selectedMapStyle = useMemo(() => ({
+    ...(getShooterMapCssVars(selectedMap) ?? {}),
+    ...(selectedMapIsPseudo3D ? {
+      "--pseudo3d-horizon": `${selectedPseudo3DSettings.horizon * 100}%`,
+    } : {}),
+  }), [selectedMap, selectedMapIsPseudo3D, selectedPseudo3DSettings.horizon]);
   const selectedMapIsDefault = selectedMap.id === "none";
   const selectedMapIsLayered = isLayeredShooterMap(selectedMap);
   const selectedMapSkinClassName = selectedMapIsDefault ? "" : `shooterMapSkin shooterMapSkin--${selectedMap.id}`;
@@ -17379,14 +17480,22 @@ function App({ onReady }) {
 
   const applyShooterProjectileTransform = useCallback((projectile, pointPercent, progress = 0) => {
     const node = projectileNodesRef.current.get(projectile?.id);
-    const point = getShooterArenaPoint(pointPercent.x, pointPercent.y);
-    if (!node || !point) return;
+    const arenaSize = getShooterArenaSize();
+    const gameplayPoint = getShooterArenaPoint(pointPercent.x, pointPercent.y);
+    if (!node || !gameplayPoint) return;
+    const projection = selectedMapIsPseudo3D
+      ? projectGameplayPointToPseudo3D(pointPercent, selectedPseudo3DSettings, arenaSize)
+      : null;
+    const point = projection
+      ? { x: projection.screenX, y: projection.screenY }
+      : gameplayPoint;
     const visualAngle = (Number(projectile.angle) || 0) - 90 + (Number(projectile.spin) || 0) * progress;
-    const scale = 0.74 + Math.min(1, Math.max(0, progress)) * 0.26;
-    projectile.currentScale = scale;
+    const gameplayScale = 0.74 + Math.min(1, Math.max(0, progress)) * 0.26;
+    const visualScale = gameplayScale * (projection?.scale ?? 1);
+    projectile.currentScale = gameplayScale;
     if (node.style.opacity !== "1") node.style.opacity = "1";
-    node.style.transform = `translate3d(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px, 0) translate(-50%, -50%) rotate(${visualAngle.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
-  }, [getShooterArenaPoint]);
+    node.style.transform = `translate3d(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px, 0) translate(-50%, -50%) rotate(${visualAngle.toFixed(2)}deg) scale(${visualScale.toFixed(3)})`;
+  }, [getShooterArenaPoint, getShooterArenaSize, selectedMapIsPseudo3D, selectedPseudo3DSettings]);
 
   const updateShooterHitboxDebug = useCallback((force = false) => {
     if (!shooterHitboxDebugEnabled) return;
@@ -17484,14 +17593,46 @@ function App({ onReady }) {
   const applyShooterTargetTransform = useCallback((target, y = getShooterTargetYAt(target, gameTimeRef.current), syncEffectPosition = false) => {
     const node = shooterTargetNodesRef.current.get(target?.id);
     if (!node || !target) return;
-    const point = getShooterArenaPoint(target.x, y);
-    if (!point) return;
+    const arenaSize = getShooterArenaSize();
+    const gameplayPoint = getShooterArenaPoint(target.x, y);
+    if (!gameplayPoint) return;
+    const projection = selectedMapIsPseudo3D
+      ? projectGameplayPointToPseudo3D({ x: target.x, y }, selectedPseudo3DSettings, arenaSize)
+      : null;
+    const point = projection
+      ? { x: projection.screenX, y: projection.screenY }
+      : gameplayPoint;
     if (syncEffectPosition) {
       node.style.setProperty("--target-x-px", `${point.x.toFixed(2)}px`);
       node.style.setProperty("--target-y-px", `${point.y.toFixed(2)}px`);
     }
-    node.style.transform = `translate3d(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px, 0) translate(-50%, -50%)`;
-  }, [getShooterArenaPoint]);
+    if (projection) {
+      node.style.setProperty("--pseudo3d-depth", projection.depth.toFixed(3));
+      node.style.zIndex = String(3 + Math.round(projection.depth * 8));
+      node.style.transform = `translate3d(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px, 0) translate(-50%, -50%) scale(${projection.scale.toFixed(3)})`;
+    } else {
+      node.style.removeProperty("--pseudo3d-depth");
+      node.style.removeProperty("z-index");
+      node.style.transform = `translate3d(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px, 0) translate(-50%, -50%)`;
+    }
+  }, [getShooterArenaPoint, getShooterArenaSize, selectedMapIsPseudo3D, selectedPseudo3DSettings]);
+
+  useLayoutEffect(() => {
+    shooterTargetsRef.current.forEach((target) => {
+      applyShooterTargetTransform(target, target.y);
+    });
+    projectilesRef.current.forEach((projectile) => {
+      const point = {
+        x: projectile.currentX ?? projectile.startX,
+        y: projectile.currentY ?? projectile.startY,
+      };
+      const progress = Math.max(0, Math.min(
+        1,
+        (gameTimeRef.current - projectile.bornAt) / Math.max(1, projectile.duration),
+      ));
+      applyShooterProjectileTransform(projectile, point, progress);
+    });
+  }, [applyShooterProjectileTransform, applyShooterTargetTransform]);
 
   const getShooterTargetNodeRef = useCallback((targetId) => {
     const existing = shooterTargetRefCallbacksRef.current.get(targetId);
@@ -23978,7 +24119,7 @@ function App({ onReady }) {
                   <span className="utilityMenuIcon" aria-hidden="true"><AudioLines size={19} /></span>
                   <div className="utilityMenuText">
                     <strong>오디오 스튜디오 <em className="utilityMenuDevBadge">DEV</em></strong>
-                    <small>TRACK CONSTRUCTION</small>
+                    <small>MIX &amp; AUDIO LIBRARY</small>
                   </div>
                   <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
                 </button>
@@ -24151,6 +24292,7 @@ function App({ onReady }) {
               <div>
                 <span>FRETIVA LAB Guide</span>
                 <strong>사용설명서 & 도움말</strong>
+                <small>화면 안내부터 추천 연습 흐름까지</small>
               </div>
               <button
                 aria-label="닫기"
@@ -24164,28 +24306,42 @@ function App({ onReady }) {
               </button>
             </div>
             <div className="helpAccordion">
-              {HELP_GUIDE_SECTIONS.map((section) => {
+              {ORDERED_HELP_GUIDE_SECTIONS.map((section, sectionIndex) => {
                 const expanded = openHelpSectionId === section.id;
+                const previousGroup = ORDERED_HELP_GUIDE_SECTIONS[sectionIndex - 1]?.group;
+                const showGroupLabel = section.group !== previousGroup;
                 return (
-                  <article className={`helpAccordionItem ${expanded ? "open" : ""}`} key={section.id}>
-                    <button
-                      aria-expanded={expanded}
-                      className="helpAccordionTrigger"
-                      onClick={() => setOpenHelpSectionId(expanded ? "" : section.id)}
-                      type="button"
-                    >
-                      <span aria-hidden="true">{expanded ? "▾" : "▸"}</span>
-                      <span className="helpAccordionTitle">
-                        <strong>{section.title}</strong>
-                        {section.badge ? <em className={`helpAccordionBadge helpAccordionBadge--${section.badge.toLowerCase()}`}>{section.badge}</em> : null}
-                      </span>
-                    </button>
-                    {expanded ? (
-                      <div className="helpAccordionContent">
-                        {section.content}
+                  <section className="helpAccordionSection" key={section.id}>
+                    {showGroupLabel ? (
+                      <div className={`helpAccordionGroup helpAccordionGroup--${section.group}`}>
+                        <span>{HELP_GUIDE_GROUP_LABELS[section.group]}</span>
                       </div>
                     ) : null}
-                  </article>
+                    <article className={`helpAccordionItem helpAccordionItem--${section.group} ${expanded ? "open" : ""}`}>
+                      <button
+                        aria-expanded={expanded}
+                        className="helpAccordionTrigger"
+                        onClick={() => setOpenHelpSectionId(expanded ? "" : section.id)}
+                        type="button"
+                      >
+                        <span className="helpAccordionChevron" aria-hidden="true">
+                          {expanded ? <ChevronDown size={11} strokeWidth={2.4} /> : <ChevronRight size={11} strokeWidth={2.4} />}
+                        </span>
+                        <span className="helpAccordionCopy">
+                          <span className="helpAccordionTitle">
+                            <strong>{section.title}</strong>
+                            {section.badge ? <em className={`helpAccordionBadge helpAccordionBadge--${section.badgeTone ?? "default"}`}>{section.badge}</em> : null}
+                          </span>
+                          <small>{section.summary}</small>
+                        </span>
+                      </button>
+                      {expanded ? (
+                        <div className="helpAccordionContent">
+                          {section.content}
+                        </div>
+                      ) : null}
+                    </article>
+                  </section>
                 );
               })}
             </div>
@@ -26861,7 +27017,7 @@ function App({ onReady }) {
             ref={shooterArenaRef}
             style={selectedMapStyle}
           >
-            <MapSkinRenderer
+            <ShootingMapRenderer
               ambientEventsActive={shooterMapRuntimePerformance.ambientEventsActive}
               animationsActive={shooterMapAnimationsActive}
               enhancedEffectsActive={shooterMapRuntimePerformance.enhancedEffectsActive}
@@ -26871,7 +27027,11 @@ function App({ onReady }) {
               onAssetSelect={mapEditor.selectInstance}
               onCreatureAnchorPointerDown={mapEditor.beginCreatureAnchorGesture}
               onEventSound={playShooterSound}
+              onPseudo3DSettingsChange={updateSelectedPseudo3DSettings}
               onStagePointerDown={mapEditor.handleStagePointerDown}
+              pseudo3dActive={shooterMapAnimationsActive}
+              pseudo3dDeveloper={import.meta.env.DEV && selectedMapIsPseudo3D}
+              pseudo3dSettings={selectedPseudo3DSettings}
               selectedAssetId={mapEditor.selectedInstanceId}
               skin={selectedMapRenderSkin}
               stage="underlay"
@@ -27223,7 +27383,7 @@ function App({ onReady }) {
                 ))}
               </div>
             ) : null}
-            <MapSkinRenderer
+            <ShootingMapRenderer
               ambientEventsActive={shooterMapRuntimePerformance.ambientEventsActive}
               animationsActive={shooterMapAnimationsActive}
               enhancedEffectsActive={shooterMapRuntimePerformance.enhancedEffectsActive}
@@ -27232,7 +27392,11 @@ function App({ onReady }) {
               onAssetPointerDown={mapEditor.beginAssetGesture}
               onAssetSelect={mapEditor.selectInstance}
               onEventSound={playShooterSound}
+              onPseudo3DSettingsChange={updateSelectedPseudo3DSettings}
               onStagePointerDown={mapEditor.handleStagePointerDown}
+              pseudo3dActive={shooterMapAnimationsActive}
+              pseudo3dDeveloper={import.meta.env.DEV && selectedMapIsPseudo3D}
+              pseudo3dSettings={selectedPseudo3DSettings}
               selectedAssetId={mapEditor.selectedInstanceId}
               skin={selectedMapRenderSkin}
               stage="overlay"

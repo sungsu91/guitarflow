@@ -5,7 +5,6 @@ import {
   buildAudioStudioWaveformPeaks,
   decodeAudioStudioFiles,
   detectAudioStudioBpm,
-  stretchAudioStudioPcm,
 } from "../src/audio-studio/audioStudioAudio.js";
 
 test("Audio Studio multi-import advertises the common mobile audio formats", () => {
@@ -15,7 +14,7 @@ test("Audio Studio multi-import advertises the common mobile audio formats", () 
   }
 });
 
-test("local BPM analysis and pitch-preserving stretch operate on decoded PCM", () => {
+test("local BPM analysis operates on decoded PCM without forcing its estimate", () => {
   const sampleRate = 1_000;
   const samples = new Float32Array(sampleRate * 8);
   for (let beat = 0; beat < 16; beat += 1) {
@@ -29,10 +28,6 @@ test("local BPM analysis and pitch-preserving stretch operate on decoded PCM", (
     sampleRate,
   };
   assert.ok(Math.abs(detectAudioStudioBpm(buffer) - 120) <= 2);
-  const stretched = stretchAudioStudioPcm(buffer, 2);
-  assert.equal(stretched.channels.length, 1);
-  assert.ok(stretched.channels[0].length < samples.length * 0.65);
-  assert.equal(stretched.sampleRate, sampleRate);
 });
 
 test("waveform analysis creates bounded normalized peaks without retaining PCM copies", () => {

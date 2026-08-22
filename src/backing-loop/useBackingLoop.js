@@ -17,12 +17,40 @@ import {
 } from "../audio/audioBus";
 import { registerBackingLoopActivity } from "./activityRegistry.js";
 import {
+  isAudioStudioLibraryId,
+  listAudioStudioBackingSources,
+  loadAudioStudioBackingSource,
+  subscribeAudioStudioBackingSources,
+} from "./audioStudioLibrarySource.js";
+import {
   deleteBackingLoopRecording,
   loadBackingLoopLibrary,
   loadBackingLoopRecording,
   saveBackingLoopRecording,
   subscribeBackingLoopLibrary,
 } from "./backingLoopStorage";
+import {
+  addBackingPlaylistItems,
+  BACKING_PLAYLIST_PLAYBACK_MODES,
+  createDefaultBackingPlaylistState,
+  deleteBackingPlaylistTab,
+  getActiveBackingPlaylist,
+  getBackingPlaylistById,
+  getNextBackingPlaylistRepeatMode,
+  getNextBackingPlaylistIndex,
+  loadSavedBackingPlaylist,
+  loadBackingPlaylistState,
+  moveBackingPlaylistItem,
+  reconcileBackingPlaylistState,
+  removeBackingPlaylistItem,
+  removeBackingPlaylistItems,
+  saveCurrentBackingPlaylist,
+  saveBackingPlaylistState,
+  setBackingPlaylistPlaybackMode,
+  setBackingPlaylistShuffleEnabled,
+  shouldRestartBackingPlaylistTrack,
+  subscribeBackingPlaylist,
+} from "./backingPlaylist";
 import {
   BACKING_AUDIO_FILE_ACCEPT,
   BACKING_AUDIO_SOURCE_TYPES,
@@ -65,15 +93,31 @@ export default function useBackingLoop(ownerMode = "") {
   const [editSourceAudioData, setEditSourceAudioData] = useState(null);
   const [editSourceRecording, setEditSourceRecording] = useState(null);
   const [library, setLibrary] = useState([]);
+  const [libraryHydrated, setLibraryHydrated] = useState(false);
   const [libraryEditMode, setLibraryEditMode] = useState(false);
+  const [libraryView, setLibraryView] = useState("playlist");
+  const [playlistPanelView, setPlaylistPanelView] = useState("queue");
+  const [playlistLibraryPickerOpen, setPlaylistLibraryPickerOpen] = useState(false);
   const [selectedLibraryIds, setSelectedLibraryIds] = useState([]);
   const [notice, setNotice] = useState("");
   const [phase, setPhase] = useState("idle");
   const [recording, setRecording] = useState(null);
   const [recordingAudioData, setRecordingAudioData] = useState(null);
+  const [recordingPaused, setRecordingPaused] = useState(false);
   const [inputLevel, setInputLevel] = useState(EMPTY_INPUT_LEVEL);
   const [importCandidates, setImportCandidates] = useState([]);
   const [importRejectedCount, setImportRejectedCount] = useState(0);
+  const [playlistDeleteTargetId, setPlaylistDeleteTargetId] = useState("");
+  const [playlistItemsDeleteTargetId, setPlaylistItemsDeleteTargetId] = useState("");
+  const [playlistItemsDeleteTargetIds, setPlaylistItemsDeleteTargetIds] = useState([]);
+  const [playlistLibraryTargetId, setPlaylistLibraryTargetId] = useState("");
+  const [playlistRenameDraft, setPlaylistRenameDraft] = useState("");
+  const [playlistSaveTargetId, setPlaylistSaveTargetId] = useState("");
+  const [playlistState, setPlaylistState] = useState(createDefaultBackingPlaylistState);
+  const [playlistPlaybackActive, setPlaylistPlaybackActive] = useState(false);
+  const [selectedQueueItemIds, setSelectedQueueItemIds] = useState([]);
+  const [selectedSavedItemIds, setSelectedSavedItemIds] = useState([]);
+  const [selectedPlaylistItemId, setSelectedPlaylistItemId] = useState("");
   const [saveError, setSaveError] = useState("");
   const [selectedImportCandidateId, setSelectedImportCandidateId] = useState("");
   const [selectedLibraryId, setSelectedLibraryId] = useState("");
@@ -95,14 +139,22 @@ export default function useBackingLoop(ownerMode = "") {
   const micSessionRef = useRef(null);
   const meterStopRef = useRef(null);
   const importInputRef = useRef(null);
+  const importPlaylistTargetIdRef = useRef("");
+  const libraryRef = useRef(library);
   const mountedRef = useRef(true);
   const modeActiveRef = useRef(true);
   const operationVersionRef = useRef(0);
   const phaseRef = useRef("idle");
+  const playlistAutoplayRef = useRef(false);
+  const playlistPlaybackRef = useRef({ itemId: "", playlistId: "" });
+  const playlistStateRef = useRef(playlistState);
   const playbackRequestRef = useRef(false);
   const playbackTimerRef = useRef(null);
   const recordingRequestVersionRef = useRef(0);
+  const recordingPausedAtRef = useRef(0);
+  const recordingPausedTotalRef = useRef(0);
   const recordingStartedAtRef = useRef(0);
+  const recordingStoppedElapsedRef = useRef(0);
   const recordingTimerRef = useRef(null);
   const trimPreviewAudioRef = useRef(null);
   const trimPreviewAudioGraphRef = useRef(null);
@@ -135,6 +187,24 @@ export default function useBackingLoop(ownerMode = "") {
       recordingTimerRef.current = null;
     }
   }, []);
+
+  const getRecordingElapsedMs = useCallback((now = performance.now()) => {
+    const activePauseMs = recordingPausedAtRef.current > 0
+      ? Math.max(0, now - recordingPausedAtRef.current)
+      : 0;
+    return Math.max(
+      0,
+      now - recordingStartedAtRef.current - recordingPausedTotalRef.current - activePauseMs,
+    );
+  }, []);
+
+  const startRecordingTimer = useCallback((mediaRecorder) => {
+    clearRecordingTimer();
+    recordingTimerRef.current = window.setInterval(() => {
+      if (mediaRecorderRef.current !== mediaRecorder || mediaRecorder.state !== "recording") return;
+      setCurrentTimeMs(getRecordingElapsedMs());
+    }, 160);
+  }, [clearRecordingTimer, getRecordingElapsedMs]);
 
   const clearPlaybackTimer = useCallback(() => {
     if (playbackTimerRef.current != null) {
@@ -285,24 +355,70 @@ export default function useBackingLoop(ownerMode = "") {
     mountedRef.current = true;
     let cancelled = false;
 
-    const refreshLibrary = (showStorageNotice = false) => loadBackingLoopLibrary()
+    const refreshLibrary = async (showStorageNotice = false) => {
+      const [backingResult, studioResult] = await Promise.allSettled([
+        loadBackingLoopLibrary(),
+        listAudioStudioBackingSources(),
+      ]);
+      const savedRecordings = backingResult.status === "fulfilled" ? backingResult.value : [];
+      const studioMixes = studioResult.status === "fulfilled" ? studioResult.value : [];
+      if (backingResult.status === "rejected" && studioResult.status === "rejected") {
+        throw new Error("AUDIO_LIBRARY_UNAVAILABLE");
+      }
+      return [...studioMixes, ...savedRecordings]
+        .sort((left, right) => right.updatedAt - left.updatedAt);
+    };
+    const applyLibrary = (showStorageNotice = false) => refreshLibrary(showStorageNotice)
       .then((savedRecordings) => {
-        if (!cancelled) setLibrary(savedRecordings);
+        if (cancelled) return;
+        setLibrary(savedRecordings);
+        setLibraryHydrated(true);
       })
       .catch(() => {
         if (!cancelled && showStorageNotice) {
           setNotice("저장 공간을 사용할 수 없지만 녹음과 재생은 가능합니다.");
         }
       });
-    const unsubscribe = subscribeBackingLoopLibrary(() => refreshLibrary(false));
-    refreshLibrary(true);
+    const unsubscribeBacking = subscribeBackingLoopLibrary(() => applyLibrary(false));
+    const unsubscribeStudio = subscribeAudioStudioBackingSources(() => applyLibrary(false));
+    applyLibrary(true);
 
     return () => {
       cancelled = true;
       mountedRef.current = false;
-      unsubscribe();
+      unsubscribeBacking();
+      unsubscribeStudio();
     };
   }, []);
+
+  useEffect(() => {
+    const refreshPlaylist = (nextPlaylist) => setPlaylistState(nextPlaylist || loadBackingPlaylistState());
+    const unsubscribe = subscribeBackingPlaylist(refreshPlaylist);
+    refreshPlaylist();
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    playlistStateRef.current = playlistState;
+  }, [playlistState]);
+
+  useEffect(() => {
+    libraryRef.current = library;
+  }, [library]);
+
+  useEffect(() => {
+    if (!libraryHydrated) return;
+    const reconciled = reconcileBackingPlaylistState(playlistState, library.map((item) => item.id));
+    const currentIds = [playlistState.currentQueue, ...(playlistState.savedPlaylists || [])]
+      .filter(Boolean)
+      .flatMap((playlist) => playlist.itemIds);
+    const reconciledIds = [reconciled.currentQueue, ...(reconciled.savedPlaylists || [])]
+      .filter(Boolean)
+      .flatMap((playlist) => playlist.itemIds);
+    if (currentIds.length === reconciledIds.length
+      && currentIds.every((id, index) => id === reconciledIds[index])) return;
+    saveBackingPlaylistState(reconciled);
+  }, [library, libraryHydrated, playlistState]);
 
   useEffect(() => {
     if (!recording?.blob) {
@@ -314,6 +430,13 @@ export default function useBackingLoop(ownerMode = "") {
     setAudioUrl(nextAudioUrl);
     return () => URL.revokeObjectURL(nextAudioUrl);
   }, [recording?.blob]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.loop = !playlistPlaybackActive
+      || playlistState.playbackMode === BACKING_PLAYLIST_PLAYBACK_MODES.REPEAT_ONE;
+  }, [playlistPlaybackActive, playlistState.playbackMode]);
 
   useEffect(() => {
     if (!trimDraft?.recording?.blob) {
@@ -365,6 +488,9 @@ export default function useBackingLoop(ownerMode = "") {
       mediaRecorder.stop();
     }
     mediaRecorderRef.current = null;
+    recordingPausedAtRef.current = 0;
+    recordingPausedTotalRef.current = 0;
+    recordingStoppedElapsedRef.current = 0;
     chunksRef.current = [];
     audioRef.current?.pause();
     trimPreviewAudioRef.current?.pause();
@@ -373,6 +499,7 @@ export default function useBackingLoop(ownerMode = "") {
     disconnectMediaElementFromBus(audioRef.current);
     disconnectMediaElementFromBus(trimPreviewAudioRef.current);
     setTrimPreviewPlaying(false);
+    setRecordingPaused(false);
     releaseMicrophone();
     if (phaseBeforeDeactivate === "playing") {
       if (playbackPositionMs != null) setCurrentTimeMs(playbackPositionMs);
@@ -401,6 +528,13 @@ export default function useBackingLoop(ownerMode = "") {
   const stopRecording = useCallback(() => {
     const mediaRecorder = mediaRecorderRef.current;
     if (!mediaRecorder || mediaRecorder.state === "inactive") return;
+    if (recordingPausedAtRef.current > 0) {
+      recordingPausedTotalRef.current += Math.max(0, performance.now() - recordingPausedAtRef.current);
+      recordingPausedAtRef.current = 0;
+    }
+    recordingStoppedElapsedRef.current = getRecordingElapsedMs();
+    setCurrentTimeMs(recordingStoppedElapsedRef.current);
+    setRecordingPaused(false);
     setNotice("녹음을 마무리하고 있어요.");
     setPhaseImmediate("processing");
     try {
@@ -409,10 +543,13 @@ export default function useBackingLoop(ownerMode = "") {
       setNotice("녹음을 종료하지 못했어요. 다시 시도해주세요.");
       setPhaseImmediate("error");
     }
-  }, [setPhaseImmediate]);
+  }, [getRecordingElapsedMs, setPhaseImmediate]);
 
   const startRecording = useCallback(async () => {
     if (["requesting", "armed", "recording", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
+    playlistAutoplayRef.current = false;
+    playlistPlaybackRef.current = { itemId: "", playlistId: "" };
+    setPlaylistPlaybackActive(false);
     if (!navigator.mediaDevices?.getUserMedia || typeof window.MediaRecorder !== "function") {
       setNotice("이 브라우저에서는 마이크 녹음을 지원하지 않아요.");
       setPhaseImmediate("error");
@@ -448,6 +585,10 @@ export default function useBackingLoop(ownerMode = "") {
       }
 
       chunksRef.current = [];
+      recordingPausedAtRef.current = 0;
+      recordingPausedTotalRef.current = 0;
+      recordingStoppedElapsedRef.current = 0;
+      setRecordingPaused(false);
       micSessionRef.current = micSession;
       meterStopRef.current = micSession.startLevelMonitoring(setInputLevel);
       mediaRecorderRef.current = mediaRecorder;
@@ -456,6 +597,10 @@ export default function useBackingLoop(ownerMode = "") {
       };
       mediaRecorder.onerror = () => {
         clearRecordingTimer();
+        recordingPausedAtRef.current = 0;
+        recordingPausedTotalRef.current = 0;
+        recordingStoppedElapsedRef.current = 0;
+        setRecordingPaused(false);
         releaseMicrophone();
         if (!mountedRef.current || requestVersion !== recordingRequestVersionRef.current) return;
         setNotice("녹음 중 문제가 발생했어요. 이전 백킹은 그대로 유지됩니다.");
@@ -467,10 +612,14 @@ export default function useBackingLoop(ownerMode = "") {
         releaseMicrophone();
         if (!mountedRef.current) return;
 
-        const durationMs = Math.max(0, performance.now() - recordingStartedAtRef.current);
+        const durationMs = recordingStoppedElapsedRef.current || getRecordingElapsedMs();
         const blobType = mediaRecorder.mimeType || mimeType || chunksRef.current[0]?.type || "audio/webm";
         const blob = new Blob(chunksRef.current, { type: blobType });
         mediaRecorderRef.current = null;
+        recordingPausedAtRef.current = 0;
+        recordingPausedTotalRef.current = 0;
+        recordingStoppedElapsedRef.current = 0;
+        setRecordingPaused(false);
         chunksRef.current = [];
 
         if (requestVersion !== recordingRequestVersionRef.current) {
@@ -552,13 +701,15 @@ export default function useBackingLoop(ownerMode = "") {
         armTimerRef.current = null;
         if (!mountedRef.current || mediaRecorderRef.current !== mediaRecorder) return;
         recordingStartedAtRef.current = performance.now();
+        recordingPausedAtRef.current = 0;
+        recordingPausedTotalRef.current = 0;
+        recordingStoppedElapsedRef.current = 0;
+        setRecordingPaused(false);
         setCurrentTimeMs(0);
         setPhaseImmediate("recording");
         setNotice("기타 코드 진행 녹음 중");
         mediaRecorder.start(250);
-        recordingTimerRef.current = window.setInterval(() => {
-          setCurrentTimeMs(performance.now() - recordingStartedAtRef.current);
-        }, 160);
+        startRecordingTimer(mediaRecorder);
       }, RECORDING_PRESET.armDelayMs);
     } catch (error) {
       releaseMicrophone();
@@ -569,7 +720,7 @@ export default function useBackingLoop(ownerMode = "") {
         : "사용 가능한 마이크를 확인해주세요. 이전 백킹은 유지됩니다.");
       setPhaseImmediate("error");
     }
-  }, [clearArmTimer, clearRecordingTimer, releaseMicrophone, resetAudioPosition, setPhaseImmediate]);
+  }, [clearArmTimer, clearRecordingTimer, getRecordingElapsedMs, releaseMicrophone, resetAudioPosition, setPhaseImmediate, startRecordingTimer]);
 
   const toggleRecording = useCallback(() => {
     const currentPhase = phaseRef.current;
@@ -581,6 +732,10 @@ export default function useBackingLoop(ownerMode = "") {
       recordingRequestVersionRef.current += 1;
       clearArmTimer();
       mediaRecorderRef.current = null;
+      recordingPausedAtRef.current = 0;
+      recordingPausedTotalRef.current = 0;
+      recordingStoppedElapsedRef.current = 0;
+      setRecordingPaused(false);
       releaseMicrophone();
       setNotice("녹음 준비를 취소했어요. 이전 백킹은 그대로 유지됩니다.");
       setPhaseImmediate("idle");
@@ -596,6 +751,12 @@ export default function useBackingLoop(ownerMode = "") {
   const confirmClearRecording = useCallback(() => {
     if (!recording?.blob || ["requesting", "armed", "recording", "processing", "trimming", "applying", "saving", "loading", "playing"].includes(phaseRef.current)) return;
     resetAudioPosition();
+    recordingPausedAtRef.current = 0;
+    recordingPausedTotalRef.current = 0;
+    recordingStoppedElapsedRef.current = 0;
+    setRecordingPaused(false);
+    playlistPlaybackRef.current = { itemId: "", playlistId: "" };
+    setPlaylistPlaybackActive(false);
     setRecording(null);
     setRecordingAudioData(null);
     setEditSourceRecording(null);
@@ -619,6 +780,12 @@ export default function useBackingLoop(ownerMode = "") {
     stopTrimPreview();
     setTrimDraft(null);
     resetAudioPosition();
+    recordingPausedAtRef.current = 0;
+    recordingPausedTotalRef.current = 0;
+    recordingStoppedElapsedRef.current = 0;
+    setRecordingPaused(false);
+    playlistPlaybackRef.current = { itemId: "", playlistId: "" };
+    setPlaylistPlaybackActive(false);
     clearRecordingTimer();
 
     const mediaRecorder = mediaRecorderRef.current;
@@ -651,7 +818,9 @@ export default function useBackingLoop(ownerMode = "") {
       clearTransportFadeTimer();
       const graph = await ensurePlaybackAudioGraph();
       if (!mountedRef.current || !modeActiveRef.current) return;
-      audio.loop = true;
+      const playlistMode = playlistStateRef.current.playbackMode;
+      audio.loop = !playlistPlaybackRef.current.playlistId
+        || playlistMode === BACKING_PLAYLIST_PLAYBACK_MODES.REPEAT_ONE;
       audio.defaultPlaybackRate = 1;
       audio.playbackRate = 1;
       if (!Number.isFinite(audio.currentTime) || audio.currentTime >= (audio.duration || Infinity)) {
@@ -666,7 +835,7 @@ export default function useBackingLoop(ownerMode = "") {
         return;
       }
       graph?.setTransportLevel(1, { timeConstant: 0.006 });
-      setNotice("무한 반복 재생 중");
+      setNotice(playlistPlaybackRef.current.playlistId ? "PLAYLIST 재생 중" : "무한 반복 재생 중");
       setPhaseImmediate("playing");
     } catch {
       if (!mountedRef.current || !modeActiveRef.current) return;
@@ -703,20 +872,36 @@ export default function useBackingLoop(ownerMode = "") {
     if (["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
     setSelectedLibraryId("");
     setSelectedLibraryIds([]);
+    setSelectedQueueItemIds([]);
+    setSelectedSavedItemIds([]);
+    setSelectedPlaylistItemId("");
     setLibraryEditMode(false);
+    setLibraryView("playlist");
+    setPlaylistPanelView("queue");
+    setPlaylistLibraryPickerOpen(false);
+    setPlaylistLibraryTargetId("");
+    setSelectedSavedItemIds([]);
+    setPlaylistLibraryTargetId("");
     setDialog("load");
   }, []);
 
-  const openImportPicker = useCallback(() => {
+  const openImportFilePicker = useCallback((playlistId = "") => {
     if (["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
     const input = importInputRef.current;
     if (!input) return;
+    const targetPlaylist = getBackingPlaylistById(playlistStateRef.current, playlistId);
+    importPlaylistTargetIdRef.current = targetPlaylist?.id || playlistStateRef.current.currentQueue.id;
     input.value = "";
     input.click();
   }, []);
 
+  const openImportPicker = openImportFilePicker;
+
   const activateImportedRecording = useCallback((importedRecording, nextNotice = "") => {
     if (!importedRecording?.blob) return;
+    playlistAutoplayRef.current = false;
+    playlistPlaybackRef.current = { itemId: "", playlistId: "" };
+    setPlaylistPlaybackActive(false);
     resetAudioPosition();
     setRecording(importedRecording);
     setRecordingAudioData(null);
@@ -732,7 +917,7 @@ export default function useBackingLoop(ownerMode = "") {
     setImportRejectedCount(0);
     setCurrentTimeMs(0);
     setDialog("");
-    setNotice(nextNotice || `“${importedRecording.fileName}” 가져오기 완료 · PLAY하거나 SAVE하세요.`);
+    setNotice(nextNotice || `“${importedRecording.fileName}” 공용 라이브러리 등록 완료`);
     setPhaseImmediate("idle");
   }, [resetAudioPosition, setPhaseImmediate]);
 
@@ -742,10 +927,16 @@ export default function useBackingLoop(ownerMode = "") {
     input.value = "";
     if (!files.length) return;
     if (["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
-
+    const importTarget = getBackingPlaylistById(
+      playlistStateRef.current,
+      importPlaylistTargetIdRef.current,
+    ) || getActiveBackingPlaylist(playlistStateRef.current);
+    const importTargetId = importTarget.id;
     const operationVersion = ++operationVersionRef.current;
     resetAudioPosition();
-    setDialog("");
+    setDialog("load");
+    setLibraryView("playlist");
+    setPlaylistPanelView(importTargetId === playlistStateRef.current.currentQueue.id ? "queue" : importTargetId);
     setSaveError("");
     setImportCandidates([]);
     setImportRejectedCount(0);
@@ -767,33 +958,59 @@ export default function useBackingLoop(ownerMode = "") {
         setPhaseImmediate("error");
         return;
       }
-      const candidates = imported.map((candidate) => ({
+      const importedRecordings = imported.map((candidate) => ({
+        ...candidate,
         id: createBackingLoopId(),
-        recording: candidate,
       }));
-      setImportCandidates(candidates);
-      setImportRejectedCount(rejected.length);
-      if (candidates.length === 1) {
-        activateImportedRecording(
-          candidates[0].recording,
-          rejected.length
-            ? `“${candidates[0].recording.fileName}” 준비 완료 · ${rejected.length}개 파일은 제외했습니다.`
-            : "",
-        );
-        return;
+      const persistedRecordings = await Promise.all(importedRecordings.map(async (candidate) => {
+        try {
+          return await saveBackingLoopRecording(candidate);
+        } catch {
+          return candidate;
+        }
+      }));
+      if (!mountedRef.current || operationVersion !== operationVersionRef.current) return;
+      const persistedIds = new Set(persistedRecordings
+        .filter((candidate) => candidate.updatedAt)
+        .map((candidate) => candidate.id));
+      const storageFailureCount = persistedRecordings.length - persistedIds.size;
+      setLibrary((currentLibrary) => [
+        ...persistedRecordings,
+        ...currentLibrary.filter((item) => !persistedRecordings.some((added) => added.id === item.id)),
+      ]);
+      const importedIds = persistedRecordings.map((candidate) => candidate.id);
+      const nextPlaylistState = saveBackingPlaylistState(addBackingPlaylistItems(
+        playlistStateRef.current,
+        importTargetId,
+        importedIds,
+      ));
+      playlistStateRef.current = nextPlaylistState;
+      setPlaylistState(nextPlaylistState);
+      if (importTargetId === nextPlaylistState.currentQueue.id) {
+        setSelectedPlaylistItemId((selectedId) => selectedId || importedIds[0] || "");
+        setSelectedQueueItemIds(importedIds);
+      } else {
+        setSelectedSavedItemIds(importedIds);
       }
-      setSelectedImportCandidateId(candidates[0].id);
-      setNotice(rejected.length
-        ? `${candidates.length}개 준비 완료 · ${rejected.length}개 파일은 제외했습니다.`
-        : `${candidates.length}개 준비 완료 · 현재 백킹으로 사용할 파일을 선택하세요.`);
-      setDialog("import-select");
+      setSelectedLibraryIds([]);
+      setPlaylistLibraryPickerOpen(false);
+      setImportRejectedCount(rejected.length);
+      const targetTitle = getBackingPlaylistById(nextPlaylistState, importTargetId)?.title || "현재 재생목록";
+      setNotice(storageFailureCount
+        ? `${persistedRecordings.length}개를 “${targetTitle}”에 추가했지만 ${storageFailureCount}개는 영구 보관하지 못했어요.`
+        : rejected.length
+          ? `${persistedRecordings.length}개를 “${targetTitle}”에 추가했어요 · ${rejected.length}개 파일 제외`
+          : `${persistedRecordings.length}개 파일을 “${targetTitle}”에 추가했어요.`);
+      setDialog("load");
       setPhaseImmediate("idle");
     } catch {
       if (!mountedRef.current || operationVersion !== operationVersionRef.current) return;
       setNotice("이 브라우저에서 디코딩할 수 있는 오디오 파일인지 확인해주세요.");
       setPhaseImmediate("error");
+    } finally {
+      importPlaylistTargetIdRef.current = "";
     }
-  }, [activateImportedRecording, resetAudioPosition, setPhaseImmediate]);
+  }, [resetAudioPosition, setPhaseImmediate]);
 
   const useSelectedImportCandidate = useCallback(() => {
     const selected = importCandidates.find((candidate) => candidate.id === selectedImportCandidateId);
@@ -815,7 +1032,7 @@ export default function useBackingLoop(ownerMode = "") {
   }, [libraryEditMode, pausePlayback, recording?.id, selectedLibraryId, selectedLibraryIds]);
 
   const openTrimEditor = useCallback(async () => {
-    if (!recording?.blob || ["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading", "playing"].includes(phaseRef.current)) return;
+    if (!recording?.blob || ["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
     const operationVersion = ++operationVersionRef.current;
     resetAudioPosition();
     setPhaseImmediate("processing");
@@ -1035,6 +1252,289 @@ export default function useBackingLoop(ownerMode = "") {
     ));
   }, []);
 
+  const selectAllLibraryRecordings = useCallback(() => {
+    setSelectedLibraryIds(library.map((item) => item.id));
+  }, [library]);
+
+  const clearLibraryRecordingSelection = useCallback(() => {
+    setSelectedLibraryId("");
+    setSelectedLibraryIds([]);
+  }, []);
+
+  const commitPlaylistState = useCallback((updater) => {
+    const nextState = saveBackingPlaylistState(updater(playlistStateRef.current));
+    playlistStateRef.current = nextState;
+    setPlaylistState(nextState);
+    return nextState;
+  }, []);
+
+  const showPlaylistView = useCallback(() => {
+    const activePlaylist = getActiveBackingPlaylist(playlistStateRef.current);
+    setLibraryView("playlist");
+    setPlaylistPanelView("queue");
+    setPlaylistLibraryPickerOpen(false);
+    setLibraryEditMode(false);
+    setSelectedLibraryId("");
+    setSelectedLibraryIds([]);
+    setSelectedPlaylistItemId((selectedId) => (
+      activePlaylist.itemIds.includes(selectedId) ? selectedId : activePlaylist.itemIds[0] || ""
+    ));
+  }, []);
+
+  const showCurrentPlaylist = useCallback(() => {
+    setPlaylistPanelView("queue");
+    setPlaylistLibraryPickerOpen(false);
+    setPlaylistLibraryTargetId("");
+    setSelectedSavedItemIds([]);
+  }, []);
+
+  const showSavedPlaylist = useCallback((playlistId) => {
+    const savedPlaylist = playlistStateRef.current.savedPlaylists.find((playlist) => playlist.id === playlistId);
+    if (!savedPlaylist) return;
+    setPlaylistPanelView(savedPlaylist.id);
+    setPlaylistLibraryPickerOpen(false);
+    setPlaylistLibraryTargetId("");
+    setSelectedSavedItemIds([]);
+  }, []);
+
+  const toggleQueueItemSelection = useCallback((itemId) => {
+    const normalizedId = String(itemId || "");
+    if (!playlistStateRef.current.currentQueue.itemIds.includes(normalizedId)) return;
+    setSelectedQueueItemIds((selectedIds) => (
+      selectedIds.includes(normalizedId)
+        ? selectedIds.filter((id) => id !== normalizedId)
+        : [...selectedIds, normalizedId]
+    ));
+  }, []);
+
+  const selectAllQueueItems = useCallback(() => {
+    setSelectedQueueItemIds([...playlistStateRef.current.currentQueue.itemIds]);
+  }, []);
+
+  const clearQueueItemSelection = useCallback(() => setSelectedQueueItemIds([]), []);
+
+  const getViewedSavedPlaylist = useCallback(() => getBackingPlaylistById(
+    playlistStateRef.current,
+    playlistPanelView,
+  ), [playlistPanelView]);
+
+  const toggleSavedPlaylistItemSelection = useCallback((itemId) => {
+    const playlist = getViewedSavedPlaylist();
+    const normalizedId = String(itemId || "");
+    if (!playlist || playlist.id === playlistStateRef.current.currentQueue.id || !playlist.itemIds.includes(normalizedId)) return;
+    setSelectedSavedItemIds((selectedIds) => (
+      selectedIds.includes(normalizedId)
+        ? selectedIds.filter((id) => id !== normalizedId)
+        : [...selectedIds, normalizedId]
+    ));
+  }, [getViewedSavedPlaylist]);
+
+  const selectAllSavedPlaylistItems = useCallback(() => {
+    const playlist = getViewedSavedPlaylist();
+    setSelectedSavedItemIds(playlist?.id === playlistStateRef.current.currentQueue.id ? [] : [...(playlist?.itemIds || [])]);
+  }, [getViewedSavedPlaylist]);
+
+  const clearSavedPlaylistItemSelection = useCallback(() => setSelectedSavedItemIds([]), []);
+
+  const requestDeleteSavedPlaylistItems = useCallback((playlistId) => {
+    const playlist = getBackingPlaylistById(playlistStateRef.current, playlistId);
+    if (!playlist || playlist.id === playlistStateRef.current.currentQueue.id) return;
+    const itemIds = playlist.itemIds.filter((itemId) => selectedSavedItemIds.includes(itemId));
+    if (!itemIds.length) {
+      setNotice("목록에서 제거할 곡을 선택해주세요.");
+      return;
+    }
+    setPlaylistItemsDeleteTargetId(playlist.id);
+    setPlaylistItemsDeleteTargetIds(itemIds);
+    setDialog("playlist-items-delete");
+  }, [selectedSavedItemIds]);
+
+  const confirmDeleteSavedPlaylistItems = useCallback(() => {
+    const playlist = getBackingPlaylistById(playlistStateRef.current, playlistItemsDeleteTargetId);
+    const itemIds = playlist?.itemIds.filter((itemId) => playlistItemsDeleteTargetIds.includes(itemId)) || [];
+    if (!playlist || playlist.id === playlistStateRef.current.currentQueue.id || !itemIds.length) return;
+    if (playlistPlaybackRef.current.playlistId === playlist.id
+      && itemIds.includes(playlistPlaybackRef.current.itemId)) {
+      resetAudioPosition();
+      playlistPlaybackRef.current = { itemId: "", playlistId: "" };
+      setPlaylistPlaybackActive(false);
+      setPhaseImmediate("idle");
+    }
+    commitPlaylistState((state) => removeBackingPlaylistItems(state, playlist.id, itemIds));
+    setSelectedSavedItemIds([]);
+    setPlaylistItemsDeleteTargetId("");
+    setPlaylistItemsDeleteTargetIds([]);
+    setPlaylistPanelView(playlist.id);
+    setDialog("load");
+    setNotice(`“${playlist.title}”에서 선택한 ${itemIds.length}곡을 제거했어요. 음원 파일은 유지됩니다.`);
+  }, [commitPlaylistState, playlistItemsDeleteTargetId, playlistItemsDeleteTargetIds, resetAudioPosition, setPhaseImmediate]);
+
+  const togglePlaylistLibraryPicker = useCallback((playlistId = "") => {
+    const targetPlaylist = getBackingPlaylistById(playlistStateRef.current, playlistId)
+      || getActiveBackingPlaylist(playlistStateRef.current);
+    setPlaylistLibraryPickerOpen((open) => (
+      playlistLibraryTargetId === targetPlaylist.id ? !open : true
+    ));
+    setPlaylistLibraryTargetId(targetPlaylist.id);
+    setSelectedLibraryIds([]);
+  }, [playlistLibraryTargetId]);
+
+  const addSelectedLibraryToPlaylist = useCallback(() => {
+    const selectedIds = selectedLibraryIds;
+    if (!selectedIds.length) return;
+    const currentState = playlistStateRef.current;
+    const targetPlaylist = getBackingPlaylistById(currentState, playlistLibraryTargetId)
+      || getActiveBackingPlaylist(currentState);
+    const existingIds = new Set(targetPlaylist.itemIds);
+    const addedIds = selectedIds.filter((id) => !existingIds.has(id));
+    commitPlaylistState((state) => addBackingPlaylistItems(state, targetPlaylist.id, selectedIds));
+    if (targetPlaylist.id === currentState.currentQueue.id) {
+      setSelectedQueueItemIds(addedIds);
+    } else {
+      setSelectedSavedItemIds(addedIds);
+    }
+    setSelectedLibraryIds([]);
+    setPlaylistLibraryPickerOpen(false);
+    setNotice(addedIds.length
+      ? `${addedIds.length}개 음원을 “${targetPlaylist.title}”에 추가했어요.`
+      : `선택한 음원은 이미 “${targetPlaylist.title}”에 있어요.`);
+  }, [commitPlaylistState, playlistLibraryTargetId, selectedLibraryIds]);
+
+  const saveCurrentPlaylist = useCallback(() => {
+    const saveTarget = playlistStateRef.current.savedPlaylists.find((playlist) => playlist.id === playlistSaveTargetId);
+    const title = saveTarget?.title || playlistRenameDraft.trim();
+    const currentPlaylist = getActiveBackingPlaylist(playlistStateRef.current);
+    if (!currentPlaylist.itemIds.length) {
+      setNotice("저장할 곡을 현재 재생목록에 먼저 추가해주세요.");
+      return;
+    }
+    if (!title) {
+      setNotice("저장할 목록 이름을 입력해주세요.");
+      return;
+    }
+    const itemIds = currentPlaylist.itemIds.filter((itemId) => selectedQueueItemIds.includes(itemId));
+    if (!itemIds.length) {
+      setNotice("목록으로 저장할 곡을 선택해주세요.");
+      return;
+    }
+    const nextState = commitPlaylistState((state) => saveCurrentBackingPlaylist(state, title, {
+      itemIds,
+      playlistId: saveTarget?.id || "",
+    }));
+    const saved = nextState.savedPlaylists.find((playlist) => playlist.id === nextState.activeSavedPlaylistId);
+    if (!saveTarget) setPlaylistRenameDraft("");
+    if (saved) {
+      setPlaylistSaveTargetId(saved.id);
+      setPlaylistPanelView(saved.id);
+      setSelectedSavedItemIds([...saved.itemIds]);
+    }
+    setNotice(saveTarget
+      ? `선택한 ${itemIds.length}곡으로 “${saveTarget.title}” 목록을 갱신했어요.`
+      : `선택한 ${itemIds.length}곡을 “${saved?.title || title}” 목록으로 저장했어요.`);
+  }, [commitPlaylistState, playlistRenameDraft, playlistSaveTargetId, selectedQueueItemIds]);
+
+  const selectPlaylistSaveTarget = useCallback((playlistId) => {
+    const normalizedId = String(playlistId || "");
+    const exists = playlistStateRef.current.savedPlaylists.some((playlist) => playlist.id === normalizedId);
+    setPlaylistSaveTargetId(exists ? normalizedId : "");
+  }, []);
+
+  const loadSavedPlaylist = useCallback((playlistId) => {
+    const savedPlaylist = playlistStateRef.current.savedPlaylists.find((playlist) => playlist.id === playlistId);
+    if (!savedPlaylist) return;
+    if (playlistPlaybackRef.current.playlistId) {
+      resetAudioPosition();
+      playlistPlaybackRef.current = { itemId: "", playlistId: "" };
+      setPlaylistPlaybackActive(false);
+      setPhaseImmediate("idle");
+    }
+    const nextState = commitPlaylistState((state) => loadSavedBackingPlaylist(state, playlistId));
+    const activePlaylist = getActiveBackingPlaylist(nextState);
+    setSelectedPlaylistItemId(activePlaylist.itemIds[0] || "");
+    setSelectedQueueItemIds([...activePlaylist.itemIds]);
+    setPlaylistPanelView("queue");
+    setPlaylistLibraryPickerOpen(false);
+    setNotice(`“${savedPlaylist.title}” 구성을 현재 재생목록으로 불러왔어요.`);
+  }, [commitPlaylistState, resetAudioPosition, setPhaseImmediate]);
+
+  const requestDeletePlaylistTab = useCallback((playlistId) => {
+    if (!playlistId) return;
+    setPlaylistDeleteTargetId(playlistId);
+    setDialog("playlist-delete");
+  }, []);
+
+  const confirmDeletePlaylistTab = useCallback(() => {
+    const target = playlistStateRef.current.savedPlaylists.find((playlist) => playlist.id === playlistDeleteTargetId);
+    if (!target) return;
+    if (playlistPlaybackRef.current.playlistId === target.id) {
+      resetAudioPosition();
+      playlistPlaybackRef.current = { itemId: "", playlistId: "" };
+      setPlaylistPlaybackActive(false);
+      setPhaseImmediate("idle");
+    }
+    commitPlaylistState((state) => deleteBackingPlaylistTab(state, target.id));
+    if (playlistSaveTargetId === target.id) setPlaylistSaveTargetId("");
+    setSelectedSavedItemIds([]);
+    setPlaylistDeleteTargetId("");
+    setNotice(`저장된 목록 “${target.title}”만 삭제했어요. 음원 파일은 그대로 유지됩니다.`);
+    setPlaylistPanelView("queue");
+    setDialog("load");
+  }, [commitPlaylistState, playlistDeleteTargetId, playlistSaveTargetId, resetAudioPosition, setPhaseImmediate]);
+
+  const movePlaylistItem = useCallback((itemId, direction) => {
+    const activePlaylistId = playlistStateRef.current.activePlaylistId;
+    commitPlaylistState((state) => moveBackingPlaylistItem(state, activePlaylistId, itemId, direction));
+  }, [commitPlaylistState]);
+
+  const removePlaylistItem = useCallback((itemId) => {
+    const activePlaylist = getActiveBackingPlaylist(playlistStateRef.current);
+    if (playlistPlaybackRef.current.playlistId === activePlaylist.id
+      && playlistPlaybackRef.current.itemId === itemId) {
+      resetAudioPosition();
+      playlistPlaybackRef.current = { itemId: "", playlistId: "" };
+      setPlaylistPlaybackActive(false);
+      setPhaseImmediate("idle");
+    }
+    const nextState = commitPlaylistState((state) => removeBackingPlaylistItem(state, activePlaylist.id, itemId));
+    const nextPlaylist = getActiveBackingPlaylist(nextState);
+    setSelectedPlaylistItemId((selectedId) => (
+      selectedId === itemId ? nextPlaylist.itemIds[0] || "" : selectedId
+    ));
+    setSelectedQueueItemIds((selectedIds) => selectedIds.filter((id) => id !== itemId));
+  }, [commitPlaylistState, resetAudioPosition, setPhaseImmediate]);
+
+  const setPlaylistPlaybackMode = useCallback((playbackMode) => {
+    commitPlaylistState((state) => setBackingPlaylistPlaybackMode(state, playbackMode));
+  }, [commitPlaylistState]);
+
+  const cyclePlaylistRepeatMode = useCallback(() => {
+    commitPlaylistState((state) => {
+      const nextMode = getNextBackingPlaylistRepeatMode(state.playbackMode);
+      const audio = audioRef.current;
+      if (audio && playlistPlaybackRef.current.playlistId) {
+        audio.loop = nextMode === BACKING_PLAYLIST_PLAYBACK_MODES.REPEAT_ONE;
+      }
+      return setBackingPlaylistPlaybackMode(state, nextMode);
+    });
+  }, [commitPlaylistState]);
+
+  const togglePlaylistShuffle = useCallback(() => {
+    commitPlaylistState((state) => setBackingPlaylistShuffleEnabled(
+      state,
+      !state.shuffleEnabled,
+    ));
+  }, [commitPlaylistState]);
+
+  const togglePlaylistDrawer = useCallback(() => {
+    if (["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
+    if (dialog === "load") {
+      setDialog("");
+      return;
+    }
+    showPlaylistView();
+    setDialog("load");
+  }, [dialog, showPlaylistView]);
+
   const closeDialog = useCallback(() => {
     if (["saving", "loading", "applying"].includes(phaseRef.current) || deletePendingRef.current) return;
     if (dialog === "trim") {
@@ -1042,6 +1542,21 @@ export default function useBackingLoop(ownerMode = "") {
       return;
     }
     if (dialog === "delete") {
+      setDialog("load");
+      return;
+    }
+    if (dialog === "playlist-delete") {
+      const previousPlaylistId = playlistDeleteTargetId;
+      setPlaylistDeleteTargetId("");
+      setPlaylistPanelView(previousPlaylistId || "queue");
+      setDialog("load");
+      return;
+    }
+    if (dialog === "playlist-items-delete") {
+      const previousPlaylistId = playlistItemsDeleteTargetId;
+      setPlaylistItemsDeleteTargetId("");
+      setPlaylistItemsDeleteTargetIds([]);
+      setPlaylistPanelView(previousPlaylistId || "queue");
       setDialog("load");
       return;
     }
@@ -1059,7 +1574,7 @@ export default function useBackingLoop(ownerMode = "") {
     setSelectedLibraryId("");
     setSelectedLibraryIds([]);
     setLibraryEditMode(false);
-  }, [dialog, useOriginalTrimRecording]);
+  }, [dialog, playlistDeleteTargetId, playlistItemsDeleteTargetId, useOriginalTrimRecording]);
 
   const confirmSave = useCallback(async () => {
     if (!recording?.blob || phaseRef.current === "saving") return;
@@ -1103,12 +1618,21 @@ export default function useBackingLoop(ownerMode = "") {
     }
   }, [recording, recordingAudioData, setPhaseImmediate, titleDraft]);
 
-  const loadRecording = useCallback(async (id) => {
+  const loadRecording = useCallback(async (id, options = {}) => {
     if (!id || phaseRef.current === "loading") return;
+    const keepLibraryOpen = options.keepLibraryOpen === true;
+    if (!options.fromPlaylist) {
+      playlistAutoplayRef.current = false;
+      playlistPlaybackRef.current = { itemId: "", playlistId: "" };
+      setPlaylistPlaybackActive(false);
+    }
     setPhaseImmediate("loading");
     resetAudioPosition();
     try {
-      const savedRecording = await loadBackingLoopRecording(id);
+      const inMemoryRecording = libraryRef.current.find((item) => item.id === id);
+      const savedRecording = (isAudioStudioLibraryId(id)
+        ? await loadAudioStudioBackingSource(id).catch(() => null)
+        : await loadBackingLoopRecording(id).catch(() => null)) || (inMemoryRecording?.blob ? inMemoryRecording : null);
       if (!mountedRef.current) return;
       if (!savedRecording) throw new Error("Saved backing loop not found.");
       setRecording(savedRecording);
@@ -1123,15 +1647,154 @@ export default function useBackingLoop(ownerMode = "") {
       setSelectedLibraryIds([]);
       setLibraryEditMode(false);
       setCurrentTimeMs(0);
-      setNotice(`“${savedRecording.title}” 불러오기 완료`);
-      setDialog("");
+      setNotice(options.notice || `“${savedRecording.title}” 불러오기 완료`);
+      setDialog(keepLibraryOpen ? "load" : "");
       setPhaseImmediate("idle");
+      return savedRecording;
     } catch {
       if (!mountedRef.current) return;
       setNotice("저장된 백킹을 불러올 수 없어요.");
       setPhaseImmediate("error");
     }
   }, [resetAudioPosition, setPhaseImmediate]);
+
+  const playPlaylistItem = useCallback(async (itemId, options = {}) => {
+    const currentState = playlistStateRef.current;
+    const playbackPlaylist = getBackingPlaylistById(currentState, options.playlistId)
+      || getActiveBackingPlaylist(currentState);
+    const targetId = itemId || selectedPlaylistItemId || playbackPlaylist.itemIds[0];
+    if (!targetId || !playbackPlaylist.itemIds.includes(targetId)) return;
+    if (!libraryRef.current.some((item) => item.id === targetId)) return;
+
+    const requestedIds = Array.isArray(options.itemIds)
+      ? playbackPlaylist.itemIds.filter((id) => options.itemIds.includes(id))
+      : playbackPlaylist.itemIds;
+    const playbackItemIds = requestedIds.includes(targetId) ? requestedIds : playbackPlaylist.itemIds;
+
+    playlistPlaybackRef.current = {
+      itemId: targetId,
+      itemIds: playbackItemIds,
+      playedItemIds: [targetId],
+      playlistId: playbackPlaylist.id,
+    };
+    playlistAutoplayRef.current = true;
+    setPlaylistPlaybackActive(true);
+    if (playbackPlaylist.id === currentState.currentQueue.id) setSelectedPlaylistItemId(targetId);
+    const loaded = await loadRecording(targetId, {
+      fromPlaylist: true,
+      keepLibraryOpen: dialog === "load",
+      notice: `“${playbackPlaylist.title}” 재생 준비`,
+    });
+    if (!loaded) {
+      playlistAutoplayRef.current = false;
+      playlistPlaybackRef.current = { itemId: "", playlistId: "" };
+      setPlaylistPlaybackActive(false);
+    }
+  }, [dialog, loadRecording, selectedPlaylistItemId]);
+
+  const playSelectedQueueItems = useCallback(() => {
+    const activePlaylist = getActiveBackingPlaylist(playlistStateRef.current);
+    const itemIds = activePlaylist.itemIds.filter((itemId) => selectedQueueItemIds.includes(itemId));
+    if (!itemIds.length) {
+      setNotice("재생할 곡을 선택해주세요.");
+      return;
+    }
+    playPlaylistItem(itemIds[0], { itemIds });
+  }, [playPlaylistItem, selectedQueueItemIds]);
+
+  const playSavedPlaylistItem = useCallback((playlistId, itemId) => {
+    const playlist = getBackingPlaylistById(playlistStateRef.current, playlistId);
+    if (!playlist || playlist.id === playlistStateRef.current.currentQueue.id) return;
+    playPlaylistItem(itemId, { itemIds: playlist.itemIds, playlistId: playlist.id });
+  }, [playPlaylistItem]);
+
+  const playAllSavedPlaylistItems = useCallback((playlistId) => {
+    const playlist = getBackingPlaylistById(playlistStateRef.current, playlistId);
+    if (!playlist || playlist.id === playlistStateRef.current.currentQueue.id || !playlist.itemIds.length) {
+      setNotice("재생할 곡이 없습니다.");
+      return;
+    }
+    playPlaylistItem(playlist.itemIds[0], { itemIds: playlist.itemIds, playlistId: playlist.id });
+  }, [playPlaylistItem]);
+
+  const playSelectedSavedPlaylistItems = useCallback((playlistId) => {
+    const playlist = getBackingPlaylistById(playlistStateRef.current, playlistId);
+    if (!playlist || playlist.id === playlistStateRef.current.currentQueue.id) return;
+    const itemIds = playlist.itemIds.filter((itemId) => selectedSavedItemIds.includes(itemId));
+    if (!itemIds.length) {
+      setNotice("재생할 곡을 선택해주세요.");
+      return;
+    }
+    playPlaylistItem(itemIds[0], { itemIds, playlistId: playlist.id });
+  }, [playPlaylistItem, selectedSavedItemIds]);
+
+  useEffect(() => {
+    if (!playlistAutoplayRef.current || !audioUrl || recording?.id !== playlistPlaybackRef.current.itemId) return undefined;
+    playlistAutoplayRef.current = false;
+    const frameId = window.requestAnimationFrame(() => playRecording());
+    return () => window.cancelAnimationFrame(frameId);
+  }, [audioUrl, playRecording, recording?.id]);
+
+  const togglePlaylistPlayback = useCallback(() => {
+    if (phaseRef.current === "playing" && playlistPlaybackActive) {
+      pausePlayback();
+      return;
+    }
+    if (playlistPlaybackActive && recording?.id === playlistPlaybackRef.current.itemId) {
+      playRecording();
+      return;
+    }
+    playPlaylistItem();
+  }, [pausePlayback, playPlaylistItem, playRecording, playlistPlaybackActive, recording?.id]);
+
+  const playAdjacentPlaylistItem = useCallback((direction) => {
+    const currentState = playlistStateRef.current;
+    const playbackPlaylist = getBackingPlaylistById(currentState, playlistPlaybackRef.current.playlistId)
+      || getActiveBackingPlaylist(currentState);
+    const playbackItemIds = playlistPlaybackRef.current.playlistId === playbackPlaylist.id
+      && Array.isArray(playlistPlaybackRef.current.itemIds)
+      ? playlistPlaybackRef.current.itemIds.filter((itemId) => playbackPlaylist.itemIds.includes(itemId))
+      : playbackPlaylist.itemIds;
+    if (!playbackItemIds.length) return;
+    const currentId = playlistPlaybackRef.current.playlistId === playbackPlaylist.id
+      ? playlistPlaybackRef.current.itemId
+      : selectedPlaylistItemId;
+    const currentIndex = Math.max(0, playbackItemIds.indexOf(currentId));
+    const offset = direction === "previous" ? -1 : 1;
+    const nextIndex = (currentIndex + offset + playbackItemIds.length) % playbackItemIds.length;
+    playPlaylistItem(playbackItemIds[nextIndex], { itemIds: playbackItemIds, playlistId: playbackPlaylist.id });
+  }, [playPlaylistItem, selectedPlaylistItemId]);
+
+  const playPreviousPlaylistItem = useCallback(() => {
+    const audio = audioRef.current;
+    const positionMs = audio && Number.isFinite(audio.currentTime)
+      ? audio.currentTime * 1000
+      : currentTimeMs;
+    if (shouldRestartBackingPlaylistTrack(positionMs) && recording?.blob) {
+      try {
+        if (audio) audio.currentTime = 0;
+      } catch {
+        // Metadata can change while a playlist item is loading.
+      }
+      setCurrentTimeMs(0);
+      setNotice("현재 백킹을 처음부터 재생합니다.");
+      return;
+    }
+    playAdjacentPlaylistItem("previous");
+  }, [currentTimeMs, playAdjacentPlaylistItem, recording?.blob]);
+  const playNextPlaylistItem = useCallback(() => playAdjacentPlaylistItem("next"), [playAdjacentPlaylistItem]);
+
+  const togglePlayerPlayback = useCallback(() => {
+    const activePlaylist = getActiveBackingPlaylist(playlistStateRef.current);
+    const currentRecordingIsInPlaylist = activePlaylist.itemIds.includes(recording?.id);
+    const selectedItemIsInPlaylist = activePlaylist.itemIds.includes(selectedPlaylistItemId);
+    if (activePlaylist.itemIds.length
+      && (playlistPlaybackActive || selectedItemIsInPlaylist || currentRecordingIsInPlaylist || !recording?.blob)) {
+      togglePlaylistPlayback();
+      return;
+    }
+    togglePlayback();
+  }, [playlistPlaybackActive, recording?.blob, recording?.id, selectedPlaylistItemId, togglePlayback, togglePlaylistPlayback]);
 
   const confirmDelete = useCallback(async () => {
     const savedIds = libraryEditMode ? selectedLibraryIds : [selectedLibraryId].filter(Boolean);
@@ -1145,9 +1808,16 @@ export default function useBackingLoop(ownerMode = "") {
     }
 
     try {
-      await Promise.all(savedIds.map((savedId) => deleteBackingLoopRecording(savedId)));
+      const persistedIds = library
+        .filter((item) => savedIds.includes(item.id) && item.updatedAt && !isAudioStudioLibraryId(item.id))
+        .map((item) => item.id);
+      await Promise.all(persistedIds.map((savedId) => deleteBackingLoopRecording(savedId)));
       if (!mountedRef.current) return;
       setLibrary((currentLibrary) => currentLibrary.filter((item) => !savedIds.includes(item.id)));
+      if (savedIds.includes(playlistPlaybackRef.current.itemId)) {
+        playlistPlaybackRef.current = { itemId: "", playlistId: "" };
+        setPlaylistPlaybackActive(false);
+      }
       if (deletingCurrent) {
         setRecording(null);
         setRecordingAudioData(null);
@@ -1170,7 +1840,7 @@ export default function useBackingLoop(ownerMode = "") {
       deletePendingRef.current = false;
       if (mountedRef.current) setDeletePending(false);
     }
-  }, [libraryEditMode, recording?.id, resetAudioPosition, selectedLibraryId, selectedLibraryIds, setPhaseImmediate]);
+  }, [library, libraryEditMode, recording?.id, resetAudioPosition, selectedLibraryId, selectedLibraryIds, setPhaseImmediate]);
 
   const seekPlayback = useCallback((nextTimeMs) => {
     if (!recording?.blob || ["armed", "recording", "requesting", "processing", "trimming", "applying"].includes(phaseRef.current)) return;
@@ -1191,21 +1861,89 @@ export default function useBackingLoop(ownerMode = "") {
     setCurrentTimeMs(safeTimeMs);
   }, [fadeThen, recording]);
 
-  const handlePlaybackEnded = useCallback(() => {
+  const handlePlaybackEnded = useCallback(async () => {
     const audio = audioRef.current;
-    if (!audio || phase !== "playing") return;
-    audio.currentTime = 0;
-    setCurrentTimeMs(0);
-    audio.play().catch(() => {
-      setNotice("반복 재생을 계속할 수 없어요. PLAY를 다시 눌러주세요.");
-      setPhaseImmediate("error");
+    if (!audio || phaseRef.current !== "playing") return;
+    const playback = playlistPlaybackRef.current;
+    if (!playback.playlistId) {
+      audio.currentTime = 0;
+      setCurrentTimeMs(0);
+      audio.play().catch(() => {
+        setNotice("반복 재생을 계속할 수 없어요. PLAY를 다시 눌러주세요.");
+        setPhaseImmediate("error");
+      });
+      return;
+    }
+
+    const currentState = playlistStateRef.current;
+    const activePlaybackList = getBackingPlaylistById(currentState, playback.playlistId);
+    const currentIndex = activePlaybackList?.itemIds.indexOf(playback.itemId) ?? -1;
+    if (!activePlaybackList || currentIndex < 0) {
+      setPlaylistPlaybackActive(false);
+      playlistPlaybackRef.current = { itemId: "", playlistId: "" };
+      setPhaseImmediate("idle");
+      return;
+    }
+    const playbackItemIds = Array.isArray(playback.itemIds) && playback.itemIds.length
+      ? playback.itemIds.filter((itemId) => activePlaybackList.itemIds.includes(itemId))
+      : activePlaybackList.itemIds;
+    const playbackIndex = playbackItemIds.indexOf(playback.itemId);
+    if (playbackIndex < 0) {
+      playlistPlaybackRef.current = { itemId: "", playlistId: "" };
+      setPlaylistPlaybackActive(false);
+      setPhaseImmediate("idle");
+      return;
+    }
+    const nextIndex = getNextBackingPlaylistIndex({
+      currentIndex: playbackIndex,
+      itemCount: playbackItemIds.length,
+      playedIndexes: (Array.isArray(playback.playedItemIds) ? playback.playedItemIds : [playback.itemId])
+        .map((itemId) => playbackItemIds.indexOf(itemId))
+        .filter((index) => index >= 0),
+      playbackMode: currentState.playbackMode,
+      shuffleEnabled: currentState.shuffleEnabled,
     });
-  }, [phase, setPhaseImmediate]);
+    if (nextIndex < 0) {
+      playlistPlaybackRef.current = { itemId: "", playlistId: "" };
+      setPlaylistPlaybackActive(false);
+      setCurrentTimeMs(0);
+      setNotice(`“${activePlaybackList.title}” 순차 재생 완료`);
+      setPhaseImmediate("idle");
+      return;
+    }
+    const nextItemId = playbackItemIds[nextIndex];
+    if (nextItemId === playback.itemId) {
+      audio.currentTime = 0;
+      setCurrentTimeMs(0);
+      audio.play().catch(() => setPhaseImmediate("error"));
+      return;
+    }
+    const playedItemIds = Array.isArray(playback.playedItemIds) ? playback.playedItemIds : [playback.itemId];
+    const startsNewShuffleRound = currentState.shuffleEnabled
+      && currentState.playbackMode === BACKING_PLAYLIST_PLAYBACK_MODES.REPEAT_ALL
+      && playedItemIds.length >= playbackItemIds.length;
+    playlistPlaybackRef.current = {
+      itemId: nextItemId,
+      itemIds: playbackItemIds,
+      playedItemIds: startsNewShuffleRound
+        ? [nextItemId]
+        : [...new Set([...playedItemIds, nextItemId])],
+      playlistId: activePlaybackList.id,
+    };
+    playlistAutoplayRef.current = true;
+    if (activePlaybackList.id === currentState.currentQueue.id) setSelectedPlaylistItemId(nextItemId);
+    await loadRecording(nextItemId, {
+      fromPlaylist: true,
+      keepLibraryOpen: dialog === "load",
+      notice: `“${activePlaybackList.title}” 다음 백킹 준비`,
+    });
+  }, [dialog, loadRecording, setPhaseImmediate]);
 
   const handleLoadedMetadata = useCallback(() => {
     const audio = audioRef.current;
     if (audio) {
-      audio.loop = true;
+      audio.loop = !playlistPlaybackRef.current.playlistId
+        || playlistStateRef.current.playbackMode === BACKING_PLAYLIST_PLAYBACK_MODES.REPEAT_ONE;
       const actualDurationMs = Number.isFinite(audio.duration) && audio.duration > 0
         ? audio.duration * 1000
         : 0;
@@ -1242,13 +1980,37 @@ export default function useBackingLoop(ownerMode = "") {
   const displayTimeMs = ["recording", "playing", "paused"].includes(phase)
     ? currentTimeMs
     : durationMs;
-  const status = useMemo(() => getBackingLoopStatus({
-    elapsedMs: currentTimeMs,
-    hasRecording,
-    phase,
-  }), [currentTimeMs, hasRecording, phase]);
+  const status = useMemo(() => (recordingPaused
+    ? { label: "RECORD PAUSED", tone: "paused" }
+    : getBackingLoopStatus({
+      elapsedMs: currentTimeMs,
+      hasRecording,
+      phase,
+    })), [currentTimeMs, hasRecording, phase, recordingPaused]);
+  const activePlaylist = useMemo(() => getActiveBackingPlaylist(playlistState), [playlistState]);
+  const playlistEntries = useMemo(() => activePlaylist.itemIds
+    .map((id) => library.find((item) => item.id === id))
+    .filter(Boolean), [activePlaylist.itemIds, library]);
+  const selectedQueueIds = useMemo(() => activePlaylist.itemIds
+    .filter((itemId) => selectedQueueItemIds.includes(itemId)), [activePlaylist.itemIds, selectedQueueItemIds]);
+  const viewedSavedPlaylist = useMemo(() => playlistState.savedPlaylists.find(
+    (playlist) => playlist.id === playlistPanelView,
+  ) || null, [playlistPanelView, playlistState.savedPlaylists]);
+  const selectedSavedIds = useMemo(() => (viewedSavedPlaylist?.itemIds || [])
+    .filter((itemId) => selectedSavedItemIds.includes(itemId)), [selectedSavedItemIds, viewedSavedPlaylist]);
+  const playlistDrawerOpen = dialog === "load";
+  const playlistPlayingItemId = playlistPlaybackActive ? playlistPlaybackRef.current.itemId : "";
+  const playlistPlayingPlaylistId = playlistPlaybackActive ? playlistPlaybackRef.current.playlistId : "";
+  const playlistPlayingTitle = playlistPlaybackActive
+    ? getBackingPlaylistById(playlistState, playlistPlaybackRef.current.playlistId)?.title || "PLAYLIST"
+    : "";
+  const playlistPlaybackItemCount = playlistPlaybackActive
+    ? (playlistPlaybackRef.current.itemIds?.length || 0)
+    : activePlaylist.itemIds.length;
 
   return {
+    activePlaylist,
+    addSelectedLibraryToPlaylist,
     applyTrim,
     audioRef,
     audioUrl,
@@ -1257,8 +2019,11 @@ export default function useBackingLoop(ownerMode = "") {
     cancelCurrent,
     closeDialog,
     confirmDelete,
+    confirmDeletePlaylistTab,
+    confirmDeleteSavedPlaylistItems,
     confirmClearRecording,
     confirmSave,
+    cyclePlaylistRepeatMode,
     currentTimeMs,
     deletePending,
     dialog,
@@ -1280,9 +2045,13 @@ export default function useBackingLoop(ownerMode = "") {
     isRecording: phase === "recording",
     library,
     libraryEditMode,
+    libraryView,
+    loadSavedPlaylist,
     loadRecording,
+    movePlaylistItem,
     notice,
     openDeleteDialog,
+    openImportFilePicker,
     openImportPicker,
     openLoadDialog,
     openSaveDialog,
@@ -1290,7 +2059,36 @@ export default function useBackingLoop(ownerMode = "") {
     pausePlayback,
     phase,
     playRecording,
+    playlistDeleteTargetId,
+    playlistItemsDeleteTargetId,
+    playlistItemsDeleteTargetIds,
+    playlistDrawerOpen,
+    playlistEntries,
+    playlistPlaybackActive,
+    playlistPlaybackMode: playlistState.playbackMode,
+    playlistLibraryPickerOpen,
+    playlistLibraryTargetId,
+    playlistPanelView,
+    playlistPlayingItemId,
+    playlistPlayingPlaylistId,
+    playlistPlayingTitle,
+    playlistPlaybackItemCount,
+    playlistShuffleEnabled: playlistState.shuffleEnabled,
+    playlistRenameDraft,
+    playlistSaveTargetId,
+    playlists: playlistState.playlists,
+    savedPlaylists: playlistState.savedPlaylists,
+    playNextPlaylistItem,
+    playAllSavedPlaylistItems,
+    playPlaylistItem,
+    playSavedPlaylistItem,
+    playSelectedQueueItems,
+    playSelectedSavedPlaylistItems,
+    playPreviousPlaylistItem,
     recording,
+    removePlaylistItem,
+    requestDeletePlaylistTab,
+    requestDeleteSavedPlaylistItems,
     requestSaveConfirmation,
     resetPlayback,
     resetTrimSelection,
@@ -1298,8 +2096,16 @@ export default function useBackingLoop(ownerMode = "") {
     selectedImportCandidateId,
     selectedLibraryId,
     selectedLibraryIds,
+    selectedPlaylistItemId,
+    selectedQueueItemIds: selectedQueueIds,
+    selectedSavedItemIds: selectedSavedIds,
+    selectAllLibraryRecordings,
     selectLibraryRecording: setSelectedLibraryId,
     selectImportCandidate: setSelectedImportCandidateId,
+    selectPlaylistItem: setSelectedPlaylistItemId,
+    selectPlaylistSaveTarget,
+    setPlaylistPlaybackMode,
+    setPlaylistRenameDraft,
     seekPlayback,
     setBackingVolume,
     setTitleDraft,
@@ -1311,6 +2117,10 @@ export default function useBackingLoop(ownerMode = "") {
     toggleLibraryEditMode,
     toggleBackingMute,
     toggleLibraryRecordingSelection,
+    togglePlayerPlayback,
+    togglePlaylistDrawer,
+    togglePlaylistPlayback,
+    togglePlaylistShuffle,
     togglePlayback,
     toggleRecording,
     toggleTrimPreview,
@@ -1322,5 +2132,17 @@ export default function useBackingLoop(ownerMode = "") {
     updateTrimStart,
     useSelectedImportCandidate,
     useOriginalTrimRecording,
+    clearLibraryRecordingSelection,
+    saveCurrentPlaylist,
+    showCurrentPlaylist,
+    showSavedPlaylist,
+    showPlaylistView,
+    selectAllQueueItems,
+    selectAllSavedPlaylistItems,
+    clearQueueItemSelection,
+    clearSavedPlaylistItemSelection,
+    toggleQueueItemSelection,
+    toggleSavedPlaylistItemSelection,
+    togglePlaylistLibraryPicker,
   };
 }

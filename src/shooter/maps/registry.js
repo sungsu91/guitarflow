@@ -1,6 +1,7 @@
 import { COASTAL_COVE_MAP_SKIN } from "./skins/coastalCove.js";
 import { LAVA_CANYON_MAP_SKIN } from "./skins/lavaCanyon.js";
 import { PARK_MAP_SKIN } from "./skins/park.js";
+import { PSEUDO3D_TEST_MAP_SKIN } from "./skins/pseudo3dTest.js";
 import { RIVER_MAP_SKIN } from "./skins/river.js";
 
 export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
@@ -8,6 +9,10 @@ export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
   LAVA_CANYON_MAP_SKIN,
   COASTAL_COVE_MAP_SKIN,
   PARK_MAP_SKIN,
+]);
+
+export const DEVELOPER_SHOOTER_MAP_SKINS = Object.freeze([
+  PSEUDO3D_TEST_MAP_SKIN,
 ]);
 
 export function getNextShooterMapId(currentMapId) {
@@ -24,11 +29,20 @@ export function isLayeredShooterMap(map) {
   return map?.kind === "layered";
 }
 
+export function isPseudo3DShooterMap(map) {
+  return map?.renderer === "pseudo3d";
+}
+
 export function isEditableShooterMap(map) {
   return isLayeredShooterMap(map);
 }
 
 export function getShooterMapAssetSources(map) {
+  if (isPseudo3DShooterMap(map)) {
+    return [...new Set((map.decorations ?? [])
+      .map((decoration) => decoration?.src)
+      .filter((src) => typeof src === "string" && src.trim()))];
+  }
   if (!isLayeredShooterMap(map)) return [];
 
   return [...new Set([

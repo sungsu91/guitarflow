@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { encodePcmWav } from "../audio/audioPostProcessing";
 import {
   AUDIO_BUS_IDS,
   getAudioBusInput,
@@ -8,21 +7,16 @@ import {
 import { getPreferredBackingLoopMimeType } from "../backing-loop/backingLoopUtils";
 import {
   AUDIO_STUDIO_FILE_ACCEPT,
-  buildAudioStudioWaveformPeaks,
   decodeAudioStudioData,
   decodeAudioStudioFiles,
-  detectAudioStudioBpm,
-  stretchAudioStudioPcm,
 } from "./audioStudioAudio";
 import {
   AUDIO_STUDIO_IMPORT_MODES,
   AUDIO_STUDIO_SELECTION_SCOPES,
   addAudioStudioMarker,
   addAudioStudioImportedSources,
-  addAudioStudioSources,
   addAudioStudioTrack,
   applyAudioStudioCrossfade,
-  buildAudioStudioConstruction,
   copyAudioStudioClips,
   createAudioStudioHistory,
   createAudioStudioProject,
@@ -56,18 +50,30 @@ import {
   updateAudioStudioMarker,
 } from "./audioStudioModel";
 import { scheduleAudioStudioPlayback, stopAudioStudioPlayback } from "./audioStudioPlayback";
-import { downloadAudioStudioBlob, renderAudioStudioWav, sanitizeAudioStudioExportName } from "./audioStudioExport";
 import {
-  deleteAudioStudioProject,
-  duplicateAudioStudioProject,
-  listAudioStudioProjects,
-  loadAudioStudioProject,
-  renameAudioStudioProject,
-  saveAudioStudioProject,
+  downloadAudioStudioBlob,
+  getAudioStudioRenderedDurationMs,
+  renderAudioStudioWav,
+  sanitizeAudioStudioExportName,
+} from "./audioStudioExport";
+import {
+  deleteAudioStudioMix,
+  listAudioStudioMixes,
+  loadAudioStudioMix,
+  renameAudioStudioMix,
+  saveAudioStudioMix,
+  subscribeAudioStudioMixLibrary,
 } from "./audioStudioStorage";
+import {
+  AUDIO_STUDIO_TIME_STRETCH_ALGORITHM,
+  AUDIO_STUDIO_TIME_STRETCH_VERSION,
+  createAudioStudioTimeStretchCacheKey,
+  getAudioStudioTimeStretchRatio,
+  isAudioStudioTimeStretchRatioSupported,
+  renderAudioStudioTimeStretch,
+} from "./audioStudioTimeStretch";
 
 export const AUDIO_STUDIO_SCREENS = Object.freeze({
-  CONSTRUCT: "construct",
   EDIT: "edit",
   LIBRARY: "library",
   MIX: "mix",
@@ -81,30 +87,31 @@ export default function useAudioStudio() {
   const [importing, setImporting] = useState(false);
   const [importCompletionId, setImportCompletionId] = useState(0);
   const [fitProjectRequestId, setFitProjectRequestId] = useState(0);
-  const [notice, setNotice] = useState("여러 오디오 파일을 한 번에 가져올 수 있습니다.");
+  const [notice, setNotice] = useState("편집실에서 MIX SAVE한 완성 음원이 이 보관함에 저장됩니다.");
   const [playbackStatus, setPlaybackStatus] = useState("stopped");
-  const [quickPlayingProjectId, setQuickPlayingProjectId] = useState("");
+  const [libraryMixId, setLibraryMixId] = useState("");
+  const [libraryPlaybackStatus, setLibraryPlaybackStatus] = useState("stopped");
   const [rangeSelection, setRangeSelection] = useState(null);
   const [recordingState, setRecordingState] = useState({ beat: 0, phase: "idle", targetTrackId: "" });
   const [currentTimeMs, setCurrentTimeMs] = useState(0);
   const [masterLevel, setMasterLevel] = useState(0);
   const [dragPreview, setDragPreview] = useState(null);
   const [projectOperation, setProjectOperation] = useState("");
-  const [savedProjects, setSavedProjects] = useState([]);
-  const [selectedSavedProjectId, setSelectedSavedProjectId] = useState("");
+  const [trackStretchState, setTrackStretchState] = useState({});
+  const [savedMixes, setSavedMixes] = useState([]);
   const [screen, setScreen] = useState(AUDIO_STUDIO_SCREENS.LIBRARY);
-  const [saveStatus, setSaveStatus] = useState("idle");
-  const [projectActive, setProjectActive] = useState(false);
   const [snapGuideMs, setSnapGuideMs] = useState(null);
   const audioBuffersRef = useRef(new Map());
+  const stretchBufferCacheRef = useRef(new Map());
   const audioContextRef = useRef(null);
+  const libraryAudioRef = useRef(null);
+  const libraryAudioUrlRef = useRef("");
   const playbackRef = useRef(null);
   const playbackStopAtRef = useRef(null);
   const animationFrameRef = useRef(0);
   const importInputRef = useRef(null);
   const clipboardRef = useRef(null);
   const ignoreClipClickRef = useRef("");
-  const importPurposeRef = useRef("construction");
   const importTargetTrackIdRef = useRef("");
   const countInTimerRef = useRef(0);
   const mediaRecorderRef = useRef(null);
@@ -113,13 +120,19 @@ export default function useAudioStudio() {
   const recordingStreamRef = useRef(null);
   const recordingTargetTrackIdRef = useRef("");
   const recordingTimelineStartRef = useRef(0);
-  const autoSaveTimerRef = useRef(0);
-  const suppressAutoSaveRef = useRef(true);
   const project = history.present;
   const projectRef = useRef(project);
   projectRef.current = project;
   const selectedClipIdsRef = useRef(selectedClipIds);
   selectedClipIdsRef.current = selectedClipIds;
+
+  const refreshSavedMixes = useCallback(async () => {
+    try {
+      setSavedMixes(await listAudioStudioMixes());
+    } catch {
+      setNotice("완성 음원 보관함을 열 수 없습니다. 브라우저 저장 권한을 확인해주세요.");
+    }
+  }, []);
 
   const cancelPlaybackFrame = useCallback(() => {
     if (animationFrameRef.current && typeof cancelAnimationFrame === "function") {
@@ -136,7 +149,7 @@ export default function useAudioStudio() {
   }, [cancelPlaybackFrame]);
 
   const ensurePlaybackContext = useCallback(async () => {
-    if (audioContextRef.current?.state !== "closed") return audioContextRef.current;
+    if (audioContextRef.current && audioContextRef.current.state !== "closed") return audioContextRef.current;
     const context = getSharedAudioContext();
     if (!context) throw new Error("AUDIO_CONTEXT_UNAVAILABLE");
     audioContextRef.current = context;
@@ -145,47 +158,21 @@ export default function useAudioStudio() {
 
   const ensureSourceBuffers = useCallback(async (context, studioProject) => {
     for (const source of studioProject.audioSources) {
-      if (audioBuffersRef.current.has(source.id) || !source.blob) continue;
+      if (audioBuffersRef.current.has(source.id)) continue;
+      const cachedStretch = [...stretchBufferCacheRef.current.values()]
+        .find((entry) => entry.source.id === source.id);
+      if (cachedStretch) {
+        audioBuffersRef.current.set(source.id, cachedStretch.audioBuffer);
+        continue;
+      }
+      if (!source.blob) continue;
       const buffer = await decodeAudioStudioData(context, await source.blob.arrayBuffer());
       audioBuffersRef.current.set(source.id, buffer);
     }
   }, []);
 
-  const restoreMissingWaveforms = useCallback(async (studioProject) => {
-    const missingSources = studioProject.audioSources.filter((source) => source.blob && (!source.waveformPeaks?.length || !source.detectedBpm));
-    if (!missingSources.length) return studioProject;
-    setNotice(`${missingSources.length}개 파일의 파형을 분석하고 있습니다.`);
-    const context = await ensurePlaybackContext();
-    const analyzedById = new Map();
-    for (const source of missingSources) {
-      try {
-        const audioBuffer = await decodeAudioStudioData(context, await source.blob.arrayBuffer());
-        audioBuffersRef.current.set(source.id, audioBuffer);
-        analyzedById.set(source.id, {
-          ...buildAudioStudioWaveformPeaks(audioBuffer, 180),
-          detectedBpm: source.detectedBpm || detectAudioStudioBpm(audioBuffer),
-        });
-      } catch {
-        // Keep the source playable even when a legacy blob cannot be analyzed.
-      }
-    }
-    if (!analyzedById.size) return studioProject;
-    return {
-      ...studioProject,
-      audioSources: studioProject.audioSources.map((source) => analyzedById.has(source.id)
-        ? { ...source, ...analyzedById.get(source.id) }
-        : source),
-      tracks: studioProject.tracks.map((track) => {
-        if (track.detectedBpm) return track;
-        const firstSourceId = track.clips[0]?.sourceId;
-        const detectedBpm = analyzedById.get(firstSourceId)?.detectedBpm || 0;
-        return detectedBpm ? { ...track, bpm: track.bpm || detectedBpm, detectedBpm } : track;
-      }),
-    };
-  }, [ensurePlaybackContext]);
-
   const startPlayback = useCallback(async (requestedTimeMs = currentTimeMs, options = {}) => {
-    const studioProject = projectRef.current;
+    const studioProject = options.project || projectRef.current;
     const soloClipIds = new Set(options.soloClipIds || []);
     let playbackProject = soloClipIds.size ? {
       ...studioProject,
@@ -256,7 +243,6 @@ export default function useAudioStudio() {
                 playbackRef.current = null;
                 animationFrameRef.current = 0;
                 setPlaybackStatus("stopped");
-                setQuickPlayingProjectId("");
                 setMasterLevel(0);
                 return;
               }
@@ -275,7 +261,6 @@ export default function useAudioStudio() {
             playbackRef.current = null;
             animationFrameRef.current = 0;
             setPlaybackStatus("stopped");
-            setQuickPlayingProjectId("");
             setMasterLevel(0);
           }
           return;
@@ -283,10 +268,10 @@ export default function useAudioStudio() {
         animationFrameRef.current = requestAnimationFrame(tick);
       };
       animationFrameRef.current = requestAnimationFrame(tick);
-    } catch {
+    } catch (error) {
+      if (import.meta.env.DEV) console.error("Audio Studio playback failed", error);
       clearScheduledPlayback();
       setPlaybackStatus("stopped");
-      setQuickPlayingProjectId("");
       setNotice("이 브라우저에서 오디오를 디코딩하거나 재생할 수 없습니다.");
     }
   }, [clearScheduledPlayback, currentTimeMs, ensurePlaybackContext, ensureSourceBuffers]);
@@ -294,7 +279,6 @@ export default function useAudioStudio() {
   const pausePlayback = useCallback(() => {
     clearScheduledPlayback();
     setPlaybackStatus("paused");
-    setQuickPlayingProjectId("");
     setMasterLevel(0);
   }, [clearScheduledPlayback]);
 
@@ -302,9 +286,114 @@ export default function useAudioStudio() {
     clearScheduledPlayback();
     setCurrentTimeMs(0);
     setPlaybackStatus("stopped");
-    setQuickPlayingProjectId("");
     setMasterLevel(0);
   }, [clearScheduledPlayback]);
+
+  const releaseLibraryAudio = useCallback(() => {
+    const audio = libraryAudioRef.current;
+    if (audio) {
+      audio.onended = null;
+      audio.onerror = null;
+      audio.pause();
+      audio.removeAttribute?.("src");
+      audio.load?.();
+    }
+    libraryAudioRef.current = null;
+    if (libraryAudioUrlRef.current) URL.revokeObjectURL(libraryAudioUrlRef.current);
+    libraryAudioUrlRef.current = "";
+    setLibraryMixId("");
+    setLibraryPlaybackStatus("stopped");
+  }, []);
+
+  const playSavedMix = useCallback(async (mixId) => {
+    if (!mixId || projectOperation) return;
+    const currentAudio = libraryAudioRef.current;
+    if (libraryMixId === mixId && currentAudio) {
+      if (libraryPlaybackStatus === "playing") {
+        currentAudio.pause();
+        setLibraryPlaybackStatus("paused");
+        return;
+      }
+      try {
+        await currentAudio.play();
+        setLibraryPlaybackStatus("playing");
+      } catch {
+        setNotice("이 브라우저에서 완성 음원을 재생할 수 없습니다.");
+      }
+      return;
+    }
+    setProjectOperation("loading-mix");
+    try {
+      const mix = await loadAudioStudioMix(mixId);
+      if (!mix?.blob) throw new Error("MIX_NOT_FOUND");
+      clearScheduledPlayback();
+      releaseLibraryAudio();
+      const url = URL.createObjectURL(mix.blob);
+      const audio = new Audio(url);
+      libraryAudioUrlRef.current = url;
+      libraryAudioRef.current = audio;
+      audio.preload = "metadata";
+      audio.onended = releaseLibraryAudio;
+      audio.onerror = () => {
+        releaseLibraryAudio();
+        setNotice("완성 음원 파일을 재생할 수 없습니다.");
+      };
+      setLibraryMixId(mixId);
+      await audio.play();
+      setLibraryPlaybackStatus("playing");
+    } catch {
+      releaseLibraryAudio();
+      setNotice("완성 음원을 불러오지 못했습니다.");
+    } finally {
+      setProjectOperation("");
+    }
+  }, [clearScheduledPlayback, libraryMixId, libraryPlaybackStatus, projectOperation, releaseLibraryAudio]);
+
+  const downloadSavedMix = useCallback(async (mixId) => {
+    if (!mixId || projectOperation) return;
+    setProjectOperation("downloading-mix");
+    try {
+      const mix = await loadAudioStudioMix(mixId);
+      if (!mix?.blob) throw new Error("MIX_NOT_FOUND");
+      downloadAudioStudioBlob(mix.blob, mix.fileName);
+      setNotice(`“${mix.fileName}” 다운로드를 시작했습니다.`);
+    } catch {
+      setNotice("완성 음원을 기기로 다운로드하지 못했습니다.");
+    } finally {
+      setProjectOperation("");
+    }
+  }, [projectOperation]);
+
+  const renameSavedMix = useCallback(async (mixId, name) => {
+    if (!mixId || !String(name || "").trim() || projectOperation) return;
+    setProjectOperation("renaming-mix");
+    try {
+      const renamed = await renameAudioStudioMix(mixId, name);
+      await refreshSavedMixes();
+      setNotice(`완성 음원 이름을 “${renamed.fileName}”으로 변경했습니다.`);
+    } catch {
+      setNotice("완성 음원 이름을 변경하지 못했습니다.");
+    } finally {
+      setProjectOperation("");
+    }
+  }, [projectOperation, refreshSavedMixes]);
+
+  const deleteSavedMix = useCallback(async (mixId) => {
+    if (!mixId || projectOperation) return;
+    const saved = savedMixes.find((item) => item.id === mixId);
+    if (typeof window !== "undefined" && !window.confirm(`“${saved?.fileName || "선택한 음원"}”을 삭제할까요? 이 음원을 사용하는 BACKING LOOP 재생목록에서도 제거됩니다.`)) return;
+    setProjectOperation("deleting-mix");
+    try {
+      if (libraryMixId === mixId) releaseLibraryAudio();
+      await deleteAudioStudioMix(mixId);
+      await refreshSavedMixes();
+      setNotice("완성 음원을 삭제했습니다.");
+    } catch {
+      setNotice("완성 음원을 삭제하지 못했습니다.");
+    } finally {
+      setProjectOperation("");
+    }
+  }, [libraryMixId, projectOperation, refreshSavedMixes, releaseLibraryAudio, savedMixes]);
 
   const seekPlayback = useCallback((timeMs) => {
     const wasPlaying = playbackStatus === "playing";
@@ -315,8 +404,20 @@ export default function useAudioStudio() {
     else setPlaybackStatus(nextTimeMs > 0 ? "paused" : "stopped");
   }, [clearScheduledPlayback, playbackStatus, startPlayback]);
 
+  const setPlaybackPosition = useCallback((timeMs) => {
+    clearScheduledPlayback();
+    const nextTimeMs = Math.max(0, Number(timeMs) || 0);
+    setCurrentTimeMs(nextTimeMs);
+    setPlaybackStatus(nextTimeMs > 0 ? "paused" : "stopped");
+    setMasterLevel(0);
+  }, [clearScheduledPlayback]);
+
   useEffect(() => () => {
     clearScheduledPlayback();
+    libraryAudioRef.current?.pause?.();
+    libraryAudioRef.current = null;
+    if (libraryAudioUrlRef.current) URL.revokeObjectURL(libraryAudioUrlRef.current);
+    libraryAudioUrlRef.current = "";
     window.clearInterval(countInTimerRef.current);
     const recorder = mediaRecorderRef.current;
     if (recorder?.state && recorder.state !== "inactive") {
@@ -326,51 +427,10 @@ export default function useAudioStudio() {
     audioContextRef.current = null;
   }, [clearScheduledPlayback]);
 
-  const refreshSavedProjects = useCallback(async (preferredId = "") => {
-    try {
-      const projects = await listAudioStudioProjects();
-      setSavedProjects(projects);
-      setSelectedSavedProjectId((current) => {
-        const requested = preferredId || current;
-        return projects.some((item) => item.id === requested) ? requested : projects[0]?.id || "";
-      });
-    } catch {
-      setNotice("프로젝트 저장소를 열 수 없습니다. 브라우저 저장 권한을 확인해주세요.");
-    }
-  }, []);
-
   useEffect(() => {
-    refreshSavedProjects();
-  }, [refreshSavedProjects]);
-
-  const persistProjectNow = useCallback(async (studioProject = projectRef.current) => {
-    setSaveStatus("saving");
-    try {
-      const saved = await saveAudioStudioProject(studioProject);
-      await refreshSavedProjects(saved.id);
-      setSaveStatus("saved");
-      return saved;
-    } catch {
-      setSaveStatus("error");
-      throw new Error("PROJECT_SAVE_FAILED");
-    }
-  }, [refreshSavedProjects]);
-
-  useEffect(() => {
-    if (!projectActive || screen === AUDIO_STUDIO_SCREENS.LIBRARY) return undefined;
-    if (suppressAutoSaveRef.current) {
-      suppressAutoSaveRef.current = false;
-      return undefined;
-    }
-    setSaveStatus("dirty");
-    window.clearTimeout(autoSaveTimerRef.current);
-    autoSaveTimerRef.current = window.setTimeout(() => {
-      persistProjectNow(projectRef.current).catch(() => {
-        setNotice("자동 저장에 실패했습니다. 기기 저장 공간을 확인해주세요.");
-      });
-    }, 700);
-    return () => window.clearTimeout(autoSaveTimerRef.current);
-  }, [persistProjectNow, project, projectActive, screen]);
+    refreshSavedMixes();
+    return subscribeAudioStudioMixLibrary(refreshSavedMixes);
+  }, [refreshSavedMixes]);
 
   const commitProject = useCallback((updater) => {
     setHistory((current) => {
@@ -838,14 +898,6 @@ export default function useAudioStudio() {
     window.addEventListener("pointercancel", onEnd, { once: true });
   }, [commitProject, currentTimeMs]);
 
-  const setProjectName = useCallback((name) => {
-    commitProject((current) => ({
-      ...current,
-      metadata: { ...current.metadata, name: String(name).slice(0, 120) },
-      updatedAt: Date.now(),
-    }));
-  }, [commitProject]);
-
   const setTimelineZoom = useCallback((pixelsPerSecond) => {
     commitProject((current) => ({
       ...current,
@@ -930,29 +982,17 @@ export default function useAudioStudio() {
     startPlayback(startMs, { soloClipIds: selectedClipIdsRef.current, stopAtMs: endMs });
   }, [startPlayback]);
 
-  const saveProject = useCallback(async () => {
-    if (projectOperation) return;
-    setProjectOperation("saving");
-    try {
-      const saved = await persistProjectNow(projectRef.current);
-      setNotice(`프로젝트 “${saved.metadata.name}”을 전체 상태로 저장했습니다.`);
-    } catch {
-      setNotice("프로젝트를 저장하지 못했습니다. 기기 저장 공간을 확인해주세요.");
-    } finally {
-      setProjectOperation("");
-    }
-  }, [persistProjectNow, projectOperation]);
-
-  const createNewProject = useCallback((name = "Untitled Project", startWithFiles = false) => {
+  const openEditor = useCallback(() => {
     clearScheduledPlayback();
-    const nextProject = createAudioStudioProject({ name: String(name || "Untitled Project").trim() || "Untitled Project" });
+    releaseLibraryAudio();
+    const nextProject = createAudioStudioProject();
     projectRef.current = nextProject;
     audioBuffersRef.current.clear();
+    stretchBufferCacheRef.current.clear();
+    setTrackStretchState({});
     clipboardRef.current = null;
-    suppressAutoSaveRef.current = false;
     setHistory(createAudioStudioHistory(nextProject));
-    setProjectActive(true);
-    setScreen(AUDIO_STUDIO_SCREENS.CONSTRUCT);
+    setScreen(AUDIO_STUDIO_SCREENS.EDIT);
     setActiveTrackId(nextProject.tracks[0]?.id || "");
     setSelectedTrackId("");
     setSelectedClipIds([]);
@@ -960,127 +1000,10 @@ export default function useAudioStudio() {
     setCurrentTimeMs(0);
     setPlaybackStatus("stopped");
     setMasterLevel(0);
-    setSaveStatus("dirty");
-    setNotice("여러 파일을 고르면 각각 독립 Track과 Clip으로 준비합니다.");
-    if (startWithFiles) {
-      importPurposeRef.current = "construction";
-      const input = importInputRef.current;
-      if (input) {
-        input.value = "";
-        input.click();
-      }
-    }
-  }, [clearScheduledPlayback]);
+    setNotice("+ 음원 추가에서 한 개 또는 여러 파일을 선택하세요. 각 파일은 별도 TRACK에 바로 배치됩니다.");
+  }, [clearScheduledPlayback, releaseLibraryAudio]);
 
-  const loadProject = useCallback(async (projectId = selectedSavedProjectId) => {
-    if (!projectId || projectOperation) return;
-    setProjectOperation("loading");
-    try {
-      let loaded = await loadAudioStudioProject(projectId);
-      if (!loaded) throw new Error("PROJECT_NOT_FOUND");
-      loaded = await restoreMissingWaveforms(loaded);
-      clearScheduledPlayback();
-      audioBuffersRef.current.clear();
-      clipboardRef.current = null;
-      projectRef.current = loaded;
-      suppressAutoSaveRef.current = true;
-      setHistory(createAudioStudioHistory(loaded));
-      setProjectActive(true);
-      setScreen(AUDIO_STUDIO_SCREENS.EDIT);
-      setActiveTrackId(loaded.tracks[0]?.id || "");
-      setSelectedTrackId("");
-      setSelectedClipIds([]);
-      setRangeSelection(null);
-      setCurrentTimeMs(0);
-      setPlaybackStatus("stopped");
-      setSaveStatus("saved");
-      setNotice(`프로젝트 “${loaded.metadata.name}”을 불러왔습니다.`);
-      setFitProjectRequestId((value) => value + 1);
-    } catch {
-      setNotice("선택한 프로젝트를 불러오지 못했습니다.");
-    } finally {
-      setProjectOperation("");
-    }
-  }, [clearScheduledPlayback, projectOperation, restoreMissingWaveforms, selectedSavedProjectId]);
-
-  const playSavedProject = useCallback(async (projectId) => {
-    if (!projectId || projectOperation) return;
-    if (quickPlayingProjectId === projectId && playbackStatus === "playing") {
-      pausePlayback();
-      return;
-    }
-    setProjectOperation("loading-preview");
-    try {
-      let loaded = await loadAudioStudioProject(projectId);
-      if (!loaded) throw new Error("PROJECT_NOT_FOUND");
-      loaded = await restoreMissingWaveforms(loaded);
-      clearScheduledPlayback();
-      audioBuffersRef.current.clear();
-      projectRef.current = loaded;
-      suppressAutoSaveRef.current = true;
-      setHistory(createAudioStudioHistory(loaded));
-      setProjectActive(true);
-      setCurrentTimeMs(0);
-      setQuickPlayingProjectId(projectId);
-      setSaveStatus("saved");
-      setNotice(`“${loaded.metadata.name}” 전체 트랙을 재생합니다.`);
-      await startPlayback(0);
-    } catch {
-      setQuickPlayingProjectId("");
-      setNotice("프로젝트를 바로 재생하지 못했습니다.");
-    } finally {
-      setProjectOperation("");
-    }
-  }, [clearScheduledPlayback, pausePlayback, playbackStatus, projectOperation, quickPlayingProjectId, restoreMissingWaveforms, startPlayback]);
-
-  const renameSavedProject = useCallback(async (projectId, name) => {
-    if (!projectId || !String(name || "").trim()) return;
-    setProjectOperation("renaming");
-    try {
-      const renamed = await renameAudioStudioProject(projectId, name);
-      await refreshSavedProjects(renamed.id);
-      if (projectRef.current.id === renamed.id) {
-        projectRef.current = renamed;
-        setHistory((current) => ({ ...current, present: renamed }));
-      }
-    } catch {
-      setNotice("프로젝트 이름을 변경하지 못했습니다.");
-    } finally {
-      setProjectOperation("");
-    }
-  }, [refreshSavedProjects]);
-
-  const duplicateSavedProject = useCallback(async (projectId) => {
-    if (!projectId) return;
-    setProjectOperation("duplicating");
-    try {
-      const duplicated = await duplicateAudioStudioProject(projectId);
-      await refreshSavedProjects(duplicated.id);
-      setNotice(`“${duplicated.metadata.name}” 프로젝트를 복제했습니다.`);
-    } catch {
-      setNotice("프로젝트를 복제하지 못했습니다.");
-    } finally {
-      setProjectOperation("");
-    }
-  }, [refreshSavedProjects]);
-
-  const deleteSavedProject = useCallback(async (projectId = selectedSavedProjectId) => {
-    if (!projectId || projectOperation) return;
-    const savedName = savedProjects.find((item) => item.id === projectId)?.name || "선택한 프로젝트";
-    if (typeof window !== "undefined" && !window.confirm(`저장된 “${savedName}” 프로젝트를 삭제할까요? 이 작업은 되돌릴 수 없습니다.`)) return;
-    setProjectOperation("deleting");
-    try {
-      await deleteAudioStudioProject(projectId);
-      await refreshSavedProjects();
-      setNotice("저장된 프로젝트를 삭제했습니다. 현재 작업 중인 프로젝트는 유지됩니다.");
-    } catch {
-      setNotice("저장된 프로젝트를 삭제하지 못했습니다.");
-    } finally {
-      setProjectOperation("");
-    }
-  }, [projectOperation, refreshSavedProjects, savedProjects, selectedSavedProjectId]);
-
-  const goToLibrary = useCallback(async () => {
+  const goToLibrary = useCallback(() => {
     if (countInTimerRef.current || (mediaRecorderRef.current?.state && mediaRecorderRef.current.state !== "inactive")) {
       stopRecording();
       setNotice("녹음을 먼저 마무리하고 있습니다. 완료 후 다시 뒤로가기를 눌러주세요.");
@@ -1088,92 +1011,45 @@ export default function useAudioStudio() {
     }
     clearScheduledPlayback();
     setPlaybackStatus("stopped");
-    if (projectActive && saveStatus !== "saved") {
-      try {
-        window.clearTimeout(autoSaveTimerRef.current);
-        await persistProjectNow(projectRef.current);
-      } catch {
-        setNotice("저장에 실패해 작업실을 닫지 않았습니다.");
-        return;
-      }
-    }
     setScreen(AUDIO_STUDIO_SCREENS.LIBRARY);
     setSelectedClipIds([]);
     setSelectedTrackId("");
     setRangeSelection(null);
-  }, [clearScheduledPlayback, persistProjectNow, projectActive, saveStatus, stopRecording]);
-
-  const goToConstruction = useCallback(() => {
-    const current = projectRef.current;
-    const clipSourceIds = current.tracks.flatMap((track) => [...track.clips]
-      .sort((left, right) => left.timelineStartMs - right.timelineStartMs)
-      .map((clip) => clip.sourceId));
-    const order = [...new Set([...(current.settings.constructionSourceIds || []), ...clipSourceIds, ...current.audioSources.map((source) => source.id)])];
-    commitProject((value) => ({ ...value, settings: { ...value.settings, constructionSourceIds: order }, updatedAt: Date.now() }));
-    setScreen(AUDIO_STUDIO_SCREENS.CONSTRUCT);
-  }, [commitProject]);
-
-  const finishConstruction = useCallback(() => {
-    const current = projectRef.current;
-    const hasExistingClips = current.tracks.some((track) => track.clips.length > 0);
-    const nextProject = buildAudioStudioConstruction(
-      current,
-      current.settings.constructionSourceIds,
-      hasExistingClips ? current.settings.importMode : AUDIO_STUDIO_IMPORT_MODES.SEPARATE_TRACKS,
-    );
-    projectRef.current = nextProject;
-    setHistory((value) => recordAudioStudioHistory(value, nextProject));
-    setActiveTrackId(nextProject.tracks[0]?.id || "");
-    setSelectedTrackId("");
-    setSelectedClipIds([]);
-    setRangeSelection(null);
-    setCurrentTimeMs(0);
-    setScreen(AUDIO_STUDIO_SCREENS.EDIT);
-    setFitProjectRequestId((value) => value + 1);
-  }, []);
+  }, [clearScheduledPlayback, stopRecording]);
 
   const goToEditor = useCallback(() => setScreen(AUDIO_STUDIO_SCREENS.EDIT), []);
   const goToMixer = useCallback(() => setScreen(AUDIO_STUDIO_SCREENS.MIX), []);
 
-  const reorderConstructionSource = useCallback((sourceId, targetId) => {
-    commitProject((current) => {
-      const order = [...current.settings.constructionSourceIds];
-      const fromIndex = order.indexOf(sourceId);
-      const targetIndex = order.indexOf(targetId);
-      if (fromIndex < 0 || targetIndex < 0 || fromIndex === targetIndex) return current;
-      order.splice(fromIndex, 1);
-      order.splice(targetIndex, 0, sourceId);
-      return { ...current, settings: { ...current.settings, constructionSourceIds: order }, updatedAt: Date.now() };
-    });
-  }, [commitProject]);
-
-  const removeConstructionSource = useCallback((sourceId) => {
-    commitProject((current) => ({
-      ...current,
-      settings: {
-        ...current.settings,
-        constructionSourceIds: current.settings.constructionSourceIds.filter((id) => id !== sourceId),
-      },
-      updatedAt: Date.now(),
-    }));
-  }, [commitProject]);
-
-  const exportProject = useCallback(async () => {
-    if (projectOperation || !getAudioStudioProjectDurationMs(projectRef.current)) return;
-    setProjectOperation("exporting");
-    setNotice("현재 Project / Track / Clip / FX 상태를 WAV로 렌더링하고 있습니다.");
+  const mixSave = useCallback(async (name) => {
+    const mixName = String(name || "").trim();
+    if (!mixName || projectOperation || !getAudioStudioProjectDurationMs(projectRef.current)) return null;
+    setProjectOperation("mix-saving");
+    setNotice("모든 트랙을 하나의 완성 WAV 음원으로 믹싱하고 있습니다.");
     try {
       const context = await ensurePlaybackContext();
       await ensureSourceBuffers(context, projectRef.current);
       const wav = await renderAudioStudioWav(projectRef.current, audioBuffersRef.current);
-      downloadAudioStudioBlob(wav, sanitizeAudioStudioExportName(projectRef.current.metadata.name));
-      setNotice("전체 프로젝트 WAV 내보내기를 완료했습니다.");
+      const savedMix = await saveAudioStudioMix({
+        blob: wav,
+        durationMs: getAudioStudioRenderedDurationMs(projectRef.current),
+        fileName: sanitizeAudioStudioExportName(mixName),
+      });
+      await refreshSavedMixes();
+      clearScheduledPlayback();
+      setPlaybackStatus("stopped");
+      setScreen(AUDIO_STUDIO_SCREENS.LIBRARY);
+      setSelectedClipIds([]);
+      setSelectedTrackId("");
+      setRangeSelection(null);
+      setNotice(`“${savedMix.fileName}” 완성 · AUDIO STUDIO 보관함과 BACKING LOOP에서 사용할 수 있습니다.`);
+      return savedMix;
     } catch {
-      setNotice("WAV를 렌더링하지 못했습니다. 프로젝트 길이와 브라우저 메모리를 확인해주세요.");
+      setNotice("MIX SAVE를 완료하지 못했습니다. 음원 길이, 브라우저 메모리와 저장 공간을 확인해주세요.");
+      return null;
     } finally {
       setProjectOperation("");
     }
-  }, [ensurePlaybackContext, ensureSourceBuffers, projectOperation]);
+  }, [clearScheduledPlayback, ensurePlaybackContext, ensureSourceBuffers, projectOperation, refreshSavedMixes]);
 
   const updateSelectedClips = useCallback((updates) => {
     if (!selectedClipIdsRef.current.length) return;
@@ -1190,62 +1066,114 @@ export default function useAudioStudio() {
     commitProject((current) => updateAudioStudioTrack(current, trackId, updates));
   }, [commitProject]);
 
-  const matchTrackBpm = useCallback(async (trackId) => {
-    if (projectOperation) return;
+  const applyTrackTimeStretch = useCallback(async (trackId, { sourceBpm, targetBpm } = {}) => {
+    if (projectOperation) return false;
     const currentProject = projectRef.current;
     const track = currentProject.tracks.find((item) => item.id === trackId);
-    const sourceBpm = Number(track?.bpm || track?.detectedBpm) || 0;
-    const targetBpm = Number(currentProject.settings.projectBpm) || 0;
-    if (!track || !sourceBpm || !targetBpm) {
-      setNotice("감지 BPM과 Project BPM을 먼저 확인해주세요.");
-      return;
+    const safeSourceBpm = Number(sourceBpm);
+    const safeTargetBpm = Number(targetBpm);
+    const ratio = getAudioStudioTimeStretchRatio(safeSourceBpm, safeTargetBpm);
+    if (!track || !track.clips.length || !safeSourceBpm || !safeTargetBpm) {
+      setNotice("원본 BPM과 목표 BPM을 모두 입력해주세요.");
+      return false;
     }
-    if (Math.abs(sourceBpm - targetBpm) < 0.1) {
-      setNotice("이미 Project BPM과 일치합니다.");
-      return;
+    if (!isAudioStudioTimeStretchRatioSupported(ratio)) {
+      setNotice("STRETCH 배율은 0.75×에서 1.50×까지만 적용할 수 있습니다.");
+      return false;
     }
-    setProjectOperation("matching-bpm");
-    setNotice(`${Math.round(sourceBpm)} → ${Math.round(targetBpm)} BPM으로 음정을 유지하며 변환하고 있습니다.`);
+    clearScheduledPlayback();
+    setPlaybackStatus("stopped");
+    setProjectOperation("time-stretching");
+    setTrackStretchState((current) => ({
+      ...current,
+      [trackId]: { error: "", progress: 0, status: "processing" },
+    }));
+    setNotice(`${safeSourceBpm} → ${safeTargetBpm} BPM · Pitch를 유지하며 변환하고 있습니다.`);
     try {
       const context = await ensurePlaybackContext();
       await ensureSourceBuffers(context, currentProject);
-      const ratio = targetBpm / sourceBpm;
-      const sourceIds = [...new Set(track.clips.map((clip) => clip.sourceId))];
+      const originalSourceIds = [...new Set(track.clips.map((clip) => (
+        clip.timeStretch?.originalSourceId || clip.sourceId
+      )))];
       const sourceMap = new Map();
-      for (const sourceId of sourceIds) {
-        const originalSource = currentProject.audioSources.find((source) => source.id === sourceId);
-        const originalBuffer = audioBuffersRef.current.get(sourceId);
+      for (let index = 0; index < originalSourceIds.length; index += 1) {
+        const originalSourceId = originalSourceIds[index];
+        const originalSource = currentProject.audioSources.find((source) => source.id === originalSourceId);
+        const originalBuffer = audioBuffersRef.current.get(originalSourceId);
         if (!originalSource || !originalBuffer) continue;
-        const stretched = stretchAudioStudioPcm(originalBuffer, ratio);
-        const blob = encodePcmWav(stretched.channels, stretched.sampleRate);
-        const audioBuffer = await decodeAudioStudioData(context, await blob.arrayBuffer());
-        const source = createAudioStudioSource({
-          blob,
-          detectedBpm: targetBpm,
-          durationMs: audioBuffer.duration * 1_000,
-          fileName: `${originalSource.fileName.replace(/\.[^.]+$/, "")} · ${Math.round(targetBpm)} BPM.wav`,
-          mimeType: "audio/wav",
-          ...buildAudioStudioWaveformPeaks(audioBuffer, 180),
-        });
-        sourceMap.set(sourceId, source);
-        audioBuffersRef.current.set(source.id, audioBuffer);
+        if (Math.abs(ratio - 1) < 0.000001) {
+          sourceMap.set(originalSourceId, { audioBuffer: originalBuffer, source: originalSource });
+          continue;
+        }
+        const cacheKey = createAudioStudioTimeStretchCacheKey(originalSourceId, ratio, originalBuffer.sampleRate);
+        let cached = stretchBufferCacheRef.current.get(cacheKey);
+        if (!cached) {
+          const audioBuffer = await renderAudioStudioTimeStretch(originalBuffer, ratio, {
+            onProgress: (progress) => {
+              const combinedProgress = (index + progress) / originalSourceIds.length;
+              setTrackStretchState((current) => ({
+                ...current,
+                [trackId]: { error: "", progress: combinedProgress, status: "processing" },
+              }));
+            },
+          });
+          const source = createAudioStudioSource({
+            detectedBpm: safeTargetBpm,
+            durationMs: audioBuffer.duration * 1_000,
+            fileName: `${originalSource.fileName.replace(/\.[^.]+$/, "")} · STRETCH ${ratio.toFixed(2)}x`,
+            mimeType: "audio/x-signalsmith-pcm",
+            peakAmplitude: originalSource.peakAmplitude,
+            waveformPeaks: originalSource.waveformPeaks,
+          });
+          cached = { audioBuffer, source };
+          stretchBufferCacheRef.current.set(cacheKey, cached);
+          audioBuffersRef.current.set(source.id, audioBuffer);
+        } else {
+          audioBuffersRef.current.set(cached.source.id, cached.audioBuffer);
+          setTrackStretchState((current) => ({
+            ...current,
+            [trackId]: {
+              error: "",
+              progress: (index + 1) / originalSourceIds.length,
+              status: "processing",
+            },
+          }));
+        }
+        sourceMap.set(originalSourceId, cached);
       }
       if (!sourceMap.size) throw new Error("NO_STRETCH_SOURCE");
+      const newSources = [...sourceMap.values()]
+        .map(({ source }) => source)
+        .filter((source) => !currentProject.audioSources.some((item) => item.id === source.id));
       const nextProject = {
         ...currentProject,
-        audioSources: [...currentProject.audioSources, ...sourceMap.values()],
+        audioSources: [...currentProject.audioSources, ...newSources],
         tracks: currentProject.tracks.map((item) => item.id === trackId ? {
           ...item,
-          bpm: targetBpm,
+          bpm: safeTargetBpm,
+          timeStretch: {
+            algorithm: AUDIO_STUDIO_TIME_STRETCH_ALGORITHM,
+            sourceBpm: safeSourceBpm,
+            targetBpm: safeTargetBpm,
+            ratio,
+            version: AUDIO_STUDIO_TIME_STRETCH_VERSION,
+          },
           clips: item.clips.map((clip) => {
-            const nextSource = sourceMap.get(clip.sourceId);
+            const originalSourceId = clip.timeStretch?.originalSourceId || clip.sourceId;
+            const nextSource = sourceMap.get(originalSourceId)?.source;
             if (!nextSource) return clip;
+            const playbackRate = Math.max(0.25, Number(clip.playbackRate) || 1);
             return {
               ...clip,
-              durationMs: clip.durationMs / ratio,
-              sourceEndMs: clip.sourceEndMs / ratio,
-              sourceId: nextSource.id,
-              sourceStartMs: clip.sourceStartMs / ratio,
+              durationMs: Math.max(1, (clip.sourceEndMs - clip.sourceStartMs) / ratio / playbackRate),
+              sourceId: originalSourceId,
+              timeStretch: Math.abs(ratio - 1) < 0.000001 ? null : {
+                algorithm: AUDIO_STUDIO_TIME_STRETCH_ALGORITHM,
+                originalSourceId,
+                ratio,
+                renderedSourceId: nextSource.id,
+                version: AUDIO_STUDIO_TIME_STRETCH_VERSION,
+              },
             };
           }),
         } : item),
@@ -1254,13 +1182,37 @@ export default function useAudioStudio() {
       projectRef.current = nextProject;
       setHistory((current) => recordAudioStudioHistory(current, nextProject));
       setFitProjectRequestId((value) => value + 1);
-      setNotice(`${track.name}을 ${Math.round(targetBpm)} BPM에 맞췄습니다. 원본 오디오는 보존됩니다.`);
-    } catch {
-      setNotice("이 기기에서 BPM Match 변환을 완료하지 못했습니다. 원본 트랙은 그대로 유지됩니다.");
+      setCurrentTimeMs((current) => Math.min(current, getAudioStudioProjectDurationMs(nextProject)));
+      setTrackStretchState((current) => ({
+        ...current,
+        [trackId]: { error: "", progress: 1, status: "complete" },
+      }));
+      setNotice(`${track.name} · ${safeSourceBpm} → ${safeTargetBpm} BPM 변환을 완료했습니다. 원본은 그대로 보존됩니다.`);
+      return true;
+    } catch (error) {
+      const unsupported = error?.message === "AUDIO_WORKLET_UNAVAILABLE";
+      const message = unsupported
+        ? "이 브라우저에서는 Signalsmith WASM AudioWorklet을 사용할 수 없습니다. 최신 브라우저에서 다시 시도해주세요."
+        : "Time Stretch를 완료하지 못했습니다. 기기 메모리와 음원 길이를 확인해주세요.";
+      setTrackStretchState((current) => ({
+        ...current,
+        [trackId]: { error: message, progress: 0, status: "error" },
+      }));
+      setNotice(message);
+      return false;
     } finally {
       setProjectOperation("");
     }
-  }, [ensurePlaybackContext, ensureSourceBuffers, projectOperation]);
+  }, [clearScheduledPlayback, ensurePlaybackContext, ensureSourceBuffers, projectOperation]);
+
+  const matchTrackBpm = useCallback((trackId) => {
+    const currentProject = projectRef.current;
+    const track = currentProject.tracks.find((item) => item.id === trackId);
+    return applyTrackTimeStretch(trackId, {
+      sourceBpm: track?.timeStretch?.sourceBpm || track?.bpm || track?.detectedBpm,
+      targetBpm: currentProject.settings.projectBpm,
+    });
+  }, [applyTrackTimeStretch]);
 
   const createTrack = useCallback(() => {
     const nextProject = addAudioStudioTrack(projectRef.current);
@@ -1278,6 +1230,43 @@ export default function useAudioStudio() {
     setActiveTrackId(nextProject.tracks[0]?.id || "");
     setSelectedClipIds([]);
   }, [activeTrackId]);
+
+  const deleteTrack = useCallback((trackId) => {
+    const currentProject = projectRef.current;
+    const targetTrack = currentProject.tracks.find((track) => track.id === trackId);
+    if (!targetTrack) return;
+    clearScheduledPlayback();
+    setPlaybackStatus("stopped");
+    let nextProject = currentProject.tracks.length > 1
+      ? removeAudioStudioTrack(currentProject, trackId)
+      : updateAudioStudioTrack(currentProject, trackId, {
+        clips: [],
+        mute: false,
+        name: "Track 1",
+        solo: false,
+        volume: 1,
+      });
+    const usedSourceIds = new Set(nextProject.tracks.flatMap((track) => track.clips.flatMap((clip) => [
+      clip.sourceId,
+      clip.timeStretch?.renderedSourceId,
+    ].filter(Boolean))));
+    currentProject.audioSources.forEach((source) => {
+      if (!usedSourceIds.has(source.id)) audioBuffersRef.current.delete(source.id);
+    });
+    nextProject = {
+      ...nextProject,
+      audioSources: nextProject.audioSources.filter((source) => usedSourceIds.has(source.id)),
+      updatedAt: Date.now(),
+    };
+    projectRef.current = nextProject;
+    setHistory((current) => recordAudioStudioHistory(current, nextProject));
+    setActiveTrackId(nextProject.tracks[0]?.id || "");
+    setSelectedTrackId("");
+    setSelectedClipIds([]);
+    setRangeSelection(null);
+    setCurrentTimeMs(0);
+    setNotice(`“${targetTrack.name}” 음원을 삭제했습니다.`);
+  }, [clearScheduledPlayback]);
 
   const moveActiveTrack = useCallback((direction) => {
     commitProject((current) => reorderAudioStudioTrack(current, activeTrackId, direction));
@@ -1312,9 +1301,8 @@ export default function useAudioStudio() {
     }));
   }, [commitProject]);
 
-  const openImportPicker = useCallback((purpose = "construction", targetTrackId = "") => {
+  const openImportPicker = useCallback((_purpose = "editor-new-track", targetTrackId = "") => {
     if (importing) return;
-    importPurposeRef.current = purpose;
     importTargetTrackIdRef.current = targetTrackId;
     const input = importInputRef.current;
     if (!input) return;
@@ -1343,29 +1331,6 @@ export default function useAudioStudio() {
       }
       decoded.forEach(({ audioBuffer, source }) => audioBuffersRef.current.set(source.id, audioBuffer));
       const currentProject = projectRef.current;
-      if (importPurposeRef.current === "construction") {
-        const decodedSources = decoded.map(({ source }) => source);
-        const withSources = addAudioStudioSources(currentProject, decodedSources);
-        const nextProject = {
-          ...withSources,
-          settings: {
-            ...withSources.settings,
-            constructionSourceIds: [
-              ...withSources.settings.constructionSourceIds,
-              ...decodedSources.map((source) => source.id).filter((id) => !withSources.settings.constructionSourceIds.includes(id)),
-            ],
-          },
-          updatedAt: Date.now(),
-        };
-        projectRef.current = nextProject;
-        setHistory((current) => recordAudioStudioHistory(current, nextProject));
-        setScreen(AUDIO_STUDIO_SCREENS.CONSTRUCT);
-        setImportCompletionId((value) => value + 1);
-        setNotice(rejected.length
-          ? `${decoded.length}개 추가 · ${rejected.length}개 디코딩 실패`
-          : `${decoded.length}개 오디오를 구성 목록에 추가했습니다.`);
-        return;
-      }
       const targetTrackId = importTargetTrackIdRef.current || activeTrackId;
       const editorImportMode = AUDIO_STUDIO_IMPORT_MODES.SEPARATE_TRACKS;
       const placement = addAudioStudioImportedSources(
@@ -1396,10 +1361,6 @@ export default function useAudioStudio() {
   const selectedClips = useMemo(() => project.tracks.flatMap((track) => track.clips)
     .filter((clip) => selectedClipIdSet.has(clip.id)), [project.tracks, selectedClipIdSet]);
   const activeTrack = useMemo(() => project.tracks.find((track) => track.id === activeTrackId) || project.tracks[0], [activeTrackId, project.tracks]);
-  const constructionSources = useMemo(() => project.settings.constructionSourceIds
-    .map((sourceId) => project.audioSources.find((source) => source.id === sourceId))
-    .filter(Boolean), [project.audioSources, project.settings.constructionSourceIds]);
-
   useEffect(() => {
     const validTrackIds = new Set(project.tracks.map((track) => track.id));
     const validClipIds = new Set(project.tracks.flatMap((track) => track.clips.map((clip) => clip.id)));
@@ -1412,31 +1373,10 @@ export default function useAudioStudio() {
 
   useEffect(() => {
     const onKeyDown = (event) => {
-      if (screen !== AUDIO_STUDIO_SCREENS.EDIT && screen !== AUDIO_STUDIO_SCREENS.MIX) return;
+      if (screen !== AUDIO_STUDIO_SCREENS.EDIT) return;
       const target = event.target;
       if (target?.matches?.("input, select, textarea, [contenteditable='true']")) return;
-      const modifier = event.ctrlKey || event.metaKey;
-      if (modifier && event.key.toLowerCase() === "z") {
-        event.preventDefault();
-        if (event.shiftKey) redo();
-        else undo();
-      } else if (modifier && event.key.toLowerCase() === "c") {
-        event.preventDefault();
-        copySelection();
-      } else if (modifier && event.key.toLowerCase() === "x") {
-        event.preventDefault();
-        cutSelection();
-      } else if (modifier && event.key.toLowerCase() === "v") {
-        event.preventDefault();
-        pasteSelection();
-      } else if (modifier && event.key.toLowerCase() === "d") {
-        event.preventDefault();
-        duplicateSelection();
-      } else if (event.key === "Delete" || event.key === "Backspace") {
-        event.preventDefault();
-        if (rangeSelection) deleteRangeSelection();
-        else deleteSelection();
-      } else if (event.code === "Space") {
+      if (event.code === "Space") {
         event.preventDefault();
         if (playbackStatus === "playing") pausePlayback();
         else startPlayback();
@@ -1444,11 +1384,12 @@ export default function useAudioStudio() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [copySelection, cutSelection, deleteRangeSelection, deleteSelection, duplicateSelection, pasteSelection, pausePlayback, playbackStatus, rangeSelection, redo, screen, startPlayback, undo]);
+  }, [pausePlayback, playbackStatus, screen, startPlayback]);
 
   return {
     activeTrackId,
     activeTrack,
+    applyTrackTimeStretch,
     audioBuffersRef,
     canRedo: history.future.length > 0,
     canUndo: history.past.length > 0,
@@ -1456,26 +1397,23 @@ export default function useAudioStudio() {
     beginClipResize,
     addMarker,
     commitProject,
-    createNewProject,
+    openEditor,
     createTrack,
-    constructionSources,
     currentTimeMs,
     cutSelection,
+    deleteSavedMix,
     deleteSelection,
     deleteRangeSelection,
     deleteActiveTrack,
-    deleteSavedProject,
+    deleteTrack,
     deleteMarker,
     dragPreview,
     duplicateSelection,
     duplicateRangeSelection,
-    duplicateSavedProject,
-    exportProject,
-    finishConstruction,
+    downloadSavedMix,
     fitProject,
     fitProjectRequestId,
     fitSelection,
-    goToConstruction,
     goToEditor,
     goToLibrary,
     goToMixer,
@@ -1486,37 +1424,32 @@ export default function useAudioStudio() {
     importing,
     importInputRef,
     loopRangeSelection,
+    libraryMixId,
+    libraryPlaybackStatus,
     matchTrackBpm,
+    mixSave,
     notice,
     openImportPicker,
     pausePlayback,
     pasteSelection,
     playbackStatus,
-    playSavedProject,
+    playSavedMix,
     project,
     projectOperation,
-    quickPlayingProjectId,
     rangeSelection,
     recordingState,
-    projectActive,
     requestProjectFit,
     playSelection,
-    removeConstructionSource,
-    renameSavedProject,
-    reorderConstructionSource,
+    renameSavedMix,
     reorderTrack,
-    saveStatus,
     screen,
     selectedClipIds,
     selectedClips,
-    selectedSavedProjectId,
     selectedTrackId,
-    savedProjects,
+    savedMixes,
     selectedClipIdSet,
     setActiveTrackId,
-    setProjectName,
     setSelectedClipIds,
-    setSelectedSavedProjectId,
     setSelectedTrackId,
     setTimelineZoom,
     setLoopPoint,
@@ -1525,6 +1458,7 @@ export default function useAudioStudio() {
     selectTrack,
     selectScope,
     seekPlayback,
+    setPlaybackPosition,
     seekClipBoundary,
     startPlayback,
     stopPlayback,
@@ -1532,13 +1466,12 @@ export default function useAudioStudio() {
     splitRangeSelection,
     startRecording,
     stopRecording,
+    trackStretchState,
     trimSelection,
     trimRangeSelection,
     ungroupSelection,
     undo,
-    loadProject,
     masterLevel,
-    saveProject,
     updateActiveTrack,
     updateMaster,
     updatePractice,

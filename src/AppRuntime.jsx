@@ -7,6 +7,7 @@ import "./components/backing-loop.css";
 import "./polish.css";
 import "./shooter/maps/map-skins.css";
 import "./shooter/maps/editor/map-editor.css";
+import "./shooter/pseudo3d/pseudo3d.css";
 import "./layouts/desktop-layout.css";
 import "./audio-studio/audio-studio.css";
 import "./tuner/tuner-mode.css";

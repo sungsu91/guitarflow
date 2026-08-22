@@ -1,4 +1,7 @@
-import { getAudioStudioProjectDurationMs } from "./audioStudioModel.js";
+import {
+  getAudioStudioClipTimeStretchRatio,
+  getAudioStudioProjectDurationMs,
+} from "./audioStudioModel.js";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, Number(value) || 0));
 const reverbImpulseCache = new WeakMap();
@@ -32,7 +35,11 @@ export function createAudioStudioPlaybackPlan(project, { fromMs = 0 } = {}) {
       const audibleEndMs = Math.min(range.endMs, clipEndMs);
       if (audibleEndMs <= audibleStartMs) return;
       const elapsedClipMs = audibleStartMs - clip.timelineStartMs;
-      const source = sourceById.get(clip.sourceId);
+      const timeStretchRatio = getAudioStudioClipTimeStretchRatio(clip);
+      const renderedSourceId = clip.timeStretch?.renderedSourceId;
+      const effectiveSourceId = renderedSourceId || clip.sourceId;
+      const source = sourceById.get(effectiveSourceId) || sourceById.get(clip.sourceId);
+      const clipPlaybackRate = clamp(clip.playbackRate || 1, 0.25, 4);
       const fadeInMs = Math.max(0, Number(clip.fadeInMs) || 0);
       const fadeOutMs = Math.max(0, Number(clip.fadeOutMs) || 0);
       const fadeInRemainingMs = Math.max(0, fadeInMs - elapsedClipMs);
@@ -52,14 +59,16 @@ export function createAudioStudioPlaybackPlan(project, { fromMs = 0 } = {}) {
           * (10 ** (clamp(clip.gainDb, -60, 24) / 20)),
         pan: clamp((Number(track.pan) || 0) + (Number(clip.pan) || 0), -1, 1),
         peakAmplitude: clamp(source?.peakAmplitude, 0, 1),
-        playbackRate: clamp(clip.playbackRate || 1, 0.25, 4) * speed,
+        playbackRate: clipPlaybackRate * speed,
         processingChain: [
           ...Array.from(clip.processingChain || []),
           ...Array.from(track.effectsChain || []),
         ].filter((processor) => processor?.enabled !== false),
-        sourceDurationMs: (audibleEndMs - audibleStartMs) * clamp(clip.playbackRate || 1, 0.25, 4),
-        sourceId: clip.sourceId,
-        sourceOffsetMs: clip.sourceStartMs + elapsedClipMs * clamp(clip.playbackRate || 1, 0.25, 4),
+        sourceDurationMs: (audibleEndMs - audibleStartMs) * clipPlaybackRate,
+        sourceId: effectiveSourceId,
+        sourceOffsetMs: renderedSourceId
+          ? (clip.sourceStartMs / timeStretchRatio) + elapsedClipMs * clipPlaybackRate
+          : clip.sourceStartMs + elapsedClipMs * clipPlaybackRate,
         timelineOffsetMs: audibleStartMs - range.startMs,
         timelineStartMs: audibleStartMs,
         trackId: track.id,

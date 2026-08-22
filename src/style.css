@@ -67610,3 +67610,478 @@ html body main.app.app.app.metronomeMode.theme-brand.theme-brand
     0 0 0 1px rgba(74, 27, 36, 0.18),
     0 2px 13px rgba(184, 93, 110, 0.13) !important;
 }
+
+/* Help guide editorial hierarchy: grouped navigation, stronger cards, and fact-first reading. */
+html body .app.app.app .helpGuidePanel.helpGuidePanel {
+  border-color: rgba(217, 170, 85, 0.46) !important;
+  border-radius: 22px !important;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(217, 170, 85, 0.16), transparent 30%),
+    linear-gradient(180deg, #17140f 0%, #090b0d 100%) !important;
+  box-shadow:
+    0 32px 70px rgba(0, 0, 0, 0.58),
+    inset 0 1px 0 rgba(255, 245, 217, 0.08) !important;
+}
+
+html body .app.app.app .helpGuideHeader.helpGuideHeader {
+  padding: 17px 18px 15px !important;
+  border-bottom: 1px solid rgba(217, 170, 85, 0.36) !important;
+  background:
+    linear-gradient(115deg, rgba(217, 170, 85, 0.15), transparent 42%),
+    linear-gradient(180deg, #17130e, #0c0d0f) !important;
+}
+
+html body .app.app.app .helpGuideHeader > div {
+  min-width: 0;
+}
+
+html body .app.app.app .helpGuideHeader span {
+  color: #d9aa55 !important;
+  font-size: 9px !important;
+  letter-spacing: 0.15em !important;
+}
+
+html body .app.app.app .helpGuideHeader strong {
+  margin-top: 4px !important;
+  color: #fff7e8 !important;
+  font-size: 19px !important;
+  line-height: 1.2 !important;
+}
+
+html body .app.app.app .helpGuideHeader small {
+  display: block;
+  margin-top: 4px;
+  color: rgba(246, 232, 205, 0.62) !important;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+html body .app.app.app .helpGuideHeader button {
+  flex: 0 0 auto;
+  border-color: rgba(217, 170, 85, 0.42) !important;
+  background: rgba(217, 170, 85, 0.1) !important;
+  color: #fff7e8 !important;
+}
+
+html body .app.app.app .helpAccordion.helpAccordion {
+  gap: 0;
+  padding: 8px 11px 18px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 16%),
+    transparent !important;
+  scrollbar-color: rgba(217, 170, 85, 0.72) rgba(217, 170, 85, 0.08);
+}
+
+.helpAccordionSection {
+  display: grid;
+  gap: 7px;
+}
+
+.helpAccordionSection + .helpAccordionSection {
+  margin-top: 8px;
+}
+
+.helpAccordionGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 5px 1px;
+  color: rgba(241, 202, 122, 0.9);
+}
+
+.helpAccordionSection:first-child .helpAccordionGroup {
+  margin-top: 5px;
+}
+
+.helpAccordionGroup::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(217, 170, 85, 0.42), transparent);
+}
+
+.helpAccordionGroup > span {
+  color: inherit !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em;
+}
+
+html body .app.app.app .helpAccordionItem.helpAccordionItem {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(217, 170, 85, 0.2) !important;
+  border-radius: 14px !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.048), rgba(255, 255, 255, 0.012)),
+    rgba(12, 13, 14, 0.86) !important;
+  box-shadow:
+    0 5px 14px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035) !important;
+}
+
+html body .app.app.app .helpAccordionItem.helpAccordionItem::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: #d9aa55;
+  opacity: 0.5;
+}
+
+html body .app.app.app .helpAccordionItem--practice.helpAccordionItem::before {
+  background: #d98d55;
+}
+
+html body .app.app.app .helpAccordionItem--tools.helpAccordionItem::before {
+  background: #d96e66;
+}
+
+html body .app.app.app .helpAccordionItem--settings.helpAccordionItem::before {
+  background: #9b7fc7;
+}
+
+html body .app.app.app .helpAccordionItem.helpAccordionItem.open {
+  border-color: rgba(217, 170, 85, 0.52) !important;
+  background:
+    linear-gradient(135deg, rgba(217, 170, 85, 0.11), rgba(255, 255, 255, 0.018)),
+    rgba(11, 12, 13, 0.96) !important;
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 245, 217, 0.06) !important;
+}
+
+html body .app.app.app .helpAccordionTrigger.helpAccordionTrigger {
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  min-height: 64px;
+  padding: 11px 13px 11px 11px !important;
+}
+
+.helpAccordionChevron {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(217, 170, 85, 0.26);
+  border-radius: 7px;
+  background: rgba(217, 170, 85, 0.08);
+  color: #e0b66a !important;
+  font-size: 9px !important;
+  line-height: 1;
+}
+
+.helpAccordionChevron svg {
+  width: 11px;
+  height: 11px;
+  color: inherit;
+  stroke: currentColor;
+}
+
+.helpAccordionCopy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+html body .app.app.app .helpAccordionTitle.helpAccordionTitle {
+  align-items: center;
+}
+
+html body .app.app.app .helpAccordionTitle strong {
+  color: #fff4df !important;
+  font-size: 13px !important;
+  font-weight: 950 !important;
+  line-height: 1.3 !important;
+}
+
+.helpAccordionCopy > small {
+  display: block;
+  color: rgba(238, 226, 207, 0.6) !important;
+  font-size: 10px;
+  font-weight: 720;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+html body .app.app.app .helpAccordionBadge.helpAccordionBadge {
+  min-height: 21px;
+  padding: 2px 8px;
+  border-color: rgba(217, 170, 85, 0.42) !important;
+  background: rgba(217, 170, 85, 0.12) !important;
+  color: #f2cc81 !important;
+  font-size: 9px !important;
+  letter-spacing: 0.03em;
+}
+
+html body .app.app.app .helpAccordionBadge--hot.helpAccordionBadge {
+  border-color: rgba(232, 122, 111, 0.5) !important;
+  background: rgba(232, 122, 111, 0.12) !important;
+  color: #ffb0a8 !important;
+}
+
+html body .app.app.app .helpAccordionContent.helpAccordionContent {
+  padding: 15px 16px 18px 44px !important;
+  border-top: 1px solid rgba(217, 170, 85, 0.18) !important;
+  color: rgba(246, 238, 225, 0.82) !important;
+  font-size: 12px !important;
+  font-weight: 680 !important;
+  line-height: 1.75 !important;
+}
+
+html body .app.app.app .helpAccordionContent > p:first-child {
+  color: rgba(255, 246, 227, 0.94) !important;
+  font-weight: 820 !important;
+}
+
+html body .app.app.app .helpAccordionContent strong {
+  margin: 15px 0 7px !important;
+  color: #e8bd70 !important;
+  font-size: 12px !important;
+  letter-spacing: -0.01em;
+}
+
+html body .app.app.app .helpAccordionContent b {
+  color: #fff0cf !important;
+}
+
+.helpFactCard {
+  margin: 0 0 11px;
+  padding: 12px 13px;
+  border: 1px solid rgba(217, 170, 85, 0.3);
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(217, 170, 85, 0.14), rgba(217, 170, 85, 0.035)),
+    rgba(0, 0, 0, 0.13);
+}
+
+html body .app.app.app .helpFactCard strong {
+  margin: 0 0 4px !important;
+  color: #f3cf88 !important;
+}
+
+.helpFactCard p {
+  margin: 0 !important;
+}
+
+.helpNavMap {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-bottom: 11px;
+}
+
+.helpNavMap > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(217, 170, 85, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.helpNavMap > div:last-child {
+  grid-column: 1 / -1;
+}
+
+.helpNavMap b {
+  color: #f8dfae !important;
+  font-size: 10px;
+}
+
+.helpNavMap span {
+  color: rgba(238, 226, 207, 0.66) !important;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.helpInfoNote {
+  margin: 0 0 14px !important;
+  padding: 9px 10px 9px 12px;
+  border-left: 3px solid #d9aa55;
+  border-radius: 0 9px 9px 0;
+  background: rgba(217, 170, 85, 0.075);
+}
+
+.helpFactList {
+  display: grid;
+  gap: 6px;
+  padding-left: 18px !important;
+}
+
+.helpFactList li {
+  margin: 0 !important;
+  padding-left: 2px;
+}
+
+html body .app.theme-light.theme-light .helpGuidePanel.helpGuidePanel {
+  border-color: rgba(110, 74, 48, 0.54) !important;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(166, 105, 65, 0.13), transparent 31%),
+    linear-gradient(180deg, #f2e9e1 0%, #e7dad0 100%) !important;
+  box-shadow:
+    0 30px 64px rgba(49, 32, 23, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+html body .app.theme-light.theme-light .helpGuideHeader.helpGuideHeader {
+  border-bottom-color: rgba(217, 170, 85, 0.42) !important;
+  background:
+    linear-gradient(115deg, rgba(217, 170, 85, 0.2), transparent 46%),
+    linear-gradient(180deg, #35271f, #211a16) !important;
+}
+
+html body .app.theme-light.theme-light .helpGuideHeader span {
+  color: #e1b568 !important;
+}
+
+html body .app.theme-light.theme-light .helpGuideHeader strong {
+  color: #fff8ee !important;
+}
+
+html body .app.theme-light.theme-light .helpGuideHeader small {
+  color: rgba(255, 244, 226, 0.66) !important;
+}
+
+html body .app.theme-light.theme-light .helpGuideHeader button {
+  border-color: rgba(234, 199, 133, 0.5) !important;
+  background: rgba(255, 250, 240, 0.1) !important;
+  color: #fff8ee !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionGroup {
+  color: #895a2f !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionGroup::after {
+  background: linear-gradient(90deg, rgba(137, 90, 47, 0.38), transparent);
+}
+
+html body .app.theme-light.theme-light .helpAccordionItem.helpAccordionItem {
+  border-color: rgba(116, 77, 51, 0.24) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(246, 237, 230, 0.82)),
+    #f9f2ec !important;
+  box-shadow:
+    0 5px 13px rgba(76, 48, 33, 0.11),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionItem.helpAccordionItem.open {
+  border-color: rgba(141, 89, 50, 0.52) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 252, 247, 0.98), rgba(238, 222, 211, 0.94)),
+    #f7eee7 !important;
+  box-shadow:
+    0 9px 22px rgba(76, 48, 33, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionTitle strong {
+  color: #2a211c !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionCopy > small {
+  color: #75665c !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionChevron {
+  border-color: rgba(137, 90, 47, 0.3);
+  background: rgba(137, 90, 47, 0.08);
+  color: #80522c !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionBadge.helpAccordionBadge {
+  border-color: rgba(137, 90, 47, 0.36) !important;
+  background: rgba(137, 90, 47, 0.08) !important;
+  color: #70451f !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionBadge--hot.helpAccordionBadge {
+  border-color: rgba(167, 72, 63, 0.38) !important;
+  background: rgba(190, 91, 80, 0.1) !important;
+  color: #923f36 !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionContent.helpAccordionContent,
+html body .app.theme-light.theme-light .helpAccordionContent.helpAccordionContent :is(p, li, span) {
+  color: #4c3f37 !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionContent > p:first-child {
+  color: #2d241f !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionContent strong,
+html body .app.theme-light.theme-light .helpAccordionContent b {
+  color: #794d29 !important;
+}
+
+html body .app.theme-light.theme-light .helpFactCard {
+  border-color: rgba(137, 90, 47, 0.3);
+  background: linear-gradient(135deg, rgba(217, 170, 85, 0.16), rgba(255, 255, 255, 0.52));
+}
+
+html body .app.theme-light.theme-light .helpNavMap > div,
+html body .app.theme-light.theme-light .helpFeatureMap li {
+  border-color: rgba(116, 77, 51, 0.2);
+  background: rgba(255, 252, 248, 0.66);
+}
+
+html body .app.theme-light.theme-light .helpNavMap b,
+html body .app.theme-light.theme-light .helpFeatureMap li b {
+  color: #65401f !important;
+}
+
+html body .app.theme-light.theme-light .helpNavMap span,
+html body .app.theme-light.theme-light .helpFeatureMap li span {
+  color: #75665c !important;
+}
+
+html body .app.theme-light.theme-light .helpInfoNote {
+  border-left-color: #a8763d;
+  background: rgba(168, 118, 61, 0.09);
+}
+
+@media (max-width: 430px) {
+  html body .app.app.app .helpGuideLayer.helpGuideLayer {
+    padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+  }
+
+  html body .app.app.app .helpGuidePanel.helpGuidePanel {
+    width: min(370px, calc(100vw - 20px));
+    max-height: calc(100dvh - 20px);
+    border-radius: 18px !important;
+  }
+
+  html body .app.app.app .helpGuideHeader.helpGuideHeader {
+    padding: 14px 14px 13px !important;
+  }
+
+  html body .app.app.app .helpGuideHeader strong {
+    font-size: 17px !important;
+  }
+
+  html body .app.app.app .helpAccordion.helpAccordion {
+    padding: 7px 9px 16px !important;
+  }
+
+  html body .app.app.app .helpAccordionTrigger.helpAccordionTrigger {
+    min-height: 62px;
+    padding-right: 11px !important;
+  }
+
+  html body .app.app.app .helpAccordionTitle strong {
+    font-size: 12.5px !important;
+  }
+
+  .helpAccordionCopy > small {
+    font-size: 9.5px;
+  }
+
+  html body .app.app.app .helpAccordionContent.helpAccordionContent {
+    padding: 14px 13px 17px 42px !important;
+  }
+}

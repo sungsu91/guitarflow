@@ -109,51 +109,6 @@ export function detectAudioStudioBpm(audioBuffer, {
   return [...scores.entries()].sort((left, right) => right[1] - left[1])[0][0];
 }
 
-export function stretchAudioStudioPcm(audioBuffer, tempoRatio = 1) {
-  const ratio = Math.max(0.5, Math.min(2, Number(tempoRatio) || 1));
-  const channelCount = Math.max(0, Number(audioBuffer?.numberOfChannels) || 0);
-  const inputLength = Math.max(0, Number(audioBuffer?.length) || 0);
-  const sampleRate = Math.max(1, Number(audioBuffer?.sampleRate) || 44_100);
-  if (!channelCount || !inputLength || typeof audioBuffer.getChannelData !== "function") {
-    throw new Error("INVALID_AUDIO_BUFFER");
-  }
-  if (Math.abs(ratio - 1) < 0.001) {
-    return {
-      channels: Array.from({ length: channelCount }, (_, channel) => new Float32Array(audioBuffer.getChannelData(channel))),
-      sampleRate,
-    };
-  }
-  const frameSize = 2_048;
-  const analysisHop = 1_024;
-  const synthesisHop = Math.max(128, Math.round(analysisHop / ratio));
-  const frameCount = Math.max(1, Math.ceil(Math.max(0, inputLength - frameSize) / analysisHop) + 1);
-  const outputLength = Math.max(frameSize, (frameCount - 1) * synthesisHop + frameSize);
-  const window = Float32Array.from({ length: frameSize }, (_, index) => 0.5 - 0.5 * Math.cos((2 * Math.PI * index) / (frameSize - 1)));
-  const normalization = new Float32Array(outputLength);
-  const channels = Array.from({ length: channelCount }, () => new Float32Array(outputLength));
-  for (let frame = 0; frame < frameCount; frame += 1) {
-    const inputStart = frame * analysisHop;
-    const outputStart = frame * synthesisHop;
-    for (let frameIndex = 0; frameIndex < frameSize; frameIndex += 1) {
-      const outputIndex = outputStart + frameIndex;
-      if (outputIndex >= outputLength) break;
-      const weight = window[frameIndex];
-      normalization[outputIndex] += weight;
-      const inputIndex = inputStart + frameIndex;
-      if (inputIndex >= inputLength) continue;
-      for (let channel = 0; channel < channelCount; channel += 1) {
-        channels[channel][outputIndex] += (audioBuffer.getChannelData(channel)[inputIndex] || 0) * weight;
-      }
-    }
-  }
-  for (let index = 0; index < outputLength; index += 1) {
-    const weight = normalization[index];
-    if (weight < 1e-6) continue;
-    for (let channel = 0; channel < channelCount; channel += 1) channels[channel][index] /= weight;
-  }
-  return { channels, sampleRate };
-}
-
 export async function decodeAudioStudioFiles(files, {
   AudioContextApi = typeof window !== "undefined" ? window.AudioContext || window.webkitAudioContext : null,
   bucketCount = 180,

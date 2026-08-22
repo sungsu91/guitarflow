@@ -493,9 +493,51 @@ html body .app:not(.theme-light) .shooterArena.shooterMapSkin .shooterMapSkinSta
   position: absolute;
   inset: 0;
   display: block;
+  isolation: isolate;
   filter:
     drop-shadow(0 3px 2px rgba(81, 45, 10, 0.32))
     drop-shadow(0 8px 8px rgba(65, 39, 8, 0.16));
+}
+
+.shooterMapChestGroundShadow {
+  position: absolute;
+  z-index: 0;
+  left: 18%;
+  bottom: 0.5%;
+  display: block;
+  width: 64%;
+  height: 8.5%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(60, 35, 13, 0.5) 0%,
+    rgba(75, 45, 18, 0.3) 42%,
+    rgba(86, 52, 22, 0.12) 66%,
+    rgba(86, 52, 22, 0) 82%
+  );
+  opacity: 0.48;
+  transform: translate3d(0, 0, 0) scaleX(1);
+  transform-origin: center;
+  transition: opacity 110ms ease-out, transform 110ms ease-out;
+  pointer-events: none;
+}
+
+.shooterMapChestActor[data-state="revealing"][data-frame-index="1"] .shooterMapChestGroundShadow,
+.shooterMapChestActor[data-state="opening"][data-frame-index="1"] .shooterMapChestGroundShadow {
+  opacity: 0.4;
+  transform: translate3d(-3%, -1%, 0) scaleX(0.82);
+}
+
+.shooterMapChestActor[data-state="revealing"][data-frame-index="2"] .shooterMapChestGroundShadow,
+.shooterMapChestActor[data-state="opening"][data-frame-index="2"] .shooterMapChestGroundShadow {
+  opacity: 0.4;
+  transform: translate3d(3%, -1%, 0) scaleX(0.82);
+}
+
+.shooterMapChestActor[data-state="revealing"][data-frame-index="3"] .shooterMapChestGroundShadow,
+.shooterMapChestActor[data-state="opening"][data-frame-index="3"] .shooterMapChestGroundShadow {
+  opacity: 0.45;
+  transform: translate3d(0, 1%, 0) scaleX(0.92);
 }
 
 .shooterMapSkinAsset .shooterMapChestArtwork,
@@ -507,6 +549,14 @@ html body .app:not(.theme-light) .shooterArena.shooterMapSkin .shooterMapSkinSta
   height: 100%;
   object-fit: contain;
   pointer-events: none;
+}
+
+.shooterMapSkinAsset .shooterMapChestArtwork {
+  z-index: 1;
+}
+
+.shooterMapSkinAsset .shooterMapChestRewardBurst {
+  z-index: 2;
 }
 
 .shooterMapChestActor:is([data-state="closed"], [data-state="preview"]) .shooterMapChestArtwork {

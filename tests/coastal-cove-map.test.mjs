@@ -384,6 +384,9 @@ test("coastal cove preserves and aligns the supplied treasure and mimic frames",
   assert.match(mapStyles, /transform: scaleX\(-1\)/);
   assert.match(rendererSource, /assignRandomEventActorPlacements/);
   assert.match(mapStyles, /@keyframes shooterMapTreasureRewardBurst/);
+  assert.match(actorSource, /shooterMapChestGroundShadow/);
+  assert.match(mapStyles, /\.shooterMapChestGroundShadow/);
+  assert.match(mapStyles, /data-state="revealing"\]\[data-frame-index="1"\]/);
   assert.match(actorSource, /defeat-advance/);
 });
 

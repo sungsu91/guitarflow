@@ -72,3 +72,32 @@ test("project play schedules simultaneous tracks and sequential clips on one sha
   ]);
   assert.equal(plan.clips.find((clip) => clip.clipId === "clip-b").sourceOffsetMs, 2_000);
 });
+
+test("time-stretched clips preview and export through the same cached derived source", () => {
+  const original = createAudioStudioSource({ durationMs: 10_000, id: "source-original" });
+  const rendered = createAudioStudioSource({ durationMs: 8_334, id: "source-stretched" });
+  const project = createAudioStudioProject({
+    audioSources: [original, rendered],
+    tracks: [createAudioStudioTrack({
+      id: "track-stretched",
+      clips: [createAudioStudioClip({
+        durationMs: 4_000,
+        id: "clip-stretched",
+        sourceEndMs: 6_000,
+        sourceId: original.id,
+        sourceStartMs: 1_200,
+        timeStretch: {
+          originalSourceId: original.id,
+          ratio: 1.2,
+          renderedSourceId: rendered.id,
+        },
+        trackId: "track-stretched",
+      })],
+    })],
+  });
+  const plan = createAudioStudioPlaybackPlan(project, { fromMs: 1_000 });
+  assert.equal(plan.clips[0].sourceId, rendered.id);
+  assert.equal(plan.clips[0].sourceOffsetMs, 2_000);
+  assert.equal(plan.clips[0].sourceDurationMs, 3_000);
+  assert.equal(plan.clips[0].playbackRate, 1);
+});

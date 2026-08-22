@@ -1,47 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { FileUp, FolderOpen, Mic, Pause, Play, RotateCcw, Save, Scissors, Square, Trash2, Volume2, VolumeX, X } from "lucide-react";
+import { ChevronDown, ChevronUp, ListMusic, Mic, Music2, Pause, Play, Plus, Repeat2, RotateCcw, Save, Scissors, Shuffle, SkipBack, SkipForward, Square, Trash2, Volume2, VolumeX, X } from "lucide-react";
 import { BACKING_AUDIO_SOURCE_TYPES } from "../backing-loop/backingAudioSource";
 import { formatBackingLoopTime } from "../backing-loop/backingLoopUtils";
 import useBackingLoop from "../backing-loop/useBackingLoop";
 
-function BackingLoopHeader({ controller, mobile = false }) {
-  const showsTotalDuration = controller.hasRecording
-    && !["requesting", "armed", "recording", "processing", "trimming", "applying"].includes(controller.phase);
-  const timeText = mobile
-    ? formatBackingLoopTime(controller.displayTimeMs)
-    : showsTotalDuration
-      ? `${formatBackingLoopTime(controller.currentTimeMs)} / ${formatBackingLoopTime(controller.durationMs)}`
-      : formatBackingLoopTime(controller.displayTimeMs);
-  return (
-    <header className="backingLoopHeader">
-      <strong className="backingLoopTitle" title={controller.title}>{controller.title}</strong>
-      {mobile ? (
-        <i
-          aria-hidden="true"
-          className={`backingLoopRecLamp ${controller.isRecording ? "is-active" : ""}`}
-        />
-      ) : null}
-      <span
-        aria-label={controller.status.label}
-        aria-live="polite"
-        className={`backingLoopTime backingLoopTime--${controller.status.tone}`}
-        role="status"
-      >
-        {timeText}
-      </span>
-      <span className="backingLoopScreenReaderStatus">{controller.status.label}</span>
-    </header>
-  );
-}
-
 function MobileBackingLoopHardware() {
   return (
     <div aria-hidden="true" className="backingLoopRecorderHardware">
-      <i className="backingLoopScrew backingLoopScrew--topLeft" />
-      <i className="backingLoopScrew backingLoopScrew--topRight" />
-      <i className="backingLoopScrew backingLoopScrew--bottomLeft" />
-      <i className="backingLoopScrew backingLoopScrew--bottomRight" />
       <i className="backingLoopGrille backingLoopGrille--left" />
       <i className="backingLoopGrille backingLoopGrille--right" />
     </div>
@@ -92,64 +58,209 @@ function BackingLoopProgress({ controller }) {
 function BackingLoopVolume({ controller, mobile = false }) {
   const percentage = controller.backingVolumePercent;
   const muted = controller.isBackingMuted;
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!popoverOpen) return undefined;
+    const closeFromOutside = (event) => {
+      if (!menuRef.current?.contains(event.target)) setPopoverOpen(false);
+    };
+    const closeFromKeyboard = (event) => {
+      if (event.key === "Escape") setPopoverOpen(false);
+    };
+    document.addEventListener("pointerdown", closeFromOutside, true);
+    document.addEventListener("keydown", closeFromKeyboard);
+    return () => {
+      document.removeEventListener("pointerdown", closeFromOutside, true);
+      document.removeEventListener("keydown", closeFromKeyboard);
+    };
+  }, [popoverOpen]);
+
   return (
     <div
-      className={`backingLoopVolume ${mobile ? "backingLoopVolume--mobile" : "backingLoopVolume--desktop"}`}
+      className={`backingLoopVolumeMenu ${mobile ? "backingLoopVolumeMenu--mobile" : "backingLoopVolumeMenu--desktop"}`}
+      data-open={popoverOpen ? "true" : "false"}
+      onMouseEnter={() => setPopoverOpen(true)}
+      onMouseLeave={() => setPopoverOpen(false)}
+      ref={menuRef}
       style={{ "--backing-loop-volume": `${percentage}%` }}
     >
       <button
+        aria-expanded={popoverOpen}
         aria-label={muted ? "백킹 볼륨 음소거 해제" : "백킹 볼륨 음소거"}
         aria-pressed={muted}
-        className="backingLoopVolumeMute"
-        onClick={controller.toggleBackingMute}
-        title={muted ? "이전 백킹 볼륨으로 복원" : "백킹 음소거"}
+        className="backingLoopPlayerIconButton backingLoopVolumeMute"
+        onClick={() => {
+          controller.toggleBackingMute();
+          setPopoverOpen(true);
+        }}
+        onFocus={() => setPopoverOpen(true)}
+        title={muted ? "음소거 해제" : "음소거 · 마우스를 올리면 볼륨 조절"}
         type="button"
       >
         {muted
-          ? <VolumeX aria-hidden="true" size={mobile ? 13 : 15} />
-          : <Volume2 aria-hidden="true" size={mobile ? 13 : 15} />}
+          ? <VolumeX aria-hidden="true" size={mobile ? 18 : 17} strokeWidth={2.2} />
+          : <Volume2 aria-hidden="true" size={mobile ? 18 : 17} strokeWidth={2.2} />}
       </button>
-      <label className="backingLoopVolumeSlider">
-        <span className="backingLoopScreenReaderStatus">백킹 볼륨</span>
-        <input
-          aria-label="백킹 볼륨"
-          max="100"
-          min="0"
-          onChange={(event) => controller.setBackingVolume(Number(event.target.value) / 100)}
-          step="1"
-          type="range"
-          value={percentage}
-        />
-      </label>
-      <output aria-live="polite" className="backingLoopVolumeValue">{percentage}%</output>
+      <div aria-label="백킹 볼륨 조절" className="backingLoopVolumePopover" role="group">
+        <label className="backingLoopVolumeSlider">
+          <span className="backingLoopScreenReaderStatus">백킹 볼륨</span>
+          <input
+            aria-label="백킹 볼륨"
+            max="100"
+            min="0"
+            onChange={(event) => controller.setBackingVolume(Number(event.target.value) / 100)}
+            step="1"
+            type="range"
+            value={percentage}
+          />
+        </label>
+        <output aria-live="polite" className="backingLoopVolumeValue">{percentage}%</output>
+      </div>
     </div>
   );
 }
 
-function MobileBackingLoopDisplay({ controller }) {
+function BackingLoopPlayerBar({ controller, mobile = false }) {
+  const busy = ["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(controller.phase);
+  const hasPlaylistItems = controller.playlistPlaybackItemCount > 0;
+  const canPlay = controller.hasRecording || hasPlaylistItems;
+  const repeatMode = controller.playlistPlaybackMode;
+  const repeatActive = repeatMode === "repeat-all" || repeatMode === "repeat-one";
+  const repeatLabel = repeatMode === "repeat-all"
+    ? "한 곡 반복으로 변경"
+    : repeatMode === "repeat-one"
+      ? "반복 재생 끄기"
+      : "전체 반복 켜기";
+  return (
+    <div className="backingLoopPlayerBar" aria-label="백킹 공용 재생 컨트롤">
+      <div className="backingLoopPlayerTransport">
+        <button
+          aria-label="이전 백킹 또는 현재 백킹 처음부터"
+          className="backingLoopPlayerIconButton"
+          disabled={!hasPlaylistItems || busy}
+          onClick={controller.playPreviousPlaylistItem}
+          type="button"
+        >
+          <SkipBack aria-hidden="true" size={mobile ? 17 : 18} />
+        </button>
+        <button
+          aria-label={controller.isPlaying ? "백킹 일시정지" : "백킹 재생"}
+          aria-pressed={controller.isPlaying}
+          className="backingLoopPlayerPlayButton"
+          disabled={!canPlay || busy}
+          onClick={controller.togglePlayerPlayback}
+          type="button"
+        >
+          {controller.isPlaying
+            ? <Pause aria-hidden="true" size={mobile ? 20 : 19} />
+            : <Play aria-hidden="true" size={mobile ? 20 : 19} />}
+        </button>
+        <button
+          aria-label="다음 백킹"
+          className="backingLoopPlayerIconButton"
+          disabled={!hasPlaylistItems || busy}
+          onClick={controller.playNextPlaylistItem}
+          type="button"
+        >
+          <SkipForward aria-hidden="true" size={mobile ? 17 : 18} />
+        </button>
+      </div>
+      <div className="backingLoopPlayerModes">
+        <button
+          aria-label={repeatLabel}
+          aria-pressed={repeatActive}
+          className={`backingLoopPlayerIconButton backingLoopRepeatButton ${repeatActive ? "active" : ""}`}
+          data-repeat-mode={repeatMode}
+          onClick={controller.cyclePlaylistRepeatMode}
+          title={repeatMode === "repeat-one" ? "한 곡 반복" : repeatMode === "repeat-all" ? "전체 반복" : "반복 꺼짐 · 목록 1회 재생"}
+          type="button"
+        >
+          <Repeat2 aria-hidden="true" size={22} strokeWidth={2.15} />
+          {repeatMode === "repeat-all" ? (
+            <b aria-hidden="true" className="backingLoopRepeatState backingLoopRepeatState--all">•</b>
+          ) : null}
+          {repeatMode === "repeat-one" ? (
+            <b aria-hidden="true" className="backingLoopRepeatState backingLoopRepeatState--one">1</b>
+          ) : null}
+        </button>
+        <button
+          aria-label={controller.playlistShuffleEnabled ? "셔플 끄기" : "셔플 켜기"}
+          aria-pressed={controller.playlistShuffleEnabled}
+          className={`backingLoopPlayerIconButton backingLoopShuffleButton ${controller.playlistShuffleEnabled ? "active" : ""}`}
+          onClick={controller.togglePlaylistShuffle}
+          title={controller.playlistShuffleEnabled ? "셔플 켜짐" : "셔플 꺼짐"}
+          type="button"
+        >
+          <Shuffle aria-hidden="true" size={21} strokeWidth={2.15} />
+          {controller.playlistShuffleEnabled ? (
+            <b aria-hidden="true" className="backingLoopShuffleState">•</b>
+          ) : null}
+        </button>
+      </div>
+      <div className="backingLoopPlayerUtilities">
+        <BackingLoopVolume controller={controller} mobile={mobile} />
+        <button
+          aria-expanded={controller.playlistDrawerOpen}
+          aria-label={controller.playlistDrawerOpen ? "Playlist 닫기" : "Playlist 열기"}
+          className={`backingLoopPlayerIconButton backingLoopPlaylistToggle ${controller.playlistDrawerOpen ? "active" : ""}`}
+          disabled={busy}
+          onClick={controller.togglePlaylistDrawer}
+          type="button"
+        >
+          <span aria-hidden="true" className="backingLoopPlaylistToggleLabel">LIST</span>
+          {controller.playlistDrawerOpen
+            ? <ChevronDown aria-hidden="true" size={mobile ? 17 : 17} />
+            : <ChevronUp aria-hidden="true" size={mobile ? 17 : 17} />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function BackingLoopTrackInfo({ controller, mobile = false }) {
   const currentTime = formatBackingLoopTime(controller.currentTimeMs);
   const totalTime = formatBackingLoopTime(controller.durationMs);
-  const importedFileName = controller.sourceType === BACKING_AUDIO_SOURCE_TYPES.IMPORT
-    ? controller.sourceFileName
-    : "";
-  const statusText = controller.phase === "loading"
-    ? controller.status.label
-    : !controller.hasRecording && controller.phase === "idle"
-      ? "NO LOOP LOADED"
-      : importedFileName || controller.status.label;
+  const trackTitle = controller.hasRecording ? controller.title : "PLAYLIST EMPTY";
+  const trackSource = controller.playlistPlaybackActive
+    ? controller.playlistPlayingTitle
+    : controller.sourceType === BACKING_AUDIO_SOURCE_TYPES.IMPORT
+      ? "IMPORTED AUDIO"
+      : controller.hasRecording
+        ? "RECORDED LOOP"
+        : "OPEN PLAYLIST TO ADD AUDIO";
 
   return (
-    <div className={`backingLoopDeckDisplay backingLoopDeckDisplay--${controller.status.tone}`}>
-      <div className="backingLoopDeckTimeline">
-        <span aria-hidden="true">{currentTime}</span>
-        <BackingLoopProgress controller={controller} />
-        <span aria-hidden="true">{totalTime}</span>
-      </div>
-      <div aria-hidden="true" className="backingLoopCassetteWindow">
-        <i className="backingLoopDeckReel backingLoopDeckReel--left" />
-        <strong className="backingLoopDeckStatus" title={statusText}>{statusText}</strong>
-        <i className="backingLoopDeckReel backingLoopDeckReel--right" />
-      </div>
+    <div className="backingLoopTrackInfo">
+      <span aria-hidden="true" className="backingLoopTrackBadge">
+        <Music2 size={mobile ? 15 : 17} />
+      </span>
+      <span className="backingLoopTrackText">
+        <strong title={trackTitle}>{trackTitle}</strong>
+        <small>{trackSource}</small>
+      </span>
+      <time aria-label={`${currentTime} / ${totalTime}`}>{currentTime} / {totalTime}</time>
+    </div>
+  );
+}
+
+function MobileBackingLoopPlayer({ controller }) {
+  return (
+    <div className="backingLoopMiniPlayer backingLoopMiniPlayer--mobile">
+      <BackingLoopTrackInfo controller={controller} mobile />
+      <BackingLoopProgress controller={controller} />
+      <BackingLoopPlayerBar controller={controller} mobile />
+    </div>
+  );
+}
+
+function DesktopBackingLoopPlayer({ controller }) {
+  return (
+    <div className="backingLoopMiniPlayer backingLoopMiniPlayer--desktop">
+      <BackingLoopTrackInfo controller={controller} />
+      <BackingLoopProgress controller={controller} />
+      <BackingLoopPlayerBar controller={controller} />
     </div>
   );
 }
@@ -159,8 +270,9 @@ function BackingLoopMainControls({ controller, mobile = false }) {
   const captureActive = controller.isRecording || controller.isArmed;
   const mediaBusy = captureActive || isBusy;
   const canCancel = controller.hasRecording || captureActive || controller.phase === "requesting";
+  const showsDelete = controller.hasRecording && !captureActive && !isBusy;
   return (
-    <div className="backingLoopMainControls" aria-label="백킹 녹음 및 재생 컨트롤">
+    <div className={`backingLoopMainControls ${mobile ? "backingLoopMainControls--mobile" : ""}`} aria-label="백킹 녹음 및 파일 컨트롤">
       <button
         aria-label={captureActive ? "기타 녹음 종료" : "기타 녹음 시작"}
         aria-pressed={captureActive}
@@ -170,65 +282,30 @@ function BackingLoopMainControls({ controller, mobile = false }) {
         type="button"
       >
         {controller.isRecording
-          ? <Square aria-hidden="true" size={mobile ? 9 : 12} />
+          ? <Square aria-hidden="true" size={mobile ? 10 : 12} />
           : <i aria-hidden="true" className="backingLoopRecordDot" />}
         <span>REC</span>
       </button>
       <button
-        aria-label={controller.isPlaying
-          ? "백킹 루프 일시정지"
-          : controller.isPaused
-            ? "백킹 루프 이어서 재생"
-            : "백킹 루프 무한 반복 재생"}
-        aria-pressed={controller.isPlaying}
-        className={`backingLoopButton ${controller.isPlaying ? "backingLoopPauseButton active" : "backingLoopPlayButton"}`}
-        disabled={!controller.hasRecording || mediaBusy}
-        onClick={controller.togglePlayback}
-        type="button"
-      >
-        {controller.isPlaying
-          ? <Pause aria-hidden="true" size={mobile ? 11 : 14} />
-          : <Play aria-hidden="true" size={mobile ? 11 : 14} />}
-        <span>{controller.isPlaying ? "PAUSE" : "PLAY"}</span>
-      </button>
-      <button
-        aria-label="백킹 루프 재생 위치 처음으로 이동"
-        className="backingLoopButton backingLoopResetButton"
-        disabled={!controller.hasRecording || mediaBusy}
-        onClick={controller.resetPlayback}
-        type="button"
-      >
-        <RotateCcw aria-hidden="true" size={mobile ? 11 : 14} />
-        <span>RESET</span>
-      </button>
-      <button
-        aria-label="현재 백킹 구간 편집"
+        aria-label="현재 백킹 편집 화면 열기"
         className="backingLoopButton backingLoopEditButton"
-        disabled={!controller.hasRecording || mediaBusy || controller.isPlaying}
+        disabled={!controller.hasRecording || mediaBusy}
         onClick={controller.openTrimEditor}
         type="button"
       >
-        <Scissors aria-hidden="true" size={mobile ? 11 : 14} />
+        <Scissors aria-hidden="true" size={13} />
         <span>EDIT</span>
       </button>
       <button
-        aria-label="현재 작업 취소"
+        aria-label={showsDelete ? "현재 백킹 삭제" : "현재 작업 취소"}
         className="backingLoopButton backingLoopCancelButton"
         disabled={!canCancel || ["saving", "loading"].includes(controller.phase)}
         onClick={controller.cancelCurrent}
         type="button"
       >
-        <X aria-hidden="true" size={mobile ? 11 : 14} />
-        <span>CANCEL</span>
+        <Trash2 aria-hidden="true" size={13} />
+        <span>DEL</span>
       </button>
-    </div>
-  );
-}
-
-function BackingLoopStorageControls({ controller, mobile = false }) {
-  const isBusy = ["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(controller.phase);
-  return (
-    <div className="backingLoopStorageControls" aria-label="백킹 저장, 불러오기 및 파일 가져오기">
       <button
         aria-label="현재 백킹 제목 지정 후 저장"
         className="backingLoopButton backingLoopSaveButton"
@@ -236,39 +313,9 @@ function BackingLoopStorageControls({ controller, mobile = false }) {
         onClick={controller.openSaveDialog}
         type="button"
       >
-        <Save aria-hidden="true" size={mobile ? 10 : 13} />
+        <Save aria-hidden="true" size={13} />
         <span>SAVE</span>
       </button>
-      <button
-        aria-label="저장된 백킹 목록 열기"
-        className="backingLoopButton backingLoopLoadButton"
-        disabled={isBusy}
-        onClick={controller.openLoadDialog}
-        type="button"
-      >
-        <FolderOpen aria-hidden="true" size={mobile ? 10 : 13} />
-        <span>LOAD</span>
-      </button>
-      <button
-        aria-label="휴대폰 또는 PC에서 오디오 파일 가져오기"
-        className="backingLoopButton backingLoopImportButton"
-        disabled={isBusy}
-        onClick={controller.openImportPicker}
-        type="button"
-      >
-        <FileUp aria-hidden="true" size={mobile ? 10 : 13} />
-        <span>IMPORT</span>
-      </button>
-      <input
-        accept={controller.importAccept}
-        aria-label="가져올 백킹 오디오 파일 선택"
-        className="backingLoopImportInput"
-        onChange={controller.importBackingAudio}
-        ref={controller.importInputRef}
-        multiple
-        tabIndex="-1"
-        type="file"
-      />
     </div>
   );
 }
@@ -519,146 +566,341 @@ function ConfirmSaveBackingLoopDialog({ controller }) {
   );
 }
 
-function LoadBackingLoopDialog({ controller }) {
-  const selectedItem = controller.library.find((item) => item.id === controller.selectedLibraryId);
-  const selectedCount = controller.libraryEditMode ? controller.selectedLibraryIds.length : selectedItem ? 1 : 0;
+function BackingPlaylistNavigation({ controller }) {
   return (
-    <section className="backingLoopDialog backingLoopLoadDialog">
-      <div className="backingLoopDialogHeading">
-        <div>
-          <strong>저장된 백킹</strong>
-          <span>{controller.library.length ? `${controller.library.length}개의 연습 루프` : "아직 저장된 백킹이 없어요."}</span>
+    <div aria-label="현재 재생목록과 저장 목록 탭" className="backingLoopPlaylistNavigation" role="tablist">
+      <button
+        aria-selected={controller.playlistPanelView === "queue"}
+        className={controller.playlistPanelView === "queue" ? "selected" : ""}
+        onClick={controller.showCurrentPlaylist}
+        role="tab"
+        type="button"
+      >
+        <ListMusic aria-hidden="true" size={12} />
+        현재 재생목록
+      </button>
+      {controller.savedPlaylists.map((playlist) => (
+        <button
+          aria-label={`${playlist.title} 저장 목록 열기`}
+          aria-selected={controller.playlistPanelView === playlist.id}
+          className={controller.playlistPanelView === playlist.id ? "selected" : ""}
+          key={playlist.id}
+          onClick={() => controller.showSavedPlaylist(playlist.id)}
+          role="tab"
+          title={playlist.title}
+          type="button"
+        >
+          <Save aria-hidden="true" size={12} />
+          <span>저장 · {playlist.title}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function BackingAudioStudioPicker({ controller }) {
+  const appFiles = controller.library;
+  const targetPlaylist = controller.savedPlaylists.find((playlist) => playlist.id === controller.playlistLibraryTargetId)
+    || controller.activePlaylist;
+  const queueIds = new Set(targetPlaylist.itemIds);
+  return (
+    <section className="backingLoopAudioStudioPicker">
+      <header>
+        <div><strong>APP 내 파일</strong><span>앱 보관함의 완성 음원을 “{targetPlaylist.title}”에 추가합니다.</span></div>
+        <button aria-label="음원 선택 닫기" onClick={controller.togglePlaylistLibraryPicker} type="button"><X size={12} /></button>
+      </header>
+      {appFiles.length ? (
+        <div className="backingLoopAudioStudioPickerList">
+          {appFiles.map((item) => {
+            const alreadyAdded = queueIds.has(item.id);
+            return (
+              <label className={alreadyAdded ? "is-added" : ""} key={item.id}>
+                <input
+                  aria-label={`${item.title} 선택`}
+                  checked={controller.selectedLibraryIds.includes(item.id)}
+                  disabled={alreadyAdded}
+                  onChange={() => controller.toggleLibraryRecordingSelection(item.id)}
+                  type="checkbox"
+                />
+                <Music2 aria-hidden="true" size={13} />
+                <span title={item.title}>{item.title}</span>
+                <small>{alreadyAdded ? "추가됨" : formatBackingLoopTime(item.durationMs)}</small>
+              </label>
+            );
+          })}
         </div>
-        <div className="backingLoopDialogHeadingActions">
-          <button
-            aria-pressed={controller.libraryEditMode}
-            className={controller.libraryEditMode ? "selected" : ""}
-            disabled={!controller.library.length}
-            onClick={controller.toggleLibraryEditMode}
-            type="button"
-          >
-            {controller.libraryEditMode ? "완료" : "편집"}
-          </button>
-          <button aria-label="불러오기 창 닫기" onClick={controller.closeDialog} type="button"><X size={15} /></button>
+      ) : (
+        <div className="backingLoopLibraryEmpty">
+          <Music2 aria-hidden="true" size={18} />
+          <span>App에 저장된 녹음이나 완성 음원이 아직 없습니다.</span>
         </div>
+      )}
+      <footer>
+        <span>{controller.selectedLibraryIds.length}곡 선택</span>
+        <button className="primary" disabled={!controller.selectedLibraryIds.length} onClick={controller.addSelectedLibraryToPlaylist} type="button">선택 파일 추가</button>
+      </footer>
+    </section>
+  );
+}
+
+function BackingCurrentPlaylistPane({ controller }) {
+  const selectedCount = controller.selectedQueueItemIds.length;
+  return (
+    <>
+      <div className="backingLoopPlaylistActions">
+        <button className="primary" onClick={() => controller.togglePlaylistLibraryPicker(controller.activePlaylist.id)} type="button">
+          <Plus aria-hidden="true" size={13} />
+          App 내 파일 추가
+        </button>
+        <button onClick={() => controller.openImportFilePicker(controller.activePlaylist.id)} type="button">
+          <Plus aria-hidden="true" size={13} />
+          기기 파일 추가
+        </button>
+        <span>{controller.playlistEntries.length}곡</span>
       </div>
-      <div className="backingLoopLibrary">
-        {controller.library.length ? controller.library.map((item) => (
-          controller.libraryEditMode ? (
-            <label className="backingLoopLibraryEditItem" key={item.id}>
+      {controller.playlistLibraryPickerOpen ? <BackingAudioStudioPicker controller={controller} /> : null}
+      <div className="backingLoopPlaylistSelectionTools">
+        <button
+          disabled={!controller.playlistEntries.length || selectedCount === controller.playlistEntries.length}
+          onClick={controller.selectAllQueueItems}
+          type="button"
+        >
+          전체 선택
+        </button>
+        <button disabled={!selectedCount} onClick={controller.clearQueueItemSelection} type="button">선택 해제</button>
+        <button className="primary" disabled={!selectedCount} onClick={controller.playSelectedQueueItems} type="button">
+          <Play aria-hidden="true" size={10} />
+          선택 재생
+        </button>
+        <span>{selectedCount}곡 선택</span>
+      </div>
+      <div className="backingLoopPlaylistItems">
+        {controller.playlistEntries.length ? controller.playlistEntries.map((item, index) => (
+          <div
+            className={`backingLoopPlaylistItem ${controller.selectedQueueItemIds.includes(item.id) ? "selected" : ""} ${item.id === controller.playlistPlayingItemId ? "playing" : ""}`}
+            key={item.id}
+          >
+            <label className="backingLoopPlaylistItemCheck">
               <input
-                aria-label={`${item.title} 선택`}
-                checked={controller.selectedLibraryIds.includes(item.id)}
-                onChange={() => controller.toggleLibraryRecordingSelection(item.id)}
+                aria-label={`${item.title} 목록 선택`}
+                checked={controller.selectedQueueItemIds.includes(item.id)}
+                onChange={() => controller.toggleQueueItemSelection(item.id)}
                 type="checkbox"
               />
-              <span title={item.title}>{item.title}</span>
-              <small>{formatBackingLoopTime(item.durationMs)}</small>
             </label>
-          ) : (
             <button
-              aria-label={`${item.title} 선택`}
-              aria-pressed={item.id === controller.selectedLibraryId}
-              className={item.id === controller.selectedLibraryId ? "selected" : ""}
-              key={item.id}
-              onClick={() => controller.selectLibraryRecording(item.id)}
+              aria-current={item.id === controller.playlistPlayingItemId ? "true" : undefined}
+              aria-label={`${item.title} 바로 재생`}
+              className="backingLoopPlaylistItemSelect"
+              onClick={() => controller.playPlaylistItem(item.id)}
               type="button"
             >
+              <b><Play aria-hidden="true" size={9} /></b>
               <span title={item.title}>{item.title}</span>
               <small>{formatBackingLoopTime(item.durationMs)}</small>
             </button>
-          )
+            <button aria-label={`${item.title} 위로 이동`} disabled={index === 0} onClick={() => controller.movePlaylistItem(item.id, "up")} type="button"><ChevronUp size={12} /></button>
+            <button aria-label={`${item.title} 아래로 이동`} disabled={index === controller.playlistEntries.length - 1} onClick={() => controller.movePlaylistItem(item.id, "down")} type="button"><ChevronDown size={12} /></button>
+            <button aria-label={`${item.title} Playlist에서 제거`} onClick={() => controller.removePlaylistItem(item.id)} type="button"><X size={12} /></button>
+          </div>
         )) : (
           <div className="backingLoopLibraryEmpty">
-            <Mic aria-hidden="true" size={19} />
-            <span>REC로 코드 진행을 녹음한 뒤 SAVE하세요.</span>
+            <ListMusic aria-hidden="true" size={19} />
+            <span>파일 또는 저장된 음원을 추가해 재생목록을 만들어보세요.</span>
           </div>
         )}
       </div>
-      <div className="backingLoopDialogActions backingLoopDialogActions--load">
-        <button onClick={controller.closeDialog} type="button">닫기</button>
-        <button
-          className="danger"
-          disabled={!selectedCount}
-          onClick={controller.openDeleteDialog}
-          type="button"
-        >
-          <Trash2 aria-hidden="true" size={12} />
-          {controller.libraryEditMode && selectedCount ? `${selectedCount}개 삭제` : "삭제"}
-        </button>
+      <form
+        className="backingLoopPlaylistSaveForm"
+        onSubmit={(event) => {
+          event.preventDefault();
+          controller.saveCurrentPlaylist();
+        }}
+      >
+        <div className="backingLoopPlaylistSaveDestination">
+          <select
+            aria-label="저장할 재생목록 선택"
+            onChange={(event) => controller.selectPlaylistSaveTarget(event.target.value)}
+            value={controller.playlistSaveTargetId}
+          >
+            <option value="">새 목록으로 저장</option>
+            {controller.savedPlaylists.map((playlist) => (
+              <option key={playlist.id} value={playlist.id}>{playlist.title}에 선택 저장</option>
+            ))}
+          </select>
+          {!controller.playlistSaveTargetId ? (
+            <input
+              aria-label="새 재생목록 이름"
+              maxLength={40}
+              onChange={(event) => controller.setPlaylistRenameDraft(event.target.value)}
+              placeholder="새 목록 이름 (예: 버스킹 세트)"
+              value={controller.playlistRenameDraft}
+            />
+          ) : null}
+        </div>
         <button
           className="primary"
-          disabled={!selectedItem || controller.libraryEditMode}
-          onClick={() => controller.loadRecording(selectedItem?.id)}
+          disabled={!selectedCount || (!controller.playlistSaveTargetId && !controller.playlistRenameDraft.trim())}
+          type="submit"
+        >
+          <Save aria-hidden="true" size={12} />
+          {controller.playlistSaveTargetId ? "선택 저장" : "목록 저장"}
+        </button>
+      </form>
+    </>
+  );
+}
+
+function BackingSavedPlaylistPane({ controller }) {
+  const playlist = controller.savedPlaylists.find((item) => item.id === controller.playlistPanelView);
+  if (!playlist) {
+    return (
+      <div className="backingLoopLibraryEmpty">
+        <Save aria-hidden="true" size={19} />
+        <span>현재 재생목록에서 곡을 선택하고 목록을 저장해주세요.</span>
+      </div>
+    );
+  }
+  const entries = playlist.itemIds
+    .map((itemId) => controller.library.find((item) => item.id === itemId))
+    .filter(Boolean);
+  const durationMs = entries.reduce((total, item) => total + (item.durationMs || 0), 0);
+  const selectedCount = controller.selectedSavedItemIds.length;
+  return (
+    <div className="backingLoopSavedPlaylistPane">
+      <div className="backingLoopSavedPlaylistSummary">
+        <div>
+          <strong>{playlist.title}</strong>
+          <small>{entries.length}곡 · {formatBackingLoopTime(durationMs)}</small>
+        </div>
+        <button aria-label={`${playlist.title} 제목과 저장 목록 삭제`} className="danger" onClick={() => controller.requestDeletePlaylistTab(playlist.id)} title="목록 제목 삭제" type="button">
+          <Trash2 aria-hidden="true" size={13} />
+        </button>
+      </div>
+      <div className="backingLoopPlaylistActions backingLoopSavedPlaylistActions">
+        <button className="primary" onClick={() => controller.togglePlaylistLibraryPicker(playlist.id)} type="button">
+          <Plus aria-hidden="true" size={13} />
+          App 내 파일 추가
+        </button>
+        <button onClick={() => controller.openImportFilePicker(playlist.id)} type="button">
+          <Plus aria-hidden="true" size={13} />
+          기기 파일 추가
+        </button>
+        <span>{entries.length}곡</span>
+      </div>
+      {controller.playlistLibraryPickerOpen && controller.playlistLibraryTargetId === playlist.id
+        ? <BackingAudioStudioPicker controller={controller} />
+        : null}
+      <div className="backingLoopPlaylistSelectionTools backingLoopSavedPlaylistSelectionTools">
+        <button
+          disabled={!entries.length || selectedCount === entries.length}
+          onClick={controller.selectAllSavedPlaylistItems}
           type="button"
         >
-          불러오기
+          전체 선택
         </button>
+        <button disabled={!selectedCount} onClick={controller.clearSavedPlaylistItemSelection} type="button">선택 해제</button>
+        <button className="primary" disabled={!entries.length} onClick={() => controller.playAllSavedPlaylistItems(playlist.id)} type="button">
+          <Play aria-hidden="true" size={10} />
+          전체 재생
+        </button>
+        <button className="primary" disabled={!selectedCount} onClick={() => controller.playSelectedSavedPlaylistItems(playlist.id)} type="button">
+          <Play aria-hidden="true" size={10} />
+          선택 재생
+        </button>
+        <button className="danger" disabled={!selectedCount} onClick={() => controller.requestDeleteSavedPlaylistItems(playlist.id)} type="button">
+          <Trash2 aria-hidden="true" size={10} />
+          선택 제거
+        </button>
+        <span>{selectedCount}곡 선택</span>
       </div>
-    </section>
+      <div className="backingLoopSavedPlaylistTracks">
+        {entries.length ? entries.map((item, index) => (
+          <div
+            className={`${controller.selectedSavedItemIds.includes(item.id) ? "selected" : ""} ${controller.playlistPlayingPlaylistId === playlist.id && item.id === controller.playlistPlayingItemId ? "playing" : ""}`}
+            key={item.id}
+          >
+            <label className="backingLoopPlaylistItemCheck">
+              <input
+                aria-label={`${item.title} 저장 목록 선택`}
+                checked={controller.selectedSavedItemIds.includes(item.id)}
+                onChange={() => controller.toggleSavedPlaylistItemSelection(item.id)}
+                type="checkbox"
+              />
+            </label>
+            <button
+              aria-current={controller.playlistPlayingPlaylistId === playlist.id && item.id === controller.playlistPlayingItemId ? "true" : undefined}
+              aria-label={`${item.title} 저장 목록에서 재생`}
+              onClick={() => controller.playSavedPlaylistItem(playlist.id, item.id)}
+              type="button"
+            >
+              <b>{index + 1}</b>
+              <span title={item.title}>{item.title}</span>
+              <small>{formatBackingLoopTime(item.durationMs)}</small>
+            </button>
+          </div>
+        )) : (
+          <div className="backingLoopLibraryEmpty">
+            <ListMusic aria-hidden="true" size={18} />
+            <span>이 목록에 App 내 파일이나 기기 파일을 추가해주세요.</span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
-function ImportBackingLoopDialog({ controller }) {
-  const selectedItem = controller.importCandidates.find((item) => item.id === controller.selectedImportCandidateId);
+function LoadBackingLoopDialog({ controller }) {
   return (
-    <section className="backingLoopDialog backingLoopImportSelectDialog">
+    <section className="backingLoopDialog backingLoopLoadDialog backingLoopPlaylistDialog">
       <div className="backingLoopDialogHeading">
         <div>
-          <strong>현재 백킹 선택</strong>
-          <span>
-            {controller.importCandidates.length}개 파일 중 반복 재생할 하나를 선택하세요.
-            {controller.importRejectedCount ? ` · ${controller.importRejectedCount}개 제외` : ""}
-          </span>
+          <strong>PLAYLIST</strong>
         </div>
-        <button aria-label="가져온 파일 선택 창 닫기" onClick={controller.closeDialog} type="button"><X size={15} /></button>
-      </div>
-      <div className="backingLoopLibrary backingLoopImportLibrary">
-        {controller.importCandidates.map((item) => (
-          <button
-            aria-label={`${item.recording.fileName} 현재 백킹 후보 선택`}
-            aria-pressed={item.id === controller.selectedImportCandidateId}
-            className={item.id === controller.selectedImportCandidateId ? "selected" : ""}
-            key={item.id}
-            onClick={() => controller.selectImportCandidate(item.id)}
-            type="button"
-          >
-            <span title={item.recording.fileName}>{item.recording.fileName}</span>
-            <small>{formatBackingLoopTime(item.recording.durationMs)}</small>
-          </button>
-        ))}
-      </div>
-      <div className="backingLoopDialogActions">
-        <button onClick={controller.closeDialog} type="button">취소</button>
-        <button className="primary" disabled={!selectedItem} onClick={controller.useSelectedImportCandidate} type="button">
-          현재 백킹으로 사용
+        <button aria-label="Playlist 닫기" onClick={controller.closeDialog} type="button">
+          <ChevronDown size={15} />
         </button>
       </div>
+      <BackingPlaylistNavigation controller={controller} />
+      {controller.playlistPanelView === "queue"
+        ? <BackingCurrentPlaylistPane controller={controller} />
+        : <BackingSavedPlaylistPane controller={controller} />}
     </section>
   );
 }
 
-function DeleteBackingLoopDialog({ controller }) {
-  const selectedItems = controller.libraryEditMode
-    ? controller.library.filter((item) => controller.selectedLibraryIds.includes(item.id))
-    : controller.library.filter((item) => item.id === controller.selectedLibraryId);
+function DeleteBackingPlaylistDialog({ controller }) {
+  const target = controller.savedPlaylists.find((playlist) => playlist.id === controller.playlistDeleteTargetId);
   return (
     <section className="backingLoopDialog backingLoopDeleteDialog">
       <div className="backingLoopDialogHeading backingLoopDialogHeading--confirm">
         <div>
-          <strong>
-            {selectedItems.length > 1
-              ? `선택한 백킹 ${selectedItems.length}개를 삭제할까요?`
-              : `“${selectedItems[0]?.title || "선택한 백킹"}”을 삭제할까요?`}
-          </strong>
-          <span>저장 목록에서 삭제되며 이 작업은 되돌릴 수 없어요.</span>
+          <strong>“{target?.title || "선택한 목록"}” 저장 목록을 삭제할까요?</strong>
+          <span>저장된 재생 순서만 삭제되며 실제 음원 파일과 현재 재생목록은 유지됩니다.</span>
         </div>
       </div>
       <div className="backingLoopDialogActions">
-        <button disabled={controller.deletePending} onClick={controller.closeDialog} type="button">취소</button>
-        <button className="danger" disabled={controller.deletePending} onClick={controller.confirmDelete} type="button">
-          {controller.deletePending ? "삭제 중" : "삭제"}
-        </button>
+        <button onClick={controller.closeDialog} type="button">취소</button>
+        <button className="danger" disabled={!target} onClick={controller.confirmDeletePlaylistTab} type="button">목록 삭제</button>
+      </div>
+    </section>
+  );
+}
+
+function DeleteBackingPlaylistItemsDialog({ controller }) {
+  const target = controller.savedPlaylists.find((playlist) => playlist.id === controller.playlistItemsDeleteTargetId);
+  const selectedCount = controller.playlistItemsDeleteTargetIds.length;
+  return (
+    <section className="backingLoopDialog backingLoopDeleteDialog">
+      <div className="backingLoopDialogHeading backingLoopDialogHeading--confirm">
+        <div>
+          <strong>“{target?.title || "선택한 목록"}”에서 {selectedCount}곡을 제거할까요?</strong>
+          <span>이 저장 목록에서만 제외되며 App에 보관된 실제 음원 파일은 유지됩니다.</span>
+        </div>
+      </div>
+      <div className="backingLoopDialogActions">
+        <button onClick={controller.closeDialog} type="button">취소</button>
+        <button className="danger" disabled={!target || !selectedCount} onClick={controller.confirmDeleteSavedPlaylistItems} type="button">선택 제거</button>
       </div>
     </section>
   );
@@ -667,6 +909,7 @@ function DeleteBackingLoopDialog({ controller }) {
 function BackingLoopDialogLayer({ controller }) {
   const dialogRef = useRef(null);
   const previousFocusRef = useRef(null);
+  const [playlistAnchorStyle, setPlaylistAnchorStyle] = useState(null);
   const dialogOpen = Boolean(controller.dialog);
 
   useEffect(() => {
@@ -703,15 +946,61 @@ function BackingLoopDialogLayer({ controller }) {
     return () => window.cancelAnimationFrame(frameId);
   }, [controller.dialog, dialogOpen]);
 
+  useLayoutEffect(() => {
+    if (!controller.playlistDrawerOpen || typeof window === "undefined") {
+      setPlaylistAnchorStyle(null);
+      return undefined;
+    }
+
+    let frameId = 0;
+    const applyPlaylistAnchor = () => {
+      if (!window.matchMedia("(max-width: 680px)").matches) {
+        setPlaylistAnchorStyle(null);
+        return;
+      }
+      const player = document.querySelector(".backingLoopPanel--mobile .backingLoopMiniPlayer");
+      if (!player) {
+        setPlaylistAnchorStyle(null);
+        return;
+      }
+      const playerRect = player.getBoundingClientRect();
+      const viewportHeight = window.visualViewport?.height || window.innerHeight;
+      const bottom = Math.max(8, viewportHeight - playerRect.top + 6);
+      const maxHeight = Math.max(240, playerRect.top - 20);
+      setPlaylistAnchorStyle({
+        "--backing-loop-playlist-bottom": `${bottom}px`,
+        "--backing-loop-playlist-max-height": `${maxHeight}px`,
+      });
+    };
+    const updatePlaylistAnchor = () => {
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(applyPlaylistAnchor);
+    };
+
+    applyPlaylistAnchor();
+    window.addEventListener("resize", updatePlaylistAnchor);
+    window.addEventListener("scroll", updatePlaylistAnchor, true);
+    window.visualViewport?.addEventListener("resize", updatePlaylistAnchor);
+    window.visualViewport?.addEventListener("scroll", updatePlaylistAnchor);
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", updatePlaylistAnchor);
+      window.removeEventListener("scroll", updatePlaylistAnchor, true);
+      window.visualViewport?.removeEventListener("resize", updatePlaylistAnchor);
+      window.visualViewport?.removeEventListener("scroll", updatePlaylistAnchor);
+    };
+  }, [controller.playlistDrawerOpen]);
+
   if (!controller.dialog || typeof document === "undefined") return null;
   return createPortal(
     <div
       aria-hidden="false"
-      className={`backingLoopDialogLayer storageModalLayer ${controller.dialog === "clear-recording" ? "backingLoopDialogLayer--centered" : ""}`}
+      className={`backingLoopDialogLayer storageModalLayer ${controller.dialog === "clear-recording" ? "backingLoopDialogLayer--centered" : ""} ${controller.playlistDrawerOpen ? "backingLoopDialogLayer--playlistDrawer" : ""}`}
       onPointerDown={(event) => {
         if (event.target === event.currentTarget) controller.closeDialog();
       }}
       role="presentation"
+      style={playlistAnchorStyle || undefined}
     >
       <div aria-modal="true" ref={dialogRef} role="dialog" tabIndex="-1">
         {controller.dialog === "trim" ? <TrimBackingLoopDialog controller={controller} /> : null}
@@ -719,8 +1008,8 @@ function BackingLoopDialogLayer({ controller }) {
         {controller.dialog === "save" ? <SaveBackingLoopDialog controller={controller} /> : null}
         {controller.dialog === "save-confirm" ? <ConfirmSaveBackingLoopDialog controller={controller} /> : null}
         {controller.dialog === "load" ? <LoadBackingLoopDialog controller={controller} /> : null}
-        {controller.dialog === "import-select" ? <ImportBackingLoopDialog controller={controller} /> : null}
-        {controller.dialog === "delete" ? <DeleteBackingLoopDialog controller={controller} /> : null}
+        {controller.dialog === "playlist-delete" ? <DeleteBackingPlaylistDialog controller={controller} /> : null}
+        {controller.dialog === "playlist-items-delete" ? <DeleteBackingPlaylistItemsDialog controller={controller} /> : null}
       </div>
     </div>,
     document.body,
@@ -736,11 +1025,9 @@ function MobileBackingLoop({ controller }) {
       title={controller.notice}
     >
       <MobileBackingLoopHardware />
-      <BackingLoopHeader controller={controller} mobile />
-      <MobileBackingLoopDisplay controller={controller} />
-      <BackingLoopVolume controller={controller} mobile />
+      <span aria-live="polite" className="backingLoopScreenReaderStatus" role="status">{controller.status.label}</span>
+      <MobileBackingLoopPlayer controller={controller} />
       <BackingLoopMainControls controller={controller} mobile />
-      <BackingLoopStorageControls controller={controller} mobile />
     </section>
   );
 }
@@ -752,11 +1039,9 @@ function DesktopBackingLoop({ controller }) {
       className={`backingLoopPanel backingLoopPanel--desktop backingLoopPanel--${controller.phase}`}
       data-backing-loop-phase={controller.phase}
     >
-      <BackingLoopHeader controller={controller} />
-      <BackingLoopProgress controller={controller} />
-      <BackingLoopVolume controller={controller} />
+      <span aria-live="polite" className="backingLoopScreenReaderStatus" role="status">{controller.status.label}</span>
+      <DesktopBackingLoopPlayer controller={controller} />
       <BackingLoopMainControls controller={controller} />
-      <BackingLoopStorageControls controller={controller} />
       <p className="backingLoopDesktopNotice" aria-live="polite">
         {controller.notice || "코드 진행을 녹음하고 반복해 솔로를 연습하세요."}
       </p>
@@ -771,7 +1056,6 @@ export default function BackingLoop({ mobile = false, ownerMode = "" }) {
       {mobile ? <MobileBackingLoop controller={controller} /> : <DesktopBackingLoop controller={controller} />}
       <audio
         className="backingLoopAudio"
-        loop
         onEnded={controller.handlePlaybackEnded}
         onLoadedMetadata={controller.handleLoadedMetadata}
         playsInline
@@ -784,6 +1068,16 @@ export default function BackingLoop({ mobile = false, ownerMode = "" }) {
         preload="metadata"
         ref={controller.trimPreviewAudioRef}
         src={controller.trimPreviewUrl || undefined}
+      />
+      <input
+        accept={controller.importAccept}
+        aria-label="현재 재생목록에 추가할 백킹 오디오 파일 선택"
+        className="backingLoopImportInput"
+        multiple
+        onChange={controller.importBackingAudio}
+        ref={controller.importInputRef}
+        tabIndex="-1"
+        type="file"
       />
       <BackingLoopDialogLayer controller={controller} />
     </>

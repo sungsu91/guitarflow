@@ -7,8 +7,19 @@ export function sanitizeAudioStudioExportName(name) {
     .replace(/[\\/:*?"<>|]+/g, "-")
     .replace(/\s+/g, " ")
     .trim()
+    .replace(/\.(?:aac|aif|aiff|caf|flac|m4a|mp3|mp4|oga|ogg|opus|wav|wave|webm)$/i, "")
     .slice(0, 100);
   return `${safeName || "audio-studio-mix"}.wav`;
+}
+
+export function getAudioStudioRenderedDurationMs(project) {
+  const durationMs = getAudioStudioProjectDurationMs(project);
+  const speed = Math.max(0.25, Math.min(2, Number(project.practice?.speed?.current) || 1));
+  const hasReverb = project.tracks.some((track) => [
+    ...track.effectsChain,
+    ...track.clips.flatMap((clip) => clip.processingChain),
+  ].some((processor) => processor.type === "reverb" && processor.enabled !== false));
+  return durationMs ? Math.round((durationMs / speed) + (hasReverb ? 2_500 : 0)) : 0;
 }
 
 export async function renderAudioStudioWav(project, audioBuffers, {
@@ -18,13 +29,8 @@ export async function renderAudioStudioWav(project, audioBuffers, {
   if (!OfflineAudioContextApi) throw new Error("OFFLINE_AUDIO_CONTEXT_UNAVAILABLE");
   const durationMs = getAudioStudioProjectDurationMs(project);
   if (!durationMs) throw new Error("EMPTY_PROJECT");
-  const speed = Math.max(0.25, Math.min(2, Number(project.practice?.speed?.current) || 1));
-  const hasReverb = project.tracks.some((track) => [
-    ...track.effectsChain,
-    ...track.clips.flatMap((clip) => clip.processingChain),
-  ].some((processor) => processor.type === "reverb" && processor.enabled !== false));
-  const effectTailSeconds = hasReverb ? 2.5 : 0;
-  const frameCount = Math.max(1, Math.ceil(((durationMs / 1_000 / speed) + effectTailSeconds) * sampleRate));
+  const renderedDurationMs = getAudioStudioRenderedDurationMs(project);
+  const frameCount = Math.max(1, Math.ceil(renderedDurationMs / 1_000 * sampleRate));
   const context = new OfflineAudioContextApi(2, frameCount, sampleRate);
   const exportProject = {
     ...project,

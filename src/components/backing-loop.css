@@ -28,11 +28,11 @@
 .backingLoopPanel--mobile {
   position: relative;
   display: grid;
-  grid-template-rows: 16px 17px 20px 36px 28px;
-  gap: 3px;
+  grid-template-rows: 94px 45px;
+  gap: 2px;
   width: 100%;
-  height: 141px;
-  min-height: 141px;
+  height: 157px;
+  min-height: 157px;
   margin: 7px 0 0;
   padding: 6px 4px;
   border-color: rgba(151, 103, 92, 0.27);
@@ -155,6 +155,12 @@
   border: 0;
 }
 
+.backingLoopPanel > .backingLoopScreenReaderStatus {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+}
+
 .backingLoopProgress {
   display: flex;
   min-width: 0;
@@ -270,19 +276,161 @@
   opacity: 0.56;
 }
 
-.backingLoopVolume {
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) 38px;
-  align-items: center;
-  gap: 6px;
+.backingLoopMiniPlayer {
+  position: relative;
   min-width: 0;
-  padding-inline: 4px;
+  border: 1px solid rgba(104, 72, 56, 0.5);
+  border-radius: 11px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(230, 188, 112, 0.11), transparent 34%),
+    linear-gradient(145deg, #46382e, #29221d 58%, #332920);
+  color: rgba(255, 244, 218, 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 243, 214, 0.08),
+    inset 0 -1px 2px rgba(10, 7, 5, 0.4),
+    0 3px 8px rgba(76, 46, 34, 0.14);
 }
 
-.backingLoopVolumeMute {
+.backingLoopMiniPlayer--mobile {
+  display: grid;
+  grid-template-rows: minmax(29px, auto) 8px 40px;
+  gap: 2px;
+  padding: 6px 8px 5px;
+}
+
+.backingLoopMiniPlayer--desktop {
+  display: grid;
+  grid-template-columns: minmax(210px, 1fr) auto;
+  grid-template-rows: minmax(34px, auto) 9px;
+  gap: 2px 12px;
+  padding: 7px 10px 6px;
+}
+
+.backingLoopMiniPlayer--desktop .backingLoopProgress {
+  grid-column: 1 / -1;
+}
+
+.backingLoopTrackInfo {
+  display: grid;
+  grid-template-columns: 29px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.backingLoopTrackBadge {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  border: 1px solid rgba(224, 184, 110, 0.2);
+  border-radius: 8px;
+  background: rgba(238, 211, 163, 0.09);
+  color: rgba(240, 205, 135, 0.82);
+  place-items: center;
+}
+
+.backingLoopTrackText {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.backingLoopTrackText strong,
+.backingLoopTrackText small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backingLoopTrackText strong {
+  color: rgba(255, 247, 226, 0.94);
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.backingLoopTrackText small {
+  color: rgba(226, 195, 139, 0.62);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.backingLoopTrackInfo time {
+  color: rgba(240, 215, 166, 0.72);
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.backingLoopMiniPlayer .backingLoopProgress {
+  margin: 0;
+  padding: 0;
+}
+
+.backingLoopMiniPlayer .backingLoopProgress input::-webkit-slider-runnable-track {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    #d2a650 0 var(--backing-loop-progress),
+    rgba(235, 210, 160, 0.18) var(--backing-loop-progress) 100%
+  );
+}
+
+.backingLoopMiniPlayer .backingLoopProgress input::-webkit-slider-thumb {
+  width: 7px;
+  height: 7px;
+  margin-top: -2.5px;
+  border-color: rgba(230, 187, 103, 0.42);
+  background: #e0ba6e;
+}
+
+.backingLoopPlayerBar {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.backingLoopPlayerModes,
+.backingLoopPlayerTransport,
+.backingLoopPlayerUtilities {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.backingLoopPlayerModes {
+  justify-content: flex-start;
+  gap: 2px;
+}
+
+.backingLoopPlayerTransport {
+  justify-content: center;
+  gap: 4px;
+}
+
+.backingLoopPlayerUtilities {
+  justify-content: flex-start;
+  gap: 2px;
+}
+
+.backingLoopPlayerIconButton,
+.backingLoopPlayerPlayButton {
+  position: relative;
   display: inline-flex;
-  width: 24px;
-  height: 24px;
+  flex: 0 0 auto;
+  width: 25px;
+  height: 25px;
   align-items: center;
   justify-content: center;
   margin: 0;
@@ -290,30 +438,219 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--backing-loop-gold);
+  color: rgba(246, 229, 193, 0.8);
   cursor: pointer;
   touch-action: manipulation;
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease, transform 120ms ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.backingLoopVolumeMute:focus-visible {
+.backingLoopPlayerIconButton:focus-visible,
+.backingLoopPlayerPlayButton:focus-visible {
   outline: 2px solid rgba(154, 98, 48, 0.5);
   outline-offset: 1px;
 }
 
+.backingLoopPlayerIconButton:active:not(:disabled),
+.backingLoopPlayerPlayButton:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.backingLoopPlayerIconButton:disabled,
+.backingLoopPlayerPlayButton:disabled {
+  color: rgba(236, 219, 184, 0.24);
+  cursor: default;
+}
+
+.backingLoopPlayerIconButton.active,
+.backingLoopPlayerIconButton[aria-pressed="true"] {
+  border-color: transparent;
+  background: transparent;
+  color: #e3b44e;
+  filter: drop-shadow(0 0 4px rgba(222, 169, 68, 0.32));
+}
+
+.backingLoopPlayerPlayButton {
+  width: 37px;
+  height: 37px;
+  border: 1px solid rgba(255, 241, 206, 0.48);
+  background: linear-gradient(155deg, #fffaf0, #e6d2ad);
+  color: #33261c;
+  box-shadow: 0 3px 8px rgba(10, 7, 5, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.backingLoopRepeatState {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 9px;
+  height: 9px;
+  place-items: center;
+  color: inherit !important;
+  font-size: 8px;
+  font-weight: 1000;
+  line-height: 1;
+  text-align: center;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.backingLoopRepeatState--all {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  font-size: 0;
+}
+
+.backingLoopShuffleState {
+  position: absolute;
+  top: 50%;
+  left: calc(50% - 9px);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  color: inherit !important;
+  font-size: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+html body main.app .backingLoopPlayerIconButton[aria-pressed="true"]
+  > :is(.backingLoopRepeatState, .backingLoopShuffleState) {
+  color: rgba(255, 241, 211, 0.96) !important;
+}
+
+html body main.app .backingLoopPlayerIconButton[aria-pressed="true"]
+  > :is(.backingLoopRepeatState--all, .backingLoopShuffleState) {
+  background: rgba(255, 241, 211, 0.96) !important;
+}
+
+html body main.app .backingLoopPlayerIconButton[aria-pressed="true"]
+  > .backingLoopRepeatState--one {
+  -webkit-text-fill-color: rgba(255, 241, 211, 0.96);
+}
+
+html body main.app.app.app .backingLoopPanel .backingLoopPlayerModes
+  :is(
+    .backingLoopRepeatButton[data-repeat-mode="repeat-all"],
+    .backingLoopRepeatButton[data-repeat-mode="repeat-one"],
+    .backingLoopShuffleButton.active
+  ) > svg {
+  color: rgba(255, 241, 211, 0.96) !important;
+  stroke: rgba(255, 241, 211, 0.96) !important;
+}
+
+html body main.app.app.app.theme-light .backingLoopPanel .backingLoopPlayerModes
+  :is(
+    .backingLoopRepeatButton[data-repeat-mode="sequential"],
+    .backingLoopShuffleButton:not(.active)
+  ) > svg {
+  color: rgb(30, 20, 8) !important;
+  stroke: rgb(30, 20, 8) !important;
+}
+
+html body main.app.app.app .backingLoopPanel .backingLoopPlayerModes
+  .backingLoopRepeatButton[data-repeat-mode="repeat-one"]
+  > .backingLoopRepeatState--one {
+  color: rgba(255, 241, 211, 0.96) !important;
+  -webkit-text-fill-color: rgba(255, 241, 211, 0.96) !important;
+}
+
+.backingLoopRepeatButton[data-repeat-mode="sequential"],
+.backingLoopShuffleButton:not(.active) {
+  color: rgba(27, 22, 17, 0.72);
+  filter: none;
+}
+
+.backingLoopRepeatButton:is([data-repeat-mode="repeat-all"], [data-repeat-mode="repeat-one"]),
+.backingLoopShuffleButton.active {
+  color: rgba(255, 241, 211, 0.96);
+  filter: none;
+}
+
+.backingLoopPlaylistToggle {
+  width: 54px;
+  gap: 2px;
+  border-radius: 8px;
+}
+
+.backingLoopPlaylistToggleLabel {
+  font-size: 11px;
+  font-weight: 1000;
+  line-height: 1;
+  letter-spacing: 0.035em;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.32);
+}
+
+.backingLoopVolumeMenu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .backingLoopVolumeMute[aria-pressed="true"] {
-  color: rgba(89, 61, 54, 0.52);
+  color: rgba(27, 22, 17, 0.72);
+}
+
+.backingLoopVolumePopover {
+  position: absolute;
+  bottom: calc(100% + 9px);
+  left: 50%;
+  display: grid;
+  grid-template-rows: minmax(70px, 1fr) 15px;
+  justify-items: center;
+  gap: 4px;
+  width: 52px;
+  height: 108px;
+  padding: 7px 7px 6px;
+  border: 1px solid rgba(151, 103, 92, 0.34);
+  border-radius: 10px;
+  background: rgba(255, 249, 237, 0.98);
+  box-shadow: 0 9px 24px rgba(42, 28, 23, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-50%, 5px);
+  transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
+}
+
+.backingLoopVolumePopover::after {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid rgba(151, 103, 92, 0.26);
+  border-bottom: 1px solid rgba(151, 103, 92, 0.26);
+  background: rgba(255, 249, 237, 0.98);
+  content: "";
+  transform: translate(-50%, -4px) rotate(45deg);
+}
+
+.backingLoopVolumeMenu[data-open="true"] .backingLoopVolumePopover {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
 }
 
 .backingLoopVolumeSlider {
   display: flex;
-  min-width: 0;
+  width: 24px;
+  min-width: 24px;
+  height: 72px;
   align-items: center;
+  justify-content: center;
 }
 
 .backingLoopVolumeSlider input {
-  width: 100%;
-  height: 20px;
-  min-width: 0;
+  width: 20px;
+  height: 72px;
+  min-width: 20px;
   margin: 0;
   padding: 0;
   border: 0;
@@ -321,15 +658,18 @@
   appearance: none;
   background: transparent;
   cursor: pointer;
-  touch-action: pan-y;
+  direction: rtl;
+  touch-action: none;
+  writing-mode: vertical-lr;
   -webkit-tap-highlight-color: transparent;
 }
 
 .backingLoopVolumeSlider input::-webkit-slider-runnable-track {
-  height: 4px;
+  width: 4px;
+  height: 100%;
   border-radius: 999px;
   background: linear-gradient(
-    90deg,
+    to top,
     var(--backing-loop-gold) 0 var(--backing-loop-volume),
     rgba(93, 70, 58, 0.26) var(--backing-loop-volume) 100%
   );
@@ -339,7 +679,7 @@
 .backingLoopVolumeSlider input::-webkit-slider-thumb {
   width: 12px;
   height: 12px;
-  margin-top: -4px;
+  margin-left: -4px;
   border: 1px solid rgba(116, 73, 39, 0.52);
   border-radius: 50%;
   appearance: none;
@@ -348,13 +688,14 @@
 }
 
 .backingLoopVolumeSlider input::-moz-range-track {
-  height: 4px;
+  width: 4px;
+  height: 100%;
   border-radius: 999px;
   background: rgba(93, 70, 58, 0.26);
 }
 
 .backingLoopVolumeSlider input::-moz-range-progress {
-  height: 4px;
+  width: 4px;
   border-radius: 999px;
   background: var(--backing-loop-gold);
 }
@@ -369,11 +710,11 @@
 
 .backingLoopVolumeValue {
   color: var(--backing-loop-ink);
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  text-align: right;
+  text-align: center;
 }
 
 .backingLoopMainControls,
@@ -384,13 +725,21 @@
 }
 
 .backingLoopMainControls {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
+}
+
+.backingLoopMainControls--mobile {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .backingLoopStorageControls {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
+}
+
+.backingLoopStorageControls--mobile {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .backingLoopButton {
@@ -461,12 +810,6 @@
   animation: backingLoopRecordPulse 1.2s ease-in-out infinite;
 }
 
-.backingLoopPauseButton:not(:disabled),
-.backingLoopPlayButton:not(:disabled),
-.backingLoopResetButton:not(:disabled) {
-  color: #6e4a1d;
-}
-
 .backingLoopCancelButton:not(:disabled) {
   color: #853d36;
 }
@@ -499,11 +842,11 @@
 .backingLoopPanel--desktop {
   display: grid;
   grid-template-columns: minmax(420px, 2fr) minmax(220px, 0.9fr);
-  grid-template-rows: 17px 28px 32px 40px 16px;
+  grid-template-rows: 64px 40px 16px;
   align-items: center;
   gap: 4px 10px;
   width: 100%;
-  min-height: 169px;
+  min-height: 156px;
   margin: 12px 0 0;
   padding: 9px 12px;
   border-radius: 15px;
@@ -523,31 +866,25 @@
   font-size: 9px;
 }
 
-.backingLoopPanel--desktop .backingLoopProgress {
+.backingLoopPanel--desktop .backingLoopMiniPlayer {
   grid-column: 1 / -1;
-  padding-inline: 2px;
+  height: 64px;
 }
 
-.backingLoopPanel--desktop .backingLoopVolume {
-  grid-column: 1 / -1;
-  height: 32px !important;
-  min-height: 32px !important;
-  padding-inline: 2px;
-}
-
-.backingLoopPanel--desktop .backingLoopVolumeMute {
+.backingLoopPanel--desktop .backingLoopPlayerIconButton {
   width: 28px !important;
   height: 28px !important;
   min-width: 28px !important;
   min-height: 28px !important;
 }
 
-.backingLoopPanel--desktop .backingLoopVolumeSlider input {
-  height: 28px !important;
-  min-height: 28px !important;
+.backingLoopPanel--desktop .backingLoopPlayerPlayButton {
+  width: 34px;
+  height: 34px;
 }
 
 .backingLoopPanel--desktop .backingLoopMainControls {
+  grid-column: 1 / -1;
   height: 40px;
   gap: 7px;
 }
@@ -594,9 +931,39 @@
   padding-bottom: max(14px, env(safe-area-inset-bottom));
 }
 
+.backingLoopDialogLayer--playlistDrawer {
+  align-items: stretch;
+  justify-content: flex-end;
+  padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
+  background: rgba(44, 30, 27, 0.2);
+  backdrop-filter: blur(2px);
+}
+
+.backingLoopDialogLayer.backingLoopDialogLayer--playlistDrawer > [role="dialog"] {
+  width: min(100%, 378px);
+  max-height: calc(100dvh - 28px);
+  animation: backingLoopPlaylistDrawerIn 180ms cubic-bezier(0.22, 0.8, 0.26, 1) both;
+}
+
+.backingLoopDialogLayer--playlistDrawer .backingLoopPlaylistDialog {
+  height: 100%;
+  max-height: calc(100dvh - 28px);
+}
+
 .backingLoopDialogLayer > [role="dialog"] {
   width: min(100%, 342px);
   max-height: calc(100dvh - 92px);
+}
+
+@keyframes backingLoopPlaylistDrawerIn {
+  from {
+    opacity: 0;
+    transform: translateX(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .backingLoopDialog {
@@ -655,6 +1022,42 @@
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.5);
   color: #6a4941;
+}
+
+.backingLoopPlaylistDialog .backingLoopDialogHeading {
+  align-items: center;
+  padding: 2px 2px 9px;
+  border-bottom: 1px solid rgba(151, 100, 66, 0.2);
+}
+
+.backingLoopPlaylistDialog .backingLoopDialogHeading > div {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+}
+
+.backingLoopPlaylistDialog .backingLoopDialogHeading strong {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding-left: 11px;
+  color: #5d3924;
+  font-size: 17px;
+  font-weight: 1000;
+  letter-spacing: 1.4px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+.backingLoopPlaylistDialog .backingLoopDialogHeading strong::before {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  left: 0;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #dbb55d, #a76f26);
+  box-shadow: 0 0 6px rgba(193, 135, 47, 0.3);
+  content: "";
 }
 
 .backingLoopDialogHeading > .backingLoopDialogHeadingActions {
@@ -756,6 +1159,17 @@
 .backingLoopDialogActions--load {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
+}
+
+.backingLoopDialogActions--library {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.backingLoopDialogActions--library button {
+  min-width: 0;
+  padding-inline: 4px;
+  font-size: 8px;
 }
 
 .backingLoopDialogActions button {
@@ -1000,6 +1414,67 @@
   font-weight: 850;
 }
 
+.backingLoopImportLibraryItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.backingLoopImportLibrarySelect {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 39px;
+  padding: 7px 10px;
+  border: 1px solid rgba(137, 94, 70, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  color: #48312b;
+  text-align: left;
+}
+
+.backingLoopImportLibrarySelect.selected {
+  border-color: rgba(154, 98, 48, 0.48);
+  background: rgba(239, 216, 172, 0.48);
+}
+
+.backingLoopImportLibrarySelect > span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backingLoopImportLibrarySelect > small {
+  color: rgba(89, 61, 54, 0.58);
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 850;
+}
+
+.backingLoopImportLibraryDelete {
+  display: inline-flex;
+  min-width: 38px;
+  min-height: 39px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(165, 83, 74, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 249, 246, 0.62);
+  color: rgba(139, 62, 55, 0.74);
+}
+
+.backingLoopImportLibraryDelete:hover:not(:disabled) {
+  border-color: rgba(165, 83, 74, 0.44);
+  background: rgba(236, 183, 174, 0.28);
+  color: #8c3f37;
+}
+
 .backingLoopLibraryEditItem {
   display: grid;
   grid-template-columns: 16px minmax(0, 1fr) auto;
@@ -1055,6 +1530,840 @@
   font-size: 9px;
   font-weight: 800;
   text-align: center;
+}
+
+.backingLoopLibraryNavigation,
+.backingLoopPlaylistNavigation {
+  display: flex;
+  gap: 5px;
+  padding: 3px;
+  border: 1px solid rgba(137, 94, 70, 0.16);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.34);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.backingLoopLibraryNavigation {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.backingLoopPlaylistNavigation::-webkit-scrollbar {
+  display: none;
+}
+
+.backingLoopLibraryNavigation button,
+.backingLoopPlaylistNavigation button {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(72, 49, 43, 0.62);
+  font-size: 9px;
+  font-weight: 950;
+}
+
+.backingLoopPlaylistNavigation button {
+  flex: 0 0 auto;
+  max-width: 150px;
+  padding-inline: 10px;
+}
+
+.backingLoopPlaylistNavigation button > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backingLoopLibraryNavigation button.selected,
+.backingLoopPlaylistNavigation button.selected {
+  border-color: rgba(177, 107, 119, 0.36);
+  background: linear-gradient(180deg, rgba(244, 218, 218, 0.72), rgba(230, 191, 196, 0.54));
+  color: #713d49;
+}
+
+.backingLoopPlaylistNavigation {
+  gap: 3px;
+  padding: 4px 4px 0;
+  border-radius: 9px 9px 0 0;
+  border-bottom-color: rgba(137, 94, 70, 0.28);
+  background: linear-gradient(180deg, rgba(235, 222, 210, 0.58), rgba(255, 255, 255, 0.18));
+}
+
+.backingLoopPlaylistNavigation button {
+  min-height: 35px;
+  margin-bottom: -1px;
+  padding-inline: 12px;
+  border: 1px solid rgba(137, 94, 70, 0.16);
+  border-bottom-color: rgba(137, 94, 70, 0.28);
+  border-radius: 8px 8px 0 0;
+  background: rgba(255, 252, 247, 0.36);
+  color: rgba(72, 49, 43, 0.72);
+  font-size: 10px;
+}
+
+.backingLoopPlaylistNavigation button.selected {
+  z-index: 1;
+  border-color: rgba(177, 107, 119, 0.42);
+  border-bottom-color: #f7eee3;
+  background: linear-gradient(180deg, rgba(249, 229, 228, 0.94), rgba(247, 238, 227, 0.98));
+  box-shadow: inset 0 2px 0 rgba(190, 112, 125, 0.42);
+}
+
+.backingLoopPlaylistNavigation button:first-child {
+  background: linear-gradient(180deg, rgba(251, 240, 238, 0.72), rgba(239, 216, 216, 0.48));
+  color: #76505a;
+}
+
+.backingLoopPlaylistNavigation button:not(:first-child) {
+  background: linear-gradient(180deg, rgba(255, 249, 233, 0.72), rgba(231, 211, 168, 0.42));
+  color: #745323;
+}
+
+.backingLoopPlaylistNavigation button:first-child.selected {
+  border-color: rgba(185, 101, 119, 0.5);
+  border-bottom-color: #f7eee3;
+  background: linear-gradient(180deg, rgba(249, 219, 222, 0.98), rgba(245, 235, 227, 0.98));
+  box-shadow:
+    inset 0 3px 0 rgba(187, 95, 115, 0.68),
+    0 -2px 8px rgba(154, 83, 101, 0.11);
+  color: #65313f;
+}
+
+.backingLoopPlaylistNavigation button:not(:first-child).selected {
+  border-color: rgba(174, 123, 39, 0.54);
+  border-bottom-color: #f7eee3;
+  background: linear-gradient(180deg, rgba(251, 226, 166, 0.98), rgba(247, 237, 215, 0.98));
+  box-shadow:
+    inset 0 3px 0 rgba(194, 137, 43, 0.76),
+    0 -2px 8px rgba(158, 107, 29, 0.12);
+  color: #5f4218;
+}
+
+.backingLoopPlaylistActions {
+  display: grid;
+  grid-template-columns: auto auto minmax(34px, 1fr);
+  align-items: center;
+  gap: 5px;
+}
+
+.backingLoopAudioStudioPicker {
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid rgba(137, 94, 70, 0.2);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.36);
+}
+
+.backingLoopAudioStudioPicker > header,
+.backingLoopAudioStudioPicker > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.backingLoopAudioStudioPicker > header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.backingLoopAudioStudioPicker > header strong {
+  color: #5f433c;
+  font-size: 8.5px;
+  letter-spacing: 0.04em;
+}
+
+.backingLoopAudioStudioPicker > header span,
+.backingLoopAudioStudioPicker > footer span {
+  color: rgba(74, 50, 44, 0.6);
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.backingLoopAudioStudioPicker > header > button {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #62463f;
+}
+
+.backingLoopAudioStudioPickerList {
+  display: grid;
+  gap: 4px;
+  max-height: 142px;
+  overflow-y: auto;
+}
+
+.backingLoopAudioStudioPickerList > label {
+  display: grid;
+  min-width: 0;
+  min-height: 32px;
+  grid-template-columns: 16px 14px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 7px;
+  border: 1px solid rgba(137, 94, 70, 0.15);
+  border-radius: 7px;
+  color: #62463f;
+  background: rgba(255, 255, 255, 0.5);
+  font-size: 7.5px;
+  font-weight: 850;
+}
+
+.backingLoopAudioStudioPickerList > label.is-added {
+  opacity: 0.58;
+}
+
+.backingLoopAudioStudioPickerList > label > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backingLoopAudioStudioPickerList > label > small {
+  color: rgba(74, 50, 44, 0.58);
+  font-size: 7px;
+  font-variant-numeric: tabular-nums;
+}
+
+.backingLoopAudioStudioPicker > footer button {
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid rgba(154, 98, 48, 0.38);
+  border-radius: 7px;
+  background: linear-gradient(180deg, rgba(247, 228, 192, 0.82), rgba(222, 189, 132, 0.52));
+  color: #734b23;
+  font-size: 7.5px;
+  font-weight: 900;
+}
+
+.backingLoopAudioStudioPicker > footer button:disabled {
+  opacity: 0.4;
+}
+
+.backingLoopPlaylistActions button,
+.backingLoopExistingAudioPickerActions button,
+.backingLoopPlaylistSaveForm button {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 9px;
+  border: 1px solid rgba(137, 94, 70, 0.2);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.5);
+  color: #62463f;
+  font-family: inherit;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.backingLoopPlaylistActions button.primary,
+.backingLoopExistingAudioPickerActions button.primary,
+.backingLoopPlaylistSaveForm button.primary {
+  border-color: rgba(154, 98, 48, 0.38);
+  background: linear-gradient(180deg, rgba(247, 228, 192, 0.82), rgba(222, 189, 132, 0.52));
+  color: #734b23;
+}
+
+.backingLoopPlaylistActions button:disabled,
+.backingLoopExistingAudioPickerActions button:disabled,
+.backingLoopPlaylistSaveForm button:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.backingLoopPlaylistActions > span {
+  color: rgba(74, 50, 44, 0.56);
+  font-size: 8px;
+  font-weight: 850;
+  text-align: right;
+}
+
+.backingLoopPlaylistSelectionTools {
+  display: grid;
+  grid-template-columns: auto auto auto minmax(44px, 1fr);
+  align-items: center;
+  gap: 4px;
+}
+
+.backingLoopPlaylistSelectionTools button {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 7px;
+  border: 1px solid rgba(137, 94, 70, 0.18);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.48);
+  color: #62463f;
+  font-size: 7.5px;
+  font-weight: 900;
+}
+
+.backingLoopPlaylistSelectionTools button.primary {
+  border-color: rgba(154, 98, 48, 0.38);
+  background: linear-gradient(180deg, rgba(247, 228, 192, 0.82), rgba(222, 189, 132, 0.52));
+  color: #734b23;
+}
+
+.backingLoopPlaylistSelectionTools button:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.backingLoopPlaylistSelectionTools > span {
+  color: rgba(74, 50, 44, 0.56);
+  font-size: 7.5px;
+  font-weight: 850;
+  text-align: right;
+}
+
+.backingLoopExistingAudioPicker {
+  display: grid;
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid rgba(137, 94, 70, 0.18);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.backingLoopExistingAudioPickerHeading,
+.backingLoopExistingAudioPickerActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.backingLoopExistingAudioPickerHeading strong {
+  color: #5f433c;
+  font-size: 8.5px;
+}
+
+.backingLoopExistingAudioPickerHeading button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(87, 59, 52, 0.62);
+  font-size: 7.5px;
+  font-weight: 850;
+}
+
+.backingLoopExistingAudioList {
+  display: grid;
+  gap: 4px;
+  max-height: min(150px, 26dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.backingLoopExistingAudioList > label {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  min-height: 34px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 7px;
+  border: 1px solid rgba(137, 94, 70, 0.14);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.48);
+  color: #62463f;
+  font-size: 8px;
+}
+
+.backingLoopExistingAudioList > label.already-added {
+  opacity: 0.48;
+}
+
+.backingLoopExistingAudioList > label > span {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backingLoopExistingAudioList > label > small {
+  color: rgba(89, 61, 54, 0.54);
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.backingLoopExistingAudioPickerActions {
+  justify-content: flex-end;
+}
+
+.backingLoopPlaylistSaveForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 5px;
+}
+
+.backingLoopPlaylistSaveDestination {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.backingLoopPlaylistSaveForm :is(input, select) {
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  padding: 0 9px;
+  border: 1px solid rgba(137, 94, 70, 0.2);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.58);
+  color: #48312b;
+  font-family: inherit;
+  font-size: 8.5px;
+  font-weight: 850;
+  outline: none;
+}
+
+.backingLoopPlaylistSaveForm select {
+  appearance: auto;
+}
+
+.backingLoopPlaylistSaveForm :is(input, select):focus {
+  border-color: rgba(177, 107, 119, 0.52);
+  box-shadow: 0 0 0 2px rgba(205, 135, 145, 0.1);
+}
+
+.backingLoopSavedPlaylists {
+  display: grid;
+  gap: 5px;
+  max-height: min(360px, 52dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.backingLoopSavedPlaylistItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 5px;
+}
+
+.backingLoopSavedPlaylistItem > button {
+  min-height: 44px;
+  padding: 0 9px;
+  border: 1px solid rgba(137, 94, 70, 0.17);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.48);
+  color: #62463f;
+}
+
+.backingLoopSavedPlaylistItem > button:first-child {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: 3px;
+  text-align: left;
+}
+
+.backingLoopSavedPlaylistItem span {
+  overflow: hidden;
+  font-size: 9px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backingLoopSavedPlaylistItem small {
+  color: rgba(89, 61, 54, 0.54);
+  font-size: 7.5px;
+  font-weight: 800;
+}
+
+.backingLoopSavedPlaylistItem > button.danger {
+  display: grid;
+  padding: 0;
+  color: #913f38;
+  place-items: center;
+}
+
+.backingLoopLibrarySelectionTools {
+  display: grid;
+  grid-template-columns: repeat(3, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 5px;
+}
+
+.backingLoopLibrarySelectionTools button {
+  min-height: 27px;
+  padding: 0 7px;
+  border: 1px solid rgba(137, 94, 70, 0.18);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.48);
+  color: #62463f;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.backingLoopLibrarySelectionTools button.selected {
+  border-color: rgba(154, 98, 48, 0.42);
+  background: rgba(239, 216, 172, 0.52);
+}
+
+.backingLoopLibrarySelectionTools button:disabled {
+  opacity: 0.42;
+}
+
+.backingLoopLibrarySelectionTools > span {
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(74, 50, 44, 0.56);
+  font-size: 8px;
+  font-weight: 800;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backingLoopPlaylistTabs {
+  display: flex;
+  gap: 5px;
+  padding: 1px 0 3px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+}
+
+.backingLoopPlaylistTabs button {
+  flex: 0 0 auto;
+  max-width: 116px;
+  min-height: 30px;
+  padding: 0 10px;
+  overflow: hidden;
+  border: 1px solid rgba(137, 94, 70, 0.18);
+  border-radius: 8px 8px 5px 5px;
+  background: rgba(255, 255, 255, 0.48);
+  color: rgba(72, 49, 43, 0.7);
+  font-size: 8.5px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backingLoopPlaylistTabs button.selected {
+  border-color: rgba(177, 107, 119, 0.46);
+  background: linear-gradient(180deg, rgba(244, 218, 218, 0.82), rgba(225, 181, 188, 0.58));
+  color: #713d49;
+}
+
+.backingLoopPlaylistTabs .backingLoopPlaylistAddTab {
+  display: inline-grid;
+  width: 30px;
+  padding: 0;
+  place-items: center;
+}
+
+.backingLoopPlaylistNameEditor {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 30px 30px;
+  align-items: center;
+  gap: 5px;
+}
+
+.backingLoopPlaylistNameEditor > svg {
+  color: rgba(101, 66, 57, 0.58);
+}
+
+.backingLoopPlaylistNameEditor input {
+  width: 100%;
+  min-width: 0;
+  height: 31px;
+  padding: 0 9px;
+  border: 1px solid rgba(137, 94, 70, 0.2);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.58);
+  color: #48312b;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 850;
+  line-height: 1;
+  outline: none;
+}
+
+.backingLoopPlaylistNameEditor input:focus {
+  border-color: rgba(177, 107, 119, 0.52);
+  box-shadow: 0 0 0 2px rgba(205, 135, 145, 0.1);
+}
+
+.backingLoopPlaylistNameEditor button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid rgba(137, 94, 70, 0.18);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.5);
+  color: #684b43;
+  place-items: center;
+}
+
+.backingLoopPlaylistNameEditor button.danger {
+  color: #913f38;
+}
+
+.backingLoopPlaylistItems {
+  display: grid;
+  gap: 5px;
+  max-height: min(192px, 34dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.backingLoopPlaylistItem {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) repeat(3, 29px);
+  gap: 4px;
+}
+
+.backingLoopPlaylistItemCheck {
+  display: grid;
+  min-height: 38px;
+  border: 1px solid rgba(137, 94, 70, 0.16);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.46);
+  place-items: center;
+}
+
+.backingLoopPlaylistItemCheck input {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  accent-color: #b56e7c;
+}
+
+.backingLoopPlaylistItem > button {
+  min-height: 38px;
+  padding: 0;
+  border: 1px solid rgba(137, 94, 70, 0.16);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.46);
+  color: #62463f;
+}
+
+.backingLoopPlaylistItem > button:disabled {
+  opacity: 0.32;
+}
+
+.backingLoopPlaylistItem.selected > button {
+  border-color: rgba(177, 107, 119, 0.38);
+  background: rgba(225, 181, 188, 0.24);
+}
+
+.backingLoopPlaylistItem.selected > .backingLoopPlaylistItemCheck {
+  border-color: rgba(177, 107, 119, 0.46);
+  background: rgba(225, 181, 188, 0.3);
+}
+
+.backingLoopPlaylistItem.playing > .backingLoopPlaylistItemSelect {
+  border-color: rgba(177, 107, 119, 0.58);
+  background: linear-gradient(90deg, rgba(222, 150, 165, 0.28), rgba(255, 255, 255, 0.48));
+  box-shadow: inset 3px 0 0 rgba(195, 93, 118, 0.68);
+}
+
+.backingLoopPlaylistItem.playing .backingLoopPlaylistItemSelect b {
+  display: grid;
+  color: #aa4f65;
+  place-items: center;
+}
+
+.backingLoopPlaylistItem .backingLoopPlaylistItemSelect {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  text-align: left;
+}
+
+.backingLoopPlaylistItemSelect b {
+  color: rgba(154, 98, 48, 0.72);
+  font-size: 9px;
+  text-align: center;
+}
+
+.backingLoopPlaylistItemSelect span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 9px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backingLoopPlaylistItemSelect small {
+  color: rgba(89, 61, 54, 0.54);
+  font-size: 7.5px;
+  font-weight: 850;
+}
+
+.backingLoopSavedPlaylistPane {
+  display: grid;
+  min-height: 0;
+  gap: 7px;
+}
+
+.backingLoopSavedPlaylistSummary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 31px;
+  align-items: center;
+  gap: 5px;
+}
+
+.backingLoopSavedPlaylistSummary > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.backingLoopSavedPlaylistSummary strong {
+  overflow: hidden;
+  color: #62463f;
+  font-size: 10px;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backingLoopSavedPlaylistSummary small {
+  color: rgba(89, 61, 54, 0.56);
+  font-size: 7.5px;
+  font-weight: 800;
+}
+
+.backingLoopSavedPlaylistSummary > button {
+  min-height: 31px;
+  padding: 0 8px;
+  border: 1px solid rgba(137, 94, 70, 0.18);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.48);
+  color: #62463f;
+  font-size: 7.5px;
+  font-weight: 900;
+}
+
+.backingLoopSavedPlaylistSummary > button.primary {
+  border-color: rgba(154, 98, 48, 0.38);
+  background: linear-gradient(180deg, rgba(247, 228, 192, 0.82), rgba(222, 189, 132, 0.52));
+  color: #734b23;
+}
+
+.backingLoopSavedPlaylistSummary > button.danger {
+  display: grid;
+  padding: 0;
+  color: #913f38;
+  place-items: center;
+}
+
+.backingLoopSavedPlaylistSelectionTools {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.backingLoopSavedPlaylistSelectionTools button.danger {
+  color: #913f38;
+}
+
+.backingLoopSavedPlaylistSelectionTools > span {
+  flex: 1 0 56px;
+  align-self: center;
+}
+
+.backingLoopSavedPlaylistTracks {
+  display: grid;
+  gap: 4px;
+  max-height: min(300px, 42dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.backingLoopSavedPlaylistTracks > div {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  min-height: 38px;
+  align-items: center;
+  gap: 4px;
+}
+
+.backingLoopSavedPlaylistTracks > div > button {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  min-height: 38px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 1px solid rgba(137, 94, 70, 0.16);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.46);
+  color: #62463f;
+  text-align: left;
+}
+
+.backingLoopSavedPlaylistTracks > div.selected > button,
+.backingLoopSavedPlaylistTracks > div.selected > .backingLoopPlaylistItemCheck {
+  border-color: rgba(177, 107, 119, 0.42);
+  background: rgba(225, 181, 188, 0.28);
+}
+
+.backingLoopSavedPlaylistTracks > div.playing > button {
+  border-color: rgba(177, 107, 119, 0.58);
+  background: linear-gradient(90deg, rgba(222, 150, 165, 0.28), rgba(255, 255, 255, 0.48));
+  box-shadow: inset 3px 0 0 rgba(195, 93, 118, 0.68);
+}
+
+.backingLoopSavedPlaylistTracks b {
+  color: rgba(154, 98, 48, 0.72);
+  font-size: 8px;
+  text-align: center;
+}
+
+.backingLoopSavedPlaylistTracks span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 9px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.backingLoopSavedPlaylistTracks small {
+  color: rgba(89, 61, 54, 0.54);
+  font-size: 7.5px;
+  font-weight: 850;
+}
+
+.backingLoopPlaylistNow {
+  min-height: 22px;
+  padding: 5px 8px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: rgba(211, 151, 163, 0.12);
+  color: rgba(74, 50, 44, 0.68);
+  font-size: 8px;
+  font-weight: 850;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Gold-dark theme: fold the loop recorder into the metronome's black/bronze surface. */
@@ -1206,11 +2515,6 @@ html body main.app.theme-brand.theme-brand .backingLoopRecordButton.active {
 }
 
 html body main.app.theme-brand.theme-brand
-  :is(.backingLoopPauseButton, .backingLoopPlayButton):not(:disabled) {
-  color: #efc86f;
-}
-
-html body main.app.theme-brand.theme-brand
   .backingLoopCancelButton:not(:disabled) {
   color: #dc8b7f;
 }
@@ -1226,8 +2530,73 @@ html body main.app.theme-brand.theme-brand .backingLoopDesktopNotice {
   color: rgba(236, 216, 174, 0.54);
 }
 
+html body main.app.theme-brand.theme-brand .backingLoopPlayerBar {
+  border-color: rgba(217, 170, 85, 0.16);
+  background: linear-gradient(90deg, transparent, rgba(217, 170, 85, 0.045), transparent);
+}
+
+html body main.app.theme-brand.theme-brand .backingLoopPlayerIconButton {
+  color: rgba(240, 217, 168, 0.72);
+}
+
+html body main.app.theme-brand.theme-brand .backingLoopPlayerIconButton:disabled {
+  color: rgba(235, 216, 174, 0.24);
+}
+
+html body main.app.theme-brand.theme-brand .backingLoopPlayerIconButton.active,
+html body main.app.theme-brand.theme-brand .backingLoopPlayerIconButton[aria-pressed="true"] {
+  border-color: rgba(239, 199, 111, 0.36);
+  background: rgba(180, 126, 46, 0.2);
+  color: #f1ca72;
+}
+
+html body main.app.theme-brand.theme-brand
+  :is(
+    .backingLoopRepeatButton[data-repeat-mode="sequential"],
+    .backingLoopShuffleButton:not(.active),
+    .backingLoopVolumeMute[aria-pressed="true"]
+  ) {
+  color: rgba(225, 218, 204, 0.42);
+  filter: none;
+}
+
+html body main.app.theme-brand.theme-brand
+  :is(
+    .backingLoopRepeatButton[data-repeat-mode="repeat-all"],
+    .backingLoopRepeatButton[data-repeat-mode="repeat-one"],
+    .backingLoopShuffleButton.active
+  ) {
+  border-color: transparent;
+  background: transparent;
+  color: rgba(255, 241, 211, 0.96);
+  filter: none;
+}
+
+html body main.app.theme-brand.theme-brand .backingLoopPlayerPlayButton {
+  border-color: rgba(239, 199, 111, 0.5);
+  background: linear-gradient(155deg, #d1a34f, #714718);
+  color: #fff0c9;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 239, 193, 0.18);
+}
+
+html body main.app.theme-brand.theme-brand .backingLoopVolumePopover {
+  border-color: rgba(217, 170, 85, 0.34);
+  background: rgba(10, 9, 6, 0.97);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 238, 196, 0.07);
+}
+
+html body main.app.theme-brand.theme-brand .backingLoopVolumeValue {
+  color: rgba(244, 228, 189, 0.82);
+}
+
 html body:has(main.app.theme-brand) .backingLoopDialogLayer {
   background: rgba(0, 0, 0, 0.66);
+}
+
+html body:has(main.app.theme-brand) .backingLoopDialogLayer--playlistDrawer,
+html body:has(main.app.theme-light) .backingLoopDialogLayer--playlistDrawer {
+  background: rgba(18, 14, 10, 0.14);
+  backdrop-filter: none;
 }
 
 html body:has(main.app.theme-brand) .backingLoopDialog {
@@ -1254,6 +2623,8 @@ html body:has(main.app.theme-brand) .backingLoopDialogHeading > button,
 html body:has(main.app.theme-brand) .backingLoopDialogHeadingActions > button,
 html body:has(main.app.theme-brand) .backingLoopDialogActions button,
 html body:has(main.app.theme-brand) .backingLoopLibrary > button,
+html body:has(main.app.theme-brand) .backingLoopImportLibrarySelect,
+html body:has(main.app.theme-brand) .backingLoopImportLibraryDelete,
 html body:has(main.app.theme-brand) .backingLoopLibraryEditItem {
   border-color: rgba(217, 170, 85, 0.24);
   background: rgba(7, 7, 5, 0.82);
@@ -1326,6 +2697,21 @@ html body:has(main.app.theme-brand) .backingLoopLibrary > button.selected {
   background: rgba(180, 126, 46, 0.24);
 }
 
+html body:has(main.app.theme-brand) .backingLoopImportLibrarySelect.selected {
+  border-color: rgba(239, 199, 111, 0.5);
+  background: rgba(180, 126, 46, 0.24);
+}
+
+html body:has(main.app.theme-brand) .backingLoopImportLibraryDelete {
+  color: rgba(238, 159, 139, 0.78);
+}
+
+html body:has(main.app.theme-brand) .backingLoopImportLibraryDelete:hover:not(:disabled) {
+  border-color: rgba(239, 133, 112, 0.46);
+  background: rgba(143, 52, 43, 0.28);
+  color: #ffd2c5;
+}
+
 html body:has(main.app.theme-brand) .backingLoopDialogHeadingActions > button[aria-pressed="true"],
 html body:has(main.app.theme-brand) .backingLoopLibraryEditItem:has(input:checked) {
   border-color: rgba(239, 199, 111, 0.5);
@@ -1334,6 +2720,7 @@ html body:has(main.app.theme-brand) .backingLoopLibraryEditItem:has(input:checke
 }
 
 html body:has(main.app.theme-brand) .backingLoopLibrary > button small,
+html body:has(main.app.theme-brand) .backingLoopImportLibrarySelect > small,
 html body:has(main.app.theme-brand) .backingLoopLibraryEditItem > small {
   color: rgba(236, 215, 172, 0.54);
 }
@@ -1343,12 +2730,225 @@ html body:has(main.app.theme-brand) .backingLoopLibraryEmpty {
   color: rgba(236, 215, 172, 0.54);
 }
 
+html body:has(main.app.theme-brand) :is(.backingLoopLibraryNavigation, .backingLoopPlaylistNavigation) {
+  border-color: rgba(217, 170, 85, 0.2);
+  background: rgba(7, 7, 5, 0.54);
+}
+
+html body:has(main.app.theme-brand) :is(
+  .backingLoopLibraryNavigation button,
+  .backingLoopPlaylistNavigation button,
+  .backingLoopLibrarySelectionTools button,
+  .backingLoopPlaylistTabs button,
+  .backingLoopPlaylistNameEditor button,
+  .backingLoopPlaylistItem > button,
+  .backingLoopPlaylistItemCheck,
+  .backingLoopPlaylistActions button,
+  .backingLoopPlaylistSelectionTools button,
+  .backingLoopExistingAudioPickerActions button,
+  .backingLoopExistingAudioList > label,
+  .backingLoopPlaylistSaveForm button,
+  .backingLoopSavedPlaylistItem > button,
+  .backingLoopSavedPlaylistSummary > button,
+  .backingLoopSavedPlaylistTracks > div > button
+) {
+  border-color: rgba(217, 170, 85, 0.24);
+  background: rgba(7, 7, 5, 0.82);
+  color: rgba(245, 228, 186, 0.88);
+}
+
+html body:has(main.app.theme-brand) :is(
+  .backingLoopLibraryNavigation button.selected,
+  .backingLoopPlaylistNavigation button.selected,
+  .backingLoopLibrarySelectionTools button.selected,
+  .backingLoopPlaylistTabs button.selected,
+  .backingLoopPlaylistItem.selected > button,
+  .backingLoopPlaylistItem.selected > .backingLoopPlaylistItemCheck,
+  .backingLoopPlaylistItem.playing > .backingLoopPlaylistItemSelect,
+  .backingLoopSavedPlaylistTracks > div.selected > button,
+  .backingLoopSavedPlaylistTracks > div.selected > .backingLoopPlaylistItemCheck,
+  .backingLoopSavedPlaylistTracks > div.playing > button
+) {
+  border-color: rgba(239, 199, 111, 0.5);
+  background: rgba(180, 126, 46, 0.24);
+  color: #f6e6c0;
+}
+
+html body:has(main.app.theme-brand) .backingLoopPlaylistDialog .backingLoopDialogHeading {
+  border-bottom-color: rgba(227, 181, 91, 0.26);
+}
+
+html body:has(main.app.theme-brand) .backingLoopPlaylistDialog .backingLoopDialogHeading strong {
+  color: #f6d889;
+  text-shadow: 0 1px 5px rgba(228, 171, 61, 0.2);
+}
+
+html body:has(main.app.theme-brand) .backingLoopPlaylistDialog .backingLoopDialogHeading strong::before {
+  background: linear-gradient(180deg, #ffe09b, #b67c27);
+  box-shadow: 0 0 7px rgba(232, 177, 72, 0.46);
+}
+
+html body:has(main.app.theme-brand) .backingLoopPlaylistNavigation button:first-child {
+  border-color: rgba(183, 127, 131, 0.3);
+  background: linear-gradient(180deg, rgba(88, 51, 57, 0.58), rgba(18, 15, 12, 0.9));
+  color: rgba(247, 215, 216, 0.84);
+}
+
+html body:has(main.app.theme-brand) .backingLoopPlaylistNavigation button:not(:first-child) {
+  border-color: rgba(214, 166, 75, 0.28);
+  background: linear-gradient(180deg, rgba(84, 62, 27, 0.56), rgba(18, 15, 10, 0.9));
+  color: rgba(246, 221, 163, 0.86);
+}
+
+html body:has(main.app.theme-brand) .backingLoopPlaylistNavigation button:first-child.selected {
+  border-color: rgba(232, 154, 165, 0.66);
+  border-bottom-color: #15110d;
+  background: linear-gradient(180deg, rgba(145, 73, 85, 0.86), rgba(51, 31, 31, 0.96));
+  box-shadow:
+    inset 0 3px 0 rgba(255, 183, 194, 0.78),
+    0 -2px 9px rgba(174, 88, 105, 0.24);
+  color: #ffe4e5;
+}
+
+html body:has(main.app.theme-brand) .backingLoopPlaylistNavigation button:not(:first-child).selected {
+  border-color: rgba(244, 200, 105, 0.68);
+  border-bottom-color: #15110d;
+  background: linear-gradient(180deg, rgba(156, 111, 37, 0.9), rgba(57, 42, 20, 0.98));
+  box-shadow:
+    inset 0 3px 0 rgba(255, 222, 140, 0.82),
+    0 -2px 9px rgba(196, 139, 42, 0.24);
+  color: #fff0c3;
+}
+
+html body:has(main.app.theme-brand) :is(
+  .backingLoopPlaylistSelectionTools button.primary,
+  .backingLoopSavedPlaylistSummary > button.primary
+) {
+  border-color: rgba(239, 199, 111, 0.58);
+  background: linear-gradient(180deg, rgba(180, 126, 46, 0.86), rgba(117, 75, 23, 0.9));
+  color: #fff1cd;
+}
+
+html body:has(main.app.theme-brand) :is(
+  .backingLoopLibrarySelectionTools > span,
+  .backingLoopPlaylistNow,
+  .backingLoopPlaylistItemSelect small,
+  .backingLoopPlaylistSelectionTools > span,
+  .backingLoopSavedPlaylistSummary small,
+  .backingLoopSavedPlaylistTracks small
+) {
+  color: rgba(236, 215, 172, 0.58);
+}
+
+html body:has(main.app.theme-brand) .backingLoopPlaylistNameEditor input {
+  border-color: rgba(217, 170, 85, 0.24);
+  background: rgba(7, 7, 5, 0.82);
+  color: #f6e6c0;
+}
+
+html body:has(main.app.theme-brand) :is(
+  .backingLoopPlaylistSaveForm input,
+  .backingLoopPlaylistSaveForm select,
+  .backingLoopExistingAudioPicker
+) {
+  border-color: rgba(217, 170, 85, 0.24);
+  background: rgba(7, 7, 5, 0.82);
+  color: #f6e6c0;
+}
+
+html body:has(main.app.theme-brand) .backingLoopAudioStudioPicker {
+  border-color: rgba(217, 170, 85, 0.24);
+  background: rgba(7, 7, 5, 0.82);
+}
+
+html body:has(main.app.theme-brand) .backingLoopAudioStudioPicker :is(strong, span, small) {
+  color: rgba(245, 228, 186, 0.76);
+}
+
+html body:has(main.app.theme-brand) .backingLoopAudioStudioPickerList > label {
+  border-color: rgba(217, 170, 85, 0.2);
+  color: rgba(245, 228, 186, 0.9);
+  background: rgba(19, 16, 11, 0.92);
+}
+
+html body:has(main.app.theme-brand) .backingLoopAudioStudioPicker > footer button {
+  border-color: rgba(239, 199, 111, 0.58);
+  color: #fff1cd;
+  background: linear-gradient(180deg, rgba(180, 126, 46, 0.86), rgba(117, 75, 23, 0.9));
+}
+
+html body:has(main.app.theme-brand) :is(
+  .backingLoopPlaylistActions > span,
+  .backingLoopExistingAudioPickerHeading strong,
+  .backingLoopExistingAudioPickerHeading button,
+  .backingLoopExistingAudioList > label > small,
+  .backingLoopSavedPlaylistItem small,
+  .backingLoopSavedPlaylistSummary strong,
+  .backingLoopSavedPlaylistTracks span
+) {
+  color: rgba(236, 215, 172, 0.58);
+}
+
+html body:has(main.app.theme-brand) .backingLoopPlaylistNow {
+  background: rgba(180, 126, 46, 0.13);
+}
+
 @keyframes backingLoopRecordPulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.42; }
 }
 
 @media (max-width: 680px) {
+  .backingLoopDialogLayer--playlistDrawer {
+    display: block;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .backingLoopDialogLayer.backingLoopDialogLayer--playlistDrawer > [role="dialog"] {
+    position: absolute;
+    inset-inline: max(8px, calc((100vw - 390px) / 2));
+    bottom: var(--backing-loop-playlist-bottom, 160px);
+    width: auto;
+    max-height: min(60dvh, var(--backing-loop-playlist-max-height, 520px));
+    animation-name: backingLoopPlaylistSheetIn;
+  }
+
+  .backingLoopDialogLayer--playlistDrawer .backingLoopPlaylistDialog {
+    height: auto;
+    max-height: min(60dvh, var(--backing-loop-playlist-max-height, 520px));
+  }
+
+  .backingLoopPanel--mobile .backingLoopPlayerBar {
+    gap: 2px;
+    padding-inline: 2px;
+  }
+
+  .backingLoopPanel--mobile .backingLoopPlayerModes,
+  .backingLoopPanel--mobile .backingLoopPlayerUtilities {
+    gap: 0;
+  }
+
+  .backingLoopPanel--mobile .backingLoopPlayerTransport {
+    gap: 2px;
+  }
+
+  .backingLoopPanel--mobile .backingLoopPlayerPlayButton {
+    width: 29px;
+    height: 29px;
+  }
+
+  @keyframes backingLoopPlaylistSheetIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   html body main.app.app.app
     .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
     > .metronomeHeroCard.metronomeHeroCard--interactive {
@@ -1505,6 +3105,10 @@ html body:has(main.app.theme-brand) .backingLoopLibraryEmpty {
 
 @media (prefers-reduced-motion: reduce) {
   .backingLoopRecordButton.active {
+    animation: none;
+  }
+
+  .backingLoopDialogLayer--playlistDrawer > [role="dialog"] {
     animation: none;
   }
 }

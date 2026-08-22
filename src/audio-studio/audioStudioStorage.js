@@ -1,8 +1,21 @@
-import { createAudioStudioId, normalizeAudioStudioProject } from "./audioStudioModel.js";
+import { createAudioStudioId } from "./audioStudioModel.js";
+import { sanitizeAudioStudioExportName } from "./audioStudioExport.js";
 
 export const AUDIO_STUDIO_DB_NAME = "rifflab-audio-studio-v1";
-export const AUDIO_STUDIO_DB_VERSION = 1;
-export const AUDIO_STUDIO_PROJECT_STORE = "projects";
+export const AUDIO_STUDIO_DB_VERSION = 2;
+export const AUDIO_STUDIO_MIX_STORE = "mixes";
+
+const audioStudioMixListeners = new Set();
+
+function notifyAudioStudioMixLibraryChanged() {
+  queueMicrotask(() => audioStudioMixListeners.forEach((listener) => listener()));
+}
+
+export function subscribeAudioStudioMixLibrary(listener) {
+  if (typeof listener !== "function") return () => {};
+  audioStudioMixListeners.add(listener);
+  return () => audioStudioMixListeners.delete(listener);
+}
 
 function openAudioStudioDatabase(indexedDBApi = typeof window !== "undefined" ? window.indexedDB : null) {
   return new Promise((resolve, reject) => {
@@ -13,18 +26,18 @@ function openAudioStudioDatabase(indexedDBApi = typeof window !== "undefined" ? 
     const request = indexedDBApi.open(AUDIO_STUDIO_DB_NAME, AUDIO_STUDIO_DB_VERSION);
     request.onerror = () => reject(request.error || new Error("Unable to open Audio Studio storage."));
     request.onupgradeneeded = () => {
-      if (!request.result.objectStoreNames.contains(AUDIO_STUDIO_PROJECT_STORE)) {
-        request.result.createObjectStore(AUDIO_STUDIO_PROJECT_STORE, { keyPath: "id" });
+      if (!request.result.objectStoreNames.contains(AUDIO_STUDIO_MIX_STORE)) {
+        request.result.createObjectStore(AUDIO_STUDIO_MIX_STORE, { keyPath: "id" });
       }
     };
     request.onsuccess = () => resolve(request.result);
   });
 }
 
-function runAudioStudioTransaction(mode, operation, indexedDBApi) {
+function runAudioStudioTransaction(storeName, mode, operation, indexedDBApi) {
   return openAudioStudioDatabase(indexedDBApi).then((database) => new Promise((resolve, reject) => {
-    const transaction = database.transaction(AUDIO_STUDIO_PROJECT_STORE, mode);
-    const request = operation(transaction.objectStore(AUDIO_STUDIO_PROJECT_STORE));
+    const transaction = database.transaction(storeName, mode);
+    const request = operation(transaction.objectStore(storeName));
     let result = null;
     request.onerror = () => reject(request.error || new Error("Audio Studio storage request failed."));
     request.onsuccess = () => { result = request.result ?? null; };
@@ -34,61 +47,63 @@ function runAudioStudioTransaction(mode, operation, indexedDBApi) {
   }));
 }
 
-export function createAudioStudioProjectSummary(project) {
+export function normalizeAudioStudioMix(mix, now = Date.now()) {
+  if (!(mix?.blob instanceof Blob) || mix.blob.size === 0) return null;
+  const createdAt = Math.max(0, Number(mix.createdAt) || Number(now) || Date.now());
+  const fileName = sanitizeAudioStudioExportName(mix.fileName || mix.name);
   return {
-    clipCount: project.tracks.reduce((total, track) => total + track.clips.length, 0),
-    durationMs: Math.max(0, ...project.tracks.flatMap((track) => track.clips.map((clip) => clip.timelineStartMs + clip.durationMs))),
-    id: project.id,
-    name: project.metadata.name,
-    sourceCount: project.audioSources.length,
-    trackCount: project.tracks.length,
-    updatedAt: project.updatedAt,
+    blob: mix.blob.type === "audio/wav" ? mix.blob : new Blob([mix.blob], { type: "audio/wav" }),
+    createdAt,
+    durationMs: Math.max(0, Number(mix.durationMs) || 0),
+    fileName,
+    id: String(mix.id || createAudioStudioId("mix")),
+    mimeType: "audio/wav",
+    updatedAt: Math.max(createdAt, Number(mix.updatedAt) || createdAt),
   };
 }
 
-export async function renameAudioStudioProject(projectId, name, indexedDBApi) {
-  const project = await loadAudioStudioProject(projectId, indexedDBApi);
-  if (!project) throw new Error("PROJECT_NOT_FOUND");
-  return saveAudioStudioProject({
-    ...project,
-    metadata: { ...project.metadata, name: String(name || project.metadata.name).trim().slice(0, 120) || project.metadata.name },
-    updatedAt: Date.now(),
-  }, indexedDBApi);
+export function createAudioStudioMixSummary(mix) {
+  return {
+    createdAt: mix.createdAt,
+    durationMs: mix.durationMs,
+    fileName: mix.fileName,
+    id: mix.id,
+    mimeType: mix.mimeType,
+    updatedAt: mix.updatedAt,
+  };
 }
 
-export async function duplicateAudioStudioProject(projectId, indexedDBApi) {
-  const project = await loadAudioStudioProject(projectId, indexedDBApi);
-  if (!project) throw new Error("PROJECT_NOT_FOUND");
-  const timestamp = Date.now();
-  return saveAudioStudioProject({
-    ...project,
-    createdAt: timestamp,
-    id: createAudioStudioId("project"),
-    metadata: { ...project.metadata, name: `${project.metadata.name} copy`.slice(0, 120) },
-    updatedAt: timestamp,
-  }, indexedDBApi);
-}
-
-export async function saveAudioStudioProject(project, indexedDBApi) {
-  const normalized = normalizeAudioStudioProject({ ...project, updatedAt: Date.now() });
-  await runAudioStudioTransaction("readwrite", (store) => store.put(normalized), indexedDBApi);
+export async function saveAudioStudioMix(mix, indexedDBApi) {
+  const normalized = normalizeAudioStudioMix({ ...mix, updatedAt: Date.now() });
+  if (!normalized) throw new Error("INVALID_AUDIO_STUDIO_MIX");
+  await runAudioStudioTransaction(AUDIO_STUDIO_MIX_STORE, "readwrite", (store) => store.put(normalized), indexedDBApi);
+  notifyAudioStudioMixLibraryChanged();
   return normalized;
 }
 
-export async function loadAudioStudioProject(projectId, indexedDBApi) {
-  if (!projectId) return null;
-  const stored = await runAudioStudioTransaction("readonly", (store) => store.get(String(projectId)), indexedDBApi);
-  return stored ? normalizeAudioStudioProject(stored) : null;
+export async function loadAudioStudioMix(mixId, indexedDBApi) {
+  if (!mixId) return null;
+  const stored = await runAudioStudioTransaction(AUDIO_STUDIO_MIX_STORE, "readonly", (store) => store.get(String(mixId)), indexedDBApi);
+  return stored ? normalizeAudioStudioMix(stored) : null;
 }
 
-export async function listAudioStudioProjects(indexedDBApi) {
-  const records = await runAudioStudioTransaction("readonly", (store) => store.getAll(), indexedDBApi);
+export async function listAudioStudioMixes(indexedDBApi) {
+  const records = await runAudioStudioTransaction(AUDIO_STUDIO_MIX_STORE, "readonly", (store) => store.getAll(), indexedDBApi);
   return Array.from(records || [])
-    .map((project) => createAudioStudioProjectSummary(normalizeAudioStudioProject(project)))
+    .map((mix) => normalizeAudioStudioMix(mix))
+    .filter(Boolean)
+    .map(createAudioStudioMixSummary)
     .sort((left, right) => right.updatedAt - left.updatedAt);
 }
 
-export async function deleteAudioStudioProject(projectId, indexedDBApi) {
-  if (!projectId) return;
-  await runAudioStudioTransaction("readwrite", (store) => store.delete(String(projectId)), indexedDBApi);
+export async function renameAudioStudioMix(mixId, name, indexedDBApi) {
+  const mix = await loadAudioStudioMix(mixId, indexedDBApi);
+  if (!mix) throw new Error("MIX_NOT_FOUND");
+  return saveAudioStudioMix({ ...mix, fileName: name }, indexedDBApi);
+}
+
+export async function deleteAudioStudioMix(mixId, indexedDBApi) {
+  if (!mixId) return;
+  await runAudioStudioTransaction(AUDIO_STUDIO_MIX_STORE, "readwrite", (store) => store.delete(String(mixId)), indexedDBApi);
+  notifyAudioStudioMixLibraryChanged();
 }

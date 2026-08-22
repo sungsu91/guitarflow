@@ -133,6 +133,7 @@ function CoastalChestActor({ editMode = false, eventActor, instanceId, onSound }
       type="button"
     >
       <span className="shooterMapChestArtworkWrap">
+        <span aria-hidden="true" className="shooterMapChestGroundShadow" />
         <img
           alt=""
           className="shooterMapChestArtwork"

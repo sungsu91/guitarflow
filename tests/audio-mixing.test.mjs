@@ -153,38 +153,44 @@ test("recording analysis preserves the original encoded blob until the user trim
   }
 });
 
-test("mobile and desktop Backing Loop layouts keep volume between media and transport controls", async () => {
+test("mobile and desktop Backing Loop layouts place one mini player above recording controls", async () => {
   const [componentSource, appSource, engineSource] = await Promise.all([
     readFile(new URL("../src/components/BackingLoop.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/App.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/audio/fretboardPreviewEngine.js", import.meta.url), "utf8"),
   ]);
-  const mobile = componentSource.slice(componentSource.indexOf("function MobileBackingLoop({ controller })"), componentSource.indexOf("function DesktopBackingLoop"));
-  const desktop = componentSource.slice(componentSource.indexOf("function DesktopBackingLoop"), componentSource.indexOf("export default function BackingLoop"));
-  assert.ok(mobile.indexOf("MobileBackingLoopDisplay") < mobile.indexOf("BackingLoopVolume"));
-  assert.ok(mobile.indexOf("BackingLoopVolume") < mobile.indexOf("BackingLoopMainControls"));
-  assert.ok(desktop.indexOf("BackingLoopProgress") < desktop.indexOf("BackingLoopVolume"));
-  assert.ok(desktop.indexOf("BackingLoopVolume") < desktop.indexOf("BackingLoopMainControls"));
+  const mobile = componentSource.slice(componentSource.indexOf("function MobileBackingLoop({ controller })"), componentSource.indexOf("function DesktopBackingLoop({ controller })"));
+  const desktop = componentSource.slice(componentSource.indexOf("function DesktopBackingLoop({ controller })"), componentSource.indexOf("export default function BackingLoop"));
+  assert.ok(mobile.indexOf("MobileBackingLoopPlayer") < mobile.indexOf("BackingLoopMainControls"));
+  assert.ok(desktop.indexOf("DesktopBackingLoopPlayer") < desktop.indexOf("BackingLoopMainControls"));
+  assert.doesNotMatch(mobile, /BackingLoopHeader/);
+  assert.doesNotMatch(desktop, /BackingLoopHeader/);
+  assert.match(componentSource, /function MobileBackingLoopPlayer[\s\S]*?BackingLoopTrackInfo[\s\S]*?BackingLoopProgress[\s\S]*?BackingLoopPlayerBar/);
+  assert.match(componentSource, /backingLoopMainControls--mobile[\s\S]*?REC[\s\S]*?EDIT[\s\S]*?DEL[\s\S]*?SAVE/);
+  assert.doesNotMatch(componentSource, /BackingLoopStorageControls/);
+  assert.doesNotMatch(mobile, />LOAD</);
+  assert.doesNotMatch(mobile, />IMPORT</);
+  assert.doesNotMatch(componentSource, /backingLoopScrew/);
   assert.match(appSource, /getAudioBusInput\(AUDIO_BUS_IDS\.SFX, audio\)/);
   assert.match(appSource, /groupLimit = \{ gameover: 1, hit: 6, "mimic-hit": 5, miss: 2, spawn: 3 \}/);
   assert.match(engineSource, /AUDIO_BUS_IDS\.INSTRUMENT/);
 });
 
-test("mobile Backing Loop volume is skinned as part of the recorder chassis", async () => {
+test("mobile Backing Loop volume opens as a vertical overlay above its icon", async () => {
   const polishCss = await readFile(new URL("../src/polish.css", import.meta.url), "utf8");
 
-  assert.match(polishCss, /--backing-recorder-volume-well:/);
-  assert.match(polishCss, /grid-template-rows: 20px minmax\(54px, 1fr\) 30px 36px 32px !important/);
+  assert.match(polishCss, /grid-template-rows: 94px 45px !important/);
+  assert.match(polishCss, /height: 157px !important/);
   assert.match(
     polishCss,
-    /\.backingLoopPanel--mobile \.backingLoopVolumeMute \{[\s\S]*?min-height: 24px !important;[\s\S]*?radial-gradient\(/,
+    /\.backingLoopPanel--mobile \.backingLoopVolumePopover \{[\s\S]*?bottom: calc\(100% \+ 9px\) !important;[\s\S]*?height: 108px !important;/,
   );
   assert.match(
     polishCss,
-    /\.backingLoopPanel--mobile \.backingLoopVolumeSlider input \{[\s\S]*?background: transparent !important;[\s\S]*?-webkit-appearance: none !important;/,
+    /\.backingLoopPanel--mobile \.backingLoopVolumeSlider input \{[\s\S]*?height: 72px !important;[\s\S]*?writing-mode: vertical-lr !important;/,
   );
   assert.match(
     polishCss,
-    /\.backingLoopPanel--mobile \.backingLoopVolumeValue \{[\s\S]*?var\(--backing-recorder-volume-display\)/,
+    /\.backingLoopVolumeMenu\[data-open="true"\] \.backingLoopVolumePopover/,
   );
 });

@@ -93,27 +93,34 @@ test("backing multi-import preserves valid file order and isolates rejected file
   ]);
 });
 
-test("Backing Loop exposes separate LOAD and IMPORT controls in an equal three-way row", async () => {
-  const [componentSource, cssSource, storageSource] = await Promise.all([
+test("Backing Loop sends SAVE and file imports through the single Playlist queue", async () => {
+  const [componentSource, cssSource, storageSource, flowSource] = await Promise.all([
     readFile(new URL("../src/components/BackingLoop.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/components/backing-loop.css", import.meta.url), "utf8"),
     readFile(new URL("../src/backing-loop/backingLoopStorage.js", import.meta.url), "utf8"),
+    readFile(new URL("../src/backing-loop/useBackingLoop.js", import.meta.url), "utf8"),
   ]);
-  const controls = componentSource.slice(
-    componentSource.indexOf("function BackingLoopStorageControls"),
-    componentSource.indexOf("const formatTrimSeconds"),
-  );
-
-  assert.match(controls, /backingLoopLoadButton/);
-  assert.match(controls, /backingLoopImportButton/);
-  assert.match(controls, /type="file"/);
-  assert.match(controls, /multiple/);
-  assert.match(controls, /accept=\{controller\.importAccept\}/);
-  assert.match(componentSource, /function ImportBackingLoopDialog/);
-  assert.match(componentSource, /현재 백킹으로 사용/);
-  assert.match(cssSource, /\.backingLoopStorageControls\s*\{[^}]*grid-template-columns:\s*repeat\(3,/s);
+  assert.doesNotMatch(componentSource, /function BackingLoopStorageControls/);
+  assert.doesNotMatch(componentSource, /backingLoopLoadButton/);
+  assert.doesNotMatch(componentSource, /backingLoopImportButton/);
+  assert.match(componentSource, /type="file"/);
+  assert.match(componentSource, /multiple/);
+  assert.match(componentSource, /accept=\{controller\.importAccept\}/);
+  assert.doesNotMatch(componentSource, /function ImportBackingLoopDialog/);
+  assert.match(componentSource, /PLAYLIST/);
+  assert.match(componentSource, /파일 추가/);
+  assert.doesNotMatch(componentSource, /저장 음원 추가/);
+  assert.match(componentSource, /선택 재생/);
+  assert.match(componentSource, /showSavedPlaylist/);
+  assert.match(componentSource, /목록 저장/);
+  assert.match(cssSource, /\.backingLoopPlaylistActions/);
   assert.match(storageSource, /subscribeBackingLoopLibrary/);
   assert.match(storageSource, /sourceType/);
-  assert.ok(controls.indexOf("backingLoopSaveButton") < controls.indexOf("backingLoopLoadButton"));
-  assert.ok(controls.indexOf("backingLoopLoadButton") < controls.indexOf("backingLoopImportButton"));
+  assert.doesNotMatch(storageSource, /libraryKind/);
+  assert.match(flowSource, /const openImportPicker = openImportFilePicker/);
+  assert.match(flowSource, /saveBackingLoopRecording\(candidate\)/);
+  assert.match(flowSource, /setLibrary\(\(currentLibrary\)/);
+  assert.match(flowSource, /addBackingPlaylistItems\(/);
+  assert.match(flowSource, /setDialog\("load"\)/);
+  assert.doesNotMatch(flowSource, /setImportLibrary/);
 });

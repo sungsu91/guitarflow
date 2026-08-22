@@ -1,0 +1,268 @@
+.shooterArena.shooterMapSkin--dev-pseudo3d-test {
+  background: #091724;
+  isolation: isolate;
+}
+
+.shooterArena.shooterMapSkin--dev-pseudo3d-test::before,
+.shooterArena.shooterMapSkin--dev-pseudo3d-test::after {
+  display: none;
+}
+
+.pseudo3dGroundCanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.pseudo3dHorizonLabel {
+  position: absolute;
+  top: calc(var(--pseudo3d-horizon, 24%) - 11px);
+  left: 50%;
+  z-index: 1;
+  width: min(44%, 180px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 224, 155, 0.5), transparent);
+  opacity: 0.64;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.pseudo3dHorizonLabel span {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  color: rgba(255, 235, 191, 0.55);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  transform: translateX(-50%);
+}
+
+.shooterArena.shooterMapSkin--dev-pseudo3d-test .enemy.shooterEnemy.fallingTarget {
+  transform-origin: center;
+  filter: drop-shadow(0 calc(4px + 7px * var(--pseudo3d-depth, 0)) calc(5px + 7px * var(--pseudo3d-depth, 0)) rgba(0, 0, 0, 0.42));
+}
+
+.pseudo3dDevPanel {
+  position: absolute;
+  top: 64px;
+  right: 8px;
+  z-index: 96;
+  width: min(222px, calc(100% - 16px));
+  color: #e8fbff;
+  font-family: Inter, system-ui, sans-serif;
+  pointer-events: auto;
+}
+
+.pseudo3dDevPanelToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid rgba(80, 226, 255, 0.48);
+  border-radius: 8px;
+  background: rgba(2, 12, 18, 0.88);
+  color: #a9f2ff;
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.28);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  backdrop-filter: blur(10px);
+}
+
+.pseudo3dDevPanelToggle svg:last-child {
+  margin-left: auto;
+  transition: transform 160ms ease;
+}
+
+.pseudo3dDevPanel.is-open .pseudo3dDevPanelToggle svg:last-child {
+  transform: rotate(180deg);
+}
+
+.pseudo3dDevPanelBody {
+  max-height: min(68vh, 560px);
+  margin-top: 5px;
+  padding: 9px;
+  overflow: auto;
+  border: 1px solid rgba(80, 226, 255, 0.34);
+  border-radius: 10px;
+  background: rgba(2, 11, 17, 0.92);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
+  scrollbar-width: thin;
+  backdrop-filter: blur(13px);
+}
+
+.pseudo3dDevPanelHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pseudo3dDevPanelHeading span,
+.pseudo3dDevPanelHeading strong {
+  display: block;
+}
+
+.pseudo3dDevPanelHeading span {
+  color: #6ae8ff;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.pseudo3dDevPanelHeading span i {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: #58e7ff;
+  box-shadow: 0 0 8px #58e7ff;
+}
+
+.pseudo3dDevPanelHeading strong {
+  color: rgba(232, 251, 255, 0.68);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.pseudo3dDevControls {
+  display: grid;
+  gap: 5px;
+}
+
+.pseudo3dDevControl {
+  display: grid;
+  gap: 2px;
+}
+
+.pseudo3dDevControl > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: rgba(225, 247, 251, 0.76);
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.pseudo3dDevControl output {
+  color: #7beaff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 8px;
+}
+
+.pseudo3dDevControl input[type="range"] {
+  width: 100%;
+  height: 12px;
+  margin: 0;
+  accent-color: #5ee8ff;
+}
+
+.pseudo3dResetButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 28px;
+  margin-top: 9px;
+  border: 1px solid rgba(255, 209, 119, 0.4);
+  border-radius: 7px;
+  background: rgba(97, 65, 16, 0.24);
+  color: #ffe2a0;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+html body main.app.app.app .shooterArena.shooterArena
+  .pseudo3dDevPanel.pseudo3dDevPanel
+  > button.pseudo3dDevPanelToggle.pseudo3dDevPanelToggle,
+html body main.app.app.app .shooterArena.shooterArena
+  .pseudo3dDevPanel.pseudo3dDevPanel
+  > button.pseudo3dDevPanelToggle.pseudo3dDevPanelToggle:hover,
+html body main.app.app.app .shooterArena.shooterArena
+  .pseudo3dDevPanel.pseudo3dDevPanel
+  > button.pseudo3dDevPanelToggle.pseudo3dDevPanelToggle:focus-visible {
+  border-color: rgba(80, 226, 255, 0.48) !important;
+  background: rgba(2, 12, 18, 0.9) !important;
+  background-image: none !important;
+  color: #a9f2ff !important;
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.28) !important;
+}
+
+html body main.app.app.app .shooterArena.shooterArena
+  .pseudo3dDevPanel.pseudo3dDevPanel
+  button.pseudo3dResetButton.pseudo3dResetButton,
+html body main.app.app.app .shooterArena.shooterArena
+  .pseudo3dDevPanel.pseudo3dDevPanel
+  button.pseudo3dResetButton.pseudo3dResetButton:hover,
+html body main.app.app.app .shooterArena.shooterArena
+  .pseudo3dDevPanel.pseudo3dDevPanel
+  button.pseudo3dResetButton.pseudo3dResetButton:focus-visible {
+  border-color: rgba(255, 209, 119, 0.4) !important;
+  background: rgba(97, 65, 16, 0.38) !important;
+  background-image: none !important;
+  color: #ffe2a0 !important;
+  box-shadow: none !important;
+}
+
+.shooterMapPreview.shooterMapSkin--dev-pseudo3d-test {
+  overflow: hidden;
+  background:
+    linear-gradient(154deg, transparent 49%, rgba(118, 234, 195, 0.25) 49.5% 50.5%, transparent 51%) 0 0 / 22px 22px,
+    linear-gradient(26deg, transparent 49%, rgba(118, 234, 195, 0.2) 49.5% 50.5%, transparent 51%) 0 0 / 22px 22px,
+    linear-gradient(180deg, #173a56 0 30%, #d59157 31%, #152820 32% 100%);
+}
+
+.shooterMapPreview.shooterMapSkin--dev-pseudo3d-test::before {
+  content: "DEV · MODE7";
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  z-index: 2;
+  width: auto;
+  height: auto;
+  border: 0;
+  background: none;
+  color: rgba(231, 251, 255, 0.84);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  transform: translateX(-50%);
+}
+
+.shooterMapPreview.shooterMapSkin--dev-pseudo3d-test i,
+.shooterMapPreview.shooterMapSkin--dev-pseudo3d-test::after {
+  display: none;
+}
+
+@media (max-width: 620px) {
+  .pseudo3dDevPanel {
+    top: 58px;
+    right: 6px;
+    width: min(205px, calc(100% - 12px));
+  }
+
+  .pseudo3dDevPanelBody {
+    max-height: 55vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pseudo3dDevPanelToggle svg:last-child {
+    transition: none;
+  }
+}

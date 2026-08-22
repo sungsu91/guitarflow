@@ -84,6 +84,7 @@ export function createAudioStudioClip({
   sourceId,
   sourceStartMs = 0,
   timelineStartMs = 0,
+  timeStretch = null,
   trackId,
   volume = 1,
 } = {}) {
@@ -111,6 +112,7 @@ export function createAudioStudioClip({
     sourceId: String(sourceId || ""),
     sourceStartMs: safeSourceStart,
     timelineStartMs: Math.max(0, Number(timelineStartMs) || 0),
+    timeStretch: timeStretch ? { ...timeStretch } : null,
     trackId: String(trackId || ""),
     volume: clamp(volume || 0, 0, 2),
   };
@@ -127,6 +129,7 @@ export function createAudioStudioTrack({
   name = "Track",
   pan = 0,
   solo = false,
+  timeStretch = null,
   volume = 1,
 } = {}) {
   const trackId = String(id || createAudioStudioId("track"));
@@ -141,8 +144,18 @@ export function createAudioStudioTrack({
     name: String(name || "Track").trim().slice(0, 80) || "Track",
     pan: clamp(pan, -1, 1),
     solo: Boolean(solo),
+    timeStretch: timeStretch ? { ...timeStretch } : null,
     volume: clamp(volume || 0, 0, 2),
   };
+}
+
+export function getAudioStudioClipTimeStretchRatio(clip) {
+  const ratio = Number(clip?.timeStretch?.ratio);
+  return Number.isFinite(ratio) && ratio > 0 ? ratio : 1;
+}
+
+export function getAudioStudioClipSourceRate(clip) {
+  return clamp(clip?.playbackRate || 1, 0.25, 4) * getAudioStudioClipTimeStretchRatio(clip);
 }
 
 export function createAudioStudioProject({
@@ -431,8 +444,8 @@ function createAudioStudioClipSegment(clip, startMs, endMs, id = clip.id) {
     fadeInMs: offsetStartMs <= 1 ? clip.fadeInMs : 0,
     fadeOutMs: offsetEndMs >= clip.durationMs - 1 ? clip.fadeOutMs : 0,
     id,
-    sourceEndMs: clip.sourceStartMs + offsetEndMs * clip.playbackRate,
-    sourceStartMs: clip.sourceStartMs + offsetStartMs * clip.playbackRate,
+    sourceEndMs: clip.sourceStartMs + offsetEndMs * getAudioStudioClipSourceRate(clip),
+    sourceStartMs: clip.sourceStartMs + offsetStartMs * getAudioStudioClipSourceRate(clip),
     timelineStartMs: startMs,
   });
 }
@@ -737,7 +750,7 @@ export function trimAudioStudioClips(project, clipIds, timelineTimeMs, edge = "e
         ...clip,
         durationMs: clip.durationMs - offsetMs,
         fadeInMs: Math.min(clip.fadeInMs, clip.durationMs - offsetMs),
-        sourceStartMs: clip.sourceStartMs + offsetMs * clip.playbackRate,
+        sourceStartMs: clip.sourceStartMs + offsetMs * getAudioStudioClipSourceRate(clip),
         timelineStartMs: timeMs,
       };
     }
@@ -745,7 +758,7 @@ export function trimAudioStudioClips(project, clipIds, timelineTimeMs, edge = "e
       ...clip,
       durationMs: offsetMs,
       fadeOutMs: Math.min(clip.fadeOutMs, offsetMs),
-      sourceEndMs: clip.sourceStartMs + offsetMs * clip.playbackRate,
+      sourceEndMs: clip.sourceStartMs + offsetMs * getAudioStudioClipSourceRate(clip),
     };
   });
 }
@@ -764,25 +777,27 @@ export function resizeAudioStudioClipEdges(project, clipIds, deltaMs, edge = "en
         if (!source) return clip;
         const minimumDurationMs = 10;
         if (edge === "start") {
-          const minimumDelta = -clip.sourceStartMs / clip.playbackRate;
+          const sourceRate = getAudioStudioClipSourceRate(clip);
+          const minimumDelta = -clip.sourceStartMs / sourceRate;
           const maximumDelta = clip.durationMs - minimumDurationMs;
           const appliedDelta = clamp(requestedDeltaMs, minimumDelta, maximumDelta);
           return createAudioStudioClip({
             ...clip,
             durationMs: clip.durationMs - appliedDelta,
             fadeInMs: Math.min(clip.fadeInMs, clip.durationMs - appliedDelta),
-            sourceStartMs: clip.sourceStartMs + appliedDelta * clip.playbackRate,
+            sourceStartMs: clip.sourceStartMs + appliedDelta * sourceRate,
             timelineStartMs: Math.max(0, clip.timelineStartMs + appliedDelta),
           });
         }
         const minimumDelta = -(clip.durationMs - minimumDurationMs);
-        const maximumDelta = (source.durationMs - clip.sourceEndMs) / clip.playbackRate;
+        const sourceRate = getAudioStudioClipSourceRate(clip);
+        const maximumDelta = (source.durationMs - clip.sourceEndMs) / sourceRate;
         const appliedDelta = clamp(requestedDeltaMs, minimumDelta, maximumDelta);
         return createAudioStudioClip({
           ...clip,
           durationMs: clip.durationMs + appliedDelta,
           fadeOutMs: Math.min(clip.fadeOutMs, clip.durationMs + appliedDelta),
-          sourceEndMs: clip.sourceEndMs + appliedDelta * clip.playbackRate,
+          sourceEndMs: clip.sourceEndMs + appliedDelta * sourceRate,
         });
       }),
     })),
@@ -798,7 +813,7 @@ export function splitAudioStudioClips(project, clipIds, timelineTimeMs) {
     clips: track.clips.flatMap((clip) => {
       const splitOffsetMs = Number(timelineTimeMs) - clip.timelineStartMs;
       if (!selectedIds.has(clip.id) || splitOffsetMs <= 1 || splitOffsetMs >= clip.durationMs - 1 || clip.locked || track.locked) return [clip];
-      const sourceSplitMs = clip.sourceStartMs + splitOffsetMs * clip.playbackRate;
+      const sourceSplitMs = clip.sourceStartMs + splitOffsetMs * getAudioStudioClipSourceRate(clip);
       const left = createAudioStudioClip({
         ...clip,
         durationMs: splitOffsetMs,
