@@ -56,6 +56,7 @@ import {
   BACKING_AUDIO_SOURCE_TYPES,
   prepareImportedBackingAudioSources,
 } from "./backingAudioSource";
+import { isBackingPlaybackSourceReady } from "./backingPlaybackSource.js";
 import {
   BACKING_LOOP_DEFAULT_TITLE,
   createBackingLoopId,
@@ -83,7 +84,7 @@ const EMPTY_INPUT_LEVEL = Object.freeze({
 
 export default function useBackingLoop(ownerMode = "") {
   const backingVolume = useBackingVolume();
-  const [audioUrl, setAudioUrl] = useState("");
+  const [audioSource, setAudioSource] = useState(() => ({ blob: null, url: "" }));
   const [appliedTrimRange, setAppliedTrimRange] = useState(null);
   const [currentTimeMs, setCurrentTimeMs] = useState(0);
   const [deletePending, setDeletePending] = useState(false);
@@ -114,6 +115,7 @@ export default function useBackingLoop(ownerMode = "") {
   const [playlistRenameDraft, setPlaylistRenameDraft] = useState("");
   const [playlistSaveTargetId, setPlaylistSaveTargetId] = useState("");
   const [playlistState, setPlaylistState] = useState(createDefaultBackingPlaylistState);
+  const [playlistAutoplayRequest, setPlaylistAutoplayRequest] = useState(0);
   const [playlistPlaybackActive, setPlaylistPlaybackActive] = useState(false);
   const [selectedQueueItemIds, setSelectedQueueItemIds] = useState([]);
   const [selectedSavedItemIds, setSelectedSavedItemIds] = useState([]);
@@ -164,6 +166,7 @@ export default function useBackingLoop(ownerMode = "") {
   const transportFadeTimerRef = useRef(null);
 
   backingVolumeRef.current = backingVolume.volume;
+  const audioUrl = audioSource.url;
 
   const setPhaseImmediate = useCallback((nextPhase) => {
     phaseRef.current = nextPhase;
@@ -422,12 +425,12 @@ export default function useBackingLoop(ownerMode = "") {
 
   useEffect(() => {
     if (!recording?.blob) {
-      setAudioUrl("");
+      setAudioSource({ blob: null, url: "" });
       return undefined;
     }
 
     const nextAudioUrl = URL.createObjectURL(recording.blob);
-    setAudioUrl(nextAudioUrl);
+    setAudioSource({ blob: recording.blob, url: nextAudioUrl });
     return () => URL.revokeObjectURL(nextAudioUrl);
   }, [recording?.blob]);
 
@@ -808,7 +811,9 @@ export default function useBackingLoop(ownerMode = "") {
   }, [clearArmTimer, clearRecordingTimer, releaseMicrophone, resetAudioPosition, setPhaseImmediate, stopTrimPreview]);
 
   const playRecording = useCallback(async () => {
-    if (!modeActiveRef.current || !recording?.blob || !audioRef.current || !audioUrl) return;
+    if (!modeActiveRef.current
+      || !audioRef.current
+      || !isBackingPlaybackSourceReady(audioSource, recording)) return;
     if (playbackRequestRef.current) return;
     if (["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
 
@@ -844,7 +849,7 @@ export default function useBackingLoop(ownerMode = "") {
     } finally {
       playbackRequestRef.current = false;
     }
-  }, [audioUrl, clearTransportFadeTimer, ensurePlaybackAudioGraph, recording?.blob, setPhaseImmediate]);
+  }, [audioSource, clearTransportFadeTimer, ensurePlaybackAudioGraph, recording?.blob, setPhaseImmediate]);
 
   const togglePlayback = useCallback(() => {
     if (phaseRef.current === "playing") {
@@ -1689,7 +1694,9 @@ export default function useBackingLoop(ownerMode = "") {
       playlistAutoplayRef.current = false;
       playlistPlaybackRef.current = { itemId: "", playlistId: "" };
       setPlaylistPlaybackActive(false);
+      return;
     }
+    setPlaylistAutoplayRequest((currentRequest) => currentRequest + 1);
   }, [dialog, loadRecording, selectedPlaylistItemId]);
 
   const playSelectedQueueItems = useCallback(() => {
@@ -1729,11 +1736,13 @@ export default function useBackingLoop(ownerMode = "") {
   }, [playPlaylistItem, selectedSavedItemIds]);
 
   useEffect(() => {
-    if (!playlistAutoplayRef.current || !audioUrl || recording?.id !== playlistPlaybackRef.current.itemId) return undefined;
+    if (!playlistAutoplayRef.current
+      || !isBackingPlaybackSourceReady(audioSource, recording)
+      || recording?.id !== playlistPlaybackRef.current.itemId) return undefined;
     playlistAutoplayRef.current = false;
     const frameId = window.requestAnimationFrame(() => playRecording());
     return () => window.cancelAnimationFrame(frameId);
-  }, [audioUrl, playRecording, recording?.id]);
+  }, [audioSource, playRecording, playlistAutoplayRequest, recording?.id]);
 
   const togglePlaylistPlayback = useCallback(() => {
     if (phaseRef.current === "playing" && playlistPlaybackActive) {
@@ -1932,11 +1941,12 @@ export default function useBackingLoop(ownerMode = "") {
     };
     playlistAutoplayRef.current = true;
     if (activePlaybackList.id === currentState.currentQueue.id) setSelectedPlaylistItemId(nextItemId);
-    await loadRecording(nextItemId, {
+    const loaded = await loadRecording(nextItemId, {
       fromPlaylist: true,
       keepLibraryOpen: dialog === "load",
       notice: `“${activePlaybackList.title}” 다음 백킹 준비`,
     });
+    if (loaded) setPlaylistAutoplayRequest((currentRequest) => currentRequest + 1);
   }, [dialog, loadRecording, setPhaseImmediate]);
 
   const handleLoadedMetadata = useCallback(() => {

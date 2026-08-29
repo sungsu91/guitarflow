@@ -3,6 +3,7 @@ import { LAVA_CANYON_MAP_SKIN } from "./skins/lavaCanyon.js";
 import { PARK_MAP_SKIN } from "./skins/park.js";
 import { PSEUDO3D_TEST_MAP_SKIN } from "./skins/pseudo3dTest.js";
 import { RIVER_MAP_SKIN } from "./skins/river.js";
+import { THREE_D_LAB_MAP_SKIN } from "./skins/threeDLab.js";
 
 export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
   RIVER_MAP_SKIN,
@@ -13,6 +14,7 @@ export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
 
 export const DEVELOPER_SHOOTER_MAP_SKINS = Object.freeze([
   PSEUDO3D_TEST_MAP_SKIN,
+  THREE_D_LAB_MAP_SKIN,
 ]);
 
 export function getNextShooterMapId(currentMapId) {
@@ -25,12 +27,28 @@ export function getNextShooterMapId(currentMapId) {
   return LAYERED_SHOOTER_MAP_SKINS[nextIndex].id;
 }
 
+export function getRandomShooterMapId(currentMapId, randomValue = Math.random()) {
+  if (LAYERED_SHOOTER_MAP_SKINS.length === 0) return currentMapId;
+
+  const candidates = LAYERED_SHOOTER_MAP_SKINS.length > 1
+    ? LAYERED_SHOOTER_MAP_SKINS.filter((map) => map.id !== currentMapId)
+    : LAYERED_SHOOTER_MAP_SKINS;
+  const normalizedRandom = Number.isFinite(randomValue)
+    ? Math.min(0.999999, Math.max(0, randomValue))
+    : 0;
+  return candidates[Math.floor(normalizedRandom * candidates.length)].id;
+}
+
 export function isLayeredShooterMap(map) {
   return map?.kind === "layered";
 }
 
 export function isPseudo3DShooterMap(map) {
   return map?.renderer === "pseudo3d";
+}
+
+export function isThreeDLabShooterMap(map) {
+  return map?.renderer === "perspective3d";
 }
 
 export function isEditableShooterMap(map) {

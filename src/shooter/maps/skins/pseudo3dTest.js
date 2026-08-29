@@ -16,7 +16,7 @@ export const PSEUDO3D_TEST_MAP_SKIN = Object.freeze({
   kind: "pseudo3d",
   renderer: "pseudo3d",
   devOnly: true,
-  label: "DEV MODE7",
+  label: "MODE7 LAB",
   description: "개발자 전용 Pseudo 3D 원근·Ground 테스트",
   referenceViewport: Object.freeze({
     width: 390,
@@ -30,4 +30,3 @@ export const PSEUDO3D_TEST_MAP_SKIN = Object.freeze({
     mobileGameplay: Object.freeze({ mode: "canvas-lite" }),
   }),
 });
-

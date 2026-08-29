@@ -1,4 +1,5 @@
 export function collectShooterEntryImageSources({
+  cabinetAssetSources = [],
   effectLayers = [],
   emblemAssetSrc = "",
   enemyAssetSources = [],
@@ -12,6 +13,7 @@ export function collectShooterEntryImageSources({
   return [...new Set([
     guitarAssetSrc,
     guitarProjectileAssetSrc,
+    ...cabinetAssetSources,
     pickAssetSrc,
     mapBackgroundSrc,
     mapPreviewSrc,

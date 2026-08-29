@@ -5,6 +5,7 @@ import "./style.css";
 import "./components/brand-header.css";
 import "./components/backing-loop.css";
 import "./polish.css";
+import "./components/menu-status-badge.css";
 import "./shooter/maps/map-skins.css";
 import "./shooter/maps/editor/map-editor.css";
 import "./shooter/pseudo3d/pseudo3d.css";

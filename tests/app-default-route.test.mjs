@@ -17,7 +17,12 @@ test("app launch and shooter use the requested operational defaults", async () =
   );
   assert.match(appSource, /const DEFAULT_SHOOTER_MAP_ID = "river-garden";/);
   assert.match(appSource, /const SHOOTER_MAP_STORAGE_KEY = "rifflabShooterMapV2";/);
-  assert.match(appSource, /localStorage\.setItem\(SHOOTER_MAP_STORAGE_KEY, nextMap\.id\)/);
+  assert.match(appSource, /const SHOOTER_MAP_PREFERENCE_STORAGE_KEY = "rifflabShooterMapPreferenceV3";/);
+  assert.match(appSource, /label: "RANDOM"/);
+  assert.match(appSource, /setShooterMapPreference\(nextMap\.id\)/);
+  assert.match(appSource, /localStorage\.setItem\(SHOOTER_MAP_PREFERENCE_STORAGE_KEY, nextMap\.id\)/);
+  assert.match(appSource, /if \(shooterMapPreference !== SHOOTER_RANDOM_MAP_ID\)/);
+  assert.match(appSource, /if \(appModeRef\.current !== APP_MODES\.SHOOTER\) applyShooterEntryMap\(\)/);
 });
 
 test("shooter exposes only the current layered maps and no emblem catalog", async () => {

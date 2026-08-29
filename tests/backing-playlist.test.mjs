@@ -259,7 +259,9 @@ test("Backing Loop UI uses Playlist as the single queue, import, and saved-list 
   assert.match(playerCss, /\.backingLoopPlaylistDialog \.backingLoopDialogHeading strong[\s\S]*?font-size: 17px;[\s\S]*?letter-spacing: 1\.4px;/);
   assert.match(playerCss, /\.backingLoopPlaylistNavigation button:first-child\.selected[\s\S]*?rgba\(249, 219, 222, 0\.98\)/);
   assert.match(playerCss, /\.backingLoopPlaylistNavigation button:not\(:first-child\)\.selected[\s\S]*?rgba\(251, 226, 166, 0\.98\)/);
-  assert.match(componentSource, /\.backingLoopPanel--mobile \.backingLoopMiniPlayer/);
+  assert.match(componentSource, /playlistAnchorRef\.current\?\.querySelector\("\.backingLoopMiniPlayer"\)/);
+  assert.doesNotMatch(componentSource, /document\.querySelector\("\.backingLoopPanel--mobile \.backingLoopMiniPlayer"\)/);
+  assert.match(componentSource, /ref=\{panelRef\}/);
   assert.match(componentSource, /playlistDrawerOpen[\s\S]*?ChevronDown[\s\S]*?ChevronUp/);
   assert.doesNotMatch(componentSource, /ChevronLeft|ChevronRight/);
   assert.doesNotMatch(componentSource, /backingLoopPlaylistModes/);

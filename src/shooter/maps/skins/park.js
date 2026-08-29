@@ -9,6 +9,7 @@ export const PARK_MAP_SKIN = Object.freeze({
   label: "PARK",
   description: "햇살이 드는 잔디 공원을 중심으로 꾸미는 모듈형 공원 맵",
   previewImage: PARK_BACKGROUND_SRC,
+  pickerPreviewImage: "/assets/maps/previews/park-current.jpg",
   performance: Object.freeze({
     mobileGameplay: Object.freeze({
       mode: "full",

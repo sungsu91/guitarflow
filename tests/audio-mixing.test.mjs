@@ -154,12 +154,13 @@ test("recording analysis preserves the original encoded blob until the user trim
 });
 
 test("mobile and desktop Backing Loop layouts place one mini player above recording controls", async () => {
-  const [componentSource, appSource, engineSource] = await Promise.all([
+  const [componentSource, appSource, engineSource, polishCss] = await Promise.all([
     readFile(new URL("../src/components/BackingLoop.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/App.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/audio/fretboardPreviewEngine.js", import.meta.url), "utf8"),
+    readFile(new URL("../src/polish.css", import.meta.url), "utf8"),
   ]);
-  const mobile = componentSource.slice(componentSource.indexOf("function MobileBackingLoop({ controller })"), componentSource.indexOf("function DesktopBackingLoop({ controller })"));
+  const mobile = componentSource.slice(componentSource.indexOf("function MobileBackingLoop({ controller, panelRef })"), componentSource.indexOf("function DesktopBackingLoop({ controller })"));
   const desktop = componentSource.slice(componentSource.indexOf("function DesktopBackingLoop({ controller })"), componentSource.indexOf("export default function BackingLoop"));
   assert.ok(mobile.indexOf("MobileBackingLoopPlayer") < mobile.indexOf("BackingLoopMainControls"));
   assert.ok(desktop.indexOf("DesktopBackingLoopPlayer") < desktop.indexOf("BackingLoopMainControls"));
@@ -171,6 +172,8 @@ test("mobile and desktop Backing Loop layouts place one mini player above record
   assert.doesNotMatch(mobile, />LOAD</);
   assert.doesNotMatch(mobile, />IMPORT</);
   assert.doesNotMatch(componentSource, /backingLoopScrew/);
+  assert.match(polishCss, /\.backingLoopTrackBadge \{[\s\S]*?display: grid;[\s\S]*?place-items: center;[\s\S]*?line-height: 0;/);
+  assert.match(polishCss, /\.backingLoopTrackBadge > svg \{[\s\S]*?display: block;[\s\S]*?margin: 0;/);
   assert.match(appSource, /getAudioBusInput\(AUDIO_BUS_IDS\.SFX, audio\)/);
   assert.match(appSource, /groupLimit = \{ gameover: 1, hit: 6, "mimic-hit": 5, miss: 2, spawn: 3 \}/);
   assert.match(engineSource, /AUDIO_BUS_IDS\.INSTRUMENT/);

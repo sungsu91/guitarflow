@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, ChevronUp, ListMusic, Mic, Music2, Pause, Play, Plus, Repeat2, RotateCcw, Save, Scissors, Shuffle, SkipBack, SkipForward, Square, Trash2, Volume2, VolumeX, X } from "lucide-react";
+import { AudioLines, ChevronDown, ChevronUp, ListMusic, Mic, Music2, Pause, Play, Plus, Repeat2, RotateCcw, Save, Scissors, Shuffle, SkipBack, SkipForward, Square, Trash2, Volume2, VolumeX, X } from "lucide-react";
 import { BACKING_AUDIO_SOURCE_TYPES } from "../backing-loop/backingAudioSource";
 import { formatBackingLoopTime } from "../backing-loop/backingLoopUtils";
 import useBackingLoop from "../backing-loop/useBackingLoop";
@@ -234,7 +234,7 @@ function BackingLoopTrackInfo({ controller, mobile = false }) {
   return (
     <div className="backingLoopTrackInfo">
       <span aria-hidden="true" className="backingLoopTrackBadge">
-        <Music2 size={mobile ? 15 : 17} />
+        <AudioLines size={mobile ? 15 : 17} />
       </span>
       <span className="backingLoopTrackText">
         <strong title={trackTitle}>{trackTitle}</strong>
@@ -906,7 +906,7 @@ function DeleteBackingPlaylistItemsDialog({ controller }) {
   );
 }
 
-function BackingLoopDialogLayer({ controller }) {
+function BackingLoopDialogLayer({ controller, playlistAnchorRef }) {
   const dialogRef = useRef(null);
   const previousFocusRef = useRef(null);
   const [playlistAnchorStyle, setPlaylistAnchorStyle] = useState(null);
@@ -958,7 +958,7 @@ function BackingLoopDialogLayer({ controller }) {
         setPlaylistAnchorStyle(null);
         return;
       }
-      const player = document.querySelector(".backingLoopPanel--mobile .backingLoopMiniPlayer");
+      const player = playlistAnchorRef.current?.querySelector(".backingLoopMiniPlayer");
       if (!player) {
         setPlaylistAnchorStyle(null);
         return;
@@ -989,7 +989,7 @@ function BackingLoopDialogLayer({ controller }) {
       window.visualViewport?.removeEventListener("resize", updatePlaylistAnchor);
       window.visualViewport?.removeEventListener("scroll", updatePlaylistAnchor);
     };
-  }, [controller.playlistDrawerOpen]);
+  }, [controller.playlistDrawerOpen, playlistAnchorRef]);
 
   if (!controller.dialog || typeof document === "undefined") return null;
   return createPortal(
@@ -997,12 +997,12 @@ function BackingLoopDialogLayer({ controller }) {
       aria-hidden="false"
       className={`backingLoopDialogLayer storageModalLayer ${controller.dialog === "clear-recording" ? "backingLoopDialogLayer--centered" : ""} ${controller.playlistDrawerOpen ? "backingLoopDialogLayer--playlistDrawer" : ""}`}
       onPointerDown={(event) => {
-        if (event.target === event.currentTarget) controller.closeDialog();
+        if (!controller.playlistDrawerOpen && event.target === event.currentTarget) controller.closeDialog();
       }}
       role="presentation"
       style={playlistAnchorStyle || undefined}
     >
-      <div aria-modal="true" ref={dialogRef} role="dialog" tabIndex="-1">
+      <div aria-modal={controller.playlistDrawerOpen ? "false" : "true"} ref={dialogRef} role="dialog" tabIndex="-1">
         {controller.dialog === "trim" ? <TrimBackingLoopDialog controller={controller} /> : null}
         {controller.dialog === "clear-recording" ? <ClearRecordingDialog controller={controller} /> : null}
         {controller.dialog === "save" ? <SaveBackingLoopDialog controller={controller} /> : null}
@@ -1016,12 +1016,13 @@ function BackingLoopDialogLayer({ controller }) {
   );
 }
 
-function MobileBackingLoop({ controller }) {
+function MobileBackingLoop({ controller, panelRef }) {
   return (
     <section
       aria-label="Backing Loop 기타 녹음 및 반복 재생"
       className={`backingLoopPanel backingLoopPanel--mobile backingLoopPanel--${controller.phase}`}
       data-backing-loop-phase={controller.phase}
+      ref={panelRef}
       title={controller.notice}
     >
       <MobileBackingLoopHardware />
@@ -1051,9 +1052,10 @@ function DesktopBackingLoop({ controller }) {
 
 export default function BackingLoop({ mobile = false, ownerMode = "" }) {
   const controller = useBackingLoop(ownerMode);
+  const mobilePanelRef = useRef(null);
   return (
     <>
-      {mobile ? <MobileBackingLoop controller={controller} /> : <DesktopBackingLoop controller={controller} />}
+      {mobile ? <MobileBackingLoop controller={controller} panelRef={mobilePanelRef} /> : <DesktopBackingLoop controller={controller} />}
       <audio
         className="backingLoopAudio"
         onEnded={controller.handlePlaybackEnded}
@@ -1079,7 +1081,7 @@ export default function BackingLoop({ mobile = false, ownerMode = "" }) {
         tabIndex="-1"
         type="file"
       />
-      <BackingLoopDialogLayer controller={controller} />
+      <BackingLoopDialogLayer controller={controller} playlistAnchorRef={mobilePanelRef} />
     </>
   );
 }

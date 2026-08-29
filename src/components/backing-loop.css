@@ -937,12 +937,14 @@ html body main.app.app.app .backingLoopPanel .backingLoopPlayerModes
   padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
   background: rgba(44, 30, 27, 0.2);
   backdrop-filter: blur(2px);
+  pointer-events: none;
 }
 
 .backingLoopDialogLayer.backingLoopDialogLayer--playlistDrawer > [role="dialog"] {
   width: min(100%, 378px);
   max-height: calc(100dvh - 28px);
   animation: backingLoopPlaylistDrawerIn 180ms cubic-bezier(0.22, 0.8, 0.26, 1) both;
+  pointer-events: auto;
 }
 
 .backingLoopDialogLayer--playlistDrawer .backingLoopPlaylistDialog {

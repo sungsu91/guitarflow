@@ -9,6 +9,7 @@ export const COASTAL_COVE_MAP_SKIN = Object.freeze({
   label: "COAST",
   description: "맑은 얕은 바다와 모래사장을 중심으로 조립하는 모듈형 해안 맵",
   previewImage: COASTAL_COVE_BACKGROUND_SRC,
+  pickerPreviewImage: "/assets/maps/previews/coastal-cove-current.jpg",
   performance: Object.freeze({
     mobileGameplay: Object.freeze({
       mode: "full",

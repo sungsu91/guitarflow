@@ -2,11 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-test("Audio Studio is a developer-only route and menu entry", async () => {
+test("Audio Studio is a public route and keeps its DEV maturity badge", async () => {
   const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
   assert.match(appSource, /AUDIO_STUDIO:\s*"audio-studio"/);
   assert.match(appSource, /AUDIO_STUDIO:\s*"#audio-studio"/);
-  assert.match(appSource, /function isAudioStudioEnabled\(\)\s*\{\s*return import\.meta\.env\.DEV;/s);
+  assert.match(appSource, /function isAudioStudioEnabled\(\)\s*\{\s*return true;/s);
   assert.match(appSource, /case APP_ROUTES\.AUDIO_STUDIO:[\s\S]*?isAudioStudioEnabled\(\)/);
   assert.match(appSource, /\{audioStudioEnabled \? \([\s\S]*?audioStudioMenuItem[\s\S]*?DEV[\s\S]*?MIX &amp; AUDIO LIBRARY/);
   assert.match(appSource, /<AudioStudio active=\{appMode === APP_MODES\.AUDIO_STUDIO\} mobile=\{isMobileLayout\} \/>/);

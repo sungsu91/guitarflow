@@ -10,6 +10,7 @@ export const LAVA_CANYON_MAP_SKIN = Object.freeze({
   label: "LAVA",
   description: "넓은 용암 통로를 중심으로 조립하는 모듈형 협곡 맵",
   previewImage: LAVA_CANYON_BACKGROUND_SRC,
+  pickerPreviewImage: "/assets/maps/previews/lava-canyon-current.jpg",
   performance: Object.freeze({
     mobileGameplay: Object.freeze({
       mode: "reduced",

@@ -42,6 +42,38 @@ export function SharedAccompanimentPanel({
   parts = [],
 }) {
   const [expanded, setExpanded] = useState(Boolean(defaultExpanded));
+  const [beatValueOverrides, setBeatValueOverrides] = useState({});
+  const [enabledOverrides, setEnabledOverrides] = useState({});
+  const beatValueKey = parts.map((part) => `${part.id}:${part.beatValue}`).join("|");
+  const enabledKey = parts.map((part) => `${part.id}:${part.enabled ? 1 : 0}`).join("|");
+
+  useEffect(() => {
+    setBeatValueOverrides((current) => {
+      const next = { ...current };
+      let changed = false;
+      parts.forEach((part) => {
+        if (Object.prototype.hasOwnProperty.call(next, part.id) && next[part.id] === part.beatValue) {
+          delete next[part.id];
+          changed = true;
+        }
+      });
+      return changed ? next : current;
+    });
+  }, [beatValueKey]);
+
+  useEffect(() => {
+    setEnabledOverrides((current) => {
+      const next = { ...current };
+      let changed = false;
+      parts.forEach((part) => {
+        if (Object.prototype.hasOwnProperty.call(next, part.id) && next[part.id] === part.enabled) {
+          delete next[part.id];
+          changed = true;
+        }
+      });
+      return changed ? next : current;
+    });
+  }, [enabledKey]);
 
   return (
     <details
@@ -52,62 +84,80 @@ export function SharedAccompanimentPanel({
       <summary>
         <span>반주 사운드</span>
         <b>드럼 · 베이스 · 피아노</b>
-      </summary>
-      <div className="miniChordRhythmSettingsBar sharedAccompanimentSettingsBar">
         <button
           aria-haspopup="dialog"
+          className="sharedAccompanimentSettingsButton"
           disabled={disabled}
-          onClick={onOpenSettings}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onOpenSettings();
+          }}
           type="button"
         >
           <Settings aria-hidden="true" size={13} />
           리듬 사용자 설정
         </button>
-      </div>
+      </summary>
       <div className="miniChordBackingRows sharedAccompanimentRows">
-        {parts.map((part) => (
-          <section
-            aria-label={`${part.label} 반주 설정`}
-            className={`miniChordBackingRow miniChordBackingRow--${part.id}`}
-            key={part.id}
-          >
-            <div className="miniChordBackingControlLine">
-              <div className="miniChordPartMeter">
-                <strong>{part.label}</strong>
-              </div>
-              <SharedAccompanimentVolumeSlider
-                onVolumeCommit={onVolumeCommit}
-                onVolumeInput={onVolumeInput}
-                part={part}
-              />
-              <button
-                aria-label={`${part.label} ${part.enabled ? "끄기" : "켜기"}`}
-                aria-pressed={part.enabled}
-                className={`miniChordPowerToggle ${part.enabled ? "is-on" : "is-off"}`}
-                onClick={() => onTogglePart(part.id)}
-                type="button"
-              >
-                {part.enabled
-                  ? <Volume2 aria-hidden="true" size={14} />
-                  : <VolumeX aria-hidden="true" size={14} />}
-              </button>
-            </div>
-            <div className="miniChordBeatOptions" role="group" aria-label={`${part.label} 비트 선택`}>
-              {part.options.map((option) => (
+        {parts.map((part) => {
+          const beatValue = Object.prototype.hasOwnProperty.call(beatValueOverrides, part.id)
+            ? beatValueOverrides[part.id]
+            : part.beatValue;
+          const enabled = Object.prototype.hasOwnProperty.call(enabledOverrides, part.id)
+            ? enabledOverrides[part.id]
+            : part.enabled;
+          return (
+            <section
+              aria-label={`${part.label} 반주 설정`}
+              className={`miniChordBackingRow miniChordBackingRow--${part.id}`}
+              key={part.id}
+            >
+              <div className="miniChordBackingControlLine">
+                <div className="miniChordPartMeter">
+                  <strong>{part.label}</strong>
+                </div>
+                <SharedAccompanimentVolumeSlider
+                  onVolumeCommit={onVolumeCommit}
+                  onVolumeInput={onVolumeInput}
+                  part={part}
+                />
                 <button
-                  aria-pressed={part.beatValue === option.id}
-                  className={part.beatValue === option.id ? "selected" : ""}
-                  disabled={disabled}
-                  key={option.id}
-                  onClick={() => part.onBeatChange(option.id)}
+                  aria-label={`${part.label} ${enabled ? "끄기" : "켜기"}`}
+                  aria-pressed={enabled}
+                  className={`miniChordPowerToggle ${enabled ? "is-on" : "is-off"}`}
+                  onClick={() => {
+                    setEnabledOverrides((current) => ({ ...current, [part.id]: !enabled }));
+                    onTogglePart(part.id);
+                  }}
                   type="button"
                 >
-                  {option.compactLabel ?? option.label}
+                  {enabled
+                    ? <Volume2 aria-hidden="true" size={14} />
+                    : <VolumeX aria-hidden="true" size={14} />}
                 </button>
-              ))}
-            </div>
-          </section>
-        ))}
+              </div>
+              <div className="miniChordBeatOptions" role="group" aria-label={`${part.label} 비트 선택`}>
+                {part.options.map((option) => (
+                  <button
+                    aria-pressed={beatValue === option.id}
+                    className={beatValue === option.id ? "selected" : ""}
+                    disabled={disabled}
+                    key={option.id}
+                    onClick={() => {
+                      if (beatValue === option.id) return;
+                      setBeatValueOverrides((current) => ({ ...current, [part.id]: option.id }));
+                      part.onBeatChange(option.id);
+                    }}
+                    type="button"
+                  >
+                    {option.compactLabel ?? option.label}
+                  </button>
+                ))}
+              </div>
+            </section>
+          );
+        })}
       </div>
     </details>
   );

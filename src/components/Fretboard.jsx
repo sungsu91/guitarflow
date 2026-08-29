@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import {
   LICK_TECHNIQUES,
   buildLickTechniqueRelations,
@@ -10,9 +10,7 @@ import {
   isLickRestStep,
   normalizeLickTechnique,
 } from "../music/lickTechniques";
-
-const CHROMATIC_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-const NOTE_INDEX = Object.fromEntries(CHROMATIC_NOTES.map((note, index) => [note, index]));
+import { CHROMATIC_NOTES, NOTE_INDEX } from "../music/noteNotation.js";
 
 const STANDARD_TUNING = [
   { stringNumber: 1, pitch: "E4" },
@@ -168,6 +166,7 @@ function getTabStepDisplay(step) {
 function Fretboard({
   barres = [],
   className = "",
+  editable = false,
   fretRange = [0, 12],
   mode = "notes",
   notes,
@@ -180,8 +179,11 @@ function Fretboard({
   stringStates = {},
   tabSteps = [],
   notation = "notes",
+  onEmptyPositionPress,
+  onNoteDelete,
   onNotePress,
 }) {
+  const [deleteTargetKey, setDeleteTargetKey] = useState("");
   const [startFret, endFret] = normalizeFretRange(fretRange);
   const visualStartFret = Math.max(1, startFret);
   const visualEndFret = Math.max(visualStartFret, endFret);
@@ -195,8 +197,10 @@ function Fretboard({
   const visibleNoteIds = new Set();
   const selected = new Set(selectedNotes);
   const openNotesByString = new Map();
+  const occupiedPositions = editable ? new Set() : null;
 
   renderNotes.forEach((note) => {
+    occupiedPositions?.add(`${Number(note.stringNumber)}-${Number(note.fretNumber)}`);
     if (Number(note.fretNumber) !== 0) return;
     if (openNotesByString.has(note.stringNumber)) return;
     openNotesByString.set(note.stringNumber, note);
@@ -206,6 +210,37 @@ function Fretboard({
     return (fretNumber - visualStartFret + 0.5) / Math.max(1, fretNumbers.length);
   };
   const getTabXRatio = (tabIndex) => (Number(tabIndex) + 0.5) / tabSlotCount;
+  const getEditablePosition = (stringInfo, fretNumber) => {
+    const openMidi = pitchToMidi(stringInfo.pitch);
+    const pitch = midiToPitch(openMidi + Number(fretNumber));
+    return {
+      id: `editable-s${stringInfo.stringNumber}-f${fretNumber}`,
+      stringNumber: stringInfo.stringNumber,
+      fretNumber: Number(fretNumber),
+      pitch,
+      octaveNote: pitch,
+      noteName: getPitchClass(pitch),
+    };
+  };
+  const getEditablePositionKey = (note) => `${Number(note?.stringNumber)}-${Number(note?.fretNumber)}`;
+  const openDeleteMenu = (event, note) => {
+    if (!editable || !note) return;
+    event.stopPropagation();
+    setDeleteTargetKey(getEditablePositionKey(note));
+  };
+  const addEditableNote = (event, note) => {
+    if (!editable || !onEmptyPositionPress || !note) return;
+    event.stopPropagation();
+    setDeleteTargetKey("");
+    onEmptyPositionPress(note);
+  };
+  const deleteEditableNote = (event, note) => {
+    if (!editable || !onNoteDelete || !note) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setDeleteTargetKey("");
+    onNoteDelete(note);
+  };
   const activateNote = (event, note) => {
     if (!onNotePress || !note) return;
     event.stopPropagation();
@@ -213,14 +248,26 @@ function Fretboard({
     onNotePress(note);
   };
   const handleNoteKeyDown = (event, note) => {
-    if (!onNotePress || !note || !["Enter", " "].includes(event.key)) return;
+    if ((!onNotePress && !editable) || !note || !["Enter", " "].includes(event.key)) return;
     event.preventDefault();
-    activateNote(event, note);
+    if (editable) openDeleteMenu(event, note);
+    else activateNote(event, note);
   };
+
+  useEffect(() => {
+    if (!editable || !deleteTargetKey || typeof document === "undefined") return undefined;
+    const closeDeleteMenu = (event) => {
+      if (event.target?.closest?.(`[data-fretboard-delete-target="${deleteTargetKey}"]`)) return;
+      setDeleteTargetKey("");
+    };
+    document.addEventListener("pointerdown", closeDeleteMenu);
+    return () => document.removeEventListener("pointerdown", closeDeleteMenu);
+  }, [deleteTargetKey, editable]);
 
   return (
     <div
-      className={`fretboardComponent fretboardComponent--${mode} ${isTabMode ? "fretboardComponent--tab" : ""} ${className}`}
+      className={`fretboardComponent fretboardComponent--${mode} ${isTabMode ? "fretboardComponent--tab" : ""} ${editable ? "fretboardComponent--editable" : ""} ${className}`}
+      onClick={editable ? () => setDeleteTargetKey("") : undefined}
       style={{
         "--fret-count": isTabMode ? tabSlotCount : Math.max(1, visualEndFret - visualStartFret + 1),
         "--fret-slot-count": isTabMode ? tabSlotCount : fretNumbers.length,
@@ -248,6 +295,7 @@ function Fretboard({
             const stringState = stringStates[stringInfo.stringNumber];
             const openNote = openNotesByString.get(stringInfo.stringNumber);
             const openLabel = openNote?.label ?? openNote?.noteName ?? getPitchClass(openNote?.pitch);
+            const openAccessiblePitch = openNote?.displayPitch ?? openNote?.pitch ?? openLabel;
             const isOpenCurrent = Boolean(openNote?.isCurrent || openNote?.current || openNote?.isActive);
             const isOpenSelected = Boolean(openNote && (selected.size === 0 || selected.has(openNote.noteName)));
             return (
@@ -258,24 +306,42 @@ function Fretboard({
                   </span>
                 )}
                 <i />
-                {stringState ? (
+                {stringState && !(editable && !isTabMode) ? (
                   <em className={`fretboardStringState ${stringState}`}>
                     {String(stringState).toUpperCase()}
                   </em>
                 ) : !isTabMode && openNote ? (
                   <em
-                    aria-label={onNotePress ? `${openNote.pitch ?? openLabel}, ${stringInfo.stringNumber}번줄 개방현 소리 듣기` : undefined}
-                    className={`fretboardStringState noteOpen ${openNote.noteName === rootNote || openNote.isRoot ? "root" : ""} ${openNote.isActive ? "active" : ""} ${isOpenCurrent ? "current-note" : ""} ${isOpenSelected ? "selected" : ""} ${onNotePress ? "is-interactive" : ""}`}
+                    aria-label={editable ? `${openAccessiblePitch}, ${stringInfo.stringNumber}번줄 개방현 삭제 메뉴 열기` : onNotePress ? `${openAccessiblePitch}, ${stringInfo.stringNumber}번줄 개방현 소리 듣기` : undefined}
+                    className={`fretboardStringState noteOpen ${openNote.noteName === rootNote || openNote.isRoot ? "root" : ""} ${openNote.isActive ? "active" : ""} ${isOpenCurrent ? "current-note" : ""} ${isOpenSelected ? "selected" : ""} ${onNotePress || editable ? "is-interactive" : ""} ${deleteTargetKey === getEditablePositionKey(openNote) ? "delete-menu-open" : ""}`}
+                    data-fretboard-delete-target={editable ? getEditablePositionKey(openNote) : undefined}
                     data-fret-number="0"
                     data-note-pitch={openNote.pitch}
                     data-string-number={stringInfo.stringNumber}
-                    onClick={onNotePress ? (event) => activateNote(event, openNote) : undefined}
-                    onKeyDown={onNotePress ? (event) => handleNoteKeyDown(event, openNote) : undefined}
-                    role={onNotePress ? "button" : undefined}
-                    tabIndex={onNotePress ? 0 : undefined}
+                    onClick={editable ? (event) => openDeleteMenu(event, openNote) : onNotePress ? (event) => activateNote(event, openNote) : undefined}
+                    onKeyDown={onNotePress || editable ? (event) => handleNoteKeyDown(event, openNote) : undefined}
+                    role={onNotePress || editable ? "button" : undefined}
+                    tabIndex={onNotePress || editable ? 0 : undefined}
                   >
                     {openLabel}
+                    {editable && deleteTargetKey === getEditablePositionKey(openNote) ? (
+                      <button
+                        aria-label={`${openAccessiblePitch}, ${stringInfo.stringNumber}번줄 개방현 삭제`}
+                        className="fretboardNoteDeleteButton fretboardNoteDeleteButton--open"
+                        onClick={(event) => deleteEditableNote(event, openNote)}
+                        type="button"
+                      >
+                        ×
+                      </button>
+                    ) : null}
                   </em>
+                ) : editable && !isTabMode && !openNote ? (
+                  <button
+                    aria-label={`${stringInfo.stringNumber}번줄 개방현 음 추가`}
+                    className="fretboardOpenEditTarget"
+                    onClick={(event) => addEditableNote(event, getEditablePosition(stringInfo, 0))}
+                    type="button"
+                  />
                 ) : null}
               </div>
             );
@@ -367,6 +433,26 @@ function Fretboard({
             </span>
           );
         })}
+        {editable && !isTabMode ? STANDARD_TUNING.flatMap((stringInfo) => fretNumbers.map((fretNumber) => {
+          const positionKey = `${stringInfo.stringNumber}-${fretNumber}`;
+          if (occupiedPositions.has(positionKey)) return null;
+          const position = getEditablePosition(stringInfo, fretNumber);
+          return (
+            <button
+              aria-label={`${position.pitch}, ${stringInfo.stringNumber}번줄 ${fretNumber}프렛 음 추가`}
+              className="fretboardEditCell"
+              data-fret-number={fretNumber}
+              data-string-number={stringInfo.stringNumber}
+              key={`editable-cell-${positionKey}`}
+              onClick={(event) => addEditableNote(event, position)}
+              style={{
+                "--fretboard-x-ratio": getXRatio(fretNumber),
+                "--fretboard-y-ratio": (stringInfo.stringNumber - 0.5) / 6,
+              }}
+              type="button"
+            />
+          );
+        })) : null}
         {!isTabMode && renderNotes.map((note, index) => {
           if (Number(note.fretNumber) <= 0) return null;
           if (note.fretNumber < visualStartFret || note.fretNumber > visualEndFret) return null;
@@ -378,26 +464,38 @@ function Fretboard({
           const isSelected = selected.size === 0 || selected.has(noteName);
           const isCurrent = Boolean(note.isCurrent || note.current || note.isActive);
           const displayLabel = showFingering && note.finger ? note.finger : note.label ?? noteName;
+          const accessiblePitch = note.displayPitch ?? note.pitch ?? noteName;
           return (
             <span
-              aria-label={onNotePress ? `${note.pitch ?? noteName}, ${note.stringNumber}번줄 ${note.fretNumber}프렛 소리 듣기` : undefined}
-              className={`fretboardNoteChip ${isRoot ? "root" : ""} ${note.isActive ? "active" : ""} ${isCurrent ? "current-note" : ""} ${isSelected ? "selected" : ""} ${onNotePress ? "is-interactive" : ""}`}
+              aria-label={editable ? `${accessiblePitch}, ${note.stringNumber}번줄 ${note.fretNumber}프렛 삭제 메뉴 열기` : onNotePress ? `${accessiblePitch}, ${note.stringNumber}번줄 ${note.fretNumber}프렛 소리 듣기` : undefined}
+              className={`fretboardNoteChip ${isRoot ? "root" : ""} ${note.isActive ? "active" : ""} ${isCurrent ? "current-note" : ""} ${isSelected ? "selected" : ""} ${onNotePress || editable ? "is-interactive" : ""} ${deleteTargetKey === getEditablePositionKey(note) ? "delete-menu-open" : ""}`}
+              data-fretboard-delete-target={editable ? getEditablePositionKey(note) : undefined}
               data-fret-number={note.fretNumber}
               data-note-pitch={note.pitch}
               data-string-number={note.stringNumber}
               key={noteId}
-              onClick={onNotePress ? (event) => activateNote(event, note) : undefined}
-              onKeyDown={onNotePress ? (event) => handleNoteKeyDown(event, note) : undefined}
-              role={onNotePress ? "button" : undefined}
+              onClick={editable ? (event) => openDeleteMenu(event, note) : onNotePress ? (event) => activateNote(event, note) : undefined}
+              onKeyDown={onNotePress || editable ? (event) => handleNoteKeyDown(event, note) : undefined}
+              role={onNotePress || editable ? "button" : undefined}
               style={{
                 "--fretboard-x-ratio": getXRatio(Number(note.fretNumber)),
                 "--fretboard-y-ratio": (Number(note.stringNumber) - 0.5) / 6,
                 ...getNoteStyle(noteName),
               }}
-              tabIndex={onNotePress ? 0 : undefined}
-              title={`${note.pitch ?? noteName} · ${note.stringNumber}번줄 ${note.fretNumber}프렛`}
+              tabIndex={onNotePress || editable ? 0 : undefined}
+              title={`${accessiblePitch} · ${note.stringNumber}번줄 ${note.fretNumber}프렛`}
             >
               <b>{displayLabel}</b>
+              {editable && deleteTargetKey === getEditablePositionKey(note) ? (
+                <button
+                  aria-label={`${accessiblePitch}, ${note.stringNumber}번줄 ${note.fretNumber}프렛 삭제`}
+                  className="fretboardNoteDeleteButton"
+                  onClick={(event) => deleteEditableNote(event, note)}
+                  type="button"
+                >
+                  ×
+                </button>
+              ) : null}
             </span>
           );
         })}
