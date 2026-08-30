@@ -104,6 +104,21 @@ test("barres can be added and removed without mutating notes or the fret window"
   assert.deepEqual(removed.visibleFrets, [7, 13]);
 });
 
+test("barres support arbitrary frets and partial string ranges", () => {
+  const base = createChordFretboardSnapshot({
+    notes: [],
+    visibleFrets: [1, 5],
+  }, "F");
+  const stringsTwoToFour = addChordFretboardBarre(base, 2, 2, 4, "F");
+  const stringsThreeToFive = addChordFretboardBarre(stringsTwoToFour, 3, 5, 3, "F");
+
+  assert.deepEqual(stringsThreeToFive.barres, [
+    { fret: 2, fromString: 2, toString: 4, label: "1" },
+    { fret: 3, fromString: 3, toString: 5, label: "1" },
+  ]);
+  assert.deepEqual(stringsThreeToFive.visibleFrets, [1, 5]);
+});
+
 test("rhythm storage binds its local editor snapshot to save, load and playback", async () => {
   const [appSource, fretboardSource, editorSource] = await Promise.all([
     readFile(new URL("../src/App.jsx", import.meta.url), "utf8"),
@@ -126,6 +141,8 @@ test("rhythm storage binds its local editor snapshot to save, load and playback"
   assert.match(fretboardSource, /fretboardBarre--preview/);
   assert.match(fretboardSource, /setPointerCapture/);
   assert.match(fretboardSource, /BARRE_LONG_PRESS_MS/);
+  assert.match(fretboardSource, /stringNumber: getClosestStringNumber\(event\.clientY\)/);
+  assert.match(fretboardSource, /onPointerDown=\{editable \? \(event\) => beginBarreGesture\(event, \{/);
   assert.match(fretboardSource, /document\.removeEventListener\("pointerdown", closeDeleteMenu\)/);
   assert.ok(
     fretboardSource.lastIndexOf('className="fretboardBarreDeleteButton"')

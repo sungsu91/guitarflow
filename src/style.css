@@ -70610,6 +70610,12 @@ html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard
 html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard.fretboardComponent--editable
   .fretboardBarre--editable {
   z-index: 4 !important;
+  border-color: rgba(255, 255, 255, 0.62) !important;
+  background: rgba(45, 212, 191, 0.42) !important;
+  color: #e0f2fe !important;
+  box-shadow:
+    0 8px 18px rgba(45, 212, 191, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.26) !important;
   pointer-events: auto !important;
   cursor: pointer;
 }

@@ -273,6 +273,17 @@ function Fretboard({
     suppressedEditableClickRef.current = null;
     return true;
   };
+  const consumeSuppressedBarreClick = (event) => {
+    const suppression = suppressedEditableClickRef.current;
+    if (!suppression || suppression.until < Date.now()) {
+      suppressedEditableClickRef.current = null;
+      return false;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    suppressedEditableClickRef.current = null;
+    return true;
+  };
   const openDeleteMenu = (event, note) => {
     if (!editable || !note) return;
     if (consumeSuppressedEditableClick(event, note)) return;
@@ -298,6 +309,7 @@ function Fretboard({
   };
   const openBarreDeleteMenu = (event, barre) => {
     if (!editable || !onBarreDelete || !barre) return;
+    if (consumeSuppressedBarreClick(event)) return;
     event.stopPropagation();
     setDeleteTargetKey("");
     setBarreDeleteTargetKey(getBarreKey(barre));
@@ -550,7 +562,15 @@ function Fretboard({
               data-fretboard-barre-delete-target={editable ? barreKey : undefined}
               key={`barre-${fret}-${fromString}-${toString}-${index}`}
               onClick={editable ? (event) => openBarreDeleteMenu(event, barre) : undefined}
+              onContextMenu={editable ? preventEditableContextMenu : undefined}
               onKeyDown={editable ? (event) => handleBarreKeyDown(event, barre) : undefined}
+              onPointerCancel={editable ? (event) => finishBarreGesture(event, true) : undefined}
+              onPointerDown={editable ? (event) => beginBarreGesture(event, {
+                fretNumber: fret,
+                stringNumber: getClosestStringNumber(event.clientY),
+              }) : undefined}
+              onPointerMove={editable ? moveBarreGesture : undefined}
+              onPointerUp={editable ? finishBarreGesture : undefined}
               role={editable ? "button" : undefined}
               style={{
                 "--fretboard-x-ratio": getXRatio(fret),

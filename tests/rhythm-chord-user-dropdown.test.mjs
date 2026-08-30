@@ -88,6 +88,7 @@ test("rhythm storage uses a themed trigger-width dropdown instead of the native 
     /stage3ChordMiniReferenceFretboard \.fretboardNoteChip b \{[\s\S]*?font-size: 10px !important;/,
   );
   assert.match(appCss, /\.fretboardBarre--editable \{[\s\S]*?z-index: 4 !important;[\s\S]*?pointer-events: auto !important;/);
+  assert.match(appCss, /\.fretboardBarre--editable \{[\s\S]*?background: rgba\(45, 212, 191, 0\.42\) !important;[\s\S]*?color: #e0f2fe !important;/);
   assert.match(appCss, /button\.fretboardBarreDeleteButton \{[\s\S]*?width: 20px !important;[\s\S]*?height: 20px !important;/);
 });
 
