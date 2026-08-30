@@ -81,8 +81,14 @@ test("rhythm storage uses a themed trigger-width dropdown instead of the native 
   );
   assert.match(
     appCss,
-    /stage3ChordMiniReferenceFretboard\.fretboardComponent--editable button\.fretboardNoteDeleteButton \{[\s\S]*?width: 14px !important;[\s\S]*?height: 14px !important;[\s\S]*?font-size: 10px !important;/,
+    /stage3ChordMiniReferenceFretboard\.fretboardComponent--editable button\.fretboardNoteDeleteButton \{[\s\S]*?width: 20px !important;[\s\S]*?height: 20px !important;[\s\S]*?font-size: 13px !important;/,
   );
+  assert.match(
+    appCss,
+    /stage3ChordMiniReferenceFretboard \.fretboardNoteChip b \{[\s\S]*?font-size: 10px !important;/,
+  );
+  assert.match(appCss, /\.fretboardBarre--editable \{[\s\S]*?z-index: 4 !important;[\s\S]*?pointer-events: auto !important;/);
+  assert.match(appCss, /button\.fretboardBarreDeleteButton \{[\s\S]*?width: 20px !important;[\s\S]*?height: 20px !important;/);
 });
 
 test("rhythm chord saved-setting deletion remains persisted by shared quick-slot state", async () => {
@@ -151,6 +157,11 @@ test("LOAD chord builder follows fretboard options and selects a region with an 
   assert.match(appCss, /\.stage3StorageRoom \.stage3ChordBuilderPanel \.chordBuilderChipGrid/);
   assert.match(appCss, /\.stage3StorageDialog\.stage3StorageRoom \.stage3StorageChordBuilder \{[\s\S]*?background: transparent !important/);
   assert.match(appCss, /max-height: min\(calc\(100dvh - 12px\), 860px\) !important/);
+  assert.match(appCss, /height: min\(calc\(100dvh - 12px\), 860px\) !important/);
+  assert.match(
+    appCss,
+    /\.stage3StorageDialog \.stage3StorageComposer \{[\s\S]*?height: 100% !important;[\s\S]*?max-height: none !important;[\s\S]*?scroll-padding-bottom:/,
+  );
   assert.match(appCss, /\.stage3StorageRoom \.stage3ChordMiniReferenceFretboard\.fitRange/);
   assert.match(appCss, /--fretboard-label-left: 22px/);
   assert.match(

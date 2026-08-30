@@ -120,6 +120,7 @@ import {
   SHOOTER_GUITAR_CABINET_SKINS,
   getShooterGuitarCabinetAssetSources,
   getShooterGuitarCabinetSkinById,
+  toggleShooterGuitarCabinetSkinId,
 } from "./shooter/guitarCabinet";
 import {
   DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID,
@@ -186,6 +187,12 @@ import {
   MOBILE_LAYOUT_MEDIA_QUERY,
   getIsMobileLayout,
 } from "./layouts/mobileLayout.js";
+import {
+  getViewportProfile,
+  getViewportProfileClassName,
+  isLandscapePlayFocusMode,
+  shouldGuardShooterOrientation,
+} from "./layouts/viewportProfile.js";
 import {
   applyMiniChordEndingRangesToBarMarks,
   getMiniChordEndingRangeForBar,
@@ -6022,7 +6029,7 @@ function MetronomeControl({
             onClick={() => onOptionsCollapseChange(!optionsCollapsed)}
             type="button"
           >
-            {optionsCollapsed ? "펼치기" : "접기"}
+            {optionsCollapsed ? "펼침" : "접기"}
           </button>
         ) : null}
       </div>
@@ -12619,39 +12626,6 @@ function getInitialAppRoute() {
   return getRouteFromHash(window.location.hash);
 }
 
-function getDeviceSnapshot() {
-  if (typeof window === "undefined") {
-    return {
-      browser: "Unknown",
-      height: 0,
-      os: "Unknown",
-      width: 0,
-    };
-  }
-
-  const userAgent = window.navigator.userAgent || "";
-  const browser =
-    /Edg\//.test(userAgent) ? "Edge" :
-    /SamsungBrowser\//.test(userAgent) ? "Samsung Internet" :
-    /CriOS|Chrome\//.test(userAgent) ? "Chrome" :
-    /FxiOS|Firefox\//.test(userAgent) ? "Firefox" :
-    /Safari\//.test(userAgent) ? "Safari" :
-    "Unknown";
-  const os =
-    /Android/i.test(userAgent) ? "Android" :
-    /iPhone|iPad|iPod/i.test(userAgent) ? "iOS" :
-    /Windows/i.test(userAgent) ? "Windows" :
-    /Mac OS X/i.test(userAgent) ? "macOS" :
-    "Unknown";
-
-  return {
-    browser,
-    height: Math.round(window.innerHeight || 0),
-    os,
-    width: Math.round(window.innerWidth || 0),
-  };
-}
-
 const FRETBOARD_VIEWER_MODES = {
   NOTE: "note",
   SCALE: "scale",
@@ -14226,6 +14200,27 @@ const ShooterLaunchOverlay = memo(function ShooterLaunchOverlay({ onComplete, tr
     />
   );
 });
+
+const ShooterOrientationOverlay = memo(function ShooterOrientationOverlay() {
+  return (
+    <section
+      aria-label="슈팅게임 화면 방향 안내"
+      aria-live="assertive"
+      aria-modal="true"
+      className="shooterOrientationOverlay"
+      role="dialog"
+    >
+      <div className="shooterOrientationDevice" aria-hidden="true">
+        <Smartphone size={42} strokeWidth={1.7} />
+        <RotateCw size={25} strokeWidth={2} />
+      </div>
+      <strong>슈팅게임은 세로 화면 전용입니다</strong>
+      <p>휴대폰 또는 태블릿을 세로로 돌려주세요</p>
+      <small>현재 맵과 점수, 콤보, 음표 위치는 그대로 유지됩니다.</small>
+    </section>
+  );
+});
+
 const SHOOTER_RECORDS_STORAGE_KEY = "rifflabShooterRecords";
 const SHOOTER_GUITAR_PIVOT_PERCENT = { x: 50, y: 91.5 };
 const SHOOTER_GUITAR_AIM_LIMIT_DEG = 34;
@@ -14819,7 +14814,7 @@ function App({ onReady }) {
   const [guitarLabPurgedIds, setGuitarLabPurgedIds] = useState(getStoredGuitarLabPurgedIds);
   const [guitarLabSelectedDeleteIds, setGuitarLabSelectedDeleteIds] = useState([]);
   const [shooterGuitarPickerOpen, setShooterGuitarPickerOpen] = useState(false);
-  const [deviceInfo, setDeviceInfo] = useState(getDeviceSnapshot);
+  const [viewportProfile, setViewportProfile] = useState(getViewportProfile);
   const [gameState, setGameState] = useState(GAME_STATES.IDLE);
   const [micStatus, setMicStatus] = useState("No Signal");
   const [detected, setDetected] = useState(null);
@@ -14930,7 +14925,7 @@ function App({ onReady }) {
   const [stage3MetronomeSoundOn, setStage3MetronomeSoundOn] = useState(
     initialStage3SettingsRef.current.metronomeSoundOn,
   );
-  const [stage3MetronomeOptionsCollapsed, setStage3MetronomeOptionsCollapsed] = useState(false);
+  const [stage3MetronomeOptionsCollapsed, setStage3MetronomeOptionsCollapsed] = useState(true);
   const [metronomeCountIn, setMetronomeCountIn] = useState(false);
   const [metronomeCountInBars, setMetronomeCountInBars] = useState(0);
   const [metronomeCountInVoiceMode, setMetronomeCountInVoiceMode] = useState("female");
@@ -15057,6 +15052,7 @@ function App({ onReady }) {
   const [feelPlaybackIndex, setFeelPlaybackIndex] = useState(-1);
   const [feelPlaybackProgress, setFeelPlaybackProgress] = useState(0);
   const [isMobileLayout, setIsMobileLayout] = useState(getIsMobileLayout);
+  const shooterOrientationResumeRef = useRef(false);
   const shooterMobileViewportStyle = useShooterMobileViewport(
     appMode === APP_MODES.SHOOTER && isMobileLayout,
   );
@@ -15507,7 +15503,9 @@ function App({ onReady }) {
   }, [guitarLabPurgedIds]);
 
   const applyShooterGuitarCabinetSkin = useCallback((skinId) => {
-    const nextSkin = getShooterGuitarCabinetSkinById(skinId);
+    const nextSkin = getShooterGuitarCabinetSkinById(
+      toggleShooterGuitarCabinetSkinId(selectedShooterGuitarCabinetSkinId, skinId),
+    );
     setSelectedShooterGuitarCabinetSkinId(nextSkin.id);
     if (typeof window !== "undefined") {
       window.localStorage.setItem(SHOOTER_GUITAR_CABINET_STORAGE_KEY, nextSkin.id);
@@ -15515,7 +15513,7 @@ function App({ onReady }) {
     if (nextSkin.id !== DEFAULT_SHOOTER_GUITAR_CABINET_SKIN_ID) {
       void preloadShooterGuitarCabinetImages();
     }
-  }, []);
+  }, [selectedShooterGuitarCabinetSkinId]);
 
   const applyShooterPickSkin = useCallback((skinId) => {
     const nextSkin = getShooterPickSkinById(skinId);
@@ -20798,6 +20796,31 @@ function App({ onReady }) {
     setFeedback("Play");
   }, [ensureAudioReady, loadMetronomeSamples, setState, startBackingScheduler, warmCoreAudioEngine]);
 
+  const shooterOrientationGuardActive = shouldGuardShooterOrientation(appMode, viewportProfile);
+
+  useEffect(() => {
+    if (shooterOrientationGuardActive) {
+      if (gameStateRef.current === GAME_STATES.PLAYING) {
+        shooterOrientationResumeRef.current = true;
+        pauseGame();
+      } else {
+        shooterOrientationResumeRef.current = false;
+      }
+      return;
+    }
+
+    if (
+      shooterOrientationResumeRef.current
+      && appModeRef.current === APP_MODES.SHOOTER
+      && gameStateRef.current === GAME_STATES.PAUSED
+    ) {
+      shooterOrientationResumeRef.current = false;
+      void resumeGame();
+      return;
+    }
+    shooterOrientationResumeRef.current = false;
+  }, [pauseGame, resumeGame, shooterOrientationGuardActive]);
+
   const handleShooterArenaClick = useCallback((event) => {
     if (appModeRef.current !== APP_MODES.SHOOTER || gameStateRef.current !== GAME_STATES.PLAYING) return;
     if (event.target?.closest?.("button, input, select, textarea, a, .enemy, .guitarPlayer, .mobileShooterLives, .shooterCenterStatus, .shooterGameHud")) {
@@ -23322,23 +23345,29 @@ function App({ onReady }) {
     const mediaQuery = window.matchMedia(MOBILE_LAYOUT_MEDIA_QUERY);
     const updateMobileLayout = () => {
       const nextIsMobileLayout = getIsMobileLayout(window);
-      const nextDeviceInfo = getDeviceSnapshot();
+      const nextViewportProfile = getViewportProfile(window);
       isMobileLayoutRef.current = nextIsMobileLayout;
       setIsMobileLayout((current) => current === nextIsMobileLayout ? current : nextIsMobileLayout);
-      setDeviceInfo((current) => (
-        current.browser === nextDeviceInfo.browser &&
-        current.height === nextDeviceInfo.height &&
-        current.os === nextDeviceInfo.os &&
-        current.width === nextDeviceInfo.width
+      setViewportProfile((current) => (
+        current.height === nextViewportProfile.height &&
+        current.isLandscape === nextViewportProfile.isLandscape &&
+        current.isMobileSurface === nextViewportProfile.isMobileSurface &&
+        current.isShort === nextViewportProfile.isShort &&
+        current.size === nextViewportProfile.size &&
+        current.width === nextViewportProfile.width
           ? current
-          : nextDeviceInfo
+          : nextViewportProfile
       ));
     };
     updateMobileLayout();
     window.addEventListener("resize", updateMobileLayout);
+    window.addEventListener("orientationchange", updateMobileLayout);
+    window.visualViewport?.addEventListener?.("resize", updateMobileLayout);
     mediaQuery.addEventListener?.("change", updateMobileLayout);
     return () => {
       window.removeEventListener("resize", updateMobileLayout);
+      window.removeEventListener("orientationchange", updateMobileLayout);
+      window.visualViewport?.removeEventListener?.("resize", updateMobileLayout);
       mediaQuery.removeEventListener?.("change", updateMobileLayout);
     };
   }, []);
@@ -25785,17 +25814,21 @@ function App({ onReady }) {
     stage3BackingPrepareStatus !== "ready";
 
   const appInteractionLocked = Boolean(shooterLaunchTransition || themeTransition);
+  const appContentInteractionLocked = appInteractionLocked || shooterOrientationGuardActive;
+  const landscapePlayFocus = isLandscapePlayFocusMode(appMode, viewportProfile)
+    && (appMode !== APP_MODES.MINI_CHORD_MAKER || miniChordPlaybackActive);
+  const viewportClassName = getViewportProfileClassName(viewportProfile);
 
   return (
     <main
-      aria-hidden={appInteractionLocked ? true : undefined}
+      aria-hidden={appContentInteractionLocked ? true : undefined}
       className={`app notranslate theme-${appTheme} ${appMode === APP_MODES.MENU ? "menuApp" : ""} ${
         appMode === APP_MODES.MINI_CHORD_MAKER ? "miniChordMakerMode" : ""
-      } ${appMode === APP_MODES.METRONOME ? "metronomeMode" : ""} ${appMode === APP_MODES.TUNER ? "tunerMode" : ""} ${appMode === APP_MODES.SHOOTER ? "shooterMode" : ""} ${appMode === APP_MODES.AUDIO_STUDIO ? "audioStudioMode" : ""} ${utilityMenuOpen ? "utilityMenuOpen" : ""} ${isSignalActive ? "signalGlow" : ""}`}
+      } ${appMode === APP_MODES.METRONOME ? "metronomeMode" : ""} ${appMode === APP_MODES.TUNER ? "tunerMode" : ""} ${appMode === APP_MODES.SHOOTER ? "shooterMode" : ""} ${appMode === APP_MODES.AUDIO_STUDIO ? "audioStudioMode" : ""} ${utilityMenuOpen ? "utilityMenuOpen" : ""} ${isSignalActive ? "signalGlow" : ""} ${viewportClassName} ${landscapePlayFocus ? "landscapePlayFocus" : ""} ${shooterOrientationGuardActive ? "shooterOrientationPaused" : ""}`}
       onClickCapture={handleAppClickCapture}
       onPointerDownCapture={handleAppPointerDownCapture}
       onPointerUpCapture={handleAppPointerUpCapture}
-      inert={appInteractionLocked}
+      inert={appContentInteractionLocked}
       style={shooterMobileViewportStyle}
       translate="no"
     >
@@ -25816,6 +25849,9 @@ function App({ onReady }) {
           />,
           document.body,
         )
+        : null}
+      {shooterOrientationGuardActive && typeof document !== "undefined"
+        ? createPortal(<ShooterOrientationOverlay />, document.body)
         : null}
       <MetronomeViewportFlash
         active={metronomeFlashEnabled && metronomeFlashPulse > 0}
@@ -29790,11 +29826,7 @@ function App({ onReady }) {
                                 cabinetSkin={skin}
                                 className="shooterGuitarCabinetPickerItem--standalone"
                                 key={`standalone-cabinet-${skin.id}`}
-                                onSelect={(skinId) => applyShooterGuitarCabinetSkin(
-                                  selectedGuitarCabinet.id === skinId
-                                    ? DEFAULT_SHOOTER_GUITAR_CABINET_SKIN_ID
-                                    : skinId,
-                                )}
+                                onSelect={applyShooterGuitarCabinetSkin}
                                 selectedGuitar={selectedGuitar}
                                 selectedSkinId={selectedGuitarCabinet.id}
                               />
@@ -30308,8 +30340,8 @@ function App({ onReady }) {
                 <b>{stage3MetronomeSoundOn ? "ON" : "OFF"}</b>
               </button>
             ) : null}
-            {!isMobileLayout ? (
-            <div className="stage3StartControlCluster">
+            {!isMobileLayout || landscapePlayFocus ? (
+            <div className={`stage3StartControlCluster ${landscapePlayFocus ? "stage3StartControlCluster--focus" : ""}`}>
               <button
                 aria-label={`리듬 코드 메트로놈 사운드 ${stage3MetronomeSoundOn ? "끄기" : "켜기"}`}
                 aria-pressed={stage3MetronomeSoundOn}
@@ -30640,7 +30672,7 @@ function App({ onReady }) {
           />
           <SharedAccompanimentPanel
             className="sharedAccompanimentPanel--training"
-            defaultExpanded
+            defaultExpanded={!isMobileLayout}
             onOpenSettings={openMiniChordRhythmSettings}
             onTogglePart={toggleBackingPartEnabled}
             onVolumeCommit={commitBackingVolumeInput}

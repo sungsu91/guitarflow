@@ -32,8 +32,11 @@ test("rhythm code places its four metronome dropdowns above accompaniment", () =
   assert.match(optionsBlock, /onWeakToneChange=\{changeStage3MetronomeWeakTone\}/);
   assert.match(optionsBlock, /onOptionsCollapseChange=\{isMobileLayout \? setStage3MetronomeOptionsCollapsed : null\}/);
   assert.match(optionsBlock, /optionsCollapsed=\{isMobileLayout && stage3MetronomeOptionsCollapsed\}/);
+  assert.match(appSource, /className="sharedAccompanimentPanel--training"\s+defaultExpanded=\{!isMobileLayout\}/);
   assert.doesNotMatch(optionsBlock, /changeTrainingMetronomeTimeSignature|changeMetronomeAccentTone|changeMetronomeWeakTone/);
   assert.equal((appSource.match(/onOptionsCollapseChange=\{isMobileLayout/g) ?? []).length, 1);
+  assert.match(appSource, /stage3MetronomeOptionsCollapsed, setStage3MetronomeOptionsCollapsed\] = useState\(true\)/);
+  assert.match(appSource, /optionsCollapsed \? "펼침" : "접기"/);
 });
 
 test("rhythm code metronome settings own state and runtime refs", () => {
@@ -88,6 +91,7 @@ test("rhythm code braille matches the scale trainer and remains independent", ()
   assert.match(polishCss, /stage3MetronomeSoundToggle[\s\S]*grid-template-columns: 16px minmax\(0, 1fr\)[\s\S]*width: 66px !important/);
   assert.match(polishCss, /stage3MetronomeSoundToggle--mobile/);
   assert.match(polishCss, /stage3StandaloneMetronomeControl[\s\S]*metronomeOptionsCollapseButton[\s\S]*top: -2px !important[\s\S]*right: 0 !important/);
+  assert.match(polishCss, /metronomeOptionsCollapseButton \{[\s\S]*?height: 22px !important;[\s\S]*?font-size: 10px !important;[\s\S]*?font-weight: 900 !important;/);
   assert.match(polishCss, /metronomeOptions--collapsed[\s\S]*display: flex !important/);
 });
 

@@ -155,6 +155,69 @@ export function removeChordFretboardNote(source, stringNumber, fretNumber, rootN
   }, rootNote);
 }
 
+export function addChordFretboardBarre(
+  source,
+  fretNumber,
+  fromStringNumber,
+  toStringNumber,
+  rootNote = "",
+) {
+  const snapshot = createChordFretboardSnapshot(source, rootNote);
+  const fret = clampFret(fretNumber);
+  const fromString = Number(fromStringNumber);
+  const toString = Number(toStringNumber);
+  if (
+    fret == null
+    || fret === 0
+    || !GUITAR_STRING_NUMBER_SET.has(fromString)
+    || !GUITAR_STRING_NUMBER_SET.has(toString)
+    || fromString === toString
+  ) return snapshot;
+
+  const topString = Math.min(fromString, toString);
+  const bottomString = Math.max(fromString, toString);
+  const alreadyExists = snapshot.barres.some((barre) => (
+    Number(barre.fret) === fret
+    && Math.min(Number(barre.fromString), Number(barre.toString)) === topString
+    && Math.max(Number(barre.fromString), Number(barre.toString)) === bottomString
+  ));
+  if (alreadyExists) return snapshot;
+
+  return createChordFretboardSnapshot({
+    ...snapshot,
+    barres: [
+      ...snapshot.barres,
+      {
+        fret,
+        fromString: topString,
+        toString: bottomString,
+        label: "1",
+      },
+    ],
+  }, rootNote);
+}
+
+export function removeChordFretboardBarre(
+  source,
+  fretNumber,
+  fromStringNumber,
+  toStringNumber,
+  rootNote = "",
+) {
+  const snapshot = createChordFretboardSnapshot(source, rootNote);
+  const fret = clampFret(fretNumber);
+  const topString = Math.min(Number(fromStringNumber), Number(toStringNumber));
+  const bottomString = Math.max(Number(fromStringNumber), Number(toStringNumber));
+  return createChordFretboardSnapshot({
+    ...snapshot,
+    barres: snapshot.barres.filter((barre) => !(
+      Number(barre.fret) === fret
+      && Math.min(Number(barre.fromString), Number(barre.toString)) === topString
+      && Math.max(Number(barre.fromString), Number(barre.toString)) === bottomString
+    )),
+  }, rootNote);
+}
+
 export function getChordFretboardSignature(source = {}) {
   const snapshot = createChordFretboardSnapshot(source);
   const notes = snapshot.notes

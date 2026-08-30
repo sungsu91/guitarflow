@@ -1,0 +1,618 @@
+/*
+ * Fluid phone/tablet layout and landscape play focus.
+ * Runtime classes come from the current CSS viewport; no device model or
+ * physical-panel resolution is used here.
+ */
+:root {
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-right: env(safe-area-inset-right, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-safe-left: env(safe-area-inset-left, 0px);
+}
+
+html body #root:has(main.app.viewport-tablet.viewport-mobile-surface:not(.shooterMode)),
+html body #root:has(main.app.viewport-mobile-surface.landscapePlayFocus) {
+  width: 100%;
+  max-width: none;
+}
+
+html:has(body main.app.landscapePlayFocus),
+html body:has(main.app.landscapePlayFocus) {
+  height: 100%;
+  overflow: hidden !important;
+}
+
+html body main.app.app.app.viewport-mobile-surface:not(.shooterMode) {
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
+  padding-right: max(10px, var(--app-safe-right));
+  padding-bottom: max(8px, var(--app-safe-bottom));
+  padding-left: max(10px, var(--app-safe-left));
+}
+
+html body main.app.app.app.viewport-tablet.viewport-mobile-surface:not(.shooterMode) {
+  --responsive-content-width: min(1120px, calc(100vw - max(32px, var(--app-safe-left)) - max(32px, var(--app-safe-right))));
+  width: 100%;
+  max-width: none;
+  padding-right: max(clamp(18px, 4vw, 56px), var(--app-safe-right));
+  padding-left: max(clamp(18px, 4vw, 56px), var(--app-safe-left));
+}
+
+html body main.app.app.app.viewport-tablet.viewport-mobile-surface:not(.shooterMode)
+  > :is(
+    .standaloneMetronomePanel,
+    .referenceTrainingPanel,
+    .chordTransitionPanel,
+    .miniChordMakerPanel,
+    .fretboardViewerPanel,
+    .audioStudioShell
+  ) {
+  justify-self: center;
+  width: var(--responsive-content-width);
+  max-width: 1120px;
+  min-width: 0;
+}
+
+html body main.app.app.app.viewport-tablet.viewport-portrait.viewport-mobile-surface
+  :is(.referenceTrainingMainRow, .chordTransitionBody) {
+  grid-template-columns: minmax(0, 1.65fr) minmax(250px, 0.85fr);
+  align-items: start;
+}
+
+html body main.app.app.app.viewport-tablet.viewport-portrait.viewport-mobile-surface
+  :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+  > .referenceTrainingMainRow {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.65fr) minmax(220px, 0.85fr) !important;
+  align-items: start;
+  gap: clamp(10px, 2vw, 18px);
+}
+
+html body main.app.app.app.viewport-tablet.viewport-portrait.viewport-mobile-surface
+  :is(.trainingSharedFretboard, .stageChordSharedFretboard, .viewerFretboard) {
+  width: 100%;
+  max-width: none;
+}
+
+html body main.app.app.app.viewport-tablet.viewport-mobile-surface > .hud {
+  position: fixed;
+  right: max(16px, var(--app-safe-right));
+  bottom: max(12px, var(--app-safe-bottom));
+  left: max(16px, var(--app-safe-left));
+  z-index: 90;
+  pointer-events: none;
+}
+
+html body main.app.app.app.viewport-tablet.viewport-mobile-surface > .hud > .modeSwitch {
+  justify-self: center;
+  width: min(680px, 100%);
+  max-width: 680px;
+  pointer-events: auto;
+}
+
+html body main.app.app.app.viewport-tablet.viewport-mobile-surface > .hud > .modeSwitch > button {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-inline: clamp(8px, 1.8vw, 18px);
+}
+
+/* Landscape play focus keeps the mounted session and rearranges only its UI. */
+html body main.app.app.app.viewport-mobile-surface.landscapePlayFocus {
+  box-sizing: border-box;
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+  padding:
+    max(8px, var(--app-safe-top))
+    max(10px, var(--app-safe-right))
+    max(8px, var(--app-safe-bottom))
+    max(10px, var(--app-safe-left));
+}
+
+html body main.app.app.app.viewport-tablet.viewport-mobile-surface.landscapePlayFocus {
+  padding-right: max(10px, var(--app-safe-right));
+  padding-left: max(10px, var(--app-safe-left));
+}
+
+html body main.app.app.app.landscapePlayFocus > .hud {
+  position: fixed;
+  top: max(7px, var(--app-safe-top));
+  right: max(8px, var(--app-safe-right));
+  bottom: auto;
+  left: auto;
+  z-index: 160;
+  width: auto;
+  pointer-events: none;
+}
+
+html body main.app.app.app.landscapePlayFocus > .hud > .modeSwitch {
+  width: auto;
+  padding: 4px;
+  gap: 4px;
+  border-radius: 13px;
+  pointer-events: auto;
+}
+
+html body main.app.app.app.landscapePlayFocus > .hud > .modeSwitch > button {
+  display: none;
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 10px;
+}
+
+html body main.app.app.app.landscapePlayFocus > .hud > .modeSwitch > :is(.selected, :last-child) {
+  display: inline-flex;
+}
+
+/* Standalone metronome: status left, beat visual center, transport right. */
+html body main.app.app.app.metronomeMode.landscapePlayFocus > .standaloneMetronomePanel {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.72fr) minmax(250px, 1.35fr) minmax(220px, 0.95fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(8px, 1.6vw, 20px);
+  width: min(1180px, 100%);
+  height: 100%;
+  min-height: 0;
+  margin: 0 auto;
+  padding: clamp(8px, 1.3vw, 18px);
+}
+
+html body main.app.app.app.metronomeMode.landscapePlayFocus
+  .standaloneMetronomePanel > .metronomeAdvancedDock {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+}
+
+html body main.app.app.app.metronomeMode.landscapePlayFocus
+  .standaloneMetronomePanel > .metronomeBeatMatrix--main {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  align-self: stretch;
+  width: 100%;
+  min-height: 0;
+  max-height: none;
+}
+
+html body main.app.app.app.metronomeMode.landscapePlayFocus
+  .standaloneMetronomePanel > .metronomeHeroCard {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: center;
+  width: 100%;
+}
+
+html body main.app.app.app.metronomeMode.landscapePlayFocus
+  .standaloneMetronomePanel > :is(
+    .standaloneMetronomeControl,
+    .backingLoopPanel,
+    .metronomePresetStrip
+  ),
+html body main.app.app.app.metronomeMode.landscapePlayFocus
+  .metronomeAdvancedDock :is(.metronomeAdvancedPopover, .metronomeAdvancedDimOverlay) {
+  display: none !important;
+}
+
+html body main.app.app.app.metronomeMode.landscapePlayFocus.viewport-short
+  .standaloneMetronomePanel {
+  grid-template-columns: minmax(132px, 0.7fr) minmax(210px, 1.2fr) minmax(190px, 0.9fr);
+  padding-block: 4px;
+}
+
+html body main.app.app.app.metronomeMode.landscapePlayFocus.viewport-short
+  .metronomeAdvancedSummary small {
+  display: none;
+}
+
+/* Single-note and scale practice: the same mounted fretboard becomes the main stage. */
+html body main.app.app.app.landscapePlayFocus .referenceTrainingPanel {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  width: min(1240px, 100%);
+  height: 100%;
+  min-height: 0;
+  margin: 0 auto;
+  padding: clamp(6px, 1vw, 14px) !important;
+}
+
+html body main.app.app.app.landscapePlayFocus
+  :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+  > .referenceTrainingMainRow {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.7fr) minmax(220px, 0.72fr) !important;
+  height: 100%;
+  gap: clamp(8px, 1.4vw, 18px);
+  min-height: 0;
+}
+
+html body main.app.app.app.landscapePlayFocus .referenceTrainingBoard {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(5px, 0.9vw, 12px);
+}
+
+html body main.app.app.app.landscapePlayFocus .referenceTrainingBoard > p,
+html body main.app.app.app.landscapePlayFocus .referenceTrainingPanel > :is(.contentTitle, .trainingDetailHeaderRow),
+html body main.app.app.app.landscapePlayFocus .referenceTrainingToolbar
+  :is(.standaloneMetronomeControl, .scaleTrainingBackingLoop) {
+  display: none !important;
+}
+
+html body main.app.app.app.landscapePlayFocus .referenceTrainingBoard .trainingSharedFretboard {
+  align-self: stretch;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-width: none;
+}
+
+html body main.app.app.app.landscapePlayFocus .referenceStandaloneMetronomeDeck {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-height: 0;
+}
+
+html body main.app.app.app.landscapePlayFocus .referenceTransitionHud {
+  align-self: end;
+  margin: 0;
+}
+
+/* Rhythm chords: current fretboard and timeline remain; editors stay hidden. */
+html body main.app.app.app.landscapePlayFocus .chordTransitionPanel:not(.stage3StorageDialog) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 0.42fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: clamp(8px, 1.4vw, 18px);
+  width: min(1240px, 100%);
+  height: 100%;
+  min-height: 0;
+  margin: 0 auto;
+  padding: clamp(6px, 1vw, 14px) !important;
+}
+
+html body main.app.app.app.landscapePlayFocus
+  .chordTransitionPanel:not(.stage3StorageDialog) > .chordTransitionBody {
+  min-height: 0;
+}
+
+html body main.app.app.app.landscapePlayFocus
+  .chordTransitionPanel:not(.stage3StorageDialog) .chordTransitionChart {
+  height: 100%;
+  min-height: 0;
+}
+
+html body main.app.app.app.landscapePlayFocus
+  .chordTransitionPanel:not(.stage3StorageDialog) .stageChordSharedFretboard {
+  width: 100%;
+  max-width: none;
+}
+
+html body main.app.app.app.landscapePlayFocus
+  .chordTransitionPanel:not(.stage3StorageDialog) > .stage3ProgressHud {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  display: grid;
+  min-width: 0;
+}
+
+html body main.app.app.app.landscapePlayFocus
+  .chordTransitionPanel:not(.stage3StorageDialog) > :is(
+    .stage3PracticeUtilityPanel,
+    .standaloneMetronomeControl,
+    .sharedAccompanimentPanel
+  ) {
+  display: none !important;
+}
+
+html body main.app.app.app.landscapePlayFocus
+  .chordTransitionPanel:not(.stage3StorageDialog) .stage3MetronomeSoundToggle--mobile {
+  display: none !important;
+}
+
+/* Tuner: keep live gauge and minimal controls, remove instrument artwork. */
+html body main.app.app.app.tunerMode.landscapePlayFocus {
+  padding: 0;
+}
+
+html body main.app.app.app.tunerMode.landscapePlayFocus .tunerModeShell {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border-radius: 0;
+  padding:
+    max(8px, var(--app-safe-top))
+    max(12px, var(--app-safe-right))
+    max(8px, var(--app-safe-bottom))
+    max(12px, var(--app-safe-left));
+}
+
+html body main.app.app.app.tunerMode.landscapePlayFocus
+  :is(.tunerBackgroundLayers, .tunerBackgroundShade, .tunerHeadstockMode, .tunerHeadstockPanel) {
+  display: none !important;
+}
+
+html body main.app.app.app.tunerMode.landscapePlayFocus .tunerModeBody--mobile {
+  display: grid;
+  grid-template-areas: "tuning" !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  place-items: center;
+  height: 100%;
+  min-height: 0;
+  padding: 44px 7px 0;
+}
+
+html body main.app.app.app.tunerMode.landscapePlayFocus .tunerTuningPanel {
+  width: min(960px, calc(100vw - 120px));
+  height: min(100%, 520px);
+  min-height: 0;
+}
+
+html body main.app.app.app.tunerMode.landscapePlayFocus .tunerMobileControls {
+  top: max(7px, var(--app-safe-top));
+}
+
+html body main.app.app.app.tunerMode.landscapePlayFocus .tunerOceanGauge {
+  min-height: 0;
+  height: 100%;
+}
+
+/* Mini accompaniment receives this class only while playback is active. */
+html body main.app.app.app.miniChordMakerMode.landscapePlayFocus
+  .miniChordMakerPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(176px, 0.42fr);
+  grid-template-rows: auto minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: 6px;
+  width: min(1240px, 100%) !important;
+  max-width: 1240px !important;
+  height: calc(100dvh - 16px) !important;
+  max-height: calc(100dvh - 16px) !important;
+  min-height: 0;
+  margin: 0 auto;
+  padding: clamp(6px, 1vw, 14px) !important;
+  overflow: hidden !important;
+}
+
+html body main.app.app.app.miniChordMakerMode.landscapePlayFocus
+  .miniChordMakerPanel > :is(
+    .miniChordQuickBar,
+    .miniChordEditToolbar,
+    .miniChordMeasureStrip,
+    .miniChordCapoControlBar,
+    .miniChordInlinePagination
+  ) {
+  display: none !important;
+}
+
+html body main.app.app.app.miniChordMakerMode.landscapePlayFocus
+  .miniChordMakerPanel > .miniChordHeader {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  min-height: 38px;
+}
+
+html body main.app.app.app.miniChordMakerMode.landscapePlayFocus
+  .miniChordMakerPanel > .miniChordTimelinePanelCompact {
+  grid-column: 1;
+  grid-row: 2 / 4;
+  min-height: 0;
+  max-height: none;
+  overflow: hidden !important;
+}
+
+html body main.app.app.app.miniChordMakerMode.landscapePlayFocus
+  .miniChordTimelinePanelCompact .miniChordTimeline {
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  gap: 2px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode.landscapePlayFocus
+  .miniChordTimelinePanelCompact .miniChordMarkHotspot {
+  display: none !important;
+}
+
+html body main.app.app.app.miniChordMakerMode.landscapePlayFocus
+  .miniChordMakerPanel > .miniChordMetronomePanel {
+  grid-column: 2;
+  grid-row: 2;
+  height: 100%;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+html body main.app.app.app.miniChordMakerMode.landscapePlayFocus
+  .miniChordMakerPanel > .miniChordBackingPanel {
+  display: grid !important;
+  grid-template-rows: 28px minmax(0, 1fr) !important;
+  grid-column: 2;
+  grid-row: 3;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden !important;
+}
+
+html body main.app.app.app.miniChordMakerMode.landscapePlayFocus
+  .miniChordBackingPanel > summary {
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  padding-block: 2px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode.landscapePlayFocus
+  .miniChordBackingRows {
+  gap: 3px;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  box-sizing: border-box;
+  padding: 3px !important;
+  overflow: hidden;
+}
+
+html body main.app.app.app.miniChordMakerMode.landscapePlayFocus
+  .miniChordBackingRow {
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 2px 4px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode.landscapePlayFocus
+  .miniChordBackingControlLine {
+  grid-template-columns: 38px minmax(0, 1fr) 28px !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  gap: 2px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode.landscapePlayFocus
+  .miniChordPowerToggle {
+  width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode.landscapePlayFocus
+  .miniChordBackingRow .miniChordBeatOptions {
+  display: none !important;
+}
+
+/* Backing Loop focus uses its existing player and hides management controls. */
+html body main.app.app.app.landscapePlayFocus .backingLoopPanel {
+  min-width: 0;
+}
+
+html body main.app.app.app.landscapePlayFocus .backingLoopPanel
+  :is(.backingLoopMainControls, .backingLoopMobileHardware, .backingLoopDesktopNotice) {
+  display: none !important;
+}
+
+html body main.app.app.app.landscapePlayFocus .backingLoopMiniPlayer {
+  width: 100%;
+  max-width: none;
+}
+
+/* Modals continue scrolling normally instead of inheriting the fixed play stage. */
+html body main.app.app.app.viewport-mobile-surface
+  :is(.storageModalLayer, .helpGuideLayer, .utilityMenuLayer, .tunerSettingsLayer) {
+  padding:
+    max(8px, var(--app-safe-top))
+    max(8px, var(--app-safe-right))
+    max(8px, var(--app-safe-bottom))
+    max(8px, var(--app-safe-left));
+}
+
+html body main.app.app.app.viewport-mobile-surface
+  :is(.stage3StorageDialog, .helpGuidePanel, .tunerSettingsSheet, .backingLoopDialog) {
+  max-height: calc(100dvh - max(16px, var(--app-safe-top)) - max(16px, var(--app-safe-bottom))) !important;
+}
+
+html body main.app.app.app.viewport-tablet.viewport-mobile-surface .stage3StorageDialog {
+  width: min(1040px, calc(100vw - 24px)) !important;
+  max-width: 1040px !important;
+}
+
+html body main.app.app.app.viewport-tablet.viewport-mobile-surface
+  .stage3StorageDialogLayer .stage3StorageRoom.stage3StorageDialog.chordTransitionPanel {
+  width: min(1040px, calc(100vw - 24px)) !important;
+  max-width: 1040px !important;
+}
+
+html body main.app.app.app.viewport-tablet.viewport-landscape.viewport-mobile-surface
+  .stage3StorageDialog .stage3StorageChordBuilder {
+  grid-template-columns: minmax(290px, 0.82fr) minmax(0, 1.18fr) !important;
+}
+
+html body main.app.app.app.viewport-mobile-surface .stage3StorageComposer {
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  padding-bottom: max(18px, calc(12px + var(--app-safe-bottom))) !important;
+  scroll-padding-bottom: max(70px, calc(54px + var(--app-safe-bottom)));
+}
+
+html body main.app.app.app.viewport-mobile-surface
+  .stage3StorageDialogLayer .stage3StorageRoom.stage3StorageDialog
+  .stage3StorageComposer {
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+
+/* Shooter stays mounted and paused behind a viewport-level orientation guard. */
+.shooterOrientationOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483600;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto auto auto auto;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding:
+    max(20px, env(safe-area-inset-top, 0px))
+    max(24px, env(safe-area-inset-right, 0px))
+    max(20px, env(safe-area-inset-bottom, 0px))
+    max(24px, env(safe-area-inset-left, 0px));
+  background:
+    radial-gradient(circle at 50% 44%, rgba(217, 170, 85, 0.16), transparent 34%),
+    rgba(3, 5, 7, 0.96);
+  color: #fff4dc;
+  text-align: center;
+  touch-action: none;
+}
+
+.shooterOrientationDevice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #e5b960;
+}
+
+.shooterOrientationOverlay > strong {
+  font-size: clamp(20px, 3.3vw, 34px);
+  line-height: 1.18;
+}
+
+.shooterOrientationOverlay > p {
+  margin: 0;
+  color: rgba(255, 244, 220, 0.86);
+  font-size: clamp(13px, 2vw, 19px);
+  font-weight: 800;
+}
+
+.shooterOrientationOverlay > small {
+  color: rgba(255, 244, 220, 0.58);
+  font-size: clamp(10px, 1.35vw, 14px);
+  font-weight: 700;
+}
+
+html body main.app.app.app.shooterOrientationPaused .shooterArena *,
+html body main.app.app.app.shooterOrientationPaused .shooterMapSkinAsset {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shooterOrientationDevice svg:last-child {
+    animation: none;
+  }
+}

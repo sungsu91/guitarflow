@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import {
   LICK_TECHNIQUES,
   buildLickTechniqueRelations,
@@ -32,6 +32,8 @@ const NOTE_COLORS = {
 };
 
 const notePressFeedbacks = new WeakMap();
+const BARRE_LONG_PRESS_MS = 460;
+const BARRE_MOVE_TOLERANCE_PX = 10;
 
 function triggerNotePressFeedback(element) {
   if (!element) return;
@@ -179,11 +181,19 @@ function Fretboard({
   stringStates = {},
   tabSteps = [],
   notation = "notes",
+  onBarreCreate,
+  onBarreDelete,
   onEmptyPositionPress,
   onNoteDelete,
   onNotePress,
 }) {
   const [deleteTargetKey, setDeleteTargetKey] = useState("");
+  const [barreDeleteTargetKey, setBarreDeleteTargetKey] = useState("");
+  const [barreDraft, setBarreDraft] = useState(null);
+  const fretboardScrollerRef = useRef(null);
+  const barreGestureRef = useRef(null);
+  const barreLongPressTimerRef = useRef(null);
+  const suppressedEditableClickRef = useRef(null);
   const [startFret, endFret] = normalizeFretRange(fretRange);
   const visualStartFret = Math.max(1, startFret);
   const visualEndFret = Math.max(visualStartFret, endFret);
@@ -223,15 +233,59 @@ function Fretboard({
     };
   };
   const getEditablePositionKey = (note) => `${Number(note?.stringNumber)}-${Number(note?.fretNumber)}`;
+  const getBarreKey = (barre) => {
+    const fromString = Number(barre?.fromString);
+    const toString = Number(barre?.toString);
+    return `${Number(barre?.fret)}-${Math.min(fromString, toString)}-${Math.max(fromString, toString)}`;
+  };
+  const clearBarreLongPressTimer = () => {
+    if (barreLongPressTimerRef.current == null) return;
+    window.clearTimeout(barreLongPressTimerRef.current);
+    barreLongPressTimerRef.current = null;
+  };
+  const releaseBarrePointerCapture = (gesture) => {
+    if (!gesture?.target?.hasPointerCapture?.(gesture.pointerId)) return;
+    gesture.target.releasePointerCapture(gesture.pointerId);
+  };
+  const getClosestStringNumber = (clientY) => {
+    const rows = fretboardScrollerRef.current?.querySelectorAll?.(".fretboardStringRow");
+    if (!rows?.length) return null;
+    let closestString = null;
+    let closestDistance = Number.POSITIVE_INFINITY;
+    rows.forEach((row, index) => {
+      const bounds = row.getBoundingClientRect();
+      const distance = Math.abs(clientY - (bounds.top + bounds.height / 2));
+      if (distance >= closestDistance) return;
+      closestDistance = distance;
+      closestString = index + 1;
+    });
+    return closestString;
+  };
+  const consumeSuppressedEditableClick = (event, note) => {
+    const suppression = suppressedEditableClickRef.current;
+    if (!suppression || suppression.until < Date.now()) {
+      suppressedEditableClickRef.current = null;
+      return false;
+    }
+    if (suppression.positionKey !== getEditablePositionKey(note)) return false;
+    event.preventDefault();
+    event.stopPropagation();
+    suppressedEditableClickRef.current = null;
+    return true;
+  };
   const openDeleteMenu = (event, note) => {
     if (!editable || !note) return;
+    if (consumeSuppressedEditableClick(event, note)) return;
     event.stopPropagation();
+    setBarreDeleteTargetKey("");
     setDeleteTargetKey(getEditablePositionKey(note));
   };
   const addEditableNote = (event, note) => {
     if (!editable || !onEmptyPositionPress || !note) return;
+    if (consumeSuppressedEditableClick(event, note)) return;
     event.stopPropagation();
     setDeleteTargetKey("");
+    setBarreDeleteTargetKey("");
     onEmptyPositionPress(note);
   };
   const deleteEditableNote = (event, note) => {
@@ -239,7 +293,127 @@ function Fretboard({
     event.preventDefault();
     event.stopPropagation();
     setDeleteTargetKey("");
+    setBarreDeleteTargetKey("");
     onNoteDelete(note);
+  };
+  const openBarreDeleteMenu = (event, barre) => {
+    if (!editable || !onBarreDelete || !barre) return;
+    event.stopPropagation();
+    setDeleteTargetKey("");
+    setBarreDeleteTargetKey(getBarreKey(barre));
+  };
+  const deleteEditableBarre = (event, barre) => {
+    if (!editable || !onBarreDelete || !barre) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setBarreDeleteTargetKey("");
+    onBarreDelete(barre);
+  };
+  const handleBarreKeyDown = (event, barre) => {
+    if (!editable || !onBarreDelete || !barre || !["Enter", " "].includes(event.key)) return;
+    event.preventDefault();
+    openBarreDeleteMenu(event, barre);
+  };
+  const beginBarreGesture = (event, note) => {
+    const fret = Number(note?.fretNumber);
+    const fromString = Number(note?.stringNumber);
+    if (
+      !editable
+      || !onBarreCreate
+      || !Number.isFinite(fret)
+      || fret <= 0
+      || !Number.isInteger(fromString)
+      || fromString < 1
+      || fromString > 6
+      || (event.pointerType === "mouse" && event.button !== 0)
+      || event.target?.closest?.(".fretboardNoteDeleteButton, .fretboardBarreDeleteButton")
+    ) return;
+
+    clearBarreLongPressTimer();
+    const pointerId = event.pointerId;
+    const positionKey = getEditablePositionKey(note);
+    const target = event.currentTarget;
+    target.setPointerCapture?.(pointerId);
+    barreGestureRef.current = {
+      activated: false,
+      cancelled: false,
+      currentString: fromString,
+      fret,
+      fromString,
+      pointerId,
+      positionKey,
+      startX: event.clientX,
+      startY: event.clientY,
+      target,
+    };
+    barreLongPressTimerRef.current = window.setTimeout(() => {
+      const gesture = barreGestureRef.current;
+      if (!gesture || gesture.pointerId !== pointerId || gesture.cancelled) return;
+      gesture.activated = true;
+      barreLongPressTimerRef.current = null;
+      suppressedEditableClickRef.current = {
+        positionKey,
+        until: Date.now() + 900,
+      };
+      setDeleteTargetKey("");
+      setBarreDeleteTargetKey("");
+      setBarreDraft({
+        fret,
+        fromString,
+        toString: fromString,
+      });
+    }, BARRE_LONG_PRESS_MS);
+  };
+  const moveBarreGesture = (event) => {
+    const gesture = barreGestureRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId || gesture.cancelled) return;
+    if (!gesture.activated) {
+      const distance = Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY);
+      if (distance > BARRE_MOVE_TOLERANCE_PX) {
+        gesture.cancelled = true;
+        clearBarreLongPressTimer();
+        suppressedEditableClickRef.current = {
+          positionKey: gesture.positionKey,
+          until: Date.now() + 500,
+        };
+      }
+      return;
+    }
+    event.preventDefault();
+    const toString = getClosestStringNumber(event.clientY) ?? gesture.currentString;
+    if (toString === gesture.currentString) return;
+    gesture.currentString = toString;
+    setBarreDraft({
+      fret: gesture.fret,
+      fromString: gesture.fromString,
+      toString,
+    });
+  };
+  const finishBarreGesture = (event, cancelled = false) => {
+    const gesture = barreGestureRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    clearBarreLongPressTimer();
+    releaseBarrePointerCapture(gesture);
+    barreGestureRef.current = null;
+    setBarreDraft(null);
+    if (!gesture.activated || gesture.cancelled || cancelled) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const toString = getClosestStringNumber(event.clientY) ?? gesture.currentString;
+    suppressedEditableClickRef.current = {
+      positionKey: gesture.positionKey,
+      until: Date.now() + 900,
+    };
+    if (toString === gesture.fromString) return;
+    onBarreCreate({
+      fret: gesture.fret,
+      fromString: gesture.fromString,
+      toString,
+    });
+  };
+  const preventEditableContextMenu = (event) => {
+    if (!editable || !onBarreCreate) return;
+    event.preventDefault();
   };
   const activateNote = (event, note) => {
     if (!onNotePress || !note) return;
@@ -255,26 +429,39 @@ function Fretboard({
   };
 
   useEffect(() => {
-    if (!editable || !deleteTargetKey || typeof document === "undefined") return undefined;
+    if (!editable || (!deleteTargetKey && !barreDeleteTargetKey) || typeof document === "undefined") return undefined;
     const closeDeleteMenu = (event) => {
-      if (event.target?.closest?.(`[data-fretboard-delete-target="${deleteTargetKey}"]`)) return;
+      if (
+        (deleteTargetKey && event.target?.closest?.(`[data-fretboard-delete-target="${deleteTargetKey}"]`))
+        || (barreDeleteTargetKey && event.target?.closest?.(`[data-fretboard-barre-delete-target="${barreDeleteTargetKey}"]`))
+      ) return;
       setDeleteTargetKey("");
+      setBarreDeleteTargetKey("");
     };
     document.addEventListener("pointerdown", closeDeleteMenu);
     return () => document.removeEventListener("pointerdown", closeDeleteMenu);
-  }, [deleteTargetKey, editable]);
+  }, [barreDeleteTargetKey, deleteTargetKey, editable]);
+
+  useEffect(() => () => {
+    if (barreLongPressTimerRef.current != null) {
+      window.clearTimeout(barreLongPressTimerRef.current);
+    }
+  }, []);
 
   return (
     <div
       className={`fretboardComponent fretboardComponent--${mode} ${isTabMode ? "fretboardComponent--tab" : ""} ${editable ? "fretboardComponent--editable" : ""} ${className}`}
-      onClick={editable ? () => setDeleteTargetKey("") : undefined}
+      onClick={editable ? () => {
+        setDeleteTargetKey("");
+        setBarreDeleteTargetKey("");
+      } : undefined}
       style={{
         "--fret-count": isTabMode ? tabSlotCount : Math.max(1, visualEndFret - visualStartFret + 1),
         "--fret-slot-count": isTabMode ? tabSlotCount : fretNumbers.length,
         "--lick-step-count": tabSlotCount,
       }}
     >
-      <div className="fretboardComponentScroller">
+      <div className="fretboardComponentScroller" ref={fretboardScrollerRef}>
         <div className="fretboardNut" aria-hidden="true" />
         {showFretNumbers && (
           <div className="fretboardFretNumbers" style={{ gridTemplateColumns: `repeat(${displayColumns.length}, minmax(34px, 1fr))` }}>
@@ -354,20 +541,43 @@ function Fretboard({
           const toString = Number(barre.toString);
           const topString = Math.min(fromString, toString);
           const bottomString = Math.max(fromString, toString);
+          const barreKey = getBarreKey(barre);
+          const isDeleteMenuOpen = editable && barreDeleteTargetKey === barreKey;
           return (
             <span
-              className="fretboardBarre"
+              aria-label={editable ? `${fret}프렛 ${topString}번줄부터 ${bottomString}번줄 바레 삭제 메뉴 열기` : undefined}
+              className={`fretboardBarre ${editable ? "fretboardBarre--editable" : ""} ${isDeleteMenuOpen ? "delete-menu-open" : ""}`}
+              data-fretboard-barre-delete-target={editable ? barreKey : undefined}
               key={`barre-${fret}-${fromString}-${toString}-${index}`}
+              onClick={editable ? (event) => openBarreDeleteMenu(event, barre) : undefined}
+              onKeyDown={editable ? (event) => handleBarreKeyDown(event, barre) : undefined}
+              role={editable ? "button" : undefined}
               style={{
                 "--fretboard-x-ratio": getXRatio(fret),
                 "--fretboard-barre-top": (topString - 0.5) / 6,
                 "--fretboard-barre-height": (bottomString - topString + 1) / 6,
               }}
+              tabIndex={editable ? 0 : undefined}
             >
               {barre.label}
             </span>
           );
         })}
+        {barreDraft ? (() => {
+          const topString = Math.min(barreDraft.fromString, barreDraft.toString);
+          const bottomString = Math.max(barreDraft.fromString, barreDraft.toString);
+          return (
+            <span
+              aria-hidden="true"
+              className="fretboardBarre fretboardBarre--preview"
+              style={{
+                "--fretboard-x-ratio": getXRatio(barreDraft.fret),
+                "--fretboard-barre-top": (topString - 0.5) / 6,
+                "--fretboard-barre-height": (bottomString - topString + 1) / 6,
+              }}
+            />
+          );
+        })() : null}
         {tabConnections.map((connection) => {
           const fromRatio = getTabXRatio(connection.fromIndex);
           const toRatio = getTabXRatio(connection.toIndex);
@@ -445,6 +655,11 @@ function Fretboard({
               data-string-number={stringInfo.stringNumber}
               key={`editable-cell-${positionKey}`}
               onClick={(event) => addEditableNote(event, position)}
+              onContextMenu={preventEditableContextMenu}
+              onPointerCancel={(event) => finishBarreGesture(event, true)}
+              onPointerDown={(event) => beginBarreGesture(event, position)}
+              onPointerMove={moveBarreGesture}
+              onPointerUp={finishBarreGesture}
               style={{
                 "--fretboard-x-ratio": getXRatio(fretNumber),
                 "--fretboard-y-ratio": (stringInfo.stringNumber - 0.5) / 6,
@@ -475,7 +690,12 @@ function Fretboard({
               data-string-number={note.stringNumber}
               key={noteId}
               onClick={editable ? (event) => openDeleteMenu(event, note) : onNotePress ? (event) => activateNote(event, note) : undefined}
+              onContextMenu={editable ? preventEditableContextMenu : undefined}
               onKeyDown={onNotePress || editable ? (event) => handleNoteKeyDown(event, note) : undefined}
+              onPointerCancel={editable ? (event) => finishBarreGesture(event, true) : undefined}
+              onPointerDown={editable ? (event) => beginBarreGesture(event, note) : undefined}
+              onPointerMove={editable ? moveBarreGesture : undefined}
+              onPointerUp={editable ? finishBarreGesture : undefined}
               role={onNotePress || editable ? "button" : undefined}
               style={{
                 "--fretboard-x-ratio": getXRatio(Number(note.fretNumber)),
@@ -499,6 +719,37 @@ function Fretboard({
             </span>
           );
         })}
+        {editable && !isTabMode ? barres.map((barre, index) => {
+          const fret = Number(barre.fret);
+          const fromString = Number(barre.fromString);
+          const toString = Number(barre.toString);
+          const topString = Math.min(fromString, toString);
+          const bottomString = Math.max(fromString, toString);
+          const barreKey = getBarreKey(barre);
+          if (
+            barreDeleteTargetKey !== barreKey
+            || !Number.isFinite(fret)
+            || fret < visualStartFret
+            || fret > visualEndFret
+          ) return null;
+          return (
+            <button
+              aria-label={`${fret}프렛 ${topString}번줄부터 ${bottomString}번줄 바레 삭제`}
+              className="fretboardBarreDeleteButton"
+              data-fretboard-barre-delete-target={barreKey}
+              key={`barre-delete-${barreKey}-${index}`}
+              onClick={(event) => deleteEditableBarre(event, barre)}
+              style={{
+                "--fretboard-x-ratio": getXRatio(fret),
+                "--fretboard-y-ratio": (topString - 0.5) / 6,
+                "--fretboard-barre-delete-offset-x": getXRatio(fret) > 0.82 ? "-23px" : "23px",
+              }}
+              type="button"
+            >
+              ×
+            </button>
+          );
+        }) : null}
       </div>
     </div>
   );

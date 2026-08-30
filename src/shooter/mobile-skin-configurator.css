@@ -1,0 +1,23 @@
+/* Mobile-only cabinet cards share the same transparent display treatment as floor effects. */
+@media (max-width: 719px) {
+  html.shooterCanonicalMobile body
+    .shooterSkinConfigurator--arenaPreview
+    .shooterEffectStandaloneTrack
+    > .shooterGuitarCabinetPickerItem--standalone,
+  html.shooterCanonicalMobile body
+    .shooterSkinConfigurator--arenaPreview
+    .shooterEffectStandaloneTrack
+    > .shooterGuitarCabinetPickerItem--standalone.selected {
+    border: 1px solid rgba(217, 170, 85, 0.2) !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html.shooterCanonicalMobile body
+    .shooterSkinConfigurator--arenaPreview
+    .shooterEffectStandaloneTrack
+    > .shooterGuitarCabinetPickerItem--standalone.selected {
+    border-color: rgba(217, 170, 85, 0.7) !important;
+  }
+}

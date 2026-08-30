@@ -6272,18 +6272,18 @@ html body main.app.app.app .chordTransitionPanel
   right: 0 !important;
   width: auto !important;
   min-width: 34px !important;
-  height: 18px !important;
-  min-height: 18px !important;
+  height: 22px !important;
+  min-height: 22px !important;
   margin: 0 !important;
   padding: 0 7px !important;
-  border: 1px solid var(--riff-border-soft) !important;
+  border: 1px solid rgba(207, 157, 73, 0.32) !important;
   border-radius: 999px !important;
-  background: var(--riff-control-rest) !important;
-  color: var(--riff-text-muted) !important;
-  box-shadow: var(--riff-shadow-control) !important;
-  font-size: 8px !important;
-  font-weight: 850 !important;
-  line-height: 16px !important;
+  background: rgba(0, 0, 0, 0.22) !important;
+  color: rgba(244, 215, 154, 0.8) !important;
+  box-shadow: none !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
 }
 
 html body main.app.app.app .chordTransitionPanel
@@ -6400,9 +6400,9 @@ html body main.app.app.app.theme-light.theme-light .chordTransitionPanel
 html body main.app.app.app.theme-light.theme-light .chordTransitionPanel
   .stage3StandaloneMetronomeControl
   .metronomeOptionsCollapseButton {
-  border-color: rgba(169, 123, 66, 0.24) !important;
-  background: linear-gradient(180deg, #fffefb, #eadcc5) !important;
-  color: #735a37 !important;
+  border-color: #d3c6aa !important;
+  background: #f4ead8 !important;
+  color: #675335 !important;
 }
 
 @media (min-width: 768px) {

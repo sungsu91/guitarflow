@@ -9134,6 +9134,7 @@ html body main.app.app.app.theme-light .stage3StorageDialogHeading > button {
   html body main.app.app.app .stage3StorageDialogLayer .stage3StorageRoom.stage3StorageDialog.chordTransitionPanel {
     width: min(430px, calc(100vw - 12px)) !important;
     max-width: 430px !important;
+    height: min(calc(100dvh - 12px), 860px) !important;
     max-height: min(calc(100dvh - 12px), 860px) !important;
     border-radius: 18px !important;
   }
@@ -9150,8 +9151,10 @@ html body main.app.app.app.theme-light .stage3StorageDialogHeading > button {
   }
 
   html body main.app.app.app .stage3StorageDialog .stage3StorageComposer {
-    max-height: calc(100dvh - 64px) !important;
+    height: 100% !important;
+    max-height: none !important;
     padding: 9px 10px calc(12px + env(safe-area-inset-bottom)) !important;
+    scroll-padding-bottom: calc(54px + env(safe-area-inset-bottom));
     scrollbar-gutter: stable;
     scrollbar-width: thin;
     scrollbar-color: rgba(151, 111, 50, 0.5) transparent;
@@ -68897,9 +68900,9 @@ html body .app.theme-light.theme-light .helpInfoNote {
   }
 
   html body .shooterSkinConfigurator .shooterMapCard--default {
-    grid-column: 1 / -1;
-    aspect-ratio: 3.35 / 1;
-    min-height: 88px !important;
+    grid-column: auto;
+    aspect-ratio: 16 / 9;
+    min-height: 0 !important;
   }
 
   html body .shooterSkinConfigurator .shooterMapCard > .shooterMapPreview,
@@ -69806,7 +69809,14 @@ html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard
   outline-offset: 0 !important;
 }
 
-html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard .fretboardNoteChip b,
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard .fretboardNoteChip b {
+  font-size: 10px !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard .fretboardStringState.noteOpen {
+  font-size: 9.5px !important;
+}
+
 html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard .fretboardBarre {
   font-size: 8px !important;
 }
@@ -70559,23 +70569,113 @@ html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard
 }
 
 html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard.fretboardComponent--editable button.fretboardNoteDeleteButton {
-  top: -7px !important;
-  right: -9px !important;
-  width: 14px !important;
-  min-width: 14px !important;
-  height: 14px !important;
-  min-height: 14px !important;
+  top: -11px !important;
+  right: -14px !important;
+  width: 20px !important;
+  min-width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
   padding: 0 0 1px !important;
   border-color: rgba(255, 244, 226, 0.86) !important;
   background: #6f2930 !important;
   color: #fff7ed !important;
-  font-size: 10px !important;
+  font-size: 13px !important;
   line-height: 1 !important;
   filter: none !important;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.38) !important;
 }
 
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard.fretboardComponent--editable
+  :is(button.fretboardNoteDeleteButton, button.fretboardBarreDeleteButton)::after {
+  position: absolute;
+  inset: -7px;
+  border-radius: 999px;
+  content: "";
+}
+
 html body main.app.app.app.theme-light .stage3StorageRoom .stage3ChordMiniReferenceFretboard.fretboardComponent--editable button.fretboardNoteDeleteButton {
+  border-color: rgba(111, 41, 48, 0.26) !important;
+  background: #8c3540 !important;
+  color: #fffaf2 !important;
+}
+
+/* Long-press barre editing stays behind note markers while exposing mobile-sized controls. */
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard.fretboardComponent--editable
+  :is(.fretboardEditCell, .fretboardNoteChip, .fretboardBarre--editable) {
+  touch-action: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard.fretboardComponent--editable
+  .fretboardBarre--editable {
+  z-index: 4 !important;
+  pointer-events: auto !important;
+  cursor: pointer;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard.fretboardComponent--editable
+  .fretboardBarre--editable.delete-menu-open {
+  border-color: rgba(255, 255, 255, 0.62) !important;
+  background: rgba(45, 212, 191, 0.42) !important;
+  box-shadow:
+    0 8px 18px rgba(45, 212, 191, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.26) !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard.fretboardComponent--editable
+  .fretboardBarre--preview {
+  z-index: 4 !important;
+  border: 1px dashed rgba(255, 252, 236, 0.96) !important;
+  background: rgba(58, 180, 161, 0.5) !important;
+  box-shadow:
+    0 0 0 2px rgba(45, 212, 191, 0.12),
+    0 5px 12px rgba(25, 94, 84, 0.18) !important;
+  pointer-events: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard.fretboardComponent--editable
+  .fretboardBarre--preview::before {
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  background: #39b9a5;
+  content: "";
+  transform: translateX(-50%);
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard.fretboardComponent--editable
+  button.fretboardBarreDeleteButton {
+  position: absolute !important;
+  top: calc(var(--fretboard-board-top) + var(--fretboard-board-height) * var(--fretboard-y-ratio)) !important;
+  left: calc(var(--fretboard-label-left) + (100% - var(--fretboard-label-left) - var(--fretboard-label-right)) * var(--fretboard-x-ratio)) !important;
+  right: auto !important;
+  z-index: 30 !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 20px !important;
+  min-width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  padding: 0 0 1px !important;
+  border: 1px solid rgba(255, 244, 226, 0.86) !important;
+  border-radius: 999px !important;
+  background: #6f2930 !important;
+  color: #fff7ed !important;
+  font-size: 13px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.38) !important;
+  cursor: pointer;
+  transform: translate(calc(-50% + var(--fretboard-barre-delete-offset-x)), -50%) !important;
+}
+
+html body main.app.app.app.theme-light .stage3StorageRoom .stage3ChordMiniReferenceFretboard.fretboardComponent--editable
+  button.fretboardBarreDeleteButton {
   border-color: rgba(111, 41, 48, 0.26) !important;
   background: #8c3540 !important;
   color: #fffaf2 !important;

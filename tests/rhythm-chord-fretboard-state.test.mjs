@@ -3,10 +3,12 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  addChordFretboardBarre,
   addChordFretboardNote,
   createChordFretboardSnapshot,
   getChordFretboardMidiVoicing,
   getChordFretboardSignature,
+  removeChordFretboardBarre,
   removeChordFretboardNote,
 } from "../src/rhythm/chordFretboardState.js";
 
@@ -77,6 +79,31 @@ test("adding and deleting notes keeps the current fret window fixed", () => {
   assert.deepEqual(removed.visibleFrets, [7, 13]);
 });
 
+test("barres can be added and removed without mutating notes or the fret window", () => {
+  const base = createChordFretboardSnapshot({
+    notes: [
+      { stringNumber: 1, fretNumber: 8 },
+      { stringNumber: 3, fretNumber: 8 },
+    ],
+    visibleFrets: [7, 13],
+  }, "C");
+  const added = addChordFretboardBarre(base, 8, 1, 3, "C");
+  const duplicateReverse = addChordFretboardBarre(added, 8, 3, 1, "C");
+  const singleString = addChordFretboardBarre(added, 8, 2, 2, "C");
+
+  assert.equal(base.barres.length, 0);
+  assert.deepEqual(added.barres, [{ fret: 8, fromString: 1, toString: 3, label: "1" }]);
+  assert.equal(duplicateReverse.barres.length, 1);
+  assert.equal(singleString.barres.length, 1);
+  assert.deepEqual(added.notes, base.notes);
+  assert.deepEqual(added.visibleFrets, [7, 13]);
+
+  const removed = removeChordFretboardBarre(added, 8, 3, 1, "C");
+  assert.equal(removed.barres.length, 0);
+  assert.deepEqual(removed.notes, base.notes);
+  assert.deepEqual(removed.visibleFrets, [7, 13]);
+});
+
 test("rhythm storage binds its local editor snapshot to save, load and playback", async () => {
   const [appSource, fretboardSource, editorSource] = await Promise.all([
     readFile(new URL("../src/App.jsx", import.meta.url), "utf8"),
@@ -95,7 +122,18 @@ test("rhythm storage binds its local editor snapshot to save, load and playback"
   assert.match(appSource, /rhythmChordTimeline: rhythmChordPlayback\.timeline/);
   assert.match(fretboardSource, /data-fretboard-delete-target/);
   assert.match(fretboardSource, /onEmptyPositionPress/);
+  assert.match(fretboardSource, /onBarreCreate/);
+  assert.match(fretboardSource, /fretboardBarre--preview/);
+  assert.match(fretboardSource, /setPointerCapture/);
+  assert.match(fretboardSource, /BARRE_LONG_PRESS_MS/);
   assert.match(fretboardSource, /document\.removeEventListener\("pointerdown", closeDeleteMenu\)/);
+  assert.ok(
+    fretboardSource.lastIndexOf('className="fretboardBarreDeleteButton"')
+      > fretboardSource.indexOf('!isTabMode && renderNotes.map'),
+    "the barre delete control must render above the note layer instead of inside the behind-notes barre",
+  );
   assert.match(editorSource, /useImperativeHandle/);
   assert.match(editorSource, /setDraft\(\(current\) => addChordFretboardNote/);
+  assert.match(editorSource, /setDraft\(\(current\) => addChordFretboardBarre/);
+  assert.match(editorSource, /setDraft\(\(current\) => removeChordFretboardBarre/);
 });

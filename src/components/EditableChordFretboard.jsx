@@ -7,8 +7,10 @@ import {
   useState,
 } from "react";
 import {
+  addChordFretboardBarre,
   addChordFretboardNote,
   cloneChordFretboardSnapshot,
+  removeChordFretboardBarre,
   removeChordFretboardNote,
 } from "../rhythm/chordFretboardState.js";
 import Fretboard from "./Fretboard";
@@ -51,6 +53,26 @@ const EditableChordFretboard = memo(forwardRef(function EditableChordFretboard({
     ));
   }, [rootNote]);
 
+  const addBarre = useCallback((barre) => {
+    setDraft((current) => addChordFretboardBarre(
+      current,
+      barre?.fret,
+      barre?.fromString,
+      barre?.toString,
+      rootNote,
+    ));
+  }, [rootNote]);
+
+  const deleteBarre = useCallback((barre) => {
+    setDraft((current) => removeChordFretboardBarre(
+      current,
+      barre?.fret,
+      barre?.fromString,
+      barre?.toString,
+      rootNote,
+    ));
+  }, [rootNote]);
+
   return (
     <Fretboard
       barres={draft.barres}
@@ -59,6 +81,8 @@ const EditableChordFretboard = memo(forwardRef(function EditableChordFretboard({
       fretRange={draft.visibleFrets}
       mode="chord"
       notes={displayNotes}
+      onBarreCreate={addBarre}
+      onBarreDelete={deleteBarre}
       onEmptyPositionPress={addNote}
       onNoteDelete={deleteNote}
       rootNote=""

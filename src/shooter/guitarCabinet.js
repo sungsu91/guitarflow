@@ -27,6 +27,15 @@ export function getShooterGuitarCabinetSkinById(skinId) {
     ?? SHOOTER_GUITAR_CABINET_SKINS[0];
 }
 
+export function toggleShooterGuitarCabinetSkinId(currentSkinId, requestedSkinId) {
+  const currentSkin = getShooterGuitarCabinetSkinById(currentSkinId);
+  const requestedSkin = getShooterGuitarCabinetSkinById(requestedSkinId);
+  return requestedSkin.id !== DEFAULT_SHOOTER_GUITAR_CABINET_SKIN_ID
+    && requestedSkin.id === currentSkin.id
+    ? DEFAULT_SHOOTER_GUITAR_CABINET_SKIN_ID
+    : requestedSkin.id;
+}
+
 export function getShooterGuitarCabinetAssetSources(skin = SHOOTER_GUITAR_CABINET_SKINS[1]) {
   return [...new Set([
     skin?.backAssetSrc,
