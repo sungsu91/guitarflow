@@ -54,3 +54,18 @@ test("note button updates stay inside the fretboard note viewer subtree", async 
   assert.match(appSource, /createFretboardNoteViewerStore/);
   assert.match(noteViewerSource, /useSyncExternalStore/);
 });
+
+test("mobile note and scale viewers use the rounded chord finish and proper accidental symbols", async () => {
+  const [noteViewerSource, polishCss] = await Promise.all([
+    readFile(new URL("../src/components/FretboardNoteViewer.jsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/polish.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(noteViewerSource, />♯<\/span>/);
+  assert.match(noteViewerSource, />♭<\/span>/);
+  assert.match(polishCss, /Mobile fretboard viewer finish/);
+  assert.match(polishCss, /:is\(\.viewerMapCard--note, \.viewerMapCard--scale\)\.viewerMapCard \{[\s\S]*?border-radius: 15px !important;/);
+  assert.match(polishCss, /\.viewerFretboardGestureSurface \{[\s\S]*?overflow: hidden !important;[\s\S]*?border-radius: 13px !important;/);
+  assert.match(polishCss, /\.viewerSelectGrid\.viewerSelectGrid \{[\s\S]*?gap: 5px !important;/);
+  assert.match(polishCss, /\.viewerNoteAccidentalControls \{[\s\S]*?grid-template-columns: repeat\(2, 32px\) !important;/);
+});

@@ -67,6 +67,8 @@ test("shooter uses the mobile-master HUD at mobile and desktop sizes", async () 
   assert.match(appCss, /\.mobileShooterPrimaryHudRow \{[\s\S]*margin-inline: 0 !important/);
   assert.match(appCss, /button\.mobileShooterMicHud svg \{[\s\S]*opacity: 1 !important/);
   assert.match(appCss, /--shooter-hud-dock-height: 40px/);
+  assert.match(appCss, /> \.shooterPanel:not\(\.shooterPanel--mapEditorWorkspace\) \{[\s\S]*inset: 0 0 var\(--shooter-mobile-nav-space\) !important/);
+  assert.match(appCss, /> \.mobileShooterTopHud \{[\s\S]*position: relative;[\s\S]*inset: auto/);
   assert.match(appCss, /> \.shooterArena \{[\s\S]*inset: var\(--shooter-hud-dock-height\) 0 0 !important/);
   assert.match(appCss, /\.mobileShooterTargetHud \{[\s\S]*position: absolute;[\s\S]*top: 7px/);
   assert.match(appCss, /\.mobileShooterTopHud:has\(\.mobileShooterPlayHelpMessageBar\)[\s\S]*\+ \.shooterArena :is\(\.mobileShooterTargetHud, \.mobileShooterScoreHud\)/);

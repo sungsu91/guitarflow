@@ -72,7 +72,7 @@ export const FretboardNoteViewerControls = memo(function FretboardNoteViewerCont
           onClick={() => store.selectAccidental(NOTE_ACCIDENTAL_PREFERENCES.SHARP)}
           type="button"
         >
-          #
+          <span aria-hidden="true">♯</span>
         </button>
         <button
           aria-label="음표를 플랫으로 표기"
@@ -81,7 +81,7 @@ export const FretboardNoteViewerControls = memo(function FretboardNoteViewerCont
           onClick={() => store.selectAccidental(NOTE_ACCIDENTAL_PREFERENCES.FLAT)}
           type="button"
         >
-          b
+          <span aria-hidden="true">♭</span>
         </button>
       </div>
       <div className="viewerNoteButtons">

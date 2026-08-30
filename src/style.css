@@ -66586,8 +66586,17 @@ html body .shooterSkinConfigurator :is(
 }
 
 @media (max-width: 680px) {
+  /* Keep the phone map inside the two app chrome rails. This preserves the
+     authored gameplay viewport instead of letting device chrome cover it. */
   html body main.app.app.app.shooterMode > .shooterPanel:not(.shooterPanel--mapEditorWorkspace) {
     --shooter-hud-dock-height: 40px;
+    inset: 0 0 var(--shooter-mobile-nav-space) !important;
+  }
+
+  html body main.app.app.app.shooterMode > .shooterPanel:not(.shooterPanel--mapEditorWorkspace)
+    > .mobileShooterTopHud {
+    position: relative;
+    inset: auto;
   }
 
   html body main.app.app.app.shooterMode > .shooterPanel:not(.shooterPanel--mapEditorWorkspace) > .shooterArena {
