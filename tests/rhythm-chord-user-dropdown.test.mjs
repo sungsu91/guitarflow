@@ -258,3 +258,15 @@ test("LOAD and its selected chord options reuse the two-beat add button palette"
     /\.theme-light \.stage3StorageRoom \.stage3ChordBuilderPanel \.chordBuilderChip\.selected \{[\s\S]*?border-color: #b38a45 !important;[\s\S]*?#e5d2aa !important;[\s\S]*?color: #22180b !important;/,
   );
 });
+
+test("mobile rhythm storage keeps save actions visible while compacting vertical space", async () => {
+  const appCss = await readFile(appStyleUrl, "utf8");
+
+  assert.match(appCss, /Mobile rhythm storage: keep the primary save action visible on first entry/);
+  assert.match(appCss, /height: min\(calc\(100dvh - 20px\), 810px\) !important/);
+  assert.match(appCss, /--fretboard-board-height: 124px/);
+  assert.match(
+    appCss,
+    /\.stage3StorageRoom \.stage3StorageComposerActions[\s\S]*?position: sticky !important;[\s\S]*?bottom: 0 !important;/,
+  );
+});
