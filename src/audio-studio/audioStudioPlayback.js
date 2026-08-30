@@ -6,6 +6,31 @@ import {
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, Number(value) || 0));
 const reverbImpulseCache = new WeakMap();
 
+export function resumeAudioStudioPlaybackContext(context) {
+  if (!context || context.state === "closed") {
+    return Promise.reject(new Error("AUDIO_CONTEXT_UNAVAILABLE"));
+  }
+  if (context.state === "running") return Promise.resolve(context);
+  if (typeof context.resume !== "function") {
+    return Promise.reject(new Error("AUDIO_CONTEXT_RESUME_UNAVAILABLE"));
+  }
+
+  // Calling resume() itself must happen during the play button's user gesture.
+  // iOS can interrupt the shared context while its Files picker is in front.
+  let resumeResult;
+  try {
+    resumeResult = context.resume();
+  } catch (error) {
+    return Promise.reject(error);
+  }
+  return Promise.resolve(resumeResult).then(() => {
+    if (["closed", "interrupted", "suspended"].includes(context.state)) {
+      throw new Error("AUDIO_CONTEXT_NOT_RUNNING");
+    }
+    return context;
+  });
+}
+
 export function getAudioStudioPlaybackRange(project, fromMs = 0) {
   const projectEndMs = getAudioStudioProjectDurationMs(project);
   const loop = project?.practice?.loop;

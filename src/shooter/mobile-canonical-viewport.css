@@ -1,0 +1,98 @@
+/*
+ * The 430 x 932 development preview is the single authored mobile canvas.
+ * Real phones fit this complete canvas uniformly instead of independently
+ * reflowing/cropping the map, HUD, player, effects, or navigation.
+ */
+  html.shooterCanonicalMobile,
+  html.shooterCanonicalMobile body,
+  html.shooterCanonicalMobile body > #root {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    background: #020503 !important;
+    overscroll-behavior: none;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode {
+    --shooter-mobile-nav-space: 88px;
+    position: fixed !important;
+    inset: auto !important;
+    top: var(--shooter-mobile-canvas-top, 0px) !important;
+    left: var(--shooter-mobile-canvas-left, 0px) !important;
+    width: 430px !important;
+    min-width: 430px !important;
+    max-width: 430px !important;
+    height: 932px !important;
+    min-height: 932px !important;
+    max-height: 932px !important;
+    margin: 0 !important;
+    transform: scale(var(--shooter-mobile-canvas-scale, 1)) !important;
+    transform-origin: top left !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode > .hud > .modeSwitch {
+    bottom: 10px !important;
+    width: 370px !important;
+    min-width: 0 !important;
+    max-width: 370px !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode .shooterGuitarPickerOverlay {
+    padding: 24px 14px !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode .shooterSkinConfigurator {
+    width: 346px !important;
+    height: 610px !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode .utilityMenuPanel {
+    bottom: 86px !important;
+    width: 286px !important;
+    max-width: 286px !important;
+    max-height: 836px !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .shooterCenterStatus.shooterCenterStatus--startMenu {
+    width: 216px !important;
+    border-radius: 14px !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .shooterCenterStatus--startMenu > .shooterStartPanel {
+    gap: 7px !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu {
+    width: 328px !important;
+    padding: 8px !important;
+    border-radius: 20px !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu > .shooterPausePanel {
+    grid-template-rows: 42px repeat(2, 52px) !important;
+    gap: 7px !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu .shooterPausePanelButton {
+    grid-template-columns: 38px minmax(0, 1fr) 38px !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    padding: 4px 10px !important;
+    border-radius: 14px !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelHeader strong {
+    font-size: 20px !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelLabel strong {
+    font-size: 18px !important;
+  }

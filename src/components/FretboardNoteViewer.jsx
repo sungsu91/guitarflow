@@ -60,30 +60,32 @@ export const FretboardNoteViewerBoard = memo(function FretboardNoteViewerBoard({
 
 export const FretboardNoteViewerControls = memo(function FretboardNoteViewerControls({ store }) {
   const { accidentalPreference, noteFilter } = useFretboardNoteViewerSnapshot(store);
+  const isFlat = accidentalPreference === NOTE_ACCIDENTAL_PREFERENCES.FLAT;
 
   return (
     <div className="viewerNotePanel" aria-label="음표 선택">
       <span>음표 선택</span>
-      <div className="viewerNoteAccidentalControls" aria-label="음표 변화표 표기" role="group">
-        <button
-          aria-label="음표를 샵으로 표기"
-          aria-pressed={accidentalPreference === NOTE_ACCIDENTAL_PREFERENCES.SHARP}
-          className={accidentalPreference === NOTE_ACCIDENTAL_PREFERENCES.SHARP ? "selected" : ""}
-          onClick={() => store.selectAccidental(NOTE_ACCIDENTAL_PREFERENCES.SHARP)}
-          type="button"
+      <button
+        aria-label={`현재 ${isFlat ? "플랫" : "샵"} 표기. 눌러 ${isFlat ? "샵" : "플랫"}으로 변경`}
+        className={`viewerNoteAccidentalControls ${isFlat ? "is-flat" : "is-sharp"}`}
+        onClick={() => store.selectAccidental(
+          isFlat ? NOTE_ACCIDENTAL_PREFERENCES.SHARP : NOTE_ACCIDENTAL_PREFERENCES.FLAT,
+        )}
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          className={`viewerNoteAccidentalOption viewerNoteAccidentalOption--sharp ${!isFlat ? "is-current" : ""}`}
         >
-          <span aria-hidden="true">♯</span>
-        </button>
-        <button
-          aria-label="음표를 플랫으로 표기"
-          aria-pressed={accidentalPreference === NOTE_ACCIDENTAL_PREFERENCES.FLAT}
-          className={accidentalPreference === NOTE_ACCIDENTAL_PREFERENCES.FLAT ? "selected" : ""}
-          onClick={() => store.selectAccidental(NOTE_ACCIDENTAL_PREFERENCES.FLAT)}
-          type="button"
+          #
+        </span>
+        <span
+          aria-hidden="true"
+          className={`viewerNoteAccidentalOption viewerNoteAccidentalOption--flat ${isFlat ? "is-current" : ""}`}
         >
-          <span aria-hidden="true">♭</span>
-        </button>
-      </div>
+          ♭
+        </span>
+      </button>
       <div className="viewerNoteButtons">
         <button
           aria-pressed={noteFilter === ALL_FRETBOARD_NOTES}

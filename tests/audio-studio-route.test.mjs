@@ -153,3 +153,16 @@ test("Audio Studio renders only the simple shared player and final save flow", a
   assert.doesNotMatch(hookSource.slice(hookSource.indexOf("const onKeyDown = (event) =>"), hookSource.indexOf("window.addEventListener(\"keydown\"")), /copySelection|cutSelection|pasteSelection|duplicateSelection|Delete|Backspace/);
   assert.match(hookSource, /playSavedMix/);
 });
+
+test("Audio Studio reactivates mobile audio before crossing into buffer work", async () => {
+  const hookSource = await readFile(new URL("../src/audio-studio/useAudioStudio.js", import.meta.url), "utf8");
+  const playbackFlow = hookSource.slice(
+    hookSource.indexOf("const startPlayback = useCallback"),
+    hookSource.indexOf("const pausePlayback = useCallback"),
+  );
+  assert.ok(
+    playbackFlow.indexOf("resumeAudioStudioPlaybackContext(context)")
+      < playbackFlow.indexOf("ensureSourceBuffers(context, studioProject)"),
+  );
+  assert.doesNotMatch(playbackFlow, /await ensurePlaybackContext\(\)/);
+});

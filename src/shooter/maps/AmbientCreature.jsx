@@ -34,6 +34,14 @@ function distance(left, right) {
   return Math.hypot(left.x - right.x, left.y - right.y);
 }
 
+function getStageLayoutSize(stage) {
+  const rect = stage.getBoundingClientRect();
+  return {
+    height: stage.clientHeight || rect.height,
+    width: stage.clientWidth || rect.width,
+  };
+}
+
 function HoppingFrogCreature({ animationActive = true, creature, editMode = false, placement }) {
   const rootRef = useRef(null);
   const imageRef = useRef(null);
@@ -91,9 +99,9 @@ function HoppingFrogCreature({ animationActive = true, creature, editMode = fals
     };
 
     const setPosition = (point, lift = 0, squash = 1, direction = facing) => {
-      const rect = stage.getBoundingClientRect();
-      const offsetX = ((point.x - base.x) * rect.width) / scale;
-      const offsetY = (((point.y - base.y) * rect.height) - lift) / scale;
+      const stageSize = getStageLayoutSize(stage);
+      const offsetX = ((point.x - base.x) * stageSize.width) / scale;
+      const offsetY = (((point.y - base.y) * stageSize.height) - lift) / scale;
       facing = direction || facing;
       root.style.transform = `translate3d(${offsetX}px, ${offsetY}px, 0)`;
       root.style.setProperty("--frog-facing", String(facing));
@@ -155,7 +163,7 @@ function HoppingFrogCreature({ animationActive = true, creature, editMode = fals
           x: origin.x + (destination.point.x - origin.x) * easedTravel,
           y: origin.y + (destination.point.y - origin.y) * easedTravel,
         };
-        const lift = Math.sin(Math.PI * travel) * jumpHeight * stage.getBoundingClientRect().height;
+        const lift = Math.sin(Math.PI * travel) * jumpHeight * getStageLayoutSize(stage).height;
         const squash = progress > 0.84
           ? 1 - Math.sin(((progress - 0.84) / 0.16) * Math.PI) * 0.14
           : 1;
@@ -782,9 +790,9 @@ function DivingFrogCreature({ animationActive = true, creature, editMode = false
     };
 
     const setPosition = (point, lift = 0, squash = 1, direction = 1, rotation = 0, opacity = 1) => {
-      const rect = stage.getBoundingClientRect();
-      const offsetX = ((point.x - base.x) * rect.width) / scale;
-      const offsetY = (((point.y - base.y) * rect.height) - lift) / scale;
+      const stageSize = getStageLayoutSize(stage);
+      const offsetX = ((point.x - base.x) * stageSize.width) / scale;
+      const offsetY = (((point.y - base.y) * stageSize.height) - lift) / scale;
       root.style.transform = `translate3d(${offsetX}px, ${offsetY}px, 0)`;
       root.style.setProperty("--frog-facing", String(direction));
       root.style.setProperty("--frog-squash", String(squash));
@@ -827,7 +835,7 @@ function DivingFrogCreature({ animationActive = true, creature, editMode = false
           x: origin.x + (destination.x - origin.x) * eased,
           y: origin.y + (destination.y - origin.y) * eased,
         };
-        const lift = Math.sin(Math.PI * progress) * diveHeight * stage.getBoundingClientRect().height;
+        const lift = Math.sin(Math.PI * progress) * diveHeight * getStageLayoutSize(stage).height;
         const rotation = direction * (progress < 0.48
           ? -8 * Math.sin((progress / 0.48) * Math.PI)
           : 48 * ((progress - 0.48) / 0.52));

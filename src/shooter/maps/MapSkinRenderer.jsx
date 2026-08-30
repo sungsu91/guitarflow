@@ -835,8 +835,11 @@ function MapSkinRenderer({
     if (!stageElement || !isLayeredShooterMap(skin)) return undefined;
 
     const syncCoordinatePlane = () => {
-      const bounds = stageElement.getBoundingClientRect();
-      const plane = getMapCoverPlaneSize(bounds.width, bounds.height, skin.referenceViewport);
+      const plane = getMapCoverPlaneSize(
+        stageElement.clientWidth,
+        stageElement.clientHeight,
+        skin.referenceViewport,
+      );
       stageElement.style.setProperty("--shooter-map-cover-width", `${plane.width}px`);
       stageElement.style.setProperty("--shooter-map-cover-height", `${plane.height}px`);
       stageElement.style.setProperty("--shooter-map-cover-offset-x", `${plane.offsetX}px`);

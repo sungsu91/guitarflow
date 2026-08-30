@@ -1,4 +1,7 @@
+import shooterEffectTuningDefaults from "./effectTuningDefaults.js";
+
 export const SHOOTER_EFFECT_TUNING_STORAGE_KEY = "rifflabShooterEffectTuningV1";
+export const SHOOTER_EFFECT_TUNING_SAVE_ENDPOINT = "/__rifflab/shooter-editor/effect-tuning";
 
 export const DEFAULT_SHOOTER_EFFECT_TUNING = Object.freeze({
   offsetX: 0,
@@ -26,6 +29,17 @@ export function normalizeShooterEffectTuningStore(value = {}) {
   return Object.fromEntries(Object.entries(value)
     .filter(([effectId]) => Boolean(effectId))
     .map(([effectId, tuning]) => [effectId, normalizeShooterEffectTuning(tuning)]));
+}
+
+export const SHOOTER_EFFECT_TUNING_DEFAULTS = Object.freeze(
+  normalizeShooterEffectTuningStore(shooterEffectTuningDefaults),
+);
+
+export function mergeShooterEffectTuningStores(baseStore = {}, overrideStore = {}) {
+  return {
+    ...normalizeShooterEffectTuningStore(baseStore),
+    ...normalizeShooterEffectTuningStore(overrideStore),
+  };
 }
 
 export function applyShooterEffectTuning(layers = [], tuningStore = {}) {

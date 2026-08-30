@@ -140,6 +140,7 @@ import {
   getShooterNoteMonsterTuning,
 } from "./shooter/noteMonsterTuning.js";
 import useShooterNoteMonsterTuning from "./shooter/useShooterNoteMonsterTuning.js";
+import useShooterMobileViewport from "./shooter/useShooterMobileViewport.js";
 import {
   SHOOTER_PLAY_HELP_LEVELS,
   getShooterPlayHelpMessage,
@@ -181,6 +182,10 @@ import {
   registerMountedMode,
   shouldMountMode,
 } from "./navigation/keepAlive";
+import {
+  MOBILE_LAYOUT_MEDIA_QUERY,
+  getIsMobileLayout,
+} from "./layouts/mobileLayout.js";
 import {
   applyMiniChordEndingRangesToBarMarks,
   getMiniChordEndingRangeForBar,
@@ -12647,11 +12652,6 @@ function getDeviceSnapshot() {
   };
 }
 
-function getInitialMobileLayout() {
-  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
-  return window.matchMedia("(max-width: 680px)").matches;
-}
-
 const FRETBOARD_VIEWER_MODES = {
   NOTE: "note",
   SCALE: "scale",
@@ -15056,7 +15056,10 @@ function App({ onReady }) {
   const [feelPlaybackLoop, setFeelPlaybackLoop] = useState(true);
   const [feelPlaybackIndex, setFeelPlaybackIndex] = useState(-1);
   const [feelPlaybackProgress, setFeelPlaybackProgress] = useState(0);
-  const [isMobileLayout, setIsMobileLayout] = useState(getInitialMobileLayout);
+  const [isMobileLayout, setIsMobileLayout] = useState(getIsMobileLayout);
+  const shooterMobileViewportStyle = useShooterMobileViewport(
+    appMode === APP_MODES.SHOOTER && isMobileLayout,
+  );
   const [trainingNoteGuideEnabled, setTrainingNoteGuideEnabled] = useState(true);
   const [hitZoneNote, setHitZoneNote] = useState(null);
   const [isHitWindowActive, setIsHitWindowActive] = useState(false);
@@ -18837,15 +18840,17 @@ function App({ onReady }) {
     const arenaRect = shooterArenaRef.current?.getBoundingClientRect?.();
     const playerRect = playerNode?.getBoundingClientRect?.();
     if (!arenaRect?.width || !arenaRect?.height || !playerRect) return null;
+    const renderedScaleX = arenaRect.width / arenaSize.width;
+    const renderedScaleY = arenaRect.height / arenaSize.height;
     const metrics = {
-      arenaHeight: arenaRect.height,
-      arenaRect: { height: arenaRect.height, width: arenaRect.width },
-      arenaWidth: arenaRect.width,
+      arenaHeight: arenaSize.height,
+      arenaRect: { height: arenaSize.height, width: arenaSize.width },
+      arenaWidth: arenaSize.width,
       assetHeight: Math.max(1, assetNode?.offsetHeight || playerRect.height || 1),
       assetNode,
       assetWidth: Math.max(1, assetNode?.offsetWidth || playerRect.width || 1),
-      pivotX: playerRect.left - arenaRect.left + playerRect.width / 2,
-      pivotY: playerRect.bottom - arenaRect.top,
+      pivotX: (playerRect.left - arenaRect.left + playerRect.width / 2) / renderedScaleX,
+      pivotY: (playerRect.bottom - arenaRect.top) / renderedScaleY,
       playerNode,
     };
     shooterGuitarBaseMetricsRef.current = metrics;
@@ -19257,8 +19262,14 @@ function App({ onReady }) {
     );
     const arenaRect = arena.getBoundingClientRect();
     const playerRect = player.getBoundingClientRect();
-    const playerCenterX = playerRect.left - arenaRect.left + playerRect.width * 0.5;
-    const playerCenterY = playerRect.top - arenaRect.top + playerRect.height * 0.66;
+    const renderedScaleX = arenaRect.width / arenaSize.width;
+    const renderedScaleY = arenaRect.height / arenaSize.height;
+    const playerCenterX = (
+      playerRect.left - arenaRect.left + playerRect.width * 0.5
+    ) / renderedScaleX;
+    const playerCenterY = (
+      playerRect.top - arenaRect.top + playerRect.height * 0.66
+    ) / renderedScaleY;
     const dashX = projection.screenX - playerCenterX;
     const dashY = projection.screenY - playerCenterY;
     const side = dashX < 0 ? -1 : 1;
@@ -19313,10 +19324,10 @@ function App({ onReady }) {
       for (let index = 0; index < afterimageCount; index += 1) {
         const afterimage = document.createElement("span");
         afterimage.className = "threeDLabAfterimage";
-        afterimage.style.left = `${assetRect.left - arenaRect.left}px`;
-        afterimage.style.top = `${assetRect.top - arenaRect.top}px`;
-        afterimage.style.width = `${assetRect.width}px`;
-        afterimage.style.height = `${assetRect.height}px`;
+        afterimage.style.left = `${(assetRect.left - arenaRect.left) / renderedScaleX}px`;
+        afterimage.style.top = `${(assetRect.top - arenaRect.top) / renderedScaleY}px`;
+        afterimage.style.width = `${assetRect.width / renderedScaleX}px`;
+        afterimage.style.height = `${assetRect.height / renderedScaleY}px`;
         afterimage.style.opacity = String(0.16 + settings.afterimageStrength * 0.28);
         const clone = asset.cloneNode(true);
         clone.removeAttribute("class");
@@ -23308,9 +23319,9 @@ function App({ onReady }) {
   }, [shooterSoundOn]);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 680px)");
+    const mediaQuery = window.matchMedia(MOBILE_LAYOUT_MEDIA_QUERY);
     const updateMobileLayout = () => {
-      const nextIsMobileLayout = mediaQuery.matches;
+      const nextIsMobileLayout = getIsMobileLayout(window);
       const nextDeviceInfo = getDeviceSnapshot();
       isMobileLayoutRef.current = nextIsMobileLayout;
       setIsMobileLayout((current) => current === nextIsMobileLayout ? current : nextIsMobileLayout);
@@ -25785,6 +25796,7 @@ function App({ onReady }) {
       onPointerDownCapture={handleAppPointerDownCapture}
       onPointerUpCapture={handleAppPointerUpCapture}
       inert={appInteractionLocked}
+      style={shooterMobileViewportStyle}
       translate="no"
     >
       {shooterLaunchTransition && typeof document !== "undefined"

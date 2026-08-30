@@ -230,6 +230,19 @@ test("mobile rhythm load toolbar gives the LOAD action more width and emphasis",
   );
   assert.match(
     appCss,
-    /> button\.stage3StorageMoveButton\.stage3StorageMoveButton \{[\s\S]*?width: 72px !important;[\s\S]*?background: linear-gradient\(180deg, #f4d994 0%, #d29a3d 100%\) !important;[\s\S]*?font-weight: 1000 !important;/,
+    /> button\.stage3StorageMoveButton\.stage3StorageMoveButton \{[\s\S]*?width: 72px !important;[\s\S]*?rgba\(255, 252, 242, 0\.84\)[\s\S]*?#e5d2aa !important;[\s\S]*?font-weight: 1000 !important;/,
+  );
+});
+
+test("LOAD and its selected chord options reuse the two-beat add button palette", async () => {
+  const appCss = await readFile(appStyleUrl, "utf8");
+
+  assert.match(
+    appCss,
+    /\.stage3StorageRoom \.stage3ChordBuilderPanel \.chordBuilderChip\.selected \{[\s\S]*?border-color: #b38a45 !important;[\s\S]*?#e5d2aa !important;[\s\S]*?color: #22180b !important;/,
+  );
+  assert.match(
+    appCss,
+    /\.theme-light \.stage3StorageRoom \.stage3ChordBuilderPanel \.chordBuilderChip\.selected \{[\s\S]*?border-color: #b38a45 !important;[\s\S]*?#e5d2aa !important;[\s\S]*?color: #22180b !important;/,
   );
 });

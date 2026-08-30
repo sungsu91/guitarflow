@@ -49,7 +49,11 @@ import {
   updateAudioStudioTrack,
   updateAudioStudioMarker,
 } from "./audioStudioModel";
-import { scheduleAudioStudioPlayback, stopAudioStudioPlayback } from "./audioStudioPlayback";
+import {
+  resumeAudioStudioPlaybackContext,
+  scheduleAudioStudioPlayback,
+  stopAudioStudioPlayback,
+} from "./audioStudioPlayback";
 import {
   downloadAudioStudioBlob,
   getAudioStudioRenderedDurationMs,
@@ -148,7 +152,7 @@ export default function useAudioStudio() {
     playbackStopAtRef.current = null;
   }, [cancelPlaybackFrame]);
 
-  const ensurePlaybackContext = useCallback(async () => {
+  const ensurePlaybackContext = useCallback(() => {
     if (audioContextRef.current && audioContextRef.current.state !== "closed") return audioContextRef.current;
     const context = getSharedAudioContext();
     if (!context) throw new Error("AUDIO_CONTEXT_UNAVAILABLE");
@@ -191,9 +195,11 @@ export default function useAudioStudio() {
       return;
     }
     try {
-      const context = await ensurePlaybackContext();
+      const context = ensurePlaybackContext();
+      // Resume before any file/blob work. Mobile Safari may consume the tap's
+      // playback permission as soon as this handler crosses an async boundary.
+      await resumeAudioStudioPlaybackContext(context);
       await ensureSourceBuffers(context, studioProject);
-      await context.resume?.();
       clearScheduledPlayback();
       playbackStopAtRef.current = Number.isFinite(options.stopAtMs) ? options.stopAtMs : null;
       const loop = studioProject.practice.loop;

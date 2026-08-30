@@ -18,4 +18,3 @@ export function getMapCoverPlaneSize(containerWidth, containerHeight, referenceV
     width: planeWidth,
   };
 }
-

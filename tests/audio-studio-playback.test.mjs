@@ -6,7 +6,11 @@ import {
   createAudioStudioSource,
   createAudioStudioTrack,
 } from "../src/audio-studio/audioStudioModel.js";
-import { createAudioStudioPlaybackPlan, getAudioStudioPlaybackRange } from "../src/audio-studio/audioStudioPlayback.js";
+import {
+  createAudioStudioPlaybackPlan,
+  getAudioStudioPlaybackRange,
+  resumeAudioStudioPlaybackContext,
+} from "../src/audio-studio/audioStudioPlayback.js";
 
 function projectWithTwoTracks() {
   const source = createAudioStudioSource({ durationMs: 10_000, id: "source-a" });
@@ -25,6 +29,35 @@ function projectWithTwoTracks() {
     ],
   });
 }
+
+test("mobile playback resumes an interrupted context immediately from the play gesture", async () => {
+  let finishResume;
+  const context = {
+    state: "interrupted",
+    resume() {
+      this.resumeCalled = true;
+      return new Promise((resolve) => {
+        finishResume = () => {
+          this.state = "running";
+          resolve();
+        };
+      });
+    },
+  };
+
+  const resuming = resumeAudioStudioPlaybackContext(context);
+  assert.equal(context.resumeCalled, true, "resume() must run synchronously before user activation expires");
+  finishResume();
+  assert.equal(await resuming, context);
+});
+
+test("mobile playback rejects when the browser leaves its audio context suspended", async () => {
+  const context = { state: "suspended", resume: async () => {} };
+  await assert.rejects(
+    resumeAudioStudioPlaybackContext(context),
+    /AUDIO_CONTEXT_NOT_RUNNING/,
+  );
+});
 
 test("playback plan respects track mute and keeps source offsets non-destructive", () => {
   const project = projectWithTwoTracks();

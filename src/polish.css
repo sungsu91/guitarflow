@@ -8884,6 +8884,10 @@ html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
 /* Mobile fretboard viewer finish: note and scale keep the shared data and
    interactions, while their presentation follows the rounded chord chassis. */
 @media (max-width: 767px) {
+  html:has(main.app:is(.theme-brand, .theme-light) .fretboardViewerPanel) {
+    scrollbar-gutter: stable;
+  }
+
   html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
     .fretboardViewerPanel.fretboardViewerPanel:not(.fretboardViewerPanel--chord) {
     display: grid !important;
@@ -8891,6 +8895,15 @@ html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
     padding: 11px !important;
     overflow: hidden !important;
     border-radius: 24px !important;
+  }
+
+  html body main.app.app.app.app.app.theme-light
+    .fretboardViewerPanel.fretboardViewerPanel:not(.fretboardViewerPanel--chord) {
+    background:
+      radial-gradient(ellipse at 22% 0%, rgba(255, 255, 255, 0.94), transparent 36%),
+      radial-gradient(ellipse at 82% 16%, rgba(245, 232, 199, 0.28), transparent 34%),
+      linear-gradient(112deg, rgba(255, 255, 255, 0.56), transparent 28%, rgba(191, 160, 106, 0.07) 60%, transparent 82%),
+      linear-gradient(180deg, #fcf9f1 0%, #f3ede1 46%, #e9dfcf 100%) !important;
   }
 
   html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
@@ -8907,10 +8920,122 @@ html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
     box-shadow: none !important;
   }
 
+  /* The chord rail is the mobile reference. Keep all three modes at the same
+     physical size so changing content cannot resize or overflow the tab row. */
   html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
-    .fretboardViewerPanel:not(.fretboardViewerPanel--chord)
+    .fretboardViewerPanel.fretboardViewerPanel
     .viewerModeTabs.viewerModeTabs {
-    margin: 0 15px 1px !important;
+    box-sizing: border-box !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 47px !important;
+    min-height: 47px !important;
+    margin: 0 3px 1px !important;
+    padding: 3px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(160, 128, 78, 0.43) !important;
+    border-radius: 13px !important;
+    background:
+      linear-gradient(180deg, rgba(213, 196, 163, 0.28), rgba(255, 255, 255, 0.66)),
+      #eee6d7 !important;
+    box-shadow:
+      inset 0 1px 2px rgba(99, 62, 49, 0.12),
+      0 1px 0 rgba(255, 255, 255, 0.84) !important;
+    contain: layout paint;
+  }
+
+  html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+    .fretboardViewerPanel.fretboardViewerPanel
+    .viewerModeTabs.viewerModeTabs
+    > button {
+    box-sizing: border-box !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: 39px !important;
+    min-height: 39px !important;
+    max-height: 39px !important;
+    margin: 0 !important;
+    padding: 0 5px !important;
+    border: 1px solid rgba(168, 118, 99, 0.42) !important;
+    border-radius: 10px !important;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(255, 255, 255, 0.26) 46%,
+        rgba(210, 181, 170, 0.12) 100%
+      ),
+      #f8f3e8 !important;
+    color: #332824 !important;
+    box-shadow:
+      0 1px 2px rgba(83, 51, 40, 0.11),
+      inset 0 1px 0 rgba(255, 255, 255, 0.96),
+      inset 0 -1px 0 rgba(139, 88, 69, 0.11) !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+  }
+
+  html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+    .fretboardViewerPanel.fretboardViewerPanel
+    .viewerModeTabs.viewerModeTabs
+    > button:is(.selected, [aria-pressed="true"], [aria-selected="true"]) {
+    border-color: rgba(168, 136, 81, 0.74) !important;
+    background:
+      linear-gradient(180deg, #fffdf5 0%, #f2e9d6 50%, #e5d4b4 100%),
+      #eee1c6 !important;
+    color: #211813 !important;
+    box-shadow:
+      0 1px 2px rgba(84, 61, 31, 0.13),
+      inset 0 1px 0 rgba(255, 255, 255, 0.96),
+      inset 0 -1px 0 rgba(135, 105, 55, 0.15),
+      0 0 0 1px rgba(255, 250, 232, 0.68) !important;
+  }
+
+  html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+    .fretboardViewerPanel.fretboardViewerPanel
+    .viewerModeTabStack.viewerModeTabStack {
+    color: inherit !important;
+    font-size: inherit !important;
+    line-height: 1.02 !important;
+  }
+
+  html body main.app.app.app.app.app.theme-brand
+    .fretboardViewerPanel.fretboardViewerPanel
+    .viewerModeTabs.viewerModeTabs {
+    border-color: rgba(217, 170, 85, 0.3) !important;
+    background: linear-gradient(180deg, #242018, #15130f) !important;
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.42),
+      0 1px 0 rgba(255, 229, 169, 0.045) !important;
+  }
+
+  html body main.app.app.app.app.app.theme-brand
+    .fretboardViewerPanel.fretboardViewerPanel
+    .viewerModeTabs.viewerModeTabs
+    > button {
+    border-color: rgba(217, 170, 85, 0.22) !important;
+    background: linear-gradient(180deg, #29231a 0%, #1b1812 100%) !important;
+    color: var(--pearl-ink) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 229, 169, 0.055),
+      0 1px 2px rgba(0, 0, 0, 0.28) !important;
+  }
+
+  html body main.app.app.app.app.app.theme-brand
+    .fretboardViewerPanel.fretboardViewerPanel
+    .viewerModeTabs.viewerModeTabs
+    > button:is(.selected, [aria-pressed="true"], [aria-selected="true"]) {
+    border-color: rgba(198, 129, 143, 0.66) !important;
+    background: linear-gradient(180deg, #56373c 0%, #352328 100%) !important;
+    color: #ffe6b0 !important;
+    box-shadow:
+      inset 0 -2px 0 #c6818f,
+      inset 0 1px 0 rgba(255, 223, 196, 0.08) !important;
   }
 
   html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
@@ -9017,51 +9142,172 @@ html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
   html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
     .fretboardViewerPanel--note.fretboardViewerPanel
     .viewerNotePanel > .viewerNoteAccidentalControls {
+    --accidental-knob-shift: 0px;
+    position: relative !important;
+    isolation: isolate;
+    box-sizing: border-box !important;
     display: inline-grid !important;
-    grid-template-columns: repeat(2, 32px) !important;
-    gap: 3px !important;
-    min-height: 36px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+    width: 120px !important;
+    min-width: 120px !important;
+    height: 38px !important;
+    min-height: 38px !important;
     padding: 3px !important;
     overflow: hidden !important;
-    border: 1px solid var(--riff-border-soft) !important;
-    border-radius: 11px !important;
-    background: color-mix(in srgb, var(--riff-surface-panel-raised) 76%, var(--riff-surface-panel)) !important;
+    border: 1px solid var(--riff-border-panel) !important;
+    border-radius: 19px !important;
+    background:
+      linear-gradient(90deg, transparent calc(50% - 0.5px), var(--riff-border-soft) 50%, transparent calc(50% + 0.5px)),
+      linear-gradient(180deg, color-mix(in srgb, white 18%, transparent), transparent),
+      color-mix(in srgb, var(--riff-surface-panel-raised) 62%, var(--riff-surface-panel)) !important;
     box-shadow:
-      inset 0 1px 2px rgba(74, 47, 37, 0.1),
-      0 1px 0 color-mix(in srgb, white 76%, transparent) !important;
+      inset 0 2px 4px rgba(74, 47, 37, 0.13),
+      0 1px 0 color-mix(in srgb, white 82%, transparent),
+      0 2px 5px rgba(83, 51, 40, 0.08) !important;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
   html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
     .fretboardViewerPanel--note.fretboardViewerPanel
-    .viewerNotePanel .viewerNoteAccidentalControls button {
-    width: 32px !important;
-    min-width: 32px !important;
-    height: 30px !important;
-    min-height: 30px !important;
+    .viewerNotePanel > .viewerNoteAccidentalControls.is-flat {
+    --accidental-knob-shift: 100%;
+  }
+
+  html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+    .fretboardViewerPanel--note.fretboardViewerPanel
+    .viewerNotePanel > .viewerNoteAccidentalControls:focus-visible {
+    outline: 1px solid color-mix(in srgb, var(--riff-border-selected) 72%, transparent) !important;
+    outline-offset: 2px !important;
+  }
+
+  html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+    .fretboardViewerPanel--note.fretboardViewerPanel
+    .viewerNotePanel > .viewerNoteAccidentalControls::before {
+    content: "";
+    position: absolute;
+    inset: 2px auto 2px 3px;
+    z-index: 0;
+    box-sizing: border-box;
+    width: calc((100% - 6px) / 2);
+    border: 1px solid var(--riff-border-selected);
+    border-radius: 12px;
+    background: var(--riff-control-selected);
+    box-shadow:
+      var(--riff-shadow-selected),
+      0 1px 3px rgba(84, 61, 31, 0.11);
+    pointer-events: none;
+    transform: translate3d(var(--accidental-knob-shift), 0, 0);
+    will-change: transform;
+    transition:
+      transform 220ms cubic-bezier(0.22, 0.9, 0.24, 1),
+      box-shadow 180ms ease,
+      border-color 180ms ease;
+  }
+
+  html body main.app.app.app.app.app.theme-light
+    .fretboardViewerPanel--note.fretboardViewerPanel
+    .viewerNotePanel > .viewerNoteAccidentalControls {
+    border-color: rgba(165, 123, 91, 0.34) !important;
+    background:
+      linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(143, 103, 76, 0.2) 50%, transparent calc(50% + 0.5px)),
+      #f1e7dc !important;
+    box-shadow:
+      inset 0 1px 2px rgba(91, 58, 43, 0.11),
+      0 1px 2px rgba(83, 51, 40, 0.07) !important;
+  }
+
+  html body main.app.app.app.app.app.theme-light
+    .fretboardViewerPanel--note.fretboardViewerPanel
+    .viewerNotePanel > .viewerNoteAccidentalControls::before {
+    border-color: rgba(190, 145, 63, 0.72) !important;
+    background: #f3e6c7 !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.98),
+      0 1px 3px rgba(110, 75, 29, 0.13) !important;
+  }
+
+  html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+    .fretboardViewerPanel--note.fretboardViewerPanel
+    .viewerNotePanel > .viewerNoteAccidentalControls:active::before {
+    transform: translate3d(var(--accidental-knob-shift), 0, 0);
+  }
+
+  html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+    .fretboardViewerPanel--note.fretboardViewerPanel
+    .viewerNotePanel .viewerNoteAccidentalOption {
+    position: relative !important;
+    z-index: 1;
+    display: grid !important;
+    place-items: center;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    margin: 0 !important;
     padding: 0 !important;
-    border: 1px solid transparent !important;
-    border-radius: 8px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
     background: transparent !important;
+    color: var(--riff-text-secondary) !important;
     box-shadow: none !important;
-  }
-
-  html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
-    .fretboardViewerPanel--note.fretboardViewerPanel
-    .viewerNotePanel .viewerNoteAccidentalControls button > span {
-    color: inherit !important;
     font-family: Georgia, "Times New Roman", serif !important;
     font-size: 19px !important;
     font-weight: 700 !important;
     line-height: 1 !important;
+    opacity: 0.72;
+    pointer-events: none;
+    transform: translateY(-1px);
+    transition:
+      color 180ms ease,
+      transform 180ms ease,
+      opacity 180ms ease;
+  }
+
+  html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+    .fretboardViewerPanel--note.fretboardViewerPanel
+    .viewerNotePanel .viewerNoteAccidentalOption--sharp {
+    font-family: inherit !important;
+    font-size: 16px !important;
+    font-weight: 900 !important;
+  }
+
+  html body main.app.app.app.app.app.theme-light
+    .fretboardViewerPanel--note.fretboardViewerPanel
+    .viewerNotePanel .viewerNoteAccidentalOption {
+    color: rgba(68, 50, 43, 0.8) !important;
+  }
+
+  html body main.app.app.app.app.app.theme-brand
+    .fretboardViewerPanel--note.fretboardViewerPanel
+    .viewerNotePanel .viewerNoteAccidentalOption {
+    color: rgba(255, 232, 181, 0.78) !important;
+  }
+
+  html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+    .fretboardViewerPanel--note.fretboardViewerPanel
+    .viewerNotePanel > .viewerNoteAccidentalControls:active .viewerNoteAccidentalOption {
     transform: translateY(-1px);
   }
 
   html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
     .fretboardViewerPanel--note.fretboardViewerPanel
-    .viewerNotePanel .viewerNoteAccidentalControls button:is(.selected, [aria-pressed="true"]) {
-    border-color: var(--riff-border-selected) !important;
-    background: var(--riff-control-selected) !important;
+    .viewerNotePanel .viewerNoteAccidentalOption.is-current {
     color: var(--riff-text-strong) !important;
-    box-shadow: var(--riff-shadow-selected) !important;
+    opacity: 1 !important;
+    transform: translateY(-1px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+      .fretboardViewerPanel--note.fretboardViewerPanel
+      .viewerNotePanel > .viewerNoteAccidentalControls::before,
+    html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
+      .fretboardViewerPanel--note.fretboardViewerPanel
+      .viewerNotePanel .viewerNoteAccidentalOption {
+      transition-duration: 0.01ms !important;
+    }
   }
 }

@@ -40,4 +40,3 @@ test("map renderer shares one cover-aligned plane between editor and gameplay", 
   assert.match(styles, /width: var\(--shooter-map-cover-width, 100%\)/);
   assert.match(styles, /height: var\(--shooter-map-cover-height, 100%\)/);
 });
-

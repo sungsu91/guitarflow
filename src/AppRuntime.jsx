@@ -12,6 +12,7 @@ import "./shooter/pseudo3d/pseudo3d.css";
 import "./layouts/desktop-layout.css";
 import "./audio-studio/audio-studio.css";
 import "./tuner/tuner-mode.css";
+import "./shooter/mobile-canonical-viewport.css";
 
 const NAVIGATION_PROBE_KEY = "__RIFFLAB_NAVIGATION_PROBE__";
 const NAVIGATION_PROBE_META_NAME = "rifflab-navigation-performance";

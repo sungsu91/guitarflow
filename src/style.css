@@ -69859,9 +69859,15 @@ html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBui
 }
 
 html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderChip.selected {
-  background: linear-gradient(180deg, rgba(241, 202, 122, 0.96), rgba(178, 121, 46, 0.92)) !important;
-  color: #100904 !important;
-  box-shadow: inset 0 1px 0 rgba(255, 248, 221, 0.34) !important;
+  border-color: #b38a45 !important;
+  background:
+    linear-gradient(rgba(255, 252, 242, 0.84), rgba(214, 190, 144, 0.38)),
+    #e5d2aa !important;
+  color: #22180b !important;
+  box-shadow:
+    0 6px 14px rgba(95, 68, 28, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -1px 0 rgba(138, 96, 37, 0.12) !important;
 }
 
 html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderChip:disabled {
@@ -69910,8 +69916,15 @@ html body main.app.app.app.theme-light .stage3StorageRoom .stage3ChordBuilderPan
 }
 
 html body main.app.app.app.theme-light .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderChip.selected {
-  background: linear-gradient(180deg, #efd18d 0%, #c99543 100%) !important;
-  color: #211407 !important;
+  border-color: #b38a45 !important;
+  background:
+    linear-gradient(rgba(255, 252, 242, 0.84), rgba(214, 190, 144, 0.38)),
+    #e5d2aa !important;
+  color: #22180b !important;
+  box-shadow:
+    0 6px 14px rgba(95, 68, 28, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -1px 0 rgba(138, 96, 37, 0.12) !important;
 }
 
 /* LOAD strum language: color the glyph only, like an on/off indicator. */
@@ -70332,24 +70345,117 @@ html body main.app.app.app.theme-light .chordTransitionChart .currentProgression
 }
 
 .fretboardViewerPanel .viewerNotePanel > .viewerNoteAccidentalControls {
-  display: inline-flex !important;
+  --accidental-knob-shift: 0px;
+  position: relative;
+  isolation: isolate;
+  display: inline-grid !important;
   grid-column: 2;
-  gap: 2px !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 !important;
+  width: 112px !important;
+  min-width: 112px !important;
+  height: 36px !important;
+  min-height: 36px !important;
   justify-self: end;
   padding: 2px;
+  overflow: hidden;
   border: 1px solid rgba(217, 170, 85, 0.2);
-  border-radius: 8px;
-  background: rgba(4, 7, 10, 0.55);
+  border-radius: 18px;
+  background: rgba(4, 7, 10, 0.55) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.34) !important;
+  appearance: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.fretboardViewerPanel .viewerNotePanel .viewerNoteAccidentalControls button {
-  width: 29px !important;
-  min-width: 29px !important;
-  min-height: 24px !important;
+.fretboardViewerPanel .viewerNotePanel > .viewerNoteAccidentalControls.is-flat {
+  --accidental-knob-shift: 100%;
+}
+
+.fretboardViewerPanel .viewerNotePanel > .viewerNoteAccidentalControls::before {
+  content: "";
+  position: absolute;
+  inset: 2px auto 2px 3px;
+  z-index: 0;
+  box-sizing: border-box;
+  width: calc((100% - 6px) / 2) !important;
+  border: 1px solid rgba(217, 170, 85, 0.52);
+  border-radius: 12px !important;
+  background: #3a2d1e;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 190, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+  transform: translate3d(var(--accidental-knob-shift), 0, 0);
+  will-change: transform;
+  transition: transform 230ms cubic-bezier(0.22, 0.9, 0.24, 1);
+}
+
+.fretboardViewerPanel .viewerNotePanel > .viewerNoteAccidentalControls:active::before {
+  transform: translate3d(var(--accidental-knob-shift), 0, 0);
+}
+
+.fretboardViewerPanel .viewerNotePanel .viewerNoteAccidentalOption {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  margin: 0 !important;
   padding: 0 !important;
-  border-radius: 6px !important;
-  font-size: 11px !important;
-  font-weight: 900 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: rgba(236, 226, 212, 0.62);
+  box-shadow: none !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0.68;
+  pointer-events: none;
+  transition:
+    color 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.fretboardViewerPanel .viewerNotePanel .viewerNoteAccidentalOption--sharp {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.fretboardViewerPanel .viewerNotePanel .viewerNoteAccidentalOption.is-current {
+  color: #ffe6b0;
+  opacity: 1;
+  transform: none;
+}
+
+html body main.app.theme-light .fretboardViewerPanel .viewerNotePanel > .viewerNoteAccidentalControls {
+  border-color: rgba(160, 128, 78, 0.38);
+  background: #f1e7dc !important;
+  box-shadow: inset 0 1px 2px rgba(99, 62, 49, 0.1) !important;
+}
+
+html body main.app.theme-light .fretboardViewerPanel .viewerNotePanel > .viewerNoteAccidentalControls::before {
+  border-color: rgba(168, 136, 81, 0.72);
+  background: #f3e6c7;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    0 1px 3px rgba(84, 61, 31, 0.11);
+}
+
+html body main.app.theme-light .fretboardViewerPanel .viewerNotePanel .viewerNoteAccidentalOption {
+  color: rgba(68, 50, 43, 0.8);
+}
+
+html body main.app.theme-light .fretboardViewerPanel .viewerNotePanel .viewerNoteAccidentalOption.is-current {
+  color: #211813;
 }
 
 .fretboardViewerPanel .viewerNotePanel > .viewerNoteButtons {
@@ -70360,11 +70466,26 @@ html body main.app.app.app.theme-light .chordTransitionChart .currentProgression
 }
 
 @media (max-width: 430px) {
-  .fretboardViewerPanel .viewerNotePanel .viewerNoteAccidentalControls button {
-    width: 27px !important;
-    min-width: 27px !important;
-    min-height: 22px !important;
-    font-size: 10.5px !important;
+  .fretboardViewerPanel .viewerNotePanel > .viewerNoteAccidentalControls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 104px !important;
+    min-width: 104px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+  }
+
+  .fretboardViewerPanel .viewerNotePanel > .viewerNoteAccidentalControls.is-flat {
+    --accidental-knob-shift: 100%;
+  }
+
+  .fretboardViewerPanel .viewerNotePanel > .viewerNoteAccidentalControls::before {
+    width: calc((100% - 6px) / 2) !important;
+  }
+
+  .fretboardViewerPanel .viewerNotePanel .viewerNoteAccidentalOption {
+    width: 100% !important;
+    height: 26px !important;
+    font-size: 16px;
   }
 
   .fretboardViewerPanel .viewerNotePanel > .viewerNoteButtons {
@@ -70935,15 +71056,18 @@ html body .shooterEffectDesktopCabinetSection .shooterGuitarCabinetPickerPreview
     height: 40px !important;
     min-height: 40px !important;
     padding-inline: 7px !important;
-    border-color: rgba(151, 98, 31, 0.72) !important;
-    background: linear-gradient(180deg, #f4d994 0%, #d29a3d 100%) !important;
-    color: #3d270c !important;
+    border-color: #b38a45 !important;
+    background:
+      linear-gradient(rgba(255, 252, 242, 0.84), rgba(214, 190, 144, 0.38)),
+      #e5d2aa !important;
+    color: #22180b !important;
     font-size: 9.5px !important;
     font-weight: 1000 !important;
     letter-spacing: 0.015em !important;
     box-shadow:
-      inset 0 1px 0 rgba(255, 251, 230, 0.9),
-      0 4px 10px rgba(113, 69, 20, 0.22) !important;
+      0 6px 14px rgba(95, 68, 28, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.78),
+      inset 0 -1px 0 rgba(138, 96, 37, 0.12) !important;
   }
 
   html body main.app.app.app
@@ -70951,11 +71075,14 @@ html body .shooterEffectDesktopCabinetSection .shooterGuitarCabinetPickerPreview
     .stage3PracticeUtilityPanel.stage3PracticeUtilityPanel
     .stage3LoadToolbar.stage3LoadToolbar
     > button.stage3StorageMoveButton.stage3StorageMoveButton:is(:hover, :focus-visible) {
-    border-color: rgba(131, 78, 17, 0.86) !important;
-    background: linear-gradient(180deg, #f8e2a7 0%, #dca346 100%) !important;
+    border-color: #a97d36 !important;
+    background:
+      linear-gradient(rgba(255, 253, 246, 0.92), rgba(207, 181, 133, 0.46)),
+      #dfc99b !important;
     box-shadow:
-      inset 0 1px 0 rgba(255, 253, 238, 0.94),
-      0 5px 12px rgba(105, 62, 15, 0.28) !important;
+      0 6px 14px rgba(95, 68, 28, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.84),
+      inset 0 -1px 0 rgba(138, 96, 37, 0.14) !important;
   }
 
   html body main.app.app.app

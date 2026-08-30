@@ -13,11 +13,16 @@ import {
   SHOOTER_NOTE_MONSTER_ROOTS,
   SHOOTER_NOTE_MONSTER_SKINS,
 } from "./src/shooter/noteMonsterAssets.js";
+import { normalizeShooterEffectTuningStore } from "./src/shooter/effects/effectTuning.js";
 
 const MAP_LAYOUT_ENDPOINT = "/__rifflab/map-editor/layout";
 const NOTE_MONSTER_TUNING_ENDPOINT = "/__rifflab/shooter-editor/note-monster-tuning";
+const EFFECT_TUNING_ENDPOINT = "/__rifflab/shooter-editor/effect-tuning";
 const NOTE_MONSTER_TUNING_DEFAULTS_PATH = fileURLToPath(
   new URL("./src/shooter/noteMonsterTuningDefaults.js", import.meta.url),
+);
+const EFFECT_TUNING_DEFAULTS_PATH = fileURLToPath(
+  new URL("./src/shooter/effects/effectTuningDefaults.js", import.meta.url),
 );
 const RIVER_LAYOUT_PATH = fileURLToPath(
   new URL("./src/shooter/maps/skins/river-layout.json", import.meta.url),
@@ -360,6 +365,50 @@ function noteMonsterTuningSavePlugin() {
   };
 }
 
+function effectTuningSavePlugin() {
+  return {
+    name: "rifflab-effect-tuning-save",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use(async (request, response, next) => {
+        if (request.url !== EFFECT_TUNING_ENDPOINT || request.method !== "POST") {
+          next();
+          return;
+        }
+
+        response.setHeader("Content-Type", "application/json; charset=utf-8");
+        if (!isLoopbackAddress(request.socket.remoteAddress)) {
+          response.statusCode = 403;
+          response.end(JSON.stringify({ ok: false, error: "Local editor access only" }));
+          return;
+        }
+
+        try {
+          let body = "";
+          for await (const chunk of request) {
+            body += chunk;
+            if (body.length > 65_536) throw new Error("Effect tuning payload is too large");
+          }
+          const payload = JSON.parse(body);
+          const tunings = normalizeShooterEffectTuningStore(payload?.tunings);
+          const moduleSource = [
+            "// The local map editor rewrites this file when floor/aura tuning is applied.",
+            "// Keeping the values in source makes the same composition available after deployment.",
+            `export default Object.freeze(${JSON.stringify(tunings, null, 2)});`,
+            "",
+          ].join("\n");
+          await writeFile(EFFECT_TUNING_DEFAULTS_PATH, moduleSource, "utf8");
+          response.statusCode = 200;
+          response.end(JSON.stringify({ ok: true, tunings }));
+        } catch (error) {
+          response.statusCode = 400;
+          response.end(JSON.stringify({ ok: false, error: error.message }));
+        }
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), mapEditorSavePlugin(), noteMonsterTuningSavePlugin()],
+  plugins: [react(), mapEditorSavePlugin(), noteMonsterTuningSavePlugin(), effectTuningSavePlugin()],
 });
