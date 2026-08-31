@@ -97,8 +97,13 @@ import {
   expandRhythmChordPlaybackSlots,
   getRhythmChordBeatLabel,
   getRhythmChordIndexAtBeat,
+  getRhythmChordPlaybackPosition,
+  getRhythmChordStartBeat,
   groupRhythmChordProgressionMeasures,
+  isRhythmChordRest,
+  muteRhythmChordRestEvents,
   normalizeRhythmChordBeatLength,
+  RHYTHM_CHORD_REST_ID,
 } from "./rhythm/chordBeatTimeline.js";
 import {
   LICK_RELATION_TECHNIQUES,
@@ -190,7 +195,9 @@ import {
 import {
   getViewportProfile,
   getViewportProfileClassName,
+  isPortraitOnlyMode,
   isLandscapePlayFocusMode,
+  shouldGuardPortraitOrientation,
   shouldGuardShooterOrientation,
 } from "./layouts/viewportProfile.js";
 import {
@@ -3096,6 +3103,7 @@ function getChordEntryId(entry) {
 }
 
 function getChordEntryLabel(entry, chord) {
+  if (isRhythmChordRest(entry)) return "쉼";
   if (typeof entry === "string") return chord?.displayName ?? entry;
   return entry?.label ?? chord?.displayName ?? entry?.id ?? "";
 }
@@ -3124,6 +3132,15 @@ function normalizeStage3ChordEntry(entry) {
     };
   }
   if (!entry || typeof entry !== "object") return entry;
+  if (isRhythmChordRest(entry)) {
+    return {
+      ...entry,
+      beatLength: 1,
+      id: RHYTHM_CHORD_REST_ID,
+      isRest: true,
+      label: "쉼",
+    };
+  }
   const normalized = {
     ...entry,
     beatLength: getChordEntryBeatLength(entry),
@@ -3135,6 +3152,7 @@ function normalizeStage3ChordEntry(entry) {
 }
 
 function isStage3ChordEntryValid(entry) {
+  if (isRhythmChordRest(entry)) return normalizeRhythmChordBeatLength(entry?.beatLength) === 1;
   if (CHORD_VIEW_OPTION_BY_ID.has(getChordEntryId(entry))) return true;
   if (!entry || typeof entry !== "object") return false;
   const quality = CHORD_QUALITY_OPTIONS.some((option) => option.id === entry.quality)
@@ -3298,17 +3316,87 @@ const ChordMiniCard = memo(function ChordMiniCard({
 });
 
 const ChordCatalogRow = memo(function ChordCatalogRow({
+  desktopDraggable = false,
   getChordStringState,
   group,
   onSelectChord,
   showChordFingeringGuide,
 }) {
+  const dragStateRef = useRef(null);
+  const suppressClickUntilRef = useRef(0);
+  const stopPointerDrag = useCallback((pointerId) => {
+    const drag = dragStateRef.current;
+    if (!drag || drag.pointerId !== pointerId) return;
+    if (drag.moved) suppressClickUntilRef.current = Date.now() + 240;
+    dragStateRef.current = null;
+    if (drag.target?.hasPointerCapture?.(pointerId)) {
+      drag.target.releasePointerCapture?.(pointerId);
+    }
+  }, []);
+  useEffect(() => {
+    if (!desktopDraggable || typeof window === "undefined") return undefined;
+    const stopWindowPointerDrag = (event) => stopPointerDrag(event.pointerId);
+    window.addEventListener("pointerup", stopWindowPointerDrag, true);
+    window.addEventListener("pointercancel", stopWindowPointerDrag, true);
+    return () => {
+      window.removeEventListener("pointerup", stopWindowPointerDrag, true);
+      window.removeEventListener("pointercancel", stopWindowPointerDrag, true);
+      const activePointerId = dragStateRef.current?.pointerId;
+      if (activePointerId !== undefined) stopPointerDrag(activePointerId);
+    };
+  }, [desktopDraggable, stopPointerDrag]);
+  const handlePointerDown = useCallback((event) => {
+    if (!desktopDraggable || event.button !== 0) return;
+    dragStateRef.current = {
+      moved: false,
+      pointerId: event.pointerId,
+      scrollLeft: event.currentTarget.scrollLeft,
+      startX: event.clientX,
+      target: event.currentTarget,
+    };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }, [desktopDraggable]);
+  const handlePointerMove = useCallback((event) => {
+    const drag = dragStateRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    if ((event.buttons & 1) === 0) {
+      stopPointerDrag(event.pointerId);
+      return;
+    }
+    const deltaX = event.clientX - drag.startX;
+    if (!drag.moved && Math.abs(deltaX) < 5) return;
+    drag.moved = true;
+    event.preventDefault();
+    event.currentTarget.scrollLeft = drag.scrollLeft - deltaX;
+  }, [stopPointerDrag]);
+  const finishPointerDrag = useCallback((event) => {
+    stopPointerDrag(event.pointerId);
+  }, [stopPointerDrag]);
+  const suppressDraggedCardClick = useCallback((event) => {
+    if (Date.now() >= suppressClickUntilRef.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+  }, []);
+
   return (
     <div className="chordCatalogRow">
       <strong className="chordRootLabel">
         {group.root}
       </strong>
-      <div className="chordMiniGrid">
+      <div
+        aria-label={`${group.root} 코드 운지 목록${desktopDraggable ? ". 마우스로 좌우 드래그" : ""}`}
+        className="chordMiniGrid"
+        data-desktop-draggable={desktopDraggable ? "true" : undefined}
+        onClickCapture={suppressDraggedCardClick}
+        onDragStart={(event) => {
+          if (desktopDraggable) event.preventDefault();
+        }}
+        onPointerCancel={finishPointerDrag}
+        onPointerDown={handlePointerDown}
+        onLostPointerCapture={finishPointerDrag}
+        onPointerMove={handlePointerMove}
+        onPointerUp={finishPointerDrag}
+      >
         {group.chords.map((chord) => (
           <ChordMiniCard
             chord={chord}
@@ -3324,14 +3412,14 @@ const ChordCatalogRow = memo(function ChordCatalogRow({
 });
 
 const TIME_SIGNATURE_OPTIONS = [
-  { id: "1/4", label: "1/4", beats: 1 },
-  { id: "2/4", label: "2/4", beats: 2 },
-  { id: "3/4", label: "3/4", beats: 3 },
-  { id: "4/4", label: "4/4", beats: 4 },
-  { id: "3/8", label: "3/8", beats: 3 },
-  { id: "6/8", label: "6/8", beats: 6 },
-  { id: "9/8", label: "9/8", beats: 9 },
-  { id: "12/8", label: "12/8", beats: 12 },
+  { id: "1/4", label: "1/4", beats: 1, beatUnit: 4 },
+  { id: "2/4", label: "2/4", beats: 2, beatUnit: 4 },
+  { id: "3/4", label: "3/4", beats: 3, beatUnit: 4 },
+  { id: "4/4", label: "4/4", beats: 4, beatUnit: 4 },
+  { id: "3/8", label: "3/8", beats: 3, beatUnit: 8 },
+  { id: "6/8", label: "6/8", beats: 6, beatUnit: 8 },
+  { id: "9/8", label: "9/8", beats: 9, beatUnit: 8 },
+  { id: "12/8", label: "12/8", beats: 12, beatUnit: 8 },
 ];
 
 const METRONOME_TONE_OPTIONS = [
@@ -3552,6 +3640,17 @@ const BACKING_SCHEDULER_MODES = {
   STAGE3: "stage3",
   MINI_CHORD: "miniChord",
 };
+const STAGE3_AUTO_REST_CHORD = Object.freeze({
+  barres: [],
+  displayName: "자동 쉼",
+  id: `${RHYTHM_CHORD_REST_ID}-auto-display`,
+  isAutoRest: true,
+  isRest: true,
+  notes: [],
+  stringStates: {},
+  visibleFrets: [0, 3],
+});
+const BACKING_SCHEDULE_AHEAD_SECONDS = 0.5;
 const BACKING_DEBUG_LOG_STORAGE_KEY = "rifflab.debugBacking";
 const BACKING_PART_TIMING_COMPENSATION_SECONDS = {
   bass: 0.006,
@@ -4337,7 +4436,11 @@ const getMiniChordBassIntervalRate = (chord, stepValue) => {
   return 1;
 };
 
-const getMiniChordCustomStepRange = (chord, measureSeconds) => {
+const getMiniChordCustomStepRange = (
+  chord,
+  measureSeconds,
+  slotsPerMeasure = MINI_CHORD_SLOTS_PER_BAR,
+) => {
   const slotInBar = Number.isInteger(chord?.miniChordSlotInBar) ? chord.miniChordSlotInBar : null;
   if (slotInBar == null) {
     return {
@@ -4346,10 +4449,16 @@ const getMiniChordCustomStepRange = (chord, measureSeconds) => {
       stepSeconds: measureSeconds / MINI_CHORD_GROOVE_STEPS,
     };
   }
-  const stepsPerSlot = MINI_CHORD_GROOVE_STEPS / MINI_CHORD_SLOTS_PER_BAR;
-  const start = Math.max(0, Math.min(MINI_CHORD_GROOVE_STEPS - stepsPerSlot, slotInBar * stepsPerSlot));
+  const safeSlotsPerMeasure = Math.max(1, Math.round(Number(slotsPerMeasure) || 1));
+  const safeSlotInBar = Math.max(0, Math.min(safeSlotsPerMeasure - 1, slotInBar));
+  const start = Math.floor((safeSlotInBar * MINI_CHORD_GROOVE_STEPS) / safeSlotsPerMeasure);
+  const end = Math.max(
+    start + 1,
+    Math.floor(((safeSlotInBar + 1) * MINI_CHORD_GROOVE_STEPS) / safeSlotsPerMeasure),
+  );
+  const stepsPerSlot = end - start;
   return {
-    end: start + stepsPerSlot,
+    end,
     start,
     stepSeconds: measureSeconds / stepsPerSlot,
   };
@@ -4436,22 +4545,32 @@ const createBackingTimelineEvents = ({
   const sixteenthOffset = beatSeconds / 4;
   const rhythmChordPlayback = expandRhythmChordPlaybackSlots(progression, beatsPerMeasure);
   const scheduledProgression = rhythmChordPlayback.expandedProgression;
+  const isRhythmChordTimeline = rhythmChordPlayback.isRhythmChordTimeline;
+  const playbackSlotsPerMeasure = isRhythmChordTimeline
+    ? rhythmChordPlayback.playbackSlotsPerMeasure
+    : MINI_CHORD_SLOTS_PER_BAR;
   const miniChordPlaybackPlan = createMiniChordSessionPlaybackPlan(
     scheduledProgression,
-    MINI_CHORD_SLOTS_PER_BAR,
+    playbackSlotsPerMeasure,
   );
   const isMiniChordTimeline = miniChordPlaybackPlan.slotSequence.length === scheduledProgression.length
     && scheduledProgression.length > 0;
-  const playbackStepBeats = isMiniChordTimeline
-    ? beatsPerMeasure / MINI_CHORD_SLOTS_PER_BAR
+  const playbackStepBeats = isRhythmChordTimeline
+    ? rhythmChordPlayback.playbackSlotBeats
+    : isMiniChordTimeline
+      ? beatsPerMeasure / MINI_CHORD_SLOTS_PER_BAR
     : beatsPerMeasure;
   const playbackStepSeconds = playbackStepBeats * beatSeconds;
-  const cycleMeasures = isMiniChordTimeline
-    ? Math.max(1, Math.ceil(scheduledProgression.length / MINI_CHORD_SLOTS_PER_BAR))
+  const cycleMeasures = isRhythmChordTimeline
+    ? Math.max(1, Math.ceil(rhythmChordPlayback.playbackCycleBeats / beatsPerMeasure))
+    : isMiniChordTimeline
+      ? Math.max(1, Math.ceil(scheduledProgression.length / MINI_CHORD_SLOTS_PER_BAR))
     : Math.max(1, scheduledProgression.length);
   const measureSeconds = playbackStepSeconds;
-  const cycleSeconds = isMiniChordTimeline
-    ? scheduledProgression.length * playbackStepSeconds
+  const cycleSeconds = isRhythmChordTimeline
+    ? rhythmChordPlayback.playbackCycleBeats * beatSeconds
+    : isMiniChordTimeline
+      ? scheduledProgression.length * playbackStepSeconds
     : cycleMeasures * beatsPerMeasure * beatSeconds;
   const smoothTransitions = Boolean(smoothChordTransitions);
   const defaultBackingPianoStyle = smoothTransitions
@@ -4475,9 +4594,18 @@ const createBackingTimelineEvents = ({
     const miniChordSlotInBar = Number.isInteger(chord?.miniChordSlotInBar)
       ? chord.miniChordSlotInBar
       : 0;
+    const rhythmChordRemainingBeats = isRhythmChordTimeline
+      ? Math.max(
+          playbackStepBeats,
+          chord.rhythmChordBeatLength - chord.rhythmChordSlotOffset * playbackStepBeats,
+        )
+      : playbackStepBeats;
+    const chordWindowSeconds = isRhythmChordTimeline
+      ? Math.min(2, rhythmChordRemainingBeats) * beatSeconds
+      : measureSeconds;
     const isSectionBoundaryAfterSlot = Boolean(
       isMiniChordTimeline
-      && miniChordSlotInBar === MINI_CHORD_SLOTS_PER_BAR - 1
+      && miniChordSlotInBar === playbackSlotsPerMeasure - 1
       && isMiniChordSectionBoundary(chord, scheduledProgression[chordIndex + 1]),
     );
     const scheduleDrumsForChord = !isMiniChordTimeline
@@ -4502,13 +4630,17 @@ const createBackingTimelineEvents = ({
       resolvedPatterns,
       presetPatternSources,
     });
-    const customStepRange = getMiniChordCustomStepRange(chord, measureSeconds);
+    const customStepRange = getMiniChordCustomStepRange(
+      chord,
+      measureSeconds,
+      playbackSlotsPerMeasure,
+    );
     const grooveStepSeconds = customStepRange.stepSeconds;
     const drumStepRange = isMiniChordTimeline
       ? {
           end: MINI_CHORD_GROOVE_STEPS,
           start: 0,
-          stepSeconds: (measureSeconds * MINI_CHORD_SLOTS_PER_BAR) / MINI_CHORD_GROOVE_STEPS,
+          stepSeconds: (measureSeconds * playbackSlotsPerMeasure) / MINI_CHORD_GROOVE_STEPS,
         }
       : customStepRange;
 
@@ -4551,6 +4683,10 @@ const createBackingTimelineEvents = ({
         : beatInSlot;
       if (beatInSlot < drumBeatsToSchedule) {
         const drumBeatInBar = isMiniChordTimeline ? beatInSlot : beatInBar;
+        const drumPatternGroupSize = signature.beatUnit === 8 && beatsPerMeasure % 3 === 0
+          ? 3
+          : 4;
+        const drumPatternBeat = drumBeatInBar % drumPatternGroupSize;
         const addDrum = (sample, offset = 0, volume = 0.5) => addDrumEvent(
           beatOffset,
           sample,
@@ -4561,36 +4697,36 @@ const createBackingTimelineEvents = ({
           drumPattern,
         );
         if (!customDrumPattern && drumPattern === "4beat") {
-          if (drumBeatInBar === 0) addDrum("kick", 0, 1);
-          if (drumBeatInBar === 1) addDrum("snare", 0, 0.9);
-          if (drumBeatInBar === 2) addDrum("kick", 0, 0.76);
-          if (drumBeatInBar === 3) addDrum("snare", 0, 0.84);
+          if (drumPatternBeat === 0) addDrum("kick", 0, 1);
+          if (drumPatternBeat === 1) addDrum("snare", 0, 0.9);
+          if (drumPatternBeat === 2) addDrum("kick", 0, 0.76);
+          if (drumPatternBeat === 3) addDrum("snare", 0, 0.84);
         } else if (!customDrumPattern && drumPattern === "16beat") {
-          addDrum("shaker", sixteenthOffset, drumBeatInBar === 0 || drumBeatInBar === 2 ? 0.08 : 0.07);
-          addDrum("shaker", eighthOffset, drumBeatInBar === 0 || drumBeatInBar === 2 ? 0.14 : 0.12);
-          addDrum("shaker", sixteenthOffset * 3, drumBeatInBar === 1 || drumBeatInBar === 3 ? 0.09 : 0.07);
-          if (drumBeatInBar === 0) {
+          addDrum("shaker", sixteenthOffset, drumPatternBeat === 0 || drumPatternBeat === 2 ? 0.08 : 0.07);
+          addDrum("shaker", eighthOffset, drumPatternBeat === 0 || drumPatternBeat === 2 ? 0.14 : 0.12);
+          addDrum("shaker", sixteenthOffset * 3, drumPatternBeat === 1 || drumPatternBeat === 3 ? 0.09 : 0.07);
+          if (drumPatternBeat === 0) {
             addDrum("kick", 0, 1);
             addDrum("kick", sixteenthOffset * 3, 0.22);
           }
-          if (drumBeatInBar === 1) addDrum("snare", 0, 0.88);
-          if (drumBeatInBar === 2) {
+          if (drumPatternBeat === 1) addDrum("snare", 0, 0.88);
+          if (drumPatternBeat === 2) {
             addDrum("kick", 0, 0.78);
             addDrum("kick", eighthOffset, 0.24);
           }
-          if (drumBeatInBar === 3) {
+          if (drumPatternBeat === 3) {
             addDrum("snare", 0, 0.86);
             addDrum("kick", sixteenthOffset * 3, 0.2);
           }
         } else if (!customDrumPattern) {
-          addDrum("shaker", eighthOffset, drumBeatInBar === 0 || drumBeatInBar === 2 ? 0.15 : 0.13);
-          if (drumBeatInBar === 0) addDrum("kick", 0, 1);
-          if (drumBeatInBar === 1) addDrum("snare", 0, 0.88);
-          if (drumBeatInBar === 2) {
+          addDrum("shaker", eighthOffset, drumPatternBeat === 0 || drumPatternBeat === 2 ? 0.15 : 0.13);
+          if (drumPatternBeat === 0) addDrum("kick", 0, 1);
+          if (drumPatternBeat === 1) addDrum("snare", 0, 0.88);
+          if (drumPatternBeat === 2) {
             addDrum("kick", 0, 0.76);
             addDrum("kick", eighthOffset, 0.22);
           }
-          if (drumBeatInBar === 3) addDrum("snare", 0, 0.84);
+          if (drumPatternBeat === 3) addDrum("snare", 0, 0.84);
         }
       }
 
@@ -4791,7 +4927,7 @@ const createBackingTimelineEvents = ({
           ? Math.min(0.18, eighthOffset * 0.9)
           : bassPattern === "4beat"
             ? Math.min(0.28, beatSeconds * 0.88)
-            : Math.max(0.18, measureSeconds * (smoothTransitions ? MINI_CHORD_SMOOTH_BACKING.bassSlotOverlapRatio : 0.92));
+            : Math.max(0.18, chordWindowSeconds * (smoothTransitions ? MINI_CHORD_SMOOTH_BACKING.bassSlotOverlapRatio : 0.92));
       const bassOffsets = bassPattern === MINI_CHORD_CUSTOM_PATTERN_ID
         ? []
         : customBassPattern
@@ -4853,7 +4989,7 @@ const createBackingTimelineEvents = ({
             );
       if (pianoOffsets.length) {
         const pianoDuration = pianoPattern === "basic"
-          ? Math.max(0.24, measureSeconds * (smoothTransitions ? MINI_CHORD_SMOOTH_BACKING.pianoSlotOverlapRatio : 0.9))
+          ? Math.max(0.24, chordWindowSeconds * (smoothTransitions ? MINI_CHORD_SMOOTH_BACKING.pianoSlotOverlapRatio : 0.9))
           : pianoPattern === "16beat"
             ? Math.min(0.14, sixteenthOffset * 0.9)
             : pianoPattern === "8beat"
@@ -4910,16 +5046,29 @@ const createBackingTimelineEvents = ({
     }
   });
 
+  const cycleBoundedEvents = isRhythmChordTimeline
+    ? events.filter((event) => event.offsetSeconds < cycleSeconds - 1e-9)
+    : events;
+  const compiledEvents = (isRhythmChordTimeline
+    ? muteRhythmChordRestEvents(
+        cycleBoundedEvents,
+        rhythmChordPlayback.timeline,
+        beatSeconds,
+      )
+    : cycleBoundedEvents
+  ).sort((left, right) => left.offsetSeconds - right.offsetSeconds);
+
   return {
     bpm: safeBpm,
     beatSeconds,
     beatsPerMeasure,
     cycleMeasures,
     cycleSeconds,
-    events: events.sort((left, right) => left.offsetSeconds - right.offsetSeconds),
+    events: compiledEvents,
     miniChordPlaybackPlan,
     playbackStepBeats,
     playbackStepSeconds,
+    playbackSlotsPerMeasure,
     rhythmChordTimeline: rhythmChordPlayback.timeline,
   };
 };
@@ -5371,14 +5520,22 @@ function MetronomeSelectControl({
   onClearSelectedOptions = null,
   onDeleteOption = null,
   onDeleteSelectedOptions = null,
+  onSelectAllOptions = null,
   onToggleOptionLock = null,
   onToggleOptionSelection = null,
   selectedOptionIds = [],
   layout = "native",
+  managedListMode = false,
+  panelDirectionIndicator = false,
   showLabel = true,
 }) {
   const [open, setOpen] = useState(false);
+  const [managementEditing, setManagementEditing] = useState(false);
+  const [revealedOptionId, setRevealedOptionId] = useState("");
+  const [swipeDrag, setSwipeDrag] = useState(null);
   const openRef = useRef(false);
+  const optionSwipeRef = useRef(null);
+  const suppressOptionClickRef = useRef("");
   const [openDirection, setOpenDirection] = useState("down");
   const [menuStyle, setMenuStyle] = useState({});
   const controlRef = useRef(null);
@@ -5387,10 +5544,18 @@ function MetronomeSelectControl({
   const gridOptions = layout === "grid" ? getTwoColumnVerticalFlowOptions(options) : options;
   const selectedOptionIdSet = new Set(selectedOptionIds.map(String));
   const selectedOptionCount = gridOptions.filter((option) => selectedOptionIdSet.has(String(option.id))).length;
+  const selectableOptionCount = gridOptions.filter((option) => option.deletable && !option.disabled && !option.locked).length;
   const hasSelectionTools = Boolean(onToggleOptionSelection && onDeleteSelectedOptions);
   const setOpenImmediate = useCallback((nextOpen) => {
     openRef.current = nextOpen;
     setOpen(nextOpen);
+    if (!nextOpen) {
+      setManagementEditing(false);
+      setRevealedOptionId("");
+      setSwipeDrag(null);
+      optionSwipeRef.current = null;
+      suppressOptionClickRef.current = "";
+    }
   }, []);
   const getOptionTextUnits = (option) => {
     const text = String(option?.label || option?.id || "");
@@ -5432,7 +5597,9 @@ function MetronomeSelectControl({
     const maxOptionUnits = Math.max(1, ...gridOptions.map(getOptionTextUnits));
     const visibleOptionCount = layout === "grid" ? 2 : 1;
     const hasDeletableOptions = gridOptions.some((option) => option.deletable);
-    const basePadding = (layout === "grid" ? 28 : 34) + (hasSelectionTools ? 116 : hasDeletableOptions ? 48 : 0);
+    const basePadding = (layout === "grid" ? 28 : 34) + (
+      managedListMode ? 76 : hasSelectionTools ? 116 : hasDeletableOptions ? 48 : 0
+    );
     const minContentWidth = layout === "grid" ? 66 : 60;
     const contentWidth = layout === "grid"
       ? Math.ceil(maxOptionUnits * 8.5) * visibleOptionCount + basePadding
@@ -5440,10 +5607,13 @@ function MetronomeSelectControl({
     const wideToneMenuWidth = className.includes("metronomeSelectControl--tonePicker")
       ? Math.min(326, viewportWidth - viewportPadding * 2)
       : 0;
+    const managedMenuWidth = managedListMode
+      ? Math.min(340, viewportWidth - viewportPadding * 2)
+      : 0;
     const desiredWidth = matchTriggerWidth
       ? Math.min(rect.width, viewportWidth - viewportPadding * 2)
       : Math.min(
-          Math.max(minContentWidth, contentWidth, wideToneMenuWidth, rect.width),
+          Math.max(minContentWidth, contentWidth, wideToneMenuWidth, managedMenuWidth, rect.width),
           viewportWidth - viewportPadding * 2,
         );
     const left = Math.max(viewportPadding, Math.min(rect.left, viewportWidth - desiredWidth - viewportPadding));
@@ -5499,7 +5669,7 @@ function MetronomeSelectControl({
 
   return (
     <div
-      className={`metronomeSelectControl ${className} ${layout === "grid" ? "metronomeSelectControl--grid" : "metronomeSelectControl--list"} metronomeSelectControl--${openDirection} ${open ? "open" : ""}`}
+      className={`metronomeSelectControl ${className} ${layout === "grid" ? "metronomeSelectControl--grid" : "metronomeSelectControl--list"} ${managedListMode ? "metronomeSelectControl--managedList" : ""} metronomeSelectControl--${openDirection} ${open ? "open" : ""}`}
       ref={controlRef}
     >
       {showLabel ? (
@@ -5518,11 +5688,10 @@ function MetronomeSelectControl({
           event.stopPropagation();
           updateOpenDirection();
           const nextOpen = !openRef.current;
-          openRef.current = nextOpen;
           if (nextOpen && typeof window !== "undefined") {
             window.dispatchEvent(new CustomEvent("riffDropdownOpen", { detail: dropdownIdRef.current }));
           }
-          setOpen(nextOpen);
+          setOpenImmediate(nextOpen);
         }}
         onPointerDown={(event) => event.stopPropagation()}
         onTouchStart={(event) => event.stopPropagation()}
@@ -5532,11 +5701,15 @@ function MetronomeSelectControl({
         <b className={selectedOption?.notation ? "metronomeSelectButtonNotation" : undefined}>
           {renderMetronomeOptionLabel(selectedOption, value || label)}
         </b>
-        <i aria-hidden="true">⌄</i>
+        {panelDirectionIndicator ? (
+          <i aria-hidden="true" className="metronomeSelectPanelDirection">
+            {open ? <ChevronDown size={14} strokeWidth={2.6} /> : <ChevronUp size={14} strokeWidth={2.6} />}
+          </i>
+        ) : <i aria-hidden="true">⌄</i>}
       </button>
       {open && typeof document !== "undefined" ? createPortal(
         <div
-          className={`metronomeSelectPortal metronomeSelectControl ${className} ${layout === "grid" ? "metronomeSelectControl--grid" : "metronomeSelectControl--list"} metronomeSelectControl--${openDirection}`}
+          className={`metronomeSelectPortal metronomeSelectControl ${className} ${layout === "grid" ? "metronomeSelectControl--grid" : "metronomeSelectControl--list"} ${managedListMode ? "metronomeSelectControl--managedList" : ""} metronomeSelectControl--${openDirection}`}
           role="presentation"
         >
           <div
@@ -5548,7 +5721,69 @@ function MetronomeSelectControl({
             role="listbox"
             style={menuStyle}
           >
-            {hasSelectionTools ? (
+            {hasSelectionTools && managedListMode ? (
+              managementEditing ? (
+                <div className="metronomeSelectManagementToolbar editing" role="toolbar" aria-label="저장 진행 선택 관리">
+                  <span>{selectedOptionCount ? `${selectedOptionCount}개 선택` : "진행 편집"}</span>
+                  <button
+                    disabled={!selectableOptionCount}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onSelectAllOptions?.();
+                    }}
+                    type="button"
+                  >
+                    전체 선택
+                  </button>
+                  <button
+                    disabled={!selectedOptionCount}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onClearSelectedOptions?.();
+                    }}
+                    type="button"
+                  >
+                    선택 해제
+                  </button>
+                  <button
+                    className="danger"
+                    disabled={!selectedOptionCount}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onDeleteSelectedOptions();
+                      setOpenImmediate(false);
+                    }}
+                    type="button"
+                  >
+                    선택 삭제
+                  </button>
+                  <button
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onClearSelectedOptions?.();
+                      setManagementEditing(false);
+                    }}
+                    type="button"
+                  >
+                    완료
+                  </button>
+                </div>
+              ) : (
+                <div className="metronomeSelectManagementToolbar idle" role="toolbar" aria-label="저장 진행 편집 열기">
+                  <span>저장한 진행</span>
+                  <button
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setRevealedOptionId("");
+                      setManagementEditing(true);
+                    }}
+                    type="button"
+                  >
+                    편집
+                  </button>
+                </div>
+              )
+            ) : hasSelectionTools ? (
               <div className="metronomeSelectManagementToolbar" role="toolbar" aria-label="저장 진행 선택 관리">
                 <span>{selectedOptionCount ? `${selectedOptionCount}개 선택` : "삭제할 진행 선택"}</span>
                 <button
@@ -5583,7 +5818,12 @@ function MetronomeSelectControl({
                 onDeleteOption || onToggleOptionLock || onToggleOptionSelection
               ));
               const canDelete = Boolean(onDeleteOption && option.deletable && !option.disabled && !isLocked);
-              const hasSelectionControl = Boolean(onToggleOptionSelection && option.deletable && !option.disabled);
+              const hasSelectionControl = Boolean(
+                onToggleOptionSelection
+                && option.deletable
+                && !option.disabled
+                && (!managedListMode || managementEditing)
+              );
               const optionButton = (
                 <button
                   aria-label={option.longLabel || option.label || String(option.id)}
@@ -5594,13 +5834,17 @@ function MetronomeSelectControl({
                   onClick={(event) => {
                     event.stopPropagation();
                     if (option.disabled) return;
+                    if (managedListMode && suppressOptionClickRef.current === String(option.id)) {
+                      suppressOptionClickRef.current = "";
+                      return;
+                    }
                     onChange(option.id);
                     setOpenImmediate(false);
                   }}
                   role="option"
                   type="button"
                 >
-                  {!hasSelectionControl && canDelete ? <span aria-hidden="true" className="metronomeSelectOptionIndicator" /> : null}
+                  {!managedListMode && !hasSelectionControl && canDelete ? <span aria-hidden="true" className="metronomeSelectOptionIndicator" /> : null}
                   <span className="metronomeSelectOptionText">
                     {renderMetronomeOptionLabel(option, option.id)}
                   </span>
@@ -5608,6 +5852,136 @@ function MetronomeSelectControl({
               );
 
               if (!hasRowActions) return optionButton;
+
+              if (managedListMode) {
+                const optionId = String(option.id);
+                const swipeOffset = swipeDrag?.id === optionId
+                  ? swipeDrag.offset
+                  : revealedOptionId === optionId ? -78 : 0;
+                const finishOptionSwipe = (event, canceled = false) => {
+                  const gesture = optionSwipeRef.current;
+                  if (!gesture || gesture.pointerId !== event.pointerId || gesture.id !== optionId) return;
+                  const movedHorizontally = gesture.horizontal && Math.abs(event.clientX - gesture.x) > 8;
+                  if (movedHorizontally) suppressOptionClickRef.current = optionId;
+                  const finalOffset = Number.isFinite(gesture.currentOffset) ? gesture.currentOffset : gesture.baseOffset;
+                  setRevealedOptionId(!canceled && finalOffset <= -36 ? optionId : "");
+                  setSwipeDrag(null);
+                  optionSwipeRef.current = null;
+                  if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                  }
+                };
+
+                return (
+                  <div
+                    className={`metronomeSelectOptionRow metronomeSelectOptionRow--swipe ${isSelected ? "selected" : ""} ${isLocked ? "locked" : ""} ${revealedOptionId === optionId ? "actionsRevealed" : ""} ${swipeDrag?.id === optionId ? "swiping" : ""}`}
+                    key={option.id}
+                    onPointerCancel={(event) => finishOptionSwipe(event, true)}
+                    onPointerDown={(event) => {
+                      if (event.button != null && event.button !== 0) return;
+                      if (event.target.closest?.(".metronomeSelectOptionActionRail")) return;
+                      const baseOffset = revealedOptionId === optionId ? -78 : 0;
+                      if (revealedOptionId && revealedOptionId !== optionId) setRevealedOptionId("");
+                      optionSwipeRef.current = {
+                        baseOffset,
+                        currentOffset: baseOffset,
+                        horizontal: false,
+                        id: optionId,
+                        pointerId: event.pointerId,
+                        x: event.clientX,
+                        y: event.clientY,
+                      };
+                      setSwipeDrag({ id: optionId, offset: baseOffset });
+                      event.currentTarget.setPointerCapture?.(event.pointerId);
+                    }}
+                    onPointerMove={(event) => {
+                      const gesture = optionSwipeRef.current;
+                      if (!gesture || gesture.pointerId !== event.pointerId || gesture.id !== optionId) return;
+                      const deltaX = event.clientX - gesture.x;
+                      const deltaY = event.clientY - gesture.y;
+                      if (!gesture.horizontal) {
+                        if (Math.abs(deltaX) < 6 && Math.abs(deltaY) < 6) return;
+                        if (Math.abs(deltaY) >= Math.abs(deltaX)) {
+                          finishOptionSwipe(event, true);
+                          return;
+                        }
+                        gesture.horizontal = true;
+                      }
+                      event.preventDefault();
+                      const nextOffset = Math.max(-78, Math.min(0, gesture.baseOffset + deltaX));
+                      gesture.currentOffset = nextOffset;
+                      setSwipeDrag({
+                        id: optionId,
+                        offset: nextOffset,
+                      });
+                    }}
+                    onPointerUp={(event) => finishOptionSwipe(event)}
+                    style={{ "--option-swipe-offset": `${swipeOffset}px` }}
+                  >
+                    <div
+                      aria-hidden={revealedOptionId === optionId ? undefined : "true"}
+                      aria-label="개별 진행 관리"
+                      className="metronomeSelectOptionActionRail"
+                    >
+                      {onToggleOptionLock ? (
+                        <button
+                          aria-label={`${option.longLabel || option.label || optionId} ${isLocked ? "잠금 해제" : "잠금"}`}
+                          aria-pressed={isLocked}
+                          className={`metronomeSelectOptionLock ${isLocked ? "selected" : ""}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onToggleOptionLock(option.id);
+                            setRevealedOptionId("");
+                          }}
+                          title={isLocked ? "잠금 해제" : "삭제 방지 잠금"}
+                          tabIndex={revealedOptionId === optionId ? undefined : -1}
+                          type="button"
+                        >
+                          {isLocked ? <Lock aria-hidden="true" size={13} /> : <LockOpen aria-hidden="true" size={13} />}
+                        </button>
+                      ) : null}
+                      {onDeleteOption ? (
+                        <button
+                          aria-label={`${option.longLabel || option.label || optionId} 삭제`}
+                          className="metronomeSelectOptionDelete"
+                          disabled={!canDelete}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            if (!canDelete) return;
+                            onDeleteOption(option.id);
+                            setOpenImmediate(false);
+                          }}
+                          title={isLocked ? "잠금을 해제해야 삭제할 수 있습니다" : "사용자 설정 삭제"}
+                          tabIndex={revealedOptionId === optionId ? undefined : -1}
+                          type="button"
+                        >
+                          <X aria-hidden="true" size={14} />
+                        </button>
+                      ) : null}
+                    </div>
+                    <div className="metronomeSelectOptionRowContent">
+                      {hasSelectionControl ? (
+                        <button
+                          aria-checked={isBulkSelected}
+                          aria-label={`${option.longLabel || option.label || optionId} ${isBulkSelected ? "선택 해제" : "삭제 선택"}`}
+                          className={`metronomeSelectOptionIndicator ${isBulkSelected ? "selected" : ""}`}
+                          disabled={isLocked}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            if (!isLocked) onToggleOptionSelection(option.id);
+                          }}
+                          role="checkbox"
+                          title={isLocked ? "잠금을 해제한 뒤 선택할 수 있습니다" : "선택 삭제에 포함"}
+                          type="button"
+                        >
+                          {isBulkSelected ? <span aria-hidden="true">✓</span> : null}
+                        </button>
+                      ) : null}
+                      {optionButton}
+                    </div>
+                  </div>
+                );
+              }
 
               return (
                 <div className={`metronomeSelectOptionRow ${isSelected ? "selected" : ""} ${isLocked ? "locked" : ""}`} key={option.id}>
@@ -5624,7 +5998,9 @@ function MetronomeSelectControl({
                       role="checkbox"
                       title={isLocked ? "잠금을 해제한 뒤 선택할 수 있습니다" : "선택 삭제에 포함"}
                       type="button"
-                    />
+                    >
+                      {isBulkSelected ? <span aria-hidden="true">✓</span> : null}
+                    </button>
                   ) : null}
                   {optionButton}
                   {onToggleOptionLock ? (
@@ -5964,6 +6340,11 @@ function MetronomeControl({
           optionsCollapsed ? "metronomeOptions--collapsed" : ""
         }`}
         id={`${inputId}-options`}
+        onClick={
+          optionsCollapsed && onOptionsCollapseChange
+            ? () => onOptionsCollapseChange(false)
+            : undefined
+        }
       >
         {optionsCollapsed ? (
           <strong className="metronomeOptionsCollapsedTitle">{optionsCollapseLabel}</strong>
@@ -6026,7 +6407,10 @@ function MetronomeControl({
             aria-expanded={!optionsCollapsed}
             aria-label={`${optionsCollapseLabel} ${optionsCollapsed ? "펼치기" : "접기"}`}
             className="metronomeOptionsCollapseButton"
-            onClick={() => onOptionsCollapseChange(!optionsCollapsed)}
+            onClick={(event) => {
+              event.stopPropagation();
+              onOptionsCollapseChange(!optionsCollapsed);
+            }}
             type="button"
           >
             {optionsCollapsed ? "펼침" : "접기"}
@@ -8448,7 +8832,7 @@ function StandaloneMetronomeVisual({
   return (
     <div
       aria-label={`${METRONOME_DISPLAY_MODES.find((item) => item.id === selectedMode)?.label ?? "Metronome Mode"} 박자 표시 영역. 좌우 스와이프는 표시 모드만 전환합니다`}
-      className={`metronomeBeatMatrix metronomeBeatMatrix--main metronomeBeatMatrix--${selectedMode} ${swipeActive ? "metronomeBeatMatrix--swiping" : ""} ${optionsOpen ? "metronomeBeatMatrix--options-open" : ""}`}
+      className={`metronomeBeatMatrix metronomeBeatMatrix--main metronomeBeatMatrix--${selectedMode} metronomeBeatMatrix--beats-${beatCount} ${swipeActive ? "metronomeBeatMatrix--swiping" : ""} ${optionsOpen ? "metronomeBeatMatrix--options-open" : ""}`}
       data-metronome-mode-swipe-zone="true"
       onPointerCancel={onPointerCancel}
       onPointerDown={onPointerDown}
@@ -14201,26 +14585,6 @@ const ShooterLaunchOverlay = memo(function ShooterLaunchOverlay({ onComplete, tr
   );
 });
 
-const ShooterOrientationOverlay = memo(function ShooterOrientationOverlay() {
-  return (
-    <section
-      aria-label="슈팅게임 화면 방향 안내"
-      aria-live="assertive"
-      aria-modal="true"
-      className="shooterOrientationOverlay"
-      role="dialog"
-    >
-      <div className="shooterOrientationDevice" aria-hidden="true">
-        <Smartphone size={42} strokeWidth={1.7} />
-        <RotateCw size={25} strokeWidth={2} />
-      </div>
-      <strong>슈팅게임은 세로 화면 전용입니다</strong>
-      <p>휴대폰 또는 태블릿을 세로로 돌려주세요</p>
-      <small>현재 맵과 점수, 콤보, 음표 위치는 그대로 유지됩니다.</small>
-    </section>
-  );
-});
-
 const SHOOTER_RECORDS_STORAGE_KEY = "rifflabShooterRecords";
 const SHOOTER_GUITAR_PIVOT_PERCENT = { x: 50, y: 91.5 };
 const SHOOTER_GUITAR_AIM_LIMIT_DEG = 34;
@@ -14897,6 +15261,7 @@ function App({ onReady }) {
   const stage3StorageEditorSessionRef = useRef(0);
   const [stage3LiveStrumPattern, setStage3LiveStrumPattern] = useState([]);
   const [chordPracticeIndex, setChordPracticeIndex] = useState(0);
+  const [chordPracticeTimelineBeat, setChordPracticeTimelineBeat] = useState(0);
   const [repeatPractice, setRepeatPractice] = useState(false);
   const [repeatCount, setRepeatCount] = useState(1);
   const [bpm, setBpm] = useState(initialStage3SettingsRef.current.bpm);
@@ -15052,6 +15417,15 @@ function App({ onReady }) {
   const [feelPlaybackIndex, setFeelPlaybackIndex] = useState(-1);
   const [feelPlaybackProgress, setFeelPlaybackProgress] = useState(0);
   const [isMobileLayout, setIsMobileLayout] = useState(getIsMobileLayout);
+  const previousAppModeForViewerRef = useRef(null);
+  useEffect(() => {
+    const enteredFretboardViewer = appMode === APP_MODES.FRETBOARD_VIEWER
+      && previousAppModeForViewerRef.current !== APP_MODES.FRETBOARD_VIEWER;
+    previousAppModeForViewerRef.current = appMode;
+    if (!isMobileLayout && enteredFretboardViewer) {
+      setViewerMode(FRETBOARD_VIEWER_MODES.CHORD);
+    }
+  }, [appMode, isMobileLayout]);
   const shooterOrientationResumeRef = useRef(false);
   const shooterMobileViewportStyle = useShooterMobileViewport(
     appMode === APP_MODES.SHOOTER && isMobileLayout,
@@ -15944,6 +16318,7 @@ function App({ onReady }) {
   const backingPreparedSessionKeyRef = useRef("");
   const backingPendingSessionRef = useRef(null);
   const backingPendingSessionKeyRef = useRef("");
+  const backingPendingSwitchTimeRef = useRef(0);
   const backingNextEventIndexRef = useRef(0);
   const backingCycleStartTimeRef = useRef(0);
   const backingDisplayStartTimeRef = useRef(0);
@@ -16607,6 +16982,25 @@ function App({ onReady }) {
   }, [applyStage3StorageChordSelection]);
   const buildStage3Progression = useCallback((entries = []) => entries
     .map((entry) => {
+      if (isRhythmChordRest(entry)) {
+        return {
+          barres: [],
+          beatLength: 1,
+          displayName: "쉼",
+          fretboard: { barres: [], notes: [], stringStates: {}, visibleFrets: [0, 3] },
+          fretboardDisplayName: "쉼",
+          fretboardSignature: "rest",
+          id: RHYTHM_CHORD_REST_ID,
+          isEnharmonic: false,
+          isRest: true,
+          notes: [],
+          positionId: "rest",
+          positionLabel: "쉼",
+          quality: "rest",
+          stringStates: {},
+          visibleFrets: [0, 3],
+        };
+      }
       const storedChord = CHORD_VIEW_OPTION_BY_ID.get(getChordEntryId(entry)) ?? null;
       const entryBaseRoot = typeof entry === "object" && CHORD_NATURAL_ROOTS.includes(entry?.baseRoot)
         ? entry.baseRoot
@@ -16679,16 +17073,25 @@ function App({ onReady }) {
   );
   const hasStage3StorageProgression = stage3StorageProgression.length > 0;
   const chordTransitionBeatTimeline = useMemo(
-    () => createRhythmChordBeatTimeline(chordTransitionProgression),
-    [chordTransitionProgression],
+    () => createRhythmChordBeatTimeline(
+      chordTransitionProgression,
+      getTimeSignatureOption(stage3MetronomeTimeSignature).beats,
+    ),
+    [chordTransitionProgression, stage3MetronomeTimeSignature],
   );
   const chordTransitionProgressionMeasures = useMemo(
-    () => groupRhythmChordProgressionMeasures(chordTransitionProgression, 4),
-    [chordTransitionProgression],
+    () => groupRhythmChordProgressionMeasures(
+      chordTransitionProgression,
+      getTimeSignatureOption(stage3MetronomeTimeSignature).beats,
+    ),
+    [chordTransitionProgression, stage3MetronomeTimeSignature],
   );
   const stage3StorageProgressionMeasures = useMemo(
-    () => groupRhythmChordProgressionMeasures(stage3StorageProgression, 4),
-    [stage3StorageProgression],
+    () => groupRhythmChordProgressionMeasures(
+      stage3StorageProgression,
+      getTimeSignatureOption(stage3StorageTimeSignature).beats,
+    ),
+    [stage3StorageProgression, stage3StorageTimeSignature],
   );
   const stage3ProgressionLabel = useMemo(
     () => (hasChordTransitionProgression
@@ -16744,6 +17147,7 @@ function App({ onReady }) {
       setStage3LiveStrumPattern(strumPatternGroups);
     }
     setChordPracticeIndex(0);
+    setChordPracticeTimelineBeat(0);
     backingPausedOffsetSecondsRef.current = null;
     gameTimeRef.current = 0;
     lastBeatRef.current = -1;
@@ -16763,16 +17167,29 @@ function App({ onReady }) {
   const setStage3ProgressIndex = useCallback((index) => {
     const progressionLength = Math.max(1, chordTransitionProgression.length);
     const safeIndex = ((Number(index) || 0) % progressionLength + progressionLength) % progressionLength;
-    const startBeat = chordTransitionBeatTimeline.items[safeIndex]?.startBeat ?? 0;
+    const startBeat = getRhythmChordStartBeat(chordTransitionBeatTimeline, safeIndex);
     chordPracticeIndexRef.current = safeIndex;
     backingPausedOffsetSecondsRef.current = null;
     gameTimeRef.current = startBeat * getBeatMs(bpmRef.current);
     lastBeatRef.current = -1;
     lastStage3MetronomeTickRef.current = -1;
     setChordPracticeIndex(safeIndex);
+    setChordPracticeTimelineBeat(startBeat);
     setBeat(0);
     setStage3MeasureProgress(0);
   }, [chordTransitionBeatTimeline, chordTransitionProgression.length]);
+  const exitStage3StorageRoom = useCallback(() => {
+    stage3StorageSwipeStartRef.current = null;
+    setStage3StorageSaveRequest(null);
+    setStage3StorageSaveTitleDraft("");
+    setStage3StorageSwipeActive(false);
+    setStage3StorageSwipeOffset(0);
+    setStage3StorageOpen(false);
+    appModeRef.current = APP_MODES.PRACTICE;
+    setAppMode(APP_MODES.PRACTICE);
+    setSelectedCategoryId("rhythm");
+    switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
+  }, [switchMetronomeScope]);
   const openStage3Storage = useCallback(() => {
     stage3StorageEditorSessionRef.current += 1;
     setStage3StorageSaveRequest(null);
@@ -16783,7 +17200,7 @@ function App({ onReady }) {
     setStage3StorageEditingId("");
     setStage3StorageChordIds([]);
     setStage3StorageChordEditingIndex(null);
-    applyStage3StorageChordSelection("F", "natural", "major", "none");
+    applyStage3StorageChordSelection("C", "natural", "major", "none");
     setStage3StorageBpm(clampBpm(bpm));
     setStage3StorageTimeSignature(stage3MetronomeTimeSignature);
     setStage3StorageCapo(0);
@@ -16831,6 +17248,18 @@ function App({ onReady }) {
     ));
     setStage3StorageChordEditingIndex(null);
   }, [stage3StorageChordAccidental, stage3StorageChordBaseRoot, stage3StorageChordEditingIndex, stage3StorageChordPosition, stage3StorageCurrentChordPosition, stage3StorageSelectedChord, stage3StorageSelectedChordName]);
+  const addStage3StorageRest = useCallback(() => {
+    setStage3StorageChordIds((ids) => [
+      ...ids,
+      {
+        beatLength: 1,
+        id: RHYTHM_CHORD_REST_ID,
+        isRest: true,
+        label: "쉼",
+      },
+    ]);
+    setStage3StorageChordEditingIndex(null);
+  }, []);
   const saveStage3StorageItem = useCallback(({ chordIds: requestedChordIds, title = "" } = {}) => {
     if (!hasStage3StorageProgression) return;
     const id = stage3StorageEditingId && !stage3StorageEditingId.startsWith("preset-")
@@ -16904,7 +17333,8 @@ function App({ onReady }) {
       chordIds: stage3StorageSaveRequest.chordIds,
       title: stage3StorageSaveTitleDraft,
     });
-  }, [saveStage3StorageItem, stage3StorageSaveRequest, stage3StorageSaveTitleDraft]);
+    exitStage3StorageRoom();
+  }, [exitStage3StorageRoom, saveStage3StorageItem, stage3StorageSaveRequest, stage3StorageSaveTitleDraft]);
   const addStage3StrumPatternDraft = useCallback((slotIndex = 0) => {
     const normalizedPattern = normalizeStrumPattern(stage3StorageStrumDraftPattern);
     if (!normalizedPattern.length) return;
@@ -16928,7 +17358,7 @@ function App({ onReady }) {
     if (item.chordIds?.[0]) editStage3StorageChordEntry(item.chordIds[0], 0);
     else {
       setStage3StorageChordEditingIndex(null);
-      applyStage3StorageChordSelection("F", "natural", "major", "none");
+      applyStage3StorageChordSelection("C", "natural", "major", "none");
     }
     setStage3StorageBpm(clampBpm(item.bpm ?? bpm));
     setStage3StorageTimeSignature(item.time_signature ?? "4/4");
@@ -17021,6 +17451,9 @@ function App({ onReady }) {
   const clearStage3UserSelection = useCallback(() => {
     setStage3UserSelectedIds([]);
   }, []);
+  const selectAllStage3UnlockedUserItems = useCallback(() => {
+    setStage3UserSelectedIds(stage3QuickSlots.filter((slot) => !slot.locked).map((slot) => slot.id));
+  }, [stage3QuickSlots]);
   const requestDeleteSelectedStage3StorageItems = useCallback(() => {
     const selectedIdSet = new Set(stage3UserSelectedIds.map(String));
     const ids = stage3QuickSlots
@@ -17066,17 +17499,21 @@ function App({ onReady }) {
       ),
     );
   }, []);
-  const chordPracticeCurrent =
-    hasChordTransitionProgression
-      ? chordTransitionProgression[chordPracticeIndex % chordTransitionProgression.length]
-      : CHORD_VIEW_OPTIONS[0];
+  const chordPracticeProgressionIndex = hasChordTransitionProgression && chordPracticeIndex >= 0
+    ? chordPracticeIndex % chordTransitionProgression.length
+    : -1;
+  const chordPracticeCurrent = hasChordTransitionProgression
+    ? chordPracticeProgressionIndex >= 0
+      ? chordTransitionProgression[chordPracticeProgressionIndex]
+      : STAGE3_AUTO_REST_CHORD
+    : CHORD_VIEW_OPTIONS[0];
   const chordPracticeNext =
     hasChordTransitionProgression
-      ? chordTransitionProgression[(chordPracticeIndex + 1) % chordTransitionProgression.length]
+      ? chordTransitionProgression[(Math.max(-1, chordPracticeProgressionIndex) + 1) % chordTransitionProgression.length]
       : chordPracticeCurrent;
   const chordPracticeUpcoming =
     hasChordTransitionProgression
-      ? chordTransitionProgression[(chordPracticeIndex + 2) % chordTransitionProgression.length]
+      ? chordTransitionProgression[(Math.max(-1, chordPracticeProgressionIndex) + 2) % chordTransitionProgression.length]
       : chordPracticeNext;
   const chordPracticeFretboardView = useMemo(() => {
     if (!hasChordTransitionProgression) {
@@ -17398,6 +17835,16 @@ function App({ onReady }) {
 
   const handleViewerNotePress = useCallback(async (note) => {
     if (!note) return;
+    if (!isMobileLayout) {
+      const activeAudio = ensureAudioContext();
+      if (activeAudio?.state === "running") {
+        playGuitarPositions(activeAudio, [note], {
+          duration: 1.55,
+          volume: 0.48,
+        });
+        return;
+      }
+    }
     const ready = await ensureAudioReady();
     const audio = audioRef.current;
     if (!ready || !audio) return;
@@ -17405,7 +17852,11 @@ function App({ onReady }) {
       duration: 1.55,
       volume: 0.48,
     });
-  }, [ensureAudioReady]);
+  }, [ensureAudioContext, ensureAudioReady, isMobileLayout]);
+
+  const selectFretboardViewerMode = useCallback((nextMode) => {
+    setViewerMode(nextMode);
+  }, []);
 
   const handleViewerChordSound = useCallback(async (event) => {
     const chordNotes = viewerCurrentChordPosition?.notes ?? [];
@@ -17614,6 +18065,20 @@ function App({ onReady }) {
     if (backingSchedulerRunningRef.current) {
       backingPendingSessionRef.current = session;
       backingPendingSessionKeyRef.current = sessionKey;
+      const audio = audioRef.current;
+      const activeSession = backingPreparedSessionRef.current;
+      const activeMeasureSeconds = activeSession?.beatsPerMeasure * activeSession?.beatSeconds;
+      if (audio && Number.isFinite(activeMeasureSeconds) && activeMeasureSeconds > 0) {
+        const earliestSafeSwitchTime = audio.currentTime + BACKING_SCHEDULE_AHEAD_SECONDS;
+        const relativeSafeTime = Math.max(
+          0,
+          earliestSafeSwitchTime - backingCycleStartTimeRef.current,
+        );
+        backingPendingSwitchTimeRef.current = backingCycleStartTimeRef.current
+          + (Math.floor(relativeSafeTime / activeMeasureSeconds) + 1) * activeMeasureSeconds;
+      } else {
+        backingPendingSwitchTimeRef.current = 0;
+      }
       return;
     }
 
@@ -18227,6 +18692,7 @@ function App({ onReady }) {
     backingSchedulerRunningRef.current = false;
     backingPendingSessionRef.current = null;
     backingPendingSessionKeyRef.current = "";
+    backingPendingSwitchTimeRef.current = 0;
     backingSchedulerModeRef.current = BACKING_SCHEDULER_MODES.STAGE3;
     backingDisplayStartTimeRef.current = 0;
     lastStage3MetronomeTickRef.current = -1;
@@ -18247,7 +18713,7 @@ function App({ onReady }) {
     ) return;
     let session = backingPreparedSessionRef.current;
     if (!session?.events?.length || !Number.isFinite(session.cycleSeconds) || session.cycleSeconds <= 0) return;
-    const scheduleAheadSeconds = 0.5;
+    const scheduleAheadSeconds = BACKING_SCHEDULE_AHEAD_SECONDS;
     while (backingCycleStartTimeRef.current + session.cycleSeconds < audio.currentTime - 0.02) {
       backingCycleStartTimeRef.current += session.cycleSeconds;
       backingNextEventIndexRef.current = 0;
@@ -18255,7 +18721,9 @@ function App({ onReady }) {
     const pendingSession = backingPendingSessionRef.current;
     const measureSeconds = session.beatsPerMeasure * session.beatSeconds;
     const relativeTime = Math.max(0, audio.currentTime - backingCycleStartTimeRef.current);
-    const nextMeasureTime = backingCycleStartTimeRef.current + (Math.floor(relativeTime / measureSeconds) + 1) * measureSeconds;
+    const nextMeasureTime = pendingSession && backingPendingSwitchTimeRef.current > 0
+      ? backingPendingSwitchTimeRef.current
+      : backingCycleStartTimeRef.current + (Math.floor(relativeTime / measureSeconds) + 1) * measureSeconds;
     while (backingNextEventIndexRef.current < session.events.length) {
       const event = session.events[backingNextEventIndexRef.current];
       const eventTime = backingCycleStartTimeRef.current + event.offsetSeconds;
@@ -18273,10 +18741,14 @@ function App({ onReady }) {
       backingPreparedSessionKeyRef.current = backingPendingSessionKeyRef.current;
       backingPendingSessionRef.current = null;
       backingPendingSessionKeyRef.current = "";
+      backingPendingSwitchTimeRef.current = 0;
       session = pendingSession;
       const nextMeasureIndex = Math.floor((nextMeasureTime - backingCycleStartTimeRef.current) / measureSeconds);
-      const nextMeasureOffset = (nextMeasureIndex % session.cycleMeasures) * session.beatsPerMeasure * session.beatSeconds;
+      const nextMeasureOffset = (
+        nextMeasureIndex * session.beatsPerMeasure * session.beatSeconds
+      ) % session.cycleSeconds;
       backingCycleStartTimeRef.current = nextMeasureTime - nextMeasureOffset;
+      backingDisplayStartTimeRef.current = backingCycleStartTimeRef.current;
       backingNextEventIndexRef.current = session.events.findIndex((event) => event.offsetSeconds >= nextMeasureOffset);
       if (backingNextEventIndexRef.current < 0) backingNextEventIndexRef.current = 0;
       while (backingNextEventIndexRef.current < session.events.length) {
@@ -18315,7 +18787,7 @@ function App({ onReady }) {
       ? session.playbackStepSeconds
       : session.beatsPerMeasure * session.beatSeconds;
     const rhythmChordStartBeat = mode === BACKING_SCHEDULER_MODES.STAGE3
-      ? session.rhythmChordTimeline?.items?.[Math.max(0, measureIndex)]?.startBeat
+      ? getRhythmChordStartBeat(session.rhythmChordTimeline, Math.max(0, measureIndex))
       : null;
     const startOffsetSeconds = Number.isFinite(offsetSecondsOverride)
       ? Math.max(0, offsetSecondsOverride)
@@ -19822,7 +20294,11 @@ function App({ onReady }) {
         if (countInTimeRef.current >= currentMeasureMs) {
           countInActiveRef.current = false;
           countInTimeRef.current = 0;
-          gameTimeRef.current = chordPracticeIndexRef.current * currentMeasureMs;
+          const startBeat = getRhythmChordStartBeat(
+            chordTransitionBeatTimeline,
+            chordPracticeIndexRef.current,
+          );
+          gameTimeRef.current = startBeat * currentBeatMs;
           lastBeatRef.current = -1;
           setBeat(0);
           setStage3MeasureProgress(0);
@@ -20180,17 +20656,25 @@ function App({ onReady }) {
         const elapsedSeconds = Math.max(0, audio.currentTime - displayStartTime);
         const measureSeconds = backingSession.beatsPerMeasure * backingSession.beatSeconds;
         const visualElapsedSeconds = elapsedSeconds;
-        const visualBeat = Math.floor(visualElapsedSeconds / backingSession.beatSeconds);
+        const rhythmChordPosition = backingSession.rhythmChordTimeline
+          ? getRhythmChordPlaybackPosition({
+              audioTime: audio.currentTime,
+              beatSeconds: backingSession.beatSeconds,
+              beatsPerMeasure: backingSession.beatsPerMeasure,
+              displayStartTime,
+              timeline: backingSession.rhythmChordTimeline,
+            })
+          : null;
+        const visualBeat = rhythmChordPosition?.absoluteBeatIndex
+          ?? Math.floor(visualElapsedSeconds / backingSession.beatSeconds);
         const backingClicksPerBeat = Math.max(1, clicksPerBeat);
         const visualTick = Math.floor(visualElapsedSeconds / (backingSession.beatSeconds / backingClicksPerBeat));
         const subdivisionIndex = visualTick % backingClicksPerBeat;
-        const beatInBar = visualBeat % backingSession.beatsPerMeasure;
+        const beatInBar = rhythmChordPosition?.beatInMeasure
+          ?? visualBeat % backingSession.beatsPerMeasure;
         const progressionIndex = chordTransitionProgression.length > 0
-          ? backingSession.rhythmChordTimeline
-            ? getRhythmChordIndexAtBeat(
-                backingSession.rhythmChordTimeline,
-                visualElapsedSeconds / backingSession.beatSeconds,
-              )
+          ? rhythmChordPosition
+            ? rhythmChordPosition.chordIndex
             : Math.min(
                 chordTransitionProgression.length - 1,
                 Math.floor((visualElapsedSeconds % backingSession.cycleSeconds) / measureSeconds)
@@ -20199,10 +20683,19 @@ function App({ onReady }) {
         const progressNow = performance.now();
         if (progressNow - lastStage3ProgressUiAtRef.current >= 80) {
           lastStage3ProgressUiAtRef.current = progressNow;
-        setStage3MeasureProgress((visualElapsedSeconds % measureSeconds) / measureSeconds);
+          setStage3MeasureProgress(
+            rhythmChordPosition?.measureProgress
+              ?? (visualElapsedSeconds % measureSeconds) / measureSeconds,
+          );
         }
         if (visualBeat !== lastBeatRef.current) {
           lastBeatRef.current = visualBeat;
+          setChordPracticeTimelineBeat(
+            Math.floor(
+              rhythmChordPosition?.cycleBeat
+                ?? (visualBeat % Math.max(1, backingSession.rhythmChordTimeline?.cycleBeats || beatsPerMeasure)),
+            ),
+          );
           setBeat(beatInBar);
           if (beatInBar === 0) {
             triggerMetronomeViewportFlash();
@@ -20234,6 +20727,9 @@ function App({ onReady }) {
           ? getRhythmChordIndexAtBeat(chordTransitionBeatTimeline, currentBeat)
           : 0;
         if (subdivisionIndex === 0) {
+          setChordPracticeTimelineBeat(
+            currentBeat % Math.max(1, chordTransitionBeatTimeline.cycleBeats || beatsPerMeasure),
+          );
           setBeat(beatInBar);
           if (beatInBar === 0) {
             triggerMetronomeViewportFlash();
@@ -20510,11 +21006,23 @@ function App({ onReady }) {
       let startIndex = 0;
       {
         startIndex = hasChordTransitionProgression
-          ? chordPracticeIndexRef.current % chordTransitionProgression.length
+          ? chordPracticeIndexRef.current < 0
+            ? 0
+            : (
+                (chordPracticeIndexRef.current % chordTransitionProgression.length)
+                + chordTransitionProgression.length
+              ) % chordTransitionProgression.length
           : 0;
         chordPracticeIndexRef.current = startIndex;
-        gameTimeRef.current = (chordTransitionBeatTimeline.items[startIndex]?.startBeat ?? 0) * getBeatMs(bpmRef.current);
+        gameTimeRef.current = getRhythmChordStartBeat(
+          chordTransitionBeatTimeline,
+          startIndex,
+        ) * getBeatMs(bpmRef.current);
         setChordPracticeIndex(startIndex);
+        setChordPracticeTimelineBeat(getRhythmChordStartBeat(
+          chordTransitionBeatTimeline,
+          startIndex,
+        ));
       }
       lastBeatRef.current = -1;
       lastStage3MetronomeTickRef.current = -1;
@@ -20595,7 +21103,10 @@ function App({ onReady }) {
     countInActiveRef.current = false;
     countInTimeRef.current = 0;
     cancelCountInVoice();
-    if (safeCategory.id === "rhythm") setChordPracticeIndex(0);
+    if (safeCategory.id === "rhythm") {
+      setChordPracticeIndex(0);
+      setChordPracticeTimelineBeat(0);
+    }
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
     lastFrameRef.current = performance.now();
@@ -20796,7 +21307,30 @@ function App({ onReady }) {
     setFeedback("Play");
   }, [ensureAudioReady, loadMetronomeSamples, setState, startBackingScheduler, warmCoreAudioEngine]);
 
+  const portraitOnlyModeActive = isPortraitOnlyMode(appMode) && viewportProfile.isMobileSurface;
+  const portraitOrientationGuardActive = shouldGuardPortraitOrientation(appMode, viewportProfile);
   const shooterOrientationGuardActive = shouldGuardShooterOrientation(appMode, viewportProfile);
+
+  useEffect(() => {
+    if (!portraitOnlyModeActive || typeof window === "undefined") return undefined;
+    const screenOrientation = window.screen?.orientation;
+    if (!screenOrientation) return undefined;
+
+    try {
+      const lockRequest = screenOrientation.lock?.call(screenOrientation, "portrait");
+      if (lockRequest && typeof lockRequest.catch === "function") lockRequest.catch(() => {});
+    } catch {
+      // Browsers may reserve orientation locking for installed/fullscreen apps.
+    }
+
+    return () => {
+      try {
+        screenOrientation.unlock?.call(screenOrientation);
+      } catch {
+        // Keep navigation independent from optional Screen Orientation support.
+      }
+    };
+  }, [portraitOnlyModeActive]);
 
   useEffect(() => {
     if (shooterOrientationGuardActive) {
@@ -20852,6 +21386,7 @@ function App({ onReady }) {
       lastBeatRef.current = -1;
       lastStage3MetronomeTickRef.current = -1;
       setChordPracticeIndex(0);
+      setChordPracticeTimelineBeat(0);
       setBeat(0);
       setStage3MeasureProgress(0);
     }
@@ -20896,6 +21431,17 @@ function App({ onReady }) {
     bpmRef.current = nextBpm;
     setBpm(nextBpm);
     if (appModeRef.current === APP_MODES.METRONOME) return;
+    const isLiveRhythmPractice = appModeRef.current === APP_MODES.PRACTICE
+      && selectedCategoryIdRef.current === "rhythm"
+      && gameStateRef.current === GAME_STATES.PLAYING;
+    if (isLiveRhythmPractice) {
+      requestStage3BackingPatternChange({}, {
+        bpmValue: nextBpm,
+        deferSessionUpdate: true,
+        forceSessionUpdate: true,
+      });
+      return;
+    }
     patternRef.current = 0;
     practiceCompletedRef.current = false;
     gameTimeRef.current = 0;
@@ -20906,7 +21452,7 @@ function App({ onReady }) {
     setHitZoneNote(null);
     setIsHitWindowActive(false);
     setLaneFeedback([]);
-  }, []);
+  }, [requestStage3BackingPatternChange]);
 
   const changeMetronomeAccentTone = useCallback((toneId) => {
     const nextTone = getMetronomeToneOption(toneId).id;
@@ -21485,7 +22031,10 @@ function App({ onReady }) {
   const handleAppPointerDownCapture = useCallback((event) => {
     const target = event.target;
     if (!target?.closest) return;
-    const interactiveTarget = target.closest(
+    const desktopMetronomeOptionsTarget = !isMobileLayout
+      ? target.closest(".metronomeVisualOptionsPanel")
+      : null;
+    const interactiveTarget = desktopMetronomeOptionsTarget || target.closest(
       "button, a, input, select, textarea, summary, [role=\"button\"], [role=\"radio\"], [role=\"tab\"], [role=\"option\"], [aria-expanded], [aria-haspopup]",
     );
     if (interactiveTarget) {
@@ -21505,7 +22054,7 @@ function App({ onReady }) {
     ) {
       blockBpmButtonInput();
     }
-  }, [blockBpmButtonInput]);
+  }, [blockBpmButtonInput, isMobileLayout]);
 
   const handleAppClickCapture = useCallback((event) => {
     if (event.detail === 0) return;
@@ -21518,9 +22067,19 @@ function App({ onReady }) {
   }, [isSamePointerInteractionTarget, stopCrossTargetClickEvent]);
 
   const handleAppPointerUpCapture = useCallback((event) => {
+    const desktopOptionsSwipe = !isMobileLayout ? metronomeOptionsSwipeStartRef.current : null;
+    if (desktopOptionsSwipe?.pointerId === event.pointerId) {
+      metronomeOptionsSwipeStartRef.current = null;
+      if (!desktopOptionsSwipe.canceled) {
+        const deltaY = event.clientY - desktopOptionsSwipe.y;
+        if (deltaY <= -12) setMetronomeVisualOptionsOpen(true);
+        else if (deltaY >= 12) setMetronomeVisualOptionsOpen(false);
+      }
+      return;
+    }
     if (isSamePointerInteractionTarget(event)) return;
     stopCrossTargetClickEvent(event);
-  }, [isSamePointerInteractionTarget, stopCrossTargetClickEvent]);
+  }, [isMobileLayout, isSamePointerInteractionTarget, stopCrossTargetClickEvent]);
 
   const armBpmButtonInput = useCallback((buttonId, event) => {
     event.preventDefault();
@@ -21583,6 +22142,7 @@ function App({ onReady }) {
   }, []);
 
   const handleMetronomeModeSwipeStart = useCallback((event) => {
+    if (!isMobileLayout && event.target?.closest?.("button.metronomeBeatButton")) return;
     event.stopPropagation();
     event.currentTarget.setPointerCapture?.(event.pointerId);
     setMetronomeModeSwipeActive(true);
@@ -21601,7 +22161,7 @@ function App({ onReady }) {
       locked: false,
       canceled: false,
     };
-  }, []);
+  }, [isMobileLayout]);
 
   const handleMetronomeModeSwipeMove = useCallback((event) => {
     const swipe = metronomeModeSwipeStartRef.current;
@@ -22121,6 +22681,7 @@ function App({ onReady }) {
     setIsHitWindowActive(false);
     chordPracticeIndexRef.current = 0;
     setChordPracticeIndex(0);
+    setChordPracticeTimelineBeat(0);
     gameTimeRef.current = 0;
     nextSpawnAtRef.current = 0;
     lastBeatRef.current = -1;
@@ -22233,18 +22794,7 @@ function App({ onReady }) {
     setState(GAME_STATES.IDLE);
   }, [cancelCountInVoice, getMetronomeScopeForCategory, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
 
-  const closeStage3StorageRoom = useCallback(() => {
-    stage3StorageSwipeStartRef.current = null;
-    setStage3StorageSaveRequest(null);
-    setStage3StorageSaveTitleDraft("");
-    setStage3StorageSwipeActive(false);
-    setStage3StorageSwipeOffset(0);
-    setStage3StorageOpen(false);
-    appModeRef.current = APP_MODES.PRACTICE;
-    setAppMode(APP_MODES.PRACTICE);
-    setSelectedCategoryId("rhythm");
-    switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
-  }, [switchMetronomeScope]);
+  const closeStage3StorageRoom = exitStage3StorageRoom;
 
   const handleStage3StorageSwipeStart = useCallback((event) => {
     if (event.button != null && event.button !== 0) return;
@@ -25814,7 +26364,7 @@ function App({ onReady }) {
     stage3BackingPrepareStatus !== "ready";
 
   const appInteractionLocked = Boolean(shooterLaunchTransition || themeTransition);
-  const appContentInteractionLocked = appInteractionLocked || shooterOrientationGuardActive;
+  const appContentInteractionLocked = appInteractionLocked || portraitOrientationGuardActive;
   const landscapePlayFocus = isLandscapePlayFocusMode(appMode, viewportProfile)
     && (appMode !== APP_MODES.MINI_CHORD_MAKER || miniChordPlaybackActive);
   const viewportClassName = getViewportProfileClassName(viewportProfile);
@@ -25824,7 +26374,7 @@ function App({ onReady }) {
       aria-hidden={appContentInteractionLocked ? true : undefined}
       className={`app notranslate theme-${appTheme} ${appMode === APP_MODES.MENU ? "menuApp" : ""} ${
         appMode === APP_MODES.MINI_CHORD_MAKER ? "miniChordMakerMode" : ""
-      } ${appMode === APP_MODES.METRONOME ? "metronomeMode" : ""} ${appMode === APP_MODES.TUNER ? "tunerMode" : ""} ${appMode === APP_MODES.SHOOTER ? "shooterMode" : ""} ${appMode === APP_MODES.AUDIO_STUDIO ? "audioStudioMode" : ""} ${utilityMenuOpen ? "utilityMenuOpen" : ""} ${isSignalActive ? "signalGlow" : ""} ${viewportClassName} ${landscapePlayFocus ? "landscapePlayFocus" : ""} ${shooterOrientationGuardActive ? "shooterOrientationPaused" : ""}`}
+      } ${appMode === APP_MODES.PRACTICE ? "practiceMode" : ""} ${appMode === APP_MODES.METRONOME ? "metronomeMode" : ""} ${appMode === APP_MODES.TUNER ? "tunerMode" : ""} ${appMode === APP_MODES.SHOOTER ? "shooterMode" : ""} ${appMode === APP_MODES.AUDIO_STUDIO ? "audioStudioMode" : ""} ${utilityMenuOpen ? "utilityMenuOpen" : ""} ${isSignalActive ? "signalGlow" : ""} ${viewportClassName} ${landscapePlayFocus ? "landscapePlayFocus" : ""} ${portraitOrientationGuardActive ? "portraitOrientationGuarded" : ""} ${shooterOrientationGuardActive ? "shooterOrientationPaused" : ""}`}
       onClickCapture={handleAppClickCapture}
       onPointerDownCapture={handleAppPointerDownCapture}
       onPointerUpCapture={handleAppPointerUpCapture}
@@ -25849,9 +26399,6 @@ function App({ onReady }) {
           />,
           document.body,
         )
-        : null}
-      {shooterOrientationGuardActive && typeof document !== "undefined"
-        ? createPortal(<ShooterOrientationOverlay />, document.body)
         : null}
       <MetronomeViewportFlash
         active={metronomeFlashEnabled && metronomeFlashPulse > 0}
@@ -27827,20 +28374,20 @@ function App({ onReady }) {
       {isAppModeMounted(APP_MODES.FRETBOARD_VIEWER) ? (
         <Activity mode={getModeActivityState(appMode, APP_MODES.FRETBOARD_VIEWER)}>
         {renderAppMode(APP_MODES.FRETBOARD_VIEWER, () => (
-        <section className={`fretboardViewerPanel fretboardViewerPanel--${viewerMode}`} aria-label="지판 보기">
+        <section className={`fretboardViewerPanel fretboardViewerPanel--${viewerMode} ${!isMobileLayout ? "fretboardViewerPanel--desktopUnified" : ""}`} aria-label="지판 보기">
           <div
             className={`viewerControlPanel viewerControlPanel--${viewerMode} compactControls viewerSwipeSurface ${viewerSwipeFeedback ? `viewerSwipeSurface--${viewerSwipeFeedback}` : ""}`}
-            onPointerCancel={() => {
+            onPointerCancel={isMobileLayout ? () => {
               fretboardSwipeStartRef.current = null;
-            }}
-            onPointerDown={handleFretboardSwipeStart}
-            onPointerUp={handleFretboardSwipeEnd}
+            } : undefined}
+            onPointerDown={isMobileLayout ? handleFretboardSwipeStart : undefined}
+            onPointerUp={isMobileLayout ? handleFretboardSwipeEnd : undefined}
           >
             <div className="viewerModeTabs" aria-label="지판 보기 종류">
               <button
                 aria-pressed={viewerMode === FRETBOARD_VIEWER_MODES.CHORD}
                 className={viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? "selected" : ""}
-                onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.CHORD)}
+                onClick={() => selectFretboardViewerMode(FRETBOARD_VIEWER_MODES.CHORD)}
                 type="button"
               >
                 코드
@@ -27848,7 +28395,7 @@ function App({ onReady }) {
               <button
                 aria-pressed={viewerMode === FRETBOARD_VIEWER_MODES.NOTE}
                 className={viewerMode === FRETBOARD_VIEWER_MODES.NOTE ? "selected" : ""}
-                onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.NOTE)}
+                onClick={() => selectFretboardViewerMode(FRETBOARD_VIEWER_MODES.NOTE)}
                 type="button"
               >
                 음표
@@ -27856,7 +28403,7 @@ function App({ onReady }) {
               <button
                 aria-pressed={viewerMode === FRETBOARD_VIEWER_MODES.SCALE}
                 className={viewerMode === FRETBOARD_VIEWER_MODES.SCALE ? "selected" : ""}
-                onClick={() => setViewerMode(FRETBOARD_VIEWER_MODES.SCALE)}
+                onClick={() => selectFretboardViewerMode(FRETBOARD_VIEWER_MODES.SCALE)}
                 type="button"
               >
                 <span className="viewerModeTabStack">
@@ -28065,8 +28612,13 @@ function App({ onReady }) {
 
           </div>
 
-          {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
-            <section className="chordCatalogPanel" aria-label="전체 코드표" ref={chordChartRef}>
+          {viewerMode === FRETBOARD_VIEWER_MODES.CHORD || !isMobileLayout ? (
+            <section
+              aria-hidden={viewerMode !== FRETBOARD_VIEWER_MODES.CHORD ? "true" : undefined}
+              aria-label="전체 코드표"
+              className={`chordCatalogPanel ${viewerMode !== FRETBOARD_VIEWER_MODES.CHORD ? "chordCatalogPanel--desktopDormant" : ""}`}
+              ref={chordChartRef}
+            >
               <div className="viewerChordReferenceFooter" aria-label="전체 코드 운지 안내">
                 <strong>전체 코드 운지</strong>
                 <div>
@@ -28077,6 +28629,7 @@ function App({ onReady }) {
               <div className="chordCatalogScroll">
                 {chordCatalogGroups.map((group) => (
                   <ChordCatalogRow
+                    desktopDraggable={!isMobileLayout}
                     getChordStringState={getChordStringState}
                     group={group}
                     key={group.root}
@@ -30126,6 +30679,14 @@ function App({ onReady }) {
                   <button
                     className="primary"
                     disabled={!stage3StorageSelectedChord}
+                    onClick={() => commitStage3StorageChord(1)}
+                    type="button"
+                  >
+                    1박 추가
+                  </button>
+                  <button
+                    className="primary"
+                    disabled={!stage3StorageSelectedChord}
                     onClick={() => commitStage3StorageChord(2)}
                     type="button"
                   >
@@ -30138,6 +30699,13 @@ function App({ onReady }) {
                     type="button"
                   >
                     4박 추가
+                  </button>
+                  <button
+                    className="stage3AddRestButton"
+                    onClick={addStage3StorageRest}
+                    type="button"
+                  >
+                    1박 쉼
                   </button>
                   <button
                     onClick={() => {
@@ -30155,12 +30723,25 @@ function App({ onReady }) {
                 <div className="progressionChipList">
                   {hasStage3StorageProgression ? stage3StorageProgressionMeasures.map((measure) => (
                     <div className="rhythmChordMeasure" key={`storage-measure-${measure.measureIndex}`}>
-                      {measure.items.map(({ chord, index }) => (
+                      {measure.items.map(({ beatLength, chord, index, isAutoRest, startBeat }) => isAutoRest ? (
+                        <strong className="stage3AutomaticRestChip" key={`storage-auto-rest-${startBeat}`}>
+                          <button
+                            aria-disabled="true"
+                            aria-label={`자동 쉼 ${getRhythmChordBeatLabel(beatLength)}`}
+                            className="stage3ProgressionEditButton stage3ProgressionRestButton stage3AutomaticRestButton"
+                            tabIndex={-1}
+                            type="button"
+                          >
+                            <span aria-hidden="true" className="stage3AutomaticRestSymbol">𝄽</span>
+                          </button>
+                        </strong>
+                      ) : (
                         <strong key={`storage-inline-${chord.id}-${chord.positionId}-${index}`}>
                           <button
-                            aria-label={`${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)} 편집`}
-                            className={stage3StorageChordEditingIndex === index ? "selected stage3ProgressionEditButton" : "stage3ProgressionEditButton"}
-                            onClick={() => editStage3StorageChordEntry(stage3StorageChordIds[index], index)}
+                            aria-label={`${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)}${chord.isRest ? "" : " 편집"}`}
+                            className={`${stage3StorageChordEditingIndex === index ? "selected " : ""}stage3ProgressionEditButton${chord.isRest ? " stage3ProgressionRestButton" : ""}`}
+                            disabled={chord.isRest}
+                            onClick={chord.isRest ? undefined : () => editStage3StorageChordEntry(stage3StorageChordIds[index], index)}
                             type="button"
                           >
                             <span>{chord.displayName}</span>
@@ -30234,8 +30815,10 @@ function App({ onReady }) {
           />
         ) : null}
         <section className="chordTransitionPanel" aria-label="Chord transition practice">
+          <div className="stage3DesktopPrimaryColumn">
           <div className="chordTransitionBody">
             <aside className="referenceFretboard chordTransitionChart" aria-label="Current chord fingering">
+              {hasChordTransitionProgression ? (
               <div className="referenceHeader">
                 <div>
                   <div className="stage3ChartTitleRow">
@@ -30255,36 +30838,68 @@ function App({ onReady }) {
                     ) : null}
                   </div>
                   <div className="currentProgressionReadout" aria-label="현재 진행중 코드 진행">
-                    {hasChordTransitionProgression ? chordTransitionProgressionMeasures.map((measure) => (
+                    {chordTransitionProgressionMeasures.map((measure) => (
                       <div className="rhythmChordMeasure" key={`practice-measure-${measure.measureIndex}`}>
-                        {measure.items.map(({ chord, index }) => {
-                          const isCurrentChord = index === (chordPracticeIndex % chordTransitionProgression.length);
+                        {measure.items.map(({ beatLength, chord, endBeat, index, isAutoRest, startBeat }) => {
+                          const isCurrentChord = isAutoRest
+                            ? chordPracticeIndex < 0
+                              && chordPracticeTimelineBeat >= startBeat
+                              && chordPracticeTimelineBeat < endBeat
+                            : index === (chordPracticeIndex % chordTransitionProgression.length);
                           return (
                             <button
-                              aria-label={`${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)}`}
+                              aria-disabled={isAutoRest ? "true" : undefined}
+                              aria-label={isAutoRest
+                                ? `자동 쉼 ${getRhythmChordBeatLabel(beatLength)}`
+                                : `${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)}`}
                               aria-current={isCurrentChord ? "step" : undefined}
-                              className={isCurrentChord ? "active" : ""}
-                              key={`readonly-${chord.id}-${chord.positionId}-${index}`}
-                              onClick={() => setStage3ProgressIndex(index)}
+                              className={`${isCurrentChord ? "active " : ""}${isAutoRest ? "stage3AutomaticRestButton" : ""}`}
+                              key={isAutoRest
+                                ? `readonly-auto-rest-${startBeat}`
+                                : `readonly-${chord.id}-${chord.positionId}-${index}`}
+                              onClick={isAutoRest ? undefined : () => setStage3ProgressIndex(index)}
+                              tabIndex={isAutoRest ? -1 : undefined}
                               type="button"
                             >
-                              <span>{chord.displayName}</span>
-                              <small>{getRhythmChordBeatLabel(chord.beatLength)}</small>
+                              {isAutoRest ? (
+                                <span aria-hidden="true" className="stage3AutomaticRestSymbol">𝄽</span>
+                              ) : (
+                                <>
+                                  <span>{chord.displayName}</span>
+                                  <small>{getRhythmChordBeatLabel(chord.beatLength)}</small>
+                                </>
+                              )}
                             </button>
                           );
                         })}
                       </div>
-                    )) : (
-                      <small>추천 또는 사용자 진행을 선택해주세요</small>
-                    )}
+                    ))}
                   </div>
-                  {hasChordTransitionProgression && chordPracticeCurrent.isEnharmonic && (
+                  {chordPracticeCurrent.isEnharmonic && (
                     <small className="enharmonicNotice">
                       참고 운지: {chordPracticeCurrent.fretboardDisplayName} · {chordPracticeCurrent.displayName} = {chordPracticeCurrent.fretboardDisplayName} 동명음
                     </small>
                   )}
                 </div>
               </div>
+              ) : null}
+              {isMobileLayout && !hasChordTransitionProgression ? (
+                <div
+                  aria-label="빈 코드 진행 예시 4마디"
+                  className="currentProgressionReadout stage3EmptyProgressionReadout"
+                  role="img"
+                >
+                  {Array.from({ length: 4 }, (_, measureIndex) => (
+                    <div
+                      aria-hidden="true"
+                      className="rhythmChordMeasure stage3EmptyProgressionMeasure"
+                      key={`empty-practice-measure-${measureIndex}`}
+                    >
+                      <span />
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               {Number(loadedStage3LibraryItem?.capo) > 0 ? (
                 <span className="stage3CapoBadge">{Number(loadedStage3LibraryItem.capo)}Capo</span>
               ) : null}
@@ -30386,6 +31001,8 @@ function App({ onReady }) {
             ) : null}
           </div>
 
+          </div>
+          <div className="stage3DesktopSideColumn">
           <div className="stage3PracticeUtilityPanel">
             <div className="stage3LoadToolbar">
               <MetronomeSelectControl
@@ -30441,6 +31058,7 @@ function App({ onReady }) {
                 onClearSelectedOptions={clearStage3UserSelection}
                 onDeleteOption={requestDeleteStage3StorageItem}
                 onDeleteSelectedOptions={requestDeleteSelectedStage3StorageItems}
+                onSelectAllOptions={selectAllStage3UnlockedUserItems}
                 onToggleOptionLock={toggleStage3StorageItemLock}
                 onToggleOptionSelection={toggleStage3UserSelection}
                 options={[
@@ -30452,6 +31070,8 @@ function App({ onReady }) {
                     locked: Boolean(item.locked),
                   })),
                 ]}
+                managedListMode
+                panelDirectionIndicator
                 selectedOptionIds={stage3UserSelectedIds}
                 value={!isStage3RecommendedItem(selectedStage3LibraryItem) ? selectedStage3LibraryItem?.id ?? loadedStage3LibraryItem?.id ?? "" : ""}
               />
@@ -30679,6 +31299,7 @@ function App({ onReady }) {
             onVolumeInput={handleBackingVolumeInput}
             parts={sharedAccompanimentParts}
           />
+          </div>
         </section>
         </>
       ) : !LEGACY_PRACTICE_RENDERING_ENABLED ? (
@@ -31644,83 +32265,6 @@ function App({ onReady }) {
       ))}
         </Activity>
       ) : null}
-
-      {appMode === APP_MODES.SHOOTER && !mapEditor.enabled && <section className="controlBar compactControls shooterControlBar">
-        <div className={`detector ${isSignalActive ? "active" : ""}`}>
-          <Radio size={20} />
-          <div>
-            <span>감지음</span>
-            <strong>{detected ? detected.pitch : "--"}</strong>
-          </div>
-          <small>
-            {detectedPitch
-              ? `${detectedPitch.frequency.toFixed(1)} Hz / ${detected?.cents ?? 0} cents`
-              : "신호를 기다리는 중"}
-          </small>
-        </div>
-
-        <div className="buttons playbackButtons">
-          {(appMode === APP_MODES.CURRICULUM || appMode === APP_MODES.PRACTICE) && (
-            <>
-              <button className="primary" onClick={() => startPractice(selectedCategory)} type="button">
-                <Play size={18} />
-                시작
-              </button>
-              <button
-                onClick={gameState === GAME_STATES.PAUSED ? resumeGame : pauseGame}
-                type="button"
-                disabled={gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED}
-              >
-                <Pause size={18} />
-                {gameState === GAME_STATES.PAUSED ? "계속" : "일시정지"}
-              </button>
-              <button onClick={stopPracticeSession} type="button">
-                <Square size={18} />
-                정지
-              </button>
-            </>
-          )}
-
-          {appMode === APP_MODES.SHOOTER && (
-            <>
-              <button className="primary" onClick={() => startShooter()} type="button">
-                <Play size={18} />
-                {gameState === GAME_STATES.PAUSED ? "계속" : "시작"}
-              </button>
-              <button
-                className={`shooterControlMicButton ${streamRef.current ? "selected" : ""}`}
-                onClick={startShooterMic}
-                type="button"
-              >
-                <Mic size={18} />
-                마이크
-              </button>
-              <button
-                onClick={gameState === GAME_STATES.PAUSED ? resumeGame : pauseGame}
-                type="button"
-                disabled={gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED}
-              >
-                <Pause size={18} />
-                {gameState === GAME_STATES.PAUSED ? "계속" : "일시정지"}
-              </button>
-              <button onClick={stopPracticeSession} type="button">
-                <Square size={18} />
-                RESET
-              </button>
-              <button
-                aria-label={shooterSoundOn ? "효과음 끄기" : "효과음 켜기"}
-                aria-pressed={shooterSoundOn}
-                className={`iconOnlyButton soundToggle ${shooterSoundOn ? "selected" : "muted"}`}
-                onClick={() => setShooterSoundOn((value) => !value)}
-                title={shooterSoundOn ? "효과음 끄기" : "효과음 켜기"}
-                type="button"
-              >
-                <Music2 size={18} />
-              </button>
-            </>
-          )}
-        </div>
-      </section>}
 
       {false && <section className="debugPanel">
         <div className={`micState ${classNameFromLabel(micLabel)}`}>

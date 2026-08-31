@@ -63,9 +63,18 @@ export function getViewportProfileClassName(profile) {
 
 export function isLandscapePlayFocusMode(appMode, profile) {
   if (!profile?.isLandscape || !profile?.isMobileSurface) return false;
-  return ["metronome", "practice", "tuner", "mini-chord-maker"].includes(appMode);
+  return ["metronome", "practice", "mini-chord-maker"].includes(appMode);
+}
+
+export function isPortraitOnlyMode(appMode) {
+  return appMode === "shooter" || appMode === "tuner";
+}
+
+export function shouldGuardPortraitOrientation(appMode, profile) {
+  return isPortraitOnlyMode(appMode)
+    && Boolean(profile?.isLandscape && profile?.isMobileSurface);
 }
 
 export function shouldGuardShooterOrientation(appMode, profile) {
-  return appMode === "shooter" && Boolean(profile?.isLandscape && profile?.isMobileSurface);
+  return appMode === "shooter" && shouldGuardPortraitOrientation(appMode, profile);
 }

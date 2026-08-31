@@ -54,10 +54,11 @@ test("auto tracking changes its cents reference when the nearest semitone bounda
 
 test("quiet sustain accepts only confident pitch near the last valid reading", () => {
   const e2 = midiToFrequency(40);
-  assert.equal(isTrustedTunerPitch({ candidateFrequency: e2, confidence: 0.7, inputPresent: true }), true);
+  assert.equal(isTrustedTunerPitch({ candidateFrequency: e2, confidence: 0.7, inputPresent: true }), false);
+  assert.equal(isTrustedTunerPitch({ candidateFrequency: e2, confidence: 0.82, inputPresent: true }), true);
   assert.equal(isTrustedTunerPitch({
     candidateFrequency: e2 * 2 ** (18 / 1200),
-    confidence: 0.86,
+    confidence: 0.9,
     inputPresent: false,
     lastFrequency: e2,
     recentPitch: true,
@@ -79,13 +80,28 @@ test("the current-note orb uses fine cents in auto and the fixed target distance
   assert.ok(getTunerOrbPosition(400, true) > 0.7);
 });
 
-test("visual cents stay centered for tiny noise and immediately follow a clear detune", () => {
+test("visual cents stay centered for tiny noise and follow a clear detune without overshoot", () => {
   assert.equal(getTunerDisplayCents(2, 0), 0);
-  assert.equal(getTunerDisplayCents(-3, 0), 0);
-  assert.equal(getTunerDisplayCents(4, 0), 4);
-  assert.equal(getTunerDisplayCents(-5, 0), -5);
+  const low = getTunerDisplayCents(-3, 0);
+  const high = getTunerDisplayCents(5, 0);
+  assert.ok(low < 0 && low > -3);
+  assert.ok(high > 0 && high < 5);
   assert.equal(getTunerDisplayCents(1, 18, { elapsedMs: 52 }) < 18, true);
   assert.equal(getTunerDisplayCents(1, null, { pitchChanged: true }), 0);
+});
+
+test("visual interpolation stays between its previous and next detector positions", () => {
+  let visual = 0;
+  for (let frame = 0; frame < 8; frame += 1) {
+    const next = getTunerDisplayCents(30, visual, { elapsedMs: 52 });
+    assert.ok(next >= visual && next <= 30);
+    visual = next;
+  }
+  for (let frame = 0; frame < 8; frame += 1) {
+    const previous = visual;
+    visual = getTunerDisplayCents(-20, visual, { elapsedMs: 52 });
+    assert.ok(visual <= previous && visual >= -20);
+  }
 });
 
 test("coarse tuning remains directional beyond the fine cents range", () => {

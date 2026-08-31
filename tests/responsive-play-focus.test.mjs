@@ -6,6 +6,8 @@ import {
   getViewportProfile,
   getViewportProfileClassName,
   isLandscapePlayFocusMode,
+  isPortraitOnlyMode,
+  shouldGuardPortraitOrientation,
   shouldGuardShooterOrientation,
 } from "../src/layouts/viewportProfile.js";
 
@@ -63,15 +65,21 @@ test("scrollbar width does not move the 600px tablet breakpoint", () => {
   assert.equal(viewport.size, "tablet");
 });
 
-test("landscape focus excludes editors and desktop shooter guard", () => {
+test("landscape focus excludes editors and portrait-only modes", () => {
   const mobileLandscape = getViewportProfile(createWindow({ width: 932, height: 430 }));
   const desktopLandscape = getViewportProfile(createWindow({ width: 1366, height: 768, mobile: false }));
 
-  for (const mode of ["metronome", "practice", "tuner", "mini-chord-maker"]) {
+  for (const mode of ["metronome", "practice", "mini-chord-maker"]) {
     assert.equal(isLandscapePlayFocusMode(mode, mobileLandscape), true);
   }
+  assert.equal(isLandscapePlayFocusMode("tuner", mobileLandscape), false);
   assert.equal(isLandscapePlayFocusMode("audio-studio", mobileLandscape), false);
   assert.equal(isLandscapePlayFocusMode("menu", mobileLandscape), false);
+  assert.equal(isPortraitOnlyMode("shooter"), true);
+  assert.equal(isPortraitOnlyMode("tuner"), true);
+  assert.equal(shouldGuardPortraitOrientation("tuner", mobileLandscape), true);
+  assert.equal(shouldGuardPortraitOrientation("shooter", mobileLandscape), true);
+  assert.equal(shouldGuardPortraitOrientation("tuner", desktopLandscape), false);
   assert.equal(shouldGuardShooterOrientation("shooter", mobileLandscape), true);
   assert.equal(shouldGuardShooterOrientation("shooter", desktopLandscape), false);
 });
@@ -84,7 +92,9 @@ test("responsive implementation changes layout without orientation remount or st
 
   assert.match(appSource, /getViewportProfileClassName\(viewportProfile\)/);
   assert.match(appSource, /appMode !== APP_MODES\.MINI_CHORD_MAKER \|\| miniChordPlaybackActive/);
-  assert.match(appSource, /createPortal\(<ShooterOrientationOverlay \/>, document\.body\)/);
+  assert.doesNotMatch(appSource, /ShooterOrientationOverlay|슈팅게임은 세로 화면 전용입니다/);
+  assert.match(appSource, /screenOrientation\.lock\?\.call\(screenOrientation, "portrait"\)/);
+  assert.match(appSource, /appInteractionLocked \|\| portraitOrientationGuardActive/);
   assert.match(appSource, /gameStateRef\.current === GAME_STATES\.PLAYING[\s\S]*pauseGame\(\)/);
   assert.match(appSource, /gameStateRef\.current === GAME_STATES\.PAUSED[\s\S]*resumeGame\(\)/);
   assert.doesNotMatch(appSource, /key=\{(?:isLandscape|orientation|viewportProfile\.orientation)\}/);
@@ -92,6 +102,10 @@ test("responsive implementation changes layout without orientation remount or st
   assert.match(css, /100dvh/);
   assert.match(css, /env\(safe-area-inset-left/);
   assert.match(css, /\.landscapePlayFocus/);
-  assert.match(css, /\.shooterOrientationOverlay/);
+  assert.match(css, /metronomeMode\.viewport-mobile-surface\.landscapePlayFocus > \.hud\.hud \{\s*display: none !important/);
+  assert.match(css, /metronomeHeroCard\.metronomeHeroCard--interactive \{\s*grid-column: 1 \/ -1;\s*grid-row: 2/);
+  assert.match(css, /\.referenceTrainingPanel \{[\s\S]*width: 100vw !important/);
+  assert.match(css, /stage3ProgressHud\.stage3ProgressHud \{[\s\S]*grid-template-columns: minmax\(120px, 1fr\) auto !important/);
+  assert.doesNotMatch(css, /tunerMode\.landscapePlayFocus|shooterOrientationOverlay/);
   assert.match(css, /animation-play-state: paused !important/);
 });

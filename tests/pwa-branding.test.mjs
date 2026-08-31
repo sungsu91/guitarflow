@@ -30,6 +30,7 @@ test("PWA manifest exposes FRETIVA LAB with separate regular and maskable icons"
   assert.equal(manifest.short_name, "FRETIVA LAB");
   assert.equal(manifest.start_url, "/");
   assert.equal(manifest.scope, "/");
+  assert.equal(manifest.orientation, "any");
   assert.deepEqual(
     manifest.icons.map(({ src, sizes, type, purpose }) => ({ src, sizes, type, purpose })),
     [

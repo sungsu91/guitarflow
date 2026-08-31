@@ -2077,9 +2077,9 @@ html body main.app.theme-brand.theme-brand
 }
 
 @media (max-width: 767px) {
-  /* The bottom navigation is fixed. Collapse only its metronome-page wrapper
-     so removing the old brand plate does not leave a blank first grid row. */
-  html body main.app.app.app.metronomeMode > .hud {
+  /* The bottom navigation is fixed; these page wrappers must not reserve an empty first grid row. */
+  html body main.app.app.app.metronomeMode > .hud,
+  html body main.app.app.app.practiceMode:has(> .chordTransitionPanel) > .hud {
     display: block !important;
     width: 0 !important;
     min-width: 0 !important;
@@ -2091,6 +2091,12 @@ html body main.app.theme-brand.theme-brand
     background: transparent !important;
     box-shadow: none !important;
     overflow: visible !important;
+  }
+
+  html body main.app.app.app.practiceMode:has(> .chordTransitionPanel) {
+    grid-template-rows: 0 auto !important;
+    align-content: start !important;
+    gap: 0 !important;
   }
 
   html body main.app.app.app.metronomeMode
@@ -6484,6 +6490,13 @@ html body main.app.app.app.theme-light.theme-light .chordTransitionPanel
     .stage3MetronomeSoundToggle--mobile {
     grid-column: 3 !important;
     justify-self: end !important;
+  }
+
+  html body main.app.app.app .chordTransitionPanel
+    .stage3MetronomeSoundToggle--mobile
+    span {
+    font-size: 8px !important;
+    transform: translateY(2px) !important;
   }
 
   html body main.app.app.app .chordTransitionPanel

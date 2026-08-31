@@ -1,6 +1,8 @@
 .desktopLayout,
 .desktopWorkspace,
-.desktopWorkspaceContent {
+.desktopWorkspaceContent,
+.stage3DesktopPrimaryColumn,
+.stage3DesktopSideColumn {
   display: contents;
 }
 
@@ -95,6 +97,914 @@
     width: min(620px, calc(100vw - 64px)) !important;
   }
 
+  .desktopLayout .backingLoopPanel.backingLoopPanel--desktop {
+    grid-template-rows: auto 40px auto !important;
+    gap: 2px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 5px 10px !important;
+  }
+
+  .desktopLayout .backingLoopPanel--desktop .backingLoopMiniPlayer--desktop {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: minmax(28px, auto) 6px 40px !important;
+    gap: 2px !important;
+    height: auto !important;
+    min-height: 82px !important;
+    padding: 4px 8px !important;
+    overflow: visible !important;
+  }
+
+  .desktopLayout .backingLoopPanel--desktop .backingLoopTrackInfo {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .desktopLayout .backingLoopPanel--desktop .backingLoopProgress {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 6px;
+  }
+
+  .desktopLayout .backingLoopPanel--desktop .backingLoopPlayerBar {
+    grid-column: 1;
+    grid-row: 3;
+    justify-content: space-between;
+    gap: 12px;
+    padding-inline: 8px;
+  }
+
+  /*
+   * Desktop is an enlarged edition of the current mobile composition. Keep
+   * the same cards and reading order; only give them monitor-sized tracks.
+   */
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode {
+    align-content: start;
+    width: min(100%, 1320px);
+    max-width: 1320px;
+    height: auto;
+    min-height: 100dvh;
+    padding-top: clamp(16px, 2vh, 24px);
+    padding-right: clamp(16px, 2vw, 28px);
+    padding-left: clamp(16px, 2vw, 28px);
+    overflow: visible;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck) {
+    --desktop-metronome-visual-height: clamp(184px, calc(100dvh - 788px), 292px);
+    display: grid !important;
+    grid-template-columns: minmax(430px, 0.94fr) minmax(500px, 1.06fr);
+    grid-template-rows: auto var(--desktop-metronome-visual-height) auto auto;
+    grid-template-areas:
+      "advanced advanced"
+      "visual visual"
+      "transport transport"
+      "controls backing";
+    align-items: stretch;
+    gap: 12px 16px !important;
+    width: min(100%, 1180px);
+    min-width: 0;
+    min-height: 0;
+    margin: 0 auto !important;
+    padding: 0 0 112px !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeAdvancedDock {
+    grid-area: advanced;
+    align-self: start;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeAdvancedDock .metronomeTrackerResetButton > span {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 8px !important;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main {
+    grid-area: visual;
+    align-self: stretch;
+    width: 100%;
+    box-sizing: border-box !important;
+    height: var(--desktop-metronome-visual-height) !important;
+    min-height: var(--desktop-metronome-visual-height) !important;
+    max-height: var(--desktop-metronome-visual-height) !important;
+    padding: clamp(20px, 2.5vh, 30px) clamp(28px, 3vw, 48px) !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main .beatDot {
+    --beat-dot-touch: clamp(66px, 5vw, 84px);
+    --beat-dot-size: clamp(44px, 3.4vw, 56px);
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main.metronomeBeatMatrix--dot:is(
+      .metronomeBeatMatrix--beats-9,
+      .metronomeBeatMatrix--beats-12
+    ) .beatDot {
+    --beat-dot-touch: clamp(40px, calc((var(--desktop-metronome-visual-height) - 18px) / 4), 68px);
+    --beat-dot-size: clamp(28px, calc((var(--desktop-metronome-visual-height) - 56px) / 5), 44px);
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main.metronomeBeatMatrix--circle
+  {
+    padding-block: 10px !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main.metronomeBeatMatrix--circle
+    .metronomeModeCircleOrbit {
+    width: clamp(164px, calc(var(--desktop-metronome-visual-height) - 20px), 260px) !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main.metronomeBeatMatrix--circle
+    .beatDot.metronomeModeCircleBeat {
+    --desktop-metronome-circle-radius: clamp(
+      70px,
+      calc((var(--desktop-metronome-visual-height) - 56px) / 2),
+      112px
+    );
+    --beat-dot-touch: clamp(52px, calc((var(--desktop-metronome-visual-height) - 20px) / 3), 78px);
+    --beat-dot-size: clamp(36px, calc((var(--desktop-metronome-visual-height) - 70px) / 4), 52px);
+    transform:
+      rotate(var(--beat-angle))
+      translate(var(--desktop-metronome-circle-radius))
+      rotate(calc(-1 * var(--beat-angle)))
+      translate(-50%, -50%) !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main.metronomeBeatMatrix--circle:is(
+      .metronomeBeatMatrix--beats-9,
+      .metronomeBeatMatrix--beats-12
+    ) .beatDot.metronomeModeCircleBeat {
+    --beat-dot-touch: clamp(44px, calc((var(--desktop-metronome-visual-height) - 8px) / 4), 60px);
+    --beat-dot-size: clamp(28px, calc((var(--desktop-metronome-visual-height) - 120px) / 4), 42px);
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main.metronomeBeatMatrix--circle:is(
+      .metronomeBeatMatrix--beats-9,
+      .metronomeBeatMatrix--beats-12
+    ) .beatDot--strong.metronomeModeCircleBeat {
+    --beat-dot-size: clamp(30px, calc((var(--desktop-metronome-visual-height) - 108px) / 4), 46px);
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeHeroCard--interactive {
+    grid-area: transport;
+    align-self: stretch;
+    min-height: 150px !important;
+    margin-bottom: 0 !important;
+    padding: 14px 18px 24px !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeHeroCard--interactive .metronomeHeroBpmValue strong {
+    font-size: clamp(52px, 5vw, 72px) !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .standaloneMetronomeControl {
+    grid-area: controls;
+    align-self: start;
+    min-width: 0;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel {
+    grid-area: backing;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-self: start;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopMainControls,
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopStorageControls {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(112px, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopButton {
+    min-width: 0 !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopMiniPlayer--desktop {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: 31px 8px 41px !important;
+    gap: 2px !important;
+    height: 94px !important;
+    min-height: 94px !important;
+    padding: 6px 8px 5px !important;
+    border: 1px solid rgba(110, 76, 58, 0.64) !important;
+    border-radius: 9px !important;
+    background:
+      radial-gradient(circle at 13% 0%, rgba(243, 205, 137, 0.17), transparent 37%),
+      linear-gradient(145deg, #5b493d, #3b3028 58%, #48372d) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 244, 216, 0.08),
+      inset 0 -1px 2px rgba(8, 6, 4, 0.44),
+      0 3px 7px rgba(72, 43, 31, 0.17) !important;
+    overflow: visible !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode.theme-brand
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopMiniPlayer--desktop {
+    border-color: rgba(225, 181, 98, 0.52) !important;
+    background:
+      radial-gradient(circle at 13% 0%, rgba(230, 185, 95, 0.18), transparent 37%),
+      linear-gradient(145deg, #443723, #211c13 62%, #302719) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 230, 167, 0.07),
+      inset 0 -1px 2px rgba(0, 0, 0, 0.54),
+      0 3px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel.backingLoopPanel--desktop {
+    grid-template-rows: 94px 42px auto !important;
+    gap: 2px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 6px 10px !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopTrackInfo {
+    grid-column: 1;
+    grid-row: 1;
+    grid-template-columns: 31px minmax(0, 1fr) auto;
+    gap: 8px;
+    height: 31px;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopTrackBadge {
+    width: 31px;
+    height: 31px;
+    border-radius: 8px;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopTrackText strong {
+    font-size: 10.5px !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopTrackText small {
+    font-size: 7px !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopTrackInfo time {
+    font-size: 8px !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopProgress {
+    grid-column: 1;
+    grid-row: 2;
+    width: auto !important;
+    height: 8px !important;
+    min-height: 8px !important;
+    margin: 0 !important;
+    padding: 0 2px !important;
+    overflow: visible !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopProgress input {
+    height: 8px !important;
+    min-height: 8px !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopPlayerBar {
+    grid-column: 1;
+    grid-row: 3;
+    display: flex !important;
+    align-items: center;
+    justify-content: center !important;
+    gap: 10px !important;
+    height: 41px !important;
+    min-height: 41px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopPlayerTransport {
+    justify-self: auto;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopPlayerModes {
+    justify-self: auto;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopPlayerUtilities {
+    justify-self: auto;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopMiniPlayer--desktop
+    :is(.backingLoopPlayerIconButton, .backingLoopVolumeMute) {
+    width: 29px !important;
+    min-width: 29px !important;
+    max-width: 29px !important;
+    height: 29px !important;
+    min-height: 29px !important;
+    max-height: 29px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    background: transparent !important;
+    color: rgba(255, 241, 211, 0.92) !important;
+    box-shadow: none !important;
+    filter: none !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopMiniPlayer--desktop
+    .backingLoopPlayerIconButton:disabled {
+    color: rgba(245, 226, 187, 0.5) !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopMiniPlayer--desktop
+    .backingLoopPlayerIconButton:is(.active, [aria-pressed="true"]) {
+    color: #e7b755 !important;
+    filter: drop-shadow(0 0 4px rgba(227, 180, 78, 0.3)) !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopMiniPlayer--desktop
+    .backingLoopPlayerPlayButton {
+    width: 41px !important;
+    min-width: 41px !important;
+    height: 41px !important;
+    min-height: 41px !important;
+    border: 1px solid rgba(255, 242, 210, 0.56) !important;
+    border-radius: 50% !important;
+    background: linear-gradient(155deg, #fffdf6, #e3cc9f) !important;
+    color: #2d2118 !important;
+    box-shadow:
+      0 4px 9px rgba(8, 6, 4, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel .backingLoopMiniPlayer--desktop
+    .backingLoopPlaylistToggle {
+    width: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+    border-radius: 7px !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .backingLoopPanel :is(
+      .backingLoopPlayerTransport,
+      .backingLoopPlayerModes,
+      .backingLoopPlayerUtilities
+    ) {
+    flex: 0 0 auto;
+    gap: 3px !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeAdvancedDock .metronomeAdvancedPopover {
+    max-height: calc(100dvh - 150px);
+    overflow-y: auto;
+  }
+
+  /* Single-note and scale training: keep the mobile board and BPM deck, but
+     place the supporting deck beside the larger reference fretboard. */
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode:has(
+      > .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    ) {
+    width: 100%;
+    max-width: 1560px;
+    padding-inline: clamp(16px, 1.8vw, 28px);
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    > .referenceTrainingMainRow {
+    display: grid !important;
+    grid-template-columns: minmax(680px, 1fr) minmax(390px, 440px);
+    grid-template-areas:
+      "board hero"
+      "board controls"
+      "beat controls"
+      "beat backing";
+    align-items: start;
+    gap: 12px 18px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel) {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    > .referenceTrainingMainRow > .referenceTrainingBoard {
+    grid-area: board;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    > .referenceTrainingMainRow > .referenceTrainingToolbar,
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    > .referenceTrainingMainRow > .referenceTrainingToolbar > .referenceStandaloneMetronomeDeck {
+    display: contents !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    .referenceBeatMetronomeStrip {
+    grid-area: beat;
+    align-self: start;
+    width: min(940px, 100%) !important;
+    margin-inline: auto !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    .referenceMetronomeHeroCard {
+    grid-area: hero;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    .referenceStandaloneMetronomeControl {
+    grid-area: controls;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    .scaleTrainingBackingLoop {
+    grid-area: backing;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    .referenceTrainingBoard .trainingSharedFretboard {
+    width: min(940px, 100%) !important;
+    max-width: 940px !important;
+    margin-inline: auto !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    .referenceTrainingBoard,
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    .referenceTrainingToolbar,
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    .referenceStandaloneMetronomeDeck,
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    .referenceStandaloneMetronomeDeck > * {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .scaleBlockTrainingPanel .scaleTrainingBackingLoop .backingLoopPanel {
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .scaleBlockTrainingPanel .scaleTrainingBackingLoop :is(
+      .backingLoopMiniPlayer,
+      .backingLoopTrackInfo,
+      .backingLoopProgress,
+      .backingLoopPlayerBar,
+      .backingLoopMainControls,
+      .backingLoopStorageControls
+    ) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .scaleBlockTrainingPanel .scaleTrainingBackingLoop :is(
+      .backingLoopMainControls,
+      .backingLoopStorageControls
+    ) {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .scaleBlockTrainingPanel .scaleTrainingBackingLoop .backingLoopButton {
+    min-width: 0 !important;
+  }
+
+  /* Rhythm training uses the same collapsed/full BPM card as mobile. On a
+     monitor it gets a compact supporting column instead of a 1100px stretch. */
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .chordTransitionPanel > .stage3PracticeUtilityPanel {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.44fr) !important;
+    align-items: start;
+    gap: 14px !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .chordTransitionPanel > .stage3PracticeUtilityPanel > .stage3LoadToolbar,
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .chordTransitionPanel > .stage3PracticeUtilityPanel > :is(
+      .trainingPanelHeader,
+      .stage3BpmTransportCard
+    ),
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .chordTransitionPanel .stage3CollapsedBpmControl {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Rhythm training: primary fretboard and dot rhythm stay left, options right. */
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode:has(
+      > .chordTransitionPanel
+    ) {
+    width: 100%;
+    max-width: 1560px;
+    padding-inline: clamp(16px, 1.8vw, 28px);
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .chordTransitionPanel {
+    display: grid !important;
+    grid-template-columns: minmax(680px, 1fr) minmax(390px, 440px);
+    align-items: start;
+    gap: 18px;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .chordTransitionPanel > .stage3DesktopPrimaryColumn,
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .chordTransitionPanel > .stage3DesktopSideColumn {
+    display: grid !important;
+    align-content: start;
+    align-items: start;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .chordTransitionPanel > .stage3DesktopPrimaryColumn {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .chordTransitionPanel > .stage3DesktopSideColumn {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .chordTransitionPanel .stage3DesktopPrimaryColumn
+    :is(.chordTransitionBody, .stage3ProgressHud),
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .chordTransitionPanel .stage3DesktopSideColumn
+    :is(.stage3PracticeUtilityPanel, .stage3StandaloneMetronomeControl, .sharedAccompanimentPanel--training) {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .chordTransitionPanel .stageChordSharedFretboard {
+    width: min(940px, 100%) !important;
+    max-width: 940px !important;
+    margin-inline: auto !important;
+  }
+
+  /* Mini accompaniment: keep the editor on the left and move only the two
+     explicitly supporting mobile panels (BPM and accompaniment sound) right. */
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.miniChordMakerMode {
+    width: min(100%, 1400px);
+    max-width: 1400px;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.miniChordMakerMode
+    .miniChordMakerPanel.miniChordMakerPanelCompact {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 420px) !important;
+    column-gap: 18px !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin-inline: auto !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.miniChordMakerMode
+    .miniChordMakerPanel.miniChordMakerPanelCompact > :not(
+      .miniChordMetronomePanel,
+      .sharedAccompanimentPanel--miniChord
+    ) {
+    grid-column: 1;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.miniChordMakerMode
+    .miniChordMakerPanel.miniChordMakerPanelCompact > .miniChordMetronomePanel,
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.miniChordMakerMode
+    .miniChordMakerPanel.miniChordMakerPanelCompact
+    > .sharedAccompanimentPanel--miniChord {
+    grid-column: 2;
+    grid-row: 1 / span 8;
+    align-self: start;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.miniChordMakerMode
+    .miniChordMakerPanel.miniChordMakerPanelCompact
+    > .sharedAccompanimentPanel--miniChord {
+    margin-top: 148px !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.miniChordMakerMode
+    .miniChordMakerPanel.miniChordMakerPanelCompact
+    :is(.miniChordTimelinePanel, .miniChordTimeline) {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Chord viewer: the selected mobile viewer stays left; the long all-chord
+     catalog becomes an independently scrollable reference panel on the right. */
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app:has(> .fretboardViewerPanel) {
+    width: 100%;
+    max-width: none;
+    padding-inline: clamp(18px, 2vw, 34px);
+  }
+
+  html:has(body .desktopLayout .fretboardViewerPanel--desktopUnified) {
+    scrollbar-gutter: stable;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel.fretboardViewerPanel--desktopUnified {
+    --desktop-fretboard-catalog-width: clamp(720px, 53%, 920px);
+    --desktop-fretboard-column-gap: 18px;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) var(--desktop-fretboard-catalog-width) !important;
+    align-items: start;
+    gap: var(--desktop-fretboard-column-gap) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--desktopUnified
+    > .viewerControlPanel {
+    grid-column: 1;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Note and scale keep the code tab rail fixed at the same left position,
+     while their fretboard and options use a compact centered workspace. */
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--desktopUnified.fretboardViewerPanel:not(.fretboardViewerPanel--chord) {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0 !important;
+    padding: 17px !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--desktopUnified.fretboardViewerPanel:not(.fretboardViewerPanel--chord)
+    > .viewerControlPanel {
+    gap: 8px !important;
+    padding: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--desktopUnified.fretboardViewerPanel:not(.fretboardViewerPanel--chord)
+    > .viewerControlPanel
+    > :is(.viewerMapCard, .viewerModeControlSlot) {
+    justify-self: center;
+    width: min(980px, 100%) !important;
+    min-width: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--desktopUnified.fretboardViewerPanel.fretboardViewerPanel
+    > .viewerControlPanel
+    > .viewerModeTabs.viewerModeTabs {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    width: calc(100% - 14px) !important;
+    min-width: 0 !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+    margin: 0 6px 1px !important;
+    padding: 3px !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-radius: 13px !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--desktopUnified.fretboardViewerPanel.fretboardViewerPanel
+    > .viewerControlPanel
+    > .viewerModeTabs.viewerModeTabs
+    > button {
+    min-width: 0 !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    margin: 0 !important;
+    padding: 0 5px !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-radius: 10px !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--desktopUnified.fretboardViewerPanel.fretboardViewerPanel:not(.fretboardViewerPanel--chord)
+    > .viewerControlPanel.viewerControlPanel
+    > .viewerModeTabs.viewerModeTabs {
+    justify-self: start !important;
+    width: calc(100% - var(--desktop-fretboard-catalog-width) - var(--desktop-fretboard-column-gap)) !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.theme-light
+    > .fretboardViewerPanel--desktopUnified.fretboardViewerPanel
+    > .viewerControlPanel
+    > .viewerModeTabs.viewerModeTabs {
+    border-color: rgba(160, 128, 78, 0.43) !important;
+    background:
+      linear-gradient(180deg, rgba(213, 196, 163, 0.28), rgba(255, 255, 255, 0.66)),
+      #eee6d7 !important;
+    box-shadow:
+      inset 0 1px 2px rgba(99, 62, 49, 0.12),
+      0 1px 0 rgba(255, 255, 255, 0.84) !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.theme-brand
+    > .fretboardViewerPanel--desktopUnified.fretboardViewerPanel
+    > .viewerControlPanel
+    > .viewerModeTabs.viewerModeTabs {
+    border-color: rgba(217, 170, 85, 0.3) !important;
+    background: linear-gradient(180deg, #242018, #15130f) !important;
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.42),
+      0 1px 0 rgba(255, 229, 169, 0.045) !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord > .viewerControlPanel,
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord
+    > .chordCatalogPanel.chordCatalogPanel.chordCatalogPanel {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord > .chordCatalogPanel {
+    align-self: start;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    height: min(850px, calc(100dvh - 120px)) !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 120px) !important;
+    margin-top: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #root .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord
+    > .chordCatalogPanel.chordCatalogPanel {
+    margin-top: 0 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord
+    > .chordCatalogPanel.chordCatalogPanel.chordCatalogPanel
+    > .viewerChordReferenceFooter.viewerChordReferenceFooter {
+    min-height: 56px !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel > .chordCatalogPanel--desktopDormant {
+    display: none !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord.fretboardViewerPanel
+    > .chordCatalogPanel.chordCatalogPanel
+    > .chordCatalogScroll.chordCatalogScroll.chordCatalogScroll {
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord .chordMiniGrid[data-desktop-draggable="true"] {
+    overflow-x: auto !important;
+    cursor: grab;
+    scroll-behavior: auto;
+    scroll-snap-type: none !important;
+    touch-action: pan-y;
+    user-select: none;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord .chordMiniGrid[data-desktop-draggable="true"]
+    > .chordMiniCard {
+    flex: 0 0 clamp(206px, 14vw, 264px) !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .fretboardViewerPanel--chord .chordMiniGrid[data-desktop-draggable="true"]:active {
+    cursor: grabbing;
+  }
+
   /*
    * The game keeps its portrait playfield, while its chrome now comes from
    * the same immersive HUD used by the mobile master.
@@ -140,11 +1050,11 @@
     > .shooterPanel:not(.shooterPanel--mapEditorWorkspace) > .shooterArena {
     position: relative !important;
     inset: auto !important;
-    width: min(390px, calc((100dvh - 190px) * var(--shooter-map-reference-ratio, 0.515873))) !important;
-    max-width: min(390px, 100%) !important;
+    width: min(430px, calc((100dvh - 150px) * var(--shooter-map-reference-ratio, 0.515873))) !important;
+    max-width: min(430px, 100%) !important;
     height: auto !important;
     min-height: 0 !important;
-    max-height: calc(100dvh - 190px) !important;
+    max-height: calc(100dvh - 150px) !important;
     aspect-ratio: var(--shooter-map-reference-aspect, 390 / 756) !important;
     margin: 0 auto !important;
     border: 1px solid var(--riff-border-panel) !important;
@@ -157,41 +1067,169 @@
     display: none !important;
   }
 
-  /* Keep desktop-only transport functions without restoring the old HUD. */
-  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.shooterMode
-    > .shooterControlBar {
-    display: block !important;
-    width: min(430px, 100%) !important;
-    min-height: 0 !important;
-    margin: 10px auto 0 !important;
-    padding: 6px !important;
-    border: 1px solid var(--riff-border-soft) !important;
-    border-radius: 18px !important;
-    background: var(--riff-surface-panel) !important;
-    box-shadow: var(--riff-shadow-control) !important;
+  /* Desktop dark theme: the shared BPM cards must not retain the light card. */
+  html body .desktopLayout main.app.app.app:is(.theme-dark, .theme-brand) :is(
+    .standaloneMetronomePanel > .metronomeHeroCard--interactive.metronomeHeroCard.metronomeHeroCard,
+    .referenceStandaloneMetronomeDeck > .metronomeHeroCard--interactive.metronomeHeroCard.metronomeHeroCard
+  ) {
+    border-color: rgba(190, 139, 48, 0.42) !important;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(190, 139, 48, 0.12), transparent 48%),
+      linear-gradient(150deg, #1c1812, #0d0b08 68%, #17120c) !important;
+    color: #f2dfb5 !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 224, 158, 0.08),
+      0 12px 24px rgba(0, 0, 0, 0.24) !important;
   }
 
-  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.shooterMode
-    > .shooterControlBar > .detector,
-  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.shooterMode
-    > .shooterControlBar .playbackButtons > :is(.primary, .shooterControlMicButton) {
-    display: none !important;
+  html body .desktopLayout main.app.app.app:is(.theme-dark, .theme-brand) :is(
+    .standaloneMetronomePanel > .metronomeHeroCard--interactive.metronomeHeroCard.metronomeHeroCard,
+    .referenceStandaloneMetronomeDeck > .metronomeHeroCard--interactive.metronomeHeroCard.metronomeHeroCard
+  ) :is(
+    .metronomeHeroBpmButton,
+    .metronomeHeroBpmJumpButton,
+    .metronomeHeroBpmValue strong,
+    .metronomeHeroActionPanel button
+  ) {
+    color: #f4e4bd !important;
   }
 
-  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.shooterMode
-    > .shooterControlBar .playbackButtons {
-    display: grid !important;
+  html body .desktopLayout main.app.app.app:is(.theme-dark, .theme-brand) :is(
+    .standaloneMetronomePanel > .metronomeHeroCard--interactive.metronomeHeroCard.metronomeHeroCard,
+    .referenceStandaloneMetronomeDeck > .metronomeHeroCard--interactive.metronomeHeroCard.metronomeHeroCard
+  ) .metronomeHeroActionPanel {
+    border-color: rgba(190, 139, 48, 0.28) !important;
+    background: rgba(255, 239, 202, 0.035) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 226, 164, 0.05) !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .referenceStandaloneMetronomeDeck
+    > .metronomeHeroCard--interactive.metronomeHeroCard.metronomeHeroCard
+    > .referenceMetronomeActionPanel {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 5px !important;
-    width: 100% !important;
   }
 
-  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.shooterMode
-    > .shooterControlBar .playbackButtons > button {
-    width: 100% !important;
+  html body .desktopLayout main.app.app.app
+    .referenceStandaloneMetronomeDeck
+    > .metronomeHeroCard--interactive.metronomeHeroCard.metronomeHeroCard
+    > .referenceMetronomeActionPanel::before {
+    display: none !important;
+    content: none !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .referenceStandaloneMetronomeDeck
+    > .metronomeHeroCard--interactive.metronomeHeroCard.metronomeHeroCard
+    > .referenceMetronomeActionPanel
+    > button {
+    position: relative !important;
+    inset: auto !important;
+    align-self: stretch !important;
     min-width: 0 !important;
-    min-height: 40px !important;
-    border-radius: var(--riff-control-radius-compact) !important;
+    width: auto !important;
+    min-height: 50px !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 8px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .referenceStandaloneMetronomeDeck
+    > .metronomeHeroCard--interactive.metronomeHeroCard.metronomeHeroCard
+    > .referenceMetronomeActionPanel
+    > button:not(:last-child) {
+    border-right: 1px solid rgba(169, 123, 66, 0.16) !important;
+  }
+
+  html body .desktopLayout main.app.app.app:is(.theme-dark, .theme-brand)
+    .referenceStandaloneMetronomeDeck
+    > .metronomeHeroCard--interactive.metronomeHeroCard.metronomeHeroCard
+    > .referenceMetronomeActionPanel
+    > button:not(:last-child) {
+    border-right-color: rgba(217, 170, 85, 0.2) !important;
+  }
+
+}
+
+/* Taller desktop windows use the former lower spacer for the beat stage. */
+@media (min-width: 1024px) and (min-height: 720px) {
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck) {
+    --desktop-metronome-visual-height: clamp(300px, calc(100dvh - 570px), 494px);
+    padding-bottom: clamp(0px, calc(882px - 100dvh), 82px) !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main {
+    padding-bottom: 58px !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main.metronomeBeatMatrix--circle {
+    padding: 20px clamp(28px, 3vw, 48px) 66px !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main .beatDot.metronomeBeatButton {
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    cursor: pointer !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main.metronomeBeatMatrix--dot:is(
+      .metronomeBeatMatrix--beats-9,
+      .metronomeBeatMatrix--beats-12
+    ) .beatDot {
+    --beat-dot-touch: clamp(58px, 5vw, 72px);
+    --beat-dot-size: clamp(40px, 3.6vw, 52px);
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main.metronomeBeatMatrix--circle
+    .metronomeModeCircleOrbit {
+    width: clamp(180px, calc(var(--desktop-metronome-visual-height) - 100px), 394px) !important;
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main.metronomeBeatMatrix--circle
+    .beatDot.metronomeModeCircleBeat {
+    --desktop-metronome-circle-radius: clamp(
+      70px,
+      calc((var(--desktop-metronome-visual-height) - 140px) / 2),
+      177px
+    );
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main.metronomeBeatMatrix--circle:is(
+      .metronomeBeatMatrix--beats-9,
+      .metronomeBeatMatrix--beats-12
+    ) .beatDot.metronomeModeCircleBeat {
+    --beat-dot-touch: clamp(28px, calc((var(--desktop-metronome-visual-height) - 140px) / 5.7), 64px);
+    --beat-dot-size: clamp(24px, calc((var(--desktop-metronome-visual-height) - 140px) / 7), 48px);
+  }
+
+  .desktopLayout .desktopWorkspaceContent > main.app.app.app.metronomeMode
+    > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+    > .metronomeBeatMatrix--main.metronomeBeatMatrix--circle:is(
+      .metronomeBeatMatrix--beats-9,
+      .metronomeBeatMatrix--beats-12
+    ) .beatDot--strong.metronomeModeCircleBeat {
+    --beat-dot-size: clamp(26px, calc((var(--desktop-metronome-visual-height) - 140px) / 6.5), 52px);
   }
 }
 

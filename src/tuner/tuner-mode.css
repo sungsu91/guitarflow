@@ -808,7 +808,7 @@ html body .app .tunerMicStartButton {
   box-shadow: inset 0 1px 5px rgba(255, 255, 255, 0.24), 0 0 18px rgba(91, 201, 246, 0.42), 0 9px 18px rgba(0, 8, 24, 0.34);
   text-shadow: 0 2px 7px rgba(0, 10, 28, 0.72);
   transform: translate(-50%, -50%);
-  transition: left 190ms cubic-bezier(0.22, 0.72, 0.32, 1), border-color 180ms ease, box-shadow 180ms ease, opacity 260ms ease;
+  transition: left 96ms linear, border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
   will-change: left;
   pointer-events: none;
 }
@@ -835,7 +835,7 @@ html body .app .tunerMicStartButton {
 .tunerPitchOrb.waiting {
   opacity: 0.48;
   filter: saturate(0.55);
-  transition: left 680ms cubic-bezier(0.22, 0.72, 0.32, 1), border-color 180ms ease, box-shadow 180ms ease, opacity 420ms ease;
+  transition: left 160ms linear, border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
 }
 
 .tunerPitchOrb.holding {
@@ -849,6 +849,38 @@ html body .app .tunerMicStartButton {
     radial-gradient(circle at 38% 28%, rgba(195, 255, 224, 0.4), transparent 28%),
     linear-gradient(145deg, rgba(12, 116, 87, 0.94), rgba(2, 51, 48, 0.96));
   box-shadow: inset 0 1px 5px rgba(255, 255, 255, 0.28), 0 0 26px rgba(75, 239, 157, 0.58), 0 9px 18px rgba(0, 18, 24, 0.34);
+}
+
+.tunerDebugHud {
+  position: absolute;
+  z-index: 30;
+  top: 8px;
+  left: 8px;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 9px;
+  padding: 7px 9px;
+  border: 1px solid rgba(121, 232, 207, 0.38);
+  border-radius: 8px;
+  color: #dffdf5;
+  background: rgba(1, 13, 29, 0.9);
+  font: 700 9px/1.35 ui-monospace, SFMono-Regular, Consolas, monospace;
+  pointer-events: none;
+}
+
+.tunerDebugHud strong {
+  grid-column: 1 / -1;
+  color: #62e4c5;
+}
+
+.tunerDebugHud span,
+.tunerDebugHud b {
+  color: inherit;
+  font: inherit;
+}
+
+.tunerDebugHud b {
+  text-align: right;
 }
 
 .tunerSwimmerField {

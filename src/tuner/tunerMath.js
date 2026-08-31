@@ -101,9 +101,9 @@ export function isTrustedTunerPitch({
   recentPitch = false,
 }) {
   if (!Number.isFinite(candidateFrequency) || candidateFrequency <= 0 || !Number.isFinite(confidence)) return false;
-  if (inputPresent) return confidence >= 0.7;
-  if (!recentPitch || !Number.isFinite(lastFrequency) || lastFrequency <= 0 || confidence < 0.78) return false;
-  return Math.abs(centsBetween(candidateFrequency, lastFrequency)) <= 80;
+  if (inputPresent) return confidence >= 0.82;
+  if (!recentPitch || !Number.isFinite(lastFrequency) || lastFrequency <= 0 || confidence < 0.88) return false;
+  return Math.abs(centsBetween(candidateFrequency, lastFrequency)) <= 35;
 }
 
 export function parabolicInterpolation(values, index) {
@@ -114,6 +114,49 @@ export function parabolicInterpolation(values, index) {
 
   if (divisor === 0) return index;
   return index + (left - right) / (2 * divisor);
+}
+
+function getWindowedToneAmplitude(buffer, sampleRate, frequency) {
+  let real = 0;
+  let imaginary = 0;
+  let windowTotal = 0;
+  for (let index = 0; index < buffer.length; index += 1) {
+    const window = 0.5 - 0.5 * Math.cos((2 * Math.PI * index) / Math.max(1, buffer.length - 1));
+    const angle = (2 * Math.PI * frequency * index) / sampleRate;
+    real += buffer[index] * window * Math.cos(angle);
+    imaginary -= buffer[index] * window * Math.sin(angle);
+    windowTotal += window;
+  }
+  return windowTotal > 0 ? (2 * Math.hypot(real, imaginary)) / windowTotal : 0;
+}
+
+function preferFundamentalTau(buffer, sampleRate, yin, tauEstimate, minFrequency) {
+  const detectedFrequency = sampleRate / tauEstimate;
+  const detectedAmplitude = getWindowedToneAmplitude(buffer, sampleRate, detectedFrequency);
+  if (detectedAmplitude <= 0) return { harmonicDivisor: 1, tau: tauEstimate };
+
+  // A plucked low string can briefly present its second/third harmonic more
+  // strongly than the fundamental. Only prefer the longer period when the
+  // buffer contains measurable energy at that lower frequency; a pure higher
+  // note therefore remains a free AUTO-mode detection.
+  for (let divisor = 3; divisor >= 2; divisor -= 1) {
+    const fundamentalFrequency = detectedFrequency / divisor;
+    const expectedTau = tauEstimate * divisor;
+    if (fundamentalFrequency < minFrequency || expectedTau >= yin.length) continue;
+    const fundamentalAmplitude = getWindowedToneAmplitude(buffer, sampleRate, fundamentalFrequency);
+    if (fundamentalAmplitude / detectedAmplitude < 0.04) continue;
+
+    let localTau = Math.round(expectedTau);
+    const searchRadius = Math.max(3, divisor * 2);
+    const searchStart = Math.max(2, localTau - searchRadius);
+    const searchEnd = Math.min(yin.length - 1, localTau + searchRadius);
+    for (let tau = searchStart; tau <= searchEnd; tau += 1) {
+      if (yin[tau] < yin[localTau]) localTau = tau;
+    }
+    if (yin[localTau] <= 0.24) return { harmonicDivisor: divisor, tau: localTau };
+  }
+
+  return { harmonicDivisor: 1, tau: tauEstimate };
 }
 
 export function detectPitchYinDetailed(
@@ -152,14 +195,18 @@ export function detectPitchYinDetailed(
   }
 
   if (tauEstimate === -1) return null;
-  const betterTau = parabolicInterpolation(yin, tauEstimate);
+  const rawBetterTau = parabolicInterpolation(yin, tauEstimate);
+  const fundamental = preferFundamentalTau(buffer, sampleRate, yin, tauEstimate, minFrequency);
+  const betterTau = parabolicInterpolation(yin, fundamental.tau);
   const frequency = sampleRate / betterTau;
   if (!Number.isFinite(frequency)) return null;
 
   return {
-    confidence: clampNumber(1 - yin[tauEstimate], 0, 1),
+    confidence: clampNumber(1 - yin[fundamental.tau], 0, 1),
     frequency,
+    harmonicDivisor: fundamental.harmonicDivisor,
     period: betterTau,
+    rawFrequency: sampleRate / rawBetterTau,
   };
 }
 
@@ -235,29 +282,20 @@ export function getTunerDisplayCents(
 ) {
   if (!Number.isFinite(cents)) return null;
 
-  const deadZoneCents = 3;
-  const reengageCents = 4;
+  const deadZoneCents = 2;
   const centered = Math.abs(cents) <= deadZoneCents;
   if (pitchChanged || !Number.isFinite(previousCents)) return centered ? 0 : cents;
 
   const safeElapsed = clampNumber(elapsedMs, 16, 120);
-  if (centered) {
-    if (Math.abs(previousCents) <= reengageCents) return 0;
-    const centerFollow = 1 - Math.exp(-safeElapsed / 115);
-    const nextCents = previousCents * (1 - centerFollow);
-    return Math.abs(nextCents) < 0.75 ? 0 : nextCents;
-  }
-
-  // Crossing four cents is a meaningful pitch change: leave the visual
-  // dead-zone immediately instead of letting smoothing hide it.
-  if (Math.abs(cents) >= reengageCents && Math.abs(previousCents) <= deadZoneCents) return cents;
-
-  const delta = cents - previousCents;
-  if (Math.abs(delta) >= 5) return cents;
-
-  const followDuration = Math.abs(cents) <= 8 ? 180 : 110;
+  const targetCents = centered ? 0 : cents;
+  const delta = targetCents - previousCents;
+  const followDuration = Math.abs(delta) >= 12 ? 82 : Math.abs(targetCents) <= 8 ? 145 : 105;
   const follow = 1 - Math.exp(-safeElapsed / followDuration);
-  return previousCents + delta * follow;
+  const nextCents = previousCents + delta * follow;
+  if (centered && Math.abs(nextCents) < 0.55) return 0;
+  // Exponential interpolation is monotonic, so a new frame can retarget the
+  // orb without ever crossing past the detector value and bouncing back.
+  return clampNumber(nextCents, Math.min(previousCents, targetCents), Math.max(previousCents, targetCents));
 }
 
 export function getHorizontalTuningState({ cents, completed = false, hasSignal }) {

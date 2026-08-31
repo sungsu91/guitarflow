@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+const appCss = await readFile(new URL("../src/style.css", import.meta.url), "utf8");
 const polishCss = await readFile(new URL("../src/polish.css", import.meta.url), "utf8");
 
 function getSourceRange(startMarker, endMarker) {
@@ -90,6 +91,10 @@ test("rhythm code braille matches the scale trainer and remains independent", ()
   assert.match(polishCss, /stage3ReferenceBeatMetronomeStrip[\s\S]*grid-column: 2 !important/);
   assert.match(polishCss, /stage3MetronomeSoundToggle[\s\S]*grid-template-columns: 16px minmax\(0, 1fr\)[\s\S]*width: 66px !important/);
   assert.match(polishCss, /stage3MetronomeSoundToggle--mobile/);
+  assert.match(
+    polishCss,
+    /stage3MetronomeSoundToggle--mobile[\s\S]*span \{[\s\S]*font-size: 8px !important;[\s\S]*transform: translateY\(2px\) !important;/,
+  );
   assert.match(polishCss, /stage3StandaloneMetronomeControl[\s\S]*metronomeOptionsCollapseButton[\s\S]*top: -2px !important[\s\S]*right: 0 !important/);
   assert.match(polishCss, /metronomeOptionsCollapseButton \{[\s\S]*?height: 22px !important;[\s\S]*?font-size: 10px !important;[\s\S]*?font-weight: 900 !important;/);
   assert.match(polishCss, /metronomeOptions--collapsed[\s\S]*display: flex !important/);
@@ -102,4 +107,86 @@ test("rhythm code metronome sound controls only the dedicated click track", () =
   assert.match(tickSource, /stage3MetronomeAccentToneRef\.current/);
   assert.match(tickSource, /stage3MetronomeWeakToneRef\.current/);
   assert.doesNotMatch(tickSource, /backingDrumEnabled|backingBassEnabled|backingPianoEnabled|stopBackingScheduler/);
+});
+
+test("mobile rhythm code keeps the braille surface inset and aligns its lower cards", () => {
+  assert.match(appCss, /Rhythm-code mobile surface balance/);
+  assert.match(
+    appCss,
+    /chordTransitionHud\.stage3ProgressHud \{[\s\S]*inset 0 3px 7px rgba\(94, 63, 24, 0\.1\)/,
+  );
+  assert.match(
+    appCss,
+    /metronomeOptionsCollapsedTitle,[\s\S]*sharedAccompanimentPanel--training[\s\S]*font-size: 13px !important;[\s\S]*font-weight: 1000 !important;/,
+  );
+  assert.match(
+    appCss,
+    /stage3DesktopSideColumn[\s\S]*sharedAccompanimentPanel--training \{[\s\S]*radial-gradient\(circle at 50% -18%, rgba\(255, 255, 255, 0\.42\), transparent 48%\)[\s\S]*0 9px 18px rgba\(88, 58, 28, 0\.07\)/,
+  );
+});
+
+test("mobile lower cards open from the metronome headline and clear the fixed navigation", () => {
+  const optionsShell = getSourceRange(
+    "className={`metronomeOptions",
+    "{optionsCollapsed ? (",
+  );
+  assert.match(optionsShell, /optionsCollapsed && onOptionsCollapseChange[\s\S]*onOptionsCollapseChange\(false\)/);
+  assert.match(appSource, /event\.stopPropagation\(\);[\s\S]*onOptionsCollapseChange\(!optionsCollapsed\)/);
+  assert.match(
+    appCss,
+    /metronomeOptions\.metronomeOptions--collapsed \{[\s\S]*cursor: pointer !important/,
+  );
+  assert.match(
+    appCss,
+    /sharedAccompanimentPanel--training[\s\S]*miniChordBackingRow \{[\s\S]*rgba\(235, 219, 194, 0\.56\)/,
+  );
+  assert.match(
+    appCss,
+    /sharedAccompanimentPanel--training\[open\][\s\S]*metronomeOptions:not\(\.metronomeOptions--collapsed\)[\s\S]*min-height: calc\(100dvh \+ 64px\) !important/,
+  );
+});
+
+test("compound meters keep numerator pulses and use denominator-aware triple grouping", () => {
+  assert.match(appSource, /\{ id: "3\/4", label: "3\/4", beats: 3, beatUnit: 4 \}/);
+  assert.match(appSource, /\{ id: "6\/8", label: "6\/8", beats: 6, beatUnit: 8 \}/);
+  assert.match(appSource, /\{ id: "12\/8", label: "12\/8", beats: 12, beatUnit: 8 \}/);
+
+  const backingCompilerSource = getSourceRange(
+    "const createBackingTimelineEvents",
+    "const METRONOME_BEAT_STATES",
+  );
+  assert.match(backingCompilerSource, /const beatsPerMeasure = signature\.beats/);
+  assert.match(backingCompilerSource, /signature\.beatUnit === 8 && beatsPerMeasure % 3 === 0[\s\S]*\? 3[\s\S]*: 4/);
+});
+
+test("rhythm code visuals, chord changes, click track, and accompaniment share the Web Audio clock", () => {
+  const frameSource = getSourceRange("const runChordTransitionFrame", "const runMetronomeFrame");
+  const schedulerSource = getSourceRange("const runBackingScheduler", "const stopMetronomeVisualLab");
+  const backingCompilerSource = getSourceRange(
+    "const createBackingTimelineEvents",
+    "const METRONOME_BEAT_STATES",
+  );
+  const bpmSource = getSourceRange("const changeBpm", "const changeMetronomeAccentTone");
+
+  assert.match(frameSource, /getRhythmChordPlaybackPosition\(\{/);
+  assert.match(frameSource, /audioTime: audio\.currentTime/);
+  assert.match(frameSource, /rhythmChordPosition\.chordIndex/);
+  assert.match(frameSource, /playStage3PatternTick\(beatInBar, subdivisionIndex\)/);
+  assert.doesNotMatch(frameSource, /setInterval|setTimeout/);
+
+  assert.match(schedulerSource, /eventTime = backingCycleStartTimeRef\.current \+ event\.offsetSeconds/);
+  assert.match(schedulerSource, /backingCycleStartTimeRef\.current \+= session\.cycleSeconds/);
+  assert.match(schedulerSource, /backingDisplayStartTimeRef\.current = backingCycleStartTimeRef\.current/);
+  assert.match(schedulerSource, /BACKING_SCHEDULE_AHEAD_SECONDS/);
+  assert.match(schedulerSource, /backingPendingSwitchTimeRef\.current/);
+  assert.match(schedulerSource, /window\.setInterval\(runBackingScheduler, 25\)/);
+
+  assert.match(backingCompilerSource, /playbackCycleBeats \* beatSeconds/);
+  assert.match(backingCompilerSource, /muteRhythmChordRestEvents\(/);
+  assert.match(backingCompilerSource, /rhythmChordPlayback\.timeline/);
+
+  assert.match(bpmSource, /isLiveRhythmPractice/);
+  assert.match(bpmSource, /requestStage3BackingPatternChange\(\{\}, \{/);
+  assert.match(bpmSource, /bpmValue: nextBpm/);
+  assert.match(bpmSource, /deferSessionUpdate: true/);
 });

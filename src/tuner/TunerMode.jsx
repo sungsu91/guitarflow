@@ -5,19 +5,24 @@ import { MIC_INPUT_PRESETS } from "../audio/micInputPresets.js";
 import {
   TUNER_MAX_FREQUENCY,
   TUNER_MIN_FREQUENCY,
-  centsBetween,
-  detectPitchAutocorrelation,
   detectPitchYinDetailed,
   frequencyToChromaticPitch,
   getTunerTrackingState,
   getHorizontalTuningState,
-  getMedian,
   getTunerGuidance,
   getTunerDisplayCents,
   getTunerOrbPosition,
   isTrustedTunerPitch,
   midiToFrequency,
 } from "./tunerMath.js";
+import {
+  createTunerCompletionState,
+  createTunerFrequencyState,
+  resetTunerCompletionState,
+  resetTunerFrequencyState,
+  updateTunerCompletionState,
+  updateTunerFrequencyState,
+} from "./tunerStability.js";
 import {
   TUNER_SWIMMER_SPRITE_COLUMNS,
   TUNER_SWIMMER_SPRITE_ROWS,
@@ -79,10 +84,11 @@ const TUNER_VISUAL_OPTIONS = Object.freeze({
   showSwimmer: false,
 });
 const TUNER_ANALYSIS_INTERVAL_MS = 52;
-const TUNER_SUSTAIN_TRACK_WINDOW_MS = 1_400;
-const TUNER_LAST_PITCH_HOLD_MS = 950;
-const TUNER_EXACT_HOLD_MS = 420;
+const TUNER_LAST_PITCH_HOLD_MS = 220;
 const TUNER_BACKGROUND_ROTATION_MS = 20_000;
+const TUNER_DEBUG_ENABLED = import.meta.env.DEV
+  && typeof window !== "undefined"
+  && new URLSearchParams(window.location.search).get("tunerDebug") === "1";
 
 const GUITAR_HEADSTOCK_HOTSPOTS = Object.freeze({
   6: { left: 11.0, top: 58.6 },
@@ -194,22 +200,6 @@ function getPreset(instrumentId, presetId) {
   return instrument.presets.find((preset) => preset.id === presetId) ?? instrument.presets[0];
 }
 
-function getAdaptiveSmoothedFrequency(rawFrequency, smoothingState) {
-  const state = smoothingState;
-  const previous = state.frequency;
-  const jumpCents = previous ? Math.abs(centsBetween(rawFrequency, previous)) : Infinity;
-  if (!previous || jumpCents > 190) state.history = [rawFrequency];
-  else state.history = [...state.history.slice(-3), rawFrequency];
-
-  const medianFrequency = getMedian(state.history) ?? rawFrequency;
-  const medianJumpCents = previous ? Math.abs(centsBetween(medianFrequency, previous)) : Infinity;
-  const smoothing = !previous ? 1 : medianJumpCents > 70 ? 0.62 : medianJumpCents > 20 ? 0.42 : 0.28;
-  state.frequency = previous == null
-    ? medianFrequency
-    : previous + (medianFrequency - previous) * smoothing;
-  return state.frequency;
-}
-
 function getMicrophoneErrorState(error) {
   if (["NotAllowedError", "PermissionDeniedError"].includes(error?.name)) return "denied";
   if (error?.message === "Microphone capture is not supported.") return "unsupported";
@@ -222,6 +212,7 @@ function useTunerController(active) {
   const [presetId, setPresetId] = useState("standard");
   const [selectedString, setSelectedString] = useState(null);
   const [micState, setMicState] = useState("idle");
+  const [debugReading, setDebugReading] = useState(null);
   const [reading, setReading] = useState({
     cents: null,
     completed: false,
@@ -239,36 +230,33 @@ function useTunerController(active) {
   const analysisFrameRef = useRef(null);
   const lastAnalysisAtRef = useRef(0);
   const lastValidSignalAtRef = useRef(0);
-  const validFrameCountRef = useRef(0);
-  const exactStartedAtRef = useRef(null);
-  const exactPitchKeyRef = useRef(null);
-  const lastTrustedFrequencyRef = useRef(null);
   const instrumentIdRef = useRef(instrumentId);
   const presetIdRef = useRef(presetId);
   const selectedStringRef = useRef(selectedString);
-  const smoothingRef = useRef({ frequency: null, history: [] });
+  const frequencyStateRef = useRef(createTunerFrequencyState());
+  const completionStateRef = useRef(createTunerCompletionState());
   const visualCentsRef = useRef({ cents: null, pitchKey: null, updatedAt: null });
 
   useEffect(() => {
     instrumentIdRef.current = instrumentId;
-    exactStartedAtRef.current = null;
-    exactPitchKeyRef.current = null;
+    resetTunerFrequencyState(frequencyStateRef.current);
+    resetTunerCompletionState(completionStateRef.current);
     visualCentsRef.current = { cents: null, pitchKey: null, updatedAt: null };
     setReading((current) => ({ ...current, completed: false, target: null }));
   }, [instrumentId]);
 
   useEffect(() => {
     presetIdRef.current = presetId;
-    exactStartedAtRef.current = null;
-    exactPitchKeyRef.current = null;
+    resetTunerFrequencyState(frequencyStateRef.current);
+    resetTunerCompletionState(completionStateRef.current);
     visualCentsRef.current = { cents: null, pitchKey: null, updatedAt: null };
     setReading((current) => ({ ...current, completed: false }));
   }, [presetId]);
 
   useEffect(() => {
     selectedStringRef.current = selectedString;
-    exactStartedAtRef.current = null;
-    exactPitchKeyRef.current = null;
+    resetTunerFrequencyState(frequencyStateRef.current);
+    resetTunerCompletionState(completionStateRef.current);
     visualCentsRef.current = { cents: null, pitchKey: null, updatedAt: null };
     setReading((current) => ({
       ...current,
@@ -293,12 +281,10 @@ function useTunerController(active) {
     analysisFrameRef.current = null;
     await sessionRef.current?.release?.();
     sessionRef.current = null;
-    smoothingRef.current = { frequency: null, history: [] };
-    validFrameCountRef.current = 0;
-    exactStartedAtRef.current = null;
-    exactPitchKeyRef.current = null;
+    resetTunerFrequencyState(frequencyStateRef.current);
+    resetTunerCompletionState(completionStateRef.current);
     visualCentsRef.current = { cents: null, pitchKey: null, updatedAt: null };
-    lastTrustedFrequencyRef.current = null;
+    setDebugReading(null);
     setMicState("requesting");
     setReading((current) => ({ ...current, completed: false, hasSignal: false, trackingPhase: "waiting" }));
 
@@ -322,22 +308,38 @@ function useTunerController(active) {
       lastAnalysisAtRef.current = 0;
       lastValidSignalAtRef.current = performance.now();
 
+      const publishDebugReading = ({ confidence, detectionFrame, rawFrequency, stage }) => {
+        if (!TUNER_DEBUG_ENABLED) return;
+        const preset = getPreset(instrumentIdRef.current, presetIdRef.current);
+        const stringNumber = selectedStringRef.current;
+        const filteredFrequency = frequencyStateRef.current.frequency;
+        const rawTracking = getTunerTrackingState(rawFrequency, preset.strings, stringNumber);
+        const filteredTracking = getTunerTrackingState(filteredFrequency, preset.strings, stringNumber);
+        const uiCents = visualCentsRef.current.cents;
+        const uiPosition = 50 + getTunerOrbPosition(uiCents, stringNumber != null) * 38;
+        setDebugReading({
+          confidence,
+          detectedNote: frequencyToChromaticPitch(rawFrequency)?.pitch ?? "--",
+          filteredCents: filteredTracking.cents,
+          filteredFrequency,
+          inputPresent: detectionFrame.isSignalPresent,
+          rawCents: rawTracking.cents,
+          rawFrequency,
+          rms: detectionFrame.rms,
+          stage,
+          uiPosition,
+        });
+      };
+
       const holdOrReleaseLastPitch = (now, confidence, level) => {
         const sinceLastValid = now - lastValidSignalAtRef.current;
-        if (lastTrustedFrequencyRef.current != null && sinceLastValid < TUNER_LAST_PITCH_HOLD_MS) {
-          setReading((current) => (
-            current.trackingPhase === "holding"
-              ? current
-              : { ...current, confidence, level, trackingPhase: "holding" }
-          ));
+        if (frequencyStateRef.current.frequency != null && sinceLastValid < TUNER_LAST_PITCH_HOLD_MS) {
+          setReading((current) => ({ ...current, confidence, level, trackingPhase: "holding" }));
           return;
         }
 
-        validFrameCountRef.current = 0;
-        exactStartedAtRef.current = null;
-        exactPitchKeyRef.current = null;
-        lastTrustedFrequencyRef.current = null;
-        smoothingRef.current = { frequency: null, history: [] };
+        resetTunerFrequencyState(frequencyStateRef.current);
+        resetTunerCompletionState(completionStateRef.current);
         visualCentsRef.current = { cents: null, pitchKey: null, updatedAt: null };
         setReading((current) => (
           !current.hasSignal && current.trackingPhase === "waiting"
@@ -362,9 +364,8 @@ function useTunerController(active) {
         session.analyser.getFloatTimeDomainData(buffer);
         const detectionFrame = session.readDetectionFrame(now);
         const level = detectionFrame.normalized;
-        const recentPitch = lastTrustedFrequencyRef.current != null
-          && now - lastValidSignalAtRef.current <= TUNER_SUSTAIN_TRACK_WINDOW_MS;
-        if (!detectionFrame.isSignalPresent && !recentPitch) {
+        if (!detectionFrame.isSignalPresent) {
+          publishDebugReading({ confidence: 0, detectionFrame, rawFrequency: null, stage: "no-signal" });
           holdOrReleaseLastPitch(now, 0, level);
           return;
         }
@@ -376,39 +377,45 @@ function useTunerController(active) {
           TUNER_MAX_FREQUENCY,
           0.16,
         );
-        const fallbackFrequency = yinResult?.frequency ?? detectPitchAutocorrelation(
-          buffer,
-          session.audioContext.sampleRate,
-          TUNER_MIN_FREQUENCY,
-          TUNER_MAX_FREQUENCY,
-          0.006,
-        );
-        const confidence = yinResult?.confidence ?? (fallbackFrequency ? 0.72 : 0);
+        const candidateFrequency = yinResult?.frequency ?? null;
+        const rawFrequency = yinResult?.rawFrequency ?? candidateFrequency;
+        const confidence = yinResult?.confidence ?? 0;
         const trustedPitch = isTrustedTunerPitch({
-          candidateFrequency: fallbackFrequency,
+          candidateFrequency,
           confidence,
-          inputPresent: detectionFrame.isSignalPresent,
-          lastFrequency: lastTrustedFrequencyRef.current,
-          recentPitch,
+          inputPresent: true,
         });
         if (!trustedPitch) {
+          publishDebugReading({ confidence, detectionFrame, rawFrequency, stage: "rejected" });
           holdOrReleaseLastPitch(now, confidence, level);
           return;
         }
 
-        validFrameCountRef.current += 1;
-        if (validFrameCountRef.current < 2) return;
         lastValidSignalAtRef.current = now;
-        lastTrustedFrequencyRef.current = fallbackFrequency;
-        const frequency = getAdaptiveSmoothedFrequency(fallbackFrequency, smoothingRef.current);
         const preset = getPreset(instrumentIdRef.current, presetIdRef.current);
+        const manualTarget = selectedStringRef.current == null
+          ? null
+          : preset.strings.find((note) => note.stringNumber === selectedStringRef.current) ?? null;
+        const stability = updateTunerFrequencyState(frequencyStateRef.current, {
+          manualTargetFrequency: manualTarget?.frequency ?? null,
+          now,
+          rawFrequency: candidateFrequency,
+        });
+        if (!stability.accepted) {
+          publishDebugReading({ confidence, detectionFrame, rawFrequency, stage: stability.stage });
+          setReading((current) => ({
+            ...current,
+            confidence,
+            level,
+            trackingPhase: stability.stage,
+          }));
+          return;
+        }
+
+        const frequency = stability.frequency;
         const tracking = getTunerTrackingState(frequency, preset.strings, selectedStringRef.current);
         const { cents, currentPitch, target } = tracking;
         const pitchKey = tracking.manual ? `manual-${target?.pitch}` : `auto-${currentPitch?.pitch}`;
-        if (exactPitchKeyRef.current !== pitchKey) {
-          exactPitchKeyRef.current = pitchKey;
-          exactStartedAtRef.current = null;
-        }
         const previousVisual = visualCentsRef.current;
         const pitchChanged = previousVisual.pitchKey !== pitchKey;
         const displayCents = getTunerDisplayCents(cents, previousVisual.cents, {
@@ -416,10 +423,7 @@ function useTunerController(active) {
           pitchChanged,
         });
         visualCentsRef.current = { cents: displayCents, pitchKey, updatedAt: now };
-        const isExact = Number.isFinite(cents) && Math.abs(cents) <= 3;
-        if (isExact) exactStartedAtRef.current ??= now;
-        else exactStartedAtRef.current = null;
-        const completed = isExact && exactStartedAtRef.current != null && now - exactStartedAtRef.current >= TUNER_EXACT_HOLD_MS;
+        const completed = updateTunerCompletionState(completionStateRef.current, { cents, now, pitchKey });
 
         setReading({
           cents,
@@ -433,6 +437,7 @@ function useTunerController(active) {
           target,
           trackingPhase: "tracking",
         });
+        publishDebugReading({ confidence, detectionFrame, rawFrequency, stage: stability.stage });
       };
 
       analysisFrameRef.current = requestAnimationFrame(analyse);
@@ -465,12 +470,10 @@ function useTunerController(active) {
 
   const stopMicrophone = useCallback(async () => {
     await releaseMicrophone();
-    smoothingRef.current = { frequency: null, history: [] };
-    validFrameCountRef.current = 0;
-    exactStartedAtRef.current = null;
-    exactPitchKeyRef.current = null;
+    resetTunerFrequencyState(frequencyStateRef.current);
+    resetTunerCompletionState(completionStateRef.current);
     visualCentsRef.current = { cents: null, pitchKey: null, updatedAt: null };
-    lastTrustedFrequencyRef.current = null;
+    setDebugReading(null);
     setMicState("idle");
     setReading((current) => ({
       ...current,
@@ -488,6 +491,7 @@ function useTunerController(active) {
   }, [releaseMicrophone]);
 
   return {
+    debugReading,
     instrument: getInstrument(instrumentId),
     micState,
     preset: getPreset(instrumentId, presetId),
@@ -856,6 +860,24 @@ function TunerSwimmer({ reading }) {
   );
 }
 
+function TunerDebugHud({ reading }) {
+  if (!TUNER_DEBUG_ENABLED || !reading) return null;
+  const format = (value, digits = 2) => (Number.isFinite(value) ? Number(value).toFixed(digits) : "--");
+  return (
+    <aside className="tunerDebugHud" aria-label="튜너 개발 진단값">
+      <strong>DEV · {reading.stage}</strong>
+      <span>raw Hz <b>{format(reading.rawFrequency, 3)}</b></span>
+      <span>filtered Hz <b>{format(reading.filteredFrequency, 3)}</b></span>
+      <span>raw cents <b>{format(reading.rawCents, 1)}</b></span>
+      <span>filtered cents <b>{format(reading.filteredCents, 1)}</b></span>
+      <span>note <b>{reading.detectedNote}</b></span>
+      <span>clarity <b>{format(reading.confidence, 3)}</b></span>
+      <span>RMS <b>{format(reading.rms, 5)}</b></span>
+      <span>UI left <b>{format(reading.uiPosition, 1)}%</b></span>
+    </aside>
+  );
+}
+
 function TunerGauge({ controller, guidance, showDirectionScale = true }) {
   const { micState, reading, restartMicrophone, selectedString } = controller;
   const manual = selectedString != null;
@@ -931,6 +953,7 @@ function TunerGauge({ controller, guidance, showDirectionScale = true }) {
           ? `${reading.currentPitch?.pitch}에서 ${reading.target?.pitch}까지 큰 음정 이동 중`
           : ""}
       </div>
+      <TunerDebugHud reading={controller.debugReading} />
     </section>
   );
 }

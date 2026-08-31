@@ -121,72 +121,113 @@ html body main.app.app.app.viewport-tablet.viewport-mobile-surface.landscapePlay
   padding-left: max(10px, var(--app-safe-left));
 }
 
-html body main.app.app.app.landscapePlayFocus > .hud {
+html body main.app.app.app.viewport-mobile-surface.landscapePlayFocus:is(.metronomeMode, .practiceMode) {
+  padding: 0;
+}
+
+html body main.app.app.app.viewport-mobile-surface.landscapePlayFocus > .hud.hud {
   position: fixed;
   top: max(7px, var(--app-safe-top));
   right: max(8px, var(--app-safe-right));
-  bottom: auto;
-  left: auto;
+  bottom: auto !important;
+  left: auto !important;
   z-index: 160;
-  width: auto;
+  display: block;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
   pointer-events: none;
 }
 
-html body main.app.app.app.landscapePlayFocus > .hud > .modeSwitch {
-  width: auto;
+html body main.app.app.app.viewport-mobile-surface.landscapePlayFocus > .hud.hud > .modeSwitch.modeSwitch {
+  position: static !important;
+  inset: auto !important;
+  display: flex !important;
+  width: auto !important;
+  height: auto !important;
   padding: 4px;
   gap: 4px;
   border-radius: 13px;
   pointer-events: auto;
+  transform: none !important;
 }
 
-html body main.app.app.app.landscapePlayFocus > .hud > .modeSwitch > button {
-  display: none;
-  min-height: 34px;
+html body main.app.app.app.viewport-mobile-surface.landscapePlayFocus
+  > .hud.hud > .modeSwitch.modeSwitch > button {
+  display: none !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
   padding: 0 10px;
   font-size: 10px;
 }
 
-html body main.app.app.app.landscapePlayFocus > .hud > .modeSwitch > :is(.selected, :last-child) {
-  display: inline-flex;
+html body main.app.app.app.viewport-mobile-surface.landscapePlayFocus
+  > .hud.hud > .modeSwitch.modeSwitch > :is(.selected, :last-child) {
+  display: inline-flex !important;
 }
 
-/* Standalone metronome: status left, beat visual center, transport right. */
-html body main.app.app.app.metronomeMode.landscapePlayFocus > .standaloneMetronomePanel {
+html body main.app.app.app.metronomeMode.viewport-mobile-surface.landscapePlayFocus > .hud.hud {
+  display: none !important;
+}
+
+/* Standalone metronome: full stage above, BPM and transport across the bottom. */
+html body main.app.app.app.metronomeMode.landscapePlayFocus:not(#riff-landscape-play-focus)
+  > .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) {
   display: grid;
-  grid-template-columns: minmax(150px, 0.72fr) minmax(250px, 1.35fr) minmax(220px, 0.95fr);
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(132px, 0.55fr) minmax(0, 1.45fr) !important;
+  grid-template-rows: minmax(0, 1fr) 124px !important;
   align-items: center;
-  gap: clamp(8px, 1.6vw, 20px);
-  width: min(1180px, 100%);
-  height: 100%;
+  gap: clamp(4px, 1vw, 12px);
+  box-sizing: border-box;
+  width: 100vw !important;
+  max-width: none !important;
+  height: 100vh !important;
+  height: 100svh !important;
+  height: 100dvh !important;
   min-height: 0;
-  margin: 0 auto;
-  padding: clamp(8px, 1.3vw, 18px);
+  max-height: none !important;
+  margin: 0 !important;
+  padding:
+    max(4px, var(--app-safe-top))
+    max(6px, var(--app-safe-right))
+    max(4px, var(--app-safe-bottom))
+    max(6px, var(--app-safe-left)) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
-html body main.app.app.app.metronomeMode.landscapePlayFocus
-  .standaloneMetronomePanel > .metronomeAdvancedDock {
+html body main.app.app.app.metronomeMode.landscapePlayFocus:not(#riff-landscape-play-focus)
+  > .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+  > .metronomeAdvancedDock {
   grid-column: 1;
   grid-row: 1;
   align-self: center;
 }
 
-html body main.app.app.app.metronomeMode.landscapePlayFocus
-  .standaloneMetronomePanel > .metronomeBeatMatrix--main {
+html body main.app.app.app.metronomeMode.landscapePlayFocus:not(#riff-landscape-play-focus)
+  > .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+  > .metronomeBeatMatrix.metronomeBeatMatrix--main {
   grid-column: 2;
-  grid-row: 1 / -1;
+  grid-row: 1;
   align-self: stretch;
   width: 100%;
-  min-height: 0;
-  max-height: none;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
 }
 
-html body main.app.app.app.metronomeMode.landscapePlayFocus
-  .standaloneMetronomePanel > .metronomeHeroCard {
-  grid-column: 3;
-  grid-row: 1;
-  align-self: center;
+html body main.app.app.app.metronomeMode.landscapePlayFocus:not(#riff-landscape-play-focus)
+  > .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+  > .metronomeHeroCard.metronomeHeroCard--interactive {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  align-self: end;
   width: 100%;
 }
 
@@ -201,10 +242,19 @@ html body main.app.app.app.metronomeMode.landscapePlayFocus
   display: none !important;
 }
 
-html body main.app.app.app.metronomeMode.landscapePlayFocus.viewport-short
-  .standaloneMetronomePanel {
-  grid-template-columns: minmax(132px, 0.7fr) minmax(210px, 1.2fr) minmax(190px, 0.9fr);
-  padding-block: 4px;
+html body main.app.app.app.metronomeMode.landscapePlayFocus.viewport-short:not(#riff-landscape-play-focus)
+  > .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) {
+  grid-template-columns: minmax(118px, 0.5fr) minmax(0, 1.5fr) !important;
+  grid-template-rows: minmax(0, 1fr) 116px !important;
+  padding-block: max(3px, var(--app-safe-top)) max(3px, var(--app-safe-bottom)) !important;
+}
+
+html body main.app.app.app.metronomeMode.landscapePlayFocus.viewport-short:not(#riff-landscape-play-focus)
+  > .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+  > .metronomeHeroCard.metronomeHeroCard--interactive {
+  height: 116px !important;
+  min-height: 116px !important;
+  max-height: 116px !important;
 }
 
 html body main.app.app.app.metronomeMode.landscapePlayFocus.viewport-short
@@ -216,11 +266,24 @@ html body main.app.app.app.metronomeMode.landscapePlayFocus.viewport-short
 html body main.app.app.app.landscapePlayFocus .referenceTrainingPanel {
   display: grid;
   grid-template-rows: minmax(0, 1fr);
-  width: min(1240px, 100%);
-  height: 100%;
+  box-sizing: border-box;
+  width: 100vw !important;
+  max-width: none !important;
+  height: 100vh !important;
+  height: 100svh !important;
+  height: 100dvh !important;
   min-height: 0;
-  margin: 0 auto;
-  padding: clamp(6px, 1vw, 14px) !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding:
+    max(4px, var(--app-safe-top))
+    max(5px, var(--app-safe-right))
+    max(4px, var(--app-safe-bottom))
+    max(5px, var(--app-safe-left)) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 html body main.app.app.app.landscapePlayFocus
@@ -271,14 +334,27 @@ html body main.app.app.app.landscapePlayFocus .referenceTransitionHud {
 /* Rhythm chords: current fretboard and timeline remain; editors stay hidden. */
 html body main.app.app.app.landscapePlayFocus .chordTransitionPanel:not(.stage3StorageDialog) {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(250px, 0.42fr);
+  grid-template-columns: minmax(0, 1fr) minmax(296px, 0.52fr);
   grid-template-rows: minmax(0, 1fr);
   gap: clamp(8px, 1.4vw, 18px);
-  width: min(1240px, 100%);
-  height: 100%;
+  box-sizing: border-box;
+  width: 100vw !important;
+  max-width: none !important;
+  height: 100vh !important;
+  height: 100svh !important;
+  height: 100dvh !important;
   min-height: 0;
-  margin: 0 auto;
-  padding: clamp(6px, 1vw, 14px) !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding:
+    max(4px, var(--app-safe-top))
+    max(5px, var(--app-safe-right))
+    max(4px, var(--app-safe-bottom))
+    max(5px, var(--app-safe-left)) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 html body main.app.app.app.landscapePlayFocus
@@ -299,11 +375,29 @@ html body main.app.app.app.landscapePlayFocus
 }
 
 html body main.app.app.app.landscapePlayFocus
-  .chordTransitionPanel:not(.stage3StorageDialog) > .stage3ProgressHud {
+  .chordTransitionPanel:not(.stage3StorageDialog) > .stage3ProgressHud.stage3ProgressHud {
   grid-column: 2;
   grid-row: 1;
+  grid-template-columns: minmax(120px, 1fr) auto !important;
   align-self: center;
   display: grid;
+  column-gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+html body main.app.app.app.landscapePlayFocus
+  .chordTransitionPanel:not(.stage3StorageDialog)
+  > .stage3ProgressHud.stage3ProgressHud > .stage3ReferenceBeatMetronomeStrip {
+  grid-column: 1 !important;
+  width: 100% !important;
+  min-width: 0;
+}
+
+html body main.app.app.app.landscapePlayFocus
+  .chordTransitionPanel:not(.stage3StorageDialog)
+  > .stage3ProgressHud.stage3ProgressHud > .stage3StartControlCluster--focus {
+  grid-column: 2 !important;
   min-width: 0;
 }
 
@@ -319,53 +413,6 @@ html body main.app.app.app.landscapePlayFocus
 html body main.app.app.app.landscapePlayFocus
   .chordTransitionPanel:not(.stage3StorageDialog) .stage3MetronomeSoundToggle--mobile {
   display: none !important;
-}
-
-/* Tuner: keep live gauge and minimal controls, remove instrument artwork. */
-html body main.app.app.app.tunerMode.landscapePlayFocus {
-  padding: 0;
-}
-
-html body main.app.app.app.tunerMode.landscapePlayFocus .tunerModeShell {
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  border-radius: 0;
-  padding:
-    max(8px, var(--app-safe-top))
-    max(12px, var(--app-safe-right))
-    max(8px, var(--app-safe-bottom))
-    max(12px, var(--app-safe-left));
-}
-
-html body main.app.app.app.tunerMode.landscapePlayFocus
-  :is(.tunerBackgroundLayers, .tunerBackgroundShade, .tunerHeadstockMode, .tunerHeadstockPanel) {
-  display: none !important;
-}
-
-html body main.app.app.app.tunerMode.landscapePlayFocus .tunerModeBody--mobile {
-  display: grid;
-  grid-template-areas: "tuning" !important;
-  grid-template-rows: minmax(0, 1fr) !important;
-  place-items: center;
-  height: 100%;
-  min-height: 0;
-  padding: 44px 7px 0;
-}
-
-html body main.app.app.app.tunerMode.landscapePlayFocus .tunerTuningPanel {
-  width: min(960px, calc(100vw - 120px));
-  height: min(100%, 520px);
-  min-height: 0;
-}
-
-html body main.app.app.app.tunerMode.landscapePlayFocus .tunerMobileControls {
-  top: max(7px, var(--app-safe-top));
-}
-
-html body main.app.app.app.tunerMode.landscapePlayFocus .tunerOceanGauge {
-  min-height: 0;
-  height: 100%;
 }
 
 /* Mini accompaniment receives this class only while playback is active. */
@@ -557,62 +604,8 @@ html body main.app.app.app.viewport-mobile-surface
   overscroll-behavior: contain;
 }
 
-/* Shooter stays mounted and paused behind a viewport-level orientation guard. */
-.shooterOrientationOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 2147483600;
-  box-sizing: border-box;
-  display: grid;
-  grid-template-rows: auto auto auto auto;
-  place-content: center;
-  justify-items: center;
-  gap: 10px;
-  padding:
-    max(20px, env(safe-area-inset-top, 0px))
-    max(24px, env(safe-area-inset-right, 0px))
-    max(20px, env(safe-area-inset-bottom, 0px))
-    max(24px, env(safe-area-inset-left, 0px));
-  background:
-    radial-gradient(circle at 50% 44%, rgba(217, 170, 85, 0.16), transparent 34%),
-    rgba(3, 5, 7, 0.96);
-  color: #fff4dc;
-  text-align: center;
-  touch-action: none;
-}
-
-.shooterOrientationDevice {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #e5b960;
-}
-
-.shooterOrientationOverlay > strong {
-  font-size: clamp(20px, 3.3vw, 34px);
-  line-height: 1.18;
-}
-
-.shooterOrientationOverlay > p {
-  margin: 0;
-  color: rgba(255, 244, 220, 0.86);
-  font-size: clamp(13px, 2vw, 19px);
-  font-weight: 800;
-}
-
-.shooterOrientationOverlay > small {
-  color: rgba(255, 244, 220, 0.58);
-  font-size: clamp(10px, 1.35vw, 14px);
-  font-weight: 700;
-}
-
+/* Portrait-only shooter stays mounted and paused while rotation settles. */
 html body main.app.app.app.shooterOrientationPaused .shooterArena *,
 html body main.app.app.app.shooterOrientationPaused .shooterMapSkinAsset {
   animation-play-state: paused !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .shooterOrientationDevice svg:last-child {
-    animation: none;
-  }
 }

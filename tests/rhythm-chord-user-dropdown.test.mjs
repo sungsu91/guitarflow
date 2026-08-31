@@ -4,6 +4,7 @@ import test from "node:test";
 
 const appSourceUrl = new URL("../src/App.jsx", import.meta.url);
 const appStyleUrl = new URL("../src/style.css", import.meta.url);
+const appPolishUrl = new URL("../src/polish.css", import.meta.url);
 
 test("rhythm chord user dropdown exposes bulk selection, locking, and confirmed deletion", async () => {
   const [appSource, appCss] = await Promise.all([
@@ -29,6 +30,94 @@ test("rhythm chord user dropdown exposes bulk selection, locking, and confirmed 
   assert.match(appCss, /\.metronomeSelectPortal\.stage3UserLoadSelect \.metronomeSelectOptionLock/);
   assert.match(appCss, /\.metronomeSelectPortal\.stage3UserLoadSelect \.metronomeSelectOptionDelete/);
   assert.match(appCss, /\.stage3SavedDeleteConfirmLayer/);
+});
+
+test("user progression management opens on edit and reveals individual actions by swipe", async () => {
+  const [appSource, appCss] = await Promise.all([
+    readFile(appSourceUrl, "utf8"),
+    readFile(appStyleUrl, "utf8"),
+  ]);
+  const pickerStart = appSource.indexOf('className="stage3LoadSelect stage3UserLoadSelect"');
+  const pickerEnd = appSource.indexOf('className="stage3StorageMoveButton"', pickerStart);
+  const pickerSource = appSource.slice(pickerStart, pickerEnd);
+
+  assert.ok(pickerStart >= 0 && pickerEnd > pickerStart);
+  assert.match(pickerSource, /managedListMode/);
+  assert.match(pickerSource, /panelDirectionIndicator/);
+  assert.match(pickerSource, /onSelectAllOptions=\{selectAllStage3UnlockedUserItems\}/);
+  assert.match(appSource, /setStage3UserSelectedIds\(stage3QuickSlots\.filter\(\(slot\) => !slot\.locked\)\.map/);
+  assert.match(appSource, /managementEditing \? \(/);
+  assert.match(appSource, />\s*편집\s*</);
+  assert.match(appSource, />\s*전체 선택\s*</);
+  assert.match(appSource, />\s*선택 해제\s*</);
+  assert.match(appSource, />\s*선택 삭제\s*</);
+  assert.match(appSource, /isBulkSelected \? <span aria-hidden="true">✓<\/span>/);
+  assert.match(appSource, /metronomeSelectOptionRow--swipe/);
+  assert.match(appSource, /--option-swipe-offset/);
+  assert.match(appSource, /metronomeSelectOptionActionRail/);
+  assert.match(appCss, /metronomeSelectControl--managedList[\s\S]*\.metronomeSelectManagementToolbar\.editing/);
+  assert.match(appCss, /\.metronomeSelectOptionRow--swipe/);
+  assert.match(appCss, /\.actionsRevealed, \.swiping/);
+  assert.match(
+    appCss,
+    /@media \(max-width: 767px\)[\s\S]*?\.metronomeSelectOptionActionRail \{[\s\S]*?z-index: 2;[\s\S]*?transform: translateX\(calc\(78px \+ var\(--option-swipe-offset, 0px\)\)\)/,
+  );
+  assert.match(
+    appCss,
+    /\.metronomeSelectOptionRowContent \{[\s\S]*?transform: none;[\s\S]*?transition: none;/,
+  );
+});
+
+test("mobile rhythm practice collapses the empty navigation HUD above the fretboard", async () => {
+  const polishCss = await readFile(appPolishUrl, "utf8");
+
+  assert.match(
+    polishCss,
+    /practiceMode:has\(> \.chordTransitionPanel\) > \.hud \{[\s\S]*?height: 0 !important;[\s\S]*?padding: 0 !important;[\s\S]*?overflow: visible !important;/,
+  );
+  assert.match(
+    polishCss,
+    /practiceMode:has\(> \.chordTransitionPanel\) \{[\s\S]*?grid-template-rows: 0 auto !important;[\s\S]*?align-content: start !important;[\s\S]*?gap: 0 !important;/,
+  );
+});
+
+test("mobile rhythm progression readout fits four complete measures per row", async () => {
+  const appCss = await readFile(appStyleUrl, "utf8");
+
+  assert.match(
+    appCss,
+    /Mobile readout keeps four complete measures[\s\S]*@media \(max-width: 767px\)[\s\S]*?\.chordTransitionChart \.currentProgressionReadout \{[\s\S]*?grid-template-columns: repeat\(4, minmax\(0, 1fr\)\) !important/,
+  );
+  assert.match(
+    appCss,
+    /\.chordTransitionChart \.currentProgressionReadout \.rhythmChordMeasure > button[\s\S]*?flex: 1 1 0 !important;[\s\S]*?min-width: 0 !important/,
+  );
+});
+
+test("empty rhythm practice keeps only the centered prompt and storage rows hug their content", async () => {
+  const [appSource, appCss] = await Promise.all([
+    readFile(appSourceUrl, "utf8"),
+    readFile(appStyleUrl, "utf8"),
+  ]);
+
+  assert.match(
+    appSource,
+    /<aside className="referenceFretboard chordTransitionChart"[\s\S]*?\{hasChordTransitionProgression \? \([\s\S]*?<div className="referenceHeader">/,
+  );
+  assert.doesNotMatch(appSource, /<small>추천 또는 사용자 진행을 선택해주세요<\/small>/);
+  assert.match(appSource, /className="stage3EmptyFretboardPrompt"[\s\S]*?<strong>진행을 선택해주세요<\/strong>/);
+  assert.match(
+    appSource,
+    /isMobileLayout && !hasChordTransitionProgression[\s\S]*?className="currentProgressionReadout stage3EmptyProgressionReadout"[\s\S]*?Array\.from\(\{ length: 4 \}/,
+  );
+  assert.match(
+    appCss,
+    /\.stage3EmptyProgressionReadout \{[\s\S]*?height: 29px !important;[\s\S]*?\.stage3EmptyProgressionMeasure \{[\s\S]*?min-height: 29px !important;/,
+  );
+  assert.match(
+    appCss,
+    /@media \(max-width: 720px\)[\s\S]*?\.stage3StorageDialog \.stage3StorageComposer \{[\s\S]*?align-content: start !important;[\s\S]*?grid-auto-rows: max-content !important;/,
+  );
 });
 
 test("rhythm chord saved-setting lock survives storage migration and blocks destructive paths", async () => {
@@ -131,6 +220,20 @@ test("rhythm storage asks for a save title and falls back to the chord progressi
   assert.match(appCss, /\.stage3StorageSaveTitleField input::placeholder \{/);
 });
 
+test("rhythm storage starts on C and returns to practice after a completed save", async () => {
+  const appSource = await readFile(appSourceUrl, "utf8");
+  const openStart = appSource.indexOf("const openStage3Storage = useCallback");
+  const openEnd = appSource.indexOf("const getStage3StorageChordIdsWithActiveDraft", openStart);
+  const confirmStart = appSource.indexOf("const confirmStage3StorageSave = useCallback");
+  const confirmEnd = appSource.indexOf("const addStage3StrumPatternDraft", confirmStart);
+
+  assert.ok(openStart >= 0 && openEnd > openStart);
+  assert.ok(confirmStart >= 0 && confirmEnd > confirmStart);
+  assert.match(appSource.slice(openStart, openEnd), /applyStage3StorageChordSelection\("C", "natural", "major", "none"\)/);
+  assert.match(appSource.slice(confirmStart, confirmEnd), /saveStage3StorageItem\([\s\S]*?exitStage3StorageRoom\(\)/);
+  assert.match(appSource, /const closeStage3StorageRoom = exitStage3StorageRoom/);
+});
+
 test("LOAD chord builder follows fretboard options and selects a region with an integrated mini fretboard", async () => {
   const [appSource, appCss] = await Promise.all([
     readFile(appSourceUrl, "utf8"),
@@ -187,7 +290,10 @@ test("LOAD strum beats use glyph-only warm on and ivory off states", async () =>
 });
 
 test("saved progressions preserve and restore each chord fingering region", async () => {
-  const appSource = await readFile(appSourceUrl, "utf8");
+  const [appSource, appCss] = await Promise.all([
+    readFile(appSourceUrl, "utf8"),
+    readFile(appStyleUrl, "utf8"),
+  ]);
 
   assert.match(appSource, /function getChordEntryPositionId\(entry\)/);
   assert.match(appSource, /positionId: stage3StorageChordPosition/);
@@ -197,10 +303,22 @@ test("saved progressions preserve and restore each chord fingering region", asyn
   assert.match(appSource, /chordPracticeFretboardView[\s\S]*chordPracticeCurrent\.visibleFrets/);
   assert.match(appSource, /chordPracticeCurrent\.stringStates\?\.\[stringNumber\]/);
   assert.match(appSource, /editStage3StorageChordEntry\(stage3StorageChordIds\[index\], index\)/);
+  assert.match(appSource, /onClick=\{\(\) => commitStage3StorageChord\(1\)\}/);
   assert.match(appSource, /onClick=\{\(\) => commitStage3StorageChord\(2\)\}/);
   assert.match(appSource, /onClick=\{\(\) => commitStage3StorageChord\(4\)\}/);
+  assert.match(appSource, /onClick=\{addStage3StorageRest\}/);
+  assert.match(appSource, />\s*1박 추가\s*</);
   assert.match(appSource, />\s*2박 추가\s*</);
   assert.match(appSource, />\s*4박 추가\s*</);
+  assert.match(appSource, />\s*1박 쉼\s*</);
+  assert.match(appSource, /id: RHYTHM_CHORD_REST_ID,[\s\S]*isRest: true,[\s\S]*label: "쉼"/);
+  assert.match(appCss, /\.stage3BeatLengthActions \{[\s\S]*grid-template-columns: repeat\(5, auto\)/);
+  assert.match(appSource, /isAutoRest \? \([\s\S]*stage3AutomaticRestSymbol[\s\S]*𝄽/);
+  assert.match(appSource, /chordPracticeTimelineBeat >= startBeat[\s\S]*chordPracticeTimelineBeat < endBeat/);
+  assert.match(appSource, /aria-label=\{`자동 쉼 \$\{getRhythmChordBeatLabel\(beatLength\)\}`\}/);
+  assert.match(appCss, /\.stage3AutomaticRestButton \{[\s\S]*min-width: 30px !important;[\s\S]*min-height: 25px !important/);
+  assert.match(appCss, /\.chordTransitionChart \.currentProgressionReadout button\.stage3AutomaticRestButton \{[\s\S]*width: 32px !important;[\s\S]*height: 29px !important/);
+  assert.match(appCss, /\.stage3AutomaticRestSymbol[\s\S]*font-family: "Noto Music"/);
   assert.match(appSource, /<small>\{getRhythmChordBeatLabel\(chord\.beatLength\)\}<\/small>/);
   assert.doesNotMatch(appSource, /<small>\{chord\.positionLabel\}<\/small>/);
 });

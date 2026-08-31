@@ -70703,7 +70703,12 @@ html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard
 /* Rhythm-code duration controls and bar grouping. */
 html body main.app.app.app .stage3StorageRoom .stage3BeatLengthActions {
   display: inline-grid !important;
-  grid-template-columns: repeat(3, auto) !important;
+  grid-template-columns: repeat(5, auto) !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ProgressionRestButton:disabled {
+  opacity: 1 !important;
+  cursor: default !important;
 }
 
 html body main.app.app.app .rhythmChordMeasure {
@@ -70727,10 +70732,231 @@ html body main.app.app.app .chordTransitionChart .currentProgressionReadout .rhy
   color: inherit !important;
 }
 
+html body main.app.app.app .stage3AutomaticRestButton {
+  min-width: 30px !important;
+  min-height: 25px !important;
+  cursor: default !important;
+}
+
+html body main.app.app.app .chordTransitionChart .currentProgressionReadout button.stage3AutomaticRestButton {
+  width: 32px !important;
+  min-width: 32px !important;
+  height: 29px !important;
+  min-height: 29px !important;
+}
+
+html body main.app.app.app .stage3AutomaticRestSymbol,
+html body main.app.app.app .stage3StorageRoom .stage3InlineProgressionRow .stage3ProgressionEditButton .stage3AutomaticRestSymbol {
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  font-family: "Noto Music", "Segoe UI Symbol", serif !important;
+  font-size: 17px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3InlineProgressionRow .progressionChipList strong.stage3AutomaticRestChip {
+  padding-right: 0 !important;
+}
+
 @media (max-width: 430px) {
   html body main.app.app.app .stage3StorageRoom .stage3BeatLengthActions button {
     min-width: 0 !important;
     padding-inline: 7px !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* Rhythm-code user progression panel: edit tools on demand and swipe-revealed row actions. */
+.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectPanelDirection {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectMenu {
+  overflow-x: hidden !important;
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectManagementToolbar.idle {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectManagementToolbar.editing {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectManagementToolbar.editing > span {
+  grid-column: 1 / -1;
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectManagementToolbar.editing > button {
+  min-width: 0;
+  padding-inline: 4px;
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectOptionRow--swipe {
+  position: relative;
+  display: block;
+  min-height: 34px;
+  overflow: hidden;
+  border-radius: 9px;
+  touch-action: pan-y;
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectOptionActionRail {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 39px);
+  width: 78px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease;
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList
+  .metronomeSelectOptionRow--swipe:is(.actionsRevealed, .swiping) .metronomeSelectOptionActionRail {
+  opacity: 1;
+  visibility: visible;
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectOptionRowContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  min-height: 34px;
+  background: rgba(12, 11, 8, 0.98);
+  transform: translateX(var(--option-swipe-offset, 0));
+  transition: transform 170ms cubic-bezier(0.2, 0.85, 0.24, 1);
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectOptionRow--swipe.swiping .metronomeSelectOptionRowContent {
+  transition: none;
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectOptionRowContent > .metronomeSelectOption {
+  flex: 1 1 auto;
+  min-width: 0 !important;
+  width: auto !important;
+  padding-inline: 9px !important;
+  text-align: left !important;
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList
+  .metronomeSelectOptionRowContent > .metronomeSelectOptionIndicator.selected::after {
+  display: none !important;
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList
+  .metronomeSelectOptionRowContent > .metronomeSelectOptionIndicator > span {
+  color: currentColor;
+  font-size: 15px;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList
+  .metronomeSelectOptionActionRail :is(.metronomeSelectOptionLock, .metronomeSelectOptionDelete) {
+  width: 39px !important;
+  min-width: 39px !important;
+  height: 100% !important;
+  min-height: 34px !important;
+  border-radius: 0 !important;
+}
+
+html body .app.theme-light .metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectOptionRowContent {
+  background: rgba(251, 245, 239, 0.99) !important;
+}
+
+@media (max-width: 767px) {
+  /* Keep the saved title stationary while the lock/delete rail slides in above its right edge. */
+  .metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectOptionActionRail {
+    z-index: 2;
+    transform: translateX(calc(78px + var(--option-swipe-offset, 0px)));
+    transition:
+      transform 170ms cubic-bezier(0.2, 0.85, 0.24, 1),
+      opacity 120ms ease;
+  }
+
+  .metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectOptionRowContent {
+    transform: none;
+    transition: none;
+  }
+
+  .metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList
+    .metronomeSelectOptionRow--swipe.swiping
+    .metronomeSelectOptionActionRail {
+    transition: none;
+  }
+}
+
+/* Mobile readout keeps four complete measures on each visual row. */
+@media (max-width: 767px) {
+  html body main.app.app.app .chordTransitionChart .currentProgressionReadout {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    align-items: stretch !important;
+    gap: 3px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body main.app.app.app .chordTransitionChart .stage3EmptyProgressionReadout {
+    height: 29px !important;
+    margin: 1px 0 0 !important;
+  }
+
+  html body main.app.app.app .chordTransitionChart .stage3EmptyProgressionMeasure {
+    min-height: 29px !important;
+  }
+
+  html body main.app.app.app.theme-light .chordTransitionChart .stage3EmptyProgressionMeasure > span {
+    display: block !important;
+    width: 100% !important;
+    height: 25px !important;
+    border: 1px solid rgba(169, 123, 66, 0.18) !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.46) !important;
+  }
+
+  html body main.app.app.app .chordTransitionChart .currentProgressionReadout .rhythmChordMeasure {
+    display: flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 2px !important;
+    gap: 1px !important;
+  }
+
+  html body main.app.app.app .chordTransitionChart .currentProgressionReadout .rhythmChordMeasure > button,
+  html body main.app.app.app .chordTransitionChart .currentProgressionReadout .rhythmChordMeasure > button.stage3AutomaticRestButton {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 3px 1px !important;
+    overflow: hidden !important;
+  }
+
+  html body main.app.app.app .chordTransitionChart .currentProgressionReadout .rhythmChordMeasure > button > span {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    font-size: clamp(7px, 2.25vw, 10px) !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body main.app.app.app .chordTransitionChart .currentProgressionReadout .rhythmChordMeasure > button > small {
+    font-size: clamp(5px, 1.55vw, 7px) !important;
     white-space: nowrap !important;
   }
 }
@@ -71223,6 +71449,8 @@ html body .shooterEffectDesktopCabinetSection .shooterGuitarCabinetPickerPreview
   }
 
   html body main.app.app.app .stage3StorageDialog .stage3StorageComposer {
+    align-content: start !important;
+    grid-auto-rows: max-content !important;
     padding: 6px 8px calc(8px + env(safe-area-inset-bottom)) !important;
     scroll-padding-bottom: calc(48px + env(safe-area-inset-bottom)) !important;
   }
@@ -71305,5 +71533,86 @@ html body .shooterEffectDesktopCabinetSection .shooterGuitarCabinetPickerPreview
   html body main.app.app.app.theme-light .stage3StorageRoom .stage3StorageComposerActions,
   html body main.app.app.app.theme-light .stage3StorageRoom .stage3StorageComposerActions.stage3StorageActionSegment {
     background: linear-gradient(180deg, rgba(246, 235, 214, 0), rgba(246, 235, 214, 0.96) 34%) !important;
+  }
+}
+
+/* Rhythm-code mobile surface balance: keep the beat dots inset and align both lower cards. */
+@media (max-width: 767px) {
+  html body main.app.app.app.theme-light
+    .chordTransitionPanel
+    .chordTransitionHud.stage3ProgressHud {
+    box-shadow:
+      inset 0 3px 7px rgba(94, 63, 24, 0.1),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.58) !important;
+  }
+
+  html body main.app.app.app.theme-light
+    .chordTransitionPanel
+    .stage3StandaloneMetronomeControl
+    .metronomeOptions.metronomeOptions--collapsed
+    .metronomeOptionsCollapsedTitle,
+  html body main.app.app.app.theme-light
+    .chordTransitionPanel
+    .stage3DesktopSideColumn
+    > .sharedAccompanimentPanel--training
+    > summary
+    > span {
+    color: #15191d !important;
+    font-size: 13px !important;
+    font-weight: 1000 !important;
+    line-height: 1 !important;
+  }
+
+  html body main.app.app.app.theme-light
+    .chordTransitionPanel
+    .stage3DesktopSideColumn
+    > .sharedAccompanimentPanel--training {
+    border-color: rgba(169, 123, 66, 0.22) !important;
+    border-radius: 13px !important;
+    background:
+      radial-gradient(circle at 50% -18%, rgba(255, 255, 255, 0.42), transparent 48%),
+      linear-gradient(180deg, rgba(255, 252, 246, 0.9), rgba(247, 238, 224, 0.78)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.84),
+      0 9px 18px rgba(88, 58, 28, 0.07) !important;
+  }
+
+  html body main.app.app.app.theme-light
+    .chordTransitionPanel
+    .stage3DesktopSideColumn
+    > .sharedAccompanimentPanel--training
+    > summary {
+    background: rgba(185, 132, 62, 0.055) !important;
+  }
+
+  html body main.app.app.app
+    .chordTransitionPanel
+    .stage3StandaloneMetronomeControl
+    .metronomeOptions.metronomeOptions--collapsed {
+    cursor: pointer !important;
+  }
+
+  html body main.app.app.app.theme-light
+    .chordTransitionPanel
+    .stage3DesktopSideColumn
+    > .sharedAccompanimentPanel--training
+    .miniChordBackingRow {
+    border-bottom-color: rgba(151, 117, 60, 0.15) !important;
+    background:
+      linear-gradient(90deg, rgba(185, 132, 62, 0.045), transparent 62%),
+      rgba(235, 219, 194, 0.56) !important;
+  }
+
+  /* Expanded lower cards need a short scroll runway above the fixed mobile nav. */
+  html body main.app.app.app.practiceMode:has(
+      > .chordTransitionPanel .sharedAccompanimentPanel--training[open]
+    ),
+  html body main.app.app.app.practiceMode:has(
+      > .chordTransitionPanel
+        .stage3StandaloneMetronomeControl
+        .metronomeOptions:not(.metronomeOptions--collapsed)
+    ) {
+    min-height: calc(100dvh + 64px) !important;
+    scroll-padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important;
   }
 }
