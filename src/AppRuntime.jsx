@@ -17,6 +17,7 @@ import "./shooter/mobile-skin-configurator.css";
 import "./shooter/desktopHorizontal/desktop-horizontal-battle.css";
 import "./layouts/responsive-play-focus.css";
 import "./layouts/mobile-dark-theme.css";
+import "./navigation/responsive-navigation.css";
 
 const NAVIGATION_PROBE_KEY = "__RIFFLAB_NAVIGATION_PROBE__";
 const NAVIGATION_PROBE_META_NAME = "rifflab-navigation-performance";

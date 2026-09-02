@@ -1106,8 +1106,8 @@ function MapEditSessionActions({ editor, effectEditor, monsterEditor }) {
     editor.closeEditing();
   };
   const applyEditing = () => editor.applyEditing(async () => {
-    if (await (effectEditor?.applyEditing() ?? true) === false) return false;
-    if (await (monsterEditor?.applyEditing() ?? true) === false) return false;
+    if (effectEditor?.hasChanges && await effectEditor.applyEditing() === false) return false;
+    if (monsterEditor?.hasChanges && await monsterEditor.applyEditing() === false) return false;
     return true;
   });
   return (

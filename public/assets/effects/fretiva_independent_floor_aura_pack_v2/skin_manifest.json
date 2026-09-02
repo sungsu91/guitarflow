@@ -1,0 +1,280 @@
+{
+  "pack_id": "fretiva_independent_floor_aura_pack_v2",
+  "version": "2.0.0",
+  "status": "final",
+  "final_apply_spec": "CODEX_APPLY_INDEPENDENT_FLOOR_AURA_V2.txt",
+  "asset_structure": "independent_floor_and_aura",
+  "derived_from_combined_set": false,
+  "automatic_pair_selection": false,
+  "counts": {
+    "floor": 10,
+    "aura": 10,
+    "aura_frames_total": 80
+  },
+  "excluded_existing_themes": [
+    "FIRE LAVA",
+    "MOONLIGHT",
+    "GALACTIC ORBITAL",
+    "FOREST VINE"
+  ],
+  "render_contract": {
+    "layer_order_back_to_front": [
+      "map",
+      "selected_aura_frame",
+      "selected_floor",
+      "guitar",
+      "notes_and_hud"
+    ],
+    "aura_front_layer": false,
+    "floor_animation": false,
+    "aura_animation": {
+      "sheet_width": 1536,
+      "sheet_height": 1024,
+      "frame_width": 384,
+      "frame_height": 512,
+      "columns": 4,
+      "rows": 2,
+      "frame_count": 8,
+      "direction": "forward",
+      "ping_pong": false,
+      "blend_mode": "normal"
+    },
+    "anchors": {
+      "floor": "bottom_center",
+      "aura": "bottom_center",
+      "guitar": "bottom_center"
+    }
+  },
+  "items": [
+    {
+      "sort_order": 1,
+      "pair_label": "FROST SPIRIT",
+      "floor": {
+        "id": "floor_frost_spirit_v2",
+        "display_title": "FROST SPIRIT",
+        "selection_category": "floor",
+        "path": "floors/FROST SPIRIT_FLOOR.png",
+        "width": 1536,
+        "height": 1024,
+        "static": true,
+        "default_scale": 1.0
+      },
+      "aura": {
+        "id": "aura_frost_spirit_v2",
+        "display_title": "FROST SPIRIT",
+        "selection_category": "aura",
+        "sheet_path": "auras/sheets/FROST SPIRIT_AURA_8F.png",
+        "frame_duration_ms": 120,
+        "default_scale": 0.9,
+        "default_opacity": 0.82
+      }
+    },
+    {
+      "sort_order": 2,
+      "pair_label": "TEMPEST AMP",
+      "floor": {
+        "id": "floor_tempest_amp_v2",
+        "display_title": "TEMPEST AMP",
+        "selection_category": "floor",
+        "path": "floors/TEMPEST AMP_FLOOR.png",
+        "width": 1536,
+        "height": 1024,
+        "static": true,
+        "default_scale": 1.0
+      },
+      "aura": {
+        "id": "aura_tempest_amp_v2",
+        "display_title": "TEMPEST AMP",
+        "selection_category": "aura",
+        "sheet_path": "auras/sheets/TEMPEST AMP_AURA_8F.png",
+        "frame_duration_ms": 85,
+        "default_scale": 0.9,
+        "default_opacity": 0.78
+      }
+    },
+    {
+      "sort_order": 3,
+      "pair_label": "SAKURA ECHO",
+      "floor": {
+        "id": "floor_sakura_echo_v2",
+        "display_title": "SAKURA ECHO",
+        "selection_category": "floor",
+        "path": "floors/SAKURA ECHO_FLOOR.png",
+        "width": 1536,
+        "height": 1024,
+        "static": true,
+        "default_scale": 1.0
+      },
+      "aura": {
+        "id": "aura_sakura_echo_v2",
+        "display_title": "SAKURA ECHO",
+        "selection_category": "aura",
+        "sheet_path": "auras/sheets/SAKURA ECHO_AURA_8F.png",
+        "frame_duration_ms": 130,
+        "default_scale": 0.9,
+        "default_opacity": 0.8
+      }
+    },
+    {
+      "sort_order": 4,
+      "pair_label": "DUNE MIRAGE",
+      "floor": {
+        "id": "floor_dune_mirage_v2",
+        "display_title": "DUNE MIRAGE",
+        "selection_category": "floor",
+        "path": "floors/DUNE MIRAGE_FLOOR.png",
+        "width": 1536,
+        "height": 1024,
+        "static": true,
+        "default_scale": 1.0
+      },
+      "aura": {
+        "id": "aura_dune_mirage_v2",
+        "display_title": "DUNE MIRAGE",
+        "selection_category": "aura",
+        "sheet_path": "auras/sheets/DUNE MIRAGE_AURA_8F.png",
+        "frame_duration_ms": 115,
+        "default_scale": 0.88,
+        "default_opacity": 0.76
+      }
+    },
+    {
+      "sort_order": 5,
+      "pair_label": "INK PHANTOM",
+      "floor": {
+        "id": "floor_ink_phantom_v2",
+        "display_title": "INK PHANTOM",
+        "selection_category": "floor",
+        "path": "floors/INK PHANTOM_FLOOR.png",
+        "width": 1536,
+        "height": 1024,
+        "static": true,
+        "default_scale": 1.0
+      },
+      "aura": {
+        "id": "aura_ink_phantom_v2",
+        "display_title": "INK PHANTOM",
+        "selection_category": "aura",
+        "sheet_path": "auras/sheets/INK PHANTOM_AURA_8F.png",
+        "frame_duration_ms": 135,
+        "default_scale": 0.88,
+        "default_opacity": 0.76
+      }
+    },
+    {
+      "sort_order": 6,
+      "pair_label": "PRISM CHORUS",
+      "floor": {
+        "id": "floor_prism_chorus_v2",
+        "display_title": "PRISM CHORUS",
+        "selection_category": "floor",
+        "path": "floors/PRISM CHORUS_FLOOR.png",
+        "width": 1536,
+        "height": 1024,
+        "static": true,
+        "default_scale": 1.0
+      },
+      "aura": {
+        "id": "aura_prism_chorus_v2",
+        "display_title": "PRISM CHORUS",
+        "selection_category": "aura",
+        "sheet_path": "auras/sheets/PRISM CHORUS_AURA_8F.png",
+        "frame_duration_ms": 95,
+        "default_scale": 0.9,
+        "default_opacity": 0.78
+      }
+    },
+    {
+      "sort_order": 7,
+      "pair_label": "CLOCKWORK RHYTHM",
+      "floor": {
+        "id": "floor_clockwork_rhythm_v2",
+        "display_title": "CLOCKWORK RHYTHM",
+        "selection_category": "floor",
+        "path": "floors/CLOCKWORK RHYTHM_FLOOR.png",
+        "width": 1536,
+        "height": 1024,
+        "static": true,
+        "default_scale": 1.0
+      },
+      "aura": {
+        "id": "aura_clockwork_rhythm_v2",
+        "display_title": "CLOCKWORK RHYTHM",
+        "selection_category": "aura",
+        "sheet_path": "auras/sheets/CLOCKWORK RHYTHM_AURA_8F.png",
+        "frame_duration_ms": 110,
+        "default_scale": 0.88,
+        "default_opacity": 0.76
+      }
+    },
+    {
+      "sort_order": 8,
+      "pair_label": "TIDAL PEARL",
+      "floor": {
+        "id": "floor_tidal_pearl_v2",
+        "display_title": "TIDAL PEARL",
+        "selection_category": "floor",
+        "path": "floors/TIDAL PEARL_FLOOR.png",
+        "width": 1536,
+        "height": 1024,
+        "static": true,
+        "default_scale": 1.0
+      },
+      "aura": {
+        "id": "aura_tidal_pearl_v2",
+        "display_title": "TIDAL PEARL",
+        "selection_category": "aura",
+        "sheet_path": "auras/sheets/TIDAL PEARL_AURA_8F.png",
+        "frame_duration_ms": 120,
+        "default_scale": 0.9,
+        "default_opacity": 0.8
+      }
+    },
+    {
+      "sort_order": 9,
+      "pair_label": "NEON WAVE",
+      "floor": {
+        "id": "floor_neon_wave_v2",
+        "display_title": "NEON WAVE",
+        "selection_category": "floor",
+        "path": "floors/NEON WAVE_FLOOR.png",
+        "width": 1536,
+        "height": 1024,
+        "static": true,
+        "default_scale": 1.0
+      },
+      "aura": {
+        "id": "aura_neon_wave_v2",
+        "display_title": "NEON WAVE",
+        "selection_category": "aura",
+        "sheet_path": "auras/sheets/NEON WAVE_AURA_8F.png",
+        "frame_duration_ms": 85,
+        "default_scale": 0.9,
+        "default_opacity": 0.74
+      }
+    },
+    {
+      "sort_order": 10,
+      "pair_label": "AUTUMN WIND",
+      "floor": {
+        "id": "floor_autumn_wind_v2",
+        "display_title": "AUTUMN WIND",
+        "selection_category": "floor",
+        "path": "floors/AUTUMN WIND_FLOOR.png",
+        "width": 1536,
+        "height": 1024,
+        "static": true,
+        "default_scale": 1.0
+      },
+      "aura": {
+        "id": "aura_autumn_wind_v2",
+        "display_title": "AUTUMN WIND",
+        "selection_category": "aura",
+        "sheet_path": "auras/sheets/AUTUMN WIND_AURA_8F.png",
+        "frame_duration_ms": 130,
+        "default_scale": 0.9,
+        "default_opacity": 0.78
+      }
+    }
+  ]
+}

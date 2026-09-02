@@ -1061,6 +1061,7 @@ function MapSkinRenderer({
       {stage === "underlay" && skin.id === "autumn_moon_temple_path" ? (
         <AutumnMoonTemplePathField
           active={animationsActive && !editMode}
+          layout={layout}
           runtimeAnimation={skin.runtimeAnimation}
           stage="underlay"
         />
@@ -1204,6 +1205,7 @@ function MapSkinRenderer({
       {stage === "overlay" && skin.id === "autumn_moon_temple_path" ? (
         <AutumnMoonTemplePathField
           active={animationsActive && !editMode}
+          layout={layout}
           runtimeAnimation={skin.runtimeAnimation}
           stage="overlay"
         />

@@ -18,8 +18,11 @@ test("keep-alive modes lazy mount only after their first visit", () => {
 
   const afterMetronomeVisit = registerMountedMode(initialModes, "metronome");
   assert.deepEqual([...afterMetronomeVisit], ["practice", "metronome"]);
+  const afterTunerVisit = registerMountedMode(afterMetronomeVisit, "tuner");
+  assert.deepEqual([...afterTunerVisit], ["practice", "metronome", "tuner"]);
   assert.equal(shouldMountMode("fretboard-viewer", afterMetronomeVisit, "metronome"), true);
   assert.equal(getModeActivityState("fretboard-viewer", "metronome"), "hidden");
+  assert.equal(getModeActivityState("tuner", "metronome"), "hidden");
 });
 
 test("lightweight and internal screens remain regular mount-on-demand routes", () => {
@@ -44,6 +47,14 @@ test("shooter unmounts outside its active route so maps do not render in the bac
   assert.equal(isNavigationKeepAliveMode("shooter"), false);
   assert.equal(shouldMountMode("practice", mountedModes, "shooter"), false);
   assert.equal(shouldMountMode("shooter", mountedModes, "shooter"), true);
+});
+
+test("tuner keeps its local UI state after the first visit without staying active", () => {
+  const mountedModes = registerMountedMode(createMountedModeSet("fretboard-viewer"), "tuner");
+
+  assert.equal(isNavigationKeepAliveMode("tuner"), true);
+  assert.equal(shouldMountMode("metronome", mountedModes, "tuner"), true);
+  assert.equal(getModeActivityState("metronome", "tuner"), "hidden");
 });
 
 test("hidden screens reuse their last element without rebuilding the subtree", () => {

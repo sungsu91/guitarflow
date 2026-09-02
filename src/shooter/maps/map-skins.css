@@ -229,7 +229,7 @@ html body .app .shooterArena .shooterMapSkinStage .shooterMapSkinAsset[data-anim
   width: 100%;
   max-width: none;
   height: 100%;
-  object-fit: var(--shooter-map-mask-fit, contain);
+  object-fit: var(--shooter-map-mask-fit, cover);
   object-position: var(--shooter-map-mask-position, center);
   pointer-events: none;
   transform: none;
@@ -451,20 +451,6 @@ html body .app .shooterArena.shooterMapSkin--abyssalMoonCathedral
     #050817 !important;
 }
 
-/*
- * The clocktower artwork is composed against the complete 768x1664 portrait.
- * Keep that full height on the shorter mobile combat surface so its lower
- * balcony remains visible and every underlay/overlay layer stays registered.
- */
-.shooterMapSkinStage[data-map-skin="celestial-eclipse-clocktower"] .shooterMapCoordinatePlane {
-  top: 50%;
-  left: 50%;
-  width: auto;
-  height: 100%;
-  aspect-ratio: 768 / 1664;
-  transform: translate3d(-50%, -50%, 0);
-}
-
 /* Combat notes must stay readable above this map's decorative columns. */
 .shooterArena.shooterArena--layeredMap.shooterMapSkin--celestial-eclipse-clocktower
   .enemy.shooterEnemy {
@@ -560,7 +546,6 @@ html body .app .shooterArena.shooterMapSkin--abyssalMoonCathedral
   height: 100%;
   pointer-events: none;
   image-rendering: auto;
-  transform: translateZ(0);
 }
 
 .shooterMapAutumnCanvas--leaves-far {

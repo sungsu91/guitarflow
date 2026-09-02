@@ -1,5 +1,5 @@
 ﻿import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Activity, startTransition } from "react";
+import { Activity, startTransition, useSyncExternalStore } from "react";
 import {
   AudioLines,
   ChevronLeft,
@@ -190,6 +190,16 @@ import {
 import { applyShooterEffectTuning } from "./shooter/effects/effectTuning.js";
 import useShooterEffectTuning from "./shooter/effects/useShooterEffectTuning.js";
 import {
+  FRETIVA_INDEPENDENT_AURA_V2_ITEMS,
+  FRETIVA_INDEPENDENT_FLOOR_AURA_PACK_V2,
+  FRETIVA_INDEPENDENT_FLOOR_V2_ITEMS,
+} from "./shooter/effects/fretivaIndependentFloorAuraPackV2.js";
+import {
+  FRETIVA_LOW_PROFILE_GUITAR_STAND_V1_ITEMS,
+  FRETIVA_LOW_PROFILE_STAND_VARIANT,
+} from "./shooter/effects/fretivaLowProfileGuitarStandPackV1.js";
+import { getSpriteSheetFrameRect } from "./shooter/effects/spriteSheetFrames.js";
+import {
   DEVELOPER_SHOOTER_MAP_SKINS,
   LAYERED_SHOOTER_MAP_SKINS,
   getRandomShooterMapId,
@@ -218,6 +228,13 @@ import {
   registerMountedMode,
   shouldMountMode,
 } from "./navigation/keepAlive";
+import {
+  beginNavigationTransition,
+  cancelNavigationTransition,
+  completeNavigationTransition,
+  getNavigationTransitionSnapshot,
+  subscribeNavigationTransition,
+} from "./navigation/transitionStore.js";
 import {
   MOBILE_LAYOUT_MEDIA_QUERY,
   getIsMobileLayout,
@@ -7284,7 +7301,9 @@ const SHOOTER_GUITAR_CABINET_STORAGE_KEY = "rifflabShooterGuitarCabinet";
 const SHOOTER_PICK_SKIN_STORAGE_KEY = "rifflabShooterPickSkin";
 const SHOOTER_MONSTER_SKIN_STORAGE_KEY = "rifflabShooterMonsterSkin";
 const SHOOTER_EFFECT_STORAGE_KEY = "rifflabShooterEffect";
-const SHOOTER_EFFECT_LOADOUT_STORAGE_KEY = "rifflabShooterEffectLoadoutV2";
+const SHOOTER_EFFECT_LEGACY_LOADOUT_STORAGE_KEY = "rifflabShooterEffectLoadoutV2";
+const SHOOTER_AURA_EFFECT_STORAGE_KEY = "selectedAuraSkinId";
+const SHOOTER_FLOOR_EFFECT_STORAGE_KEY = "selectedFloorSkinId";
 const SHOOTER_MAP_STORAGE_KEY = "rifflabShooterMapV2";
 const SHOOTER_MAP_PREFERENCE_STORAGE_KEY = "rifflabShooterMapPreferenceV3";
 const SHOOTER_RANDOM_MAP_ID = "random";
@@ -7679,10 +7698,10 @@ const SHOOTER_GUITAR_CATEGORY_OPTIONS = [
 ];
 const SHOOTER_SKIN_TABS = [
   { id: "guitar", label: "기타" },
-  { id: "monster", label: "몹 스킨" },
-  { id: "map", label: "맵" },
   { id: "effect", label: "이펙트" },
+  { id: "map", label: "맵" },
   { id: "pick", label: "피크" },
+  { id: "monster", label: "몹스킨" },
 ];
 
 const shooterScrollHintFrames = new WeakMap();
@@ -7813,7 +7832,7 @@ const SHOOTER_EFFECT_SECTION_OPTIONS = [
   {
     id: SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
     label: "AURA · 기타 주변",
-    description: "기타 뒤와 앞을 감싸는 독립 이펙트",
+    description: "기타 주변에 배치되는 독립 이펙트",
   },
   {
     id: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
@@ -8098,6 +8117,103 @@ const SHOOTER_EFFECT_COMPOSITE_GROUP_BY_ID = {
   "flame-aura": "flame",
   "eclipse-aura": "eclipse",
 };
+const SHOOTER_INDEPENDENT_AURA_V2_HEIGHT = 174;
+const SHOOTER_INDEPENDENT_FLOOR_V2_WIDTH = 198;
+const SHOOTER_INDEPENDENT_FLOOR_V2_HEIGHT = 132;
+const SHOOTER_INDEPENDENT_FLOOR_V2_TARGET = getShooterEffectAnchorPreset(
+  SHOOTER_EFFECT_ANCHOR_PRESET_IDS.FLOOR_CENTER_BOTTOM,
+);
+const SHOOTER_INDEPENDENT_AURA_V2_OPTIONS = FRETIVA_INDEPENDENT_AURA_V2_ITEMS.map((aura) => ({
+  id: aura.id,
+  name: aura.displayTitle,
+  label: aura.displayTitle,
+  description: `${aura.displayTitle} 8프레임 아우라`,
+  asset: aura.asset,
+  type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
+  anchorPreset: SHOOTER_EFFECT_ANCHOR_PRESET_IDS.AURA_CENTER_BOTTOM,
+  width: SHOOTER_INDEPENDENT_AURA_V2_HEIGHT
+    * (aura.spriteSheet.frameWidth / aura.spriteSheet.frameHeight),
+  height: SHOOTER_INDEPENDENT_AURA_V2_HEIGHT,
+  contentAnchor: aura.contentAnchor,
+  scale: aura.defaultScale,
+  opacity: aura.defaultOpacity,
+  previewScale: 0.62,
+  zIndex: 4,
+  blendMode: "normal",
+  spriteSheet: {
+    ...aura.spriteSheet,
+    frameDurationMs: aura.frameDurationMs,
+  },
+  animation: {
+    preset: "sprite-sheet-forward",
+    durationMs: aura.frameDurationMs * aura.spriteSheet.frameCount,
+  },
+  effectPack: "fretiva-independent-floor-aura-v2",
+  layers: [
+    {
+      layer: SHOOTER_EFFECT_LAYER_SLOTS.BACK,
+      className: "effect-independent-aura-v2",
+    },
+  ],
+}));
+const SHOOTER_INDEPENDENT_FLOOR_V2_OPTIONS = FRETIVA_INDEPENDENT_FLOOR_V2_ITEMS.map((floor) => ({
+  id: floor.id,
+  name: floor.displayTitle,
+  label: floor.displayTitle,
+  description: `${floor.displayTitle} 고정 플로어`,
+  asset: floor.asset,
+  type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
+  anchorPreset: SHOOTER_EFFECT_ANCHOR_PRESET_IDS.FLOOR_CENTER_BOTTOM,
+  width: SHOOTER_INDEPENDENT_FLOOR_V2_WIDTH,
+  height: SHOOTER_INDEPENDENT_FLOOR_V2_HEIGHT,
+  contentAnchor: floor.contentAnchor,
+  // The supplied platforms are perspective renders. Their canvas center—not
+  // their decorative lower edge—must meet the guitar's bottom-center axis.
+  offsetY: (SHOOTER_INDEPENDENT_FLOOR_V2_HEIGHT / 2)
+    + SHOOTER_INDEPENDENT_FLOOR_V2_HEIGHT * (
+      floor.contentAnchor.bottomY
+      - SHOOTER_INDEPENDENT_FLOOR_V2_TARGET.contentAnchor.bottomY
+    ),
+  scale: floor.defaultScale,
+  opacity: 1,
+  previewScale: 0.58,
+  zIndex: 1,
+  blendMode: "normal",
+  effectPack: "fretiva-independent-floor-aura-v2",
+  layers: [
+    {
+      layer: SHOOTER_EFFECT_LAYER_SLOTS.FLOOR,
+      className: "effect-independent-floor-v2",
+    },
+  ],
+}));
+const SHOOTER_LOW_PROFILE_STAND_WIDTH = 198;
+const SHOOTER_LOW_PROFILE_STAND_HEIGHT = 132;
+const SHOOTER_LOW_PROFILE_STAND_OPTIONS = FRETIVA_LOW_PROFILE_GUITAR_STAND_V1_ITEMS.map((stand) => ({
+  id: stand.id,
+  name: stand.displayTitle,
+  label: stand.displayTitle,
+  description: `${stand.displayTitle} 고정 기타 스탠드`,
+  asset: stand.asset,
+  type: SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
+  width: SHOOTER_LOW_PROFILE_STAND_WIDTH,
+  height: SHOOTER_LOW_PROFILE_STAND_HEIGHT,
+  offsetX: SHOOTER_LOW_PROFILE_STAND_WIDTH * (0.5 - stand.contentAnchor.centerX),
+  offsetY: SHOOTER_LOW_PROFILE_STAND_HEIGHT * (1 - stand.contentAnchor.bottomY),
+  scale: stand.defaultScale,
+  opacity: 1,
+  previewScale: 0.58,
+  zIndex: 2,
+  blendMode: "normal",
+  variant: FRETIVA_LOW_PROFILE_STAND_VARIANT,
+  effectPack: "fretiva-low-profile-guitar-stand-v1",
+  layers: [
+    {
+      layer: SHOOTER_EFFECT_LAYER_SLOTS.FLOOR,
+      className: "effect-floor-low-profile-stand",
+    },
+  ],
+}));
 const SHOOTER_AURA_EFFECT_OPTIONS = [
   {
     id: "none",
@@ -8265,6 +8381,7 @@ const SHOOTER_AURA_EFFECT_OPTIONS = [
       },
     ],
   },
+  ...SHOOTER_INDEPENDENT_AURA_V2_OPTIONS,
 ];
 const SHOOTER_FLOOR_EFFECT_OPTIONS = [
   {
@@ -8427,6 +8544,7 @@ const SHOOTER_FLOOR_EFFECT_OPTIONS = [
       },
     ],
   },
+  ...SHOOTER_INDEPENDENT_FLOOR_V2_OPTIONS,
   {
     id: "jp-tropical-stand",
     name: "Tropical Guitar Stand",
@@ -8475,6 +8593,7 @@ const SHOOTER_FLOOR_EFFECT_OPTIONS = [
       },
     ],
   },
+  ...SHOOTER_LOW_PROFILE_STAND_OPTIONS,
 ];
 const SHOOTER_EFFECT_SET_PAIRS = [
   { id: "none", label: "없음", auraId: "none", floorId: "none" },
@@ -8483,6 +8602,12 @@ const SHOOTER_EFFECT_SET_PAIRS = [
   { id: "galactic", label: "은하", auraId: "galactic-orbital-aura", floorId: "galactic-orbital-floor" },
   { id: "vine", label: "넝쿨", auraId: "enchanted-vine-aura", floorId: "enchanted-vine-floor" },
   { id: "frost", label: "서리", auraId: "frost-snowflake-aura", floorId: "frost-snowflake-floor" },
+  ...FRETIVA_INDEPENDENT_FLOOR_AURA_PACK_V2.items.map((item) => ({
+    id: `independent-v2-${item.sortOrder}`,
+    label: item.pairLabel,
+    auraId: item.aura.id,
+    floorId: item.floor.id,
+  })),
 ].map((pair) => ({
   ...pair,
   aura: SHOOTER_AURA_EFFECT_OPTIONS.find((effect) => effect.id === pair.auraId),
@@ -8490,6 +8615,7 @@ const SHOOTER_EFFECT_SET_PAIRS = [
 }));
 const SHOOTER_STANDALONE_FLOOR_EFFECT_OPTIONS = SHOOTER_FLOOR_EFFECT_OPTIONS.filter(
   (effect) => effect.id !== "none"
+    && effect.effectPack !== "fretiva-independent-floor-aura-v2"
     && !SHOOTER_EFFECT_SET_PAIRS.some((pair) => pair.floorId === effect.id),
 );
 const getShooterSkinGuitarTitle = (title) => String(title ?? "").replace(/^JP\s+/i, "");
@@ -8670,6 +8796,7 @@ function getShooterEffectLayers(effect) {
         width,
         height,
         animation: layer.animation ?? effect.animation ?? null,
+        spriteSheet: layer.spriteSheet ?? effect.spriteSheet ?? null,
       };
     })
     .filter(Boolean);
@@ -8714,6 +8841,72 @@ function getShooterEffectPreviewLayerStyle(layer) {
   };
 }
 
+function ShooterEffectLayerMedia({ animateSprite = false, layer }) {
+  const spriteSheet = layer?.spriteSheet;
+  const frameCount = Math.max(1, Math.floor(Number(spriteSheet?.frameCount) || 1));
+  const frameDurationMs = Math.max(1, Math.floor(Number(spriteSheet?.frameDurationMs) || 1));
+  const [frameIndex, setFrameIndex] = useState(0);
+
+  useEffect(() => {
+    setFrameIndex(0);
+    if (!animateSprite || !spriteSheet || typeof window === "undefined") return undefined;
+
+    const reducedMotionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)") ?? null;
+    let intervalId = null;
+    const stopAnimation = () => {
+      if (intervalId === null) return;
+      window.clearInterval(intervalId);
+      intervalId = null;
+    };
+    const syncMotionPreference = () => {
+      stopAnimation();
+      setFrameIndex(0);
+      if (reducedMotionQuery?.matches) return;
+      intervalId = window.setInterval(() => {
+        setFrameIndex((currentFrame) => (currentFrame + 1) % frameCount);
+      }, frameDurationMs);
+    };
+
+    syncMotionPreference();
+    if (typeof reducedMotionQuery?.addEventListener === "function") {
+      reducedMotionQuery.addEventListener("change", syncMotionPreference);
+    } else {
+      reducedMotionQuery?.addListener?.(syncMotionPreference);
+    }
+    return () => {
+      stopAnimation();
+      if (typeof reducedMotionQuery?.removeEventListener === "function") {
+        reducedMotionQuery.removeEventListener("change", syncMotionPreference);
+      } else {
+        reducedMotionQuery?.removeListener?.(syncMotionPreference);
+      }
+    };
+  }, [animateSprite, frameCount, frameDurationMs, layer?.asset, spriteSheet]);
+
+  if (!layer?.asset) return null;
+  if (!spriteSheet) return <img alt="" draggable="false" src={layer.asset} />;
+
+  const frame = getSpriteSheetFrameRect(frameIndex, spriteSheet);
+  const backgroundPositionX = spriteSheet.columns > 1
+    ? (frame.column / (spriteSheet.columns - 1)) * 100
+    : 0;
+  const backgroundPositionY = spriteSheet.rows > 1
+    ? (frame.row / (spriteSheet.rows - 1)) * 100
+    : 0;
+
+  return (
+    <span
+      className="shooterEffectSpriteFrame"
+      data-frame-index={frame.frameIndex}
+      style={{
+        backgroundImage: `url("${layer.asset}")`,
+        backgroundPosition: `${backgroundPositionX}% ${backgroundPositionY}%`,
+        backgroundSize: `${spriteSheet.columns * 100}% ${spriteSheet.rows * 100}%`,
+      }}
+    />
+  );
+}
+
 function ShooterEffectOptionButton({ className = "", effect, isSelected, onSelect }) {
   if (!effect) return null;
   const effectPreviewLayers = getShooterEffectLayers(effect);
@@ -8738,10 +8931,10 @@ function ShooterEffectOptionButton({ className = "", effect, isSelected, onSelec
             <span
               className={getShooterEffectPreviewLayerClassName(layer)}
               data-effect-pack={layer.effectPack || undefined}
-              key={`preview-${layer.key}`}
-              style={getShooterEffectPreviewLayerStyle(layer)}
-            >
-              <img alt="" draggable="false" src={layer.asset} />
+            key={`preview-${layer.key}`}
+            style={getShooterEffectPreviewLayerStyle(layer)}
+          >
+              <ShooterEffectLayerMedia layer={layer} />
             </span>
           ))}
         </span>
@@ -11230,15 +11423,22 @@ function getStoredShooterMonsterSkinId() {
 
 function getStoredShooterEffectLoadout() {
   if (typeof window === "undefined") return { ...DEFAULT_SHOOTER_EFFECT_LOADOUT };
-  const storedLoadout = window.localStorage.getItem(SHOOTER_EFFECT_LOADOUT_STORAGE_KEY);
+  let legacyLoadout = null;
+  const storedLoadout = window.localStorage.getItem(SHOOTER_EFFECT_LEGACY_LOADOUT_STORAGE_KEY);
   if (storedLoadout) {
     try {
-      return normalizeShooterEffectLoadout(JSON.parse(storedLoadout));
+      legacyLoadout = normalizeShooterEffectLoadout(JSON.parse(storedLoadout));
     } catch {
       // Fall through to the legacy single-effect migration below.
     }
   }
-  return getLegacyShooterEffectLoadout(window.localStorage.getItem(SHOOTER_EFFECT_STORAGE_KEY));
+  legacyLoadout ??= getLegacyShooterEffectLoadout(
+    window.localStorage.getItem(SHOOTER_EFFECT_STORAGE_KEY),
+  );
+  return normalizeShooterEffectLoadout({
+    aura: window.localStorage.getItem(SHOOTER_AURA_EFFECT_STORAGE_KEY) ?? legacyLoadout.aura,
+    floor: window.localStorage.getItem(SHOOTER_FLOOR_EFFECT_STORAGE_KEY) ?? legacyLoadout.floor,
+  });
 }
 
 function getStoredShooterMapId() {
@@ -13179,6 +13379,149 @@ const APP_ROUTES = {
 };
 const APP_DEFAULT_ROUTE = APP_ROUTES.FRETBOARD_VIEWER;
 
+const MODE_ENTRY_SHELL_COPY = {
+  [APP_MODES.MENU]: {
+    eyebrow: "MENU",
+    title: "메뉴",
+    subtitle: "이동할 화면을 선택하세요",
+  },
+  [APP_MODES.PRACTICE]: {
+    eyebrow: "TRAINING",
+    title: "연습 화면",
+    subtitle: "연습 도구를 준비하고 있어요",
+  },
+  [APP_MODES.MINI_CHORD_MAKER]: {
+    eyebrow: "MINI BACKING",
+    title: "미니코드 반주",
+    subtitle: "타임라인과 반주 패널을 준비하고 있어요",
+  },
+  [APP_MODES.FRETBOARD_VIEWER]: {
+    eyebrow: "FRETBOARD",
+    title: "지판보기",
+    subtitle: "지판과 음표 위치를 준비하고 있어요",
+  },
+  [APP_MODES.METRONOME]: {
+    eyebrow: "METRONOME",
+    title: "메트로놈",
+    subtitle: "템포 패널을 준비하고 있어요",
+  },
+  [APP_MODES.TUNER]: {
+    eyebrow: "TUNER",
+    title: "튜너",
+    subtitle: "튜닝 화면을 준비하고 있어요",
+  },
+  [APP_MODES.SHOOTER]: {
+    eyebrow: "SHOOTING GAME",
+    title: "슈팅게임",
+    subtitle: "게임 필드와 오브젝트를 준비하고 있어요",
+  },
+};
+
+const PRACTICE_ENTRY_SHELL_COPY = {
+  "first-position": {
+    eyebrow: "SINGLE NOTES",
+    title: "단일 음 위치",
+    subtitle: "연습 프레임을 먼저 열고 지판을 준비하고 있어요",
+  },
+  "scale-block": {
+    eyebrow: "SCALE TRAINING",
+    title: "스케일 · 펜타토닉",
+    subtitle: "연습 프레임을 먼저 열고 지판을 준비하고 있어요",
+  },
+  rhythm: {
+    eyebrow: "RHYTHM CHORD",
+    title: "리듬 · 코드 전환",
+    subtitle: "연습 프레임을 먼저 열고 저장 데이터를 연결하고 있어요",
+  },
+};
+
+const FRETBOARD_ENTRY_SHELL_COPY = {
+  chord: {
+    eyebrow: "FRETBOARD · CHORD",
+    title: "코드 지판",
+    subtitle: "지판 프레임을 먼저 열고 코드표를 준비하고 있어요",
+  },
+  note: {
+    eyebrow: "FRETBOARD · NOTES",
+    title: "음표 지판",
+    subtitle: "지판 프레임을 먼저 열고 음표 위치를 준비하고 있어요",
+  },
+  scale: {
+    eyebrow: "FRETBOARD · SCALE",
+    title: "스케일 지판",
+    subtitle: "지판 프레임을 먼저 열고 스케일 위치를 준비하고 있어요",
+  },
+};
+
+const NAVIGATION_PRESS_TARGET_SELECTOR = [
+  ".modeSwitch button",
+  ".mainBottomNav button",
+  ".hubMenuButton",
+  ".utilityMenuItem",
+  ".stageMenuCard",
+].join(", ");
+const NAVIGATION_PRESS_MIN_MS = 80;
+
+function ModeEntryShell({ categoryId = null, mode, viewerMode = null }) {
+  const copy = mode === APP_MODES.PRACTICE
+    ? PRACTICE_ENTRY_SHELL_COPY[categoryId]
+    : mode === APP_MODES.FRETBOARD_VIEWER
+      ? FRETBOARD_ENTRY_SHELL_COPY[viewerMode]
+      : MODE_ENTRY_SHELL_COPY[mode];
+  const resolvedCopy = copy ?? {
+    eyebrow: "FRETIVA LAB",
+    title: "화면 준비 중",
+    subtitle: "잠시만 기다려주세요",
+  };
+
+  return (
+    <section
+      aria-busy="true"
+      aria-label={`${resolvedCopy.title} 화면 준비 중`}
+      className={`modeEntryShell modeEntryShell--${mode}`}
+    >
+      <div className="modeEntryShellFrame">
+        <header>
+          <span>{resolvedCopy.eyebrow}</span>
+          <strong>{resolvedCopy.title}</strong>
+          <small>{resolvedCopy.subtitle}</small>
+        </header>
+        <div className="modeEntryShellPanels" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function NavigationTransitionLayer() {
+  const transition = useSyncExternalStore(
+    subscribeNavigationTransition,
+    getNavigationTransitionSnapshot,
+    getNavigationTransitionSnapshot,
+  );
+  if (!transition.active || typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      aria-live="polite"
+      className={`modeEntryTransitionLayer theme-${transition.theme}`}
+      data-category={transition.categoryId ?? undefined}
+      data-mode={transition.mode ?? undefined}
+      role="status"
+    >
+      <ModeEntryShell
+        categoryId={transition.categoryId}
+        mode={transition.mode}
+        viewerMode={transition.viewerMode}
+      />
+    </div>,
+    document.body,
+  );
+}
+
 function isDesignLabEnabled() {
   if (import.meta.env.DEV) return true;
   if (typeof window === "undefined") return false;
@@ -13263,6 +13606,29 @@ const FRETBOARD_VIEWER_MODE_ORDER = [
   FRETBOARD_VIEWER_MODES.NOTE,
   FRETBOARD_VIEWER_MODES.SCALE,
 ];
+
+const UTILITY_MENU_NAVIGATION_KEY = "utility-menu";
+const NAVIGATION_PHASE_TRACE_META_NAME = "rifflab-navigation-phase";
+
+function getNavigationViewKey(appMode, categoryId, viewerMode) {
+  if (appMode === APP_MODES.PRACTICE) return `${appMode}:${categoryId}`;
+  if (appMode === APP_MODES.FRETBOARD_VIEWER) return `${appMode}:${viewerMode}`;
+  return appMode;
+}
+
+function updateNavigationPhaseTrace(update) {
+  if (!import.meta.env.DEV || typeof window === "undefined" || typeof document === "undefined") return;
+  const currentTrace = window.__RIFFLAB_NAVIGATION_PHASE_TRACE__ ?? {};
+  const nextTrace = { ...currentTrace, ...update };
+  window.__RIFFLAB_NAVIGATION_PHASE_TRACE__ = nextTrace;
+  let outputMeta = document.querySelector(`meta[name="${NAVIGATION_PHASE_TRACE_META_NAME}"]`);
+  if (!outputMeta) {
+    outputMeta = document.createElement("meta");
+    outputMeta.name = NAVIGATION_PHASE_TRACE_META_NAME;
+    document.head.append(outputMeta);
+  }
+  outputMeta.content = JSON.stringify(nextTrace);
+}
 
 const CHORD_VIEWER_POSITION_ALL = "all";
 const CHORD_VIEWER_POSITIONS = [
@@ -15070,21 +15436,6 @@ function preloadShooterEnemyAssets(skinId = DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID
   ).then(() => undefined);
 }
 
-const ShooterLaunchOverlay = memo(function ShooterLaunchOverlay({ onComplete, transition }) {
-  const handleComplete = useCallback(
-    () => onComplete(transition.token),
-    [onComplete, transition.token],
-  );
-
-  return (
-    <SplashIntro
-      minimumIntroMs={0}
-      onComplete={handleComplete}
-      readyPromise={transition.readyPromise}
-    />
-  );
-});
-
 const SHOOTER_RECORDS_STORAGE_KEY = "rifflabShooterRecords";
 const SHOOTER_GUITAR_PIVOT_PERCENT = { x: 50, y: 91.5 };
 const SHOOTER_GUITAR_AIM_LIMIT_DEG = 34;
@@ -15625,10 +15976,17 @@ function App({ onReady }) {
   const [appMode, setAppModeState] = useState(initialRouteRef.current.appMode);
   const [tunerBackgroundIndex, setTunerBackgroundIndex] = useState(0);
   const tunerHasEnteredRef = useRef(initialRouteRef.current.appMode === APP_MODES.TUNER);
-  const [mountedAppModes, setMountedAppModes] = useState(() => createMountedModeSet(initialRouteRef.current.appMode));
+  const initialMountedAppModesRef = useRef(createMountedModeSet(initialRouteRef.current.appMode));
+  const [mountedAppModes, setMountedAppModes] = useState(initialMountedAppModesRef.current);
+  const mountedAppModesRef = useRef(initialMountedAppModesRef.current);
+  const [fretboardCatalogReady, setFretboardCatalogReady] = useState(false);
   const setAppMode = useCallback((nextMode) => {
     deactivateBackingLoopsExcept(nextMode);
-    setMountedAppModes((currentModes) => registerMountedMode(currentModes, nextMode));
+    const nextMountedModes = registerMountedMode(mountedAppModesRef.current, nextMode);
+    if (nextMountedModes !== mountedAppModesRef.current) {
+      mountedAppModesRef.current = nextMountedModes;
+      setMountedAppModes(nextMountedModes);
+    }
     setAppModeState(nextMode);
   }, []);
   const isAppModeMounted = useCallback(
@@ -15640,6 +15998,36 @@ function App({ onReady }) {
     (mode, createElement) => getCachedModeElement(appMode, appModeElementCacheRef.current, mode, createElement),
     [appMode],
   );
+  useEffect(() => {
+    if (
+      fretboardCatalogReady
+      || appMode !== APP_MODES.FRETBOARD_VIEWER
+      || typeof window === "undefined"
+    ) return undefined;
+
+    let canceled = false;
+    let frameId = null;
+    let fallbackFrameId = null;
+    let idleId = null;
+    const revealCatalog = () => {
+      if (canceled) return;
+      startTransition(() => setFretboardCatalogReady(true));
+    };
+    frameId = window.requestAnimationFrame(() => {
+      if (typeof window.requestIdleCallback === "function") {
+        idleId = window.requestIdleCallback(revealCatalog, { timeout: 180 });
+      } else {
+        fallbackFrameId = window.requestAnimationFrame(revealCatalog);
+      }
+    });
+
+    return () => {
+      canceled = true;
+      if (frameId != null) window.cancelAnimationFrame(frameId);
+      if (fallbackFrameId != null) window.cancelAnimationFrame(fallbackFrameId);
+      if (idleId != null) window.cancelIdleCallback?.(idleId);
+    };
+  }, [appMode, fretboardCatalogReady]);
   const [utilityMenuOpen, setUtilityMenuOpen] = useState(false);
   const [helpGuideOpen, setHelpGuideOpen] = useState(false);
   const [openHelpSectionId, setOpenHelpSectionId] = useState("");
@@ -15922,15 +16310,6 @@ function App({ onReady }) {
   // window itself is wider than tall. Only a mobile landscape viewport should
   // filter portrait-only maps out of the shared map registry.
   const shooterPortraitLayout = !isMobileLayout || !viewportProfile.isLandscape;
-  const previousAppModeForViewerRef = useRef(null);
-  useEffect(() => {
-    const enteredFretboardViewer = appMode === APP_MODES.FRETBOARD_VIEWER
-      && previousAppModeForViewerRef.current !== APP_MODES.FRETBOARD_VIEWER;
-    previousAppModeForViewerRef.current = appMode;
-    if (!isMobileLayout && enteredFretboardViewer) {
-      setViewerMode(FRETBOARD_VIEWER_MODES.CHORD);
-    }
-  }, [appMode, isMobileLayout]);
   const shooterOrientationResumeRef = useRef(false);
   const shooterMobileViewportStyle = useShooterMobileViewport(
     appMode === APP_MODES.SHOOTER && isMobileLayout,
@@ -15961,7 +16340,16 @@ function App({ onReady }) {
   );
   const [selectedShooterPickSkinId, setSelectedShooterPickSkinId] = useState(getStoredShooterPickSkinId);
   const [selectedShooterMonsterSkinId, setSelectedShooterMonsterSkinId] = useState(getStoredShooterMonsterSkinId);
-  const [selectedShooterEffectLoadout, setSelectedShooterEffectLoadout] = useState(getStoredShooterEffectLoadout);
+  const [selectedShooterAuraEffectId, setSelectedShooterAuraEffectId] = useState(
+    () => getStoredShooterEffectLoadout().aura,
+  );
+  const [selectedShooterFloorEffectId, setSelectedShooterFloorEffectId] = useState(
+    () => getStoredShooterEffectLoadout().floor,
+  );
+  const selectedShooterEffectLoadout = useMemo(() => ({
+    aura: selectedShooterAuraEffectId,
+    floor: selectedShooterFloorEffectId,
+  }), [selectedShooterAuraEffectId, selectedShooterFloorEffectId]);
   const [shooterMapPreference, setShooterMapPreference] = useState(getStoredShooterMapPreference);
   const shooterMapEditorRequested = useMemo(isMapEditModeRequested, []);
   const [shooterMapEditorSessionActive, setShooterMapEditorSessionActive] = useState(
@@ -15997,8 +16385,6 @@ function App({ onReady }) {
   const [shooterRecords, setShooterRecords] = useState(() => RecordService.getShooterRecords());
   const [showShooterRecords, setShowShooterRecords] = useState(false);
   const [shooterLives, setShooterLives] = useState(SHOOTER_MAX_LIVES);
-  const [shooterLaunchTransition, setShooterLaunchTransition] = useState(null);
-  const shooterLaunchTokenRef = useRef(0);
   const readyShooterEntryKeysRef = useRef(new Set());
 
   useEffect(() => {
@@ -16052,12 +16438,12 @@ function App({ onReady }) {
     [selectedShooterMonsterSkinId],
   );
   const selectedShooterAuraEffect = useMemo(
-    () => getShooterEffectById(SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA, selectedShooterEffectLoadout.aura),
-    [selectedShooterEffectLoadout.aura],
+    () => getShooterEffectById(SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA, selectedShooterAuraEffectId),
+    [selectedShooterAuraEffectId],
   );
   const selectedShooterFloorEffect = useMemo(
-    () => getShooterEffectById(SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR, selectedShooterEffectLoadout.floor),
-    [selectedShooterEffectLoadout.floor],
+    () => getShooterEffectById(SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR, selectedShooterFloorEffectId),
+    [selectedShooterFloorEffectId],
   );
   const selectedShooterMap = useMemo(
     () => getShooterMapById(selectedShooterMapId, {
@@ -16173,9 +16559,11 @@ function App({ onReady }) {
         preloadShooterEffectImages(getShooterEffectById(SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA, nextLoadout.aura)),
       ]);
       if (typeof window !== "undefined") {
-        window.localStorage.setItem(SHOOTER_EFFECT_LOADOUT_STORAGE_KEY, JSON.stringify(nextLoadout));
+        window.localStorage.setItem(SHOOTER_AURA_EFFECT_STORAGE_KEY, nextLoadout.aura);
+        window.localStorage.setItem(SHOOTER_FLOOR_EFFECT_STORAGE_KEY, nextLoadout.floor);
       }
-      setSelectedShooterEffectLoadout(nextLoadout);
+      setSelectedShooterAuraEffectId(nextLoadout.aura);
+      setSelectedShooterFloorEffectId(nextLoadout.floor);
       return true;
     } catch (error) {
       console.error("Shooter effect loadout save failed", error);
@@ -16242,14 +16630,26 @@ function App({ onReady }) {
   const developerShooterMapOptions = SHOOTER_MAP_OPTIONS.filter((map) => map.devOnly);
   const selectedEffectLayers = useMemo(
     () => applyShooterEffectTuning([
-        ...getShooterEffectLayers(previewFloorEffect),
         ...getShooterEffectLayers(previewAuraEffect),
+        ...getShooterEffectLayers(previewFloorEffect),
       ], shooterEffectEditor.previewTunings),
     [previewAuraEffect, previewFloorEffect, shooterEffectEditor.previewTunings],
   );
   const selectedEffectFloorLayers = useMemo(
     () => selectedEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.FLOOR),
     [selectedEffectLayers],
+  );
+  const selectedFixedStandFloorLayers = useMemo(
+    () => selectedEffectFloorLayers.filter(
+      (layer) => layer.variant === FRETIVA_LOW_PROFILE_STAND_VARIANT,
+    ),
+    [selectedEffectFloorLayers],
+  );
+  const selectedGuitarMotionFloorLayers = useMemo(
+    () => selectedEffectFloorLayers.filter(
+      (layer) => layer.variant !== FRETIVA_LOW_PROFILE_STAND_VARIANT,
+    ),
+    [selectedEffectFloorLayers],
   );
   const selectedEffectBackLayers = useMemo(
     () => selectedEffectLayers.filter((layer) => layer.slot === SHOOTER_EFFECT_LAYER_SLOTS.BACK),
@@ -16260,49 +16660,33 @@ function App({ onReady }) {
     [selectedEffectLayers],
   );
   const shooterEntryAssetsRef = useRef(null);
-  shooterEntryAssetsRef.current = appMode === APP_MODES.SHOOTER
-    ? {
-        cabinetAssetSources: getShooterGuitarCabinetAssetSources(selectedGuitarCabinet),
-        effectLayers: selectedEffectLayers,
-        enemyAssetSources: getShooterNoteMonsterAssetSources(selectedMonsterSkin.id),
-        guitarAssetSrc: selectedGuitar.assetSrc,
-        guitarProjectileAssetSrc: selectedGuitar.projectileAssetSrc,
-        mapBackgroundSrc: selectedMap.backgroundImage,
-        mapLayerAssetSources: getShooterMapAssetSources(selectedMapRenderSkin, { includeFallbacks: false }),
-        mapPreviewSrc: selectedMap.previewImage,
-        mapSkin: selectedMapRenderSkin,
-        pickAssetSrc: selectedPick.assetSrc,
-      }
-    : null;
+  shooterEntryAssetsRef.current = appMode === APP_MODES.SHOOTER ? {
+    cabinetAssetSources: getShooterGuitarCabinetAssetSources(selectedGuitarCabinet),
+    effectLayers: selectedEffectLayers,
+    enemyAssetSources: getShooterNoteMonsterAssetSources(selectedMonsterSkin.id),
+    guitarAssetSrc: selectedGuitar.assetSrc,
+    guitarProjectileAssetSrc: selectedGuitar.projectileAssetSrc,
+    mapBackgroundSrc: selectedMap.backgroundImage,
+    mapLayerAssetSources: getShooterMapAssetSources(selectedMapRenderSkin, { includeFallbacks: false }),
+    mapPreviewSrc: selectedMap.previewImage,
+    mapSkin: selectedMapRenderSkin,
+    pickAssetSrc: selectedPick.assetSrc,
+  } : null;
 
-  const finishShooterLaunch = useCallback((token) => {
-    setShooterLaunchTransition((current) => (
-      current?.token === token ? null : current
-    ));
-  }, []);
-
-  useLayoutEffect(() => {
-    const token = shooterLaunchTokenRef.current + 1;
-    shooterLaunchTokenRef.current = token;
-
-    if (appMode !== APP_MODES.SHOOTER) {
-      setShooterLaunchTransition(null);
-      return undefined;
-    }
+  useEffect(() => {
+    if (appMode !== APP_MODES.SHOOTER) return undefined;
 
     const entryAssets = shooterEntryAssetsRef.current;
     const entryKey = collectShooterEntryImageSources(entryAssets).join("|");
-    if (readyShooterEntryKeysRef.current.has(entryKey)) {
-      setShooterLaunchTransition(null);
-      return undefined;
-    }
-
-    const readyPromise = Promise.all([
+    if (readyShooterEntryKeysRef.current.has(entryKey)) return undefined;
+    void Promise.all([
       preloadShooterEntryImages(entryAssets, preloadShooterEffectImage),
       preloadShooterMapImages(entryAssets?.mapSkin),
-    ]).then(() => undefined);
-    void readyPromise.then(() => readyShooterEntryKeysRef.current.add(entryKey));
-    setShooterLaunchTransition({ readyPromise, token });
+    ]).then(() => {
+      readyShooterEntryKeysRef.current.add(entryKey);
+    }).catch((error) => {
+      console.warn("Shooter entry assets will continue loading in the scene.", error);
+    });
     return undefined;
   }, [appMode]);
 
@@ -16348,13 +16732,6 @@ function App({ onReady }) {
       options: shooterPlayerOptions.filter(({ variant }) => getShooterGuitarCategoryId(variant.id) === option.id),
     })),
     [shooterPlayerOptions],
-  );
-  const shooterEffectSections = useMemo(
-    () => SHOOTER_EFFECT_SECTION_OPTIONS.map((section) => ({
-      ...section,
-      options: SHOOTER_EFFECT_OPTIONS_BY_SLOT[section.id] ?? [],
-    })).filter((section) => section.options.length > 0),
-    [],
   );
   const visibleSvgLogoCandidates = useMemo(
     () => SVG_LOGO_LAB_CANDIDATES.filter((candidate) => !svgLogoLabState.deletedLogos.includes(candidate.id)),
@@ -16456,16 +16833,17 @@ function App({ onReady }) {
 
     void preloadShooterEffectImages(nextEffect).then(() => {
       if (effectSelectionRequestRef.current[equipmentSlot] !== requestId) return;
-      setSelectedShooterEffectLoadout((currentLoadout) => {
-        const nextLoadout = normalizeShooterEffectLoadout({
-          ...currentLoadout,
-          [equipmentSlot]: nextEffect.id,
-        });
+      if (equipmentSlot === SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA) {
+        setSelectedShooterAuraEffectId(nextEffect.id);
         if (typeof window !== "undefined") {
-          window.localStorage.setItem(SHOOTER_EFFECT_LOADOUT_STORAGE_KEY, JSON.stringify(nextLoadout));
+          window.localStorage.setItem(SHOOTER_AURA_EFFECT_STORAGE_KEY, nextEffect.id);
         }
-        return nextLoadout;
-      });
+        return;
+      }
+      setSelectedShooterFloorEffectId(nextEffect.id);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(SHOOTER_FLOOR_EFFECT_STORAGE_KEY, nextEffect.id);
+      }
     });
   }, []);
 
@@ -16820,10 +17198,110 @@ function App({ onReady }) {
   const flashTimerRef = useRef(null);
   const appModeRef = useRef(initialRouteRef.current.appMode);
   const selectedCategoryIdRef = useRef(initialRouteRef.current.categoryId);
+  const viewerModeRef = useRef(FRETBOARD_VIEWER_MODES.CHORD);
+  const utilityMenuOpenRef = useRef(false);
+  const navigationCommitScheduleRef = useRef({ frameId: null, token: 0 });
   const routeSyncRef = useRef(false);
   const routeScrollPositionsRef = useRef(new Map());
   const activeRouteKeyRef = useRef(getHashFromRoute(initialRouteRef.current.appMode, initialRouteRef.current.categoryId));
   const historyNavigationRef = useRef(false);
+
+  const cancelScheduledNavigationCommit = useCallback((cancelLayer = true) => {
+    const schedule = navigationCommitScheduleRef.current;
+    schedule.token += 1;
+    if (schedule.frameId != null && typeof window !== "undefined") {
+      window.cancelAnimationFrame(schedule.frameId);
+    }
+    schedule.frameId = null;
+    if (cancelLayer) cancelNavigationTransition();
+  }, []);
+
+  const requestNavigationCommit = useCallback((target, commit, { updateHistory = true } = {}) => {
+    const currentKey = utilityMenuOpenRef.current
+      ? UTILITY_MENU_NAVIGATION_KEY
+      : getNavigationViewKey(
+        appModeRef.current,
+        selectedCategoryIdRef.current,
+        viewerModeRef.current,
+      );
+    if (currentKey === target.key) {
+      commit();
+      return null;
+    }
+
+    cancelScheduledNavigationCommit(false);
+    let transitionToken = null;
+    flushSync(() => {
+      transitionToken = beginNavigationTransition({
+        ...target,
+        theme: appTheme,
+      });
+    });
+    updateNavigationPhaseTrace({
+      contentCommittedAt: null,
+      contentWorkStartedAt: null,
+      key: target.key,
+      shellCommittedAt: performance.now(),
+      shellPaintBoundaryPassed: false,
+      token: transitionToken,
+    });
+
+    if (updateHistory && target.hash && typeof window !== "undefined" && window.location.hash !== target.hash) {
+      routeScrollPositionsRef.current.set(activeRouteKeyRef.current, window.scrollY || 0);
+      window.history.pushState(
+        { appRoute: target.hash },
+        "",
+        `${window.location.pathname}${window.location.search}${target.hash}`,
+      );
+    }
+
+    const schedule = navigationCommitScheduleRef.current;
+    const scheduleToken = schedule.token + 1;
+    schedule.token = scheduleToken;
+    const commitAfterShellPaint = () => {
+      if (
+        navigationCommitScheduleRef.current.token !== scheduleToken
+        || getNavigationTransitionSnapshot().token !== transitionToken
+      ) return;
+      navigationCommitScheduleRef.current.frameId = null;
+      const trace = typeof window !== "undefined" ? window.__RIFFLAB_NAVIGATION_PHASE_TRACE__ : null;
+      if (trace?.token === transitionToken) {
+        updateNavigationPhaseTrace({
+          contentWorkStartedAt: performance.now(),
+          shellPaintBoundaryPassed: true,
+        });
+      }
+      startTransition(commit);
+    };
+
+    if (typeof window === "undefined" || typeof window.requestAnimationFrame !== "function") {
+      commitAfterShellPaint();
+      return transitionToken;
+    }
+
+    // The first frame paints only the destination shell. Heavy App state and
+    // mode cleanup begin on the following frame while that shell stays visible.
+    schedule.frameId = window.requestAnimationFrame(() => {
+      if (navigationCommitScheduleRef.current.token !== scheduleToken) return;
+      navigationCommitScheduleRef.current.frameId = window.requestAnimationFrame(commitAfterShellPaint);
+    });
+    return transitionToken;
+  }, [appTheme, cancelScheduledNavigationCommit]);
+
+  useEffect(() => () => cancelScheduledNavigationCommit(), [cancelScheduledNavigationCommit]);
+
+  useLayoutEffect(() => {
+    const transition = getNavigationTransitionSnapshot();
+    if (!transition.active) return;
+    const currentKey = utilityMenuOpen
+      ? UTILITY_MENU_NAVIGATION_KEY
+      : getNavigationViewKey(appMode, selectedCategoryId, viewerMode);
+    if (currentKey === transition.key) {
+      const trace = typeof window !== "undefined" ? window.__RIFFLAB_NAVIGATION_PHASE_TRACE__ : null;
+      if (trace?.token === transition.token) updateNavigationPhaseTrace({ contentCommittedAt: performance.now() });
+      completeNavigationTransition(transition.token);
+    }
+  }, [appMode, selectedCategoryId, utilityMenuOpen, viewerMode]);
   const chordChartRef = useRef(null);
   const chordViewerRef = useRef(null);
   const gameStateRef = useRef(GAME_STATES.IDLE);
@@ -16983,6 +17461,7 @@ function App({ onReady }) {
   const bpmButtonPressRef = useRef(null);
   const bpmButtonInputBlockedUntilRef = useRef(0);
   const pointerInteractionRef = useRef(null);
+  const navigationPressFeedbackRef = useRef({ element: null, pointerId: null, startedAt: 0, timerId: null });
   const metronomeModeSwipeStartRef = useRef(null);
   const metronomeModeSwipeChangedAtRef = useRef(0);
   const metronomeOptionsSwipeStartRef = useRef(null);
@@ -18450,8 +18929,16 @@ function App({ onReady }) {
   }, [ensureAudioContext, ensureAudioReady, isMobileLayout]);
 
   const selectFretboardViewerMode = useCallback((nextMode) => {
-    setViewerMode(nextMode);
-  }, []);
+    requestNavigationCommit({
+      categoryId: selectedCategoryIdRef.current,
+      key: getNavigationViewKey(APP_MODES.FRETBOARD_VIEWER, selectedCategoryIdRef.current, nextMode),
+      mode: APP_MODES.FRETBOARD_VIEWER,
+      viewerMode: nextMode,
+    }, () => {
+      viewerModeRef.current = nextMode;
+      setViewerMode(nextMode);
+    }, { updateHistory: false });
+  }, [requestNavigationCommit]);
 
   const handleViewerChordSound = useCallback(async (event) => {
     const chordNotes = viewerCurrentChordPosition?.notes ?? [];
@@ -21798,33 +22285,41 @@ function App({ onReady }) {
       setFeedback("Choose a practice card");
       return;
     }
-    const sequence = getPracticeSequence(safeCategory);
-    activeNotesRef.current = safeCategory.notes;
-    sequenceRef.current = sequence;
-    practiceLoopRef.current = shouldLoopPractice(safeCategory, repeatPractice);
-    setStage3StorageOpen(false);
-    appModeRef.current = APP_MODES.PRACTICE;
-    setAppMode(APP_MODES.PRACTICE);
-    setSelectedCategoryId(safeCategory.id);
-    switchMetronomeScope(getMetronomeScopeForCategory(safeCategory.id));
-    resetScore();
-    setEnemies([]);
-    enemiesRef.current = [];
-    setHitZoneNote(null);
-    setIsHitWindowActive(false);
-    setLaneFeedback([]);
-    setBeat(0);
-    countInActiveRef.current = false;
-    countInTimeRef.current = 0;
-    cancelCountInVoice();
-    if (safeCategory.id === "rhythm") {
-      setChordPracticeIndex(0);
-      setChordPracticeTimelineBeat(0);
-    }
-    setFeedback("Ready");
-    setState(GAME_STATES.IDLE);
-    lastFrameRef.current = performance.now();
-  }, [cancelCountInVoice, getMetronomeScopeForCategory, getPlayableCategory, getPracticeSequence, repeatPractice, resetScore, selectedCategory, setState, switchMetronomeScope]);
+    requestNavigationCommit({
+      categoryId: safeCategory.id,
+      hash: getHashFromRoute(APP_MODES.PRACTICE, safeCategory.id),
+      key: getNavigationViewKey(APP_MODES.PRACTICE, safeCategory.id, viewerModeRef.current),
+      mode: APP_MODES.PRACTICE,
+    }, () => {
+      const sequence = getPracticeSequence(safeCategory);
+      activeNotesRef.current = safeCategory.notes;
+      sequenceRef.current = sequence;
+      practiceLoopRef.current = shouldLoopPractice(safeCategory, repeatPractice);
+      setStage3StorageOpen(false);
+      appModeRef.current = APP_MODES.PRACTICE;
+      selectedCategoryIdRef.current = safeCategory.id;
+      setAppMode(APP_MODES.PRACTICE);
+      setSelectedCategoryId(safeCategory.id);
+      switchMetronomeScope(getMetronomeScopeForCategory(safeCategory.id));
+      resetScore();
+      setEnemies([]);
+      enemiesRef.current = [];
+      setHitZoneNote(null);
+      setIsHitWindowActive(false);
+      setLaneFeedback([]);
+      setBeat(0);
+      countInActiveRef.current = false;
+      countInTimeRef.current = 0;
+      cancelCountInVoice();
+      if (safeCategory.id === "rhythm") {
+        setChordPracticeIndex(0);
+        setChordPracticeTimelineBeat(0);
+      }
+      setFeedback("Ready");
+      setState(GAME_STATES.IDLE);
+      lastFrameRef.current = performance.now();
+    });
+  }, [cancelCountInVoice, getMetronomeScopeForCategory, getPlayableCategory, getPracticeSequence, repeatPractice, requestNavigationCommit, resetScore, selectedCategory, setState, switchMetronomeScope]);
 
   const startShooter = useCallback(async (category = SHOOTER_DEFAULT_CATEGORY) => {
     const safeCategory = normalizePracticeCategory(category);
@@ -22886,6 +23381,47 @@ function App({ onReady }) {
     resetBpmSwipePreview();
   }, [resetBpmSwipePreview]);
 
+  const beginNavigationPressFeedback = useCallback((target, pointerId = null) => {
+    const element = target?.closest?.(NAVIGATION_PRESS_TARGET_SELECTOR);
+    if (!element) return null;
+    const current = navigationPressFeedbackRef.current;
+    if (current.timerId != null) window.clearTimeout(current.timerId);
+    current.element?.classList.remove("is-instant-pressed");
+    element.classList.add("is-instant-pressed");
+    navigationPressFeedbackRef.current = {
+      element,
+      pointerId,
+      startedAt: Date.now(),
+      timerId: null,
+    };
+    return element;
+  }, []);
+
+  const releaseNavigationPressFeedback = useCallback((pointerId = null) => {
+    const current = navigationPressFeedbackRef.current;
+    if (!current.element) return;
+    if (pointerId != null && current.pointerId != null && pointerId !== current.pointerId) return;
+    if (current.timerId != null) window.clearTimeout(current.timerId);
+    const element = current.element;
+    const remainingMs = Math.max(0, NAVIGATION_PRESS_MIN_MS - (Date.now() - current.startedAt));
+    const finish = () => {
+      if (navigationPressFeedbackRef.current.element !== element) return;
+      element.classList.remove("is-instant-pressed");
+      navigationPressFeedbackRef.current = { element: null, pointerId: null, startedAt: 0, timerId: null };
+    };
+    if (remainingMs > 0) {
+      navigationPressFeedbackRef.current.timerId = window.setTimeout(finish, remainingMs);
+    } else {
+      finish();
+    }
+  }, []);
+
+  useEffect(() => () => {
+    const current = navigationPressFeedbackRef.current;
+    if (current.timerId != null) window.clearTimeout(current.timerId);
+    current.element?.classList.remove("is-instant-pressed");
+  }, []);
+
   const isSamePointerInteractionTarget = useCallback((event) => {
     const interaction = pointerInteractionRef.current;
     if (!interaction || Date.now() - interaction.startedAt > 2200) return true;
@@ -22905,6 +23441,7 @@ function App({ onReady }) {
   const handleAppPointerDownCapture = useCallback((event) => {
     const target = event.target;
     if (!target?.closest) return;
+    beginNavigationPressFeedback(target, event.pointerId);
     const directInteractiveTarget = target.closest(
       "button, a, input, select, textarea, summary, [role=\"button\"], [role=\"radio\"], [role=\"tab\"], [role=\"option\"], [aria-expanded], [aria-haspopup]",
     );
@@ -22929,19 +23466,23 @@ function App({ onReady }) {
     ) {
       blockBpmButtonInput();
     }
-  }, [blockBpmButtonInput, isMobileLayout]);
+  }, [beginNavigationPressFeedback, blockBpmButtonInput, isMobileLayout]);
 
   const handleAppClickCapture = useCallback((event) => {
-    if (event.detail === 0) return;
+    if (event.detail === 0) {
+      if (beginNavigationPressFeedback(event.target) != null) releaseNavigationPressFeedback();
+      return;
+    }
     if (isSamePointerInteractionTarget(event)) {
       pointerInteractionRef.current = null;
       return;
     }
     pointerInteractionRef.current = null;
     stopCrossTargetClickEvent(event);
-  }, [isSamePointerInteractionTarget, stopCrossTargetClickEvent]);
+  }, [beginNavigationPressFeedback, isSamePointerInteractionTarget, releaseNavigationPressFeedback, stopCrossTargetClickEvent]);
 
   const handleAppPointerUpCapture = useCallback((event) => {
+    releaseNavigationPressFeedback(event.pointerId);
     const desktopOptionsSwipe = !isMobileLayout ? metronomeOptionsSwipeStartRef.current : null;
     if (desktopOptionsSwipe?.pointerId === event.pointerId) {
       metronomeOptionsSwipeStartRef.current = null;
@@ -22954,7 +23495,11 @@ function App({ onReady }) {
     }
     if (isSamePointerInteractionTarget(event)) return;
     stopCrossTargetClickEvent(event);
-  }, [isMobileLayout, isSamePointerInteractionTarget, stopCrossTargetClickEvent]);
+  }, [isMobileLayout, isSamePointerInteractionTarget, releaseNavigationPressFeedback, stopCrossTargetClickEvent]);
+
+  const handleAppPointerCancelCapture = useCallback((event) => {
+    releaseNavigationPressFeedback(event.pointerId);
+  }, [releaseNavigationPressFeedback]);
 
   const armBpmButtonInput = useCallback((buttonId, event) => {
     event.preventDefault();
@@ -23591,104 +24136,147 @@ function App({ onReady }) {
   }, [stopPracticeSession]);
 
   const showMainMenu = useCallback(() => {
-    stopBackingScheduler();
-    if (appModeRef.current === APP_MODES.SHOOTER) {
-      finalizeShooterRecord("exit");
-    }
-    stopMic();
-    cancelCountInVoice();
-    setUtilityMenuOpen(false);
-    setStage3StorageOpen(false);
-    appModeRef.current = APP_MODES.PRACTICE;
-    setAppMode(APP_MODES.PRACTICE);
-    setSelectedCategoryId("rhythm");
-    setPendingStageCardId(null);
-    switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
-    enemiesRef.current = [];
-    shooterTargetsRef.current = [];
-    projectilesRef.current = [];
-    setEnemies([]);
-    setShooterTargets([]);
-    setProjectiles([]);
-    setHitZoneNote(null);
-    setIsHitWindowActive(false);
-    setBeat(0);
-    setFeedback("Ready");
-    setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, finalizeShooterRecord, setState, stopMic, switchMetronomeScope]);
+    const sourceMode = appModeRef.current;
+    requestNavigationCommit({
+      categoryId: "rhythm",
+      hash: getHashFromRoute(APP_MODES.PRACTICE, "rhythm"),
+      key: getNavigationViewKey(APP_MODES.PRACTICE, "rhythm", viewerModeRef.current),
+      mode: APP_MODES.PRACTICE,
+    }, () => {
+      stopBackingScheduler();
+      if (sourceMode === APP_MODES.SHOOTER) finalizeShooterRecord("exit");
+      stopMic();
+      cancelCountInVoice();
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      setStage3StorageOpen(false);
+      appModeRef.current = APP_MODES.PRACTICE;
+      selectedCategoryIdRef.current = "rhythm";
+      setAppMode(APP_MODES.PRACTICE);
+      setSelectedCategoryId("rhythm");
+      setPendingStageCardId(null);
+      switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
+      enemiesRef.current = [];
+      shooterTargetsRef.current = [];
+      projectilesRef.current = [];
+      setEnemies([]);
+      setShooterTargets([]);
+      setProjectiles([]);
+      setHitZoneNote(null);
+      setIsHitWindowActive(false);
+      setBeat(0);
+      setFeedback("Ready");
+      setState(GAME_STATES.IDLE);
+    });
+  }, [cancelCountInVoice, finalizeShooterRecord, requestNavigationCommit, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
 
   const showCurriculum = useCallback(() => {
-    stopBackingScheduler();
-    if (appModeRef.current === APP_MODES.SHOOTER) {
-      finalizeShooterRecord("exit");
-    }
-    stopMic();
-    cancelCountInVoice();
-    setUtilityMenuOpen(false);
-    setStage3StorageOpen(false);
-    appModeRef.current = APP_MODES.PRACTICE;
-    setAppMode(APP_MODES.PRACTICE);
-    setSelectedCategoryId("rhythm");
-    setPendingStageCardId("rhythm");
-    switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
-    enemiesRef.current = [];
-    setEnemies([]);
-    setBeat(0);
-    setFeedback("Ready");
-    setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, finalizeShooterRecord, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
+    const sourceMode = appModeRef.current;
+    requestNavigationCommit({
+      categoryId: "rhythm",
+      hash: getHashFromRoute(APP_MODES.PRACTICE, "rhythm"),
+      key: getNavigationViewKey(APP_MODES.PRACTICE, "rhythm", viewerModeRef.current),
+      mode: APP_MODES.PRACTICE,
+    }, () => {
+      stopBackingScheduler();
+      if (sourceMode === APP_MODES.SHOOTER) finalizeShooterRecord("exit");
+      stopMic();
+      cancelCountInVoice();
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      setStage3StorageOpen(false);
+      appModeRef.current = APP_MODES.PRACTICE;
+      selectedCategoryIdRef.current = "rhythm";
+      setAppMode(APP_MODES.PRACTICE);
+      setSelectedCategoryId("rhythm");
+      setPendingStageCardId("rhythm");
+      switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
+      enemiesRef.current = [];
+      setEnemies([]);
+      setBeat(0);
+      setFeedback("Ready");
+      setState(GAME_STATES.IDLE);
+    });
+  }, [cancelCountInVoice, finalizeShooterRecord, requestNavigationCommit, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
 
   const showStage3StorageRoom = useCallback(() => {
-    stopBackingScheduler();
-    stopMic();
-    cancelCountInVoice();
-    setUtilityMenuOpen(false);
-    appModeRef.current = APP_MODES.PRACTICE;
-    setAppMode(APP_MODES.PRACTICE);
-    setSelectedCategoryId("rhythm");
-    setPendingStageCardId("rhythm");
-    switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
-    openStage3Storage();
-    enemiesRef.current = [];
-    setEnemies([]);
-    setBeat(0);
-    setFeedback("Ready");
-    setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, openStage3Storage, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
+    requestNavigationCommit({
+      categoryId: "rhythm",
+      hash: getHashFromRoute(APP_MODES.PRACTICE, "rhythm"),
+      key: getNavigationViewKey(APP_MODES.PRACTICE, "rhythm", viewerModeRef.current),
+      mode: APP_MODES.PRACTICE,
+    }, () => {
+      stopBackingScheduler();
+      stopMic();
+      cancelCountInVoice();
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      appModeRef.current = APP_MODES.PRACTICE;
+      selectedCategoryIdRef.current = "rhythm";
+      setAppMode(APP_MODES.PRACTICE);
+      setSelectedCategoryId("rhythm");
+      setPendingStageCardId("rhythm");
+      switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
+      openStage3Storage();
+      enemiesRef.current = [];
+      setEnemies([]);
+      setBeat(0);
+      setFeedback("Ready");
+      setState(GAME_STATES.IDLE);
+    });
+  }, [cancelCountInVoice, openStage3Storage, requestNavigationCommit, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
 
   const showMiniChordMaker = useCallback(() => {
-    stopBackingScheduler();
-    stopMic();
-    cancelCountInVoice();
-    setUtilityMenuOpen(false);
-    setStage3StorageOpen(false);
-    appModeRef.current = APP_MODES.MINI_CHORD_MAKER;
-    setAppMode(APP_MODES.MINI_CHORD_MAKER);
-    setSelectedCategoryId("rhythm");
-    setPendingStageCardId("rhythm");
-    switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
-    setBeat(0);
-    setFeedback("Ready");
-    setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
+    requestNavigationCommit({
+      categoryId: "rhythm",
+      hash: getHashFromRoute(APP_MODES.MINI_CHORD_MAKER, "rhythm"),
+      key: getNavigationViewKey(APP_MODES.MINI_CHORD_MAKER, "rhythm", viewerModeRef.current),
+      mode: APP_MODES.MINI_CHORD_MAKER,
+    }, () => {
+      stopBackingScheduler();
+      stopMic();
+      cancelCountInVoice();
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      setStage3StorageOpen(false);
+      appModeRef.current = APP_MODES.MINI_CHORD_MAKER;
+      selectedCategoryIdRef.current = "rhythm";
+      setAppMode(APP_MODES.MINI_CHORD_MAKER);
+      setSelectedCategoryId("rhythm");
+      setPendingStageCardId("rhythm");
+      switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
+      setBeat(0);
+      setFeedback("Ready");
+      setState(GAME_STATES.IDLE);
+    });
+  }, [cancelCountInVoice, requestNavigationCommit, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
 
   const showIndependentPracticeCategory = useCallback((categoryId) => {
-    stopBackingScheduler();
-    stopMic();
-    cancelCountInVoice();
-    setUtilityMenuOpen(false);
-    setStage3StorageOpen(false);
-    appModeRef.current = APP_MODES.PRACTICE;
-    setAppMode(APP_MODES.PRACTICE);
-    setSelectedCategoryId(categoryId);
-    setPendingStageCardId(categoryId);
-    switchMetronomeScope(getMetronomeScopeForCategory(categoryId));
-    enemiesRef.current = [];
-    setEnemies([]);
-    setBeat(0);
-    setFeedback("Ready");
-    setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, getMetronomeScopeForCategory, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
+    requestNavigationCommit({
+      categoryId,
+      hash: getHashFromRoute(APP_MODES.PRACTICE, categoryId),
+      key: getNavigationViewKey(APP_MODES.PRACTICE, categoryId, viewerModeRef.current),
+      mode: APP_MODES.PRACTICE,
+    }, () => {
+      stopBackingScheduler();
+      stopMic();
+      cancelCountInVoice();
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      setStage3StorageOpen(false);
+      appModeRef.current = APP_MODES.PRACTICE;
+      selectedCategoryIdRef.current = categoryId;
+      setAppMode(APP_MODES.PRACTICE);
+      setSelectedCategoryId(categoryId);
+      setPendingStageCardId(categoryId);
+      switchMetronomeScope(getMetronomeScopeForCategory(categoryId));
+      enemiesRef.current = [];
+      setEnemies([]);
+      setBeat(0);
+      setFeedback("Ready");
+      setState(GAME_STATES.IDLE);
+    });
+  }, [cancelCountInVoice, getMetronomeScopeForCategory, requestNavigationCommit, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
 
   const closeStage3StorageRoom = exitStage3StorageRoom;
 
@@ -23774,149 +24362,202 @@ function App({ onReady }) {
   }, []);
 
   const showShooterMode = useCallback(() => {
-    if (appModeRef.current === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
-    stopBackingScheduler();
-    setUtilityMenuOpen(false);
-    setStage3StorageOpen(false);
-    if (appModeRef.current !== APP_MODES.SHOOTER) applyShooterEntryMap();
-    appModeRef.current = APP_MODES.SHOOTER;
-    setAppMode(APP_MODES.SHOOTER);
-    enemiesRef.current = [];
-    shooterTargetsRef.current = [];
-    projectilesRef.current = [];
-    shooterNextSpawnAtRef.current = 0;
-    lastShooterNoteRef.current = null;
-    lastShooterXRef.current = 50;
-    shooterReleaseLockRef.current = null;
-    shooterLivesRef.current = SHOOTER_MAX_LIVES;
-    setEnemies([]);
-    setShooterTargets([]);
-    setProjectiles([]);
-    setShooterAim(undefined);
-    setShooterLives(SHOOTER_MAX_LIVES);
-    setBeat(0);
-    setFeedback("Start Shooter");
-    setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
-  }, [applyShooterEntryMap, setState, stopBackingScheduler, syncMetronomeTrackerFromRuntime]);
+    const sourceMode = appModeRef.current;
+    requestNavigationCommit({
+      categoryId: selectedCategoryIdRef.current,
+      hash: getHashFromRoute(APP_MODES.SHOOTER, selectedCategoryIdRef.current),
+      key: getNavigationViewKey(APP_MODES.SHOOTER, selectedCategoryIdRef.current, viewerModeRef.current),
+      mode: APP_MODES.SHOOTER,
+    }, () => {
+      if (sourceMode === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
+      stopBackingScheduler();
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      setStage3StorageOpen(false);
+      if (sourceMode !== APP_MODES.SHOOTER) applyShooterEntryMap();
+      appModeRef.current = APP_MODES.SHOOTER;
+      setAppMode(APP_MODES.SHOOTER);
+      enemiesRef.current = [];
+      shooterTargetsRef.current = [];
+      projectilesRef.current = [];
+      shooterNextSpawnAtRef.current = 0;
+      lastShooterNoteRef.current = null;
+      lastShooterXRef.current = 50;
+      shooterReleaseLockRef.current = null;
+      shooterLivesRef.current = SHOOTER_MAX_LIVES;
+      setEnemies([]);
+      setShooterTargets([]);
+      setProjectiles([]);
+      setShooterAim(undefined);
+      setShooterLives(SHOOTER_MAX_LIVES);
+      setBeat(0);
+      setFeedback("Start Shooter");
+      setState(streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
+    });
+  }, [applyShooterEntryMap, requestNavigationCommit, setState, stopBackingScheduler, syncMetronomeTrackerFromRuntime]);
 
   const showMetronomeMode = useCallback(() => {
-    releaseControlPressState();
-    stopBackingScheduler();
-    stopMic();
-    cancelCountInVoice();
-    setUtilityMenuOpen(false);
-    setStage3StorageOpen(false);
-    appModeRef.current = APP_MODES.METRONOME;
-    setAppMode(APP_MODES.METRONOME);
-    switchMetronomeScope(METRONOME_SETTING_SCOPES.STANDALONE);
-    enemiesRef.current = [];
-    shooterTargetsRef.current = [];
-    projectilesRef.current = [];
-    setEnemies([]);
-    setShooterTargets([]);
-    setProjectiles([]);
-    setHitZoneNote(null);
-    setIsHitWindowActive(false);
-    gameTimeRef.current = 0;
-    lastBeatRef.current = -1;
-    countInActiveRef.current = false;
-    countInTimeRef.current = 0;
-    setBeat(0);
-    setStage3MeasureProgress(0);
-    setFeedback("Ready");
-    setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
+    requestNavigationCommit({
+      categoryId: selectedCategoryIdRef.current,
+      hash: getHashFromRoute(APP_MODES.METRONOME, selectedCategoryIdRef.current),
+      key: getNavigationViewKey(APP_MODES.METRONOME, selectedCategoryIdRef.current, viewerModeRef.current),
+      mode: APP_MODES.METRONOME,
+    }, () => {
+      releaseControlPressState();
+      stopBackingScheduler();
+      stopMic();
+      cancelCountInVoice();
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      setStage3StorageOpen(false);
+      appModeRef.current = APP_MODES.METRONOME;
+      setAppMode(APP_MODES.METRONOME);
+      switchMetronomeScope(METRONOME_SETTING_SCOPES.STANDALONE);
+      enemiesRef.current = [];
+      shooterTargetsRef.current = [];
+      projectilesRef.current = [];
+      setEnemies([]);
+      setShooterTargets([]);
+      setProjectiles([]);
+      setHitZoneNote(null);
+      setIsHitWindowActive(false);
+      gameTimeRef.current = 0;
+      lastBeatRef.current = -1;
+      countInActiveRef.current = false;
+      countInTimeRef.current = 0;
+      setBeat(0);
+      setStage3MeasureProgress(0);
+      setFeedback("Ready");
+      setState(GAME_STATES.IDLE);
+    });
+  }, [cancelCountInVoice, requestNavigationCommit, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
 
   const showTunerMode = useCallback(() => {
-    if (appModeRef.current === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
-    if (appModeRef.current !== APP_MODES.TUNER) {
-      if (tunerHasEnteredRef.current) {
-        setTunerBackgroundIndex((current) => (current + 1) % TUNER_BACKGROUND_COUNT);
+    const sourceMode = appModeRef.current;
+    requestNavigationCommit({
+      categoryId: selectedCategoryIdRef.current,
+      hash: getHashFromRoute(APP_MODES.TUNER, selectedCategoryIdRef.current),
+      key: getNavigationViewKey(APP_MODES.TUNER, selectedCategoryIdRef.current, viewerModeRef.current),
+      mode: APP_MODES.TUNER,
+    }, () => {
+      if (sourceMode === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
+      if (sourceMode !== APP_MODES.TUNER) {
+        if (tunerHasEnteredRef.current) {
+          setTunerBackgroundIndex((current) => (current + 1) % TUNER_BACKGROUND_COUNT);
+        } else tunerHasEnteredRef.current = true;
       }
-      else tunerHasEnteredRef.current = true;
-    }
-    releaseControlPressState();
-    stopBackingScheduler();
-    stopMic();
-    cancelCountInVoice();
-    setUtilityMenuOpen(false);
-    setStage3StorageOpen(false);
-    appModeRef.current = APP_MODES.TUNER;
-    setAppMode(APP_MODES.TUNER);
-    enemiesRef.current = [];
-    shooterTargetsRef.current = [];
-    projectilesRef.current = [];
-    setEnemies([]);
-    setShooterTargets([]);
-    setProjectiles([]);
-    setHitZoneNote(null);
-    setIsHitWindowActive(false);
-    setBeat(0);
-    setFeedback("Ready");
-    setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, setState, stopBackingScheduler, stopMic, syncMetronomeTrackerFromRuntime]);
+      releaseControlPressState();
+      stopBackingScheduler();
+      stopMic();
+      cancelCountInVoice();
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      setStage3StorageOpen(false);
+      appModeRef.current = APP_MODES.TUNER;
+      setAppMode(APP_MODES.TUNER);
+      enemiesRef.current = [];
+      shooterTargetsRef.current = [];
+      projectilesRef.current = [];
+      setEnemies([]);
+      setShooterTargets([]);
+      setProjectiles([]);
+      setHitZoneNote(null);
+      setIsHitWindowActive(false);
+      setBeat(0);
+      setFeedback("Ready");
+      setState(GAME_STATES.IDLE);
+    });
+  }, [cancelCountInVoice, requestNavigationCommit, setState, stopBackingScheduler, stopMic, syncMetronomeTrackerFromRuntime]);
 
   const showFretboardViewer = useCallback(() => {
-    if (appModeRef.current === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
-    releaseControlPressState();
-    stopBackingScheduler();
-    stopMic();
-    setUtilityMenuOpen(false);
-    setStage3StorageOpen(false);
-    appModeRef.current = APP_MODES.FRETBOARD_VIEWER;
-    setAppMode(APP_MODES.FRETBOARD_VIEWER);
-    enemiesRef.current = [];
-    shooterTargetsRef.current = [];
-    projectilesRef.current = [];
-    setEnemies([]);
-    setShooterTargets([]);
-    setProjectiles([]);
-    setHitZoneNote(null);
-    setIsHitWindowActive(false);
-    setBeat(0);
-    setFeedback("Ready");
-    setState(GAME_STATES.IDLE);
-  }, [setState, stopBackingScheduler, stopMic, syncMetronomeTrackerFromRuntime]);
+    const sourceMode = appModeRef.current;
+    requestNavigationCommit({
+      categoryId: selectedCategoryIdRef.current,
+      hash: getHashFromRoute(APP_MODES.FRETBOARD_VIEWER, selectedCategoryIdRef.current),
+      key: getNavigationViewKey(APP_MODES.FRETBOARD_VIEWER, selectedCategoryIdRef.current, viewerModeRef.current),
+      mode: APP_MODES.FRETBOARD_VIEWER,
+      viewerMode: viewerModeRef.current,
+    }, () => {
+      if (sourceMode === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
+      releaseControlPressState();
+      stopBackingScheduler();
+      stopMic();
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      setStage3StorageOpen(false);
+      appModeRef.current = APP_MODES.FRETBOARD_VIEWER;
+      setAppMode(APP_MODES.FRETBOARD_VIEWER);
+      enemiesRef.current = [];
+      shooterTargetsRef.current = [];
+      projectilesRef.current = [];
+      setEnemies([]);
+      setShooterTargets([]);
+      setProjectiles([]);
+      setHitZoneNote(null);
+      setIsHitWindowActive(false);
+      setBeat(0);
+      setFeedback("Ready");
+      setState(GAME_STATES.IDLE);
+    });
+  }, [requestNavigationCommit, setState, stopBackingScheduler, stopMic, syncMetronomeTrackerFromRuntime]);
 
   const showDesignLab = useCallback(() => {
     if (!designLabEnabled) return;
-    if (appModeRef.current === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
-    stopMic();
-    setUtilityMenuOpen(false);
-    setStage3StorageOpen(false);
-    appModeRef.current = APP_MODES.DESIGN_LAB;
-    setAppMode(APP_MODES.DESIGN_LAB);
-    enemiesRef.current = [];
-    shooterTargetsRef.current = [];
-    projectilesRef.current = [];
-    setEnemies([]);
-    setShooterTargets([]);
-    setProjectiles([]);
-    setHitZoneNote(null);
-    setIsHitWindowActive(false);
-    setBeat(0);
-    setFeedback("Design Lab");
-    setState(GAME_STATES.IDLE);
-  }, [designLabEnabled, setState, stopMic, syncMetronomeTrackerFromRuntime]);
+    const sourceMode = appModeRef.current;
+    requestNavigationCommit({
+      categoryId: selectedCategoryIdRef.current,
+      hash: getHashFromRoute(APP_MODES.DESIGN_LAB, selectedCategoryIdRef.current),
+      key: getNavigationViewKey(APP_MODES.DESIGN_LAB, selectedCategoryIdRef.current, viewerModeRef.current),
+      mode: APP_MODES.DESIGN_LAB,
+    }, () => {
+      if (sourceMode === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
+      stopMic();
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      setStage3StorageOpen(false);
+      appModeRef.current = APP_MODES.DESIGN_LAB;
+      setAppMode(APP_MODES.DESIGN_LAB);
+      enemiesRef.current = [];
+      shooterTargetsRef.current = [];
+      projectilesRef.current = [];
+      setEnemies([]);
+      setShooterTargets([]);
+      setProjectiles([]);
+      setHitZoneNote(null);
+      setIsHitWindowActive(false);
+      setBeat(0);
+      setFeedback("Design Lab");
+      setState(GAME_STATES.IDLE);
+    });
+  }, [designLabEnabled, requestNavigationCommit, setState, stopMic, syncMetronomeTrackerFromRuntime]);
 
   const showAudioStudio = useCallback(() => {
     if (!audioStudioEnabled) return;
-    if (appModeRef.current === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
-    stopBackingScheduler();
-    stopMic();
-    setUtilityMenuOpen(false);
-    setStage3StorageOpen(false);
-    appModeRef.current = APP_MODES.AUDIO_STUDIO;
-    setAppMode(APP_MODES.AUDIO_STUDIO);
-    setEnemies([]);
-    setShooterTargets([]);
-    setProjectiles([]);
-    setHitZoneNote(null);
-    setIsHitWindowActive(false);
-    setBeat(0);
-    setFeedback("Audio Studio");
-    setState(GAME_STATES.IDLE);
-  }, [audioStudioEnabled, setState, stopBackingScheduler, stopMic, syncMetronomeTrackerFromRuntime]);
+    const sourceMode = appModeRef.current;
+    requestNavigationCommit({
+      categoryId: selectedCategoryIdRef.current,
+      hash: getHashFromRoute(APP_MODES.AUDIO_STUDIO, selectedCategoryIdRef.current),
+      key: getNavigationViewKey(APP_MODES.AUDIO_STUDIO, selectedCategoryIdRef.current, viewerModeRef.current),
+      mode: APP_MODES.AUDIO_STUDIO,
+    }, () => {
+      if (sourceMode === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
+      stopBackingScheduler();
+      stopMic();
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      setStage3StorageOpen(false);
+      appModeRef.current = APP_MODES.AUDIO_STUDIO;
+      setAppMode(APP_MODES.AUDIO_STUDIO);
+      setEnemies([]);
+      setShooterTargets([]);
+      setProjectiles([]);
+      setHitZoneNote(null);
+      setIsHitWindowActive(false);
+      setBeat(0);
+      setFeedback("Audio Studio");
+      setState(GAME_STATES.IDLE);
+    });
+  }, [audioStudioEnabled, requestNavigationCommit, setState, stopBackingScheduler, stopMic, syncMetronomeTrackerFromRuntime]);
 
   const selectAppTheme = useCallback((nextTheme) => {
     const normalizedTheme = normalizeAppTheme(nextTheme);
@@ -24039,6 +24680,14 @@ function App({ onReady }) {
   }, [appMode]);
 
   useEffect(() => {
+    viewerModeRef.current = viewerMode;
+  }, [viewerMode]);
+
+  useEffect(() => {
+    utilityMenuOpenRef.current = utilityMenuOpen;
+  }, [utilityMenuOpen]);
+
+  useEffect(() => {
     if (appMode !== APP_MODES.METRONOME && metronomeAdvancedPanel) {
       setMetronomeAdvancedPanelImmediate("");
     }
@@ -24146,61 +24795,69 @@ function App({ onReady }) {
 
     const applyHashRoute = () => {
       const route = getRouteFromHash(window.location.hash);
-      if (route.appMode !== APP_MODES.SHOOTER) stopMic();
-      if (route.appMode === APP_MODES.SHOOTER && appModeRef.current !== APP_MODES.SHOOTER) {
-        applyShooterEntryMap();
-      }
       const routeChanged =
         route.appMode !== appModeRef.current ||
         route.categoryId !== selectedCategoryIdRef.current;
-      if (routeChanged) {
-        routeScrollPositionsRef.current.set(activeRouteKeyRef.current, window.scrollY || 0);
-        historyNavigationRef.current = true;
-      }
-      if (routeChanged) stopBackingScheduler();
-      if (route.appMode !== APP_MODES.MINI_CHORD_MAKER) {
-        miniChordStartTokenRef.current += 1;
-        if (miniChordPlayTimerRef.current) {
-          window.clearInterval(miniChordPlayTimerRef.current);
-          miniChordPlayTimerRef.current = null;
+      if (!routeChanged) return;
+
+      routeScrollPositionsRef.current.set(activeRouteKeyRef.current, window.scrollY || 0);
+      historyNavigationRef.current = true;
+      routeSyncRef.current = true;
+      requestNavigationCommit({
+        categoryId: route.categoryId,
+        key: getNavigationViewKey(route.appMode, route.categoryId, viewerModeRef.current),
+        mode: route.appMode,
+        viewerMode: route.appMode === APP_MODES.FRETBOARD_VIEWER ? viewerModeRef.current : null,
+      }, () => {
+        if (route.appMode !== APP_MODES.SHOOTER) stopMic();
+        if (route.appMode === APP_MODES.SHOOTER && appModeRef.current !== APP_MODES.SHOOTER) {
+          applyShooterEntryMap();
         }
-        if (miniChordPlaybackFrameRef.current) {
-          window.cancelAnimationFrame(miniChordPlaybackFrameRef.current);
-          miniChordPlaybackFrameRef.current = null;
+        stopBackingScheduler();
+        if (route.appMode !== APP_MODES.MINI_CHORD_MAKER) {
+          miniChordStartTokenRef.current += 1;
+          if (miniChordPlayTimerRef.current) {
+            window.clearInterval(miniChordPlayTimerRef.current);
+            miniChordPlayTimerRef.current = null;
+          }
+          if (miniChordPlaybackFrameRef.current) {
+            window.cancelAnimationFrame(miniChordPlaybackFrameRef.current);
+            miniChordPlaybackFrameRef.current = null;
+          }
+          miniChordIsPlayingRef.current = false;
+          miniChordPlayingBarIndexRef.current = null;
+          miniChordPlaybackBarsRef.current = [];
+          miniChordPlaybackSlotsRef.current = [];
+          miniChordPlayheadRef.current = null;
+          setMiniChordIsPlaying(false);
+          setMiniChordPlayhead(null);
+          setMiniChordPlayingBarIndex(null);
         }
-        miniChordIsPlayingRef.current = false;
-        miniChordPlayingBarIndexRef.current = null;
-        miniChordPlaybackBarsRef.current = [];
-        miniChordPlaybackSlotsRef.current = [];
-        miniChordPlayheadRef.current = null;
-        setMiniChordIsPlaying(false);
-        setMiniChordPlayhead(null);
-        setMiniChordPlayingBarIndex(null);
-      }
-      routeSyncRef.current = routeChanged;
-      appModeRef.current = route.appMode;
-      selectedCategoryIdRef.current = route.categoryId;
-      setAppMode(route.appMode);
-      setSelectedCategoryId(route.categoryId);
-      if (route.appMode === APP_MODES.METRONOME) {
-        switchMetronomeScope(METRONOME_SETTING_SCOPES.STANDALONE);
-      } else if (route.appMode === APP_MODES.MINI_CHORD_MAKER) {
-        switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
-      } else if (route.appMode === APP_MODES.PRACTICE) {
-        switchMetronomeScope(getMetronomeScopeForCategory(route.categoryId));
-      }
-      setEnemies([]);
-      enemiesRef.current = [];
-      setShooterTargets([]);
-      shooterTargetsRef.current = [];
-      setProjectiles([]);
-      projectilesRef.current = [];
-      setHitZoneNote(null);
-      setIsHitWindowActive(false);
-      setBeat(0);
-      setUtilityMenuOpen(false);
-      if (route.appMode !== APP_MODES.METRONOME) setMetronomeAdvancedPanelImmediate("");
-      setState(route.appMode === APP_MODES.SHOOTER && streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
+        appModeRef.current = route.appMode;
+        selectedCategoryIdRef.current = route.categoryId;
+        setAppMode(route.appMode);
+        setSelectedCategoryId(route.categoryId);
+        if (route.appMode === APP_MODES.METRONOME) {
+          switchMetronomeScope(METRONOME_SETTING_SCOPES.STANDALONE);
+        } else if (route.appMode === APP_MODES.MINI_CHORD_MAKER) {
+          switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
+        } else if (route.appMode === APP_MODES.PRACTICE) {
+          switchMetronomeScope(getMetronomeScopeForCategory(route.categoryId));
+        }
+        setEnemies([]);
+        enemiesRef.current = [];
+        setShooterTargets([]);
+        shooterTargetsRef.current = [];
+        setProjectiles([]);
+        projectilesRef.current = [];
+        setHitZoneNote(null);
+        setIsHitWindowActive(false);
+        setBeat(0);
+        utilityMenuOpenRef.current = false;
+        setUtilityMenuOpen(false);
+        if (route.appMode !== APP_MODES.METRONOME) setMetronomeAdvancedPanelImmediate("");
+        setState(route.appMode === APP_MODES.SHOOTER && streamRef.current ? GAME_STATES.LISTENING : GAME_STATES.IDLE);
+      }, { updateHistory: false });
     };
 
     const handlePopState = () => {
@@ -24224,7 +24881,7 @@ function App({ onReady }) {
       window.removeEventListener("hashchange", applyHashRoute);
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [applyShooterEntryMap, getMetronomeScopeForCategory, setMetronomeAdvancedPanelImmediate, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
+  }, [applyShooterEntryMap, getMetronomeScopeForCategory, requestNavigationCommit, setMetronomeAdvancedPanelImmediate, setState, stopBackingScheduler, stopMic, switchMetronomeScope]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -27378,14 +28035,27 @@ function App({ onReady }) {
   const closeUtilityMenu = useCallback((event = null) => {
     releaseControlPressState(event?.currentTarget);
     blockBpmButtonInput();
+    utilityMenuOpenRef.current = false;
     setUtilityMenuOpen(false);
   }, [blockBpmButtonInput]);
 
   const toggleUtilityMenu = useCallback((event = null) => {
     releaseControlPressState(event?.currentTarget);
     blockBpmButtonInput();
-    setUtilityMenuOpen((open) => !open);
-  }, [blockBpmButtonInput]);
+    if (utilityMenuOpenRef.current) {
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      return;
+    }
+    requestNavigationCommit({
+      categoryId: selectedCategoryIdRef.current,
+      key: UTILITY_MENU_NAVIGATION_KEY,
+      mode: APP_MODES.MENU,
+    }, () => {
+      utilityMenuOpenRef.current = true;
+      setUtilityMenuOpen(true);
+    }, { updateHistory: false });
+  }, [blockBpmButtonInput, requestNavigationCommit]);
 
   const isStage3AudioPreparing =
     selectedCategory.id === "rhythm" &&
@@ -27441,7 +28111,7 @@ function App({ onReady }) {
     </button>
   );
 
-  const appInteractionLocked = Boolean(shooterLaunchTransition || themeTransition);
+  const appInteractionLocked = Boolean(themeTransition);
   const appContentInteractionLocked = appInteractionLocked || portraitOrientationGuardActive;
   const landscapePlayFocus = isLandscapePlayFocusMode(
     appMode,
@@ -27543,21 +28213,14 @@ function App({ onReady }) {
         appMode === APP_MODES.MINI_CHORD_MAKER ? "miniChordMakerMode" : ""
       } ${appMode === APP_MODES.PRACTICE ? "practiceMode" : ""} ${appMode === APP_MODES.METRONOME ? "metronomeMode" : ""} ${appMode === APP_MODES.TUNER ? "tunerMode" : ""} ${appMode === APP_MODES.SHOOTER ? "shooterMode" : ""} ${appMode === APP_MODES.AUDIO_STUDIO ? "audioStudioMode" : ""} ${utilityMenuOpen ? "utilityMenuOpen" : ""} ${isSignalActive ? "signalGlow" : ""} ${viewportClassName} ${landscapePlayFocus ? "landscapePlayFocus" : ""} ${portraitOrientationGuardActive ? "portraitOrientationGuarded" : ""} ${shooterOrientationGuardActive ? "shooterOrientationPaused" : ""}`}
       onClickCapture={handleAppClickCapture}
+      onPointerCancelCapture={handleAppPointerCancelCapture}
       onPointerDownCapture={handleAppPointerDownCapture}
       onPointerUpCapture={handleAppPointerUpCapture}
       inert={appContentInteractionLocked}
       style={shooterMobileViewportStyle}
       translate="no"
     >
-      {shooterLaunchTransition && typeof document !== "undefined"
-        ? createPortal(
-          <ShooterLaunchOverlay
-            onComplete={finishShooterLaunch}
-            transition={shooterLaunchTransition}
-          />,
-          document.body,
-        )
-        : null}
+      <NavigationTransitionLayer />
       {themeTransition && typeof document !== "undefined"
         ? createPortal(
           <ThemeTransitionOverlay
@@ -27920,13 +28583,17 @@ function App({ onReady }) {
         </div>
       </section>}
 
-      {appMode === APP_MODES.TUNER ? (
-        <TunerMode
-          active
-          backgroundEntryIndex={tunerBackgroundIndex}
-          mobile={isMobileLayout}
-          onBackgroundChange={setTunerBackgroundIndex}
-        />
+      {isAppModeMounted(APP_MODES.TUNER) ? (
+        <Activity mode={getModeActivityState(appMode, APP_MODES.TUNER)}>
+          {renderAppMode(APP_MODES.TUNER, () => (
+            <TunerMode
+              active={appMode === APP_MODES.TUNER}
+              backgroundEntryIndex={tunerBackgroundIndex}
+              mobile={isMobileLayout}
+              onBackgroundChange={setTunerBackgroundIndex}
+            />
+          ))}
+        </Activity>
       ) : null}
 
       {isAppModeMounted(APP_MODES.MENU) ? (
@@ -29847,33 +30514,35 @@ function App({ onReady }) {
 
           </div>
 
-          {viewerMode === FRETBOARD_VIEWER_MODES.CHORD || !isMobileLayout ? (
-            <section
-              aria-hidden={viewerMode !== FRETBOARD_VIEWER_MODES.CHORD ? "true" : undefined}
-              aria-label="전체 코드표"
-              className={`chordCatalogPanel ${viewerMode !== FRETBOARD_VIEWER_MODES.CHORD ? "chordCatalogPanel--desktopDormant" : ""}`}
-              ref={chordChartRef}
-            >
-              <div className="viewerChordReferenceFooter" aria-label="전체 코드 운지 안내">
-                <strong>전체 코드 운지</strong>
-                <div>
-                  <span>해당 코드를 누르면 크게 볼 수 있어요</span>
-                  <span>↔ 좌우 스와이프로 다른 코드 보기</span>
+          {fretboardCatalogReady ? (
+            <Activity mode={getModeActivityState(viewerMode, FRETBOARD_VIEWER_MODES.CHORD)}>
+              <section
+                aria-hidden={viewerMode !== FRETBOARD_VIEWER_MODES.CHORD ? "true" : undefined}
+                aria-label="전체 코드표"
+                className={`chordCatalogPanel ${viewerMode !== FRETBOARD_VIEWER_MODES.CHORD ? "chordCatalogPanel--desktopDormant" : ""}`}
+                ref={chordChartRef}
+              >
+                <div className="viewerChordReferenceFooter" aria-label="전체 코드 운지 안내">
+                  <strong>전체 코드 운지</strong>
+                  <div>
+                    <span>해당 코드를 누르면 크게 볼 수 있어요</span>
+                    <span>↔ 좌우 스와이프로 다른 코드 보기</span>
+                  </div>
                 </div>
-              </div>
-              <div className="chordCatalogScroll">
-                {chordCatalogGroups.map((group) => (
-                  <ChordCatalogRow
-                    desktopDraggable={!isMobileLayout}
-                    getChordStringState={getChordStringState}
-                    group={group}
-                    key={group.root}
-                    onSelectChord={handleChordCatalogSelect}
-                    showChordFingeringGuide={showChordFingeringGuide}
-                  />
-                ))}
-              </div>
-            </section>
+                <div className="chordCatalogScroll">
+                  {chordCatalogGroups.map((group) => (
+                    <ChordCatalogRow
+                      desktopDraggable={!isMobileLayout}
+                      getChordStringState={getChordStringState}
+                      group={group}
+                      key={group.root}
+                      onSelectChord={handleChordCatalogSelect}
+                      showChordFingeringGuide={showChordFingeringGuide}
+                    />
+                  ))}
+                </div>
+              </section>
+            </Activity>
           ) : null}
         </section>
         ))}
@@ -31043,18 +31712,29 @@ function App({ onReady }) {
             ) : null}
 
             <div className={`guitarPlayer guitarPlayer--${selectedGuitar.id} guitarPlayer--cabinet-${selectedGuitarCabinet.id} guitarPlayer--aura-${selectedAuraEffect.id} guitarPlayer--floor-${selectedFloorEffect.id} ${projectiles.length > 0 ? "shooting" : ""}`} data-instrument-skin-pack={selectedGuitar.instrumentSkinPack} ref={shooterGuitarPlayerRef} style={shooterMotion}>
+              {selectedFixedStandFloorLayers.map((layer) => (
+                <span
+                  aria-hidden="true"
+                  className={`${getShooterEffectLayerClassName(layer)} guitarPlayerFixedStandLayer`}
+                  data-fixed-to-guitar-base="true"
+                  key={layer.key}
+                  style={getShooterEffectLayerStyle(layer)}
+                >
+                  <ShooterEffectLayerMedia layer={layer} />
+                </span>
+              ))}
               <div
                 className={`shooterGuitarMotion ${selectedMapIsThreeDLab ? "threeDLabGuitarMotion" : ""}`}
                 ref={shooterGuitarMotionRef}
               >
-              {selectedEffectFloorLayers.map((layer) => (
-                <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true" style={getShooterEffectLayerStyle(layer)}>
-                  <img alt="" draggable="false" src={layer.asset} />
-                </span>
-              ))}
               {selectedEffectBackLayers.map((layer) => (
                 <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true" style={getShooterEffectLayerStyle(layer)}>
-                  <img alt="" draggable="false" src={layer.asset} />
+                  <ShooterEffectLayerMedia animateSprite layer={layer} />
+                </span>
+              ))}
+              {selectedGuitarMotionFloorLayers.map((layer) => (
+                <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true" style={getShooterEffectLayerStyle(layer)}>
+                  <ShooterEffectLayerMedia layer={layer} />
                 </span>
               ))}
               {desktopHorizontalShooterActive || !shooterGuitarCabinetActive || shooterGuitarCabinetPhase === SHOOTER_GUITAR_CABINET_PHASES.EJECTED ? (
@@ -31085,14 +31765,14 @@ function App({ onReady }) {
                 className={`guitarPlayer guitarPlayer--mapEditPreview guitarPlayer--${selectedGuitar.id} guitarPlayer--cabinet-${selectedGuitarCabinet.id} guitarPlayer--aura-${previewAuraEffect.id} guitarPlayer--floor-${previewFloorEffect.id}`}
                 data-instrument-skin-pack={selectedGuitar.instrumentSkinPack}
               >
-                {selectedEffectFloorLayers.map((layer) => (
-                  <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true" style={getShooterEffectLayerStyle(layer)}>
-                    <img alt="" draggable="false" src={layer.asset} />
-                  </span>
-                ))}
                 {selectedEffectBackLayers.map((layer) => (
                   <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true" style={getShooterEffectLayerStyle(layer)}>
-                    <img alt="" draggable="false" src={layer.asset} />
+                    <ShooterEffectLayerMedia layer={layer} />
+                  </span>
+                ))}
+                {selectedEffectFloorLayers.map((layer) => (
+                  <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true" style={getShooterEffectLayerStyle(layer)}>
+                    <ShooterEffectLayerMedia layer={layer} />
                   </span>
                 ))}
                 <ShooterGuitarDisplay
@@ -31421,7 +32101,7 @@ function App({ onReady }) {
                     </button>
                   ))}
                 </div>
-                <div className={`shooterSkinPickerBodyFrame ${
+                <div className={`shooterSkinPickerBodyFrame shooterSkinPickerBodyFrame--${shooterSkinTab} ${
                   isMobileLayout
                   && (shooterSkinTab === "guitar" || shooterSkinTab === "pick" || shooterSkinTab === "map")
                     ? "shooterSkinPickerBodyFrame--verticalHint"
@@ -31607,11 +32287,11 @@ function App({ onReady }) {
                         })}
                       </div>
                     </div>
-                  ) : isMobileLayout ? (
+                  ) : (
                     <div className="shooterEffectSetPicker" aria-label="슈팅 기타 효과 선택">
                       <section className="shooterEffectSetSection">
                         <div className="shooterSkinSectionHeader">
-                          <span>SET</span>
+                          <span>SET · 독립 선택</span>
                           <em>위 AURA · 아래 FLOOR</em>
                         </div>
                         <div
@@ -31648,7 +32328,7 @@ function App({ onReady }) {
                       </section>
                       <section className="shooterEffectStandaloneSection">
                         <div className="shooterSkinSectionHeader">
-                          <span>FLOOR 2</span>
+                          <span>FLOOR {SHOOTER_STANDALONE_FLOOR_EFFECT_OPTIONS.length}</span>
                           <em>단독 플로어 · 캐비닛</em>
                         </div>
                         <div
@@ -31684,56 +32364,6 @@ function App({ onReady }) {
                           </div>
                         </div>
                       </section>
-                    </div>
-                  ) : (
-                    <div className="shooterEffectPickerList" aria-label="슈팅 기타 효과 선택">
-                      {shooterEffectSections.map((section) => {
-                        const selectedSlotEffect = section.id === SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR
-                          ? selectedFloorEffect
-                          : selectedAuraEffect;
-                        return (
-                          <section className={`shooterEffectSection shooterEffectSection--${section.id}`} key={section.id}>
-                            <div className="shooterSkinSectionHeader">
-                              <span>{section.label.split(" · ")[0]}</span>
-                              <em>{selectedSlotEffect.label}</em>
-                            </div>
-                            <p className="shooterEffectSectionDescription">{section.description}</p>
-                            <div className="shooterSkinOptionGrid shooterSkinOptionGrid--effects">
-                              {section.options.map((effect) => {
-                                const isSelected = selectedSlotEffect.id === effect.id;
-                                return (
-                                  <ShooterEffectOptionButton
-                                    effect={effect}
-                                    isSelected={isSelected}
-                                    key={effect.id}
-                                    onSelect={(effectId) => applyShooterEffect(section.id, effectId)}
-                                  />
-                                );
-                              })}
-                            </div>
-                            {section.id === SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR ? (
-                              <div className="shooterEffectDesktopCabinetSection">
-                                <div className="shooterSkinSectionHeader">
-                                  <span>단독 플로어 · 캐비닛</span>
-                                  <em>{selectedGuitarCabinet.label}</em>
-                                </div>
-                                <div className="shooterGuitarCabinetPickerGrid" aria-label="기타 캐비닛 스킨 선택">
-                                  {SHOOTER_GUITAR_CABINET_SKINS.map((skin) => (
-                                    <ShooterGuitarCabinetOptionButton
-                                      cabinetSkin={skin}
-                                      className="shooterGuitarCabinetPickerItem--desktopEffect"
-                                      key={`desktop-cabinet-${skin.id}`}
-                                      onSelect={applyShooterGuitarCabinetSkin}
-                                      selectedGuitar={selectedGuitar}
-                                      selectedSkinId={selectedGuitarCabinet.id}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                            ) : null}
-                          </section>
-                        );
-                      })}
                     </div>
                   )}
                 </div>

@@ -18128,6 +18128,21 @@ html body .app.theme-light .shooterSkinOptionGrid--emblems button.shooterSkinOpt
   transform-origin: 50% 72%;
 }
 
+.shooterEffectSpriteFrame {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+  transform: none;
+}
+
+.shooterEffectPreviewLayer.effect-independent-aura-v2,
+.shooterArena .guitarPlayerEffectLayer.effect-independent-aura-v2 {
+  overflow: hidden;
+}
+
 .shooterEffectPreviewLayer--animation-aura-drift img {
   animation: shooterIndependentAuraDrift var(--shooter-effect-preview-animation-duration, 2200ms) ease-in-out infinite;
 }
@@ -32444,7 +32459,7 @@ html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChord
   }
 }
 
-/* Independent guitar effect slots: FLOOR -> AURA BACK -> GUITAR -> AURA FRONT. */
+/* Independent V2 composition: FLOOR -> GUITAR -> one AURA layer (no duplicate front copy). */
 .shooterArena .guitarPlayerEffectLayer {
   left: 50%;
   bottom: 0;
@@ -32469,6 +32484,20 @@ html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChord
 
 .shooterArena .guitarPlayerEffectLayer--front {
   width: min(var(--guitar-effect-width, 142px), 54vw);
+}
+
+/* Low-profile stands share only the player's fixed bottom-center anchor. They
+   stay outside shooterGuitarMotion so guitar aim, recoil, and dash never rotate
+   or move the stand artwork. */
+.shooterArena .guitarPlayerFixedStandLayer {
+  animation: none !important;
+  transition: none !important;
+  will-change: auto;
+}
+
+.shooterArena .guitarPlayerFixedStandLayer img {
+  animation: none !important;
+  transform: none !important;
 }
 
 /* The transparent source keeps generous side gutters. Its visible deck is
@@ -32818,6 +32847,7 @@ html body .shooterArena .effect-floor-concert-stage,
   .shooterArena .guitarPlayerEffectLayer--animated img {
     animation: none !important;
   }
+
 }
 
 .shooterArena:is(.paused, .shooterArena--animationsPaused)
@@ -65310,7 +65340,25 @@ html body .shooterSkinConfigurator :is(
   }
 
   html body .shooterSkinConfigurator--arenaPreview .shooterSkinPickerBody {
+    min-height: 0;
+    height: 100%;
+    max-height: 100%;
+    overflow-y: auto !important;
     overscroll-behavior: contain;
+    touch-action: pan-y !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html body .shooterSkinConfigurator--arenaPreview .shooterSkinPickerBodyFrame--map {
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  html body .shooterSkinConfigurator--arenaPreview
+    .shooterSkinPickerBodyFrame--map
+    .shooterMapPickerGrid {
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
   }
 
   html body .shooterSkinConfigurator--arenaPreview .shooterSkinPickerBodyFrame--verticalHint > .shooterSkinPickerBody {
@@ -71727,31 +71775,296 @@ html body .shooterEffectDesktopCabinetSection .shooterGuitarCabinetPickerPreview
   }
 }
 
-/* Desktop skin picker stays visually separate from the mobile arena-preview UI.
-   Keep the active game visible and avoid recompositing it through blur filters. */
+/* Desktop skin picker: foreground window with horizontally browsable catalogs. */
 @media (min-width: 720px) {
   html body .shooterGuitarPickerOverlay--desktopWindow {
-    place-items: center !important;
-    padding: 32px !important;
-    background: rgba(3, 5, 7, 0.06) !important;
-    backdrop-filter: none !important;
+    z-index: 100000 !important;
+    place-items: start center !important;
+    align-items: start !important;
+    padding: clamp(30px, 5dvh, 56px) 32px 24px !important;
+    background: rgba(3, 5, 7, 0.48) !important;
+    backdrop-filter: blur(3px) brightness(0.74) !important;
   }
 
   :root[data-theme] body .shooterGuitarPickerOverlay--desktopWindow {
-    background: rgba(3, 5, 7, 0.06) !important;
-    backdrop-filter: none !important;
+    background: rgba(3, 5, 7, 0.48) !important;
+    backdrop-filter: blur(3px) brightness(0.74) !important;
+  }
+
+  :root[data-theme="light"] body .shooterGuitarPickerOverlay--desktopWindow {
+    background: rgba(43, 35, 26, 0.3) !important;
+    backdrop-filter: blur(3px) brightness(0.88) !important;
   }
 
   html body .shooterSkinConfigurator--desktopWindow {
     display: block !important;
-    width: min(920px, calc(100vw - 64px)) !important;
-    height: min(560px, calc(100dvh - 96px)) !important;
-    filter: drop-shadow(0 20px 36px rgba(0, 0, 0, 0.34));
-    transform: translateY(clamp(-112px, -11dvh, -52px));
+    width: min(1080px, calc(100vw - 64px)) !important;
+    height: min(680px, calc(100dvh - 64px)) !important;
+    filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.52));
+    transform: none !important;
   }
 
   html body .shooterSkinConfigurator--desktopWindow .shooterGuitarPickerModal {
     backdrop-filter: none !important;
+    box-shadow:
+      0 28px 70px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterSkinPickerBody {
+    padding: 2px 4px 12px 0;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterGuitarPickerList {
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterGuitarCategorySection {
+    gap: 4px;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow
+    .shooterGuitarCategorySection
+    .shooterSkinSectionHeader {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow
+    .shooterGuitarCategorySection
+    .shooterSkinSectionHeader::after {
+    display: block;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterGuitarPickerGrid,
+  html body .shooterSkinConfigurator--desktopWindow .shooterSkinOptionGrid--picks,
+  html body .shooterSkinConfigurator--desktopWindow .shooterSkinOptionGrid--monsters {
+    display: grid !important;
+    grid-template-columns: none !important;
+    grid-auto-flow: column !important;
+    grid-auto-columns: 148px !important;
+    align-items: stretch;
+    gap: 8px !important;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 1px 1px 9px;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-color: rgba(159, 108, 46, 0.72) rgba(126, 87, 44, 0.14);
+    scrollbar-width: thin;
+    touch-action: pan-x;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow
+    :is(.shooterGuitarPickerGrid, .shooterSkinOptionGrid--picks, .shooterSkinOptionGrid--monsters)
+    > * {
+    scroll-snap-align: start;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterMapPickerGrid {
+    display: flex !important;
+    align-items: stretch;
+    gap: 9px !important;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 1px 1px 10px;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-color: rgba(159, 108, 46, 0.72) rgba(126, 87, 44, 0.14);
+    scrollbar-width: thin;
+    touch-action: pan-x;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterMapPickerGrid > .shooterMapCard {
+    flex: 0 0 220px;
+    scroll-snap-align: start;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterMapDevDivider {
+    display: none !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectSetPicker {
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow :is(
+    .shooterEffectSetSection,
+    .shooterEffectStandaloneSection
+  ) {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow :is(
+    .shooterEffectSetSection,
+    .shooterEffectStandaloneSection
+  ) .shooterSkinSectionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    text-align: left;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow :is(
+    .shooterEffectSetScroller,
+    .shooterEffectStandaloneScroller
+  ) {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 7px;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-color: rgba(159, 108, 46, 0.72) rgba(126, 87, 44, 0.14);
+    scrollbar-width: thin;
+    touch-action: pan-x;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow :is(
+    .shooterEffectSetTrack,
+    .shooterEffectStandaloneTrack
+  ) {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 148px;
+    gap: 8px;
+    min-width: 100%;
+    padding: 1px;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectSetColumn {
+    display: grid;
+    grid-template-rows: 16px auto auto;
+    align-content: start;
+    gap: 4px;
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectSetLabel {
+    overflow: hidden;
+    color: rgba(103, 70, 39, 0.88);
+    font-size: 10px;
+    font-weight: 950;
+    line-height: 16px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectSetPicker
+    .shooterSkinOptionCard--effect {
+    gap: 3px;
+    min-width: 0;
+    padding: 3px 2px 5px !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectSetPicker
+    .shooterSkinOptionCard--effect strong {
+    min-height: 20px !important;
+    font-size: 9px !important;
+    line-height: 1.05;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectSetCard--aura {
+    grid-template-rows: 72px minmax(20px, auto) !important;
+    min-height: 100px !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow
+    .shooterEffectSetCard--aura.shooterSkinOptionCard--effectNone {
+    grid-template-rows: minmax(0, 1fr) !important;
+    min-height: 100px !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectSetCard--aura .shooterEffectPreview {
+    width: min(100%, 84px) !important;
+    height: 72px !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectSetCard--aura .shooterEffectPreviewLayer {
+    bottom: 50%;
+    width: min(var(--shooter-effect-preview-width, 70px), 70px) !important;
+    transform: translate(-50%, 50%) !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectSetCard--floor {
+    grid-template-rows: 46px minmax(20px, auto) !important;
+    min-height: 74px !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow
+    .shooterEffectSetCard--floor.shooterSkinOptionCard--effectNone {
+    grid-template-rows: minmax(0, 1fr) !important;
+    min-height: 74px !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectSetCard--floor .shooterEffectPreview {
+    width: min(100%, 88px) !important;
+    height: 46px !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectSetCard--floor .shooterEffectPreviewLayer {
+    bottom: 50%;
+    width: min(var(--shooter-effect-preview-width, 76px), 76px) !important;
+    transform: translate(-50%, 50%) !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectStandaloneTrack > * {
+    scroll-snap-align: start;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectStandaloneCard {
+    grid-template-rows: 54px minmax(20px, auto) !important;
+    min-height: 82px !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectStandaloneCard .shooterEffectPreview {
+    width: min(100%, 94px) !important;
+    height: 54px !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterEffectStandaloneCard .shooterEffectPreviewLayer {
+    bottom: 50%;
+    width: min(var(--shooter-effect-preview-width, 82px), 82px) !important;
+    transform: translate(-50%, 50%) !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow
+    .shooterEffectStandaloneTrack > .shooterGuitarCabinetPickerItem--standalone {
+    grid-template-columns: 54px minmax(0, 1fr) !important;
+    min-height: 82px !important;
+    padding: 4px 6px !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow
+    .shooterEffectStandaloneTrack .shooterGuitarCabinetPickerPreview {
+    width: 52px;
+    height: 74px;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow
+    .shooterEffectStandaloneTrack .shooterGuitarCabinet--picker {
+    width: 48px;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow
+    .shooterEffectStandaloneTrack .shooterGuitarCabinetPickerPreview > .shooterGuitarCabinetPickerGuitar {
+    width: 42px !important;
+    height: 68px !important;
   }
 }
 
@@ -71806,6 +72119,20 @@ html body .shooterArena
   max-height: 137px !important;
   aspect-ratio: auto !important;
   object-fit: contain !important;
+}
+
+/* TIDEWOOD's opaque visual weight sits left of its transparent 512px canvas.
+   Keep gameplay geometry centered and move only the rendered artwork. */
+html body .shooterArena
+  .guitarPlayer--acoustic_tidewood_parlor
+  .guitarPlayerAsset.guitarAssetImage--acoustic_tidewood_parlor {
+  left: calc(50% + 7px) !important;
+}
+
+html body .shooterSkinConfigurator
+  .shooterGuitarPickerAsset.guitarAssetImage--acoustic_tidewood_parlor {
+  position: relative;
+  left: 4px;
 }
 
 html body .shooterArena

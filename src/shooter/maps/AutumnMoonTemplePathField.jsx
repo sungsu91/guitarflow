@@ -7,7 +7,8 @@ import {
 } from "./autumnMoonTempleAnimation.js";
 import { subscribeSharedMapAnimation } from "./sharedSpriteClock.js";
 
-const MAX_DEVICE_PIXEL_RATIO = 2;
+const MOBILE_DEVICE_PIXEL_RATIO = 1;
+const DESKTOP_DEVICE_PIXEL_RATIO = 1.25;
 const HIDDEN_RESUME_GAP_MS = 1000;
 
 function createSheetRecord(source, onReady) {
@@ -46,6 +47,7 @@ function releaseSheetRecord(record) {
   record.released = true;
   record.image.onload = null;
   record.image.onerror = null;
+  record.image.src = "";
   record.image = null;
   record.source = "";
 }
@@ -58,7 +60,7 @@ function prepareSheetRecord(sequence, sheetIndex, onReady) {
 }
 
 function ensureCurrentAndNextSheets(runtime, sheetIndex) {
-  const { sequence } = runtime;
+  const sequence = runtime.playbackSequence;
   const sheetCount = sequence.sheetSources.length;
   const desiredSheet = ((sheetIndex % sheetCount) + sheetCount) % sheetCount;
   const desiredNextSheet = (desiredSheet + 1) % sheetCount;
@@ -83,9 +85,12 @@ function ensureCurrentAndNextSheets(runtime, sheetIndex) {
   }
 }
 
-function resizeCanvas(canvas, root) {
+function resizeCanvas(canvas, root, layout) {
+  const pixelRatioLimit = layout === "mobile"
+    ? MOBILE_DEVICE_PIXEL_RATIO
+    : DESKTOP_DEVICE_PIXEL_RATIO;
   const pixelRatio = Math.min(
-    MAX_DEVICE_PIXEL_RATIO,
+    pixelRatioLimit,
     Math.max(1, Number(window.devicePixelRatio) || 1),
   );
   const width = Math.max(1, Math.round(root.clientWidth * pixelRatio));
@@ -110,14 +115,14 @@ function markGroundGustActive(runtime, active) {
 }
 
 function drawSequenceFrame(runtime, frameIndex, referenceHeight) {
-  const frame = getAutumnSpriteCell(frameIndex, runtime.sequence);
+  const frame = getAutumnSpriteCell(frameIndex, runtime.playbackSequence);
   ensureCurrentAndNextSheets(runtime, frame.sheetIndex);
   if (!runtime.current?.loaded || !runtime.current.image) return;
   if (runtime.lastDrawnFrame === frame.frame) return;
 
-  const { canvas, context, sequence } = runtime;
-  const sourceX = frame.column * sequence.cellWidth;
-  const sourceY = frame.row * sequence.cellHeight;
+  const { canvas, context, playbackSequence, sequence } = runtime;
+  const sourceX = frame.column * playbackSequence.cellWidth;
+  const sourceY = frame.row * playbackSequence.cellHeight;
   const destinationX = (sequence.x ?? 0) / 768 * canvas.width;
   const destinationY = (sequence.y ?? 0) / referenceHeight * canvas.height;
   const destinationWidth = sequence.renderWidth / 768 * canvas.width;
@@ -128,8 +133,8 @@ function drawSequenceFrame(runtime, frameIndex, referenceHeight) {
     runtime.current.image,
     sourceX,
     sourceY,
-    sequence.cellWidth,
-    sequence.cellHeight,
+    playbackSequence.cellWidth,
+    playbackSequence.cellHeight,
     destinationX,
     destinationY,
     destinationWidth,
@@ -138,7 +143,7 @@ function drawSequenceFrame(runtime, frameIndex, referenceHeight) {
   runtime.lastDrawnFrame = frame.frame;
 }
 
-function AutumnMoonTemplePathField({ active = true, runtimeAnimation, stage = "underlay" }) {
+function AutumnMoonTemplePathField({ active = true, layout = "mobile", runtimeAnimation, stage = "underlay" }) {
   const rootRef = useRef(null);
   const activeElapsedRef = useRef(0);
 
@@ -177,13 +182,16 @@ function AutumnMoonTemplePathField({ active = true, runtimeAnimation, stage = "u
         next: null,
         nextGustAt: activeElapsedMs + getAutumnGroundGustDelay(sequence.randomDelayMs),
         requestRedraw,
+        playbackSequence: sequence.runtimeVariant
+          ? { ...sequence, ...sequence.runtimeVariant }
+          : sequence,
         sequence,
       }];
     });
 
     const resizeAllCanvases = () => {
       runtimes.forEach((runtime) => {
-        if (resizeCanvas(runtime.canvas, root)) runtime.lastDrawnFrame = -2;
+        if (resizeCanvas(runtime.canvas, root, layout)) runtime.lastDrawnFrame = -2;
       });
     };
 
@@ -264,7 +272,7 @@ function AutumnMoonTemplePathField({ active = true, runtimeAnimation, stage = "u
         runtime.next = null;
       });
     };
-  }, [active, runtimeAnimation, stage]);
+  }, [active, layout, runtimeAnimation, stage]);
 
   const sequences = stage === "overlay"
     ? runtimeAnimation?.overlaySequences

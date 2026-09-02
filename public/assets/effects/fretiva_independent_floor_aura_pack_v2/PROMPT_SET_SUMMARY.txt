@@ -1,0 +1,33 @@
+IMAGE GENERATION SUMMARY
+========================
+
+Mode: built-in image generation
+Use case: stylized-concept
+Target: production-ready transparent PNG game assets
+
+Floor prompt contract
+- Generate one complete standalone low guitar platform.
+- Three-quarter top-down perspective with a broad stable center.
+- Genuine transparent RGBA background; alpha 0 outside the object.
+- No guitar, aura, smoke, particles, tall rear ornament, text or watermark.
+- Each of the ten floors is generated independently.
+
+Aura prompt contract
+- Generate one complete standalone 8-frame aura sprite sheet.
+- Exactly 4 columns x 2 rows, 384x512 per frame after export.
+- Actual shape evolution in every frame; seamless forward loop; no ping-pong.
+- Large transparent center for an upright guitar.
+- Aura only: no floor, platform, guitar, front blanket, text or watermark.
+- Each of the ten aura sheets is generated independently from its floor.
+
+Theme prompts
+- FROST SPIRIT: frost mist and ice motes.
+- TEMPEST AMP: branching electricity and pressure waves.
+- SAKURA ECHO: rose-gold breeze and sparse petals.
+- DUNE MIRAGE: translucent sand ribbons and heat glints.
+- INK PHANTOM: sumi-ink diffusion and silver brush curls.
+- PRISM CHORUS: prismatic refraction arcs and spectral fragments.
+- CLOCKWORK RHYTHM: amber electromagnetic rings and gear motes.
+- TIDAL PEARL: transparent water ribbon, bubbles and nacre glints.
+- NEON WAVE: cyan-magenta waveform ribbons and traveling ticks.
+- AUTUMN WIND: transparent breeze and sparse maple leaves.

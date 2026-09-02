@@ -1,0 +1,38 @@
+FRETIVA INDEPENDENT FLOOR & AURA PACK V2 - QA
+================================================
+
+Result: PASS
+Date: 2026-09-02
+
+Master assets
+- FLOOR PNG count: 10
+- AURA sprite-sheet PNG count: 10
+- FLOOR size: 1536x1024 for all files
+- AURA sheet size: 1536x1024 for all files
+- AURA layout: 4 columns x 2 rows
+- AURA frame size: 384x512
+- AURA frame count: 8 per item / 80 total
+- Color mode: sRGBA
+- Transparent background: alpha minimum 0 confirmed for every master PNG
+- Corrupt/truncated PNG scan: PASS
+
+Animation validation
+- Extracted every sheet into eight frames for QA.
+- Every aura has eight unique frame hashes.
+- No duplicated still frame set was detected.
+- Playback direction is specified as 0 -> 7 -> 0, with no ping-pong.
+- FLOOR files are not included in any animation sheet.
+
+Manifest validation
+- JSON syntax: PASS
+- All manifest paths exist: PASS
+- Sort order is exactly 1 through 10: PASS
+- FLOOR and AURA display titles match within each concept: PASS
+- FLOOR and AURA IDs/categories remain independent: PASS
+- Existing FIRE LAVA / MOONLIGHT / GALACTIC ORBITAL / FOREST VINE are not duplicated in the new item list: PASS
+
+Layering validation
+- Preview composed in this order: aura -> floor -> guitar.
+- Guitar body and neck remain readable.
+- No FRONT aura asset exists.
+- Preview file: previews/FLOOR_AURA_GUITAR_PREVIEW.jpg

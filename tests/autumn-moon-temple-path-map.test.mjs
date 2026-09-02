@@ -47,6 +47,8 @@ test("Autumn Moon Temple Path is registered exactly once for mobile and desktop 
   assert.equal(MAP.nameKo, "월야 단풍 사찰길");
   assert.equal(MAP.mobileOnly, false);
   assert.equal(MAP.portraitOnly, true);
+  assert.equal(MAP.background.fit, "cover");
+  assert.equal(MAP.foregroundOccluder.fit, "cover");
   assert.equal(LAYERED_SHOOTER_MAP_SKINS.filter((map) => map.id === MAP.id).length, 1);
   assert.equal(getShooterMapsForLayout(true, { isPortraitLayout: true }).includes(MAP), true);
   assert.equal(getShooterMapsForLayout(false, { isPortraitLayout: true }).includes(MAP), true);
@@ -124,17 +126,45 @@ test("all runtime files keep their authored dimensions and transparent PNG color
   assert.equal(backgroundWebp.subarray(8, 12).toString("ascii"), "WEBP");
 });
 
+test("compact runtime sheets retain every frame with one-quarter decoded pixel area", async () => {
+  const sequences = [...RUNTIME.underlaySequences, ...RUNTIME.overlaySequences];
+  const optimized = sequences.filter((sequence) => sequence.runtimeVariant);
+  assert.deepEqual(optimized.map((sequence) => sequence.id), [
+    "tree-sway",
+    "leaves-mid",
+    "ground-gust",
+    "leaves-near",
+  ]);
+
+  for (const sequence of optimized) {
+    const runtime = sequence.runtimeVariant;
+    assert.equal(runtime.cellWidth, sequence.cellWidth / 2);
+    assert.equal(runtime.cellHeight, sequence.cellHeight / 2);
+    assert.equal(runtime.sheetSources.length, sequence.sheetSources.length);
+    for (const source of runtime.sheetSources) {
+      const header = readPngHeader(await readFile(assetUrl(source)));
+      assert.deepEqual(header, {
+        colorType: 6,
+        width: runtime.cellWidth * sequence.columns,
+        height: runtime.cellHeight * sequence.rows,
+      });
+    }
+  }
+});
+
 test("runtime preloads only the current and next sheet for every layer", () => {
   const allSheets = [...RUNTIME.underlaySequences, ...RUNTIME.overlaySequences]
     .flatMap((sequence) => sequence.sheetSources);
+  const allPlaybackSheets = [...RUNTIME.underlaySequences, ...RUNTIME.overlaySequences]
+    .flatMap((sequence) => sequence.runtimeVariant?.sheetSources ?? sequence.sheetSources);
   assert.equal(allSheets.length, 30);
   assert.equal(RUNTIME.preloadSources.length, 10);
   assert.equal(new Set(RUNTIME.preloadSources).size, 10);
-  assert.equal(RUNTIME.preloadSources.every((source) => allSheets.includes(source)), true);
+  assert.equal(RUNTIME.preloadSources.every((source) => allPlaybackSheets.includes(source)), true);
 
   const sources = getShooterMapAssetSources(MAP);
   assert.equal(sources.length, 13);
-  assert.equal(sources.filter((source) => source.includes("/animation/")).length, 10);
+  assert.equal(sources.filter((source) => source.includes("/animation")).length, 10);
   assert.equal(sources.some((source) => /preview|sample|source|\.gif(?:$|\?)/i.test(source)), false);
 });
 
@@ -176,11 +206,15 @@ test("renderer keeps authored environmental, combat, foreground, player, and HUD
 
   assert.match(runtimeSource, /subscribeSharedMapAnimation\(root/);
   assert.match(runtimeSource, /context\.drawImage\(/);
+  assert.match(runtimeSource, /MOBILE_DEVICE_PIXEL_RATIO = 1/);
+  assert.match(runtimeSource, /runtime\.playbackSequence/);
   assert.match(runtimeSource, /runtime\.current/);
   assert.match(runtimeSource, /runtime\.next/);
   assert.match(runtimeSource, /image\.decode\(\)\.then\(markReady\)/);
   assert.match(runtimeSource, /releaseSheetRecord\(runtime\.current\)/);
   assert.doesNotMatch(runtimeSource, /setInterval|useState|ping-pong|pingpong|reverse/i);
+  const autumnCanvasRule = styleSource.match(/\.shooterMapAutumnCanvas\s*\{([^}]*)\}/)?.[1] ?? "";
+  assert.doesNotMatch(autumnCanvasRule, /transform: translateZ\(0\)/);
   assert.match(styleSource, /shooterMapSkin--autumn_moon_temple_path[\s\S]*?enemy\.shooterEnemy[\s\S]*?z-index: 40 !important/);
   assert.match(styleSource, /shooterMapSkin--autumn_moon_temple_path[\s\S]*?guitarPlayer[\s\S]*?z-index: 70 !important/);
   assert.match(styleSource, /data-map-skin="autumn_moon_temple_path"[\s\S]*?shooterMapForegroundOccluder[\s\S]*?z-index: 3/);

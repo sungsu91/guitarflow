@@ -174,3 +174,16 @@ test("picker and gameplay preserve the V3 transparent canvas with contain render
   assert.match(styleSource, /guitarPlayer\[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"\][\s\S]*?guitarPlayerAsset\.guitarAssetImage[\s\S]*?object-fit: contain !important;/);
   assert.doesNotMatch(styleSource, /data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"[^}]*object-fit:\s*cover/);
 });
+
+test("TIDEWOOD PARLOR artwork is optically centered without changing its PNG", async () => {
+  const styleSource = await readFile(new URL("src/style.css", projectRoot), "utf8");
+
+  assert.match(
+    styleSource,
+    /guitarPlayer--acoustic_tidewood_parlor[\s\S]*?guitarAssetImage--acoustic_tidewood_parlor[\s\S]*?left: calc\(50% \+ 7px\) !important;/,
+  );
+  assert.match(
+    styleSource,
+    /shooterGuitarPickerAsset\.guitarAssetImage--acoustic_tidewood_parlor[\s\S]*?left: 4px;/,
+  );
+});

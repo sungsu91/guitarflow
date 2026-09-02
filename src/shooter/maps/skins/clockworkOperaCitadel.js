@@ -29,15 +29,15 @@ export const CLOCKWORK_OPERA_CITADEL_MAP_SKIN = Object.freeze({
     }),
   }),
   referenceViewport: Object.freeze({
-    width: 390,
-    height: 756,
+    width: 841,
+    height: 1870,
     deviceWidth: 390,
     deviceHeight: 844,
   }),
   background: Object.freeze({
     id: "clockwork-opera-citadel-background",
     src: CLOCKWORK_OPERA_BACKGROUND_SRC,
-    fit: "contain",
+    fit: "cover",
     position: "center center",
     locked: true,
   }),

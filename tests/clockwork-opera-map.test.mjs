@@ -31,7 +31,11 @@ test("Clockwork Opera Citadel is available on desktop and mobile with the clean 
   assert.equal(MAP.mobileOnly, false);
   assert.equal(MAP.background.src.endsWith("clockwork_opera_clean_background.png"), true);
   assert.equal(MAP.previewImage.endsWith("clockwork_opera_master.png"), true);
-  assert.equal(MAP.background.fit, "contain");
+  assert.equal(MAP.background.fit, "cover");
+  assert.deepEqual(
+    { width: MAP.referenceViewport.width, height: MAP.referenceViewport.height },
+    { width: 841, height: 1870 },
+  );
   assert.equal(MAP.background.locked, true);
   assert.ok(LAYERED_SHOOTER_MAP_SKINS.includes(MAP));
   assert.ok(getShooterMapsForLayout(true).includes(MAP));

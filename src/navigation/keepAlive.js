@@ -3,6 +3,7 @@ export const NAVIGATION_KEEP_ALIVE_MODES = Object.freeze([
   "mini-chord-maker",
   "fretboard-viewer",
   "metronome",
+  "tuner",
 ]);
 
 const NAVIGATION_KEEP_ALIVE_MODE_SET = new Set(NAVIGATION_KEEP_ALIVE_MODES);

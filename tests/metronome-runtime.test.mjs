@@ -362,5 +362,5 @@ test("standalone metronome owns one cancellable animation loop across screen cha
   assert.match(loopEffectBlock, /return \(\) => \{[\s\S]*cancelAnimationFrame\(rafRef\.current\)/);
   assert.match(source, /const syncMetronomeTrackerFromRuntime[\s\S]*runtime\.trackerElapsedMs/);
   assert.match(source, /const stopMetronomePlayback[\s\S]*syncMetronomeTrackerFromRuntime\(\)/);
-  assert.match(source, /const showTunerMode[\s\S]*appModeRef\.current === APP_MODES\.METRONOME[\s\S]*syncMetronomeTrackerFromRuntime\(\)/);
+  assert.match(source, /const showTunerMode[\s\S]*const sourceMode = appModeRef\.current[\s\S]*sourceMode === APP_MODES\.METRONOME[\s\S]*syncMetronomeTrackerFromRuntime\(\)/);
 });

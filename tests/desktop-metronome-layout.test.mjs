@@ -102,13 +102,14 @@ test("desktop supporting panels move beside the unchanged mobile-first content",
   assert.match(styles, /main\.app\.app\.app\.theme-brand[\s\S]*> \.fretboardViewerPanel--desktopUnified[\s\S]*background: linear-gradient\(180deg, #242018, #15130f\) !important/);
 });
 
-test("desktop fretboard keeps code as the entry view and supports mouse-dragging catalog rows", async () => {
+test("desktop fretboard preserves the selected view and supports mouse-dragging catalog rows", async () => {
   const [styles, appSource] = await Promise.all([
     readFile(desktopStyleUrl, "utf8"),
     readFile(appUrl, "utf8"),
   ]);
 
-  assert.match(appSource, /const enteredFretboardViewer = appMode === APP_MODES\.FRETBOARD_VIEWER[\s\S]*if \(!isMobileLayout && enteredFretboardViewer\)[\s\S]*setViewerMode\(FRETBOARD_VIEWER_MODES\.CHORD\)/);
+  assert.doesNotMatch(appSource, /const enteredFretboardViewer = appMode === APP_MODES\.FRETBOARD_VIEWER[\s\S]*if \(!isMobileLayout && enteredFretboardViewer\)[\s\S]*setViewerMode\(FRETBOARD_VIEWER_MODES\.CHORD\)/);
+  assert.match(appSource, /requestIdleCallback\(revealCatalog, \{ timeout: 180 \}\)/);
   const viewerModeHandler = appSource.slice(
     appSource.indexOf("const selectFretboardViewerMode = useCallback"),
     appSource.indexOf("const handleViewerChordSound = useCallback"),

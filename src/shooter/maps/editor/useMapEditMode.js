@@ -941,7 +941,13 @@ export default function useMapEditMode(
         skinId,
         await requestMapLayoutSave(skinId, draft),
       ]));
-      savedEntries.forEach(([skinId]) => window.localStorage.removeItem(getDraftStorageKey(skinId)));
+      savedEntries.forEach(([skinId, savedPlacements]) => {
+        const appliedSnapshot = clonePlacementSnapshot(savedPlacements);
+        draftCacheRef.current.set(skinId, appliedSnapshot);
+        sessionBaseCacheRef.current.set(skinId, clonePlacementSnapshot(appliedSnapshot));
+        historyCacheRef.current.set(skinId, { skinId, past: [], future: [] });
+        window.localStorage.removeItem(getDraftStorageKey(skinId));
+      });
       const currentSaved = savedEntries.find(([skinId]) => skinId === skin.id)?.[1] ?? placements;
       setSaveStatus("saved");
       return normalizeMapPlacements(currentSaved, skin.assetCatalog);
@@ -962,7 +968,7 @@ export default function useMapEditMode(
         return false;
       }
       setSaveError("");
-      finishEditing();
+      setSaveStatus("saved");
       return true;
     }
     const savedPlacements = await saveSessionPlacements();
@@ -974,11 +980,15 @@ export default function useMapEditMode(
     }
     const appliedPlacements = clonePlacementSnapshot(savedPlacements);
     setCommittedState({ skinId: skin.id, placements: appliedPlacements });
+    setDraftState({ skinId: skin.id, placements: appliedPlacements });
+    draftCacheRef.current.set(skin.id, appliedPlacements);
+    sessionBaseCacheRef.current.set(skin.id, clonePlacementSnapshot(appliedPlacements));
     sessionBaseRef.current = { skinId: skin.id, placements: appliedPlacements };
     historyRef.current = { skinId: skin.id, past: [], future: [] };
-    finishEditing();
+    historyCacheRef.current.set(skin.id, historyRef.current);
+    setSaveStatus("saved");
     return true;
-  }, [enabled, finishEditing, hasChanges, saveSessionPlacements, skin?.id]);
+  }, [enabled, hasChanges, saveSessionPlacements, skin?.id]);
 
   const selectedPlacement = placements.find((item) => item.instanceId === selectedInstanceId) ?? null;
   const selectedAsset = selectedPlacement ? assetsById.get(selectedPlacement.assetId) : null;

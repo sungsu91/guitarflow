@@ -120,7 +120,7 @@ test("map studio starts with a collapsed installed-object list and separates sel
   assert.match(panelSource, /className="mapEditEffectLibrary"/);
   assert.match(panelSource, /effectEditor\.selectEffect/);
   assert.match(panelSource, /effectEditor\.nudgeActive/);
-  assert.match(panelSource, /effectEditor\?\.applyEditing/);
+  assert.match(panelSource, /effectEditor\?\.hasChanges && await effectEditor\.applyEditing\(\)/);
   assert.match(panelSource, /function MapEditMapSwitcher/);
   assert.match(panelSource, /왕복해도 현재 세션의 임시 배치를 유지합니다/);
   assert.match(panelSource, /onMapChange\?\.\(event\.target\.value\)/);

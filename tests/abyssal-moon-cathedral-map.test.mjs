@@ -48,7 +48,11 @@ test("Abyssal Moon Cathedral is an independent mobile and desktop layered map us
   assert.equal(MAP.mobileOnly, false);
   assert.equal(MAP.background.src.endsWith("01_clean_background.png"), true);
   assert.equal(MAP.previewImage.endsWith("00_master_reference.png"), true);
-  assert.equal(MAP.background.fit, "contain");
+  assert.equal(MAP.background.fit, "cover");
+  assert.deepEqual(
+    { width: MAP.referenceViewport.width, height: MAP.referenceViewport.height },
+    { width: 841, height: 1870 },
+  );
   assert.ok(LAYERED_SHOOTER_MAP_SKINS.includes(MAP));
   assert.ok(getShooterMapsForLayout(true).includes(MAP));
   assert.equal(getShooterMapsForLayout(false).includes(MAP), true);
@@ -292,7 +296,7 @@ test("one shared paused-aware runtime pools travelers and bubbles without React 
   assert.doesNotMatch(rendererSource, /shooterMapFarWhaleSource/);
   assert.doesNotMatch(rendererSource, /backgroundSize: "400% 300%"|cinematicWhale/);
   assert.match(styles, /shooterMapArchitectureMask/);
-  assert.match(styles, /object-fit: var\(--shooter-map-mask-fit, contain\)/);
+  assert.match(styles, /object-fit: var\(--shooter-map-mask-fit, cover\)/);
   assert.match(styles, /shooterMapWhaleViewport[\s\S]*inset: 5\.5% 17% 71% 17%/);
   assert.match(styles, /shooterMapWhaleViewport--front[\s\S]*z-index: 3/);
   assert.match(styles, /shooterMapAquariumWaterLayer/);

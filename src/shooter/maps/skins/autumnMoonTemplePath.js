@@ -6,6 +6,12 @@ function createSheetSources(directory, stem, sheetCount) {
   )));
 }
 
+function createMobileSheetSources(directory, stem, sheetCount) {
+  return Object.freeze(Array.from({ length: sheetCount }, (_, sheetIndex) => (
+    `${AUTUMN_MOON_ROOT}/animation-mobile/${directory}/sheets/${stem}_${String(sheetIndex).padStart(2, "0")}.png`
+  )));
+}
+
 function createSequence({
   cellHeight,
   cellWidth,
@@ -17,7 +23,10 @@ function createSequence({
   renderHeight = 1664,
   renderWidth = 768,
   stem,
+  runtimeCellHeight,
+  runtimeCellWidth,
 }) {
+  const sheetCount = frameCount / 8;
   return Object.freeze({
     id,
     cellHeight,
@@ -30,7 +39,14 @@ function createSequence({
     renderHeight,
     renderWidth,
     rows: 2,
-    sheetSources: createSheetSources(directory, stem, frameCount / 8),
+    sheetSources: createSheetSources(directory, stem, sheetCount),
+    runtimeVariant: runtimeCellWidth && runtimeCellHeight
+      ? Object.freeze({
+          cellHeight: runtimeCellHeight,
+          cellWidth: runtimeCellWidth,
+          sheetSources: createMobileSheetSources(directory, stem, sheetCount),
+        })
+      : null,
   });
 }
 
@@ -53,6 +69,8 @@ const TREE_SWAY = createSequence({
   framesPerSecond: 16,
   cellWidth: 768,
   cellHeight: 1664,
+  runtimeCellWidth: 384,
+  runtimeCellHeight: 832,
   phaseOffsetFrames: 0,
 });
 
@@ -64,6 +82,8 @@ const LEAVES_MID = createSequence({
   framesPerSecond: 16,
   cellWidth: 768,
   cellHeight: 1664,
+  runtimeCellWidth: 384,
+  runtimeCellHeight: 832,
   phaseOffsetFrames: 17,
 });
 
@@ -76,6 +96,8 @@ const GROUND_GUST = Object.freeze({
     framesPerSecond: 16,
     cellWidth: 768,
     cellHeight: 384,
+    runtimeCellWidth: 384,
+    runtimeCellHeight: 192,
     renderWidth: 768,
     renderHeight: 384,
   }),
@@ -93,6 +115,8 @@ const LEAVES_NEAR = createSequence({
   framesPerSecond: 16,
   cellWidth: 768,
   cellHeight: 1664,
+  runtimeCellWidth: 384,
+  runtimeCellHeight: 832,
   phaseOffsetFrames: 31,
 });
 
@@ -101,10 +125,13 @@ const OVERLAY_SEQUENCES = Object.freeze([GROUND_GUST, LEAVES_NEAR]);
 const ALL_SEQUENCES = Object.freeze([...UNDERLAY_SEQUENCES, ...OVERLAY_SEQUENCES]);
 
 function getInitialPreloadSources(sequence) {
+  const playbackSequence = sequence.runtimeVariant
+    ? { ...sequence, ...sequence.runtimeVariant }
+    : sequence;
   const initialFrame = sequence.phaseOffsetFrames ?? 0;
   const currentSheet = Math.floor(initialFrame / sequence.framesPerSheet);
-  const nextSheet = (currentSheet + 1) % sequence.sheetSources.length;
-  return [sequence.sheetSources[currentSheet], sequence.sheetSources[nextSheet]];
+  const nextSheet = (currentSheet + 1) % playbackSequence.sheetSources.length;
+  return [playbackSequence.sheetSources[currentSheet], playbackSequence.sheetSources[nextSheet]];
 }
 
 export const AUTUMN_MOON_TEMPLE_RUNTIME = Object.freeze({
@@ -137,7 +164,7 @@ export const AUTUMN_MOON_TEMPLE_PATH_MAP_SKIN = Object.freeze({
       mode: "full",
       audit: Object.freeze({
         completed: true,
-        contentFingerprint: "beb6ceef",
+        contentFingerprint: "108506d4",
         activeCssAnimations: 0,
         ambientEventLayers: 0,
         filteredElements: 0,

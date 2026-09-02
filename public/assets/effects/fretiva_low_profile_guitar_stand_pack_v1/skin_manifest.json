@@ -1,0 +1,117 @@
+{
+  "pack_id": "fretiva_low_profile_guitar_stand_pack_v1",
+  "version": "1.0.0",
+  "status": "final",
+  "final_apply_spec": "CODEX_APPLY_LOW_PROFILE_GUITAR_STANDS_V1.txt",
+  "asset_type": "static_floor_stand",
+  "counts": {
+    "stand_png": 10,
+    "animation_frames": 0
+  },
+  "image_contract": {
+    "width": 1536,
+    "height": 1024,
+    "format": "PNG",
+    "color_type": "sRGBA",
+    "transparent_background": true,
+    "background_alpha": 0,
+    "static": true,
+    "anchor": "bottom_center",
+    "default_scale": 1.0,
+    "layer_order_back_to_front": [
+      "map",
+      "selected_aura_if_any",
+      "selected_floor_stand",
+      "guitar",
+      "notes_and_hud"
+    ]
+  },
+  "motion_contract": {
+    "stand_rotates_with_guitar": false,
+    "stand_moves_with_guitar": false,
+    "guitar_wobble_clearance_degrees_each_side": 12,
+    "requires_collision_or_mounting_logic": false
+  },
+  "items": [
+    {
+      "sort_order": 1,
+      "id": "floor_studio_halo_v1",
+      "display_title": "STUDIO HALO",
+      "selection_category": "floor",
+      "subtype": "stand",
+      "path": "stands/STUDIO HALO.png"
+    },
+    {
+      "sort_order": 2,
+      "id": "floor_rosette_deck_v1",
+      "display_title": "ROSETTE DECK",
+      "selection_category": "floor",
+      "subtype": "stand",
+      "path": "stands/ROSETTE DECK.png"
+    },
+    {
+      "sort_order": 3,
+      "id": "floor_footlight_club_v1",
+      "display_title": "FOOTLIGHT CLUB",
+      "selection_category": "floor",
+      "subtype": "stand",
+      "path": "stands/FOOTLIGHT CLUB.png"
+    },
+    {
+      "sort_order": 4,
+      "id": "floor_analog_session_v1",
+      "display_title": "ANALOG SESSION",
+      "selection_category": "floor",
+      "subtype": "stand",
+      "path": "stands/ANALOG SESSION.png"
+    },
+    {
+      "sort_order": 5,
+      "id": "floor_chrome_soundcheck_v1",
+      "display_title": "CHROME SOUNDCHECK",
+      "selection_category": "floor",
+      "subtype": "stand",
+      "path": "stands/CHROME SOUNDCHECK.png"
+    },
+    {
+      "sort_order": 6,
+      "id": "floor_jazz_velvet_v1",
+      "display_title": "JAZZ VELVET",
+      "selection_category": "floor",
+      "subtype": "stand",
+      "path": "stands/JAZZ VELVET.png"
+    },
+    {
+      "sort_order": 7,
+      "id": "floor_vinyl_groove_v1",
+      "display_title": "VINYL GROOVE",
+      "selection_category": "floor",
+      "subtype": "stand",
+      "path": "stands/VINYL GROOVE.png"
+    },
+    {
+      "sort_order": 8,
+      "id": "floor_pearl_acoustic_v1",
+      "display_title": "PEARL ACOUSTIC",
+      "selection_category": "floor",
+      "subtype": "stand",
+      "path": "stands/PEARL ACOUSTIC.png"
+    },
+    {
+      "sort_order": 9,
+      "id": "floor_roadcase_stage_v1",
+      "display_title": "ROADCASE STAGE",
+      "selection_category": "floor",
+      "subtype": "stand",
+      "path": "stands/ROADCASE STAGE.png"
+    },
+    {
+      "sort_order": 10,
+      "id": "floor_brass_resonance_v1",
+      "display_title": "BRASS RESONANCE",
+      "selection_category": "floor",
+      "subtype": "stand",
+      "path": "stands/BRASS RESONANCE.png"
+    }
+  ]
+}

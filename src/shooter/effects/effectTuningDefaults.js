@@ -72,5 +72,101 @@ export default Object.freeze({
     "offsetY": 14,
     "opacity": 1,
     "scale": 0.6999999999999997
+  },
+  "aura_solar_crown": {
+    "offsetX": -3,
+    "offsetY": 5,
+    "opacity": 1,
+    "scale": 0.8599999999999999
+  },
+  "aura_tempest_bloom": {
+    "offsetX": -3,
+    "offsetY": 5,
+    "opacity": 1,
+    "scale": 0.8599999999999999
+  },
+  "aura_abyssal_pearl": {
+    "offsetX": -3,
+    "offsetY": 5,
+    "opacity": 1,
+    "scale": 0.8599999999999999
+  },
+  "aura_verdant_relic": {
+    "offsetX": -3,
+    "offsetY": 5,
+    "opacity": 1,
+    "scale": 0.8599999999999999
+  },
+  "aura_rose_quartz_echo": {
+    "offsetX": -3,
+    "offsetY": 5,
+    "opacity": 1,
+    "scale": 0.8599999999999999
+  },
+  "floor_solar_crown": {
+    "offsetX": 0,
+    "offsetY": 9,
+    "opacity": 1,
+    "scale": 0.95
+  },
+  "floor_tempest_bloom": {
+    "offsetX": 0,
+    "offsetY": 9,
+    "opacity": 1,
+    "scale": 0.95
+  },
+  "floor_abyssal_pearl": {
+    "offsetX": 0,
+    "offsetY": 9,
+    "opacity": 1,
+    "scale": 0.95
+  },
+  "floor_verdant_relic": {
+    "offsetX": 0,
+    "offsetY": 9,
+    "opacity": 1,
+    "scale": 0.95
+  },
+  "floor_rose_quartz_echo": {
+    "offsetX": 0,
+    "offsetY": 9,
+    "opacity": 1,
+    "scale": 0.95
+  },
+  "floor_autumn_lantern_stand": {
+    "offsetX": 0,
+    "offsetY": 9,
+    "opacity": 1,
+    "scale": 0.95
+  },
+  "floor_tideglass_aquarium_stand": {
+    "offsetX": 0,
+    "offsetY": 9,
+    "opacity": 1,
+    "scale": 0.95
+  },
+  "floor_brass_amplifier_throne": {
+    "offsetX": 0,
+    "offsetY": 9,
+    "opacity": 1,
+    "scale": 0.95
+  },
+  "floor_frost_crystal_dock": {
+    "offsetX": 0,
+    "offsetY": 9,
+    "opacity": 1,
+    "scale": 0.95
+  },
+  "floor_neon_alley_backline": {
+    "offsetX": 0,
+    "offsetY": 9,
+    "opacity": 1,
+    "scale": 0.95
+  },
+  "floor_frost_spirit_v2": {
+    "offsetX": 0,
+    "offsetY": -13,
+    "opacity": 1,
+    "scale": 0.8999999999999999
   }
 });

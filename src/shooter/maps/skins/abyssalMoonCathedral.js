@@ -17,7 +17,7 @@ export const ABYSSAL_MOON_CATHEDRAL_MAP_SKIN = Object.freeze({
     src: `${ABYSSAL_ROOT}/architecture_occlusion_foreground.png`,
     sourceWidth: 841,
     sourceHeight: 1870,
-    fit: "contain",
+    fit: "cover",
     position: "center center",
   }),
   performance: Object.freeze({
@@ -25,7 +25,7 @@ export const ABYSSAL_MOON_CATHEDRAL_MAP_SKIN = Object.freeze({
       mode: "full",
       audit: Object.freeze({
         completed: true,
-        contentFingerprint: "3e25d3e3",
+        contentFingerprint: "5a6b1ddc",
         activeCssAnimations: 0,
         ambientEventLayers: 0,
         filteredElements: 3,
@@ -35,15 +35,15 @@ export const ABYSSAL_MOON_CATHEDRAL_MAP_SKIN = Object.freeze({
     }),
   }),
   referenceViewport: Object.freeze({
-    width: 390,
-    height: 756,
+    width: 841,
+    height: 1870,
     deviceWidth: 390,
     deviceHeight: 844,
   }),
   background: Object.freeze({
     id: "abyssal-moon-cathedral-background",
     src: `${ABYSSAL_ROOT}/01_clean_background.png`,
-    fit: "contain",
+    fit: "cover",
     position: "center center",
     locked: true,
   }),

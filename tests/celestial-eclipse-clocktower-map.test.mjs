@@ -144,10 +144,12 @@ test("renderer keeps background, astrolabe, combat, foreground, and HUD order", 
   );
   assert.match(styleSource, /\.shooterMapSkinStage--overlay\s*\{[\s\S]*?z-index: 35/);
   assert.match(styleSource, /\.shooterMapCelestialAstrolabe\s*\{[\s\S]*?width: 65%/);
-  assert.match(
+  assert.doesNotMatch(
     styleSource,
-    /data-map-skin="celestial-eclipse-clocktower"\][\s\S]*?\.shooterMapCoordinatePlane\s*\{[\s\S]*?height: 100%;[\s\S]*?aspect-ratio: 768 \/ 1664/,
+    /data-map-skin="celestial-eclipse-clocktower"\][\s\S]*?\.shooterMapCoordinatePlane\s*\{[\s\S]*?width: auto/,
   );
+  assert.equal(MAP.background.fit, "cover");
+  assert.equal(MAP.foregroundOccluder.fit, "cover");
   assert.match(
     styleSource,
     /shooterMapSkin--celestial-eclipse-clocktower[\s\S]*?\.enemy\.shooterEnemy\s*\{[\s\S]*?z-index: 40 !important/,

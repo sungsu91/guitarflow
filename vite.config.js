@@ -15,7 +15,7 @@ import {
   SHOOTER_NOTE_MONSTER_ROOTS,
   SHOOTER_NOTE_MONSTER_SKINS,
 } from "./src/shooter/noteMonsterAssets.js";
-import { normalizeShooterEffectTuningStore } from "./src/shooter/effects/effectTuning.js";
+import { normalizeShooterEffectTuningStore } from "./src/shooter/effects/effectTuningNormalization.js";
 
 const MAP_LAYOUT_ENDPOINT = "/__rifflab/map-editor/layout";
 const NOTE_MONSTER_TUNING_ENDPOINT = "/__rifflab/shooter-editor/note-monster-tuning";
