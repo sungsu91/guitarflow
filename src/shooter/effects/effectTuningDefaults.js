@@ -21,7 +21,7 @@ export default Object.freeze({
   },
   "moonlight-floor": {
     "offsetX": 0,
-    "offsetY": 22,
+    "offsetY": 18,
     "opacity": 1,
     "scale": 0.7999999999999998
   },
@@ -33,7 +33,7 @@ export default Object.freeze({
   },
   "galactic-orbital-floor": {
     "offsetX": 0,
-    "offsetY": 28,
+    "offsetY": 25,
     "opacity": 1,
     "scale": 0.8499999999999999
   },
@@ -93,9 +93,9 @@ export default Object.freeze({
   },
   "aura_verdant_relic": {
     "offsetX": -3,
-    "offsetY": 5,
+    "offsetY": 9,
     "opacity": 1,
-    "scale": 0.8599999999999999
+    "scale": 0.7599999999999998
   },
   "aura_rose_quartz_echo": {
     "offsetX": -3,
@@ -168,5 +168,179 @@ export default Object.freeze({
     "offsetY": -13,
     "opacity": 1,
     "scale": 0.8999999999999999
+  },
+  "floor_sakura_echo_v2": {
+    "offsetX": 0,
+    "offsetY": -13,
+    "opacity": 1,
+    "scale": 0.7899999999999998
+  },
+  "floor_tempest_amp_v2": {
+    "offsetX": 0,
+    "offsetY": -9,
+    "opacity": 1,
+    "scale": 0.7999999999999998
+  },
+  "floor_dune_mirage_v2": {
+    "offsetX": -1,
+    "offsetY": -10,
+    "opacity": 1,
+    "scale": 0.8499999999999999
+  },
+  "floor_ink_phantom_v2": {
+    "offsetX": 0,
+    "offsetY": -18,
+    "opacity": 1,
+    "scale": 0.8499999999999999
+  },
+  "floor_prism_chorus_v2": {
+    "offsetX": 0,
+    "offsetY": -10,
+    "opacity": 1,
+    "scale": 0.8499999999999999
+  },
+  "floor_neon_wave_v2": {
+    "offsetX": 0,
+    "offsetY": -10,
+    "opacity": 1,
+    "scale": 0.8699999999999999
+  },
+  "floor_autumn_wind_v2": {
+    "offsetX": 0,
+    "offsetY": -15,
+    "opacity": 1,
+    "scale": 0.7999999999999998
+  },
+  "floor_brass_resonance_v1": {
+    "offsetX": 0,
+    "offsetY": 11,
+    "opacity": 1,
+    "scale": 0.8499999999999999
+  },
+  "floor_pearl_acoustic_v1": {
+    "offsetX": 0,
+    "offsetY": 12,
+    "opacity": 1,
+    "scale": 0.8599999999999999
+  },
+  "floor_roadcase_stage_v1": {
+    "offsetX": 0,
+    "offsetY": 20,
+    "opacity": 1,
+    "scale": 1.05
+  },
+  "floor_vinyl_groove_v1": {
+    "offsetX": 0,
+    "offsetY": 19,
+    "opacity": 1,
+    "scale": 0.8499999999999999
+  },
+  "floor_analog_session_v1": {
+    "offsetX": 0,
+    "offsetY": 18,
+    "opacity": 1,
+    "scale": 1
+  },
+  "floor_chrome_soundcheck_v1": {
+    "offsetX": 0,
+    "offsetY": 16,
+    "opacity": 1,
+    "scale": 1
+  },
+  "floor_jazz_velvet_v1": {
+    "offsetX": 0,
+    "offsetY": 14,
+    "opacity": 1,
+    "scale": 1
+  },
+  "floor_footlight_club_v1": {
+    "offsetX": 0,
+    "offsetY": 13,
+    "opacity": 1,
+    "scale": 1
+  },
+  "floor_rosette_deck_v1": {
+    "offsetX": 0,
+    "offsetY": 16,
+    "opacity": 1,
+    "scale": 1
+  },
+  "floor_studio_halo_v1": {
+    "offsetX": 0,
+    "offsetY": 11,
+    "opacity": 1,
+    "scale": 0.8499999999999999
+  },
+  "floor_tidal_pearl_v2": {
+    "offsetX": 0,
+    "offsetY": -23,
+    "opacity": 1,
+    "scale": 0.7999999999999998
+  },
+  "floor_clockwork_rhythm_v2": {
+    "offsetX": 0,
+    "offsetY": -6,
+    "opacity": 1,
+    "scale": 0.8999999999999999
+  },
+  "aura_frost_spirit_v2": {
+    "offsetX": 0,
+    "offsetY": 16,
+    "opacity": 1,
+    "scale": 1
+  },
+  "aura_tempest_amp_v2": {
+    "offsetX": 0,
+    "offsetY": 14,
+    "opacity": 1,
+    "scale": 1
+  },
+  "aura_sakura_echo_v2": {
+    "offsetX": 0,
+    "offsetY": 20,
+    "opacity": 1,
+    "scale": 1
+  },
+  "aura_dune_mirage_v2": {
+    "offsetX": 0,
+    "offsetY": 21,
+    "opacity": 1,
+    "scale": 1
+  },
+  "aura_ink_phantom_v2": {
+    "offsetX": 0,
+    "offsetY": 14,
+    "opacity": 1,
+    "scale": 1
+  },
+  "aura_prism_chorus_v2": {
+    "offsetX": -1,
+    "offsetY": 18,
+    "opacity": 1,
+    "scale": 1
+  },
+  "aura_clockwork_rhythm_v2": {
+    "offsetX": 0,
+    "offsetY": 20,
+    "opacity": 1,
+    "scale": 1
+  },
+  "aura_tidal_pearl_v2": {
+    "offsetX": 0,
+    "offsetY": 16,
+    "opacity": 1,
+    "scale": 1
+  },
+  "aura_neon_wave_v2": {
+    "offsetX": 0,
+    "offsetY": 17,
+    "opacity": 1,
+    "scale": 1
+  },
+  "aura_autumn_wind_v2": {
+    "offsetX": 0,
+    "offsetY": 17,
+    "opacity": 1,
+    "scale": 1
   }
 });
