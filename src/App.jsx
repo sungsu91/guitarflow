@@ -1,5 +1,5 @@
 ﻿import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Activity, startTransition, useSyncExternalStore } from "react";
+import { Activity, startTransition } from "react";
 import {
   AudioLines,
   ChevronLeft,
@@ -96,6 +96,7 @@ import {
   getChordFretboardSignature,
 } from "./rhythm/chordFretboardState.js";
 import {
+  clampRhythmChordMelodicEvents,
   createRhythmChordBeatTimeline,
   expandRhythmChordPlaybackSlots,
   getRhythmChordBeatLabel,
@@ -108,6 +109,10 @@ import {
   normalizeRhythmChordBeatLength,
   RHYTHM_CHORD_REST_ID,
 } from "./rhythm/chordBeatTimeline.js";
+import {
+  RHYTHM_RECOMMENDED_PROGRESSIONS,
+  createRecommendedAccompanimentPatterns,
+} from "./rhythm/recommendedProgressions.js";
 import {
   LICK_RELATION_TECHNIQUES,
   buildLickTechniqueRelations,
@@ -163,6 +168,10 @@ import {
   FRETIVA_CREATIVE_INSTRUMENT_PACK_V3,
   FRETIVA_CREATIVE_INSTRUMENT_PACK_V3_IDS,
 } from "./shooter/instruments/fretivaCreativeInstrumentPackV3.js";
+import {
+  FRETIVA_ARTISAN_INSTRUMENT_SKIN_PACK_V2,
+  FRETIVA_ARTISAN_INSTRUMENT_SKIN_PACK_V2_IDS,
+} from "./shooter/instruments/fretivaArtisanInstrumentSkinPackV2.js";
 import DesktopHorizontalBattleView, {
   DesktopHorizontalBattleControls,
 } from "./shooter/desktopHorizontal/DesktopHorizontalBattleView.jsx";
@@ -231,13 +240,6 @@ import {
   shouldMountMode,
 } from "./navigation/keepAlive";
 import {
-  beginNavigationTransition,
-  cancelNavigationTransition,
-  completeNavigationTransition,
-  getNavigationTransitionSnapshot,
-  subscribeNavigationTransition,
-} from "./navigation/transitionStore.js";
-import {
   MOBILE_LAYOUT_MEDIA_QUERY,
   getIsMobileLayout,
 } from "./layouts/mobileLayout.js";
@@ -302,6 +304,8 @@ import {
   shouldAddMiniChordExplicitSlotFallback,
   shouldSmoothMiniChordPianoCommonTone,
 } from "./mini-chord/playbackDynamics";
+import { getMiniChordRecommendedProgressions } from "./mini-chord/originalPracticeSongs.js";
+import { getMiniChordPersonalPracticeProjects } from "./mini-chord/personalPracticeProjects.js";
 import {
   MINI_CHORD_BARS_PER_PAGE,
   MINI_CHORD_MAX_BARS,
@@ -1589,6 +1593,7 @@ function getChordMetaFromLabel(label) {
   if (suffix === "dim") return { root, quality: "dim", extension: "none", displayName: `${root}dim` };
   if (suffix === "aug") return { root, quality: "aug", extension: "none", displayName: `${root}aug` };
   if (suffix === "madd9") return { root, quality: "minor", extension: "add9", displayName: `${root}madd9` };
+  if (suffix === "m7b5" || suffix === "m7♭5") return { root, quality: "minor", extension: "m7b5", displayName: `${root}m7b5` };
   if (suffix === "m9") return { root, quality: "minor", extension: "m9", displayName: `${root}m9` };
   if (suffix === "m6") return { root, quality: "minor", extension: "m6", displayName: `${root}m6` };
   if (suffix === "m7") return { root, quality: "minor", extension: "m7", displayName: `${root}m7` };
@@ -1602,6 +1607,7 @@ function getChordMetaFromLabel(label) {
   if (suffix === "sus2") return { root, quality: "major", extension: "sus2", displayName: `${root}sus2` };
   if (suffix === "sus4") return { root, quality: "major", extension: "sus4", displayName: `${root}sus4` };
   if (suffix === "6") return { root, quality: "major", extension: "6", displayName: `${root}6` };
+  if (suffix === "6/9") return { root, quality: "major", extension: "6/9", displayName: `${root}6/9` };
   if (suffix === "add9") return { root, quality: "major", extension: "add9", displayName: `${root}add9` };
   return { root, quality: "major", extension: "none", displayName: root };
 }
@@ -2154,10 +2160,12 @@ const CHORD_EXTENSION_OPTIONS = [
   { id: "7", label: "7", quality: "major" },
   { id: "maj7", label: "maj7", quality: "major" },
   { id: "m7", label: "7", quality: "minor" },
+  { id: "m7b5", label: "7♭5", quality: "minor" },
   { id: "sus2", label: "sus2", quality: "major" },
   { id: "sus4", label: "sus4", quality: "major" },
   { id: "7sus4", label: "7sus4", quality: "major" },
   { id: "6", label: "6", quality: "major" },
+  { id: "6/9", label: "6/9", quality: "major" },
   { id: "m6", label: "6", quality: "minor" },
   { id: "add9", label: "add9", quality: ["major", "minor"] },
   { id: "9", label: "9", quality: "major" },
@@ -2204,6 +2212,7 @@ function getChordNameFromParts(baseRoot, accidental, quality, extension) {
   if (quality === "aug") return `${root}aug`;
   if (quality === "minor") {
     if (extension === "m7") return `${root}m7`;
+    if (extension === "m7b5") return `${root}m7b5`;
     if (extension === "m6") return `${root}m6`;
     if (extension === "m9") return `${root}m9`;
     if (extension === "add9") return `${root}madd9`;
@@ -2217,6 +2226,7 @@ function getChordNameFromParts(baseRoot, accidental, quality, extension) {
   if (extension === "sus4") return `${root}sus4`;
   if (extension === "7sus4") return `${root}7sus4`;
   if (extension === "6") return `${root}6`;
+  if (extension === "6/9") return `${root}6/9`;
   if (extension === "add9") return `${root}add9`;
   return root;
 }
@@ -3254,6 +3264,8 @@ const STAGE3_DEFAULT_BACKING_SETTINGS = GLOBAL_DEFAULT_BACKING_SETTINGS;
 function makeStage3LibraryItem({
   id,
   title,
+  description = "",
+  key = "C",
   chordIds,
   locked = false,
   bpm = DEFAULT_BPM,
@@ -3269,6 +3281,14 @@ function makeStage3LibraryItem({
   strumSlots,
   selectedStrumSlot = 0,
   memo = "",
+  drumPreset = null,
+  bassPreset = null,
+  pianoPreset = null,
+  loopLength = null,
+  intro = false,
+  loop = true,
+  ending = false,
+  recommendedAccompaniment = null,
 }) {
   const safeChordIds = Array.isArray(chordIds)
     ? chordIds.filter(isStage3ChordEntryValid).map(normalizeStage3ChordEntry)
@@ -3283,13 +3303,21 @@ function makeStage3LibraryItem({
   return {
     id: String(id || `slot-${Date.now()}`),
     title: safeTitle,
+    displayName: safeTitle,
+    description: String(description || ""),
+    key: String(key || "C"),
     label: `${safeTitle} — ${progression}`,
     chord_progression: progression,
+    progression: safeChordIds.map((entry) => ({
+      chord: getChordEntryLabel(entry, CHORD_VIEW_OPTION_BY_ID.get(getChordEntryId(entry))),
+      beats: getChordEntryBeatLength(entry),
+    })),
     chordIds: safeChordIds,
     chords: safeChordIds,
     capo: Number.isFinite(Number(capo)) ? Math.max(0, Math.min(12, Number(capo))) : 0,
     bpm: clampBpm(bpm),
     time_signature: timeSignature,
+    timeSignature,
     subdivision,
     sound,
     accent_tone: getMetronomeToneOption(accentTone).id,
@@ -3301,6 +3329,16 @@ function makeStage3LibraryItem({
     selectedStrumSlot: safeSelectedStrumSlot,
     memo: String(memo || ""),
     locked: Boolean(locked),
+    drumPreset,
+    bassPreset,
+    pianoPreset,
+    loopLength,
+    intro: Boolean(intro),
+    loop: loop !== false,
+    ending: Boolean(ending),
+    recommendedAccompaniment: String(id || "").startsWith("recommended-")
+      ? recommendedAccompaniment
+      : null,
   };
 }
 
@@ -3509,8 +3547,13 @@ const BACKING_SAMPLE_SOURCES = {
   piano: "/sounds/gpg4.wav",
   kick: "/sounds/kick.wav",
   snare: "/sounds/snare.wav",
+  rim: "/sounds/rim.wav",
   hihat: "/sounds/closed hihat.wav",
+  openHihat: "/sounds/openhihat.wav",
+  tambourine: "/sounds/tambourine.wav",
+  clap: "/sounds/clap.wav",
   shaker: "/sounds/shaker.wav",
+  crash: "/sounds/ride.wav",
   bass_a: "/sounds/bass_a.wav",
   bass_b: "/sounds/bass_b.wav",
   bass_c: "/sounds/bass_c.wav",
@@ -3640,20 +3683,31 @@ const MINI_CHORD_PIANO_BEAT_OPTIONS = [
 const MINI_CHORD_DRUM_INSTRUMENTS = [
   { id: "kick", label: "Kick", name: "Kick", sample: "kick", volume: 0.98 },
   { id: "snare", label: "Snare", name: "Snare", sample: "snare", volume: 0.84 },
+  { id: "clap", label: "Clap", name: "Clap", sample: "clap", volume: 0.52 },
+  { id: "rim", label: "Rim", name: "Rimshot", sample: "rim", volume: 0.5 },
   { id: "closedHat", label: "Hat", name: "Closed Hat", sample: "hihat", volume: 0.13 },
+  { id: "openHat", label: "Open", name: "Open Hat", sample: "openHihat", volume: 0.12 },
+  { id: "tambourine", label: "Tamb", name: "Tambourine", sample: "tambourine", volume: 0.11 },
   { id: "shaker", label: "Shaker", name: "Shaker", sample: "shaker", volume: 0.1 },
+  { id: "crash", label: "Crash", name: "Crash", sample: "crash", volume: 0.38 },
 ];
 const MINI_CHORD_BASS_STEP_VALUES = [
   { id: "rest", label: "-", ariaLabel: "쉼" },
   { id: "root", label: "R", ariaLabel: "루트" },
+  { id: "hold", label: "H", ariaLabel: "음 유지" },
   { id: "third", label: "3", ariaLabel: "3도" },
   { id: "fifth", label: "5", ariaLabel: "5도" },
   { id: "octave", label: "8", ariaLabel: "옥타브" },
+  { id: "flatSeventh", label: "b7", ariaLabel: "플랫 7도" },
+  { id: "seventh", label: "7", ariaLabel: "7도" },
+  { id: "flatFifth", label: "b5", ariaLabel: "플랫 5도" },
+  { id: "approach", label: "A", ariaLabel: "다음 코드 접근음" },
 ];
 const MINI_CHORD_BASS_STEP_VALUE_IDS = new Set(MINI_CHORD_BASS_STEP_VALUES.map((option) => option.id));
 const MINI_CHORD_PIANO_STEP_STYLES = [
   { id: "chord", label: "Chord" },
   { id: "stab", label: "Stab" },
+  { id: "hold", label: "Hold" },
   { id: "arpUp", label: "Arp up", displayLabel: "Arp ↑" },
   { id: "arpDown", label: "Arp down", displayLabel: "Arp ↓" },
 ];
@@ -3833,51 +3887,77 @@ function createMiniChordPianoPresetPattern(patternId = "basic") {
 function normalizeMiniChordDrumPattern(value = null) {
   const fallback = createMiniChordDrumPresetPattern("8beat");
   const sourceSteps = value?.steps && typeof value.steps === "object" ? value.steps : {};
-  return {
+  const normalizeSteps = (steps = sourceSteps) => Object.fromEntries(MINI_CHORD_DRUM_INSTRUMENTS.map((instrument) => {
+    const rawSteps = Array.isArray(steps?.[instrument.id]) ? steps[instrument.id] : fallback.steps[instrument.id];
+    return [
+      instrument.id,
+      Array.from({ length: MINI_CHORD_GROOVE_STEPS }, (_, index) => Boolean(rawSteps?.[index])),
+    ];
+  }));
+  const normalized = {
     type: "drum",
     version: 1,
     presetId: String(value?.presetId || fallback.presetId),
-    steps: Object.fromEntries(MINI_CHORD_DRUM_INSTRUMENTS.map((instrument) => {
-      const rawSteps = Array.isArray(sourceSteps[instrument.id]) ? sourceSteps[instrument.id] : fallback.steps[instrument.id];
-      return [
-        instrument.id,
-        Array.from({ length: MINI_CHORD_GROOVE_STEPS }, (_, index) => Boolean(rawSteps?.[index])),
-      ];
-    })),
+    displayName: String(value?.displayName || ""),
+    level: Math.max(0.2, Math.min(1.2, Number(value?.level) || 1)),
+    swing: Math.max(0, Math.min(0.75, Number(value?.swing) || 0)),
+    steps: normalizeSteps(sourceSteps),
   };
+  if (Array.isArray(value?.barSteps) && value.barSteps.length) {
+    normalized.barSteps = value.barSteps.map((steps) => normalizeSteps(steps));
+  }
+  return normalized;
 }
 
 function normalizeMiniChordBassPattern(value = null) {
   const fallback = createMiniChordBassPresetPattern("basic");
   const rawSteps = Array.isArray(value?.steps) ? value.steps : fallback.steps;
-  return {
+  const normalizeSteps = (steps = rawSteps) => Array.from({ length: MINI_CHORD_GROOVE_STEPS }, (_, index) => {
+    const step = String(steps?.[index] || "rest");
+    return MINI_CHORD_BASS_STEP_VALUE_IDS.has(step) ? step : "rest";
+  });
+  const normalized = {
     type: "bass",
     version: 1,
     presetId: String(value?.presetId || fallback.presetId),
-    steps: Array.from({ length: MINI_CHORD_GROOVE_STEPS }, (_, index) => {
-      const step = String(rawSteps?.[index] || "rest");
-      return MINI_CHORD_BASS_STEP_VALUE_IDS.has(step) ? step : "rest";
-    }),
+    displayName: String(value?.displayName || ""),
+    level: Math.max(0.2, Math.min(1.2, Number(value?.level) || 1)),
+    swing: Math.max(0, Math.min(0.75, Number(value?.swing) || 0)),
+    steps: normalizeSteps(rawSteps),
   };
+  if (Array.isArray(value?.barSteps) && value.barSteps.length) {
+    normalized.barSteps = value.barSteps.map((steps) => normalizeSteps(steps));
+  }
+  return normalized;
 }
 
 function normalizeMiniChordPianoPattern(value = null) {
   const fallback = createMiniChordPianoPresetPattern("basic");
   const rawSteps = Array.isArray(value?.steps) ? value.steps : fallback.steps;
-  return {
+  const normalizeSteps = (steps = rawSteps) => Array.from({ length: MINI_CHORD_GROOVE_STEPS }, (_, index) => {
+    const rawStep = steps?.[index];
+    const active = Boolean(rawStep?.active ?? rawStep);
+    const style = String(rawStep?.style || "chord");
+    return {
+      active,
+      durationSteps: Math.max(1, Math.min(MINI_CHORD_GROOVE_STEPS, Math.round(Number(rawStep?.durationSteps) || 1))),
+      style: MINI_CHORD_PIANO_STEP_STYLE_IDS.has(style) ? style : "chord",
+    };
+  });
+  const normalized = {
     type: "piano",
     version: 1,
     presetId: String(value?.presetId || fallback.presetId),
-    steps: Array.from({ length: MINI_CHORD_GROOVE_STEPS }, (_, index) => {
-      const rawStep = rawSteps?.[index];
-      const active = Boolean(rawStep?.active ?? rawStep);
-      const style = String(rawStep?.style || "chord");
-      return {
-        active,
-        style: MINI_CHORD_PIANO_STEP_STYLE_IDS.has(style) ? style : "chord",
-      };
-    }),
+    displayName: String(value?.displayName || ""),
+    level: Math.max(0.2, Math.min(1.2, Number(value?.level) || 1)),
+    voicing: value?.voicing === "guideTones" ? "guideTones" : "full",
+    swing: Math.max(0, Math.min(0.75, Number(value?.swing) || 0)),
+    steps: normalizeSteps(rawSteps),
   };
+  if (Array.isArray(value?.barSteps) && value.barSteps.length) {
+    normalized.barSteps = value.barSteps.map((steps) => normalizeSteps(steps));
+  }
+  return normalized;
 }
 
 function createDefaultMiniChordCustomPatterns() {
@@ -4170,6 +4250,7 @@ function normalizeMiniChordArrangementOverride(value = {}, barCount = 4, pattern
     endBar,
     sectionType,
     sectionName,
+    showSectionLabel: value.showSectionLabel !== false,
     patternId: requestedPatternId || matchedPattern?.id || "",
     patternName: patternNameAuto ? automaticPatternName : resolvedPatternName,
     patternNameAuto,
@@ -4447,6 +4528,20 @@ const getBackingPianoVoicing = (chord) => {
   ];
 };
 
+const getBackingPianoGuideToneVoicing = (chord) => {
+  const rootPitch = getBackingRootPitch(chord);
+  const tones = getChordToneDescriptors(
+    rootPitch.pitchClass,
+    chord?.quality ?? "major",
+    chord?.extension ?? "none",
+  ).filter(({ degreeOffset }) => degreeOffset === 2 || degreeOffset === 4 || degreeOffset === 6);
+  if (tones.length < 2) return getBackingPianoVoicing(chord).slice(-3);
+  let voicing = tones.slice(0, 3).map(({ interval }) => 60 + rootPitch.pitchIndex + interval);
+  while (Math.max(...voicing) > 79) voicing = voicing.map((midi) => midi - 12);
+  while (Math.min(...voicing) < 55) voicing = voicing.map((midi) => midi + 12);
+  return voicing;
+};
+
 const MINI_CHORD_SMOOTH_BACKING = {
   pianoSlotOverlapRatio: 1.04,
   pianoReleaseSeconds: 0.19,
@@ -4486,14 +4581,47 @@ const getBackingStepLogLabel = (beatInBar, offsetSeconds, sixteenthOffset) => {
   return `${beatInBar + 1}${["", "e", "&", "a"][unit] ?? ""}`;
 };
 
-const getMiniChordBassIntervalRate = (chord, stepValue) => {
+const getMiniChordBassIntervalRate = (chord, stepValue, nextChord = null) => {
   const root = getBackingRootLetter(chord);
   const tones = getChordToneDescriptors(root, chord?.quality ?? "major", chord?.extension ?? "none");
   const toneByDegree = new Map(tones.map((descriptor) => [descriptor.degreeOffset, descriptor.interval]));
   if (stepValue === "third") return 2 ** ((toneByDegree.get(2) ?? 4) / 12);
   if (stepValue === "fifth") return 2 ** ((toneByDegree.get(4) ?? 7) / 12);
   if (stepValue === "octave") return 2;
+  if (stepValue === "flatSeventh") return 2 ** (10 / 12);
+  if (stepValue === "seventh") return 2 ** ((toneByDegree.get(6) ?? 11) / 12);
+  if (stepValue === "flatFifth") return 2 ** (6 / 12);
+  if (stepValue === "approach" && nextChord && !nextChord.isRest) {
+    const currentPitchIndex = getBackingRootPitch(chord).pitchIndex;
+    const nextPitchIndex = getBackingRootPitch(nextChord).pitchIndex;
+    const targetPitchIndex = (nextPitchIndex + 11) % 12;
+    let semitoneDistance = (targetPitchIndex - currentPitchIndex + 12) % 12;
+    if (semitoneDistance > 6) semitoneDistance -= 12;
+    return 2 ** (semitoneDistance / 12);
+  }
   return 1;
+};
+
+const getMiniChordPatternStepsForBar = (pattern, barIndex = 0) => {
+  const bars = Array.isArray(pattern?.barSteps) ? pattern.barSteps : [];
+  if (!bars.length) return pattern?.steps;
+  const safeIndex = ((Math.floor(Number(barIndex) || 0) % bars.length) + bars.length) % bars.length;
+  return bars[safeIndex] ?? pattern?.steps;
+};
+
+const getMiniChordBassHeldStepCount = (steps = [], stepIndex = 0) => {
+  let heldSteps = 0;
+  for (let index = stepIndex + 1; index < steps.length && steps[index] === "hold"; index += 1) {
+    heldSteps += 1;
+  }
+  return heldSteps;
+};
+
+const getMiniChordGrooveStepOffset = (stepIndex, rangeStart, stepSeconds, swing = 0) => {
+  const baseOffset = (stepIndex - rangeStart) * stepSeconds;
+  const safeSwing = Math.max(0, Math.min(0.75, Number(swing) || 0));
+  if (safeSwing <= 0.5 || stepIndex % 4 !== 2) return baseOffset;
+  return baseOffset + (safeSwing - 0.5) * stepSeconds * 4;
 };
 
 const getMiniChordCustomStepRange = (
@@ -4533,7 +4661,7 @@ const getMiniChordGrooveStepAccent = (stepIndex) => {
 };
 
 const getMiniChordDrumStepPlaybackRate = (instrumentId, stepIndex) => {
-  if (instrumentId !== "closedHat" && instrumentId !== "shaker") return 1;
+  if (!["closedHat", "openHat", "shaker", "tambourine"].includes(instrumentId)) return 1;
   const offsets = [-0.012, 0.004, -0.006, 0.01, -0.004, 0.007, -0.01, 0.003];
   return 1 + (offsets[stepIndex % offsets.length] ?? 0);
 };
@@ -4678,9 +4806,9 @@ const createBackingTimelineEvents = ({
       bassPattern,
       pianoPattern,
       backingPianoStyle,
-      customDrumPattern,
-      customBassPattern,
-      customPianoPattern,
+      customDrumPattern: resolvedCustomDrumPattern,
+      customBassPattern: resolvedCustomBassPattern,
+      customPianoPattern: resolvedCustomPianoPattern,
     } = getResolvedBackingArrangementForChord(chord, {
       rhythmPattern: defaultDrumPattern,
       bassBeat: defaultBassPattern,
@@ -4690,6 +4818,18 @@ const createBackingTimelineEvents = ({
       resolvedPatterns,
       presetPatternSources,
     });
+    const playbackBarIndex = Number.isInteger(chord?.miniChordBarIndex)
+      ? chord.miniChordBarIndex
+      : Math.floor(chordIndex / Math.max(1, playbackSlotsPerMeasure));
+    const customDrumPattern = resolvedCustomDrumPattern
+      ? { ...resolvedCustomDrumPattern, steps: getMiniChordPatternStepsForBar(resolvedCustomDrumPattern, playbackBarIndex) }
+      : null;
+    const customBassPattern = resolvedCustomBassPattern
+      ? { ...resolvedCustomBassPattern, steps: getMiniChordPatternStepsForBar(resolvedCustomBassPattern, playbackBarIndex) }
+      : null;
+    const customPianoPattern = resolvedCustomPianoPattern
+      ? { ...resolvedCustomPianoPattern, steps: getMiniChordPatternStepsForBar(resolvedCustomPianoPattern, playbackBarIndex) }
+      : null;
     const customStepRange = getMiniChordCustomStepRange(
       chord,
       measureSeconds,
@@ -4703,6 +4843,17 @@ const createBackingTimelineEvents = ({
           stepSeconds: (measureSeconds * playbackSlotsPerMeasure) / MINI_CHORD_GROOVE_STEPS,
         }
       : customStepRange;
+    const nextExplicitChordOffset = isMiniChordTimeline
+      ? scheduledProgression.slice(chordIndex + 1).findIndex((candidate) => (
+          candidate?.miniChordSlotHasExplicitChord
+        ))
+      : -1;
+    const melodicBoundarySeconds = isMiniChordTimeline
+      ? nextExplicitChordOffset >= 0
+        ? (nextExplicitChordOffset + 1) * playbackStepSeconds
+        : Math.max(playbackStepSeconds, cycleSeconds - measureOffset)
+      : playbackStepSeconds;
+    const shouldClampMelodicBoundary = isMiniChordTimeline || isSectionBoundaryAfterSlot;
 
     if (customDrumPattern && scheduleDrumsForChord) {
       MINI_CHORD_DRUM_INSTRUMENTS.forEach((instrument) => {
@@ -4710,7 +4861,12 @@ const createBackingTimelineEvents = ({
         instrumentSteps.forEach((active, stepIndex) => {
           if (stepIndex < drumStepRange.start || stepIndex >= drumStepRange.end) return;
           if (!active) return;
-          const stepOffset = (stepIndex - drumStepRange.start) * drumStepRange.stepSeconds;
+          const stepOffset = getMiniChordGrooveStepOffset(
+            stepIndex,
+            drumStepRange.start,
+            drumStepRange.stepSeconds,
+            customDrumPattern.swing,
+          );
           const isDownbeat = stepIndex === 0;
           const isKick = instrument.sample === "kick";
           const drumDuration = isKick ? 0.18 : null;
@@ -4722,7 +4878,7 @@ const createBackingTimelineEvents = ({
             measureOffset + stepOffset,
             "drum",
             instrument.sample,
-            instrument.volume * accent,
+            instrument.volume * accent * customDrumPattern.level,
             getMiniChordDrumStepPlaybackRate(instrument.id, stepIndex),
             drumDuration,
             stepIndex,
@@ -4803,24 +4959,45 @@ const createBackingTimelineEvents = ({
         const previousVoicing = previousChord && !previousChord.isRest
           ? new Set(getBackingPianoVoicing(previousChord))
           : null;
+        const getCustomPianoVoicing = () => customPianoPattern?.voicing === "guideTones"
+          ? getBackingPianoGuideToneVoicing(chord)
+          : getBackingPianoVoicing(chord);
+        const nextApproachChord = scheduledProgression.slice(chordIndex + 1).find((candidate) => (
+          !candidate?.isRest
+          && (isMiniChordTimeline
+            ? candidate?.miniChordSlotHasExplicitChord
+            : candidate?.rhythmChordIndex !== chord?.rhythmChordIndex)
+        )) ?? scheduledProgression.find((candidate) => !candidate?.isRest);
 
         customBassPattern?.steps?.forEach((stepValue, stepIndex) => {
           if (stepIndex < customStepRange.start || stepIndex >= customStepRange.end) return;
-          if (stepValue === "rest") return;
-          const stepOffset = (stepIndex - customStepRange.start) * grooveStepSeconds;
+          if (stepValue === "rest" || stepValue === "hold") return;
+          const stepOffset = getMiniChordGrooveStepOffset(
+            stepIndex,
+            customStepRange.start,
+            grooveStepSeconds,
+            customBassPattern.swing,
+          );
+          const heldStepCount = getMiniChordBassHeldStepCount(customBassPattern.steps, stepIndex);
           const bassDuration = getMiniChordBoundarySafeDuration({
-            duration: Math.max(0.07, Math.min(0.2, grooveStepSeconds * 1.35)),
+            duration: heldStepCount
+              ? grooveStepSeconds * (heldStepCount + 1) * 0.96
+              : Math.max(0.07, Math.min(0.2, grooveStepSeconds * 1.35)),
             eventOffset: stepOffset,
-            isSectionBoundary: isSectionBoundaryAfterSlot,
-            slotDuration: playbackStepSeconds,
+            isSectionBoundary: shouldClampMelodicBoundary,
+            slotDuration: melodicBoundarySeconds,
           });
           const debugLog = `[BASS] pattern=custom step=${MINI_CHORD_GROOVE_STEP_LABELS[stepIndex] ?? stepIndex} note=${rootLetter}/${stepValue}`;
           addEvent(
             measureOffset + stepOffset,
             "bass",
             `bass_${bassSampleRoot}`,
-            stepIndex === 0 ? 0.8 : 0.58,
-            rootPitch.playbackRate * getMiniChordBassIntervalRate(chord, stepValue),
+            (stepIndex === 0 ? 0.8 : 0.58) * customBassPattern.level,
+            rootPitch.playbackRate * getMiniChordBassIntervalRate(
+              chord,
+              stepValue,
+              nextApproachChord,
+            ),
             bassDuration,
             stepIndex,
             chordIndex,
@@ -4856,8 +5033,8 @@ const createBackingTimelineEvents = ({
                 stepSeconds: grooveStepSeconds,
               }),
               eventOffset: 0,
-              isSectionBoundary: isSectionBoundaryAfterSlot,
-              slotDuration: playbackStepSeconds,
+              isSectionBoundary: shouldClampMelodicBoundary,
+              slotDuration: melodicBoundarySeconds,
             }),
             customStepRange.start,
             chordIndex,
@@ -4875,8 +5052,13 @@ const createBackingTimelineEvents = ({
         customPianoPattern?.steps?.forEach((step, stepIndex) => {
           if (stepIndex < customStepRange.start || stepIndex >= customStepRange.end) return;
           if (!step?.active) return;
-          const voicing = getBackingPianoVoicing(chord);
-          const stepOffset = (stepIndex - customStepRange.start) * grooveStepSeconds;
+          const voicing = getCustomPianoVoicing();
+          const stepOffset = getMiniChordGrooveStepOffset(
+            stepIndex,
+            customStepRange.start,
+            grooveStepSeconds,
+            customPianoPattern.swing,
+          );
           const style = step.style || "chord";
           const isArp = style === "arpUp" || style === "arpDown";
           const notes = isArp
@@ -4884,21 +5066,25 @@ const createBackingTimelineEvents = ({
             : voicing;
           const arpSpacing = Math.max(0.018, Math.min(0.055, grooveStepSeconds * 0.22));
           const pianoStepProfile = getMiniChordPianoStepProfile({
-            measureSeconds,
+            measureSeconds: style === "hold" && isRhythmChordTimeline
+              ? rhythmChordRemainingBeats * beatSeconds
+              : measureSeconds,
             overlapRatio: MINI_CHORD_SMOOTH_BACKING.pianoSlotOverlapRatio,
             pattern: pianoPattern,
             stepSeconds: grooveStepSeconds,
             style,
           });
-          const basePianoDuration = pianoStepProfile.duration;
-          const pianoLevel = pianoStepProfile.level;
+          const basePianoDuration = step.durationSteps > 1
+            ? grooveStepSeconds * step.durationSteps * 0.98
+            : pianoStepProfile.duration;
+          const pianoLevel = pianoStepProfile.level * customPianoPattern.level;
           notes.forEach((midi, index) => {
             const noteOffset = stepOffset + (isArp ? index * arpSpacing : index * 0.004);
             const pianoDuration = getMiniChordBoundarySafeDuration({
               duration: basePianoDuration,
               eventOffset: noteOffset,
-              isSectionBoundary: isSectionBoundaryAfterSlot,
-              slotDuration: playbackStepSeconds,
+              isSectionBoundary: shouldClampMelodicBoundary,
+              slotDuration: melodicBoundarySeconds,
             });
             const isCommonTone = Boolean(
               smoothTransitions
@@ -4938,7 +5124,7 @@ const createBackingTimelineEvents = ({
           steps: customPianoPattern.steps,
         })) {
           const fallbackPianoLevel = getMiniChordPianoPatternLevel("basic");
-          getBackingPianoVoicing(chord).forEach((midi, index) => {
+          getCustomPianoVoicing().forEach((midi, index) => {
             const isCommonTone = Boolean(smoothTransitions && previousVoicing?.has(midi));
             addEvent(
               measureOffset + index * 0.004,
@@ -4957,8 +5143,8 @@ const createBackingTimelineEvents = ({
                   stepSeconds: grooveStepSeconds,
                 }),
                 eventOffset: index * 0.004,
-                isSectionBoundary: isSectionBoundaryAfterSlot,
-                slotDuration: playbackStepSeconds,
+                isSectionBoundary: shouldClampMelodicBoundary,
+                slotDuration: melodicBoundarySeconds,
               }),
               customStepRange.start,
               chordIndex,
@@ -5111,7 +5297,11 @@ const createBackingTimelineEvents = ({
     : events;
   const compiledEvents = (isRhythmChordTimeline
     ? muteRhythmChordRestEvents(
-        cycleBoundedEvents,
+        clampRhythmChordMelodicEvents(
+          cycleBoundedEvents,
+          rhythmChordPlayback.timeline,
+          beatSeconds,
+        ),
         rhythmChordPlayback.timeline,
         beatSeconds,
       )
@@ -5630,7 +5820,9 @@ function MetronomeSelectControl({
     const trigger = controlRef.current.querySelector(".metronomeSelectButton");
     const rect = (trigger || controlRef.current).getBoundingClientRect();
     const rows = layout === "grid" ? Math.ceil(gridOptions.length / 2) : gridOptions.length;
-    const estimatedMenuHeight = Math.min(280, 14 + rows * 36 + (hasSelectionTools ? 40 : 0));
+    const hasOptionDescriptions = gridOptions.some((option) => option.description);
+    const optionRowHeight = hasOptionDescriptions ? 54 : 36;
+    const estimatedMenuHeight = Math.min(360, 14 + rows * optionRowHeight + (hasSelectionTools ? 40 : 0));
     const viewportPadding = 12;
     const menuGap = 6;
     const visualViewport = window.visualViewport;
@@ -5670,10 +5862,10 @@ function MetronomeSelectControl({
     const managedMenuWidth = managedListMode
       ? Math.min(340, viewportWidth - viewportPadding * 2)
       : 0;
-    const desiredWidth = matchTriggerWidth
+    const desiredWidth = matchTriggerWidth && !hasOptionDescriptions
       ? Math.min(rect.width, viewportWidth - viewportPadding * 2)
       : Math.min(
-          Math.max(minContentWidth, contentWidth, wideToneMenuWidth, managedMenuWidth, rect.width),
+          Math.max(minContentWidth, contentWidth, wideToneMenuWidth, managedMenuWidth, hasOptionDescriptions ? 286 : 0, rect.width),
           viewportWidth - viewportPadding * 2,
         );
     const left = Math.max(viewportPadding, Math.min(rect.left, viewportWidth - desiredWidth - viewportPadding));
@@ -5907,6 +6099,9 @@ function MetronomeSelectControl({
                   {!managedListMode && !hasSelectionControl && canDelete ? <span aria-hidden="true" className="metronomeSelectOptionIndicator" /> : null}
                   <span className="metronomeSelectOptionText">
                     {renderMetronomeOptionLabel(option, option.id)}
+                    {option.description ? (
+                      <small className="metronomeSelectOptionDescription">{option.description}</small>
+                    ) : null}
                   </span>
                 </button>
               );
@@ -5952,7 +6147,6 @@ function MetronomeSelectControl({
                         y: event.clientY,
                       };
                       setSwipeDrag({ id: optionId, offset: baseOffset });
-                      event.currentTarget.setPointerCapture?.(event.pointerId);
                     }}
                     onPointerMove={(event) => {
                       const gesture = optionSwipeRef.current;
@@ -5966,6 +6160,7 @@ function MetronomeSelectControl({
                           return;
                         }
                         gesture.horizontal = true;
+                        event.currentTarget.setPointerCapture?.(event.pointerId);
                       }
                       event.preventDefault();
                       const nextOffset = Math.max(-78, Math.min(0, gesture.baseOffset + deltaX));
@@ -7526,6 +7721,18 @@ const GUITAR_LAB_VARIANTS = [
     undefined,
     skin.instrumentSkinPack,
   ]),
+  ...FRETIVA_ARTISAN_INSTRUMENT_SKIN_PACK_V2.map((skin) => [
+    skin.id,
+    skin.pack,
+    skin.title,
+    skin.description,
+    "#18191d",
+    "#d9aa55",
+    "image-fretiva-artisan-instrument-v2",
+    skin.assetSrc,
+    undefined,
+    skin.instrumentSkinPack,
+  ]),
 ].map(([id, pack, model, description, bodyColor, accentColor, shape, assetSrc, projectileAssetSrc, instrumentSkinPack], index) => ({
   id,
   pack,
@@ -7666,6 +7873,14 @@ const SHOOTER_PLAYER_GUITAR_GEOMETRY_BY_VARIANT_ID = {
       muzzleHeightScale: skin.muzzleHeightScale,
     },
   ])),
+  ...Object.fromEntries(FRETIVA_ARTISAN_INSTRUMENT_SKIN_PACK_V2.map((skin) => [
+    skin.id,
+    {
+      collisionAspectRatio: skin.collisionAspectRatio,
+      collisionHeight: SHOOTER_TRACE_GUITAR_LEGACY_COLLISION_HEIGHT,
+      muzzleHeightScale: skin.muzzleHeightScale,
+    },
+  ])),
 };
 const SHOOTER_PLAYER_GUITAR_VARIANT_IDS = [
   SHOOTER_TRACE_GUITAR_VARIANT_ID,
@@ -7687,6 +7902,7 @@ const SHOOTER_PLAYER_GUITAR_VARIANT_IDS = [
   ...FRETIVA_INSTRUMENT_SKIN_IDS,
   ...FRETIVA_GUITAR_ADDON_V2_IDS,
   ...FRETIVA_CREATIVE_INSTRUMENT_PACK_V3_IDS,
+  ...FRETIVA_ARTISAN_INSTRUMENT_SKIN_PACK_V2_IDS,
 ];
 const SHOOTER_GUITAR_CATEGORIES = {
   ACOUSTIC: "acoustic",
@@ -7749,6 +7965,9 @@ function scheduleShooterScrollHint(scrollArea, axis) {
 
 function ShooterSkinTabController({ children }) {
   const [shooterSkinTab, setShooterSkinTab] = useState(SHOOTER_SKIN_TABS[0].id);
+  const [shooterGuitarCategoryId, setShooterGuitarCategoryId] = useState(
+    SHOOTER_GUITAR_CATEGORIES.ACOUSTIC,
+  );
   const verticalScrollAreaRef = useRef(null);
   const registerVerticalScrollArea = useCallback((node) => {
     verticalScrollAreaRef.current = node;
@@ -7771,11 +7990,13 @@ function ShooterSkinTabController({ children }) {
     updateShooterScrollHint(scrollArea, "vertical");
     const frame = window.requestAnimationFrame(() => updateShooterScrollHint(scrollArea, "vertical"));
     return () => window.cancelAnimationFrame(frame);
-  }, [shooterSkinTab]);
+  }, [shooterGuitarCategoryId, shooterSkinTab]);
 
   return children({
     shooterSkinTab,
     setShooterSkinTab,
+    shooterGuitarCategoryId,
+    setShooterGuitarCategoryId,
     registerVerticalScrollArea,
     registerHorizontalScrollArea,
     handleVerticalScroll,
@@ -8666,6 +8887,7 @@ const SHOOTER_GUITAR_CATEGORY_BY_VARIANT_ID = {
   ...Object.fromEntries(FRETIVA_INSTRUMENT_SKIN_PACK_V1.map((skin) => [skin.id, skin.category])),
   ...Object.fromEntries(FRETIVA_GUITAR_ADDON_V2.map((skin) => [skin.id, skin.category])),
   ...Object.fromEntries(FRETIVA_CREATIVE_INSTRUMENT_PACK_V3.map((skin) => [skin.id, skin.category])),
+  ...Object.fromEntries(FRETIVA_ARTISAN_INSTRUMENT_SKIN_PACK_V2.map((skin) => [skin.id, skin.category])),
 };
 const FRESH_GUITAR_VARIANT_IDS = new Set([
   ...SHOOTER_PLAYER_GUITAR_VARIANT_IDS,
@@ -9353,6 +9575,8 @@ function MiniChordLoadDialog({
   selectedId,
   selectedIds,
 }) {
+  const [activeTab, setActiveTab] = useState("recommended");
+
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
@@ -9365,11 +9589,71 @@ function MiniChordLoadDialog({
   }, [confirmDeleteOpen, onCancelDelete, onClose]);
 
   if (typeof document === "undefined") return null;
-  const selectedItem = items.find((item) => item.id === selectedId);
+  const recommendedProgressions = items.filter((item) => item.libraryType === "recommended-progression");
+  const userItems = items.filter((item) => item.libraryType !== "recommended-progression");
+  const activeItems = activeTab === "recommended" ? recommendedProgressions : userItems;
+  const selectedItem = activeItems.find((item) => item.id === selectedId);
   const selectedItems = editMode
-    ? items.filter((item) => selectedIds.includes(item.id))
+    ? activeItems.filter((item) => selectedIds.includes(item.id))
     : selectedItem ? [selectedItem] : [];
   const selectedCount = selectedItems.length;
+  const selectedItemsDeletable = selectedItems.length > 0 && selectedItems.every((item) => !item.builtIn);
+  const selectLibraryTab = (nextTab) => {
+    if (nextTab === activeTab) return;
+    setActiveTab(nextTab);
+    onSelect("");
+    if (editMode) onToggleEditMode();
+  };
+  const handleLibraryTabKeyDown = (event) => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    const nextTab = activeTab === "recommended" ? "saved" : "recommended";
+    selectLibraryTab(nextTab);
+    window.requestAnimationFrame(() => {
+      document.getElementById(`mini-chord-${nextTab}-tab`)?.focus();
+    });
+  };
+  const renderLibraryItem = (item) => {
+    const chordSummary = item.slots
+      .map(getMiniChordSlotDisplayLabel)
+      .filter(Boolean)
+      .join(" · ");
+    const itemSummary = item.description || chordSummary || "빈 코드";
+    if (editMode && !item.builtIn) {
+      return (
+        <label className="backingLoopLibraryEditItem miniChordLoadLibraryEditItem" key={item.id}>
+          <input
+            aria-label={`${item.title} 선택`}
+            checked={selectedIds.includes(item.id)}
+            onChange={() => onToggleSelected(item.id)}
+            type="checkbox"
+          />
+          <span className="miniChordLoadDialogItemText">
+            <b title={item.title}>{item.title}</b>
+            <em title={itemSummary}>{itemSummary}</em>
+          </span>
+          <small>{item.key ? `${item.key} · ` : ""}{item.barCount}마디 · {item.bpm} BPM{item.difficulty ? ` · ${item.difficulty}` : ""}</small>
+        </label>
+      );
+    }
+    return (
+      <button
+        aria-label={`${item.title} 선택`}
+        aria-pressed={item.id === selectedId}
+        className={item.id === selectedId ? "selected" : ""}
+        disabled={editMode}
+        key={item.id}
+        onClick={() => onSelect(item.id)}
+        type="button"
+      >
+        <span className="miniChordLoadDialogItemText">
+          <b title={item.title}>{item.title}</b>
+          <em title={itemSummary}>{itemSummary}</em>
+        </span>
+        <small>{item.key ? `${item.key} · ` : ""}{item.barCount}마디 · {item.bpm} BPM{item.difficulty ? ` · ${item.difficulty}` : ""}</small>
+      </button>
+    );
+  };
 
   return createPortal(
     <div
@@ -9403,75 +9687,101 @@ function MiniChordLoadDialog({
           <section className="backingLoopDialog backingLoopLoadDialog miniChordLoadDialog">
             <div className="backingLoopDialogHeading">
               <div>
-                <strong id="mini-chord-load-dialog-title">저장된 미니코드</strong>
-                <span>{items.length ? `${items.length}개의 코드 진행` : "아직 저장된 미니코드가 없어요."}</span>
+                <strong id="mini-chord-load-dialog-title">미니코드 불러오기</strong>
+                <span>
+                  {activeTab === "recommended"
+                    ? `${recommendedProgressions.length}개 추천 진행`
+                    : `${userItems.length}개 저장된 코드`}
+                </span>
               </div>
               <div className="backingLoopDialogHeadingActions">
-                <button
-                  aria-pressed={editMode}
-                  disabled={!items.length}
-                  onClick={onToggleEditMode}
-                  type="button"
-                >
-                  {editMode ? "완료" : "편집"}
-                </button>
+                {activeTab === "saved" ? (
+                  <button
+                    aria-pressed={editMode}
+                    disabled={!userItems.length}
+                    onClick={onToggleEditMode}
+                    type="button"
+                  >
+                    {editMode ? "완료" : "편집"}
+                  </button>
+                ) : null}
                 <button aria-label="미니코드 불러오기 창 닫기" onClick={onClose} type="button">
                   <X size={15} />
                 </button>
               </div>
             </div>
-            <div className="backingLoopLibrary miniChordLoadLibrary">
-              {items.length ? items.map((item) => {
-                const chordSummary = item.slots
-                  .map(getMiniChordSlotDisplayLabel)
-                  .filter(Boolean)
-                  .join(" · ");
-                if (editMode) {
-                  return (
-                    <label className="backingLoopLibraryEditItem miniChordLoadLibraryEditItem" key={item.id}>
-                      <input
-                        aria-label={`${item.title} 선택`}
-                        checked={selectedIds.includes(item.id)}
-                        onChange={() => onToggleSelected(item.id)}
-                        type="checkbox"
-                      />
-                      <span className="miniChordLoadDialogItemText">
-                        <b title={item.title}>{item.title}</b>
-                        <em title={chordSummary}>{chordSummary || "빈 코드"}</em>
-                      </span>
-                      <small>{item.barCount}마디 · {item.bpm} BPM</small>
-                    </label>
-                  );
-                }
-                return (
-                  <button
-                    aria-label={`${item.title} 선택`}
-                    aria-pressed={item.id === selectedId}
-                    className={item.id === selectedId ? "selected" : ""}
-                    key={item.id}
-                    onClick={() => onSelect(item.id)}
-                    type="button"
-                  >
-                    <span className="miniChordLoadDialogItemText">
-                      <b title={item.title}>{item.title}</b>
-                      <em title={chordSummary}>{chordSummary || "빈 코드"}</em>
-                    </span>
-                    <small>{item.barCount}마디 · {item.bpm} BPM</small>
-                  </button>
-                );
-              }) : (
-                <div className="backingLoopLibraryEmpty miniChordLoadLibraryEmpty">
-                  <Music2 aria-hidden="true" size={19} />
-                  <span>코드 진행을 만든 뒤 저장하세요.</span>
-                </div>
+            <div
+              aria-label="미니코드 불러오기 분류"
+              className="miniChordLoadTabs"
+              onKeyDown={handleLibraryTabKeyDown}
+              role="tablist"
+            >
+              <button
+                aria-controls="mini-chord-recommended-panel"
+                aria-selected={activeTab === "recommended"}
+                className={activeTab === "recommended" ? "selected" : ""}
+                id="mini-chord-recommended-tab"
+                onClick={() => selectLibraryTab("recommended")}
+                role="tab"
+                tabIndex={activeTab === "recommended" ? 0 : -1}
+                type="button"
+              >
+                <span>추천 진행</span>
+                <small>{recommendedProgressions.length}</small>
+              </button>
+              <button
+                aria-controls="mini-chord-saved-panel"
+                aria-selected={activeTab === "saved"}
+                className={activeTab === "saved" ? "selected" : ""}
+                id="mini-chord-saved-tab"
+                onClick={() => selectLibraryTab("saved")}
+                role="tab"
+                tabIndex={activeTab === "saved" ? 0 : -1}
+                type="button"
+              >
+                <span>저장된 코드</span>
+                <small>{userItems.length}</small>
+              </button>
+            </div>
+            <div
+              aria-labelledby={activeTab === "recommended" ? "mini-chord-recommended-tab" : "mini-chord-saved-tab"}
+              className="backingLoopLibrary miniChordLoadLibrary"
+              id={activeTab === "recommended" ? "mini-chord-recommended-panel" : "mini-chord-saved-panel"}
+              role="tabpanel"
+            >
+              {activeTab === "recommended" ? (
+                <section className="miniChordLoadLibraryGroup miniChordLoadLibraryGroup--recommended" aria-label="추천 진행 목록">
+                  <header>
+                    <strong>추천 진행</strong>
+                    <span>FRETIVA LAB 추천 편곡</span>
+                  </header>
+                  <div>{recommendedProgressions.map(renderLibraryItem)}</div>
+                </section>
+              ) : (
+                <section className="miniChordLoadLibraryGroup miniChordLoadLibraryGroup--user" aria-label="저장된 코드 목록">
+                  <header>
+                    <strong>저장된 코드</strong>
+                    <span>직접 저장한 프로젝트</span>
+                  </header>
+                  <div>
+                    {userItems.length ? userItems.map(renderLibraryItem) : (
+                      <div className="backingLoopLibraryEmpty miniChordLoadLibraryEmpty">
+                        <Music2 aria-hidden="true" size={19} />
+                        <span>코드 진행을 만든 뒤 저장하세요.</span>
+                      </div>
+                    )}
+                  </div>
+                </section>
               )}
             </div>
-            <div className="backingLoopDialogActions backingLoopDialogActions--load">
+            <div className={`backingLoopDialogActions backingLoopDialogActions--load ${activeTab === "recommended" ? "miniChordLoadDialogActions--two" : ""}`}>
               <button onClick={onClose} type="button">닫기</button>
-              <button disabled={!selectedCount} className="danger" onClick={onRequestDelete} type="button">
-                <Trash2 aria-hidden="true" size={12} />
-                {editMode ? `${selectedCount}개 삭제` : "삭제"}
-              </button>
+              {activeTab === "saved" ? (
+                <button disabled={!selectedItemsDeletable} className="danger" onClick={onRequestDelete} type="button">
+                  <Trash2 aria-hidden="true" size={12} />
+                  {editMode ? `${selectedCount}개 삭제` : "삭제"}
+                </button>
+              ) : null}
               <button disabled={!selectedItem || editMode} className="primary" onClick={() => onLoad(selectedItem)} type="button">
                 불러오기
               </button>
@@ -13058,7 +13368,7 @@ const HELP_GUIDE_SECTIONS = [
         <div className="helpFlow" aria-label="튜닝, 참고 지판, 메트로놈 순서로 시작">
           <span>튜닝 확인</span><i aria-hidden="true">→</i><span>참고 지판 연습</span><i aria-hidden="true">→</i><span>메트로놈·반주 연결</span>
         </div>
-        <p>처음이라면 위 순서대로 시작하고, 익숙해지면 리듬코드·미니반주·슈팅게임을 더해보세요.</p>
+        <p>처음이라면 위 순서대로 시작하고, 익숙해지면 리듬 코드 전환·미니반주·슈팅게임을 더해보세요.</p>
         <p className="helpClosingMessage">즐겁게 연습하세요. 🎸</p>
       </>
     ),
@@ -13066,20 +13376,20 @@ const HELP_GUIDE_SECTIONS = [
   {
     id: "shared-features",
     title: "🧭 화면 이동과 공통 기능",
-    summary: "주요 도구와 연습 모드는 여기서 찾습니다",
+    summary: "주요 도구와 연습 코스는 여기서 찾습니다",
     group: "start",
     content: (
       <>
         <div className="helpFactCard">
           <strong>주요 내비게이션</strong>
-          <p>자주 쓰는 도구는 내비게이션에서, 세부 연습 모드는 <b>메뉴</b>에서 엽니다.</p>
+          <p>데스크톱에서는 왼쪽 사이드바에서 모든 화면을 바로 열고, 모바일에서는 하단 내비게이션과 <b>메뉴</b>를 사용합니다.</p>
         </div>
         <div className="helpNavMap" aria-label="주요 내비게이션 안내">
           <div><b>🎵 튜너</b><span>악기와 튜닝 선택</span></div>
           <div><b>🗺️ 지판 보기</b><span>음·코드·스케일 확인</span></div>
           <div><b>⏱️ 메트로놈</b><span>템포와 연습량 관리</span></div>
           <div><b>👾 슈팅게임</b><span>기타 음으로 목표 맞히기</span></div>
-          <div><b>⚙️ 메뉴</b><span>연습 모드·오디오·설정</span></div>
+          <div><b>🧭 화면 메뉴</b><span>연습 코스·반주·편집·설정</span></div>
         </div>
         <p className="helpInfoNote">모바일과 데스크톱은 화면 배치가 다를 수 있지만 <b>연습 데이터와 기능은 동일하게 동작</b>합니다.</p>
       </>
@@ -13087,9 +13397,11 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "single-note",
-    title: "🎯 01 · 단일음",
+    title: "🎯 ① 단일 음 위치 익히기",
     summary: "참고 지판을 보며 제로포지션 익히기",
     group: "practice",
+    badge: "초보 ★",
+    badgeTone: "beginner",
     content: (
       <>
         <p><b>개방현과 낮은 프렛의 음 위치</b>를 참고 지판으로 보면서 따라 연주하는 모드입니다.</p>
@@ -13102,9 +13414,11 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "scale-pentatonic",
-    title: "🎸 02 · 스케일 · 펜타토닉",
+    title: "🎸 ② 스케일 · 펜타토닉",
     summary: "키·타입·박스를 고르고 참고 지판 따라가기",
     group: "practice",
+    badge: "SOLO",
+    badgeTone: "solo",
     content: (
       <>
         <p>메이저·마이너 <b>스케일 또는 펜타토닉</b>의 위치를 참고 지판으로 보며 연습합니다.</p>
@@ -13117,9 +13431,11 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "rhythm-chord",
-    title: "🔥 03 · 리듬코드",
+    title: "🔥 ③ 리듬 코드 전환",
     summary: "코드·박 길이·쉼표를 조합해 전환 연습",
     group: "practice",
+    badge: "HOT •",
+    badgeTone: "hot",
     content: (
       <>
         <p>내가 만든 코드 진행을 화면과 참고 지판으로 보며 박자에 맞춰 전환하는 모드입니다.</p>
@@ -13136,9 +13452,11 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "mini-backing",
-    title: "🎼 04 · 미니반주",
+    title: "🎼 미니반주",
     summary: "마디에 코드를 넣어 드럼·베이스·피아노 반주 만들기",
-    group: "practice",
+    group: "arrangement",
+    badge: "진행 구성",
+    badgeTone: "arranger",
     content: (
       <>
         <p>코드를 마디에 배치해 <b>드럼·베이스·피아노</b>가 연주하는 간단한 반주를 만듭니다.</p>
@@ -13173,9 +13491,11 @@ const HELP_GUIDE_SECTIONS = [
   },
   {
     id: "backing-audio",
-    title: "🎛️ 백킹 루프 · 오디오 스튜디오",
-    summary: "음원을 불러오고 녹음·반복·편집·저장하기",
-    group: "tools",
+    title: "🎛️ 오디오 스튜디오",
+    summary: "음원을 불러오고 녹음·반복·간편 편집·저장하기",
+    group: "arrangement",
+    badge: "간편 편집",
+    badgeTone: "editor",
     content: (
       <>
         <strong>Backing Loop</strong>
@@ -13295,19 +13615,20 @@ const HELP_GUIDE_SECTION_ORDER = [
   "scale-pentatonic",
   "rhythm-chord",
   "mini-backing",
-  "metronome",
   "backing-audio",
-  "shooter",
   "tuner",
   "fretboard-viewer",
+  "metronome",
+  "shooter",
   "sound-rhythm",
   "usage-info",
 ];
 
 const HELP_GUIDE_GROUP_LABELS = {
   start: "빠른 시작",
-  practice: "연습 모드",
-  tools: "연습 도구",
+  practice: "연습 코스",
+  arrangement: "반주 · 편집",
+  tools: "주요 도구",
   settings: "설정과 이용 안내",
 };
 
@@ -13381,80 +13702,6 @@ const APP_ROUTES = {
 };
 const APP_DEFAULT_ROUTE = APP_ROUTES.FRETBOARD_VIEWER;
 
-const MODE_ENTRY_SHELL_COPY = {
-  [APP_MODES.MENU]: {
-    eyebrow: "MENU",
-    title: "메뉴",
-    subtitle: "이동할 화면을 선택하세요",
-  },
-  [APP_MODES.PRACTICE]: {
-    eyebrow: "TRAINING",
-    title: "연습 화면",
-    subtitle: "연습 도구를 준비하고 있어요",
-  },
-  [APP_MODES.MINI_CHORD_MAKER]: {
-    eyebrow: "MINI BACKING",
-    title: "미니코드 반주",
-    subtitle: "타임라인과 반주 패널을 준비하고 있어요",
-  },
-  [APP_MODES.FRETBOARD_VIEWER]: {
-    eyebrow: "FRETBOARD",
-    title: "지판보기",
-    subtitle: "지판과 음표 위치를 준비하고 있어요",
-  },
-  [APP_MODES.METRONOME]: {
-    eyebrow: "METRONOME",
-    title: "메트로놈",
-    subtitle: "템포 패널을 준비하고 있어요",
-  },
-  [APP_MODES.TUNER]: {
-    eyebrow: "TUNER",
-    title: "튜너",
-    subtitle: "튜닝 화면을 준비하고 있어요",
-  },
-  [APP_MODES.SHOOTER]: {
-    eyebrow: "SHOOTING GAME",
-    title: "슈팅게임",
-    subtitle: "게임 필드와 오브젝트를 준비하고 있어요",
-  },
-};
-
-const PRACTICE_ENTRY_SHELL_COPY = {
-  "first-position": {
-    eyebrow: "SINGLE NOTES",
-    title: "단일 음 위치",
-    subtitle: "연습 프레임을 먼저 열고 지판을 준비하고 있어요",
-  },
-  "scale-block": {
-    eyebrow: "SCALE TRAINING",
-    title: "스케일 · 펜타토닉",
-    subtitle: "연습 프레임을 먼저 열고 지판을 준비하고 있어요",
-  },
-  rhythm: {
-    eyebrow: "RHYTHM CHORD",
-    title: "리듬 · 코드 전환",
-    subtitle: "연습 프레임을 먼저 열고 저장 데이터를 연결하고 있어요",
-  },
-};
-
-const FRETBOARD_ENTRY_SHELL_COPY = {
-  chord: {
-    eyebrow: "FRETBOARD · CHORD",
-    title: "코드 지판",
-    subtitle: "지판 프레임을 먼저 열고 코드표를 준비하고 있어요",
-  },
-  note: {
-    eyebrow: "FRETBOARD · NOTES",
-    title: "음표 지판",
-    subtitle: "지판 프레임을 먼저 열고 음표 위치를 준비하고 있어요",
-  },
-  scale: {
-    eyebrow: "FRETBOARD · SCALE",
-    title: "스케일 지판",
-    subtitle: "지판 프레임을 먼저 열고 스케일 위치를 준비하고 있어요",
-  },
-};
-
 const NAVIGATION_PRESS_TARGET_SELECTOR = [
   ".modeSwitch button",
   ".mainBottomNav button",
@@ -13466,66 +13713,6 @@ const NAVIGATION_PRESS_TARGET_SELECTOR = [
   ".stageMenuCard",
 ].join(", ");
 const NAVIGATION_PRESS_MIN_MS = 80;
-
-function ModeEntryShell({ categoryId = null, mode, viewerMode = null }) {
-  const copy = mode === APP_MODES.PRACTICE
-    ? PRACTICE_ENTRY_SHELL_COPY[categoryId]
-    : mode === APP_MODES.FRETBOARD_VIEWER
-      ? FRETBOARD_ENTRY_SHELL_COPY[viewerMode]
-      : MODE_ENTRY_SHELL_COPY[mode];
-  const resolvedCopy = copy ?? {
-    eyebrow: "FRETIVA LAB",
-    title: "화면 준비 중",
-    subtitle: "잠시만 기다려주세요",
-  };
-
-  return (
-    <section
-      aria-busy="true"
-      aria-label={`${resolvedCopy.title} 화면 준비 중`}
-      className={`modeEntryShell modeEntryShell--${mode}`}
-    >
-      <div className="modeEntryShellFrame">
-        <header>
-          <span>{resolvedCopy.eyebrow}</span>
-          <strong>{resolvedCopy.title}</strong>
-          <small>{resolvedCopy.subtitle}</small>
-        </header>
-        <div className="modeEntryShellPanels" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function NavigationTransitionLayer() {
-  const transition = useSyncExternalStore(
-    subscribeNavigationTransition,
-    getNavigationTransitionSnapshot,
-    getNavigationTransitionSnapshot,
-  );
-  if (!transition.active || typeof document === "undefined") return null;
-
-  return createPortal(
-    <div
-      aria-live="polite"
-      className={`modeEntryTransitionLayer theme-${transition.theme}`}
-      data-category={transition.categoryId ?? undefined}
-      data-mode={transition.mode ?? undefined}
-      role="status"
-    >
-      <ModeEntryShell
-        categoryId={transition.categoryId}
-        mode={transition.mode}
-        viewerMode={transition.viewerMode}
-      />
-    </div>,
-    document.body,
-  );
-}
 
 function isDesignLabEnabled() {
   if (import.meta.env.DEV) return true;
@@ -13625,29 +13812,6 @@ const FRETBOARD_VIEWER_MODE_ORDER = [
   FRETBOARD_VIEWER_MODES.SCALE,
 ];
 
-const UTILITY_MENU_NAVIGATION_KEY = "utility-menu";
-const NAVIGATION_PHASE_TRACE_META_NAME = "rifflab-navigation-phase";
-
-function getNavigationViewKey(appMode, categoryId, viewerMode) {
-  if (appMode === APP_MODES.PRACTICE) return `${appMode}:${categoryId}`;
-  if (appMode === APP_MODES.FRETBOARD_VIEWER) return `${appMode}:${viewerMode}`;
-  return appMode;
-}
-
-function updateNavigationPhaseTrace(update) {
-  if (!import.meta.env.DEV || typeof window === "undefined" || typeof document === "undefined") return;
-  const currentTrace = window.__RIFFLAB_NAVIGATION_PHASE_TRACE__ ?? {};
-  const nextTrace = { ...currentTrace, ...update };
-  window.__RIFFLAB_NAVIGATION_PHASE_TRACE__ = nextTrace;
-  let outputMeta = document.querySelector(`meta[name="${NAVIGATION_PHASE_TRACE_META_NAME}"]`);
-  if (!outputMeta) {
-    outputMeta = document.createElement("meta");
-    outputMeta.name = NAVIGATION_PHASE_TRACE_META_NAME;
-    document.head.append(outputMeta);
-  }
-  outputMeta.content = JSON.stringify(nextTrace);
-}
-
 const CHORD_VIEWER_POSITION_ALL = "all";
 const CHORD_VIEWER_POSITIONS = [
   { id: "position1", label: "1구간" },
@@ -13668,63 +13832,6 @@ const CHORD_CATALOG_ALL = "all";
 const STAGE3_STORAGE_KEY = "guitarTrainer.stage3Settings.v1";
 const STAGE3_METRONOME_TONE_DEFAULTS_VERSION = 2;
 const STAGE3_QUICK_SLOTS_KEY = "guitarTrainer.stage3QuickSlots.v1";
-const STAGE3_RECOMMENDED_PROGRESSIONS = [
-  {
-    id: "recommended-1625-basic",
-    title: "1625 기본",
-    chords: ["C", "Am", "Dm", "G"],
-    bpm: 80,
-  },
-  {
-    id: "recommended-let-it-be",
-    title: "Let It Be",
-    chords: ["C", "G", "Am", "F"],
-    bpm: 76,
-  },
-  {
-    id: "recommended-canon",
-    title: "Canon",
-    chords: ["C", "G", "Am", "Em", "F", "C", "F", "G"],
-    bpm: 72,
-  },
-  {
-    id: "recommended-rock-basic",
-    title: "Rock Basic",
-    chords: ["G", "D", "Em", "C"],
-    bpm: 95,
-  },
-  {
-    id: "recommended-blues-shuffle",
-    title: "Blues Shuffle",
-    chords: ["C", "C", "C", "C", "F", "F", "C", "C", "G", "F", "C", "G"],
-    bpm: 90,
-  },
-  {
-    id: "recommended-stand-by-me",
-    title: "Stand By Me",
-    chords: ["C", "Am", "F", "G"],
-    bpm: 78,
-  },
-  {
-    id: "recommended-no-woman-no-cry",
-    title: "No Woman No Cry",
-    chords: ["C", "G", "Am", "F"],
-    bpm: 76,
-  },
-  {
-    id: "recommended-zombie",
-    title: "Zombie",
-    chords: ["Em", "C", "G", "D"],
-    bpm: 84,
-  },
-  {
-    id: "recommended-hotel-california",
-    title: "Hotel California",
-    chords: ["Bm", "F#", "A", "E", "G", "D", "Em", "F#"],
-    bpm: 75,
-  },
-];
-
 function getStage3DropdownLabel(item) {
   const progression = (item?.chordIds ?? [])
     .map((entry) => {
@@ -13742,11 +13849,25 @@ function getStage3SavedTitle(item) {
 }
 
 function getStage3RecommendedSlots() {
-  return STAGE3_RECOMMENDED_PROGRESSIONS.map((preset) => makeStage3LibraryItem({
+  return RHYTHM_RECOMMENDED_PROGRESSIONS.map((preset) => makeStage3LibraryItem({
     id: preset.id,
     title: preset.title,
-    chordIds: getChordIdsFromNames(preset.chords),
+    description: preset.description,
+    key: preset.key,
+    chordIds: preset.progression.map(({ chord, beats }) => ({
+      id: getChordByDisplayName(chord)?.id,
+      beatLength: beats,
+    })),
     bpm: preset.bpm,
+    timeSignature: preset.timeSignature,
+    drumPreset: preset.drumPreset,
+    bassPreset: preset.bassPreset,
+    pianoPreset: preset.pianoPreset,
+    loopLength: preset.loopLength,
+    intro: preset.intro,
+    loop: preset.loop,
+    ending: preset.ending,
+    recommendedAccompaniment: createRecommendedAccompanimentPatterns(preset),
   })).filter((slot) => slot.chordIds.length > 0);
 }
 
@@ -13922,9 +14043,11 @@ function getStoredStage3QuickSlots() {
 
 const MINI_CHORD_MAKER_STORAGE_KEY = "guitarTrainer.miniChordMaker.v1";
 const MINI_CHORD_MAKER_DRAFT_STORAGE_KEY = "guitarTrainer.miniChordMakerDraft.v1";
+const MINI_CHORD_PERSONAL_PRACTICE_SEED_KEY = "guitarTrainer.miniChordPersonalPracticeSeed.v1";
+const MINI_CHORD_LET_IT_BE_PERSONAL_ID = "personal-practice-let-it-be";
 const RIFFLAB_BEAT_PRESET_STORAGE_KEY = "rifflab.userBeatPresets.v1";
 const RIFFLAB_GLOBAL_RHYTHM_STORAGE_KEY = "rifflab.globalRhythmSettings.v1";
-const MINI_CHORD_BAR_OPTIONS = [4, 8, 16, 32, 64];
+const MINI_CHORD_BAR_OPTIONS = [4, 8, 16, 32, 64, 96];
 const MINI_CHORD_BARS_PER_ROW = 4;
 const MINI_CHORD_REST_LABEL = "N.C.";
 const MINI_CHORD_REST_SYMBOL = "𝄽";
@@ -15302,6 +15425,8 @@ function createDefaultMiniChordArrangement() {
 
 function normalizeMiniChordArrangement(value = {}) {
   const fallback = createDefaultMiniChordArrangement();
+  const isRecommendedProgression = value.libraryType === "recommended-progression"
+    || value.libraryType === "original-practice-song";
   const barCount = normalizeMiniChordBarCount(value.barCount ?? fallback.barCount);
   const legacyEndingRanges = getMiniChordEndingRangesFromBarMarks(value.barMarks, barCount);
   const endingRanges = normalizeMiniChordEndingRanges(
@@ -15322,6 +15447,13 @@ function normalizeMiniChordArrangement(value = {}) {
   return {
     id: String(value.id || `mini-${Date.now()}`),
     title: String(value.title || fallback.title).slice(0, 40),
+    description: String(value.description || "").slice(0, 180),
+    libraryType: isRecommendedProgression ? "recommended-progression" : "user",
+    builtIn: isRecommendedProgression && Boolean(value.builtIn),
+    personalOnly: !isRecommendedProgression && Boolean(value.personalOnly),
+    key: String(value.key || "").slice(0, 24),
+    difficulty: String(value.difficulty || "").slice(0, 32),
+    timeSignature: "4/4",
     barCount,
     slotFormatVersion: MINI_CHORD_SLOT_FORMAT_VERSION,
     slotsPerBar: MINI_CHORD_SLOTS_PER_BAR,
@@ -15392,13 +15524,30 @@ function getStoredBeatPresetLibrary() {
 }
 
 function getStoredMiniChordArrangements() {
-  if (typeof window === "undefined") return [];
+  const recommendedProgressions = getMiniChordRecommendedProgressions().map(normalizeMiniChordArrangement);
+  if (typeof window === "undefined") return recommendedProgressions;
   try {
     const parsed = JSON.parse(window.localStorage.getItem(MINI_CHORD_MAKER_STORAGE_KEY) ?? "[]");
-    if (!Array.isArray(parsed)) return [];
-    return parsed.map(normalizeMiniChordArrangement).slice(0, 24);
+    if (!Array.isArray(parsed)) return recommendedProgressions;
+    const userItems = parsed
+      .filter((item) => (
+        item?.libraryType !== "recommended-progression"
+        && item?.libraryType !== "original-practice-song"
+        && !item?.builtIn
+      ))
+      .map(normalizeMiniChordArrangement)
+      .slice(0, 24);
+    const existingUserIds = new Set(userItems.map((item) => item.id));
+    const personalPracticeSeeds = !import.meta.env.DEV
+      || window.localStorage.getItem(MINI_CHORD_PERSONAL_PRACTICE_SEED_KEY) === "1"
+      ? []
+      : getMiniChordPersonalPracticeProjects()
+        .map(normalizeMiniChordArrangement)
+        .filter((item) => !existingUserIds.has(item.id));
+    return [...recommendedProgressions, ...personalPracticeSeeds, ...userItems]
+      .slice(0, recommendedProgressions.length + 24);
   } catch {
-    return [];
+    return recommendedProgressions;
   }
 }
 
@@ -16214,6 +16363,11 @@ function App({ onReady }) {
   const initialBeatPresetLibraryRef = useRef(getStoredBeatPresetLibrary());
   const [miniChordPianoStyle, setMiniChordPianoStyle] = useState(initialMiniChordArrangementRef.current.pianoStyle);
   const [miniChordSavedItems, setMiniChordSavedItems] = useState(getStoredMiniChordArrangements);
+  const [miniChordRecommendedProgressionId, setMiniChordRecommendedProgressionId] = useState(
+    initialMiniChordArrangementRef.current.libraryType === "recommended-progression"
+      ? initialMiniChordArrangementRef.current.id
+      : "",
+  );
   const [miniChordLoadOpen, setMiniChordLoadOpen] = useState(false);
   const [miniChordLoadSelectedId, setMiniChordLoadSelectedId] = useState("");
   const [miniChordLoadSelectedIds, setMiniChordLoadSelectedIds] = useState([]);
@@ -17231,45 +17385,25 @@ function App({ onReady }) {
     setUtilityMenuOpen(false);
   }, [isDesktopLayout]);
 
-  const cancelScheduledNavigationCommit = useCallback((cancelLayer = true) => {
+  const cancelScheduledNavigationCommit = useCallback(() => {
     const schedule = navigationCommitScheduleRef.current;
     schedule.token += 1;
     if (schedule.frameId != null && typeof window !== "undefined") {
       window.cancelAnimationFrame(schedule.frameId);
     }
     schedule.frameId = null;
-    if (cancelLayer) cancelNavigationTransition();
   }, []);
 
   const requestNavigationCommit = useCallback((target, commit, { updateHistory = true } = {}) => {
-    const currentKey = utilityMenuOpenRef.current
-      ? UTILITY_MENU_NAVIGATION_KEY
-      : getNavigationViewKey(
-        appModeRef.current,
-        selectedCategoryIdRef.current,
-        viewerModeRef.current,
-      );
-    if (currentKey === target.key) {
-      commit();
-      return null;
-    }
+    const opensUtilityMenu = target.mode === APP_MODES.MENU && !target.hash;
+    const currentViewMatches = opensUtilityMenu
+      ? utilityMenuOpenRef.current
+      : !utilityMenuOpenRef.current
+        && appModeRef.current === target.mode
+        && (target.categoryId == null || selectedCategoryIdRef.current === target.categoryId)
+        && (target.viewerMode == null || viewerModeRef.current === target.viewerMode);
 
-    cancelScheduledNavigationCommit(false);
-    let transitionToken = null;
-    flushSync(() => {
-      transitionToken = beginNavigationTransition({
-        ...target,
-        theme: appTheme,
-      });
-    });
-    updateNavigationPhaseTrace({
-      contentCommittedAt: null,
-      contentWorkStartedAt: null,
-      key: target.key,
-      shellCommittedAt: performance.now(),
-      shellPaintBoundaryPassed: false,
-      token: transitionToken,
-    });
+    cancelScheduledNavigationCommit();
 
     if (updateHistory && target.hash && typeof window !== "undefined" && window.location.hash !== target.hash) {
       routeScrollPositionsRef.current.set(activeRouteKeyRef.current, window.scrollY || 0);
@@ -17280,53 +17414,60 @@ function App({ onReady }) {
       );
     }
 
+    // Commit the real destination page itself first. No overlay, placeholder,
+    // skeleton, or loading shell is inserted between the source and target.
+    flushSync(() => {
+      if (opensUtilityMenu) {
+        utilityMenuOpenRef.current = true;
+        setUtilityMenuOpen(true);
+        return;
+      }
+
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      if (target.mode) {
+        appModeRef.current = target.mode;
+        setAppMode(target.mode);
+      }
+      if (target.categoryId != null) {
+        selectedCategoryIdRef.current = target.categoryId;
+        setSelectedCategoryId(target.categoryId);
+      }
+      if (target.viewerMode != null) {
+        viewerModeRef.current = target.viewerMode;
+        setViewerMode(target.viewerMode);
+      }
+    });
+
+    if (currentViewMatches) {
+      commit();
+      return null;
+    }
+
     const schedule = navigationCommitScheduleRef.current;
     const scheduleToken = schedule.token + 1;
     schedule.token = scheduleToken;
-    const commitAfterShellPaint = () => {
-      if (
-        navigationCommitScheduleRef.current.token !== scheduleToken
-        || getNavigationTransitionSnapshot().token !== transitionToken
-      ) return;
+    const commitAfterActualPagePaint = () => {
+      if (navigationCommitScheduleRef.current.token !== scheduleToken) return;
       navigationCommitScheduleRef.current.frameId = null;
-      const trace = typeof window !== "undefined" ? window.__RIFFLAB_NAVIGATION_PHASE_TRACE__ : null;
-      if (trace?.token === transitionToken) {
-        updateNavigationPhaseTrace({
-          contentWorkStartedAt: performance.now(),
-          shellPaintBoundaryPassed: true,
-        });
-      }
       startTransition(commit);
     };
 
     if (typeof window === "undefined" || typeof window.requestAnimationFrame !== "function") {
-      commitAfterShellPaint();
-      return transitionToken;
+      commitAfterActualPagePaint();
+      return scheduleToken;
     }
 
-    // The first frame paints only the destination shell. Heavy App state and
-    // mode cleanup begin on the following frame while that shell stays visible.
+    // The first frame paints the real destination UI. Existing cleanup and
+    // secondary state resets begin on the following frame.
     schedule.frameId = window.requestAnimationFrame(() => {
       if (navigationCommitScheduleRef.current.token !== scheduleToken) return;
-      navigationCommitScheduleRef.current.frameId = window.requestAnimationFrame(commitAfterShellPaint);
+      navigationCommitScheduleRef.current.frameId = window.requestAnimationFrame(commitAfterActualPagePaint);
     });
-    return transitionToken;
-  }, [appTheme, cancelScheduledNavigationCommit]);
+    return scheduleToken;
+  }, [cancelScheduledNavigationCommit, setAppMode]);
 
   useEffect(() => () => cancelScheduledNavigationCommit(), [cancelScheduledNavigationCommit]);
-
-  useLayoutEffect(() => {
-    const transition = getNavigationTransitionSnapshot();
-    if (!transition.active) return;
-    const currentKey = utilityMenuOpen
-      ? UTILITY_MENU_NAVIGATION_KEY
-      : getNavigationViewKey(appMode, selectedCategoryId, viewerMode);
-    if (currentKey === transition.key) {
-      const trace = typeof window !== "undefined" ? window.__RIFFLAB_NAVIGATION_PHASE_TRACE__ : null;
-      if (trace?.token === transition.token) updateNavigationPhaseTrace({ contentCommittedAt: performance.now() });
-      completeNavigationTransition(transition.token);
-    }
-  }, [appMode, selectedCategoryId, utilityMenuOpen, viewerMode]);
   const chordChartRef = useRef(null);
   const chordViewerRef = useRef(null);
   const gameStateRef = useRef(GAME_STATES.IDLE);
@@ -17437,6 +17578,7 @@ function App({ onReady }) {
   const backingRhythmPatternRef = useRef(initialMiniChordGlobalSettingsRef.current.rhythmPattern);
   const backingBassBeatRef = useRef(initialMiniChordGlobalSettingsRef.current.bassBeat);
   const backingPianoBeatRef = useRef(initialMiniChordGlobalSettingsRef.current.pianoBeat);
+  const stage3RecommendedPatternsRef = useRef(null);
   const miniChordPianoStyleRef = useRef(MINI_CHORD_DEFAULT_PIANO_STYLE);
   const miniChordUserDefaultPatternsRef = useRef(initialBeatPresetLibraryRef.current);
   const miniChordArrangementPatternsRef = useRef(initialMiniChordArrangementRef.current.arrangementPatterns);
@@ -18186,6 +18328,10 @@ function App({ onReady }) {
     ),
     [stage3StorageProgression, stage3StorageTimeSignature],
   );
+  const stage3StorageStrumRows = useMemo(() => {
+    const rows = normalizeStrumPatternGroups(stage3StorageStrumPattern);
+    return [rows[0] ?? [], rows[1] ?? []];
+  }, [stage3StorageStrumPattern]);
   const stage3ProgressionLabel = useMemo(
     () => (hasChordTransitionProgression
       ? chordTransitionProgression.map((chord) => chord.displayName).join(" - ")
@@ -18211,8 +18357,25 @@ function App({ onReady }) {
     const id = typeof itemOrId === "string" ? itemOrId : itemOrId?.id;
     return stage3RecommendedSlots.some((item) => item.id === id);
   }, [stage3RecommendedSlots]);
+  const stage3RecommendedAccompanimentLocked = appMode === APP_MODES.PRACTICE
+    && selectedCategory.id === "rhythm"
+    && isStage3RecommendedItem(loadedStage3LibraryItem);
+  const miniChordRecommendedAccompanimentLocked = appMode === APP_MODES.MINI_CHORD_MAKER
+    && Boolean(miniChordRecommendedProgressionId);
   const applyStage3LibraryItem = useCallback((item) => {
     if (!item?.chordIds?.length) return;
+    const recommendedPatterns = item.recommendedAccompaniment && typeof item.recommendedAccompaniment === "object"
+      ? item.recommendedAccompaniment
+      : null;
+    stage3RecommendedPatternsRef.current = recommendedPatterns;
+    if (recommendedPatterns) {
+      backingRhythmPatternRef.current = MINI_CHORD_CUSTOM_PATTERN_ID;
+      backingBassBeatRef.current = MINI_CHORD_CUSTOM_PATTERN_ID;
+      backingPianoBeatRef.current = MINI_CHORD_CUSTOM_PATTERN_ID;
+      setBackingRhythmPattern(MINI_CHORD_CUSTOM_PATTERN_ID);
+      setBackingBassBeat(MINI_CHORD_CUSTOM_PATTERN_ID);
+      setBackingPianoBeat(MINI_CHORD_CUSTOM_PATTERN_ID);
+    }
     const nextTimeSignature = getTimeSignatureOption(item.time_signature ?? "4/4").id;
     const nextSubdivision = getSubdivisionOption(item.subdivision ?? "quarter").id;
     const nextAccentTone = getMetronomeToneOption(item.accent_tone ?? item.accentTone ?? "tick").id;
@@ -18221,10 +18384,12 @@ function App({ onReady }) {
       item.beat_pattern ?? item.beatPattern,
       getTimeSignatureOption(nextTimeSignature).beats,
     );
+    const nextBpm = clampBpm(item.bpm ?? bpm);
     setChordProgressionId(`slot:${item.id}`);
     setStage3ChordIds(item.chordIds);
     setLoadedStage3LibraryItem(item);
-    setBpm(clampBpm(item.bpm ?? bpm));
+    bpmRef.current = nextBpm;
+    setBpm(nextBpm);
     stage3MetronomeTimeSignatureRef.current = nextTimeSignature;
     stage3MetronomeSubdivisionRef.current = nextSubdivision;
     stage3MetronomeAccentToneRef.current = nextAccentTone;
@@ -18360,7 +18525,10 @@ function App({ onReady }) {
     setStage3StorageChordEditingIndex(null);
   }, []);
   const saveStage3StorageItem = useCallback(({ chordIds: requestedChordIds, title = "" } = {}) => {
-    if (!hasStage3StorageProgression) return;
+    const chordIdsForSave = Array.isArray(requestedChordIds)
+      ? requestedChordIds
+      : getStage3StorageChordIdsWithActiveDraft();
+    if (!chordIdsForSave.length) return null;
     const id = stage3StorageEditingId && !stage3StorageEditingId.startsWith("preset-")
       ? stage3StorageEditingId
       : `slot-${Date.now()}`;
@@ -18369,9 +18537,6 @@ function App({ onReady }) {
         ? stage3StorageStrumPatternRef.current
         : stage3StorageStrumPattern,
     );
-    const chordIdsForSave = Array.isArray(requestedChordIds)
-      ? requestedChordIds
-      : getStage3StorageChordIdsWithActiveDraft();
     const defaultTitle = getChordProgressionText(chordIdsForSave) || "내 진행";
     const saveData = makeStage3LibraryItem({
       id,
@@ -18392,6 +18557,7 @@ function App({ onReady }) {
       selectedStrumSlot: currentStrumPattern[1]?.length ? 1 : 0,
       memo: "",
     });
+    if (!saveData.chordIds.length) return null;
     setStage3QuickSlots((slots) => {
       const nextSlots = [saveData, ...slots.filter((slot) => slot.id !== id)].slice(0, 24);
       if (typeof window !== "undefined") {
@@ -18406,10 +18572,11 @@ function App({ onReady }) {
     setStage3StorageEditingId(id);
     setStage3StorageSelectedId(id);
     setStage3StorageTitle(saveData.title);
-    setStage3StorageChordIds(chordIdsForSave);
+    setStage3StorageChordIds(saveData.chordIds);
     setStage3StorageSaveRequest(null);
     setStage3StorageSaveTitleDraft("");
-  }, [getStage3StorageChordIdsWithActiveDraft, hasStage3StorageProgression, stage3MetronomeAccentTone, stage3MetronomeSubdivision, stage3MetronomeWeakTone, stage3QuickSlots, stage3StorageBpm, stage3StorageCapo, stage3StorageEditingId, stage3StorageStrumPattern, stage3StorageTimeSignature]);
+    return saveData;
+  }, [getStage3StorageChordIdsWithActiveDraft, stage3MetronomeAccentTone, stage3MetronomeSubdivision, stage3MetronomeWeakTone, stage3QuickSlots, stage3StorageBpm, stage3StorageCapo, stage3StorageEditingId, stage3StorageStrumPattern, stage3StorageTimeSignature]);
   const requestSaveStage3StorageItem = useCallback(() => {
     if (!hasStage3StorageProgression) return;
     const chordIds = getStage3StorageChordIdsWithActiveDraft();
@@ -18428,12 +18595,14 @@ function App({ onReady }) {
   }, []);
   const confirmStage3StorageSave = useCallback(() => {
     if (!stage3StorageSaveRequest) return;
-    saveStage3StorageItem({
+    const savedItem = saveStage3StorageItem({
       chordIds: stage3StorageSaveRequest.chordIds,
       title: stage3StorageSaveTitleDraft,
     });
+    if (!savedItem) return;
     exitStage3StorageRoom();
-  }, [exitStage3StorageRoom, saveStage3StorageItem, stage3StorageSaveRequest, stage3StorageSaveTitleDraft]);
+    applyStage3LibraryItem(savedItem);
+  }, [applyStage3LibraryItem, exitStage3StorageRoom, saveStage3StorageItem, stage3StorageSaveRequest, stage3StorageSaveTitleDraft]);
   const addStage3StrumPatternDraft = useCallback((slotIndex = 0) => {
     const normalizedPattern = normalizeStrumPattern(stage3StorageStrumDraftPattern);
     if (!normalizedPattern.length) return;
@@ -18956,7 +19125,6 @@ function App({ onReady }) {
   const selectFretboardViewerMode = useCallback((nextMode) => {
     requestNavigationCommit({
       categoryId: selectedCategoryIdRef.current,
-      key: getNavigationViewKey(APP_MODES.FRETBOARD_VIEWER, selectedCategoryIdRef.current, nextMode),
       mode: APP_MODES.FRETBOARD_VIEWER,
       viewerMode: nextMode,
     }, () => {
@@ -19013,6 +19181,7 @@ function App({ onReady }) {
     preloadAudio = false,
     smoothChordTransitions = false,
     pianoStyle = MINI_CHORD_DEFAULT_PIANO_STYLE,
+    recommendedPatterns = stage3RecommendedPatternsRef.current,
   } = {}) => {
     const token = backingPrepareTokenRef.current + 1;
     backingPrepareTokenRef.current = token;
@@ -19021,6 +19190,23 @@ function App({ onReady }) {
       bassBeat,
       pianoBeat,
     }, miniChordUserDefaultPatternsRef.current);
+    const activeRecommendedPatterns = recommendedPatterns && typeof recommendedPatterns === "object"
+      ? Object.fromEntries(["drum", "bass", "piano"]
+          .filter((part) => recommendedPatterns[part])
+          .map((part) => [part, normalizeMiniChordPatternForPart(part, recommendedPatterns[part])]))
+      : null;
+    const patternResolution = activeRecommendedPatterns && Object.keys(activeRecommendedPatterns).length
+      ? {
+          resolvedPatterns: {
+            ...globalPatternResolution.resolvedPatterns,
+            ...activeRecommendedPatterns,
+          },
+          presetPatternSources: {
+            ...globalPatternResolution.presetPatternSources,
+            ...Object.fromEntries(Object.keys(activeRecommendedPatterns).map((part) => [part, "recommended"])),
+          },
+        }
+      : globalPatternResolution;
     const sessionKey = getBackingSessionKey({
       progression,
       bpmValue,
@@ -19030,7 +19216,7 @@ function App({ onReady }) {
       pianoBeat,
       smoothChordTransitions,
       pianoStyle,
-      resolvedPatterns: globalPatternResolution.resolvedPatterns,
+      resolvedPatterns: patternResolution.resolvedPatterns,
     });
     if (backingPreparedSessionKeyRef.current === sessionKey && backingPreparedSessionRef.current?.events?.length) {
       setStage3BackingPrepareStatus("ready");
@@ -19053,7 +19239,7 @@ function App({ onReady }) {
       pianoBeat,
       smoothChordTransitions,
       pianoStyle,
-      ...globalPatternResolution,
+      ...patternResolution,
     });
 
     try {
@@ -19141,11 +19327,29 @@ function App({ onReady }) {
       sessionBpm,
       sessionTimeSignature,
       smoothChordTransitions,
+      recommendedPatterns,
     } = request;
     const globalPatternResolution = resolveGlobalAccompanimentPatterns(
       nextBacking,
       miniChordUserDefaultPatternsRef.current,
     );
+    const activeRecommendedPatterns = recommendedPatterns && typeof recommendedPatterns === "object"
+      ? Object.fromEntries(["drum", "bass", "piano"]
+          .filter((part) => recommendedPatterns[part])
+          .map((part) => [part, normalizeMiniChordPatternForPart(part, recommendedPatterns[part])]))
+      : null;
+    const patternResolution = activeRecommendedPatterns && Object.keys(activeRecommendedPatterns).length
+      ? {
+          resolvedPatterns: {
+            ...globalPatternResolution.resolvedPatterns,
+            ...activeRecommendedPatterns,
+          },
+          presetPatternSources: {
+            ...globalPatternResolution.presetPatternSources,
+            ...Object.fromEntries(Object.keys(activeRecommendedPatterns).map((part) => [part, "recommended"])),
+          },
+        }
+      : globalPatternResolution;
     const session = createBackingTimelineEvents({
       progression: sessionProgression,
       bpm: sessionBpm,
@@ -19155,7 +19359,7 @@ function App({ onReady }) {
       pianoBeat: nextBacking.pianoBeat,
       smoothChordTransitions,
       pianoStyle,
-      ...globalPatternResolution,
+      ...patternResolution,
     });
     const sessionKey = getBackingSessionKey({
       progression: sessionProgression,
@@ -19166,7 +19370,7 @@ function App({ onReady }) {
       pianoBeat: nextBacking.pianoBeat,
       smoothChordTransitions,
       pianoStyle,
-      resolvedPatterns: globalPatternResolution.resolvedPatterns,
+      resolvedPatterns: patternResolution.resolvedPatterns,
     });
 
     if (backingSchedulerRunningRef.current) {
@@ -19228,6 +19432,12 @@ function App({ onReady }) {
       nextBacking,
       pianoStyle: normalizeMiniChordPianoStyle(options.pianoStyle),
       progression: options.progression ?? chordTransitionProgression,
+      recommendedPatterns: options.recommendedPatterns ?? (
+        appModeRef.current === APP_MODES.PRACTICE
+        && selectedCategoryIdRef.current === "rhythm"
+          ? stage3RecommendedPatternsRef.current
+          : null
+      ),
       sessionBpm: options.bpmValue ?? bpmRef.current,
       sessionTimeSignature: options.timeSignatureValue ?? stage3MetronomeTimeSignatureRef.current,
       smoothChordTransitions: Boolean(options.smoothChordTransitions),
@@ -22313,7 +22523,6 @@ function App({ onReady }) {
     requestNavigationCommit({
       categoryId: safeCategory.id,
       hash: getHashFromRoute(APP_MODES.PRACTICE, safeCategory.id),
-      key: getNavigationViewKey(APP_MODES.PRACTICE, safeCategory.id, viewerModeRef.current),
       mode: APP_MODES.PRACTICE,
     }, () => {
       const sequence = getPracticeSequence(safeCategory);
@@ -24165,7 +24374,6 @@ function App({ onReady }) {
     requestNavigationCommit({
       categoryId: "rhythm",
       hash: getHashFromRoute(APP_MODES.PRACTICE, "rhythm"),
-      key: getNavigationViewKey(APP_MODES.PRACTICE, "rhythm", viewerModeRef.current),
       mode: APP_MODES.PRACTICE,
     }, () => {
       stopBackingScheduler();
@@ -24200,7 +24408,6 @@ function App({ onReady }) {
     requestNavigationCommit({
       categoryId: "rhythm",
       hash: getHashFromRoute(APP_MODES.PRACTICE, "rhythm"),
-      key: getNavigationViewKey(APP_MODES.PRACTICE, "rhythm", viewerModeRef.current),
       mode: APP_MODES.PRACTICE,
     }, () => {
       stopBackingScheduler();
@@ -24228,7 +24435,6 @@ function App({ onReady }) {
     requestNavigationCommit({
       categoryId: "rhythm",
       hash: getHashFromRoute(APP_MODES.PRACTICE, "rhythm"),
-      key: getNavigationViewKey(APP_MODES.PRACTICE, "rhythm", viewerModeRef.current),
       mode: APP_MODES.PRACTICE,
     }, () => {
       stopBackingScheduler();
@@ -24255,7 +24461,6 @@ function App({ onReady }) {
     requestNavigationCommit({
       categoryId: "rhythm",
       hash: getHashFromRoute(APP_MODES.MINI_CHORD_MAKER, "rhythm"),
-      key: getNavigationViewKey(APP_MODES.MINI_CHORD_MAKER, "rhythm", viewerModeRef.current),
       mode: APP_MODES.MINI_CHORD_MAKER,
     }, () => {
       stopBackingScheduler();
@@ -24280,7 +24485,6 @@ function App({ onReady }) {
     requestNavigationCommit({
       categoryId,
       hash: getHashFromRoute(APP_MODES.PRACTICE, categoryId),
-      key: getNavigationViewKey(APP_MODES.PRACTICE, categoryId, viewerModeRef.current),
       mode: APP_MODES.PRACTICE,
     }, () => {
       stopBackingScheduler();
@@ -24391,7 +24595,6 @@ function App({ onReady }) {
     requestNavigationCommit({
       categoryId: selectedCategoryIdRef.current,
       hash: getHashFromRoute(APP_MODES.SHOOTER, selectedCategoryIdRef.current),
-      key: getNavigationViewKey(APP_MODES.SHOOTER, selectedCategoryIdRef.current, viewerModeRef.current),
       mode: APP_MODES.SHOOTER,
     }, () => {
       if (sourceMode === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
@@ -24425,7 +24628,6 @@ function App({ onReady }) {
     requestNavigationCommit({
       categoryId: selectedCategoryIdRef.current,
       hash: getHashFromRoute(APP_MODES.METRONOME, selectedCategoryIdRef.current),
-      key: getNavigationViewKey(APP_MODES.METRONOME, selectedCategoryIdRef.current, viewerModeRef.current),
       mode: APP_MODES.METRONOME,
     }, () => {
       releaseControlPressState();
@@ -24462,7 +24664,6 @@ function App({ onReady }) {
     requestNavigationCommit({
       categoryId: selectedCategoryIdRef.current,
       hash: getHashFromRoute(APP_MODES.TUNER, selectedCategoryIdRef.current),
-      key: getNavigationViewKey(APP_MODES.TUNER, selectedCategoryIdRef.current, viewerModeRef.current),
       mode: APP_MODES.TUNER,
     }, () => {
       if (sourceMode === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
@@ -24499,7 +24700,6 @@ function App({ onReady }) {
     requestNavigationCommit({
       categoryId: selectedCategoryIdRef.current,
       hash: getHashFromRoute(APP_MODES.FRETBOARD_VIEWER, selectedCategoryIdRef.current),
-      key: getNavigationViewKey(APP_MODES.FRETBOARD_VIEWER, selectedCategoryIdRef.current, viewerModeRef.current),
       mode: APP_MODES.FRETBOARD_VIEWER,
       viewerMode: viewerModeRef.current,
     }, () => {
@@ -24532,7 +24732,6 @@ function App({ onReady }) {
     requestNavigationCommit({
       categoryId: selectedCategoryIdRef.current,
       hash: getHashFromRoute(APP_MODES.DESIGN_LAB, selectedCategoryIdRef.current),
-      key: getNavigationViewKey(APP_MODES.DESIGN_LAB, selectedCategoryIdRef.current, viewerModeRef.current),
       mode: APP_MODES.DESIGN_LAB,
     }, () => {
       if (sourceMode === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
@@ -24562,7 +24761,6 @@ function App({ onReady }) {
     requestNavigationCommit({
       categoryId: selectedCategoryIdRef.current,
       hash: getHashFromRoute(APP_MODES.AUDIO_STUDIO, selectedCategoryIdRef.current),
-      key: getNavigationViewKey(APP_MODES.AUDIO_STUDIO, selectedCategoryIdRef.current, viewerModeRef.current),
       mode: APP_MODES.AUDIO_STUDIO,
     }, () => {
       if (sourceMode === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
@@ -24830,7 +25028,6 @@ function App({ onReady }) {
       routeSyncRef.current = true;
       requestNavigationCommit({
         categoryId: route.categoryId,
-        key: getNavigationViewKey(route.appMode, route.categoryId, viewerModeRef.current),
         mode: route.appMode,
         viewerMode: route.appMode === APP_MODES.FRETBOARD_VIEWER ? viewerModeRef.current : null,
       }, () => {
@@ -25931,8 +26128,9 @@ function App({ onReady }) {
   const miniChordPlaybackActive = miniChordIsStarting || miniChordIsPlaying;
   // Playback stays editable; only the brief asynchronous start preparation is locked.
   const miniChordEditLocked = miniChordIsStarting;
+  const miniChordArrangementEditLocked = miniChordEditLocked;
   const miniChordArrangementInputLocked = miniChordExpertMode
-    && !miniChordEditLocked
+    && !miniChordArrangementEditLocked
     && !miniChordArrangementEditorOpen
     && !miniChordGrooveEditorPart;
   const miniChordArrangementRangeSelecting = miniChordArrangementInputLocked
@@ -26671,6 +26869,7 @@ function App({ onReady }) {
 
   const loadMiniChordArrangement = useCallback((item) => {
     const next = normalizeMiniChordArrangement(item);
+    const isRecommendedProgression = next.libraryType === "recommended-progression";
     miniChordEditHistoryRef.current = null;
     miniChordHistoryApplyingRef.current = false;
     setMiniChordHistoryEpoch((epoch) => epoch + 1);
@@ -26693,6 +26892,7 @@ function App({ onReady }) {
     setMiniChordArrangementPatterns(next.arrangementPatterns);
     miniChordArrangementOverridesRef.current = next.arrangementOverrides;
     setMiniChordArrangementOverrides(next.arrangementOverrides);
+    setMiniChordRecommendedProgressionId(isRecommendedProgression ? next.id : "");
     setMiniChordResetOpen(false);
     setMiniChordResetAllConfirmOpen(false);
     setMiniChordExpertMode(false);
@@ -26713,7 +26913,7 @@ function App({ onReady }) {
     setMiniChordChordPickerSlot(null);
     setMiniChordEndingPopoverPosition(null);
     setMiniChordChordPickerPosition(null);
-    setMiniChordNotice("");
+    setMiniChordNotice(isRecommendedProgression ? "추천 진행의 미니코드 반주 사운드 패널만 고정되어 있습니다" : "");
     setMiniChordPlayhead(null);
     setMiniChordPlayingBarIndex(null);
     setMiniChordIsPlaying(false);
@@ -26723,7 +26923,12 @@ function App({ onReady }) {
 
   const saveMiniChordArrangement = useCallback(() => {
     const current = getCurrentMiniChordArrangement();
-    setMiniChordSavedItems((items) => [current, ...items.filter((item) => item.id !== current.id)].slice(0, 24));
+    setMiniChordSavedItems((items) => {
+      const recommendedProgressions = items.filter((item) => item.builtIn);
+      const userItems = items.filter((item) => !item.builtIn && item.id !== current.id);
+      return [...recommendedProgressions, current, ...userItems].slice(0, recommendedProgressions.length + 24);
+    });
+    setMiniChordRecommendedProgressionId("");
     setMiniChordLoadOpen(false);
     setMiniChordLoadSelectedId("");
     setMiniChordLoadSelectedIds([]);
@@ -27093,7 +27298,14 @@ function App({ onReady }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      window.localStorage.setItem(MINI_CHORD_MAKER_STORAGE_KEY, JSON.stringify(miniChordSavedItems));
+      const userItems = miniChordSavedItems.filter((item) => !item.builtIn);
+      window.localStorage.setItem(
+        MINI_CHORD_MAKER_STORAGE_KEY,
+        JSON.stringify(userItems),
+      );
+      if (userItems.some((item) => item.id === MINI_CHORD_LET_IT_BE_PERSONAL_ID)) {
+        window.localStorage.setItem(MINI_CHORD_PERSONAL_PRACTICE_SEED_KEY, "1");
+      }
     } catch (error) {
       console.warn("MINI CHORD SAVE FAILED:", error);
     }
@@ -27105,6 +27317,8 @@ function App({ onReady }) {
       window.localStorage.setItem(MINI_CHORD_MAKER_DRAFT_STORAGE_KEY, JSON.stringify(normalizeMiniChordArrangement({
         id: "draft",
         title: miniChordTitle,
+        libraryType: miniChordRecommendedProgressionId ? "recommended-progression" : "user",
+        builtIn: Boolean(miniChordRecommendedProgressionId),
         barCount: miniChordBarCount,
         slotFormatVersion: MINI_CHORD_SLOT_FORMAT_VERSION,
         slotsPerBar: MINI_CHORD_SLOTS_PER_BAR,
@@ -27135,6 +27349,7 @@ function App({ onReady }) {
     miniChordArrangementOverrides,
     miniChordLoop,
     miniChordPianoStyle,
+    miniChordRecommendedProgressionId,
     miniChordRepeatEndsFromMarks,
     miniChordRepeatStartsFromMarks,
     miniChordSlots,
@@ -27284,12 +27499,13 @@ function App({ onReady }) {
   }, []);
 
   const toggleMiniChordLoadSelection = useCallback((itemId) => {
+    if (miniChordSavedItems.some((item) => item.id === itemId && item.builtIn)) return;
     setMiniChordLoadSelectedIds((itemIds) => (
       itemIds.includes(itemId)
         ? itemIds.filter((selectedId) => selectedId !== itemId)
         : [...itemIds, itemId]
     ));
-  }, []);
+  }, [miniChordSavedItems]);
 
   const loadSelectedMiniChordArrangement = useCallback((item) => {
     if (!item) return;
@@ -27313,7 +27529,7 @@ function App({ onReady }) {
       ? miniChordLoadSelectedIds
       : [miniChordLoadSelectedId].filter(Boolean);
     if (!selectedIds.length) return;
-    setMiniChordSavedItems((items) => items.filter((item) => !selectedIds.includes(item.id)));
+    setMiniChordSavedItems((items) => items.filter((item) => item.builtIn || !selectedIds.includes(item.id)));
     setMiniChordLoadSelectedId("");
     setMiniChordLoadSelectedIds([]);
     setMiniChordLoadEditMode(false);
@@ -27413,13 +27629,15 @@ function App({ onReady }) {
     backingVolumeInputFrameRef.current = null;
     const pendingInputs = [...backingPendingVolumeInputsRef.current.entries()];
     backingPendingVolumeInputsRef.current.clear();
+    if (stage3RecommendedAccompanimentLocked) return;
     pendingInputs.forEach(([part, pending]) => {
       const safeValue = applyBackingPartVolume(part, pending.value, 0.014);
       if (pending.input?.isConnected) updateBackingVolumeReadout(pending.input, safeValue);
     });
-  }, [applyBackingPartVolume, updateBackingVolumeReadout]);
+  }, [applyBackingPartVolume, stage3RecommendedAccompanimentLocked, updateBackingVolumeReadout]);
 
   const handleBackingVolumeInput = useCallback((part, event) => {
+    if (stage3RecommendedAccompanimentLocked) return;
     backingPendingVolumeInputsRef.current.set(part, {
       input: event.currentTarget,
       value: event.currentTarget.value,
@@ -27427,9 +27645,10 @@ function App({ onReady }) {
     if (!backingVolumeInputFrameRef.current) {
       backingVolumeInputFrameRef.current = window.requestAnimationFrame(flushBackingVolumeInputs);
     }
-  }, [flushBackingVolumeInputs]);
+  }, [flushBackingVolumeInputs, stage3RecommendedAccompanimentLocked]);
 
   const commitBackingVolumeInput = useCallback((part, event) => {
+    if (stage3RecommendedAccompanimentLocked) return;
     backingPendingVolumeInputsRef.current.delete(part);
     const safeValue = applyBackingPartVolume(part, event.currentTarget.value, 0.018);
     updateBackingVolumeReadout(event.currentTarget, safeValue);
@@ -27442,9 +27661,10 @@ function App({ onReady }) {
         setBackingDrumVolume(safeValue);
       }
     });
-  }, [applyBackingPartVolume, updateBackingVolumeReadout]);
+  }, [applyBackingPartVolume, stage3RecommendedAccompanimentLocked, updateBackingVolumeReadout]);
 
   const resetBackingVolumeSettings = useCallback(() => {
+    if (stage3RecommendedAccompanimentLocked) return;
     BACKING_PART_VOLUME_CONTROLS.forEach((control) => {
       const defaultValue = BACKING_DEFAULT_PART_VOLUMES[control.id];
       applyBackingPartVolume(control.id, defaultValue, 0.02);
@@ -27459,9 +27679,10 @@ function App({ onReady }) {
     setBackingDrumVolume(BACKING_DEFAULT_PART_VOLUMES.drum);
     setBackingBassVolume(BACKING_DEFAULT_PART_VOLUMES.bass);
     setBackingPianoVolume(BACKING_DEFAULT_PART_VOLUMES.piano);
-  }, [applyBackingPartVolume, updateBackingVolumeReadout]);
+  }, [applyBackingPartVolume, stage3RecommendedAccompanimentLocked, updateBackingVolumeReadout]);
 
   const toggleBackingPartEnabled = useCallback((part) => {
+    if (stage3RecommendedAccompanimentLocked) return;
     const enabledRef = part === "bass"
       ? backingBassEnabledRef
       : part === "piano"
@@ -27494,7 +27715,7 @@ function App({ onReady }) {
       else if (part === "piano") setBackingPianoEnabled(nextEnabled);
       else setBackingDrumEnabled(nextEnabled);
     });
-  }, []);
+  }, [stage3RecommendedAccompanimentLocked]);
 
   const requestMiniChordBackingPatternChange = (overrides = {}, options = {}) => {
     const nextBacking = normalizeGlobalAccompanimentSettings({
@@ -27523,6 +27744,7 @@ function App({ onReady }) {
   };
 
   const requestGlobalAccompanimentPatternChange = (overrides = {}, options = {}) => {
+    if (stage3RecommendedAccompanimentLocked) return;
     if (appModeRef.current === APP_MODES.MINI_CHORD_MAKER) {
       requestMiniChordBackingPatternChange(overrides, options);
       return;
@@ -27998,6 +28220,7 @@ function App({ onReady }) {
   ];
 
   const openMiniChordRhythmSettings = () => {
+    if (stage3RecommendedAccompanimentLocked) return;
     stopMiniChordConfigurationPreview();
     miniChordRhythmSettingsSelectionRef.current = {
       drum: MINI_CHORD_RHYTHM_SETTINGS_PRESET_IDS.includes(backingRhythmPatternRef.current)
@@ -28074,7 +28297,6 @@ function App({ onReady }) {
     }
     requestNavigationCommit({
       categoryId: selectedCategoryIdRef.current,
-      key: UTILITY_MENU_NAVIGATION_KEY,
       mode: APP_MODES.MENU,
     }, () => {
       utilityMenuOpenRef.current = true;
@@ -28097,6 +28319,7 @@ function App({ onReady }) {
 
   const loadStage3LibraryItem = useCallback((item, { closeStorage = false } = {}) => {
     if (!item?.chordIds?.length) return;
+    if (closeStorage) exitStage3StorageRoom();
     setStage3RecommendedSelectValue(isStage3RecommendedItem(item) ? item.id : "");
     setStage3StorageSelectedId(item.id);
     applyStage3LibraryItem(item);
@@ -28107,9 +28330,9 @@ function App({ onReady }) {
       rhythmPattern: backingRhythmPatternRef.current,
       bassBeat: backingBassBeatRef.current,
       pianoBeat: backingPianoBeatRef.current,
+      recommendedPatterns: stage3RecommendedPatternsRef.current,
       preloadAudio: true,
     });
-    if (closeStorage) exitStage3StorageRoom();
   }, [
     applyStage3LibraryItem,
     bpm,
@@ -28118,6 +28341,32 @@ function App({ onReady }) {
     isStage3RecommendedItem,
     prepareStage3BackingSession,
   ]);
+
+  const stage3StorageComposerActions = (
+    <div aria-label="저장 진행 작업" className="stage3StorageComposerActions stage3StorageActionSegment">
+      <button
+        disabled={!selectedStage3StorageItem?.chordIds?.length}
+        onClick={() => loadStage3LibraryItem(selectedStage3StorageItem, { closeStorage: true })}
+        type="button"
+      >
+        불러오기
+      </button>
+      <button disabled={!hasStage3StorageProgression} onClick={requestSaveStage3StorageItem} type="button">
+        저장
+      </button>
+      <button
+        disabled={
+          !stage3StorageEditingId
+          || isStage3RecommendedItem(stage3StorageEditingId)
+          || Boolean(stage3QuickSlots.find((slot) => slot.id === stage3StorageEditingId)?.locked)
+        }
+        onClick={() => requestDeleteStage3StorageItem(stage3StorageEditingId || stage3StorageSelectedId)}
+        type="button"
+      >
+        삭제
+      </button>
+    </div>
+  );
 
   const stage3DesktopMetronomeSoundToggle = (
     <button
@@ -28170,6 +28419,7 @@ function App({ onReady }) {
           ...stage3RecommendedSlots.map((item) => ({
             id: item.id,
             label: item.title || "추천 진행",
+            description: item.description,
           })),
         ]}
         showLabel={false}
@@ -28246,7 +28496,6 @@ function App({ onReady }) {
       style={shooterMobileViewportStyle}
       translate="no"
     >
-      <NavigationTransitionLayer />
       {themeTransition && typeof document !== "undefined"
         ? createPortal(
           <ThemeTransitionOverlay
@@ -28262,6 +28511,7 @@ function App({ onReady }) {
       />
       <DesktopSidebarNavigation
         activeKey={desktopSidebarActiveKey}
+        accompanimentControlsDisabled={stage3RecommendedAccompanimentLocked}
         appTheme={appTheme}
         audioStudioEnabled={audioStudioEnabled}
         backingVolumeControls={BACKING_PART_VOLUME_CONTROLS}
@@ -28430,6 +28680,7 @@ function App({ onReady }) {
                             aria-label={`${control.label} 볼륨`}
                             data-backing-volume-part={control.id}
                             defaultValue={value}
+                            disabled={stage3RecommendedAccompanimentLocked}
                             max="100"
                             min="0"
                             onBlur={(event) => commitBackingVolumeInput(control.id, event)}
@@ -28444,6 +28695,7 @@ function App({ onReady }) {
                     })}
                     <button
                       className="utilityRhythmSettingsButton"
+                      disabled={stage3RecommendedAccompanimentLocked}
                       onClick={() => {
                         setUtilityMenuOpen(false);
                         openMiniChordRhythmSettings();
@@ -28455,6 +28707,7 @@ function App({ onReady }) {
                     </button>
                     <button
                       className="utilitySoundResetButton"
+                      disabled={stage3RecommendedAccompanimentLocked}
                       onClick={resetBackingVolumeSettings}
                       type="button"
                     >
@@ -29180,7 +29433,7 @@ function App({ onReady }) {
                     : "첫 Section 설정"}
                 aria-pressed={miniChordExpertMode || (miniChordArrangementManagerOpen && !miniChordArrangementManagerTarget)}
                 className={`miniChordExpertToggle miniChordArrangementMainButton ${miniChordExpertMode || (miniChordArrangementManagerOpen && !miniChordArrangementManagerTarget) ? "selected" : ""}`}
-                disabled={miniChordEditLocked}
+                disabled={miniChordArrangementEditLocked}
                 onClick={() => {
                   if (miniChordExpertMode) {
                     cancelMiniChordArrangementConfirmation();
@@ -29324,11 +29577,11 @@ function App({ onReady }) {
                         data-arrangement-start={hasArrangementOverride ? arrangementOverride.startBar + 1 : undefined}
                       />
                     ) : null}
-                    {hasArrangementOverride && isAppliedArrangementRangeStart ? (
+                    {hasArrangementOverride && isAppliedArrangementRangeStart && arrangementOverride.showSectionLabel ? (
                       <button
                         aria-label={`${arrangementOverride.sectionName}, ${arrangementOverride.startBar + 1}-${arrangementOverride.endBar + 1}마디 관리 열기`}
                         className="miniChordArrangementRangeTag"
-                        disabled={miniChordEditLocked}
+                        disabled={miniChordArrangementEditLocked}
                         onClick={(event) => {
                           event.stopPropagation();
                           setMiniChordActiveBarIndex(null);
@@ -29744,7 +29997,7 @@ function App({ onReady }) {
           <SharedAccompanimentPanel
             className="sharedAccompanimentPanel--miniChord"
             defaultExpanded
-            disabled={miniChordEditLocked}
+            disabled={miniChordEditLocked || miniChordRecommendedAccompanimentLocked}
             onOpenSettings={openMiniChordRhythmSettings}
             onTogglePart={toggleBackingPartEnabled}
             onVolumeCommit={commitBackingVolumeInput}
@@ -32114,6 +32367,8 @@ function App({ onReady }) {
               {({
                 shooterSkinTab,
                 setShooterSkinTab,
+                shooterGuitarCategoryId,
+                setShooterGuitarCategoryId,
                 registerVerticalScrollArea,
                 registerHorizontalScrollArea,
                 handleVerticalScroll,
@@ -32167,8 +32422,12 @@ function App({ onReady }) {
                   ref={registerVerticalScrollArea}
                 >
                   {shooterSkinTab === "guitar" ? (
-                    <div className="shooterGuitarPickerList">
-                      {shooterGuitarSections.some((section) => section.options.length > 0) ? shooterGuitarSections.map((section) => (
+                    <div className="shooterGuitarPickerList shooterGuitarPickerList--filtered">
+                      {shooterGuitarSections.some(
+                        (section) => section.id === shooterGuitarCategoryId && section.options.length > 0,
+                      ) ? shooterGuitarSections.filter(
+                        (section) => section.id === shooterGuitarCategoryId,
+                      ).map((section) => (
                         <section className="shooterGuitarCategorySection" key={section.id}>
                           <div className="shooterSkinSectionHeader">
                             <span>{section.label}</span>
@@ -32178,6 +32437,7 @@ function App({ onReady }) {
                               const isSelected = selectedGuitar.id === variant.id;
                               return (
                                 <button
+                                  aria-pressed={isSelected}
                                   className={`shooterGuitarPickerItem ${isSelected ? "selected" : ""}`}
                                   key={`${slotKey}-${variant.id}`}
                                   onClick={() => {
@@ -32421,6 +32681,32 @@ function App({ onReady }) {
                     </div>
                   )}
                 </div>
+                {shooterSkinTab === "guitar" ? (
+                  <div
+                    aria-label="기타 종류 선택"
+                    className={`shooterGuitarCategoryTabs ${
+                      isMobileLayout
+                        ? "shooterGuitarCategoryTabs--mobile"
+                        : "shooterGuitarCategoryTabs--desktop"
+                    }`}
+                    role="group"
+                  >
+                    {SHOOTER_GUITAR_CATEGORY_OPTIONS.map((option) => {
+                      const isSelected = shooterGuitarCategoryId === option.id;
+                      return (
+                        <button
+                          aria-pressed={isSelected}
+                          className={isSelected ? "selected" : ""}
+                          key={option.id}
+                          onClick={() => setShooterGuitarCategoryId(option.id)}
+                          type="button"
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
                 </div>
               </div>
               )}
@@ -32462,14 +32748,16 @@ function App({ onReady }) {
                 "--storage-swipe-transition": stage3StorageSwipeActive ? "none" : "transform 180ms cubic-bezier(0.2, 0.85, 0.24, 1)",
               }}
             >
-          <div className="stage3StorageDialogHeading">
-            <div>
-              <strong>저장된 코드 진행</strong>
+          {!isDesktopLayout ? (
+            <div className="stage3StorageDialogHeading">
+              <div>
+                <strong>저장된 코드 진행</strong>
+              </div>
+              <button aria-label="저장된 코드 진행 닫기" autoFocus onClick={closeStage3StorageRoom} type="button">
+                <X size={17} />
+              </button>
             </div>
-            <button aria-label="저장된 코드 진행 닫기" autoFocus onClick={closeStage3StorageRoom} type="button">
-              <X size={17} />
-            </button>
-          </div>
+          ) : null}
           <div className="stage3InlineSettings stage3StorageComposer stage3PracticeUtilityPanel">
             <div className="stage3StorageTopBar">
               <MetronomeSelectControl
@@ -32493,6 +32781,17 @@ function App({ onReady }) {
                 showLabel={false}
                 value={stage3QuickSlots.some((item) => item.id === stage3StorageSelectedId) ? stage3StorageSelectedId : ""}
               />
+              {isDesktopLayout ? (
+                <button
+                  aria-label="저장된 코드 진행 닫기"
+                  autoFocus
+                  className="stage3StorageTopBarClose"
+                  onClick={closeStage3StorageRoom}
+                  type="button"
+                >
+                  <X aria-hidden="true" size={17} />
+                </button>
+              ) : null}
             </div>
             <div className="stage3StorageChordBuilder" aria-label="저장된 진행 코드 및 주법 선택">
               <div className="stage3ChordBuilderPanel" aria-label="코드 빌더">
@@ -32611,7 +32910,7 @@ function App({ onReady }) {
                       onClick={() => addStage3StrumPatternDraft(0)}
                       type="button"
                     >
-                      추가1
+                      {isDesktopLayout ? "추가1열" : "추가1"}
                     </button>
                     <button
                       className="primary"
@@ -32619,7 +32918,7 @@ function App({ onReady }) {
                       onClick={() => addStage3StrumPatternDraft(1)}
                       type="button"
                     >
-                      추가2
+                      {isDesktopLayout ? "추가2열" : "추가2"}
                     </button>
                     <button
                       disabled={!stage3StorageStrumDraftPattern.length && !stage3StorageStrumPattern.length}
@@ -32705,7 +33004,11 @@ function App({ onReady }) {
                   {hasStage3StorageProgression ? stage3StorageProgressionMeasures.map((measure) => (
                     <div className="rhythmChordMeasure" key={`storage-measure-${measure.measureIndex}`}>
                       {measure.items.map(({ beatLength, chord, index, isAutoRest, startBeat }) => isAutoRest ? (
-                        <strong className="stage3AutomaticRestChip" key={`storage-auto-rest-${startBeat}`}>
+                        <strong
+                          className="stage3AutomaticRestChip"
+                          key={`storage-auto-rest-${startBeat}`}
+                          style={{ "--rhythm-chord-beats": beatLength }}
+                        >
                           <button
                             aria-disabled="true"
                             aria-label={`자동 쉼 ${getRhythmChordBeatLabel(beatLength)}`}
@@ -32717,7 +33020,10 @@ function App({ onReady }) {
                           </button>
                         </strong>
                       ) : (
-                        <strong key={`storage-inline-${chord.id}-${chord.positionId}-${index}`}>
+                        <strong
+                          key={`storage-inline-${chord.id}-${chord.positionId}-${index}`}
+                          style={{ "--rhythm-chord-beats": beatLength }}
+                        >
                           <button
                             aria-label={`${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)}${chord.isRest ? "" : " 편집"}`}
                             className={`${stage3StorageChordEditingIndex === index ? "selected " : ""}stage3ProgressionEditButton${chord.isRest ? " stage3ProgressionRestButton" : ""}`}
@@ -32745,8 +33051,22 @@ function App({ onReady }) {
                     <small className="chordProgressionEmpty">코드를 선택해서 추가하세요</small>
                   )}
                 </div>
+                {isDesktopLayout && stage3StorageStrumRows.some((row) => row.length) ? (
+                  <div aria-label="진행순서 열별 주법" className="stage3ProgressionStrumAssignments">
+                    {stage3StorageStrumRows.map((row, rowIndex) => row.length ? (
+                      <div
+                        className="stage3ProgressionStrumAssignment is-assigned"
+                        data-progression-row={rowIndex + 1}
+                        key={`storage-progression-strum-row-${rowIndex}`}
+                      >
+                        <b>{rowIndex + 1}열</b>
+                        <StrumPattern pattern={row} />
+                      </div>
+                    ) : null)}
+                  </div>
+                ) : null}
               </div>
-              <div className="stage3InlineStrum" aria-label="추가된 주법">
+              {!isDesktopLayout ? <div className="stage3InlineStrum" aria-label="추가된 주법">
                 <span>추가된 주법</span>
                 <div className="strumPreviewList">
                   {stage3StorageStrumPattern.length ? (
@@ -32757,32 +33077,11 @@ function App({ onReady }) {
                     <small className="chordProgressionEmpty">주법을 선택해서 추가하세요</small>
                   )}
                 </div>
-              </div>
-              <div className="stage3StorageComposerActions stage3StorageActionSegment">
-                <button
-                  disabled={!selectedStage3StorageItem?.chordIds?.length}
-                  onClick={() => loadStage3LibraryItem(selectedStage3StorageItem, { closeStorage: true })}
-                  type="button"
-                >
-                  불러오기
-                </button>
-                <button disabled={!hasStage3StorageProgression} onClick={requestSaveStage3StorageItem} type="button">
-                  저장
-                </button>
-                <button
-                  disabled={
-                    !stage3StorageEditingId
-                    || isStage3RecommendedItem(stage3StorageEditingId)
-                    || Boolean(stage3QuickSlots.find((slot) => slot.id === stage3StorageEditingId)?.locked)
-                  }
-                  onClick={() => requestDeleteStage3StorageItem(stage3StorageEditingId || stage3StorageSelectedId)}
-                  type="button"
-                >
-                  삭제
-                </button>
-              </div>
+              </div> : null}
+              {!isDesktopLayout ? stage3StorageComposerActions : null}
             </div>
           </div>
+            {isDesktopLayout ? stage3StorageComposerActions : null}
             </section>
           </div>
         ) : null}
@@ -32829,51 +33128,63 @@ function App({ onReady }) {
                     ) : null}
                   </div>
                   <div className="currentProgressionReadout" aria-label="현재 진행중 코드 진행">
-                    {chordTransitionProgressionMeasures.map((measure) => (
-                      <div
-                        className="rhythmChordMeasure"
-                        data-measure-number={measure.measureIndex + 1}
-                        key={`practice-measure-${measure.measureIndex}`}
-                      >
-                        {measure.items.map(({ beatLength, chord, endBeat, index, isAutoRest, startBeat }) => {
-                          const isCurrentChord = isAutoRest
-                            ? chordPracticeIndex < 0
-                              && chordPracticeTimelineBeat >= startBeat
-                              && chordPracticeTimelineBeat < endBeat
-                            : index === (chordPracticeIndex % chordTransitionProgression.length);
-                          const nextChordIndex = chordTransitionProgression.length
-                            ? (Math.max(-1, chordPracticeIndex) + 1) % chordTransitionProgression.length
-                            : -1;
-                          const isNextChord = !isAutoRest && !isCurrentChord && index === nextChordIndex;
-                          return (
-                            <button
-                              aria-disabled={isAutoRest ? "true" : undefined}
-                              aria-label={isAutoRest
-                                ? `자동 쉼 ${getRhythmChordBeatLabel(beatLength)}`
-                                : `${isNextChord ? "다음 코드 " : ""}${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)}`}
-                              aria-current={isCurrentChord ? "step" : undefined}
-                              className={`${isCurrentChord ? "active " : ""}${isNextChord ? "stage3ProgressionNext " : ""}${isAutoRest ? "stage3AutomaticRestButton" : ""}`}
-                              data-progression-state={isCurrentChord ? "current" : isNextChord ? "next" : "upcoming"}
-                              key={isAutoRest
-                                ? `readonly-auto-rest-${startBeat}`
-                                : `readonly-${chord.id}-${chord.positionId}-${index}`}
-                              onClick={isAutoRest ? undefined : () => setStage3ProgressIndex(index)}
-                              tabIndex={isAutoRest ? -1 : undefined}
-                              type="button"
-                            >
-                              {isAutoRest ? (
-                                <span aria-hidden="true" className="stage3AutomaticRestSymbol">𝄽</span>
-                              ) : (
-                                <>
-                                  <span>{chord.displayName}</span>
-                                  <small>{getRhythmChordBeatLabel(chord.beatLength)}</small>
-                                </>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ))}
+                    {chordTransitionProgressionMeasures.map((measure) => {
+                      const isCurrentMeasure = measure.items.some(({ endBeat, index, isAutoRest, startBeat }) => (
+                        isAutoRest
+                          ? chordPracticeIndex < 0
+                            && chordPracticeTimelineBeat >= startBeat
+                            && chordPracticeTimelineBeat < endBeat
+                          : index === (chordPracticeIndex % chordTransitionProgression.length)
+                      ));
+                      return (
+                        <div
+                          aria-current={!isMobileLayout && isCurrentMeasure ? "step" : undefined}
+                          className={`rhythmChordMeasure${!isMobileLayout && isCurrentMeasure ? " active" : ""}`}
+                          data-measure-number={measure.measureIndex + 1}
+                          data-measure-state={!isMobileLayout ? (isCurrentMeasure ? "current" : "upcoming") : undefined}
+                          key={`practice-measure-${measure.measureIndex}`}
+                        >
+                          {measure.items.map(({ beatLength, chord, endBeat, index, isAutoRest, startBeat }) => {
+                            const isCurrentChord = isAutoRest
+                              ? chordPracticeIndex < 0
+                                && chordPracticeTimelineBeat >= startBeat
+                                && chordPracticeTimelineBeat < endBeat
+                              : index === (chordPracticeIndex % chordTransitionProgression.length);
+                            const nextChordIndex = chordTransitionProgression.length
+                              ? (Math.max(-1, chordPracticeIndex) + 1) % chordTransitionProgression.length
+                              : -1;
+                            const isNextChord = !isAutoRest && !isCurrentChord && index === nextChordIndex;
+                            return (
+                              <button
+                                aria-disabled={isAutoRest ? "true" : undefined}
+                                aria-label={isAutoRest
+                                  ? `자동 쉼 ${getRhythmChordBeatLabel(beatLength)}`
+                                  : `${isMobileLayout && isNextChord ? "다음 코드 " : ""}${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)}`}
+                                aria-current={isMobileLayout && isCurrentChord ? "step" : undefined}
+                                className={`${isMobileLayout && isCurrentChord ? "active " : ""}${isMobileLayout && isNextChord ? "stage3ProgressionNext " : ""}${isAutoRest ? "stage3AutomaticRestButton" : ""}`}
+                                data-progression-state={isMobileLayout ? (isCurrentChord ? "current" : isNextChord ? "next" : "upcoming") : undefined}
+                                key={isAutoRest
+                                  ? `readonly-auto-rest-${startBeat}`
+                                  : `readonly-${chord.id}-${chord.positionId}-${index}`}
+                                onClick={isAutoRest ? undefined : () => setStage3ProgressIndex(index)}
+                                style={{ "--rhythm-chord-beats": beatLength }}
+                                tabIndex={isAutoRest ? -1 : undefined}
+                                type="button"
+                              >
+                                {isAutoRest ? (
+                                  <span aria-hidden="true" className="stage3AutomaticRestSymbol">𝄽</span>
+                                ) : (
+                                  <>
+                                    <span>{chord.displayName}</span>
+                                    <small>{getRhythmChordBeatLabel(chord.beatLength)}</small>
+                                  </>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
                   </div>
                   {chordPracticeCurrent.isEnharmonic && (
                     <small className="enharmonicNotice">
@@ -33064,6 +33375,7 @@ function App({ onReady }) {
           <SharedAccompanimentPanel
             className="sharedAccompanimentPanel--training"
             defaultExpanded={!isMobileLayout}
+            disabled={stage3RecommendedAccompanimentLocked}
             hidePartSummary={landscapePlayFocus}
             onOpenSettings={openMiniChordRhythmSettings}
             onTogglePart={toggleBackingPartEnabled}

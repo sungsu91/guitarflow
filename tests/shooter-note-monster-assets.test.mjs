@@ -9,6 +9,7 @@ import {
   SHOOTER_NOTE_MONSTER_ASSETS,
   SHOOTER_NOTE_MONSTER_ASSET_SOURCES,
   SHOOTER_NOTE_MONSTER_LABEL_ZEROING,
+  SHOOTER_NOTE_MONSTER_ROOTS,
   SHOOTER_NOTE_MONSTER_SHARP_RENDER_SCALE,
   SHOOTER_NOTE_MONSTER_SKINS,
   getShooterNoteMonsterAssetSources,
@@ -79,7 +80,22 @@ test("label colors follow each monster core's contrast instead of forcing one co
   assert.equal(brightCorePalette.color, "#17330b");
   assert.equal(brightCorePalette.outline, "#efffc9");
   assert.notEqual(darkCorePalette.color, brightCorePalette.color);
-  assert.equal(getShooterNoteMonsterLabelPalette("D4", "elemental").color, "#172f08");
+  const elementalPalettes = Object.fromEntries(
+    SHOOTER_NOTE_MONSTER_ROOTS.map((noteRoot) => [
+      noteRoot,
+      getShooterNoteMonsterLabelPalette(`${noteRoot}4`, "elemental"),
+    ]),
+  );
+  assert.equal(elementalPalettes.D.color, "#efffc7");
+  assert.equal(elementalPalettes.D.outline, "#172f08");
+  assert.equal(elementalPalettes.G.color, "#fff4bc");
+  assert.equal(elementalPalettes.G.outline, "#3d2600");
+  assert.deepEqual(
+    Object.keys(elementalPalettes).filter((noteRoot) => (
+      Number.parseInt(elementalPalettes[noteRoot].color.slice(1, 3), 16) < 0xef
+    )),
+    [],
+  );
 });
 
 test("the shared label zeroing also moves the elemental set left and up", () => {
@@ -139,9 +155,10 @@ test("Backline Resonance centers the full app-rendered target pitch with manifes
   assert.deepEqual(skin.pitchText, BACKLINE_RESONANCE_PITCH_TEXT);
   assert.deepEqual(getShooterNoteMonsterLabelLayout("C2", skin.id), { x: 50, y: 50 });
   assert.deepEqual(getShooterNoteMonsterLabelLayout("G#4", skin.id), { x: 50, y: 50 });
-  assert.equal(getShooterNoteMonsterPitchText("C2", skin.id, "도2"), "C2");
-  assert.equal(getShooterNoteMonsterPitchText("F#3", skin.id, "파#3"), "F#3");
-  assert.equal(getShooterNoteMonsterPitchText("G♯4", skin.id, "솔#4"), "G#4");
+  assert.equal(getShooterNoteMonsterPitchText("C2", skin.id, "도2"), "도2");
+  assert.equal(getShooterNoteMonsterPitchText("F#3", skin.id, "파#3"), "파#3");
+  assert.equal(getShooterNoteMonsterPitchText("G♯4", skin.id, "솔♯4"), "솔#4");
+  assert.equal(getShooterNoteMonsterPitchText("G♯4", skin.id, "G♯4"), "G#4");
   assert.equal(getShooterNoteMonsterPitchText("G#4", "elemental", "솔#4"), "솔#4");
   assert.deepEqual(BACKLINE_RESONANCE_PITCH_TEXT, {
     anchorXRatio: 0.5,

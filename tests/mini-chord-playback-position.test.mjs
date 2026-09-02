@@ -230,6 +230,19 @@ test("8-beat piano pulses keep an audible body and immediate attack", () => {
   assert.equal(shouldSmoothMiniChordPianoCommonTone("basic", "chord"), true);
 });
 
+test("recommended piano HOLD sustains the available chord window", () => {
+  const profile = getMiniChordPianoStepProfile({
+    measureSeconds: 2,
+    pattern: "custom",
+    stepSeconds: 0.125,
+    style: "hold",
+  });
+
+  assert.equal(profile.duration, 1.96);
+  assert.equal(profile.level, 0.25);
+  assert.equal(profile.commonToneSmoothing, false);
+});
+
 test("section boundaries keep the final piano and bass tails inside the outgoing bar", () => {
   const verse = { backingArrangement: { overrideId: "verse-1" } };
   const chorus = { backingArrangement: { overrideId: "chorus-1" } };

@@ -124,7 +124,7 @@ test("rhythm code braille matches the scale trainer and remains independent", ()
     polishCss,
     /button\.referenceBeatMetronomeDot\.beatDot\s*\{[^}]*background: transparent !important[^}]*pointer-events: auto !important/,
   );
-  assert.match(polishCss, /--beat-dot-size: 20px/);
+  assert.match(polishCss, /--beat-dot-size: clamp\(26px, 7\.4vw, 30px\)/);
   assert.match(polishCss, /stage3ProgressHud\.stage3ProgressHud[\s\S]*grid-template-columns: 66px minmax\(0, 1fr\) 66px/);
   assert.match(polishCss, /stage3ReferenceBeatMetronomeStrip[\s\S]*grid-column: 2 !important/);
   assert.match(polishCss, /stage3MetronomeSoundToggle[\s\S]*grid-template-columns: 16px minmax\(0, 1fr\)[\s\S]*width: 66px !important/);
@@ -202,6 +202,14 @@ test("mobile rhythm code keeps the braille surface inset and aligns its lower ca
   assert.match(
     appCss,
     /stage3DesktopSideColumn[\s\S]*sharedAccompanimentPanel--training \{[\s\S]*radial-gradient\(circle at 50% -18%, rgba\(255, 255, 255, 0\.42\), transparent 48%\)[\s\S]*0 9px 18px rgba\(88, 58, 28, 0\.07\)/,
+  );
+});
+
+test("mobile portrait single-note and scale braille clears the BPM card", () => {
+  assert.match(polishCss, /Mobile portrait note trainers/);
+  assert.match(
+    polishCss,
+    /@media \(max-width: 767px\) and \(orientation: portrait\)[\s\S]*:is\(\.firstPositionTrainingPanel\.referenceTrainingPanel, \.scaleBlockTrainingPanel\.referenceTrainingPanel\)[\s\S]*\.referenceStandaloneMetronomeDeck\.standaloneMetronomePanel[\s\S]*> \.referenceBeatMetronomeStrip[\s\S]*\.beatIndicatorRow \{[\s\S]*transform: translateY\(-6px\) !important;/,
   );
 });
 

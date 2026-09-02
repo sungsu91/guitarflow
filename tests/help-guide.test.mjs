@@ -10,12 +10,12 @@ test("help guide exposes the complete FRETIVA LAB manual", () => {
   const sectionTitles = [
     "👋 FRETIVA LAB에 오신 것을 환영합니다",
     "🧭 화면 이동과 공통 기능",
-    "🎯 01 · 단일음",
-    "🎸 02 · 스케일 · 펜타토닉",
-    "🔥 03 · 리듬코드",
-    "🎼 04 · 미니반주",
+    "🎯 ① 단일 음 위치 익히기",
+    "🎸 ② 스케일 · 펜타토닉",
+    "🔥 ③ 리듬 코드 전환",
+    "🎼 미니반주",
     "⏱️ 메트로놈",
-    "🎛️ 백킹 루프 · 오디오 스튜디오",
+    "🎛️ 오디오 스튜디오",
     "👾 슈팅게임",
     "🎵 튜너",
     "🗺️ 지판 보기",
@@ -26,6 +26,11 @@ test("help guide exposes the complete FRETIVA LAB manual", () => {
   for (const title of sectionTitles) assert.match(appSource, new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(appSource, /badge: "핵심"/);
   assert.match(appSource, /badge: "인기"/);
+  assert.match(appSource, /badge: "초보 ★"/);
+  assert.match(appSource, /badge: "SOLO"/);
+  assert.match(appSource, /badge: "HOT •"/);
+  assert.match(appSource, /badge: "진행 구성"/);
+  assert.match(appSource, /badge: "간편 편집"/);
   assert.match(appSource, /Play · Practice · Enjoy/);
 });
 
@@ -54,8 +59,9 @@ test("help guide puts shared navigation immediately after welcome", () => {
     /const HELP_GUIDE_SECTION_ORDER = \[\s*"welcome",\s*"shared-features",\s*"single-note"/,
   );
   assert.match(appSource, /start: "빠른 시작"/);
-  assert.match(appSource, /practice: "연습 모드"/);
-  assert.match(appSource, /tools: "연습 도구"/);
+  assert.match(appSource, /practice: "연습 코스"/);
+  assert.match(appSource, /arrangement: "반주 · 편집"/);
+  assert.match(appSource, /tools: "주요 도구"/);
   assert.match(appSource, /settings: "설정과 이용 안내"/);
   assert.match(appSource, /"sound-rhythm",\s*"usage-info",\s*\];/);
 });

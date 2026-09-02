@@ -4,7 +4,7 @@ import {
   CircleHelp,
   Gamepad2,
   Grid3X3,
-  MessagesSquare,
+  Music2,
   Moon,
   Radio,
   Settings,
@@ -13,11 +13,22 @@ import {
   Volume2,
 } from "lucide-react";
 
-function DesktopSidebarItem({ active = false, icon: Icon, index, label, onClick }) {
+function InstagramMark({ size = 18 }) {
+  return (
+    <svg fill="none" height={size} viewBox="0 0 24 24" width={size} xmlns="http://www.w3.org/2000/svg">
+      <rect height="18" rx="5" stroke="currentColor" strokeWidth="2" width="18" x="3" y="3" />
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
+      <circle cx="17.4" cy="6.7" fill="currentColor" r="1.1" />
+    </svg>
+  );
+}
+
+function DesktopSidebarItem({ active = false, icon: Icon, index, label, mark = "", onClick, tone = "" }) {
+  const toneClassName = tone ? ` desktopSidebarNavItem--${tone}` : "";
   return (
     <button
       aria-current={active ? "page" : undefined}
-      className={`desktopSidebarNavItem ${active ? "is-active" : ""}`}
+      className={`desktopSidebarNavItem${toneClassName}${active ? " is-active" : ""}`}
       onClick={onClick}
       type="button"
     >
@@ -27,7 +38,22 @@ function DesktopSidebarItem({ active = false, icon: Icon, index, label, onClick 
         <span className="desktopSidebarIcon" aria-hidden="true"><Icon size={18} /></span>
       )}
       <span className="desktopSidebarLabel">{label}</span>
+      {mark ? (
+        <span className={`desktopSidebarStatusLogo desktopSidebarStatusLogo--${tone || "neutral"}`}>
+          {mark}
+        </span>
+      ) : null}
     </button>
+  );
+}
+
+function DesktopSidebarSectionHeading({ children }) {
+  return (
+    <div className="desktopSidebarSectionHeading">
+      <span aria-hidden="true" />
+      <h2>{children}</h2>
+      <span aria-hidden="true" />
+    </div>
   );
 }
 
@@ -39,6 +65,7 @@ export default function DesktopSidebarNavigation({
   commitBackingVolumeInput,
   getBackingVolumeValue,
   handleBackingVolumeInput,
+  accompanimentControlsDisabled = false,
   onOpenAudioStudio,
   onOpenFretboard,
   onOpenHelp,
@@ -74,24 +101,33 @@ export default function DesktopSidebarNavigation({
           <DesktopSidebarItem active={activeKey === "shooter"} icon={Gamepad2} label="슈팅게임" onClick={onOpenShooter} />
         </div>
 
-        <div className="desktopSidebarDivider" role="separator" />
+        <DesktopSidebarSectionHeading>연습 코스</DesktopSidebarSectionHeading>
 
         <div className="desktopSidebarGroup">
-          <DesktopSidebarItem active={activeKey === "stage1"} index="①" label="단일 음 위치 익히기" onClick={onOpenSingleNote} />
-          <DesktopSidebarItem active={activeKey === "stage2"} index="②" label="스케일 · 펜타토닉" onClick={onOpenScale} />
-          <DesktopSidebarItem active={activeKey === "stage3"} index="③" label="리듬 & 코드" onClick={onOpenRhythm} />
-          <DesktopSidebarItem active={activeKey === "mini-chord"} index="④" label="미니반주" onClick={onOpenMiniChord} />
+          <DesktopSidebarItem active={activeKey === "stage1"} index="①" label="단일 음 위치 익히기" mark="초보 ★" onClick={onOpenSingleNote} tone="beginner" />
+          <DesktopSidebarItem active={activeKey === "stage2"} index="②" label="스케일 · 펜타토닉" mark="SOLO" onClick={onOpenScale} tone="solo" />
+          <DesktopSidebarItem active={activeKey === "stage3"} index="③" label="리듬 코드 전환" mark="HOT •" onClick={onOpenRhythm} tone="rhythm" />
         </div>
 
-        <div className="desktopSidebarDivider" role="separator" />
+        <DesktopSidebarSectionHeading>반주 · 편집</DesktopSidebarSectionHeading>
 
         <div className="desktopSidebarGroup">
+          <DesktopSidebarItem
+            active={activeKey === "mini-chord"}
+            icon={Music2}
+            label="미니반주"
+            mark="진행 구성"
+            onClick={onOpenMiniChord}
+            tone="arranger"
+          />
           {audioStudioEnabled ? (
             <DesktopSidebarItem
               active={activeKey === "audio-studio"}
               icon={AudioLines}
               label="오디오 스튜디오"
+              mark="간편 편집"
               onClick={onOpenAudioStudio}
+              tone="editor"
             />
           ) : null}
         </div>
@@ -118,6 +154,7 @@ export default function DesktopSidebarNavigation({
                       aria-label={`${control.label} 볼륨`}
                       data-backing-volume-part={control.id}
                       defaultValue={value}
+                      disabled={accompanimentControlsDisabled}
                       max="100"
                       min="0"
                       onBlur={(event) => commitBackingVolumeInput(control.id, event)}
@@ -130,11 +167,21 @@ export default function DesktopSidebarNavigation({
                   </label>
                 );
               })}
-              <button className="desktopSidebarSubAction" onClick={onOpenRhythmSettings} type="button">
+              <button
+                className="desktopSidebarSubAction"
+                disabled={accompanimentControlsDisabled}
+                onClick={onOpenRhythmSettings}
+                type="button"
+              >
                 <Settings size={14} aria-hidden="true" />
                 리듬 사용자 설정
               </button>
-              <button className="desktopSidebarReset" onClick={onResetSound} type="button">
+              <button
+                className="desktopSidebarReset"
+                disabled={accompanimentControlsDisabled}
+                onClick={onResetSound}
+                type="button"
+              >
                 사운드 초기화
               </button>
             </div>
@@ -146,7 +193,7 @@ export default function DesktopSidebarNavigation({
             rel="noreferrer"
             target="_blank"
           >
-            <span className="desktopSidebarIcon" aria-hidden="true"><MessagesSquare size={18} /></span>
+            <span className="desktopSidebarIcon desktopSidebarInstagramIcon" aria-hidden="true"><InstagramMark size={18} /></span>
             <span className="desktopSidebarLabel">문의하기</span>
           </a>
         </div>

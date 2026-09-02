@@ -91,7 +91,7 @@ test("mobile rhythm progression readout fits four complete measures per row", as
   );
   assert.match(
     appCss,
-    /\.chordTransitionChart \.currentProgressionReadout \.rhythmChordMeasure > button[\s\S]*?flex: 1 1 0 !important;[\s\S]*?min-width: 0 !important/,
+    /\.chordTransitionChart \.currentProgressionReadout \.rhythmChordMeasure > button[\s\S]*?flex: var\(--rhythm-chord-beats, 1\) 1 0 !important;[\s\S]*?min-width: 0 !important/,
   );
 });
 
@@ -159,6 +159,18 @@ test("desktop rhythm practice keeps the fretboard near the progression and opens
     desktopCss,
     /\.stage3StandaloneTransportDeck \.stage3StandaloneBpmActionPanel::before \{[\s\S]*?display: none !important;[\s\S]*?content: none !important;/,
   );
+  assert.match(
+    desktopCss,
+    /\.stage3ProgressionHeader \.rhythmChordMeasure::before \{[\s\S]*?color: var\(--riff-text-strong\);[\s\S]*?font-weight: 1000;/,
+  );
+  assert.match(
+    desktopCss,
+    /\.stage3ProgressionHeader \.rhythmChordMeasure::after \{[\s\S]*?border-bottom: 2px solid var\(--riff-border-selected\);[\s\S]*?border-right: 2px solid var\(--riff-border-selected\);[\s\S]*?border-radius: 0 0 4px;/,
+  );
+  assert.match(
+    desktopCss,
+    /\.stage3ProgressionHeader \.rhythmChordMeasure > button > span \{[\s\S]*?font-weight: 950 !important;/,
+  );
 });
 
 test("rhythm progression clicks seek the prepared backing clock without rebuilding it", async () => {
@@ -192,17 +204,41 @@ test("rhythm progression clicks seek the prepared backing clock without rebuildi
 });
 
 test("saved rhythm progressions have one shared load path and an explicit storage-room load action", async () => {
-  const appSource = await readFile(appSourceUrl, "utf8");
+  const [appSource, desktopCss] = await Promise.all([
+    readFile(appSourceUrl, "utf8"),
+    readFile(desktopStyleUrl, "utf8"),
+  ]);
   const loaderStart = appSource.indexOf("const loadStage3LibraryItem = useCallback");
   const loaderEnd = appSource.indexOf("const stage3DesktopMetronomeSoundToggle", loaderStart);
   const loaderSource = appSource.slice(loaderStart, loaderEnd);
 
   assert.ok(loaderStart >= 0 && loaderEnd > loaderStart);
+  assert.match(loaderSource, /if \(closeStorage\) exitStage3StorageRoom\(\);[\s\S]*?applyStage3LibraryItem\(item\)/);
   assert.match(loaderSource, /applyStage3LibraryItem\(item\)/);
   assert.match(loaderSource, /prepareStage3BackingSession\(/);
-  assert.match(loaderSource, /if \(closeStorage\) exitStage3StorageRoom\(\)/);
   assert.match(appSource, /onClick=\{\(\) => loadStage3LibraryItem\(selectedStage3StorageItem, \{ closeStorage: true \}\)\}/);
   assert.match(appSource, />\s*불러오기\s*</);
+  assert.match(appSource, /\{!isDesktopLayout \? stage3StorageComposerActions : null\}/);
+  assert.match(appSource, /\{isDesktopLayout \? stage3StorageComposerActions : null\}/);
+  assert.match(
+    desktopCss,
+    /stage3StorageDialogLayer[\s\S]*?grid-template-rows: minmax\(0, 1fr\) auto !important;[\s\S]*?> \.stage3StorageComposerActions/,
+  );
+});
+
+test("saved progression rows preserve normal clicks until a horizontal swipe starts", async () => {
+  const appSource = await readFile(appSourceUrl, "utf8");
+  const rowStart = appSource.indexOf("metronomeSelectOptionRow metronomeSelectOptionRow--swipe");
+  const rowEnd = appSource.indexOf('style={{ "--option-swipe-offset"', rowStart);
+  const rowSource = appSource.slice(rowStart, rowEnd);
+  const pointerDownStart = rowSource.indexOf("onPointerDown={(event) => {");
+  const pointerMoveStart = rowSource.indexOf("onPointerMove={(event) => {");
+  const pointerDownSource = rowSource.slice(pointerDownStart, pointerMoveStart);
+  const pointerMoveSource = rowSource.slice(pointerMoveStart);
+
+  assert.ok(rowStart >= 0 && rowEnd > rowStart && pointerDownStart >= 0 && pointerMoveStart > pointerDownStart);
+  assert.doesNotMatch(pointerDownSource, /setPointerCapture/);
+  assert.match(pointerMoveSource, /gesture\.horizontal = true;[\s\S]*?setPointerCapture/);
 });
 
 test("rhythm chord saved-setting lock survives storage migration and blocks destructive paths", async () => {
@@ -315,8 +351,72 @@ test("rhythm storage starts on C and returns to practice after a completed save"
   assert.ok(openStart >= 0 && openEnd > openStart);
   assert.ok(confirmStart >= 0 && confirmEnd > confirmStart);
   assert.match(appSource.slice(openStart, openEnd), /applyStage3StorageChordSelection\("C", "natural", "major", "none"\)/);
-  assert.match(appSource.slice(confirmStart, confirmEnd), /saveStage3StorageItem\([\s\S]*?exitStage3StorageRoom\(\)/);
+  assert.match(
+    appSource.slice(confirmStart, confirmEnd),
+    /const savedItem = saveStage3StorageItem\([\s\S]*?exitStage3StorageRoom\(\);[\s\S]*?applyStage3LibraryItem\(savedItem\)/,
+  );
   assert.match(appSource, /const closeStage3StorageRoom = exitStage3StorageRoom/);
+});
+
+test("desktop rhythm storage assigns and persists strum patterns by progression row", async () => {
+  const [appSource, desktopCss] = await Promise.all([
+    readFile(appSourceUrl, "utf8"),
+    readFile(desktopStyleUrl, "utf8"),
+  ]);
+  const saveStart = appSource.indexOf("const saveStage3StorageItem = useCallback");
+  const saveEnd = appSource.indexOf("const requestSaveStage3StorageItem", saveStart);
+  const saveSource = appSource.slice(saveStart, saveEnd);
+
+  assert.ok(saveStart >= 0 && saveEnd > saveStart);
+  assert.match(appSource, /const stage3StorageStrumRows = useMemo/);
+  assert.match(appSource, /nextGroups\[slotIndex\] = normalizedPattern/);
+  assert.match(appSource, /\{isDesktopLayout \? "추가1열" : "추가1"\}/);
+  assert.match(appSource, /\{isDesktopLayout \? "추가2열" : "추가2"\}/);
+  assert.match(appSource, /aria-label="진행순서 열별 주법"/);
+  assert.match(appSource, /data-progression-row=\{rowIndex \+ 1\}/);
+  assert.match(appSource, /stage3StorageStrumRows\.some\(\(row\) => row\.length\)/);
+  assert.doesNotMatch(appSource, /<small>미지정<\/small>/);
+  assert.match(saveSource, /strum_pattern: currentStrumPattern/);
+  assert.match(saveSource, /strumPattern: currentStrumPattern/);
+  assert.match(saveSource, /strumSlots: currentStrumPattern/);
+  assert.match(saveSource, /return saveData/);
+  assert.match(
+    desktopCss,
+    /\.stage3ProgressionStrumAssignments \{[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 1fr\)\) !important;/,
+  );
+  assert.match(desktopCss, /\.stage3ProgressionStrumAssignment\[data-progression-row="1"\] \{[\s\S]*?grid-column: 1 !important;/);
+  assert.match(desktopCss, /\.stage3ProgressionStrumAssignment\[data-progression-row="2"\] \{[\s\S]*?grid-column: 2 !important;/);
+});
+
+test("desktop rhythm storage uses a compact top bar and a taller centered fretboard", async () => {
+  const [appSource, desktopCss] = await Promise.all([
+    readFile(appSourceUrl, "utf8"),
+    readFile(desktopStyleUrl, "utf8"),
+  ]);
+
+  assert.match(desktopCss, /height: min\(calc\(100dvh - 24px\), 760px\) !important/);
+  assert.match(
+    appSource,
+    /\{!isDesktopLayout \? \([\s\S]*?className="stage3StorageDialogHeading"[\s\S]*?\) : null\}[\s\S]*?className="stage3StorageTopBar"/,
+  );
+  assert.match(
+    appSource,
+    /className="stage3StorageTopBar"[\s\S]*?className="stage3StorageLoadSelect"[\s\S]*?\{isDesktopLayout \? \([\s\S]*?className="stage3StorageTopBarClose"/,
+  );
+  assert.match(
+    desktopCss,
+    /> \.stage3StorageComposer \{[\s\S]*?align-content: start !important;[\s\S]*?grid-auto-rows: max-content !important;[\s\S]*?padding: 6px 12px !important;[\s\S]*?overflow: hidden !important;/,
+  );
+  assert.match(
+    desktopCss,
+    /\.stage3ChordBuilderPanel \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\) !important;[\s\S]*?column-gap: 0 !important;/,
+  );
+  assert.match(desktopCss, /\.stage3StorageTopBar \{[\s\S]*?grid-template-columns: minmax\(240px, 420px\) 30px !important;/);
+  assert.match(desktopCss, /\.stage3StorageTopBarClose \{[\s\S]*?width: 30px !important;[\s\S]*?height: 30px !important;/);
+  assert.match(desktopCss, /--fretboard-board-height: 174px/);
+  assert.match(desktopCss, /width: min\(680px, 78%\) !important/);
+  assert.match(desktopCss, /height: 208px !important/);
+  assert.match(desktopCss, /min-height: 44px !important/);
 });
 
 test("LOAD chord builder follows fretboard options and selects a region with an integrated mini fretboard", async () => {

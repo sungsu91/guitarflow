@@ -58929,6 +58929,179 @@ html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChord
   gap: 12px !important;
 }
 
+.miniChordLoadTabs {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+  padding: 3px !important;
+  border: 1px solid rgba(151, 103, 92, 0.18) !important;
+  border-radius: 11px !important;
+  background: rgba(106, 73, 54, 0.07) !important;
+}
+
+.miniChordLoadTabs > button {
+  display: inline-flex !important;
+  min-width: 0 !important;
+  min-height: 34px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  padding: 6px 10px !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: rgba(83, 57, 48, 0.62) !important;
+  font-size: 9px !important;
+  font-weight: 900 !important;
+}
+
+.miniChordLoadTabs > button.selected {
+  border-color: rgba(166, 108, 47, 0.28) !important;
+  background: rgba(255, 252, 244, 0.92) !important;
+  color: #5f3d2e !important;
+  box-shadow: 0 2px 8px rgba(90, 54, 30, 0.08) !important;
+}
+
+.miniChordLoadTabs > button > small {
+  display: inline-grid !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  place-items: center !important;
+  padding: 0 5px !important;
+  border-radius: 999px !important;
+  background: rgba(118, 79, 58, 0.1) !important;
+  color: inherit !important;
+  font-size: 8px !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.miniChordLoadTabs > button.selected > small {
+  background: rgba(190, 129, 54, 0.16) !important;
+}
+
+.miniChordLoadDialogActions--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+html body:has(main.app.theme-brand) .miniChordLoadTabs {
+  border-color: rgba(217, 170, 85, 0.18) !important;
+  background: rgba(255, 255, 255, 0.035) !important;
+}
+
+html body:has(main.app.theme-brand) .miniChordLoadTabs > button {
+  color: rgba(236, 215, 172, 0.58) !important;
+}
+
+html body:has(main.app.theme-brand) .miniChordLoadTabs > button.selected {
+  border-color: rgba(239, 199, 111, 0.34) !important;
+  background: rgba(180, 126, 46, 0.2) !important;
+  color: #f0cf83 !important;
+  box-shadow: none !important;
+}
+
+.miniChordLoadLibraryGroup {
+  display: grid !important;
+  gap: 5px !important;
+}
+
+.miniChordLoadLibraryGroup + .miniChordLoadLibraryGroup {
+  margin-top: 5px !important;
+  padding-top: 9px !important;
+  border-top: 1px solid rgba(151, 103, 92, 0.16) !important;
+}
+
+.miniChordLoadLibraryGroup > header {
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  padding: 0 2px !important;
+}
+
+.miniChordLoadLibraryGroup > header strong {
+  color: #654333 !important;
+  font-size: 9px !important;
+  font-weight: 950 !important;
+}
+
+.miniChordLoadLibraryGroup > header span {
+  color: rgba(89, 61, 54, 0.5) !important;
+  font-size: 7px !important;
+  font-weight: 800 !important;
+}
+
+.miniChordLoadLibraryGroup > div {
+  display: grid !important;
+  gap: 6px !important;
+}
+
+.miniChordLoadLibraryGroup > div > button {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 52px !important;
+  padding: 7px 10px !important;
+  border: 1px solid rgba(151, 103, 92, 0.2) !important;
+  border-radius: 9px !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  color: #48312b !important;
+  text-align: left !important;
+}
+
+.miniChordLoadLibraryGroup > div > button.selected {
+  border-color: rgba(154, 98, 48, 0.48) !important;
+  background: rgba(239, 216, 172, 0.48) !important;
+}
+
+.miniChordLoadLibraryGroup > div > button > small,
+.miniChordLoadLibraryGroup > div > .miniChordLoadLibraryEditItem > small {
+  color: rgba(89, 61, 54, 0.58) !important;
+  font-size: 8px !important;
+  font-variant-numeric: tabular-nums !important;
+  font-weight: 850 !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+}
+
+.miniChordLoadLibraryGroup > div > .miniChordLoadLibraryEditItem {
+  min-height: 52px !important;
+  padding: 7px 10px !important;
+}
+
+.miniChordLoadLibraryGroup--recommended > div > button {
+  border-color: rgba(180, 126, 46, 0.34) !important;
+  background: linear-gradient(135deg, rgba(252, 240, 207, 0.72), rgba(255, 255, 255, 0.52)) !important;
+}
+
+html body:has(main.app.theme-brand) .miniChordLoadLibraryGroup > header strong {
+  color: #efc86f !important;
+}
+
+html body:has(main.app.theme-brand) .miniChordLoadLibraryGroup > header span {
+  color: rgba(236, 215, 172, 0.54) !important;
+}
+
+html body:has(main.app.theme-brand) .miniChordLoadLibraryGroup + .miniChordLoadLibraryGroup {
+  border-top-color: rgba(217, 170, 85, 0.2) !important;
+}
+
+html body:has(main.app.theme-brand) .miniChordLoadLibraryGroup > div > button {
+  border-color: rgba(217, 170, 85, 0.24) !important;
+  background: rgba(7, 7, 5, 0.82) !important;
+  color: rgba(245, 228, 186, 0.9) !important;
+}
+
+html body:has(main.app.theme-brand) .miniChordLoadLibraryGroup > div > button.selected {
+  border-color: rgba(239, 199, 111, 0.5) !important;
+  background: rgba(180, 126, 46, 0.24) !important;
+}
+
+html body:has(main.app.theme-brand) .miniChordLoadLibraryGroup > div > button > small,
+html body:has(main.app.theme-brand) .miniChordLoadLibraryGroup > div > .miniChordLoadLibraryEditItem > small {
+  color: rgba(236, 215, 172, 0.54) !important;
+}
+
 .miniChordLoadLibrary > button {
   min-height: 52px !important;
   padding: 7px 10px !important;
@@ -64241,6 +64414,9 @@ html body .sharedAccompanimentPanel > summary::-webkit-details-marker {
 }
 
 html body .sharedAccompanimentPanel > summary span {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
   min-width: 0 !important;
   color: #ffe7aa !important;
   font-size: 13px !important;
@@ -68508,6 +68684,31 @@ html body .app.app.app .helpAccordionBadge--hot.helpAccordionBadge {
   color: #ffb0a8 !important;
 }
 
+html body .app.app.app .helpAccordionBadge--beginner.helpAccordionBadge {
+  border-color: rgba(111, 174, 123, 0.5) !important;
+  background: rgba(91, 153, 103, 0.13) !important;
+  color: #a9d9ad !important;
+}
+
+html body .app.app.app .helpAccordionBadge--solo.helpAccordionBadge {
+  border-color: rgba(231, 180, 73, 0.55) !important;
+  background: rgba(213, 155, 40, 0.13) !important;
+  color: #f1c760 !important;
+  font-style: italic;
+}
+
+html body .app.app.app .helpAccordionBadge--arranger.helpAccordionBadge {
+  border-color: rgba(203, 158, 97, 0.48) !important;
+  background: rgba(181, 130, 63, 0.12) !important;
+  color: #ddb679 !important;
+}
+
+html body .app.app.app .helpAccordionBadge--editor.helpAccordionBadge {
+  border-color: rgba(130, 163, 193, 0.48) !important;
+  background: rgba(100, 139, 174, 0.12) !important;
+  color: #abc5dc !important;
+}
+
 html body .app.app.app .helpAccordionContent.helpAccordionContent {
   padding: 15px 16px 18px 44px !important;
   border-top: 1px solid rgba(217, 170, 85, 0.18) !important;
@@ -68690,6 +68891,30 @@ html body .app.theme-light.theme-light .helpAccordionBadge--hot.helpAccordionBad
   border-color: rgba(167, 72, 63, 0.38) !important;
   background: rgba(190, 91, 80, 0.1) !important;
   color: #923f36 !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionBadge--beginner.helpAccordionBadge {
+  border-color: rgba(67, 135, 82, 0.38) !important;
+  background: rgba(79, 149, 99, 0.1) !important;
+  color: #38774a !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionBadge--solo.helpAccordionBadge {
+  border-color: rgba(185, 123, 15, 0.4) !important;
+  background: rgba(201, 133, 0, 0.1) !important;
+  color: #a86f06 !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionBadge--arranger.helpAccordionBadge {
+  border-color: rgba(153, 96, 32, 0.34) !important;
+  background: rgba(166, 109, 40, 0.09) !important;
+  color: #87591f !important;
+}
+
+html body .app.theme-light.theme-light .helpAccordionBadge--editor.helpAccordionBadge {
+  border-color: rgba(75, 111, 142, 0.34) !important;
+  background: rgba(85, 120, 150, 0.09) !important;
+  color: #466782 !important;
 }
 
 html body .app.theme-light.theme-light .helpAccordionContent.helpAccordionContent,
@@ -68933,6 +69158,117 @@ html body .app.theme-light.theme-light .helpInfoNote {
   pointer-events: none;
 }
 
+/* Guitar catalog filter: shared state, platform-specific controls and scrolling. */
+html body .shooterSkinConfigurator .shooterSkinPickerBodyFrame--guitar {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+html body .shooterSkinConfigurator
+  .shooterSkinPickerBodyFrame--guitar
+  > .shooterSkinPickerBody {
+  min-height: 0;
+  height: auto;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarPickerList--filtered {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarCategoryTabs {
+  position: relative;
+  z-index: 7;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  flex: 0 0 auto;
+  gap: 6px;
+  min-width: 0;
+  border-top: 1px solid rgba(177, 126, 56, 0.24);
+}
+
+html body .shooterSkinConfigurator .shooterGuitarCategoryTabs > button {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  border: 1px solid rgba(159, 108, 46, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 248, 232, 0.08);
+  color: rgba(255, 244, 210, 0.78);
+  font-weight: 950;
+  line-height: 1;
+  box-shadow: none;
+}
+
+html body .shooterSkinConfigurator .shooterGuitarCategoryTabs > button.selected {
+  border-color: var(--shooter-selection-border);
+  background: var(--shooter-selection-fill);
+  color: #ffe3a4;
+  box-shadow:
+    0 0 0 2px var(--shooter-selection-ring),
+    inset 0 1px 0 rgba(255, 249, 229, 0.38);
+}
+
+:root[data-theme="light"] body .shooterSkinConfigurator .shooterGuitarCategoryTabs > button {
+  background: rgba(255, 250, 239, 0.7);
+  color: rgba(69, 44, 17, 0.82);
+}
+
+:root[data-theme="light"] body .shooterSkinConfigurator .shooterGuitarCategoryTabs > button.selected {
+  color: #3f260b;
+}
+
+@media (max-width: 719px) {
+  html body .shooterSkinConfigurator--arenaPreview .shooterGuitarCategoryTabs--mobile {
+    gap: 5px;
+    padding: 7px 1px 0;
+  }
+
+  html body .shooterSkinConfigurator--arenaPreview .shooterGuitarCategoryTabs--mobile > button {
+    min-height: 28px;
+    padding: 0 6px;
+    font-size: 9px;
+  }
+
+  html body .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarPickerList--filtered
+    .shooterGuitarPickerGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-auto-flow: row !important;
+    grid-auto-columns: auto !important;
+    overflow: visible !important;
+    touch-action: pan-y !important;
+  }
+}
+
+@media (min-width: 720px) {
+  html body .shooterSkinConfigurator--desktopWindow .shooterGuitarCategoryTabs--desktop {
+    width: min(520px, 100%);
+    margin-inline: auto;
+    padding: 10px 0 1px;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterGuitarCategoryTabs--desktop > button {
+    min-height: 34px;
+    padding: 0 14px;
+    font-size: 11px;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow
+    .shooterGuitarPickerList--filtered
+    .shooterGuitarPickerGrid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    grid-auto-flow: row !important;
+    grid-auto-columns: auto !important;
+    gap: 8px !important;
+    overflow: visible !important;
+    padding: 1px 1px 10px;
+    scroll-snap-type: none;
+    touch-action: pan-y !important;
+  }
+}
+
 .threeDLabHitParticles i {
   position: absolute;
   left: 0;
@@ -69057,8 +69393,9 @@ html body .app.theme-light.theme-light .helpInfoNote {
     isolation: isolate;
   }
 
-  html body .shooterSkinConfigurator .shooterMapCard--default {
+  html body .shooterSkinConfigurator .shooterMapPickerGrid .shooterMapCard--default {
     grid-column: auto;
+    width: 100%;
     aspect-ratio: 16 / 9;
     min-height: 0 !important;
   }
@@ -70919,6 +71256,39 @@ html body main.app.app.app .stage3StorageRoom .stage3InlineProgressionRow .progr
   padding-right: 0 !important;
 }
 
+html body main.app.app.app .rhythmChordMeasure > button,
+html body main.app.app.app .stage3StorageRoom .rhythmChordMeasure > strong {
+  flex: var(--rhythm-chord-beats, 1) 1 0 !important;
+  min-width: 0 !important;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect .metronomeSelectOption {
+  min-height: 50px !important;
+  padding-block: 7px !important;
+  text-align: left !important;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect .metronomeSelectOptionText {
+  display: grid !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect .metronomeSelectOptionDescription {
+  display: block;
+  overflow: hidden;
+  color: rgba(245, 226, 190, 0.68);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html body:has(main.app.theme-light) .metronomeSelectPortal.stage3RecommendedLoadSelect .metronomeSelectOptionDescription {
+  color: rgba(79, 58, 37, 0.68) !important;
+}
+
 @media (max-width: 430px) {
   html body main.app.app.app .stage3StorageRoom .stage3BeatLengthActions button {
     min-width: 0 !important;
@@ -71097,7 +71467,7 @@ html body .app.theme-light .metronomeSelectPortal.stage3UserLoadSelect.metronome
 
   html body main.app.app.app .chordTransitionChart .currentProgressionReadout .rhythmChordMeasure > button,
   html body main.app.app.app .chordTransitionChart .currentProgressionReadout .rhythmChordMeasure > button.stage3AutomaticRestButton {
-    flex: 1 1 0 !important;
+    flex: var(--rhythm-chord-beats, 1) 1 0 !important;
     width: auto !important;
     min-width: 0 !important;
     max-width: none !important;
@@ -71775,39 +72145,41 @@ html body .shooterEffectDesktopCabinetSection .shooterGuitarCabinetPickerPreview
   }
 }
 
-/* Desktop skin picker: foreground window with horizontally browsable catalogs. */
+/* Desktop skin picker: foreground window with wrapped catalogs. */
 @media (min-width: 720px) {
   html body .shooterGuitarPickerOverlay--desktopWindow {
     z-index: 100000 !important;
-    place-items: start center !important;
+    place-items: start start !important;
     align-items: start !important;
-    padding: clamp(30px, 5dvh, 56px) 32px 24px !important;
-    background: rgba(3, 5, 7, 0.48) !important;
-    backdrop-filter: blur(3px) brightness(0.74) !important;
+    justify-items: start !important;
+    padding: clamp(20px, 3dvh, 32px) 24px 24px !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
   }
 
   :root[data-theme] body .shooterGuitarPickerOverlay--desktopWindow {
-    background: rgba(3, 5, 7, 0.48) !important;
-    backdrop-filter: blur(3px) brightness(0.74) !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
   }
 
   :root[data-theme="light"] body .shooterGuitarPickerOverlay--desktopWindow {
-    background: rgba(43, 35, 26, 0.3) !important;
-    backdrop-filter: blur(3px) brightness(0.88) !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
   }
 
   html body .shooterSkinConfigurator--desktopWindow {
     display: block !important;
-    width: min(1080px, calc(100vw - 64px)) !important;
-    height: min(680px, calc(100dvh - 64px)) !important;
-    filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.52));
+    width: clamp(420px, 34vw, 620px) !important;
+    max-width: calc(100vw - 48px) !important;
+    height: min(610px, calc(100dvh - 48px)) !important;
+    filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.36));
     transform: none !important;
   }
 
   html body .shooterSkinConfigurator--desktopWindow .shooterGuitarPickerModal {
     backdrop-filter: none !important;
     box-shadow:
-      0 28px 70px rgba(0, 0, 0, 0.5),
+      0 18px 44px rgba(0, 0, 0, 0.38),
       inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
   }
 
@@ -71842,48 +72214,36 @@ html body .shooterEffectDesktopCabinetSection .shooterGuitarCabinetPickerPreview
   html body .shooterSkinConfigurator--desktopWindow .shooterSkinOptionGrid--picks,
   html body .shooterSkinConfigurator--desktopWindow .shooterSkinOptionGrid--monsters {
     display: grid !important;
-    grid-template-columns: none !important;
-    grid-auto-flow: column !important;
-    grid-auto-columns: 148px !important;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)) !important;
+    grid-auto-flow: row !important;
+    grid-auto-columns: auto !important;
     align-items: stretch;
     gap: 8px !important;
     width: 100%;
     max-width: 100%;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
+    overflow: visible !important;
     padding: 1px 1px 9px;
-    overscroll-behavior-inline: contain;
-    scroll-snap-type: x proximity;
-    scrollbar-color: rgba(159, 108, 46, 0.72) rgba(126, 87, 44, 0.14);
-    scrollbar-width: thin;
-    touch-action: pan-x;
-  }
-
-  html body .shooterSkinConfigurator--desktopWindow
-    :is(.shooterGuitarPickerGrid, .shooterSkinOptionGrid--picks, .shooterSkinOptionGrid--monsters)
-    > * {
-    scroll-snap-align: start;
+    scroll-snap-type: none;
+    touch-action: pan-y;
   }
 
   html body .shooterSkinConfigurator--desktopWindow .shooterMapPickerGrid {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)) !important;
+    grid-auto-flow: row !important;
     align-items: stretch;
     gap: 9px !important;
     width: 100%;
     max-width: 100%;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
+    overflow: visible !important;
     padding: 1px 1px 10px;
-    overscroll-behavior-inline: contain;
-    scroll-snap-type: x proximity;
-    scrollbar-color: rgba(159, 108, 46, 0.72) rgba(126, 87, 44, 0.14);
-    scrollbar-width: thin;
-    touch-action: pan-x;
+    scroll-snap-type: none;
+    touch-action: pan-y;
   }
 
   html body .shooterSkinConfigurator--desktopWindow .shooterMapPickerGrid > .shooterMapCard {
-    flex: 0 0 220px;
-    scroll-snap-align: start;
+    width: 100%;
+    min-width: 0;
   }
 
   html body .shooterSkinConfigurator--desktopWindow .shooterMapDevDivider {
@@ -72071,7 +72431,8 @@ html body .shooterEffectDesktopCabinetSection .shooterGuitarCabinetPickerPreview
 /* FRETIVA instrument packs: preserve every 512x768 transparent canvas. */
 html body img[data-instrument-skin-pack="fretiva-instrument-skins-v1"],
 html body img[data-instrument-skin-pack="fretiva-guitar-addon-v2"],
-html body img[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"] {
+html body img[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"],
+html body img[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"] {
   width: auto;
   max-width: 100%;
   aspect-ratio: auto;
@@ -72085,7 +72446,9 @@ html body .shooterSkinConfigurator
 html body .shooterSkinConfigurator
   .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva-guitar-addon-v2"],
 html body .shooterSkinConfigurator
-  .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"] {
+  .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"],
+html body .shooterSkinConfigurator
+  .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"] {
   width: auto !important;
   height: 76px !important;
   max-width: 100% !important;
@@ -72098,7 +72461,9 @@ html body .shooterArena
 html body .shooterArena
   .guitarPlayer[data-instrument-skin-pack="fretiva-guitar-addon-v2"],
 html body .shooterArena
-  .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"] {
+  .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"],
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"] {
   width: 60px !important;
   height: 137px !important;
 }
@@ -72111,6 +72476,9 @@ html body .shooterArena
   .guitarPlayerAsset.guitarAssetImage,
 html body .shooterArena
   .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
+  .guitarPlayerAsset.guitarAssetImage,
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"]
   .guitarPlayerAsset.guitarAssetImage {
   bottom: 0 !important;
   width: auto !important;
@@ -72143,6 +72511,9 @@ html body .shooterArena
   .guitarPlayerMuzzle,
 html body .shooterArena
   .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
+  .guitarPlayerMuzzle,
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"]
   .guitarPlayerMuzzle {
   top: 6px !important;
 }
@@ -72153,7 +72524,9 @@ html body .shooterArena
   html body .shooterArena
     .guitarPlayer[data-instrument-skin-pack="fretiva-guitar-addon-v2"],
   html body .shooterArena
-    .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"] {
+    .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"],
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"] {
     width: 57px !important;
     height: 127px !important;
   }
@@ -72166,6 +72539,9 @@ html body .shooterArena
     .guitarPlayerAsset.guitarAssetImage,
   html body .shooterArena
     .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
+    .guitarPlayerAsset.guitarAssetImage,
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"]
     .guitarPlayerAsset.guitarAssetImage {
     height: 152px !important;
     max-height: 152px !important;
@@ -72179,6 +72555,9 @@ html body .shooterArena
     .guitarPlayerMuzzle,
   html body .shooterArena
     .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
+    .guitarPlayerMuzzle,
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"]
     .guitarPlayerMuzzle {
     top: -19px !important;
   }
@@ -72190,7 +72569,9 @@ html body .shooterArena
   html body .desktopLayout .shooterArena--desktopPortrait
     .guitarPlayer[data-instrument-skin-pack="fretiva-guitar-addon-v2"],
   html body .desktopLayout .shooterArena--desktopPortrait
-    .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"] {
+    .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"],
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"] {
     width: 57px !important;
     height: 127px !important;
   }
@@ -72203,6 +72584,9 @@ html body .shooterArena
     .guitarPlayerAsset.guitarAssetImage,
   html body .desktopLayout .shooterArena--desktopPortrait
     .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
+    .guitarPlayerAsset.guitarAssetImage,
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"]
     .guitarPlayerAsset.guitarAssetImage {
     bottom: 0 !important;
     height: 127px !important;
@@ -72217,6 +72601,9 @@ html body .shooterArena
     .guitarPlayerMuzzle,
   html body .desktopLayout .shooterArena--desktopPortrait
     .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
+    .guitarPlayerMuzzle,
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"]
     .guitarPlayerMuzzle {
     top: 5px !important;
   }
@@ -72226,7 +72613,9 @@ html body .shooterArena
   html body .shooterSkinConfigurator
     .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva-guitar-addon-v2"],
   html body .shooterSkinConfigurator
-    .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"] {
+    .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"],
+  html body .shooterSkinConfigurator
+    .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"] {
     height: 96px !important;
     max-height: 96px !important;
   }
@@ -72358,4 +72747,71 @@ html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordS
   html body .miniChordMeasureEditorPanel .miniChordPickerHeader {
     grid-template-columns: minmax(72px, 1fr) minmax(120px, 1.45fr) auto !important;
   }
+}
+
+/* Shooter skin selection: keep the applied choice unmistakable across every tab. */
+html body .shooterSkinConfigurator {
+  --shooter-selection-border: #f2c56b;
+  --shooter-selection-fill:
+    radial-gradient(circle at 50% 15%, rgba(255, 222, 145, 0.22), transparent 58%),
+    rgba(112, 74, 20, 0.18);
+  --shooter-selection-ring: rgba(242, 197, 107, 0.3);
+  --shooter-selection-badge-bg: #9a6116;
+  --shooter-selection-badge-text: #fffaf0;
+}
+
+:root[data-theme="light"] body .shooterSkinConfigurator {
+  --shooter-selection-border: #8c5714;
+  --shooter-selection-fill:
+    radial-gradient(circle at 50% 15%, rgba(255, 243, 209, 0.86), transparent 58%),
+    rgba(228, 190, 119, 0.34);
+  --shooter-selection-ring: rgba(111, 67, 14, 0.3);
+  --shooter-selection-badge-bg: #805016;
+  --shooter-selection-badge-text: #fffdf7;
+}
+
+html body .shooterSkinConfigurator :is(
+  .shooterGuitarPickerItem,
+  .shooterSkinOptionCard,
+  .shooterMapCard,
+  .shooterSkinDefaultButton,
+  .shooterGuitarCabinetPickerItem
+).selected {
+  border: 2px solid var(--shooter-selection-border) !important;
+  background: var(--shooter-selection-fill) !important;
+  box-shadow:
+    0 0 0 2px var(--shooter-selection-ring),
+    0 5px 14px rgba(35, 22, 9, 0.2),
+    inset 0 0 0 1px rgba(255, 249, 229, 0.42) !important;
+}
+
+html body .shooterSkinConfigurator :is(
+  .shooterGuitarPickerItem,
+  .shooterSkinOptionCard,
+  .shooterMapCard,
+  .shooterSkinDefaultButton,
+  .shooterGuitarCabinetPickerItem
+).selected::after {
+  content: "✓" !important;
+  position: absolute !important;
+  top: 4px !important;
+  right: 4px !important;
+  z-index: 20 !important;
+  display: grid !important;
+  box-sizing: border-box;
+  width: 20px !important;
+  height: 20px !important;
+  place-items: center;
+  border: 1px solid rgba(255, 248, 225, 0.96) !important;
+  border-radius: 50% !important;
+  background: var(--shooter-selection-badge-bg) !important;
+  color: var(--shooter-selection-badge-text) !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.42) !important;
+  box-shadow:
+    0 2px 6px rgba(30, 18, 6, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  pointer-events: none;
 }

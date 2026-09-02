@@ -91,15 +91,23 @@ test("desktop training dots match the latest mobile strong weak and mute states"
   );
   assert.match(
     styles,
-    /> \.referenceTrainingPanel:is\(\.firstPositionTrainingPanel, \.scaleBlockTrainingPanel\)[\s\S]*grid-template-rows: minmax\(0, 1fr\) clamp\(88px, 9\.2vh, 100px\) !important/,
+    /> \.referenceTrainingPanel:is\(\.firstPositionTrainingPanel, \.scaleBlockTrainingPanel\)[\s\S]*grid-template-rows: minmax\(0, 1fr\) clamp\(114px, 12vh, 128px\) !important/,
   );
   assert.match(
     styles,
-    /\.referenceTrainingPanel:is\(\.firstPositionTrainingPanel, \.scaleBlockTrainingPanel\)[\s\S]*\.referenceBeatMetronomeStrip \.beatIndicatorRow \{[\s\S]*width: min\(640px, 100%\) !important[\s\S]*gap: clamp\(46px, 5vw, 78px\) !important/,
+    /\.referenceTrainingPanel:is\(\.firstPositionTrainingPanel, \.scaleBlockTrainingPanel\)[\s\S]*\.referenceBeatMetronomeStrip \.beatIndicatorRow \{[\s\S]*width: min\(640px, 100%\) !important[\s\S]*gap: clamp\(18px, 2vw, 32px\) !important/,
   );
   assert.match(
     styles,
-    /\.referenceTrainingPanel:is\(\.firstPositionTrainingPanel, \.scaleBlockTrainingPanel\)[\s\S]*\.referenceBeatMetronomeDot \{[\s\S]*--beat-dot-touch: clamp\(52px, 3\.5vw, 58px\)[\s\S]*--beat-dot-size: clamp\(30px, 2\.15vw, 34px\)/,
+    /\.referenceTrainingPanel:is\(\.firstPositionTrainingPanel, \.scaleBlockTrainingPanel\)[\s\S]*\.referenceBeatMetronomeDot \{[\s\S]*--beat-dot-touch: clamp\(66px, 4\.4vw, 76px\)[\s\S]*--beat-dot-size: clamp\(46px, 3\.15vw, 54px\)/,
+  );
+  assert.match(
+    styles,
+    /\.referenceTrainingPanel:is\(\.firstPositionTrainingPanel, \.scaleBlockTrainingPanel\)[\s\S]*\.referenceBeatMetronomeDot \.beatDot__glyph \{[\s\S]*width: var\(--beat-dot-size\) !important[\s\S]*height: var\(--beat-dot-size\) !important/,
+  );
+  assert.match(
+    styles,
+    /\.referenceTrainingBoard \.trainingSharedFretboard \{[\s\S]*transform: translateY\(clamp\(8px, 1vh, 12px\)\)/,
   );
 });
 

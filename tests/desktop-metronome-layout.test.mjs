@@ -43,7 +43,7 @@ test("desktop supporting panels move beside the unchanged mobile-first content",
   assert.match(styles, /> \.referenceTrainingMainRow > \.referenceTrainingToolbar \{[\s\S]*grid-column: 2[\s\S]*grid-row: 1 \/ 3/);
   assert.match(styles, /> \.referenceTrainingMainRow > \.referenceTrainingBoard \{[\s\S]*grid-column: 1[\s\S]*grid-row: 1/);
   assert.match(styles, /\.referenceTrainingPanel\.firstPositionTrainingPanel[\s\S]*> \.referenceTrainingMainRow > \.referenceTrainingToolbar > \.trainingStandaloneMetronomeDeck \{[\s\S]*align-content: center !important/);
-  assert.match(styles, /> \.referenceTrainingPanel\.scaleBlockTrainingPanel[\s\S]*> \.referenceTrainingMainRow \{[\s\S]*row-gap: 0 !important[\s\S]*column-gap: var\(--desktop-training-gap\) !important/);
+  assert.match(styles, /> \.referenceTrainingPanel:is\(\.firstPositionTrainingPanel, \.scaleBlockTrainingPanel\)[\s\S]*> \.referenceTrainingMainRow \{[\s\S]*row-gap: 0 !important[\s\S]*column-gap: var\(--desktop-training-gap\) !important/);
   assert.match(styles, /> \.referenceTrainingMainRow > \.referenceBeatMetronomeStrip \{[\s\S]*border-top: 0 !important[\s\S]*border-top-right-radius: 0 !important/);
   assert.match(styles, /\.referenceTrainingBoard \.trainingSharedFretboard \{[\s\S]*aspect-ratio: 2\.58 \/ 1/);
   assert.match(styles, /\.scaleBlockTrainingPanel \.stage2HeaderScalePicker \.referenceScalePicker \{[\s\S]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
@@ -69,7 +69,7 @@ test("desktop supporting panels move beside the unchanged mobile-first content",
   assert.match(styles, /\.stage3DesktopBeatHeading \{[\s\S]*grid-column: 1[\s\S]*grid-row: 1/);
   assert.match(styles, /\.stage3ProgressHud \.stage3ReferenceBeatMetronomeStrip \{[\s\S]*grid-row: 1 !important[\s\S]*border: 0 !important[\s\S]*background: transparent !important/);
   assert.match(styles, /\.stage3ReferenceBeatMetronomeStrip \.referenceBeatMetronomeDot\.beatDot \{[\s\S]*--beat-dot-size: clamp\(46px, 3\.15vw, 54px\)/);
-  assert.match(styles, /\.stage3ProgressHud \.stage3MetronomeSoundToggle--desktop \{[\s\S]*grid-column: 3 !important/);
+  assert.match(styles, /\.stage3ProgressHud \.stage3MetronomeSoundToggle--desktop \{[\s\S]*grid-column: 3 !important[\s\S]*width: clamp\(96px, 7vw, 110px\) !important[\s\S]*height: 56px !important/);
   assert.match(styles, /\.stage3StandaloneTransportDeck \{[\s\S]*background: transparent !important/);
   assert.match(styles, /\.stage3StandaloneTransportDeck > \.metronomeHeroCard--interactive \{[\s\S]*min-height: 150px !important/);
   assert.match(styles, /\.stage3StandaloneTransportDeck[\s\S]*> \.metronomeHeroCard--interactive::before,[\s\S]*> \.metronomeHeroCard--interactive::after \{[\s\S]*display: none !important/);
@@ -88,8 +88,10 @@ test("desktop supporting panels move beside the unchanged mobile-first content",
   assert.match(appSource, /className="stage3DesktopProgressionHeading">코드 진행/);
   assert.match(appSource, /className="stage3DesktopBeatHeading">박자 진행/);
   assert.match(appSource, /data-measure-number=\{measure\.measureIndex \+ 1\}/);
-  assert.match(appSource, /data-progression-state=\{isCurrentChord \? "current" : isNextChord \? "next" : "upcoming"\}/);
-  assert.match(styles, /\.rhythmChordMeasure:has\(> button\.active\) \{[\s\S]*border-color: var\(--riff-border-selected\) !important/);
+  assert.match(appSource, /data-measure-state=\{!isMobileLayout \? \(isCurrentMeasure \? "current" : "upcoming"\) : undefined\}/);
+  assert.match(appSource, /data-progression-state=\{isMobileLayout \? \(isCurrentChord \? "current" : isNextChord \? "next" : "upcoming"\) : undefined\}/);
+  assert.match(styles, /\.rhythmChordMeasure > button \+ button \{\s*border-left: 0 !important/);
+  assert.match(styles, /\.rhythmChordMeasure\.active \{[\s\S]*border-color: var\(--riff-border-selected\) !important/);
   assert.match(styles, /\.miniChordMakerPanel\.miniChordMakerPanelCompact[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(360px, 420px\)/);
   assert.match(styles, /--desktop-fretboard-catalog-width: clamp\(720px, 53%, 920px\)/);
   assert.match(styles, /html:has\(body \.desktopLayout \.fretboardViewerPanel--desktopUnified\) \{[\s\S]*scrollbar-gutter: stable/);

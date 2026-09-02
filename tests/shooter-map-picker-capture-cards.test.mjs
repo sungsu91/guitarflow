@@ -76,7 +76,10 @@ test("map picker renders platform-sized full capture cards and a random montage"
   assert.match(styleSource, /Mobile map picker keeps every direct map choice visible/);
   assert.match(styleSource, /\.shooterMapPickerGrid\s*\{[\s\S]*?grid-template-columns: repeat\(3, minmax\(0, 1fr\)\) !important;/);
   assert.match(styleSource, /\.shooterMapCard\s*\{[\s\S]*?aspect-ratio: 16 \/ 9;/);
-  assert.match(styleSource, /\.shooterMapCard--default\s*\{[\s\S]*?grid-column: auto;[\s\S]*?aspect-ratio: 16 \/ 9;/);
+  assert.match(
+    styleSource,
+    /\.shooterMapPickerGrid \.shooterMapCard--default\s*\{[\s\S]*?grid-column: auto;[\s\S]*?width: 100%;[\s\S]*?aspect-ratio: 16 \/ 9;[\s\S]*?min-height: 0 !important;/,
+  );
   assert.match(styleSource, /\.shooterMapCard > \.shooterMapPreview/);
   assert.match(styleSource, /Desktop keeps its three-column catalog/);
   assert.match(styleSource, /@media \(min-width: 720px\)[\s\S]*?\.shooterMapPickerGrid\s*\{[\s\S]*?grid-template-columns: repeat\(3, minmax\(0, 1fr\)\) !important;/);

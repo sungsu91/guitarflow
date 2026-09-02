@@ -165,6 +165,29 @@ export function muteRhythmChordRestEvents(events = [], timeline = null, beatSeco
   });
 }
 
+export function clampRhythmChordMelodicEvents(events = [], timeline = null, beatSeconds = 0) {
+  const safeBeatSeconds = Number(beatSeconds);
+  if (!Array.isArray(events) || !Number.isFinite(safeBeatSeconds) || safeBeatSeconds <= 0) {
+    return Array.isArray(events) ? events : [];
+  }
+  return events.map((event) => {
+    if (event?.instrument !== "bass" && event?.instrument !== "piano") return event;
+    const offsetSeconds = Number(event?.offsetSeconds);
+    const duration = Number(event?.duration);
+    if (!Number.isFinite(offsetSeconds) || !Number.isFinite(duration) || duration <= 0) return event;
+    const item = getRhythmChordItemAtBeat(timeline, offsetSeconds / safeBeatSeconds);
+    if (!item) return event;
+    const boundarySeconds = item.endBeat * safeBeatSeconds;
+    const remainingSeconds = boundarySeconds - offsetSeconds - 0.004;
+    if (remainingSeconds >= duration) return event;
+    return {
+      ...event,
+      duration: Math.max(0.001, remainingSeconds),
+      clippedAtRhythmChordBoundary: true,
+    };
+  });
+}
+
 function getRhythmChordPlaybackSlotBeats(timeline, beatsPerMeasure) {
   const requiresOneBeatSlots = timeline.items.some(
     (item) => item.beatLength % 2 !== 0,

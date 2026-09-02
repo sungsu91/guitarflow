@@ -44,11 +44,13 @@
   }
 
   .desktopLayout {
-    --desktop-sidebar-width: clamp(226px, 17vw, 258px);
+    --desktop-sidebar-width: clamp(242px, 17vw, 274px);
+    --desktop-workspace-left: calc(var(--desktop-sidebar-width) + 36px);
   }
 
   .desktopWorkspaceContent {
-    padding-left: calc(var(--desktop-sidebar-width) + 36px);
+    box-sizing: border-box;
+    padding-left: var(--desktop-workspace-left);
     padding-right: clamp(24px, 4vw, 72px);
   }
 
@@ -126,6 +128,19 @@
   }
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app > .desktopSidebar {
+    --desktop-sidebar-card-bg:
+      linear-gradient(145deg, rgba(255, 244, 213, 0.075), rgba(191, 146, 69, 0.025)),
+      rgba(255, 255, 255, 0.024);
+    --desktop-sidebar-card-border: rgba(224, 179, 90, 0.27);
+    --desktop-sidebar-card-shadow:
+      inset 0 1px 0 rgba(255, 248, 226, 0.055),
+      0 4px 12px rgba(0, 0, 0, 0.12);
+    --desktop-sidebar-card-hover-bg:
+      linear-gradient(145deg, rgba(255, 241, 199, 0.13), rgba(205, 158, 77, 0.045)),
+      rgba(255, 255, 255, 0.035);
+    --desktop-sidebar-card-hover-border: rgba(230, 187, 101, 0.44);
+    --desktop-sidebar-card-text: rgba(246, 239, 222, 0.84);
+    --desktop-sidebar-card-icon: rgba(225, 184, 101, 0.78);
     position: fixed;
     z-index: 84;
     top: 12px;
@@ -234,7 +249,7 @@
 
   .desktopSidebarGroup {
     display: grid;
-    gap: 3px;
+    gap: 5px;
   }
 
   .desktopSidebarDivider {
@@ -242,6 +257,33 @@
     height: 1px;
     margin: 9px 8px;
     background: linear-gradient(90deg, transparent, rgba(224, 179, 90, 0.31) 18%, rgba(224, 179, 90, 0.12) 82%, transparent);
+  }
+
+  .desktopSidebarSectionHeading {
+    display: grid;
+    grid-template-columns: minmax(18px, 1fr) auto minmax(18px, 1fr);
+    align-items: center;
+    gap: 9px;
+    margin: 11px 8px 8px;
+  }
+
+  .desktopSidebarSectionHeading > span {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(224, 179, 90, 0.34));
+  }
+
+  .desktopSidebarSectionHeading > span:last-child {
+    background: linear-gradient(90deg, rgba(224, 179, 90, 0.34), transparent);
+  }
+
+  .desktopSidebarSectionHeading > h2 {
+    margin: 0;
+    color: rgba(224, 187, 112, 0.72);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.055em;
+    line-height: 1;
+    white-space: nowrap;
   }
 
   html body .desktopLayout .desktopSidebarNavItem,
@@ -254,15 +296,15 @@
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
-    min-height: 38px;
+    min-height: 42px;
     margin: 0;
-    padding: 7px 9px;
+    padding: 8px 10px;
     overflow: hidden;
-    color: rgba(239, 234, 222, 0.72);
-    border: 1px solid transparent;
+    color: var(--desktop-sidebar-card-text);
+    border: 1px solid var(--desktop-sidebar-card-border);
     border-radius: 12px;
-    background: transparent;
-    box-shadow: none;
+    background: var(--desktop-sidebar-card-bg);
+    box-shadow: var(--desktop-sidebar-card-shadow);
     font: inherit;
     text-align: left;
     text-decoration: none;
@@ -285,8 +327,11 @@
   html body .desktopLayout .desktopSidebarSettings > summary:is(:hover, :focus-visible),
   html body .desktopLayout .desktopSidebarSettings[open] > summary {
     color: #fff3d2;
-    border-color: rgba(222, 176, 87, 0.2);
-    background: linear-gradient(90deg, rgba(222, 176, 87, 0.11), rgba(222, 176, 87, 0.025));
+    border-color: var(--desktop-sidebar-card-hover-border);
+    background: var(--desktop-sidebar-card-hover-bg);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 248, 226, 0.09),
+      0 6px 16px rgba(0, 0, 0, 0.15);
   }
 
   html body .desktopLayout .desktopSidebarNavItem:focus-visible,
@@ -308,13 +353,43 @@
       0 5px 16px rgba(0, 0, 0, 0.13);
   }
 
+  html body .desktopLayout .desktopSidebarNavItem--beginner {
+    border-color: rgba(120, 163, 127, 0.27);
+    background:
+      linear-gradient(100deg, rgba(107, 151, 116, 0.1), rgba(255, 244, 214, 0.035)),
+      rgba(255, 255, 255, 0.022);
+  }
+
+  html body .desktopLayout .desktopSidebarNavItem--solo {
+    border-color: rgba(227, 181, 86, 0.4);
+  }
+
+  html body .desktopLayout .desktopSidebarNavItem--rhythm {
+    border-color: rgba(220, 122, 112, 0.28);
+    background:
+      linear-gradient(100deg, rgba(190, 79, 71, 0.075), rgba(255, 244, 214, 0.03)),
+      rgba(255, 255, 255, 0.022);
+  }
+
+  html body .desktopLayout .desktopSidebarNavItem--rhythm.is-active {
+    color: #fff3ec;
+    border-color: rgba(230, 126, 116, 0.62);
+    background:
+      linear-gradient(90deg, rgba(205, 86, 78, 0.2), rgba(239, 167, 151, 0.055)),
+      rgba(255, 255, 255, 0.02);
+    box-shadow:
+      inset 3px 0 0 #db766c,
+      inset 0 1px 0 rgba(255, 232, 224, 0.08),
+      0 5px 16px rgba(82, 30, 26, 0.16);
+  }
+
   .desktopSidebarIcon,
   .desktopSidebarIndex {
     display: grid;
     width: 26px;
     height: 24px;
     place-items: center;
-    color: rgba(225, 184, 101, 0.7);
+    color: var(--desktop-sidebar-card-icon);
   }
 
   .desktopSidebarIndex {
@@ -328,23 +403,95 @@
     filter: drop-shadow(0 0 7px rgba(235, 184, 78, 0.24));
   }
 
+  .desktopSidebarNavItem--beginner .desktopSidebarIndex {
+    color: #85b28e;
+  }
+
+  .desktopSidebarNavItem--solo .desktopSidebarIndex {
+    color: #dfad4b;
+  }
+
+  .desktopSidebarNavItem--rhythm .desktopSidebarIndex,
+  .desktopSidebarNavItem--rhythm.is-active .desktopSidebarIndex {
+    color: #df7b72;
+  }
+
   .desktopSidebarLabel {
     min-width: 0;
     overflow: hidden;
     font-size: 12px;
-    font-weight: 760;
+    font-weight: 820;
     letter-spacing: -0.015em;
     line-height: 1.25;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
+  html body .desktopLayout .desktopSidebarUtilityGroup
+    :is(.desktopSidebarSettings > summary, .desktopSidebarNavItem) {
+    color: var(--desktop-sidebar-card-text) !important;
+    opacity: 1 !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .desktopSidebar .desktopSidebarUtilityGroup
+    > .desktopSidebarSettings > summary,
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .desktopSidebar .desktopSidebarUtilityGroup
+    > .desktopSidebarNavItem {
+    border-color: var(--desktop-sidebar-card-border) !important;
+    background: var(--desktop-sidebar-card-bg) !important;
+    box-shadow: var(--desktop-sidebar-card-shadow) !important;
+    color: var(--desktop-sidebar-card-text) !important;
+    opacity: 1 !important;
+  }
+
+  html body .desktopLayout .desktopSidebarUtilityGroup
+    :is(.desktopSidebarSettings > summary, .desktopSidebarNavItem):is(:hover, :focus-visible),
+  html body .desktopLayout .desktopSidebarUtilityGroup
+    .desktopSidebarSettings[open] > summary {
+    color: #fff3d2;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .desktopSidebar .desktopSidebarUtilityGroup
+    > .desktopSidebarSettings > summary:is(:hover, :focus-visible),
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .desktopSidebar .desktopSidebarUtilityGroup
+    > .desktopSidebarSettings[open] > summary,
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app
+    > .desktopSidebar .desktopSidebarUtilityGroup
+    > .desktopSidebarNavItem:is(:hover, :focus-visible) {
+    border-color: var(--desktop-sidebar-card-hover-border) !important;
+    background: var(--desktop-sidebar-card-hover-bg) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 248, 226, 0.09),
+      0 6px 16px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  html body .desktopLayout .desktopSidebarUtilityGroup
+    :is(.desktopSidebarSettings > summary, .desktopSidebarNavItem)
+    .desktopSidebarLabel {
+    color: inherit !important;
+    -webkit-text-fill-color: currentColor !important;
+    font-weight: 820 !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+  }
+
+  html body .desktopLayout .desktopSidebarContact:visited {
+    color: var(--desktop-sidebar-card-text);
+  }
+
   .desktopSidebarSettings {
     min-width: 0;
   }
 
-  .desktopSidebarSettings > summary {
+  html body .desktopLayout .desktopSidebarSettings > summary {
     list-style: none;
+    border-color: var(--desktop-sidebar-card-border);
+    background: var(--desktop-sidebar-card-bg);
+    box-shadow: var(--desktop-sidebar-card-shadow);
   }
 
   .desktopSidebarSettings > summary::-webkit-details-marker {
@@ -352,12 +499,69 @@
   }
 
   .desktopSidebarChevron {
-    color: rgba(224, 187, 112, 0.54);
+    color: var(--desktop-sidebar-card-icon);
     transition: transform 150ms ease;
   }
 
   .desktopSidebarSettings[open] .desktopSidebarChevron {
     transform: rotate(180deg);
+  }
+
+  .desktopSidebarStatusLogo {
+    justify-self: end;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    font-size: 10px;
+    font-weight: 950;
+    letter-spacing: 0.015em;
+    line-height: 1;
+    -webkit-text-fill-color: currentColor !important;
+    opacity: 1 !important;
+    text-align: right;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.16);
+    white-space: nowrap;
+  }
+
+  .desktopSidebarStatusLogo--beginner {
+    color: #9dcc9f !important;
+    font-size: 10.5px;
+  }
+
+  .desktopSidebarStatusLogo--solo {
+    color: #f0bd47 !important;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 11px;
+    font-style: italic;
+    letter-spacing: 0.045em;
+  }
+
+  .desktopSidebarStatusLogo--rhythm {
+    color: #f08b82 !important;
+    font-size: 10.5px;
+    font-style: italic;
+    font-weight: 950;
+  }
+
+  .desktopSidebarStatusLogo--arranger {
+    color: #d9ac69 !important;
+    font-size: 10px;
+  }
+
+  .desktopSidebarStatusLogo--editor {
+    color: #9fb6cf !important;
+    font-size: 10px;
+  }
+
+  .desktopSidebarInstagramIcon {
+    color: var(--desktop-sidebar-card-icon);
+  }
+
+  .desktopSidebarContact:is(:hover, :focus-visible) .desktopSidebarInstagramIcon {
+    color: var(--desktop-sidebar-card-icon);
+    filter: none;
   }
 
   .desktopSidebarSoundControls {
@@ -465,6 +669,19 @@
   }
 
   html body .desktopLayout main.app.app.app.theme-light > .desktopSidebar {
+    --desktop-sidebar-card-bg:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.74), rgba(248, 240, 224, 0.68)),
+      #f8f0e3;
+    --desktop-sidebar-card-border: rgba(190, 139, 67, 0.36);
+    --desktop-sidebar-card-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.86),
+      0 4px 12px rgba(92, 61, 35, 0.07);
+    --desktop-sidebar-card-hover-bg:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(250, 241, 220, 0.84)),
+      #fbf4e7;
+    --desktop-sidebar-card-hover-border: rgba(183, 127, 48, 0.52);
+    --desktop-sidebar-card-text: #3f3027;
+    --desktop-sidebar-card-icon: rgba(137, 82, 65, 0.82);
     color: #4f3b36;
     border-color: rgba(146, 95, 77, 0.24);
     background:
@@ -504,29 +721,47 @@
     background: linear-gradient(90deg, transparent, rgba(146, 95, 77, 0.24) 18%, rgba(146, 95, 77, 0.08) 82%, transparent);
   }
 
+  html body .desktopLayout main.app.theme-light .desktopSidebarSectionHeading > span {
+    background: linear-gradient(90deg, transparent, rgba(167, 117, 55, 0.35));
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarSectionHeading > span:last-child {
+    background: linear-gradient(90deg, rgba(167, 117, 55, 0.35), transparent);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarSectionHeading > h2 {
+    color: #8f6c42;
+  }
+
   html body .desktopLayout main.app.theme-light .desktopSidebarNavItem,
   html body .desktopLayout main.app.theme-light .desktopSidebarSettings > summary {
-    color: rgba(66, 45, 40, 0.7);
+    color: var(--desktop-sidebar-card-text);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarSettings > summary {
+    border-color: var(--desktop-sidebar-card-border);
+    background: var(--desktop-sidebar-card-bg);
+    box-shadow: var(--desktop-sidebar-card-shadow);
   }
 
   html body .desktopLayout main.app.theme-light .desktopSidebarNavItem:is(:hover, :focus-visible),
   html body .desktopLayout main.app.theme-light .desktopSidebarSettings > summary:is(:hover, :focus-visible),
   html body .desktopLayout main.app.theme-light .desktopSidebarSettings[open] > summary {
     color: #3c2924;
-    border-color: rgba(145, 89, 70, 0.18);
-    background: linear-gradient(90deg, rgba(151, 94, 74, 0.085), rgba(255, 255, 255, 0.34));
+    border-color: var(--desktop-sidebar-card-hover-border);
+    background: var(--desktop-sidebar-card-hover-bg);
   }
 
   html body .desktopLayout main.app.theme-light .desktopSidebarNavItem.is-active {
-    color: #3e2923;
-    border-color: rgba(145, 89, 70, 0.42);
+    color: #3f2f21;
+    border-color: rgba(190, 135, 50, 0.58);
     background:
-      linear-gradient(90deg, rgba(169, 105, 81, 0.18), rgba(255, 255, 255, 0.43)),
-      rgba(255, 255, 255, 0.34);
+      linear-gradient(90deg, rgba(222, 177, 91, 0.2), rgba(255, 252, 242, 0.78)),
+      #fbf3e4;
     box-shadow:
-      inset 3px 0 0 #9a5e4a,
-      inset 0 1px 0 rgba(255, 255, 255, 0.72),
-      0 5px 15px rgba(91, 54, 44, 0.07);
+      inset 3px 0 0 #c4933e,
+      inset 0 1px 0 rgba(255, 255, 255, 0.86),
+      0 5px 15px rgba(91, 62, 31, 0.09);
   }
 
   html body .desktopLayout main.app.theme-light .desktopSidebarIcon,
@@ -538,6 +773,64 @@
   html body .desktopLayout main.app.theme-light .desktopSidebarNavItem.is-active :is(.desktopSidebarIcon, .desktopSidebarIndex) {
     color: #8f5543;
     filter: none;
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarNavItem--beginner {
+    border-color: rgba(105, 148, 112, 0.4);
+    background:
+      linear-gradient(100deg, rgba(222, 235, 217, 0.78), rgba(255, 252, 243, 0.72)),
+      #f5f3e8;
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarNavItem--solo {
+    border-color: rgba(205, 145, 42, 0.52);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarNavItem--rhythm {
+    border-color: rgba(205, 101, 93, 0.32);
+    background:
+      linear-gradient(100deg, rgba(247, 226, 219, 0.56), rgba(255, 252, 244, 0.76)),
+      #faf2e8;
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarNavItem--rhythm.is-active {
+    color: #3f2925;
+    border-color: rgba(208, 87, 80, 0.58);
+    background:
+      linear-gradient(90deg, rgba(239, 194, 184, 0.52), rgba(255, 248, 241, 0.88)),
+      #faeee8;
+    box-shadow:
+      inset 3px 0 0 #d04f4b,
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 5px 15px rgba(113, 51, 45, 0.1);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarNavItem--beginner .desktopSidebarIndex,
+  html body .desktopLayout main.app.theme-light .desktopSidebarStatusLogo--beginner {
+    color: #4f9563 !important;
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarNavItem--solo .desktopSidebarIndex,
+  html body .desktopLayout main.app.theme-light .desktopSidebarStatusLogo--solo {
+    color: #c98500 !important;
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarNavItem--rhythm .desktopSidebarIndex,
+  html body .desktopLayout main.app.theme-light .desktopSidebarNavItem--rhythm.is-active .desktopSidebarIndex,
+  html body .desktopLayout main.app.theme-light .desktopSidebarStatusLogo--rhythm {
+    color: #d24c4f !important;
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarStatusLogo--arranger {
+    color: #a66d28 !important;
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarStatusLogo--editor {
+    color: #557896 !important;
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarInstagramIcon {
+    color: var(--desktop-sidebar-card-icon);
   }
 
   html body .desktopLayout main.app.theme-light .desktopSidebarSoundControls {
@@ -580,6 +873,291 @@
   .desktopLayout .stage3StorageDialog,
   .desktopLayout .backingLoopDialog {
     max-width: min(920px, calc(100vw - 64px));
+  }
+
+  /* Keep the shared storage actions visible while the desktop editor scrolls. */
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialogLayer
+    .stage3StorageRoom.stage3StorageDialog.chordTransitionPanel {
+    grid-template-rows: minmax(0, 1fr) auto !important;
+    height: min(calc(100dvh - 24px), 760px) !important;
+    max-height: min(calc(100dvh - 24px), 760px) !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog
+    > .stage3StorageComposer {
+    align-content: start !important;
+    grid-auto-rows: max-content !important;
+    gap: 2px !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 6px 12px !important;
+    overflow: hidden !important;
+    scroll-padding-bottom: 0 !important;
+  }
+
+  html body .desktopLayout main.app.app.app .stage3StorageDialogHeading {
+    padding: 8px 13px 7px !important;
+  }
+
+  html body .desktopLayout main.app.app.app .stage3StorageDialogHeading > button {
+    flex-basis: 28px !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog
+    .stage3StorageTopBar {
+    grid-template-columns: minmax(240px, 420px) 30px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    margin-bottom: 0 !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog
+    .stage3StorageTopBar
+    .stage3StorageLoadSelect.metronomeSelectControl {
+    width: min(420px, 100%) !important;
+    min-width: 0 !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog
+    .stage3StorageTopBarClose {
+    display: inline-grid !important;
+    place-items: center !important;
+    justify-self: end !important;
+    width: 30px !important;
+    min-width: 30px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 0 !important;
+    border: 1px solid rgba(217, 170, 85, 0.35) !important;
+    border-radius: 9px !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    color: rgba(255, 242, 211, 0.94) !important;
+    box-shadow: none !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog
+    .stage3StorageTopBarClose:is(:hover, :focus-visible) {
+    border-color: rgba(241, 202, 122, 0.68) !important;
+    background: rgba(217, 170, 85, 0.13) !important;
+    outline: 0 !important;
+  }
+
+  html body .desktopLayout main.app.app.app.theme-light
+    .stage3StorageDialog
+    .stage3StorageTopBarClose {
+    border-color: rgba(119, 82, 29, 0.3) !important;
+    background: rgba(255, 252, 244, 0.72) !important;
+    color: #4f371c !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog
+    .stage3StorageTopBar
+    .stage3StorageLoadSelect
+    .metronomeSelectButton {
+    height: 30px !important;
+    min-height: 30px !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ChordBuilderPanel {
+    grid-template-columns: minmax(0, 1fr) !important;
+    column-gap: 0 !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ChordBuilderPanel
+    > * {
+    grid-column: 1 !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ChordMiniReference {
+    gap: 2px !important;
+    padding: 1px 0 4px !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ChordMiniReferenceFretboard.fitRange {
+    --fretboard-board-top: 22px;
+    --fretboard-board-bottom: 12px;
+    --fretboard-board-height: 174px;
+    justify-self: center !important;
+    width: min(680px, 78%) !important;
+    max-width: 680px !important;
+    min-width: 0 !important;
+    margin-inline: auto !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ChordMiniReferenceFretboard.fitRange
+    .fretboardComponentScroller {
+    height: 208px !important;
+    min-height: 208px !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ChordBuilderPanel
+    .chordBuilderOptionSection {
+    padding: 3px 0 !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ChordBuilderPanel
+    .chordBuilderChip {
+    min-height: 24px !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3StorageChordBuilder
+    > :is(.stage3StrumPickRow, .stage3AddRow, .stage3InlineProgressionRow) {
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3StorageChordBuilder
+    :is(.stage3SegmentControl, .stage3ActionSegment)
+    > button {
+    min-height: 25px !important;
+    height: 25px !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3InlineProgressionRow {
+    align-items: start !important;
+    grid-template-columns: 48px minmax(0, 1fr) !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ProgressionStrumAssignments {
+    grid-column: 2 !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+    margin-top: 3px !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ProgressionStrumAssignment {
+    display: grid !important;
+    grid-template-columns: 24px minmax(0, auto) !important;
+    align-items: center !important;
+    justify-self: start !important;
+    gap: 3px !important;
+    width: max-content !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 20px !important;
+    padding: 0 4px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ProgressionStrumAssignment[data-progression-row="1"] {
+    grid-column: 1 !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ProgressionStrumAssignment[data-progression-row="2"] {
+    grid-column: 2 !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ProgressionStrumAssignment > b {
+    color: rgba(241, 202, 122, 0.92) !important;
+    font-size: 9px !important;
+    font-weight: 1000 !important;
+    white-space: nowrap !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ProgressionStrumAssignment
+    .strumPattern {
+    flex-wrap: nowrap !important;
+    gap: 1px !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body .desktopLayout main.app.app.app.theme-light
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ProgressionStrumAssignment {
+    border-color: transparent !important;
+    background: transparent !important;
+  }
+
+  html body .desktopLayout main.app.app.app.theme-light
+    .stage3StorageDialog.stage3StorageRoom
+    .stage3ProgressionStrumAssignment > b {
+    color: #745826 !important;
+  }
+
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    > .stage3StorageComposerActions,
+  html body .desktopLayout main.app.app.app
+    .stage3StorageDialog.stage3StorageRoom
+    > .stage3StorageComposerActions.stage3StorageActionSegment {
+    position: relative !important;
+    z-index: 2 !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    justify-self: stretch !important;
+    width: 100% !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 5px 12px 6px !important;
+    border-top: 1px solid rgba(217, 170, 85, 0.2) !important;
+    background:
+      radial-gradient(circle at 12% 0%, rgba(217, 170, 85, 0.1), transparent 38%),
+      rgba(7, 10, 12, 0.98) !important;
+    box-shadow: 0 -12px 28px rgba(0, 0, 0, 0.18) !important;
+    box-sizing: border-box !important;
+  }
+
+  html body .desktopLayout main.app.app.app.theme-light
+    .stage3StorageDialog.stage3StorageRoom
+    > .stage3StorageComposerActions,
+  html body .desktopLayout main.app.app.app.theme-light
+    .stage3StorageDialog.stage3StorageRoom
+    > .stage3StorageComposerActions.stage3StorageActionSegment {
+    border-top-color: rgba(119, 82, 29, 0.18) !important;
+    background:
+      radial-gradient(circle at 12% 0%, rgba(187, 132, 47, 0.1), transparent 38%),
+      rgba(248, 240, 224, 0.98) !important;
+    box-shadow: 0 -12px 28px rgba(81, 63, 37, 0.1) !important;
   }
 
   .desktopLayout .helpGuidePanel {
@@ -1173,7 +1751,7 @@
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     > .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
     > .referenceTrainingMainRow {
-    grid-template-rows: minmax(0, 1fr) clamp(88px, 9.2vh, 100px) !important;
+    grid-template-rows: minmax(0, 1fr) clamp(114px, 12vh, 128px) !important;
   }
 
   /* Single-note and scale practice present the fretboard and beat-state strip
@@ -1203,21 +1781,34 @@
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
     .referenceBeatMetronomeStrip {
-    padding: clamp(10px, 1.25vh, 16px) clamp(24px, 2.4vw, 40px) !important;
+    padding: 11px clamp(24px, 2.4vw, 40px) !important;
   }
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
     .referenceBeatMetronomeStrip .beatIndicatorRow {
     width: min(640px, 100%) !important;
-    gap: clamp(46px, 5vw, 78px) !important;
+    gap: clamp(18px, 2vw, 32px) !important;
   }
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
     .referenceBeatMetronomeDot {
-    --beat-dot-touch: clamp(52px, 3.5vw, 58px);
-    --beat-dot-size: clamp(30px, 2.15vw, 34px);
+    --beat-dot-touch: clamp(66px, 4.4vw, 76px);
+    --beat-dot-size: clamp(46px, 3.15vw, 54px);
+    width: var(--beat-dot-touch) !important;
+    min-width: var(--beat-dot-touch) !important;
+    height: var(--beat-dot-touch) !important;
+    min-height: var(--beat-dot-touch) !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    .referenceTrainingPanel:is(.firstPositionTrainingPanel, .scaleBlockTrainingPanel)
+    .referenceBeatMetronomeDot .beatDot__glyph {
+    width: var(--beat-dot-size) !important;
+    min-width: var(--beat-dot-size) !important;
+    height: var(--beat-dot-size) !important;
+    min-height: var(--beat-dot-size) !important;
   }
 
   /* Desktop training and rhythm-code reuse the latest mobile strong / weak / mute language.
@@ -1608,6 +2199,7 @@
     --fretboard-board-top: clamp(28px, 2.2vw, 36px);
     --fretboard-board-bottom: clamp(16px, 1.5vw, 24px);
     --fretboard-board-height: calc(100% - var(--fretboard-board-top) - var(--fretboard-board-bottom));
+    transform: translateY(clamp(8px, 1vh, 12px));
   }
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
@@ -2049,20 +2641,37 @@
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     > .chordTransitionPanel .stage3ProgressionHeader .rhythmChordMeasure::before {
     position: absolute;
-    top: 10px;
-    left: 12px;
+    top: 8px;
+    left: 15px;
     z-index: 2;
-    color: var(--riff-text-secondary);
-    font-size: 11px;
-    font-weight: 950;
+    color: var(--riff-text-strong);
+    font-size: 12px;
+    font-weight: 1000;
     line-height: 1;
     content: attr(data-measure-number);
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.24);
+    pointer-events: none;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .chordTransitionPanel .stage3ProgressionHeader .rhythmChordMeasure::after {
+    position: absolute;
+    top: 5px;
+    left: 7px;
+    z-index: 1;
+    width: 20px;
+    height: 18px;
+    border-bottom: 2px solid var(--riff-border-selected);
+    border-right: 2px solid var(--riff-border-selected);
+    border-radius: 0 0 4px;
+    content: "";
+    opacity: 0.7;
     pointer-events: none;
   }
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     > .chordTransitionPanel .stage3ProgressionHeader .rhythmChordMeasure > button {
-    flex: 1 1 0 !important;
+    flex: var(--rhythm-chord-beats, 1) 1 0 !important;
     min-width: 0 !important;
     min-height: 84px !important;
     padding: 24px 10px 9px !important;
@@ -2077,11 +2686,11 @@
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     > .chordTransitionPanel .stage3ProgressionHeader .rhythmChordMeasure > button + button {
-    border-left: 1px solid var(--riff-divider) !important;
+    border-left: 0 !important;
   }
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
-    > .chordTransitionPanel .stage3ProgressionHeader .rhythmChordMeasure:has(> button.active) {
+    > .chordTransitionPanel .stage3ProgressionHeader .rhythmChordMeasure.active {
     border-color: var(--riff-border-selected) !important;
     background: var(--riff-control-selected) !important;
     box-shadow: inset 0 -2px 0 var(--riff-border-selected), var(--riff-shadow-control) !important;
@@ -2090,6 +2699,7 @@
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     > .chordTransitionPanel .stage3ProgressionHeader .rhythmChordMeasure > button > span {
     font-size: inherit !important;
+    font-weight: 950 !important;
   }
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
@@ -2099,7 +2709,7 @@
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     > .chordTransitionPanel .stage3ProgressionHeader .rhythmChordMeasure > button.stage3AutomaticRestButton {
-    flex: 1 1 0 !important;
+    flex: var(--rhythm-chord-beats, 1) 1 0 !important;
     width: auto !important;
     min-width: 0 !important;
     height: 84px !important;
@@ -2276,13 +2886,20 @@
     grid-column: 3 !important;
     grid-row: 1 !important;
     justify-self: end !important;
-    width: var(--desktop-stage3-hud-rail) !important;
-    min-width: var(--desktop-stage3-hud-rail) !important;
-    max-width: none !important;
+    grid-template-columns: 14px minmax(0, 1fr) !important;
+    width: clamp(96px, 7vw, 110px) !important;
+    min-width: clamp(96px, 7vw, 110px) !important;
+    max-width: clamp(96px, 7vw, 110px) !important;
     position: relative;
-    height: 64px !important;
-    min-height: 64px !important;
-    padding: 8px 13px !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    padding: 6px 8px !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .chordTransitionPanel .stage3ProgressHud .stage3MetronomeSoundToggle--desktop svg {
+    width: 14px !important;
+    height: 14px !important;
   }
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode

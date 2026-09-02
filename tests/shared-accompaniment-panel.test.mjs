@@ -51,6 +51,31 @@ test("shared accompaniment controls stay responsive and unlocked during playback
   assert.doesNotMatch(appSource, /<SharedAccompanimentPanel[\s\S]{0,220}className="sharedAccompanimentPanel--training"[\s\S]{0,220}disabled=\{gameState === GAME_STATES\.PLAYING\}/);
 });
 
+test("mini chord recommendations lock only the in-page panel while shared menus stay independent", () => {
+  const miniChordPanelSource = getSourceRange(
+    '<SharedAccompanimentPanel\n            className="sharedAccompanimentPanel--miniChord"',
+    "{miniChordPageCount > 1",
+  );
+  const trainingPanelSource = getSourceRange(
+    '<SharedAccompanimentPanel\n            className="sharedAccompanimentPanel--training"',
+    "</section>",
+  );
+  const mobileUtilitySource = getSourceRange(
+    '<section className="utilitySoundPanel"',
+    '<button\n                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"',
+  );
+
+  assert.match(panelSource, /disabled=\{disabled\}/);
+  assert.match(panelSource, /data-accompaniment-locked=\{disabled \? "true" : undefined\}/);
+  assert.match(miniChordPanelSource, /disabled=\{miniChordEditLocked \|\| miniChordRecommendedAccompanimentLocked\}/);
+  assert.match(trainingPanelSource, /disabled=\{stage3RecommendedAccompanimentLocked\}/);
+  assert.match(appSource, /accompanimentControlsDisabled=\{stage3RecommendedAccompanimentLocked\}/);
+  assert.match(mobileUtilitySource, /disabled=\{stage3RecommendedAccompanimentLocked\}/);
+  assert.doesNotMatch(mobileUtilitySource, /miniChordRecommendedAccompanimentLocked/);
+  assert.match(appSource, /const toggleBackingPartEnabled = useCallback\(\(part\) => \{\s+if \(stage3RecommendedAccompanimentLocked\) return;/);
+  assert.match(appSource, /const openMiniChordRhythmSettings = \(\) => \{\s+if \(stage3RecommendedAccompanimentLocked\) return;/);
+});
+
 test("light theme accompaniment buttons never switch to a black pressed state", () => {
   const lightSelectedRule = appCss.match(
     /html body \.app\.theme-light\.theme-light \.sharedAccompanimentPanel \.miniChordBeatOptions button\.selected,[\s\S]*?\n\}/,

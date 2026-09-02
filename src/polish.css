@@ -328,6 +328,18 @@
   }
 }
 
+/* Mobile portrait note trainers: lift only the braille row so the BPM card
+   keeps a clear visual gap without changing the shared control structure. */
+@media (max-width: 767px) and (orientation: portrait) {
+  html body main.app.app.app
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeDeck.standaloneMetronomePanel
+    > .referenceBeatMetronomeStrip
+    .beatIndicatorRow {
+    transform: translateY(-6px) !important;
+  }
+}
+
 /* Utility menu redesign: shared structure, theme-driven card surfaces. */
 html body .app.app.app .utilityMenuPanel {
   --utility-menu-panel-border: rgba(232, 187, 101, 0.72);
@@ -6564,7 +6576,7 @@ html body main.app.app.app.theme-light.theme-light .chordTransitionPanel
   html body main.app.app.app .chordTransitionPanel
     .referenceBeatMetronomeDot.beatDot {
     --beat-dot-touch: clamp(38px, 10vw, 42px);
-    --beat-dot-size: 20px;
+    --beat-dot-size: clamp(26px, 7.4vw, 30px);
     width: var(--beat-dot-touch) !important;
     min-width: var(--beat-dot-touch) !important;
     height: var(--beat-dot-touch) !important;

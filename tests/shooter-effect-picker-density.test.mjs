@@ -12,7 +12,7 @@ test("effect picker shows aligned independently selectable sets and a standalone
   ]);
   const marker = "/* Mobile effect picker:";
   const compactRuleIndex = appCss.lastIndexOf(marker);
-  const desktopMarker = "/* Desktop skin picker: foreground window with horizontally browsable catalogs. */";
+  const desktopMarker = "/* Desktop skin picker: foreground window with wrapped catalogs. */";
   const desktopRuleIndex = appCss.lastIndexOf(desktopMarker);
 
   assert.notEqual(compactRuleIndex, -1);
@@ -50,9 +50,9 @@ test("effect picker shows aligned independently selectable sets and a standalone
     /@media \(min-width: 720px\) \{[\s\S]*\.shooterEffectPreview \{[\s\S]*height: 118px !important/,
   );
 
-  assert.match(desktopCss, /\.shooterGuitarPickerOverlay--desktopWindow \{[\s\S]*place-items: start center !important;[\s\S]*background: rgba\(3, 5, 7, 0\.48\) !important/);
-  assert.match(desktopCss, /\.shooterGuitarPickerGrid,[\s\S]*\.shooterSkinOptionGrid--picks,[\s\S]*\.shooterSkinOptionGrid--monsters \{[\s\S]*grid-auto-flow: column !important;[\s\S]*overflow-x: auto !important/);
-  assert.match(desktopCss, /\.shooterMapPickerGrid \{[\s\S]*display: flex !important;[\s\S]*overflow-x: auto !important/);
+  assert.match(desktopCss, /\.shooterGuitarPickerOverlay--desktopWindow \{[\s\S]*place-items: start start !important;[\s\S]*background: transparent !important;[\s\S]*backdrop-filter: none !important/);
+  assert.match(desktopCss, /\.shooterGuitarPickerGrid,[\s\S]*\.shooterSkinOptionGrid--picks,[\s\S]*\.shooterSkinOptionGrid--monsters \{[\s\S]*grid-template-columns: repeat\(auto-fill, minmax\(148px, 1fr\)\) !important;[\s\S]*grid-auto-flow: row !important;[\s\S]*overflow: visible !important/);
+  assert.match(desktopCss, /\.shooterMapPickerGrid \{[\s\S]*display: grid !important;[\s\S]*grid-template-columns: repeat\(auto-fill, minmax\(205px, 1fr\)\) !important;[\s\S]*overflow: visible !important/);
   assert.match(desktopCss, /\.shooterEffectSetScroller,[\s\S]*\.shooterEffectStandaloneScroller[\s\S]*overflow-x: auto/);
   assert.match(desktopCss, /\.shooterEffectSetTrack,[\s\S]*\.shooterEffectStandaloneTrack[\s\S]*grid-auto-flow: column/);
 });

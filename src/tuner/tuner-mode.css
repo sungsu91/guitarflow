@@ -2660,7 +2660,8 @@ html body .app.app.theme-light .tunerModeShell .tunerReferenceRow strong {
 
 @media (min-width: 1024px) {
   .desktopLayout .desktopWorkspaceContent:has(> main.app.tunerMode) {
-    padding-inline: 0;
+    padding-right: 0;
+    padding-left: var(--desktop-workspace-left);
   }
 
   .desktopLayout .desktopWorkspaceContent > main.app.app.app.tunerMode {

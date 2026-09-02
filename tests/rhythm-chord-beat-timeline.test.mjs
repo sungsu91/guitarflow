@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  clampRhythmChordMelodicEvents,
   createRhythmChordBeatTimeline,
   expandRhythmChordPlaybackSlots,
   getRhythmChordBeatLabel,
@@ -233,6 +234,26 @@ test("backing events inside rests are removed and sustaining events stop at the 
     { duration: 0.25, instrument: "piano", offsetSeconds: 0.75 },
     { duration: 0.5, instrument: "bass", offsetSeconds: 1.5 },
   ]);
+});
+
+test("bass and piano releases are clipped at every short chord boundary", () => {
+  const timeline = createRhythmChordBeatTimeline([
+    { id: "C", beatLength: 2 },
+    { id: "Am", beatLength: 1 },
+    { id: "G", beatLength: 1 },
+  ], 4);
+  const events = clampRhythmChordMelodicEvents([
+    { duration: 2, instrument: "piano", offsetSeconds: 0 },
+    { duration: 1, instrument: "bass", offsetSeconds: 1 },
+    { duration: 1, instrument: "piano", offsetSeconds: 1.5 },
+    { duration: 2, instrument: "drum", offsetSeconds: 0 },
+  ], timeline, 0.5);
+
+  assert.equal(events[0].duration, 0.996);
+  assert.equal(events[1].duration, 0.496);
+  assert.equal(events[2].duration, 0.496);
+  assert.equal(events[3].duration, 2);
+  assert.equal(events[0].clippedAtRhythmChordBoundary, true);
 });
 
 test("fixed and multi-measure mixed progressions preserve every entered duration", () => {

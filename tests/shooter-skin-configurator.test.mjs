@@ -51,3 +51,39 @@ test("physical mobile map catalog keeps a dedicated touch-scroll area", async ()
   assert.match(appCss, /shooterSkinPickerBodyFrame--map[\s\S]*?height: 100%;[\s\S]*?overflow: hidden;/);
   assert.match(appCss, /shooterSkinConfigurator--arenaPreview \.shooterSkinPickerBody[\s\S]*?overflow-y: auto !important;[\s\S]*?touch-action: pan-y !important;/);
 });
+
+test("guitar tab filters acoustic, electric and bass from a bottom category bar", async () => {
+  const [appSource, appCss] = await Promise.all([
+    readFile(appSourceUrl, "utf8"),
+    readFile(appStyleUrl, "utf8"),
+  ]);
+  const categoryBlock = appSource.match(/const SHOOTER_GUITAR_CATEGORY_OPTIONS = \[([\s\S]*?)\n\];/)?.[1] ?? "";
+
+  assert.deepEqual(
+    [...categoryBlock.matchAll(/label: "([^"]+)"/g)].map(([, label]) => label),
+    ["어쿠스틱", "일렉", "베이스"],
+  );
+  assert.match(
+    appSource,
+    /const \[shooterGuitarCategoryId, setShooterGuitarCategoryId\] = useState\(\s*SHOOTER_GUITAR_CATEGORIES\.ACOUSTIC,\s*\);/,
+  );
+  assert.doesNotMatch(appSource, /initialGuitarCategoryId/);
+  assert.match(appSource, /section\.id === shooterGuitarCategoryId/);
+  assert.match(appSource, /aria-label="기타 종류 선택"/);
+  assert.match(appSource, /shooterGuitarCategoryTabs--mobile/);
+  assert.match(appSource, /shooterGuitarCategoryTabs--desktop/);
+  assert.match(appCss, /shooterSkinPickerBodyFrame--guitar[\s\S]*?grid-template-rows: minmax\(0, 1fr\) auto;/);
+});
+
+test("guitar browsing stays vertical on mobile and desktop", async () => {
+  const appCss = await readFile(appStyleUrl, "utf8");
+
+  assert.match(
+    appCss,
+    /shooterSkinConfigurator--arenaPreview[\s\S]*?shooterGuitarPickerList--filtered[\s\S]*?grid-auto-flow: row !important;[\s\S]*?touch-action: pan-y !important;/,
+  );
+  assert.match(
+    appCss,
+    /shooterSkinConfigurator--desktopWindow[\s\S]*?shooterGuitarPickerList--filtered[\s\S]*?grid-template-columns: repeat\(auto-fill, minmax\(140px, 1fr\)\) !important;[\s\S]*?grid-auto-flow: row !important;[\s\S]*?overflow: visible !important;[\s\S]*?touch-action: pan-y !important;/,
+  );
+});

@@ -80,12 +80,12 @@ const NOTE_MONSTER_LABEL_PALETTES = Object.freeze({
   }),
   elemental: Object.freeze({
     C: Object.freeze({ color: "#fff7e8", outline: "#500b05", glow: "rgba(255, 166, 105, 0.42)" }),
-    D: Object.freeze({ color: "#172f08", outline: "#efffc7", glow: "rgba(190, 255, 96, 0.4)" }),
+    D: Object.freeze({ color: "#efffc7", outline: "#172f08", glow: "rgba(190, 255, 96, 0.4)" }),
     E: Object.freeze({ color: "#f4fbff", outline: "#052e68", glow: "rgba(103, 210, 255, 0.46)" }),
-    F: Object.freeze({ color: "#103947", outline: "#efffff", glow: "rgba(113, 255, 237, 0.42)" }),
-    G: Object.freeze({ color: "#3d2600", outline: "#fff4bc", glow: "rgba(255, 216, 77, 0.42)" }),
+    F: Object.freeze({ color: "#efffff", outline: "#103947", glow: "rgba(113, 255, 237, 0.42)" }),
+    G: Object.freeze({ color: "#fff4bc", outline: "#3d2600", glow: "rgba(255, 216, 77, 0.42)" }),
     A: Object.freeze({ color: "#fff5ff", outline: "#31075b", glow: "rgba(213, 142, 255, 0.46)" }),
-    B: Object.freeze({ color: "#082f57", outline: "#f2fdff", glow: "rgba(133, 224, 255, 0.44)" }),
+    B: Object.freeze({ color: "#f2fdff", outline: "#082f57", glow: "rgba(133, 224, 255, 0.44)" }),
   }),
   [BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID]: Object.freeze(Object.fromEntries(
     SHOOTER_NOTE_MONSTER_ROOTS.map((noteRoot) => [
@@ -221,9 +221,10 @@ export function getShooterNoteMonsterPitchText(
 ) {
   const skin = getShooterNoteMonsterSkin(skinId);
   if (!skin.pitchText?.renderedByApp) return fallbackLabel;
-  const pitch = String(noteName ?? "").trim();
-  return pitch
-    ? pitch.replaceAll("♯", "#").replaceAll("♭", "b")
+  const displayLabel = String(fallbackLabel ?? "").trim()
+    || String(noteName ?? "").trim();
+  return displayLabel
+    ? displayLabel.replaceAll("♯", "#").replaceAll("♭", "b")
     : getShooterNoteMonsterRoot(noteName);
 }
 

@@ -46,6 +46,7 @@ export function getMiniChordPianoStepProfile({
   const safeStepSeconds = Math.max(0.02, Number(stepSeconds) || 0.125);
   const safeMeasureSeconds = Math.max(safeStepSeconds, Number(measureSeconds) || 1);
   const isArp = style === "arpUp" || style === "arpDown";
+  const isHold = style === "hold";
   const isEightBeatPulse = pattern === "8beat";
   const duration = style === "stab"
     ? isEightBeatPulse
@@ -53,10 +54,12 @@ export function getMiniChordPianoStepProfile({
       : Math.max(0.08, Math.min(0.16, safeStepSeconds * 0.95))
     : isArp
       ? Math.max(0.1, Math.min(0.3, safeStepSeconds * 1.9))
-      : Math.max(0.2, Math.min(safeMeasureSeconds * overlapRatio, safeStepSeconds * 2.4));
+      : isHold
+        ? Math.max(0.2, safeMeasureSeconds * 0.98)
+        : Math.max(0.2, Math.min(safeMeasureSeconds * overlapRatio, safeStepSeconds * 2.4));
   const level = style === "stab"
     ? isEightBeatPulse ? getMiniChordPianoPatternLevel("8beat") : 0.22
-    : isArp ? 0.2 : 0.28;
+    : isArp ? 0.2 : isHold ? 0.25 : 0.28;
 
   return {
     commonToneSmoothing: shouldSmoothMiniChordPianoCommonTone(pattern, style),
@@ -78,7 +81,7 @@ export function shouldAddMiniChordExplicitSlotFallback({
   const hasAttack = steps.slice(safeStart, safeEnd).some((step) => (
     part === "piano"
       ? Boolean(step?.active)
-      : step != null && step !== "rest"
+      : step != null && step !== "rest" && step !== "hold"
   ));
   return !hasAttack;
 }

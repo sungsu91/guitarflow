@@ -1,7 +1,7 @@
-import { Settings, Volume2, VolumeX } from "lucide-react";
+import { Lock, Settings, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-function SharedAccompanimentVolumeSlider({ onVolumeCommit, onVolumeInput, part }) {
+function SharedAccompanimentVolumeSlider({ disabled, onVolumeCommit, onVolumeInput, part }) {
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -17,6 +17,7 @@ function SharedAccompanimentVolumeSlider({ onVolumeCommit, onVolumeInput, part }
         aria-label={`${part.label} 볼륨`}
         data-backing-volume-part={part.id}
         defaultValue={part.volume}
+        disabled={disabled}
         max="100"
         min="0"
         onBlur={(event) => onVolumeCommit(part.id, event)}
@@ -76,15 +77,27 @@ export function SharedAccompanimentPanel({
     });
   }, [enabledKey]);
 
+  useEffect(() => {
+    if (!disabled) return;
+    setBeatValueOverrides({});
+    setEnabledOverrides({});
+  }, [disabled]);
+
   return (
     <details
+      aria-disabled={disabled}
       className={`sharedAccompanimentPanel miniChordBackingPanel ${className}`.trim()}
+      data-accompaniment-locked={disabled ? "true" : undefined}
       onToggle={(event) => setExpanded(event.currentTarget.open)}
       open={expanded}
+      title={disabled ? "추천 진행의 반주 사운드는 고정되어 있습니다" : undefined}
     >
       <summary>
-        <span>반주 사운드</span>
-        {!hidePartSummary ? <b>드럼 · 베이스 · 피아노</b> : null}
+        <span>
+          {disabled ? <Lock aria-hidden="true" size={12} /> : null}
+          반주 사운드
+        </span>
+        {!hidePartSummary ? <b>{disabled ? "추천 진행 · 반주 고정" : "드럼 · 베이스 · 피아노"}</b> : null}
         <button
           aria-haspopup="dialog"
           className="sharedAccompanimentSettingsButton"
@@ -92,7 +105,7 @@ export function SharedAccompanimentPanel({
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            onOpenSettings();
+            if (!disabled) onOpenSettings?.();
           }}
           type="button"
         >
@@ -119,6 +132,7 @@ export function SharedAccompanimentPanel({
                   <strong>{part.label}</strong>
                 </div>
                 <SharedAccompanimentVolumeSlider
+                  disabled={disabled}
                   onVolumeCommit={onVolumeCommit}
                   onVolumeInput={onVolumeInput}
                   part={part}
@@ -127,7 +141,9 @@ export function SharedAccompanimentPanel({
                   aria-label={`${part.label} ${enabled ? "끄기" : "켜기"}`}
                   aria-pressed={enabled}
                   className={`miniChordPowerToggle ${enabled ? "is-on" : "is-off"}`}
+                  disabled={disabled}
                   onClick={() => {
+                    if (disabled) return;
                     setEnabledOverrides((current) => ({ ...current, [part.id]: !enabled }));
                     onTogglePart(part.id);
                   }}
@@ -146,7 +162,7 @@ export function SharedAccompanimentPanel({
                     disabled={disabled}
                     key={option.id}
                     onClick={() => {
-                      if (beatValue === option.id) return;
+                      if (disabled || beatValue === option.id) return;
                       setBeatValueOverrides((current) => ({ ...current, [part.id]: option.id }));
                       part.onBeatChange(option.id);
                     }}

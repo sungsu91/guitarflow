@@ -27,6 +27,7 @@ test("desktop tuner reuses the mobile controls and gauge without numeric readout
 test("desktop expansion stays outside mobile breakpoints", () => {
   assert.match(tunerCss, /@media \(min-width: 768px\) \{[\s\S]*?\.tunerModeBody--desktop/);
   assert.match(tunerCss, /@media \(min-width: 1024px\) \{[\s\S]*?main\.app\.app\.app\.tunerMode/);
+  assert.match(tunerCss, /\.desktopWorkspaceContent:has\(> main\.app\.tunerMode\) \{[\s\S]*?padding-left: var\(--desktop-workspace-left\);/);
   assert.match(tunerCss, /\.tunerModeShell--desktop \.tunerMobileControls/);
   assert.match(tunerCss, /\.tunerDesktopPitchColumn/);
 });
