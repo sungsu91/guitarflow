@@ -9,6 +9,10 @@
   display: contents;
 }
 
+.desktopSidebar {
+  display: none;
+}
+
 /*
  * Desktop is the wide form of the mobile app. The application still owns one
  * navigation, one set of panels, and one theme token contract; this wrapper
@@ -39,8 +43,12 @@
     min-height: 100dvh;
   }
 
+  .desktopLayout {
+    --desktop-sidebar-width: clamp(226px, 17vw, 258px);
+  }
+
   .desktopWorkspaceContent {
-    padding-left: clamp(96px, 7vw, 120px);
+    padding-left: calc(var(--desktop-sidebar-width) + 36px);
     padding-right: clamp(24px, 4vw, 72px);
   }
 
@@ -110,63 +118,462 @@
     white-space: nowrap !important;
   }
 
-  /* Desktop keeps the shared navigation actions, but docks their surface to
-     the left wall so the workspace no longer needs a bottom navigation gap. */
+  /* Desktop owns a full navigation surface. The compact shared rail and its
+     utility-menu trigger remain untouched for mobile and mobile landscape. */
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app > .hud > .modeSwitch,
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app .mainHub > .mainBottomNav {
-    position: fixed !important;
-    z-index: 80 !important;
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) !important;
-    grid-template-rows: repeat(5, minmax(64px, 1fr)) !important;
-    align-content: center !important;
-    align-items: stretch !important;
-    justify-items: stretch !important;
-    gap: 6px !important;
-    top: 50% !important;
-    left: max(8px, env(safe-area-inset-left)) !important;
-    right: auto !important;
-    bottom: auto !important;
-    width: clamp(76px, 5.6vw, 88px) !important;
-    max-width: 88px !important;
-    height: min(460px, calc(100dvh - 28px)) !important;
-    max-height: 460px !important;
-    margin: 0 !important;
-    padding: 9px 7px !important;
-    border-radius: 22px !important;
-    transform: translateY(-50%) !important;
+    display: none !important;
   }
 
-  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app > .hud > .modeSwitch > button,
-  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app .mainHub > .mainBottomNav > button {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex-direction: column !important;
-    gap: 5px !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    min-height: 64px !important;
-    height: auto !important;
-    padding: 7px 4px !important;
-    border-radius: 14px !important;
-    font-size: clamp(9px, 0.68vw, 11px) !important;
-    line-height: 1.15 !important;
-    white-space: nowrap !important;
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app > .desktopSidebar {
+    position: fixed;
+    z-index: 84;
+    top: 12px;
+    bottom: 12px;
+    left: 12px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: var(--desktop-sidebar-width);
+    min-height: 0;
+    padding: 12px 10px 10px;
+    overflow: hidden;
+    color: rgba(244, 237, 222, 0.86);
+    border: 1px solid rgba(224, 179, 90, 0.26);
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 14% 0%, rgba(231, 186, 93, 0.15), transparent 25%),
+      linear-gradient(165deg, rgba(25, 23, 18, 0.985), rgba(8, 10, 11, 0.99) 58%, rgba(15, 13, 10, 0.99));
+    box-shadow:
+      0 22px 56px rgba(0, 0, 0, 0.32),
+      inset 0 1px 0 rgba(255, 246, 217, 0.08),
+      inset -1px 0 0 rgba(255, 255, 255, 0.025);
+    isolation: isolate;
   }
 
-  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app > .hud > .modeSwitch > button svg {
-    width: 23px !important;
-    height: 23px !important;
+  .desktopSidebar::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border-radius: inherit;
+    background:
+      linear-gradient(110deg, transparent 0 42%, rgba(231, 186, 93, 0.035) 50%, transparent 58%),
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 4px);
+    pointer-events: none;
+    content: "";
   }
 
-  /* The utility menu now opens beside the rail that owns its trigger. */
-  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app .utilityMenuPanel {
-    top: 50% !important;
-    left: clamp(92px, 7vw, 112px) !important;
-    right: auto !important;
-    bottom: auto !important;
-    transform: translateY(-50%) !important;
+  .desktopSidebarBrand {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+    min-height: 56px;
+    padding: 2px 7px 10px;
+  }
+
+  .desktopSidebarBrand > span {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    color: #2b1c08;
+    border: 1px solid rgba(255, 228, 162, 0.74);
+    border-radius: 11px;
+    background: linear-gradient(145deg, #f5d88c, #c88c2e 66%, #9c651f);
+    box-shadow:
+      0 5px 14px rgba(185, 119, 26, 0.23),
+      inset 0 1px 0 rgba(255, 249, 223, 0.74);
+    font-size: 11px;
+    font-weight: 950;
+    letter-spacing: -0.04em;
+  }
+
+  .desktopSidebarBrand > div {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  .desktopSidebarBrand strong {
+    overflow: hidden;
+    color: #fff3d2;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.055em;
+    line-height: 1.05;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .desktopSidebarBrand small {
+    overflow: hidden;
+    color: rgba(224, 187, 112, 0.52);
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .desktopSidebarNav {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    padding: 2px 2px 4px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: rgba(218, 172, 83, 0.26) transparent;
+    scrollbar-width: thin;
+  }
+
+  .desktopSidebarGroup {
+    display: grid;
+    gap: 3px;
+  }
+
+  .desktopSidebarDivider {
+    flex: 0 0 auto;
+    height: 1px;
+    margin: 9px 8px;
+    background: linear-gradient(90deg, transparent, rgba(224, 179, 90, 0.31) 18%, rgba(224, 179, 90, 0.12) 82%, transparent);
+  }
+
+  html body .desktopLayout .desktopSidebarNavItem,
+  html body .desktopLayout .desktopSidebarSettings > summary {
+    position: relative;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 7px;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 38px;
+    margin: 0;
+    padding: 7px 9px;
+    overflow: hidden;
+    color: rgba(239, 234, 222, 0.72);
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent;
+    box-shadow: none;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      color 140ms ease,
+      border-color 140ms ease,
+      background 140ms ease,
+      box-shadow 140ms ease,
+      transform 90ms ease;
+  }
+
+  html body .desktopLayout .desktopSidebarNavItem::after,
+  html body .desktopLayout .desktopSidebarSettings > summary::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  html body .desktopLayout .desktopSidebarNavItem:is(:hover, :focus-visible),
+  html body .desktopLayout .desktopSidebarSettings > summary:is(:hover, :focus-visible),
+  html body .desktopLayout .desktopSidebarSettings[open] > summary {
+    color: #fff3d2;
+    border-color: rgba(222, 176, 87, 0.2);
+    background: linear-gradient(90deg, rgba(222, 176, 87, 0.11), rgba(222, 176, 87, 0.025));
+  }
+
+  html body .desktopLayout .desktopSidebarNavItem:focus-visible,
+  html body .desktopLayout .desktopSidebarSettings > summary:focus-visible,
+  html body .desktopLayout .desktopSidebarThemeOptions button:focus-visible {
+    outline: 2px solid rgba(244, 202, 112, 0.82);
+    outline-offset: 1px;
+  }
+
+  html body .desktopLayout .desktopSidebarNavItem.is-active {
+    color: #fff6dd;
+    border-color: rgba(229, 182, 88, 0.56);
+    background:
+      linear-gradient(90deg, rgba(226, 177, 78, 0.22), rgba(226, 177, 78, 0.055)),
+      rgba(255, 255, 255, 0.018);
+    box-shadow:
+      inset 3px 0 0 #e7b85c,
+      inset 0 1px 0 rgba(255, 241, 205, 0.08),
+      0 5px 16px rgba(0, 0, 0, 0.13);
+  }
+
+  .desktopSidebarIcon,
+  .desktopSidebarIndex {
+    display: grid;
+    width: 26px;
+    height: 24px;
+    place-items: center;
+    color: rgba(225, 184, 101, 0.7);
+  }
+
+  .desktopSidebarIndex {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .desktopSidebarNavItem.is-active :is(.desktopSidebarIcon, .desktopSidebarIndex) {
+    color: #f0c66f;
+    filter: drop-shadow(0 0 7px rgba(235, 184, 78, 0.24));
+  }
+
+  .desktopSidebarLabel {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 760;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .desktopSidebarSettings {
+    min-width: 0;
+  }
+
+  .desktopSidebarSettings > summary {
+    list-style: none;
+  }
+
+  .desktopSidebarSettings > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .desktopSidebarChevron {
+    color: rgba(224, 187, 112, 0.54);
+    transition: transform 150ms ease;
+  }
+
+  .desktopSidebarSettings[open] .desktopSidebarChevron {
+    transform: rotate(180deg);
+  }
+
+  .desktopSidebarSoundControls {
+    display: grid;
+    gap: 7px;
+    margin: 4px 4px 6px;
+    padding: 10px;
+    border: 1px solid rgba(224, 179, 90, 0.17);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.18);
+    box-shadow: inset 0 1px 0 rgba(255, 247, 226, 0.035);
+  }
+
+  .desktopSidebarSoundRow {
+    display: grid;
+    gap: 4px;
+  }
+
+  .desktopSidebarSoundRow > span {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: rgba(238, 230, 213, 0.7);
+    font-size: 9px;
+  }
+
+  .desktopSidebarSoundRow b {
+    color: #e3b65f;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .desktopSidebarSoundRow input[type="range"] {
+    width: 100%;
+    height: 4px;
+    margin: 0;
+    accent-color: #d8a74a;
+  }
+
+  html body .desktopLayout .desktopSidebarSubAction,
+  html body .desktopLayout .desktopSidebarReset {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 29px;
+    padding: 5px 8px;
+    color: rgba(251, 239, 211, 0.82);
+    border: 1px solid rgba(222, 174, 78, 0.25);
+    border-radius: 8px;
+    background: rgba(220, 170, 72, 0.08);
+    box-shadow: none;
+    font-size: 9px;
+    font-weight: 800;
+  }
+
+  html body .desktopLayout .desktopSidebarReset {
+    color: rgba(232, 225, 211, 0.58);
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  .desktopSidebarFooter {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 5px;
+    padding: 9px 5px 0;
+    border-top: 1px solid rgba(224, 179, 90, 0.12);
+  }
+
+  .desktopSidebarThemeOptions {
+    display: flex;
+    gap: 4px;
+  }
+
+  html body .desktopLayout .desktopSidebarThemeOptions button {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 27px;
+    padding: 4px 7px;
+    color: rgba(238, 231, 216, 0.58);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.025);
+    box-shadow: none;
+    font-size: 8px;
+    font-weight: 800;
+  }
+
+  html body .desktopLayout .desktopSidebarThemeOptions button.is-active {
+    color: #f3ca76;
+    border-color: rgba(224, 179, 90, 0.34);
+    background: rgba(224, 179, 90, 0.11);
+  }
+
+  .desktopSidebarFooter > small {
+    color: rgba(224, 187, 112, 0.38);
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  html body .desktopLayout main.app.app.app.theme-light > .desktopSidebar {
+    color: #4f3b36;
+    border-color: rgba(146, 95, 77, 0.24);
+    background:
+      radial-gradient(circle at 14% 0%, rgba(255, 255, 255, 0.86), transparent 29%),
+      linear-gradient(165deg, rgba(253, 249, 246, 0.99), rgba(239, 226, 221, 0.99) 64%, rgba(247, 238, 233, 0.99));
+    box-shadow:
+      0 20px 48px rgba(83, 51, 44, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.92),
+      inset -1px 0 0 rgba(116, 71, 61, 0.035);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebar::before {
+    background:
+      linear-gradient(110deg, transparent 0 42%, rgba(164, 111, 88, 0.028) 50%, transparent 58%),
+      repeating-linear-gradient(0deg, rgba(117, 73, 63, 0.018) 0 1px, transparent 1px 4px);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarBrand > span {
+    color: #fffaf3;
+    border-color: rgba(132, 78, 59, 0.42);
+    background: linear-gradient(145deg, #b77a63, #8c5747 67%, #704235);
+    box-shadow:
+      0 5px 14px rgba(112, 66, 52, 0.18),
+      inset 0 1px 0 rgba(255, 239, 229, 0.5);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarBrand strong {
+    color: #3b2924;
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarBrand small,
+  html body .desktopLayout main.app.theme-light .desktopSidebarFooter > small {
+    color: rgba(108, 68, 58, 0.48);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarDivider {
+    background: linear-gradient(90deg, transparent, rgba(146, 95, 77, 0.24) 18%, rgba(146, 95, 77, 0.08) 82%, transparent);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarNavItem,
+  html body .desktopLayout main.app.theme-light .desktopSidebarSettings > summary {
+    color: rgba(66, 45, 40, 0.7);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarNavItem:is(:hover, :focus-visible),
+  html body .desktopLayout main.app.theme-light .desktopSidebarSettings > summary:is(:hover, :focus-visible),
+  html body .desktopLayout main.app.theme-light .desktopSidebarSettings[open] > summary {
+    color: #3c2924;
+    border-color: rgba(145, 89, 70, 0.18);
+    background: linear-gradient(90deg, rgba(151, 94, 74, 0.085), rgba(255, 255, 255, 0.34));
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarNavItem.is-active {
+    color: #3e2923;
+    border-color: rgba(145, 89, 70, 0.42);
+    background:
+      linear-gradient(90deg, rgba(169, 105, 81, 0.18), rgba(255, 255, 255, 0.43)),
+      rgba(255, 255, 255, 0.34);
+    box-shadow:
+      inset 3px 0 0 #9a5e4a,
+      inset 0 1px 0 rgba(255, 255, 255, 0.72),
+      0 5px 15px rgba(91, 54, 44, 0.07);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarIcon,
+  html body .desktopLayout main.app.theme-light .desktopSidebarIndex,
+  html body .desktopLayout main.app.theme-light .desktopSidebarChevron {
+    color: rgba(137, 82, 65, 0.7);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarNavItem.is-active :is(.desktopSidebarIcon, .desktopSidebarIndex) {
+    color: #8f5543;
+    filter: none;
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarSoundControls {
+    border-color: rgba(145, 89, 70, 0.16);
+    background: rgba(255, 255, 255, 0.34);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarSoundRow > span {
+    color: rgba(69, 47, 42, 0.68);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarSoundRow b {
+    color: #915744;
+  }
+
+  html body .desktopLayout main.app.theme-light :is(.desktopSidebarSubAction, .desktopSidebarReset) {
+    color: #604039;
+    border-color: rgba(145, 89, 70, 0.2);
+    background: rgba(255, 255, 255, 0.42);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarFooter {
+    border-top-color: rgba(145, 89, 70, 0.12);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarThemeOptions button {
+    color: rgba(74, 49, 43, 0.58);
+    border-color: rgba(145, 89, 70, 0.13);
+    background: rgba(255, 255, 255, 0.35);
+  }
+
+  html body .desktopLayout main.app.theme-light .desktopSidebarThemeOptions button.is-active {
+    color: #704337;
+    border-color: rgba(145, 89, 70, 0.36);
+    background: rgba(157, 94, 73, 0.12);
   }
 
   .desktopLayout .helpGuidePanel,

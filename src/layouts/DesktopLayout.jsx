@@ -1,9 +1,14 @@
-import { useLayoutEffect, useState } from "react";
+import { createContext, useContext, useLayoutEffect, useState } from "react";
 import { isLikelyMobileDevice } from "./mobileLayout.js";
 import { getViewportProfile } from "./viewportProfile.js";
 
 const DESKTOP_MIN_WIDTH = 1024;
 const DESKTOP_LAYOUT_QUERY = `(min-width: ${DESKTOP_MIN_WIDTH}px) and (hover: hover) and (pointer: fine)`;
+const DesktopLayoutContext = createContext(false);
+
+export function useDesktopLayout() {
+  return useContext(DesktopLayoutContext);
+}
 
 function getViewportWidth() {
   return getViewportProfile(window).width;
@@ -51,15 +56,17 @@ export default function DesktopLayout({ children }) {
   }, []);
 
   return (
-    <div className={isDesktopLayout ? "desktopLayout" : "mobileLayoutShell"}>
-      <section
-        className={isDesktopLayout ? "desktopWorkspace" : "mobileLayoutWorkspace"}
-        aria-label="FRETIVA LAB workspace"
-      >
-        <div className={isDesktopLayout ? "desktopWorkspaceContent" : "mobileLayoutContent"}>
-          {children}
-        </div>
-      </section>
-    </div>
+    <DesktopLayoutContext.Provider value={isDesktopLayout}>
+      <div className={isDesktopLayout ? "desktopLayout" : "mobileLayoutShell"}>
+        <section
+          className={isDesktopLayout ? "desktopWorkspace" : "mobileLayoutWorkspace"}
+          aria-label="FRETIVA LAB workspace"
+        >
+          <div className={isDesktopLayout ? "desktopWorkspaceContent" : "mobileLayoutContent"}>
+            {children}
+          </div>
+        </section>
+      </div>
+    </DesktopLayoutContext.Provider>
   );
 }

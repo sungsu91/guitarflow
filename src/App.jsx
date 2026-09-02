@@ -85,6 +85,8 @@ import {
 } from "./components/FretboardNoteViewer";
 import { createFretboardNoteViewerStore } from "./fretboard/noteViewerStore.js";
 import SplashIntro from "./launch/SplashIntro";
+import DesktopSidebarNavigation from "./navigation/DesktopSidebarNavigation";
+import { useDesktopLayout } from "./layouts/DesktopLayout.jsx";
 import { RIFFLAB_COMMON_CUTAWAY_SPRITE_SRC } from "./assets/rifflabCommonCutawaySprite";
 import { CHROMATIC_NOTES, NOTE_INDEX, SOLFEGE } from "./music/noteNotation.js";
 import { getChordToneDescriptors, getChordToneNames } from "./chords/chordTheory.js";
@@ -13456,6 +13458,9 @@ const FRETBOARD_ENTRY_SHELL_COPY = {
 const NAVIGATION_PRESS_TARGET_SELECTOR = [
   ".modeSwitch button",
   ".mainBottomNav button",
+  ".desktopSidebarNavItem",
+  ".desktopSidebarSettings > summary",
+  ".desktopSidebarThemeOptions button",
   ".hubMenuButton",
   ".utilityMenuItem",
   ".stageMenuCard",
@@ -13592,6 +13597,19 @@ function getHashFromRoute(appMode, categoryId = MAIN_DEFAULT_CATEGORY.id) {
 function getInitialAppRoute() {
   if (typeof window === "undefined") return getRouteFromHash(APP_DEFAULT_ROUTE);
   return getRouteFromHash(window.location.hash);
+}
+
+function getDesktopSidebarActiveKey(appMode, categoryId) {
+  if (appMode === APP_MODES.TUNER) return "tuner";
+  if (appMode === APP_MODES.FRETBOARD_VIEWER) return "fretboard";
+  if (appMode === APP_MODES.METRONOME) return "metronome";
+  if (appMode === APP_MODES.SHOOTER) return "shooter";
+  if (appMode === APP_MODES.MINI_CHORD_MAKER) return "mini-chord";
+  if (appMode === APP_MODES.AUDIO_STUDIO) return "audio-studio";
+  if (appMode === APP_MODES.PRACTICE && categoryId === "first-position") return "stage1";
+  if (appMode === APP_MODES.PRACTICE && categoryId === "scale-block") return "stage2";
+  if (appMode === APP_MODES.PRACTICE && categoryId === "rhythm") return "stage3";
+  return "";
 }
 
 const FRETBOARD_VIEWER_MODES = {
@@ -15967,6 +15985,7 @@ function getJudgmentMode(modeId) {
 }
 
 function App({ onReady }) {
+  const isDesktopLayout = useDesktopLayout();
   const initialRouteRef = useRef(getInitialAppRoute());
   const initialStage3SettingsRef = useRef(getStoredStage3Settings());
   const initialStage3QuickSlotsRef = useRef(getStoredStage3QuickSlots());
@@ -17205,6 +17224,12 @@ function App({ onReady }) {
   const routeScrollPositionsRef = useRef(new Map());
   const activeRouteKeyRef = useRef(getHashFromRoute(initialRouteRef.current.appMode, initialRouteRef.current.categoryId));
   const historyNavigationRef = useRef(false);
+
+  useEffect(() => {
+    if (!isDesktopLayout || !utilityMenuOpenRef.current) return;
+    utilityMenuOpenRef.current = false;
+    setUtilityMenuOpen(false);
+  }, [isDesktopLayout]);
 
   const cancelScheduledNavigationCommit = useCallback((cancelLayer = true) => {
     const schedule = navigationCommitScheduleRef.current;
@@ -28113,6 +28138,7 @@ function App({ onReady }) {
 
   const appInteractionLocked = Boolean(themeTransition);
   const appContentInteractionLocked = appInteractionLocked || portraitOrientationGuardActive;
+  const desktopSidebarActiveKey = getDesktopSidebarActiveKey(appMode, selectedCategoryId);
   const landscapePlayFocus = isLandscapePlayFocusMode(
     appMode,
     viewportProfile,
@@ -28234,7 +28260,35 @@ function App({ onReady }) {
         active={metronomeFlashEnabled && metronomeFlashPulse > 0}
         pulseKey={`metronome-global-flash-${metronomeFlashPulse}`}
       />
-      {utilityMenuOpen ? (
+      <DesktopSidebarNavigation
+        activeKey={desktopSidebarActiveKey}
+        appTheme={appTheme}
+        audioStudioEnabled={audioStudioEnabled}
+        backingVolumeControls={BACKING_PART_VOLUME_CONTROLS}
+        commitBackingVolumeInput={commitBackingVolumeInput}
+        getBackingVolumeValue={getBackingVolumeValue}
+        handleBackingVolumeInput={handleBackingVolumeInput}
+        onOpenAudioStudio={showAudioStudio}
+        onOpenFretboard={showFretboardViewer}
+        onOpenHelp={() => {
+          setHelpGuideOpen(true);
+          setOpenHelpSectionId("");
+        }}
+        onOpenMetronome={showMetronomeMode}
+        onOpenMiniChord={showMiniChordMaker}
+        onOpenRhythm={showCurriculum}
+        onOpenRhythmSettings={openMiniChordRhythmSettings}
+        onOpenScale={() => showIndependentPracticeCategory("scale-block")}
+        onOpenShooter={showShooterMode}
+        onOpenSingleNote={() => showIndependentPracticeCategory("first-position")}
+        onOpenTuner={showTunerMode}
+        onResetSound={resetBackingVolumeSettings}
+        onSelectTheme={selectAppTheme}
+        themeOptions={themeMenuVisible ? themeOptions : []}
+        themeTransitionActive={Boolean(themeTransition)}
+        versionLabel={APP_VERSION_LABEL}
+      />
+      {utilityMenuOpen && !isDesktopLayout ? (
         <div className="utilityMenuLayer" role="presentation">
           <button
             aria-label="메뉴 닫기"

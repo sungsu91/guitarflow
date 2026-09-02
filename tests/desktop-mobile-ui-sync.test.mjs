@@ -4,21 +4,29 @@ import test from "node:test";
 
 const desktopLayoutSourceUrl = new URL("../src/layouts/DesktopLayout.jsx", import.meta.url);
 const desktopStyleUrl = new URL("../src/layouts/desktop-layout.css", import.meta.url);
+const desktopSidebarSourceUrl = new URL("../src/navigation/DesktopSidebarNavigation.jsx", import.meta.url);
 const appSourceUrl = new URL("../src/App.jsx", import.meta.url);
 const appStyleUrl = new URL("../src/style.css", import.meta.url);
 const mapEditorStyleUrl = new URL("../src/shooter/maps/editor/map-editor.css", import.meta.url);
 const mapEditorPanelUrl = new URL("../src/shooter/maps/editor/MapEditPanel.jsx", import.meta.url);
 const mapEditorHookUrl = new URL("../src/shooter/maps/editor/useMapEditMode.js", import.meta.url);
 
-test("desktop shell keeps the shared app navigation instead of a legacy sidebar", async () => {
-  const [layoutSource, desktopCss] = await Promise.all([
+test("desktop shell adds a dedicated sidebar while preserving shared App navigation actions", async () => {
+  const [layoutSource, desktopCss, sidebarSource, appSource] = await Promise.all([
     readFile(desktopLayoutSourceUrl, "utf8"),
     readFile(desktopStyleUrl, "utf8"),
+    readFile(desktopSidebarSourceUrl, "utf8"),
+    readFile(appSourceUrl, "utf8"),
   ]);
 
-  assert.doesNotMatch(layoutSource, /desktopSidebar|desktopNav|DESKTOP_NAV_ITEMS/);
+  assert.match(layoutSource, /DesktopLayoutContext/);
+  assert.match(layoutSource, /export function useDesktopLayout\(\)/);
   assert.match(layoutSource, /desktopWorkspaceContent/);
-  assert.match(desktopCss, /\.hud > \.modeSwitch,[\s\S]*\.mainBottomNav[\s\S]*display: grid !important/);
+  assert.match(appSource, /import DesktopSidebarNavigation/);
+  assert.match(sidebarSource, /FRETIVA LAB 데스크톱 내비게이션/);
+  assert.match(desktopCss, /\.desktopSidebar \{\s*display: none;/);
+  assert.match(desktopCss, /\.desktopLayout[\s\S]*?> \.desktopSidebar \{[\s\S]*?display: flex;/);
+  assert.match(desktopCss, /> \.hud > \.modeSwitch,[\s\S]*\.mainBottomNav \{\s*display: none !important;/);
   assert.match(desktopCss, /width: min\(100%, 1180px\)/);
 });
 

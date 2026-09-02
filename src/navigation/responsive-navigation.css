@@ -3,6 +3,9 @@
 html body main.app.app.app :is(
   .modeSwitch button,
   .mainBottomNav button,
+  .desktopSidebarNavItem,
+  .desktopSidebarSettings > summary,
+  .desktopSidebarThemeOptions button,
   .hubMenuButton,
   .utilityMenuItem,
   .stageMenuCard

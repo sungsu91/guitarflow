@@ -69037,12 +69037,12 @@ html body .app.theme-light.theme-light .helpInfoNote {
   transform: translate(-50%, -50%);
 }
 
-/* Mobile map picker uses full capture cards instead of the shared narrow
-   three-up skin cells. */
+/* Mobile map picker keeps every direct map choice visible without requiring
+   users to discover a hidden second row below RANDOM and RIVER. */
 @media (max-width: 719px) {
   html body .shooterSkinConfigurator .shooterMapPickerGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 8px !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
     padding: 2px 0 8px;
   }
 
@@ -69053,7 +69053,7 @@ html body .app.theme-light.theme-light .helpInfoNote {
     min-height: 0 !important;
     padding: 0 !important;
     overflow: hidden;
-    border-radius: 12px !important;
+    border-radius: 9px !important;
     isolation: isolate;
   }
 
@@ -69107,14 +69107,14 @@ html body .app.theme-light.theme-light .helpInfoNote {
 
   html body .shooterSkinConfigurator .shooterMapCard > strong {
     position: absolute;
-    right: 8px;
-    bottom: 7px;
-    left: 8px;
+    right: 6px;
+    bottom: 5px;
+    left: 6px;
     z-index: 2;
     display: block;
     overflow: hidden;
     color: #fffaf0 !important;
-    font-size: 11px !important;
+    font-size: 9px !important;
     line-height: 1.1;
     text-align: left;
     text-overflow: ellipsis;
@@ -69125,18 +69125,18 @@ html body .app.theme-light.theme-light .helpInfoNote {
   html body .shooterSkinConfigurator .shooterMapCard.selected::after {
     content: "✓";
     position: absolute;
-    top: 7px;
-    right: 7px;
+    top: 5px;
+    right: 5px;
     z-index: 3;
     display: grid !important;
     place-items: center;
-    width: 21px;
-    height: 21px;
+    width: 18px;
+    height: 18px;
     border: 1px solid rgba(255, 238, 196, 0.9);
     border-radius: 50%;
     background: rgba(96, 58, 14, 0.8);
     color: #fff7df;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 950;
     box-shadow: 0 2px 7px rgba(0, 0, 0, 0.44);
   }

@@ -14,6 +14,8 @@ test("navigation controls paint immediate feedback without waiting for React sta
   assert.match(appSource, /element\.classList\.add\("is-instant-pressed"\)/);
   assert.match(appSource, /onPointerDownCapture=\{handleAppPointerDownCapture\}/);
   assert.match(appSource, /onPointerCancelCapture=\{handleAppPointerCancelCapture\}/);
+  assert.match(appSource, /"\.desktopSidebarNavItem"/);
+  assert.match(navigationCss, /\.desktopSidebarNavItem/);
   assert.match(navigationCss, /\.is-instant-pressed[\s\S]*scale\(0\.975\)/);
   assert.match(navigationCss, /transform 70ms/);
 });
