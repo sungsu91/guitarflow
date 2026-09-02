@@ -1,9 +1,8 @@
-const FRAME_INTERVAL_MS = 1000 / 30;
+const DEFAULT_FRAMES_PER_SECOND = 30;
 
 const subscriptions = new Map();
 let observer = null;
 let animationFrameId = 0;
-let lastFrameAt = 0;
 let visibilityListenerAttached = false;
 
 function isDocumentVisible() {
@@ -37,12 +36,13 @@ function runClock(timestampMs) {
   animationFrameId = 0;
   if (!isDocumentVisible() || !hasVisibleSubscriber()) return;
 
-  if (timestampMs - lastFrameAt >= FRAME_INTERVAL_MS) {
-    lastFrameAt = timestampMs;
-    subscriptions.forEach((subscription) => {
-      if (subscription.visible) subscription.onFrame(timestampMs);
-    });
-  }
+  subscriptions.forEach((subscription) => {
+    if (!subscription.visible) return;
+    const elapsed = timestampMs - subscription.lastFrameAt;
+    if (subscription.lastFrameAt && elapsed < subscription.frameIntervalMs - 0.5) return;
+    subscription.lastFrameAt = timestampMs;
+    subscription.onFrame(timestampMs);
+  });
   scheduleClock();
 }
 
@@ -95,13 +95,19 @@ export function getLoopFrameIndex(
   return ((rawIndex % safeFrameCount) + safeFrameCount) % safeFrameCount;
 }
 
-export function subscribeSharedMapAnimation(element, onFrame) {
+export function subscribeSharedMapAnimation(element, onFrame, options = {}) {
   if (!element || typeof onFrame !== "function" || typeof window === "undefined") {
     return () => {};
   }
 
   const sharedObserver = getObserver();
+  const framesPerSecond = Math.min(
+    60,
+    Math.max(1, Number(options.framesPerSecond) || DEFAULT_FRAMES_PER_SECOND),
+  );
   const subscription = {
+    frameIntervalMs: 1000 / framesPerSecond,
+    lastFrameAt: 0,
     onFrame,
     visible: true,
   };
@@ -119,7 +125,6 @@ export function subscribeSharedMapAnimation(element, onFrame) {
     if (subscriptions.size === 0) {
       observer?.disconnect();
       observer = null;
-      lastFrameAt = 0;
     }
     removeVisibilityListenerIfIdle();
   };

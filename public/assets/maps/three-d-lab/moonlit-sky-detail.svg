@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="cloud" x1="0" x2="1">
+      <stop stop-color="#79aeb9" stop-opacity="0"/>
+      <stop offset=".45" stop-color="#91bbc3" stop-opacity=".18"/>
+      <stop offset=".72" stop-color="#c2d8d7" stop-opacity=".1"/>
+      <stop offset="1" stop-color="#79aeb9" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="star">
+      <stop stop-color="#efffff" stop-opacity=".95"/>
+      <stop offset=".28" stop-color="#aee4e9" stop-opacity=".52"/>
+      <stop offset="1" stop-color="#aee4e9" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <g fill="url(#star)">
+    <circle cx="94" cy="112" r="2.8"/><circle cx="188" cy="61" r="1.8"/><circle cx="314" cy="145" r="2.2"/>
+    <circle cx="438" cy="84" r="1.7"/><circle cx="566" cy="181" r="2.6"/><circle cx="672" cy="53" r="2.1"/>
+    <circle cx="797" cy="125" r="1.6"/><circle cx="910" cy="76" r="2.4"/><circle cx="1044" cy="163" r="1.8"/>
+    <circle cx="1168" cy="97" r="2.7"/><circle cx="1294" cy="54" r="1.9"/><circle cx="1421" cy="149" r="2.3"/>
+    <circle cx="1538" cy="88" r="1.6"/><circle cx="250" cy="252" r="1.5"/><circle cx="728" cy="238" r="1.8"/>
+    <circle cx="1218" cy="232" r="1.5"/><circle cx="1500" cy="270" r="2"/>
+  </g>
+  <g fill="none" stroke="url(#cloud)" stroke-linecap="round">
+    <path d="M-120 248C45 194 163 220 292 250S522 312 690 252 968 186 1156 239 1430 304 1714 226" stroke-width="34"/>
+    <path d="M-94 339C98 292 209 312 354 345S590 396 778 336 1080 281 1253 326 1456 381 1692 323" stroke-width="19" opacity=".72"/>
+    <path d="M75 174C222 132 322 148 435 178S668 217 813 173 1028 121 1188 166 1390 220 1547 176" stroke-width="11" opacity=".48"/>
+  </g>
+</svg>

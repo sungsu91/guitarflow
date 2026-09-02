@@ -78,6 +78,18 @@ html body .app.app.app .utilityMenuPanel .utilityMenuStatusBadge--dev {
   color: #b6b9bd !important;
 }
 
+html body .app.app.app .utilityMenuPanel .utilityMenuStatusBadge--beginner {
+  border-color: rgba(93, 170, 131, 0.5) !important;
+  background: rgba(72, 145, 108, 0.13) !important;
+  color: #8ed0ad !important;
+}
+
+html body .app.app.app .utilityMenuPanel .utilityMenuStatusBadge--solo {
+  border-color: rgba(104, 157, 213, 0.5) !important;
+  background: rgba(75, 126, 181, 0.14) !important;
+  color: #9dc5ed !important;
+}
+
 html body .app.app.app.theme-light .utilityMenuPanel .utilityMenuStatusBadge--hot {
   border-color: rgba(171, 70, 60, 0.38) !important;
   background: rgba(190, 91, 80, 0.09) !important;
@@ -109,6 +121,18 @@ html body .app.app.app.theme-light .utilityMenuPanel .utilityMenuStatusBadge--de
   border-color: rgba(94, 96, 99, 0.32) !important;
   background: rgba(96, 99, 103, 0.08) !important;
   color: #66696d !important;
+}
+
+html body .app.app.app.theme-light .utilityMenuPanel .utilityMenuStatusBadge--beginner {
+  border-color: rgba(45, 124, 83, 0.36) !important;
+  background: rgba(52, 142, 94, 0.09) !important;
+  color: #2f7551 !important;
+}
+
+html body .app.app.app.theme-light .utilityMenuPanel .utilityMenuStatusBadge--solo {
+  border-color: rgba(48, 105, 164, 0.36) !important;
+  background: rgba(64, 121, 181, 0.09) !important;
+  color: #386b9f !important;
 }
 
 @media (max-width: 350px) {

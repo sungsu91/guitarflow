@@ -480,6 +480,18 @@ html body main.app.app.app .shooterArena.shooterArena--mapEdit .shooterCenterSta
   cursor: grab;
 }
 
+/* The selectable rear surface stays below the mask. Its non-interactive front
+   mirror previews the depth crossover above the mask. */
+.shooterArena--mapEdit.shooterMapSkin--abyssalMoonCathedral
+  .shooterMapSkinAsset[data-animation="abyssal-whale-figure8-v8"] {
+  z-index: 1 !important;
+}
+
+.shooterArena--mapEdit.shooterMapSkin--abyssalMoonCathedral
+  .shooterMapWhaleViewport.shooterMapSkinAsset {
+  pointer-events: auto;
+}
+
 .shooterArena--mapEdit .shooterMapSkinAsset[data-asset-id="park-fountain-fence-back"] {
   z-index: 119 !important;
 }
@@ -2496,7 +2508,8 @@ html body main.app.app.app.shooterMode
   white-space: nowrap;
   paint-order: stroke fill;
   -webkit-text-fill-color: var(--monster-preview-label-color, #fff8dc);
-  -webkit-text-stroke: 0.9px var(--monster-preview-label-outline, #081536);
+  -webkit-text-stroke: var(--monster-preview-label-outline-width, 0.9px)
+    var(--monster-preview-label-outline, #081536);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -2504,7 +2517,7 @@ html body main.app.app.app.shooterMode
 .mapEditMonsterPreviewLabel > b {
   display: block;
   width: max-content;
-  max-width: 100%;
+  max-width: var(--monster-preview-label-max-width, 100%);
   margin: 0;
   padding: 0;
   color: inherit !important;

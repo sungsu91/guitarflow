@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
+  BACKLINE_RESONANCE_PITCH_TEXT,
+  BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID,
   DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID,
   SHOOTER_NOTE_MONSTER_A_RENDER_SCALE,
   SHOOTER_NOTE_MONSTER_ASSETS,
@@ -14,6 +16,7 @@ import {
   getShooterNoteMonsterLabelLayout,
   getShooterNoteMonsterLabelPalette,
   getShooterNoteMonsterLabelParts,
+  getShooterNoteMonsterPitchText,
   getShooterNoteMonsterRenderScale,
   getShooterNoteMonsterRoot,
   getShooterNoteMonsterSkin,
@@ -64,6 +67,8 @@ test("sharp pitches and the A design use a slightly larger visual monster", () =
   assert.equal(getShooterNoteMonsterRenderScale("A#4"), 1.12);
   assert.equal(getShooterNoteMonsterRenderScale("C4"), 1);
   assert.equal(getShooterNoteMonsterRenderScale("Bb3"), 1);
+  assert.equal(getShooterNoteMonsterRenderScale("G#4", "backline-resonance"), 1);
+  assert.equal(getShooterNoteMonsterRenderScale("A2", "backline-resonance"), 1);
 });
 
 test("label colors follow each monster core's contrast instead of forcing one color", () => {
@@ -81,31 +86,89 @@ test("the shared label zeroing also moves the elemental set left and up", () => 
   assert.deepEqual(getShooterNoteMonsterLabelLayout("F#4", "elemental"), { x: 47, y: 47 });
 });
 
-test("elemental monsters are the server default and cute objects remain selectable", () => {
+test("elemental stays the default while Cute Object and Backline Resonance remain selectable", () => {
   assert.equal(DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID, "elemental");
-  assert.deepEqual(SHOOTER_NOTE_MONSTER_SKINS.map((skin) => skin.id), ["cute-object", "elemental"]);
+  assert.deepEqual(SHOOTER_NOTE_MONSTER_SKINS.map((skin) => skin.id), [
+    "cute-object",
+    "elemental",
+    BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID,
+  ]);
   assert.equal(getShooterNoteMonsterSkin().id, "elemental");
   assert.equal(getShooterNoteMonsterFrameSrc("C4", 0), "/assets/shooter/note-monsters/c/frame-0.png");
   assert.equal(
     getShooterNoteMonsterFrameSrc("Bb4", 0, "elemental"),
     "/assets/shooter/note-monsters/b/frame-0.png",
   );
+  assert.equal(
+    getShooterNoteMonsterFrameSrc("G#4", 0, BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID),
+    "/assets/shooter/note-monsters/backline-resonance/G_PEDAL_CORE.png",
+  );
+  assert.equal(
+    getShooterNoteMonsterFrameSrc("G#4", 5, BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID),
+    "/assets/shooter/note-monsters/backline-resonance/G_PEDAL_CORE.png",
+  );
 });
 
-test("each monster skin exposes 42 aligned 256px RGBA PNG frames", async () => {
+test("Backline Resonance uses seven 512px RGBA shells while legacy frame sets stay intact", async () => {
   assert.equal(SHOOTER_NOTE_MONSTER_ASSET_SOURCES.length, 42);
   assert.equal(new Set(SHOOTER_NOTE_MONSTER_ASSET_SOURCES).size, 42);
-  const allSources = SHOOTER_NOTE_MONSTER_SKINS.flatMap((skin) => (
-    getShooterNoteMonsterAssetSources(skin.id)
-  ));
-  assert.equal(allSources.length, 84);
-  assert.equal(new Set(allSources).size, 84);
+  const sourcesBySkin = Object.fromEntries(SHOOTER_NOTE_MONSTER_SKINS.map((skin) => [
+    skin.id,
+    getShooterNoteMonsterAssetSources(skin.id),
+  ]));
+  assert.equal(sourcesBySkin["cute-object"].length, 42);
+  assert.equal(sourcesBySkin.elemental.length, 42);
+  assert.equal(sourcesBySkin[BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID].length, 7);
+  const allSources = Object.values(sourcesBySkin).flat();
+  assert.equal(allSources.length, 91);
+  assert.equal(new Set(allSources).size, 91);
 
   for (const source of allSources) {
     const bytes = await readFile(new URL(`public${source}`, PROJECT_ROOT));
     assert.equal(bytes.toString("ascii", 1, 4), "PNG");
-    assert.equal(bytes.readUInt32BE(16), 256);
-    assert.equal(bytes.readUInt32BE(20), 256);
+    const expectedSize = source.includes("/backline-resonance/") ? 512 : 256;
+    assert.equal(bytes.readUInt32BE(16), expectedSize);
+    assert.equal(bytes.readUInt32BE(20), expectedSize);
     assert.equal(bytes[25], 6, `${source} must remain RGBA`);
   }
+});
+
+test("Backline Resonance centers the full app-rendered target pitch with manifest typography", async () => {
+  const skin = getShooterNoteMonsterSkin(BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID);
+  assert.equal(skin.label, "Backline Resonance Set");
+  assert.deepEqual(skin.pitchText, BACKLINE_RESONANCE_PITCH_TEXT);
+  assert.deepEqual(getShooterNoteMonsterLabelLayout("C2", skin.id), { x: 50, y: 50 });
+  assert.deepEqual(getShooterNoteMonsterLabelLayout("G#4", skin.id), { x: 50, y: 50 });
+  assert.equal(getShooterNoteMonsterPitchText("C2", skin.id, "도2"), "C2");
+  assert.equal(getShooterNoteMonsterPitchText("F#3", skin.id, "파#3"), "F#3");
+  assert.equal(getShooterNoteMonsterPitchText("G♯4", skin.id, "솔#4"), "G#4");
+  assert.equal(getShooterNoteMonsterPitchText("G#4", "elemental", "솔#4"), "솔#4");
+  assert.deepEqual(BACKLINE_RESONANCE_PITCH_TEXT, {
+    anchorXRatio: 0.5,
+    anchorYRatio: 0.5,
+    fill: "#ffffff",
+    fontSizeRatio: 0.1875,
+    fontWeight: 800,
+    outline: "#07142b",
+    outlineWidthRatio: 0.01,
+    renderedByApp: true,
+    singleLine: true,
+    textMaxWidthRatio: 0.48,
+  });
+
+  const [appSource, styleSource] = await Promise.all([
+    readFile(new URL("../src/App.jsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/style.css", import.meta.url), "utf8"),
+  ]);
+  assert.match(appSource, /getShooterNoteMonsterPitchText\(/);
+  assert.match(appSource, /data-monster-skin=\{selectedMonsterSkin\.id\}/);
+  assert.match(appSource, /pitchText\.fontSizeRatio/);
+  assert.match(appSource, /pitchText\.outlineWidthRatio/);
+  assert.match(appSource, /key=\{`\$\{frameSrc\}:\$\{frameIndex\}`\}/);
+  assert.match(styleSource, /max-width: var\(--target-label-max-width, 100%\)/);
+  assert.match(styleSource, /white-space: nowrap/);
+  assert.doesNotMatch(
+    getShooterNoteMonsterAssetSources(skin.id).join("\n"),
+    /preview|BACKLINE_RESONANCE_GSHARP4_PREVIEW/i,
+  );
 });

@@ -5,6 +5,7 @@ import test from "node:test";
 const appSourceUrl = new URL("../src/App.jsx", import.meta.url);
 const appStyleUrl = new URL("../src/style.css", import.meta.url);
 const appPolishUrl = new URL("../src/polish.css", import.meta.url);
+const desktopStyleUrl = new URL("../src/layouts/desktop-layout.css", import.meta.url);
 
 test("rhythm chord user dropdown exposes bulk selection, locking, and confirmed deletion", async () => {
   const [appSource, appCss] = await Promise.all([
@@ -94,21 +95,28 @@ test("mobile rhythm progression readout fits four complete measures per row", as
   );
 });
 
-test("empty rhythm practice keeps only the centered prompt and storage rows hug their content", async () => {
-  const [appSource, appCss] = await Promise.all([
+test("desktop rhythm practice shows empty measures while mobile keeps its compact prompt", async () => {
+  const [appSource, appCss, desktopCss] = await Promise.all([
     readFile(appSourceUrl, "utf8"),
     readFile(appStyleUrl, "utf8"),
+    readFile(desktopStyleUrl, "utf8"),
   ]);
 
   assert.match(
     appSource,
-    /<aside className="referenceFretboard chordTransitionChart"[\s\S]*?\{hasChordTransitionProgression \? \([\s\S]*?<div className="referenceHeader">/,
+    /<aside className="referenceFretboard chordTransitionChart"[\s\S]*?\{hasChordTransitionProgression \? \([\s\S]*?<div className="referenceHeader stage3ProgressionHeader">/,
   );
   assert.doesNotMatch(appSource, /<small>추천 또는 사용자 진행을 선택해주세요<\/small>/);
-  assert.match(appSource, /className="stage3EmptyFretboardPrompt"[\s\S]*?<strong>진행을 선택해주세요<\/strong>/);
+  assert.doesNotMatch(appSource, /stage3ProgressionHeader--empty/);
+  assert.doesNotMatch(appSource, /className="stage3ProgressionEmptyState"/);
+  assert.match(appSource, /\{isMobileLayout && !hasChordTransitionProgression \? \([\s\S]*?className="stage3EmptyFretboardPrompt"/);
   assert.match(
     appSource,
-    /isMobileLayout && !hasChordTransitionProgression[\s\S]*?className="currentProgressionReadout stage3EmptyProgressionReadout"[\s\S]*?Array\.from\(\{ length: 4 \}/,
+    /\{!hasChordTransitionProgression \? \([\s\S]*?className="currentProgressionReadout stage3EmptyProgressionReadout"[\s\S]*?Array\.from\(\{ length: landscapePlayFocus \? 8 : 4 \}/,
+  );
+  assert.match(
+    desktopCss,
+    /\.stage3EmptyProgressionReadout \{[\s\S]*?grid-template-columns: repeat\(4, minmax\(0, 1fr\)\) !important;[\s\S]*?width: var\(--desktop-stage3-work-width\) !important;/,
   );
   assert.match(
     appCss,
@@ -118,6 +126,83 @@ test("empty rhythm practice keeps only the centered prompt and storage rows hug 
     appCss,
     /@media \(max-width: 720px\)[\s\S]*?\.stage3StorageDialog \.stage3StorageComposer \{[\s\S]*?align-content: start !important;[\s\S]*?grid-auto-rows: max-content !important;/,
   );
+});
+
+test("desktop rhythm practice keeps the fretboard near the progression and opens load menus downward", async () => {
+  const [appSource, desktopCss] = await Promise.all([
+    readFile(appSourceUrl, "utf8"),
+    readFile(desktopStyleUrl, "utf8"),
+  ]);
+  const recommendedStart = appSource.indexOf('className="stage3LoadSelect stage3RecommendedLoadSelect"');
+  const recommendedEnd = appSource.indexOf('className="stage3LoadSelect stage3UserLoadSelect"', recommendedStart);
+  const userEnd = appSource.indexOf('className="stage3StorageMoveButton"', recommendedEnd);
+  const recommendedPicker = appSource.slice(recommendedStart, recommendedEnd);
+  const userPicker = appSource.slice(recommendedEnd, userEnd);
+
+  assert.ok(recommendedStart >= 0 && recommendedEnd > recommendedStart && userEnd > recommendedEnd);
+  assert.match(recommendedPicker, /dropdownDirection=\{!isMobileLayout \|\| landscapePlayFocus \? "down" : "up"\}/);
+  assert.match(userPicker, /dropdownDirection=\{!isMobileLayout \|\| landscapePlayFocus \? "down" : "up"\}/);
+  assert.match(
+    desktopCss,
+    /> \.chordTransitionPanel \.stageChordSharedFretboard \{[\s\S]*?grid-row: 3;[\s\S]*?align-self: stretch;/,
+  );
+  assert.match(desktopCss, /--desktop-stage3-work-width: 100%/);
+  assert.match(desktopCss, /--desktop-stage3-progression-width: 96%/);
+  assert.match(desktopCss, /\.stage3ProgressionHeader \{[\s\S]*?width: var\(--desktop-stage3-progression-width\) !important/);
+  assert.match(desktopCss, /\.stageChordSharedFretboard \{[\s\S]*?width: var\(--desktop-stage3-work-width\) !important/);
+  assert.match(
+    desktopCss,
+    /\.stage3ProgressHud \{[\s\S]*?grid-template-columns: var\(--desktop-stage3-hud-rail\) minmax\(0, 1fr\) var\(--desktop-stage3-hud-rail\) !important;[\s\S]*?width: var\(--desktop-stage3-work-width\) !important/,
+  );
+  assert.match(desktopCss, /\.stage3ReferenceBeatMetronomeStrip \{[\s\S]*?grid-column: 2 !important/);
+  assert.match(
+    desktopCss,
+    /\.stage3StandaloneTransportDeck \.stage3StandaloneBpmActionPanel::before \{[\s\S]*?display: none !important;[\s\S]*?content: none !important;/,
+  );
+});
+
+test("rhythm progression clicks seek the prepared backing clock without rebuilding it", async () => {
+  const [appSource, desktopCss] = await Promise.all([
+    readFile(appSourceUrl, "utf8"),
+    readFile(desktopStyleUrl, "utf8"),
+  ]);
+  const seekStart = appSource.indexOf("const setStage3ProgressIndex = useCallback");
+  const seekEnd = appSource.indexOf("const exitStage3StorageRoom", seekStart);
+  const seekSource = appSource.slice(seekStart, seekEnd);
+  const schedulerStart = appSource.indexOf("const startBackingScheduler = useCallback");
+  const schedulerEnd = appSource.indexOf("const stopMetronomeVisualLab", schedulerStart);
+  const schedulerSource = appSource.slice(schedulerStart, schedulerEnd);
+  const frameStart = appSource.indexOf("const runChordTransitionFrame = useCallback");
+  const frameEnd = appSource.indexOf("const runMetronomeFrame", frameStart);
+  const frameSource = appSource.slice(frameStart, frameEnd);
+
+  assert.ok(seekStart >= 0 && seekEnd > seekStart && schedulerEnd > schedulerStart && frameEnd > frameStart);
+  assert.match(seekSource, /getRhythmChordStartBeat\(chordTransitionBeatTimeline, safeIndex\)/);
+  assert.match(seekSource, /gameStateRef\.current === GAME_STATES\.PLAYING && !countInActiveRef\.current/);
+  assert.match(seekSource, /stage3PlaybackSeekRef\.current\?\.\(safeIndex\)/);
+  assert.match(schedulerSource, /stage3PlaybackSeekRef\.current = seekStage3Playback/);
+  assert.match(schedulerSource, /startBackingScheduler\(index, BACKING_SCHEDULER_MODES\.STAGE3\)/);
+  assert.match(schedulerSource, /backingDisplayStartTimeRef\.current = audio\.currentTime - safeStartOffset/);
+  assert.match(frameSource, /const startBeat = getRhythmChordStartBeat\([\s\S]*?chordPracticeIndexRef\.current/);
+  assert.match(frameSource, /gameTimeRef\.current = startBeat \* currentBeatMs/);
+  assert.match(
+    desktopCss,
+    /\.stage3ProgressionHeader \.rhythmChordMeasure \{[\s\S]*?flex: 0 0 calc\([\s\S]*?var\(--desktop-stage3-progression-gap\)[\s\S]*?min-height: 84px !important;/,
+  );
+});
+
+test("saved rhythm progressions have one shared load path and an explicit storage-room load action", async () => {
+  const appSource = await readFile(appSourceUrl, "utf8");
+  const loaderStart = appSource.indexOf("const loadStage3LibraryItem = useCallback");
+  const loaderEnd = appSource.indexOf("const stage3DesktopMetronomeSoundToggle", loaderStart);
+  const loaderSource = appSource.slice(loaderStart, loaderEnd);
+
+  assert.ok(loaderStart >= 0 && loaderEnd > loaderStart);
+  assert.match(loaderSource, /applyStage3LibraryItem\(item\)/);
+  assert.match(loaderSource, /prepareStage3BackingSession\(/);
+  assert.match(loaderSource, /if \(closeStorage\) exitStage3StorageRoom\(\)/);
+  assert.match(appSource, /onClick=\{\(\) => loadStage3LibraryItem\(selectedStage3StorageItem, \{ closeStorage: true \}\)\}/);
+  assert.match(appSource, />\s*불러오기\s*</);
 });
 
 test("rhythm chord saved-setting lock survives storage migration and blocks destructive paths", async () => {

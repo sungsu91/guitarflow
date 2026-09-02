@@ -33,9 +33,13 @@ test("deployed defaults include the desktop editor calibration for every monster
   assert.deepEqual(Object.keys(SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS.elemental), [
     "C", "D", "E", "F", "G", "A", "B",
   ]);
+  assert.deepEqual(Object.keys(SHOOTER_NOTE_MONSTER_TUNING_DEFAULTS["backline-resonance"]), [
+    "C", "D", "E", "F", "G", "A", "B",
+  ]);
   assert.equal(getShooterNoteMonsterTuning(undefined, "cute-object", "C3").labelOffsetX, 10);
   assert.equal(getShooterNoteMonsterTuning(undefined, "cute-object", "B2").labelOffsetX, 8);
   assert.equal(getShooterNoteMonsterTuning(undefined, "elemental", "C4").labelOffsetX, 3);
+  assert.equal(getShooterNoteMonsterTuning(undefined, "backline-resonance", "G#4").scale, 1.15);
 });
 
 test("monster size and label offsets stay isolated by skin and root note", () => {
@@ -150,4 +154,15 @@ test("shared deployment tuning save accepts only known skins, roots, and safe va
   });
   assert.throws(() => validateNoteMonsterTunings({ unknown: { A: { scale: 1 } } }));
   assert.throws(() => validateNoteMonsterTunings({ elemental: { H: { scale: 1 } } }));
+  assert.deepEqual(validateNoteMonsterTunings({
+    "backline-resonance": { G: { labelColor: "#FFFFFF", labelOutline: "#07142B" } },
+  }), {
+    "backline-resonance": {
+      G: {
+        ...DEFAULT_SHOOTER_NOTE_MONSTER_TUNING,
+        labelColor: "#ffffff",
+        labelOutline: "#07142b",
+      },
+    },
+  });
 });

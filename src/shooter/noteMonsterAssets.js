@@ -2,12 +2,37 @@ export const SHOOTER_NOTE_MONSTER_ROOTS = Object.freeze(["C", "D", "E", "F", "G"
 export const SHOOTER_NOTE_MONSTER_FRAME_COUNT = 6;
 export const SHOOTER_NOTE_MONSTER_BREAK_FRAME_COUNT = SHOOTER_NOTE_MONSTER_FRAME_COUNT - 1;
 const CUTE_OBJECT_SHOOTER_NOTE_MONSTER_SKIN_ID = "cute-object";
+export const BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID = "backline-resonance";
 export const DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID = "elemental";
 export const SHOOTER_NOTE_MONSTER_LABEL_ZEROING = Object.freeze({ left: 3, up: 3 });
 export const SHOOTER_NOTE_MONSTER_SHARP_RENDER_SCALE = 1.08;
 export const SHOOTER_NOTE_MONSTER_A_RENDER_SCALE = 1.12;
 
 const ASSET_ROOT = "/assets/shooter/note-monsters";
+const BACKLINE_RESONANCE_ASSET_ROOT = `${ASSET_ROOT}/backline-resonance`;
+
+const BACKLINE_RESONANCE_FILES = Object.freeze({
+  C: "C_AMP_CORE.png",
+  D: "D_METRONOME_CORE.png",
+  E: "E_VINYL_CORE.png",
+  F: "F_TAPE_CORE.png",
+  G: "G_PEDAL_CORE.png",
+  A: "A_MIC_CORE.png",
+  B: "B_SPEAKER_CORE.png",
+});
+
+export const BACKLINE_RESONANCE_PITCH_TEXT = Object.freeze({
+  anchorXRatio: 0.5,
+  anchorYRatio: 0.5,
+  fill: "#ffffff",
+  fontSizeRatio: 0.1875,
+  fontWeight: 800,
+  outline: "#07142b",
+  outlineWidthRatio: 0.01,
+  renderedByApp: true,
+  singleLine: true,
+  textMaxWidthRatio: 0.48,
+});
 
 const NOTE_MONSTER_LABEL_LAYOUTS = Object.freeze({
   [CUTE_OBJECT_SHOOTER_NOTE_MONSTER_SKIN_ID]: Object.freeze({
@@ -23,6 +48,14 @@ const NOTE_MONSTER_LABEL_LAYOUTS = Object.freeze({
     SHOOTER_NOTE_MONSTER_ROOTS.map((noteRoot) => [
       noteRoot,
       Object.freeze({ x: 50, y: 50 }),
+    ]),
+  )),
+  [BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID]: Object.freeze(Object.fromEntries(
+    SHOOTER_NOTE_MONSTER_ROOTS.map((noteRoot) => [
+      noteRoot,
+      // Shared legacy zeroing subtracts three percentage points at render time.
+      // Authoring at 53/53 therefore lands the manifest anchor at exactly 50/50.
+      Object.freeze({ x: 53, y: 53 }),
     ]),
   )),
 });
@@ -54,6 +87,16 @@ const NOTE_MONSTER_LABEL_PALETTES = Object.freeze({
     A: Object.freeze({ color: "#fff5ff", outline: "#31075b", glow: "rgba(213, 142, 255, 0.46)" }),
     B: Object.freeze({ color: "#082f57", outline: "#f2fdff", glow: "rgba(133, 224, 255, 0.44)" }),
   }),
+  [BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID]: Object.freeze(Object.fromEntries(
+    SHOOTER_NOTE_MONSTER_ROOTS.map((noteRoot) => [
+      noteRoot,
+      Object.freeze({
+        color: BACKLINE_RESONANCE_PITCH_TEXT.fill,
+        outline: BACKLINE_RESONANCE_PITCH_TEXT.outline,
+        glow: "rgba(116, 183, 255, 0.34)",
+      }),
+    ]),
+  )),
 });
 
 function createShooterNoteMonsterAssets(assetRoot) {
@@ -65,6 +108,21 @@ function createShooterNoteMonsterAssets(assetRoot) {
         (_, frameIndex) => `${assetRoot}/${noteRoot.toLowerCase()}/frame-${frameIndex}.png`,
       )),
     ]),
+  ));
+}
+
+function createStaticShooterNoteMonsterAssets(assetRoot, files) {
+  return Object.freeze(Object.fromEntries(
+    SHOOTER_NOTE_MONSTER_ROOTS.map((noteRoot) => {
+      const source = `${assetRoot}/${files[noteRoot]}`;
+      return [
+        noteRoot,
+        // Reuse one authored shell through the existing idle/destruction slots.
+        // The DOM keeps the established destruction timing without loading
+        // synthetic or preview frames.
+        Object.freeze(Array.from({ length: SHOOTER_NOTE_MONSTER_FRAME_COUNT }, () => source)),
+      ];
+    }),
   ));
 }
 
@@ -80,6 +138,16 @@ export const SHOOTER_NOTE_MONSTER_SKINS = Object.freeze([
     label: "Elemental Set",
     description: "불·대지·물·바람·빛·보라·얼음 원소 구체",
     assets: createShooterNoteMonsterAssets(ASSET_ROOT),
+  }),
+  Object.freeze({
+    id: BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID,
+    label: "Backline Resonance Set",
+    description: "앰프·메트로놈·바이닐·테이프·페달·마이크·스피커 공명 코어",
+    assets: createStaticShooterNoteMonsterAssets(
+      BACKLINE_RESONANCE_ASSET_ROOT,
+      BACKLINE_RESONANCE_FILES,
+    ),
+    pitchText: BACKLINE_RESONANCE_PITCH_TEXT,
   }),
 ]);
 
@@ -97,7 +165,7 @@ export const SHOOTER_NOTE_MONSTER_ASSET_SOURCES = Object.freeze(
 
 export function getShooterNoteMonsterAssetSources(skinId = DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID) {
   const { assets } = getShooterNoteMonsterSkin(skinId);
-  return SHOOTER_NOTE_MONSTER_ROOTS.flatMap((noteRoot) => assets[noteRoot]);
+  return [...new Set(SHOOTER_NOTE_MONSTER_ROOTS.flatMap((noteRoot) => assets[noteRoot]))];
 }
 
 export function getShooterNoteMonsterRoot(noteName) {
@@ -146,7 +214,26 @@ export function getShooterNoteMonsterLabelPalette(
     ?? NOTE_MONSTER_LABEL_PALETTES[DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID].A;
 }
 
-export function getShooterNoteMonsterRenderScale(noteName) {
+export function getShooterNoteMonsterPitchText(
+  noteName,
+  skinId = DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID,
+  fallbackLabel = noteName,
+) {
+  const skin = getShooterNoteMonsterSkin(skinId);
+  if (!skin.pitchText?.renderedByApp) return fallbackLabel;
+  const pitch = String(noteName ?? "").trim();
+  return pitch
+    ? pitch.replaceAll("♯", "#").replaceAll("♭", "b")
+    : getShooterNoteMonsterRoot(noteName);
+}
+
+export function getShooterNoteMonsterRenderScale(
+  noteName,
+  skinId = DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID,
+) {
+  if (getShooterNoteMonsterSkin(skinId).id === BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID) {
+    return 1;
+  }
   const { accidental, root } = getShooterNoteMonsterLabelParts(noteName);
   const accidentalScale = accidental === "#" || accidental === "♯"
     ? SHOOTER_NOTE_MONSTER_SHARP_RENDER_SCALE

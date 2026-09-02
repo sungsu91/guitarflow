@@ -1,4 +1,8 @@
+import { ABYSSAL_MOON_CATHEDRAL_MAP_SKIN } from "./skins/abyssalMoonCathedral.js";
+import { AUTUMN_MOON_TEMPLE_PATH_MAP_SKIN } from "./skins/autumnMoonTemplePath.js";
+import { CELESTIAL_ECLIPSE_CLOCKTOWER_MAP_SKIN } from "./skins/celestialEclipseClocktower.js";
 import { COASTAL_COVE_MAP_SKIN } from "./skins/coastalCove.js";
+import { CLOCKWORK_OPERA_CITADEL_MAP_SKIN } from "./skins/clockworkOperaCitadel.js";
 import { LAVA_CANYON_MAP_SKIN } from "./skins/lavaCanyon.js";
 import { PARK_MAP_SKIN } from "./skins/park.js";
 import { PSEUDO3D_TEST_MAP_SKIN } from "./skins/pseudo3dTest.js";
@@ -10,6 +14,10 @@ export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
   LAVA_CANYON_MAP_SKIN,
   COASTAL_COVE_MAP_SKIN,
   PARK_MAP_SKIN,
+  CLOCKWORK_OPERA_CITADEL_MAP_SKIN,
+  ABYSSAL_MOON_CATHEDRAL_MAP_SKIN,
+  CELESTIAL_ECLIPSE_CLOCKTOWER_MAP_SKIN,
+  AUTUMN_MOON_TEMPLE_PATH_MAP_SKIN,
 ]);
 
 export const DEVELOPER_SHOOTER_MAP_SKINS = Object.freeze([
@@ -27,12 +35,37 @@ export function getNextShooterMapId(currentMapId) {
   return LAYERED_SHOOTER_MAP_SKINS[nextIndex].id;
 }
 
-export function getRandomShooterMapId(currentMapId, randomValue = Math.random()) {
-  if (LAYERED_SHOOTER_MAP_SKINS.length === 0) return currentMapId;
+export function getShooterMapsForLayout(
+  isMobileLayout = true,
+  { includeMobileOnly = false, isPortraitLayout = true } = {},
+) {
+  return LAYERED_SHOOTER_MAP_SKINS.filter(
+    (map) => isShooterMapAvailableForLayout(map, isMobileLayout, {
+      includeMobileOnly,
+      isPortraitLayout,
+    }),
+  );
+}
 
-  const candidates = LAYERED_SHOOTER_MAP_SKINS.length > 1
-    ? LAYERED_SHOOTER_MAP_SKINS.filter((map) => map.id !== currentMapId)
-    : LAYERED_SHOOTER_MAP_SKINS;
+export function isShooterMapAvailableForLayout(
+  map,
+  isMobileLayout = true,
+  { includeMobileOnly = false, isPortraitLayout = true } = {},
+) {
+  if (map?.portraitOnly && !isPortraitLayout) return false;
+  return !map?.mobileOnly || isMobileLayout || includeMobileOnly;
+}
+
+export function getRandomShooterMapId(
+  currentMapId,
+  randomValue = Math.random(),
+  maps = LAYERED_SHOOTER_MAP_SKINS,
+) {
+  if (maps.length === 0) return currentMapId;
+
+  const candidates = maps.length > 1
+    ? maps.filter((map) => map.id !== currentMapId)
+    : maps;
   const normalizedRandom = Number.isFinite(randomValue)
     ? Math.min(0.999999, Math.max(0, randomValue))
     : 0;
@@ -55,7 +88,7 @@ export function isEditableShooterMap(map) {
   return isLayeredShooterMap(map);
 }
 
-export function getShooterMapAssetSources(map) {
+export function getShooterMapAssetSources(map, { includeFallbacks = true } = {}) {
   if (isPseudo3DShooterMap(map)) {
     return [...new Set((map.decorations ?? [])
       .map((decoration) => decoration?.src)
@@ -65,8 +98,17 @@ export function getShooterMapAssetSources(map) {
 
   return [...new Set([
     map.background?.src,
+    includeFallbacks ? map.background?.fallbackSrc : "",
+    map.architectureMask?.src,
+    includeFallbacks ? map.architectureMask?.fallbackSrc : "",
+    map.animatedBackdrop?.src,
+    includeFallbacks ? map.animatedBackdrop?.fallbackSrc : "",
+    map.foregroundOccluder?.src,
+    includeFallbacks ? map.foregroundOccluder?.fallbackSrc : "",
+    ...(map.runtimeAnimation?.preloadSources ?? []),
     ...(map.assetCatalog ?? []).flatMap((asset) => [
       asset?.src,
+      ...(asset?.farWhale?.frames ?? []),
       asset?.spriteSheet?.staticSrc,
       ...(asset?.spriteSheet?.frames ?? []).map((frame) => (
         typeof frame === "string" ? frame : frame?.src
@@ -136,6 +178,7 @@ export function resolveLayeredShooterMap(map, placements = map?.layout) {
       assetId: placement.assetId,
       label: asset.label,
       src: asset.src,
+      farWhale: asset.farWhale,
       composite: asset.composite,
       eventActor: asset.eventActor,
       spriteSheet: asset.spriteSheet,
@@ -148,6 +191,7 @@ export function resolveLayeredShooterMap(map, placements = map?.layout) {
         ),
       } : undefined,
       slot: asset.slot ?? "background-environment",
+      aspectRatio: asset.aspectRatio,
       coordinateSpace: "normalized",
       placement: {
         x: placement.x,

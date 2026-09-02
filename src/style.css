@@ -5366,7 +5366,8 @@ html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shoote
   opacity: 1 !important;
   paint-order: stroke fill;
   -webkit-text-fill-color: var(--target-label-color, #fff8dc) !important;
-  -webkit-text-stroke: 0.9px var(--target-label-outline, #081536);
+  -webkit-text-stroke: var(--target-label-outline-width, 0.9px)
+    var(--target-label-outline, #081536);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -5374,7 +5375,7 @@ html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shoote
 .shooterArena .enemy.shooterEnemy .shooterEnemyPitchLabel > b {
   display: block;
   width: max-content;
-  max-width: 100%;
+  max-width: var(--target-label-max-width, 100%);
   margin: 0;
   padding: 0;
   color: var(--target-label-color, #fff8dc) !important;
@@ -32819,6 +32820,12 @@ html body .shooterArena .effect-floor-concert-stage,
   }
 }
 
+.shooterArena:is(.paused, .shooterArena--animationsPaused)
+  .guitarPlayerEffectLayer--animated img {
+  animation-play-state: paused !important;
+  will-change: auto;
+}
+
 @keyframes shooterLegendaryAuraPulse {
   0%,
   100% {
@@ -56819,6 +56826,7 @@ html body main.app.app.app
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     align-items: stretch !important;
     gap: 0 !important;
+    width: auto !important;
     min-height: 44px !important;
     margin: 0 14px !important;
     padding: 0 !important;
@@ -66778,6 +66786,11 @@ html body .shooterSkinConfigurator :is(
     transform: none !important;
   }
 
+  /* Mobile keeps its existing CSS-drawn repeat wall and dots. */
+  html body main.app.app.app.miniChordMakerMode .miniChordRepeatBoundaryIcon {
+    display: none !important;
+  }
+
   html body main.app.app.app.miniChordMakerMode .miniChordRepeatBoundary--start {
     left: 2px !important;
     border-left: 2px solid currentColor !important;
@@ -66875,6 +66888,103 @@ html body .miniChordMeasureEditorPanel[data-placement="below"] .miniChordMeasure
 
 html body .miniChordMeasureEditorPanel:is(.is-dragging, .is-moved) .miniChordMeasureEditorAnchor {
   opacity: 0 !important;
+}
+
+/* Mini-chord beat subdivision: each half-bar stays compact until it is split. */
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSlotHalf {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  min-width: 0 !important;
+  height: 100% !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSlotHalf.is-split {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSlotHalf + .miniChordSlotHalf,
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSlotHalf.is-split .miniChordSlotWrap + .miniChordSlotWrap {
+  border-left: 1px solid rgba(207, 157, 73, 0.18) !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordTimelineFour .miniChordSlotHalf + .miniChordSlotHalf,
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordTimelineFour .miniChordSlotHalf.is-split .miniChordSlotWrap + .miniChordSlotWrap {
+  border-left-color: rgba(143, 123, 88, 0.14) !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSlotHalf .miniChordSlotWrap {
+  height: 100% !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSlotHalf.is-split .miniChordSlotLabel {
+  font-size: 8.5px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSlotLabel--rest {
+  font-family: "Noto Music", "Segoe UI Symbol", serif !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+html body .miniChordMeasureEditorPanel .miniChordPickerHeader {
+  grid-template-columns: minmax(0, 1fr) auto auto !important;
+}
+
+html body .miniChordMeasureEditorPanel .miniChordPickerHeaderActions {
+  grid-column: 3 !important;
+  display: inline-flex !important;
+  gap: 4px !important;
+  justify-self: end !important;
+  pointer-events: auto !important;
+}
+
+html body .miniChordMeasureEditorPanel .miniChordPickerHeaderActions button {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 !important;
+  border: 1px solid rgba(159, 112, 37, 0.34) !important;
+  border-radius: 8px !important;
+  background: rgba(255, 250, 239, 0.78) !important;
+  color: #6f4a17 !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+html body .miniChordMeasureEditorPanel .miniChordPickerHeaderActions button:hover:not(:disabled),
+html body .miniChordMeasureEditorPanel .miniChordPickerHeaderActions button:focus-visible {
+  border-color: rgba(159, 112, 37, 0.7) !important;
+  background: #fff8e8 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(208, 148, 53, 0.18) !important;
+}
+
+html body .miniChordMeasureEditorPanel .miniChordPickerHeaderActions button:disabled {
+  cursor: default !important;
+  opacity: 0.42 !important;
+}
+
+html body .miniChordFloatingChordPopover .miniChordPickerActions .miniChordRestAction {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+}
+
+html body .miniChordFloatingChordPopover .miniChordPickerActions .miniChordRestAction > span {
+  font-family: "Noto Music", "Segoe UI Symbol", serif !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+html body .miniChordFloatingChordPopover .miniChordPickerActions .miniChordRestAction > small {
+  color: inherit !important;
+  font-size: 9px !important;
+  font-weight: 950 !important;
 }
 
 html body .miniChordMeasureEditorPanel .miniChordPickerHeader {
@@ -71614,5 +71724,311 @@ html body .shooterEffectDesktopCabinetSection .shooterGuitarCabinetPickerPreview
     ) {
     min-height: calc(100dvh + 64px) !important;
     scroll-padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* Desktop skin picker stays visually separate from the mobile arena-preview UI.
+   Keep the active game visible and avoid recompositing it through blur filters. */
+@media (min-width: 720px) {
+  html body .shooterGuitarPickerOverlay--desktopWindow {
+    place-items: center !important;
+    padding: 32px !important;
+    background: rgba(3, 5, 7, 0.06) !important;
+    backdrop-filter: none !important;
+  }
+
+  :root[data-theme] body .shooterGuitarPickerOverlay--desktopWindow {
+    background: rgba(3, 5, 7, 0.06) !important;
+    backdrop-filter: none !important;
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow {
+    display: block !important;
+    width: min(920px, calc(100vw - 64px)) !important;
+    height: min(560px, calc(100dvh - 96px)) !important;
+    filter: drop-shadow(0 20px 36px rgba(0, 0, 0, 0.34));
+    transform: translateY(clamp(-112px, -11dvh, -52px));
+  }
+
+  html body .shooterSkinConfigurator--desktopWindow .shooterGuitarPickerModal {
+    backdrop-filter: none !important;
+  }
+}
+
+/* FRETIVA instrument packs: preserve every 512x768 transparent canvas. */
+html body img[data-instrument-skin-pack="fretiva-instrument-skins-v1"],
+html body img[data-instrument-skin-pack="fretiva-guitar-addon-v2"],
+html body img[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"] {
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: 50% 50%;
+  background: transparent;
+}
+
+html body .shooterSkinConfigurator
+  .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva-instrument-skins-v1"],
+html body .shooterSkinConfigurator
+  .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva-guitar-addon-v2"],
+html body .shooterSkinConfigurator
+  .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"] {
+  width: auto !important;
+  height: 76px !important;
+  max-width: 100% !important;
+  max-height: 76px !important;
+  object-fit: contain !important;
+}
+
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva-instrument-skins-v1"],
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva-guitar-addon-v2"],
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"] {
+  width: 60px !important;
+  height: 137px !important;
+}
+
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva-instrument-skins-v1"]
+  .guitarPlayerAsset.guitarAssetImage,
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva-guitar-addon-v2"]
+  .guitarPlayerAsset.guitarAssetImage,
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
+  .guitarPlayerAsset.guitarAssetImage {
+  bottom: 0 !important;
+  width: auto !important;
+  height: 137px !important;
+  max-width: none !important;
+  max-height: 137px !important;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
+}
+
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva-instrument-skins-v1"]
+  .guitarPlayerMuzzle,
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva-guitar-addon-v2"]
+  .guitarPlayerMuzzle,
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
+  .guitarPlayerMuzzle {
+  top: 6px !important;
+}
+
+@media (max-width: 680px) {
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva-instrument-skins-v1"],
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva-guitar-addon-v2"],
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"] {
+    width: 57px !important;
+    height: 127px !important;
+  }
+
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva-instrument-skins-v1"]
+    .guitarPlayerAsset.guitarAssetImage,
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva-guitar-addon-v2"]
+    .guitarPlayerAsset.guitarAssetImage,
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
+    .guitarPlayerAsset.guitarAssetImage {
+    height: 152px !important;
+    max-height: 152px !important;
+  }
+
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva-instrument-skins-v1"]
+    .guitarPlayerMuzzle,
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva-guitar-addon-v2"]
+    .guitarPlayerMuzzle,
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
+    .guitarPlayerMuzzle {
+    top: -19px !important;
+  }
+}
+
+@media (min-width: 681px) {
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva-instrument-skins-v1"],
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva-guitar-addon-v2"],
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"] {
+    width: 57px !important;
+    height: 127px !important;
+  }
+
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva-instrument-skins-v1"]
+    .guitarPlayerAsset.guitarAssetImage,
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva-guitar-addon-v2"]
+    .guitarPlayerAsset.guitarAssetImage,
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
+    .guitarPlayerAsset.guitarAssetImage {
+    bottom: 0 !important;
+    height: 127px !important;
+    max-height: 127px !important;
+  }
+
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva-instrument-skins-v1"]
+    .guitarPlayerMuzzle,
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva-guitar-addon-v2"]
+    .guitarPlayerMuzzle,
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
+    .guitarPlayerMuzzle {
+    top: 5px !important;
+  }
+
+  html body .shooterSkinConfigurator
+    .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva-instrument-skins-v1"],
+  html body .shooterSkinConfigurator
+    .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva-guitar-addon-v2"],
+  html body .shooterSkinConfigurator
+    .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"] {
+    height: 96px !important;
+    max-height: 96px !important;
+  }
+}
+
+/* Keep split and close controls side-by-side after the shared floating-header rules. */
+html body .miniChordMeasureEditorPanel .miniChordPickerHeader {
+  grid-template-columns: minmax(0, 1fr) auto auto !important;
+}
+
+html body .miniChordMeasureEditorPanel .miniChordPickerHeaderActions {
+  grid-column: 3 !important;
+  pointer-events: auto !important;
+}
+
+html body .miniChordMeasureEditorPanel .miniChordPickerHeaderActions button {
+  pointer-events: auto !important;
+}
+
+/* Mini chord split editor: edit both one-beat slots without reopening the HUD. */
+.miniChordRestIcon {
+  display: inline-block;
+  width: 0.82em;
+  height: 1.12em;
+  overflow: visible;
+  color: currentColor;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.15;
+  vertical-align: middle;
+}
+
+html body .miniChordMeasureEditorPanel .miniChordPickerHeader {
+  grid-template-columns: minmax(58px, 1fr) minmax(96px, 1.25fr) auto !important;
+}
+
+html body .miniChordMeasureEditorPanel .miniChordPickerSlotTabs {
+  grid-column: 2 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  pointer-events: auto !important;
+}
+
+html body .miniChordMeasureEditorPanel .miniChordPickerSlotTabs > button {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+  min-height: 32px !important;
+  padding: 3px 5px !important;
+  border: 1px solid rgba(159, 112, 37, 0.3) !important;
+  border-radius: 7px !important;
+  background: rgba(255, 250, 239, 0.76) !important;
+  color: #4b3417 !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
+html body .miniChordMeasureEditorPanel .miniChordPickerSlotTabs > button.selected {
+  border-color: rgba(126, 84, 25, 0.72) !important;
+  background: linear-gradient(180deg, #f4d388 0%, #d6a64f 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 249, 226, 0.8) !important;
+}
+
+html body .miniChordMeasureEditorPanel .miniChordPickerSlotTabs > button > small {
+  color: rgba(91, 61, 20, 0.72) !important;
+  font-size: 7px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+html body .miniChordMeasureEditorPanel .miniChordPickerSlotTabs > button > strong {
+  grid-column: auto !important;
+  display: block !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  overflow: visible !important;
+  color: #21170c !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+
+html body .miniChordFloatingChordPopover .miniChordPickerActions .miniChordRestAction > .miniChordRestIcon {
+  width: 12px !important;
+  height: 17px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSlotLabel--rest {
+  display: inline-grid !important;
+  place-items: center !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSlotLabel--rest .miniChordRestIcon {
+  width: 12px !important;
+  height: 17px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSlotHalf.is-split,
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSlotHalf.is-split .miniChordSlotWrap,
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSlotHalf.is-split .miniChordSlot {
+  overflow: visible !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordTimelineFour .miniChordSlotHalf.is-split .miniChordSlotLabel:not(.miniChordSlotLabel--rest) {
+  width: 100% !important;
+  max-width: none !important;
+  overflow: visible !important;
+  font-size: 8.5px !important;
+  text-overflow: clip !important;
+  transform: none !important;
+  white-space: nowrap !important;
+}
+
+@media (min-width: 681px) {
+  html body .miniChordChordPopover.miniChordFloatingChordPopover {
+    width: min(340px, calc(100vw - 24px)) !important;
+  }
+
+  html body .miniChordMeasureEditorPanel .miniChordPickerHeader {
+    grid-template-columns: minmax(72px, 1fr) minmax(120px, 1.45fr) auto !important;
   }
 }

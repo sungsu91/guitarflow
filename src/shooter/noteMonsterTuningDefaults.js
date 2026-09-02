@@ -130,5 +130,70 @@ export default Object.freeze({
       "labelScale": 1,
       "scale": 1.15
     }
+  },
+  "backline-resonance": {
+    "C": {
+      "jointScale": 1,
+      "labelColor": "",
+      "labelOffsetX": 0,
+      "labelOffsetY": 0,
+      "labelOutline": "",
+      "labelScale": 1,
+      "scale": 1.15
+    },
+    "D": {
+      "jointScale": 1,
+      "labelColor": "",
+      "labelOffsetX": 0,
+      "labelOffsetY": 0,
+      "labelOutline": "",
+      "labelScale": 1,
+      "scale": 1.15
+    },
+    "E": {
+      "jointScale": 1,
+      "labelColor": "",
+      "labelOffsetX": 0,
+      "labelOffsetY": 0,
+      "labelOutline": "",
+      "labelScale": 1,
+      "scale": 1.15
+    },
+    "F": {
+      "jointScale": 1,
+      "labelColor": "",
+      "labelOffsetX": 0,
+      "labelOffsetY": 0,
+      "labelOutline": "",
+      "labelScale": 1,
+      "scale": 1.15
+    },
+    "G": {
+      "jointScale": 1,
+      "labelColor": "",
+      "labelOffsetX": 0,
+      "labelOffsetY": 0,
+      "labelOutline": "",
+      "labelScale": 1,
+      "scale": 1.15
+    },
+    "A": {
+      "jointScale": 1,
+      "labelColor": "",
+      "labelOffsetX": 0,
+      "labelOffsetY": -5,
+      "labelOutline": "",
+      "labelScale": 1,
+      "scale": 1.15
+    },
+    "B": {
+      "jointScale": 1,
+      "labelColor": "",
+      "labelOffsetX": 0,
+      "labelOffsetY": 0,
+      "labelOutline": "",
+      "labelScale": 1,
+      "scale": 1.15
+    }
   }
 });

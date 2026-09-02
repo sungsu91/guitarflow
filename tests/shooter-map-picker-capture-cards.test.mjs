@@ -9,6 +9,8 @@ const captureAssets = [
   ["lava-canyon-current.jpg", new URL("../public/assets/maps/previews/lava-canyon-current.jpg", import.meta.url)],
   ["park-current.jpg", new URL("../public/assets/maps/previews/park-current.jpg", import.meta.url)],
   ["river-garden-current.jpg", new URL("../public/assets/maps/previews/river-garden-current.jpg", import.meta.url)],
+  ["clockwork-opera-citadel-current.jpg", new URL("../public/assets/maps/previews/clockwork-opera-citadel-current.jpg", import.meta.url)],
+  ["abyssal-moon-cathedral-current.jpg", new URL("../public/assets/maps/previews/abyssal-moon-cathedral-current.jpg", import.meta.url)],
 ];
 
 function readJpegSize(buffer) {
@@ -49,12 +51,16 @@ test("layered maps expose dedicated picker captures without replacing gameplay p
     new URL("../src/shooter/maps/skins/lavaCanyon.js", import.meta.url),
     new URL("../src/shooter/maps/skins/park.js", import.meta.url),
     new URL("../src/shooter/maps/skins/river.js", import.meta.url),
+    new URL("../src/shooter/maps/skins/clockworkOperaCitadel.js", import.meta.url),
+    new URL("../src/shooter/maps/skins/abyssalMoonCathedral.js", import.meta.url),
   ].map((url) => readFile(url, "utf8")));
 
   assert.match(sources[0], /pickerPreviewImage: "\/assets\/maps\/previews\/coastal-cove-current\.jpg"/);
   assert.match(sources[1], /pickerPreviewImage: "\/assets\/maps\/previews\/lava-canyon-current\.jpg"/);
   assert.match(sources[2], /pickerPreviewImage: "\/assets\/maps\/previews\/park-current\.jpg"/);
   assert.match(sources[3], /pickerPreviewImage: "\/assets\/maps\/previews\/river-garden-current\.jpg"/);
+  assert.match(sources[4], /pickerPreviewImage: "\/assets\/maps\/previews\/clockwork-opera-citadel-current\.jpg"/);
+  assert.match(sources[5], /pickerPreviewImage: "\/assets\/maps\/previews\/abyssal-moon-cathedral-current\.jpg"/);
   sources.forEach((source) => assert.match(source, /previewImage:/));
 });
 

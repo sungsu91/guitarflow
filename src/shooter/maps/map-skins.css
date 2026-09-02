@@ -206,6 +206,436 @@ html body .app .shooterArena .shooterMapSkinStage .shooterMapSkinAsset[data-anim
   pointer-events: none;
 }
 
+@keyframes shooterMapAssetRotateReverse {
+  from { transform: rotateZ(0turn); }
+  to { transform: rotateZ(-1turn); }
+}
+
+.shooterArena.shooterArena--layeredMap.shooterMapSkin--abyssalMoonCathedral {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(31, 165, 224, 0.22), transparent 35%),
+    #03111d !important;
+}
+
+.shooterMapSkin--abyssalMoonCathedral .shooterMapSkinBackground {
+  z-index: 0;
+}
+
+.shooterMapSkin--abyssalMoonCathedral .shooterMapArchitectureMask {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  object-fit: var(--shooter-map-mask-fit, contain);
+  object-position: var(--shooter-map-mask-position, center);
+  pointer-events: none;
+  transform: none;
+}
+
+.shooterMapAbyssalRuntime {
+  position: absolute;
+  z-index: 7;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.shooterMapSkin--abyssalMoonCathedral .shooterMapSkinAsset[data-animation="abyssal-fish-school"] img {
+  opacity: 0;
+  will-change: transform, opacity, filter;
+}
+
+html body .app .shooterArena.shooterMapSkin--abyssalMoonCathedral
+.shooterMapSkinStage .shooterMapWhaleViewport {
+  position: absolute;
+  z-index: 1;
+  inset: 5.5% 17% 71% 17%;
+  display: block;
+  width: auto;
+  height: auto;
+  overflow: hidden;
+  pointer-events: none;
+  transform: none;
+  contain: layout paint size;
+}
+
+.shooterMapWhaleViewport--rear {
+  z-index: 1;
+}
+
+.shooterMapWhaleViewport--front {
+  z-index: 3;
+  pointer-events: none;
+}
+
+.shooterMapAquariumWaterLayer,
+.shooterMapFigure8WhaleCanvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.shooterMapAquariumWaterLayer {
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 50% 15%, rgba(78, 178, 210, 0.055), transparent 58%),
+    linear-gradient(180deg, rgba(26, 109, 146, 0.035), rgba(3, 35, 61, 0.08));
+  mix-blend-mode: screen;
+}
+
+.shooterMapFigure8WhaleCanvas {
+  z-index: 1;
+  opacity: 1;
+  transform: translateZ(0);
+  transform-origin: center;
+  will-change: contents, filter;
+}
+
+.shooterMapSkin--abyssalMoonCathedral .shooterMapSkinAsset[data-animation="abyssal-bell-body"] img {
+  transform-origin: 50% 2%;
+  will-change: transform;
+}
+
+.shooterMapSkin--abyssalMoonCathedral .shooterMapSkinAsset[data-animation="abyssal-bell-clapper"] img {
+  transform-origin: 50% 1%;
+  will-change: transform;
+}
+
+.shooterMapSkin--abyssalMoonCathedral .shooterMapSkinAsset[data-animation^="abyssal-orrery-"] img {
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.shooterMapAbyssalSegmentedKelp {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.shooterMapAbyssalSegmentedKelp img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.shooterMapAbyssalKelpRoot {
+  clip-path: inset(80% 0 0 0);
+}
+
+.shooterMapAbyssalKelpMiddle {
+  clip-path: inset(35% 0 20% 0);
+  transform: rotate(var(--abyssal-kelp-mid, 0deg));
+  transform-origin: 50% 80%;
+  will-change: transform;
+}
+
+.shooterMapAbyssalKelpTip {
+  clip-path: inset(0 0 35% 0);
+  transform: rotate(var(--abyssal-kelp-tip, 0deg));
+  transform-origin: 50% 65%;
+  will-change: transform;
+}
+
+.shooterMapAbyssalSegmentedBanner,
+.shooterMapAbyssalSegmentedGatekeeper {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.shooterMapAbyssalSegmentedBanner img,
+.shooterMapAbyssalSegmentedGatekeeper img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.shooterMapAbyssalBannerTop {
+  clip-path: inset(0 0 76% 0);
+}
+
+.shooterMapAbyssalBannerMiddle {
+  clip-path: inset(20% 0 32% 0);
+  transform: rotate(var(--abyssal-banner-mid, 0deg));
+  transform-origin: 50% 20%;
+  will-change: transform;
+}
+
+.shooterMapAbyssalBannerTail {
+  clip-path: inset(55% 0 0 0);
+  transform: rotate(var(--abyssal-banner-tail, 0deg));
+  transform-origin: 50% 55%;
+  will-change: transform;
+}
+
+.shooterMapAbyssalGatekeeperHead {
+  clip-path: inset(0 0 58% 0);
+  transform: rotate(var(--abyssal-guardian-head, 0deg));
+  transform-origin: 50% 42%;
+  will-change: transform;
+}
+
+.shooterMapAbyssalGatekeeperBody {
+  clip-path: inset(38% 0 0 0);
+}
+
+.shooterMapSkin--abyssalMoonCathedral .shooterMapSkinAsset[data-asset-id="abyssal-shell-lantern"] img,
+.shooterMapSkin--abyssalMoonCathedral .shooterMapSkinAsset[data-asset-id^="abyssal-seahorse"] img {
+  transform: none;
+}
+
+.shooterArena.shooterArena--layeredMap.shooterMapSkin--clockwork-opera-citadel {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(22, 112, 142, 0.2), transparent 34%),
+    #05070a !important;
+}
+
+.shooterMapSkin--clockwork-opera-citadel .shooterMapSkinBackground {
+  z-index: 0;
+}
+
+.shooterMapClockworkAmbient {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.shooterMapSkin--clockwork-opera-citadel .shooterMapSkinAsset img {
+  filter: saturate(0.88) brightness(0.84) contrast(1.04);
+  transform-origin: 50% 50%;
+}
+
+.shooterMapSkin--clockwork-opera-citadel .shooterMapSkinAsset[data-asset-id="clockwork-gatekeeper"] img {
+  filter: saturate(0.78) brightness(0.72) contrast(1.08);
+  transform-origin: 47% 94%;
+}
+
+.shooterMapSkin--clockwork-opera-citadel .shooterMapSkinAsset[data-animation="clockwork-gatekeeper-idle"] img {
+  animation: shooterMapClockworkGatekeeperIdle var(--shooter-map-animation-duration, 6s) ease-in-out infinite;
+}
+
+.shooterMapSkin--clockwork-opera-citadel .shooterMapSkinAsset[data-animation="clockwork-pendulum"] img {
+  animation: shooterMapClockworkPendulum var(--shooter-map-animation-duration, 5s) ease-in-out infinite;
+  transform-origin: 48% 7.7%;
+}
+
+.shooterMapSkin--clockwork-opera-citadel .shooterMapSkinStage--editing .shooterMapSkinAsset img {
+  animation: none !important;
+}
+
+.shooterArena.shooterArena--layeredMap.shooterMapSkin--celestial-eclipse-clocktower {
+  background:
+    radial-gradient(circle at 50% 9%, rgba(91, 105, 233, 0.18), transparent 34%),
+    #050817 !important;
+}
+
+/*
+ * The clocktower artwork is composed against the complete 768x1664 portrait.
+ * Keep that full height on the shorter mobile combat surface so its lower
+ * balcony remains visible and every underlay/overlay layer stays registered.
+ */
+.shooterMapSkinStage[data-map-skin="celestial-eclipse-clocktower"] .shooterMapCoordinatePlane {
+  top: 50%;
+  left: 50%;
+  width: auto;
+  height: 100%;
+  aspect-ratio: 768 / 1664;
+  transform: translate3d(-50%, -50%, 0);
+}
+
+/* Combat notes must stay readable above this map's decorative columns. */
+.shooterArena.shooterArena--layeredMap.shooterMapSkin--celestial-eclipse-clocktower
+  .enemy.shooterEnemy {
+  z-index: 40 !important;
+}
+
+.shooterMapSkin--celestial-eclipse-clocktower .shooterMapSkinBackground {
+  z-index: 0;
+}
+
+.shooterMapCelestialRuntime {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint size style;
+}
+
+.shooterMapCelestialAstrolabe {
+  position: absolute;
+  z-index: 1;
+  top: 0.5%;
+  left: 50%;
+  width: 65%;
+  aspect-ratio: 1;
+  overflow: visible;
+  pointer-events: none;
+  transform: translate3d(-50%, 0, 0);
+  transform-origin: 50% 50%;
+  contain: layout size;
+}
+
+.shooterMapCelestialAstrolabeCanvas,
+.shooterMapCelestialAmbientCanvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.shooterMapCelestialAstrolabeCanvas {
+  image-rendering: auto;
+  transform: translateZ(0);
+}
+
+.shooterMapCelestialAstrolabeAtlasSource {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.shooterMapCelestialAmbientCanvas {
+  z-index: 2;
+  opacity: 0.82;
+}
+
+.shooterArena.shooterArena--layeredMap.shooterMapSkin--autumn_moon_temple_path {
+  background: #120d13 !important;
+}
+
+/*
+ * Effective authored order:
+ * background 0 -> far/tree/mid 10/20/30 -> combat 40 -> gust/near 45/50
+ * -> foreground 60 -> player and HUD 70+.
+ */
+.shooterMapSkinStage--overlay[data-map-skin="autumn_moon_temple_path"] {
+  z-index: 45;
+}
+
+.shooterMapSkinStage[data-map-skin="autumn_moon_temple_path"] .shooterMapSkinBackground {
+  z-index: 0;
+}
+
+.shooterMapAutumnRuntime {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint size style;
+}
+
+.shooterMapAutumnCanvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  image-rendering: auto;
+  transform: translateZ(0);
+}
+
+.shooterMapAutumnCanvas--leaves-far {
+  z-index: 1;
+}
+
+.shooterMapAutumnCanvas--tree-sway {
+  z-index: 2;
+}
+
+.shooterMapAutumnCanvas--leaves-mid {
+  z-index: 3;
+}
+
+.shooterMapAutumnCanvas--ground-gust {
+  z-index: 1;
+}
+
+.shooterMapAutumnCanvas--leaves-near {
+  z-index: 2;
+}
+
+.shooterMapSkinStage[data-map-skin="autumn_moon_temple_path"] .shooterMapForegroundOccluder {
+  z-index: 3;
+}
+
+.shooterArena.shooterArena--layeredMap.shooterMapSkin--autumn_moon_temple_path
+  :is(.enemy.shooterEnemy, .targetBreakEffect, .energyProjectile, .lockOnBeam) {
+  z-index: 40 !important;
+}
+
+.shooterArena.shooterArena--layeredMap.shooterMapSkin--autumn_moon_temple_path
+  :is(.guitarPlayer, .shooterGuitarCabinet--gameplay) {
+  z-index: 70 !important;
+}
+
+.shooterArena.shooterArena--layeredMap.shooterMapSkin--autumn_moon_temple_path
+  :is(
+    .mobileShooterTargetHud,
+    .mobileShooterScoreHud,
+    .shooterBestHud,
+    .shooterGameHud,
+    .mobileShooterLives,
+    .shooterCenterStatus,
+    .shooterHitboxDebugToolbar,
+    .shooterHitboxDebugOverlay
+  ) {
+  z-index: 72 !important;
+}
+
+.shooterMapForegroundOccluder {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  object-fit: var(--shooter-map-foreground-fit, cover);
+  object-position: var(--shooter-map-foreground-position, center);
+  pointer-events: none;
+  transform: none;
+}
+
+@keyframes shooterMapClockworkGatekeeperIdle {
+  0%, 100% { transform: translate3d(0, 1px, 0) rotate(0.35deg); }
+  42% { transform: translate3d(0, -1px, 0) rotate(-0.55deg); }
+  72% { transform: translate3d(0, 0, 0) rotate(0.12deg); }
+}
+
+@keyframes shooterMapClockworkPendulum {
+  0%, 100% { transform: rotate(-7deg); }
+  50% { transform: rotate(7deg); }
+}
+
 .shooterMapSpriteSheetAsset--wind-flag:not(.shooterMapSpriteSheetAsset--layered-wind-flag) {
   animation: shooterMapWindFlagFrames var(--shooter-map-sprite-duration, 300ms) steps(1, end) infinite;
   will-change: background-position;
@@ -1323,6 +1753,10 @@ html body .app:not(.theme-light) .shooterArena.shooterMapSkin .shooterMapSkinSta
   animation: shooterMapAssetRotate var(--shooter-map-animation-duration, 6s) linear infinite;
 }
 
+.shooterMapSkinAsset[data-animation="rotate-reverse"] img {
+  animation: shooterMapAssetRotateReverse var(--shooter-map-animation-duration, 6s) linear infinite;
+}
+
 .shooterMapSkinAsset[data-animation="pulse"] img {
   animation: shooterMapAssetPulse var(--shooter-map-animation-duration, 6s) ease-in-out infinite;
 }
@@ -1642,6 +2076,15 @@ html body .app:not(.theme-light) .shooterArena.shooterMapSkin .shooterMapSkinSta
 }
 
 .shooterMapSpriteSheetAsset[data-map-animation-visible="false"] {
+  animation-play-state: paused !important;
+}
+
+/* Map canvases unsubscribe through `animationsActive`; pause CSS-authored
+   ambience through the same gate so dialogs and inactive battles do not keep
+   compositing hidden effects. */
+.shooterMapSkinStage[data-animations-active="false"] *,
+.shooterMapSkinStage[data-animations-active="false"] *::before,
+.shooterMapSkinStage[data-animations-active="false"] *::after {
   animation-play-state: paused !important;
 }
 

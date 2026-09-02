@@ -5,6 +5,7 @@ import test from "node:test";
 const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
 const appCss = await readFile(new URL("../src/style.css", import.meta.url), "utf8");
 const polishCss = await readFile(new URL("../src/polish.css", import.meta.url), "utf8");
+const desktopCss = await readFile(new URL("../src/layouts/desktop-layout.css", import.meta.url), "utf8");
 
 function getSourceRange(startMarker, endMarker) {
   const start = appSource.indexOf(startMarker);
@@ -64,6 +65,34 @@ test("rhythm code metronome settings own state and runtime refs", () => {
   assert.doesNotMatch(storedSettingsSource, /parsed\.metronomeSoundOn/);
 });
 
+test("every metronome surface defaults both tone selectors to Tick", () => {
+  const libraryDefaults = getSourceRange("function makeStage3LibraryItem", "function getCompactFretRange");
+  assert.match(libraryDefaults, /accentTone = "tick"/);
+  assert.match(libraryDefaults, /weakTone = "tick"/);
+
+  const sharedDefaults = getSourceRange(
+    "const createDefaultMetronomeSettings",
+    "const DEFAULT_ONLY_TRAINING_METRONOME_SCOPES",
+  );
+  assert.match(sharedDefaults, /accentTone: "tick"/);
+  assert.match(sharedDefaults, /weakTone: "tick"/);
+
+  assert.match(appSource, /metronomeAccentTone, setMetronomeAccentTone\] = useState\("tick"\)/);
+  assert.match(appSource, /metronomeWeakTone, setMetronomeWeakTone\] = useState\("tick"\)/);
+  assert.match(appSource, /metronomeAccentToneRef = useRef\("tick"\)/);
+  assert.match(appSource, /metronomeWeakToneRef = useRef\("tick"\)/);
+
+  const storedSettingsSource = getSourceRange("function getStoredStage3Settings", "function getStoredStage3QuickSlots");
+  assert.match(storedSettingsSource, /metronomeAccentTone: "tick"/);
+  assert.match(storedSettingsSource, /metronomeWeakTone: "tick"/);
+  assert.match(storedSettingsSource, /hasCurrentToneDefaults/);
+  assert.match(appSource, /metronomeToneDefaultsVersion: STAGE3_METRONOME_TONE_DEFAULTS_VERSION/);
+
+  const presetSource = getSourceRange("function normalizeMetronomePreset", "function getStoredMetronomePresets");
+  assert.match(presetSource, /preset\?\.accentTone \?\? preset\?\.tone \?\? "tick"/);
+  assert.match(presetSource, /preset\?\.weakTone \?\? preset\?\.tone \?\? "tick"/);
+});
+
 test("rhythm code braille matches the scale trainer and remains independent", () => {
   const stage3Braille = getSourceRange(
     '<div className="referenceBeatMetronomeStrip stage3ReferenceBeatMetronomeStrip"',
@@ -75,17 +104,26 @@ test("rhythm code braille matches the scale trainer and remains independent", ()
   assert.match(stage3Braille, /onBeatClick=\{cycleStage3BeatState\}/);
   assert.match(stage3Braille, /timeSignature=\{stage3MetronomeTimeSignature\}/);
   assert.match(stage3Braille, /stage3MetronomeSoundToggle--mobile/);
-  assert.match(stage3Braille, /stage3MetronomeSoundToggle--desktop/);
+  assert.match(stage3Braille, /stage3DesktopMetronomeSoundToggle/);
   assert.match(stage3Braille, /aria-pressed=\{stage3MetronomeSoundOn\}/);
-  assert.equal((stage3Braille.match(/aria-controls="stage3-metronome-options-options"/g) ?? []).length, 2);
   assert.match(stage3Braille, /toggleStage3MetronomeSound/);
-  assert.equal((stage3Braille.match(/<span>매트로놈<\/span>/g) ?? []).length, 2);
+
+  const desktopSoundToggle = getSourceRange(
+    "const stage3DesktopMetronomeSoundToggle",
+    "const appInteractionLocked",
+  );
+  assert.match(desktopSoundToggle, /stage3MetronomeSoundToggle--desktop/);
+  assert.match(desktopSoundToggle, /aria-pressed=\{stage3MetronomeSoundOn\}/);
+  assert.match(desktopSoundToggle, /toggleStage3MetronomeSound/);
 
   assert.match(polishCss, /Rhythm-code-only metronome options/);
   assert.match(polishCss, /stage3StandaloneMetronomeControl[\s\S]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(polishCss, /@media \(max-width: 767px\)[\s\S]*stage3StandaloneMetronomeControl[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(polishCss, /stage3ReferenceBeatMetronomeStrip/);
-  assert.match(polishCss, /button\.referenceBeatMetronomeDot\.beatDot[\s\S]*background: transparent !important/);
+  assert.match(
+    polishCss,
+    /button\.referenceBeatMetronomeDot\.beatDot\s*\{[^}]*background: transparent !important[^}]*pointer-events: auto !important/,
+  );
   assert.match(polishCss, /--beat-dot-size: 20px/);
   assert.match(polishCss, /stage3ProgressHud\.stage3ProgressHud[\s\S]*grid-template-columns: 66px minmax\(0, 1fr\) 66px/);
   assert.match(polishCss, /stage3ReferenceBeatMetronomeStrip[\s\S]*grid-column: 2 !important/);
@@ -98,6 +136,48 @@ test("rhythm code braille matches the scale trainer and remains independent", ()
   assert.match(polishCss, /stage3StandaloneMetronomeControl[\s\S]*metronomeOptionsCollapseButton[\s\S]*top: -2px !important[\s\S]*right: 0 !important/);
   assert.match(polishCss, /metronomeOptionsCollapseButton \{[\s\S]*?height: 22px !important;[\s\S]*?font-size: 10px !important;[\s\S]*?font-weight: 900 !important;/);
   assert.match(polishCss, /metronomeOptions--collapsed[\s\S]*display: flex !important/);
+  assert.match(desktopCss, /stage3ReferenceBeatMetronomeStrip \.referenceBeatMetronomeDot\.beatDot \{[\s\S]*--beat-dot-size: clamp\(46px, 3\.15vw, 54px\)/);
+  assert.match(desktopCss, /Desktop training and rhythm-code reuse the latest mobile strong \/ weak \/ mute language/);
+  assert.match(
+    desktopCss,
+    /:is\(\.referenceTrainingPanel\.firstPositionTrainingPanel, \.referenceTrainingPanel\.scaleBlockTrainingPanel, \.chordTransitionPanel\)[\s\S]*?\.referenceBeatMetronomeDot\.beatDot--strong \.beatDot__glyph \{[\s\S]*?outline: 1\.5px solid var\(--training-beat-strong\) !important;/,
+  );
+  assert.match(
+    desktopCss,
+    /:is\(\.referenceTrainingPanel\.firstPositionTrainingPanel, \.referenceTrainingPanel\.scaleBlockTrainingPanel, \.chordTransitionPanel\)[\s\S]*?\.referenceBeatMetronomeDot\.beatDot--mute \.beatDot__glyph \{[\s\S]*?border-style: dashed !important;[\s\S]*?var\(--training-beat-mute-hatch\)/,
+  );
+  assert.match(desktopCss, /stage3MetronomeSoundToggle--desktop \{[\s\S]*grid-column: 3 !important/);
+});
+
+test("desktop rhythm transport reuses the metronome card without sharing playback controls", () => {
+  const stage3Transport = getSourceRange(
+    'className={isMobileLayout ? "stage3MobileTransportDeck" : "standaloneMetronomePanel stage3StandaloneTransportDeck"}',
+    '<MetronomeControl\n            accentEnabled',
+  );
+
+  assert.match(stage3Transport, /<MetronomeTransportCard/);
+  assert.match(stage3Transport, /bpmPreviewKey="stage3"/);
+  assert.match(stage3Transport, /isPlaying=\{isStage3Playing\}/);
+  assert.match(stage3Transport, /onBpmChange=\{changeStage3Bpm\}/);
+  assert.match(stage3Transport, /onCardPointerDown=\{handleStage3BpmSwipeStart\}/);
+  assert.match(stage3Transport, /onCountInChange=\{changeStage3CountIn\}/);
+  assert.match(stage3Transport, /onStart=\{startStage3Practice\}/);
+  assert.match(stage3Transport, /onStop=\{stopStage3Practice\}/);
+  assert.match(stage3Transport, /onTapTempo=\{handleStage3TapTempo\}/);
+  assert.doesNotMatch(stage3Transport, /onStart=\{startMetronomePractice\}|onStop=\{stopMetronomePlayback\}/);
+
+  const standaloneStart = getSourceRange("const startMetronomePractice", "const resetMetronomePractice");
+  assert.match(standaloneStart, /appModeRef\.current !== APP_MODES\.METRONOME/);
+  assert.match(standaloneStart, /activeMetronomeScopeRef\.current !== METRONOME_SETTING_SCOPES\.STANDALONE/);
+
+  const stage3Start = getSourceRange("const startStage3Practice", "const showMainMenu");
+  assert.match(stage3Start, /selectedCategoryIdRef\.current === "rhythm"/);
+  assert.match(stage3Start, /METRONOME_SETTING_SCOPES\.STAGE3/);
+  assert.match(stage3Start, /startPractice\(selectedCategory\)/);
+  assert.match(stage3Start, /stopPracticeSession\(\)/);
+
+  assert.match(desktopCss, /stage3StandaloneTransportDeck > \.metronomeHeroCard--interactive \{[\s\S]*padding: 14px 18px 24px !important/);
+  assert.doesNotMatch(desktopCss, /stage3ProgressHud \.stage3StartControlCluster/);
 });
 
 test("rhythm code metronome sound controls only the dedicated click track", () => {

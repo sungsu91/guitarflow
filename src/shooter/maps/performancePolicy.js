@@ -39,14 +39,16 @@ export function getShooterMapPerformanceFingerprint(map) {
   const cached = mapFingerprintCache.get(map);
   if (cached) return cached;
 
-  const source = JSON.stringify({
+  const performanceSource = {
     ambientEvents: map.ambientEvents ?? [],
     assetCatalog: map.assetCatalog ?? [],
     id: map.id ?? "",
     kind: map.kind ?? "",
     layers: map.layers ?? [],
     layout: map.layout ?? [],
-  });
+  };
+  if (map.runtimeAnimation) performanceSource.runtimeAnimation = map.runtimeAnimation;
+  const source = JSON.stringify(performanceSource);
   const fingerprint = hashPerformanceSource(source);
   mapFingerprintCache.set(map, fingerprint);
   return fingerprint;

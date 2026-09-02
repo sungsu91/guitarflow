@@ -1,0 +1,218 @@
+[
+  {
+    "instanceId": "clockwork-gear-large-left-upper-01",
+    "assetId": "clockwork-gear-large",
+    "x": 0.18,
+    "y": 0.102,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 3,
+    "animation": "rotate",
+    "animationSpeed": 0.18
+  },
+  {
+    "instanceId": "clockwork-gear-small-right-upper-01",
+    "assetId": "clockwork-gear-small",
+    "x": 0.758,
+    "y": 0.258,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 4,
+    "animation": "rotate-reverse",
+    "animationSpeed": 0.38
+  },
+  {
+    "instanceId": "clockwork-gear-small-left-middle-01",
+    "assetId": "clockwork-gear-small",
+    "x": 0.268,
+    "y": 0.396,
+    "scale": 0.88,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 3,
+    "animation": "rotate-reverse",
+    "animationSpeed": 0.44
+  },
+  {
+    "instanceId": "clockwork-gear-medium-right-middle-01",
+    "assetId": "clockwork-gear-medium",
+    "x": 0.748,
+    "y": 0.442,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 4,
+    "animation": "rotate",
+    "animationSpeed": 0.28
+  },
+  {
+    "instanceId": "clockwork-pendulum-right-upper-01",
+    "assetId": "clockwork-pendulum",
+    "x": 0.726,
+    "y": 0.034,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 5,
+    "animation": "clockwork-pendulum",
+    "animationSpeed": 1.2
+  },
+  {
+    "instanceId": "clockwork-gatekeeper-left-middle-01",
+    "assetId": "clockwork-gatekeeper",
+    "x": 0.18002790089142628,
+    "y": 0.48075977235974526,
+    "scale": 1.0122740113861797,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 0.9682872683502907,
+        "y": 1.0211415845294332
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 6,
+    "animation": "clockwork-gatekeeper-idle",
+    "animationSpeed": 1
+  }
+]

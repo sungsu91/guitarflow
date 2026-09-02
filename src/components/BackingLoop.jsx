@@ -1033,11 +1033,14 @@ function MobileBackingLoop({ controller, panelRef }) {
   );
 }
 
-function DesktopBackingLoop({ controller }) {
+function DesktopBackingLoop({ controller, presentation = "default" }) {
+  const presentationClassName = presentation === "standalone"
+    ? " backingLoopPanel--standaloneDesktop"
+    : "";
   return (
     <section
       aria-label="Backing Loop 기타 녹음 및 반복 재생"
-      className={`backingLoopPanel backingLoopPanel--desktop backingLoopPanel--${controller.phase}`}
+      className={`backingLoopPanel backingLoopPanel--desktop backingLoopPanel--${controller.phase}${presentationClassName}`}
       data-backing-loop-phase={controller.phase}
     >
       <span aria-live="polite" className="backingLoopScreenReaderStatus" role="status">{controller.status.label}</span>
@@ -1050,12 +1053,14 @@ function DesktopBackingLoop({ controller }) {
   );
 }
 
-export default function BackingLoop({ mobile = false, ownerMode = "" }) {
+export default function BackingLoop({ desktopPresentation = "default", mobile = false, ownerMode = "" }) {
   const controller = useBackingLoop(ownerMode);
   const mobilePanelRef = useRef(null);
   return (
     <>
-      {mobile ? <MobileBackingLoop controller={controller} panelRef={mobilePanelRef} /> : <DesktopBackingLoop controller={controller} />}
+      {mobile
+        ? <MobileBackingLoop controller={controller} panelRef={mobilePanelRef} />
+        : <DesktopBackingLoop controller={controller} presentation={desktopPresentation} />}
       <audio
         className="backingLoopAudio"
         onEnded={controller.handlePlaybackEnded}

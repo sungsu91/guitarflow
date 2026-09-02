@@ -1,0 +1,866 @@
+[
+  {
+    "instanceId": "abyssal-whale-far-01",
+    "assetId": "abyssal-distant-whale",
+    "x": 0.5,
+    "y": 0.15,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 1,
+    "animation": "abyssal-whale-figure8-v8",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "abyssal-fish-school-left-01",
+    "assetId": "abyssal-fish-school-01",
+    "x": 0.3006060321514423,
+    "y": 0.12095147748988593,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 1,
+    "animation": "abyssal-fish-school",
+    "animationSpeed": 0.82
+  },
+  {
+    "instanceId": "abyssal-fish-school-right-01",
+    "assetId": "abyssal-fish-school-02",
+    "x": 0.7972959234775641,
+    "y": 0.09595315879514396,
+    "scale": 0.9,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 1,
+    "animation": "abyssal-fish-school",
+    "animationSpeed": 1.12
+  },
+  {
+    "instanceId": "abyssal-bell-chain-01",
+    "assetId": "abyssal-bell-chain",
+    "x": 0.14,
+    "y": 0,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 3,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "abyssal-bell-body-01",
+    "assetId": "abyssal-bell-body",
+    "x": 0.14,
+    "y": 0.055,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 4,
+    "animation": "abyssal-bell-body",
+    "animationSpeed": 0.88
+  },
+  {
+    "instanceId": "abyssal-bell-clapper-01",
+    "assetId": "abyssal-bell-clapper",
+    "x": 0.14,
+    "y": 0.055,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 5,
+    "animation": "abyssal-bell-clapper",
+    "animationSpeed": 0.88
+  },
+  {
+    "instanceId": "abyssal-orrery-base-01",
+    "assetId": "abyssal-orrery-complete",
+    "x": 0.86,
+    "y": 0.17,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 3,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "abyssal-orrery-outer-01",
+    "assetId": "abyssal-orrery-outer",
+    "x": 0.86,
+    "y": 0.17,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 4,
+    "animation": "abyssal-orrery-outer",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "abyssal-orrery-middle-01",
+    "assetId": "abyssal-orrery-middle",
+    "x": 0.86,
+    "y": 0.17,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 5,
+    "animation": "abyssal-orrery-middle",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "abyssal-orrery-inner-01",
+    "assetId": "abyssal-orrery-inner",
+    "x": 0.86,
+    "y": 0.17,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 6,
+    "animation": "abyssal-orrery-inner",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "abyssal-gatekeeper-left-01",
+    "assetId": "abyssal-gatekeeper",
+    "x": 0.16,
+    "y": 0.62,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 5,
+    "animation": "abyssal-guardian",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "abyssal-seahorse-left-01",
+    "assetId": "abyssal-seahorse-left",
+    "x": 0.22,
+    "y": 0.47,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": -1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 5,
+    "animation": "abyssal-guardian",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "abyssal-seahorse-right-01",
+    "assetId": "abyssal-seahorse-right",
+    "x": 0.78,
+    "y": 0.47,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": -1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 5,
+    "animation": "abyssal-guardian",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "abyssal-kelp-left-upper-01",
+    "assetId": "abyssal-kelp-01",
+    "x": 0.07,
+    "y": 0.49,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 4,
+    "animation": "abyssal-kelp",
+    "animationSpeed": 0.82
+  },
+  {
+    "instanceId": "abyssal-kelp-left-middle-01",
+    "assetId": "abyssal-kelp-02",
+    "x": 0.18,
+    "y": 0.52,
+    "scale": 0.94,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 4,
+    "animation": "abyssal-kelp",
+    "animationSpeed": 1.05
+  },
+  {
+    "instanceId": "abyssal-kelp-right-upper-01",
+    "assetId": "abyssal-kelp-03",
+    "x": 0.84,
+    "y": 0.49,
+    "scale": 0.96,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 4,
+    "animation": "abyssal-kelp",
+    "animationSpeed": 0.92
+  },
+  {
+    "instanceId": "abyssal-kelp-right-middle-01",
+    "assetId": "abyssal-kelp-04",
+    "x": 0.95,
+    "y": 0.54,
+    "scale": 0.9,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 4,
+    "animation": "abyssal-kelp",
+    "animationSpeed": 1.14
+  },
+  {
+    "instanceId": "abyssal-seagrass-left-lower-01",
+    "assetId": "abyssal-seagrass-01",
+    "x": 0.08,
+    "y": 0.69,
+    "scale": 0.9,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 4,
+    "animation": "abyssal-kelp",
+    "animationSpeed": 1.2
+  },
+  {
+    "instanceId": "abyssal-seagrass-right-lower-01",
+    "assetId": "abyssal-seagrass-02",
+    "x": 0.92,
+    "y": 0.69,
+    "scale": 0.92,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 4,
+    "animation": "abyssal-kelp",
+    "animationSpeed": 0.88
+  },
+  {
+    "instanceId": "abyssal-seagrass-right-bottom-01",
+    "assetId": "abyssal-seagrass-03",
+    "x": 0.88,
+    "y": 0.83,
+    "scale": 0.84,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 4,
+    "animation": "abyssal-kelp",
+    "animationSpeed": 1.08
+  },
+  {
+    "instanceId": "abyssal-banner-left-01",
+    "assetId": "abyssal-banner-left",
+    "x": 0.055,
+    "y": 0.18,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 4,
+    "animation": "abyssal-banner",
+    "animationSpeed": 0.92
+  },
+  {
+    "instanceId": "abyssal-banner-right-01",
+    "assetId": "abyssal-banner-right",
+    "x": 0.945,
+    "y": 0.16,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 4,
+    "animation": "abyssal-banner",
+    "animationSpeed": 1.08
+  },
+  {
+    "instanceId": "abyssal-shell-lantern-left-01",
+    "assetId": "abyssal-shell-lantern",
+    "x": 0.095,
+    "y": 0.56,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 5,
+    "animation": "none",
+    "animationSpeed": 1
+  },
+  {
+    "instanceId": "abyssal-shell-lantern-right-01",
+    "assetId": "abyssal-shell-lantern",
+    "x": 0.905,
+    "y": 0.56,
+    "scale": 1,
+    "rotation": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "skewX": 0,
+    "skewY": 0,
+    "perspective": 900,
+    "tiltX": 0,
+    "tiltY": 0,
+    "perspectiveCorners": [
+      {
+        "x": 0,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 0
+      },
+      {
+        "x": 1,
+        "y": 1
+      },
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "layer": 5,
+    "animation": "none",
+    "animationSpeed": 1
+  }
+]

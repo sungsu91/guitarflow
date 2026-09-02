@@ -161,7 +161,17 @@ function MonsterTuningControls({ monsterEditor }) {
   const labelOutline = activeTuning.labelOutline || labelPalette.outline;
   const renderedScales = getShooterNoteMonsterRenderedScales(activeTuning);
   const labelPosition = getShooterNoteMonsterLabelPosition(labelLayout, activeTuning);
-  const renderScale = renderedScales.monsterScale * getShooterNoteMonsterRenderScale(noteName);
+  const renderScale = renderedScales.monsterScale * getShooterNoteMonsterRenderScale(
+    noteName,
+    monsterEditor.activeSkin.id,
+  );
+  const pitchText = monsterEditor.activeSkin.pitchText;
+  const previewLabelSize = pitchText?.renderedByApp
+    ? 86.4 * renderScale * pitchText.fontSizeRatio * activeTuning.labelScale
+    : 13 * renderedScales.labelScale;
+  const previewLabelOutlineWidth = pitchText?.renderedByApp
+    ? Math.max(0.8, 86.4 * renderScale * pitchText.outlineWidthRatio)
+    : 0.9;
   const jointScalePercent = Math.round(activeTuning.jointScale * 100);
   const labelScalePercent = Math.round(activeTuning.labelScale * 100);
   const scalePercent = Math.round(activeTuning.scale * 100);
@@ -210,7 +220,9 @@ function MonsterTuningControls({ monsterEditor }) {
             "--monster-preview-label-color": labelColor,
             "--monster-preview-label-glow": labelPalette.glow,
             "--monster-preview-label-outline": labelOutline,
-            "--monster-preview-label-size": `${13 * renderedScales.labelScale}px`,
+            "--monster-preview-label-max-width": `${(pitchText?.textMaxWidthRatio ?? 1) * 100}%`,
+            "--monster-preview-label-outline-width": `${previewLabelOutlineWidth}px`,
+            "--monster-preview-label-size": `${previewLabelSize}px`,
             "--monster-preview-label-x": `${labelPosition.x}%`,
             "--monster-preview-label-y": `${labelPosition.y}%`,
             "--monster-preview-size": `${86.4 * renderScale}px`,

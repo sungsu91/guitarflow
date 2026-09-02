@@ -1,0 +1,300 @@
+/* Mobile-only dark theme corrections.
+   Shared behavior and data stay untouched; these overrides only restore the
+   Classic Gold surfaces after the mobile landscape workstation rules. */
+
+html body #root main.app.app.app.theme-brand.viewport-mobile-surface {
+  color-scheme: dark;
+}
+
+/* The shared custom select is used by rhythm storage and every mobile
+   workstation. Keep its dark surface in both portrait and landscape. */
+html body #root main.app.app.app.theme-brand.viewport-mobile-surface
+  .metronomeSelectButton {
+  border-color: var(--theme-border-control) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 238, 194, 0.045), transparent 62%),
+    var(--theme-control) !important;
+  color: var(--theme-text-strong) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.055),
+    0 3px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+html body #root main.app.app.app.theme-brand.viewport-mobile-surface
+  .metronomeSelectButton :is(b, span, small) {
+  color: inherit !important;
+}
+
+body:has(main.app.theme-brand.viewport-mobile-surface)
+  .metronomeSelectPortal {
+  color-scheme: dark;
+}
+
+/* Mini-accompaniment Section editor fields were still using the light-theme
+   input palette even though the surrounding dialog already followed dark mode. */
+body:has(main.app.theme-brand.viewport-mobile-surface.miniChordMakerMode)
+  .miniChordArrangementRows
+  .miniChordArrangementSectionFields
+  :is(input, select) {
+  border-color: var(--mini-ui-border) !important;
+  background: var(--mini-ui-surface-strong) !important;
+  color: var(--mini-ui-text) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.035) !important;
+}
+
+body:has(main.app.theme-brand.viewport-mobile-surface.miniChordMakerMode)
+  .miniChordArrangementRows
+  .miniChordArrangementSectionFields small,
+body:has(main.app.theme-brand.viewport-mobile-surface.miniChordMakerMode)
+  .miniChordArrangementRows
+  .miniChordArrangementBarFields > span {
+  color: var(--mini-ui-muted) !important;
+}
+
+@media (orientation: landscape) {
+  /* Standalone metronome workstation */
+  html body #root main.app.app.app.theme-brand.metronomeMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    > .standaloneMetronomePanel
+    > :is(
+      .metronomeBeatMatrix.metronomeBeatMatrix--main,
+      .metronomeAdvancedDock.metronomeAdvancedDock,
+      .standaloneMetronomeControl.standaloneMetronomeControl
+    ) {
+    border-color: var(--theme-border) !important;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(217, 170, 85, 0.075), transparent 46%),
+      linear-gradient(180deg, rgba(18, 22, 26, 0.98), rgba(7, 10, 13, 0.99)) !important;
+    color: var(--theme-text) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 244, 210, 0.055),
+      0 5px 14px rgba(0, 0, 0, 0.32) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.metronomeMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .metronomeAdvancedDock
+    > :is(.metronomeAdvancedSummary:nth-of-type(2), .metronomeTrackerResetButton) {
+    border-left-color: var(--theme-border) !important;
+  }
+
+  /* Shared Stage 1 / Stage 2 landscape workstation */
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    > .referenceTrainingMainRow,
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceTrainingBoard,
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard,
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeControl > .metronomeOptions {
+    border-color: var(--theme-border) !important;
+    background:
+      radial-gradient(circle at 36% 0%, rgba(217, 170, 85, 0.075), transparent 44%),
+      linear-gradient(180deg, rgba(17, 21, 25, 0.985), rgba(7, 10, 13, 0.99)) !important;
+    color: var(--theme-text) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 244, 210, 0.055),
+      0 5px 14px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* The interactive BPM deck has more specific mobile-landscape light rules
+     than the shared workstation cards, so its surface and children need the
+     exact mobile structure here. */
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeDeck.standaloneMetronomePanel
+    > .referenceMetronomeHeroCard.referenceMetronomeHeroCard {
+    border-color: var(--theme-border) !important;
+    background:
+      radial-gradient(circle at 50% -24%, rgba(217, 170, 85, 0.12), transparent 50%),
+      linear-gradient(180deg, rgba(19, 17, 12, 0.985), rgba(6, 8, 10, 0.995)) !important;
+    color: var(--theme-text) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 244, 210, 0.055),
+      0 5px 14px rgba(0, 0, 0, 0.32) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.referenceMetronomeHeroCard
+    > .referenceMetronomeActionPanel.referenceMetronomeActionPanel {
+    border-top-color: var(--theme-border) !important;
+    background:
+      linear-gradient(to right, transparent 0 calc(33.333% - 0.5px), var(--theme-border) calc(33.333% - 0.5px) calc(33.333% + 0.5px), transparent calc(33.333% + 0.5px) 100%),
+      linear-gradient(to right, transparent 0 calc(66.666% - 0.5px), var(--theme-border) calc(66.666% - 0.5px) calc(66.666% + 0.5px), transparent calc(66.666% + 0.5px) 100%),
+      rgba(8, 11, 14, 0.72) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceStandaloneMetronomeControl.referenceStandaloneMetronomeControl
+    .metronomeSelectControl .metronomeSelectButton.metronomeSelectButton {
+    border-color: var(--theme-border-control) !important;
+    background:
+      linear-gradient(180deg, rgba(255, 238, 194, 0.045), transparent 62%),
+      var(--theme-control) !important;
+    color: var(--theme-text-strong) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.055) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeHeroCard.referenceMetronomeHeroCard
+    :is(.metronomeHeroBpmValue > strong, .metronomeBpmAdjustGroup > .metronomeHeroBpmButton) {
+    color: var(--theme-text-strong) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .scaleBlockTrainingPanel.referenceTrainingPanel
+    .scalePickerPanel.referenceScalePicker {
+    border-color: var(--theme-border-control) !important;
+    background:
+      linear-gradient(180deg, rgba(217, 170, 85, 0.075), rgba(255, 255, 255, 0.008)),
+      var(--theme-surface-strong) !important;
+    color: var(--theme-text) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.05) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .scaleBlockTrainingPanel.referenceTrainingPanel
+    .scalePickerPanel.referenceScalePicker
+    .metronomeSelectControl .metronomeSelectButton.metronomeSelectButton {
+    border-color: var(--theme-border-control) !important;
+    background:
+      linear-gradient(180deg, rgba(255, 238, 194, 0.045), transparent 62%),
+      var(--theme-control) !important;
+    color: var(--theme-text-strong) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.055) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .scaleBlockTrainingPanel.referenceTrainingPanel
+    .scalePickerPanel.referenceScalePicker
+    > .trainingNoteGuideToggle.trainingNoteGuideToggle.selected {
+    border-color: var(--theme-border-strong) !important;
+    background: var(--theme-button-bg-active) !important;
+    color: #ffe9ad !important;
+    box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.08) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceBeatMetronomeStrip {
+    border-color: var(--theme-border) !important;
+    background:
+      radial-gradient(circle at 50% 18%, rgba(217, 170, 85, 0.09), transparent 62%),
+      linear-gradient(180deg, rgba(16, 20, 24, 0.98), rgba(6, 9, 12, 0.99)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 244, 210, 0.05),
+      0 3px 10px rgba(0, 0, 0, 0.26) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
+    .referenceMetronomeActionPanel {
+    border-top-color: var(--theme-border) !important;
+    background:
+      linear-gradient(to right, transparent 0 calc(33.333% - 0.5px), var(--theme-border) calc(33.333% - 0.5px) calc(33.333% + 0.5px), transparent calc(33.333% + 0.5px) 100%),
+      linear-gradient(to right, transparent 0 calc(66.666% - 0.5px), var(--theme-border) calc(66.666% - 0.5px) calc(66.666% + 0.5px), transparent calc(66.666% + 0.5px) 100%),
+      rgba(8, 11, 14, 0.64) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .trainingNoteGuideToggle.selected {
+    border-color: var(--theme-border-strong) !important;
+    background: var(--theme-button-bg-active) !important;
+    color: #ffe9ad !important;
+    box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.08) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.referenceMetronomeHeroCard, .stage3BpmTransportCard)
+    .metronomeHeroBpmValue > strong,
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.referenceMetronomeHeroCard, .stage3BpmTransportCard)
+    .metronomeBpmAdjustGroup > .metronomeHeroBpmButton {
+    color: var(--theme-text-strong) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.referenceMetronomeHeroCard, .stage3BpmTransportCard)
+    :is(.metronomeHeroBpmValue > span, .metronomeHeroBpmJumpButton),
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    :is(.referenceMetronomeHeroCard, .stage3BpmTransportCard)
+    :is(.metronomeHeroActionPanel, .stage3BpmActionPanel) > button {
+    color: var(--theme-accent-strong) !important;
+  }
+
+  /* Rhythm-code (Stage 3) landscape workstation */
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .stage3ProgressHud > .stage3ReferenceBeatMetronomeStrip {
+    border-color: var(--theme-border) !important;
+    background:
+      radial-gradient(circle at 50% 18%, rgba(217, 170, 85, 0.09), transparent 62%),
+      linear-gradient(180deg, rgba(16, 20, 24, 0.98), rgba(6, 9, 12, 0.99)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 244, 210, 0.05),
+      0 3px 10px rgba(0, 0, 0, 0.26) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .stage3DesktopSideColumn
+    :is(
+      .stage3BpmTransportCard,
+      .stage3StandaloneMetronomeControl,
+      .sharedAccompanimentPanel--training
+    ) {
+    border-color: var(--theme-border) !important;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(217, 170, 85, 0.075), transparent 46%),
+      linear-gradient(180deg, rgba(17, 21, 25, 0.985), rgba(7, 10, 13, 0.99)) !important;
+    color: var(--theme-text) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 244, 210, 0.055),
+      0 5px 14px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .stage3DesktopSideColumn .stage3StandaloneMetronomeControl .metronomeOptionsHeaderButton,
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .stage3DesktopSideColumn > .sharedAccompanimentPanel--training > summary {
+    border-bottom-color: var(--theme-border) !important;
+    background: rgba(217, 170, 85, 0.055) !important;
+    color: var(--theme-text-strong) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .stage3DesktopSideColumn > .sharedAccompanimentPanel--training > summary > span {
+    color: var(--theme-text-strong) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .stage3DesktopSideColumn > .sharedAccompanimentPanel--training > summary::after {
+    border-right-color: var(--theme-accent) !important;
+    border-bottom-color: var(--theme-accent) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .stage3DesktopSideColumn > .sharedAccompanimentPanel--training .miniChordBackingRow {
+    border-bottom-color: var(--theme-border) !important;
+    background:
+      linear-gradient(90deg, rgba(217, 170, 85, 0.07), transparent 62%),
+      rgba(8, 11, 14, 0.9) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .stage3LoadToolbar > .stage3StorageMoveButton {
+    border-color: var(--theme-border-strong) !important;
+    background: var(--theme-button-bg-active) !important;
+    color: #ffe9ad !important;
+    box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.08) !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .stage3EmptyProgressionMeasure > span {
+    background: rgba(217, 170, 85, 0.075) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 244, 210, 0.035) !important;
+  }
+}

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 440" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="flow" x1="0" x2="1">
+      <stop stop-color="#8ae3ec" stop-opacity="0"/>
+      <stop offset=".22" stop-color="#8ae3ec" stop-opacity=".16"/>
+      <stop offset=".58" stop-color="#d9ffff" stop-opacity=".24"/>
+      <stop offset="1" stop-color="#7dd6e4" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="moon" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#dfffff" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#f3ffff" stop-opacity=".3"/>
+      <stop offset="1" stop-color="#dfffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#flow)" stroke-linecap="round">
+    <path d="M-60 58C92 32 209 82 354 58s267-19 405 2 263 22 397-4 276-17 504 12" stroke-width="2.2"/>
+    <path d="M-20 126c164-22 268 30 418 2s259-15 396 5 255 19 399-3 267-17 449 4" stroke-width="1.4" opacity=".7"/>
+    <path d="M-86 218c170-32 284 34 442 1s278-21 423 5 276 23 422-7 275-16 470 10" stroke-width="2.7" opacity=".82"/>
+    <path d="M-44 308c198-28 313 36 489 2s302-20 460 4 286 22 447-5 244-12 337 0" stroke-width="1.8" opacity=".66"/>
+    <path d="M-18 388c158-24 286 24 444 0s293-19 452 3 282 18 421-4 245-9 347 4" stroke-width="3" opacity=".56"/>
+  </g>
+  <g fill="none" stroke="url(#moon)" stroke-linecap="round">
+    <path d="M927 94h174" stroke-width="5"/><path d="M948 139h132" stroke-width="3.4"/>
+    <path d="M913 184h198" stroke-width="4.2"/><path d="M961 236h103" stroke-width="2.8"/>
+    <path d="M934 292h163" stroke-width="3.6"/><path d="M973 355h86" stroke-width="2.2"/>
+  </g>
+</svg>

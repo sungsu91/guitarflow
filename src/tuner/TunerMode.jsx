@@ -593,7 +593,31 @@ function OceanWaveCanvas({ energy, status }) {
   return <canvas aria-hidden="true" className="tunerWaveCanvas" ref={canvasRef} />;
 }
 
-function TunerHeadstock({ instrument = TUNER_INSTRUMENTS.guitar, preset, reading, selectedString, onSelectString, showTarget = false }) {
+function TunerRecognitionStatus({ preset, selectedString }) {
+  const manualTarget = preset.strings.find((string) => string.stringNumber === selectedString);
+
+  return (
+    <div className="tunerHeadstockMode" aria-label={manualTarget == null ? "AUTO, 자동 인식" : `${manualTarget.pitch}, ${selectedString}번 줄 고정`}>
+      <span>{manualTarget == null ? "AUTO" : "MANUAL"}</span>
+      <strong>
+        {manualTarget == null
+          ? "자동 인식"
+          : `${manualTarget.pitch} · ${selectedString}번 줄 고정`}
+      </strong>
+      <small>{manualTarget == null ? "튜닝머신을 누르면 줄 고정" : "같은 튜닝머신을 누르면 자동 복귀"}</small>
+    </div>
+  );
+}
+
+function TunerHeadstock({
+  instrument = TUNER_INSTRUMENTS.guitar,
+  onSelectString,
+  preset,
+  reading,
+  selectedString,
+  showMode = true,
+  showTarget = false,
+}) {
   const [headstockAvailable, setHeadstockAvailable] = useState(instrument.id === "guitar");
   const manualTarget = preset.strings.find((string) => string.stringNumber === selectedString);
   const manual = manualTarget != null;
@@ -622,15 +646,7 @@ function TunerHeadstock({ instrument = TUNER_INSTRUMENTS.guitar, preset, reading
       data-instrument={instrument.id}
       aria-label={`${instrument.label} 줄 수동 선택`}
     >
-      <div className="tunerHeadstockMode">
-        <span>{selectedString == null ? "AUTO" : "MANUAL"}</span>
-        <strong>
-          {selectedString == null
-            ? "자동 인식"
-            : `${selectedString}번 줄 · ${preset.strings.find((string) => string.stringNumber === selectedString)?.pitch}`}
-        </strong>
-        <small>{selectedString == null ? "튜닝머신을 누르면 줄 고정" : "같은 튜닝머신을 누르면 자동 복귀"}</small>
-      </div>
+      {showMode ? <TunerRecognitionStatus preset={preset} selectedString={selectedString} /> : null}
       <div className={`tunerHeadstockAsset ${headstockAvailable ? "" : "tunerHeadstockAsset--pending"}`}>
         {showTarget ? (
           <div
@@ -1191,17 +1207,46 @@ function MobileTunerLayout({ activeMenu, controller, guidance, onCloseMenu, onOp
   );
 }
 
-function DesktopTunerLayout({ controller, guidance, onOpenSettings }) {
+function DesktopTunerLayout({
+  activeMenu,
+  controller,
+  guidance,
+  onCloseMenu,
+  onOpenInstrument,
+  onOpenSettings,
+}) {
   return (
     <>
-      <TunerTopbar controller={controller} onOpenSettings={onOpenSettings} />
+      <div className="tunerDesktopHeader">
+        <div className="tunerTitle"><span>FRETIVA LAB</span><strong>TUNER</strong></div>
+        <MobileTunerControls
+          activeMenu={activeMenu}
+          controller={controller}
+          onCloseMenu={onCloseMenu}
+          onOpenInstrument={onOpenInstrument}
+          onOpenSettings={onOpenSettings}
+        />
+      </div>
       <div className="tunerModeBody tunerModeBody--desktop">
-        <TunerDashboard controller={controller} guidance={guidance} />
+        <div className="tunerDesktopPitchColumn">
+          <TunerDashboard
+            controller={controller}
+            guidance={guidance}
+            showDirectionScale={false}
+            showReadout={false}
+          />
+          <TunerRecognitionStatus
+            preset={controller.preset}
+            selectedString={controller.selectedString}
+          />
+        </div>
         <TunerHeadstock
           instrument={controller.instrument}
           onSelectString={controller.selectString}
           preset={controller.preset}
+          reading={controller.reading}
           selectedString={controller.selectedString}
+          showMode={false}
         />
       </div>
     </>
@@ -1332,28 +1377,6 @@ export default function TunerMode({
       </div>
       <div className="tunerBackgroundShade" aria-hidden="true" />
       {mobile ? <MobileTunerLayout {...layoutProps} /> : <DesktopTunerLayout {...layoutProps} />}
-      {!mobile && activeSheet === "tuning" ? (
-        <TunerSettingsSheet
-          instrument={controller.instrument}
-          onClose={() => setActiveSheet(null)}
-          onSelectPreset={(presetId) => {
-            controller.selectPreset(presetId);
-            setActiveSheet(null);
-          }}
-          preset={controller.preset}
-          presets={controller.presets}
-        />
-      ) : null}
-      {!mobile && activeSheet === "instrument" ? (
-        <TunerInstrumentSheet
-          instrument={controller.instrument}
-          onClose={() => setActiveSheet(null)}
-          onSelectInstrument={(instrumentId) => {
-            controller.selectInstrument(instrumentId);
-            setActiveSheet(null);
-          }}
-        />
-      ) : null}
     </section>
   );
 }

@@ -36,7 +36,8 @@ function getStoredTunings() {
   if (typeof window === "undefined") return cloneTunings(SHOOTER_EFFECT_TUNING_DEFAULTS);
   // Production must render the source-backed values so every phone matches the editor.
   if (!import.meta.env.DEV) return cloneTunings(SHOOTER_EFFECT_TUNING_DEFAULTS);
-  return mergeShooterEffectTuningStores(SHOOTER_EFFECT_TUNING_DEFAULTS, getLocalTunings());
+  const localTunings = getLocalTunings();
+  return mergeShooterEffectTuningStores(SHOOTER_EFFECT_TUNING_DEFAULTS, localTunings);
 }
 
 function hasUnsharedLocalTunings() {

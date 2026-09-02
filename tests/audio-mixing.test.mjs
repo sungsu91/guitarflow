@@ -161,9 +161,10 @@ test("mobile and desktop Backing Loop layouts place one mini player above record
     readFile(new URL("../src/polish.css", import.meta.url), "utf8"),
   ]);
   const mobile = componentSource.slice(componentSource.indexOf("function MobileBackingLoop({ controller, panelRef })"), componentSource.indexOf("function DesktopBackingLoop({ controller })"));
-  const desktop = componentSource.slice(componentSource.indexOf("function DesktopBackingLoop({ controller })"), componentSource.indexOf("export default function BackingLoop"));
+  const desktop = componentSource.slice(componentSource.indexOf("function DesktopBackingLoop("), componentSource.indexOf("export default function BackingLoop"));
   assert.ok(mobile.indexOf("MobileBackingLoopPlayer") < mobile.indexOf("BackingLoopMainControls"));
   assert.ok(desktop.indexOf("DesktopBackingLoopPlayer") < desktop.indexOf("BackingLoopMainControls"));
+  assert.match(desktop, /presentation === "standalone"[\s\S]*backingLoopPanel--standaloneDesktop/);
   assert.doesNotMatch(mobile, /BackingLoopHeader/);
   assert.doesNotMatch(desktop, /BackingLoopHeader/);
   assert.match(componentSource, /function MobileBackingLoopPlayer[\s\S]*?BackingLoopTrackInfo[\s\S]*?BackingLoopProgress[\s\S]*?BackingLoopPlayerBar/);

@@ -1,0 +1,288 @@
+.threeDLabHorizontalScene {
+  --three-lab-flow-multiplier: 0.35;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #030518;
+  pointer-events: none;
+  isolation: isolate;
+  contain: layout paint style;
+}
+
+.threeDLabHorizontalScene::before,
+.threeDLabHorizontalScene::after {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  content: "";
+  pointer-events: none;
+}
+
+.threeDLabHorizontalScene::before {
+  background:
+    linear-gradient(90deg, rgba(1, 4, 18, 0.32), transparent 16%, transparent 76%, rgba(1, 3, 15, 0.16)),
+    linear-gradient(180deg, rgba(1, 3, 17, 0.06), transparent 33%, transparent 82%, rgba(0, 3, 12, 0.2));
+}
+
+.threeDLabHorizontalScene::after {
+  background: radial-gradient(ellipse 94% 88% at 52% 46%, transparent 62%, rgba(0, 2, 12, 0.32) 100%);
+  box-shadow: inset 0 0 44px rgba(0, 2, 12, 0.3);
+}
+
+.threeDLabHorizontalSky {
+  position: absolute;
+  inset: 0 0 43%;
+  z-index: 0;
+  overflow: hidden;
+  background:
+    url("/assets/maps/three-d-lab/moonlit-sky-detail.svg") center top / cover no-repeat,
+    radial-gradient(ellipse at 18% 76%, rgba(29, 79, 76, 0.22), transparent 50%),
+    radial-gradient(ellipse at 83% 74%, rgba(31, 76, 85, 0.2), transparent 46%),
+    linear-gradient(180deg, rgba(1, 8, 14, 0.2), rgba(5, 25, 31, 0.48));
+}
+
+.threeDLabHorizontalMoonHalo {
+  position: absolute;
+  left: calc(66% - clamp(56px, 7.4cqw, 90px));
+  top: calc(9% - clamp(30px, 4cqw, 48px));
+  width: clamp(150px, 20cqw, 245px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(181, 226, 219, 0.13), rgba(88, 164, 164, 0.06) 38%, transparent 69%);
+  filter: blur(4px);
+}
+
+.threeDLabHorizontalMoon {
+  position: absolute;
+  left: 66%;
+  top: 9%;
+  width: clamp(34px, 4.4cqw, 54px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, #eff8e5 0 20%, #c8ddd0 58%, #8fb4aa 100%);
+  box-shadow:
+    0 0 24px rgba(191, 229, 216, 0.32),
+    0 0 72px rgba(111, 184, 181, 0.16);
+  opacity: 0.92;
+}
+
+.threeDLabHorizontalMoon::after {
+  position: absolute;
+  inset: 18% 15% 45% 48%;
+  border-radius: 50%;
+  content: "";
+  background: rgba(118, 149, 142, 0.18);
+  filter: blur(1px);
+}
+
+.threeDLabHorizontalCloud {
+  position: absolute;
+  width: 22%;
+  height: 8%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(126, 166, 169, 0.1), transparent 72%);
+  filter: blur(5px);
+  opacity: 0.7;
+}
+
+.threeDLabHorizontalCloud--a {
+  left: 11%;
+  top: 27%;
+  animation: threeDLabHorizontalCloudDrift 52s linear infinite;
+}
+
+.threeDLabHorizontalCloud--b {
+  left: 73%;
+  top: 39%;
+  animation: threeDLabHorizontalCloudDrift 68s linear -24s infinite;
+}
+
+.threeDLabHorizontalCanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: auto;
+}
+
+.threeDLabHorizontalWaterTexture {
+  position: absolute;
+  inset: 45% -12% -4%;
+  z-index: 2;
+  background: url("/assets/maps/three-d-lab/river-surface-flow.svg") left center / 116% 100% repeat-x;
+  mix-blend-mode: screen;
+  opacity: 0.38;
+  transform: translate3d(0, 0, 0);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%, #000 86%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 18%, #000 86%, transparent);
+  animation: threeDLabHorizontalWaterFlow calc(36s / var(--three-lab-flow-multiplier)) linear infinite;
+  will-change: background-position;
+}
+
+.threeDLabHorizontalDepthHaze {
+  position: absolute;
+  inset: 34% -6% 42%;
+  z-index: 2;
+  background:
+    linear-gradient(180deg, rgba(135, 191, 191, 0.035), rgba(95, 167, 169, 0.1) 52%, transparent),
+    radial-gradient(ellipse 32% 48% at 68% 42%, rgba(186, 224, 215, 0.08), transparent 70%);
+  filter: blur(5px);
+}
+
+.threeDLabHorizontalMist {
+  position: absolute;
+  z-index: 2;
+  right: -28%;
+  left: -28%;
+  height: 14%;
+  opacity: 0.14;
+  background:
+    radial-gradient(ellipse at 9% 50%, rgba(188, 220, 214, 0.56), transparent 21%),
+    radial-gradient(ellipse at 33% 55%, rgba(188, 220, 214, 0.42), transparent 23%),
+    radial-gradient(ellipse at 59% 48%, rgba(188, 220, 214, 0.48), transparent 22%),
+    radial-gradient(ellipse at 86% 54%, rgba(188, 220, 214, 0.48), transparent 24%);
+  filter: blur(12px);
+  will-change: transform;
+}
+
+.threeDLabHorizontalMist--far {
+  top: 43%;
+  animation: threeDLabHorizontalMistFlow calc(72s / var(--three-lab-flow-multiplier)) linear infinite;
+}
+
+.threeDLabHorizontalMist--near {
+  top: 69%;
+  z-index: 3;
+  height: 12%;
+  opacity: 0.075;
+  animation: threeDLabHorizontalMistFlow calc(34s / var(--three-lab-flow-multiplier)) linear -9s infinite;
+}
+
+.threeDLabHorizontalFireflies {
+  position: absolute;
+  inset: 26% 7% 20%;
+  z-index: 3;
+}
+
+.threeDLabHorizontalFireflies i {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #dcff9b;
+  box-shadow: 0 0 7px 2px rgba(184, 255, 119, 0.55);
+  opacity: 0.25;
+  animation: threeDLabHorizontalFirefly 7.4s ease-in-out infinite alternate;
+}
+
+.threeDLabHorizontalFireflies i:nth-child(1) { left: 14%; top: 31%; animation-delay: -1.2s; animation-duration: 6.8s; }
+.threeDLabHorizontalFireflies i:nth-child(2) { left: 32%; top: 13%; animation-delay: -4.4s; animation-duration: 8.1s; }
+.threeDLabHorizontalFireflies i:nth-child(3) { left: 51%; top: 44%; animation-delay: -2.6s; animation-duration: 7.3s; }
+.threeDLabHorizontalFireflies i:nth-child(4) { left: 68%; top: 18%; animation-delay: -5.1s; animation-duration: 9.2s; }
+.threeDLabHorizontalFireflies i:nth-child(5) { left: 82%; top: 52%; animation-delay: -3.7s; animation-duration: 6.4s; }
+.threeDLabHorizontalFireflies i:nth-child(6) { left: 91%; top: 27%; animation-delay: -6.2s; animation-duration: 8.6s; }
+
+.threeDLabHorizontalFallback {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 8;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(3, 18, 22, 0.86);
+  color: #e9fffa;
+  font-size: 11px;
+  transform: translate(-50%, -50%);
+}
+
+.shooterArena--desktopHorizontal .shooterEnemyMonsterVisual {
+  isolation: isolate;
+}
+
+.shooterArena--desktopHorizontal .shooterEnemyMonsterAsset,
+.shooterArena--desktopHorizontal .shooterEnemyPitchLabel {
+  position: relative;
+  z-index: 2;
+}
+
+.shooterArena--desktopHorizontal .threeDLabEnemySpawnAura,
+.shooterArena--desktopHorizontal .threeDLabEnemyReflection {
+  position: absolute;
+  left: 50%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.shooterArena--desktopHorizontal .threeDLabEnemySpawnAura {
+  top: 48%;
+  width: 116%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(103, 221, 241, 0.34);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(84, 206, 237, 0.13), rgba(60, 109, 195, 0.05) 44%, transparent 68%);
+  box-shadow: inset 0 0 16px rgba(122, 228, 242, 0.12), 0 0 18px rgba(79, 195, 231, 0.14);
+  opacity: 0.56;
+  transform: translate(-50%, -50%) scaleX(0.84);
+  animation: threeDLabEnemyAura 2.8s ease-in-out infinite;
+}
+
+.shooterArena--desktopHorizontal .threeDLabEnemySpawnAura::after {
+  position: absolute;
+  left: 72%;
+  top: 46%;
+  width: clamp(48px, 8cqw, 110px);
+  height: 14%;
+  content: "";
+  background: linear-gradient(90deg, rgba(111, 226, 243, 0.22), transparent);
+  filter: blur(2px);
+  transform: translateY(-50%);
+}
+
+.shooterArena--desktopHorizontal .threeDLabEnemyReflection {
+  top: 82%;
+  width: 78%;
+  height: 22%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(111, 220, 238, 0.22), rgba(49, 128, 170, 0.06) 54%, transparent 72%);
+  filter: blur(2px);
+  opacity: 0.62;
+  transform: translate(-50%, -50%) scaleY(0.52);
+}
+
+@keyframes threeDLabHorizontalCloudDrift {
+  from { transform: translate3d(10vw, 0, 0); }
+  to { transform: translate3d(-22vw, 0, 0); }
+}
+
+@keyframes threeDLabHorizontalWaterFlow {
+  from { background-position: 0 center; }
+  to { background-position: -46vw center; }
+}
+
+@keyframes threeDLabHorizontalMistFlow {
+  from { transform: translate3d(12%, 0, 0); }
+  to { transform: translate3d(-12%, 0, 0); }
+}
+
+@keyframes threeDLabHorizontalFirefly {
+  0% { opacity: 0.1; transform: translate3d(0, 0, 0); }
+  43% { opacity: 0.48; }
+  100% { opacity: 0.14; transform: translate3d(-26px, -13px, 0); }
+}
+
+@keyframes threeDLabEnemyAura {
+  0%, 100% { opacity: 0.34; transform: translate(-50%, -50%) scaleX(0.8) scale(0.92); }
+  50% { opacity: 0.62; transform: translate(-50%, -50%) scaleX(0.86) scale(1.04); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .threeDLabHorizontalMist,
+  .threeDLabHorizontalCloud,
+  .threeDLabHorizontalWaterTexture,
+  .threeDLabHorizontalFireflies i {
+    animation-duration: 160s !important;
+  }
+}

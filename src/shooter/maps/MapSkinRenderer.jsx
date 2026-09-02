@@ -1,6 +1,10 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
+import AbyssalMoonRuntimeField from "./AbyssalMoonRuntimeField.jsx";
 import AmbientCreature from "./AmbientCreature.jsx";
+import AutumnMoonTemplePathField from "./AutumnMoonTemplePathField.jsx";
+import CelestialEclipseClocktowerField from "./CelestialEclipseClocktowerField.jsx";
+import ClockworkAmbientField from "./ClockworkAmbientField.jsx";
 import MapAmbientEvents from "./FlyingDragonCrossing.jsx";
 import {
   getCoastalChestFacingScaleX,
@@ -16,6 +20,7 @@ import {
 } from "./freeTransform.js";
 import { isLayeredShooterMap } from "./registry.js";
 import { getMapCoverPlaneSize } from "./mapCoordinateSpace.js";
+import { applyMapImageFallback, markMapImageLoaded } from "./mapImageFallback.js";
 import { getLoopFrameIndex, subscribeSharedMapAnimation } from "./sharedSpriteClock.js";
 
 const UNDERLAY_SLOTS = new Set([
@@ -414,7 +419,9 @@ function SharedSpriteFrameImage({
         image.style.transform = `translate(${Number(nextFrame.frameEntry.translateX) || 0}%, ${Number(nextFrame.frameEntry.translateY) || 0}%) scale(${Number(nextFrame.frameEntry.scale) || 1})`;
       }
     };
-    return subscribeSharedMapAnimation(container, renderFrame);
+    return subscribeSharedMapAnimation(container, renderFrame, {
+      framesPerSecond: Math.min(30, Math.max(1, framesPerSecond * playbackSpeed)),
+    });
   }, [active, editMode, frameSignature, framesPerSecond, phaseOffsetSeconds, playbackSpeed, transformFrame]);
 
   if (!previewEntry) return null;
@@ -754,6 +761,44 @@ function SpriteSheetMapAsset({ active = true, editMode = false, layer, layout })
 
 function LavaEnvironmentAsset({ layer }) {
   const animationType = layer.animation?.type;
+  if (animationType === "abyssal-kelp") {
+    return (
+      <span
+        aria-hidden="true"
+        className="shooterMapAbyssalSegmentedKelp"
+        style={{ aspectRatio: layer.aspectRatio ?? 0.3 }}
+      >
+        <img alt="" className="shooterMapAbyssalKelpRoot" decoding="async" draggable="false" src={layer.src} />
+        <img alt="" className="shooterMapAbyssalKelpMiddle" decoding="async" draggable="false" src={layer.src} />
+        <img alt="" className="shooterMapAbyssalKelpTip" decoding="async" draggable="false" src={layer.src} />
+      </span>
+    );
+  }
+  if (animationType === "abyssal-banner") {
+    return (
+      <span
+        aria-hidden="true"
+        className="shooterMapAbyssalSegmentedBanner"
+        style={{ aspectRatio: layer.aspectRatio ?? 0.24 }}
+      >
+        <img alt="" className="shooterMapAbyssalBannerTop" decoding="async" draggable="false" src={layer.src} />
+        <img alt="" className="shooterMapAbyssalBannerMiddle" decoding="async" draggable="false" src={layer.src} />
+        <img alt="" className="shooterMapAbyssalBannerTail" decoding="async" draggable="false" src={layer.src} />
+      </span>
+    );
+  }
+  if (animationType === "abyssal-guardian" && layer.assetId === "abyssal-gatekeeper") {
+    return (
+      <span
+        aria-hidden="true"
+        className="shooterMapAbyssalSegmentedGatekeeper"
+        style={{ aspectRatio: layer.aspectRatio ?? 0.51 }}
+      >
+        <img alt="" className="shooterMapAbyssalGatekeeperHead" decoding="async" draggable="false" src={layer.src} />
+        <img alt="" className="shooterMapAbyssalGatekeeperBody" decoding="async" draggable="false" src={layer.src} />
+      </span>
+    );
+  }
   if (animationType === "torch-flame") {
     const speed = Number.isFinite(layer.animation?.speed) ? Math.max(0.1, layer.animation.speed) : 1;
     const cycleDuration = Math.max(0.85, 5.4 / speed);
@@ -799,6 +844,105 @@ function LavaEnvironmentAsset({ layer }) {
         src={layer.src}
       />
     </span>
+  );
+}
+
+function Figure8WhaleViewport({
+  editMode,
+  layer,
+  layout,
+  onAssetPointerDown,
+  onAssetSelect,
+  selected,
+}) {
+  const placement = getLayerPlacement(layer, layout);
+  const x = Number.isFinite(placement.x) ? placement.x : 0.5;
+  const y = Number.isFinite(placement.y) ? placement.y : 0.15;
+  const scaleMultiplier = Math.min(1.35, Math.max(0.65, Number(placement.scale) || 1));
+  const editorHandleX = Math.min(1, Math.max(0, (x - 0.17) / 0.66));
+  const editorHandleY = Math.min(0.98, Math.max(0, (y - 0.055) / 0.235 + 0.18 * scaleMultiplier));
+  return (
+    <>
+      <span
+        aria-label={editMode ? `${layer.label} 배치 오브젝트` : undefined}
+        className={`shooterMapWhaleViewport shooterMapWhaleViewport--rear shooterMapSkinAsset shooterMapSkinAsset--background-environment ${selected ? "shooterMapSkinAsset--selected" : ""}`}
+        data-animation="abyssal-whale-figure8-v8"
+        data-asset-id={layer.assetId}
+        data-frame-count={layer.farWhale?.frames?.length ?? 0}
+        data-instance-id={layer.instanceId}
+        data-whale-offset-x={x - 0.5}
+        data-whale-offset-y={y - 0.15}
+        data-whale-scale-multiplier={scaleMultiplier}
+        onClick={editMode
+          ? (event) => {
+            if (event.target.closest?.(".shooterMapEditHandle")) return;
+            event.stopPropagation();
+            onAssetSelect?.(layer.instanceId);
+          }
+          : undefined}
+        onKeyDown={editMode
+          ? (event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            event.stopPropagation();
+            onAssetSelect?.(layer.instanceId);
+          }
+          : undefined}
+        onPointerDown={editMode
+          ? (event) => {
+            if (event.target.closest?.(".shooterMapEditHandle")) return;
+            onAssetPointerDown?.(event, layer, "drag");
+          }
+          : undefined}
+        role={editMode ? "button" : undefined}
+        style={{ zIndex: 1 }}
+        tabIndex={editMode ? 0 : undefined}
+      >
+        <i aria-hidden="true" className="shooterMapAquariumWaterLayer" />
+        <canvas
+          aria-hidden="true"
+          className="shooterMapFigure8WhaleCanvas"
+          data-whale-depth-layer="rear"
+        />
+        {editMode && selected ? (
+          <i
+            aria-label="전체 크기 조절 핸들"
+            className="shooterMapEditHandle shooterMapEditScaleHandle shooterMapFigure8WhaleScaleHandle"
+            onPointerDown={(event) => {
+              event.stopPropagation();
+              onAssetPointerDown?.(event, layer, "scale");
+            }}
+            role="button"
+            style={{ left: `${editorHandleX * 100}%`, top: `${editorHandleY * 100}%` }}
+          />
+        ) : null}
+      </span>
+      <span
+        aria-hidden="true"
+        className="shooterMapWhaleViewport shooterMapWhaleViewport--front"
+        data-animation="abyssal-whale-figure8-v8-front"
+        data-whale-offset-x={x - 0.5}
+        data-whale-offset-y={y - 0.15}
+        data-whale-scale-multiplier={scaleMultiplier}
+        style={{ zIndex: 3 }}
+      >
+        <canvas
+          aria-hidden="true"
+          className="shooterMapFigure8WhaleCanvas"
+          data-whale-depth-layer="front"
+        />
+      </span>
+    </>
+  );
+}
+
+function FallbackMapImage({ fallbackSrc, ...imageProps }) {
+  return (
+    <img
+      {...imageProps}
+      onError={(event) => applyMapImageFallback(event.currentTarget, fallbackSrc)}
+      onLoad={(event) => markMapImageLoaded(event.currentTarget)}
+    />
   );
 }
 
@@ -873,13 +1017,20 @@ function MapSkinRenderer({
   const visibleRenderLayers = editMode
     ? renderLayers
     : renderLayers.filter((layer) => !eventHiddenLayerIds.has(layer.instanceId));
+  const figure8WhaleLayers = visibleRenderLayers.filter(
+    (layer) => layer.animation?.type === "abyssal-whale-figure8-v8",
+  );
+  const regularRenderLayers = visibleRenderLayers.filter(
+    (layer) => layer.animation?.type !== "abyssal-whale-figure8-v8",
+  );
   const hasInteractiveActor = renderLayers.some(
     (layer) => layer.eventActor?.type === "coastal-chest",
   );
   const selectedCreatureLayer = editMode
     ? renderLayers.find((layer) => layer.instanceId === selectedAssetId && layer.creature)
     : null;
-  if (stage === "overlay" && renderLayers.length === 0) return null;
+  const hasForegroundOccluder = Boolean(skin.foregroundOccluder?.src);
+  if (stage === "overlay" && renderLayers.length === 0 && !hasForegroundOccluder) return null;
 
   return (
     <div
@@ -892,11 +1043,13 @@ function MapSkinRenderer({
     >
       <div className="shooterMapCoordinatePlane">
       {stage === "underlay" && skin.background?.src ? (
-        <img
+        <FallbackMapImage
           alt=""
           className="shooterMapSkinBackground"
+          data-map-asset-role="background"
           decoding="async"
           draggable="false"
+          fallbackSrc={skin.background.fallbackSrc}
           src={skin.background.src}
           style={{
             "--shooter-map-background-fit": skin.background.fit ?? "cover",
@@ -905,7 +1058,59 @@ function MapSkinRenderer({
         />
       ) : null}
 
-      {visibleRenderLayers.map((layer) => (
+      {stage === "underlay" && skin.id === "autumn_moon_temple_path" ? (
+        <AutumnMoonTemplePathField
+          active={animationsActive && !editMode}
+          runtimeAnimation={skin.runtimeAnimation}
+          stage="underlay"
+        />
+      ) : null}
+
+      {stage === "underlay" && skin.id === "celestial-eclipse-clocktower" ? (
+        <CelestialEclipseClocktowerField
+          active={animationsActive && !editMode}
+          atlas={skin.animatedBackdrop}
+        />
+      ) : null}
+
+      {stage === "underlay" && skin.id === "abyssalMoonCathedral"
+        ? figure8WhaleLayers.map((layer) => (
+          <Figure8WhaleViewport
+            editMode={editMode}
+            key={layer.id}
+            layer={layer}
+            layout={layout}
+            onAssetPointerDown={onAssetPointerDown}
+            onAssetSelect={onAssetSelect}
+            selected={selectedAssetId === layer.instanceId}
+          />
+        ))
+        : null}
+
+      {stage === "underlay" && skin.architectureMask?.src ? (
+        <img
+          alt=""
+          className="shooterMapArchitectureMask"
+          decoding="async"
+          draggable="false"
+          src={skin.architectureMask.src}
+          style={{
+            "--shooter-map-mask-aspect": `${skin.architectureMask.sourceWidth ?? 1} / ${skin.architectureMask.sourceHeight ?? 1}`,
+            "--shooter-map-mask-fit": skin.architectureMask.fit ?? skin.background?.fit ?? "cover",
+            "--shooter-map-mask-position": skin.architectureMask.position ?? skin.background?.position ?? "center",
+          }}
+        />
+      ) : null}
+
+      {stage === "underlay" && skin.id === "abyssalMoonCathedral" ? (
+        <AbyssalMoonRuntimeField active={animationsActive && !editMode} />
+      ) : null}
+
+      {stage === "underlay" && skin.id === "clockwork-opera-citadel" ? (
+        <ClockworkAmbientField active={animationsActive && !editMode} />
+      ) : null}
+
+      {regularRenderLayers.map((layer) => (
         <span
           aria-label={editMode ? `${layer.label} 배치 오브젝트` : undefined}
           className={`shooterMapSkinAsset shooterMapSkinAsset--${layer.slot} ${selectedAssetId === layer.instanceId ? "shooterMapSkinAsset--selected" : ""} ${layer.eventActor ? "shooterMapSkinAsset--event-actor" : ""} ${layer.eventActor?.type === "coastal-chest" ? "shooterMapSkinAsset--interactive-event" : ""}`}
@@ -994,6 +1199,28 @@ function MapSkinRenderer({
           events={skin.ambientEvents ?? []}
           layers={renderLayers}
           onOriginHiddenChange={handleEventOriginHiddenChange}
+        />
+      ) : null}
+      {stage === "overlay" && skin.id === "autumn_moon_temple_path" ? (
+        <AutumnMoonTemplePathField
+          active={animationsActive && !editMode}
+          runtimeAnimation={skin.runtimeAnimation}
+          stage="overlay"
+        />
+      ) : null}
+      {stage === "overlay" && skin.foregroundOccluder?.src ? (
+        <FallbackMapImage
+          alt=""
+          className="shooterMapForegroundOccluder"
+          data-map-asset-role="foreground-occluder"
+          decoding="async"
+          draggable="false"
+          fallbackSrc={skin.foregroundOccluder.fallbackSrc}
+          src={skin.foregroundOccluder.src}
+          style={{
+            "--shooter-map-foreground-fit": skin.foregroundOccluder.fit ?? "cover",
+            "--shooter-map-foreground-position": skin.foregroundOccluder.position ?? "center",
+          }}
         />
       ) : null}
       {selectedCreatureLayer ? (

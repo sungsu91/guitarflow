@@ -98,7 +98,10 @@ test("desktop map studio keeps its editor panel beside the preview", async () =>
   assert.match(mapEditPanelSource, /\{viewport\.width\} × \{viewport\.height\} LIVE PREVIEW/);
   assert.doesNotMatch(mapEditPanelSource, /390 × 844 LIVE PREVIEW/);
   assert.match(useMapEditModeSource, /referenceViewport\?\.height \?\? referenceViewport\?\.deviceHeight \?\? 756/);
-  assert.match(appSource, /const shooterMapRenderLayout = "mobile"/);
+  assert.match(
+    appSource,
+    /const shooterMapRenderLayout = desktopHorizontalShooterActive \? "desktop" : "mobile"/,
+  );
   assert.doesNotMatch(appSource, /shooterUsesMobileMapLayout/);
   assert.match(mapEditorCss, /\.mapEditEffectSlotTabs > button\.is-selected/);
   assert.match(mapEditorCss, /\.mapEditEffectLibrary > button\.is-selected/);

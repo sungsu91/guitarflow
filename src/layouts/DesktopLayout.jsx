@@ -1,17 +1,12 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { isLikelyMobileDevice } from "./mobileLayout.js";
+import { getViewportProfile } from "./viewportProfile.js";
 
 const DESKTOP_MIN_WIDTH = 1024;
 const DESKTOP_LAYOUT_QUERY = `(min-width: ${DESKTOP_MIN_WIDTH}px) and (hover: hover) and (pointer: fine)`;
 
 function getViewportWidth() {
-  const widths = [
-    window.innerWidth,
-    document.documentElement?.clientWidth,
-    window.visualViewport?.width,
-  ].filter((width) => Number.isFinite(width) && width > 0);
-
-  return widths.length > 0 ? Math.min(...widths) : 0;
+  return getViewportProfile(window).width;
 }
 
 function getIsDesktopLayout() {
@@ -25,7 +20,7 @@ function getIsDesktopLayout() {
 export default function DesktopLayout({ children }) {
   const [isDesktopLayout, setIsDesktopLayout] = useState(getIsDesktopLayout);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const mediaQuery = typeof window.matchMedia === "function"
       ? window.matchMedia(DESKTOP_LAYOUT_QUERY)
       : null;
@@ -55,12 +50,13 @@ export default function DesktopLayout({ children }) {
     };
   }, []);
 
-  if (!isDesktopLayout) return children;
-
   return (
-    <div className="desktopLayout">
-      <section className="desktopWorkspace" aria-label="FRETIVA LAB workspace">
-        <div className="desktopWorkspaceContent">
+    <div className={isDesktopLayout ? "desktopLayout" : "mobileLayoutShell"}>
+      <section
+        className={isDesktopLayout ? "desktopWorkspace" : "mobileLayoutWorkspace"}
+        aria-label="FRETIVA LAB workspace"
+      >
+        <div className={isDesktopLayout ? "desktopWorkspaceContent" : "mobileLayoutContent"}>
           {children}
         </div>
       </section>

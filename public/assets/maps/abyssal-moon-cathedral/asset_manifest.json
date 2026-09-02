@@ -1,0 +1,36 @@
+{
+  "mapId": "abyssalMoonCathedral",
+  "displayName": "심해 월광 대성당",
+  "referenceSize": { "width": 841, "height": 1870 },
+  "background": "01_clean_background.png",
+  "masterReference": "00_master_reference.png",
+  "coordinateRule": "x/y are normalized against the rendered map viewport; verify visually against the master",
+  "layers": {
+    "far": ["whale-v8/frames/*.png (80 RGBA frames; sheets are not used)", "fish_school_01_rgba.png", "fish_school_02_rgba.png"],
+    "architecture": ["bell_chain_rgba.png", "bell_body_rgba.png", "bell_clapper_rgba.png", "orrery_complete_rgba.png"],
+    "guardians": ["gatekeeper_statue_rgba.png", "seahorse_guardian_left_rgba.png", "seahorse_guardian_right_rgba.png"],
+    "flora": ["kelp_cluster_01_rgba.png", "kelp_cluster_02_rgba.png", "kelp_cluster_03_rgba.png", "kelp_cluster_04_rgba.png", "seagrass_cluster_01_rgba.png", "seagrass_cluster_02_rgba.png", "seagrass_cluster_03_rgba.png"],
+    "fabric": ["banner_left_rgba.png", "banner_right_rgba.png"],
+    "lightingFixture": ["shell_lantern_unlit_rgba.png"]
+  },
+  "placements": {
+    "whale": { "x": 0.5, "y": 0.15, "path": "timed Catmull-Rom horizontal figure eight", "layer": "far", "behindArchitectureMask": true, "viewport": { "left": 0.17, "right": 0.83, "top": 0.055, "bottom": 0.29 } },
+    "bell": { "x": 0.14, "y": 0.13, "pivot": [0.5, 0.02] },
+    "orrery": { "x": 0.86, "y": 0.17, "pivot": [0.5, 0.5] },
+    "gatekeeper": { "x": 0.16, "y": 0.60, "pivot": [0.5, 1.0] },
+    "seahorseLeft": { "x": 0.22, "y": 0.45, "pivot": [0.5, 1.0] },
+    "seahorseRight": { "x": 0.75, "y": 0.45, "pivot": [0.5, 1.0] }
+  },
+  "animation": {
+    "whale": { "states": ["HIDDEN", "RIGHT_REVEAL_APPROACH", "CENTER_TURN_DIVE", "DEEP_REAR_CURVE", "LEFT_RETURN_APPROACH", "CENTER_CROSS_RIGHT_EXIT", "DEEP_HOLD", "COOLDOWN"], "source": "whale-v8/frames", "frameCount": 80, "renderMode": "dual depth canvas, adjacent-frame alpha blend", "renderFps": 60, "pathMode": "non-uniform timed Catmull-Rom", "motionSeconds": [33.5, 38.3], "fullCycleSeconds": [42.7, 54.9], "cooldownSeconds": [6, 12], "scale": [0.12, 0.28], "opacity": { "far": [0.26, 0.38], "approach": [0.44, 0.58] }, "blurPx": { "far": [0.6, 1.0], "approach": [0.15, 0.45] }, "occlusion": "depth crossfade below/above architecture_occlusion_foreground.png" },
+    "bell": { "mode": "sinePingPong", "degrees": [-3.5, 3.5], "periodSeconds": [5, 8] },
+    "clapper": { "mode": "delayedOppositeSine", "degrees": [-6, 6] },
+    "orreryOuter": { "mode": "continuous", "periodSeconds": 34, "direction": 1 },
+    "orreryMiddle": { "mode": "continuous", "periodSeconds": 26, "direction": -1 },
+    "orreryInner": { "mode": "continuous", "periodSeconds": 18, "direction": 1 },
+    "kelp": { "mode": "segmentedSine", "rootFixed": true, "periodSeconds": [4.2, 7.8], "phasePerInstance": true },
+    "banner": { "mode": "sinePingPong", "topFixed": true, "degrees": [-2.2, 2.2], "periodSeconds": [4.5, 7] },
+    "lantern": { "fixtureFixed": true, "codeGeneratedGlow": true, "opacity": [0.78, 1.0], "scale": [0.97, 1.03], "periodSeconds": [2.8, 5.5] },
+    "bubbles": { "codeGenerated": true, "pooled": true, "fadeBeforeRecycle": true }
+  }
+}

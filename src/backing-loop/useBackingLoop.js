@@ -467,6 +467,12 @@ export default function useBackingLoop(ownerMode = "") {
 
   const deactivateBackingLoop = useCallback(() => {
     modeActiveRef.current = false;
+    setDialog("");
+    setSaveError("");
+    setPlaylistDeleteTargetId("");
+    setPlaylistItemsDeleteTargetId("");
+    setPlaylistItemsDeleteTargetIds([]);
+    setPlaylistLibraryPickerOpen(false);
     const phaseBeforeDeactivate = phaseRef.current;
     const playbackPositionMs = audioRef.current
       ? Math.max(0, audioRef.current.currentTime * 1000)

@@ -90,6 +90,53 @@
     inset 0 -2px 0 rgba(0, 0, 0, 0.28);
 }
 
+/* Mobile mini-chord chord editor: keep the selected chord/beat tabs clear of
+   the split and close controls. Desktop has its own layout override. */
+@media (max-width: 680px) {
+  html body:has(main.app.miniChordMakerMode)
+    .miniChordFloatingChordPopover.miniChordMeasureEditorPanel
+    .miniChordPickerHeader {
+    grid-template-columns: minmax(58px, 1fr) minmax(96px, 1.25fr) 62px !important;
+    column-gap: 4px !important;
+  }
+
+  html body:has(main.app.miniChordMakerMode)
+    .miniChordFloatingChordPopover.miniChordMeasureEditorPanel
+    .miniChordPickerSlotTabs,
+  html body:has(main.app.miniChordMakerMode)
+    .miniChordFloatingChordPopover.miniChordMeasureEditorPanel
+    .miniChordPickerSelectedChord {
+    grid-column: 2 !important;
+    justify-self: stretch !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  html body:has(main.app.miniChordMakerMode)
+    .miniChordFloatingChordPopover.miniChordMeasureEditorPanel
+    .miniChordPickerSelectedChord {
+    padding-left: 3px !important;
+    overflow: hidden !important;
+    text-align: left !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body:has(main.app.miniChordMakerMode)
+    .miniChordFloatingChordPopover.miniChordMeasureEditorPanel
+    .miniChordPickerHeaderActions {
+    grid-column: 3 !important;
+    position: relative !important;
+    z-index: 2 !important;
+    justify-self: end !important;
+    box-sizing: border-box !important;
+    width: 62px !important;
+    min-width: 62px !important;
+    max-width: 62px !important;
+  }
+}
+
 /* Mobile note trainers: one shared beat-state system with a transient playhead glow. */
 @media (max-width: 767px) {
   html body main.app.app.app
@@ -6183,7 +6230,10 @@ html body main.app.app.app .chordTransitionPanel
   background-color: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
+  cursor: pointer !important;
   filter: none !important;
+  pointer-events: auto !important;
+  touch-action: manipulation;
 }
 
 html body main.app.app.app .chordTransitionPanel
@@ -6532,8 +6582,9 @@ html body main.app.app.app.theme-light.theme-light .chordTransitionPanel
   }
 }
 
-/* Backing Loop mini player: one cohesive music-player surface on mobile. */
-@media (max-width: 767px) {
+/* Backing Loop mini player: one cohesive music-player surface on mobile.
+   Short landscape workstations reuse this exact portrait control language. */
+@media (max-width: 767px), (orientation: landscape) and (max-height: 500px) {
   html body main.app.app.app .backingLoopPanel.backingLoopPanel--mobile {
     grid-template-rows: 94px 45px !important;
     gap: 2px !important;

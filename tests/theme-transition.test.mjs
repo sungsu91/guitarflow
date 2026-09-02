@@ -77,3 +77,35 @@ test("theme storyboard timing stays compact", () => {
   assert.ok(timings.every((duration) => duration >= 100 && duration <= 250));
   assert.ok(timings.reduce((total, duration) => total + duration, 0) <= 1000);
 });
+
+test("desktop launch branding stays centered inside the narrow fretboard frame", () => {
+  assert.match(
+    splashStyles,
+    /@media \(min-width: 768px\) and \(min-height: 600px\) and \(orientation: landscape\)/,
+  );
+  assert.match(
+    splashStyles,
+    /@media \(min-width: 768px\)[\s\S]*?--launch-stage-shift-x: 0px;[\s\S]*?\.launchSplash__brand \{[\s\S]*?width: 92%;[\s\S]*?translate3d\(-50%, 0, 0\)/,
+  );
+  assert.match(
+    splashStyles,
+    /\.launchSplash__brand \{[\s\S]*?left: calc\(50% - clamp\(8px, 1\.1dvh, 12px\)\);[\s\S]*?width: 92%;/,
+  );
+  assert.match(
+    splashStyles,
+    /\.launchSplash__brand strong \{[\s\S]*?font-size: clamp\(54px, 9dvh, 84px\);[\s\S]*?white-space: nowrap;/,
+  );
+  assert.match(
+    splashStyles,
+    /\.launchSplash--controlled \.launchSplash__brand \{[\s\S]*?width: calc\(100% - clamp\(12px, 1\.6dvh, 18px\)\);/,
+  );
+  assert.match(
+    splashStyles,
+    /\.launchSplash--controlled \.launchSplash__brand strong \{[\s\S]*?font-size: clamp\(40px, 6\.7dvh, 64px\);[\s\S]*?letter-spacing: 0\.13em;/,
+  );
+  assert.match(splashStyles, /@keyframes launchIntroDesktopBrandIn[\s\S]*?opacity: 1/);
+  assert.match(
+    splashStyles,
+    /launchSplash--autonomous:not\(\.launchSplash--exiting\) \.launchSplash__brand \{[\s\S]*?animation-name: launchIntroDesktopBrandIn/,
+  );
+});

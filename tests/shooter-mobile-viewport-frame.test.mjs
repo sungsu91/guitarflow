@@ -6,7 +6,34 @@ import {
   SHOOTER_MOBILE_CANVAS_HEIGHT,
   SHOOTER_MOBILE_CANVAS_WIDTH,
   getShooterMobileViewportFrame,
+  getShooterMobileViewportSnapshot,
 } from "../src/shooter/mobileViewportFrame.js";
+
+function createViewportWindow({
+  clientHeight,
+  clientWidth,
+  innerHeight,
+  innerWidth,
+  mediaMatches = false,
+  visualHeight,
+  visualScale = 1,
+  visualWidth,
+}) {
+  return {
+    document: { documentElement: { clientHeight, clientWidth } },
+    innerHeight,
+    innerWidth,
+    matchMedia: () => ({ matches: mediaMatches }),
+    navigator: { maxTouchPoints: 0, userAgent: "desktop-test" },
+    visualViewport: {
+      height: visualHeight,
+      offsetLeft: 0,
+      offsetTop: 0,
+      scale: visualScale,
+      width: visualWidth,
+    },
+  };
+}
 
 test("430 x 932 development preview is the unscaled shooter canvas", () => {
   assert.deepEqual(getShooterMobileViewportFrame({
@@ -65,10 +92,48 @@ test("unfolded and rotated foldables fit the same complete canvas without croppi
   }
 });
 
+test("device emulation uses one coherent viewport pair during desktop-to-mobile transition", () => {
+  const frame = getShooterMobileViewportSnapshot(createViewportWindow({
+    clientHeight: 896,
+    clientWidth: 414,
+    innerHeight: 900,
+    innerWidth: 1440,
+    mediaMatches: true,
+    visualHeight: 2240,
+    visualScale: 0.4,
+    visualWidth: 1035,
+  }));
+  const expectedScale = Math.min(
+    414 / SHOOTER_MOBILE_CANVAS_WIDTH,
+    896 / SHOOTER_MOBILE_CANVAS_HEIGHT,
+  );
+
+  assert.ok(Math.abs(frame.scale - expectedScale) < 1e-12);
+  assert.ok(frame.left >= 0);
+  assert.ok(frame.height <= 896);
+});
+
+test("a stale visual viewport height cannot inflate the inverse-scaled mobile navigation", () => {
+  const frame = getShooterMobileViewportSnapshot(createViewportWindow({
+    clientHeight: 896,
+    clientWidth: 414,
+    innerHeight: 896,
+    innerWidth: 414,
+    mediaMatches: true,
+    visualHeight: 360,
+    visualScale: 1,
+    visualWidth: 414,
+  }));
+
+  assert.ok(frame.scale > 0.9);
+  assert.ok(1 / frame.scale < 1.1);
+});
+
 test("shooter route applies the canonical frame to the entire app surface", async () => {
-  const [appSource, runtimeSource, styles] = await Promise.all([
+  const [appSource, runtimeSource, viewportSource, styles] = await Promise.all([
     readFile(new URL("../src/App.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/AppRuntime.jsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/shooter/useShooterMobileViewport.js", import.meta.url), "utf8"),
     readFile(new URL("../src/shooter/mobile-canonical-viewport.css", import.meta.url), "utf8"),
   ]);
 
@@ -79,6 +144,9 @@ test("shooter route applies the canonical frame to the entire app surface", asyn
   assert.match(styles, /height: 932px !important/);
   assert.match(styles, /transform: scale\(var\(--shooter-mobile-canvas-scale, 1\)\) !important/);
   assert.match(styles, /--shooter-mobile-nav-space: 88px/);
+  assert.match(viewportSource, /--shooter-mobile-nav-inverse-scale/);
+  assert.match(styles, /scale\(var\(--shooter-mobile-nav-inverse-scale, 1\)\)/);
+  assert.match(styles, /transform-origin: bottom center !important/);
   assert.match(styles, /\.shooterCenterStatus\.shooterCenterStatus--pauseMenu/);
   assert.match(styles, /\.utilityMenuPanel/);
 });

@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ChevronUp,
   CircleHelp,
+  Columns2,
   FolderOpen,
   Gamepad2,
   Grid3X3,
@@ -137,6 +138,7 @@ import {
   getShooterNoteMonsterLabelLayout,
   getShooterNoteMonsterLabelPalette,
   getShooterNoteMonsterLabelParts,
+  getShooterNoteMonsterPitchText,
   getShooterNoteMonsterRenderScale,
   getShooterNoteMonsterSkin,
 } from "./shooter/noteMonsterAssets";
@@ -148,12 +150,37 @@ import {
 import useShooterNoteMonsterTuning from "./shooter/useShooterNoteMonsterTuning.js";
 import useShooterMobileViewport from "./shooter/useShooterMobileViewport.js";
 import {
+  FRETIVA_INSTRUMENT_SKIN_IDS,
+  FRETIVA_INSTRUMENT_SKIN_PACK_V1,
+} from "./shooter/instruments/fretivaInstrumentSkinPackV1.js";
+import {
+  FRETIVA_GUITAR_ADDON_V2,
+  FRETIVA_GUITAR_ADDON_V2_IDS,
+} from "./shooter/instruments/fretivaGuitarAddonV2.js";
+import {
+  FRETIVA_CREATIVE_INSTRUMENT_PACK_V3,
+  FRETIVA_CREATIVE_INSTRUMENT_PACK_V3_IDS,
+} from "./shooter/instruments/fretivaCreativeInstrumentPackV3.js";
+import DesktopHorizontalBattleView, {
+  DesktopHorizontalBattleControls,
+} from "./shooter/desktopHorizontal/DesktopHorizontalBattleView.jsx";
+import {
+  DESKTOP_HORIZONTAL_SHOOTER_FEATURE,
+  SHOOTER_RENDERER_MODES,
+  getFrontShooterTarget,
+  getShooterRendererMode,
+} from "./shooter/desktopHorizontal/desktopHorizontalShooter.js";
+import {
+  cleanupDesktopHorizontalAttack,
+  playDesktopHorizontalGuitarSlash as runDesktopHorizontalGuitarSlash,
+} from "./shooter/desktopHorizontal/desktopHorizontalAttack.js";
+import {
   SHOOTER_PLAY_HELP_LEVELS,
   getShooterPlayHelpMessage,
 } from "./shooter/playHelp.js";
 import ShootingMapRenderer from "./shooter/maps/ShootingMapRenderer";
 import MapEditPanel from "./shooter/maps/editor/MapEditPanel";
-import useMapEditMode from "./shooter/maps/editor/useMapEditMode";
+import useMapEditMode, { isMapEditModeRequested } from "./shooter/maps/editor/useMapEditMode";
 import { getShooterMapRuntimePerformance } from "./shooter/maps/performancePolicy.js";
 import {
   SHOOTER_EFFECT_ANCHOR_PRESET_IDS,
@@ -167,8 +194,10 @@ import {
   LAYERED_SHOOTER_MAP_SKINS,
   getRandomShooterMapId,
   getShooterMapAssetSources,
+  getShooterMapsForLayout,
   isLayeredShooterMap,
   isPseudo3DShooterMap,
+  isShooterMapAvailableForLayout,
   isThreeDLabShooterMap,
 } from "./shooter/maps/registry";
 import {
@@ -181,6 +210,7 @@ import {
   normalizeThreeDLabSettings,
   projectGameplayPointToThreeDLab,
 } from "./shooter/threed/threeDLabProjection.js";
+import { projectGameplayPointToThreeDLabHorizontal } from "./shooter/threed/threeDLabHorizontalProjection.js";
 import {
   createMountedModeSet,
   getCachedModeElement,
@@ -195,6 +225,7 @@ import {
 import {
   getViewportProfile,
   getViewportProfileClassName,
+  getPortraitLockedViewportProfile,
   isPortraitOnlyMode,
   isLandscapePlayFocusMode,
   shouldGuardPortraitOrientation,
@@ -233,6 +264,16 @@ import {
   getMiniChordPlaybackVisualPosition,
   shouldScheduleMiniChordDrumsForSlot,
 } from "./mini-chord/playbackPosition";
+import {
+  MINI_CHORD_HALVES_PER_BAR,
+  MINI_CHORD_SLOT_FORMAT_VERSION,
+  MINI_CHORD_SLOTS_PER_BAR,
+  getMiniChordTimelineHalves,
+  mergeMiniChordSlot,
+  normalizeMiniChordSlots,
+  normalizeMiniChordSplitSlots,
+  splitMiniChordSlot,
+} from "./mini-chord/slotSubdivision";
 import {
   getMiniChordBoundarySafeDuration,
   getMiniChordExplicitSlotFallbackDuration,
@@ -279,7 +320,7 @@ import {
   getMetronomeSubdivisionTickMs,
 } from "./metronome/subdivision";
 
-const APP_VERSION_LABEL = "Version 0.9.6";
+const APP_VERSION_LABEL = "Version 0.9.7";
 
 const NOTE_COLORS = {
   C: { fill: "#38bdf8", text: "#03131f", glow: "rgba(56, 189, 248, 0.48)" },
@@ -3200,8 +3241,8 @@ function makeStage3LibraryItem({
   timeSignature = "4/4",
   subdivision = "quarter",
   sound = "tick",
-  accentTone = "kick",
-  weakTone = "rim",
+  accentTone = "tick",
+  weakTone = "tick",
   beatPattern,
   capo = 0,
   strum_pattern,
@@ -5388,8 +5429,8 @@ function normalizeMetronomePreset(preset, index = 0) {
   const trackerMode = TRACKER_MODE_OPTIONS.some((option) => option.id === preset?.trackerMode) ? preset.trackerMode : "off";
   const name = String(preset?.name || `${METRONOME_PRESET_DEFAULT_NAME} ${index + 1}`).trim().slice(0, 24) || METRONOME_PRESET_DEFAULT_NAME;
   const tone = getMetronomeToneOption(preset?.tone)?.id || "tick";
-  const accentTone = getMetronomeToneOption(preset?.accentTone ?? preset?.tone ?? "kick")?.id || "kick";
-  const weakTone = getMetronomeToneOption(preset?.weakTone ?? preset?.tone ?? "rim")?.id || "rim";
+  const accentTone = getMetronomeToneOption(preset?.accentTone ?? preset?.tone ?? "tick")?.id || "tick";
+  const weakTone = getMetronomeToneOption(preset?.weakTone ?? preset?.tone ?? "tick")?.id || "tick";
 
   return {
     id: String(preset?.id || createLocalId("metro-preset")),
@@ -6066,6 +6107,7 @@ function MetronomeControl({
   onWeakToneChange = () => {},
   optionsCollapseLabel = "매트로놈 설정",
   optionsCollapsed = false,
+  optionsHeaderToggle = false,
   repeatEnabled = false,
   showCountIn = true,
   showAccent = true,
@@ -6075,6 +6117,7 @@ function MetronomeControl({
   subdivision = "quarter",
   timeSignature = "4/4",
   tone = "tick",
+  toneControlsAfterSubdivision = false,
   weakTone = "tick",
 }) {
   const [draftBpm, setDraftBpm] = useState(String(bpm));
@@ -6338,16 +6381,31 @@ function MetronomeControl({
       <div
         className={`metronomeOptions ${splitToneControls ? "metronomeOptions--splitTone" : ""} ${
           optionsCollapsed ? "metronomeOptions--collapsed" : ""
-        }`}
+        } ${optionsHeaderToggle ? "metronomeOptions--headerToggle" : ""}`}
         id={`${inputId}-options`}
         onClick={
-          optionsCollapsed && onOptionsCollapseChange
+          !optionsHeaderToggle && optionsCollapsed && onOptionsCollapseChange
             ? () => onOptionsCollapseChange(false)
             : undefined
         }
       >
+        {optionsHeaderToggle && onOptionsCollapseChange ? (
+          <button
+            aria-controls={`${inputId}-options`}
+            aria-expanded={!optionsCollapsed}
+            aria-label={`${optionsCollapseLabel} ${optionsCollapsed ? "펼치기" : "접기"}`}
+            className="metronomeOptionsHeaderButton"
+            onClick={() => onOptionsCollapseChange(!optionsCollapsed)}
+            type="button"
+          >
+            <strong>{optionsCollapseLabel}</strong>
+            <b aria-hidden="true">{optionsCollapsed ? "⌄" : "⌃"}</b>
+          </button>
+        ) : null}
         {optionsCollapsed ? (
-          <strong className="metronomeOptionsCollapsedTitle">{optionsCollapseLabel}</strong>
+          optionsHeaderToggle
+            ? null
+            : <strong className="metronomeOptionsCollapsedTitle">{optionsCollapseLabel}</strong>
         ) : (
           <>
         <MetronomeSelectControl
@@ -6358,7 +6416,7 @@ function MetronomeControl({
           options={TIME_SIGNATURE_OPTIONS}
           value={timeSignature}
         />
-        {splitToneControls ? (
+        {splitToneControls && !toneControlsAfterSubdivision ? (
           <MetronomeSelectControl
             ariaLabel="1박 음색"
             className="metronomeSelectControl--tonePicker metronomeSelectControl--toneSlot metronomeSelectControl--accentTone"
@@ -6378,6 +6436,18 @@ function MetronomeControl({
           options={SUBDIVISION_OPTIONS}
           value={subdivision}
         />
+        {splitToneControls && toneControlsAfterSubdivision ? (
+          <MetronomeSelectControl
+            ariaLabel="1박 음색"
+            className="metronomeSelectControl--tonePicker metronomeSelectControl--toneSlot metronomeSelectControl--accentTone"
+            label="음색 1박"
+            labelDot="strong"
+            layout="grid"
+            onChange={onAccentToneChange}
+            options={METRONOME_TONE_OPTIONS}
+            value={accentTone}
+          />
+        ) : null}
         {splitToneControls ? (
           <MetronomeSelectControl
             ariaLabel="나머지 박 음색"
@@ -6401,7 +6471,7 @@ function MetronomeControl({
         )}
           </>
         )}
-        {onOptionsCollapseChange ? (
+        {onOptionsCollapseChange && !optionsHeaderToggle ? (
           <button
             aria-controls={`${inputId}-options`}
             aria-expanded={!optionsCollapsed}
@@ -6427,6 +6497,7 @@ function MetronomeTimeline({
   beatsPerMeasure = 4,
   compact = false,
   currentLabel,
+  dotClassName,
   isPlaying,
   onBeatClick,
   progress,
@@ -7398,7 +7469,43 @@ const GUITAR_LAB_VARIANTS = [
   ["acoustic-core-dread-01", "Acoustic", "Core Dread 01", "진한 자개 로제트와 위로 정리된 브릿지 위치를 적용한 기본 드레드넛 후보", "#b97836", "#f1ca7a", "core-dread-01"],
   ["acoustic-core-dread-02", "Acoustic", "Core Dread 02", "마호가니 톤을 유지하면서 사운드홀과 브릿지 간격을 좁힌 후보", "#8f5230", "#f8e8b0", "core-dread-02"],
   ["acoustic-core-dread-03", "Acoustic", "Core Dread 03", "선버스트 깊이감과 진한 자개 사운드홀을 더한 스테이지용 후보", "#c06f24", "#1a0e06", "core-dread-03"],
-].map(([id, pack, model, description, bodyColor, accentColor, shape, assetSrc, projectileAssetSrc], index) => ({
+  ...FRETIVA_INSTRUMENT_SKIN_PACK_V1.map((skin) => [
+    skin.id,
+    skin.pack,
+    skin.title,
+    skin.description,
+    "#18191d",
+    "#d9aa55",
+    "image-fretiva-instrument-skin-v1",
+    skin.assetSrc,
+    undefined,
+    skin.instrumentSkinPack,
+  ]),
+  ...FRETIVA_GUITAR_ADDON_V2.map((skin) => [
+    skin.id,
+    skin.pack,
+    skin.title,
+    skin.description,
+    "#18191d",
+    "#d9aa55",
+    "image-fretiva-guitar-addon-v2",
+    skin.assetSrc,
+    undefined,
+    skin.instrumentSkinPack,
+  ]),
+  ...FRETIVA_CREATIVE_INSTRUMENT_PACK_V3.map((skin) => [
+    skin.id,
+    skin.pack,
+    skin.title,
+    skin.description,
+    "#18191d",
+    "#d9aa55",
+    "image-fretiva-creative-instrument-v3",
+    skin.assetSrc,
+    undefined,
+    skin.instrumentSkinPack,
+  ]),
+].map(([id, pack, model, description, bodyColor, accentColor, shape, assetSrc, projectileAssetSrc, instrumentSkinPack], index) => ({
   id,
   pack,
   model,
@@ -7409,6 +7516,7 @@ const GUITAR_LAB_VARIANTS = [
   shape,
   assetSrc,
   projectileAssetSrc,
+  instrumentSkinPack,
   index: index + 1,
 }));
 const DEFAULT_GUITAR_LAB_VARIANT_ID = "acoustic-real-trace";
@@ -7513,6 +7621,30 @@ const SHOOTER_PLAYER_GUITAR_GEOMETRY_BY_VARIANT_ID = {
     collisionHeight: SHOOTER_TRACE_GUITAR_LEGACY_COLLISION_HEIGHT,
     muzzleHeightScale: 1,
   },
+  ...Object.fromEntries(FRETIVA_INSTRUMENT_SKIN_PACK_V1.map((skin) => [
+    skin.id,
+    {
+      collisionAspectRatio: skin.collisionAspectRatio,
+      collisionHeight: SHOOTER_TRACE_GUITAR_LEGACY_COLLISION_HEIGHT,
+      muzzleHeightScale: skin.muzzleHeightScale,
+    },
+  ])),
+  ...Object.fromEntries(FRETIVA_GUITAR_ADDON_V2.map((skin) => [
+    skin.id,
+    {
+      collisionAspectRatio: skin.collisionAspectRatio,
+      collisionHeight: SHOOTER_TRACE_GUITAR_LEGACY_COLLISION_HEIGHT,
+      muzzleHeightScale: skin.muzzleHeightScale,
+    },
+  ])),
+  ...Object.fromEntries(FRETIVA_CREATIVE_INSTRUMENT_PACK_V3.map((skin) => [
+    skin.id,
+    {
+      collisionAspectRatio: skin.collisionAspectRatio,
+      collisionHeight: SHOOTER_TRACE_GUITAR_LEGACY_COLLISION_HEIGHT,
+      muzzleHeightScale: skin.muzzleHeightScale,
+    },
+  ])),
 };
 const SHOOTER_PLAYER_GUITAR_VARIANT_IDS = [
   SHOOTER_TRACE_GUITAR_VARIANT_ID,
@@ -7531,6 +7663,9 @@ const SHOOTER_PLAYER_GUITAR_VARIANT_IDS = [
   SHOOTER_JP_SUNBURST_GOLD_BASS_VARIANT_ID,
   SHOOTER_JP_AQUA_BLUE_VARIANT_ID,
   SHOOTER_JP_B_RED_VARIANT_ID,
+  ...FRETIVA_INSTRUMENT_SKIN_IDS,
+  ...FRETIVA_GUITAR_ADDON_V2_IDS,
+  ...FRETIVA_CREATIVE_INSTRUMENT_PACK_V3_IDS,
 ];
 const SHOOTER_GUITAR_CATEGORIES = {
   ACOUSTIC: "acoustic",
@@ -8354,7 +8489,8 @@ const SHOOTER_EFFECT_SET_PAIRS = [
   floor: SHOOTER_FLOOR_EFFECT_OPTIONS.find((effect) => effect.id === pair.floorId),
 }));
 const SHOOTER_STANDALONE_FLOOR_EFFECT_OPTIONS = SHOOTER_FLOOR_EFFECT_OPTIONS.filter(
-  (effect) => effect.id !== "none" && !SHOOTER_EFFECT_SET_PAIRS.some((pair) => pair.floorId === effect.id),
+  (effect) => effect.id !== "none"
+    && !SHOOTER_EFFECT_SET_PAIRS.some((pair) => pair.floorId === effect.id),
 );
 const getShooterSkinGuitarTitle = (title) => String(title ?? "").replace(/^JP\s+/i, "");
 const SHOOTER_EFFECT_OPTIONS_BY_SLOT = {
@@ -8399,6 +8535,9 @@ const SHOOTER_GUITAR_CATEGORY_BY_VARIANT_ID = {
   [SHOOTER_JP_SUNBURST_GOLD_BASS_VARIANT_ID]: SHOOTER_GUITAR_CATEGORIES.BASS,
   [SHOOTER_JP_AQUA_BLUE_VARIANT_ID]: SHOOTER_GUITAR_CATEGORIES.BASS,
   [SHOOTER_JP_B_RED_VARIANT_ID]: SHOOTER_GUITAR_CATEGORIES.BASS,
+  ...Object.fromEntries(FRETIVA_INSTRUMENT_SKIN_PACK_V1.map((skin) => [skin.id, skin.category])),
+  ...Object.fromEntries(FRETIVA_GUITAR_ADDON_V2.map((skin) => [skin.id, skin.category])),
+  ...Object.fromEntries(FRETIVA_CREATIVE_INSTRUMENT_PACK_V3.map((skin) => [skin.id, skin.category])),
 };
 const FRESH_GUITAR_VARIANT_IDS = new Set([
   ...SHOOTER_PLAYER_GUITAR_VARIANT_IDS,
@@ -8419,11 +8558,20 @@ function getShooterMonsterSkinById(skinId) {
   return getShooterNoteMonsterSkin(skinId);
 }
 
-function getShooterMapById(mapId) {
+function getShooterMapById(
+  mapId,
+  { isMobileLayout = true, includeMobileOnly = false, isPortraitLayout = true } = {},
+) {
   const normalizedMapId = SHOOTER_MAP_LEGACY_ID_MAP[mapId] ?? mapId;
-  return SHOOTER_MAP_OPTIONS.find((map) => map.id === normalizedMapId)
-    ?? SHOOTER_MAP_OPTIONS.find((map) => map.id === DEFAULT_SHOOTER_MAP_ID)
-    ?? SHOOTER_MAP_OPTIONS[0];
+  const layoutOptions = SHOOTER_MAP_OPTIONS.filter(
+    (map) => isShooterMapAvailableForLayout(map, isMobileLayout, {
+      includeMobileOnly,
+      isPortraitLayout,
+    }),
+  );
+  return layoutOptions.find((map) => map.id === normalizedMapId)
+    ?? layoutOptions.find((map) => map.id === DEFAULT_SHOOTER_MAP_ID)
+    ?? layoutOptions[0];
 }
 
 function getShooterMapCssVars(map) {
@@ -8510,6 +8658,8 @@ function getShooterEffectLayers(effect) {
         className: layer.className ?? effect.className,
         type: effect.type,
         effectId: effect.id,
+        effectPack: layer.effectPack ?? effect.effectPack ?? null,
+        variant: layer.variant ?? effect.variant ?? null,
         scale: layer.scale ?? effect.scale ?? anchorPreset?.scale ?? 1,
         offsetX: anchorOffset.offsetX,
         offsetY: anchorOffset.offsetY,
@@ -8587,6 +8737,7 @@ function ShooterEffectOptionButton({ className = "", effect, isSelected, onSelec
           {effectPreviewLayers.map((layer) => (
             <span
               className={getShooterEffectPreviewLayerClassName(layer)}
+              data-effect-pack={layer.effectPack || undefined}
               key={`preview-${layer.key}`}
               style={getShooterEffectPreviewLayerStyle(layer)}
             >
@@ -8620,20 +8771,20 @@ function preloadShooterEffectImage(src) {
   image.decoding = "async";
   const promise = new Promise((resolve) => {
     let settled = false;
-    const finish = () => {
+    const finish = (loaded = false) => {
       if (settled) return;
       settled = true;
-      resolve();
+      resolve(loaded);
     };
 
     image.addEventListener("load", () => {
       if (typeof image.decode !== "function") {
-        finish();
+        finish(true);
         return;
       }
-      image.decode().catch(() => undefined).finally(finish);
+      image.decode().then(() => finish(true)).catch(() => finish(false));
     }, { once: true });
-    image.addEventListener("error", finish, { once: true });
+    image.addEventListener("error", () => finish(false), { once: true });
     image.src = src;
   });
 
@@ -8644,6 +8795,26 @@ function preloadShooterEffectImage(src) {
 function preloadShooterEffectImages(effect) {
   const imageSources = [...new Set(getShooterEffectLayers(effect).map((layer) => layer.asset).filter(Boolean))];
   return Promise.all(imageSources.map(preloadShooterEffectImage)).then(() => undefined);
+}
+
+function preloadShooterMapImages(map) {
+  if (!map) return Promise.resolve();
+  const fallbackPairs = [
+    map.background,
+    map.architectureMask,
+    map.animatedBackdrop,
+    map.foregroundOccluder,
+  ].filter((asset) => asset?.src);
+  const preferredSources = getShooterMapAssetSources(map, { includeFallbacks: false });
+  return Promise.all([
+    ...preferredSources.map(preloadShooterEffectImage),
+    ...fallbackPairs.map(async (asset) => {
+      const preferredReady = await preloadShooterEffectImage(asset.src);
+      if (!preferredReady && asset.fallbackSrc) {
+        await preloadShooterEffectImage(asset.fallbackSrc);
+      }
+    }),
+  ]).then(() => undefined);
 }
 
 let shooterGuitarCabinetPreloadPromise = null;
@@ -8703,18 +8874,47 @@ function getBeatDotState(state) {
   return "weak";
 }
 
-function BeatDot({ active = false, className = "", label, onClick, state = "weak", style, title }) {
+function BeatDot({
+  activateOnPointerUp = false,
+  active = false,
+  className = "",
+  label,
+  onClick,
+  state = "weak",
+  style,
+  title,
+}) {
+  const lastPointerActivationRef = useRef(0);
   const dotState = getBeatDotState(state);
   const Component = onClick ? "button" : "span";
   const stateLabel = dotState === "strong" ? "1박" : dotState === "mute" ? "무음" : "나머지 박";
   const isTrainingDot = className.split(" ").includes("trainingBeatDot");
+  const handleClick = onClick
+    ? (event) => {
+        if (activateOnPointerUp && Date.now() - lastPointerActivationRef.current < 700) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+        onClick(event);
+      }
+    : undefined;
+  const handlePointerUp = activateOnPointerUp && onClick
+    ? (event) => {
+        if (event.pointerType !== "touch" && event.pointerType !== "pen") return;
+        lastPointerActivationRef.current = Date.now();
+        event.preventDefault();
+        onClick(event);
+      }
+    : undefined;
 
   if (isTrainingDot) {
     return (
       <Component
         aria-label={label ?? stateLabel}
         className={`trainingBeatDotPlain ${active ? "active" : ""} ${className}`}
-        onClick={onClick}
+        onClick={handleClick}
+        onPointerUp={handlePointerUp}
         style={style}
         title={title ?? stateLabel}
         type={onClick ? "button" : undefined}
@@ -8728,7 +8928,8 @@ function BeatDot({ active = false, className = "", label, onClick, state = "weak
     <Component
       aria-label={label ?? stateLabel}
       className={`beatDot beatDot--${dotState} ${active ? "active" : ""} ${className}`}
-      onClick={onClick}
+      onClick={handleClick}
+      onPointerUp={handlePointerUp}
       style={style}
       title={title ?? stateLabel}
       type={onClick ? "button" : undefined}
@@ -10399,12 +10600,18 @@ function MiniChordArrangementEditorDialog({
 }
 
 function MetronomeTransportCard({
+  actionAriaLabel = "메트로놈 실행과 탭 템포",
+  actionOrder = "play-tap",
+  actionPanelClassName = "",
   ariaLabel,
   bpm,
   bpmPreview = false,
   bpmPreviewKey,
   bpmControlsDisabled = false,
   cardClassName = "",
+  countInClassName = "",
+  countInDisabled = false,
+  countInEnabled = false,
   isPlaying,
   onBeforeBpmChange,
   onBpmButtonPointerCancel,
@@ -10415,12 +10622,19 @@ function MetronomeTransportCard({
   onCardPointerDown,
   onCardPointerMove,
   onCardPointerUp,
+  onCountInChange,
   onStart,
   onStop,
   onTapTempo,
   onTapTempoPressFeedback,
+  playButtonClassName = "",
+  playDisabled = false,
+  playIdleText = "PLAY",
+  playPending = false,
+  playPendingText = "준비중",
   playStartLabel = "메트로놈 시작",
   playStopLabel = "메트로놈 정지",
+  showCountIn = false,
   swipeEnabled = false,
   tapTempoDisabled = false,
   tapTempoLabel = "탭 템포로 BPM 설정",
@@ -10436,6 +10650,63 @@ function MetronomeTransportCard({
   const handleBpmPointerDown = (controlId, event) => {
     onBpmButtonPointerDown?.(controlId, event);
   };
+
+  const playButton = (
+    <button
+      aria-busy={playPending || undefined}
+      aria-label={isPlaying ? playStopLabel : playStartLabel}
+      className={`metronomeHeroPlayButton ${playButtonClassName} ${isPlaying ? "reset" : "primary"} ${
+        playPending ? "preparing" : ""
+      }`.trim()}
+      disabled={playDisabled}
+      onClick={(event) => {
+        event.stopPropagation();
+        if (isPlaying) {
+          onStop();
+          return;
+        }
+        onStart();
+      }}
+      type="button"
+    >
+      <span className="metronomeHeroActionIcon" aria-hidden="true">
+        {isPlaying ? (
+          <Square size={15} />
+        ) : playPending ? (
+          <LoaderCircle className="stage3StartLoadingIcon" size={15} />
+        ) : (
+          <Play size={18} />
+        )}
+      </span>
+      <span className="metronomeHeroActionText">
+        {isPlaying ? "STOP" : playPending ? playPendingText : playIdleText}
+      </span>
+    </button>
+  );
+
+  const tapButton = (
+    <button
+      aria-label={tapTempoLabel}
+      className={`metronomeHeroTapTempoButton ${tapTempoPressTick > 0 ? "is-tapping" : ""}`}
+      disabled={tapTempoDisabled}
+      onClick={(event) => {
+        event.stopPropagation();
+        onTapTempoPressFeedback?.();
+        onTapTempo();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === " " || event.key === "Enter") onTapTempoPressFeedback?.();
+      }}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+        onTapTempoPressFeedback?.();
+      }}
+      type="button"
+    >
+      <TapTempoGlyph />
+      <span className="metronomeHeroActionText">TAP</span>
+    </button>
+  );
 
   return (
     <div
@@ -10510,46 +10781,20 @@ function MetronomeTransportCard({
           +10
         </button>
       </div>
-      <div className="metronomeHeroActionPanel" aria-label="메트로놈 실행과 탭 템포">
-        <button
-          aria-label={isPlaying ? playStopLabel : playStartLabel}
-          className={`metronomeHeroPlayButton ${isPlaying ? "reset" : "primary"}`}
-          onClick={(event) => {
-            event.stopPropagation();
-            if (isPlaying) {
-              onStop();
-              return;
-            }
-            onStart();
-          }}
-          type="button"
-        >
-          <span className="metronomeHeroActionIcon" aria-hidden="true">
-            {isPlaying ? <Square size={15} /> : <Play size={18} />}
-          </span>
-          <span className="metronomeHeroActionText">{isPlaying ? "STOP" : "PLAY"}</span>
-        </button>
-        <button
-          aria-label={tapTempoLabel}
-          className={`metronomeHeroTapTempoButton ${tapTempoPressTick > 0 ? "is-tapping" : ""}`}
-          disabled={tapTempoDisabled}
-          onClick={(event) => {
-            event.stopPropagation();
-            onTapTempoPressFeedback?.();
-            onTapTempo();
-          }}
-          onKeyDown={(event) => {
-            if (event.key === " " || event.key === "Enter") onTapTempoPressFeedback?.();
-          }}
-          onPointerDown={(event) => {
-            event.stopPropagation();
-            onTapTempoPressFeedback?.();
-          }}
-          type="button"
-        >
-          <TapTempoGlyph />
-          <span className="metronomeHeroActionText">TAP</span>
-        </button>
+      <div
+        className={`metronomeHeroActionPanel ${actionPanelClassName}`.trim()}
+        aria-label={actionAriaLabel}
+      >
+        {actionOrder === "tap-play" ? tapButton : playButton}
+        {actionOrder === "tap-play" ? playButton : tapButton}
+        {showCountIn ? (
+          <CountInToggleButton
+            className={`${countInClassName} metronomeHeroCountInButton`.trim()}
+            disabled={countInDisabled}
+            enabled={countInEnabled}
+            onChange={onCountInChange}
+          />
+        ) : null}
       </div>
     </div>
   );
@@ -11831,6 +12076,7 @@ function GuitarAssetSvg({ variant, className = "", compact = false }) {
       <img
         alt={`${variant.title} guitar asset`}
         className={`guitarAssetSvg guitarAssetImage guitarAssetImage--${variant.id} ${className}`}
+        data-instrument-skin-pack={variant.instrumentSkinPack}
         draggable="false"
         src={variant.assetSrc}
       />
@@ -12360,6 +12606,7 @@ function getTrainingDetailTitle(category) {
 }
 
 function BeatIndicator({
+  activateDotsOnPointerUp = false,
   beat,
   beatPattern,
   beatsPerMeasure = 4,
@@ -12379,6 +12626,7 @@ function BeatIndicator({
       : [dots];
   const renderDot = (beatNumber) => (
     <BeatDot
+      activateOnPointerUp={activateDotsOnPointerUp}
       active={beat === beatNumber && isPlaying}
       className={dotClassName}
       key={beatNumber}
@@ -12427,8 +12675,8 @@ const createDefaultMetronomeSettings = () => ({
   timeSignature: "4/4",
   subdivision: "quarter",
   tone: "tick",
-  accentTone: "kick",
-  weakTone: "rim",
+  accentTone: "tick",
+  weakTone: "tick",
   accent: true,
   countIn: false,
   countInBars: 0,
@@ -12481,6 +12729,11 @@ const MIN_FREQ = 75;
 const MAX_FREQ = 900;
 const LOW_SIGNAL_LEVEL = 0.012;
 const ACTIVE_SIGNAL_LEVEL = 0.018;
+function getMicrophoneSignalDisplayBand(level) {
+  if (level >= ACTIVE_SIGNAL_LEVEL) return "active";
+  if (level > 0 && level < LOW_SIGNAL_LEVEL) return "low";
+  return "idle";
+}
 const RHYTHM_SUBDIVISIONS = {
   One: { label: "1/4", hint: "한 박에 한 음", beats: 6, notesPerBeat: 1 },
   Two: { label: "1/8", hint: "1 & 2 & 연속", beats: 6, notesPerBeat: 2 },
@@ -12595,175 +12848,197 @@ const HELP_GUIDE_SECTIONS = [
   {
     id: "welcome",
     title: "👋 FRETIVA LAB에 오신 것을 환영합니다",
-    summary: "앱을 만든 이유와 전하고 싶은 이야기",
+    summary: "처음 연습할 때 알아둘 핵심만 빠르게 보기",
     group: "start",
     content: (
       <>
-        <p>안녕하세요. FRETIVA LAB을 사용해주셔서 감사합니다.</p>
-        <p>
-          기타를 배우면서 단순히 연습만 하기보다, <b>조금 더 재미있게 연습하고 내가 만든 연습이나 결과를 주변 사람들과 공유할 수 있으면 좋겠다</b>는 생각에서 시작한 앱입니다.
-        </p>
-        <p>
-          전문적인 개발이나 음악을 전공한 사람이 만든 서비스가 아니라, 기타를 취미로 배우면서 <b>“이런 기능이 있으면 연습할 때 편하겠다”, “이렇게 하면 조금 더 재미있게 기타를 배울 수 있겠다”</b>고 생각했던 것들을 하나씩 직접 만들어보았습니다.
-        </p>
-        <p>그래서 아직 부족하거나 예상하지 못한 부분이 있을 수 있습니다. 조금 너그럽게 봐주시고 편하게 사용해주시면 감사하겠습니다.</p>
-        <p>
-          대신 사용하면서 불편했던 점이나 오류, <b>“이건 이렇게 바뀌면 더 좋겠다”</b> 싶은 아이디어가 있다면 피드백은 언제든 환영합니다.
-        </p>
-        <p>FRETIVA LAB이 거창한 무언가라기보다, 기타를 연습할 때 한 번 더 손이 가는 <b>작고 재미있는 연습 도구</b>가 되었으면 좋겠습니다.</p>
+        <p>FRETIVA LAB은 튜닝, 지판, 리듬, 반주와 녹음 도구를 한곳에 모은 <b>기타 연습 앱</b>입니다.</p>
+        <div className="helpFlow" aria-label="튜닝, 참고 지판, 메트로놈 순서로 시작">
+          <span>튜닝 확인</span><i aria-hidden="true">→</i><span>참고 지판 연습</span><i aria-hidden="true">→</i><span>메트로놈·반주 연결</span>
+        </div>
+        <p>처음이라면 위 순서대로 시작하고, 익숙해지면 리듬코드·미니반주·슈팅게임을 더해보세요.</p>
         <p className="helpClosingMessage">즐겁게 연습하세요. 🎸</p>
       </>
     ),
   },
   {
+    id: "shared-features",
+    title: "🧭 화면 이동과 공통 기능",
+    summary: "주요 도구와 연습 모드는 여기서 찾습니다",
+    group: "start",
+    content: (
+      <>
+        <div className="helpFactCard">
+          <strong>주요 내비게이션</strong>
+          <p>자주 쓰는 도구는 내비게이션에서, 세부 연습 모드는 <b>메뉴</b>에서 엽니다.</p>
+        </div>
+        <div className="helpNavMap" aria-label="주요 내비게이션 안내">
+          <div><b>🎵 튜너</b><span>악기와 튜닝 선택</span></div>
+          <div><b>🗺️ 지판 보기</b><span>음·코드·스케일 확인</span></div>
+          <div><b>⏱️ 메트로놈</b><span>템포와 연습량 관리</span></div>
+          <div><b>👾 슈팅게임</b><span>기타 음으로 목표 맞히기</span></div>
+          <div><b>⚙️ 메뉴</b><span>연습 모드·오디오·설정</span></div>
+        </div>
+        <p className="helpInfoNote">모바일과 데스크톱은 화면 배치가 다를 수 있지만 <b>연습 데이터와 기능은 동일하게 동작</b>합니다.</p>
+      </>
+    ),
+  },
+  {
     id: "single-note",
-    title: "🎯 01 · 단일음 연습",
-    summary: "개방현과 0~3프렛을 익히는 첫 단계",
+    title: "🎯 01 · 단일음",
+    summary: "참고 지판을 보며 제로포지션 익히기",
     group: "practice",
     content: (
       <>
-        <p>기타 지판을 처음 익힐 때 사용하는 기초 훈련입니다.</p>
-        <p><b>개방현부터 3프렛까지의 음 위치</b>를 시작으로 기타의 기본적인 음 배치를 눈과 손으로 익힐 수 있습니다.</p>
-        <p>처음부터 지판 전체를 외우려고 하기보다 개방현과 낮은 프렛부터 천천히 익혀보세요.</p>
-        <strong>추천 흐름</strong>
-        <div className="helpFlow" aria-label="개방현 확인, 1에서 3프렛 음 위치, 화면을 보면서 직접 연주">
-          <span>개방현 확인</span><i aria-hidden="true">→</i><span>1~3프렛 음 위치</span><i aria-hidden="true">→</i><span>화면을 보면서 직접 연주</span>
+        <p><b>개방현과 낮은 프렛의 음 위치</b>를 참고 지판으로 보면서 따라 연주하는 모드입니다.</p>
+        <div className="helpFlow" aria-label="단일음 연습 순서">
+          <span>단일음 열기</span><i aria-hidden="true">→</i><span>참고 지판 확인</span><i aria-hidden="true">→</i><span>BPM 설정 후 재생</span>
         </div>
+        <p>화면에 표시되는 음과 위치를 천천히 반복하세요. 이 모드는 마이크로 연주를 자동 채점하지 않습니다.</p>
       </>
     ),
   },
   {
     id: "scale-pentatonic",
     title: "🎸 02 · 스케일 · 펜타토닉",
-    summary: "조성과 박스 패턴을 지판에서 연결하기",
+    summary: "키·타입·박스를 고르고 참고 지판 따라가기",
     group: "practice",
     content: (
       <>
-        <p>메이저·마이너 스케일과 펜타토닉을 지판 위에서 연습할 수 있습니다.</p>
-        <p>각 조성(Key)과 <b>박스 1~5</b>를 바로 선택할 수 있도록 구성되어 있습니다.</p>
-        <p>박스 패턴은 하나의 구조를 익히면 조성에 따라 지판에서 위치를 이동하여 활용할 수 있습니다. 예를 들어 C에서 패턴을 충분히 익힌 뒤 다른 조성으로 이동하면서 같은 구조를 연결해보세요.</p>
-        <p>원하는 조성과 박스를 선택하면 해당 위치를 바로 확인할 수 있습니다.</p>
-        <strong>반복 반주 · Backing Loop</strong>
-        <p>스케일 화면 하단의 반복 반주 기능을 함께 활용할 수 있습니다.</p>
-        <div className="helpFlow helpFlow--example" aria-label="C 조성 코드 진행을 녹음하고 반복 재생한 뒤 C 스케일 또는 C 펜타토닉 연주">
-          <span>C 조성 코드 진행 녹음</span><i aria-hidden="true">→</i><span>반복 재생</span><i aria-hidden="true">→</i><span>C 스케일 또는 펜타토닉 연주</span>
+        <p>메이저·마이너 <b>스케일 또는 펜타토닉</b>의 위치를 참고 지판으로 보며 연습합니다.</p>
+        <div className="helpFlow" aria-label="스케일과 펜타토닉 연습 순서">
+          <span>키 선택</span><i aria-hidden="true">→</i><span>스케일·타입 선택</span><i aria-hidden="true">→</i><span>BOX 1~5 선택</span><i aria-hidden="true">→</i><span>지판 따라 연주</span>
         </div>
-        <p>패턴의 위치만 반복해서 외우는 것보다 실제 반주 위에서 직접 음을 사용해보는 데 도움이 됩니다.</p>
+        <p>BPM과 메트로놈을 맞춘 뒤 반복하고, 필요하면 <b>Backing Loop</b>에 반주를 불러오거나 녹음해 함께 재생하세요. 이 모드도 자동 채점이 아닌 참고 지판 중심 연습입니다.</p>
       </>
     ),
   },
   {
     id: "rhythm-chord",
     title: "🔥 03 · 리듬코드",
-    summary: "박자에 맞춰 코드 전환 속도 높이기",
+    summary: "코드·박 길이·쉼표를 조합해 전환 연습",
     group: "practice",
     content: (
       <>
-        <p><b>코드 전환을 박자에 맞춰 연습하는 모드</b>입니다.</p>
-        <p>내가 연습하고 싶은 코드 진행을 직접 입력하고, 화면에 진행되는 코드를 눈으로 따라가면서 일정한 박자에 맞춰 코드를 전환할 수 있습니다.</p>
-        <div className="helpChordProgression" aria-label="C, G, A minor, F 코드 진행">
-          <span>C</span><i aria-hidden="true">→</i><span>G</span><i aria-hidden="true">→</i><span>Am</span><i aria-hidden="true">→</i><span>F</span>
+        <p>내가 만든 코드 진행을 화면과 참고 지판으로 보며 박자에 맞춰 전환하는 모드입니다.</p>
+        <div className="helpFlow" aria-label="리듬코드 사용 순서">
+          <span>LOAD 열기</span><i aria-hidden="true">→</i><span>코드·운지 선택</span><i aria-hidden="true">→</i><span>박 길이로 추가</span><i aria-hidden="true">→</i><span>저장 후 START</span>
         </div>
-        <p>진행을 입력한 뒤 반복해서 연주하며 코드 전환 속도와 리듬을 함께 연습할 수 있습니다.</p>
-        <p>코드는 알고 있지만 실제 곡에서 코드가 바뀔 때 손이 늦는다면 활용해보세요.</p>
+        <ul className="helpFactList">
+          <li>선택한 코드를 <b>1박·2박·4박</b> 길이로 추가하고, <b>1박 쉼</b>으로 쉼표를 넣습니다.</li>
+          <li>LOAD 화면의 미니 지판에서 음 위치를 편집한 뒤 추가하면 <b>편집한 운지도 진행과 함께 저장</b>됩니다.</li>
+          <li>제목을 붙여 저장하면 사용자 진행에서 다시 불러올 수 있습니다. 추천 진행도 바로 선택할 수 있습니다.</li>
+        </ul>
       </>
     ),
   },
   {
     id: "mini-backing",
     title: "🎼 04 · 미니반주",
-    summary: "코드와 마디를 입력해 연습 반주 만들기",
+    summary: "마디에 코드를 넣어 드럼·베이스·피아노 반주 만들기",
     group: "practice",
     content: (
       <>
-        <p>직접 코드와 마디를 입력하여 <b>나만의 간단한 연습용 반주</b>를 만들 수 있습니다.</p>
-        <p>악보를 입력한 뒤 <b>피아노 / 베이스 / 드럼</b>을 설정하고 각 악기의 리듬을 조절하여 기타 연습용 반주로 사용할 수 있습니다.</p>
-        <strong>구간별 편곡 · Arrangement</strong>
-        <p>편곡 기능을 이용하면 곡 전체를 같은 반주로 재생하지 않아도 됩니다.</p>
-        <p>원하는 마디 구간을 선택하고 구간별로 서로 다른 리듬과 반주를 설정할 수 있습니다.</p>
-        <div className="helpSectionTags" aria-label="인트로, 벌스, 코러스, 브리지">
-          <span>인트로 · INTRO</span><span>벌스 · VERSE</span><span>코러스 · CHORUS</span><span>브리지 · BRIDGE</span>
+        <p>코드를 마디에 배치해 <b>드럼·베이스·피아노</b>가 연주하는 간단한 반주를 만듭니다.</p>
+        <div className="helpFlow" aria-label="미니반주 사용 순서">
+          <span>마디 수 선택</span><i aria-hidden="true">→</i><span>코드 입력</span><i aria-hidden="true">→</i><span>BPM·리듬 설정</span><i aria-hidden="true">→</i><span>재생·저장</span>
         </div>
-        <p>벌스는 차분하게, 코러스는 조금 더 강하게 만드는 식으로 직접 곡의 흐름을 만들어보세요.</p>
+        <p>필요하면 CAPO, 도돌이·엔딩 기호와 <b>Section 편곡</b>으로 구간별 패턴을 다르게 설정하세요. 제목을 입력해 저장하면 불러오기에서 다시 열 수 있습니다.</p>
       </>
     ),
   },
   {
     id: "metronome",
     title: "⏱️ 메트로놈",
-    summary: "박자부터 무음 훈련·자동 템포까지",
+    summary: "BPM·자동 템포·연습량·백킹을 한 화면에서",
     group: "tools",
     badge: "핵심",
     badgeTone: "core",
     content: (
       <>
-        <p>FRETIVA LAB의 주요 연습 기능 중 하나입니다.</p>
-        <p>기본적인 BPM과 박자 설정뿐 아니라 반복 연습을 위한 여러 보조 기능을 함께 사용할 수 있습니다.</p>
-        <strong>악센트 설정 · Accent</strong>
-        <p>메인 화면의 각 박을 직접 눌러 <b>강박 · 약박 · Mute</b>를 지정할 수 있습니다.</p>
-        <p>같은 박자에서도 원하는 위치에 Accent를 주어 다양한 리듬으로 연습할 수 있습니다.</p>
-        <strong>빠른 조작</strong>
-        <p>메인 화면에서 <b>좌우 조작으로 박자를 변경</b>할 수 있습니다.</p>
-        <p>화면 하단의 구분 영역을 위로 올리면 추가 연습 기능도 사용할 수 있습니다.</p>
-        <strong>반복 반주 · Backing Loop</strong>
-        <p>메트로놈을 사용하면서 반주나 연주를 <b>바로 녹음하고 반복 재생</b>할 수 있습니다.</p>
-        <p>기기에 저장된 오디오 파일을 불러와 재생하는 것도 가능합니다. 특정 구간이나 반주를 계속 반복하면서 메트로놈과 함께 연습하고 싶을 때 활용해보세요.</p>
-        <strong>무음 박자 훈련 · Coach Mode</strong>
-        <p>메트로놈 소리가 들리는 구간과 들리지 않는 구간을 반복하여 <b>내부 박자감</b>을 훈련합니다.</p>
-        <p>소리(Sound) / 무음(Mute) 마디를 설정하면 클릭이 일정 마디 동안 재생된 뒤 사라집니다. 소리가 사라져도 같은 템포를 유지해보고, 클릭이 다시 돌아왔을 때 내 박자가 얼마나 정확했는지 확인해보세요.</p>
-        <strong>자동 템포 조절 · Automator</strong>
-        <p>연습 중 BPM을 자동으로 변화시킬 수 있습니다.</p>
-        <p>시간 또는 마디를 기준으로 BPM을 단계적으로 올리거나 내려서, 천천히 시작해 점차 속도를 높이는 반복 연습에 활용할 수 있습니다.</p>
-        <strong>연습량 기록 · Tracker</strong>
-        <p>연습 진행량을 확인하고 반복 연습을 관리하는 데 사용할 수 있습니다.</p>
+        <p>BPM을 직접 조절하거나 <b>TAP</b>으로 템포를 잡은 뒤 박자·분할·음색을 설정하고 재생합니다.</p>
+        <div className="helpFlow" aria-label="메트로놈 사용 순서">
+          <span>BPM·TAP 설정</span><i aria-hidden="true">→</i><span>박자·분할 선택</span><i aria-hidden="true">→</i><span>AUTOMATOR·TRACKER</span><i aria-hidden="true">→</i><span>PLAY</span>
+        </div>
+        <ul className="helpFactList">
+          <li>박 표시를 누르면 <b>강박·일반·무음</b> 상태를 바꿀 수 있습니다.</li>
+          <li><b>AUTOMATOR</b>는 마디 또는 시간 간격마다 BPM을 단계적으로 올리거나 내립니다. Coach Mode에서는 소리·무음 마디를 번갈아 연습합니다.</li>
+          <li><b>TRACKER</b>는 마디 수 또는 시간을 기록하며, 목표 도달 시 정지·초기화 조건을 설정할 수 있습니다.</li>
+          <li>아래 <b>Backing Loop</b> 재생을 함께 사용해 반주와 클릭을 동시에 들을 수 있습니다.</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    id: "backing-audio",
+    title: "🎛️ 백킹 루프 · 오디오 스튜디오",
+    summary: "음원을 불러오고 녹음·반복·편집·저장하기",
+    group: "tools",
+    content: (
+      <>
+        <strong>Backing Loop</strong>
+        <div className="helpFlow" aria-label="백킹 루프 사용 순서">
+          <span>Playlist 열기</span><i aria-hidden="true">→</i><span>App·기기 파일 추가</span><i aria-hidden="true">→</i><span>재생 모드 선택</span>
+        </div>
+        <p>이전·재생·다음 버튼과 <b>전체 반복·한 곡 반복·셔플</b>을 사용할 수 있습니다. REC로 연주를 녹음하고, EDIT로 구간을 다듬은 뒤 SAVE로 보관하세요.</p>
+        <strong>Audio Studio</strong>
+        <div className="helpFlow" aria-label="오디오 스튜디오 사용 순서">
+          <span>편집실 열기</span><i aria-hidden="true">→</i><span>음원 추가</span><i aria-hidden="true">→</i><span>TRIM·배치·볼륨</span><i aria-hidden="true">→</i><span>하나로 저장</span>
+        </div>
+        <p>한 개 이상의 파일을 각 트랙에 불러와 구간과 템포를 다듬고, 파형 위치·볼륨·음소거를 조절합니다. 전체 재생으로 확인한 뒤 <b>WAV 완성 음원</b>으로 저장할 수 있습니다.</p>
       </>
     ),
   },
   {
     id: "shooter",
     title: "👾 슈팅게임",
-    summary: "게임으로 프렛 위치를 반복 학습하기",
+    summary: "기타로 목표 음을 연주해 음표 맞히기",
     group: "tools",
     badge: "핵심",
     badgeTone: "core",
     content: (
       <>
-        <p className="helpSlogan"><b>지판 암기를 조금 더 재미있게 해보자!</b></p>
-        <p>라는 생각으로 만든 게임형 훈련입니다.</p>
-        <p>화면에 나타나는 목표음을 확인하고 해당 음이 있는 프렛 위치를 찾아 플레이합니다.</p>
-        <p>단순히 지판을 보고 외우는 대신 반복적으로 게임을 하면서 자연스럽게 프렛 위치에 익숙해지는 것이 목적입니다.</p>
-        <strong>꾸미기 · Skin</strong>
-        <p>기타와 다양한 시각 효과를 원하는 스타일로 변경할 수 있습니다.</p>
-        <p>마음에 드는 조합으로 꾸미고 편하게 플레이해보세요.</p>
-        <p>점수만 올리는 게임이라기보다 <b>놀면서 지판 위치를 반복해서 보는 연습</b>으로 활용하면 좋습니다.</p>
+        <p>화면에 나타나는 <b>목표 음을 실제 기타로 연주</b>해 다가오는 음표를 맞히는 음 인식 게임입니다.</p>
+        <div className="helpFlow" aria-label="슈팅게임 사용 순서">
+          <span>START</span><i aria-hidden="true">→</i><span>마이크 허용</span><i aria-hidden="true">→</i><span>목표 음 확인</span><i aria-hidden="true">→</i><span>기타로 해당 음 연주</span>
+        </div>
+        <p>한 음씩 또렷하게 연주하면 인식이 안정적입니다. 난이도·도움 표시·계이름과 기타·맵·효과는 원하는 스타일로 바꿀 수 있습니다.</p>
       </>
     ),
   },
   {
     id: "tuner",
     title: "🎵 튜너",
-    summary: "연습 전에 악기의 음정을 정확하게 맞추기",
+    summary: "악기·튜닝과 AUTO·수동 줄을 선택해 조율",
     group: "tools",
     content: (
       <>
-        <p>악기의 음정을 확인하고 조율할 수 있습니다.</p>
-        <p>기타의 <b>표준 튜닝(Standard Tuning)</b>을 비롯한 다양한 튜닝을 선택할 수 있으며 <b>기타 / 베이스 / 우쿨렐레</b>에 맞춰 사용할 수 있습니다.</p>
-        <p>연습을 시작하기 전에 먼저 악기의 튜닝을 확인해보세요.</p>
+        <p><b>기타·베이스·우쿨렐레</b> 중 악기를 고르고 해당 악기의 튜닝을 선택합니다.</p>
+        <div className="helpFlow" aria-label="튜너 사용 순서">
+          <span>악기 선택</span><i aria-hidden="true">→</i><span>튜닝 선택</span><i aria-hidden="true">→</i><span>마이크 허용</span><i aria-hidden="true">→</i><span>한 줄씩 연주</span>
+        </div>
+        <ul className="helpFactList">
+          <li><b>AUTO</b>는 연주한 음을 자동으로 찾습니다. 헤드의 줄을 누르면 해당 줄만 보는 <b>MANUAL</b> 모드가 되며, 다시 누르면 AUTO로 돌아갑니다.</li>
+          <li>게이지의 <b>낮음·높음</b> 방향과 cents 차이를 보며 조율하고, 중앙의 <b>정확</b> 판정을 확인하세요.</li>
+          <li>처음 사용할 때 브라우저의 마이크 권한을 허용해야 합니다. 차단했다면 주소창의 사이트 권한을 바꾼 뒤 마이크 시작을 다시 누르세요.</li>
+        </ul>
       </>
     ),
   },
   {
     id: "fretboard-viewer",
     title: "🗺️ 지판 보기",
-    summary: "음·코드·스케일 위치를 빠르게 찾아보기",
+    summary: "음표·코드·스케일 위치를 빠르게 확인",
     group: "tools",
     badge: "인기",
     badgeTone: "hot",
     content: (
       <>
-        <p>연습 중 필요한 음과 코드의 위치를 빠르게 확인할 수 있는 <b>지판 참고 도구</b>입니다.</p>
-        <p>특정 음이 어디에 있는지 기억나지 않거나 코드의 지판 위치를 확인하고 싶을 때 사용할 수 있습니다.</p>
-        <p>연습 도중 필요할 때 바로 꺼내보는 <b>나만의 지판 사전</b>처럼 활용해보세요.</p>
+        <p><b>음표·코드·스케일/펜타토닉</b> 탭에서 필요한 지판 위치를 찾아보는 참고 도구입니다.</p>
+        <div className="helpFlow" aria-label="지판 보기 사용 순서">
+          <span>탭 선택</span><i aria-hidden="true">→</i><span>음·코드·키 설정</span><i aria-hidden="true">→</i><span>지판 위치 확인</span>
+        </div>
+        <p>코드는 운지 구간과 전체 코드표를, 스케일은 키·타입·박스를 바꿔가며 비교할 수 있습니다.</p>
       </>
     ),
   },
@@ -12774,73 +13049,38 @@ const HELP_GUIDE_SECTIONS = [
     group: "settings",
     content: (
       <>
-        <p>리듬코드와 미니반주에서 사용하는 <b>공통 사운드 및 기본 리듬 설정</b>을 관리합니다.</p>
-        <p>드럼 / 베이스 / 피아노 등의 기본 리듬과 관련 설정을 한 곳에서 조정하고, 관련 연습 모드에서 공통으로 활용할 수 있습니다.</p>
+        <p>리듬코드와 미니반주가 함께 사용하는 <b>드럼·베이스·피아노</b>의 켜기/끄기, 볼륨과 기본 리듬을 조절합니다.</p>
+        <p>여기서 바꾼 설정은 관련 모드에 공통으로 반영됩니다. 각 모드의 화면 배치는 달라도 사운드 설정은 공유됩니다.</p>
       </>
     ),
   },
   {
-    id: "shared-features",
-    title: "🧭 화면과 공통 기능",
-    summary: "아래 내비게이션과 기능 연결부터 확인하세요",
-    group: "start",
-    content: (
-      <>
-        <div className="helpFactCard">
-          <strong>화면 아래 내비게이션</strong>
-          <p>자주 사용하는 도구는 어느 화면에서든 아래 고정 메뉴로 바로 이동할 수 있습니다.</p>
-        </div>
-        <div className="helpNavMap" aria-label="화면 아래 내비게이션 안내">
-          <div><b>🎵 튜너</b><span>악기 음정 맞추기</span></div>
-          <div><b>🗺️ 지판 보기</b><span>음·코드 위치 찾기</span></div>
-          <div><b>⏱️ 메트로놈</b><span>박자와 템포 연습</span></div>
-          <div><b>👾 슈팅게임</b><span>게임으로 지판 익히기</span></div>
-          <div><b>⚙️ 메뉴</b><span>연습 모드와 설정 열기</span></div>
-        </div>
-        <p className="helpInfoNote"><b>단일음·스케일·리듬코드·미니반주</b>는 메뉴에서 선택할 수 있습니다.</p>
-        <strong>공통으로 알아두기</strong>
-        <ul className="helpFactList">
-          <li>메트로놈의 박자 표시를 누르면 각 박을 <b>강박 / 약박 / 무음</b>으로 바꿀 수 있습니다.</li>
-          <li>정확하게 연주할 수 있는 속도에서 시작한 뒤 자동 템포 조절 기능으로 조금씩 올려보세요.</li>
-          <li>각 기능은 따로 쓰기보다 서로 연결해서 사용할 때 연습 효과가 더 좋습니다.</li>
-        </ul>
-        <strong>함께 쓰면 좋은 기능</strong>
-        <ul className="helpFeatureMap">
-          <li><b>단일음</b><span>지판의 기초</span></li>
-          <li><b>지판 보기</b><span>필요한 음과 코드 확인</span></li>
-          <li><b>스케일 · 펜타토닉</b><span>지판 패턴 연결</span></li>
-          <li><b>반복 반주</b><span>반주 위에서 스케일 연주</span></li>
-          <li><b>리듬코드</b><span>코드 전환 연습</span></li>
-          <li><b>미니반주</b><span>직접 만든 반주와 기타 연주</span></li>
-          <li><b>메트로놈</b><span>박자와 템포 훈련</span></li>
-          <li><b>슈팅게임</b><span>게임으로 지판 반복 학습</span></li>
-        </ul>
-        <p>자신에게 지금 필요한 기능부터 하나씩 사용해보세요.</p>
-        <div className="helpSignature" aria-label="FRETIVA LAB, Play Practice Enjoy">
-          <b>FRETIVA LAB</b>
-          <span>Play · Practice · Enjoy</span>
-        </div>
-      </>
-    ),
-  },
-  {
-    id: "feedback",
-    title: "💬 피드백 보내기",
-    summary: "불편한 점과 새로운 아이디어를 알려주세요",
+    id: "usage-info",
+    title: "ℹ️ 이용 안내",
+    summary: "회원가입·개인정보·로컬 저장과 문의 안내",
     group: "settings",
     content: (
       <>
-        <p>사용 중 불편한 점, 오류, 추가되었으면 하는 기능이 있다면 알려주세요.</p>
-        <p>“이건 이렇게 바뀌면 더 좋겠다” 싶은 아이디어도 언제든 환영합니다.</p>
-        <p>보내주신 피드백은 FRETIVA LAB을 더 사용하기 좋은 기타 훈련 앱으로 다듬는 데 활용됩니다.</p>
+        <p>FRETIVA LAB은 <b>회원가입과 결제를 사용하지 않습니다.</b></p>
+        <ul className="helpFactList">
+          <li>연습 기록, 불러온 음원과 녹음 파일은 <b>현재 기기의 브라우저 저장공간에만 보관</b>되며 개발자에게 전송되지 않습니다.</li>
+          <li>마이크는 튜너·기타 음 인식과 사용자가 직접 시작한 녹음 기능에서만 사용됩니다.</li>
+          <li>브라우저 데이터 삭제, 저장공간 정리 또는 기기 변경 시 로컬 데이터가 사라질 수 있습니다. 중요한 음원은 별도로 보관해주세요.</li>
+          <li>불러오는 음원은 본인이 이용 권한을 가진 파일만 사용해주세요.</li>
+        </ul>
+        <strong>문의 및 피드백</strong>
         <a className="helpInstagramLink" href="https://www.instagram.com/sungsu91_/" rel="noreferrer" target="_blank">
           <svg aria-hidden="true" viewBox="0 0 24 24">
             <rect x="4" y="4" width="16" height="16" rx="5" />
             <circle cx="12" cy="12" r="4" />
             <circle cx="17" cy="7" r="1.2" />
           </svg>
-          <span>@sungsu91_</span>
+          <span>Instagram @sungsu91_</span>
         </a>
+        <div className="helpSignature" aria-label="FRETIVA LAB, Play Practice Enjoy">
+          <b>FRETIVA LAB</b>
+          <span>Play · Practice · Enjoy</span>
+        </div>
       </>
     ),
   },
@@ -12854,18 +13094,19 @@ const HELP_GUIDE_SECTION_ORDER = [
   "rhythm-chord",
   "mini-backing",
   "metronome",
+  "backing-audio",
   "shooter",
   "tuner",
   "fretboard-viewer",
   "sound-rhythm",
-  "feedback",
+  "usage-info",
 ];
 
 const HELP_GUIDE_GROUP_LABELS = {
-  start: "먼저 보기",
-  practice: "기초 연습",
-  tools: "핵심 도구",
-  settings: "설정과 지원",
+  start: "빠른 시작",
+  practice: "연습 모드",
+  tools: "연습 도구",
+  settings: "설정과 이용 안내",
 };
 
 const ORDERED_HELP_GUIDE_SECTIONS = HELP_GUIDE_SECTION_ORDER
@@ -13041,6 +13282,7 @@ const NOTE_VIEWER_POSITIONS = [
 ];
 const CHORD_CATALOG_ALL = "all";
 const STAGE3_STORAGE_KEY = "guitarTrainer.stage3Settings.v1";
+const STAGE3_METRONOME_TONE_DEFAULTS_VERSION = 2;
 const STAGE3_QUICK_SLOTS_KEY = "guitarTrainer.stage3QuickSlots.v1";
 const STAGE3_RECOMMENDED_PROGRESSIONS = [
   {
@@ -13199,8 +13441,8 @@ function getStoredStage3Settings() {
     chordExtension: "none",
     metronomeTimeSignature: "4/4",
     metronomeSubdivision: "quarter",
-    metronomeAccentTone: "kick",
-    metronomeWeakTone: "rim",
+    metronomeAccentTone: "tick",
+    metronomeWeakTone: "tick",
     metronomeBeatPattern: normalizeMetronomeBeatPattern([], 4),
     metronomeSoundOn: false,
   };
@@ -13208,6 +13450,8 @@ function getStoredStage3Settings() {
 
   try {
     const parsed = JSON.parse(window.localStorage.getItem(STAGE3_STORAGE_KEY) ?? "{}");
+    const hasCurrentToneDefaults =
+      Number(parsed.metronomeToneDefaultsVersion) >= STAGE3_METRONOME_TONE_DEFAULTS_VERSION;
     const chordIds = fallback.chordIds;
     const validProgressionId = fallback.chordProgressionId;
     const validRoot = CHORD_ROOTS.includes(parsed.chordRoot) ? parsed.chordRoot : fallback.chordRoot;
@@ -13245,8 +13489,12 @@ function getStoredStage3Settings() {
       chordExtension: hasSelectedChord ? validExtension : fallback.chordExtension,
       metronomeTimeSignature,
       metronomeSubdivision: getSubdivisionOption(parsed.metronomeSubdivision).id,
-      metronomeAccentTone: getMetronomeToneOption(parsed.metronomeAccentTone ?? "kick").id,
-      metronomeWeakTone: getMetronomeToneOption(parsed.metronomeWeakTone ?? "rim").id,
+      metronomeAccentTone: getMetronomeToneOption(
+        hasCurrentToneDefaults ? parsed.metronomeAccentTone ?? "tick" : fallback.metronomeAccentTone,
+      ).id,
+      metronomeWeakTone: getMetronomeToneOption(
+        hasCurrentToneDefaults ? parsed.metronomeWeakTone ?? "tick" : fallback.metronomeWeakTone,
+      ).id,
       metronomeBeatPattern: normalizeMetronomeBeatPattern(parsed.metronomeBeatPattern, metronomeBeatsPerMeasure),
       metronomeSoundOn: false,
     };
@@ -13293,9 +13541,9 @@ const MINI_CHORD_MAKER_DRAFT_STORAGE_KEY = "guitarTrainer.miniChordMakerDraft.v1
 const RIFFLAB_BEAT_PRESET_STORAGE_KEY = "rifflab.userBeatPresets.v1";
 const RIFFLAB_GLOBAL_RHYTHM_STORAGE_KEY = "rifflab.globalRhythmSettings.v1";
 const MINI_CHORD_BAR_OPTIONS = [4, 8, 16, 32, 64];
-const MINI_CHORD_SLOTS_PER_BAR = 2;
 const MINI_CHORD_BARS_PER_ROW = 4;
 const MINI_CHORD_REST_LABEL = "N.C.";
+const MINI_CHORD_REST_SYMBOL = "𝄽";
 const MINI_CHORD_LOCATION_MARKER_OPTIONS = [
   { value: "segno", label: "Segno", indexed: true },
   { value: "toCoda", label: "To Coda", indexed: true },
@@ -13339,7 +13587,7 @@ const MINI_CHORD_COMMAND_ALIASES = {
 };
 const MINI_CHORD_FLOATING_MARGIN = 8;
 const MINI_CHORD_MARK_POPOVER_SIZE = { width: 268, height: 300 };
-const MINI_CHORD_CHORD_POPOVER_SIZE = { width: 320, height: 400 };
+const MINI_CHORD_CHORD_POPOVER_SIZE = { width: 340, height: 400 };
 
 const MINI_CHORD_QUALITY_LABELS = {
   major: "메이저",
@@ -13389,11 +13637,6 @@ function getMiniChordPickerStateFromLabel(label = "", fallback = {}) {
     quality: parts.quality,
     extension: parts.extension,
   };
-}
-
-function normalizeMiniChordSlots(slots = [], barCount = 4) {
-  const totalSlots = normalizeMiniChordBarCount(barCount) * MINI_CHORD_SLOTS_PER_BAR;
-  return Array.from({ length: totalSlots }, (_, index) => String(slots[index] ?? "").trim());
 }
 
 function normalizeMiniChordMarkers(markers = [], barCount = 4) {
@@ -13583,6 +13826,45 @@ function MiniChordMusicSymbolIcon({ type }) {
   return null;
 }
 
+function MiniChordRestIcon({ className = "" }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={`miniChordRestIcon ${className}`.trim()}
+      focusable="false"
+      viewBox="0 0 18 24"
+    >
+      <path d="M11.8 1.7 7 8.1l4.5 4.2-3.1 3.6" />
+      <path d="M8.4 15.9c3.6-.5 5.2.9 4.4 2.9-.7 1.8-3.3 3-6.6 2.2" />
+    </svg>
+  );
+}
+
+function MiniChordRepeatBoundaryIcon({ side }) {
+  const isStart = side === "start";
+  return (
+    <svg
+      aria-hidden="true"
+      className={`miniChordRepeatBoundaryIcon miniChordRepeatBoundaryIcon--${isStart ? "start" : "end"}`}
+      focusable="false"
+      height="72"
+      preserveAspectRatio="xMidYMid meet"
+      viewBox="0 0 14 72"
+      width="14"
+    >
+      <line
+        vectorEffect="non-scaling-stroke"
+        x1={isStart ? 3 : 11}
+        x2={isStart ? 3 : 11}
+        y1="1"
+        y2="71"
+      />
+      <circle cx={isStart ? 10 : 4} cy="28" r="1.8" />
+      <circle cx={isStart ? 10 : 4} cy="44" r="1.8" />
+    </svg>
+  );
+}
+
 function MiniChordMarkVisual({ symbol }) {
   if (!symbol) return null;
   const showIndex = Number(symbol.index) > 1 && (symbol.type === "segno" || symbol.type === "coda" || symbol.type === "toCoda");
@@ -13636,14 +13918,50 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
   barNumber,
   beatLabel,
   fallbackDraft,
+  halfSlotEntries,
   initialChord,
+  isSplit,
   onClose,
   onCommit,
+  onCommitSlots,
+  onMerge,
+  onSplit,
+  onUpdateSlot,
   position,
   resolveChord,
   slotIndex,
 }) {
-  const [draft, setDraft] = useState(() => getMiniChordPickerStateFromLabel(initialChord, fallbackDraft));
+  const primarySlotIndex = slotIndex - (slotIndex % 2);
+  const editorSlotIndexes = useMemo(
+    () => [primarySlotIndex, primarySlotIndex + 1],
+    [primarySlotIndex],
+  );
+  const getInitialSlotChord = useCallback((targetSlotIndex) => {
+    const entry = (Array.isArray(halfSlotEntries) ? halfSlotEntries : [])
+      .find((candidate) => Number(candidate?.slotIndex) === targetSlotIndex);
+    if (entry) return String(entry.chord ?? "").trim();
+    return targetSlotIndex === slotIndex ? String(initialChord ?? "").trim() : "";
+  }, [halfSlotEntries, initialChord, slotIndex]);
+  const [activeEditorSlotIndex, setActiveEditorSlotIndex] = useState(slotIndex);
+  const [draftsBySlot, setDraftsBySlot] = useState(() => ({
+    [slotIndex]: getMiniChordPickerStateFromLabel(initialChord, fallbackDraft),
+  }));
+  const [slotModeBySlot, setSlotModeBySlot] = useState(() => ({
+    [slotIndex]: String(initialChord ?? "").trim()
+      ? (isMiniChordRestValue(initialChord) ? "rest" : "chord")
+      : "empty",
+  }));
+  const draft = draftsBySlot[activeEditorSlotIndex]
+    ?? getMiniChordPickerStateFromLabel(getInitialSlotChord(activeEditorSlotIndex), fallbackDraft);
+  const setDraft = useCallback((updater) => {
+    setDraftsBySlot((current) => {
+      const currentDraft = current[activeEditorSlotIndex]
+        ?? getMiniChordPickerStateFromLabel(getInitialSlotChord(activeEditorSlotIndex), fallbackDraft);
+      const nextDraft = typeof updater === "function" ? updater(currentDraft) : updater;
+      return { ...current, [activeEditorSlotIndex]: nextDraft };
+    });
+    setSlotModeBySlot((current) => ({ ...current, [activeEditorSlotIndex]: "chord" }));
+  }, [activeEditorSlotIndex, fallbackDraft, getInitialSlotChord]);
   const panelRef = useRef(null);
   const dragRef = useRef(null);
   const dragFrameRef = useRef(null);
@@ -13660,6 +13978,37 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
     draft.quality,
     safeExtension,
   );
+  const getEditorSlotValue = useCallback((targetSlotIndex) => {
+    const mode = slotModeBySlot[targetSlotIndex]
+      ?? (getInitialSlotChord(targetSlotIndex)
+        ? (isMiniChordRestValue(getInitialSlotChord(targetSlotIndex)) ? "rest" : "chord")
+        : "empty");
+    if (mode === "rest") return MINI_CHORD_REST_LABEL;
+    if (mode === "empty") return "";
+    const targetDraft = draftsBySlot[targetSlotIndex]
+      ?? getMiniChordPickerStateFromLabel(getInitialSlotChord(targetSlotIndex), fallbackDraft);
+    const targetExtension = normalizeChordExtensionForQuality(targetDraft.quality, targetDraft.extension);
+    return getMiniChordPickerChord(
+      targetDraft.baseRoot,
+      targetDraft.accidental,
+      targetDraft.quality,
+      targetExtension,
+    );
+  }, [draftsBySlot, fallbackDraft, getInitialSlotChord, slotModeBySlot]);
+  const canCommitSplitSlots = editorSlotIndexes.every((targetSlotIndex) => {
+    const mode = slotModeBySlot[targetSlotIndex]
+      ?? (getInitialSlotChord(targetSlotIndex) ? "chord" : "empty");
+    if (mode !== "chord") return true;
+    const targetDraft = draftsBySlot[targetSlotIndex]
+      ?? getMiniChordPickerStateFromLabel(getInitialSlotChord(targetSlotIndex), fallbackDraft);
+    const targetExtension = normalizeChordExtensionForQuality(targetDraft.quality, targetDraft.extension);
+    return Boolean(resolveChord(
+      targetDraft.baseRoot,
+      targetDraft.accidental,
+      targetDraft.quality,
+      targetExtension,
+    ));
+  });
   const extensionOptions = useMemo(() => CHORD_EXTENSION_OPTIONS
     .filter((extension) => isChordExtensionAvailableForQuality(extension, draft.quality))
     .map((extension) => ({
@@ -13774,6 +14123,36 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
     }
   }, []);
 
+  useEffect(() => {
+    if (!isSplit) return;
+    setDraftsBySlot((current) => {
+      let changed = false;
+      const next = { ...current };
+      editorSlotIndexes.forEach((targetSlotIndex) => {
+        if (Object.prototype.hasOwnProperty.call(next, targetSlotIndex)) return;
+        next[targetSlotIndex] = getMiniChordPickerStateFromLabel(
+          getInitialSlotChord(targetSlotIndex),
+          fallbackDraft,
+        );
+        changed = true;
+      });
+      return changed ? next : current;
+    });
+    setSlotModeBySlot((current) => {
+      let changed = false;
+      const next = { ...current };
+      editorSlotIndexes.forEach((targetSlotIndex) => {
+        if (Object.prototype.hasOwnProperty.call(next, targetSlotIndex)) return;
+        const chord = getInitialSlotChord(targetSlotIndex);
+        next[targetSlotIndex] = chord
+          ? (isMiniChordRestValue(chord) ? "rest" : "chord")
+          : "empty";
+        changed = true;
+      });
+      return changed ? next : current;
+    });
+  }, [editorSlotIndexes, fallbackDraft, getInitialSlotChord, isSplit]);
+
   return (
     <div
       aria-label={`${barNumber}마디 ${beatLabel} 코드 설정`}
@@ -13805,22 +14184,94 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
           <small>{barNumber}마디 · {beatLabel}</small>
           <b>코드 설정</b>
         </span>
-        <strong>{selectedLabel}</strong>
-        <span aria-hidden="true" className="miniChordPickerDragGrip">•••</span>
-        <button
-          aria-label="코드 설정 닫기"
-          className="miniChordPopupCloseButton"
-          onClick={(event) => {
-            event.stopPropagation();
-            onClose?.();
-          }}
-          onPointerDown={(event) => event.stopPropagation()}
-          type="button"
-        >
-          <X aria-hidden="true" size={14} />
-        </button>
+        {isSplit ? (
+          <div aria-label="분할된 두 박 선택" className="miniChordPickerSlotTabs" role="tablist">
+            {editorSlotIndexes.map((targetSlotIndex) => {
+              const targetValue = getEditorSlotValue(targetSlotIndex);
+              const isRest = Boolean(targetValue) && isMiniChordRestValue(targetValue);
+              return (
+                <button
+                  aria-selected={activeEditorSlotIndex === targetSlotIndex}
+                  className={activeEditorSlotIndex === targetSlotIndex ? "selected" : ""}
+                  key={`mini-chord-editor-slot-${targetSlotIndex}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setActiveEditorSlotIndex(targetSlotIndex);
+                  }}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  role="tab"
+                  type="button"
+                >
+                  <small>{targetSlotIndex % MINI_CHORD_SLOTS_PER_BAR + 1}박</small>
+                  <strong>
+                    {isRest ? <MiniChordRestIcon /> : (targetValue || "—")}
+                  </strong>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <strong
+            aria-label={`선택 코드 ${selectedLabel}`}
+            className="miniChordPickerSelectedChord"
+            title={`선택 코드 ${selectedLabel}`}
+          >
+            {selectedLabel}
+          </strong>
+        )}
+        <div className="miniChordPickerHeaderActions">
+          <button
+            aria-label={isSplit ? "분할된 1박 두 칸을 2박으로 다시 합치기" : "이 2박 칸을 1박씩 쪼개기"}
+            aria-pressed={isSplit}
+            className={`miniChordSplitButton ${isSplit ? "is-merge" : ""}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              if (isSplit) {
+                onMerge?.(
+                  slotIndex,
+                  activeEditorSlotIndex,
+                  getEditorSlotValue(activeEditorSlotIndex),
+                );
+                return;
+              }
+              onSplit?.(slotIndex);
+            }}
+            onPointerDown={(event) => event.stopPropagation()}
+            title={isSplit ? "선택한 박의 코드로 2박 합치기" : "1박 + 1박으로 쪼개기"}
+            type="button"
+          >
+            <Columns2 aria-hidden="true" size={14} />
+          </button>
+          <button
+            aria-label="코드 설정 닫기"
+            className="miniChordPopupCloseButton"
+            onClick={(event) => {
+              event.stopPropagation();
+              onClose?.();
+            }}
+            onPointerDown={(event) => event.stopPropagation()}
+            type="button"
+          >
+            <X aria-hidden="true" size={14} />
+          </button>
+        </div>
       </div>
       <div className="miniChordBuilderMini">
+        <section className="miniChordBuilderMiniSection">
+          <span>루트</span>
+          <div className="miniChordPickerRoots" aria-label="코드 루트 선택">
+            {CHORD_NATURAL_ROOTS.map((root) => (
+              <button
+                className={draft.baseRoot === root ? "selected" : ""}
+                key={`mini-root-${root}`}
+                onClick={() => setDraft((current) => ({ ...current, baseRoot: root }))}
+                type="button"
+              >
+                {root}
+              </button>
+            ))}
+          </div>
+        </section>
         <section className="miniChordBuilderMiniSection">
           <span>변화표</span>
           <div className="miniChordPickerSegment miniChordPickerSegment--accidental" role="group" aria-label="변화표 선택">
@@ -13843,21 +14294,6 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
                 </button>
               );
             })}
-          </div>
-        </section>
-        <section className="miniChordBuilderMiniSection">
-          <span>루트</span>
-          <div className="miniChordPickerRoots" aria-label="코드 루트 선택">
-            {CHORD_NATURAL_ROOTS.map((root) => (
-              <button
-                className={draft.baseRoot === root ? "selected" : ""}
-                key={`mini-root-${root}`}
-                onClick={() => setDraft((current) => ({ ...current, baseRoot: root }))}
-                type="button"
-              >
-                {root}
-              </button>
-            ))}
           </div>
         </section>
         <section className="miniChordBuilderMiniSection">
@@ -13904,19 +14340,62 @@ const MiniChordFloatingChordEditor = memo(function MiniChordFloatingChordEditor(
       <div className="miniChordPickerActions">
         <button
           className="primary"
-          disabled={!selectedChord}
-          onClick={() => selectedChord && onCommit(slotIndex, selectedLabel, {
-            ...draft,
-            extension: safeExtension,
-          })}
+          disabled={isSplit ? !canCommitSplitSlots : !selectedChord}
+          onClick={() => {
+            if (isSplit) {
+              if (!canCommitSplitSlots) return;
+              onCommitSlots?.(
+                editorSlotIndexes.map((targetSlotIndex) => ({
+                  slotIndex: targetSlotIndex,
+                  value: getEditorSlotValue(targetSlotIndex),
+                })),
+                { ...draft, extension: safeExtension },
+                activeEditorSlotIndex,
+              );
+              return;
+            }
+            if (selectedChord) {
+              onCommit(slotIndex, selectedLabel, { ...draft, extension: safeExtension });
+            }
+          }}
           type="button"
         >
-          적용
+          {isSplit ? "두 박 적용" : "적용"}
         </button>
-        <button onClick={() => onCommit(slotIndex, MINI_CHORD_REST_LABEL)} type="button">
-          N.C.
+        <button
+          aria-label="쉼 설정"
+          className="miniChordRestAction"
+          onClick={() => {
+            if (isSplit) {
+              setSlotModeBySlot((current) => ({
+                ...current,
+                [activeEditorSlotIndex]: "rest",
+              }));
+              onUpdateSlot?.(activeEditorSlotIndex, MINI_CHORD_REST_LABEL);
+              return;
+            }
+            onCommit(slotIndex, MINI_CHORD_REST_LABEL);
+          }}
+          title="쉼"
+          type="button"
+        >
+          <MiniChordRestIcon />
+          <small>쉼</small>
         </button>
-        <button onClick={() => onCommit(slotIndex, "")} type="button">
+        <button
+          onClick={() => {
+            if (isSplit) {
+              setSlotModeBySlot((current) => ({
+                ...current,
+                [activeEditorSlotIndex]: "empty",
+              }));
+              onUpdateSlot?.(activeEditorSlotIndex, "");
+              return;
+            }
+            onCommit(slotIndex, "");
+          }}
+          type="button"
+        >
           삭제
         </button>
       </div>
@@ -14171,10 +14650,11 @@ function createMiniChordPlaybackSequence(barCount = 4, marks = {}) {
       continue;
     }
 
-    sequence.push(
-      barIndex * MINI_CHORD_SLOTS_PER_BAR,
-      barIndex * MINI_CHORD_SLOTS_PER_BAR + 1,
-    );
+    const firstSlotIndex = barIndex * MINI_CHORD_SLOTS_PER_BAR;
+    sequence.push(...Array.from(
+      { length: MINI_CHORD_SLOTS_PER_BAR },
+      (_, slotOffset) => firstSlotIndex + slotOffset,
+    ));
 
     if (mark.marker === "fine" && activeJumpMode === "fine") break;
 
@@ -14237,13 +14717,18 @@ function createMiniChordPlaybackSequence(barCount = 4, marks = {}) {
 
 function isMiniChordRestValue(value = "") {
   const token = String(value ?? "").trim();
-  return !token || token === "휴지" || token === "-" || /^rest$/i.test(token) || /^n\.?c\.?$/i.test(token);
+  return !token
+    || token === "휴지"
+    || token === "-"
+    || token === MINI_CHORD_REST_SYMBOL
+    || /^rest$/i.test(token)
+    || /^n\.?c\.?$/i.test(token);
 }
 
 function getMiniChordSlotDisplayLabel(value = "") {
   const token = String(value ?? "").trim();
   if (!token) return "";
-  return isMiniChordRestValue(token) ? MINI_CHORD_REST_LABEL : token;
+  return isMiniChordRestValue(token) ? MINI_CHORD_REST_SYMBOL : token;
 }
 
 function getMiniChordSlotLabelClassName(value = "") {
@@ -14254,7 +14739,7 @@ function getMiniChordSlotLabelClassName(value = "") {
   else if (label.length >= 6) classes.push("miniChordSlotLabel--xsmall");
   else if (label.length >= 5) classes.push("miniChordSlotLabel--small");
   else if (label.length >= 4) classes.push("miniChordSlotLabel--compact");
-  if (label === MINI_CHORD_REST_LABEL) classes.push("miniChordSlotLabel--rest");
+  if (label === MINI_CHORD_REST_SYMBOL) classes.push("miniChordSlotLabel--rest");
   return classes.join(" ");
 }
 
@@ -14270,10 +14755,10 @@ function getMiniChordBarPlaybackSequence(barCount = 4, marks = {}) {
 
 function getMiniChordBarChordLabel(slots = [], barIndex = 0) {
   const slotBase = barIndex * MINI_CHORD_SLOTS_PER_BAR;
-  const frontChord = String(slots[slotBase] ?? "").trim();
-  const backChord = String(slots[slotBase + 1] ?? "").trim();
-  if (!isMiniChordRestValue(frontChord)) return frontChord;
-  if (!isMiniChordRestValue(backChord)) return backChord;
+  for (let slotOffset = 0; slotOffset < MINI_CHORD_SLOTS_PER_BAR; slotOffset += 1) {
+    const chord = String(slots[slotBase + slotOffset] ?? "").trim();
+    if (!isMiniChordRestValue(chord)) return chord;
+  }
   return "";
 }
 
@@ -14408,7 +14893,15 @@ function createDefaultMiniChordArrangement() {
     id: "draft",
     title: "내 미니코드",
     barCount: 4,
-    slots: normalizeMiniChordSlots(["C", "", "Am", "", "F", "", "G", ""], 4),
+    slotFormatVersion: MINI_CHORD_SLOT_FORMAT_VERSION,
+    slotsPerBar: MINI_CHORD_SLOTS_PER_BAR,
+    slots: normalizeMiniChordSlots([
+      "C", "", "", "",
+      "Am", "", "", "",
+      "F", "", "", "",
+      "G", "", "", "",
+    ], 4),
+    splitSlots: [],
     repeatStarts: [],
     repeatEnds: [],
     barMarks: {},
@@ -14438,11 +14931,18 @@ function normalizeMiniChordArrangement(value = {}) {
     value.arrangementPatterns,
     value.arrangementOverrides,
   );
+  const sourceSlotsPerBar = Number(value.slotsPerBar) === MINI_CHORD_SLOTS_PER_BAR
+    || Number(value.slotFormatVersion) >= MINI_CHORD_SLOT_FORMAT_VERSION
+    ? MINI_CHORD_SLOTS_PER_BAR
+    : MINI_CHORD_HALVES_PER_BAR;
   return {
     id: String(value.id || `mini-${Date.now()}`),
     title: String(value.title || fallback.title).slice(0, 40),
     barCount,
-    slots: normalizeMiniChordSlots(value.slots, barCount),
+    slotFormatVersion: MINI_CHORD_SLOT_FORMAT_VERSION,
+    slotsPerBar: MINI_CHORD_SLOTS_PER_BAR,
+    slots: normalizeMiniChordSlots(value.slots, barCount, { sourceSlotsPerBar }),
+    splitSlots: normalizeMiniChordSplitSlots(value.splitSlots, barCount),
     repeatStarts: getMiniChordMarkersFromBarMarks(barMarks, "repeatStart", barCount),
     repeatEnds: getMiniChordMarkersFromBarMarks(barMarks, "repeatEnd", barCount),
     barMarks,
@@ -14913,9 +15413,7 @@ function getShooterFullRangeNotes(includeSharps = false, maxFret = MAX_FRETBOARD
 }
 
 function getShooterPrimaryAimTarget(targets) {
-  return [...(targets ?? [])]
-    .filter((target) => target && !target.defeated && target.hitboxActive !== false)
-    .sort((a, b) => (b.y ?? 0) - (a.y ?? 0))[0] ?? null;
+  return getFrontShooterTarget(targets);
 }
 
 function getShooterDifficultyNotes(notes, difficulty, elapsedMs = 0, selectedBlock = null, spawnedCount = 0) {
@@ -15270,8 +15768,8 @@ function App({ onReady }) {
   const [metronomeAccent, setMetronomeAccent] = useState(true);
   const [metronomeSubdivision, setMetronomeSubdivision] = useState("quarter");
   const [metronomeTone, setMetronomeTone] = useState("tick");
-  const [metronomeAccentTone, setMetronomeAccentTone] = useState("kick");
-  const [metronomeWeakTone, setMetronomeWeakTone] = useState("rim");
+  const [metronomeAccentTone, setMetronomeAccentTone] = useState("tick");
+  const [metronomeWeakTone, setMetronomeWeakTone] = useState("tick");
   const [stage3MetronomeTimeSignature, setStage3MetronomeTimeSignature] = useState(
     initialStage3SettingsRef.current.metronomeTimeSignature,
   );
@@ -15322,6 +15820,7 @@ function App({ onReady }) {
   const [miniChordTitle, setMiniChordTitle] = useState(initialMiniChordArrangementRef.current.title);
   const [miniChordBarCount, setMiniChordBarCount] = useState(initialMiniChordArrangementRef.current.barCount);
   const [miniChordSlots, setMiniChordSlots] = useState(initialMiniChordArrangementRef.current.slots);
+  const [miniChordSplitSlots, setMiniChordSplitSlots] = useState(initialMiniChordArrangementRef.current.splitSlots);
   const [miniChordRepeatStarts, setMiniChordRepeatStarts] = useState(initialMiniChordArrangementRef.current.repeatStarts);
   const [miniChordRepeatEnds, setMiniChordRepeatEnds] = useState(initialMiniChordArrangementRef.current.repeatEnds);
   const [miniChordBarMarks, setMiniChordBarMarks] = useState(initialMiniChordArrangementRef.current.barMarks);
@@ -15365,6 +15864,7 @@ function App({ onReady }) {
   const [miniChordIsPlaying, setMiniChordIsPlaying] = useState(false);
   const [miniChordPageIndex, setMiniChordPageIndex] = useState(0);
   const [miniChordTapTempoPressTick, setMiniChordTapTempoPressTick] = useState(0);
+  const [miniChordCountIn, setMiniChordCountIn] = useState(false);
   const [metronomeRepeat, setMetronomeRepeat] = useState(false);
   const [autoBpmMode, setAutoBpmMode] = useState("off");
   const [autoBpmDirection, setAutoBpmDirection] = useState("increase");
@@ -15408,6 +15908,7 @@ function App({ onReady }) {
   const [metronomePresetSelectedId, setMetronomePresetSelectedId] = useState("");
   const [metronomePresets, setMetronomePresets] = useState(getStoredMetronomePresets);
   const [tapTempoPressTick, setTapTempoPressTick] = useState(0);
+  const [stage3TapTempoPressTick, setStage3TapTempoPressTick] = useState(0);
   const [feelRecorderActive, setFeelRecorderActive] = useState(false);
   const [feelRecorderEvents, setFeelRecorderEvents] = useState([]);
   const [feelPatternName, setFeelPatternName] = useState(FEEL_RECORDER_DEFAULT_NAME);
@@ -15417,6 +15918,10 @@ function App({ onReady }) {
   const [feelPlaybackIndex, setFeelPlaybackIndex] = useState(-1);
   const [feelPlaybackProgress, setFeelPlaybackProgress] = useState(0);
   const [isMobileLayout, setIsMobileLayout] = useState(getIsMobileLayout);
+  // The desktop shooter always uses its portrait arena even when the browser
+  // window itself is wider than tall. Only a mobile landscape viewport should
+  // filter portrait-only maps out of the shared map registry.
+  const shooterPortraitLayout = !isMobileLayout || !viewportProfile.isLandscape;
   const previousAppModeForViewerRef = useRef(null);
   useEffect(() => {
     const enteredFretboardViewer = appMode === APP_MODES.FRETBOARD_VIEWER
@@ -15458,13 +15963,28 @@ function App({ onReady }) {
   const [selectedShooterMonsterSkinId, setSelectedShooterMonsterSkinId] = useState(getStoredShooterMonsterSkinId);
   const [selectedShooterEffectLoadout, setSelectedShooterEffectLoadout] = useState(getStoredShooterEffectLoadout);
   const [shooterMapPreference, setShooterMapPreference] = useState(getStoredShooterMapPreference);
+  const shooterMapEditorRequested = useMemo(isMapEditModeRequested, []);
+  const [shooterMapEditorSessionActive, setShooterMapEditorSessionActive] = useState(
+    shooterMapEditorRequested,
+  );
   const [selectedShooterMapId, setSelectedShooterMapId] = useState(() => {
     const storedPreference = getStoredShooterMapPreference();
     const storedMapId = getStoredShooterMapId();
-    if (storedPreference !== SHOOTER_RANDOM_MAP_ID) return getShooterMapById(storedPreference).id;
+    const mapLookupOptions = {
+      isMobileLayout,
+      includeMobileOnly: shooterMapEditorSessionActive,
+      isPortraitLayout: shooterPortraitLayout,
+    };
+    const layoutMaps = getShooterMapsForLayout(isMobileLayout, {
+      includeMobileOnly: shooterMapEditorSessionActive,
+      isPortraitLayout: shooterPortraitLayout,
+    });
+    if (storedPreference !== SHOOTER_RANDOM_MAP_ID) {
+      return getShooterMapById(storedPreference, mapLookupOptions).id;
+    }
     return initialRouteRef.current.appMode === APP_MODES.SHOOTER
-      ? getRandomShooterMapId(storedMapId)
-      : storedMapId;
+      ? getRandomShooterMapId(storedMapId, Math.random(), layoutMaps)
+      : getShooterMapById(storedMapId, mapLookupOptions).id;
   });
   const [pseudo3dTuningState, setPseudo3dTuningState] = useState(() => ({
     mapId: "",
@@ -15540,8 +16060,12 @@ function App({ onReady }) {
     [selectedShooterEffectLoadout.floor],
   );
   const selectedShooterMap = useMemo(
-    () => getShooterMapById(selectedShooterMapId),
-    [selectedShooterMapId],
+    () => getShooterMapById(selectedShooterMapId, {
+      isMobileLayout,
+      includeMobileOnly: shooterMapEditorSessionActive,
+      isPortraitLayout: shooterPortraitLayout,
+    }),
+    [isMobileLayout, selectedShooterMapId, shooterMapEditorSessionActive, shooterPortraitLayout],
   );
   const selectedGuitar = selectedGuitarVariant;
   const selectedGuitarCabinet = selectedShooterGuitarCabinetSkin;
@@ -15627,7 +16151,20 @@ function App({ onReady }) {
       settings: normalizeThreeDLabSettings(nextSettings),
     });
   }, [selectedMap]);
-  const mapEditor = useMapEditMode(selectedMap, !isMobileLayout);
+  const mapEditor = useMapEditMode(
+    selectedMap,
+    !isMobileLayout,
+    setShooterMapEditorSessionActive,
+  );
+  const shooterRendererMode = getShooterRendererMode({
+    devMapActive: selectedMapIsThreeDLab,
+    featureEnabled: DESKTOP_HORIZONTAL_SHOOTER_FEATURE.enabled,
+    isMobileLayout,
+    mapEditorEnabled: mapEditor.enabled,
+  });
+  const desktopHorizontalShooterActive = appMode === APP_MODES.SHOOTER
+    && shooterRendererMode === SHOOTER_RENDERER_MODES.DESKTOP_HORIZONTAL;
+  const desktopHorizontalClickAttackActive = import.meta.env.DEV && desktopHorizontalShooterActive;
   const commitShooterEffectEditorLoadout = useCallback(async (effectIds) => {
     const nextLoadout = normalizeShooterEffectLoadout(effectIds);
     try {
@@ -15661,7 +16198,7 @@ function App({ onReady }) {
   const previewAuraEffect = shooterEffectEditor.previewEffects.find(
     (effect) => effect.slot === SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
   ) ?? selectedAuraEffect;
-  const shooterMapRenderLayout = "mobile";
+  const shooterMapRenderLayout = desktopHorizontalShooterActive ? "desktop" : "mobile";
   const selectedMapRenderSkin = mapEditor.renderSkin;
   const selectedGuitarCategory = SHOOTER_GUITAR_CATEGORY_OPTIONS.find(
     (option) => option.id === getShooterGuitarCategoryId(selectedGuitar.id),
@@ -15687,14 +16224,21 @@ function App({ onReady }) {
   const selectedMapIsLayered = isLayeredShooterMap(selectedMap);
   const selectedMapSkinClassName = `shooterMapSkin shooterMapSkin--${selectedMap.id}`;
   const shooterMapRuntimePerformance = getShooterMapRuntimePerformance({
-    animationsAllowed: gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER,
+    animationsAllowed: gameState !== GAME_STATES.PAUSED
+      && gameState !== GAME_STATES.GAMEOVER
+      && (isMobileLayout || !shooterGuitarPickerOpen),
     isEditing: mapEditor.enabled,
     isMobileLayout,
     isPlaying: gameState === GAME_STATES.PLAYING,
     map: selectedMap,
   });
   const shooterMapAnimationsActive = shooterMapRuntimePerformance.animationsActive;
-  const shooterMapPickerOptions = SHOOTER_MAP_OPTIONS.filter((map) => !map.devOnly);
+  const shooterMapPickerOptions = SHOOTER_MAP_OPTIONS.filter((map) => (
+    !map.devOnly && isShooterMapAvailableForLayout(map, isMobileLayout, {
+      includeMobileOnly: shooterMapEditorSessionActive,
+      isPortraitLayout: shooterPortraitLayout,
+    })
+  ));
   const developerShooterMapOptions = SHOOTER_MAP_OPTIONS.filter((map) => map.devOnly);
   const selectedEffectLayers = useMemo(
     () => applyShooterEffectTuning([
@@ -15724,8 +16268,9 @@ function App({ onReady }) {
         guitarAssetSrc: selectedGuitar.assetSrc,
         guitarProjectileAssetSrc: selectedGuitar.projectileAssetSrc,
         mapBackgroundSrc: selectedMap.backgroundImage,
-        mapLayerAssetSources: getShooterMapAssetSources(selectedMapRenderSkin),
+        mapLayerAssetSources: getShooterMapAssetSources(selectedMapRenderSkin, { includeFallbacks: false }),
         mapPreviewSrc: selectedMap.previewImage,
+        mapSkin: selectedMapRenderSkin,
         pickAssetSrc: selectedPick.assetSrc,
       }
     : null;
@@ -15752,25 +16297,22 @@ function App({ onReady }) {
       return undefined;
     }
 
-    const readyPromise = preloadShooterEntryImages(
-      entryAssets,
-      preloadShooterEffectImage,
-    );
+    const readyPromise = Promise.all([
+      preloadShooterEntryImages(entryAssets, preloadShooterEffectImage),
+      preloadShooterMapImages(entryAssets?.mapSkin),
+    ]).then(() => undefined);
     void readyPromise.then(() => readyShooterEntryKeysRef.current.add(entryKey));
     setShooterLaunchTransition({ readyPromise, token });
     return undefined;
   }, [appMode]);
 
   const effectSelectionRequestRef = useRef({ aura: 0, floor: 0 });
+  const shooterMapSelectionRequestRef = useRef(0);
   useEffect(() => {
     if (appMode !== APP_MODES.SHOOTER) return;
     void preloadShooterGuitarCabinetImages();
   }, [appMode]);
 
-  useEffect(() => {
-    if (!shooterGuitarPickerOpen) return;
-    void preloadShooterEffectCatalog();
-  }, [shooterGuitarPickerOpen]);
   const assignedGuitarVariantIds = useMemo(
     () => new Set(Object.values(shooterPlayerSlots).filter((variantId) => GUITAR_LAB_VARIANT_IDS.has(variantId))),
     [shooterPlayerSlots],
@@ -15927,38 +16469,77 @@ function App({ onReady }) {
     });
   }, []);
 
-  const applyShooterMap = useCallback((mapId) => {
-    if (mapId === SHOOTER_RANDOM_MAP_ID) {
-      const nextMapId = getRandomShooterMapId(selectedShooterMapId);
-      setShooterMapPreference(SHOOTER_RANDOM_MAP_ID);
-      setSelectedShooterMapId(nextMapId);
+  const queueShooterMapSelection = useCallback((nextMap, preferenceId = nextMap?.id) => {
+    if (!nextMap?.id) return;
+    const requestId = shooterMapSelectionRequestRef.current + 1;
+    shooterMapSelectionRequestRef.current = requestId;
+    void preloadShooterMapImages(nextMap).then(() => {
+      if (shooterMapSelectionRequestRef.current !== requestId) return;
+      setShooterMapPreference(preferenceId);
+      setSelectedShooterMapId(nextMap.id);
       if (typeof window !== "undefined") {
-        window.localStorage.setItem(SHOOTER_MAP_PREFERENCE_STORAGE_KEY, SHOOTER_RANDOM_MAP_ID);
-        window.localStorage.setItem(SHOOTER_MAP_STORAGE_KEY, nextMapId);
+        window.localStorage.setItem(SHOOTER_MAP_PREFERENCE_STORAGE_KEY, preferenceId);
+        window.localStorage.setItem(SHOOTER_MAP_STORAGE_KEY, nextMap.id);
       }
+    });
+  }, []);
+
+  const applyShooterMap = useCallback((mapId) => {
+    const mapLookupOptions = {
+      isMobileLayout,
+      includeMobileOnly: shooterMapEditorSessionActive,
+      isPortraitLayout: shooterPortraitLayout,
+    };
+    if (mapId === SHOOTER_RANDOM_MAP_ID) {
+      const nextMapId = getRandomShooterMapId(
+        selectedShooterMapId,
+        Math.random(),
+        getShooterMapsForLayout(isMobileLayout, {
+          includeMobileOnly: shooterMapEditorSessionActive,
+          isPortraitLayout: shooterPortraitLayout,
+        }),
+      );
+      const nextMap = getShooterMapById(nextMapId, mapLookupOptions);
+      queueShooterMapSelection(nextMap, SHOOTER_RANDOM_MAP_ID);
       return;
     }
-    const nextMap = getShooterMapById(mapId);
-    setShooterMapPreference(nextMap.id);
-    setSelectedShooterMapId(nextMap.id);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(SHOOTER_MAP_PREFERENCE_STORAGE_KEY, nextMap.id);
-      window.localStorage.setItem(SHOOTER_MAP_STORAGE_KEY, nextMap.id);
-    }
-  }, [selectedShooterMapId]);
+    const nextMap = getShooterMapById(mapId, mapLookupOptions);
+    queueShooterMapSelection(nextMap, nextMap.id);
+  }, [
+    isMobileLayout,
+    queueShooterMapSelection,
+    selectedShooterMapId,
+    shooterMapEditorSessionActive,
+    shooterPortraitLayout,
+  ]);
 
   const applyShooterEntryMap = useCallback(() => {
+    const mapLookupOptions = {
+      isMobileLayout,
+      includeMobileOnly: shooterMapEditorSessionActive,
+      isPortraitLayout: shooterPortraitLayout,
+    };
     if (shooterMapPreference !== SHOOTER_RANDOM_MAP_ID) {
-      const fixedMapId = getShooterMapById(shooterMapPreference).id;
-      setSelectedShooterMapId(fixedMapId);
+      const fixedMap = getShooterMapById(shooterMapPreference, mapLookupOptions);
+      queueShooterMapSelection(fixedMap, fixedMap.id);
       return;
     }
-    const nextMapId = getRandomShooterMapId(getShooterMapById(selectedShooterMapId).id);
-    setSelectedShooterMapId(nextMapId);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(SHOOTER_MAP_STORAGE_KEY, nextMapId);
-    }
-  }, [selectedShooterMapId, shooterMapPreference]);
+    const layoutMaps = getShooterMapsForLayout(isMobileLayout, {
+      includeMobileOnly: shooterMapEditorSessionActive,
+      isPortraitLayout: shooterPortraitLayout,
+    });
+    const currentMapId = getShooterMapById(selectedShooterMapId, mapLookupOptions).id;
+    const nextMapId = getRandomShooterMapId(currentMapId, Math.random(), layoutMaps);
+    const nextMap = getShooterMapById(nextMapId, mapLookupOptions);
+    queueShooterMapSelection(nextMap, SHOOTER_RANDOM_MAP_ID);
+  }, [
+    isMobileLayout,
+    queueShooterMapSelection,
+    selectedShooterMapId,
+    shooterMapEditorSessionActive,
+    shooterMapPreference,
+    shooterPortraitLayout,
+  ]);
 
   const persistGuitarLabDeletedIds = useCallback((nextIds) => {
     const normalized = normalizeGuitarLabVariantIds(nextIds).filter((id) => !guitarLabPurgedIds.includes(id));
@@ -16254,8 +16835,8 @@ function App({ onReady }) {
   const metronomeAccentRef = useRef(true);
   const metronomeSubdivisionRef = useRef("quarter");
   const metronomeToneRef = useRef("tick");
-  const metronomeAccentToneRef = useRef("kick");
-  const metronomeWeakToneRef = useRef("rim");
+  const metronomeAccentToneRef = useRef("tick");
+  const metronomeWeakToneRef = useRef("tick");
   const stage3MetronomeTimeSignatureRef = useRef(initialStage3SettingsRef.current.metronomeTimeSignature);
   const stage3MetronomeSubdivisionRef = useRef(initialStage3SettingsRef.current.metronomeSubdivision);
   const stage3MetronomeAccentToneRef = useRef(initialStage3SettingsRef.current.metronomeAccentTone);
@@ -16332,6 +16913,7 @@ function App({ onReady }) {
   const coreAudioWarmPromiseRef = useRef(null);
   const lastStage3ProgressUiAtRef = useRef(0);
   const lastStage3MetronomeTickRef = useRef(-1);
+  const stage3PlaybackSeekRef = useRef(null);
   const miniChordPlayTimerRef = useRef(null);
   const miniChordPlaybackFrameRef = useRef(null);
   const miniChordPlaybackBarsRef = useRef([]);
@@ -16342,6 +16924,7 @@ function App({ onReady }) {
   const miniChordLoopRef = useRef(initialMiniChordArrangementRef.current.loop);
   const miniChordIsPlayingRef = useRef(false);
   const miniChordStartTokenRef = useRef(0);
+  const miniChordCountInRef = useRef(false);
   const backingDrumEnabledRef = useRef(initialMiniChordGlobalSettingsRef.current.enabled.drum);
   const backingBassEnabledRef = useRef(initialMiniChordGlobalSettingsRef.current.enabled.bass);
   const backingPianoEnabledRef = useRef(initialMiniChordGlobalSettingsRef.current.enabled.piano);
@@ -16386,6 +16969,11 @@ function App({ onReady }) {
   const bpmSwipeStartRef = useRef(null);
   const bpmSwipeFrameRef = useRef(null);
   const bpmSwipePreviewValueRef = useRef(DEFAULT_BPM);
+  const stage3TapTempoTimesRef = useRef([]);
+  const stage3TapTempoPressTimerRef = useRef(null);
+  const stage3BpmSwipeStartRef = useRef(null);
+  const stage3BpmSwipeFrameRef = useRef(null);
+  const stage3BpmSwipePreviewValueRef = useRef(initialStage3SettingsRef.current.bpm);
   const miniChordBpmRef = useRef(initialMiniChordArrangementRef.current.bpm);
   const miniChordBpmSwipeStartRef = useRef(null);
   const miniChordBpmSwipeFrameRef = useRef(null);
@@ -16459,6 +17047,7 @@ function App({ onReady }) {
   const shooterDifficultyRef = useRef(SHOOTER_DIFFICULTIES.EASY);
   const shooterSessionSavedRef = useRef(true);
   const shooterAimResetTimerRef = useRef(null);
+  const desktopHorizontalImpactTimersRef = useRef(new Map());
   const lastShooterGuitarAimRef = useRef({ targetId: null, angle: null });
   const lastShooterHitboxDebugAtRef = useRef(0);
   const lastMicReadAtRef = useRef(0);
@@ -16842,8 +17431,8 @@ function App({ onReady }) {
     const nextBpm = clampBpm(normalized.bpm);
     const nextAccent = normalized.accent !== false;
     const nextTone = getMetronomeToneOption(normalized.tone ?? "tick").id;
-    const nextAccentTone = getMetronomeToneOption(normalized.accentTone ?? normalized.tone ?? "kick").id;
-    const nextWeakTone = getMetronomeToneOption(normalized.weakTone ?? normalized.tone ?? "rim").id;
+    const nextAccentTone = getMetronomeToneOption(normalized.accentTone ?? normalized.tone ?? "tick").id;
+    const nextWeakTone = getMetronomeToneOption(normalized.weakTone ?? normalized.tone ?? "tick").id;
     const nextPattern = nextAccent
       ? normalizeMetronomeBeatPattern(normalized.beatPattern, beats)
       : Array.from({ length: beats }, () => METRONOME_BEAT_STATES.NORMAL);
@@ -17122,8 +17711,8 @@ function App({ onReady }) {
     if (!item?.chordIds?.length) return;
     const nextTimeSignature = getTimeSignatureOption(item.time_signature ?? "4/4").id;
     const nextSubdivision = getSubdivisionOption(item.subdivision ?? "quarter").id;
-    const nextAccentTone = getMetronomeToneOption(item.accent_tone ?? item.accentTone ?? "kick").id;
-    const nextWeakTone = getMetronomeToneOption(item.weak_tone ?? item.weakTone ?? "rim").id;
+    const nextAccentTone = getMetronomeToneOption(item.accent_tone ?? item.accentTone ?? "tick").id;
+    const nextWeakTone = getMetronomeToneOption(item.weak_tone ?? item.weakTone ?? "tick").id;
     const nextBeatPattern = normalizeMetronomeBeatPattern(
       item.beat_pattern ?? item.beatPattern,
       getTimeSignatureOption(nextTimeSignature).beats,
@@ -17168,15 +17757,21 @@ function App({ onReady }) {
     const progressionLength = Math.max(1, chordTransitionProgression.length);
     const safeIndex = ((Number(index) || 0) % progressionLength + progressionLength) % progressionLength;
     const startBeat = getRhythmChordStartBeat(chordTransitionBeatTimeline, safeIndex);
+    const beatsPerMeasure = getTimeSignatureOption(stage3MetronomeTimeSignatureRef.current).beats;
+    const beatInMeasure = startBeat % Math.max(1, beatsPerMeasure);
     chordPracticeIndexRef.current = safeIndex;
     backingPausedOffsetSecondsRef.current = null;
     gameTimeRef.current = startBeat * getBeatMs(bpmRef.current);
     lastBeatRef.current = -1;
     lastStage3MetronomeTickRef.current = -1;
+    lastStage3ProgressUiAtRef.current = 0;
     setChordPracticeIndex(safeIndex);
     setChordPracticeTimelineBeat(startBeat);
-    setBeat(0);
-    setStage3MeasureProgress(0);
+    setBeat(beatInMeasure);
+    setStage3MeasureProgress(beatInMeasure / Math.max(1, beatsPerMeasure));
+    if (gameStateRef.current === GAME_STATES.PLAYING && !countInActiveRef.current) {
+      stage3PlaybackSeekRef.current?.(safeIndex);
+    }
   }, [chordTransitionBeatTimeline, chordTransitionProgression.length]);
   const exitStage3StorageRoom = useCallback(() => {
     stage3StorageSwipeStartRef.current = null;
@@ -18798,11 +19393,24 @@ function App({ onReady }) {
     backingNextEventIndexRef.current = session.events.findIndex((event) => event.offsetSeconds >= safeStartOffset);
     if (backingNextEventIndexRef.current < 0) backingNextEventIndexRef.current = 0;
     backingCycleStartTimeRef.current = audio.currentTime + 0.06 - safeStartOffset;
-    backingDisplayStartTimeRef.current = backingCycleStartTimeRef.current;
+    backingDisplayStartTimeRef.current = audio.currentTime - safeStartOffset;
     backingSchedulerRunningRef.current = true;
     runBackingScheduler();
     backingSchedulerTimerRef.current = window.setInterval(runBackingScheduler, 25);
   }, [runBackingScheduler, stopBackingScheduler]);
+
+  useEffect(() => {
+    const seekStage3Playback = (index) => {
+      startBackingScheduler(index, BACKING_SCHEDULER_MODES.STAGE3);
+      lastFrameRef.current = performance.now();
+    };
+    stage3PlaybackSeekRef.current = seekStage3Playback;
+    return () => {
+      if (stage3PlaybackSeekRef.current === seekStage3Playback) {
+        stage3PlaybackSeekRef.current = null;
+      }
+    };
+  }, [startBackingScheduler]);
 
   const stopMetronomeVisualLab = useCallback(() => {
     window.clearInterval(metronomeVisualLabTimerRef.current);
@@ -19170,6 +19778,7 @@ function App({ onReady }) {
         bornAt: gameTimeRef.current,
         duration: getShooterTargetDuration(difficulty),
         hitboxActive: true,
+        progress: 0,
         difficulty,
         level: level.name,
         phaseLabel: level.phaseLabel,
@@ -19328,6 +19937,7 @@ function App({ onReady }) {
   }, [getShooterArenaSize]);
 
   const getShooterGuitarAimAngle = useCallback((target) => {
+    if (desktopHorizontalShooterActive) return 0;
     if (!target) return 0;
     const metrics = getShooterGuitarBaseMetrics();
     if (metrics) {
@@ -19342,7 +19952,7 @@ function App({ onReady }) {
     const dx = (Number(target.x) || 50) - SHOOTER_GUITAR_PIVOT_PERCENT.x;
     const dy = Math.max(1.2, SHOOTER_GUITAR_PIVOT_PERCENT.y - (Number(target.y) || 8));
     return clampValue(Math.atan2(dx, dy) * (180 / Math.PI), -SHOOTER_GUITAR_AIM_LIMIT_DEG, SHOOTER_GUITAR_AIM_LIMIT_DEG);
-  }, [getShooterGuitarBaseMetrics]);
+  }, [desktopHorizontalShooterActive, getShooterGuitarBaseMetrics]);
 
   const applyShooterGuitarAim = useCallback((target, force = false) => {
     const node = shooterGuitarPlayerRef.current;
@@ -19405,17 +20015,23 @@ function App({ onReady }) {
 
   const getShooterTargetHurtbox = useCallback((target, y = target?.y) => {
     if (!target || target.defeated || target.hitboxActive === false) return null;
-    const center = getShooterArenaPoint(target.x, Number(y) || 0);
+    const arenaSize = getShooterArenaSize();
+    const horizontalProjection = desktopHorizontalShooterActive
+      ? projectGameplayPointToThreeDLabHorizontal({ ...target, y }, arenaSize)
+      : null;
+    const center = horizontalProjection
+      ? { x: horizontalProjection.screenX, y: horizontalProjection.screenY }
+      : getShooterArenaPoint(target.x, Number(y) || 0);
     if (!center) return null;
     const renderSize = SHOOTER_NOTE_MONSTER_RENDER_SIZE;
     return createShooterEnemyHurtbox({
       centerX: center.x,
       centerY: center.y,
       difficulty: target.difficulty ?? SHOOTER_DIFFICULTIES.EASY,
-      height: target.renderHeight || renderSize,
-      width: target.renderWidth || renderSize,
+      height: target.renderHeight || renderSize * (horizontalProjection?.scale ?? 1),
+      width: target.renderWidth || renderSize * (horizontalProjection?.scale ?? 1),
     });
-  }, [getShooterArenaPoint]);
+  }, [desktopHorizontalShooterActive, getShooterArenaPoint, getShooterArenaSize]);
 
   const getShooterProjectileHitbox = useCallback((projectile, point) => {
     const hitbox = createShooterProjectileHitbox({
@@ -19555,6 +20171,21 @@ function App({ onReady }) {
     const node = shooterTargetNodesRef.current.get(target?.id);
     if (!node || !target) return;
     const arenaSize = getShooterArenaSize();
+    if (desktopHorizontalShooterActive) {
+      const projection = projectGameplayPointToThreeDLabHorizontal({ ...target, y }, arenaSize);
+      const point = { x: projection.screenX, y: projection.screenY };
+      if (syncEffectPosition) {
+        node.style.setProperty("--target-x-px", `${point.x.toFixed(2)}px`);
+        node.style.setProperty("--target-y-px", `${point.y.toFixed(2)}px`);
+      }
+      node.style.setProperty("--desktop-target-progress", projection.progress.toFixed(3));
+      const laneDepth = Math.max(0, Math.min(1, (projection.worldZ + 3.1) / 6.2));
+      node.style.setProperty("--desktop-target-z", String(7 + Math.round(laneDepth * 10)));
+      node.style.removeProperty("--pseudo3d-depth");
+      node.style.zIndex = String(7 + Math.round(laneDepth * 10));
+      node.style.transform = `translate3d(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px, 0) translate(-50%, -50%) scale(${projection.scale.toFixed(3)})`;
+      return;
+    }
     const gameplayPoint = getShooterArenaPoint(target.x, y);
     if (!gameplayPoint) return;
     const projection = selectedMapIsThreeDLab
@@ -19582,6 +20213,7 @@ function App({ onReady }) {
       node.style.transform = `translate3d(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px, 0) translate(-50%, -50%)`;
     }
   }, [
+    desktopHorizontalShooterActive,
     getShooterArenaPoint,
     getShooterArenaSize,
     selectedMapIsPseudo3D,
@@ -19868,6 +20500,27 @@ function App({ onReady }) {
     return impactDelay;
   }, [getShooterArenaSize, selectedThreeDLabSettings]);
 
+  const playDesktopHorizontalGuitarSlash = useCallback((target) => {
+    const arena = shooterArenaRef.current;
+    const motion = shooterGuitarMotionRef.current;
+    const player = shooterGuitarPlayerRef.current;
+    const arenaSize = getShooterArenaSize();
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+    const projection = projectGameplayPointToThreeDLabHorizontal(target, arenaSize);
+    return runDesktopHorizontalGuitarSlash({
+      arena,
+      arenaSize,
+      motion,
+      player,
+      projection: {
+        scale: projection.scale,
+        x: projection.screenXPercent,
+        y: projection.screenYPercent,
+      },
+      reducedMotion,
+    });
+  }, [getShooterArenaSize]);
+
   const resolveShooterSlashHit = useCallback((target) => {
     if (!target || target.defeated || target.hitboxActive === false) return false;
     const targetY = getShooterTargetYAt(target, gameTimeRef.current);
@@ -19898,12 +20551,43 @@ function App({ onReady }) {
       return next;
     });
     setShooterTargets([...shooterTargetsRef.current]);
-    const impactDelay = playThreeDLabGuitarSlash({ ...target, y: targetY });
-    window.setTimeout(() => {
-      completeShooterTargetImpact(target.id, { x: target.x, y: targetY });
-    }, impactDelay);
+    const impactDelay = desktopHorizontalShooterActive
+      ? playDesktopHorizontalGuitarSlash({ ...target, progress: target.progress, y: targetY })
+      : playThreeDLabGuitarSlash({ ...target, y: targetY });
+    if (desktopHorizontalShooterActive) {
+      const previousTimer = desktopHorizontalImpactTimersRef.current.get(target.id);
+      if (previousTimer != null) window.clearTimeout(previousTimer);
+      const impactTimer = window.setTimeout(() => {
+        desktopHorizontalImpactTimersRef.current.delete(target.id);
+        completeShooterTargetImpact(target.id, { x: target.x, y: targetY });
+      }, impactDelay);
+      desktopHorizontalImpactTimersRef.current.set(target.id, impactTimer);
+    } else {
+      window.setTimeout(() => {
+        completeShooterTargetImpact(target.id, { x: target.x, y: targetY });
+      }, impactDelay);
+    }
     return true;
-  }, [completeShooterTargetImpact, playThreeDLabGuitarSlash]);
+  }, [
+    completeShooterTargetImpact,
+    desktopHorizontalShooterActive,
+    playDesktopHorizontalGuitarSlash,
+    playThreeDLabGuitarSlash,
+  ]);
+
+  useEffect(() => {
+    if (!desktopHorizontalShooterActive) return undefined;
+    return () => {
+      cleanupDesktopHorizontalAttack(shooterArenaRef.current, shooterGuitarMotionRef.current);
+      desktopHorizontalImpactTimersRef.current.forEach((timerId, targetId) => {
+        window.clearTimeout(timerId);
+        completeShooterTargetImpact(targetId);
+      });
+      desktopHorizontalImpactTimersRef.current.clear();
+      shooterGuitarBaseMetricsRef.current = null;
+      lastShooterGuitarAimRef.current = { targetId: null, angle: null };
+    };
+  }, [completeShooterTargetImpact, desktopHorizontalShooterActive]);
 
   const fireProjectile = useCallback((target, noteName) => {
     const arenaSize = refreshShooterArenaSize();
@@ -20011,12 +20695,7 @@ function App({ onReady }) {
       if (shooterReleaseLockRef.current === detectedPitchName) return;
       if (lastShotRef.current.note === detectedPitchName && now - lastShotRef.current.time < 220) return;
 
-      const orderedTargets = shooterTargetsRef.current
-        .map((target, index) => ({ target, index }))
-        .filter(({ target }) => !target.defeated && target.hitboxActive !== false && !target.pendingProjectileId)
-        .sort((a, b) => b.target.y - a.target.y || a.target.bornAt - b.target.bornAt);
-      const frontTarget = orderedTargets[0] ?? null;
-      const target = frontTarget?.target ?? null;
+      const target = getFrontShooterTarget(shooterTargetsRef.current, { excludePending: true });
       const targetPitchName = target?.detail?.pitch ?? target?.note ?? null;
       const matchesFrontTarget = Boolean(targetPitchName && detectedPitchName && targetPitchName === detectedPitchName);
       lastShotRef.current = { note: detectedPitchName, time: now };
@@ -20029,7 +20708,7 @@ function App({ onReady }) {
         return;
       }
 
-      if (selectedMapIsThreeDLab) {
+      if (desktopHorizontalShooterActive || selectedMapIsThreeDLab) {
         if (!resolveShooterSlashHit(target)) return;
         setFeedback("Slash");
       } else {
@@ -20049,14 +20728,31 @@ function App({ onReady }) {
       attemptsRef.current += 1;
       setAttempts((value) => value + 1);
     },
-    [fireProjectile, flashStage, playShooterSound, resolveShooterSlashHit, selectedMapIsThreeDLab],
+    [
+      desktopHorizontalShooterActive,
+      fireProjectile,
+      flashStage,
+      playShooterSound,
+      resolveShooterSlashHit,
+      selectedMapIsThreeDLab,
+    ],
   );
+
+  const attackShooterTargetByClick = useCallback((targetId) => {
+    if (!desktopHorizontalClickAttackActive) return false;
+    if (gameStateRef.current !== GAME_STATES.PLAYING) return false;
+    const target = shooterTargetsRef.current.find((item) => item.id === targetId);
+    if (!target || target.defeated || target.hitboxActive === false) return false;
+    if (!resolveShooterSlashHit(target)) return false;
+    setFeedback("Slash");
+    attemptsRef.current += 1;
+    setAttempts((value) => value + 1);
+    return true;
+  }, [desktopHorizontalClickAttackActive, resolveShooterSlashHit]);
 
   const fireShooterDebugTestShot = useCallback(() => {
     if (!shooterHitboxDebugEnabled || gameStateRef.current !== GAME_STATES.PLAYING) return;
-    const target = [...shooterTargetsRef.current]
-      .filter((candidate) => !candidate.defeated && candidate.hitboxActive !== false && !candidate.pendingProjectileId)
-      .sort((left, right) => right.y - left.y || left.bornAt - right.bornAt)[0];
+    const target = getFrontShooterTarget(shooterTargetsRef.current, { excludePending: true });
     const pitch = target?.detail?.pitch ?? target?.note;
     if (!pitch) return;
     shooterReleaseLockRef.current = null;
@@ -20107,7 +20803,11 @@ function App({ onReady }) {
       const normalizedLevel = Math.min(1, rms * inputGain);
 
       if (now - lastDebugUpdateRef.current > MIC_DISPLAY_UPDATE_MS) {
-        setSignalLevel(normalizedLevel);
+        setSignalLevel((currentLevel) => (
+          getMicrophoneSignalDisplayBand(currentLevel) === getMicrophoneSignalDisplayBand(normalizedLevel)
+            ? currentLevel
+            : normalizedLevel
+        ));
         lastDebugUpdateRef.current = now;
       }
 
@@ -20169,14 +20869,21 @@ function App({ onReady }) {
       if (now - lastDetectedDisplayUpdateRef.current > MIC_DISPLAY_UPDATE_MS) {
         lastDetectedDisplayUpdateRef.current = now;
         setDetected(displayNote);
-        setDetectedPitch(
-          pitch
-            ? {
-                frequency: pitch,
-                note: displayNote?.pitch ?? "--",
-              }
-            : null,
-        );
+        const nextDetectedPitch = pitch
+          ? {
+              frequency: pitch,
+              note: displayNote?.pitch ?? "--",
+            }
+          : null;
+        setDetectedPitch((currentPitch) => {
+          if (currentPitch == null || nextDetectedPitch == null) {
+            return currentPitch === nextDetectedPitch ? currentPitch : nextDetectedPitch;
+          }
+          return currentPitch.note === nextDetectedPitch.note
+            && Math.abs(currentPitch.frequency - nextDetectedPitch.frequency) < 2
+            ? currentPitch
+            : nextDetectedPitch;
+        });
       }
 
       if (
@@ -20420,6 +21127,7 @@ function App({ onReady }) {
         const progress = Math.min(1, (gameTimeRef.current - target.bornAt) / target.duration);
         const nextY = 8 + progress * 80;
         target.previousY = Number(target.y) || nextY;
+        target.progress = progress;
         if (target.y !== nextY) {
           target.y = nextY;
         }
@@ -20587,11 +21295,17 @@ function App({ onReady }) {
         if (countInTimeRef.current >= countInTotalMs) {
           countInActiveRef.current = false;
           countInTimeRef.current = 0;
-          gameTimeRef.current = chordPracticeIndexRef.current * currentMeasureMs;
+          const startBeat = getRhythmChordStartBeat(
+            chordTransitionBeatTimeline,
+            chordPracticeIndexRef.current,
+          );
+          const beatInMeasure = startBeat % Math.max(1, beatsPerMeasure);
+          gameTimeRef.current = startBeat * currentBeatMs;
           lastBeatRef.current = -1;
           lastStage3MetronomeTickRef.current = -1;
-          setBeat(0);
-          setStage3MeasureProgress(0);
+          setChordPracticeTimelineBeat(startBeat);
+          setBeat(beatInMeasure);
+          setStage3MeasureProgress(beatInMeasure / Math.max(1, beatsPerMeasure));
           setFeedback("Play");
           startBackingScheduler(chordPracticeIndexRef.current);
           return;
@@ -21123,7 +21837,9 @@ function App({ onReady }) {
     }
 
     if (gameStateRef.current === GAME_STATES.PAUSED) {
-      let resumeDetectorReady = shooterHitboxDebugEnabled || Boolean(micInputSessionRef.current && analyserRef.current && bufferRef.current);
+      let resumeDetectorReady = shooterHitboxDebugEnabled
+        || desktopHorizontalClickAttackActive
+        || Boolean(micInputSessionRef.current && analyserRef.current && bufferRef.current);
       if (!resumeDetectorReady) {
         resumeDetectorReady = await startMic();
       }
@@ -21140,7 +21856,9 @@ function App({ onReady }) {
 
     if (gameStateRef.current === GAME_STATES.PLAYING) return;
 
-    let detectorReady = shooterHitboxDebugEnabled || Boolean(micInputSessionRef.current && analyserRef.current && bufferRef.current);
+    let detectorReady = shooterHitboxDebugEnabled
+      || desktopHorizontalClickAttackActive
+      || Boolean(micInputSessionRef.current && analyserRef.current && bufferRef.current);
     if (!detectorReady) {
       detectorReady = await startMic();
     }
@@ -21171,7 +21889,7 @@ function App({ onReady }) {
     setFeedback("Start Shooter");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
-  }, [ensureAudioReady, getPracticeSequence, resetScore, selectedPentatonic, setState, shooterHitboxDebugEnabled, spawnShooterTarget, startMic]);
+  }, [desktopHorizontalClickAttackActive, ensureAudioReady, getPracticeSequence, resetScore, selectedPentatonic, setState, shooterHitboxDebugEnabled, spawnShooterTarget, startMic]);
 
   const startShooterMic = useCallback(async () => {
     appModeRef.current = APP_MODES.SHOOTER;
@@ -21189,6 +21907,10 @@ function App({ onReady }) {
   }, []);
 
   const startMetronomePractice = useCallback(async () => {
+    if (
+      appModeRef.current !== APP_MODES.METRONOME
+      || activeMetronomeScopeRef.current !== METRONOME_SETTING_SCOPES.STANDALONE
+    ) return;
     stopBackingScheduler();
     ensureAudioContext();
     ensureAudioReady()
@@ -21307,9 +22029,18 @@ function App({ onReady }) {
     setFeedback("Play");
   }, [ensureAudioReady, loadMetronomeSamples, setState, startBackingScheduler, warmCoreAudioEngine]);
 
-  const portraitOnlyModeActive = isPortraitOnlyMode(appMode) && viewportProfile.isMobileSurface;
-  const portraitOrientationGuardActive = shouldGuardPortraitOrientation(appMode, viewportProfile);
-  const shooterOrientationGuardActive = shouldGuardShooterOrientation(appMode, viewportProfile);
+  const portraitOnlyModeActive = isPortraitOnlyMode(appMode, selectedCategoryId)
+    && viewportProfile.isMobileSurface;
+  const portraitOrientationGuardActive = shouldGuardPortraitOrientation(
+    appMode,
+    viewportProfile,
+    selectedCategoryId,
+  );
+  const shooterOrientationGuardActive = shouldGuardShooterOrientation(
+    appMode,
+    viewportProfile,
+    selectedCategoryId,
+  );
 
   useEffect(() => {
     if (!portraitOnlyModeActive || typeof window === "undefined") return undefined;
@@ -21453,6 +22184,22 @@ function App({ onReady }) {
     setIsHitWindowActive(false);
     setLaneFeedback([]);
   }, [requestStage3BackingPatternChange]);
+
+  const changeStage3Bpm = useCallback((value) => {
+    const isStage3Scope = appModeRef.current === APP_MODES.PRACTICE
+      && selectedCategoryIdRef.current === "rhythm"
+      && activeMetronomeScopeRef.current === METRONOME_SETTING_SCOPES.STAGE3;
+    if (!isStage3Scope) return;
+    changeBpm(value);
+  }, [changeBpm]);
+
+  const changeStage3CountIn = useCallback((enabled) => {
+    const isStage3Scope = appModeRef.current === APP_MODES.PRACTICE
+      && selectedCategoryIdRef.current === "rhythm"
+      && activeMetronomeScopeRef.current === METRONOME_SETTING_SCOPES.STAGE3;
+    if (!isStage3Scope) return;
+    changeTrainingCountIn(enabled);
+  }, [changeTrainingCountIn]);
 
   const changeMetronomeAccentTone = useCallback((toneId) => {
     const nextTone = getMetronomeToneOption(toneId).id;
@@ -21787,6 +22534,12 @@ function App({ onReady }) {
     setMiniChordBpm(safeBpm);
   }, []);
 
+  const changeMiniChordCountIn = useCallback((enabled) => {
+    const nextEnabled = Boolean(enabled);
+    miniChordCountInRef.current = nextEnabled;
+    setMiniChordCountIn(nextEnabled);
+  }, []);
+
   const triggerMiniChordTapTempoPressFeedback = useCallback(() => {
     setMiniChordTapTempoPressTick((tick) => tick + 1);
     if (miniChordTapTempoPressTimerRef.current != null) window.clearTimeout(miniChordTapTempoPressTimerRef.current);
@@ -21811,8 +22564,10 @@ function App({ onReady }) {
 
   useEffect(() => () => {
     if (bpmSwipeFrameRef.current != null) window.cancelAnimationFrame(bpmSwipeFrameRef.current);
+    if (stage3BpmSwipeFrameRef.current != null) window.cancelAnimationFrame(stage3BpmSwipeFrameRef.current);
     if (miniChordBpmSwipeFrameRef.current != null) window.cancelAnimationFrame(miniChordBpmSwipeFrameRef.current);
     if (tapTempoPressTimerRef.current != null) window.clearTimeout(tapTempoPressTimerRef.current);
+    if (stage3TapTempoPressTimerRef.current != null) window.clearTimeout(stage3TapTempoPressTimerRef.current);
     if (miniChordTapTempoPressTimerRef.current != null) window.clearTimeout(miniChordTapTempoPressTimerRef.current);
   }, []);
 
@@ -21909,6 +22664,125 @@ function App({ onReady }) {
     event.currentTarget.releasePointerCapture?.(swipe.pointerId);
     resetBpmSwipePreview();
   }, [resetBpmSwipePreview]);
+
+  const triggerStage3TapTempoPressFeedback = useCallback(() => {
+    setStage3TapTempoPressTick((tick) => tick + 1);
+    if (stage3TapTempoPressTimerRef.current != null) {
+      window.clearTimeout(stage3TapTempoPressTimerRef.current);
+    }
+    stage3TapTempoPressTimerRef.current = window.setTimeout(() => {
+      stage3TapTempoPressTimerRef.current = null;
+      setStage3TapTempoPressTick(0);
+    }, 115);
+  }, []);
+
+  const handleStage3TapTempo = useCallback(() => {
+    const isStage3Scope = appModeRef.current === APP_MODES.PRACTICE
+      && selectedCategoryIdRef.current === "rhythm"
+      && activeMetronomeScopeRef.current === METRONOME_SETTING_SCOPES.STAGE3;
+    if (!isStage3Scope) return;
+
+    const now = performance.now();
+    const nextTimes = [...stage3TapTempoTimesRef.current.filter((time) => now - time < 2200), now].slice(-6);
+    stage3TapTempoTimesRef.current = nextTimes;
+    if (nextTimes.length < 2) return;
+
+    const intervals = nextTimes.slice(1).map((time, index) => time - nextTimes[index]);
+    const averageInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
+    if (!Number.isFinite(averageInterval) || averageInterval <= 0) return;
+
+    changeStage3Bpm(Math.round(60000 / averageInterval));
+  }, [changeStage3Bpm]);
+
+  const renderStage3BpmSwipePreview = useCallback((nextBpm) => {
+    const safeBpm = clampBpm(nextBpm);
+    stage3BpmSwipePreviewValueRef.current = safeBpm;
+    if (stage3BpmSwipeFrameRef.current != null) return;
+    stage3BpmSwipeFrameRef.current = window.requestAnimationFrame(() => {
+      stage3BpmSwipeFrameRef.current = null;
+      if (typeof document === "undefined") return;
+      document.querySelectorAll("[data-bpm-preview-value=\"stage3\"]").forEach((node) => {
+        node.textContent = String(stage3BpmSwipePreviewValueRef.current);
+      });
+    });
+  }, []);
+
+  const resetStage3BpmSwipePreview = useCallback(() => {
+    renderStage3BpmSwipePreview(bpmRef.current);
+  }, [renderStage3BpmSwipePreview]);
+
+  useEffect(() => {
+    resetStage3BpmSwipePreview();
+  }, [bpm, resetStage3BpmSwipePreview]);
+
+  const handleStage3BpmSwipeStart = useCallback((event) => {
+    const isStage3Scope = appModeRef.current === APP_MODES.PRACTICE
+      && selectedCategoryIdRef.current === "rhythm"
+      && activeMetronomeScopeRef.current === METRONOME_SETTING_SCOPES.STAGE3;
+    if (!isStage3Scope || event.target?.closest?.("button, select, input, textarea")) return;
+
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    const now = performance.now();
+    stage3BpmSwipeStartRef.current = {
+      x: event.clientX,
+      lastX: event.clientX,
+      lastTime: now,
+      startBpm: bpmRef.current,
+      lastAppliedBpm: bpmRef.current,
+      previewBpm: bpmRef.current,
+      locked: false,
+      canceled: false,
+      pointerId: event.pointerId,
+    };
+  }, []);
+
+  const handleStage3BpmSwipeMove = useCallback((event) => {
+    const swipe = stage3BpmSwipeStartRef.current;
+    if (!swipe || swipe.canceled || swipe.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - swipe.x;
+    if (!swipe.locked) {
+      if (Math.abs(deltaX) < 6) return;
+      swipe.locked = true;
+    }
+
+    event.preventDefault();
+    const now = performance.now();
+    const elapsed = Math.max(16, now - swipe.lastTime);
+    const velocity = (event.clientX - swipe.lastX) / elapsed;
+    const velocityBoost = Math.sign(velocity) * Math.min(8, Math.max(0, Math.abs(velocity) - 0.25) * 5);
+    const nextBpm = clampBpm(swipe.startBpm + Math.round(deltaX / 9 + velocityBoost));
+
+    if (nextBpm !== swipe.lastAppliedBpm) {
+      swipe.previewBpm = nextBpm;
+      renderStage3BpmSwipePreview(nextBpm);
+      swipe.lastAppliedBpm = nextBpm;
+    }
+    swipe.lastX = event.clientX;
+    swipe.lastTime = now;
+  }, [renderStage3BpmSwipePreview]);
+
+  const handleStage3BpmSwipeEnd = useCallback((event) => {
+    const swipe = stage3BpmSwipeStartRef.current;
+    stage3BpmSwipeStartRef.current = null;
+    if (!swipe || swipe.pointerId !== event.pointerId) return;
+
+    event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+    if (!swipe.canceled && swipe.previewBpm !== undefined && swipe.previewBpm !== bpmRef.current) {
+      changeStage3Bpm(swipe.previewBpm);
+      return;
+    }
+    resetStage3BpmSwipePreview();
+  }, [changeStage3Bpm, resetStage3BpmSwipePreview]);
+
+  const handleStage3BpmSwipeCancel = useCallback((event) => {
+    const swipe = stage3BpmSwipeStartRef.current;
+    stage3BpmSwipeStartRef.current = null;
+    if (!swipe) return;
+    event.currentTarget.releasePointerCapture?.(swipe.pointerId);
+    resetStage3BpmSwipePreview();
+  }, [resetStage3BpmSwipePreview]);
 
   const renderMiniChordBpmSwipePreview = useCallback((nextBpm) => {
     const safeBpm = clampBpm(nextBpm);
@@ -22031,12 +22905,13 @@ function App({ onReady }) {
   const handleAppPointerDownCapture = useCallback((event) => {
     const target = event.target;
     if (!target?.closest) return;
+    const directInteractiveTarget = target.closest(
+      "button, a, input, select, textarea, summary, [role=\"button\"], [role=\"radio\"], [role=\"tab\"], [role=\"option\"], [aria-expanded], [aria-haspopup]",
+    );
     const desktopMetronomeOptionsTarget = !isMobileLayout
       ? target.closest(".metronomeVisualOptionsPanel")
       : null;
-    const interactiveTarget = desktopMetronomeOptionsTarget || target.closest(
-      "button, a, input, select, textarea, summary, [role=\"button\"], [role=\"radio\"], [role=\"tab\"], [role=\"option\"], [aria-expanded], [aria-haspopup]",
-    );
+    const interactiveTarget = directInteractiveTarget || desktopMetronomeOptionsTarget;
     if (interactiveTarget) {
       pointerInteractionRef.current = {
         element: interactiveTarget,
@@ -22231,6 +23106,10 @@ function App({ onReady }) {
 
   const handleMetronomeOptionsSwipeStart = useCallback((event) => {
     event.stopPropagation();
+    if (event.target?.closest?.("button")) {
+      metronomeOptionsSwipeStartRef.current = null;
+      return;
+    }
     event.currentTarget.setPointerCapture?.(event.pointerId);
     metronomeOptionsSwipeStartRef.current = {
       x: event.clientX,
@@ -22695,6 +23574,22 @@ function App({ onReady }) {
     setState(GAME_STATES.IDLE);
   }, [finalizeShooterRecord, setState, stopBackingScheduler]);
 
+  const startStage3Practice = useCallback(() => {
+    const isStage3Scope = appModeRef.current === APP_MODES.PRACTICE
+      && selectedCategoryIdRef.current === "rhythm"
+      && activeMetronomeScopeRef.current === METRONOME_SETTING_SCOPES.STAGE3;
+    if (!isStage3Scope) return false;
+    return startPractice(selectedCategory);
+  }, [selectedCategory, startPractice]);
+
+  const stopStage3Practice = useCallback(() => {
+    const isStage3Scope = appModeRef.current === APP_MODES.PRACTICE
+      && selectedCategoryIdRef.current === "rhythm"
+      && activeMetronomeScopeRef.current === METRONOME_SETTING_SCOPES.STAGE3;
+    if (!isStage3Scope) return;
+    stopPracticeSession();
+  }, [stopPracticeSession]);
+
   const showMainMenu = useCallback(() => {
     stopBackingScheduler();
     if (appModeRef.current === APP_MODES.SHOOTER) {
@@ -22708,6 +23603,7 @@ function App({ onReady }) {
     setAppMode(APP_MODES.PRACTICE);
     setSelectedCategoryId("rhythm");
     setPendingStageCardId(null);
+    switchMetronomeScope(METRONOME_SETTING_SCOPES.STAGE3);
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
     projectilesRef.current = [];
@@ -22719,7 +23615,7 @@ function App({ onReady }) {
     setBeat(0);
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
-  }, [cancelCountInVoice, finalizeShooterRecord, setState, stopMic]);
+  }, [cancelCountInVoice, finalizeShooterRecord, setState, stopMic, switchMetronomeScope]);
 
   const showCurriculum = useCallback(() => {
     stopBackingScheduler();
@@ -23691,7 +24587,10 @@ function App({ onReady }) {
     endingRanges: normalizeMiniChordEndingRanges(miniChordEndingRanges, miniChordBarCount),
     loop: Boolean(miniChordLoop),
     pianoStyle: normalizeMiniChordPianoStyle(miniChordPianoStyle),
+    slotFormatVersion: MINI_CHORD_SLOT_FORMAT_VERSION,
+    slotsPerBar: MINI_CHORD_SLOTS_PER_BAR,
     slots: normalizeMiniChordSlots(miniChordSlots, miniChordBarCount),
+    splitSlots: normalizeMiniChordSplitSlots(miniChordSplitSlots, miniChordBarCount),
   }), [
     miniChordAccidentalPreference,
     miniChordArrangementPatterns,
@@ -23704,6 +24603,7 @@ function App({ onReady }) {
     miniChordLoop,
     miniChordPianoStyle,
     miniChordSlots,
+    miniChordSplitSlots,
   ]);
 
   const applyMiniChordEditSnapshot = useCallback((snapshot) => {
@@ -23712,6 +24612,7 @@ function App({ onReady }) {
     const safeMarks = normalizeMiniChordBarMarks(snapshot.barMarks, safeBarCount);
     setMiniChordBarCount(safeBarCount);
     setMiniChordSlots(normalizeMiniChordSlots(snapshot.slots, safeBarCount));
+    setMiniChordSplitSlots(normalizeMiniChordSplitSlots(snapshot.splitSlots, safeBarCount));
     setMiniChordBarMarks(safeMarks);
     setMiniChordRepeatStarts(getMiniChordMarkersFromBarMarks(safeMarks, "repeatStart", safeBarCount));
     setMiniChordRepeatEnds(getMiniChordMarkersFromBarMarks(safeMarks, "repeatEnd", safeBarCount));
@@ -23857,6 +24758,7 @@ function App({ onReady }) {
           chordProgressionId,
           metronomeTimeSignature: stage3MetronomeTimeSignature,
           metronomeSubdivision: stage3MetronomeSubdivision,
+          metronomeToneDefaultsVersion: STAGE3_METRONOME_TONE_DEFAULTS_VERSION,
           metronomeAccentTone: stage3MetronomeAccentTone,
           metronomeWeakTone: stage3MetronomeWeakTone,
           metronomeBeatPattern: stage3NormalizedBeatPattern,
@@ -23893,7 +24795,12 @@ function App({ onReady }) {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(MOBILE_LAYOUT_MEDIA_QUERY);
-    const updateMobileLayout = () => {
+    const screenOrientation = window.screen?.orientation;
+    let firstFrameId = null;
+    let secondFrameId = null;
+    let settleTimerId = null;
+
+    const commitMobileLayout = () => {
       const nextIsMobileLayout = getIsMobileLayout(window);
       const nextViewportProfile = getViewportProfile(window);
       isMobileLayoutRef.current = nextIsMobileLayout;
@@ -23909,15 +24816,47 @@ function App({ onReady }) {
           : nextViewportProfile
       ));
     };
+
+    const cancelScheduledMobileLayoutUpdate = () => {
+      if (firstFrameId !== null) window.cancelAnimationFrame(firstFrameId);
+      if (secondFrameId !== null) window.cancelAnimationFrame(secondFrameId);
+      if (settleTimerId !== null) window.clearTimeout(settleTimerId);
+      firstFrameId = null;
+      secondFrameId = null;
+      settleTimerId = null;
+    };
+
+    const updateMobileLayout = () => {
+      commitMobileLayout();
+      cancelScheduledMobileLayoutUpdate();
+      firstFrameId = window.requestAnimationFrame(() => {
+        firstFrameId = null;
+        commitMobileLayout();
+        secondFrameId = window.requestAnimationFrame(() => {
+          secondFrameId = null;
+          commitMobileLayout();
+        });
+      });
+      settleTimerId = window.setTimeout(() => {
+        settleTimerId = null;
+        commitMobileLayout();
+      }, 160);
+    };
+
     updateMobileLayout();
     window.addEventListener("resize", updateMobileLayout);
     window.addEventListener("orientationchange", updateMobileLayout);
+    window.addEventListener("pageshow", updateMobileLayout);
     window.visualViewport?.addEventListener?.("resize", updateMobileLayout);
+    screenOrientation?.addEventListener?.("change", updateMobileLayout);
     mediaQuery.addEventListener?.("change", updateMobileLayout);
     return () => {
+      cancelScheduledMobileLayoutUpdate();
       window.removeEventListener("resize", updateMobileLayout);
       window.removeEventListener("orientationchange", updateMobileLayout);
+      window.removeEventListener("pageshow", updateMobileLayout);
       window.visualViewport?.removeEventListener?.("resize", updateMobileLayout);
+      screenOrientation?.removeEventListener?.("change", updateMobileLayout);
       mediaQuery.removeEventListener?.("change", updateMobileLayout);
     };
   }, []);
@@ -24136,10 +25075,7 @@ function App({ onReady }) {
       : appMode === APP_MODES.PRACTICE
         ? currentPrompt ?? null
         : null;
-  const shooterTarget =
-    shooterTargets
-      .filter((target) => !target.defeated && target.hitboxActive !== false)
-      .sort((a, b) => b.y - a.y || a.bornAt - b.bornAt)[0] ?? null;
+  const shooterTarget = getFrontShooterTarget(shooterTargets);
   const shooterTargetDetail = shooterTarget?.detail ?? (shooterTarget ? getShooterNoteDetail(shooterTarget.note) : null);
   const shooterGuidePitch = shooterTargetDetail?.octaveNote ?? shooterTargetDetail?.pitch;
   const shooterGuidePositions = shooterGuidePitch ? getFretboardPositionsForPitch(shooterGuidePitch) : [];
@@ -24233,14 +25169,11 @@ function App({ onReady }) {
       const markWarning = getMiniChordMarkWarningMessage(mark, miniChordBarMarks, miniChordBarCount);
       return {
         index: barIndex,
-        slots: [0, 1].map((slotIndex) => {
-          const globalIndex = barIndex * MINI_CHORD_SLOTS_PER_BAR + slotIndex;
-          return {
-            index: globalIndex,
-            slotIndex,
-            chord: miniChordSlots[globalIndex] ?? "",
-          };
-        }),
+        halves: getMiniChordTimelineHalves(
+          miniChordSlots,
+          miniChordSplitSlots,
+          barIndex,
+        ),
         repeatStart: Boolean(mark.repeatStart),
         repeatEnd: Boolean(mark.repeatEnd),
         endings: endingRange ? [endingRange.endingNumber] : [],
@@ -24259,6 +25192,7 @@ function App({ onReady }) {
     miniChordBarCount,
     miniChordBarMarks,
     miniChordSlots,
+    miniChordSplitSlots,
     normalizedMiniChordArrangementOverrides,
     normalizedMiniChordEndingRanges,
   ]);
@@ -24702,6 +25636,7 @@ function App({ onReady }) {
     setMiniChordNotice("");
     setMiniChordBarCount(safeBarCount);
     setMiniChordSlots((slots) => normalizeMiniChordSlots(slots, safeBarCount));
+    setMiniChordSplitSlots((splitSlots) => normalizeMiniChordSplitSlots(splitSlots, safeBarCount));
     setMiniChordRepeatStarts((markers) => normalizeMiniChordMarkers(markers, safeBarCount));
     setMiniChordRepeatEnds((markers) => normalizeMiniChordMarkers(markers, safeBarCount));
     setMiniChordBarMarks((marks) => normalizeMiniChordBarMarks(marks, safeBarCount));
@@ -24753,12 +25688,68 @@ function App({ onReady }) {
     });
   }, [miniChordBarCount]);
 
+  const splitMiniChordActiveHalf = useCallback((slotIndex) => {
+    const result = splitMiniChordSlot(
+      miniChordSlots,
+      miniChordSplitSlots,
+      slotIndex,
+      miniChordBarCount,
+    );
+    setMiniChordNotice("2박 칸을 각각 편집할 수 있는 1박 두 칸으로 나눴습니다");
+    setMiniChordSlots(result.slots);
+    setMiniChordSplitSlots(result.splitSlots);
+    setMiniChordActiveSlot(result.primarySlotIndex);
+  }, [miniChordBarCount, miniChordSlots, miniChordSplitSlots]);
+
+  const mergeMiniChordActiveHalf = useCallback((slotIndex, preferredSlotIndex, preferredValue) => {
+    const result = mergeMiniChordSlot(
+      miniChordSlots,
+      miniChordSplitSlots,
+      slotIndex,
+      miniChordBarCount,
+      { preferredSlotIndex, preferredValue },
+    );
+    setMiniChordNotice("선택한 박의 코드를 유지하고 1박 두 칸을 2박 칸으로 합쳤습니다");
+    setMiniChordSlots(result.slots);
+    setMiniChordSplitSlots(result.splitSlots);
+    setMiniChordActiveSlot(result.primarySlotIndex);
+    setMiniChordChordPickerSlot(result.primarySlotIndex);
+  }, [miniChordBarCount, miniChordSlots, miniChordSplitSlots]);
+
   const commitMiniChordChordPicker = useCallback((slotIndex, value, draft = null) => {
     if (draft) miniChordPickerDraftRef.current = draft;
     updateMiniChordSlot(slotIndex, value);
     setMiniChordChordPickerSlot(null);
     setMiniChordChordPickerPosition(null);
   }, [updateMiniChordSlot]);
+
+  const commitMiniChordChordPickerSlots = useCallback((updates = [], draft = null, activeSlotIndex = null) => {
+    const maxSlotIndex = miniChordBarCount * MINI_CHORD_SLOTS_PER_BAR - 1;
+    const safeUpdates = (Array.isArray(updates) ? updates : [])
+      .map((entry) => ({
+        slotIndex: Math.max(0, Math.min(maxSlotIndex, Math.round(Number(entry?.slotIndex) || 0))),
+        value: String(entry?.value ?? "").trim(),
+      }))
+      .filter((entry, index, entries) => (
+        entries.findIndex((candidate) => candidate.slotIndex === entry.slotIndex) === index
+      ));
+    if (!safeUpdates.length) return;
+    if (draft) miniChordPickerDraftRef.current = draft;
+    const nextActiveSlot = activeSlotIndex == null
+      ? safeUpdates[0].slotIndex
+      : Math.max(0, Math.min(maxSlotIndex, Math.round(Number(activeSlotIndex) || 0)));
+    setMiniChordNotice("");
+    setMiniChordActiveSlot(nextActiveSlot);
+    setMiniChordSlots((slots) => {
+      const nextSlots = normalizeMiniChordSlots(slots, miniChordBarCount);
+      safeUpdates.forEach(({ slotIndex: targetSlotIndex, value }) => {
+        nextSlots[targetSlotIndex] = value;
+      });
+      return nextSlots;
+    });
+    setMiniChordChordPickerSlot(null);
+    setMiniChordChordPickerPosition(null);
+  }, [miniChordBarCount]);
 
   const clearMiniChordSlot = useCallback(() => {
     updateMiniChordSlot(miniChordActiveSlot, "");
@@ -24963,7 +25954,10 @@ function App({ onReady }) {
     id: `mini-${Date.now()}`,
     title: miniChordTitle,
     barCount: miniChordBarCount,
+    slotFormatVersion: MINI_CHORD_SLOT_FORMAT_VERSION,
+    slotsPerBar: MINI_CHORD_SLOTS_PER_BAR,
     slots: miniChordSlots,
+    splitSlots: miniChordSplitSlots,
     repeatStarts: miniChordRepeatStartsFromMarks,
     repeatEnds: miniChordRepeatEndsFromMarks,
     barMarks: miniChordBarMarks,
@@ -24988,6 +25982,7 @@ function App({ onReady }) {
     miniChordRepeatEndsFromMarks,
     miniChordRepeatStartsFromMarks,
     miniChordSlots,
+    miniChordSplitSlots,
     miniChordTitle,
     normalizedMiniChordEndingRanges,
   ]);
@@ -25001,6 +25996,7 @@ function App({ onReady }) {
     setMiniChordTitle(next.title);
     setMiniChordBarCount(next.barCount);
     setMiniChordSlots(next.slots);
+    setMiniChordSplitSlots(next.splitSlots);
     setMiniChordRepeatStarts(next.repeatStarts);
     setMiniChordRepeatEnds(next.repeatEnds);
     setMiniChordBarMarks(next.barMarks);
@@ -25101,6 +26097,7 @@ function App({ onReady }) {
       () => "",
     ));
     setMiniChordBarMarks({});
+    setMiniChordSplitSlots([]);
     setMiniChordRepeatStarts([]);
     setMiniChordRepeatEnds([]);
     setMiniChordEndingRanges([]);
@@ -25160,6 +26157,7 @@ function App({ onReady }) {
       miniChordGroovePreviewTimerRef.current = null;
     }
     miniChordGroovePreviewTokenRef.current += 1;
+    cancelCountInVoice();
     if (backingSchedulerModeRef.current === BACKING_SCHEDULER_MODES.MINI_CHORD) {
       stopBackingScheduler();
     }
@@ -25176,7 +26174,7 @@ function App({ onReady }) {
     setMiniChordRhythmSettingsPreviewMode("");
     setMiniChordPlayhead(null);
     setMiniChordPlayingBarIndex(null);
-  }, [stopBackingScheduler]);
+  }, [cancelCountInVoice, stopBackingScheduler]);
 
   const syncMiniChordPlaybackVisuals = useCallback(() => {
     const audio = audioRef.current;
@@ -25242,10 +26240,10 @@ function App({ onReady }) {
     }
     if (miniChordPlayheadRef.current !== slotIndex) {
       timelineElement
-        ?.querySelector(`[data-mini-chord-slot-index="${miniChordPlayheadRef.current}"]`)
+        ?.querySelector(`:is([data-mini-chord-slot-index="${miniChordPlayheadRef.current}"], [data-mini-chord-playback-indexes~="${miniChordPlayheadRef.current}"])`)
         ?.classList.remove("playing");
       timelineElement
-        ?.querySelector(`[data-mini-chord-slot-index="${slotIndex}"]`)
+        ?.querySelector(`:is([data-mini-chord-slot-index="${slotIndex}"], [data-mini-chord-playback-indexes~="${slotIndex}"])`)
         ?.classList.add("playing");
       miniChordPlayheadRef.current = slotIndex;
       setMiniChordPlayhead(slotIndex);
@@ -25347,20 +26345,49 @@ function App({ onReady }) {
         setMiniChordNotice("반주할 마디가 없습니다");
         return;
       }
-      miniChordPlaybackBarsRef.current = barSequence;
-      miniChordPlaybackSlotsRef.current = slotSequence;
-      const firstSlotIndex = slotSequence[0] ?? (barSequence[0] ?? 0) * MINI_CHORD_SLOTS_PER_BAR;
-      const firstBarIndex = Math.floor(firstSlotIndex / MINI_CHORD_SLOTS_PER_BAR);
-      miniChordPlayingBarIndexRef.current = firstBarIndex;
-      miniChordPlayheadRef.current = firstSlotIndex;
-      miniChordIsPlayingRef.current = true;
-      setMiniChordIsStarting(false);
-      setMiniChordIsPlaying(true);
-      setMiniChordPlayingBarIndex(firstBarIndex);
-      setMiniChordPlayhead(firstSlotIndex);
-      setMiniChordPageIndex(getMiniChordPageIndexForBar(firstBarIndex));
-      startBackingScheduler(0, BACKING_SCHEDULER_MODES.MINI_CHORD);
-      miniChordPlaybackFrameRef.current = window.requestAnimationFrame(syncMiniChordPlaybackVisuals);
+      const beginMiniChordPlayback = () => {
+        if (miniChordStartTokenRef.current !== startToken || appModeRef.current !== APP_MODES.MINI_CHORD_MAKER) return;
+        miniChordPlaybackBarsRef.current = barSequence;
+        miniChordPlaybackSlotsRef.current = slotSequence;
+        const firstSlotIndex = slotSequence[0] ?? (barSequence[0] ?? 0) * MINI_CHORD_SLOTS_PER_BAR;
+        const firstBarIndex = Math.floor(firstSlotIndex / MINI_CHORD_SLOTS_PER_BAR);
+        miniChordPlayingBarIndexRef.current = firstBarIndex;
+        miniChordPlayheadRef.current = firstSlotIndex;
+        miniChordIsPlayingRef.current = true;
+        setMiniChordIsStarting(false);
+        setMiniChordIsPlaying(true);
+        setMiniChordPlayingBarIndex(firstBarIndex);
+        setMiniChordPlayhead(firstSlotIndex);
+        setMiniChordPageIndex(getMiniChordPageIndexForBar(firstBarIndex));
+        setMiniChordNotice(codaWarning || "");
+        startBackingScheduler(0, BACKING_SCHEDULER_MODES.MINI_CHORD);
+        miniChordPlaybackFrameRef.current = window.requestAnimationFrame(syncMiniChordPlaybackVisuals);
+      };
+
+      if (!isMobileLayoutRef.current && miniChordCountInRef.current) {
+        const beatMs = Math.max(120, Math.round(60000 / miniChordBpm));
+        let countInBeat = 0;
+        setMiniChordNotice("Count In");
+        playCountInVoice(countInBeat);
+        const countInTimerId = window.setInterval(() => {
+          if (miniChordStartTokenRef.current !== startToken || appModeRef.current !== APP_MODES.MINI_CHORD_MAKER) {
+            window.clearInterval(countInTimerId);
+            if (miniChordPlayTimerRef.current === countInTimerId) miniChordPlayTimerRef.current = null;
+            return;
+          }
+          countInBeat += 1;
+          if (countInBeat < 4) {
+            playCountInVoice(countInBeat);
+            return;
+          }
+          window.clearInterval(countInTimerId);
+          if (miniChordPlayTimerRef.current === countInTimerId) miniChordPlayTimerRef.current = null;
+          beginMiniChordPlayback();
+        }, beatMs);
+        miniChordPlayTimerRef.current = countInTimerId;
+      } else {
+        beginMiniChordPlayback();
+      }
     } catch (error) {
       console.warn("Mini chord backing start failed.", error);
       stopMiniChordPreview();
@@ -25374,6 +26401,7 @@ function App({ onReady }) {
     miniChordBarCount,
     miniChordBarMarks,
     miniChordBpm,
+    playCountInVoice,
     prepareStage3BackingSession,
     startBackingScheduler,
     stopMiniChordPreview,
@@ -25396,7 +26424,10 @@ function App({ onReady }) {
         id: "draft",
         title: miniChordTitle,
         barCount: miniChordBarCount,
+        slotFormatVersion: MINI_CHORD_SLOT_FORMAT_VERSION,
+        slotsPerBar: MINI_CHORD_SLOTS_PER_BAR,
         slots: miniChordSlots,
+        splitSlots: miniChordSplitSlots,
         repeatStarts: miniChordRepeatStartsFromMarks,
         repeatEnds: miniChordRepeatEndsFromMarks,
         barMarks: miniChordBarMarks,
@@ -25425,6 +26456,7 @@ function App({ onReady }) {
     miniChordRepeatEndsFromMarks,
     miniChordRepeatStartsFromMarks,
     miniChordSlots,
+    miniChordSplitSlots,
     miniChordTitle,
     normalizedMiniChordEndingRanges,
   ]);
@@ -25993,9 +27025,9 @@ function App({ onReady }) {
       ensureBackingOutput(audioRef.current);
       const session = await prepareStage3BackingSession({
         progression: buildMiniChordBackingProgression({
-          slots: ["C", ""],
+          slots: ["C", "", "", ""],
           barCount: 4,
-          slotSequence: [0, 1],
+          slotSequence: [0, 1, 2, 3],
           capo: miniChordCapo,
           accidentalPreference: miniChordAccidentalPreference,
           userDefaultPatterns: previewPatterns,
@@ -26362,12 +27394,147 @@ function App({ onReady }) {
     hasChordTransitionProgression &&
     gameState !== GAME_STATES.PLAYING &&
     stage3BackingPrepareStatus !== "ready";
+  const isStage3Playing = appMode === APP_MODES.PRACTICE
+    && selectedCategory.id === "rhythm"
+    && gameState === GAME_STATES.PLAYING;
+  const isStandaloneMetronomePlaying = appMode === APP_MODES.METRONOME
+    && gameState === GAME_STATES.PLAYING;
+
+  const loadStage3LibraryItem = useCallback((item, { closeStorage = false } = {}) => {
+    if (!item?.chordIds?.length) return;
+    setStage3RecommendedSelectValue(isStage3RecommendedItem(item) ? item.id : "");
+    setStage3StorageSelectedId(item.id);
+    applyStage3LibraryItem(item);
+    prepareStage3BackingSession({
+      progression: buildStage3Progression(item.chordIds),
+      bpmValue: item.bpm ?? bpm,
+      timeSignatureValue: item.time_signature ?? stage3MetronomeTimeSignatureRef.current,
+      rhythmPattern: backingRhythmPatternRef.current,
+      bassBeat: backingBassBeatRef.current,
+      pianoBeat: backingPianoBeatRef.current,
+      preloadAudio: true,
+    });
+    if (closeStorage) exitStage3StorageRoom();
+  }, [
+    applyStage3LibraryItem,
+    bpm,
+    buildStage3Progression,
+    exitStage3StorageRoom,
+    isStage3RecommendedItem,
+    prepareStage3BackingSession,
+  ]);
+
+  const stage3DesktopMetronomeSoundToggle = (
+    <button
+      aria-label={`리듬 코드 메트로놈 사운드 ${stage3MetronomeSoundOn ? "끄기" : "켜기"}`}
+      aria-pressed={stage3MetronomeSoundOn}
+      aria-controls="stage3-metronome-options-options"
+      className={`stage3MetronomeSoundToggle stage3MetronomeSoundToggle--desktop ${
+        stage3MetronomeSoundOn ? "selected" : ""
+      }`}
+      onClick={toggleStage3MetronomeSound}
+      type="button"
+    >
+      {stage3MetronomeSoundOn ? <Volume2 aria-hidden="true" size={16} /> : <VolumeX aria-hidden="true" size={16} />}
+      <span>매트로놈</span>
+      <b>{stage3MetronomeSoundOn ? "ON" : "OFF"}</b>
+    </button>
+  );
 
   const appInteractionLocked = Boolean(shooterLaunchTransition || themeTransition);
   const appContentInteractionLocked = appInteractionLocked || portraitOrientationGuardActive;
-  const landscapePlayFocus = isLandscapePlayFocusMode(appMode, viewportProfile)
-    && (appMode !== APP_MODES.MINI_CHORD_MAKER || miniChordPlaybackActive);
-  const viewportClassName = getViewportProfileClassName(viewportProfile);
+  const landscapePlayFocus = isLandscapePlayFocusMode(
+    appMode,
+    viewportProfile,
+    selectedCategoryId,
+  );
+  const hideFretboardLandscapeNavigation = appMode === APP_MODES.FRETBOARD_VIEWER
+    && viewportProfile.isLandscape
+    && viewportProfile.isMobileSurface;
+  const viewportClassName = getViewportProfileClassName(
+    portraitOrientationGuardActive
+      ? getPortraitLockedViewportProfile(viewportProfile)
+      : viewportProfile,
+  );
+
+  const stage3LandscapeLoadToolbar = (
+    <div className="stage3LoadToolbar">
+      <MetronomeSelectControl
+        className="stage3LoadSelect stage3RecommendedLoadSelect"
+        dropdownDirection={!isMobileLayout || landscapePlayFocus ? "down" : "up"}
+        label="추천"
+        matchTriggerWidth
+        onChange={(slotId) => {
+          const item = stage3RecommendedSlots.find((slot) => slot.id === slotId);
+          if (!item) return;
+          loadStage3LibraryItem(item);
+        }}
+        options={[
+          { id: "", label: "추천진행선택", disabled: true },
+          ...stage3RecommendedSlots.map((item) => ({
+            id: item.id,
+            label: item.title || "추천 진행",
+          })),
+        ]}
+        showLabel={false}
+        value={stage3RecommendedSelectValue}
+      />
+      <MetronomeSelectControl
+        className="stage3LoadSelect stage3UserLoadSelect"
+        dropdownDirection={!isMobileLayout || landscapePlayFocus ? "down" : "up"}
+        label="사용자"
+        onChange={(slotId) => {
+          const item = stage3QuickSlots.find((slot) => slot.id === slotId);
+          if (!item) return;
+          loadStage3LibraryItem(item);
+        }}
+        onClearSelectedOptions={clearStage3UserSelection}
+        onDeleteOption={requestDeleteStage3StorageItem}
+        onDeleteSelectedOptions={requestDeleteSelectedStage3StorageItems}
+        onSelectAllOptions={selectAllStage3UnlockedUserItems}
+        onToggleOptionLock={toggleStage3StorageItemLock}
+        onToggleOptionSelection={toggleStage3UserSelection}
+        options={[
+          { id: "", label: "사용자 진행 선택", disabled: true },
+          ...stage3QuickSlots.map((item) => ({
+            id: item.id,
+            label: getStage3SavedTitle(item),
+            deletable: true,
+            locked: Boolean(item.locked),
+          })),
+        ]}
+        managedListMode
+        panelDirectionIndicator
+        selectedOptionIds={stage3UserSelectedIds}
+        showLabel={false}
+        value={!isStage3RecommendedItem(selectedStage3LibraryItem) ? selectedStage3LibraryItem?.id ?? loadedStage3LibraryItem?.id ?? "" : ""}
+      />
+      <button
+        className="stage3StorageMoveButton"
+        onClick={showStage3StorageRoom}
+        type="button"
+      >
+        <FolderOpen size={14} />
+        LOAD
+      </button>
+    </div>
+  );
+
+  const referenceLandscapeBeatStrip = (
+    <div className="referenceBeatMetronomeStrip" aria-label="점자 메트로놈">
+      <BeatIndicator
+        beat={beat}
+        beatPattern={standaloneBeatPattern}
+        beatsPerMeasure={metronomeBeatsPerMeasure}
+        compact
+        dotClassName="referenceBeatMetronomeDot"
+        isPlaying={gameState === GAME_STATES.PLAYING}
+        label="점자 메트로놈"
+        onBeatClick={cycleStandaloneBeatState}
+        timeSignature={metronomeTimeSignature}
+      />
+    </div>
+  );
 
   return (
     <main
@@ -26459,20 +27626,6 @@ function App({ onReady }) {
               </section>
             ) : null}
             <nav className="utilityMenuList" aria-label="부가 기능 목록">
-              {audioStudioEnabled ? (
-                <button
-                  className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive audioStudioMenuItem"
-                  onClick={showAudioStudio}
-                  type="button"
-                >
-                  <span className="utilityMenuIcon" aria-hidden="true"><AudioLines size={19} /></span>
-                  <div className="utilityMenuText">
-                    <UtilityMenuTitle status="DEV">오디오 스튜디오</UtilityMenuTitle>
-                    <small>MIX &amp; AUDIO LIBRARY</small>
-                  </div>
-                  <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
-                </button>
-              ) : null}
               <button
                 className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
                 onClick={() => showIndependentPracticeCategory("first-position")}
@@ -26480,7 +27633,7 @@ function App({ onReady }) {
               >
                 <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">1</span>
                 <div className="utilityMenuText">
-                  <strong>단일 음 위치 익히기</strong>
+                  <UtilityMenuTitle status="BEGINNER">단일 음 위치 익히기</UtilityMenuTitle>
                   <small>C ~ 3코드 기준 음 위치를 찾는 훈련</small>
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
@@ -26492,7 +27645,7 @@ function App({ onReady }) {
               >
                 <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">2</span>
                 <div className="utilityMenuText">
-                  <strong>스케일 · 펜타토닉</strong>
+                  <UtilityMenuTitle status="SOLO">스케일 · 펜타토닉</UtilityMenuTitle>
                   <small>구간별 위치 · 프레이즈 연습</small>
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
@@ -26516,11 +27669,25 @@ function App({ onReady }) {
               >
                 <span className="utilityMenuIcon utilityMenuIndex" aria-hidden="true">4</span>
                 <div className="utilityMenuText">
-                  <strong>미니반주</strong>
+                  <UtilityMenuTitle status="DEV">미니반주</UtilityMenuTitle>
                   <small>코드 진행과 반주를 빠르게 만들기</small>
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
+              {audioStudioEnabled ? (
+                <button
+                  className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive audioStudioMenuItem"
+                  onClick={showAudioStudio}
+                  type="button"
+                >
+                  <span className="utilityMenuIcon" aria-hidden="true"><AudioLines size={19} /></span>
+                  <div className="utilityMenuText">
+                    <UtilityMenuTitle status="DEV">오디오 스튜디오</UtilityMenuTitle>
+                    <small>MIX &amp; AUDIO LIBRARY</small>
+                  </div>
+                  <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
+                </button>
+              ) : null}
               <section className="utilitySoundPanel" aria-label="사운드 및 리듬 설정">
                 <details className="utilitySoundDetails">
                   <summary>
@@ -26697,7 +27864,10 @@ function App({ onReady }) {
         </div>
       ) : null}
 
-      {appMode !== APP_MODES.MENU && !(appMode === APP_MODES.SHOOTER && mapEditor.enabled) && <section className="hud">
+      {appMode !== APP_MODES.MENU
+        && !(appMode === APP_MODES.SHOOTER && mapEditor.enabled)
+        && !hideFretboardLandscapeNavigation
+        && <section className="hud">
         <div className="modeSwitch">
           <button
             aria-pressed={appMode === APP_MODES.TUNER}
@@ -26890,7 +28060,7 @@ function App({ onReady }) {
               <strong>미니코드 반주</strong>
               <small>{miniChordVisibleStartBar}-{miniChordVisibleEndBar}마디 / 총 {miniChordBarCount}마디</small>
             </div>
-            <div className="miniChordTransport">
+            {isMobileLayout ? <div className="miniChordTransport">
               <button
                 className={miniChordPlaybackActive ? "selected" : ""}
                 onClick={miniChordPlaybackActive ? stopMiniChordPreview : startMiniChordPreview}
@@ -26899,10 +28069,19 @@ function App({ onReady }) {
                 {miniChordPlaybackActive ? <Square size={15} aria-hidden="true" /> : <Play size={15} aria-hidden="true" />}
                 {miniChordIsStarting ? "준비 중" : miniChordIsPlaying ? "정지" : "시작"}
               </button>
-            </div>
+            </div> : null}
           </div>
 
           <div className="miniChordQuickBar" aria-label="미니코드 저장 도구">
+            {!isMobileLayout ? (
+              <div className="miniChordStorageRoomLabel">
+                <FolderOpen aria-hidden="true" size={16} />
+                <span>
+                  <strong>LOAD 저장실</strong>
+                  <small>진행 이름을 정하고 불러오거나 저장하세요</small>
+                </span>
+              </div>
+            ) : null}
             <label className="miniChordSearchField">
               <Music2 size={16} aria-hidden="true" />
               <input
@@ -27414,9 +28593,7 @@ function App({ onReady }) {
                       <span
                         aria-hidden="true"
                         className={`miniChordSectionRangeBar is-${arrangementOverride.sectionType} ${isAppliedArrangementRowSegmentStart ? "is-segment-start" : ""} ${isAppliedArrangementRowSegmentEnd ? "is-segment-end" : ""} ${connectsToNextAppliedArrangementBar ? "is-connected-next" : ""}`}
-                      >
-                        {isAppliedArrangementRowSegmentStart ? arrangementOverride.sectionName : null}
-                      </span>
+                      />
                     ) : null}
                     {(inArrangementRange || hasArrangementOverride) ? (
                       <span
@@ -27452,6 +28629,7 @@ function App({ onReady }) {
                       aria-label={`${bar.index + 1}마디 도돌이표 시작 ${bar.repeatStart ? "해제" : "설정"}`}
                       aria-pressed={bar.repeatStart}
                       className={`miniChordMarkHotspot miniChordMarkHotspotStart ${bar.repeatStart ? "active" : ""}`}
+                      data-mini-chord-repeat-edge="start"
                       disabled={miniChordEditLocked}
                       onClick={(event) => {
                         event.stopPropagation();
@@ -27461,12 +28639,17 @@ function App({ onReady }) {
                         setMiniChordEndingPopoverPosition(null);
                         updateMiniChordBarMark(bar.index, { repeatStart: !bar.repeatStart });
                       }}
+                      onDoubleClick={(event) => event.stopPropagation()}
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onPointerUp={(event) => event.stopPropagation()}
+                      title={`${bar.index + 1}마디 시작 도돌이표`}
                       type="button"
                     />
                     <button
                       aria-label={`${bar.index + 1}마디 도돌이표 끝 ${bar.repeatEnd ? "해제" : "설정"}`}
                       aria-pressed={bar.repeatEnd}
                       className={`miniChordMarkHotspot miniChordMarkHotspotEnd ${bar.repeatEnd ? "active" : ""}`}
+                      data-mini-chord-repeat-edge="end"
                       disabled={miniChordEditLocked}
                       onClick={(event) => {
                         event.stopPropagation();
@@ -27476,6 +28659,10 @@ function App({ onReady }) {
                         setMiniChordEndingPopoverPosition(null);
                         updateMiniChordBarMark(bar.index, { repeatEnd: !bar.repeatEnd });
                       }}
+                      onDoubleClick={(event) => event.stopPropagation()}
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onPointerUp={(event) => event.stopPropagation()}
+                      title={`${bar.index + 1}마디 끝 도돌이표`}
                       type="button"
                     />
                     <button
@@ -27504,8 +28691,16 @@ function App({ onReady }) {
                     />
                     {(bar.repeatStart || bar.repeatEnd) ? (
                       <div className="miniChordRepeatBoundaryLayer" aria-hidden="true">
-                        {bar.repeatStart ? <span className="miniChordRepeatBoundary miniChordRepeatBoundary--start">|:</span> : null}
-                        {bar.repeatEnd ? <span className="miniChordRepeatBoundary miniChordRepeatBoundary--end">:|</span> : null}
+                        {bar.repeatStart ? (
+                          <span className="miniChordRepeatBoundary miniChordRepeatBoundary--start">
+                            <MiniChordRepeatBoundaryIcon side="start" />
+                          </span>
+                        ) : null}
+                        {bar.repeatEnd ? (
+                          <span className="miniChordRepeatBoundary miniChordRepeatBoundary--end">
+                            <MiniChordRepeatBoundaryIcon side="end" />
+                          </span>
+                        ) : null}
                       </div>
                     ) : null}
                     <div className="miniChordBarTopLayer" aria-label={`${bar.index + 1}마디 기호`}>
@@ -27667,62 +28862,94 @@ function App({ onReady }) {
                       </div>
                     ), document.body) : null}
                     <div className="miniChordSlots">
-                      {bar.slots.map((slot) => (
+                      {bar.halves.map((half) => (
                         <div
-                          className={`miniChordSlotWrap ${slot.slotIndex === 1 ? "is-backbeat" : "is-frontbeat"}`}
-                          key={slot.index}
+                          className={`miniChordSlotHalf ${half.isSplit ? "is-split" : ""} ${half.halfInBar === 1 ? "is-backbeat" : "is-frontbeat"}`}
+                          key={half.halfIndex}
                         >
-                          {slot.slotIndex === 0 ? (
-                            <span className="miniChordBarGhostNumber" aria-hidden="true">
-                              {bar.index + 1}
-                            </span>
-                          ) : null}
-                          <button
-                            className={`miniChordSlot ${!miniChordPlaybackActive && miniChordActiveSlot === slot.index ? "active" : ""} ${miniChordPlayhead === slot.index ? "playing" : ""} ${slot.chord ? "filled" : ""}`}
-                            data-mini-chord-slot-index={slot.index}
-                            disabled={miniChordEditLocked}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              miniChordFloatingFocusReturnRef.current = event.currentTarget;
-                              setMiniChordActiveSlot(slot.index);
-                              setMiniChordActiveBarIndex(null);
-                              setMiniChordEndingPopoverPosition(null);
-                              setMiniChordChordPickerSlot(slot.index);
-                              const barRect = event.currentTarget.closest(".miniChordBar")?.getBoundingClientRect();
-                              const viewport = getMiniChordFloatingViewportMetrics();
-                              setMiniChordChordPickerPosition(getMiniChordFloatingEditorPosition({
-                                anchorRect: barRect ?? event.currentTarget.getBoundingClientRect(),
-                                bottomInset: viewport.bottomInset,
-                                gap: 8,
-                                requestedHeight: MINI_CHORD_CHORD_POPOVER_SIZE.height,
-                                requestedWidth: MINI_CHORD_CHORD_POPOVER_SIZE.width,
-                                viewportHeight: viewport.viewportHeight,
-                                viewportLeft: viewport.viewportLeft,
-                                viewportTop: viewport.viewportTop,
-                                viewportWidth: viewport.viewportWidth,
-                              }));
-                              setMiniChordPageIndex(getMiniChordPageIndexForBar(Math.floor(slot.index / MINI_CHORD_SLOTS_PER_BAR)));
-                            }}
-                            type="button"
-                          >
-                            <strong className={getMiniChordSlotLabelClassName(slot.chord)}>
-                              {getMiniChordSlotDisplayLabel(slot.chord)}
-                            </strong>
-                          </button>
-                          {miniChordChordPickerSlot === slot.index && typeof document !== "undefined" ? createPortal((
-                            <MiniChordFloatingChordEditor
-                              barNumber={bar.index + 1}
-                              beatLabel={slot.slotIndex === 0 ? "앞박" : "뒷박"}
-                              fallbackDraft={miniChordPickerDraftRef.current}
-                              initialChord={slot.chord}
+                          {half.slots.map((slot) => (
+                            <div
+                              className={`miniChordSlotWrap ${slot.subslotIndex === 1 ? "is-second-subbeat" : "is-first-subbeat"}`}
                               key={slot.index}
-                              onClose={() => closeMiniChordFloatingEditors({ restoreFocus: true })}
-                              onCommit={commitMiniChordChordPicker}
-                              position={miniChordChordPickerPosition}
-                              resolveChord={getChordFromSelector}
-                              slotIndex={slot.index}
-                            />
-                          ), document.body) : null}
+                            >
+                              {half.halfInBar === 0 && slot.subslotIndex === 0 ? (
+                                <span className="miniChordBarGhostNumber" aria-hidden="true">
+                                  {bar.index + 1}
+                                </span>
+                              ) : null}
+                              <button
+                                aria-label={`${bar.index + 1}마디 ${slot.index % MINI_CHORD_SLOTS_PER_BAR + 1}박 코드 설정`}
+                                className={`miniChordSlot ${!miniChordPlaybackActive && miniChordActiveSlot === slot.index ? "active" : ""} ${slot.playbackSlotIndexes.includes(miniChordPlayhead) ? "playing" : ""} ${slot.chord ? "filled" : ""}`}
+                                data-mini-chord-playback-indexes={slot.playbackSlotIndexes.join(" ")}
+                                data-mini-chord-slot-index={slot.index}
+                                disabled={miniChordEditLocked}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  miniChordFloatingFocusReturnRef.current = event.currentTarget;
+                                  setMiniChordActiveSlot(slot.index);
+                                  setMiniChordActiveBarIndex(null);
+                                  setMiniChordEndingPopoverPosition(null);
+                                  setMiniChordChordPickerSlot(slot.index);
+                                  const barRect = event.currentTarget.closest(".miniChordBar")?.getBoundingClientRect();
+                                  const viewport = getMiniChordFloatingViewportMetrics();
+                                  setMiniChordChordPickerPosition(getMiniChordFloatingEditorPosition({
+                                    anchorRect: barRect ?? event.currentTarget.getBoundingClientRect(),
+                                    bottomInset: viewport.bottomInset,
+                                    gap: 8,
+                                    requestedHeight: MINI_CHORD_CHORD_POPOVER_SIZE.height,
+                                    requestedWidth: MINI_CHORD_CHORD_POPOVER_SIZE.width,
+                                    viewportHeight: viewport.viewportHeight,
+                                    viewportLeft: viewport.viewportLeft,
+                                    viewportTop: viewport.viewportTop,
+                                    viewportWidth: viewport.viewportWidth,
+                                  }));
+                                  setMiniChordPageIndex(getMiniChordPageIndexForBar(Math.floor(slot.index / MINI_CHORD_SLOTS_PER_BAR)));
+                                }}
+                                type="button"
+                              >
+                                <strong className={getMiniChordSlotLabelClassName(slot.chord)}>
+                                  {String(slot.chord ?? "").trim() && isMiniChordRestValue(slot.chord)
+                                    ? <MiniChordRestIcon />
+                                    : getMiniChordSlotDisplayLabel(slot.chord)}
+                                </strong>
+                              </button>
+                              {miniChordChordPickerSlot === slot.index && typeof document !== "undefined" ? createPortal((
+                                <MiniChordFloatingChordEditor
+                                  barNumber={bar.index + 1}
+                                  beatLabel={half.isSplit
+                                    ? `${half.halfInBar === 0 ? "앞박" : "뒷박"} · ${slot.index % MINI_CHORD_SLOTS_PER_BAR + 1}박`
+                                    : `${half.halfInBar === 0 ? "앞박" : "뒷박"} · 2박`}
+                                  fallbackDraft={miniChordPickerDraftRef.current}
+                                  halfSlotEntries={[
+                                    {
+                                      chord: miniChordSlots[
+                                        bar.index * MINI_CHORD_SLOTS_PER_BAR + half.halfInBar * 2
+                                      ] ?? "",
+                                      slotIndex: bar.index * MINI_CHORD_SLOTS_PER_BAR + half.halfInBar * 2,
+                                    },
+                                    {
+                                      chord: miniChordSlots[
+                                        bar.index * MINI_CHORD_SLOTS_PER_BAR + half.halfInBar * 2 + 1
+                                      ] ?? "",
+                                      slotIndex: bar.index * MINI_CHORD_SLOTS_PER_BAR + half.halfInBar * 2 + 1,
+                                    },
+                                  ]}
+                                  initialChord={slot.chord}
+                                  isSplit={half.isSplit}
+                                  key={slot.index}
+                                  onClose={() => closeMiniChordFloatingEditors({ restoreFocus: true })}
+                                  onCommit={commitMiniChordChordPicker}
+                                  onCommitSlots={commitMiniChordChordPickerSlots}
+                                  onMerge={mergeMiniChordActiveHalf}
+                                  onSplit={splitMiniChordActiveHalf}
+                                  onUpdateSlot={updateMiniChordSlot}
+                                  position={miniChordChordPickerPosition}
+                                  resolveChord={getChordFromSelector}
+                                  slotIndex={slot.index}
+                                />
+                              ), document.body) : null}
+                            </div>
+                          ))}
                         </div>
                       ))}
                     </div>
@@ -27762,22 +28989,30 @@ function App({ onReady }) {
 
           <div className="standaloneMetronomePanel miniChordMetronomePanel" aria-label="미니코드 메트로놈">
             <MetronomeTransportCard
-              ariaLabel="미니코드 BPM 조절 및 반주 재생"
+              actionAriaLabel={!isMobileLayout ? "탭 템포, 재생, 카운트인" : undefined}
+              actionOrder={!isMobileLayout ? "tap-play" : "play-tap"}
+              actionPanelClassName={!isMobileLayout ? "miniChordDesktopMetronomeActionPanel" : ""}
+              ariaLabel={!isMobileLayout ? "미니코드 BPM, 탭 템포, 재생, 카운트인" : "미니코드 BPM 조절 및 반주 재생"}
               bpm={miniChordBpm}
               bpmControlsDisabled={miniChordEditLocked}
               bpmPreviewKey="mini-chord"
+              countInClassName={!isMobileLayout ? "miniChordDesktopCountInToggle" : ""}
+              countInDisabled={miniChordPlaybackActive}
+              countInEnabled={miniChordCountIn}
               isPlaying={miniChordPlaybackActive}
               onBpmChange={changeMiniChordBpm}
               onCardPointerCancel={miniChordEditLocked ? undefined : handleMiniChordBpmSwipeCancel}
               onCardPointerDown={miniChordEditLocked ? undefined : handleMiniChordBpmSwipeStart}
               onCardPointerMove={miniChordEditLocked ? undefined : handleMiniChordBpmSwipeMove}
               onCardPointerUp={miniChordEditLocked ? undefined : handleMiniChordBpmSwipeEnd}
+              onCountInChange={changeMiniChordCountIn}
               onStart={startMiniChordPreview}
               onStop={stopMiniChordPreview}
               onTapTempo={handleMiniChordTapTempo}
               onTapTempoPressFeedback={triggerMiniChordTapTempoPressFeedback}
               playStartLabel="미니코드 반주 시작"
               playStopLabel="미니코드 반주 정지"
+              showCountIn={!isMobileLayout}
               swipeEnabled={!miniChordEditLocked}
               tapTempoDisabled={miniChordEditLocked}
               tapTempoLabel="탭 템포로 미니코드 BPM 설정"
@@ -28992,7 +30227,7 @@ function App({ onReady }) {
             beatMs={beatMs}
             dotsEnabled={metronomeDotsEnabled}
             flashEnabled={metronomeFlashEnabled}
-            isPlaying={gameState === GAME_STATES.PLAYING}
+            isPlaying={isStandaloneMetronomePlaying}
             mode={metronomeDisplayMode}
             onBeatClick={cycleStandaloneBeatState}
             onBarEnabledChange={setMetronomeBarEnabled}
@@ -29014,7 +30249,7 @@ function App({ onReady }) {
             ariaLabel="BPM 조절 영역. 좌우 스와이프는 BPM만 변경합니다"
             bpm={bpm}
             bpmPreview
-            isPlaying={gameState === GAME_STATES.PLAYING}
+            isPlaying={isStandaloneMetronomePlaying}
             onBeforeBpmChange={(controlId, event) => !shouldIgnoreBpmButtonClick(controlId, event)}
             onBpmButtonPointerCancel={cancelBpmButtonInput}
             onBpmButtonPointerDown={armBpmButtonInput}
@@ -29060,7 +30295,11 @@ function App({ onReady }) {
             weakTone={metronomeWeakTone}
           />
 
-          <BackingLoop mobile={isMobileLayout} ownerMode={APP_MODES.METRONOME} />
+          <BackingLoop
+            desktopPresentation="standalone"
+            mobile={isMobileLayout}
+            ownerMode={APP_MODES.METRONOME}
+          />
 
           <div className="metronomePresetStrip" aria-label="메트로놈 설정 저장 및 불러오기">
             <input
@@ -29099,7 +30338,7 @@ function App({ onReady }) {
         <Activity mode={getModeActivityState(appMode, APP_MODES.SHOOTER)}>
         {renderAppMode(APP_MODES.SHOOTER, () => (
         <section
-          className={`shooterPanel ${mapEditor.enabled ? "shooterPanel--mapEditorWorkspace" : ""}`}
+          className={`shooterPanel ${desktopHorizontalShooterActive ? "shooterPanel--desktopHorizontal" : ""} ${mapEditor.enabled ? "shooterPanel--mapEditorWorkspace" : ""}`}
           aria-label={mapEditor.enabled ? "맵 스튜디오" : "슈팅게임"}
         >
           <div className="modeHelper shooterHelper">
@@ -29365,7 +30604,8 @@ function App({ onReady }) {
           ) : null}
 
           <div
-            className={`shooterArena ${!isMobileLayout && !mapEditor.enabled ? "shooterArena--desktopPortrait" : ""} ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapIsLayered ? "shooterArena--layeredMap" : ""} ${mapEditor.enabled ? "shooterArena--mapEdit" : ""} ${shooterMapRuntimePerformance.reduceEffects ? "shooterArena--mapEffectsReduced" : ""} shooterArena--aura-${selectedAuraEffect.id} shooterArena--floor-${selectedFloorEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""} ${gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER ? "shooterArena--animationsPaused" : ""} ${gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterArena--lobby" : "shooterArena--session"}`}
+            className={`shooterArena ${shooterRendererMode === SHOOTER_RENDERER_MODES.DESKTOP_PORTRAIT ? "shooterArena--desktopPortrait" : ""} ${desktopHorizontalShooterActive ? "shooterArena--desktopHorizontal" : ""} ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapIsLayered ? "shooterArena--layeredMap" : ""} ${mapEditor.enabled ? "shooterArena--mapEdit" : ""} ${shooterMapRuntimePerformance.reduceEffects ? "shooterArena--mapEffectsReduced" : ""} shooterArena--aura-${selectedAuraEffect.id} shooterArena--floor-${selectedFloorEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""} ${gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER ? "shooterArena--animationsPaused" : ""} ${gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterArena--lobby" : "shooterArena--session"}`}
+            data-shooter-renderer={shooterRendererMode}
             onClick={(event) => {
               if (mapEditor.enabled) return;
               if (shooterDifficultyMenuOpen) setShooterDifficultyMenuOpen(false);
@@ -29392,12 +30632,31 @@ function App({ onReady }) {
               pseudo3dDeveloper={import.meta.env.DEV && selectedMapIsPseudo3D}
               pseudo3dSettings={selectedPseudo3DSettings}
               threeDLabActive={shooterMapAnimationsActive}
+              threeDLabBattleState={gameState}
               threeDLabDeveloper={import.meta.env.DEV && selectedMapIsThreeDLab}
+              threeDLabHorizontalBattle={desktopHorizontalShooterActive}
               threeDLabSettings={selectedThreeDLabSettings}
               selectedAssetId={mapEditor.selectedInstanceId}
               skin={selectedMapRenderSkin}
               stage="underlay"
             />
+
+            {desktopHorizontalShooterActive && !mapEditor.enabled ? (
+              <DesktopHorizontalBattleView
+                combo={combo}
+                difficultyLabel={shooterDifficultyLabel}
+                judgment={gameState === GAME_STATES.PLAYING ? feedback : ""}
+                level={shooterLevel.name.replace("레벨 ", "")}
+                levelPhase={shooterLevel.phaseLabel}
+                lives={shooterLives}
+                maxLives={SHOOTER_MAX_LIVES}
+                mapId={selectedMap.id}
+                score={score}
+                targetLabel={shooterGuidePitch ? getShooterPitchDisplayLabel(shooterGuidePitch, shooterSolfegeOn) : ""}
+                targetPitch={shooterGuidePitch ?? ""}
+                waterFlowActive={false}
+              />
+            ) : null}
 
             {!mapEditor.enabled ? (
               <>
@@ -29519,16 +30778,56 @@ function App({ onReady }) {
                 monsterTuning,
               );
               const targetPitchDisplayLabel = getShooterPitchDisplayLabel(targetPitch, shooterSolfegeOn);
-              const monsterRenderScale = getShooterNoteMonsterRenderScale(targetPitch)
+              const monsterPitchLabel = getShooterNoteMonsterPitchText(
+                targetPitch,
+                selectedMonsterSkin.id,
+                targetPitchDisplayLabel,
+              );
+              const monsterRenderScale = getShooterNoteMonsterRenderScale(
+                targetPitch,
+                selectedMonsterSkin.id,
+              )
                 * monsterRenderedScales.monsterScale;
+              const pitchText = selectedMonsterSkin.pitchText;
+              const monsterLabelFontSize = pitchText?.renderedByApp
+                ? SHOOTER_NOTE_MONSTER_RENDER_SIZE
+                  * monsterRenderScale
+                  * pitchText.fontSizeRatio
+                  * monsterTuning.labelScale
+                : 13 * monsterRenderedScales.labelScale;
+              const monsterLabelOutlineWidth = pitchText?.renderedByApp
+                ? Math.max(
+                  0.8,
+                  SHOOTER_NOTE_MONSTER_RENDER_SIZE
+                    * monsterRenderScale
+                    * pitchText.outlineWidthRatio,
+                )
+                : 0.9;
               return (
               <div
-                aria-label={`목표 음 ${targetPitchDisplayLabel}${shooterSolfegeOn ? ` (${targetPitch})` : ""}`}
-                className={`enemy shooterEnemy shooterEnemy--monster ${getShooterEnemyDifficultyClass(targetDifficulty)} ${!target.defeated ? "fallingTarget" : ""} ${target.defeated ? "defeated" : ""} ${selectedMapIsThreeDLab && shooterTarget?.id === target.id ? "shooterEnemy--currentTarget" : ""} ${target.slashPending ? "shooterEnemy--slashPending" : ""}`}
-                data-current-target={selectedMapIsThreeDLab && shooterTarget?.id === target.id ? "true" : undefined}
+                aria-label={`목표 음 ${targetPitchDisplayLabel}${shooterSolfegeOn ? ` (${targetPitch})` : ""}${desktopHorizontalClickAttackActive ? " 클릭 공격" : ""}`}
+                className={`enemy shooterEnemy shooterEnemy--monster ${getShooterEnemyDifficultyClass(targetDifficulty)} ${!target.defeated ? "fallingTarget" : ""} ${target.defeated ? "defeated" : ""} ${(desktopHorizontalShooterActive || selectedMapIsThreeDLab) && shooterTarget?.id === target.id ? "shooterEnemy--currentTarget" : ""} ${target.slashPending ? "shooterEnemy--slashPending" : ""}`}
+                data-click-attack={desktopHorizontalClickAttackActive && !target.defeated ? "true" : undefined}
+                data-current-target={(desktopHorizontalShooterActive || selectedMapIsThreeDLab) && shooterTarget?.id === target.id ? "true" : undefined}
+                data-monster-skin={selectedMonsterSkin.id}
                 data-note-root={monsterLabel.root}
                 key={target.id}
+                onClick={desktopHorizontalClickAttackActive
+                  ? (event) => {
+                      event.stopPropagation();
+                      attackShooterTargetByClick(target.id);
+                    }
+                  : undefined}
+                onKeyDown={desktopHorizontalClickAttackActive
+                  ? (event) => {
+                      if (event.key !== "Enter" && event.key !== " ") return;
+                      event.preventDefault();
+                      event.stopPropagation();
+                      attackShooterTargetByClick(target.id);
+                    }
+                  : undefined}
                 ref={getShooterTargetNodeRef(target.id)}
+                role={desktopHorizontalClickAttackActive ? "button" : undefined}
                 style={{
                   left: 0,
                   top: 0,
@@ -29541,20 +30840,29 @@ function App({ onReady }) {
                   "--target-destroy-frame-ms": `${SHOOTER_TARGET_DESTROY_FRAME_MS}ms`,
                   "--target-label-x": `${monsterLabelPosition.x}%`,
                   "--target-label-y": `${monsterLabelPosition.y}%`,
-                  "--target-label-font-size": `${13 * monsterRenderedScales.labelScale}px`,
+                  "--target-label-font-size": `${monsterLabelFontSize}px`,
+                  "--target-label-max-width": `${(pitchText?.textMaxWidthRatio ?? 1) * 100}%`,
+                  "--target-label-outline-width": `${monsterLabelOutlineWidth}px`,
                   "--target-label-color": monsterTuning.labelColor || monsterLabelPalette.color,
                   "--target-label-outline": monsterTuning.labelOutline || monsterLabelPalette.outline,
                   "--target-label-glow": monsterLabelPalette.glow,
                   ...getNoteColorStyle(target.note),
                 }}
+                tabIndex={desktopHorizontalClickAttackActive ? 0 : undefined}
               >
                 <div className="shooterEnemyMonsterVisual">
+                  {desktopHorizontalShooterActive && !target.defeated ? (
+                    <>
+                      <span aria-hidden="true" className="threeDLabEnemySpawnAura" />
+                      <span aria-hidden="true" className="threeDLabEnemyReflection" />
+                    </>
+                  ) : null}
                   {target.defeated ? monsterFrames.slice(1).map((frameSrc, frameIndex) => (
                     <img
                       alt=""
                       className="shooterEnemyMonsterAsset shooterEnemyMonsterBreakFrame"
                       draggable="false"
-                      key={frameSrc}
+                      key={`${frameSrc}:${frameIndex}`}
                       src={frameSrc}
                       style={{ animationDelay: `${frameIndex * SHOOTER_TARGET_DESTROY_FRAME_MS}ms` }}
                     />
@@ -29568,7 +30876,7 @@ function App({ onReady }) {
                   )}
                   {!target.defeated ? (
                     <span aria-hidden="true" className="shooterEnemyPitchLabel">
-                      <b>{targetPitchDisplayLabel}</b>
+                      <b>{monsterPitchLabel}</b>
                     </span>
                   ) : null}
                 </div>
@@ -29734,7 +31042,7 @@ function App({ onReady }) {
               />
             ) : null}
 
-            <div className={`guitarPlayer guitarPlayer--${selectedGuitar.id} guitarPlayer--cabinet-${selectedGuitarCabinet.id} guitarPlayer--aura-${selectedAuraEffect.id} guitarPlayer--floor-${selectedFloorEffect.id} ${projectiles.length > 0 ? "shooting" : ""}`} ref={shooterGuitarPlayerRef} style={shooterMotion}>
+            <div className={`guitarPlayer guitarPlayer--${selectedGuitar.id} guitarPlayer--cabinet-${selectedGuitarCabinet.id} guitarPlayer--aura-${selectedAuraEffect.id} guitarPlayer--floor-${selectedFloorEffect.id} ${projectiles.length > 0 ? "shooting" : ""}`} data-instrument-skin-pack={selectedGuitar.instrumentSkinPack} ref={shooterGuitarPlayerRef} style={shooterMotion}>
               <div
                 className={`shooterGuitarMotion ${selectedMapIsThreeDLab ? "threeDLabGuitarMotion" : ""}`}
                 ref={shooterGuitarMotionRef}
@@ -29749,9 +31057,9 @@ function App({ onReady }) {
                   <img alt="" draggable="false" src={layer.asset} />
                 </span>
               ))}
-              {!shooterGuitarCabinetActive || shooterGuitarCabinetPhase === SHOOTER_GUITAR_CABINET_PHASES.EJECTED ? (
+              {desktopHorizontalShooterActive || !shooterGuitarCabinetActive || shooterGuitarCabinetPhase === SHOOTER_GUITAR_CABINET_PHASES.EJECTED ? (
                 <span
-                  className={`shooterGameplayGuitarHost ${shooterGuitarCabinetActive ? "shooterGameplayGuitarHost--ejected" : ""}`.trim()}
+                  className={`shooterGameplayGuitarHost ${!desktopHorizontalShooterActive && shooterGuitarCabinetActive ? "shooterGameplayGuitarHost--ejected" : ""}`.trim()}
                 >
                   <GuitarAssetSvg
                     className="guitarPlayerAsset"
@@ -29765,7 +31073,7 @@ function App({ onReady }) {
                   <img alt="" draggable="false" src={layer.asset} />
                 </span>
               ))}
-              {!shooterGuitarCabinetActive || shooterGuitarCabinetPhase === SHOOTER_GUITAR_CABINET_PHASES.EJECTED ? (
+              {desktopHorizontalShooterActive || !shooterGuitarCabinetActive || shooterGuitarCabinetPhase === SHOOTER_GUITAR_CABINET_PHASES.EJECTED ? (
                 <span className="guitarPlayerMuzzle" aria-hidden="true" />
               ) : null}
               </div>
@@ -29775,6 +31083,7 @@ function App({ onReady }) {
               <div
                 aria-label="현재 기타와 이펙트 보정 미리보기"
                 className={`guitarPlayer guitarPlayer--mapEditPreview guitarPlayer--${selectedGuitar.id} guitarPlayer--cabinet-${selectedGuitarCabinet.id} guitarPlayer--aura-${previewAuraEffect.id} guitarPlayer--floor-${previewFloorEffect.id}`}
+                data-instrument-skin-pack={selectedGuitar.instrumentSkinPack}
               >
                 {selectedEffectFloorLayers.map((layer) => (
                   <span className={getShooterEffectLayerClassName(layer)} key={layer.key} aria-hidden="true" style={getShooterEffectLayerStyle(layer)}>
@@ -29815,18 +31124,22 @@ function App({ onReady }) {
               pseudo3dDeveloper={import.meta.env.DEV && selectedMapIsPseudo3D}
               pseudo3dSettings={selectedPseudo3DSettings}
               threeDLabActive={shooterMapAnimationsActive}
+              threeDLabBattleState={gameState}
               threeDLabDeveloper={import.meta.env.DEV && selectedMapIsThreeDLab}
+              threeDLabHorizontalBattle={desktopHorizontalShooterActive}
               threeDLabSettings={selectedThreeDLabSettings}
               selectedAssetId={mapEditor.selectedInstanceId}
               skin={selectedMapRenderSkin}
               stage="overlay"
             />
             {!mapEditor.enabled ? <>
-            <div className="mobileShooterLives" aria-label={`남은 목숨 ${shooterLives}`}>
-              {Array.from({ length: SHOOTER_MAX_LIVES }, (_, index) => (
-                <i className={index < shooterLives ? "active" : ""} key={index}>♥</i>
-              ))}
-            </div>
+            {!desktopHorizontalShooterActive ? (
+              <div className="mobileShooterLives" aria-label={`남은 목숨 ${shooterLives}`}>
+                {Array.from({ length: SHOOTER_MAX_LIVES }, (_, index) => (
+                  <i className={index < shooterLives ? "active" : ""} key={index}>♥</i>
+                ))}
+              </div>
+            ) : null}
             {gameState !== GAME_STATES.PLAYING && !(isMobileLayout && shooterGuitarPickerOpen) && (
               <div className={`shooterCenterStatus ${gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterCenterStatus--startMenu" : ""} ${gameState === GAME_STATES.PAUSED ? "shooterCenterStatus--pauseMenu" : ""} ${classNameFromLabel(feedback)} ${gameState === GAME_STATES.GAMEOVER ? "gameOver" : ""}`}>
                 {gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? (
@@ -30010,6 +31323,30 @@ function App({ onReady }) {
             </> : null}
           </div>
 
+          {desktopHorizontalShooterActive && !mapEditor.enabled ? (
+            <DesktopHorizontalBattleControls
+              difficultyLabel={shooterDifficultyLabel}
+              difficultyLocked={isShooterDifficultyLocked}
+              helpLevel={shooterPlayHelpLevel}
+              micActive={Boolean(streamRef.current)}
+              onDifficulty={() => {
+                if (isShooterDifficultyLocked) return;
+                const currentIndex = SHOOTER_DIFFICULTY_OPTIONS.findIndex((option) => option.id === shooterDifficulty);
+                const nextIndex = (currentIndex + 1) % SHOOTER_DIFFICULTY_OPTIONS.length;
+                setShooterDifficulty(SHOOTER_DIFFICULTY_OPTIONS[nextIndex].id);
+              }}
+              onHelpChange={setShooterPlayHelpLevel}
+              onMic={startShooterMic}
+              onRecords={() => setShowShooterRecords((current) => !current)}
+              onSkin={() => setShooterGuitarPickerOpen(true)}
+              onSolfege={() => setShooterSolfegeOn((current) => !current)}
+              onSound={() => setShooterSoundOn((current) => !current)}
+              recordsOpen={showShooterRecords}
+              solfegeOn={shooterSolfegeOn}
+              soundOn={shooterSoundOn}
+            />
+          ) : null}
+
           {mapEditor.enabled ? (
             <MapEditPanel
               effectEditor={shooterEffectEditor}
@@ -30023,67 +31360,22 @@ function App({ onReady }) {
 
           {shooterGuitarPickerOpen && typeof document !== "undefined" ? createPortal(
             <div
-              className={`shooterGuitarPickerOverlay ${isMobileLayout ? "shooterGuitarPickerOverlay--arenaPreview" : ""}`}
+              className={`shooterGuitarPickerOverlay ${
+                isMobileLayout
+                  ? "shooterGuitarPickerOverlay--arenaPreview"
+                  : "shooterGuitarPickerOverlay--desktopWindow"
+              }`}
               onClick={() => setShooterGuitarPickerOpen(false)}
               role="presentation"
             >
               <div
-                className={`shooterSkinConfigurator ${isMobileLayout ? "shooterSkinConfigurator--arenaPreview" : ""}`}
+                className={`shooterSkinConfigurator ${
+                  isMobileLayout
+                    ? "shooterSkinConfigurator--arenaPreview"
+                    : "shooterSkinConfigurator--desktopWindow"
+                }`}
                 onClick={(event) => event.stopPropagation()}
               >
-                {!isMobileLayout ? (
-                <section className="shooterSkinLivePreview" aria-label="현재 슈팅게임 스킨 미리보기">
-                  <div className="shooterSkinLivePreviewHeader">
-                    <span><i aria-hidden="true" />LIVE LOADOUT</span>
-                    <div>
-                      <strong>{getShooterSkinGuitarTitle(selectedGuitar.title)}</strong>
-                      <em>{selectedGuitarCategory.label}</em>
-                    </div>
-                  </div>
-                  <div className="shooterSkinLiveShowcase">
-                    <div className="shooterSkinLivePlayer" aria-hidden="true">
-                      <div className="shooterSkinLivePlayerInner">
-                        {selectedEffectFloorLayers.map((layer) => (
-                          <span className={getShooterEffectLayerClassName(layer)} key={`live-${layer.key}`} style={getShooterEffectLayerStyle(layer)}>
-                            <img alt="" draggable="false" src={layer.asset} />
-                          </span>
-                        ))}
-                        {selectedEffectBackLayers.map((layer) => (
-                          <span className={getShooterEffectLayerClassName(layer)} key={`live-${layer.key}`} style={getShooterEffectLayerStyle(layer)}>
-                            <img alt="" draggable="false" src={layer.asset} />
-                          </span>
-                        ))}
-                        <ShooterGuitarDisplay
-                          cabinetClassName="shooterGuitarCabinet--live"
-                          cabinetSkin={selectedGuitarCabinet}
-                          guitarClassName="shooterSkinLiveGuitar"
-                          isOpen={shooterGuitarCabinetOpen}
-                          variant={selectedGuitar}
-                        />
-                        {selectedEffectFrontLayers.map((layer) => (
-                          <span className={getShooterEffectLayerClassName(layer)} key={`live-${layer.key}`} style={getShooterEffectLayerStyle(layer)}>
-                            <img alt="" draggable="false" src={layer.asset} />
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="shooterSkinLiveEquipment">
-                      <div className="shooterSkinLiveEquipmentRow">
-                        <span className="shooterSkinLiveEquipmentIcon">
-                          {selectedAuraEffect.asset ? <img alt="" draggable="false" src={selectedAuraEffect.asset} /> : "—"}
-                        </span>
-                        <span><small>AURA</small><strong>{selectedAuraEffect.label}</strong></span>
-                      </div>
-                      <div className="shooterSkinLiveEquipmentRow">
-                        <span className="shooterSkinLiveEquipmentIcon">
-                          {selectedFloorEffect.asset ? <img alt="" draggable="false" src={selectedFloorEffect.asset} /> : "—"}
-                        </span>
-                        <span><small>FLOOR</small><strong>{selectedFloorEffect.label}</strong></span>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-                ) : null}
               <ShooterSkinTabController>
               {({
                 shooterSkinTab,
@@ -30103,9 +31395,11 @@ function App({ onReady }) {
                 <div className="shooterGuitarPickerHeader">
                   <div>
                     <strong>스킨변경</strong>
-                    <span title={`${getShooterSkinGuitarTitle(selectedGuitar.title)} · ${selectedGuitarCabinet.label} · ${selectedMonsterSkin.label} · ${selectedPick.label} · ${selectedMap.label}`}>
-                      {getShooterSkinGuitarTitle(selectedGuitar.title)} · {selectedGuitarCabinet.label} · {selectedMonsterSkin.label} · {selectedPick.label} · {selectedMap.label}
-                    </span>
+                    {isMobileLayout ? (
+                      <span title={`${getShooterSkinGuitarTitle(selectedGuitar.title)} · ${selectedGuitarCabinet.label} · ${selectedMonsterSkin.label} · ${selectedPick.label} · ${selectedMap.label}`}>
+                        {getShooterSkinGuitarTitle(selectedGuitar.title)} · {selectedGuitarCabinet.label} · {selectedMonsterSkin.label} · {selectedPick.label} · {selectedMap.label}
+                      </span>
+                    ) : null}
                   </div>
                   <button aria-label="스킨변경 창 닫기" onClick={() => setShooterGuitarPickerOpen(false)} type="button">
                     <X aria-hidden="true" size={15} />
@@ -30117,7 +31411,10 @@ function App({ onReady }) {
                       aria-pressed={shooterSkinTab === option.id}
                       className={shooterSkinTab === option.id ? "selected" : ""}
                       key={option.id}
-                      onClick={() => setShooterSkinTab(option.id)}
+                      onClick={() => {
+                        setShooterSkinTab(option.id);
+                        if (option.id === "effect") void preloadShooterEffectCatalog();
+                      }}
                       type="button"
                     >
                       {option.label}
@@ -30778,6 +32075,13 @@ function App({ onReady }) {
                 </div>
               </div>
               <div className="stage3StorageComposerActions stage3StorageActionSegment">
+                <button
+                  disabled={!selectedStage3StorageItem?.chordIds?.length}
+                  onClick={() => loadStage3LibraryItem(selectedStage3StorageItem, { closeStorage: true })}
+                  type="button"
+                >
+                  불러오기
+                </button>
                 <button disabled={!hasStage3StorageProgression} onClick={requestSaveStage3StorageItem} type="button">
                   저장
                 </button>
@@ -30818,8 +32122,11 @@ function App({ onReady }) {
           <div className="stage3DesktopPrimaryColumn">
           <div className="chordTransitionBody">
             <aside className="referenceFretboard chordTransitionChart" aria-label="Current chord fingering">
+              {!isMobileLayout ? (
+                <span className="stage3DesktopProgressionHeading">코드 진행</span>
+              ) : null}
               {hasChordTransitionProgression ? (
-              <div className="referenceHeader">
+              <div className="referenceHeader stage3ProgressionHeader">
                 <div>
                   <div className="stage3ChartTitleRow">
                     <span className="stage3ChartTitleText">
@@ -30839,21 +32146,30 @@ function App({ onReady }) {
                   </div>
                   <div className="currentProgressionReadout" aria-label="현재 진행중 코드 진행">
                     {chordTransitionProgressionMeasures.map((measure) => (
-                      <div className="rhythmChordMeasure" key={`practice-measure-${measure.measureIndex}`}>
+                      <div
+                        className="rhythmChordMeasure"
+                        data-measure-number={measure.measureIndex + 1}
+                        key={`practice-measure-${measure.measureIndex}`}
+                      >
                         {measure.items.map(({ beatLength, chord, endBeat, index, isAutoRest, startBeat }) => {
                           const isCurrentChord = isAutoRest
                             ? chordPracticeIndex < 0
                               && chordPracticeTimelineBeat >= startBeat
                               && chordPracticeTimelineBeat < endBeat
                             : index === (chordPracticeIndex % chordTransitionProgression.length);
+                          const nextChordIndex = chordTransitionProgression.length
+                            ? (Math.max(-1, chordPracticeIndex) + 1) % chordTransitionProgression.length
+                            : -1;
+                          const isNextChord = !isAutoRest && !isCurrentChord && index === nextChordIndex;
                           return (
                             <button
                               aria-disabled={isAutoRest ? "true" : undefined}
                               aria-label={isAutoRest
                                 ? `자동 쉼 ${getRhythmChordBeatLabel(beatLength)}`
-                                : `${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)}`}
+                                : `${isNextChord ? "다음 코드 " : ""}${chord.displayName} ${getRhythmChordBeatLabel(chord.beatLength)}`}
                               aria-current={isCurrentChord ? "step" : undefined}
-                              className={`${isCurrentChord ? "active " : ""}${isAutoRest ? "stage3AutomaticRestButton" : ""}`}
+                              className={`${isCurrentChord ? "active " : ""}${isNextChord ? "stage3ProgressionNext " : ""}${isAutoRest ? "stage3AutomaticRestButton" : ""}`}
+                              data-progression-state={isCurrentChord ? "current" : isNextChord ? "next" : "upcoming"}
                               key={isAutoRest
                                 ? `readonly-auto-rest-${startBeat}`
                                 : `readonly-${chord.id}-${chord.positionId}-${index}`}
@@ -30883,16 +32199,17 @@ function App({ onReady }) {
                 </div>
               </div>
               ) : null}
-              {isMobileLayout && !hasChordTransitionProgression ? (
+              {!hasChordTransitionProgression ? (
                 <div
-                  aria-label="빈 코드 진행 예시 4마디"
+                  aria-label={landscapePlayFocus ? "빈 코드 진행 예시 8마디" : "빈 코드 진행 예시 4마디"}
                   className="currentProgressionReadout stage3EmptyProgressionReadout"
                   role="img"
                 >
-                  {Array.from({ length: 4 }, (_, measureIndex) => (
+                  {Array.from({ length: landscapePlayFocus ? 8 : 4 }, (_, measureIndex) => (
                     <div
                       aria-hidden="true"
                       className="rhythmChordMeasure stage3EmptyProgressionMeasure"
+                      data-empty-measure-number={measureIndex + 1}
                       key={`empty-practice-measure-${measureIndex}`}
                     >
                       <span />
@@ -30915,7 +32232,7 @@ function App({ onReady }) {
                 showStringNames
                 stringStates={chordPracticeFretboardView.stringStates}
               />
-              {!hasChordTransitionProgression ? (
+              {isMobileLayout && !hasChordTransitionProgression ? (
                 <div className="stage3EmptyFretboardPrompt" role="status" aria-live="polite">
                   <strong>진행을 선택해주세요</strong>
                   <span>추천진행 또는 사용자 진행을 고르면 운지가 표시됩니다</span>
@@ -30926,14 +32243,18 @@ function App({ onReady }) {
           </div>
 
           <div className="chordTransitionHud stage3ProgressHud">
+            {!isMobileLayout ? (
+              <span className="stage3DesktopBeatHeading">박자 진행</span>
+            ) : null}
             <div className="referenceBeatMetronomeStrip stage3ReferenceBeatMetronomeStrip" aria-label="리듬 코드 점자 메트로놈">
               <BeatIndicator
+                activateDotsOnPointerUp={landscapePlayFocus}
                 beat={beat}
                 beatPattern={stage3NormalizedBeatPattern}
                 beatsPerMeasure={stage3MetronomeBeatsPerMeasure}
                 compact
                 dotClassName="referenceBeatMetronomeDot"
-                isPlaying={gameState === GAME_STATES.PLAYING}
+                isPlaying={isStage3Playing}
                 label="리듬 코드 점자 메트로놈"
                 onBeatClick={cycleStage3BeatState}
                 timeSignature={stage3MetronomeTimeSignature}
@@ -30955,315 +32276,79 @@ function App({ onReady }) {
                 <b>{stage3MetronomeSoundOn ? "ON" : "OFF"}</b>
               </button>
             ) : null}
-            {!isMobileLayout || landscapePlayFocus ? (
-            <div className={`stage3StartControlCluster ${landscapePlayFocus ? "stage3StartControlCluster--focus" : ""}`}>
-              <button
-                aria-label={`리듬 코드 메트로놈 사운드 ${stage3MetronomeSoundOn ? "끄기" : "켜기"}`}
-                aria-pressed={stage3MetronomeSoundOn}
-                aria-controls="stage3-metronome-options-options"
-                className={`stage3MetronomeSoundToggle stage3MetronomeSoundToggle--desktop ${
-                  stage3MetronomeSoundOn ? "selected" : ""
-                }`}
-                onClick={toggleStage3MetronomeSound}
-                type="button"
-              >
-                {stage3MetronomeSoundOn ? <Volume2 aria-hidden="true" size={16} /> : <VolumeX aria-hidden="true" size={16} />}
-                <span>매트로놈</span>
-                <b>{stage3MetronomeSoundOn ? "ON" : "OFF"}</b>
-              </button>
-              <button
-                className={`trainingHudStartButton ${gameState === GAME_STATES.PLAYING ? "" : "primary"} ${
-                  isStage3AudioPreparing ? "preparing" : ""
-                }`}
-                aria-busy={isStage3AudioPreparing}
-                disabled={
-                  gameState !== GAME_STATES.PLAYING &&
-                  (!hasChordTransitionProgression || isStage3AudioPreparing)
-                }
-                onClick={gameState === GAME_STATES.PLAYING ? stopPracticeSession : () => startPractice(selectedCategory)}
-                type="button"
-              >
-                {gameState === GAME_STATES.PLAYING ? (
-                  <Square size={16} />
-                ) : isStage3AudioPreparing ? (
-                  <LoaderCircle className="stage3StartLoadingIcon" size={16} />
-                ) : (
-                  <Play size={16} />
-                )}
-                {gameState === GAME_STATES.PLAYING ? "STOP" : isStage3AudioPreparing ? "준비중" : "START"}
-              </button>
-              <CountInToggleButton
-                className="stage3CountInToggle"
-                enabled={metronomeCountIn}
-                onChange={changeTrainingCountIn}
-              />
-            </div>
-            ) : null}
+            {isMobileLayout && landscapePlayFocus ? (
+              <div className="stage3StartControlCluster stage3StartControlCluster--focus">
+                {stage3DesktopMetronomeSoundToggle}
+                <button
+                  className={`trainingHudStartButton ${isStage3Playing ? "" : "primary"} ${
+                    isStage3AudioPreparing ? "preparing" : ""
+                  }`}
+                  aria-busy={isStage3AudioPreparing}
+                  disabled={
+                    !isStage3Playing &&
+                    (!hasChordTransitionProgression || isStage3AudioPreparing)
+                  }
+                  onClick={isStage3Playing ? stopStage3Practice : startStage3Practice}
+                  type="button"
+                >
+                  {isStage3Playing ? (
+                    <Square size={16} />
+                  ) : isStage3AudioPreparing ? (
+                    <LoaderCircle className="stage3StartLoadingIcon" size={16} />
+                  ) : (
+                    <Play size={16} />
+                  )}
+                  {isStage3Playing ? "STOP" : isStage3AudioPreparing ? "준비중" : "START"}
+                </button>
+                <CountInToggleButton
+                  className="stage3CountInToggle"
+                  enabled={metronomeCountIn}
+                  onChange={changeStage3CountIn}
+                />
+              </div>
+            ) : !isMobileLayout ? stage3DesktopMetronomeSoundToggle : null}
           </div>
 
           </div>
           <div className="stage3DesktopSideColumn">
           <div className="stage3PracticeUtilityPanel">
-            <div className="stage3LoadToolbar">
-              <MetronomeSelectControl
-                className="stage3LoadSelect stage3RecommendedLoadSelect"
-                dropdownDirection="up"
-                label="추천"
-                matchTriggerWidth
-                onChange={(slotId) => {
-                  const item = stage3RecommendedSlots.find((slot) => slot.id === slotId);
-                  if (!item) return;
-                  setStage3RecommendedSelectValue(item.id);
-                  setStage3StorageSelectedId(item.id);
-                  applyStage3LibraryItem(item);
-                  prepareStage3BackingSession({
-                    progression: buildStage3Progression(item.chordIds),
-                    bpmValue: item.bpm ?? bpm,
-                    timeSignatureValue: item.time_signature ?? stage3MetronomeTimeSignatureRef.current,
-                    rhythmPattern: backingRhythmPatternRef.current,
-                    bassBeat: backingBassBeatRef.current,
-                    pianoBeat: backingPianoBeatRef.current,
-                    preloadAudio: true,
-                  });
-                }}
-                options={[
-                  { id: "", label: "추천진행선택", disabled: true },
-                  ...stage3RecommendedSlots.map((item) => ({
-                    id: item.id,
-                    label: item.title || "추천 진행",
-                  })),
-                ]}
-                value={stage3RecommendedSelectValue}
+            {stage3LandscapeLoadToolbar}
+            <div className={isMobileLayout ? "stage3MobileTransportDeck" : "standaloneMetronomePanel stage3StandaloneTransportDeck"}>
+              <MetronomeTransportCard
+                actionAriaLabel="재생, 탭 템포, 카운트인"
+                actionOrder="tap-play"
+                actionPanelClassName={isMobileLayout ? "stage3BpmActionPanel" : "stage3StandaloneBpmActionPanel"}
+                ariaLabel="리듬 코드 BPM, 탭 템포, 시작, 카운트인"
+                bpm={bpm}
+                bpmPreviewKey="stage3"
+                cardClassName={isMobileLayout ? "stage3BpmTransportCard" : ""}
+                countInClassName="stage3CountInToggle"
+                countInEnabled={metronomeCountIn}
+                isPlaying={isStage3Playing}
+                onBpmChange={changeStage3Bpm}
+                onCardPointerCancel={handleStage3BpmSwipeCancel}
+                onCardPointerDown={handleStage3BpmSwipeStart}
+                onCardPointerMove={handleStage3BpmSwipeMove}
+                onCardPointerUp={handleStage3BpmSwipeEnd}
+                onCountInChange={changeStage3CountIn}
+                onStart={startStage3Practice}
+                onStop={stopStage3Practice}
+                onTapTempo={handleStage3TapTempo}
+                onTapTempoPressFeedback={triggerStage3TapTempoPressFeedback}
+                playButtonClassName="stage3BpmStartButton"
+                playDisabled={
+                  !isStage3Playing &&
+                  (!hasChordTransitionProgression || isStage3AudioPreparing)
+                }
+                playIdleText={isMobileLayout ? "START" : "PLAY"}
+                playPending={isStage3AudioPreparing}
+                playStartLabel="연습 시작"
+                playStopLabel="연습 정지"
+                showCountIn
+                swipeEnabled
+                tapTempoPressTick={stage3TapTempoPressTick}
               />
-              <MetronomeSelectControl
-                className="stage3LoadSelect stage3UserLoadSelect"
-                dropdownDirection="up"
-                label="사용자"
-                onChange={(slotId) => {
-                  const item = stage3QuickSlots.find((slot) => slot.id === slotId);
-                  if (!item) return;
-                  setStage3RecommendedSelectValue("");
-                  setStage3StorageSelectedId(item.id);
-                  applyStage3LibraryItem(item);
-                  prepareStage3BackingSession({
-                    progression: buildStage3Progression(item.chordIds),
-                    bpmValue: item.bpm ?? bpm,
-                    timeSignatureValue: item.time_signature ?? stage3MetronomeTimeSignatureRef.current,
-                    rhythmPattern: backingRhythmPatternRef.current,
-                    bassBeat: backingBassBeatRef.current,
-                    pianoBeat: backingPianoBeatRef.current,
-                    preloadAudio: true,
-                  });
-                }}
-                onClearSelectedOptions={clearStage3UserSelection}
-                onDeleteOption={requestDeleteStage3StorageItem}
-                onDeleteSelectedOptions={requestDeleteSelectedStage3StorageItems}
-                onSelectAllOptions={selectAllStage3UnlockedUserItems}
-                onToggleOptionLock={toggleStage3StorageItemLock}
-                onToggleOptionSelection={toggleStage3UserSelection}
-                options={[
-                  { id: "", label: "사용자 진행 선택", disabled: true },
-                  ...stage3QuickSlots.map((item) => ({
-                    id: item.id,
-                    label: getStage3SavedTitle(item),
-                    deletable: true,
-                    locked: Boolean(item.locked),
-                  })),
-                ]}
-                managedListMode
-                panelDirectionIndicator
-                selectedOptionIds={stage3UserSelectedIds}
-                value={!isStage3RecommendedItem(selectedStage3LibraryItem) ? selectedStage3LibraryItem?.id ?? loadedStage3LibraryItem?.id ?? "" : ""}
-              />
-              <button
-                className="stage3StorageMoveButton"
-                onClick={showStage3StorageRoom}
-                type="button"
-              >
-                <FolderOpen size={14} />
-                LOAD
-              </button>
             </div>
-            {isMobileLayout ? (
-              <div
-                className="stage3BpmTransportCard metronomeHeroCard metronomeHeroCard--interactive"
-                aria-label="리듬 코드 BPM, 탭 템포, 시작, 카운트인"
-                onPointerCancel={handleBpmSwipeCancel}
-                onPointerDown={handleBpmSwipeStart}
-                onPointerMove={handleBpmSwipeMove}
-                onPointerUp={handleBpmSwipeEnd}
-              >
-                <div className="metronomeBpmAdjustGroup metronomeBpmAdjustGroup--down" aria-label="BPM 낮추기" role="group">
-                  <button
-                    aria-label="BPM 1 낮추기"
-                    className="metronomeHeroBpmButton"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      changeBpm(bpm - 1);
-                      event.currentTarget.blur();
-                    }}
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                    }}
-                    type="button"
-                  >
-                    -
-                  </button>
-                  <span className="metronomeBpmAdjustDivider" aria-hidden="true" />
-                  <button
-                    aria-label="BPM 10 낮추기"
-                    className="metronomeHeroBpmJumpButton metronomeHeroBpmJumpButton--down"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      changeBpm(bpm - 10);
-                      event.currentTarget.blur();
-                    }}
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                    }}
-                    type="button"
-                  >
-                    -10
-                  </button>
-                </div>
-                <div className="metronomeHeroBpmValue">
-                  <span>BPM</span>
-                  <strong data-bpm-preview-value="true">{bpm}</strong>
-                </div>
-                <div className="metronomeBpmAdjustGroup metronomeBpmAdjustGroup--up" aria-label="BPM 올리기" role="group">
-                  <button
-                    aria-label="BPM 1 올리기"
-                    className="metronomeHeroBpmButton"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      changeBpm(bpm + 1);
-                      event.currentTarget.blur();
-                    }}
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                    }}
-                    type="button"
-                  >
-                    +
-                  </button>
-                  <span className="metronomeBpmAdjustDivider" aria-hidden="true" />
-                  <button
-                    aria-label="BPM 10 올리기"
-                    className="metronomeHeroBpmJumpButton metronomeHeroBpmJumpButton--up"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      changeBpm(bpm + 10);
-                      event.currentTarget.blur();
-                    }}
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                    }}
-                    type="button"
-                  >
-                    +10
-                  </button>
-                </div>
-                <div className="metronomeHeroActionPanel stage3BpmActionPanel" aria-label="탭 템포, 시작, 카운트인">
-                  <button
-                    aria-label="탭 템포로 BPM 설정"
-                    className={`metronomeHeroTapTempoButton ${tapTempoPressTick > 0 ? "is-tapping" : ""}`}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      triggerTapTempoPressFeedback();
-                      handleTapTempo();
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key === " " || event.key === "Enter") triggerTapTempoPressFeedback();
-                    }}
-                    onPointerDown={(event) => {
-                      event.stopPropagation();
-                      triggerTapTempoPressFeedback();
-                    }}
-                    type="button"
-                  >
-                    <TapTempoGlyph />
-                    <span className="metronomeHeroActionText">TAP</span>
-                  </button>
-                  <button
-                    aria-busy={isStage3AudioPreparing}
-                    aria-label={gameState === GAME_STATES.PLAYING ? "연습 정지" : "연습 시작"}
-                    className={`metronomeHeroPlayButton stage3BpmStartButton ${gameState === GAME_STATES.PLAYING ? "reset" : "primary"} ${
-                      isStage3AudioPreparing ? "preparing" : ""
-                    }`}
-                    disabled={
-                      gameState !== GAME_STATES.PLAYING &&
-                      (!hasChordTransitionProgression || isStage3AudioPreparing)
-                    }
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      if (gameState === GAME_STATES.PLAYING) {
-                        stopPracticeSession();
-                        return;
-                      }
-                      startPractice(selectedCategory);
-                    }}
-                    type="button"
-                  >
-                    <span className="metronomeHeroActionIcon" aria-hidden="true">
-                      {gameState === GAME_STATES.PLAYING ? (
-                        <Square size={15} />
-                      ) : isStage3AudioPreparing ? (
-                        <LoaderCircle className="stage3StartLoadingIcon" size={15} />
-                      ) : (
-                        <Play size={18} />
-                      )}
-                    </span>
-                    <span className="metronomeHeroActionText">
-                      {gameState === GAME_STATES.PLAYING ? "STOP" : isStage3AudioPreparing ? "준비중" : "START"}
-                    </span>
-                  </button>
-                  <CountInToggleButton
-                    className="stage3CountInToggle metronomeHeroCountInButton"
-                    enabled={metronomeCountIn}
-                    onChange={changeTrainingCountIn}
-                  />
-                </div>
-              </div>
-            ) : (
-              <TrainingPanelHeader
-                content={(<div
-                  className="stage3CollapsedBpmControl"
-                  aria-label="훈련장 BPM 조절"
-                  onPointerCancel={handleBpmSwipeCancel}
-                  onPointerDown={handleBpmSwipeStart}
-                  onPointerMove={handleBpmSwipeMove}
-                  onPointerUp={handleBpmSwipeEnd}
-                >
-                  <button
-                    aria-label="BPM 1 낮추기"
-                    className="stage3CollapsedBpmButton"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      changeBpm(bpm - 1);
-                    }}
-                    type="button"
-                  >
-                    -
-                  </button>
-                  <div className="stage3CollapsedBpmValue">
-                    <span>BPM</span>
-                    <strong data-bpm-preview-value="true">{bpm}</strong>
-                  </div>
-                  <button
-                    aria-label="BPM 1 올리기"
-                    className="stage3CollapsedBpmButton"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      changeBpm(bpm + 1);
-                    }}
-                    type="button"
-                  >
-                    +
-                  </button>
-                </div>)}
-                title=""
-              />
-            )}
           </div>
           <MetronomeControl
             accentEnabled
@@ -31273,11 +32358,12 @@ function App({ onReady }) {
             countInEnabled={metronomeCountIn}
             inputId="stage3-metronome-options"
             onAccentToneChange={changeStage3MetronomeAccentTone}
-            onBpmChange={changeBpm}
+            onBpmChange={changeStage3Bpm}
             onOptionsCollapseChange={isMobileLayout ? setStage3MetronomeOptionsCollapsed : null}
             onSubdivisionChange={changeStage3MetronomeSubdivision}
             onTimeSignatureChange={changeStage3MetronomeTimeSignature}
             onWeakToneChange={changeStage3MetronomeWeakTone}
+            optionsHeaderToggle={landscapePlayFocus}
             showAccent={false}
             showBpmControls={false}
             showCountIn={false}
@@ -31288,11 +32374,13 @@ function App({ onReady }) {
             subdivision={stage3MetronomeSubdivision}
             timeSignature={stage3MetronomeTimeSignature}
             tone={stage3MetronomeAccentTone}
+            toneControlsAfterSubdivision={landscapePlayFocus}
             weakTone={stage3MetronomeWeakTone}
           />
           <SharedAccompanimentPanel
             className="sharedAccompanimentPanel--training"
             defaultExpanded={!isMobileLayout}
+            hidePartSummary={landscapePlayFocus}
             onOpenSettings={openMiniChordRhythmSettings}
             onTogglePart={toggleBackingPartEnabled}
             onVolumeCommit={commitBackingVolumeInput}
@@ -31418,156 +32506,59 @@ function App({ onReady }) {
               </p>
             </aside>
 
+            {hasDirectionPractice && (landscapePlayFocus || !isMobileLayout) ? referenceLandscapeBeatStrip : null}
+
             <div className={`referenceTrainingToolbar trainingSettingsPanel ${hasDirectionPractice ? "referenceTrainingToolbar--standalone" : ""}`}>
               {hasDirectionPractice ? (
-                <div className="referenceStandaloneMetronomeDeck standaloneMetronomePanel">
-                  <div className="referenceBeatMetronomeStrip" aria-label="점자 메트로놈">
-                    <BeatIndicator
-                      beat={beat}
-                      beatPattern={standaloneBeatPattern}
-                      beatsPerMeasure={metronomeBeatsPerMeasure}
-                      compact
-                      dotClassName="referenceBeatMetronomeDot"
-                      isPlaying={gameState === GAME_STATES.PLAYING}
-                      label="점자 메트로놈"
-                      onBeatClick={cycleStandaloneBeatState}
-                      timeSignature={metronomeTimeSignature}
-                    />
-                  </div>
-                  <div
-                    className="metronomeHeroCard metronomeHeroCard--interactive referenceMetronomeHeroCard"
-                    onPointerCancel={handleBpmSwipeCancel}
-                    onPointerDown={handleBpmSwipeStart}
-                    onPointerMove={handleBpmSwipeMove}
-                    onPointerUp={handleBpmSwipeEnd}
-                  >
-                    <div className="metronomeBpmAdjustGroup metronomeBpmAdjustGroup--down" aria-label="BPM 낮추기" role="group">
-                      <button
-                        aria-label="BPM 1 낮추기"
-                        className="metronomeHeroBpmButton"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          changeBpm(bpm - 1);
-                          event.currentTarget.blur();
-                        }}
-                        onMouseDown={(event) => {
-                          event.preventDefault();
-                        }}
-                        type="button"
-                      >
-                        -
-                      </button>
-                      <span className="metronomeBpmAdjustDivider" aria-hidden="true" />
-                      <button
-                        aria-label="BPM 10 낮추기"
-                        className="metronomeHeroBpmJumpButton metronomeHeroBpmJumpButton--down"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          changeBpm(bpm - 10);
-                          event.currentTarget.blur();
-                        }}
-                        onMouseDown={(event) => {
-                          event.preventDefault();
-                        }}
-                        type="button"
-                      >
-                        -10
-                      </button>
-                    </div>
-                    <div className="metronomeHeroBpmValue">
-                      <span>BPM</span>
-                      <strong data-bpm-preview-value="true">{bpm}</strong>
-                    </div>
-                    <div className="metronomeBpmAdjustGroup metronomeBpmAdjustGroup--up" aria-label="BPM 올리기" role="group">
-                      <button
-                        aria-label="BPM 1 올리기"
-                        className="metronomeHeroBpmButton"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          changeBpm(bpm + 1);
-                          event.currentTarget.blur();
-                        }}
-                        onMouseDown={(event) => {
-                          event.preventDefault();
-                        }}
-                        type="button"
-                      >
-                        +
-                      </button>
-                      <span className="metronomeBpmAdjustDivider" aria-hidden="true" />
-                      <button
-                        aria-label="BPM 10 올리기"
-                        className="metronomeHeroBpmJumpButton metronomeHeroBpmJumpButton--up"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          changeBpm(bpm + 10);
-                          event.currentTarget.blur();
-                        }}
-                        onMouseDown={(event) => {
-                          event.preventDefault();
-                        }}
-                        type="button"
-                      >
-                        +10
-                      </button>
-                    </div>
-                    <div className="metronomeHeroActionPanel referenceMetronomeActionPanel" aria-label="탭 템포, 재생, 카운트인">
-                      <button
-                        aria-label={gameState === GAME_STATES.PLAYING ? "연습 정지" : "연습 시작"}
-                        className={`metronomeHeroPlayButton ${gameState === GAME_STATES.PLAYING ? "reset" : "primary"}`}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          if (gameState === GAME_STATES.PLAYING) {
-                            stopPracticeSession();
-                            return;
-                          }
-                          startPractice(selectedCategory);
-                        }}
-                        type="button"
-                      >
-                        <span className="metronomeHeroActionIcon" aria-hidden="true">
-                        {gameState === GAME_STATES.PLAYING ? (
-                          <Square size={15} />
-                        ) : (
-                          <Play size={18} />
-                        )}
-                        </span>
-                        <span className="metronomeHeroActionText">
-                          {gameState === GAME_STATES.PLAYING ? "STOP" : "PLAY"}
-                        </span>
-                      </button>
-                      <button
-                        aria-label="탭 템포로 BPM 설정"
-                        className={`metronomeHeroTapTempoButton ${tapTempoPressTick > 0 ? "is-tapping" : ""}`}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          triggerTapTempoPressFeedback();
-                          handleTapTempo();
-                        }}
-                        onKeyDown={(event) => {
-                          if (event.key === " " || event.key === "Enter") triggerTapTempoPressFeedback();
-                        }}
-                        onPointerDown={(event) => {
-                          event.stopPropagation();
-                          triggerTapTempoPressFeedback();
-                        }}
-                        type="button"
-                      >
-                        <TapTempoGlyph />
-                        <span className="metronomeHeroActionText">TAP</span>
-                      </button>
-                      <CountInToggleButton
-                        className="referenceCountInToggle metronomeHeroCountInButton"
-                        enabled={metronomeCountIn}
-                        onChange={changeTrainingCountIn}
-                      />
-                    </div>
-                  </div>
+                <div
+                  className={
+                    isMobileLayout
+                      ? "referenceStandaloneMetronomeDeck standaloneMetronomePanel"
+                      : "trainingStandaloneMetronomeDeck standaloneMetronomePanel"
+                  }
+                >
+                  {isMobileLayout && !landscapePlayFocus ? referenceLandscapeBeatStrip : null}
+                  <MetronomeTransportCard
+                    actionAriaLabel="재생, 탭 템포, 카운트인"
+                    actionPanelClassName={
+                      isMobileLayout
+                        ? "referenceMetronomeActionPanel"
+                        : "trainingStandaloneMetronomeActionPanel"
+                    }
+                    ariaLabel="연습 BPM, 재생, 탭 템포, 카운트인"
+                    bpm={bpm}
+                    bpmPreview
+                    cardClassName={isMobileLayout ? "referenceMetronomeHeroCard" : ""}
+                    countInClassName={
+                      isMobileLayout ? "referenceCountInToggle" : "trainingStandaloneCountInToggle"
+                    }
+                    countInEnabled={metronomeCountIn}
+                    isPlaying={gameState === GAME_STATES.PLAYING}
+                    onBpmChange={changeBpm}
+                    onCardPointerCancel={handleBpmSwipeCancel}
+                    onCardPointerDown={handleBpmSwipeStart}
+                    onCardPointerMove={handleBpmSwipeMove}
+                    onCardPointerUp={handleBpmSwipeEnd}
+                    onCountInChange={changeTrainingCountIn}
+                    onStart={() => startPractice(selectedCategory)}
+                    onStop={stopPracticeSession}
+                    onTapTempo={handleTapTempo}
+                    onTapTempoPressFeedback={triggerTapTempoPressFeedback}
+                    playStartLabel="연습 시작"
+                    playStopLabel="연습 정지"
+                    showCountIn
+                    swipeEnabled
+                    tapTempoPressTick={tapTempoPressTick}
+                  />
                   <MetronomeControl
                     accentEnabled={metronomeAccent}
                     accentTone={metronomeAccentTone}
                     bpm={bpm}
-                    className="standaloneMetronomeControl referenceStandaloneMetronomeControl"
+                    className={
+                      isMobileLayout
+                        ? "standaloneMetronomeControl referenceStandaloneMetronomeControl"
+                        : "standaloneMetronomeControl trainingStandaloneMetronomeControl"
+                    }
                     countInEnabled={metronomeCountIn}
                     inputId={`reference-${selectedCategory.id}-bpm`}
                     onAccentChange={changeTrainingMetronomeAccent}
@@ -31591,9 +32582,17 @@ function App({ onReady }) {
                     weakTone={metronomeWeakTone}
                   />
                   {selectedCategory.id === "scale-block" ? (
-                    <div className="scaleTrainingBackingLoop">
-                      <BackingLoop mobile={isMobileLayout} ownerMode={APP_MODES.PRACTICE} />
-                    </div>
+                    !isMobileLayout ? (
+                      <BackingLoop
+                        desktopPresentation="standalone"
+                        mobile={false}
+                        ownerMode={APP_MODES.PRACTICE}
+                      />
+                    ) : (
+                      <div className="scaleTrainingBackingLoop">
+                        <BackingLoop mobile ownerMode={APP_MODES.PRACTICE} />
+                      </div>
+                    )
                   ) : null}
                 </div>
               ) : (

@@ -60,6 +60,7 @@ export default function useShooterMobileViewport(active) {
     "--shooter-mobile-canvas-left": `${frame.left.toFixed(4)}px`,
     "--shooter-mobile-canvas-scale": frame.scale.toFixed(8),
     "--shooter-mobile-canvas-top": `${frame.top.toFixed(4)}px`,
+    "--shooter-mobile-nav-bottom": `${(10 / frame.scale).toFixed(4)}px`,
+    "--shooter-mobile-nav-inverse-scale": (1 / frame.scale).toFixed(8),
   };
 }
-

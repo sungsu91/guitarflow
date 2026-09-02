@@ -35,6 +35,7 @@ export function SharedAccompanimentPanel({
   className = "",
   defaultExpanded = true,
   disabled = false,
+  hidePartSummary = false,
   onOpenSettings,
   onTogglePart,
   onVolumeCommit,
@@ -83,7 +84,7 @@ export function SharedAccompanimentPanel({
     >
       <summary>
         <span>반주 사운드</span>
-        <b>드럼 · 베이스 · 피아노</b>
+        {!hidePartSummary ? <b>드럼 · 베이스 · 피아노</b> : null}
         <button
           aria-haspopup="dialog"
           className="sharedAccompanimentSettingsButton"

@@ -29,3 +29,17 @@ test("playlist drawer stays open while outside controls remain interactive", asy
     /\.backingLoopDialogLayer\.backingLoopDialogLayer--playlistDrawer > \[role="dialog"\] \{[\s\S]*?pointer-events: auto;/,
   );
 });
+
+test("playlist drawer closes when its owner mode is deactivated", async () => {
+  const controllerSource = await readFile(
+    new URL("../src/backing-loop/useBackingLoop.js", import.meta.url),
+    "utf8",
+  );
+  const deactivateSource = controllerSource.slice(
+    controllerSource.indexOf("const deactivateBackingLoop"),
+    controllerSource.indexOf("useEffect(() => () => deactivateBackingLoop()"),
+  );
+
+  assert.match(deactivateSource, /setDialog\(""\)/);
+  assert.match(deactivateSource, /setPlaylistLibraryPickerOpen\(false\)/);
+});

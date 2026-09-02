@@ -478,6 +478,16 @@ html.app-is-launching::-webkit-scrollbar-track {
   }
 }
 
+@keyframes launchIntroDesktopBrandIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes launchIntroLightSweep {
   0% {
     opacity: 0;
@@ -584,6 +594,50 @@ html.app-is-launching::-webkit-scrollbar-track {
     z-index: 10;
     margin-top: 0;
     transform: translateX(-50%);
+  }
+}
+
+@media (min-width: 768px) and (min-height: 600px) and (orientation: landscape) {
+  .launchSplash {
+    --launch-stage-shift-x: 0px;
+  }
+
+  .launchSplash__brand {
+    left: calc(50% - clamp(8px, 1.1dvh, 12px));
+    width: 92%;
+    transform: translate3d(-50%, 0, 0) scale(1);
+    will-change: opacity;
+  }
+
+  .launchSplash__brand strong {
+    max-width: 100%;
+    margin-left: 0.15em;
+    font-size: clamp(54px, 9dvh, 84px);
+    letter-spacing: 0.15em;
+    white-space: nowrap;
+  }
+
+  .launchSplash--controlled .launchSplash__brand {
+    width: calc(100% - clamp(12px, 1.6dvh, 18px));
+  }
+
+  .launchSplash--controlled .launchSplash__brand strong {
+    font-size: clamp(40px, 6.7dvh, 64px);
+    letter-spacing: 0.13em;
+  }
+
+  .launchSplash--autonomous:not(.launchSplash--exiting) .launchSplash__brand {
+    animation-name: launchIntroDesktopBrandIn;
+  }
+
+  .launchSplash--controlled .launchSplash__brand {
+    transition: opacity 160ms ease-out;
+  }
+
+  .launchSplash--controlled.launchSplash--step-logo-hint .launchSplash__brand,
+  .launchSplash--controlled.launchSplash--step-complete .launchSplash__brand,
+  .launchSplash--exiting .launchSplash__brand {
+    transform: translate3d(-50%, 0, 0) scale(1);
   }
 }
 

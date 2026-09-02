@@ -32,10 +32,26 @@
   }
 
   html.shooterCanonicalMobile body main.app.app.app.shooterMode > .hud > .modeSwitch {
-    bottom: 10px !important;
-    width: 370px !important;
+    bottom: var(--shooter-mobile-nav-bottom, 10px) !important;
+    width: min(calc(100vw - 20px), 370px) !important;
     min-width: 0 !important;
-    max-width: 370px !important;
+    max-width: min(calc(100vw - 20px), 370px) !important;
+    transform: translateX(-50%) scale(var(--shooter-mobile-nav-inverse-scale, 1)) !important;
+    transform-origin: bottom center !important;
+  }
+
+  @media (max-width: 380px) {
+    html.shooterCanonicalMobile body main.app.app.app.shooterMode > .hud > .modeSwitch {
+      width: min(calc(100vw - 14px), 360px) !important;
+      max-width: min(calc(100vw - 14px), 360px) !important;
+    }
+  }
+
+  @media (max-width: 350px) {
+    html.shooterCanonicalMobile body main.app.app.app.shooterMode > .hud > .modeSwitch {
+      width: calc(100vw - 10px) !important;
+      max-width: calc(100vw - 10px) !important;
+    }
   }
 
   html.shooterCanonicalMobile body main.app.app.app.shooterMode .shooterGuitarPickerOverlay {

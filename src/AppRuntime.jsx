@@ -14,7 +14,9 @@ import "./audio-studio/audio-studio.css";
 import "./tuner/tuner-mode.css";
 import "./shooter/mobile-canonical-viewport.css";
 import "./shooter/mobile-skin-configurator.css";
+import "./shooter/desktopHorizontal/desktop-horizontal-battle.css";
 import "./layouts/responsive-play-focus.css";
+import "./layouts/mobile-dark-theme.css";
 
 const NAVIGATION_PROBE_KEY = "__RIFFLAB_NAVIGATION_PROBE__";
 const NAVIGATION_PROBE_META_NAME = "rifflab-navigation-performance";
@@ -30,6 +32,11 @@ const NAVIGATION_PROBE_SELECTORS = Object.freeze({
   "#stage4": ".referenceTrainingPanel",
 });
 const NAVIGATION_CONTROL_LABELS = new Set(["미니반주", "지판 보기", "지판보기", "메트로놈", "튜너", "슈팅게임", "훈련장"]);
+
+function isNavigationPerformanceProbeEnabled() {
+  if (!import.meta.env.DEV || typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("profileNavigation") === "1";
+}
 
 function getElementCount(nodes) {
   return nodes.reduce((count, node) => (
@@ -67,12 +74,15 @@ function NavigationPerformanceProbe() {
       active.mutationCallbacks += 1;
       active.lastMutationTime = performance.now();
     });
-    observer.observe(document.querySelector("main") ?? document.body, {
-      attributeFilter: ["aria-hidden", "class", "style"],
-      attributes: true,
-      childList: true,
-      subtree: true,
-    });
+    const observeMutations = () => {
+      observer.disconnect();
+      observer.observe(document.querySelector("main") ?? document.body, {
+        attributeFilter: ["aria-hidden", "class", "style"],
+        attributes: true,
+        childList: true,
+        subtree: true,
+      });
+    };
 
     let outputMeta = document.querySelector(`meta[name="${NAVIGATION_PROBE_META_NAME}"]`);
     if (!outputMeta) {
@@ -84,6 +94,7 @@ function NavigationPerformanceProbe() {
     const probe = {
       active,
       begin(label) {
+        observeMutations();
         active = {
           addedElements: 0,
           attributeMutations: 0,
@@ -100,6 +111,7 @@ function NavigationPerformanceProbe() {
       },
       finish(selector = NAVIGATION_PROBE_SELECTORS[window.location.hash]) {
         if (!active) return null;
+        observer.disconnect();
         const node = document.querySelector(selector);
         const previousNode = this.nodes.get(selector);
         const sample = {
@@ -157,12 +169,19 @@ function NavigationPerformanceProbe() {
 }
 
 export default function AppRuntime({ onReady }) {
+  const app = <App onReady={onReady} />;
+  const navigationPerformanceProbeEnabled = isNavigationPerformanceProbeEnabled();
+
   return (
     <DesktopLayout>
-      <NavigationPerformanceProbe />
-      <Profiler id="FRETIVA LAB App" onRender={recordAppRender}>
-        <App onReady={onReady} />
-      </Profiler>
+      {navigationPerformanceProbeEnabled ? (
+        <>
+          <NavigationPerformanceProbe />
+          <Profiler id="FRETIVA LAB App" onRender={recordAppRender}>
+            {app}
+          </Profiler>
+        </>
+      ) : app}
     </DesktopLayout>
   );
 }

@@ -1,3 +1,5 @@
+import { getViewportProfile } from "../layouts/viewportProfile.js";
+
 export const SHOOTER_MOBILE_CANVAS_WIDTH = 430;
 export const SHOOTER_MOBILE_CANVAS_HEIGHT = 932;
 
@@ -30,28 +32,10 @@ export function getShooterMobileViewportFrame({
 }
 
 export function getShooterMobileViewportSnapshot(targetWindow = window) {
-  const documentElement = targetWindow.document?.documentElement;
-  const visualViewport = targetWindow.visualViewport;
-  const widths = [
-    targetWindow.innerWidth,
-    documentElement?.clientWidth,
-    visualViewport?.width,
-  ].filter((value) => Number.isFinite(value) && value > 0);
-  const heights = [
-    targetWindow.innerHeight,
-    documentElement?.clientHeight,
-    visualViewport?.height,
-  ].filter((value) => Number.isFinite(value) && value > 0);
+  const viewport = getViewportProfile(targetWindow);
 
   return getShooterMobileViewportFrame({
-    viewportHeight: heights.length > 0
-      ? Math.min(...heights)
-      : SHOOTER_MOBILE_CANVAS_HEIGHT,
-    viewportLeft: visualViewport?.offsetLeft ?? 0,
-    viewportTop: visualViewport?.offsetTop ?? 0,
-    viewportWidth: widths.length > 0
-      ? Math.min(...widths)
-      : SHOOTER_MOBILE_CANVAS_WIDTH,
+    viewportHeight: viewport.height || SHOOTER_MOBILE_CANVAS_HEIGHT,
+    viewportWidth: viewport.width || SHOOTER_MOBILE_CANVAS_WIDTH,
   });
 }
-

@@ -43,7 +43,7 @@ function getSaveErrorMessage(error) {
   return "저장 요청을 완료하지 못했습니다. 변경값은 편집 화면에 그대로 남아 있습니다.";
 }
 
-function isMapEditModeRequested() {
+export function isMapEditModeRequested() {
   if (!import.meta.env.DEV || typeof window === "undefined") return false;
   return new URLSearchParams(window.location.search).get("mapEdit") === "1";
 }
@@ -157,7 +157,11 @@ function findNearestLandingSurface(placements, point, referenceViewport, creatur
     }, null)?.placement ?? null;
 }
 
-export default function useMapEditMode(skin, editingAllowed = true) {
+export default function useMapEditMode(
+  skin,
+  editingAllowed = true,
+  onEditingActiveChange = null,
+) {
   const requested = isMapEditModeRequested();
   const available = editingAllowed
     && import.meta.env.DEV
@@ -209,8 +213,11 @@ export default function useMapEditMode(skin, editingAllowed = true) {
   }, [defaultPlacements, skin?.id]);
 
   useEffect(() => {
-    if (!editingAllowed) setEditingActive(false);
-  }, [editingAllowed]);
+    if (!editingAllowed) {
+      setEditingActive(false);
+      onEditingActiveChange?.(false);
+    }
+  }, [editingAllowed, onEditingActiveChange]);
 
   useEffect(() => {
     gestureCleanupRef.current?.();
@@ -315,8 +322,9 @@ export default function useMapEditMode(skin, editingAllowed = true) {
 
   const startEditing = useCallback(() => {
     if (!available) return;
+    onEditingActiveChange?.(true);
     setEditingActive(true);
-  }, [available]);
+  }, [available, onEditingActiveChange]);
 
   const finishEditing = useCallback(() => {
     gestureCleanupRef.current?.();
@@ -327,7 +335,8 @@ export default function useMapEditMode(skin, editingAllowed = true) {
     sessionBaseCacheRef.current.clear();
     historyCacheRef.current.clear();
     setEditingActive(false);
-  }, []);
+    onEditingActiveChange?.(false);
+  }, [onEditingActiveChange]);
 
   const closeEditing = useCallback(() => {
     const sessionBase = sessionBaseRef.current.skinId === skin.id
