@@ -21,3 +21,99 @@
     border-color: rgba(217, 170, 85, 0.7) !important;
   }
 }
+
+/*
+ * The application chooses the real-phone layout from either viewport width or
+ * the mobile user agent. Do not gate this map fix behind a width media query:
+ * iOS Safari can use the canonical 430px canvas while reporting a different
+ * layout viewport during standalone/startup transitions.
+ *
+ * Keep the map catalog as three explicit flex rows. This stylesheet is loaded
+ * after the shared skin styles, so WebKit cannot fall back to the nested
+ * grid/minmax/scroll sizing chain that exposed only RANDOM, RIVER and LAVA.
+ */
+html body .shooterGuitarPickerOverlay--arenaPreview
+  .shooterSkinConfigurator--arenaPreview
+  .shooterGuitarPickerModal--map {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  height: 318px !important;
+  min-height: 318px !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+html body .shooterGuitarPickerOverlay--arenaPreview
+  .shooterGuitarPickerModal--map
+  .shooterSkinPickerBodyFrame--map {
+  flex: 0 0 205px !important;
+  width: 100% !important;
+  height: 205px !important;
+  min-height: 205px !important;
+  max-height: 205px !important;
+  overflow: visible !important;
+  contain: none !important;
+  isolation: auto !important;
+}
+
+html body .shooterGuitarPickerOverlay--arenaPreview
+  .shooterGuitarPickerModal--map
+  .shooterSkinPickerBodyFrame--map
+  > .shooterSkinPickerBody {
+  display: block !important;
+  width: 100% !important;
+  height: 205px !important;
+  min-height: 205px !important;
+  max-height: 205px !important;
+  overflow: visible !important;
+  padding: 0 !important;
+  touch-action: manipulation !important;
+  -webkit-overflow-scrolling: auto !important;
+}
+
+html body .shooterGuitarPickerOverlay--arenaPreview
+  .shooterGuitarPickerModal--map
+  .shooterSkinPickerBodyFrame--map::before,
+html body .shooterGuitarPickerOverlay--arenaPreview
+  .shooterGuitarPickerModal--map
+  .shooterSkinPickerBodyFrame--map::after {
+  display: none !important;
+}
+
+html body .shooterGuitarPickerOverlay--arenaPreview
+  .shooterGuitarPickerModal--map
+  .shooterSkinOptionStack {
+  display: block !important;
+  width: 100% !important;
+  height: 205px !important;
+}
+
+html body .shooterGuitarPickerOverlay--arenaPreview
+  .shooterGuitarPickerModal--map
+  .shooterMapPickerGrid {
+  display: flex !important;
+  flex-flow: row wrap !important;
+  align-content: flex-start !important;
+  align-items: flex-start !important;
+  width: 100% !important;
+  height: 205px !important;
+  min-height: 205px !important;
+  gap: 6px !important;
+  padding: 2px 0 8px !important;
+  overflow: visible !important;
+  touch-action: manipulation !important;
+}
+
+html body .shooterGuitarPickerOverlay--arenaPreview
+  .shooterGuitarPickerModal--map
+  .shooterMapPickerGrid
+  > .shooterMapCard {
+  display: block !important;
+  flex: 0 0 calc((100% - 12px) / 3) !important;
+  width: calc((100% - 12px) / 3) !important;
+  height: 61px !important;
+  min-height: 61px !important;
+  max-height: 61px !important;
+  aspect-ratio: auto !important;
+}

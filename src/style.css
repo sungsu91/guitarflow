@@ -69810,57 +69810,108 @@ html body .shooterSkinConfigurator .shooterGuitarCategoryTabs > button.selected 
 /* Mobile map picker keeps every direct map choice visible without requiring
    users to discover a hidden second row below RANDOM and RIVER. */
 @media (max-width: 719px) {
-  /* iOS Safari can collapse the minmax body row to the first map row inside
-     the fixed-height live-preview dialog. Let the compact 3 x 3 map catalog
-     define its own height so every direct choice remains tappable. */
+  /* The real iOS Safari layout engine can collapse the nested grid/scroll
+     chain to one row even though Chromium's device emulator shows all three.
+     Give the mobile map tab a deterministic flex layout instead of relying on
+     minmax, intrinsic grid rows, aspect-ratio, or a nested scroll viewport. */
   html body .shooterSkinConfigurator--arenaPreview .shooterGuitarPickerModal--map {
-    grid-template-rows: auto auto auto;
-    height: auto !important;
-    max-height: calc(100dvh - max(16px, env(safe-area-inset-top))) !important;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 318px !important;
+    min-height: 318px !important;
+    max-height: calc(100dvh - 16px) !important;
+    overflow: visible !important;
   }
 
   html body .shooterSkinConfigurator--arenaPreview
     .shooterGuitarPickerModal--map
     .shooterSkinPickerBodyFrame--map {
-    height: auto !important;
-    min-height: 0;
-    overflow: visible;
-    contain: none;
+    flex: 0 0 205px;
+    width: 100%;
+    height: 205px !important;
+    min-height: 205px !important;
+    overflow: visible !important;
+    contain: none !important;
+    isolation: auto;
   }
 
   html body .shooterSkinConfigurator--arenaPreview
     .shooterGuitarPickerModal--map
     .shooterSkinPickerBodyFrame--map
     > .shooterSkinPickerBody {
-    height: auto !important;
-    max-height: none;
+    display: block;
+    width: 100%;
+    height: 205px !important;
+    min-height: 205px !important;
+    max-height: 205px !important;
     overflow: visible !important;
     padding-right: 0;
     padding-bottom: 0;
+    touch-action: manipulation !important;
+    -webkit-overflow-scrolling: auto;
   }
 
-  html body .shooterSkinConfigurator .shooterMapPickerGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  html body .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarPickerModal--map
+    .shooterSkinPickerBodyFrame--map::before,
+  html body .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarPickerModal--map
+    .shooterSkinPickerBodyFrame--map::after {
+    display: none !important;
+  }
+
+  html body .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarPickerModal--map
+    .shooterSkinOptionStack {
+    display: block;
+    width: 100%;
+    height: 205px;
+  }
+
+  html body .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarPickerModal--map
+    .shooterMapPickerGrid {
+    display: flex !important;
+    flex-flow: row wrap;
+    align-content: flex-start;
+    align-items: flex-start;
+    width: 100%;
+    height: 205px;
+    min-height: 205px;
     gap: 6px !important;
     padding: 2px 0 8px;
+    overflow: visible !important;
+    touch-action: manipulation;
   }
 
-  html body .shooterSkinConfigurator .shooterMapCard {
+  html body .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarPickerModal--map
+    .shooterMapCard {
     position: relative;
     display: block !important;
-    aspect-ratio: 16 / 9;
+    flex: 0 0 calc((100% - 12px) / 3);
+    width: calc((100% - 12px) / 3);
+    height: 61px !important;
+    aspect-ratio: auto !important;
     min-height: 0 !important;
+    max-height: 61px !important;
     padding: 0 !important;
     overflow: hidden;
     border-radius: 9px !important;
     isolation: isolate;
   }
 
-  html body .shooterSkinConfigurator .shooterMapPickerGrid .shooterMapCard--default {
-    grid-column: auto;
-    width: 100%;
-    aspect-ratio: 16 / 9;
+  html body .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarPickerModal--map
+    .shooterMapPickerGrid
+    .shooterMapCard--default {
+    flex-basis: calc((100% - 12px) / 3);
+    width: calc((100% - 12px) / 3);
+    height: 61px !important;
+    aspect-ratio: auto !important;
     min-height: 0 !important;
+    max-height: 61px !important;
   }
 
   html body .shooterSkinConfigurator .shooterMapCard > .shooterMapPreview,

@@ -89,11 +89,11 @@ test("map picker renders platform-sized full capture cards and a random montage"
     ],
   );
   assert.match(styleSource, /Mobile map picker keeps every direct map choice visible/);
-  assert.match(styleSource, /\.shooterMapPickerGrid\s*\{[\s\S]*?grid-template-columns: repeat\(3, minmax\(0, 1fr\)\) !important;/);
-  assert.match(styleSource, /\.shooterMapCard\s*\{[\s\S]*?aspect-ratio: 16 \/ 9;/);
+  assert.match(styleSource, /\.shooterGuitarPickerModal--map[\s\S]*?\.shooterMapPickerGrid\s*\{[\s\S]*?display: flex !important;[\s\S]*?flex-flow: row wrap;/);
+  assert.match(styleSource, /\.shooterGuitarPickerModal--map[\s\S]*?\.shooterMapCard\s*\{[\s\S]*?height: 61px !important;[\s\S]*?aspect-ratio: auto !important;/);
   assert.match(
     styleSource,
-    /\.shooterMapPickerGrid \.shooterMapCard--default\s*\{[\s\S]*?grid-column: auto;[\s\S]*?width: 100%;[\s\S]*?aspect-ratio: 16 \/ 9;[\s\S]*?min-height: 0 !important;/,
+    /\.shooterGuitarPickerModal--map[\s\S]*?\.shooterMapPickerGrid[\s\S]*?\.shooterMapCard--default\s*\{[\s\S]*?flex-basis: calc\(\(100% - 12px\) \/ 3\);[\s\S]*?height: 61px !important;/,
   );
   assert.match(styleSource, /\.shooterMapCard > \.shooterMapPreview/);
   assert.match(styleSource, /Desktop keeps its three-column catalog/);

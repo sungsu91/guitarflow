@@ -38,9 +38,10 @@ test("Vercel revalidates the entry document so phones cannot retain an old map r
 });
 
 test("the mobile Safari map picker cannot clip direct choices below its first row", async () => {
-  const [appSource, styles] = await Promise.all([
+  const [appSource, styles, mobileStyles] = await Promise.all([
     readFile(new URL("../src/App.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/style.css", import.meta.url), "utf8"),
+    readFile(new URL("../src/shooter/mobile-skin-configurator.css", import.meta.url), "utf8"),
   ]);
 
   assert.match(
@@ -49,10 +50,26 @@ test("the mobile Safari map picker cannot clip direct choices below its first ro
   );
   assert.match(
     styles,
-    /\.shooterGuitarPickerModal--map\s*\{[\s\S]*?grid-template-rows: auto auto auto;[\s\S]*?height: auto !important;/,
+    /\.shooterGuitarPickerModal--map\s*\{[\s\S]*?display: flex;[\s\S]*?height: 318px !important;[\s\S]*?min-height: 318px !important;/,
   );
   assert.match(
     styles,
-    /\.shooterGuitarPickerModal--map[\s\S]*?\.shooterSkinPickerBodyFrame--map[\s\S]*?> \.shooterSkinPickerBody\s*\{[\s\S]*?overflow: visible !important;/,
+    /\.shooterGuitarPickerModal--map[\s\S]*?\.shooterMapPickerGrid\s*\{[\s\S]*?display: flex !important;[\s\S]*?flex-flow: row wrap;/,
+  );
+  assert.match(
+    styles,
+    /\.shooterGuitarPickerModal--map[\s\S]*?\.shooterMapCard\s*\{[\s\S]*?flex: 0 0 calc\(\(100% - 12px\) \/ 3\);[\s\S]*?height: 61px !important;[\s\S]*?aspect-ratio: auto !important;/,
+  );
+  assert.match(
+    mobileStyles,
+    /\.shooterGuitarPickerOverlay--arenaPreview[\s\S]*?\.shooterGuitarPickerModal--map\s*\{[\s\S]*?height: 318px !important;[\s\S]*?max-height: none !important;/,
+  );
+  assert.match(
+    mobileStyles,
+    /\.shooterGuitarPickerModal--map[\s\S]*?\.shooterMapPickerGrid\s*\{[\s\S]*?display: flex !important;[\s\S]*?flex-flow: row wrap !important;/,
+  );
+  assert.match(
+    mobileStyles,
+    /\.shooterMapPickerGrid[\s\S]*?> \.shooterMapCard\s*\{[\s\S]*?flex: 0 0 calc\(\(100% - 12px\) \/ 3\) !important;[\s\S]*?min-height: 61px !important;/,
   );
 });
