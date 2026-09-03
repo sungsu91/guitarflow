@@ -17,17 +17,18 @@ import { SHOOTER_NORMAL_SCENARIO } from "../src/shooter/normalDifficultyScenario
 import { SHOOTER_DIFFICULT_MAIN_SCENARIO } from "../src/shooter/difficultDifficultyScenario.js";
 
 const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+const styleSource = await readFile(new URL("../src/style.css", import.meta.url), "utf8");
 
 test("urgent shooter pacing starts slow and keeps travel independent from spawn beats", () => {
   assert.equal(SHOOTER_COUNT_IN_MS, 3_000);
   assert.deepEqual(SHOOTER_RUNTIME_DIFFICULTY.easy, {
-    bpms: [44, 52, 60, 68, 76], maxTargets: 2, travelMs: 5_500, fretRange: [0, 3],
+    bpms: [44, 46, 48, 50, 52], maxTargets: 2, travelMs: 5_500, fretRange: [0, 3],
   });
   assert.deepEqual(SHOOTER_RUNTIME_DIFFICULTY.normal, {
-    bpms: [50, 58, 66, 74, 82], maxTargets: 3, travelMs: 5_000, fretRange: [5, 10],
+    bpms: [50, 52, 54, 56, 58], maxTargets: 3, travelMs: 5_000, fretRange: [5, 10],
   });
   assert.deepEqual(SHOOTER_RUNTIME_DIFFICULTY.difficult, {
-    bpms: [56, 64, 72, 80, 88], maxTargets: 3, travelMs: 4_500, fretRange: [0, 12],
+    bpms: [56, 58, 60, 62, 64], maxTargets: 3, travelMs: 4_500, fretRange: [0, 12],
   });
   assert.match(appSource, /const targetDuration = getShooterTargetDuration\(difficulty\)/);
   assert.match(appSource, /scenarioStepWindowMs \?\? getShooterSpawnGap\(difficulty\)/);
@@ -42,6 +43,8 @@ test("count-in exposes 3, 2, 1, START before gameplay", () => {
   assert.equal(getShooterCountInLabel(3_000), null);
   assert.match(appSource, /shooterCountInActiveRef\.current = true/);
   assert.match(appSource, /className="shooterCountInOverlay"/);
+  assert.match(styleSource, /\.shooterCountInOverlay strong[\s\S]*linear-gradient\(135deg, #fff95c[\s\S]*#54f6ff[\s\S]*#ff78dc/);
+  assert.match(styleSource, /-webkit-text-stroke: 1\.5px/);
 });
 
 test("every scripted target carries exact MIDI, octave label, string, and fret", () => {
@@ -67,7 +70,7 @@ test("tempo rises only after eight processed targets, 85 percent accuracy, and t
   assert.equal(getShooterTempoProgress({ bpms: stages, bpm: 50, hits: 7, misses: 0, lives: 3 }).bpm, 50);
   assert.equal(getShooterTempoProgress({ bpms: stages, bpm: 50, hits: 6, misses: 2, lives: 3 }).bpm, 50);
   assert.equal(getShooterTempoProgress({ bpms: stages, bpm: 50, hits: 8, misses: 0, lives: 1 }).bpm, 50);
-  assert.equal(getShooterTempoProgress({ bpms: stages, bpm: 50, hits: 8, misses: 0, lives: 2 }).bpm, 58);
+  assert.equal(getShooterTempoProgress({ bpms: stages, bpm: 50, hits: 8, misses: 0, lives: 2 }).bpm, 52);
 });
 
 test("frame elapsed time is timestamp based and never capped to display refresh rate", () => {

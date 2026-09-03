@@ -49,17 +49,16 @@ test("normal shooter contains only natural notes at frets 5 through 10", () => {
   assert.ok(getShooterNormalTargetX({ fretNumber: 5 }) < getShooterNormalTargetX({ fretNumber: 10 }));
 });
 
-test("normal shooter tempo starts at 50 and unlocks through 82 after a stable segment", () => {
-  assert.deepEqual(SHOOTER_NORMAL_RECOMMENDED_BPMS, [50, 58, 66, 74, 82]);
+test("normal shooter tempo rises only two BPM at a time without shortening the beat spacing", () => {
+  assert.deepEqual(SHOOTER_NORMAL_RECOMMENDED_BPMS, [50, 52, 54, 56, 58]);
   assert.equal(getShooterNormalStepDurationMs(SHOOTER_NORMAL_SCENARIO[0], 50), 2400);
-  assert.equal(getShooterNormalStepBeats(SHOOTER_NORMAL_SCENARIO[0], 58), 1);
-  assert.equal(getShooterNormalStepBeats(SHOOTER_NORMAL_SCENARIO[8], 82), 0.5);
-  assert.equal(getShooterNormalStepBeats(SHOOTER_NORMAL_SCENARIO[18], 82), 0.5);
-  assert.equal(getShooterNormalStepBeats(SHOOTER_NORMAL_SCENARIO[15], 82), 1);
+  for (const bpm of SHOOTER_NORMAL_RECOMMENDED_BPMS) {
+    assert.ok(SHOOTER_NORMAL_SCENARIO.every((step) => getShooterNormalStepBeats(step, bpm) === 2));
+  }
 
   const stableSegment = getShooterNormalRoundProgress({ bpm: 50, hits: 8, misses: 0, lives: 2 });
   assert.equal(stableSegment.accuracy, 100);
-  assert.equal(stableSegment.bpm, 58);
+  assert.equal(stableSegment.bpm, 52);
   assert.equal(stableSegment.bpmRaised, true);
   assert.equal(getShooterNormalRoundProgress({ bpm: 50, hits: 8, misses: 0, lives: 1 }).bpm, 50);
 });

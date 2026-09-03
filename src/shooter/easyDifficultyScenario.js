@@ -1,7 +1,7 @@
 import { getScriptedDifficultyRoundProgress } from "./scriptedDifficultyProgress.js";
 import { createShooterTargetNote } from "./gameplayRules.js";
 
-export const SHOOTER_EASY_RECOMMENDED_BPMS = Object.freeze([44, 52, 60, 68, 76]);
+export const SHOOTER_EASY_RECOMMENDED_BPMS = Object.freeze([44, 46, 48, 50, 52]);
 export const SHOOTER_EASY_STABLE_ACCURACY = 85;
 export const SHOOTER_EASY_STABLE_ROUNDS = 1;
 
@@ -146,19 +146,11 @@ export function getShooterEasySectionForSpawnCount(spawnedCount = 0, activeTarge
 }
 
 export function getShooterEasyStepBeats(
-  step,
-  bpm = SHOOTER_EASY_RECOMMENDED_BPMS[0],
-  round = 0,
+  _step,
+  _bpm = SHOOTER_EASY_RECOMMENDED_BPMS[0],
+  _round = 0,
 ) {
-  const safeBpm = Number(bpm) || SHOOTER_EASY_RECOMMENDED_BPMS[0];
-  if (safeBpm <= 44) return 2;
-  if (safeBpm < 60) return step?.sectionKind === "chromatic" ? 2 : 1;
-  if (safeBpm < 76) return 1;
-  if (step?.sectionKind !== "fret-round-trip") return 1;
-  const fastPatternIds = Math.max(0, Number(round) || 0) % 2 === 0
-    ? new Set(["A", "C", "E"])
-    : new Set(["B", "D", "F"]);
-  return fastPatternIds.has(step.subPatternId) ? 0.5 : 1;
+  return 2;
 }
 
 export function getShooterEasyStepDurationMs(

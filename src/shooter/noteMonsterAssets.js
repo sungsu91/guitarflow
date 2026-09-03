@@ -7,6 +7,11 @@ export const DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID = "elemental";
 export const SHOOTER_NOTE_MONSTER_LABEL_ZEROING = Object.freeze({ left: 3, up: 3 });
 export const SHOOTER_NOTE_MONSTER_SHARP_RENDER_SCALE = 1.08;
 export const SHOOTER_NOTE_MONSTER_A_RENDER_SCALE = 1.12;
+export const SHOOTER_NOTE_MONSTER_SKIN_RENDER_SCALES = Object.freeze({
+  [CUTE_OBJECT_SHOOTER_NOTE_MONSTER_SKIN_ID]: 1.05,
+  elemental: 1.1,
+  [BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID]: 1,
+});
 
 const ASSET_ROOT = "/assets/shooter/note-monsters";
 const BACKLINE_RESONANCE_ASSET_ROOT = `${ASSET_ROOT}/backline-resonance`;
@@ -232,7 +237,8 @@ export function getShooterNoteMonsterRenderScale(
   noteName,
   skinId = DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID,
 ) {
-  if (getShooterNoteMonsterSkin(skinId).id === BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID) {
+  const resolvedSkinId = getShooterNoteMonsterSkin(skinId).id;
+  if (resolvedSkinId === BACKLINE_RESONANCE_SHOOTER_NOTE_MONSTER_SKIN_ID) {
     return 1;
   }
   const { accidental, root } = getShooterNoteMonsterLabelParts(noteName);
@@ -240,7 +246,14 @@ export function getShooterNoteMonsterRenderScale(
     ? SHOOTER_NOTE_MONSTER_SHARP_RENDER_SCALE
     : 1;
   const noteRootScale = root === "A" ? SHOOTER_NOTE_MONSTER_A_RENDER_SCALE : 1;
-  return Math.max(accidentalScale, noteRootScale);
+  return Math.max(accidentalScale, noteRootScale) * getShooterNoteMonsterSkinRenderScale(resolvedSkinId);
+}
+
+export function getShooterNoteMonsterSkinRenderScale(
+  skinId = DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID,
+) {
+  const resolvedSkinId = getShooterNoteMonsterSkin(skinId).id;
+  return SHOOTER_NOTE_MONSTER_SKIN_RENDER_SCALES[resolvedSkinId] ?? 1;
 }
 
 export function getShooterNoteMonsterFrames(noteName, skinId = DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID) {

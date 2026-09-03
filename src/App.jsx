@@ -162,6 +162,7 @@ import {
   getShooterNoteMonsterPitchText,
   getShooterNoteMonsterRenderScale,
   getShooterNoteMonsterSkin,
+  getShooterNoteMonsterSkinRenderScale,
 } from "./shooter/noteMonsterAssets";
 import {
   getShooterNoteMonsterLabelPosition,
@@ -240,7 +241,6 @@ import {
 } from "./shooter/normalDifficultyScenario.js";
 import {
   SHOOTER_DIFFICULT_PATTERN_IDS,
-  SHOOTER_DIFFICULT_PATTERN_OPTIONS,
   SHOOTER_DIFFICULT_RECOMMENDED_BPMS,
   getShooterDifficultReviewMessage,
   getShooterDifficultRoundProgress,
@@ -16831,7 +16831,6 @@ function App({ onReady }) {
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
   const [shooterDifficulty, setShooterDifficulty] = useState(SHOOTER_DIFFICULTIES.EASY);
-  const [shooterDifficultPatternId, setShooterDifficultPatternId] = useState(SHOOTER_DIFFICULT_PATTERN_IDS.MAIN);
   const [shooterScenarioRoundSummary, setShooterScenarioRoundSummary] = useState(null);
   const [shooterDifficultyMenuOpen, setShooterDifficultyMenuOpen] = useState(false);
   const [shooterPlayHelpInfoOpen, setShooterPlayHelpInfoOpen] = useState(false);
@@ -18046,7 +18045,6 @@ function App({ onReady }) {
   const shooterActiveSoundGroupsRef = useRef(new Map());
   const shooterNoiseBufferCacheRef = useRef(new Map());
   const shooterDifficultyRef = useRef(SHOOTER_DIFFICULTIES.EASY);
-  const shooterDifficultPatternRef = useRef(SHOOTER_DIFFICULT_PATTERN_IDS.MAIN);
   const shooterSessionSavedRef = useRef(true);
   const shooterScenarioRoundStatsRef = useRef({
     hits: 0,
@@ -18070,7 +18068,6 @@ function App({ onReady }) {
   const threeDLabAttackIdRef = useRef(1);
   const laneFeedbackIdRef = useRef(1);
   shooterDifficultyRef.current = shooterDifficulty;
-  shooterDifficultPatternRef.current = shooterDifficultPatternId;
   scoreRef.current = score;
   attemptsRef.current = attempts;
 
@@ -21265,7 +21262,7 @@ function App({ onReady }) {
     const isNormalScenario = difficulty === SHOOTER_DIFFICULTIES.NORMAL;
     const isDifficultScenario = difficulty === SHOOTER_DIFFICULTIES.DIFFICULT;
     const isScriptedScenario = isEasyScenario || isNormalScenario || isDifficultScenario;
-    const difficultPatternId = shooterDifficultPatternRef.current;
+    const difficultPatternId = SHOOTER_DIFFICULT_PATTERN_IDS.MAIN;
     const scenarioStep = isEasyScenario
       ? getShooterEasyScenarioStep(patternRef.current)
       : isNormalScenario
@@ -23562,7 +23559,7 @@ function App({ onReady }) {
       0,
       selectedPentatonic,
       0,
-      shooterDifficultPatternRef.current,
+      SHOOTER_DIFFICULT_PATTERN_IDS.MAIN,
     );
 
     if (!detectorReady) {
@@ -27012,14 +27009,14 @@ function App({ onReady }) {
     shooterDifficulty,
     gameTimeRef.current,
     patternRef.current,
-    shooterDifficultPatternId,
+    SHOOTER_DIFFICULT_PATTERN_IDS.MAIN,
   );
   const shooterLevel = getShooterEffectiveLevel(
     getShooterLevel(hits),
     shooterDifficulty,
     gameTimeRef.current,
     patternRef.current,
-    shooterDifficultPatternId,
+    SHOOTER_DIFFICULT_PATTERN_IDS.MAIN,
   );
   const shooterScenarioDisplayBpm = gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.PAUSED
     ? bpm
@@ -27034,9 +27031,6 @@ function App({ onReady }) {
     ? `${shooterLevel.phaseLabel} · ${shooterScenarioDisplayBpm} BPM`
     : shooterLevel.phaseLabel;
   const shooterDifficultyLabel = SHOOTER_DIFFICULTY_OPTIONS.find((option) => option.id === shooterDifficulty)?.label ?? "쉬움";
-  const shooterDifficultPatternOption = SHOOTER_DIFFICULT_PATTERN_OPTIONS.find(
-    (option) => option.id === shooterDifficultPatternId,
-  ) ?? SHOOTER_DIFFICULT_PATTERN_OPTIONS[0];
   const shooterTotalAccuracy = shooterRecords.totals.shots > 0
     ? Math.round((shooterRecords.totals.hits / shooterRecords.totals.shots) * 100)
     : 0;
@@ -32578,34 +32572,6 @@ function App({ onReady }) {
             </div>
           </div>
 
-              {isMobileLayout
-                && shooterDifficulty === SHOOTER_DIFFICULTIES.DIFFICULT
-                && !isShooterDifficultyLocked ? (
-            <div className="desktopShooterDifficultPatternPanel" aria-label="어려움 연습 패턴">
-              <div>
-                <span>연습 흐름</span>
-                <strong>{shooterDifficultPatternOption.label}</strong>
-                <small>{shooterDifficultPatternOption.hint}</small>
-              </div>
-              <div className="desktopShooterDifficultPatternButtons">
-                {SHOOTER_DIFFICULT_PATTERN_OPTIONS.map((option) => (
-                  <button
-                    aria-pressed={shooterDifficultPatternId === option.id}
-                    className={shooterDifficultPatternId === option.id ? "selected" : ""}
-                    disabled={isShooterDifficultyLocked}
-                    key={option.id}
-                    onClick={() => setShooterDifficultPatternId(option.id)}
-                    title={`${option.label} · ${option.hint}`}
-                    type="button"
-                  >
-                    <strong>{option.shortLabel}</strong>
-                    <span>{option.hint}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
           {showShooterRecords && (
             <section className="shooterRecordsPanel" aria-label="슈팅게임 기록">
               <div className="shooterRecordGrid">
@@ -32826,29 +32792,6 @@ function App({ onReady }) {
                 </button>
               </div>
 
-              {isMobileLayout
-                && shooterDifficulty === SHOOTER_DIFFICULTIES.DIFFICULT
-                && !isShooterDifficultyLocked ? (
-                <div className="mobileShooterDifficultPatternRow" aria-label="어려움 연습 패턴">
-                  <span>{shooterDifficultPatternOption.hint}</span>
-                  <div>
-                    {SHOOTER_DIFFICULT_PATTERN_OPTIONS.map((option) => (
-                      <button
-                        aria-label={`${option.label} · ${option.hint}`}
-                        aria-pressed={shooterDifficultPatternId === option.id}
-                        className={shooterDifficultPatternId === option.id ? "selected" : ""}
-                        disabled={isShooterDifficultyLocked}
-                        key={option.id}
-                        onClick={() => setShooterDifficultPatternId(option.id)}
-                        type="button"
-                      >
-                        {option.shortLabel}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
               {shooterPlayHelpLevel > 0 ? (
                 <div className="mobileShooterPlayHelpMessageBar">
                   <p aria-live="polite">{shooterPlayHelpMessage}</p>
@@ -33049,13 +32992,14 @@ function App({ onReady }) {
                 selectedMonsterSkin.id,
               )
                 * monsterRenderedScales.monsterScale;
+              const monsterSkinRenderScale = getShooterNoteMonsterSkinRenderScale(selectedMonsterSkin.id);
               const pitchText = selectedMonsterSkin.pitchText;
               const monsterLabelFontSize = pitchText?.renderedByApp
                 ? SHOOTER_NOTE_MONSTER_RENDER_SIZE
                   * monsterRenderScale
                   * pitchText.fontSizeRatio
                   * monsterTuning.labelScale
-                : 13 * monsterRenderedScales.labelScale;
+                : 13 * monsterRenderedScales.labelScale * monsterSkinRenderScale;
               const monsterLabelOutlineWidth = pitchText?.renderedByApp
                 ? Math.max(
                   0.8,
@@ -33063,7 +33007,7 @@ function App({ onReady }) {
                     * monsterRenderScale
                     * pitchText.outlineWidthRatio,
                 )
-                : 0.9;
+                : 0.9 * monsterSkinRenderScale;
               const targetDestroyDurationMs = target.destroyHoldMs ?? SHOOTER_TARGET_DESTROY_ANIMATION_MS;
               return (
               <div

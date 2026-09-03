@@ -94,31 +94,18 @@ test("six one-string patterns each complete a zero-to-three round trip", () => {
   }
 });
 
-test("easy tempo follows 44, 52, 60, 68, and 76 BPM without accelerating the whole course", () => {
-  assert.deepEqual(SHOOTER_EASY_RECOMMENDED_BPMS, [44, 52, 60, 68, 76]);
-  const naturalStep = SHOOTER_EASY_SCENARIO.find((step) => step.sectionId === 2);
-  const chromaticStep = SHOOTER_EASY_SCENARIO.find((step) => step.sectionId === 3 && step.pitch === "F#2");
-  const fastPatternA = SHOOTER_EASY_SCENARIO.find((step) => step.sectionId === 4 && step.subPatternId === "A");
-  const regularPatternB = SHOOTER_EASY_SCENARIO.find((step) => step.sectionId === 4 && step.subPatternId === "B");
-
-  assert.ok(SHOOTER_EASY_SCENARIO.every((step) => getShooterEasyStepBeats(step, 44) === 2));
-  assert.equal(getShooterEasyStepBeats(naturalStep, 52), 1);
-  assert.equal(getShooterEasyStepBeats(chromaticStep, 52), 2);
-  assert.equal(getShooterEasyStepBeats(fastPatternA, 52), 1);
-  assert.ok(SHOOTER_EASY_SCENARIO.every((step) => getShooterEasyStepBeats(step, 60) === 1));
-  assert.ok(SHOOTER_EASY_SCENARIO.every((step) => getShooterEasyStepBeats(step, 68) === 1));
-  assert.equal(getShooterEasyStepBeats(fastPatternA, 76, 0), 0.5);
-  assert.equal(getShooterEasyStepBeats(regularPatternB, 76, 0), 1);
-  assert.equal(getShooterEasyStepBeats(fastPatternA, 76, 1), 1);
-  assert.equal(getShooterEasyStepBeats(regularPatternB, 76, 1), 0.5);
-  assert.equal(getShooterEasyStepBeats(naturalStep, 76), 1);
+test("easy tempo rises only two BPM at a time and keeps the same two-beat spacing", () => {
+  assert.deepEqual(SHOOTER_EASY_RECOMMENDED_BPMS, [44, 46, 48, 50, 52]);
+  for (const bpm of SHOOTER_EASY_RECOMMENDED_BPMS) {
+    assert.ok(SHOOTER_EASY_SCENARIO.every((step) => getShooterEasyStepBeats(step, bpm) === 2));
+  }
   assert.equal(getShooterEasyStepDurationMs(SHOOTER_EASY_SCENARIO[0], 44), 120_000 / 44);
 
   const stableRound = getShooterEasyRoundProgress({ bpm: 44, hits: 8, misses: 0, lives: 3 });
   assert.equal(stableRound.accuracy, 100);
-  assert.equal(stableRound.bpm, 52);
+  assert.equal(stableRound.bpm, 46);
   assert.equal(stableRound.bpmRaised, true);
-  assert.equal(getShooterEasyRoundProgress({ bpm: 52, hits: 6, misses: 2 }).bpm, 52);
+  assert.equal(getShooterEasyRoundProgress({ bpm: 46, hits: 6, misses: 2 }).bpm, 46);
 });
 
 test("easy review feedback identifies open strings, semitones, and fret round trips", () => {

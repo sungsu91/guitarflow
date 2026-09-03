@@ -4,6 +4,7 @@ import {
   getShooterNoteMonsterLabelLayout,
   getShooterNoteMonsterLabelPalette,
   getShooterNoteMonsterRenderScale,
+  getShooterNoteMonsterSkinRenderScale,
 } from "../../noteMonsterAssets.js";
 import {
   getShooterNoteMonsterLabelPosition,
@@ -165,13 +166,14 @@ function MonsterTuningControls({ monsterEditor }) {
     noteName,
     monsterEditor.activeSkin.id,
   );
+  const skinRenderScale = getShooterNoteMonsterSkinRenderScale(monsterEditor.activeSkin.id);
   const pitchText = monsterEditor.activeSkin.pitchText;
   const previewLabelSize = pitchText?.renderedByApp
     ? 86.4 * renderScale * pitchText.fontSizeRatio * activeTuning.labelScale
-    : 13 * renderedScales.labelScale;
+    : 13 * renderedScales.labelScale * skinRenderScale;
   const previewLabelOutlineWidth = pitchText?.renderedByApp
     ? Math.max(0.8, 86.4 * renderScale * pitchText.outlineWidthRatio)
-    : 0.9;
+    : 0.9 * skinRenderScale;
   const jointScalePercent = Math.round(activeTuning.jointScale * 100);
   const labelScalePercent = Math.round(activeTuning.labelScale * 100);
   const scalePercent = Math.round(activeTuning.scale * 100);

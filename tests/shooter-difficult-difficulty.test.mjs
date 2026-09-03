@@ -20,7 +20,6 @@ import {
 } from "../src/shooter/difficultDifficultyScenario.js";
 
 const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
-const mobileCssSource = await readFile(new URL("../src/shooter/mobile-canonical-viewport.css", import.meta.url), "utf8");
 
 const positions = (steps) => steps.map((step) => (
   `${step.pitch}:s${step.stringNumber}f${step.fretNumber}:${step.beats}`
@@ -94,27 +93,19 @@ test("mini patterns A through D keep their exact frets and technique prompts", (
   assert.equal(getShooterDifficultTechniqueLabel(miniC[2], 80), "풀오프 선택");
 });
 
-test("difficult tempo rises gradually and only accelerates the authored focus", () => {
-  assert.deepEqual(SHOOTER_DIFFICULT_RECOMMENDED_BPMS, [56, 64, 72, 80, 88]);
-  assert.equal(getShooterDifficultStepBeats(SHOOTER_DIFFICULT_MAIN_SCENARIO[10], 56), 2);
-  assert.equal(getShooterDifficultStepBeats(SHOOTER_DIFFICULT_MAIN_SCENARIO[0], 64), 2);
-  assert.equal(getShooterDifficultStepBeats(SHOOTER_DIFFICULT_MAIN_SCENARIO[10], 64), 1);
-  assert.equal(getShooterDifficultStepBeats(SHOOTER_DIFFICULT_MAIN_SCENARIO[21], 64), 2);
-  assert.equal(getShooterDifficultStepBeats(SHOOTER_DIFFICULT_MAIN_SCENARIO[21], 72), 1);
-  assert.equal(getShooterDifficultStepBeats(SHOOTER_DIFFICULT_MAIN_SCENARIO[12], 88, 0), 0.5);
-  assert.equal(getShooterDifficultStepBeats(SHOOTER_DIFFICULT_MAIN_SCENARIO[23], 88, 0), 1);
-  assert.equal(getShooterDifficultStepBeats(SHOOTER_DIFFICULT_MAIN_SCENARIO[12], 88, 1), 1);
-  assert.equal(getShooterDifficultStepBeats(SHOOTER_DIFFICULT_MAIN_SCENARIO[23], 88, 1), 0.5);
-
+test("difficult tempo rises only two BPM at a time and never compresses target spacing", () => {
+  assert.deepEqual(SHOOTER_DIFFICULT_RECOMMENDED_BPMS, [56, 58, 60, 62, 64]);
+  for (const bpm of SHOOTER_DIFFICULT_RECOMMENDED_BPMS) {
+    assert.ok(SHOOTER_DIFFICULT_MAIN_SCENARIO.every((step) => getShooterDifficultStepBeats(step, bpm) === 2));
+  }
   const miniA = getShooterDifficultScenario(SHOOTER_DIFFICULT_PATTERN_IDS.HAMMER_ON_LOW_E);
   assert.equal(getShooterDifficultStepBeats(miniA[1], 56), 2);
-  assert.equal(getShooterDifficultStepBeats(miniA[1], 64), 1);
-  assert.equal(getShooterDifficultStepBeats(miniA[1], 80), 0.5);
+  assert.equal(getShooterDifficultStepBeats(miniA[1], 64), 2);
   assert.ok(Math.abs(getShooterDifficultStepDurationMs(SHOOTER_DIFFICULT_MAIN_SCENARIO[0], 56) - (120_000 / 56)) < 0.001);
 
   const firstStableRound = getShooterDifficultRoundProgress({ bpm: 56, hits: 39, misses: 4, lives: 2 });
   assert.equal(firstStableRound.accuracy, 91);
-  assert.equal(firstStableRound.bpm, 64);
+  assert.equal(firstStableRound.bpm, 58);
   assert.equal(firstStableRound.bpmRaised, true);
   assert.equal(getShooterDifficultRoundProgress({ bpm: 56, hits: 7, misses: 0, lives: 3 }).bpm, 56);
 });
@@ -131,7 +122,7 @@ test("main technique guidance is advisory and round feedback names weak regions"
   assert.match(getShooterDifficultReviewMessage([]), /E2~E5/);
 });
 
-test("App routes difficult targets through the authored scenario and separate mobile/desktop selectors", () => {
+test("App routes difficult targets through the main authored scenario without the A/B/C/D selector", () => {
   const spawnStart = appSource.indexOf("const spawnShooterTarget = useCallback");
   const spawnEnd = appSource.indexOf("const judgeReferenceNote", spawnStart);
   const spawnSource = appSource.slice(spawnStart, spawnEnd);
@@ -144,7 +135,8 @@ test("App routes difficult targets through the authored scenario and separate mo
   assert.match(spawnSource, /getShooterDifficultTechniqueLabel\(scenarioStep, bpmRef\.current\)/);
   assert.match(spawnSource, /isDifficultScenario[\s\S]*\? "shooter-difficult-scenario"/);
   assert.match(missSource, /const lifeLossCount = missedTargets\.length/);
-  assert.match(appSource, /className="desktopShooterDifficultPatternPanel"/);
-  assert.match(appSource, /className="mobileShooterDifficultPatternRow"/);
-  assert.match(mobileCssSource, /\.mobileShooterTopHud \.mobileShooterDifficultPatternRow/);
+  assert.match(spawnSource, /const difficultPatternId = SHOOTER_DIFFICULT_PATTERN_IDS\.MAIN/);
+  assert.doesNotMatch(appSource, /SHOOTER_DIFFICULT_PATTERN_OPTIONS/);
+  assert.doesNotMatch(appSource, /desktopShooterDifficultPatternPanel/);
+  assert.doesNotMatch(appSource, /mobileShooterDifficultPatternRow/);
 });

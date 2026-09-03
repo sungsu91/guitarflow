@@ -1,7 +1,7 @@
 import { getScriptedDifficultyRoundProgress } from "./scriptedDifficultyProgress.js";
 import { createShooterTargetNote } from "./gameplayRules.js";
 
-export const SHOOTER_DIFFICULT_RECOMMENDED_BPMS = Object.freeze([56, 64, 72, 80, 88]);
+export const SHOOTER_DIFFICULT_RECOMMENDED_BPMS = Object.freeze([56, 58, 60, 62, 64]);
 export const SHOOTER_DIFFICULT_STABLE_ACCURACY = 85;
 export const SHOOTER_DIFFICULT_STABLE_ROUNDS = 1;
 
@@ -174,22 +174,10 @@ export function getShooterDifficultSectionForSpawnCount(
 }
 
 export function getShooterDifficultStepBeats(
-  step,
-  bpm = SHOOTER_DIFFICULT_RECOMMENDED_BPMS[0],
-  round = 0,
+  _step,
+  _bpm = SHOOTER_DIFFICULT_RECOMMENDED_BPMS[0],
+  _round = 0,
 ) {
-  const safeBpm = Number(bpm) || SHOOTER_DIFFICULT_RECOMMENDED_BPMS[0];
-  if (step?.isMiniPattern) {
-    if (safeBpm >= 80) return 0.5;
-    if (safeBpm <= 56) return 2;
-    return 1;
-  }
-  if (safeBpm >= 88) {
-    const focusSectionId = Math.max(0, Number(round) || 0) % 2 === 0 ? 3 : 5;
-    return step?.sectionId === focusSectionId ? 0.5 : 1;
-  }
-  if (safeBpm >= 72) return 1;
-  if (safeBpm >= 64) return Math.max(1, Number(step?.beats) || 1);
   return 2;
 }
 

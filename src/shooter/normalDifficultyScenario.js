@@ -1,7 +1,7 @@
 import { getScriptedDifficultyRoundProgress } from "./scriptedDifficultyProgress.js";
 import { createShooterTargetNote } from "./gameplayRules.js";
 
-export const SHOOTER_NORMAL_RECOMMENDED_BPMS = Object.freeze([50, 58, 66, 74, 82]);
+export const SHOOTER_NORMAL_RECOMMENDED_BPMS = Object.freeze([50, 52, 54, 56, 58]);
 export const SHOOTER_NORMAL_STABLE_ACCURACY = 85;
 export const SHOOTER_NORMAL_STABLE_ROUNDS = 1;
 
@@ -113,11 +113,7 @@ export function getShooterNormalSectionForSpawnCount(spawnedCount = 0, activeTar
   return SHOOTER_NORMAL_SECTIONS.find((section) => section.id === step.sectionId);
 }
 
-export function getShooterNormalStepBeats(step, bpm = SHOOTER_NORMAL_RECOMMENDED_BPMS[0]) {
-  const safeBpm = Number(bpm) || SHOOTER_NORMAL_RECOMMENDED_BPMS[0];
-  if (safeBpm <= 50) return 2;
-  if (safeBpm >= 82 && (step?.sectionId === 2 || step?.sectionId === 4)) return 0.5;
-  if (safeBpm >= 58) return 1;
+export function getShooterNormalStepBeats(_step, _bpm = SHOOTER_NORMAL_RECOMMENDED_BPMS[0]) {
   return 2;
 }
 

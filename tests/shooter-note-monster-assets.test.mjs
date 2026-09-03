@@ -11,6 +11,7 @@ import {
   SHOOTER_NOTE_MONSTER_LABEL_ZEROING,
   SHOOTER_NOTE_MONSTER_ROOTS,
   SHOOTER_NOTE_MONSTER_SHARP_RENDER_SCALE,
+  SHOOTER_NOTE_MONSTER_SKIN_RENDER_SCALES,
   SHOOTER_NOTE_MONSTER_SKINS,
   getShooterNoteMonsterAssetSources,
   getShooterNoteMonsterFrameSrc,
@@ -21,6 +22,7 @@ import {
   getShooterNoteMonsterRenderScale,
   getShooterNoteMonsterRoot,
   getShooterNoteMonsterSkin,
+  getShooterNoteMonsterSkinRenderScale,
 } from "../src/shooter/noteMonsterAssets.js";
 
 const PROJECT_ROOT = new URL("../", import.meta.url);
@@ -59,15 +61,23 @@ test("each of the seven cute-object designs keeps its label in the authored orb 
   assert.notDeepEqual(layouts.C, layouts.B);
 });
 
-test("sharp pitches and the A design use a slightly larger visual monster", () => {
+test("skin-wide growth includes elemental at ten percent and cute objects at five percent", () => {
   assert.equal(SHOOTER_NOTE_MONSTER_SHARP_RENDER_SCALE, 1.08);
   assert.equal(SHOOTER_NOTE_MONSTER_A_RENDER_SCALE, 1.12);
-  assert.equal(getShooterNoteMonsterRenderScale("C#4"), 1.08);
-  assert.equal(getShooterNoteMonsterRenderScale("F♯3"), 1.08);
-  assert.equal(getShooterNoteMonsterRenderScale("A4"), 1.12);
-  assert.equal(getShooterNoteMonsterRenderScale("A#4"), 1.12);
-  assert.equal(getShooterNoteMonsterRenderScale("C4"), 1);
-  assert.equal(getShooterNoteMonsterRenderScale("Bb3"), 1);
+  assert.deepEqual(SHOOTER_NOTE_MONSTER_SKIN_RENDER_SCALES, {
+    "cute-object": 1.05,
+    elemental: 1.1,
+    "backline-resonance": 1,
+  });
+  assert.equal(getShooterNoteMonsterSkinRenderScale("elemental"), 1.1);
+  assert.equal(getShooterNoteMonsterSkinRenderScale("cute-object"), 1.05);
+  assert.equal(getShooterNoteMonsterRenderScale("C#4"), 1.08 * 1.1);
+  assert.equal(getShooterNoteMonsterRenderScale("F♯3"), 1.08 * 1.1);
+  assert.equal(getShooterNoteMonsterRenderScale("A4"), 1.12 * 1.1);
+  assert.equal(getShooterNoteMonsterRenderScale("A#4"), 1.12 * 1.1);
+  assert.equal(getShooterNoteMonsterRenderScale("C4"), 1.1);
+  assert.equal(getShooterNoteMonsterRenderScale("Bb3"), 1.1);
+  assert.equal(getShooterNoteMonsterRenderScale("C4", "cute-object"), 1.05);
   assert.equal(getShooterNoteMonsterRenderScale("G#4", "backline-resonance"), 1);
   assert.equal(getShooterNoteMonsterRenderScale("A2", "backline-resonance"), 1);
 });
@@ -181,6 +191,7 @@ test("Backline Resonance centers the full app-rendered target pitch with manifes
   assert.match(appSource, /data-monster-skin=\{selectedMonsterSkin\.id\}/);
   assert.match(appSource, /pitchText\.fontSizeRatio/);
   assert.match(appSource, /pitchText\.outlineWidthRatio/);
+  assert.match(appSource, /monsterRenderedScales\.labelScale \* monsterSkinRenderScale/);
   assert.match(appSource, /key=\{`\$\{frameSrc\}:\$\{frameIndex\}`\}/);
   assert.match(styleSource, /max-width: var\(--target-label-max-width, 100%\)/);
   assert.match(styleSource, /white-space: nowrap/);
