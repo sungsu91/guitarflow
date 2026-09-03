@@ -36,3 +36,23 @@ test("Vercel revalidates the entry document so phones cannot retain an old map r
   assert.equal(cacheHeaderFor("/"), "public, max-age=0, must-revalidate");
   assert.equal(cacheHeaderFor("/index.html"), "public, max-age=0, must-revalidate");
 });
+
+test("the mobile Safari map picker cannot clip direct choices below its first row", async () => {
+  const [appSource, styles] = await Promise.all([
+    readFile(new URL("../src/App.jsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/style.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(
+    appSource,
+    /className=\{`shooterGuitarPickerModal shooterGuitarPickerModal--\$\{shooterSkinTab\}`\}/,
+  );
+  assert.match(
+    styles,
+    /\.shooterGuitarPickerModal--map\s*\{[\s\S]*?grid-template-rows: auto auto auto;[\s\S]*?height: auto !important;/,
+  );
+  assert.match(
+    styles,
+    /\.shooterGuitarPickerModal--map[\s\S]*?\.shooterSkinPickerBodyFrame--map[\s\S]*?> \.shooterSkinPickerBody\s*\{[\s\S]*?overflow: visible !important;/,
+  );
+});

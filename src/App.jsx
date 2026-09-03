@@ -33563,7 +33563,7 @@ function App({ onReady }) {
               <div
                 aria-label="슈팅게임 스킨변경"
                 aria-modal="true"
-                className="shooterGuitarPickerModal"
+                className={`shooterGuitarPickerModal shooterGuitarPickerModal--${shooterSkinTab}`}
                 onClick={(event) => event.stopPropagation()}
                 role="dialog"
               >

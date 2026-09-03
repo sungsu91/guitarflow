@@ -69810,6 +69810,35 @@ html body .shooterSkinConfigurator .shooterGuitarCategoryTabs > button.selected 
 /* Mobile map picker keeps every direct map choice visible without requiring
    users to discover a hidden second row below RANDOM and RIVER. */
 @media (max-width: 719px) {
+  /* iOS Safari can collapse the minmax body row to the first map row inside
+     the fixed-height live-preview dialog. Let the compact 3 x 3 map catalog
+     define its own height so every direct choice remains tappable. */
+  html body .shooterSkinConfigurator--arenaPreview .shooterGuitarPickerModal--map {
+    grid-template-rows: auto auto auto;
+    height: auto !important;
+    max-height: calc(100dvh - max(16px, env(safe-area-inset-top))) !important;
+  }
+
+  html body .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarPickerModal--map
+    .shooterSkinPickerBodyFrame--map {
+    height: auto !important;
+    min-height: 0;
+    overflow: visible;
+    contain: none;
+  }
+
+  html body .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarPickerModal--map
+    .shooterSkinPickerBodyFrame--map
+    > .shooterSkinPickerBody {
+    height: auto !important;
+    max-height: none;
+    overflow: visible !important;
+    padding-right: 0;
+    padding-bottom: 0;
+  }
+
   html body .shooterSkinConfigurator .shooterMapPickerGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 6px !important;
