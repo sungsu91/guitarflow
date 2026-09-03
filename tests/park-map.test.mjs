@@ -62,7 +62,7 @@ test("park uses the supplied background in the shared layered map system", async
   assert.equal(isLayeredShooterMap(PARK_MAP_SKIN), true);
   assert.equal(isEditableShooterMap(PARK_MAP_SKIN), true);
   assert.equal(PARK_MAP_SKIN.id, "park");
-  assert.equal(PARK_MAP_SKIN.label, "PARK");
+  assert.equal(PARK_MAP_SKIN.label, "햇살 공원");
   assert.equal(PARK_MAP_SKIN.background.fit, "cover");
   assert.equal(PARK_MAP_SKIN.background.position, "center center");
   assert.equal(PARK_MAP_SKIN.background.locked, true);

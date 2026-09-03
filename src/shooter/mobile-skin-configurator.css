@@ -1,5 +1,87 @@
 /* Mobile-only cabinet cards share the same transparent display treatment as floor effects. */
 @media (max-width: 719px) {
+  /* Mobile navigation is grouped into two connected segmented controls. */
+  html.shooterCanonicalMobile body
+    .shooterSkinConfigurator--arenaPreview
+    .shooterSkinTabs,
+  html.shooterCanonicalMobile body
+    .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarCategoryTabs--mobile {
+    gap: 0 !important;
+    padding: 3px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(139, 91, 30, 0.72) !important;
+    border-radius: 12px !important;
+    background: linear-gradient(180deg, rgba(54, 39, 22, 0.98), rgba(22, 17, 13, 0.98)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 239, 198, 0.16),
+      0 3px 9px rgba(48, 29, 11, 0.2) !important;
+  }
+
+  html.shooterCanonicalMobile body
+    .shooterSkinConfigurator--arenaPreview
+    .shooterSkinTabs {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    min-height: 36px !important;
+  }
+
+  html.shooterCanonicalMobile body
+    .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarCategoryTabs--mobile {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    margin: 7px 1px 0 !important;
+    border-top: 1px solid rgba(139, 91, 30, 0.72) !important;
+  }
+
+  html.shooterCanonicalMobile body
+    .shooterSkinConfigurator--arenaPreview
+    :is(.shooterSkinTabs, .shooterGuitarCategoryTabs--mobile) > button,
+  html.shooterCanonicalMobile body
+    .shooterSkinConfigurator--arenaPreview
+    :is(.shooterSkinTabs, .shooterGuitarCategoryTabs--mobile) > button:is(:hover, :focus, :focus-visible, :active) {
+    position: relative !important;
+    min-width: 0 !important;
+    min-height: 30px !important;
+    padding: 0 4px !important;
+    border: 0 !important;
+    border-right: 1px solid rgba(240, 203, 139, 0.16) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: rgba(255, 239, 207, 0.78) !important;
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.025em !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  html.shooterCanonicalMobile body
+    .shooterSkinConfigurator--arenaPreview
+    :is(.shooterSkinTabs, .shooterGuitarCategoryTabs--mobile) > button:first-child {
+    border-radius: 8px 0 0 8px !important;
+  }
+
+  html.shooterCanonicalMobile body
+    .shooterSkinConfigurator--arenaPreview
+    :is(.shooterSkinTabs, .shooterGuitarCategoryTabs--mobile) > button:last-child {
+    border-right: 0 !important;
+    border-radius: 0 8px 8px 0 !important;
+  }
+
+  html.shooterCanonicalMobile body
+    .shooterSkinConfigurator--arenaPreview
+    :is(.shooterSkinTabs, .shooterGuitarCategoryTabs--mobile) > button.selected,
+  html.shooterCanonicalMobile body
+    .shooterSkinConfigurator--arenaPreview
+    :is(.shooterSkinTabs, .shooterGuitarCategoryTabs--mobile) > button.selected:is(:hover, :focus, :focus-visible, :active) {
+    background: linear-gradient(180deg, #ffe09a, #d59a3c) !important;
+    color: #2d1a07 !important;
+    text-shadow: 0 1px 0 rgba(255, 250, 225, 0.58) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.72),
+      inset 0 -3px 0 rgba(109, 61, 12, 0.34) !important;
+  }
+
   html.shooterCanonicalMobile body
     .shooterSkinConfigurator--arenaPreview
     .shooterEffectStandaloneTrack

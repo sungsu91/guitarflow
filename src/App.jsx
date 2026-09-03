@@ -155,6 +155,7 @@ import {
   SHOOTER_NOTE_MONSTER_ROOTS,
   SHOOTER_NOTE_MONSTER_SKINS,
   getShooterNoteMonsterAssetSources,
+  getShooterNoteMonsterIdleAssetSources,
   getShooterNoteMonsterFrames,
   getShooterNoteMonsterLabelLayout,
   getShooterNoteMonsterLabelPalette,
@@ -8354,7 +8355,7 @@ const SHOOTER_PICK_SKINS = [
 ];
 const SHOOTER_RANDOM_MAP_OPTION = {
   id: SHOOTER_RANDOM_MAP_ID,
-  label: "RANDOM",
+  label: "랜덤",
   description: "슈팅게임에 다시 들어올 때 무작위 맵 선택",
 };
 const SHOOTER_MAP_OPTIONS = [
@@ -15897,6 +15898,12 @@ function preloadShooterEnemyAssets(skinId = DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID
   ).then(() => undefined);
 }
 
+function preloadShooterEnemyIdleAssets(skinId = DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID) {
+  return Promise.all(
+    getShooterNoteMonsterIdleAssetSources(skinId).map(preloadShooterEffectImage),
+  ).then(() => undefined);
+}
+
 const SHOOTER_RECORDS_STORAGE_KEY = "rifflabShooterRecords";
 const SHOOTER_GUITAR_PIVOT_PERCENT = { x: 50, y: 91.5 };
 const SHOOTER_GUITAR_AIM_LIMIT_DEG = 34;
@@ -17170,7 +17177,7 @@ function App({ onReady }) {
   shooterEntryAssetsRef.current = appMode === APP_MODES.SHOOTER ? {
     cabinetAssetSources: getShooterGuitarCabinetAssetSources(selectedGuitarCabinet),
     effectLayers: selectedEffectLayers,
-    enemyAssetSources: getShooterNoteMonsterAssetSources(selectedMonsterSkin.id),
+    enemyAssetSources: getShooterNoteMonsterIdleAssetSources(selectedMonsterSkin.id),
     guitarAssetSrc: selectedGuitar.assetSrc,
     guitarProjectileAssetSrc: selectedGuitar.projectileAssetSrc,
     mapBackgroundSrc: selectedMap.backgroundImage,
@@ -23568,6 +23575,9 @@ function App({ onReady }) {
       return;
     }
 
+    await preloadShooterEnemyIdleAssets(selectedMonsterSkin.id);
+    void preloadShooterEnemyAssets(selectedMonsterSkin.id);
+
     activeNotesRef.current = initialShooterNotes;
     sequenceRef.current = getPracticeSequence(safeCategory);
     practiceLoopRef.current = true;
@@ -23603,7 +23613,7 @@ function App({ onReady }) {
     setFeedback("Count In");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
-  }, [desktopHorizontalClickAttackActive, ensureAudioReady, getPracticeSequence, resetScore, selectedPentatonic, setState, shooterHitboxDebugEnabled, spawnShooterTarget, startMic]);
+  }, [desktopHorizontalClickAttackActive, ensureAudioReady, getPracticeSequence, resetScore, selectedMonsterSkin.id, selectedPentatonic, setState, shooterHitboxDebugEnabled, spawnShooterTarget, startMic]);
 
   const startShooterMic = useCallback(async () => {
     appModeRef.current = APP_MODES.SHOOTER;
@@ -32897,7 +32907,7 @@ function App({ onReady }) {
                   <div>
                     <span>LEVEL</span>
                     <strong>{shooterLevel.name.replace("레벨 ", "")}</strong>
-                    <small>{shooterPhaseDisplayLabel}</small>
+                    {!isMobileLayout ? <small>{shooterPhaseDisplayLabel}</small> : null}
                   </div>
                 </div>
               </>
@@ -33085,6 +33095,7 @@ function App({ onReady }) {
                       alt=""
                       className="shooterEnemyMonsterAsset shooterEnemyMonsterIdleFrame"
                       draggable="false"
+                      fetchPriority="high"
                       src={monsterFrames[0]}
                     />
                   )}

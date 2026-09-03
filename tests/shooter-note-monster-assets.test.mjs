@@ -15,6 +15,7 @@ import {
   SHOOTER_NOTE_MONSTER_SKINS,
   getShooterNoteMonsterAssetSources,
   getShooterNoteMonsterFrameSrc,
+  getShooterNoteMonsterIdleAssetSources,
   getShooterNoteMonsterLabelLayout,
   getShooterNoteMonsterLabelPalette,
   getShooterNoteMonsterLabelParts,
@@ -38,6 +39,16 @@ test("natural, sharp, and flat pitches share the seven root-note monster familie
     octave: "3",
     root: "E",
   });
+});
+
+test("gameplay can preload one idle frame per note family before targets appear", async () => {
+  const idleSources = getShooterNoteMonsterIdleAssetSources("elemental");
+  const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+
+  assert.equal(idleSources.length, SHOOTER_NOTE_MONSTER_ROOTS.length);
+  assert.deepEqual(idleSources, SHOOTER_NOTE_MONSTER_ROOTS.map((root) => SHOOTER_NOTE_MONSTER_ASSETS[root][0]));
+  assert.match(appSource, /await preloadShooterEnemyIdleAssets\(selectedMonsterSkin\.id\)/);
+  assert.match(appSource, /fetchPriority="high"/);
 });
 
 test("each of the seven cute-object designs keeps its label in the authored orb center", () => {

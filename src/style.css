@@ -66592,12 +66592,7 @@ html body .shooterSkinConfigurator :is(
     position: relative;
     justify-self: stretch;
     display: grid;
-    grid-template-columns:
-      21px
-      minmax(27px, 30px)
-      repeat(2, minmax(19px, 22px))
-      17px;
-    justify-content: center;
+    grid-template-columns: 26px repeat(3, minmax(0, 1fr)) 20px;
     align-items: center;
     width: 100%;
     height: 40px;
@@ -66731,7 +66726,7 @@ html body .shooterSkinConfigurator :is(
 
   html body main.app.app.app.shooterMode .mobileShooterPrimaryHudRow {
     display: grid;
-    grid-template-columns: 106px minmax(0, 1fr) 58px 48px;
+    grid-template-columns: 82px minmax(0, 1fr) 58px 48px;
     align-items: center;
     width: 100%;
     height: 40px;
@@ -66751,7 +66746,7 @@ html body .shooterSkinConfigurator :is(
     top: auto;
     left: auto;
     justify-self: start;
-    width: min(106px, 100%);
+    width: min(82px, 100%);
     pointer-events: auto;
   }
 
@@ -66812,7 +66807,7 @@ html body .shooterSkinConfigurator :is(
 
   html body main.app.app.app.shooterMode .mobileShooterDifficultyMenu {
     top: calc(100% + 4px);
-    width: 106px;
+    width: 82px;
   }
 
   html body main.app.app.app.shooterMode .mobileShooterTargetHud {

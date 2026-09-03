@@ -4,7 +4,7 @@ const CELESTIAL_ECLIPSE_PREVIEW = "/assets/maps/previews/celestial-eclipse-clock
 export const CELESTIAL_ECLIPSE_CLOCKTOWER_MAP_SKIN = Object.freeze({
   id: "celestial-eclipse-clocktower",
   kind: "layered",
-  label: "ECLIPSE",
+  label: "천공의 월식 시계탑",
   nameKo: "천공의 월식 시계탑",
   nameEn: "Celestial Eclipse Clocktower",
   description: "월식과 천문환이 회전하는 천공의 시계탑",

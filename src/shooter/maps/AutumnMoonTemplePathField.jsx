@@ -3,6 +3,8 @@ import { memo, useEffect, useRef } from "react";
 import {
   getAutumnGroundGustDelay,
   getAutumnLoopFrame,
+  getAutumnPlaybackSequence,
+  getAutumnSequencesForLayout,
   getAutumnSpriteCell,
 } from "./autumnMoonTempleAnimation.js";
 import { subscribeSharedMapAnimation } from "./sharedSpriteClock.js";
@@ -149,9 +151,10 @@ function AutumnMoonTemplePathField({ active = true, layout = "mobile", runtimeAn
 
   useEffect(() => {
     const root = rootRef.current;
-    const sequences = stage === "overlay"
+    const stageSequences = stage === "overlay"
       ? runtimeAnimation?.overlaySequences
       : runtimeAnimation?.underlaySequences;
+    const sequences = getAutumnSequencesForLayout(stageSequences, layout);
     if (!root || !sequences?.length || typeof Image === "undefined") return undefined;
 
     let disposed = false;
@@ -182,9 +185,7 @@ function AutumnMoonTemplePathField({ active = true, layout = "mobile", runtimeAn
         next: null,
         nextGustAt: activeElapsedMs + getAutumnGroundGustDelay(sequence.randomDelayMs),
         requestRedraw,
-        playbackSequence: sequence.runtimeVariant
-          ? { ...sequence, ...sequence.runtimeVariant }
-          : sequence,
+        playbackSequence: getAutumnPlaybackSequence(sequence, layout),
         sequence,
       }];
     });
@@ -196,7 +197,7 @@ function AutumnMoonTemplePathField({ active = true, layout = "mobile", runtimeAn
     };
 
     const drawGroundGust = (runtime, elapsedMs) => {
-      const { sequence } = runtime;
+      const { playbackSequence, sequence } = runtime;
       ensureCurrentAndNextSheets(runtime, 0);
       if (runtime.gustStartedAt === null) {
         if (elapsedMs < runtime.nextGustAt || !active) {
@@ -209,7 +210,7 @@ function AutumnMoonTemplePathField({ active = true, layout = "mobile", runtimeAn
       }
 
       const elapsedFrames = Math.floor(
-        (elapsedMs - runtime.gustStartedAt) * sequence.framesPerSecond / 1000,
+        (elapsedMs - runtime.gustStartedAt) * playbackSequence.framesPerSecond / 1000,
       );
       if (elapsedFrames >= sequence.frameCount) {
         runtime.gustStartedAt = null;
@@ -229,7 +230,7 @@ function AutumnMoonTemplePathField({ active = true, layout = "mobile", runtimeAn
         }
         drawSequenceFrame(
           runtime,
-          getAutumnLoopFrame(elapsedMs, runtime.sequence),
+          getAutumnLoopFrame(elapsedMs, runtime.playbackSequence),
           runtimeAnimation.referenceHeight,
         );
       });
@@ -274,9 +275,10 @@ function AutumnMoonTemplePathField({ active = true, layout = "mobile", runtimeAn
     };
   }, [active, layout, runtimeAnimation, stage]);
 
-  const sequences = stage === "overlay"
+  const stageSequences = stage === "overlay"
     ? runtimeAnimation?.overlaySequences
     : runtimeAnimation?.underlaySequences;
+  const sequences = getAutumnSequencesForLayout(stageSequences, layout);
 
   return (
     <div

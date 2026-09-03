@@ -39,7 +39,7 @@ test("coastal cove includes the supplied transparent ambient animations as edita
   assert.equal(isLayeredShooterMap(COASTAL_COVE_MAP_SKIN), true);
   assert.equal(isEditableShooterMap(COASTAL_COVE_MAP_SKIN), true);
   assert.equal(COASTAL_COVE_MAP_SKIN.id, "coastal-cove");
-  assert.equal(COASTAL_COVE_MAP_SKIN.label, "COAST");
+  assert.equal(COASTAL_COVE_MAP_SKIN.label, "해안 포구");
   assert.equal(COASTAL_COVE_MAP_SKIN.background.fit, "cover");
   assert.equal(COASTAL_COVE_MAP_SKIN.background.position, "center center");
   assert.equal(COASTAL_COVE_MAP_SKIN.background.locked, true);

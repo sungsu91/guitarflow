@@ -173,6 +173,11 @@ export function getShooterNoteMonsterAssetSources(skinId = DEFAULT_SHOOTER_NOTE_
   return [...new Set(SHOOTER_NOTE_MONSTER_ROOTS.flatMap((noteRoot) => assets[noteRoot]))];
 }
 
+export function getShooterNoteMonsterIdleAssetSources(skinId = DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID) {
+  const { assets } = getShooterNoteMonsterSkin(skinId);
+  return [...new Set(SHOOTER_NOTE_MONSTER_ROOTS.map((noteRoot) => assets[noteRoot]?.[0]).filter(Boolean))];
+}
+
 export function getShooterNoteMonsterRoot(noteName) {
   const match = String(noteName ?? "").trim().toUpperCase().match(/^([A-G])/);
   return match?.[1] ?? "C";

@@ -5,6 +5,8 @@ import test from "node:test";
 import {
   getAutumnGroundGustDelay,
   getAutumnLoopFrame,
+  getAutumnPlaybackSequence,
+  getAutumnSequencesForLayout,
   getAutumnSpriteCell,
 } from "../src/shooter/maps/autumnMoonTempleAnimation.js";
 import {
@@ -88,7 +90,7 @@ test("manifest retains all 240 authored frames and exact sheet geometry", () => 
     [byId.get("leaves-far").phaseOffsetFrames, byId.get("leaves-mid").phaseOffsetFrames, byId.get("leaves-near").phaseOffsetFrames],
     [0, 17, 31],
   );
-  assert.deepEqual(byId.get("ground-gust").randomDelayMs, [7000, 12000]);
+  assert.deepEqual(byId.get("ground-gust").randomDelayMs, [10000, 16000]);
   assert.equal(byId.get("ground-gust").loop, false);
   assert.equal(byId.get("ground-gust").y, 1280);
 });
@@ -168,7 +170,7 @@ test("runtime preloads only the current and next sheet for every layer", () => {
   assert.equal(sources.some((source) => /preview|sample|source|\.gif(?:$|\?)/i.test(source)), false);
 });
 
-test("frames advance row-major, loop forward, and gusts retrigger only after 7-12 seconds", () => {
+test("frames advance row-major, loop forward, and gusts retrigger only after 10-16 seconds", () => {
   const tree = RUNTIME.underlaySequences.find((sequence) => sequence.id === "tree-sway");
   assert.deepEqual(getAutumnSpriteCell(0, tree), { frame: 0, sheetIndex: 0, column: 0, row: 0 });
   assert.deepEqual(getAutumnSpriteCell(7, tree), { frame: 7, sheetIndex: 0, column: 3, row: 1 });
@@ -176,9 +178,25 @@ test("frames advance row-major, loop forward, and gusts retrigger only after 7-1
   assert.deepEqual(getAutumnSpriteCell(47, tree), { frame: 47, sheetIndex: 5, column: 3, row: 1 });
   assert.equal(getAutumnLoopFrame(2999.99, tree), 47);
   assert.equal(getAutumnLoopFrame(3000, tree), 0);
-  assert.equal(getAutumnGroundGustDelay([7000, 12000], 0), 7000);
-  assert.ok(getAutumnGroundGustDelay([7000, 12000], 0.999999) < 12000);
-  assert.ok(getAutumnGroundGustDelay([7000, 12000], 0.999999) > 11999);
+  assert.equal(getAutumnGroundGustDelay([10000, 16000], 0), 10000);
+  assert.ok(getAutumnGroundGustDelay([10000, 16000], 0.999999) < 16000);
+  assert.ok(getAutumnGroundGustDelay([10000, 16000], 0.999999) > 15999);
+});
+
+test("mobile runtime trims the nearest leaf layer and slows the remaining animation", () => {
+  const mobileUnderlay = getAutumnSequencesForLayout(RUNTIME.underlaySequences, "mobile");
+  const mobileOverlay = getAutumnSequencesForLayout(RUNTIME.overlaySequences, "mobile");
+  const desktopOverlay = getAutumnSequencesForLayout(RUNTIME.overlaySequences, "desktop");
+
+  assert.deepEqual(mobileUnderlay.map((sequence) => sequence.id), ["leaves-far", "tree-sway", "leaves-mid"]);
+  assert.deepEqual(mobileOverlay.map((sequence) => sequence.id), ["ground-gust"]);
+  assert.deepEqual(desktopOverlay.map((sequence) => sequence.id), ["ground-gust", "leaves-near"]);
+  assert.deepEqual(
+    mobileUnderlay.map((sequence) => getAutumnPlaybackSequence(sequence, "mobile").framesPerSecond),
+    [8, 12, 10],
+  );
+  assert.equal(getAutumnPlaybackSequence(mobileOverlay[0], "mobile").framesPerSecond, 10);
+  assert.equal(getAutumnPlaybackSequence(desktopOverlay[1], "desktop").framesPerSecond, 16);
 });
 
 test("renderer keeps authored environmental, combat, foreground, player, and HUD order", async () => {

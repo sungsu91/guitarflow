@@ -5,7 +5,7 @@ export const THREE_D_LAB_MAP_SKIN = Object.freeze({
   kind: "perspective3d",
   renderer: "perspective3d",
   devOnly: true,
-  label: "3D LAB",
+  label: "입체 실험실",
   description: "Perspective Camera · Billboard Sprite · Guitar Slash 테스트",
   referenceViewport: Object.freeze({
     width: 390,

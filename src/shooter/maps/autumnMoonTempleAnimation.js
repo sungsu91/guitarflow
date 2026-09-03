@@ -32,3 +32,17 @@ export function getAutumnGroundGustDelay(randomDelayMs, randomValue = Math.rando
     : 0;
   return minimum + (maximum - minimum) * normalizedRandom;
 }
+
+export function getAutumnSequencesForLayout(sequences = [], layout = "mobile") {
+  return sequences.filter((sequence) => layout !== "mobile" || sequence?.mobileEnabled !== false);
+}
+
+export function getAutumnPlaybackSequence(sequence = {}, layout = "mobile") {
+  return {
+    ...sequence,
+    ...(sequence.runtimeVariant ?? {}),
+    framesPerSecond: layout === "mobile"
+      ? sequence.mobileFramesPerSecond ?? sequence.framesPerSecond
+      : sequence.framesPerSecond,
+  };
+}

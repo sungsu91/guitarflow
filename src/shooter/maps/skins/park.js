@@ -6,7 +6,7 @@ const PARK_BACKGROUND_SRC = "/assets/maps/park/park-background.png";
 export const PARK_MAP_SKIN = Object.freeze({
   id: "park",
   kind: "layered",
-  label: "PARK",
+  label: "햇살 공원",
   description: "햇살이 드는 잔디 공원을 중심으로 꾸미는 모듈형 공원 맵",
   previewImage: PARK_BACKGROUND_SRC,
   pickerPreviewImage: "/assets/maps/previews/park-current.jpg",

@@ -7,7 +7,7 @@ const CLOCKWORK_OPERA_BACKGROUND_SRC = `${CLOCKWORK_OPERA_ROOT}/clockwork_opera_
 export const CLOCKWORK_OPERA_CITADEL_MAP_SKIN = Object.freeze({
   id: "clockwork-opera-citadel",
   kind: "layered",
-  label: "CLOCKWORK",
+  label: "태엽 오페라 성채",
   nameKo: "태엽 오페라 성채",
   nameEn: "Clockwork Opera Citadel",
   description: "거대한 오르간과 태엽 장치가 울리는 기계 오페라 성채",

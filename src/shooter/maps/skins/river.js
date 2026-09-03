@@ -6,7 +6,7 @@ const RIVER_BACKGROUND_SRC = "/assets/maps/river/river-background.png";
 export const RIVER_MAP_SKIN = Object.freeze({
   id: "river-garden",
   kind: "layered",
-  label: "RIVER",
+  label: "강가 정원",
   description: "맑은 강물부터 조립하는 모듈형 강가 맵",
   previewImage: "/assets/maps/river/exports/river-garden-full-map.png",
   pickerPreviewImage: "/assets/maps/previews/river-garden-current.jpg",

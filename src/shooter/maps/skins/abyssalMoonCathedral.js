@@ -6,7 +6,7 @@ const ABYSSAL_ROOT = "/assets/maps/abyssal-moon-cathedral";
 export const ABYSSAL_MOON_CATHEDRAL_MAP_SKIN = Object.freeze({
   id: "abyssalMoonCathedral",
   kind: "layered",
-  label: "ABYSSAL",
+  label: "심해 월광 대성당",
   nameKo: "심해 월광 대성당",
   nameEn: "Abyssal Moon Cathedral",
   description: "달빛이 내려오는 침몰한 심해 대성당",

@@ -6,7 +6,7 @@ const COASTAL_COVE_BACKGROUND_SRC = "/assets/maps/coastal-cove/coastal-cove-back
 export const COASTAL_COVE_MAP_SKIN = Object.freeze({
   id: "coastal-cove",
   kind: "layered",
-  label: "COAST",
+  label: "해안 포구",
   description: "맑은 얕은 바다와 모래사장을 중심으로 조립하는 모듈형 해안 맵",
   previewImage: COASTAL_COVE_BACKGROUND_SRC,
   pickerPreviewImage: "/assets/maps/previews/coastal-cove-current.jpg",
