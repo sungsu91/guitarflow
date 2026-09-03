@@ -136,7 +136,7 @@ test("shooter runtime uses detailed YIN confidence and current-target stabilizat
   const source = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
   const microphoneSource = source.slice(source.indexOf("const readMicrophone"), source.indexOf("const runGameFrame"));
   assert.match(microphoneSource, /detectPitchYinDetailed/);
-  assert.match(microphoneSource, /getFrontShooterTarget\(shooterTargetsRef\.current, \{ excludePending: true \}\)/);
+  assert.match(microphoneSource, /candidate\.id === shooterActiveTargetIdRef\.current/);
   assert.match(microphoneSource, /observeShooterPitchFrame\(shooterPitchJudgmentRef\.current/);
   assert.match(microphoneSource, /judgment\.accepted/);
   assert.doesNotMatch(microphoneSource, /stableGameNoteRef\.current\.count >= 1/);

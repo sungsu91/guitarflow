@@ -112,17 +112,11 @@ test("difficult tempo rises gradually and only accelerates the authored focus", 
   assert.equal(getShooterDifficultStepBeats(miniA[1], 80), 0.5);
   assert.ok(Math.abs(getShooterDifficultStepDurationMs(SHOOTER_DIFFICULT_MAIN_SCENARIO[0], 56) - (120_000 / 56)) < 0.001);
 
-  const firstStableRound = getShooterDifficultRoundProgress({ bpm: 56, hits: 39, misses: 4 });
-  const secondStableRound = getShooterDifficultRoundProgress({
-    bpm: firstStableRound.bpm,
-    hits: 39,
-    misses: 4,
-    stableRounds: firstStableRound.stableRounds,
-  });
+  const firstStableRound = getShooterDifficultRoundProgress({ bpm: 56, hits: 39, misses: 4, lives: 2 });
   assert.equal(firstStableRound.accuracy, 91);
-  assert.equal(firstStableRound.bpm, 56);
-  assert.equal(secondStableRound.bpm, 64);
-  assert.equal(secondStableRound.bpmRaised, true);
+  assert.equal(firstStableRound.bpm, 64);
+  assert.equal(firstStableRound.bpmRaised, true);
+  assert.equal(getShooterDifficultRoundProgress({ bpm: 56, hits: 7, misses: 0, lives: 3 }).bpm, 56);
 });
 
 test("main technique guidance is advisory and round feedback names weak regions", () => {
@@ -149,7 +143,7 @@ test("App routes difficult targets through the authored scenario and separate mo
   assert.match(spawnSource, /getShooterDifficultStepDurationMs\(resolvedScenarioStep, bpmRef\.current, scenarioRound\)/);
   assert.match(spawnSource, /getShooterDifficultTechniqueLabel\(scenarioStep, bpmRef\.current\)/);
   assert.match(spawnSource, /isDifficultScenario[\s\S]*\? "shooter-difficult-scenario"/);
-  assert.match(missSource, /!isShooterScriptedDifficulty\(target\.difficulty\)/);
+  assert.match(missSource, /const lifeLossCount = missedTargets\.length/);
   assert.match(appSource, /className="desktopShooterDifficultPatternPanel"/);
   assert.match(appSource, /className="mobileShooterDifficultPatternRow"/);
   assert.match(mobileCssSource, /\.mobileShooterTopHud \.mobileShooterDifficultPatternRow/);

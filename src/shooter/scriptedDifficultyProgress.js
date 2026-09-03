@@ -6,6 +6,8 @@ export function getScriptedDifficultyRoundProgress({
   hits = 0,
   misses = 0,
   stableRounds = 0,
+  lives = 3,
+  minimumTargets = 8,
 } = {}) {
   const bpms = Array.isArray(recommendedBpms) && recommendedBpms.length
     ? recommendedBpms
@@ -14,18 +16,20 @@ export function getScriptedDifficultyRoundProgress({
   const safeMisses = Math.max(0, Number(misses) || 0);
   const total = safeHits + safeMisses;
   const accuracy = total > 0 ? Math.round((safeHits / total) * 100) : 0;
-  let nextStableRounds = accuracy >= stableAccuracy ? Math.max(0, Number(stableRounds) || 0) + 1 : 0;
+  const eligible = total >= minimumTargets && accuracy >= stableAccuracy && Number(lives) >= 2;
+  let nextStableRounds = eligible ? Math.max(0, Number(stableRounds) || 0) + 1 : 0;
   const requestedBpm = Number(bpm);
   const currentBpmIndex = Math.max(0, bpms.indexOf(requestedBpm));
   let nextBpm = bpms[currentBpmIndex];
 
-  if (nextStableRounds >= requiredStableRounds && currentBpmIndex < bpms.length - 1) {
+  if (eligible && nextStableRounds >= requiredStableRounds && currentBpmIndex < bpms.length - 1) {
     nextBpm = bpms[currentBpmIndex + 1];
     nextStableRounds = 0;
   }
 
   return {
     accuracy,
+    processed: total,
     bpm: nextBpm,
     bpmRaised: nextBpm > requestedBpm,
     stableRounds: nextStableRounds,

@@ -49,28 +49,19 @@ test("normal shooter contains only natural notes at frets 5 through 10", () => {
   assert.ok(getShooterNormalTargetX({ fretNumber: 5 }) < getShooterNormalTargetX({ fretNumber: 10 }));
 });
 
-test("normal shooter tempo starts at 64 and unlocks 72, 80, and 88 after stable rounds", () => {
-  assert.deepEqual(SHOOTER_NORMAL_RECOMMENDED_BPMS, [64, 72, 80, 88]);
-  assert.equal(getShooterNormalStepDurationMs(SHOOTER_NORMAL_SCENARIO[0], 64), 1875);
-  assert.equal(getShooterNormalStepBeats(SHOOTER_NORMAL_SCENARIO[0], 72), 1);
-  assert.equal(getShooterNormalStepBeats(SHOOTER_NORMAL_SCENARIO[8], 88), 0.5);
-  assert.equal(getShooterNormalStepBeats(SHOOTER_NORMAL_SCENARIO[18], 88), 0.5);
-  assert.equal(getShooterNormalStepBeats(SHOOTER_NORMAL_SCENARIO[15], 88), 1);
+test("normal shooter tempo starts at 50 and unlocks through 82 after a stable segment", () => {
+  assert.deepEqual(SHOOTER_NORMAL_RECOMMENDED_BPMS, [50, 58, 66, 74, 82]);
+  assert.equal(getShooterNormalStepDurationMs(SHOOTER_NORMAL_SCENARIO[0], 50), 2400);
+  assert.equal(getShooterNormalStepBeats(SHOOTER_NORMAL_SCENARIO[0], 58), 1);
+  assert.equal(getShooterNormalStepBeats(SHOOTER_NORMAL_SCENARIO[8], 82), 0.5);
+  assert.equal(getShooterNormalStepBeats(SHOOTER_NORMAL_SCENARIO[18], 82), 0.5);
+  assert.equal(getShooterNormalStepBeats(SHOOTER_NORMAL_SCENARIO[15], 82), 1);
 
-  const firstStableRound = getShooterNormalRoundProgress({ bpm: 64, hits: 31, misses: 4 });
-  assert.equal(firstStableRound.accuracy, 89);
-  assert.equal(firstStableRound.bpm, 64);
-  assert.equal(firstStableRound.stableRounds, 1);
-
-  const secondStableRound = getShooterNormalRoundProgress({
-    bpm: firstStableRound.bpm,
-    hits: 31,
-    misses: 4,
-    stableRounds: firstStableRound.stableRounds,
-  });
-  assert.equal(secondStableRound.bpm, 72);
-  assert.equal(secondStableRound.bpmRaised, true);
-  assert.equal(secondStableRound.stableRounds, 0);
+  const stableSegment = getShooterNormalRoundProgress({ bpm: 50, hits: 8, misses: 0, lives: 2 });
+  assert.equal(stableSegment.accuracy, 100);
+  assert.equal(stableSegment.bpm, 58);
+  assert.equal(stableSegment.bpmRaised, true);
+  assert.equal(getShooterNormalRoundProgress({ bpm: 50, hits: 8, misses: 0, lives: 1 }).bpm, 50);
 });
 
 test("round feedback points the player to the missed fret region", () => {
@@ -93,6 +84,6 @@ test("App routes normal difficulty through the scenario instead of the random no
   assert.match(spawnSource, /getShooterNormalStepDurationMs\(resolvedScenarioStep, bpmRef\.current\)/);
   assert.match(spawnSource, /getShooterNormalTargetX\(resolvedScenarioStep\)/);
   assert.match(spawnSource, /resolvedScenarioStep\?\.isSectionStart[\s\S]*resolvedScenarioStep\.sectionAnnouncement/);
-  assert.match(missSource, /!isShooterScriptedDifficulty\(target\.difficulty\)/);
+  assert.match(missSource, /const lifeLossCount = missedTargets\.length/);
   assert.match(missSource, /shooterScenarioRoundStatsRef\.current\.missedSteps\.push/);
 });

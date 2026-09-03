@@ -1,8 +1,9 @@
 import { getScriptedDifficultyRoundProgress } from "./scriptedDifficultyProgress.js";
+import { createShooterTargetNote } from "./gameplayRules.js";
 
-export const SHOOTER_NORMAL_RECOMMENDED_BPMS = Object.freeze([64, 72, 80, 88]);
+export const SHOOTER_NORMAL_RECOMMENDED_BPMS = Object.freeze([50, 58, 66, 74, 82]);
 export const SHOOTER_NORMAL_STABLE_ACCURACY = 85;
-export const SHOOTER_NORMAL_STABLE_ROUNDS = 2;
+export const SHOOTER_NORMAL_STABLE_ROUNDS = 1;
 
 export const SHOOTER_NORMAL_SECTIONS = Object.freeze([
   Object.freeze({
@@ -79,6 +80,7 @@ export const SHOOTER_NORMAL_SCENARIO = Object.freeze(RAW_NORMAL_STEPS.map((rawSt
   const [sectionId, pitch, stringNumber, fretNumber, beats] = rawStep;
   const section = SHOOTER_NORMAL_SECTIONS.find((candidate) => candidate.id === sectionId);
   return Object.freeze({
+    ...createShooterTargetNote({ label: pitch, stringNumber, fretNumber }),
     index,
     order: index + 1,
     pitch,
@@ -113,9 +115,10 @@ export function getShooterNormalSectionForSpawnCount(spawnedCount = 0, activeTar
 
 export function getShooterNormalStepBeats(step, bpm = SHOOTER_NORMAL_RECOMMENDED_BPMS[0]) {
   const safeBpm = Number(bpm) || SHOOTER_NORMAL_RECOMMENDED_BPMS[0];
-  if (safeBpm >= 88 && (step?.sectionId === 2 || step?.sectionId === 4)) return 0.5;
-  if (safeBpm >= 72) return 1;
-  return Math.max(0.5, Number(step?.beats) || 1);
+  if (safeBpm <= 50) return 2;
+  if (safeBpm >= 82 && (step?.sectionId === 2 || step?.sectionId === 4)) return 0.5;
+  if (safeBpm >= 58) return 1;
+  return 2;
 }
 
 export function getShooterNormalStepDurationMs(step, bpm = SHOOTER_NORMAL_RECOMMENDED_BPMS[0]) {
@@ -133,6 +136,7 @@ export function getShooterNormalRoundProgress({
   hits = 0,
   misses = 0,
   stableRounds = 0,
+  lives = 3,
 } = {}) {
   return getScriptedDifficultyRoundProgress({
     recommendedBpms: SHOOTER_NORMAL_RECOMMENDED_BPMS,
@@ -142,6 +146,7 @@ export function getShooterNormalRoundProgress({
     hits,
     misses,
     stableRounds,
+    lives,
   });
 }
 

@@ -107,7 +107,7 @@ test("3D LAB renders lightweight WebGL planes and exposes the complete live tuni
 });
 
 test("3D LAB shares current-target pitch judgment but replaces projectiles with an automatic slash", () => {
-  assert.match(appSource, /getFrontShooterTarget\(shooterTargetsRef\.current, \{ excludePending: true \}\)/);
+  assert.match(appSource, /candidate\.id === shooterActiveTargetIdRef\.current/);
   assert.match(appSource, /targetPitchName === detectedPitchName/);
   assert.match(appSource, /if \(desktopHorizontalShooterActive \|\| selectedMapIsThreeDLab\) \{\s*if \(!resolveShooterSlashHit\(target\)\) return;/);
   assert.match(appSource, /playThreeDLabGuitarSlash/);

@@ -1,6 +1,7 @@
 import { getScriptedDifficultyRoundProgress } from "./scriptedDifficultyProgress.js";
+import { createShooterTargetNote } from "./gameplayRules.js";
 
-export const SHOOTER_EASY_RECOMMENDED_BPMS = Object.freeze([50, 58, 66, 74, 82]);
+export const SHOOTER_EASY_RECOMMENDED_BPMS = Object.freeze([44, 52, 60, 68, 76]);
 export const SHOOTER_EASY_STABLE_ACCURACY = 85;
 export const SHOOTER_EASY_STABLE_ROUNDS = 1;
 
@@ -105,6 +106,7 @@ export const SHOOTER_EASY_SCENARIO = Object.freeze(RAW_EASY_STEPS.map((rawStep, 
   const previousStep = RAW_EASY_STEPS[index - 1];
   const isSubPatternStart = sectionId === 4 && subPatternId !== previousStep?.[6];
   return Object.freeze({
+    ...createShooterTargetNote({ label: pitch, stringNumber, fretNumber }),
     index,
     order: index + 1,
     pitch,
@@ -149,9 +151,9 @@ export function getShooterEasyStepBeats(
   round = 0,
 ) {
   const safeBpm = Number(bpm) || SHOOTER_EASY_RECOMMENDED_BPMS[0];
-  if (safeBpm <= 50) return 2;
-  if (safeBpm < 66) return step?.sectionKind === "chromatic" ? 2 : 1;
-  if (safeBpm < 82) return 1;
+  if (safeBpm <= 44) return 2;
+  if (safeBpm < 60) return step?.sectionKind === "chromatic" ? 2 : 1;
+  if (safeBpm < 76) return 1;
   if (step?.sectionKind !== "fret-round-trip") return 1;
   const fastPatternIds = Math.max(0, Number(round) || 0) % 2 === 0
     ? new Set(["A", "C", "E"])
@@ -179,6 +181,7 @@ export function getShooterEasyRoundProgress({
   hits = 0,
   misses = 0,
   stableRounds = 0,
+  lives = 3,
 } = {}) {
   return getScriptedDifficultyRoundProgress({
     recommendedBpms: SHOOTER_EASY_RECOMMENDED_BPMS,
@@ -188,6 +191,7 @@ export function getShooterEasyRoundProgress({
     hits,
     misses,
     stableRounds,
+    lives,
   });
 }
 

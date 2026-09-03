@@ -177,6 +177,12 @@ import {
   resetShooterPitchJudgmentState,
 } from "./shooter/pitchJudgment.js";
 import {
+  SHOOTER_COUNT_IN_MS,
+  SHOOTER_RUNTIME_DIFFICULTY,
+  getShooterCountInLabel,
+  getShooterFrameElapsedMs,
+} from "./shooter/gameplayRules.js";
+import {
   FRETIVA_INSTRUMENT_SKIN_IDS,
   FRETIVA_INSTRUMENT_SKIN_PACK_V1,
 } from "./shooter/instruments/fretivaInstrumentSkinPackV1.js";
@@ -15850,20 +15856,38 @@ const SHOOTER_DIFFICULTIES = {
   DIFFICULT: "difficult",
 };
 const SHOOTER_DIFFICULTY_OPTIONS = [
-  { id: SHOOTER_DIFFICULTIES.EASY, label: "쉬움", hint: "50 BPM · 0~3프렛 기초 완성" },
-  { id: SHOOTER_DIFFICULTIES.NORMAL, label: "보통", hint: "64 BPM · 5~10프렛 상행/하행" },
+  { id: SHOOTER_DIFFICULTIES.EASY, label: "쉬움", hint: "44 BPM · 0~3프렛 기초 완성" },
+  { id: SHOOTER_DIFFICULTIES.NORMAL, label: "보통", hint: "50 BPM · 5~10프렛 상행/하행" },
   { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "56 BPM · E2~E5 E Major 왕복" },
 ];
 const SHOOTER_DIFFICULTY_PACING = {
-  [SHOOTER_DIFFICULTIES.EASY]: { durationMs: 7920, spawnGapMinMs: 1800, spawnGapMaxMs: 1800, maxTargets: 2 },
-  [SHOOTER_DIFFICULTIES.NORMAL]: { durationMs: 6336, spawnGapMinMs: 1400, spawnGapMaxMs: 1400, maxTargets: 2 },
-  [SHOOTER_DIFFICULTIES.DIFFICULT]: { durationMs: 5227, spawnGapMinMs: 1100, spawnGapMaxMs: 1100, maxTargets: 2 },
+  [SHOOTER_DIFFICULTIES.EASY]: {
+    durationMs: SHOOTER_RUNTIME_DIFFICULTY.easy.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
+    maxTargets: SHOOTER_RUNTIME_DIFFICULTY.easy.maxTargets,
+  },
+  [SHOOTER_DIFFICULTIES.NORMAL]: {
+    durationMs: SHOOTER_RUNTIME_DIFFICULTY.normal.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
+    maxTargets: SHOOTER_RUNTIME_DIFFICULTY.normal.maxTargets,
+  },
+  [SHOOTER_DIFFICULTIES.DIFFICULT]: {
+    durationMs: SHOOTER_RUNTIME_DIFFICULTY.difficult.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
+    maxTargets: SHOOTER_RUNTIME_DIFFICULTY.difficult.maxTargets,
+  },
 };
 
 function isShooterScriptedDifficulty(difficulty) {
   return difficulty === SHOOTER_DIFFICULTIES.EASY
     || difficulty === SHOOTER_DIFFICULTIES.NORMAL
     || difficulty === SHOOTER_DIFFICULTIES.DIFFICULT;
+}
+
+function silenceShooterSoundGroups(activeGroups) {
+  activeGroups?.forEach((groups) => {
+    groups.forEach(({ master }) => {
+      try { master.disconnect?.(); } catch { /* The short voice may already be detached. */ }
+    });
+  });
+  activeGroups?.clear?.();
 }
 const SHOOTER_NOTE_MONSTER_RENDER_SIZE = NOTE_SIZE * 2.4;
 
@@ -16798,6 +16822,8 @@ function App({ onReady }) {
   const [hitZoneNote, setHitZoneNote] = useState(null);
   const [isHitWindowActive, setIsHitWindowActive] = useState(false);
   const [shooterTargets, setShooterTargets] = useState([]);
+  const [shooterActiveTargetId, setShooterActiveTargetId] = useState(null);
+  const [shooterCountInLabel, setShooterCountInLabel] = useState(null);
   const [projectiles, setProjectiles] = useState([]);
   const shooterHitboxDebugEnabled = useMemo(getInitialShooterHitboxDebugMode, []);
   const [shooterDebugGeometry, setShooterDebugGeometry] = useState(null);
@@ -17997,6 +18023,9 @@ function App({ onReady }) {
   const lastDebugUpdateRef = useRef(0);
   const lastDetectedDisplayUpdateRef = useRef(0);
   const shooterTargetsRef = useRef([]);
+  const shooterActiveTargetIdRef = useRef(null);
+  const shooterCountInActiveRef = useRef(false);
+  const shooterCountInElapsedMsRef = useRef(0);
   const projectilesRef = useRef([]);
   const shooterArenaRef = useRef(null);
   const shooterArenaSizeRef = useRef({ height: 0, node: null, width: 0 });
@@ -18025,6 +18054,7 @@ function App({ onReady }) {
     missedSteps: [],
     round: 0,
     stableRounds: 0,
+    evaluations: 0,
   });
   const shooterScenarioSummaryTimerRef = useRef(null);
   const shooterAimResetTimerRef = useRef(null);
@@ -19349,10 +19379,18 @@ function App({ onReady }) {
     setStageFlash("");
     setReferenceStepTick((value) => value + 1);
     shooterTargetsRef.current = [];
+    shooterActiveTargetIdRef.current = null;
+    shooterCountInActiveRef.current = false;
+    shooterCountInElapsedMsRef.current = 0;
     projectilesRef.current = [];
+    projectileNodesRef.current.forEach((node) => node?.remove?.());
     shooterTargetNodesRef.current.clear();
     shooterTargetRefCallbacksRef.current.clear();
     projectileNodesRef.current.clear();
+    desktopHorizontalImpactTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+    desktopHorizontalImpactTimersRef.current.clear();
+    window.clearTimeout(shooterAimResetTimerRef.current);
+    shooterAimResetTimerRef.current = null;
     shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
@@ -19365,6 +19403,7 @@ function App({ onReady }) {
       missedSteps: [],
       round: 0,
       stableRounds: 0,
+      evaluations: 0,
     };
     if (shooterScenarioSummaryTimerRef.current != null) {
       window.clearTimeout(shooterScenarioSummaryTimerRef.current);
@@ -19372,6 +19411,8 @@ function App({ onReady }) {
     }
     lastShotRef.current = { note: null, time: 0 };
     setShooterTargets([]);
+    setShooterActiveTargetId(null);
+    setShooterCountInLabel(null);
     setProjectiles([]);
     setShooterAim(undefined);
     setShooterLives(SHOOTER_MAX_LIVES);
@@ -21103,24 +21144,30 @@ function App({ onReady }) {
     return positions[index % positions.length];
   }, []);
 
-  const completeShooterScenarioRound = useCallback((difficulty, nextRound) => {
+  const syncShooterActiveTarget = useCallback((targets = shooterTargetsRef.current, forceNext = false) => {
+    const current = !forceNext
+      ? targets.find((target) => (
+          target.id === shooterActiveTargetIdRef.current
+          && !target.defeated
+          && target.hitboxActive !== false
+          && !target.pendingProjectileId
+          && !target.slashPending
+        ))
+      : null;
+    const next = current ?? getFrontShooterTarget(targets, { excludePending: true });
+    const nextId = next?.id ?? null;
+    if (shooterActiveTargetIdRef.current !== nextId) {
+      shooterActiveTargetIdRef.current = nextId;
+      setShooterActiveTargetId(nextId);
+      resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
+    }
+    return next;
+  }, []);
+
+  const completeShooterScenarioSegment = useCallback((difficulty) => {
     const stats = shooterScenarioRoundStatsRef.current;
-    shooterTargetsRef.current.forEach((target) => {
-      if (
-        target.difficulty !== difficulty
-        || target.scenarioRound >= nextRound
-        || target.defeated
-      ) return;
-      if ((target.pendingProjectileId || target.slashPending) && !target.scenarioRoundHitCounted) {
-        target.scenarioRoundHitCounted = true;
-        stats.hits += 1;
-        return;
-      }
-      if (target.scenarioRoundHitCounted || target.scenarioRoundMissCounted) return;
-      target.scenarioRoundMissCounted = true;
-      stats.misses += 1;
-      if (target.scenarioStep) stats.missedSteps.push(target.scenarioStep);
-    });
+    const processed = stats.hits + stats.misses;
+    if (processed < 8) return false;
 
     const getRoundProgress = difficulty === SHOOTER_DIFFICULTIES.EASY
       ? getShooterEasyRoundProgress
@@ -21137,13 +21184,14 @@ function App({ onReady }) {
       hits: stats.hits,
       misses: stats.misses,
       stableRounds: stats.stableRounds,
+      lives: shooterLivesRef.current,
     });
     const missedPositions = stats.missedSteps.map((step) => (
       `${step.pitch} · ${step.stringNumber}번줄 ${step.fretNumber === 0 ? "개방현" : `${step.fretNumber}프렛`}`
     ));
     setShooterScenarioRoundSummary({
       difficulty,
-      round: nextRound,
+      round: stats.evaluations + 1,
       accuracy: progress.accuracy,
       missedPositions,
       message: getReviewMessage(stats.missedSteps),
@@ -21161,14 +21209,17 @@ function App({ onReady }) {
     if (progress.bpm !== bpmRef.current) {
       bpmRef.current = progress.bpm;
       setBpm(progress.bpm);
+      setFeedback(`TEMPO UP · ${progress.bpm} BPM`);
     }
     shooterScenarioRoundStatsRef.current = {
       hits: 0,
       misses: 0,
       missedSteps: [],
-      round: nextRound,
+      round: stats.round,
       stableRounds: progress.stableRounds,
+      evaluations: stats.evaluations + 1,
     };
+    return true;
   }, []);
 
   const spawnEnemy = useCallback((scheduledSpawnAt = gameTimeRef.current) => {
@@ -21229,9 +21280,14 @@ function App({ onReady }) {
         : isDifficultScenario
           ? getShooterDifficultScenarioRound(patternRef.current, difficultPatternId)
           : 0;
-    if (isScriptedScenario && scenarioRound > shooterScenarioRoundStatsRef.current.round) {
-      completeShooterScenarioRound(difficulty, scenarioRound);
+    if (
+      isScriptedScenario
+      && patternRef.current > 0
+      && scenarioStep?.isSectionStart
+    ) {
+      completeShooterScenarioSegment(difficulty);
     }
+    if (isScriptedScenario) shooterScenarioRoundStatsRef.current.round = scenarioRound;
     const level = getShooterEffectiveLevel(
       getShooterLevel(hitsRef.current),
       difficulty,
@@ -21287,15 +21343,14 @@ function App({ onReady }) {
           ? getShooterDifficultStepDurationMs(resolvedScenarioStep, bpmRef.current, scenarioRound)
           : getShooterNormalStepDurationMs(resolvedScenarioStep, bpmRef.current)
       : null;
-    const targetDuration = scenarioStepWindowMs == null
-      ? getShooterTargetDuration(difficulty)
-      : scenarioStepWindowMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80);
+    const targetDuration = getShooterTargetDuration(difficulty);
     lastShooterNoteRef.current = detail;
     lastShooterXRef.current = nextX;
     patternRef.current += 1;
     shooterTargetsRef.current = [
       ...shooterTargetsRef.current,
       {
+        ...(resolvedScenarioStep ?? {}),
         id: shooterTargetIdRef.current++,
         note: detail.pitch,
         detail,
@@ -21319,10 +21374,11 @@ function App({ onReady }) {
       scenarioStepWindowMs ?? getShooterSpawnGap(difficulty)
     );
     setShooterTargets([...shooterTargetsRef.current]);
+    syncShooterActiveTarget(shooterTargetsRef.current);
     if (resolvedScenarioStep?.isSectionStart) setFeedback(resolvedScenarioStep.sectionAnnouncement);
     playShooterSound("spawn");
     return true;
-  }, [completeShooterScenarioRound, playShooterSound]);
+  }, [completeShooterScenarioSegment, playShooterSound, syncShooterActiveTarget]);
 
   const judgeReferenceNote = useCallback(
     (detectedPitchName) => {
@@ -21876,7 +21932,8 @@ function App({ onReady }) {
     flashStage("hit");
     playShooterSound("hit", { combo: Number(target.hitCombo) || 1 });
     setShooterTargets([...shooterTargetsRef.current]);
-  }, [applyShooterTargetTransform, flashStage, playShooterSound]);
+    syncShooterActiveTarget(shooterTargetsRef.current, true);
+  }, [applyShooterTargetTransform, flashStage, playShooterSound, syncShooterActiveTarget]);
 
   const playThreeDLabGuitarSlash = useCallback((target) => {
     const settings = selectedThreeDLabSettings;
@@ -22093,6 +22150,7 @@ function App({ onReady }) {
       return next;
     });
     setShooterTargets([...shooterTargetsRef.current]);
+    syncShooterActiveTarget(shooterTargetsRef.current, true);
     const impactDelay = desktopHorizontalShooterActive
       ? playDesktopHorizontalGuitarSlash({ ...target, progress: target.progress, y: targetY })
       : playThreeDLabGuitarSlash({ ...target, y: targetY });
@@ -22115,6 +22173,7 @@ function App({ onReady }) {
     desktopHorizontalShooterActive,
     playDesktopHorizontalGuitarSlash,
     playThreeDLabGuitarSlash,
+    syncShooterActiveTarget,
   ]);
 
   useEffect(() => {
@@ -22245,13 +22304,21 @@ function App({ onReady }) {
       if (shooterReleaseLockRef.current === detectedPitchName) return;
       if (lastShotRef.current.note === detectedPitchName && now - lastShotRef.current.time < 220) return;
 
-      const target = getFrontShooterTarget(shooterTargetsRef.current, { excludePending: true });
+      const target = shooterTargetsRef.current.find((candidate) => (
+        candidate.id === shooterActiveTargetIdRef.current
+        && !candidate.defeated
+        && candidate.hitboxActive !== false
+        && !candidate.pendingProjectileId
+        && !candidate.slashPending
+      )) ?? syncShooterActiveTarget(shooterTargetsRef.current, true);
       const targetPitchName = target?.detail?.pitch ?? target?.note ?? null;
       const matchesFrontTarget = Boolean(targetPitchName && detectedPitchName && targetPitchName === detectedPitchName);
       lastShotRef.current = { note: detectedPitchName, time: now };
       shooterReleaseLockRef.current = detectedPitchName;
 
       if (!target || !matchesFrontTarget) {
+        comboRef.current = 0;
+        setCombo(0);
         setFeedback("Miss");
         flashStage("miss");
         playShooterSound("miss");
@@ -22273,6 +22340,7 @@ function App({ onReady }) {
             : currentTarget
         ));
         setShooterTargets([...shooterTargetsRef.current]);
+        syncShooterActiveTarget(shooterTargetsRef.current, true);
         setFeedback("Fire");
       }
       attemptsRef.current += 1;
@@ -22285,6 +22353,7 @@ function App({ onReady }) {
       playShooterSound,
       resolveShooterSlashHit,
       selectedMapIsThreeDLab,
+      syncShooterActiveTarget,
     ],
   );
 
@@ -22292,6 +22361,7 @@ function App({ onReady }) {
     if (!desktopHorizontalClickAttackActive) return false;
     if (gameStateRef.current !== GAME_STATES.PLAYING) return false;
     const target = shooterTargetsRef.current.find((item) => item.id === targetId);
+    if (targetId !== shooterActiveTargetIdRef.current) return false;
     if (!target || target.defeated || target.hitboxActive === false) return false;
     if (!resolveShooterSlashHit(target)) return false;
     setFeedback("Slash");
@@ -22302,13 +22372,14 @@ function App({ onReady }) {
 
   const fireShooterDebugTestShot = useCallback(() => {
     if (!shooterHitboxDebugEnabled || gameStateRef.current !== GAME_STATES.PLAYING) return;
-    const target = getFrontShooterTarget(shooterTargetsRef.current, { excludePending: true });
+    const target = shooterTargetsRef.current.find((candidate) => candidate.id === shooterActiveTargetIdRef.current)
+      ?? syncShooterActiveTarget(shooterTargetsRef.current, true);
     const pitch = target?.detail?.pitch ?? target?.note;
     if (!pitch) return;
     shooterReleaseLockRef.current = null;
     lastShotRef.current = { note: null, time: Number.NEGATIVE_INFINITY };
     judgeShooterNote(pitch);
-  }, [judgeShooterNote, shooterHitboxDebugEnabled]);
+  }, [judgeShooterNote, shooterHitboxDebugEnabled, syncShooterActiveTarget]);
 
   const finalizeShooterRecord = useCallback((reason = "reset") => {
     if (shooterSessionSavedRef.current) return;
@@ -22396,7 +22467,13 @@ function App({ onReady }) {
           0.006,
         );
       const displayNote = frequencyToNearest(pitch, DISPLAY_NOTES, 80);
-      const currentTarget = getFrontShooterTarget(shooterTargetsRef.current, { excludePending: true });
+      const currentTarget = shooterTargetsRef.current.find((candidate) => (
+        candidate.id === shooterActiveTargetIdRef.current
+        && !candidate.defeated
+        && candidate.hitboxActive !== false
+        && !candidate.pendingProjectileId
+        && !candidate.slashPending
+      )) ?? syncShooterActiveTarget(shooterTargetsRef.current, true);
       const currentTargetPitch = currentTarget?.detail?.pitch ?? currentTarget?.note ?? null;
       const judgment = observeShooterPitchFrame(shooterPitchJudgmentRef.current, {
         confidence: yinResult?.confidence ?? 0,
@@ -22442,7 +22519,7 @@ function App({ onReady }) {
         judgeShooterNote(currentTargetPitch);
       }
     },
-    [judgeShooterNote],
+    [judgeShooterNote, syncShooterActiveTarget],
   );
 
   const runGameFrame = useCallback(
@@ -22642,6 +22719,20 @@ function App({ onReady }) {
 
   const runShooterFrame = useCallback(
     (deltaMs) => {
+      if (shooterCountInActiveRef.current) {
+        shooterCountInElapsedMsRef.current += Math.max(0, Number(deltaMs) || 0);
+        const nextCountInLabel = getShooterCountInLabel(shooterCountInElapsedMsRef.current);
+        setShooterCountInLabel((current) => current === nextCountInLabel ? current : nextCountInLabel);
+        if (shooterCountInElapsedMsRef.current < SHOOTER_COUNT_IN_MS) return;
+        shooterCountInActiveRef.current = false;
+        shooterCountInElapsedMsRef.current = 0;
+        gameTimeRef.current = 0;
+        shooterNextSpawnAtRef.current = 0;
+        lastBeatRef.current = -1;
+        setBeat(0);
+        spawnShooterTarget();
+        return;
+      }
       const previousGameTime = gameTimeRef.current;
       gameTimeRef.current += deltaMs;
       const currentBeatMs = getBeatMs(bpmRef.current);
@@ -22749,6 +22840,7 @@ function App({ onReady }) {
       );
       const missedTargets = shooterTargetsRef.current.filter((target) => (
         !target.defeated
+        && !target.lifeLost
         && target.hitboxActive !== false
         && !target.pendingProjectileId
         && !target.slashPending
@@ -22763,6 +22855,7 @@ function App({ onReady }) {
       }
       if (missedTargets.length > 0) {
         missedTargets.forEach((target) => {
+          target.lifeLost = true;
           if (
             !isShooterScriptedDifficulty(target.difficulty)
             || !target.scenarioStep
@@ -22778,19 +22871,31 @@ function App({ onReady }) {
         attemptsRef.current += missedTargets.length;
         setAttempts((value) => value + missedTargets.length);
         setMissCount((value) => value + missedTargets.length);
-        const lifeLossCount = missedTargets.filter(
-          (target) => !isShooterScriptedDifficulty(target.difficulty),
-        ).length;
+        const lifeLossCount = missedTargets.length;
         const nextLives = Math.max(0, shooterLivesRef.current - lifeLossCount);
         shooterLivesRef.current = nextLives;
         setShooterLives(nextLives);
         setFeedback(lifeLossCount > 0 && nextLives <= 0 ? "Game Over" : "Miss");
         flashStage("miss");
-        playShooterSound(lifeLossCount > 0 && nextLives <= 0 ? "gameover" : "miss");
         if (lifeLossCount > 0 && nextLives <= 0) {
+          silenceShooterSoundGroups(shooterActiveSoundGroupsRef.current);
           finalizeShooterRecord("gameover");
           shooterTargetsRef.current = [];
+          projectilesRef.current.forEach((projectile) => {
+            projectileNodesRef.current.get(projectile.id)?.remove();
+          });
+          projectileNodesRef.current.clear();
+          projectilesRef.current = [];
+          shooterActiveTargetIdRef.current = null;
+          shooterCountInActiveRef.current = false;
+          setShooterActiveTargetId(null);
+          setShooterCountInLabel(null);
+          setShooterTargets([]);
+          setProjectiles([]);
           setState(GAME_STATES.GAMEOVER);
+        } else {
+          playShooterSound("miss");
+          syncShooterActiveTarget(shooterTargetsRef.current, true);
         }
       }
 
@@ -22836,6 +22941,7 @@ function App({ onReady }) {
       resolveShooterProjectileHit,
       setState,
       spawnShooterTarget,
+      syncShooterActiveTarget,
       updateShooterHitboxDebug,
     ],
   );
@@ -23157,7 +23263,8 @@ function App({ onReady }) {
 
   const animationLoop = useCallback(
     (now) => {
-      const deltaMs = Math.min(50, now - lastFrameRef.current);
+      const shooterElapsedMs = getShooterFrameElapsedMs(now, lastFrameRef.current);
+      const deltaMs = Math.min(50, shooterElapsedMs);
       lastFrameRef.current = now;
 
       if (appModeRef.current === APP_MODES.SHOOTER && streamRef.current) readMicrophone(now);
@@ -23186,7 +23293,7 @@ function App({ onReady }) {
         runGameFrame(deltaMs);
       }
       if (appModeRef.current === APP_MODES.SHOOTER && gameStateRef.current === GAME_STATES.PLAYING) {
-        runShooterFrame(deltaMs);
+        runShooterFrame(shooterElapsedMs);
       }
 
       rafRef.current = requestAnimationFrame(animationLoop);
@@ -23468,6 +23575,7 @@ function App({ onReady }) {
     sequenceRef.current = getPracticeSequence(safeCategory);
     practiceLoopRef.current = true;
     setSelectedCategoryId(MAIN_DEFAULT_CATEGORY.id);
+    silenceShooterSoundGroups(shooterActiveSoundGroupsRef.current);
     resetScore();
     const isEasyScenario = shooterDifficultyRef.current === SHOOTER_DIFFICULTIES.EASY;
     const isNormalScenario = shooterDifficultyRef.current === SHOOTER_DIFFICULTIES.NORMAL;
@@ -23490,16 +23598,12 @@ function App({ onReady }) {
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     setShooterLives(SHOOTER_MAX_LIVES);
     setShooterAim(undefined);
-    spawnShooterTarget();
-    setFeedback(
-      isEasyScenario
-        ? getShooterEasyScenarioStep(0).sectionAnnouncement
-        : isNormalScenario
-          ? getShooterNormalScenarioStep(0).sectionAnnouncement
-          : isDifficultScenario
-            ? getShooterDifficultScenarioStep(0, shooterDifficultPatternRef.current).sectionAnnouncement
-            : "Start Shooter",
-    );
+    shooterActiveTargetIdRef.current = null;
+    shooterCountInActiveRef.current = true;
+    shooterCountInElapsedMsRef.current = 0;
+    setShooterActiveTargetId(null);
+    setShooterCountInLabel("3");
+    setFeedback("Count In");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
   }, [desktopHorizontalClickAttackActive, ensureAudioReady, getPracticeSequence, resetScore, selectedPentatonic, setState, shooterHitboxDebugEnabled, spawnShooterTarget, startMic]);
@@ -25190,7 +25294,13 @@ function App({ onReady }) {
     }
     enemiesRef.current = [];
     shooterTargetsRef.current = [];
+    shooterActiveTargetIdRef.current = null;
+    shooterCountInActiveRef.current = false;
+    shooterCountInElapsedMsRef.current = 0;
     projectilesRef.current = [];
+    projectileNodesRef.current.forEach((node) => node?.remove?.());
+    projectileNodesRef.current.clear();
+    silenceShooterSoundGroups(shooterActiveSoundGroupsRef.current);
     shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
@@ -25199,6 +25309,8 @@ function App({ onReady }) {
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     setEnemies([]);
     setShooterTargets([]);
+    setShooterActiveTargetId(null);
+    setShooterCountInLabel(null);
     setProjectiles([]);
     setShooterAim(undefined);
     setShooterLives(SHOOTER_MAX_LIVES);
@@ -25219,6 +25331,24 @@ function App({ onReady }) {
     setFeedback("Ready");
     setState(GAME_STATES.IDLE);
   }, [finalizeShooterRecord, setState, stopBackingScheduler]);
+
+  const changeShooterDifficulty = useCallback((nextDifficulty) => {
+    if (gameStateRef.current === GAME_STATES.PLAYING || gameStateRef.current === GAME_STATES.PAUSED) return;
+    if (!SHOOTER_DIFFICULTY_OPTIONS.some((option) => option.id === nextDifficulty)) return;
+    if (gameStateRef.current === GAME_STATES.GAMEOVER) finalizeShooterRecord("difficulty-change");
+    silenceShooterSoundGroups(shooterActiveSoundGroupsRef.current);
+    resetScore();
+    shooterDifficultyRef.current = nextDifficulty;
+    setShooterDifficulty(nextDifficulty);
+    const startingBpm = nextDifficulty === SHOOTER_DIFFICULTIES.EASY
+      ? SHOOTER_EASY_RECOMMENDED_BPMS[0]
+      : nextDifficulty === SHOOTER_DIFFICULTIES.NORMAL
+        ? SHOOTER_NORMAL_RECOMMENDED_BPMS[0]
+        : SHOOTER_DIFFICULT_RECOMMENDED_BPMS[0];
+    bpmRef.current = startingBpm;
+    setBpm(startingBpm);
+    setState(GAME_STATES.IDLE);
+  }, [finalizeShooterRecord, resetScore, setState]);
 
   const startStage3Practice = useCallback(() => {
     const isStage3Scope = appModeRef.current === APP_MODES.PRACTICE
@@ -26842,7 +26972,13 @@ function App({ onReady }) {
       : appMode === APP_MODES.PRACTICE
         ? currentPrompt ?? null
         : null;
-  const shooterTarget = getFrontShooterTarget(shooterTargets);
+  const shooterTarget = shooterTargets.find((target) => (
+    target.id === shooterActiveTargetId
+    && !target.defeated
+    && target.hitboxActive !== false
+    && !target.pendingProjectileId
+    && !target.slashPending
+  )) ?? getFrontShooterTarget(shooterTargets, { excludePending: true });
   const shooterTargetDetail = shooterTarget?.detail ?? (shooterTarget ? getShooterNoteDetail(shooterTarget.note) : null);
   const shooterGuidePitch = shooterTargetDetail?.octaveNote ?? shooterTargetDetail?.pitch;
   const shooterGuideDifficulty = shooterTarget?.difficulty ?? shooterDifficulty;
@@ -26857,7 +26993,7 @@ function App({ onReady }) {
     : [];
   const shooterGuidePrimaryLabel = shooterGuidePitch
     ? isShooterScriptedScenario
-      ? getPitchClass(shooterGuidePitch)
+      ? shooterGuidePitch
       : getShooterPitchDisplayLabel(shooterGuidePitch, shooterSolfegeOn)
     : "";
   const shooterGuideSecondaryLabel = shooterGuidePitch
@@ -32430,7 +32566,7 @@ function App({ onReady }) {
                       event.preventDefault();
                       return;
                     }
-                    setShooterDifficulty(option.id);
+                    changeShooterDifficulty(option.id);
                   }}
                   title={option.hint}
                   type="button"
@@ -32619,7 +32755,7 @@ function App({ onReady }) {
                           className={shooterDifficulty === option.id ? "selected" : ""}
                           key={option.id}
                           onClick={() => {
-                            setShooterDifficulty(option.id);
+                            changeShooterDifficulty(option.id);
                             setShooterDifficultyMenuOpen(false);
                           }}
                           role="option"
@@ -32876,6 +33012,12 @@ function App({ onReady }) {
               </div>
             </div> : null}
 
+            {gameState === GAME_STATES.PLAYING && shooterCountInLabel ? (
+              <div aria-live="assertive" className="shooterCountInOverlay" role="status">
+                <strong>{shooterCountInLabel}</strong>
+              </div>
+            ) : null}
+
             {shooterTargets.map((target) => {
               const targetDifficulty = target.difficulty ?? shooterDifficulty;
               const targetIsScriptedScenario = isShooterScriptedDifficulty(targetDifficulty);
@@ -32895,7 +33037,7 @@ function App({ onReady }) {
                 monsterTuning,
               );
               const targetPitchDisplayLabel = targetIsScriptedScenario
-                ? getPitchClass(targetPitch)
+                ? targetPitch
                 : getShooterPitchDisplayLabel(targetPitch, shooterSolfegeOn);
               const monsterPitchLabel = getShooterNoteMonsterPitchText(
                 targetPitch,
@@ -32926,9 +33068,9 @@ function App({ onReady }) {
               return (
               <div
                 aria-label={`목표 음 ${targetPitchDisplayLabel}${targetIsScriptedScenario ? ` (${targetPitch} · ${getStringFretLabel(target.detail)}${target.detail?.techniqueLabel ? ` · ${target.detail.techniqueLabel}` : ""})` : shooterSolfegeOn ? ` (${targetPitch})` : ""}${desktopHorizontalClickAttackActive ? " 클릭 공격" : ""}`}
-                className={`enemy shooterEnemy shooterEnemy--monster ${getShooterEnemyDifficultyClass(targetDifficulty)} ${!target.defeated ? "fallingTarget" : ""} ${target.defeated ? "defeated" : ""} ${(desktopHorizontalShooterActive || selectedMapIsThreeDLab) && shooterTarget?.id === target.id ? "shooterEnemy--currentTarget" : ""} ${target.slashPending ? "shooterEnemy--slashPending" : ""}`}
+                className={`enemy shooterEnemy shooterEnemy--monster ${getShooterEnemyDifficultyClass(targetDifficulty)} ${!target.defeated ? "fallingTarget" : ""} ${target.defeated ? "defeated" : ""} ${shooterActiveTargetId === target.id ? "shooterEnemy--currentTarget" : ""} ${target.slashPending ? "shooterEnemy--slashPending" : ""}`}
                 data-click-attack={desktopHorizontalClickAttackActive && !target.defeated ? "true" : undefined}
-                data-current-target={(desktopHorizontalShooterActive || selectedMapIsThreeDLab) && shooterTarget?.id === target.id ? "true" : undefined}
+                data-current-target={shooterActiveTargetId === target.id ? "true" : undefined}
                 data-monster-skin={selectedMonsterSkin.id}
                 data-note-root={monsterLabel.root}
                 key={target.id}
@@ -32970,12 +33112,12 @@ function App({ onReady }) {
                 }}
                 tabIndex={desktopHorizontalClickAttackActive ? 0 : undefined}
               >
-                {targetIsScriptedScenario && !target.defeated && target.scenarioStep?.index > 0 ? (
+                {shooterActiveTargetId === target.id && !target.defeated ? (
                   <span
-                    aria-hidden="true"
-                    className={`shooterScenarioDirectionCue shooterScenarioDirectionCue--${target.scenarioStep.direction}`}
+                    aria-label="현재 목표"
+                    className="shooterActiveTargetArrow"
                   >
-                    {target.scenarioStep.direction === "descending" ? "↙" : "↗"}
+                    ▼
                   </span>
                 ) : null}
                 <div className="shooterEnemyMonsterVisual">
@@ -33274,6 +33416,7 @@ function App({ onReady }) {
             {!mapEditor.enabled ? <>
             {!desktopHorizontalShooterActive ? (
               <div className="mobileShooterLives" aria-label={`남은 목숨 ${shooterLives}`}>
+                <span>LIFE {shooterLives}</span>
                 {Array.from({ length: SHOOTER_MAX_LIVES }, (_, index) => (
                   <i className={index < shooterLives ? "active" : ""} key={index}>♥</i>
                 ))}
@@ -33298,7 +33441,11 @@ function App({ onReady }) {
                 aria-live="polite"
                 className={isMobileLayout ? "mobileShooterRoundSummary" : "desktopShooterRoundSummary"}
               >
-                <strong>{shooterScenarioRoundSummary.round}라운드 · 정확도 {shooterScenarioRoundSummary.accuracy}%</strong>
+                <strong>
+                  {shooterScenarioRoundSummary.bpmRaised
+                    ? `TEMPO UP · ${shooterScenarioRoundSummary.bpm} BPM`
+                    : `${shooterScenarioRoundSummary.round}구간 · 정확도 ${shooterScenarioRoundSummary.accuracy}%`}
+                </strong>
                 <span>
                   {shooterScenarioRoundSummary.bpmRaised
                     ? shooterDifficulty === SHOOTER_DIFFICULTIES.EASY
@@ -33506,7 +33653,7 @@ function App({ onReady }) {
                 if (isShooterDifficultyLocked) return;
                 const currentIndex = SHOOTER_DIFFICULTY_OPTIONS.findIndex((option) => option.id === shooterDifficulty);
                 const nextIndex = (currentIndex + 1) % SHOOTER_DIFFICULTY_OPTIONS.length;
-                setShooterDifficulty(SHOOTER_DIFFICULTY_OPTIONS[nextIndex].id);
+                changeShooterDifficulty(SHOOTER_DIFFICULTY_OPTIONS[nextIndex].id);
               }}
               onHelpChange={setShooterPlayHelpLevel}
               onMic={startShooterMic}

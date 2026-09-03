@@ -5334,6 +5334,60 @@ html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shoote
   color: #ffe2ad;
 }
 
+.shooterArena .enemy.shooterEnemy .shooterActiveTargetArrow {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  z-index: 7;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 22px;
+  color: #ffe379;
+  font-size: 19px;
+  font-weight: 950;
+  line-height: 1;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.88)) drop-shadow(0 0 8px rgba(255, 207, 73, 0.8));
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: shooterActiveTargetArrowPulse 720ms ease-in-out infinite alternate;
+}
+
+@keyframes shooterActiveTargetArrowPulse {
+  from { transform: translate(-50%, -2px); }
+  to { transform: translate(-50%, 3px); }
+}
+
+.shooterCountInOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at center, rgba(2, 8, 18, 0.12), rgba(2, 8, 18, 0.54));
+  pointer-events: none;
+}
+
+.shooterCountInOverlay strong {
+  color: #fff3c8;
+  font-family: "Arial Black", Impact, sans-serif;
+  font-size: clamp(52px, 14vw, 112px);
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.82), 0 0 28px rgba(255, 193, 60, 0.72);
+}
+
+.mobileShooterLives > span {
+  margin-right: 4px;
+  color: #ffeab1;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.88);
+}
+
 .shooterEnemyMonsterAsset {
   position: absolute;
   inset: 0;

@@ -1,8 +1,9 @@
 import { getScriptedDifficultyRoundProgress } from "./scriptedDifficultyProgress.js";
+import { createShooterTargetNote } from "./gameplayRules.js";
 
 export const SHOOTER_DIFFICULT_RECOMMENDED_BPMS = Object.freeze([56, 64, 72, 80, 88]);
 export const SHOOTER_DIFFICULT_STABLE_ACCURACY = 85;
-export const SHOOTER_DIFFICULT_STABLE_ROUNDS = 2;
+export const SHOOTER_DIFFICULT_STABLE_ROUNDS = 1;
 
 export const SHOOTER_DIFFICULT_PATTERN_IDS = Object.freeze({
   MAIN: "main",
@@ -109,6 +110,7 @@ function createScenario(rawSteps, sections, patternId, miniPattern = false) {
       : rawStep;
     const section = sections.find((candidate) => candidate.id === sectionId);
     return Object.freeze({
+      ...createShooterTargetNote({ label: pitch, stringNumber, fretNumber }),
       index,
       order: index + 1,
       pitch,
@@ -222,6 +224,7 @@ export function getShooterDifficultRoundProgress({
   hits = 0,
   misses = 0,
   stableRounds = 0,
+  lives = 3,
 } = {}) {
   return getScriptedDifficultyRoundProgress({
     recommendedBpms: SHOOTER_DIFFICULT_RECOMMENDED_BPMS,
@@ -231,6 +234,7 @@ export function getShooterDifficultRoundProgress({
     hits,
     misses,
     stableRounds,
+    lives,
   });
 }
 
