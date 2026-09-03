@@ -5,6 +5,7 @@ export const RECOMMENDED_BASS_ROLES = Object.freeze({
   OCTAVE: "8",
   FLAT_SEVENTH: "b7",
   APPROACH: "A",
+  NEXT_ROOT: "N",
   REST: "REST",
 });
 
@@ -23,13 +24,6 @@ const repeatBar = (steps, count) => Array.from({ length: count }, () => steps);
 const popDrumBar = bar({
   kick: [0, 8],
   snare: [4, 12],
-  closedHat: [0, 2, 4, 6, 8, 10, 12, 14],
-  shaker: [],
-});
-
-const slowBalladDrumBar = bar({
-  kick: [0],
-  snare: [8],
   closedHat: [0, 2, 4, 6, 8, 10, 12, 14],
   shaker: [],
 });
@@ -122,76 +116,6 @@ const PRESETS = [
     },
   },
   {
-    id: "recommended-emotional-ballad",
-    title: "감성 발라드",
-    description: "느린 마이너 감성",
-    key: "C",
-    bpm: 72,
-    timeSignature: "4/4",
-    progression: [
-      { chord: "Am", beats: 4 },
-      { chord: "F", beats: 4 },
-      { chord: "C", beats: 4 },
-      { chord: "G", beats: 4 },
-    ],
-    drumPreset: {
-      id: "slow-ballad",
-      label: "Slow Ballad",
-      bars: [
-        slowBalladDrumBar,
-        slowBalladDrumBar,
-        slowBalladDrumBar,
-        bar({ ...slowBalladDrumBar, snare: [8, 14] }),
-      ],
-    },
-    bassPreset: {
-      id: "ballad-support",
-      label: "Ballad Support",
-      bars: repeatBar(bar([
-        { step: 0, role: "R" },
-        { step: 8, role: "5" },
-        { step: 14, role: "A" },
-      ]), 4),
-    },
-    pianoPreset: {
-      id: "wide-ballad",
-      label: "Wide Ballad",
-      bars: repeatBar(bar([
-        { step: 0, action: "HOLD" },
-        { step: 8, action: "CHORD" },
-      ]), 4),
-    },
-  },
-  {
-    id: "recommended-slow-return",
-    title: "느린 귀환",
-    description: "단순한 종지와 코드 전환 연습",
-    key: "C",
-    bpm: 68,
-    timeSignature: "4/4",
-    progression: [
-      { chord: "C", beats: 4 },
-      { chord: "G", beats: 4 },
-      { chord: "F", beats: 4 },
-      { chord: "C", beats: 4 },
-    ],
-    drumPreset: {
-      id: "minimal-ballad",
-      label: "Minimal Ballad",
-      bars: repeatBar(bar({ kick: [0], snare: [8], closedHat: [], shaker: [] }), 4),
-    },
-    bassPreset: {
-      id: "root-hold",
-      label: "Root Hold",
-      bars: repeatBar(bar([{ step: 0, role: "R" }, { step: 8, role: "5" }]), 4),
-    },
-    pianoPreset: {
-      id: "soft-hold",
-      label: "Soft Hold",
-      bars: repeatBar(bar([{ step: 0, action: "HOLD" }, { step: 8, action: "CHORD" }]), 4),
-    },
-  },
-  {
     id: "recommended-power-pop-rock",
     title: "힘있는 팝록",
     description: "밴드 스트럼 · 중간 템포 록",
@@ -223,39 +147,6 @@ const PRESETS = [
       ]), 4),
     },
     pianoPreset: { id: "rock-stab", label: "Rock Stab", bars: repeatBar(chordStabBar, 4) },
-  },
-  {
-    id: "recommended-dreamy-night",
-    title: "몽환적 밤",
-    description: "반복형 마이너 무드",
-    key: "C",
-    bpm: 78,
-    timeSignature: "4/4",
-    progression: [
-      { chord: "Am", beats: 4 },
-      { chord: "G", beats: 4 },
-      { chord: "F", beats: 4 },
-      { chord: "G", beats: 4 },
-    ],
-    drumPreset: {
-      id: "ambient-pop",
-      label: "Ambient Pop",
-      bars: repeatBar(bar({ kick: [0, 8], snare: [4, 12], closedHat: [0, 4, 8, 12], shaker: [] }), 4),
-    },
-    bassPreset: {
-      id: "slow-pulse",
-      label: "Slow Pulse",
-      bars: repeatBar(bar([{ step: 0, role: "R" }, { step: 8, role: "8" }, { step: 12, role: "A" }]), 4),
-    },
-    pianoPreset: {
-      id: "ambient-arp",
-      label: "Ambient Arp",
-      bars: repeatBar(bar([
-        { step: 0, action: "ARP_UP" },
-        { step: 8, action: "ARP_DOWN" },
-        { step: 12, action: "HOLD" },
-      ]), 4),
-    },
   },
   {
     id: "recommended-soul-groove",
@@ -454,6 +345,7 @@ const BASS_RUNTIME_ROLE = Object.freeze({
   8: "octave",
   b7: "flatSeventh",
   A: "approach",
+  N: "nextRoot",
   REST: "rest",
 });
 
@@ -472,7 +364,7 @@ function booleanSteps(indexes = []) {
 }
 
 function createRuntimeDrumBar(source = {}) {
-  return Object.fromEntries(["kick", "snare", "closedHat", "shaker"].map((part) => [
+  return Object.fromEntries(["kick", "snare", "rim", "closedHat", "shaker"].map((part) => [
     part,
     booleanSteps(source[part]),
   ]));
@@ -490,12 +382,16 @@ function createRuntimeBassBar(source = []) {
 
 function createRuntimePianoBar(source = []) {
   const steps = Array.from({ length: 16 }, () => ({ active: false, style: "chord" }));
-  source.forEach(({ step, action }) => {
+  source.forEach(({ step, action, level }) => {
     if (!Number.isInteger(step) || step < 0 || step >= steps.length) return;
     const style = PIANO_RUNTIME_ACTION[action] ?? "rest";
     steps[step] = style === "rest"
       ? { active: false, style: "chord" }
-      : { active: true, style };
+      : {
+          active: true,
+          style,
+          ...(Number.isFinite(Number(level)) ? { level: Number(level) } : {}),
+        };
   });
   return steps;
 }
@@ -511,6 +407,10 @@ export function createRecommendedAccompanimentPatterns(preset) {
       version: 1,
       presetId: preset.drumPreset.id,
       displayName: preset.drumPreset.label,
+      level: preset.drumPreset.level ?? 1,
+      ...(preset.drumPreset.instrumentLevels
+        ? { instrumentLevels: { ...preset.drumPreset.instrumentLevels } }
+        : {}),
       swing: preset.drumPreset.swing ?? 0,
       steps: drumBars[0],
       barSteps: drumBars,
@@ -520,6 +420,7 @@ export function createRecommendedAccompanimentPatterns(preset) {
       version: 1,
       presetId: preset.bassPreset.id,
       displayName: preset.bassPreset.label,
+      level: preset.bassPreset.level ?? 1,
       swing: preset.bassPreset.swing ?? 0,
       steps: bassBars[0],
       barSteps: bassBars,
@@ -529,7 +430,8 @@ export function createRecommendedAccompanimentPatterns(preset) {
       version: 1,
       presetId: preset.pianoPreset.id,
       displayName: preset.pianoPreset.label,
-      voicing: "guideTones",
+      level: preset.pianoPreset.level ?? 1,
+      voicing: preset.pianoPreset.voicing ?? "guideTones",
       swing: preset.pianoPreset.swing ?? 0,
       steps: pianoBars[0],
       barSteps: pianoBars,

@@ -1,12 +1,15 @@
 import { useLayoutEffect, useState } from "react";
-import { getShooterMobileViewportSnapshot } from "./mobileViewportFrame.js";
+import {
+  SHOOTER_MOBILE_CANVAS_HEIGHT,
+  getShooterMobileViewportSnapshot,
+} from "./mobileViewportFrame.js";
 
 const ROOT_CLASS_NAME = "shooterCanonicalMobile";
 
 function sameFrame(left, right) {
   if (left === right) return true;
   if (!left || !right) return false;
-  return ["height", "left", "scale", "top", "width"].every(
+  return ["height", "left", "rotation", "scale", "top", "width"].every(
     (key) => Math.abs(left[key] - right[key]) < 0.001,
   );
 }
@@ -56,11 +59,16 @@ export default function useShooterMobileViewport(active) {
   }, [active]);
 
   if (!active || !frame) return undefined;
+  const transform = frame.rotation
+    ? `rotate(${frame.rotation}deg) scale(${frame.scale.toFixed(8)})`
+    : `scale(${frame.scale.toFixed(8)})`;
   return {
     "--shooter-mobile-canvas-left": `${frame.left.toFixed(4)}px`,
     "--shooter-mobile-canvas-scale": frame.scale.toFixed(8),
     "--shooter-mobile-canvas-top": `${frame.top.toFixed(4)}px`,
+    "--shooter-mobile-canvas-transform": transform,
     "--shooter-mobile-nav-bottom": `${(10 / frame.scale).toFixed(4)}px`,
     "--shooter-mobile-nav-inverse-scale": (1 / frame.scale).toFixed(8),
+    "--portrait-mobile-canvas-height": `${SHOOTER_MOBILE_CANVAS_HEIGHT}px`,
   };
 }

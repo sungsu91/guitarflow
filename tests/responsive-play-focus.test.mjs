@@ -262,9 +262,9 @@ test("responsive implementation changes layout without orientation remount or st
   );
   assert.doesNotMatch(appSource, /ShooterOrientationOverlay|슈팅게임은 세로 화면 전용입니다/);
   assert.match(appSource, /screenOrientation\.lock\?\.call\(screenOrientation, "portrait"\)/);
-  assert.match(appSource, /appInteractionLocked \|\| portraitOrientationGuardActive/);
-  assert.match(appSource, /gameStateRef\.current === GAME_STATES\.PLAYING[\s\S]*pauseGame\(\)/);
-  assert.match(appSource, /gameStateRef\.current === GAME_STATES\.PAUSED[\s\S]*resumeGame\(\)/);
+  assert.match(appSource, /const appContentInteractionLocked = appInteractionLocked;/);
+  assert.doesNotMatch(appSource, /shooterOrientationResumeRef/);
+  assert.doesNotMatch(appSource, /shooterOrientationPaused/);
   assert.doesNotMatch(appSource, /key=\{(?:isLandscape|orientation|viewportProfile\.orientation)\}/);
   assert.doesNotMatch(appSource, /location\.reload\(\)/);
   assert.match(css, /100dvh/);

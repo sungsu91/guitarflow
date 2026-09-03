@@ -287,9 +287,9 @@ const section = (id, startBar, endBar, sectionName, patternId) => ({
 const LET_IT_BE_PERSONAL_PROJECT = {
   id: "personal-practice-let-it-be",
   title: "Let It Be",
-  description: "개인 연습용 · 공개 추천 아님 · 96마디 피아노 발라드와 소프트 팝 밴드 편곡",
-  libraryType: "user",
-  builtIn: false,
+  description: "개인 연습용 추천 진행 · 96마디 피아노 발라드와 소프트 팝 밴드 편곡",
+  libraryType: "recommended-progression",
+  builtIn: true,
   personalOnly: true,
   key: "C Major",
   difficulty: "개인 연습",
@@ -304,8 +304,7 @@ const LET_IT_BE_PERSONAL_PROJECT = {
   barMarks: {},
   endingRanges: [],
   bpm: 76,
-  capo: 0,
-  accidentalPreference: "sharp",
+  transposeSemitones: 0,
   loop: false,
   pianoStyle: "custom",
   arrangementPatterns: LET_IT_BE_PATTERNS,
@@ -321,6 +320,6 @@ const LET_IT_BE_PERSONAL_PROJECT = {
   ],
 };
 
-export function getMiniChordPersonalPracticeProjects() {
+export function getMiniChordPersonalRecommendedProgressions() {
   return JSON.parse(JSON.stringify([LET_IT_BE_PERSONAL_PROJECT]));
 }

@@ -355,7 +355,8 @@ test("standalone metronome owns one cancellable animation loop across screen cha
     source.indexOf("const visibleFrets", loopEffectStart),
   );
 
-  assert.match(runtimeBlock, /advanceMetronomeRuntime\(metronomeRuntimeRef\.current, deltaMs/);
+  assert.match(runtimeBlock, /audio\.currentTime - metronomeLastAudioTimeRef\.current/);
+  assert.match(runtimeBlock, /advanceMetronomeRuntime\(metronomeRuntimeRef\.current, clockDeltaMs/);
   assert.doesNotMatch(runtimeBlock, /setInterval|setTimeout|addEventListener/);
   assert.match(loopEffectBlock, /if \(!animationLoopActive\)[\s\S]*cancelAnimationFrame\(rafRef\.current\)/);
   assert.match(loopEffectBlock, /rafRef\.current = requestAnimationFrame\(animationLoop\)/);

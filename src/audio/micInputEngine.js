@@ -1,4 +1,8 @@
-import { getMicInputPreset, MIC_INPUT_PRESETS } from "./micInputPresets.js";
+import {
+  getMicDetectionThresholds,
+  getMicInputPreset,
+  MIC_INPUT_PRESETS,
+} from "./micInputPresets.js";
 
 let activeSession = null;
 let acquisitionVersion = 0;
@@ -224,30 +228,39 @@ function createSession({ consumerId, context, graph, preset, presetName, rawStre
         lowFrequencyRatio: getLowFrequencyRatio(graph.analyser, frequencyBuffer, context?.sampleRate),
       };
     },
-    readDetectionFrame(now = performance.now()) {
+    readDetectionFrame(now = performance.now(), { sustainActive = false } = {}) {
       const frame = session.readLevelFrame();
       const elapsed = now - detectionState.startedAt;
-      const margin = 10 ** (preset.noiseMarginDb / 20);
       const calibration = elapsed < preset.calibrationMs;
-      const followsFloor = calibration || frame.rms < detectionState.noiseFloorRms * 1.55;
-      const smoothing = calibration ? 0.16 : followsFloor ? 0.035 : 0.003;
+      const followsFloor = !sustainActive && (calibration || frame.rms < detectionState.noiseFloorRms * 1.55);
+      const smoothing = calibration ? 0.16 : followsFloor ? 0.035 : sustainActive ? 0 : 0.003;
       detectionState.noiseFloorRms += (frame.rms - detectionState.noiseFloorRms) * smoothing;
       detectionState.noiseFloorRms = Math.min(0.045, Math.max(0.0006, detectionState.noiseFloorRms));
-      const thresholdRms = Math.max(preset.minimumSignalRms, detectionState.noiseFloorRms * margin);
+      const { attackThresholdRms, releaseThresholdRms } = getMicDetectionThresholds(
+        detectionState.noiseFloorRms,
+        presetName,
+      );
       const crestFactor = frame.rms > 0 ? frame.peak / frame.rms : 0;
-      const abruptImpact = frame.rms > thresholdRms
+      const abruptImpact = frame.rms > attackThresholdRms
         && crestFactor > 9
         && frame.lowFrequencyRatio > 0.74
         && frame.rms > detectionState.lastRms * 4;
-      const isSignalPresent = !calibration && frame.rms >= thresholdRms && !abruptImpact;
+      const isAttackPresent = !calibration && frame.rms >= attackThresholdRms && !abruptImpact;
+      const isReleasePresent = !calibration && frame.rms >= releaseThresholdRms && !abruptImpact;
       detectionState.lastRms = frame.rms;
       return {
         ...frame,
+        attackThresholdRms,
         abruptImpact,
         isCalibrating: calibration,
-        isSignalPresent,
+        isAttackPresent,
+        isReleasePresent,
+        // Compatibility for other pitch consumers: signal present still means
+        // a new attack, while the tuner explicitly opts into release tracking.
+        isSignalPresent: isAttackPresent,
         noiseFloorRms: detectionState.noiseFloorRms,
-        thresholdRms,
+        releaseThresholdRms,
+        thresholdRms: attackThresholdRms,
       };
     },
     startLevelMonitoring(callback, intervalMs = preset.meterIntervalMs ?? 60) {

@@ -832,13 +832,14 @@ html body .app .tunerMicStartButton {
   white-space: nowrap;
 }
 
-.tunerPitchOrb.waiting {
+.tunerPitchOrb.listening,
+.tunerPitchOrb.no-signal {
   opacity: 0.48;
   filter: saturate(0.55);
   transition: left 160ms linear, border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
 }
 
-.tunerPitchOrb.holding {
+.tunerPitchOrb.decaying {
   opacity: 0.84;
 }
 
@@ -1342,7 +1343,7 @@ html body .app .tunerPresetList button.selected {
   line-height: 1.45;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 767px), (orientation: landscape) and (max-width: 1024px) and (hover: none) {
   .tunerModeShell {
     background-position: 50% 50%;
   }
@@ -1367,7 +1368,7 @@ html body .app .tunerPresetList button.selected {
   .tunerPresetButton strong { order: 1; margin: 0; color: #f0f3f7; font-size: 12px; letter-spacing: 0.08em; }
 
   .tunerModeBody {
-    height: calc(100dvh - 110px);
+    height: calc(var(--portrait-mobile-canvas-height, 100dvh) - 110px);
     min-height: 0;
   }
 
@@ -2092,7 +2093,7 @@ html body .app.app.theme-light .tunerModeShell .tunerMicBadge.connected {
   color: #c9fff3 !important;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 767px), (orientation: landscape) and (max-width: 1024px) and (hover: none) {
   html body .app.app.theme-light .tunerModeShell .tunerMobileControls .tunerMobileSelectButton {
     border-color: rgba(139, 207, 232, 0.3) !important;
     color: #edfaff !important;

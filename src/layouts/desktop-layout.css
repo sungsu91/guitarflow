@@ -2982,7 +2982,7 @@
     grid-column: 1 / -1 !important;
     grid-row: 2 !important;
     display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     width: 100% !important;
     min-width: 0 !important;
     min-height: 50px !important;
@@ -2997,8 +2997,23 @@
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     > .chordTransitionPanel .stage3StandaloneTransportDeck .stage3StandaloneBpmActionPanel > button {
+    all: unset !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    width: 100% !important;
     min-width: 0 !important;
     min-height: 50px !important;
+    color: var(--riff-text-secondary) !important;
+    cursor: pointer !important;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .chordTransitionPanel .stage3StandaloneTransportDeck .stage3StandaloneBpmActionPanel > button:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.46 !important;
   }
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
@@ -3009,14 +3024,20 @@
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     > .chordTransitionPanel .stage3StandaloneTransportDeck
-    .stage3StandaloneBpmActionPanel > .metronomeHeroPlayButton {
+    .stage3StandaloneBpmActionPanel > .metronomeHeroPauseButton {
     grid-column: 2;
   }
 
   html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
     > .chordTransitionPanel .stage3StandaloneTransportDeck
-    .stage3StandaloneBpmActionPanel > button.stage3CountInToggle.countInToggleButton {
+    .stage3StandaloneBpmActionPanel > .metronomeHeroPlayButton {
     grid-column: 3;
+  }
+
+  html body .desktopLayout .desktopWorkspaceContent > main.app.app.app.practiceMode
+    > .chordTransitionPanel .stage3StandaloneTransportDeck
+    .stage3StandaloneBpmActionPanel > button.stage3CountInToggle.countInToggleButton {
+    grid-column: 4;
     align-self: stretch !important;
     justify-self: stretch !important;
     width: 100% !important;

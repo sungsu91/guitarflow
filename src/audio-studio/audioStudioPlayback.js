@@ -167,10 +167,21 @@ function setAudioParam(param, value, time) {
   else param.value = value;
 }
 
-export function scheduleAudioStudioPlayback({ audioBuffers, audioContext, fromMs = 0, leadTimeSeconds = 0.035, outputNode = null, project }) {
+export function scheduleAudioStudioPlayback({
+  audioBuffers,
+  audioContext,
+  fromMs = 0,
+  leadTimeSeconds = 0.035,
+  outputNode = null,
+  project,
+  scheduledStartAt = null,
+}) {
   const plan = createAudioStudioPlaybackPlan(project, { fromMs });
   const nodes = [];
-  const startAt = audioContext.currentTime + Math.max(0, Number(leadTimeSeconds) || 0);
+  const requestedStartAt = Number(scheduledStartAt);
+  const startAt = scheduledStartAt !== null && Number.isFinite(requestedStartAt)
+    ? Math.max(audioContext.currentTime, requestedStartAt)
+    : audioContext.currentTime + Math.max(0, Number(leadTimeSeconds) || 0);
   let output = outputNode || audioContext.destination;
   let analyser = null;
   if (typeof audioContext.createAnalyser === "function") {
@@ -232,6 +243,32 @@ export function scheduleAudioStudioPlayback({ audioBuffers, audioContext, fromMs
     nodes.push(source, gain, ...effectNodes, ...(panner ? [panner] : []));
   });
   return { ...plan, analyser, nodes, startAt };
+}
+
+export function getAudioStudioPlaybackPositionMs({
+  audioTime,
+  session,
+  stopAtMs = null,
+} = {}) {
+  if (!session) return 0;
+  const exactTimeMs = Math.max(0, Number(session.fromMs) || 0)
+    + Math.max(0, (Number(audioTime) || 0) - (Number(session.startAt) || 0))
+      * 1_000
+      * Math.max(0.01, Number(session.speed) || 1);
+  const rangeEndMs = Math.max(0, Number(session.range?.endMs) || 0);
+  const requestedStopMs = Number(stopAtMs);
+  const hasRequestedStop = stopAtMs !== null && Number.isFinite(requestedStopMs);
+  const playbackEndMs = hasRequestedStop
+    ? Math.min(rangeEndMs, Math.max(0, requestedStopMs))
+    : rangeEndMs;
+  if (
+    session.range?.loopEnabled
+    && !hasRequestedStop
+    && exactTimeMs >= playbackEndMs - 2
+  ) {
+    return Math.max(0, Number(session.range?.startMs) || 0);
+  }
+  return Math.min(playbackEndMs, exactTimeMs);
 }
 
 export function stopAudioStudioPlayback(nodes) {

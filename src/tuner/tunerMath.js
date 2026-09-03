@@ -1,8 +1,13 @@
+import { CHROMATIC_NOTES, SOLFEGE } from "../music/noteNotation.js";
+
 export const TUNER_REFERENCE_FREQUENCY = 440;
 export const TUNER_MIN_FREQUENCY = 50;
 export const TUNER_MAX_FREQUENCY = 1_200;
-
-const NOTE_NAMES = Object.freeze(["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]);
+export const TUNER_ATTACK_MIN_CONFIDENCE = 0.82;
+export const TUNER_DECAY_MIN_CONFIDENCE = 0.88;
+export const TUNER_DECAY_CONTINUITY_CENTS = 35;
+export const TUNER_SUSTAIN_MIN_CONFIDENCE = 0.7;
+export const TUNER_SUSTAIN_CONTINUITY_CENTS = 45;
 
 export function clampNumber(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, value));
@@ -14,13 +19,16 @@ export function midiToFrequency(midi, referenceFrequency = TUNER_REFERENCE_FREQU
 
 export function midiToPitch(midi) {
   const roundedMidi = Math.round(Number(midi));
-  const noteName = NOTE_NAMES[((roundedMidi % 12) + 12) % 12];
+  const noteIndex = ((roundedMidi % 12) + 12) % 12;
+  const noteName = CHROMATIC_NOTES[noteIndex];
   const octave = Math.floor(roundedMidi / 12) - 1;
   return {
     midi: roundedMidi,
     noteName,
+    noteIndex,
     octave,
     pitch: `${noteName}${octave}`,
+    solfegeName: SOLFEGE[noteName],
   };
 }
 
@@ -34,7 +42,13 @@ export function frequencyToChromaticPitch(frequency, referenceFrequency = TUNER_
     cents: Math.round(centsBetween(frequency, targetFrequency)),
     detectedFrequency: frequency,
     frequency: targetFrequency,
+    midiFloat,
   };
+}
+
+export function getTunerDisplayPitch({ frequency, hasSignal } = {}) {
+  if (!hasSignal) return null;
+  return frequencyToChromaticPitch(frequency);
 }
 
 export function getRms(buffer) {
@@ -94,16 +108,39 @@ export function getTunerTrackingState(frequency, noteList, selectedString = null
 }
 
 export function isTrustedTunerPitch({
+  attackPresent,
   candidateFrequency,
   confidence,
   inputPresent,
   lastFrequency = null,
   recentPitch = false,
+  sustainPresent = false,
 }) {
   if (!Number.isFinite(candidateFrequency) || candidateFrequency <= 0 || !Number.isFinite(confidence)) return false;
-  if (inputPresent) return confidence >= 0.82;
-  if (!recentPitch || !Number.isFinite(lastFrequency) || lastFrequency <= 0 || confidence < 0.88) return false;
-  return Math.abs(centsBetween(candidateFrequency, lastFrequency)) <= 35;
+  const hasAttack = attackPresent ?? inputPresent ?? false;
+  const hasRecentFrequency = recentPitch && Number.isFinite(lastFrequency) && lastFrequency > 0;
+  if (
+    hasRecentFrequency
+    && sustainPresent
+    && confidence >= TUNER_SUSTAIN_MIN_CONFIDENCE
+    && Math.abs(centsBetween(candidateFrequency, lastFrequency)) <= TUNER_SUSTAIN_CONTINUITY_CENTS
+  ) {
+    return true;
+  }
+  if (hasRecentFrequency && sustainPresent && confidence >= TUNER_ATTACK_MIN_CONFIDENCE) {
+    // A softly played new string may clear only the lower sustain gate. Let the
+    // temporal tracker inspect it; the UI still changes only after three
+    // consistent frames from the new pitch cluster.
+    return true;
+  }
+  if (
+    hasRecentFrequency
+    && confidence >= TUNER_DECAY_MIN_CONFIDENCE
+    && Math.abs(centsBetween(candidateFrequency, lastFrequency)) <= TUNER_DECAY_CONTINUITY_CENTS
+  ) {
+    return true;
+  }
+  return Boolean(hasAttack) && confidence >= TUNER_ATTACK_MIN_CONFIDENCE;
 }
 
 export function parabolicInterpolation(values, index) {
@@ -130,16 +167,18 @@ function getWindowedToneAmplitude(buffer, sampleRate, frequency) {
   return windowTotal > 0 ? (2 * Math.hypot(real, imaginary)) / windowTotal : 0;
 }
 
-function preferFundamentalTau(buffer, sampleRate, yin, tauEstimate, minFrequency) {
+function preferOctaveFundamentalTau(buffer, sampleRate, yin, tauEstimate, minFrequency) {
   const detectedFrequency = sampleRate / tauEstimate;
   const detectedAmplitude = getWindowedToneAmplitude(buffer, sampleRate, detectedFrequency);
   if (detectedAmplitude <= 0) return { harmonicDivisor: 1, tau: tauEstimate };
 
-  // A plucked low string can briefly present its second/third harmonic more
-  // strongly than the fundamental. Only prefer the longer period when the
-  // buffer contains measurable energy at that lower frequency; a pure higher
-  // note therefore remains a free AUTO-mode detection.
-  for (let divisor = 3; divisor >= 2; divisor -= 1) {
+  // A plucked low string can briefly present its second harmonic more strongly
+  // than the fundamental. Correcting a second harmonic is safe for a
+  // chromatic tuner because halving the frequency preserves the note name.
+  // Do not inspect a three-times-longer period here: every periodic signal also
+  // creates a YIN minimum there, and a small 1/3-frequency resonance was enough
+  // to turn G3/B3/E4 into C2/E2/A2 (about -1900 cents) on a real guitar.
+  for (const divisor of [2]) {
     const fundamentalFrequency = detectedFrequency / divisor;
     const expectedTau = tauEstimate * divisor;
     if (fundamentalFrequency < minFrequency || expectedTau >= yin.length) continue;
@@ -196,7 +235,7 @@ export function detectPitchYinDetailed(
 
   if (tauEstimate === -1) return null;
   const rawBetterTau = parabolicInterpolation(yin, tauEstimate);
-  const fundamental = preferFundamentalTau(buffer, sampleRate, yin, tauEstimate, minFrequency);
+  const fundamental = preferOctaveFundamentalTau(buffer, sampleRate, yin, tauEstimate, minFrequency);
   const betterTau = parabolicInterpolation(yin, fundamental.tau);
   const frequency = sampleRate / betterTau;
   if (!Number.isFinite(frequency)) return null;
@@ -307,8 +346,21 @@ export function getHorizontalTuningState({ cents, completed = false, hasSignal }
   return "조금 높음";
 }
 
-export function getTunerGuidance({ cents, hasSignal, stableExact = false, manual = false }) {
+export function getTunerGuidance({
+  cents,
+  hasSignal,
+  stableExact = false,
+  manual = false,
+  trackingPhase = "LISTENING",
+}) {
   if (!hasSignal || !Number.isFinite(cents)) {
+    if (trackingPhase === "NO_SIGNAL") {
+      return {
+        key: "waiting",
+        message: "신호가 약해졌어요. 다시 튕겨주세요",
+        detail: "마지막 음을 완료로 처리하지 않고 새 입력을 기다리고 있어요",
+      };
+    }
     return { key: "waiting", message: "줄을 한 번 튕겨주세요~", detail: "줄 소리가 들리면 바로 따라갈게요" };
   }
   if (!manual) {

@@ -37,6 +37,8 @@ export function SharedAccompanimentPanel({
   defaultExpanded = true,
   disabled = false,
   hidePartSummary = false,
+  lockedLabel = "추천 진행",
+  lockedNotice = "",
   onOpenSettings,
   onTogglePart,
   onVolumeCommit,
@@ -90,14 +92,14 @@ export function SharedAccompanimentPanel({
       data-accompaniment-locked={disabled ? "true" : undefined}
       onToggle={(event) => setExpanded(event.currentTarget.open)}
       open={expanded}
-      title={disabled ? "추천 진행의 반주 사운드는 고정되어 있습니다" : undefined}
+      title={disabled ? `${lockedLabel}의 반주 사운드는 고정되어 있습니다` : undefined}
     >
       <summary>
         <span>
           {disabled ? <Lock aria-hidden="true" size={12} /> : null}
           반주 사운드
         </span>
-        {!hidePartSummary ? <b>{disabled ? "추천 진행 · 반주 고정" : "드럼 · 베이스 · 피아노"}</b> : null}
+        {!hidePartSummary ? <b>{disabled ? `${lockedLabel} · 반주 고정` : "드럼 · 베이스 · 피아노"}</b> : null}
         <button
           aria-haspopup="dialog"
           className="sharedAccompanimentSettingsButton"
@@ -113,6 +115,11 @@ export function SharedAccompanimentPanel({
           리듬 사용자 설정
         </button>
       </summary>
+      {disabled && lockedNotice ? (
+        <p className="sharedAccompanimentLockNotice" role="note">
+          {lockedNotice}
+        </p>
+      ) : null}
       <div className="miniChordBackingRows sharedAccompanimentRows">
         {parts.map((part) => {
           const beatValue = Object.prototype.hasOwnProperty.call(beatValueOverrides, part.id)

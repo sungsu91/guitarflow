@@ -4,6 +4,7 @@ import {
   getAudioBusInput,
   getSharedAudioContext,
 } from "../audio/audioBus";
+import { AUDIO_TRANSPORT_LOOKAHEAD_SECONDS } from "../audio/transportClock";
 import { getPreferredBackingLoopMimeType } from "../backing-loop/backingLoopUtils";
 import {
   AUDIO_STUDIO_FILE_ACCEPT,
@@ -50,6 +51,7 @@ import {
   updateAudioStudioMarker,
 } from "./audioStudioModel";
 import {
+  getAudioStudioPlaybackPositionMs,
   resumeAudioStudioPlaybackContext,
   scheduleAudioStudioPlayback,
   stopAudioStudioPlayback,
@@ -148,9 +150,26 @@ export default function useAudioStudio() {
   const clearScheduledPlayback = useCallback(() => {
     cancelPlaybackFrame();
     stopAudioStudioPlayback(playbackRef.current?.nodes);
+    stopAudioStudioPlayback(playbackRef.current?.nextSession?.nodes);
     playbackRef.current = null;
     playbackStopAtRef.current = null;
   }, [cancelPlaybackFrame]);
+
+  const releaseLibraryAudio = useCallback(() => {
+    const audio = libraryAudioRef.current;
+    if (audio) {
+      audio.onended = null;
+      audio.onerror = null;
+      audio.pause();
+      audio.removeAttribute?.("src");
+      audio.load?.();
+    }
+    libraryAudioRef.current = null;
+    if (libraryAudioUrlRef.current) URL.revokeObjectURL(libraryAudioUrlRef.current);
+    libraryAudioUrlRef.current = "";
+    setLibraryMixId("");
+    setLibraryPlaybackStatus("stopped");
+  }, []);
 
   const ensurePlaybackContext = useCallback(() => {
     if (audioContextRef.current && audioContextRef.current.state !== "closed") return audioContextRef.current;
@@ -201,19 +220,25 @@ export default function useAudioStudio() {
       await resumeAudioStudioPlaybackContext(context);
       await ensureSourceBuffers(context, studioProject);
       clearScheduledPlayback();
+      releaseLibraryAudio();
       playbackStopAtRef.current = Number.isFinite(options.stopAtMs) ? options.stopAtMs : null;
       const loop = studioProject.practice.loop;
       const loopStartMs = loop.enabled && loop.endMs > loop.startMs ? loop.startMs : 0;
       const safeStartMs = requestedTimeMs >= durationMs ? loopStartMs : Math.max(0, requestedTimeMs);
-      const scheduleFrom = (fromMs, repeatIteration = 0) => {
+      const createScheduledSession = (fromMs, repeatIteration = 0, scheduledStartAt = null) => {
         const session = scheduleAudioStudioPlayback({
           audioBuffers: audioBuffersRef.current,
           audioContext: context,
           fromMs,
           outputNode: getAudioBusInput(AUDIO_BUS_IDS.BACKING, context),
           project: playbackProject,
+          scheduledStartAt,
         });
-        playbackRef.current = { ...session, fromMs, repeatIteration };
+        return { ...session, fromMs, nextSession: null, repeatIteration };
+      };
+      const scheduleFrom = (fromMs, repeatIteration = 0, scheduledStartAt = null) => {
+        const session = createScheduledSession(fromMs, repeatIteration, scheduledStartAt);
+        playbackRef.current = session;
         setCurrentTimeMs(fromMs);
         return session;
       };
@@ -226,6 +251,8 @@ export default function useAudioStudio() {
         const playbackEndMs = playbackStopAtRef.current === null
           ? session.range.endMs
           : Math.min(session.range.endMs, playbackStopAtRef.current);
+        const playbackEndAt = session.startAt
+          + Math.max(0, playbackEndMs - session.fromMs) / 1_000 / session.speed;
         const nextTimeMs = Math.min(playbackEndMs, session.fromMs + elapsedMs);
         setCurrentTimeMs(nextTimeMs);
         if (session.analyser) {
@@ -234,6 +261,23 @@ export default function useAudioStudio() {
           let peak = 0;
           for (let index = 0; index < samples.length; index += 1) peak = Math.max(peak, Math.abs(samples[index] - 128) / 128);
           setMasterLevel(peak);
+        }
+        if (
+          session.range.loopEnabled
+          && playbackStopAtRef.current === null
+          && !session.nextSession
+          && context.currentTime >= playbackEndAt - AUDIO_TRANSPORT_LOOKAHEAD_SECONDS
+        ) {
+          const repeat = playbackProject.practice.repeat;
+          const nextIteration = session.repeatIteration + 1;
+          const repeatBoundaryReached = repeat.enabled && nextIteration >= repeat.count;
+          if (!repeatBoundaryReached) {
+            session.nextSession = createScheduledSession(
+              session.range.startMs,
+              nextIteration,
+              playbackEndAt,
+            );
+          }
         }
         if (nextTimeMs >= playbackEndMs - 2) {
           stopAudioStudioPlayback(session.nodes);
@@ -261,7 +305,12 @@ export default function useAudioStudio() {
               setHistory((current) => ({ ...current, present: playbackProject }));
               nextIteration = 0;
             }
-            scheduleFrom(session.range.startMs, nextIteration);
+            if (session.nextSession && session.nextSession.repeatIteration === nextIteration) {
+              playbackRef.current = session.nextSession;
+              setCurrentTimeMs(session.range.startMs);
+            } else {
+              scheduleFrom(session.range.startMs, nextIteration, playbackEndAt);
+            }
             animationFrameRef.current = requestAnimationFrame(tick);
           } else {
             playbackRef.current = null;
@@ -280,9 +329,18 @@ export default function useAudioStudio() {
       setPlaybackStatus("stopped");
       setNotice("이 브라우저에서 오디오를 디코딩하거나 재생할 수 없습니다.");
     }
-  }, [clearScheduledPlayback, currentTimeMs, ensurePlaybackContext, ensureSourceBuffers]);
+  }, [clearScheduledPlayback, currentTimeMs, ensurePlaybackContext, ensureSourceBuffers, releaseLibraryAudio]);
 
   const pausePlayback = useCallback(() => {
+    const context = audioContextRef.current;
+    const session = playbackRef.current;
+    if (context && session) {
+      setCurrentTimeMs(getAudioStudioPlaybackPositionMs({
+        audioTime: context.currentTime,
+        session,
+        stopAtMs: playbackStopAtRef.current,
+      }));
+    }
     clearScheduledPlayback();
     setPlaybackStatus("paused");
     setMasterLevel(0);
@@ -294,22 +352,6 @@ export default function useAudioStudio() {
     setPlaybackStatus("stopped");
     setMasterLevel(0);
   }, [clearScheduledPlayback]);
-
-  const releaseLibraryAudio = useCallback(() => {
-    const audio = libraryAudioRef.current;
-    if (audio) {
-      audio.onended = null;
-      audio.onerror = null;
-      audio.pause();
-      audio.removeAttribute?.("src");
-      audio.load?.();
-    }
-    libraryAudioRef.current = null;
-    if (libraryAudioUrlRef.current) URL.revokeObjectURL(libraryAudioUrlRef.current);
-    libraryAudioUrlRef.current = "";
-    setLibraryMixId("");
-    setLibraryPlaybackStatus("stopped");
-  }, []);
 
   const playSavedMix = useCallback(async (mixId) => {
     if (!mixId || projectOperation) return;

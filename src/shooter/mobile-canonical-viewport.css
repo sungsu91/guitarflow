@@ -14,7 +14,8 @@
     overscroll-behavior: none;
   }
 
-  html.shooterCanonicalMobile body main.app.app.app.shooterMode {
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode,
+  html.shooterCanonicalMobile body main.app.app.app.tunerMode {
     --shooter-mobile-nav-space: 88px;
     position: fixed !important;
     inset: auto !important;
@@ -27,11 +28,15 @@
     min-height: 932px !important;
     max-height: 932px !important;
     margin: 0 !important;
-    transform: scale(var(--shooter-mobile-canvas-scale, 1)) !important;
+    transform: var(
+      --shooter-mobile-canvas-transform,
+      scale(var(--shooter-mobile-canvas-scale, 1))
+    ) !important;
     transform-origin: top left !important;
   }
 
-  html.shooterCanonicalMobile body main.app.app.app.shooterMode > .hud > .modeSwitch {
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode > .hud > .modeSwitch,
+  html.shooterCanonicalMobile body main.app.app.app.tunerMode > .hud > .modeSwitch {
     bottom: var(--shooter-mobile-nav-bottom, 10px) !important;
     width: min(calc(100vw - 20px), 370px) !important;
     min-width: 0 !important;
@@ -41,14 +46,16 @@
   }
 
   @media (max-width: 380px) {
-    html.shooterCanonicalMobile body main.app.app.app.shooterMode > .hud > .modeSwitch {
+    html.shooterCanonicalMobile body main.app.app.app.shooterMode > .hud > .modeSwitch,
+    html.shooterCanonicalMobile body main.app.app.app.tunerMode > .hud > .modeSwitch {
       width: min(calc(100vw - 14px), 360px) !important;
       max-width: min(calc(100vw - 14px), 360px) !important;
     }
   }
 
   @media (max-width: 350px) {
-    html.shooterCanonicalMobile body main.app.app.app.shooterMode > .hud > .modeSwitch {
+    html.shooterCanonicalMobile body main.app.app.app.shooterMode > .hud > .modeSwitch,
+    html.shooterCanonicalMobile body main.app.app.app.tunerMode > .hud > .modeSwitch {
       width: calc(100vw - 10px) !important;
       max-width: calc(100vw - 10px) !important;
     }
@@ -81,6 +88,50 @@
     gap: 7px !important;
   }
 
+  /* Mobile lobby actions stay readable while the selected map remains visible. */
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .shooterCenterStatus--startMenu
+    .shooterStartPanelButton:is(.shooterStartPanelButton--primary, .shooterStartPanelButton--secondary) {
+    height: 48px !important;
+    min-height: 48px !important;
+    padding: 6px 14px !important;
+    border: 1px solid rgba(255, 218, 139, 0.52) !important;
+    border-radius: 14px !important;
+    background:
+      linear-gradient(180deg, rgba(34, 30, 23, 0.72), rgba(5, 10, 13, 0.68)) !important;
+    box-shadow:
+      0 7px 18px rgba(0, 0, 0, 0.24),
+      inset 0 1px 0 rgba(255, 243, 205, 0.17),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.3) !important;
+    overflow: hidden !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .shooterCenterStatus--startMenu
+    .shooterStartPanelButton--primary {
+    border-color: rgba(255, 222, 150, 0.72) !important;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(255, 210, 112, 0.18), transparent 62%),
+      linear-gradient(180deg, rgba(86, 60, 24, 0.7), rgba(14, 14, 14, 0.72)) !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .shooterCenterStatus--startMenu
+    .shooterStartPanelButton:is(.shooterStartPanelButton--primary, .shooterStartPanelButton--secondary)::after {
+    right: 13% !important;
+    bottom: 0 !important;
+    left: 13% !important;
+    opacity: 0.88 !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .shooterCenterStatus--startMenu
+    .shooterStartPanelButton:is(.shooterStartPanelButton--primary, .shooterStartPanelButton--secondary):is(:active, :focus-visible) {
+    border-color: rgba(255, 232, 180, 0.94) !important;
+    background:
+      linear-gradient(180deg, rgba(103, 74, 31, 0.8), rgba(10, 15, 17, 0.78)) !important;
+  }
+
   html.shooterCanonicalMobile body main.app.app.app.shooterMode
     .shooterArena .shooterCenterStatus.shooterCenterStatus--pauseMenu {
     width: 328px !important;
@@ -111,4 +162,110 @@
   html.shooterCanonicalMobile body main.app.app.app.shooterMode
     .shooterArena .shooterCenterStatus--pauseMenu .shooterPausePanelLabel strong {
     font-size: 18px !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .mobileShooterScenarioBanner,
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .mobileShooterRoundSummary {
+    position: absolute !important;
+    left: 50% !important;
+    z-index: 24 !important;
+    display: grid !important;
+    width: 310px !important;
+    gap: 3px !important;
+    padding: 8px 12px !important;
+    border: 1px solid rgba(255, 224, 151, 0.64) !important;
+    border-radius: 13px !important;
+    background: rgba(7, 12, 16, 0.88) !important;
+    color: #fff3d0 !important;
+    text-align: center !important;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.34) !important;
+    pointer-events: none !important;
+    transform: translateX(-50%) !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .mobileShooterScenarioBanner {
+    top: 112px !important;
+    animation: shooterScenarioBanner 1.9s ease both;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .mobileShooterRoundSummary {
+    top: 160px !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .mobileShooterTopHud .mobileShooterDifficultPatternRow {
+    position: absolute !important;
+    top: 112px !important;
+    left: 12px !important;
+    z-index: 36 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    width: 340px !important;
+    min-height: 32px !important;
+    padding: 4px 5px 4px 10px !important;
+    border: 1px solid rgba(126, 211, 255, 0.46) !important;
+    border-radius: 10px !important;
+    background: rgba(5, 14, 19, 0.9) !important;
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.3) !important;
+    box-sizing: border-box !important;
+    pointer-events: auto !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .mobileShooterDifficultPatternRow > span {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    color: rgba(214, 240, 252, 0.82) !important;
+    font-size: 9px !important;
+    font-weight: 850 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .mobileShooterDifficultPatternRow > div {
+    display: grid !important;
+    grid-template-columns: repeat(5, 30px) !important;
+    gap: 3px !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .mobileShooterDifficultPatternRow button {
+    width: 30px !important;
+    min-width: 30px !important;
+    height: 24px !important;
+    min-height: 24px !important;
+    padding: 0 !important;
+    border: 1px solid rgba(126, 211, 255, 0.2) !important;
+    border-radius: 7px !important;
+    background: rgba(7, 17, 23, 0.86) !important;
+    color: rgba(214, 240, 252, 0.68) !important;
+    font-size: 10px !important;
+    font-weight: 950 !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .mobileShooterDifficultPatternRow button.selected {
+    border-color: rgba(126, 211, 255, 0.76) !important;
+    background: rgba(33, 105, 141, 0.68) !important;
+    color: #e3f8ff !important;
+    box-shadow: inset 0 -2px rgba(139, 224, 255, 0.52) !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena :is(.mobileShooterScenarioBanner, .mobileShooterRoundSummary) strong {
+    font-size: 13px !important;
+    font-weight: 950 !important;
+  }
+
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena :is(.mobileShooterScenarioBanner, .mobileShooterRoundSummary) :is(span, small) {
+    color: rgba(255, 244, 218, 0.86) !important;
+    font-size: 10px !important;
+    font-weight: 750 !important;
   }

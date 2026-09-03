@@ -15,6 +15,7 @@ function createViewportWindow({
   innerHeight,
   innerWidth,
   mediaMatches = false,
+  mobile = false,
   visualHeight,
   visualScale = 1,
   visualWidth,
@@ -24,7 +25,10 @@ function createViewportWindow({
     innerHeight,
     innerWidth,
     matchMedia: () => ({ matches: mediaMatches }),
-    navigator: { maxTouchPoints: 0, userAgent: "desktop-test" },
+    navigator: {
+      maxTouchPoints: mobile ? 5 : 0,
+      userAgent: mobile ? "mobile-test Android" : "desktop-test",
+    },
     visualViewport: {
       height: visualHeight,
       offsetLeft: 0,
@@ -129,6 +133,26 @@ test("a stale visual viewport height cannot inflate the inverse-scaled mobile na
   assert.ok(1 / frame.scale < 1.1);
 });
 
+test("mobile landscape rotates one full portrait canvas instead of shrinking an upright copy", () => {
+  const frame = getShooterMobileViewportSnapshot(createViewportWindow({
+    clientHeight: 430,
+    clientWidth: 932,
+    innerHeight: 430,
+    innerWidth: 932,
+    mediaMatches: false,
+    mobile: true,
+    visualHeight: 430,
+    visualWidth: 932,
+  }));
+
+  assert.equal(frame.rotation, 90);
+  assert.equal(frame.scale, 1);
+  assert.equal(frame.left, 932);
+  assert.equal(frame.top, 0);
+  assert.equal(frame.height, 932);
+  assert.equal(frame.width, 430);
+});
+
 test("shooter route applies the canonical frame to the entire app surface", async () => {
   const [appSource, runtimeSource, viewportSource, styles] = await Promise.all([
     readFile(new URL("../src/App.jsx", import.meta.url), "utf8"),
@@ -138,15 +162,22 @@ test("shooter route applies the canonical frame to the entire app surface", asyn
   ]);
 
   assert.match(appSource, /useShooterMobileViewport/);
+  assert.match(appSource, /\(appMode === APP_MODES\.SHOOTER \|\| appMode === APP_MODES\.TUNER\) && isMobileLayout/);
   assert.match(appSource, /style=\{shooterMobileViewportStyle\}/);
   assert.match(runtimeSource, /mobile-canonical-viewport\.css/);
   assert.match(styles, /width: 430px !important/);
   assert.match(styles, /height: 932px !important/);
-  assert.match(styles, /transform: scale\(var\(--shooter-mobile-canvas-scale, 1\)\) !important/);
+  assert.match(styles, /--shooter-mobile-canvas-transform/);
+  assert.match(viewportSource, /rotate\(\$\{frame\.rotation\}deg\) scale/);
+  assert.match(styles, /main\.app\.app\.app\.tunerMode/);
   assert.match(styles, /--shooter-mobile-nav-space: 88px/);
   assert.match(viewportSource, /--shooter-mobile-nav-inverse-scale/);
   assert.match(styles, /scale\(var\(--shooter-mobile-nav-inverse-scale, 1\)\)/);
   assert.match(styles, /transform-origin: bottom center !important/);
   assert.match(styles, /\.shooterCenterStatus\.shooterCenterStatus--pauseMenu/);
   assert.match(styles, /\.utilityMenuPanel/);
+  assert.match(styles, /html\.shooterCanonicalMobile[\s\S]*?\.shooterStartPanelButton:is\(\.shooterStartPanelButton--primary, \.shooterStartPanelButton--secondary\)/);
+  assert.match(styles, /min-height: 48px !important/);
+  assert.match(styles, /border: 1px solid rgba\(255, 218, 139, 0\.52\) !important/);
+  assert.match(styles, /linear-gradient\(180deg, rgba\(34, 30, 23, 0\.72\), rgba\(5, 10, 13, 0\.68\)\) !important/);
 });

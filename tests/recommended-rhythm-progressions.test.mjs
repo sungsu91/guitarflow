@@ -15,10 +15,7 @@ const appCss = await readFile(new URL("../src/style.css", import.meta.url), "utf
 const EXPECTED_TITLES = [
   "밝은 시작",
   "따뜻한 순환",
-  "감성 발라드",
-  "느린 귀환",
   "힘있는 팝록",
-  "몽환적 밤",
   "소울 그루브",
   "빠른 전환",
   "긴장과 해소",
@@ -28,10 +25,7 @@ const EXPECTED_TITLES = [
 const EXPECTED_PROGRESSIONS = [
   [["C", 4], ["Am", 4], ["F", 4], ["G", 4]],
   [["C", 4], ["G", 4], ["Am", 4], ["F", 4]],
-  [["Am", 4], ["F", 4], ["C", 4], ["G", 4]],
-  [["C", 4], ["G", 4], ["F", 4], ["C", 4]],
   [["G", 4], ["D", 4], ["Em", 4], ["C", 4]],
-  [["Am", 4], ["G", 4], ["F", 4], ["G", 4]],
   [["Cmaj7", 2], ["Am7", 2], ["Dm7", 2], ["G7", 2]],
   [["C", 2], ["Am", 1], ["G", 1], ["F", 4]],
   [["Dm", 2], ["G", 2], ["C", 2], ["Am", 2]],
@@ -42,8 +36,8 @@ const EXPECTED_PROGRESSIONS = [
   ],
 ];
 
-test("the old song-based recommendations are replaced by ten neutral practice presets", () => {
-  assert.equal(RHYTHM_RECOMMENDED_PROGRESSIONS.length, 10);
+test("the old song-based recommendations are replaced by seven neutral practice presets", () => {
+  assert.equal(RHYTHM_RECOMMENDED_PROGRESSIONS.length, 7);
   assert.deepEqual(RHYTHM_RECOMMENDED_PROGRESSIONS.map(({ title }) => title), EXPECTED_TITLES);
   assert.doesNotMatch(appSource, /recommended-let-it-be|recommended-canon|recommended-stand-by-me|recommended-hotel-california/);
 });
@@ -68,8 +62,8 @@ test("every recommendation stores the complete progression and accompaniment bun
 });
 
 test("keys, tempos, meters, and entered chord durations match the authored set", () => {
-  assert.deepEqual(RHYTHM_RECOMMENDED_PROGRESSIONS.map(({ key }) => key), ["C", "C", "C", "C", "G", "C", "C", "C", "C", "A"]);
-  assert.deepEqual(RHYTHM_RECOMMENDED_PROGRESSIONS.map(({ bpm }) => bpm), [92, 96, 72, 68, 112, 78, 88, 104, 84, 104]);
+  assert.deepEqual(RHYTHM_RECOMMENDED_PROGRESSIONS.map(({ key }) => key), ["C", "C", "G", "C", "C", "C", "A"]);
+  assert.deepEqual(RHYTHM_RECOMMENDED_PROGRESSIONS.map(({ bpm }) => bpm), [92, 96, 112, 88, 104, 84, 104]);
   assert.ok(RHYTHM_RECOMMENDED_PROGRESSIONS.every(({ timeSignature }) => timeSignature === "4/4"));
   assert.deepEqual(
     RHYTHM_RECOMMENDED_PROGRESSIONS.map(({ progression }) => progression.map(({ chord, beats }) => [chord, beats])),
@@ -86,10 +80,9 @@ test("bass and piano presets only use transposable roles and non-melodic comping
   });
 });
 
-test("the four priority presets compile their authored 16-step backing bars", () => {
+test("the priority presets compile their authored 16-step backing bars", () => {
   const priorityIds = [
     "recommended-bright-start",
-    "recommended-emotional-ballad",
     "recommended-soul-groove",
     "recommended-fast-changes",
   ];
@@ -123,6 +116,7 @@ test("recommendation selection applies and preserves its fixed accompaniment", (
   assert.match(appSource, /stage3RecommendedPatternsRef\.current = recommendedPatterns/);
   assert.match(appSource, /setBackingRhythmPattern\(MINI_CHORD_CUSTOM_PATTERN_ID\)/);
   assert.match(appSource, /const stage3RecommendedAccompanimentLocked = appMode === APP_MODES\.PRACTICE/);
+  assert.match(appSource, /stage3RecommendedAccompanimentLocked[\s\S]{0,180}isStage3RecommendedItem\(loadedStage3LibraryItem\)/);
   assert.match(appSource, /const requestGlobalAccompanimentPatternChange = \(overrides = \{\}, options = \{\}\) => \{\s+if \(stage3RecommendedAccompanimentLocked\) return;/);
   assert.doesNotMatch(appSource, /delete nextRecommendedPatterns\.(?:drum|bass|piano)/);
   assert.match(appSource, /recommendedPatterns: stage3RecommendedPatternsRef\.current/);

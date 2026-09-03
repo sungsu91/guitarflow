@@ -38,7 +38,7 @@ test("user progression management opens on edit and reveals individual actions b
     readFile(appSourceUrl, "utf8"),
     readFile(appStyleUrl, "utf8"),
   ]);
-  const pickerStart = appSource.indexOf('className="stage3LoadSelect stage3UserLoadSelect"');
+  const pickerStart = appSource.indexOf('className="stage3LoadSelect stage3UserLoadSelect stage3RecommendedLoadSelect"');
   const pickerEnd = appSource.indexOf('className="stage3StorageMoveButton"', pickerStart);
   const pickerSource = appSource.slice(pickerStart, pickerEnd);
 
@@ -133,8 +133,8 @@ test("desktop rhythm practice keeps the fretboard near the progression and opens
     readFile(appSourceUrl, "utf8"),
     readFile(desktopStyleUrl, "utf8"),
   ]);
-  const recommendedStart = appSource.indexOf('className="stage3LoadSelect stage3RecommendedLoadSelect"');
-  const recommendedEnd = appSource.indexOf('className="stage3LoadSelect stage3UserLoadSelect"', recommendedStart);
+  const recommendedStart = appSource.indexOf('className="stage3LoadSelect stage3RecommendedLoadSelect stage3VoicingCourseSelect"');
+  const recommendedEnd = appSource.indexOf('className="stage3LoadSelect stage3UserLoadSelect stage3RecommendedLoadSelect"', recommendedStart);
   const userEnd = appSource.indexOf('className="stage3StorageMoveButton"', recommendedEnd);
   const recommendedPicker = appSource.slice(recommendedStart, recommendedEnd);
   const userPicker = appSource.slice(recommendedEnd, userEnd);
@@ -194,7 +194,8 @@ test("rhythm progression clicks seek the prepared backing clock without rebuildi
   assert.match(seekSource, /stage3PlaybackSeekRef\.current\?\.\(safeIndex\)/);
   assert.match(schedulerSource, /stage3PlaybackSeekRef\.current = seekStage3Playback/);
   assert.match(schedulerSource, /startBackingScheduler\(index, BACKING_SCHEDULER_MODES\.STAGE3\)/);
-  assert.match(schedulerSource, /backingDisplayStartTimeRef\.current = audio\.currentTime - safeStartOffset/);
+  assert.match(schedulerSource, /const transportStartTime = audio\.currentTime \+ AUDIO_TRANSPORT_START_LEAD_SECONDS/);
+  assert.match(schedulerSource, /backingDisplayStartTimeRef\.current = backingCycleStartTimeRef\.current/);
   assert.match(frameSource, /const startBeat = getRhythmChordStartBeat\([\s\S]*?chordPracticeIndexRef\.current/);
   assert.match(frameSource, /gameTimeRef\.current = startBeat \* currentBeatMs/);
   assert.match(
@@ -312,15 +313,18 @@ test("rhythm chord saved-setting deletion remains persisted by shared quick-slot
   );
 });
 
-test("recommended rhythm progressions use compact title-only dropdown labels", async () => {
+test("load dropdown keeps recommended rhythm progression labels compact", async () => {
   const appSource = await readFile(appSourceUrl, "utf8");
-  const pickerStart = appSource.indexOf('className="stage3LoadSelect stage3RecommendedLoadSelect"');
-  const pickerEnd = appSource.indexOf('className="stage3LoadSelect stage3UserLoadSelect"', pickerStart);
+  const pickerStart = appSource.indexOf('className="stage3LoadSelect stage3UserLoadSelect stage3RecommendedLoadSelect"');
+  const pickerEnd = appSource.indexOf('className="stage3StorageMoveButton"', pickerStart);
   const pickerSource = appSource.slice(pickerStart, pickerEnd);
 
   assert.ok(pickerStart >= 0 && pickerEnd > pickerStart);
   assert.match(pickerSource, /matchTriggerWidth/);
   assert.match(pickerSource, /label: item\.title \|\| "추천 진행"/);
+  assert.match(pickerSource, /label="진행 선택"/);
+  assert.match(pickerSource, /label: "추천 진행"/);
+  assert.match(pickerSource, /label: "사용자 진행"/);
   assert.doesNotMatch(pickerSource, /getStage3DropdownLabel\(item\)/);
 });
 
@@ -482,7 +486,7 @@ test("saved progressions preserve and restore each chord fingering region", asyn
 
   assert.match(appSource, /function getChordEntryPositionId\(entry\)/);
   assert.match(appSource, /positionId: stage3StorageChordPosition/);
-  assert.match(appSource, /positionLabel: CHORD_VIEWER_POSITIONS\.find/);
+  assert.match(appSource, /positionLabel: typeof entry === "object" && entry\.positionLabel/);
   assert.match(appSource, /notes: position\?\.notes \?\? chord\.notes/);
   assert.match(appSource, /barres: position\?\.barres \?\? chord\.barres/);
   assert.match(appSource, /chordPracticeFretboardView[\s\S]*chordPracticeCurrent\.visibleFrets/);
@@ -509,7 +513,10 @@ test("saved progressions preserve and restore each chord fingering region", asyn
 });
 
 test("rhythm chord fretboard removes root-note playback highlighting and keeps stable render props", async () => {
-  const appSource = await readFile(appSourceUrl, "utf8");
+  const [appSource, fretboardSource] = await Promise.all([
+    readFile(appSourceUrl, "utf8"),
+    readFile(new URL("../src/components/Fretboard.jsx", import.meta.url), "utf8"),
+  ]);
   const viewStart = appSource.indexOf("const chordPracticeFretboardView = useMemo");
   const viewEnd = appSource.indexOf("const getPlayableCategory", viewStart);
   const viewSource = appSource.slice(viewStart, viewEnd);
@@ -523,6 +530,28 @@ test("rhythm chord fretboard removes root-note playback highlighting and keeps s
   assert.match(appSource, /notes=\{chordPracticeFretboardView\.notes\}/);
   assert.match(appSource, /stringStates=\{chordPracticeFretboardView\.stringStates\}/);
   assert.match(appSource, /selectedNotes=\{STAGE3_STATIC_FRETBOARD_SELECTION\}/);
+  assert.match(appSource, /id: `transition-string-\$\{note\.stringNumber\}`/);
+  assert.match(appSource, /id: `transition-barre-\$\{index\}`/);
+  const stage3FretboardStart = appSource.lastIndexOf("<Fretboard", appSource.indexOf("barres={chordPracticeFretboardView.barres}"));
+  const stage3FretboardEnd = appSource.indexOf("/>", stage3FretboardStart);
+  const stage3FretboardSource = appSource.slice(stage3FretboardStart, stage3FretboardEnd);
+  assert.doesNotMatch(stage3FretboardSource, /animateFretWindow/);
+  assert.match(fretboardSource, /\[animateFretWindow, visualStartFret\]/);
+  assert.match(fretboardSource, /previousStartFret === visualStartFret/);
+  assert.match(fretboardSource, /duration: FRET_WINDOW_TRANSITION_MS/);
+  assert.match(fretboardSource, /fret-number-slot-\$\{index\}/);
+  assert.match(fretboardSource, /fret-grid-slot-\$\{index\}/);
+});
+
+test("rhythm playback does not resync dropdown tab state on every parent render", async () => {
+  const appSource = await readFile(appSourceUrl, "utf8");
+  const selectStart = appSource.indexOf("function MetronomeSelectControl");
+  const selectEnd = appSource.indexOf("function MetronomeControl", selectStart);
+  const selectSource = appSource.slice(selectStart, selectEnd);
+
+  assert.match(selectSource, /availableOptionTabIds/);
+  assert.match(selectSource, /if \(!availableOptionTabIds \|\| activeOptionTabIsAvailable\) return;/);
+  assert.doesNotMatch(selectSource, /\[availableOptionTabs, selectedOption\?\.tabId\]/);
 });
 
 test("LOAD chord position previews derive a complete fret range from their actual notes", async () => {
@@ -532,7 +561,7 @@ test("LOAD chord position previews derive a complete fret range from their actua
     appSource,
     /const visibleFrets = getCompactFretRange\([\s\S]*?frettedNotes,[\s\S]*?chord\.barres,[\s\S]*?chord\.visibleFrets\?\.length/,
   );
-  assert.match(appSource, /if \(min <= 3\) return \[0, Math\.max\(3, max\)\]/);
+  assert.match(appSource, /return getChordFretWindow\(\{ barres, fallback, notes, stringStates \}\)\.fretRange/);
 });
 
 test("mobile rhythm load toolbar gives the LOAD action more width and emphasis", async () => {

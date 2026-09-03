@@ -14,6 +14,21 @@ import {
   midiToFrequency,
 } from "../src/tuner/tunerMath.js";
 
+const CHROMATIC_EXPECTATIONS = [
+  ["C", "도"],
+  ["C#", "도#"],
+  ["D", "레"],
+  ["D#", "레#"],
+  ["E", "미"],
+  ["F", "파"],
+  ["F#", "파#"],
+  ["G", "솔"],
+  ["G#", "솔#"],
+  ["A", "라"],
+  ["A#", "라#"],
+  ["B", "시"],
+];
+
 test("A4 uses the 440 Hz reference and resolves note, octave, and cents", () => {
   const pitch = frequencyToChromaticPitch(440);
 
@@ -21,6 +36,37 @@ test("A4 uses the 440 Hz reference and resolves note, octave, and cents", () => 
   assert.equal(pitch.octave, 4);
   assert.equal(pitch.cents, 0);
   assert.equal(midiToFrequency(69), 440);
+});
+
+test("G and C reference frequencies keep raw MIDI, note index, solfege, and octave aligned", () => {
+  const cases = [
+    [195.9977, "G3", 55, 7, "솔", 3],
+    [196, "G3", 55, 7, "솔", 3],
+    [261.6256, "C4", 60, 0, "도", 4],
+    [98, "G2", 43, 7, "솔", 2],
+    [391.9954, "G4", 67, 7, "솔", 4],
+  ];
+
+  for (const [frequency, pitchName, midi, noteIndex, solfegeName, octave] of cases) {
+    const pitch = frequencyToChromaticPitch(frequency);
+    assert.equal(pitch.pitch, pitchName);
+    assert.equal(pitch.midi, midi);
+    assert.equal(pitch.noteIndex, noteIndex);
+    assert.equal(pitch.solfegeName, solfegeName);
+    assert.equal(pitch.octave, octave);
+    assert.ok(Math.abs(pitch.cents) <= 1);
+  }
+});
+
+test("all twelve semitones share the same English and Korean pitch-class index", () => {
+  CHROMATIC_EXPECTATIONS.forEach(([noteName, solfegeName], noteIndex) => {
+    const midi = 60 + noteIndex;
+    const pitch = frequencyToChromaticPitch(midiToFrequency(midi));
+    assert.equal(pitch.noteIndex, noteIndex);
+    assert.equal(pitch.noteName, noteName);
+    assert.equal(pitch.solfegeName, solfegeName);
+    assert.equal(pitch.pitch, `${noteName}4`);
+  });
 });
 
 test("auto tracking follows every chromatic pitch while manual tracking keeps the selected string target", () => {
@@ -58,18 +104,41 @@ test("quiet sustain accepts only confident pitch near the last valid reading", (
   assert.equal(isTrustedTunerPitch({ candidateFrequency: e2, confidence: 0.82, inputPresent: true }), true);
   assert.equal(isTrustedTunerPitch({
     candidateFrequency: e2 * 2 ** (18 / 1200),
-    confidence: 0.9,
-    inputPresent: false,
+    confidence: 0.72,
+    attackPresent: false,
     lastFrequency: e2,
     recentPitch: true,
+    sustainPresent: true,
   }), true);
   assert.equal(isTrustedTunerPitch({
     candidateFrequency: e2 * 2,
-    confidence: 0.92,
-    inputPresent: false,
+    confidence: 0.78,
+    attackPresent: false,
     lastFrequency: e2,
     recentPitch: true,
+    sustainPresent: true,
   }), false);
+  assert.equal(isTrustedTunerPitch({
+    attackPresent: false,
+    candidateFrequency: e2 * 2 ** (12 / 1200),
+    confidence: 0.9,
+    lastFrequency: e2,
+    recentPitch: true,
+    sustainPresent: false,
+  }), true);
+});
+
+test("a release-level new-note candidate is eligible for multi-frame confirmation", () => {
+  const g3 = 195.9977;
+  const c4 = 261.6256;
+  assert.equal(isTrustedTunerPitch({
+    attackPresent: false,
+    candidateFrequency: c4,
+    confidence: 0.99,
+    lastFrequency: g3,
+    recentPitch: true,
+    sustainPresent: true,
+  }), true);
 });
 
 test("the current-note orb uses fine cents in auto and the fixed target distance in manual", () => {

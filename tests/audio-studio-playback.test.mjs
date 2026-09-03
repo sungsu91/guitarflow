@@ -8,8 +8,10 @@ import {
 } from "../src/audio-studio/audioStudioModel.js";
 import {
   createAudioStudioPlaybackPlan,
+  getAudioStudioPlaybackPositionMs,
   getAudioStudioPlaybackRange,
   resumeAudioStudioPlaybackContext,
+  scheduleAudioStudioPlayback,
 } from "../src/audio-studio/audioStudioPlayback.js";
 
 function projectWithTwoTracks() {
@@ -104,6 +106,48 @@ test("project play schedules simultaneous tracks and sequential clips on one sha
     ["clip-guitar", 0],
   ]);
   assert.equal(plan.clips.find((clip) => clip.clipId === "clip-b").sourceOffsetMs, 2_000);
+});
+
+test("loop sessions can be reserved on the previous session's exact Web Audio boundary", () => {
+  const project = projectWithTwoTracks();
+  const audioContext = { currentTime: 10, destination: {} };
+  const scheduled = scheduleAudioStudioPlayback({
+    audioBuffers: new Map(),
+    audioContext,
+    fromMs: 1_000,
+    project,
+    scheduledStartAt: 12.5,
+  });
+  const ordinary = scheduleAudioStudioPlayback({
+    audioBuffers: new Map(),
+    audioContext,
+    fromMs: 1_000,
+    project,
+  });
+
+  assert.equal(scheduled.startAt, 12.5);
+  assert.equal(ordinary.startAt, 10.035);
+});
+
+test("pause position is sampled from the Web Audio clock instead of the last rendered frame", () => {
+  const session = {
+    fromMs: 1_000,
+    range: { endMs: 5_000, loopEnabled: false, startMs: 0 },
+    speed: 1.25,
+    startAt: 10,
+  };
+  assert.ok(Math.abs(getAudioStudioPlaybackPositionMs({ audioTime: 11.2, session }) - 2_500) < 1e-6);
+  assert.equal(getAudioStudioPlaybackPositionMs({ audioTime: 20, session, stopAtMs: 3_200 }), 3_200);
+});
+
+test("pausing on an exact loop boundary resumes from the loop start", () => {
+  const session = {
+    fromMs: 1_500,
+    range: { endMs: 3_500, loopEnabled: true, startMs: 1_500 },
+    speed: 1,
+    startAt: 20,
+  };
+  assert.equal(getAudioStudioPlaybackPositionMs({ audioTime: 22, session }), 1_500);
 });
 
 test("time-stretched clips preview and export through the same cached derived source", () => {

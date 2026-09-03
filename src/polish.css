@@ -90,6 +90,31 @@
     inset 0 -2px 0 rgba(0, 0, 0, 0.28);
 }
 
+/* Keep Mini Chord LOAD ivory while the shared quick-bar hover state is active. */
+html body main.app.app.app.app.app.miniChordMakerMode
+  .miniChordMakerPanelCompact.miniChordMakerPanelCompact
+  .miniChordQuickBar.miniChordQuickBar
+  .miniChordLoadPicker > .miniChordLoadSelect
+  > button.metronomeSelectButton.metronomeSelectButton:is(
+    :hover,
+    :active,
+    :focus-visible,
+    [aria-expanded="true"]
+  ) {
+  border-color: rgba(116, 78, 52, 0.34) !important;
+  outline: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 250, 0.92), rgba(225, 201, 190, 0.28)),
+    #fbf5f0 !important;
+  color: #211813 !important;
+  box-shadow:
+    0 3px 8px rgba(103, 72, 56, 0.08),
+    0 0 0 1px rgba(255, 252, 249, 0.62) inset,
+    inset 0 -1px 0 rgba(116, 78, 52, 0.1) !important;
+  transform: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Mobile mini-chord chord editor: keep the selected chord/beat tabs clear of
    the split and close controls. Desktop has its own layout override. */
 @media (max-width: 680px) {
@@ -2899,6 +2924,7 @@ body:has(main.app.theme-brand.miniChordMakerMode) {
 
 body:has(main.app.miniChordMakerMode) :is(
   .miniChordLoadDialogLayer,
+  .miniChordDeleteDialogLayer,
   .miniChordSaveConfirmDialogLayer,
   .miniChordResetDialogLayer,
   .miniChordGrooveDialogLayer,
@@ -2913,6 +2939,7 @@ body:has(main.app.miniChordMakerMode) :is(
 
 body:has(main.app.miniChordMakerMode) :is(
   .miniChordLoadDialogLayer,
+  .miniChordDeleteDialogLayer,
   .miniChordSaveConfirmDialogLayer,
   .miniChordResetDialogLayer,
   .miniChordGrooveDialogLayer:not(.miniChordGrooveDialogLayer--drumLandscape),
@@ -8753,11 +8780,14 @@ html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
   }
 }
 
-/* Mobile standalone metronome: beat state is structural; playback adds glow only. */
+/* Mobile standalone metronome: keep the strong-beat ready ring quiet so the
+   rose-pearl playback pass remains immediately visible. */
 @media (max-width: 767px) {
   html body main.app.app.app.metronomeMode:not(#riff-metronome-polish) {
     --metro-visual-height: clamp(180px, calc(100dvh - 646px), 236px);
     --metro-beat-strong: #b85873;
+    --metro-beat-strong-ready: color-mix(in srgb, var(--metro-beat-strong) 22%, var(--metro-raised-cream));
+    --metro-beat-strong-ready-border: color-mix(in srgb, var(--metro-beat-strong) 58%, var(--metro-raised-cream));
     --metro-beat-weak: #d9aa55;
     --metro-beat-mute: rgba(130, 130, 128, 0.84);
     --metro-beat-mute-hatch: rgba(130, 130, 128, 0.38);
@@ -8765,6 +8795,8 @@ html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
   }
 
   html body main.app.app.app.theme-brand.metronomeMode:not(#riff-metronome-polish) {
+    --metro-beat-strong-ready: color-mix(in srgb, var(--metro-beat-strong) 26%, var(--metro-raised-cream));
+    --metro-beat-strong-ready-border: color-mix(in srgb, var(--metro-beat-strong) 56%, var(--metro-raised-cream));
     --metro-beat-mute: rgba(174, 174, 169, 0.78);
     --metro-beat-mute-hatch: rgba(174, 174, 169, 0.34);
     --metro-current-glow: rgba(242, 166, 181, 0.76);
@@ -8840,12 +8872,12 @@ html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
     .metronomeBeatMatrix--main
     .beatDot--strong.metronomeBeatButton
     .beatDot__glyph {
-    border: 2px solid var(--metro-beat-strong) !important;
+    border: 2px solid var(--metro-beat-strong-ready-border) !important;
     outline: 0 solid transparent !important;
     outline-offset: 0 !important;
     background:
       radial-gradient(circle at 36% 28%, rgba(255, 255, 255, 0.42), transparent 38%),
-      color-mix(in srgb, var(--metro-beat-strong) 12%, var(--metro-raised-cream)) !important;
+      color-mix(in srgb, var(--metro-beat-strong-ready) 12%, var(--metro-raised-cream)) !important;
     box-shadow: inset 0 1px 2px rgba(104, 57, 70, 0.08) !important;
   }
 
@@ -8861,13 +8893,32 @@ html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
     left: 50% !important;
     width: calc(100% + 10px) !important;
     height: calc(100% + 10px) !important;
-    border: 2px solid var(--metro-beat-strong) !important;
+    border: 2px solid var(--metro-beat-strong-ready-border) !important;
     border-radius: 50% !important;
     background: transparent !important;
     box-shadow: none !important;
     opacity: 1 !important;
     pointer-events: none !important;
     transform: translate(-50%, -50%) !important;
+  }
+
+  html body main.app.app.app.metronomeMode:not(#riff-metronome-polish)
+    .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeBeatMatrix--main
+    .beatDot--strong.metronomeBeatButton.active
+    .beatDot__glyph {
+    border-color: var(--metro-beat-strong) !important;
+    background:
+      radial-gradient(circle at 36% 28%, rgba(255, 255, 255, 0.58), transparent 38%),
+      color-mix(in srgb, var(--metro-beat-strong) 18%, var(--metro-raised-cream)) !important;
+  }
+
+  html body main.app.app.app.metronomeMode:not(#riff-metronome-polish)
+    .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeBeatMatrix--main
+    .beatDot--strong.metronomeBeatButton.active
+    .beatDot__innerMark {
+    border-color: var(--metro-beat-strong) !important;
   }
 
   html body main.app.app.app.metronomeMode:not(#riff-metronome-polish)

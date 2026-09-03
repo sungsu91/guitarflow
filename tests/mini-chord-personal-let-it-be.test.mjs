@@ -3,19 +3,19 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { getMiniChordRecommendedProgressions } from "../src/mini-chord/originalPracticeSongs.js";
-import { getMiniChordPersonalPracticeProjects } from "../src/mini-chord/personalPracticeProjects.js";
+import { getMiniChordPersonalRecommendedProgressions } from "../src/mini-chord/personalPracticeProjects.js";
 
 const appSource = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
-const [personalProject] = getMiniChordPersonalPracticeProjects();
+const [personalProject] = getMiniChordPersonalRecommendedProgressions();
 const bars = Array.from({ length: personalProject.barCount }, (_, barIndex) => (
   personalProject.slots.slice(barIndex * 4, barIndex * 4 + 4).filter(Boolean).join(">")
 ));
 
-test("Let It Be is a deletable personal saved-code project, never a recommendation", () => {
+test("Let It Be is a locked personal recommendation, separate from public recommendations", () => {
   assert.equal(personalProject.id, "personal-practice-let-it-be");
   assert.equal(personalProject.title, "Let It Be");
-  assert.equal(personalProject.libraryType, "user");
-  assert.equal(personalProject.builtIn, false);
+  assert.equal(personalProject.libraryType, "recommended-progression");
+  assert.equal(personalProject.builtIn, true);
   assert.equal(personalProject.personalOnly, true);
   assert.equal(personalProject.key, "C Major");
   assert.equal(personalProject.bpm, 76);
@@ -88,12 +88,15 @@ test("the ending has one accent, a held Cadd9, and no loop approach note", () =>
   assert.deepEqual(ending.piano.barSteps.at(-1)[0], { active: true, style: "hold", durationSteps: 8 });
 });
 
-test("the app seeds the personal project once into saved codes without changing built-in recommendations", () => {
-  assert.match(appSource, /getMiniChordPersonalPracticeProjects/);
-  assert.match(appSource, /MINI_CHORD_PERSONAL_PRACTICE_SEED_KEY/);
-  assert.match(appSource, /personalPracticeSeeds = !import\.meta\.env\.DEV/);
-  assert.match(appSource, /window\.localStorage\.getItem\(MINI_CHORD_PERSONAL_PRACTICE_SEED_KEY\) === "1"/);
-  assert.match(appSource, /return \[\.\.\.recommendedProgressions, \.\.\.personalPracticeSeeds, \.\.\.userItems\]/);
+test("the app puts the personal project only in the development recommendation room", () => {
+  assert.match(appSource, /getMiniChordPersonalRecommendedProgressions/);
+  assert.match(appSource, /personalRecommendedProgressions = !import\.meta\.env\.DEV/);
+  assert.match(appSource, /allRecommendedProgressions = \[\.\.\.recommendedProgressions, \.\.\.personalRecommendedProgressions\]/);
+  assert.match(appSource, /item\?\.id !== MINI_CHORD_LET_IT_BE_PERSONAL_ID/);
+  assert.match(appSource, /return \[\.\.\.allRecommendedProgressions, \.\.\.userItems\]/);
   assert.match(appSource, /JSON\.stringify\(userItems\)/);
-  assert.match(appSource, /const MINI_CHORD_BAR_OPTIONS = \[4, 8, 16, 32, 64, 96\]/);
+  assert.match(appSource, /const MINI_CHORD_BAR_OPTIONS = \[4, 8, 16, 32, 64\]/);
+  assert.doesNotMatch(appSource, /MINI_CHORD_BAR_OPTIONS = \[[^\]]*96/);
+  assert.match(appSource, /aria-label="마디 수 직접 입력"/);
+  assert.match(appSource, /<MiniChordBarCountInput/);
 });

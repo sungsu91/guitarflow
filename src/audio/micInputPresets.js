@@ -35,8 +35,10 @@ const PRESET_CONFIGS = Object.freeze({
     detectionGainDb: 1,
     highpassFrequency: 62,
     highpassQ: 0.58,
+    minimumReleaseRms: 0.0012,
     minimumSignalRms: 0.0038,
     noiseMarginDb: 9,
+    releaseNoiseMarginDb: 3,
   }),
 });
 
@@ -44,3 +46,22 @@ export function getMicInputPreset(presetName) {
   return PRESET_CONFIGS[presetName] ?? PRESET_CONFIGS[MIC_INPUT_PRESETS.GUITAR_DETECTION];
 }
 
+export function getMicDetectionThresholds(
+  noiseFloorRms,
+  presetName = MIC_INPUT_PRESETS.GUITAR_DETECTION,
+) {
+  const preset = getMicInputPreset(presetName);
+  const safeNoiseFloor = Number.isFinite(noiseFloorRms) && noiseFloorRms > 0 ? noiseFloorRms : 0;
+  const attackThresholdRms = Math.max(
+    preset.minimumSignalRms,
+    safeNoiseFloor * 10 ** (preset.noiseMarginDb / 20),
+  );
+  const releaseThresholdRms = Math.min(
+    attackThresholdRms,
+    Math.max(
+      preset.minimumReleaseRms ?? preset.minimumSignalRms,
+      safeNoiseFloor * 10 ** ((preset.releaseNoiseMarginDb ?? preset.noiseMarginDb) / 20),
+    ),
+  );
+  return { attackThresholdRms, releaseThresholdRms };
+}

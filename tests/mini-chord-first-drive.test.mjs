@@ -137,27 +137,19 @@ test("the arrangement has an audible energy arc and a clean final G hold", () =>
   assert.deepEqual(final.piano.barSteps.at(-1)[8], { active: true, style: "chord", durationSteps: 7 });
 });
 
-test("the load dialog separates recommendations and saved chords into exclusive tabs", () => {
-  assert.match(appSource, /const recommendedProgressions = items\.filter/);
-  assert.match(appSource, /const userItems = items\.filter/);
-  assert.match(appSource, /const \[activeTab, setActiveTab\] = useState\("recommended"\)/);
-  assert.match(appSource, /role="tablist"/);
-  assert.match(appSource, /role="tabpanel"/);
-  assert.match(appSource, /aria-selected=\{activeTab === "recommended"\}/);
-  assert.match(appSource, /aria-selected=\{activeTab === "saved"\}/);
-  assert.match(appSource, />추천 진행</);
-  assert.match(appSource, />저장된 코드</);
-  assert.match(appSource, />미니코드 불러오기</);
-  assert.match(appSource, /activeTab === "recommended" \? \(/);
-  assert.match(appSource, /activeTab === "saved" \? \(/);
-  assert.match(appSource, /disabled=\{!selectedItemsDeletable\}/);
+test("the load control separates recommendations and saved chords inside one compact menu", () => {
+  assert.match(appSource, /className="miniChordLoadSelect stage3RecommendedLoadSelect stage3UserLoadSelect"/);
+  assert.match(appSource, /optionTabs=\{miniChordLoadLibrary\.optionTabs\}/);
+  assert.match(appSource, /options=\{miniChordLoadLibrary\.options\}/);
+  assert.match(appSource, /managedListMode/);
+  assert.match(appSource, /triggerLabel="불러오기"/);
+  assert.match(appSource, /onChange=\{loadSelectedMiniChordArrangement\}/);
+  assert.match(appSource, /onDeleteSelectedOptions/);
   assert.match(appSource, /items\.filter\(\(item\) => item\.builtIn \|\| !selectedIds\.includes\(item\.id\)\)/);
-  assert.doesNotMatch(appSource, /miniChordRecommendedSelect/);
-  assert.doesNotMatch(appSource, />내 미니코드</);
-  assert.match(appSource, /miniChordLoadLibraryGroup--user/);
-  assert.match(styleSource, /\.miniChordLoadLibraryGroup--recommended/);
-  assert.match(styleSource, /\.miniChordLoadTabs/);
-  assert.match(styleSource, /\.miniChordLoadDialogActions--two/);
+  assert.doesNotMatch(appSource, /function MiniChordLoadDialog/);
+  assert.doesNotMatch(appSource, /\.map\(getMiniChordSlotDisplayLabel\)/);
+  assert.match(styleSource, /\.metronomeSelectPortal\.miniChordLoadSelect/);
+  assert.match(styleSource, /contain: layout paint/);
 });
 
 test("custom playback honors per-section dynamics, held notes and chord boundaries", () => {
@@ -171,15 +163,29 @@ test("custom playback honors per-section dynamics, held notes and chord boundari
   assert.match(appSource, /getBackingPianoGuideToneVoicing/);
 });
 
-test("a loaded mini chord recommendation locks only its in-page accompaniment panel", () => {
+test("a loaded mini chord recommendation locks its built-in structure and accompaniment", () => {
   assert.match(appSource, /const miniChordRecommendedAccompanimentLocked = appMode === APP_MODES\.MINI_CHORD_MAKER/);
   assert.match(appSource, /setMiniChordRecommendedProgressionId\(isRecommendedProgression \? next\.id : ""\)/);
   assert.match(appSource, /disabled=\{miniChordEditLocked \|\| miniChordRecommendedAccompanimentLocked\}/);
-  assert.match(appSource, /const miniChordArrangementEditLocked = miniChordEditLocked;/);
-  assert.doesNotMatch(appSource, /if \(miniChordRecommendedAccompanimentLocked\) return;/);
-  assert.match(appSource, /추천 진행의 미니코드 반주 사운드 패널만 고정되어 있습니다/);
-  assert.equal((appSource.match(/miniChordRecommendedAccompanimentLocked/g) ?? []).length, 2);
+  assert.match(appSource, /const miniChordStructureLocked = miniChordEditLocked \|\| miniChordRecommendedAccompanimentLocked;/);
+  assert.match(appSource, /const miniChordArrangementEditLocked = miniChordStructureLocked;/);
+  assert.match(appSource, /if \(miniChordStructureLocked\) return;/);
+  assert.match(appSource, /추천 기본팩 잠금 · 편집하려면 저장해 사본을 만드세요/);
+  assert.match(appSource, /disabled=\{miniChordStructureLocked\}/);
   assert.match(appSource, /libraryType: miniChordRecommendedProgressionId \? "recommended-progression" : "user"/);
+});
+
+test("bar controls keep the familiar presets, add inline input and place history below", () => {
+  const measureStripIndex = appSource.indexOf('<div className="miniChordMeasureStrip"');
+  const editToolbarIndex = appSource.indexOf('<div className="miniChordEditToolbar"');
+
+  assert.match(appSource, /const MINI_CHORD_BAR_OPTIONS = \[4, 8, 16, 32, 64\]/);
+  assert.doesNotMatch(appSource, /MINI_CHORD_BAR_OPTIONS = \[[^\]]*96/);
+  assert.match(appSource, /aria-label="마디 수 직접 입력"/);
+  assert.match(appSource, /const retainedBarCount = Math\.max\(/);
+  assert.match(appSource, /normalizeMiniChordSlots\(slots, retainedBarCount\)/);
+  assert.ok(measureStripIndex >= 0);
+  assert.ok(editToolbarIndex > measureStripIndex);
 });
 
 test("a HOLD token cannot suppress the root attack of an explicit half-bar chord", () => {

@@ -227,6 +227,52 @@ body:has(main.app.theme-brand.viewport-mobile-surface.miniChordMakerMode)
     color: var(--theme-accent-strong) !important;
   }
 
+  /* Stage 3 transport states: available actions stay bright; Count OFF is
+     intentionally subdued without disabling the count-in toggle. */
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .stage3BpmTransportCard
+    .stage3BpmActionPanel
+    > :is(.metronomeHeroTapTempoButton, .metronomeHeroPlayButton, .metronomeHeroPauseButton):not(:disabled) {
+    color: #f3d393 !important;
+    opacity: 1 !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .stage3BpmTransportCard
+    .stage3BpmActionPanel
+    > :is(.metronomeHeroTapTempoButton, .metronomeHeroPlayButton, .metronomeHeroPauseButton):not(:disabled)
+    :is(.metronomeHeroActionText, .metronomeHeroActionIcon, .tapTempoIconCrop, .tapTempoGlyph, svg) {
+    color: inherit !important;
+    -webkit-text-fill-color: currentColor !important;
+    opacity: 1 !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .stage3BpmTransportCard
+    .stage3BpmActionPanel
+    > button.metronomeHeroCountInButton:not(.selected):not([aria-pressed="true"]) {
+    color: rgba(196, 190, 174, 0.42) !important;
+    opacity: 0.58 !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .stage3BpmTransportCard
+    .stage3BpmActionPanel
+    > button.metronomeHeroCountInButton:not(.selected):not([aria-pressed="true"])
+    :is(span, svg) {
+    color: inherit !important;
+    -webkit-text-fill-color: currentColor !important;
+    opacity: 1 !important;
+  }
+
+  html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
+    .stage3BpmTransportCard
+    .stage3BpmActionPanel
+    > button.metronomeHeroCountInButton:is(.selected, [aria-pressed="true"]) {
+    color: #f3d393 !important;
+    opacity: 1 !important;
+  }
+
   /* Rhythm-code (Stage 3) landscape workstation */
   html body #root main.app.app.app.theme-brand.practiceMode.viewport-mobile-surface.viewport-landscape.landscapePlayFocus
     .stage3ProgressHud > .stage3ReferenceBeatMetronomeStrip {

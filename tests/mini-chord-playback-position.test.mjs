@@ -13,8 +13,11 @@ import {
 import {
   getMiniChordBoundarySafeDuration,
   getMiniChordExplicitSlotFallbackDuration,
+  getMiniChordPianoHumanizeOffset,
   getMiniChordPianoPatternLevel,
   getMiniChordPianoStepProfile,
+  getMiniChordPianoTransitionRelease,
+  getMiniChordPianoVelocityRatio,
   isMiniChordSectionBoundary,
   shouldAddMiniChordExplicitSlotFallback,
   shouldSmoothMiniChordPianoCommonTone,
@@ -153,7 +156,7 @@ test("explicit backbeat fallback uses a short pattern attack instead of sustaini
   });
 
   assert.equal(bassDuration, 0.2);
-  assert.ok(Math.abs(pianoDuration - 0.45) < 0.000001);
+  assert.ok(Math.abs(pianoDuration - 0.6) < 0.000001);
   assert.ok(bassDuration < measureSeconds * 0.82);
   assert.ok(pianoDuration < measureSeconds * 0.82);
 });
@@ -210,21 +213,25 @@ test("audio-clock visual position changes exactly at each half-bar boundary", ()
 });
 
 test("8-beat piano has enough event level to stay audible in the band mix", () => {
-  assert.equal(getMiniChordPianoPatternLevel("8beat"), 0.28);
+  assert.equal(getMiniChordPianoPatternLevel("8beat"), 0.29);
   assert.ok(getMiniChordPianoPatternLevel("8beat") > getMiniChordPianoPatternLevel("16beat"));
 });
 
 test("8-beat piano pulses keep an audible body and immediate attack", () => {
+  const stepSeconds = 60 / 92 / 4;
   const profile = getMiniChordPianoStepProfile({
-    measureSeconds: 1.2,
+    measureSeconds: 60 / 92 * 4,
     overlapRatio: 1.04,
     pattern: "8beat",
-    stepSeconds: 0.15,
+    stepSeconds,
     style: "stab",
   });
 
-  assert.equal(profile.level, 0.28);
-  assert.equal(profile.duration, 0.24);
+  assert.equal(profile.level, 0.29);
+  assert.ok(profile.duration >= 0.18 && profile.duration <= 0.28);
+  assert.ok(profile.releaseSeconds >= 0.35 && profile.releaseSeconds <= 0.55);
+  assert.ok(profile.decaySeconds >= 0.35);
+  assert.ok(profile.sustainLevel >= 0.35);
   assert.equal(profile.commonToneSmoothing, false);
   assert.equal(shouldSmoothMiniChordPianoCommonTone("8beat", "chord"), false);
   assert.equal(shouldSmoothMiniChordPianoCommonTone("basic", "chord"), true);
@@ -239,8 +246,33 @@ test("recommended piano HOLD sustains the available chord window", () => {
   });
 
   assert.equal(profile.duration, 1.96);
-  assert.equal(profile.level, 0.25);
+  assert.equal(profile.level, 0.28);
+  assert.equal(profile.releaseSeconds, 1);
   assert.equal(profile.commonToneSmoothing, false);
+});
+
+test("piano release follows one-beat, two-beat, four-beat, and ending boundaries", () => {
+  const beatSeconds = 60 / 92;
+  const oneBeat = getMiniChordPianoTransitionRelease({ beatSeconds, chordSpanSeconds: beatSeconds, releaseSeconds: 0.7 });
+  const twoBeat = getMiniChordPianoTransitionRelease({ beatSeconds, chordSpanSeconds: beatSeconds * 2, releaseSeconds: 0.7 });
+  const fourBeat = getMiniChordPianoTransitionRelease({ beatSeconds, chordSpanSeconds: beatSeconds * 4, releaseSeconds: 0.7 });
+  const ending = getMiniChordPianoTransitionRelease({ beatSeconds, chordSpanSeconds: beatSeconds * 4, endingHold: true, releaseSeconds: 1.5 });
+
+  assert.ok(oneBeat >= 0.15 && oneBeat <= 0.25);
+  assert.ok(twoBeat >= 0.18 && twoBeat <= 0.25);
+  assert.ok(fourBeat >= 0.35 && fourBeat <= 0.6);
+  assert.ok(ending >= 1.2 && ending <= 2);
+});
+
+test("piano chord voices use subtle deterministic timing and velocity humanization", () => {
+  assert.equal(getMiniChordPianoHumanizeOffset(0, 0, "chord"), 0);
+  assert.ok(getMiniChordPianoHumanizeOffset(1, 0, "chord") >= 0.008);
+  assert.ok(getMiniChordPianoHumanizeOffset(2, 0, "chord") > getMiniChordPianoHumanizeOffset(1, 0, "chord"));
+  assert.equal(getMiniChordPianoHumanizeOffset(2, 0, "arpUp"), 0);
+  for (let index = 0; index < 8; index += 1) {
+    const ratio = getMiniChordPianoVelocityRatio(index, 2, "arpUp");
+    assert.ok(ratio >= 0.78 && ratio <= 1);
+  }
 });
 
 test("section boundaries keep the final piano and bass tails inside the outgoing bar", () => {

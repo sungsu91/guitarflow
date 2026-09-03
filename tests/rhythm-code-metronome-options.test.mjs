@@ -6,6 +6,8 @@ const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "ut
 const appCss = await readFile(new URL("../src/style.css", import.meta.url), "utf8");
 const polishCss = await readFile(new URL("../src/polish.css", import.meta.url), "utf8");
 const desktopCss = await readFile(new URL("../src/layouts/desktop-layout.css", import.meta.url), "utf8");
+const responsiveCss = await readFile(new URL("../src/layouts/responsive-play-focus.css", import.meta.url), "utf8");
+const mobileDarkCss = await readFile(new URL("../src/layouts/mobile-dark-theme.css", import.meta.url), "utf8");
 
 function getSourceRange(startMarker, endMarker) {
   const start = appSource.indexOf(startMarker);
@@ -34,10 +36,16 @@ test("rhythm code places its four metronome dropdowns above accompaniment", () =
   assert.match(optionsBlock, /onWeakToneChange=\{changeStage3MetronomeWeakTone\}/);
   assert.match(optionsBlock, /onOptionsCollapseChange=\{isMobileLayout \? setStage3MetronomeOptionsCollapsed : null\}/);
   assert.match(optionsBlock, /optionsCollapsed=\{isMobileLayout && stage3MetronomeOptionsCollapsed\}/);
-  assert.match(appSource, /className="sharedAccompanimentPanel--training"\s+defaultExpanded=\{!isMobileLayout\}/);
+  assert.match(
+    appSource,
+    /className="sharedAccompanimentPanel--training"\s+defaultExpanded=\{!isMobileLayout \|\| !viewportProfile\.isLandscape\}/,
+  );
   assert.doesNotMatch(optionsBlock, /changeTrainingMetronomeTimeSignature|changeMetronomeAccentTone|changeMetronomeWeakTone/);
   assert.equal((appSource.match(/onOptionsCollapseChange=\{isMobileLayout/g) ?? []).length, 1);
-  assert.match(appSource, /stage3MetronomeOptionsCollapsed, setStage3MetronomeOptionsCollapsed\] = useState\(true\)/);
+  assert.match(
+    appSource,
+    /stage3MetronomeOptionsCollapsed, setStage3MetronomeOptionsCollapsed\] = useState\(\s*\(\) => viewportProfile\.isMobileSurface && viewportProfile\.isLandscape/,
+  );
   assert.match(appSource, /optionsCollapsed \? "펼침" : "접기"/);
 });
 
@@ -158,12 +166,16 @@ test("desktop rhythm transport reuses the metronome card without sharing playbac
   assert.match(stage3Transport, /<MetronomeTransportCard/);
   assert.match(stage3Transport, /bpmPreviewKey="stage3"/);
   assert.match(stage3Transport, /isPlaying=\{isStage3Playing\}/);
+  assert.match(stage3Transport, /isPaused=\{isStage3Paused\}/);
   assert.match(stage3Transport, /onBpmChange=\{changeStage3Bpm\}/);
   assert.match(stage3Transport, /onCardPointerDown=\{handleStage3BpmSwipeStart\}/);
   assert.match(stage3Transport, /onCountInChange=\{changeStage3CountIn\}/);
+  assert.match(stage3Transport, /onPause=\{pauseStage3Practice\}/);
+  assert.match(stage3Transport, /onResume=\{resumeStage3Practice\}/);
   assert.match(stage3Transport, /onStart=\{startStage3Practice\}/);
   assert.match(stage3Transport, /onStop=\{stopStage3Practice\}/);
   assert.match(stage3Transport, /onTapTempo=\{handleStage3TapTempo\}/);
+  assert.match(stage3Transport, /showPause/);
   assert.doesNotMatch(stage3Transport, /onStart=\{startMetronomePractice\}|onStop=\{stopMetronomePlayback\}/);
 
   const standaloneStart = getSourceRange("const startMetronomePractice", "const resetMetronomePractice");
@@ -175,9 +187,41 @@ test("desktop rhythm transport reuses the metronome card without sharing playbac
   assert.match(stage3Start, /METRONOME_SETTING_SCOPES\.STAGE3/);
   assert.match(stage3Start, /startPractice\(selectedCategory\)/);
   assert.match(stage3Start, /stopPracticeSession\(\)/);
+  assert.match(stage3Start, /pauseGame\(\)/);
+  assert.match(stage3Start, /resumeGame\(\)/);
 
   assert.match(desktopCss, /stage3StandaloneTransportDeck > \.metronomeHeroCard--interactive \{[\s\S]*padding: 14px 18px 24px !important/);
   assert.doesNotMatch(desktopCss, /stage3ProgressHud \.stage3StartControlCluster/);
+});
+
+test("rhythm code pause preserves its backing position and resumes from the same offset", () => {
+  const pauseSource = getSourceRange("const pauseGame", "const resumeGame");
+  const resumeSource = getSourceRange("const resumeGame", "const portraitOnlyModeActive");
+  const transportSource = getSourceRange("function MetronomeTransportCard", "function MetronomeVisualLabPickSwing");
+
+  assert.match(pauseSource, /backingPausedOffsetSecondsRef\.current = elapsedSeconds % session\.cycleSeconds/);
+  assert.match(pauseSource, /stopBackingScheduler\(\)/);
+  assert.match(pauseSource, /setState\(GAME_STATES\.PAUSED\)/);
+  assert.doesNotMatch(pauseSource, /gameTimeRef\.current = 0/);
+
+  assert.match(resumeSource, /startBackingScheduler\([\s\S]*backingPausedOffsetSecondsRef\.current/);
+  assert.match(resumeSource, /setState\(GAME_STATES\.PLAYING\)/);
+  assert.match(transportSource, /metronomeHeroPauseButton/);
+  assert.match(transportSource, /const pauseVisible = showPause && playbackSessionActive/);
+  assert.match(transportSource, /const pauseButton = pauseVisible \?/);
+  assert.match(transportSource, /pauseVisible \? "metronomeHeroActionPanel--with-pause"/);
+  assert.match(transportSource, /isPaused \? <Play[\s\S]*: <Pause/);
+  assert.match(transportSource, /playbackSessionActive \? "STOP"/);
+  assert.match(appCss, /stage3BpmActionPanel\.metronomeHeroActionPanel--with-pause[\s\S]*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(
+    responsiveCss,
+    /stage3BpmActionPanel \{[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)[\s\S]*stage3BpmActionPanel\.metronomeHeroActionPanel--with-pause \{[\s\S]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/,
+  );
+  assert.match(mobileDarkCss, /Stage 3 transport states: available actions stay bright/);
+  assert.match(
+    mobileDarkCss,
+    /metronomeHeroCountInButton:not\(\.selected\):not\(\[aria-pressed="true"\]\)[\s\S]*opacity: 0\.58 !important/,
+  );
 });
 
 test("rhythm code metronome sound controls only the dedicated click track", () => {
@@ -230,7 +274,11 @@ test("mobile lower cards open from the metronome headline and clear the fixed na
   );
   assert.match(
     appCss,
-    /sharedAccompanimentPanel--training\[open\][\s\S]*metronomeOptions:not\(\.metronomeOptions--collapsed\)[\s\S]*min-height: calc\(100dvh \+ 64px\) !important/,
+    /sharedAccompanimentPanel--training\[open\][\s\S]*min-height: calc\(100dvh \+ 172px \+ env\(safe-area-inset-bottom, 0px\)\) !important;[\s\S]*scroll-padding-bottom: calc\(188px \+ env\(safe-area-inset-bottom, 0px\)\) !important/,
+  );
+  assert.match(
+    appCss,
+    /Metronome options alone only need the original short scroll runway[\s\S]*metronomeOptions:not\(\.metronomeOptions--collapsed\)[\s\S]*min-height: calc\(100dvh \+ 64px\) !important/,
   );
 });
 

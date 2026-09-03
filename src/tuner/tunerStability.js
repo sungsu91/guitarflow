@@ -1,15 +1,87 @@
 import { centsBetween, getMedian } from "./tunerMath.js";
 
-export const TUNER_ATTACK_GUARD_MS = 104;
+export const TUNER_ATTACK_GUARD_MS = 80;
 export const TUNER_COMPLETION_ENTER_CENTS = 3;
 export const TUNER_COMPLETION_EXIT_CENTS = 4.5;
-export const TUNER_COMPLETION_HOLD_MS = 208;
+export const TUNER_COMPLETION_HOLD_MS = 320;
 export const TUNER_FREQUENCY_HISTORY_SIZE = 5;
 export const TUNER_JUMP_CONFIRM_FRAMES = 3;
+export const TUNER_MANUAL_DECAY_OUTLIER_CENTS = 250;
 export const TUNER_OUTLIER_CENTS = 32;
+export const TUNER_NO_SIGNAL_TIMEOUT_MS = 720;
+
+export const TUNER_SIGNAL_PHASES = Object.freeze({
+  ACQUIRED: "ACQUIRED",
+  DECAYING: "DECAYING",
+  LISTENING: "LISTENING",
+  NO_SIGNAL: "NO_SIGNAL",
+  STABLE: "STABLE",
+});
 
 const TUNER_JUMP_CLUSTER_CENTS = 18;
+const TUNER_ATTACK_CLUSTER_CENTS = 45;
 const TUNER_MANUAL_OCTAVE_RANGE_CENTS = 90;
+
+export function createTunerSignalState() {
+  return {
+    acquired: false,
+    lastValidPitchAt: null,
+    lowSignalStartedAt: null,
+    phase: TUNER_SIGNAL_PHASES.LISTENING,
+  };
+}
+
+export function resetTunerSignalState(state) {
+  Object.assign(state, createTunerSignalState());
+  return state;
+}
+
+export function updateTunerSignalState(
+  state,
+  {
+    now,
+    pitchPresent,
+    releasePresent,
+    stable = false,
+  },
+) {
+  if (!Number.isFinite(now)) {
+    return { hasSignal: state.acquired, phase: state.phase, shouldClear: false };
+  }
+
+  if (pitchPresent) {
+    state.acquired = true;
+    state.lastValidPitchAt = now;
+    state.lowSignalStartedAt = null;
+    state.phase = !releasePresent
+      ? TUNER_SIGNAL_PHASES.DECAYING
+      : stable
+        ? TUNER_SIGNAL_PHASES.STABLE
+        : TUNER_SIGNAL_PHASES.ACQUIRED;
+    return { hasSignal: true, phase: state.phase, shouldClear: false };
+  }
+
+  if (!state.acquired) {
+    if (state.phase !== TUNER_SIGNAL_PHASES.NO_SIGNAL) state.phase = TUNER_SIGNAL_PHASES.LISTENING;
+    return { hasSignal: false, phase: state.phase, shouldClear: false };
+  }
+
+  state.phase = TUNER_SIGNAL_PHASES.DECAYING;
+  if (releasePresent) {
+    state.lowSignalStartedAt = null;
+    return { hasSignal: true, phase: state.phase, shouldClear: false };
+  }
+
+  state.lowSignalStartedAt ??= now;
+  if (now - state.lowSignalStartedAt < TUNER_NO_SIGNAL_TIMEOUT_MS) {
+    return { hasSignal: true, phase: state.phase, shouldClear: false };
+  }
+
+  state.acquired = false;
+  state.lowSignalStartedAt = null;
+  state.phase = TUNER_SIGNAL_PHASES.NO_SIGNAL;
+  return { hasSignal: false, phase: state.phase, shouldClear: true };
+}
 
 function medianFrequency(frequencies) {
   const medianLogFrequency = getMedian(
@@ -65,6 +137,7 @@ export function resolveManualTunerOctave(rawFrequency, targetFrequency) {
 export function updateTunerFrequencyState(
   state,
   {
+    allowLargeJump = true,
     manualTargetFrequency = null,
     now,
     rawFrequency,
@@ -85,13 +158,19 @@ export function updateTunerFrequencyState(
       candidateFrequency,
     ];
     const attackElapsed = now - state.attackStartedAt;
-    if (attackElapsed < TUNER_ATTACK_GUARD_MS || state.attackFrequencies.length < 3) {
+    const attackMedian = medianFrequency(state.attackFrequencies);
+    const attackCluster = attackMedian == null
+      ? []
+      : state.attackFrequencies.filter((frequency) => (
+          Math.abs(centsBetween(frequency, attackMedian)) <= TUNER_ATTACK_CLUSTER_CENTS
+        ));
+    if (attackElapsed < TUNER_ATTACK_GUARD_MS || attackCluster.length < 3) {
       return { accepted: false, frequency: null, stage: "attack" };
     }
 
-    const initialFrequency = medianFrequency(state.attackFrequencies) ?? candidateFrequency;
+    const initialFrequency = medianFrequency(attackCluster) ?? candidateFrequency;
     state.frequency = initialFrequency;
-    state.history = [...state.attackFrequencies];
+    state.history = [...attackCluster];
     state.pendingFrequencies = [];
     return {
       accepted: true,
@@ -102,6 +181,20 @@ export function updateTunerFrequencyState(
   }
 
   const jumpCents = Math.abs(centsBetween(candidateFrequency, state.frequency));
+  if (
+    manualTargetFrequency != null
+    && !allowLargeJump
+    && jumpCents > TUNER_MANUAL_DECAY_OUTLIER_CENTS
+  ) {
+    state.pendingFrequencies = [];
+    return {
+      accepted: false,
+      frequency: state.frequency,
+      octaveAdjusted: candidateFrequency !== rawFrequency,
+      stage: "decay-outlier",
+    };
+  }
+
   if (jumpCents > TUNER_OUTLIER_CENTS) {
     const pendingMedian = medianFrequency(state.pendingFrequencies);
     const belongsToPendingCluster = pendingMedian != null

@@ -33,9 +33,25 @@ export function getShooterMobileViewportFrame({
 
 export function getShooterMobileViewportSnapshot(targetWindow = window) {
   const viewport = getViewportProfile(targetWindow);
-
-  return getShooterMobileViewportFrame({
-    viewportHeight: viewport.height || SHOOTER_MOBILE_CANVAS_HEIGHT,
-    viewportWidth: viewport.width || SHOOTER_MOBILE_CANVAS_WIDTH,
+  const portraitLocked = Boolean(viewport.isLandscape && viewport.isMobileSurface);
+  const frame = getShooterMobileViewportFrame({
+    viewportHeight: portraitLocked
+      ? viewport.width || SHOOTER_MOBILE_CANVAS_HEIGHT
+      : viewport.height || SHOOTER_MOBILE_CANVAS_HEIGHT,
+    viewportWidth: portraitLocked
+      ? viewport.height || SHOOTER_MOBILE_CANVAS_WIDTH
+      : viewport.width || SHOOTER_MOBILE_CANVAS_WIDTH,
   });
+
+  if (!portraitLocked) return { ...frame, rotation: 0 };
+
+  // Screen Orientation locking is unavailable in several mobile browsers.
+  // Rotate the complete portrait canvas as one unit in that fallback case so
+  // turning the phone cannot reflow it into a narrow upright column.
+  return {
+    ...frame,
+    left: frame.top + frame.height,
+    rotation: 90,
+    top: frame.left,
+  };
 }

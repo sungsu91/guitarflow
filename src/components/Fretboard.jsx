@@ -34,6 +34,7 @@ const NOTE_COLORS = {
 const notePressFeedbacks = new WeakMap();
 const BARRE_LONG_PRESS_MS = 460;
 const BARRE_MOVE_TOLERANCE_PX = 10;
+const FRET_WINDOW_TRANSITION_MS = 150;
 
 function triggerNotePressFeedback(element) {
   if (!element) return;
@@ -166,6 +167,7 @@ function getTabStepDisplay(step) {
 }
 
 function Fretboard({
+  animateFretWindow = false,
   barres = [],
   className = "",
   editable = false,
@@ -193,6 +195,8 @@ function Fretboard({
   const fretboardScrollerRef = useRef(null);
   const barreGestureRef = useRef(null);
   const barreLongPressTimerRef = useRef(null);
+  const fretWindowAnimationRef = useRef(null);
+  const previousVisualStartFretRef = useRef(null);
   const suppressedEditableClickRef = useRef(null);
   const [startFret, endFret] = normalizeFretRange(fretRange);
   const visualStartFret = Math.max(1, startFret);
@@ -460,9 +464,43 @@ function Fretboard({
     }
   }, []);
 
+  useEffect(() => {
+    const previousStartFret = previousVisualStartFretRef.current;
+    previousVisualStartFretRef.current = visualStartFret;
+    if (
+      !animateFretWindow
+      || previousStartFret == null
+      || previousStartFret === visualStartFret
+      || typeof window === "undefined"
+      || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    ) return undefined;
+
+    const scroller = fretboardScrollerRef.current;
+    if (!scroller || typeof scroller.animate !== "function") return undefined;
+    fretWindowAnimationRef.current?.cancel();
+    const direction = visualStartFret > previousStartFret ? 1 : -1;
+    const animation = scroller.animate(
+      [
+        { opacity: 0.86, transform: `translateX(${direction * 8}px)` },
+        { opacity: 1, transform: "translateX(0)" },
+      ],
+      {
+        duration: FRET_WINDOW_TRANSITION_MS,
+        easing: "cubic-bezier(0.22, 0.72, 0.25, 1)",
+      },
+    );
+    fretWindowAnimationRef.current = animation;
+    animation.onfinish = () => {
+      if (fretWindowAnimationRef.current === animation) fretWindowAnimationRef.current = null;
+    };
+    animation.oncancel = animation.onfinish;
+    return () => animation.cancel();
+  }, [animateFretWindow, visualStartFret]);
+
   return (
     <div
       className={`fretboardComponent fretboardComponent--${mode} ${isTabMode ? "fretboardComponent--tab" : ""} ${editable ? "fretboardComponent--editable" : ""} ${className}`}
+      data-fret-window-start={isTabMode ? undefined : visualStartFret}
       onClick={editable ? () => {
         setDeleteTargetKey("");
         setBarreDeleteTargetKey("");
@@ -478,7 +516,7 @@ function Fretboard({
         {showFretNumbers && (
           <div className="fretboardFretNumbers" style={{ gridTemplateColumns: `repeat(${displayColumns.length}, minmax(34px, 1fr))` }}>
             {displayColumns.map((item, index) => (
-              <span className={isTabMode && item.isActive ? "active" : ""} key={isTabMode ? item.tabId : item}>
+              <span className={isTabMode && item.isActive ? "active" : ""} key={isTabMode ? item.tabId : `fret-number-slot-${index}`}>
                 {isTabMode ? item.order ?? index + 1 : item}
               </span>
             ))}
@@ -486,7 +524,7 @@ function Fretboard({
         )}
         <div className="fretboardGrid" style={{ gridTemplateColumns: `repeat(${displayColumns.length}, minmax(34px, 1fr))` }}>
           {displayColumns.map((item, index) => (
-            <i key={isTabMode ? `step-${item.tabId}` : `fret-${item ?? index}`} />
+            <i key={isTabMode ? `step-${item.tabId}` : `fret-grid-slot-${index}`} />
           ))}
         </div>
         <div className="fretboardStrings">
@@ -498,7 +536,11 @@ function Fretboard({
             const isOpenCurrent = Boolean(openNote?.isCurrent || openNote?.current || openNote?.isActive);
             const isOpenSelected = Boolean(openNote && (selected.size === 0 || selected.has(openNote.noteName)));
             return (
-              <div className="fretboardStringRow" key={stringInfo.stringNumber}>
+              <div
+                className={`fretboardStringRow ${String(stringState).toLowerCase() === "x" ? "muted" : ""}`}
+                data-string-state={stringState || undefined}
+                key={stringInfo.stringNumber}
+              >
                 {showStringNames && (
                   <span>
                     {stringInfo.stringNumber}번줄 {getPitchClass(stringInfo.pitch)}
@@ -560,7 +602,7 @@ function Fretboard({
               aria-label={editable ? `${fret}프렛 ${topString}번줄부터 ${bottomString}번줄 바레 삭제 메뉴 열기` : undefined}
               className={`fretboardBarre ${editable ? "fretboardBarre--editable" : ""} ${isDeleteMenuOpen ? "delete-menu-open" : ""}`}
               data-fretboard-barre-delete-target={editable ? barreKey : undefined}
-              key={`barre-${fret}-${fromString}-${toString}-${index}`}
+              key={barre.id ?? `barre-${fret}-${fromString}-${toString}-${index}`}
               onClick={editable ? (event) => openBarreDeleteMenu(event, barre) : undefined}
               onContextMenu={editable ? preventEditableContextMenu : undefined}
               onKeyDown={editable ? (event) => handleBarreKeyDown(event, barre) : undefined}

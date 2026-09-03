@@ -67,8 +67,11 @@ test("mini chord recommendations lock only the in-page panel while shared menus 
 
   assert.match(panelSource, /disabled=\{disabled\}/);
   assert.match(panelSource, /data-accompaniment-locked=\{disabled \? "true" : undefined\}/);
+  assert.match(panelSource, /disabled && lockedNotice[\s\S]*sharedAccompanimentLockNotice[\s\S]*\{lockedNotice\}/);
   assert.match(miniChordPanelSource, /disabled=\{miniChordEditLocked \|\| miniChordRecommendedAccompanimentLocked\}/);
   assert.match(trainingPanelSource, /disabled=\{stage3RecommendedAccompanimentLocked\}/);
+  assert.match(trainingPanelSource, /lockedNotice="기본 제공 팩은 수정할 수 없습니다"/);
+  assert.doesNotMatch(miniChordPanelSource, /lockedNotice=/);
   assert.match(appSource, /accompanimentControlsDisabled=\{stage3RecommendedAccompanimentLocked\}/);
   assert.match(mobileUtilitySource, /disabled=\{stage3RecommendedAccompanimentLocked\}/);
   assert.doesNotMatch(mobileUtilitySource, /miniChordRecommendedAccompanimentLocked/);
@@ -84,6 +87,7 @@ test("light theme accompaniment buttons never switch to a black pressed state", 
   assert.match(lightSelectedRule, /button:active/);
   assert.doesNotMatch(lightSelectedRule, /#2b2f32|background:\s*black/);
   assert.match(appCss, /sharedAccompanimentSettingsButton:active[\s\S]*#fffefb/);
+  assert.match(appCss, /\.sharedAccompanimentLockNotice \{[\s\S]*font-size: 10px !important;[\s\S]*font-weight: 850 !important;/);
 });
 
 test("light theme accompaniment volume rails replace the native dark range chrome", () => {

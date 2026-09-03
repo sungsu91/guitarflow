@@ -5308,6 +5308,32 @@ html body main.app.app.app .shooterArena .shooterCenterStatus--startMenu .shoote
   pointer-events: none;
 }
 
+.shooterArena .enemy.shooterEnemy .shooterScenarioDirectionCue {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 18px;
+  border: 1px solid rgba(229, 246, 255, 0.48);
+  border-radius: 999px;
+  background: rgba(5, 15, 20, 0.78);
+  color: rgba(220, 246, 255, 0.92);
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1;
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.shooterArena .enemy.shooterEnemy .shooterScenarioDirectionCue--descending {
+  border-color: rgba(255, 219, 163, 0.5);
+  color: #ffe2ad;
+}
+
 .shooterEnemyMonsterAsset {
   position: absolute;
   inset: 0;
@@ -17182,6 +17208,9 @@ button.primary svg {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
+  opacity: 1 !important;
+  filter: none !important;
+  justify-content: center;
   gap: 8px;
   min-width: 142px;
   min-height: 48px;
@@ -22082,6 +22111,17 @@ textarea,
   html body main.app.app.app
     .chordTransitionPanel.chordTransitionPanel
     .stage3BpmTransportCard.stage3BpmTransportCard
+    .stage3BpmActionPanel.metronomeHeroActionPanel--with-pause {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    background:
+      linear-gradient(to right, transparent 0 calc(25% - 0.5px), rgba(169, 123, 66, 0.15) calc(25% - 0.5px) calc(25% + 0.5px), transparent calc(25% + 0.5px) 100%),
+      linear-gradient(to right, transparent 0 calc(50% - 0.5px), rgba(169, 123, 66, 0.15) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px) 100%),
+      linear-gradient(to right, transparent 0 calc(75% - 0.5px), rgba(169, 123, 66, 0.15) calc(75% - 0.5px) calc(75% + 0.5px), transparent calc(75% + 0.5px) 100%) !important;
+  }
+
+  html body main.app.app.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
     .stage3BpmActionPanel::before,
   html body main.app.app.app
     .chordTransitionPanel.chordTransitionPanel
@@ -22095,7 +22135,7 @@ textarea,
     .chordTransitionPanel.chordTransitionPanel
     .stage3BpmTransportCard.stage3BpmTransportCard
     .stage3BpmActionPanel
-    :is(.metronomeHeroPlayButton, .metronomeHeroTapTempoButton, .metronomeHeroCountInButton) {
+    :is(.metronomeHeroPlayButton, .metronomeHeroPauseButton, .metronomeHeroTapTempoButton, .metronomeHeroCountInButton) {
     all: unset !important;
     box-sizing: border-box !important;
     position: relative !important;
@@ -22117,7 +22157,7 @@ textarea,
     .chordTransitionPanel.chordTransitionPanel
     .stage3BpmTransportCard.stage3BpmTransportCard
     .stage3BpmActionPanel
-    :is(.metronomeHeroPlayButton, .metronomeHeroTapTempoButton, .metronomeHeroCountInButton):disabled {
+    :is(.metronomeHeroPlayButton, .metronomeHeroPauseButton, .metronomeHeroTapTempoButton, .metronomeHeroCountInButton):disabled {
     cursor: not-allowed !important;
     opacity: 0.48 !important;
   }
@@ -25721,11 +25761,11 @@ body {
   }
 }
 
-/* Mini chord CAPO: shared state, compact platform-specific presentation above the bar grid. */
-html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoControlBar {
+/* Mini chord whole-key transpose: shared logic with compact responsive presentation. */
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeControlBar {
   display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: 6px !important;
   width: 100% !important;
   min-height: 32px !important;
   margin: 7px 0 0 !important;
@@ -25739,49 +25779,37 @@ html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniC
   box-shadow: inset 0 1px 0 rgba(255, 246, 214, 0.06) !important;
 }
 
-html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoReadout {
-  display: inline-flex !important;
-  align-items: baseline !important;
-  gap: 5px !important;
-  white-space: nowrap !important;
-}
-
-html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoReadout span,
-html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoScope {
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeScope,
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeKey span {
   color: rgba(255, 232, 181, 0.75) !important;
   font-size: 9px !important;
   font-weight: 900 !important;
   letter-spacing: 0.05em !important;
 }
 
-html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoReadout strong {
-  min-width: 13px !important;
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeAmount {
+  min-width: 22px !important;
   color: #fff4d7 !important;
-  font-size: 14px !important;
+  font-size: 12px !important;
   font-weight: 1000 !important;
   line-height: 1 !important;
   text-align: center !important;
 }
 
-html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoScope {
-  flex: 1 1 auto !important;
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeScope {
   letter-spacing: 0 !important;
+  white-space: nowrap !important;
 }
 
-html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact :is(
-  .miniChordCapoStepControls,
-  .miniChordCapoAccidentalControls
-) {
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeStepControls {
   display: inline-grid !important;
   grid-auto-flow: column !important;
   grid-auto-columns: 25px !important;
   gap: 3px !important;
 }
 
-html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact :is(
-  .miniChordCapoStepControls,
-  .miniChordCapoAccidentalControls
-) button {
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeStepControls button,
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact button.miniChordTransposeReset {
   display: grid !important;
   place-items: center !important;
   min-width: 25px !important;
@@ -25799,77 +25827,124 @@ html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact :is(
   box-shadow: inset 0 1px 0 rgba(255, 246, 214, 0.05) !important;
 }
 
+html body main.app.app.app.miniChordMakerMode .miniChordOperationIndicator {
+  position: fixed !important;
+  z-index: 10080 !important;
+  top: 50% !important;
+  left: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  min-height: 34px !important;
+  padding: 7px 12px !important;
+  border: 1px solid rgba(224, 185, 111, 0.4) !important;
+  border-radius: 999px !important;
+  background: rgba(31, 23, 14, 0.9) !important;
+  color: #fff0c9 !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
+  transform: translate(-50%, -50%) !important;
+  box-shadow: 0 8px 22px rgba(15, 10, 5, 0.2) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordOperationIndicator[hidden] {
+  display: none !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordOperationIndicator svg {
+  animation: miniChordOperationSpin 0.75s linear infinite !important;
+}
+
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordOperationIndicator {
+  border-color: rgba(140, 94, 37, 0.28) !important;
+  background: rgba(255, 252, 245, 0.94) !important;
+  color: #513614 !important;
+}
+
+@keyframes miniChordOperationSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact :is(
-  .miniChordCapoStepControls,
-  .miniChordCapoAccidentalControls
-) button:disabled {
+  .miniChordTransposeStepControls button,
+  .miniChordTransposeReset
+):disabled {
   cursor: not-allowed !important;
   opacity: 0.3 !important;
 }
 
-html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoAccidentalControls button.selected {
-  border-color: rgba(255, 225, 157, 0.82) !important;
-  background: linear-gradient(180deg, #e9bf71, #b77a2c) !important;
-  color: #241506 !important;
-  box-shadow: inset 0 1px 0 rgba(255, 250, 227, 0.5), 0 1px 5px rgba(146, 91, 25, 0.2) !important;
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeReset {
+  font-size: 10px !important;
 }
 
-html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoControlBar + .miniChordTimelinePanelCompact {
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeKey {
+  display: inline-flex !important;
+  flex: 1 1 auto !important;
+  align-items: baseline !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  white-space: nowrap !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeKey strong {
+  overflow: hidden !important;
+  color: #fff4d7 !important;
+  font-size: 10px !important;
+  font-weight: 1000 !important;
+  text-overflow: ellipsis !important;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeControlBar + .miniChordTimelinePanelCompact {
   margin-top: 6px !important;
 }
 
-html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoControlBar {
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeControlBar {
   border-color: rgba(157, 111, 52, 0.3) !important;
   background: linear-gradient(180deg, rgba(255, 253, 247, 0.94), rgba(244, 234, 215, 0.8)) !important;
   color: #3c2a15 !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
 }
 
-html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoReadout span,
-html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoScope {
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeScope,
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeKey span {
   color: rgba(76, 50, 22, 0.68) !important;
 }
 
-html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoReadout strong {
+html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact :is(
+  .miniChordTransposeAmount,
+  .miniChordTransposeKey strong
+) {
   color: #261a0d !important;
 }
 
 html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact :is(
-  .miniChordCapoStepControls,
-  .miniChordCapoAccidentalControls
-) button {
+  .miniChordTransposeStepControls button,
+  .miniChordTransposeReset
+) {
   border-color: rgba(151, 105, 53, 0.28) !important;
   background: rgba(255, 252, 244, 0.82) !important;
   color: #4d3518 !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
 }
 
-html body main.app.app.app.theme-light.theme-light.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoAccidentalControls button.selected {
-  border-color: rgba(148, 94, 29, 0.48) !important;
-  background: linear-gradient(180deg, #ebc57d, #c68b3b) !important;
-  color: #281706 !important;
-  box-shadow: inset 0 1px 0 rgba(255, 252, 235, 0.72), 0 1px 5px rgba(128, 76, 20, 0.18) !important;
-}
-
 @media (max-width: 767px) {
-  html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordCapoControlBar {
+  html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeControlBar {
     gap: 6px !important;
     min-height: 30px !important;
     margin-top: 5px !important;
     padding: 2px 6px !important;
   }
 
-  html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact :is(
-    .miniChordCapoStepControls,
-    .miniChordCapoAccidentalControls
-  ) {
+  html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeStepControls {
     grid-auto-columns: 24px !important;
   }
 
-  html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact :is(
-    .miniChordCapoStepControls,
-    .miniChordCapoAccidentalControls
-  ) button {
+  html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordTransposeStepControls button {
     min-width: 24px !important;
     width: 24px !important;
     height: 24px !important;
@@ -57567,6 +57642,16 @@ html body main.app.app.app
   }
 
   html body main.app.theme-brand.theme-brand.app
+    .chordTransitionPanel.chordTransitionPanel
+    .stage3BpmTransportCard.stage3BpmTransportCard
+    .stage3BpmActionPanel.metronomeHeroActionPanel--with-pause {
+    background:
+      linear-gradient(to right, transparent 0 calc(25% - 0.5px), rgba(217, 170, 85, 0.2) calc(25% - 0.5px) calc(25% + 0.5px), transparent calc(25% + 0.5px) 100%),
+      linear-gradient(to right, transparent 0 calc(50% - 0.5px), rgba(217, 170, 85, 0.2) calc(50% - 0.5px) calc(50% + 0.5px), transparent calc(50% + 0.5px) 100%),
+      linear-gradient(to right, transparent 0 calc(75% - 0.5px), rgba(217, 170, 85, 0.2) calc(75% - 0.5px) calc(75% + 0.5px), transparent calc(75% + 0.5px) 100%) !important;
+  }
+
+  html body main.app.theme-brand.theme-brand.app
     .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
     .metronomeHeroCard.metronomeHeroCard
     .metronomeHeroActionPanel::before {
@@ -57577,7 +57662,7 @@ html body main.app.app.app
     .chordTransitionPanel.chordTransitionPanel
     .stage3BpmTransportCard.stage3BpmTransportCard
     .stage3BpmActionPanel
-    :is(.metronomeHeroPlayButton, .metronomeHeroTapTempoButton, .metronomeHeroCountInButton),
+    :is(.metronomeHeroPlayButton, .metronomeHeroPauseButton, .metronomeHeroTapTempoButton, .metronomeHeroCountInButton),
   html body main.app.theme-brand.theme-brand.app
     .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
     .metronomeHeroCard.metronomeHeroCard
@@ -57664,7 +57749,7 @@ html body main.app.app.app
       .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck) > .metronomeHeroCard.metronomeHeroCard--interactive,
       .referenceStandaloneMetronomeDeck .referenceMetronomeHeroCard.metronomeHeroCard--interactive
     )
-    :is(.metronomeHeroBpmButton, .metronomeHeroPlayButton, .metronomeHeroTapTempoButton, .metronomeHeroCountInButton) {
+    :is(.metronomeHeroBpmButton, .metronomeHeroPlayButton, .metronomeHeroPauseButton, .metronomeHeroTapTempoButton, .metronomeHeroCountInButton) {
     color: #d9aa55 !important;
   }
 
@@ -62860,7 +62945,7 @@ html body main.app.app.app.miniChordMakerMode .miniChordExpertToggle[aria-presse
   color: #1d1206 !important;
 }
 
-/* Keep CAPO arrangement controls simple: one Section manager button. */
+/* Keep the transpose-row arrangement controls simple: one Section manager button. */
 html body main.app.app.app.miniChordMakerMode .miniChordMakerPanelCompact .miniChordArrangementControlGroup {
   display: flex !important;
   flex: 0 0 auto !important;
@@ -64470,6 +64555,18 @@ html body .sharedAccompanimentPanel > summary .sharedAccompanimentSettingsButton
   white-space: nowrap !important;
 }
 
+html body .sharedAccompanimentPanel .sharedAccompanimentLockNotice {
+  margin: 0 !important;
+  padding: 7px 10px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(207, 157, 73, 0.22) !important;
+  background: rgba(217, 170, 85, 0.08) !important;
+  color: rgba(255, 231, 170, 0.78) !important;
+  font-size: 10px !important;
+  font-weight: 850 !important;
+  line-height: 1.25 !important;
+}
+
 html body .sharedAccompanimentPanel .sharedAccompanimentRows {
   display: grid !important;
   gap: 0 !important;
@@ -64599,6 +64696,12 @@ html body .app.theme-light.theme-light .sharedAccompanimentPanel > summary::afte
   border-color: #d3c6aa !important;
   background: #f4ead8 !important;
   color: #675335 !important;
+}
+
+html body .app.theme-light.theme-light .sharedAccompanimentPanel .sharedAccompanimentLockNotice {
+  border-bottom-color: rgba(151, 117, 60, 0.18) !important;
+  background: rgba(185, 132, 62, 0.075) !important;
+  color: #756042 !important;
 }
 
 html body .app.theme-light.theme-light .sharedAccompanimentPanel .miniChordBackingRow {
@@ -67980,12 +68083,14 @@ html body main.app.app.app.theme-light .shooterArena .shooterCenterStatus--start
   html body .desktopLayout main.app.app.app.shooterMode > .shooterPanel:not(.shooterPanel--mapEditorWorkspace) > :is(
     .modeHelper,
     .shooterDifficultyPanel,
+    .desktopShooterDifficultPatternPanel,
     .shooterFretGuide,
     .shooterRecordsPanel
   ),
   html body .desktopLayout .app.app.app.shooterMode > .shooterPanel:not(.shooterPanel--mapEditorWorkspace) > :is(
     .modeHelper,
     .shooterDifficultyPanel,
+    .desktopShooterDifficultPatternPanel,
     .shooterFretGuide,
     .shooterRecordsPanel
   ) {
@@ -69156,6 +69261,335 @@ html body .app.theme-light.theme-light .helpInfoNote {
   width: 1px;
   height: 1px;
   pointer-events: none;
+}
+
+/* Scripted shooter controls stay separate from the mobile canonical HUD. */
+.desktopShooterDifficultPatternPanel {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.75fr) minmax(0, 2fr);
+  gap: 10px;
+  align-items: stretch;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid rgba(126, 211, 255, 0.2);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(95, 191, 255, 0.12), transparent 56%),
+    rgba(4, 7, 10, 0.74);
+  box-sizing: border-box;
+}
+
+.desktopShooterDifficultPatternPanel > div:first-child {
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 1px solid rgba(126, 211, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.desktopShooterDifficultPatternPanel > div:first-child span,
+.desktopShooterDifficultPatternPanel > div:first-child small {
+  color: rgba(209, 232, 244, 0.65);
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.desktopShooterDifficultPatternPanel > div:first-child strong {
+  color: #d9f2ff;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.desktopShooterDifficultPatternButtons {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.desktopShooterDifficultPatternButtons button {
+  display: grid;
+  place-content: center;
+  gap: 4px;
+  min-height: 52px;
+  padding: 6px;
+  border: 1px solid rgba(126, 211, 255, 0.18);
+  border-radius: 12px;
+  background: rgba(8, 13, 17, 0.78);
+  color: rgba(218, 237, 247, 0.72);
+  text-align: center;
+}
+
+.desktopShooterDifficultPatternButtons button strong {
+  color: inherit;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.desktopShooterDifficultPatternButtons button span {
+  overflow: hidden;
+  color: rgba(209, 232, 244, 0.56);
+  font-size: 8px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktopShooterDifficultPatternButtons button.selected {
+  border-color: rgba(126, 211, 255, 0.68);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(102, 205, 255, 0.23), transparent 68%),
+    rgba(13, 36, 50, 0.82);
+  color: #d9f5ff;
+  box-shadow: inset 0 -2px rgba(99, 207, 255, 0.48);
+}
+
+.desktopShooterDifficultPatternButtons button:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
+/* Scripted route feedback is shared while desktop/mobile placement remains separate. */
+.desktopShooterScenarioBanner,
+.desktopShooterRoundSummary {
+  position: absolute;
+  left: 50%;
+  z-index: 24;
+  display: grid;
+  width: min(360px, calc(100% - 32px));
+  gap: 3px;
+  padding: 9px 14px;
+  border: 1px solid rgba(255, 224, 151, 0.64);
+  border-radius: 14px;
+  background: rgba(7, 12, 16, 0.88);
+  color: #fff3d0;
+  text-align: center;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.34);
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.desktopShooterScenarioBanner {
+  top: 76px;
+  animation: shooterScenarioBanner 1.9s ease both;
+}
+
+.desktopShooterRoundSummary {
+  top: 126px;
+}
+
+.desktopShooterScenarioBanner strong,
+.desktopShooterRoundSummary strong {
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.desktopShooterScenarioBanner span,
+.desktopShooterRoundSummary span,
+.desktopShooterRoundSummary small {
+  color: rgba(255, 244, 218, 0.86);
+  font-size: 10px;
+  font-weight: 750;
+}
+
+@keyframes shooterScenarioBanner {
+  0% { opacity: 0; transform: translate(-50%, -8px); }
+  14%, 76% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -5px); }
+}
+
+/* Mini Chord editor controls: compact count input and stable LOAD trigger states. */
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadPicker,
+html body main.app.app.app .miniChordMakerPanelCompact
+  .miniChordLoadPicker > .miniChordLoadSelect {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact
+  .miniChordLoadPicker > .miniChordLoadSelect > .metronomeSelectButton:is(
+    :hover,
+    :active,
+    :focus-visible,
+    [aria-expanded="true"]
+  ) {
+  border-color: rgba(116, 78, 52, 0.34) !important;
+  outline: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 250, 0.92), rgba(225, 201, 190, 0.28)),
+    #fbf5f0 !important;
+  color: #211813 !important;
+  box-shadow:
+    0 3px 8px rgba(103, 72, 56, 0.08),
+    0 0 0 1px rgba(255, 252, 249, 0.62) inset,
+    inset 0 -1px 0 rgba(116, 78, 52, 0.1) !important;
+  transform: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordMakerPanelCompact .miniChordMeasureStrip {
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  justify-content: stretch !important;
+  gap: 4px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordMakerPanelCompact .miniChordMeasureStrip > span {
+  gap: 5px !important;
+  white-space: nowrap;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordMakerPanelCompact .miniChordMeasureStrip > span > small {
+  color: #8a6244 !important;
+  font-size: 8px !important;
+  font-weight: 900 !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordMakerPanelCompact .miniChordPageStepper {
+  grid-template-columns: 28px 42px 28px !important;
+  gap: 3px !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordMakerPanelCompact .miniChordBarCountInput {
+  box-sizing: border-box;
+  width: 42px !important;
+  min-width: 0 !important;
+  height: 30px !important;
+  padding: 0 3px !important;
+  border: 1px solid rgba(143, 123, 88, 0.22) !important;
+  border-radius: 7px !important;
+  outline: 0 !important;
+  background: rgba(255, 252, 246, 0.94) !important;
+  color: #33291f !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordMakerPanelCompact .miniChordBarCountInput::-webkit-inner-spin-button,
+html body main.app.app.app.miniChordMakerMode
+  .miniChordMakerPanelCompact .miniChordBarCountInput::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordMakerPanelCompact .miniChordBarCountInput:focus-visible {
+  border-color: rgba(132, 83, 49, 0.54) !important;
+  box-shadow: 0 0 0 2px rgba(171, 113, 73, 0.12) !important;
+}
+
+html body main.app.app.app.miniChordMakerMode
+  .miniChordMakerPanelCompact .miniChordBarCountInput:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+html body main.app.app.app.miniChordMakerMode .miniChordEditToolbar {
+  margin: 5px 0 6px !important;
+}
+
+@media (max-width: 680px) {
+  html body main.app.app.app.miniChordMakerMode
+    .miniChordMakerPanelCompact .miniChordMeasureStrip {
+    min-height: 32px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  html body .desktopLayout main.app.app.app.miniChordMakerMode
+    .miniChordMakerPanelCompact .miniChordPageStepper {
+    grid-template-columns: 32px 48px 32px !important;
+  }
+
+  html body .desktopLayout main.app.app.app.miniChordMakerMode
+    .miniChordMakerPanelCompact .miniChordBarCountInput {
+    width: 48px !important;
+  }
+}
+
+/* Mini Chord LOAD shares Rhythm Code's compact, internally tabbed library. */
+html body main.app.app.app .miniChordMakerPanelCompact .miniChordLoadPicker > .miniChordLoadSelect {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact
+  .miniChordLoadPicker > .miniChordLoadSelect > .metronomeSelectButton {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 36px !important;
+  padding: 0 8px !important;
+  border: 1px solid rgba(116, 78, 52, 0.28) !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 250, 0.86), rgba(225, 201, 190, 0.22)),
+    #fbf5f0 !important;
+  color: #211813 !important;
+  box-shadow:
+    0 3px 8px rgba(103, 72, 56, 0.08),
+    0 0 0 1px rgba(255, 252, 249, 0.58) inset,
+    inset 0 -1px 0 rgba(116, 78, 52, 0.1) !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact
+  .miniChordLoadPicker > .miniChordLoadSelect > .metronomeSelectButton > b {
+  color: inherit !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-align: center !important;
+}
+
+html body main.app.app.app .miniChordMakerPanelCompact
+  .miniChordLoadPicker > .miniChordLoadSelect > .metronomeSelectButton > i {
+  color: rgba(76, 49, 31, 0.72) !important;
+}
+
+.metronomeSelectPortal.miniChordLoadSelect > .metronomeSelectMenu {
+  width: min(340px, calc(100vw - 24px)) !important;
+  max-height: min(var(--riff-dropdown-max-height, 280px), calc(100dvh - 24px)) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  contain: layout paint !important;
+}
+
+.metronomeSelectPortal.miniChordLoadSelect .stage3RecommendationTabs {
+  top: -7px !important;
+}
+
+.metronomeSelectPortal.miniChordLoadSelect .metronomeSelectManagementToolbar {
+  top: 35px !important;
+}
+
+.metronomeSelectPortal.miniChordLoadSelect .metronomeSelectOption,
+.metronomeSelectPortal.miniChordLoadSelect .metronomeSelectOptionRow {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 50px;
+}
+
+@media (min-width: 1024px) {
+  html body .desktopLayout main.app.app.app.miniChordMakerMode .miniChordQuickBar
+    .miniChordLoadPicker > .miniChordLoadSelect > .metronomeSelectButton {
+    min-height: 40px !important;
+  }
 }
 
 /* Guitar catalog filter: shared state, platform-specific controls and scrolling. */
@@ -71268,6 +71702,387 @@ html body main.app.app.app .stage3StorageRoom .rhythmChordMeasure > strong {
   text-align: left !important;
 }
 
+.metronomeSelectPortal.stage3RecommendedLoadSelect .stage3RecommendationTabs {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  gap: 3px;
+  padding: 4px 4px 0;
+  overflow-x: auto;
+  border: 1px solid rgba(217, 170, 85, 0.2);
+  border-radius: 9px 9px 0 0;
+  background: rgba(7, 7, 5, 0.92);
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  min-height: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect .stage3RecommendationTabs::-webkit-scrollbar {
+  display: none;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect .stage3RecommendationTabs > button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 92px;
+  max-width: 150px;
+  min-height: 35px;
+  margin-bottom: -1px;
+  padding: 5px 11px;
+  border: 1px solid rgba(217, 170, 85, 0.24);
+  border-bottom-color: rgba(217, 170, 85, 0.34);
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, rgba(84, 62, 27, 0.56), rgba(18, 15, 10, 0.94));
+  color: rgba(246, 221, 163, 0.86);
+  font-size: 10px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect .stage3RecommendationTabs > button:first-child {
+  border-color: rgba(183, 127, 131, 0.3);
+  background: linear-gradient(180deg, rgba(88, 51, 57, 0.58), rgba(18, 15, 12, 0.94));
+  color: rgba(247, 215, 216, 0.88);
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect .stage3RecommendationTabs > button.selected:first-child {
+  z-index: 1;
+  border-color: rgba(232, 154, 165, 0.66);
+  border-bottom-color: #15110d;
+  background: linear-gradient(180deg, rgba(145, 73, 85, 0.86), rgba(51, 31, 31, 0.98));
+  box-shadow: inset 0 3px 0 rgba(255, 183, 194, 0.78), 0 -2px 9px rgba(174, 88, 105, 0.24);
+  color: #ffe4e5;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect .stage3RecommendationTabs > button.selected:not(:first-child) {
+  z-index: 1;
+  border-color: rgba(244, 200, 105, 0.68);
+  border-bottom-color: #15110d;
+  background: linear-gradient(180deg, rgba(156, 111, 37, 0.9), rgba(57, 42, 20, 0.98));
+  box-shadow: inset 0 3px 0 rgba(255, 222, 140, 0.82), 0 -2px 9px rgba(196, 139, 42, 0.24);
+  color: #fff0c3;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect .stage3RecommendationTabs small {
+  display: inline;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect .stage3RecommendationTabs small::before {
+  margin-right: 4px;
+  content: "·";
+}
+
+html body:has(main.app.theme-light) .metronomeSelectPortal.stage3RecommendedLoadSelect .stage3RecommendationTabs {
+  border-color: rgba(137, 94, 70, 0.16);
+  border-bottom-color: rgba(137, 94, 70, 0.28);
+  background: linear-gradient(180deg, rgba(235, 222, 210, 0.58), rgba(255, 255, 255, 0.18));
+}
+
+html body:has(main.app.theme-light) .metronomeSelectPortal.stage3RecommendedLoadSelect .stage3RecommendationTabs > button {
+  border-color: rgba(137, 94, 70, 0.16);
+  border-bottom-color: rgba(137, 94, 70, 0.28);
+  background: linear-gradient(180deg, rgba(255, 249, 233, 0.72), rgba(231, 211, 168, 0.42));
+  color: #745323;
+}
+
+html body:has(main.app.theme-light) .metronomeSelectPortal.stage3RecommendedLoadSelect .stage3RecommendationTabs > button:first-child {
+  background: linear-gradient(180deg, rgba(251, 240, 238, 0.72), rgba(239, 216, 216, 0.48));
+  color: #76505a;
+}
+
+html body:has(main.app.theme-light) .metronomeSelectPortal.stage3RecommendedLoadSelect .stage3RecommendationTabs > button.selected:first-child {
+  border-color: rgba(185, 101, 119, 0.5);
+  border-bottom-color: #f7eee3;
+  background: linear-gradient(180deg, rgba(249, 219, 222, 0.98), rgba(245, 235, 227, 0.98));
+  box-shadow: inset 0 3px 0 rgba(187, 95, 115, 0.68), 0 -2px 8px rgba(154, 83, 101, 0.11);
+  color: #65313f;
+}
+
+html body:has(main.app.theme-light) .metronomeSelectPortal.stage3RecommendedLoadSelect .stage3RecommendationTabs > button.selected:not(:first-child) {
+  border-color: rgba(174, 123, 39, 0.54);
+  border-bottom-color: #f7eee3;
+  background: linear-gradient(180deg, rgba(251, 226, 166, 0.98), rgba(247, 237, 215, 0.98));
+  box-shadow: inset 0 3px 0 rgba(194, 137, 43, 0.76), 0 -2px 8px rgba(158, 107, 29, 0.12);
+  color: #5f4218;
+}
+
+/* Rhythm-code libraries: one clear hierarchy for category tabs and loadable rows. */
+.metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .stage3RecommendationTabs {
+  position: relative;
+  top: auto;
+  margin: 0 0 3px;
+  padding: 0 0 7px;
+  border: 0;
+  border-bottom: 1px solid rgba(217, 170, 85, 0.34);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectSectionLabel {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 16px;
+  padding: 0 4px;
+  color: rgba(246, 226, 185, 0.58);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectSectionLabel strong {
+  color: rgba(255, 239, 201, 0.88);
+  font-size: 9px;
+  font-weight: 950;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectTabsLabel {
+  margin-bottom: 2px;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectListLabel {
+  min-height: 20px;
+  margin-top: 1px;
+  border-bottom: 1px solid rgba(217, 170, 85, 0.16);
+}
+
+html body .app .metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectOption {
+  position: relative;
+  width: 100% !important;
+  min-height: 48px !important;
+  padding: 7px 8px 7px 10px !important;
+  border: 1px solid rgba(217, 170, 85, 0.3) !important;
+  border-radius: 7px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 210, 0.055), rgba(255, 244, 210, 0.015)),
+    rgba(0, 0, 0, 0.24) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 246, 220, 0.045) !important;
+  cursor: pointer;
+}
+
+html body .app .metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectOption::after {
+  display: none !important;
+  content: none !important;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectOption:hover,
+.metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectOption:focus-visible {
+  border-color: rgba(241, 202, 122, 0.62) !important;
+  background:
+    linear-gradient(180deg, rgba(217, 170, 85, 0.2), rgba(217, 170, 85, 0.08)),
+    rgba(0, 0, 0, 0.26) !important;
+  color: #fff2cf !important;
+  box-shadow: inset 3px 0 0 rgba(229, 183, 80, 0.82) !important;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectOption.selected,
+.metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectOption[aria-selected="true"] {
+  border-color: rgba(229, 183, 80, 0.64) !important;
+  background:
+    linear-gradient(180deg, rgba(217, 170, 85, 0.27), rgba(113, 78, 31, 0.22)),
+    rgba(0, 0, 0, 0.3) !important;
+  color: #fff2cf !important;
+  box-shadow: inset 3px 0 0 #e5b750 !important;
+}
+
+html body .app .metronomeSelectPortal.stage3RecommendedLoadSelect.stage3VoicingCourseSelect:not(.miniChordLoadSelect) .metronomeSelectOption {
+  min-height: 40px !important;
+  padding-block: 5px !important;
+}
+
+/* Keep tabbed rhythm-code libraries steady while switching between categories. */
+.metronomeSelectPortal.stage3VoicingCourseSelect > .metronomeSelectMenu {
+  box-sizing: border-box;
+  height: 280px !important;
+  max-height: min(280px, calc(100dvh - 24px)) !important;
+}
+
+.metronomeSelectPortal.stage3UserLoadSelect:not(.miniChordLoadSelect) > .metronomeSelectMenu {
+  box-sizing: border-box;
+  height: 280px !important;
+  max-height: min(280px, calc(100dvh - 24px)) !important;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect)
+  .stage3RecommendationTabs > button {
+  min-height: 34px;
+  margin-bottom: 0;
+  border-radius: 7px;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect)
+  .stage3RecommendationTabs > button.selected:first-child {
+  border-bottom-color: rgba(232, 154, 165, 0.66);
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect)
+  .stage3RecommendationTabs > button.selected:not(:first-child) {
+  border-bottom-color: rgba(244, 200, 105, 0.68);
+}
+
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .stage3RecommendationTabs {
+  border-bottom-color: rgba(137, 94, 70, 0.3);
+  background: transparent;
+  box-shadow: none;
+}
+
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectSectionLabel {
+  color: rgba(79, 58, 37, 0.58);
+}
+
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectSectionLabel strong {
+  color: #60462f;
+}
+
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectListLabel {
+  border-bottom-color: rgba(137, 94, 70, 0.18);
+}
+
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectOption {
+  border-color: rgba(137, 94, 70, 0.28) !important;
+  background: linear-gradient(180deg, #fffdf9, #f8f0e5) !important;
+  color: #4c392c !important;
+  box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(91, 65, 47, 0.07) !important;
+}
+
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectOption:hover,
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectOption:focus-visible,
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectOption.selected,
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect) .metronomeSelectOption[aria-selected="true"] {
+  border-color: rgba(165, 109, 45, 0.54) !important;
+  background: linear-gradient(180deg, #faead0, #f3dfc5) !important;
+  color: #4f3317 !important;
+  box-shadow: inset 3px 0 0 #b6812e, 0 1px 3px rgba(91, 65, 47, 0.1) !important;
+}
+
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect)
+  .stage3RecommendationTabs > button.selected:first-child {
+  border-bottom-color: rgba(185, 101, 119, 0.5);
+}
+
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3RecommendedLoadSelect:not(.miniChordLoadSelect)
+  .stage3RecommendationTabs > button.selected:not(:first-child) {
+  border-bottom-color: rgba(174, 123, 39, 0.54);
+}
+
+/* Rhythm-code source pickers: softly mark only the library that owns the loaded progression. */
+html body .app .chordTransitionPanel .stage3LoadToolbar
+  > .stage3LoadSelect.metronomeSelectControl--current > .metronomeSelectButton {
+  border-color: rgba(217, 170, 85, 0.5) !important;
+  background:
+    linear-gradient(180deg, rgba(217, 170, 85, 0.15), rgba(217, 170, 85, 0.055)),
+    rgba(10, 9, 7, 0.9) !important;
+  box-shadow:
+    inset 2px 0 0 rgba(229, 183, 80, 0.76),
+    inset 0 1px 0 rgba(255, 241, 204, 0.07) !important;
+}
+
+html body .app.theme-light .chordTransitionPanel .stage3LoadToolbar
+  > .stage3LoadSelect.metronomeSelectControl--current > .metronomeSelectButton {
+  border-color: rgba(169, 120, 57, 0.46) !important;
+  background: linear-gradient(180deg, #fffaf1, #f6ead8) !important;
+  box-shadow:
+    inset 2px 0 0 rgba(182, 129, 46, 0.72),
+    0 1px 3px rgba(91, 65, 47, 0.07) !important;
+}
+
+/* Voicing course index: compact two-column tabs with no horizontal swipe. */
+.metronomeSelectPortal.stage3VoicingCourseSelect .stage3RecommendationTabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-flow: row;
+  gap: 3px;
+  min-height: 0;
+  height: auto;
+  flex: none;
+  padding: 4px;
+  overflow-x: hidden;
+  border-radius: 5px;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+.metronomeSelectPortal.stage3RecommendedLoadSelect.stage3VoicingCourseSelect:not(.miniChordLoadSelect)
+  .stage3RecommendationTabs > button,
+.metronomeSelectPortal.stage3RecommendedLoadSelect.stage3VoicingCourseSelect:not(.miniChordLoadSelect)
+  .stage3RecommendationTabs > button:first-child {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  min-height: 24px !important;
+  margin: 0;
+  padding: 2px 6px !important;
+  border-color: rgba(217, 170, 85, 0.3);
+  border-radius: 3px;
+  background: rgba(35, 29, 20, 0.92);
+  box-shadow: none;
+  color: rgba(246, 226, 185, 0.84);
+  font-size: 8px !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+}
+
+.metronomeSelectPortal.stage3VoicingCourseSelect .stage3RecommendationTabs > button.selected,
+.metronomeSelectPortal.stage3VoicingCourseSelect .stage3RecommendationTabs > button.selected:first-child,
+.metronomeSelectPortal.stage3VoicingCourseSelect .stage3RecommendationTabs > button.selected:not(:first-child) {
+  border-color: rgba(237, 189, 91, 0.68);
+  border-bottom-color: rgba(237, 189, 91, 0.68);
+  background: #59431f;
+  box-shadow: inset 3px 0 0 #e5b750;
+  color: #fff2c8;
+}
+
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3VoicingCourseSelect .stage3RecommendationTabs > button,
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3VoicingCourseSelect .stage3RecommendationTabs > button:first-child {
+  border-color: rgba(137, 94, 70, 0.24);
+  background: #faf6f0;
+  box-shadow: none;
+  color: #604b39;
+}
+
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3VoicingCourseSelect .stage3RecommendationTabs > button.selected,
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3VoicingCourseSelect .stage3RecommendationTabs > button.selected:first-child,
+html body:has(main.app.theme-light)
+  .metronomeSelectPortal.stage3VoicingCourseSelect .stage3RecommendationTabs > button.selected:not(:first-child) {
+  border-color: #b99050;
+  border-bottom-color: #b99050;
+  background: #efe2c5;
+  box-shadow: inset 3px 0 0 #b6812e;
+  color: #513a1d;
+}
+
 .metronomeSelectPortal.stage3RecommendedLoadSelect .metronomeSelectOptionText {
   display: grid !important;
   gap: 3px !important;
@@ -71287,6 +72102,85 @@ html body main.app.app.app .stage3StorageRoom .rhythmChordMeasure > strong {
 
 html body:has(main.app.theme-light) .metronomeSelectPortal.stage3RecommendedLoadSelect .metronomeSelectOptionDescription {
   color: rgba(79, 58, 37, 0.68) !important;
+}
+
+.chordTransitionChart .stageChordSharedFretboard .fretboardStringRow.muted > i {
+  opacity: 0.24 !important;
+  filter: grayscale(1) !important;
+}
+
+.chordTransitionChart .stageChordSharedFretboard .fretboardStringRow.muted > span {
+  opacity: 0.42 !important;
+}
+
+.chordTransitionChart .stageChordSharedFretboard .fretboardStringRow.muted .fretboardStringState.x {
+  opacity: 0.82 !important;
+}
+
+.stage3VoicingMovementGuide {
+  position: absolute;
+  right: 16px;
+  bottom: 13px;
+  left: 16px;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
+  align-items: center;
+  padding: 7px 10px;
+  border: 1px solid rgba(217, 170, 85, 0.34);
+  border-radius: 10px;
+  background: rgba(7, 9, 10, 0.88);
+  color: rgba(247, 236, 213, 0.9);
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.24);
+  pointer-events: none;
+}
+
+.stage3VoicingMovementGuide strong {
+  overflow: hidden;
+  color: #f0cf83;
+  font-size: 11px;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stage3VoicingMovementGuide p {
+  display: block !important;
+  margin: 0;
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html body main.app.theme-light .stage3VoicingMovementGuide {
+  border-color: rgba(151, 103, 92, 0.24);
+  background: rgba(255, 250, 240, 0.94);
+  color: #3e3024;
+  box-shadow: 0 7px 18px rgba(91, 78, 55, 0.13);
+}
+
+html body main.app.theme-light .stage3VoicingMovementGuide strong {
+  color: #7a4f20;
+}
+
+@media (max-width: 767px) and (orientation: portrait) {
+  .stage3VoicingMovementGuide {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    margin-top: 6px;
+    padding: 6px 8px;
+  }
+
+  .stage3VoicingMovementGuide p {
+    font-size: clamp(9px, 2.45vw, 10px);
+    letter-spacing: -0.035em;
+  }
 }
 
 @media (max-width: 430px) {
@@ -71333,6 +72227,22 @@ html body:has(main.app.theme-light) .metronomeSelectPortal.stage3RecommendedLoad
   overflow: hidden;
   border-radius: 9px;
   touch-action: pan-y;
+}
+
+html body .app .metronomeSelectPortal.stage3UserLoadSelect.stage3RecommendedLoadSelect.metronomeSelectControl--managedList
+  .metronomeSelectOptionRow--swipe {
+  height: 48px !important;
+  min-height: 48px !important;
+  margin-bottom: 4px;
+  border-radius: 7px;
+}
+
+html body .app .metronomeSelectPortal.stage3UserLoadSelect.stage3RecommendedLoadSelect.metronomeSelectControl--managedList
+  .metronomeSelectOptionRowContent {
+  height: 48px !important;
+  min-height: 48px !important;
+  border-radius: 7px;
+  background: transparent !important;
 }
 
 .metronomeSelectPortal.stage3UserLoadSelect.metronomeSelectControl--managedList .metronomeSelectOptionActionRail {
@@ -72131,17 +73041,23 @@ html body .shooterEffectDesktopCabinetSection .shooterGuitarCabinetPickerPreview
       rgba(235, 219, 194, 0.56) !important;
   }
 
-  /* Expanded lower cards need a short scroll runway above the fixed mobile nav. */
+  /* An expanded accompaniment needs enough runway to lift the full piano row
+     above the fixed mobile navigation. */
   html body main.app.app.app.practiceMode:has(
       > .chordTransitionPanel .sharedAccompanimentPanel--training[open]
-    ),
+    ) {
+    min-height: calc(100dvh + 172px + env(safe-area-inset-bottom, 0px)) !important;
+    scroll-padding-bottom: calc(188px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Metronome options alone only need the original short scroll runway. */
   html body main.app.app.app.practiceMode:has(
       > .chordTransitionPanel
         .stage3StandaloneMetronomeControl
         .metronomeOptions:not(.metronomeOptions--collapsed)
     ) {
     min-height: calc(100dvh + 64px) !important;
-    scroll-padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+    scroll-padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 

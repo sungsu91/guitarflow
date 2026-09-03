@@ -40,4 +40,6 @@ test("mobile tuner keeps its gauge-first portrait composition", () => {
   assert.match(mobileLayout, /showReadout=\{false\}/);
   assert.match(mobileLayout, /showDirectionScale=\{false\}/);
   assert.match(mobileLayout, /showTarget/);
+  assert.match(tunerCss, /\(orientation: landscape\) and \(max-width: 1024px\) and \(hover: none\)/);
+  assert.match(tunerCss, /var\(--portrait-mobile-canvas-height, 100dvh\)/);
 });
