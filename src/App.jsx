@@ -23413,6 +23413,12 @@ function App({ onReady }) {
     }
   }, [setState]);
 
+  useEffect(() => {
+    if (appMode === APP_MODES.SHOOTER && !streamRef.current) {
+      void startMic();
+    }
+  }, [appMode, startMic]);
+
   const startPractice = useCallback(async (category = selectedCategory) => {
     const safeCategory = getPlayableCategory(category);
     if (!ACTIVE_PRACTICE_CATEGORY_IDS.has(safeCategory.id)) {
@@ -26819,7 +26825,7 @@ function App({ onReady }) {
     ((appMode === APP_MODES.PRACTICE || appMode === APP_MODES.METRONOME)
       && gameState === GAME_STATES.PLAYING) ||
     (appMode === APP_MODES.SHOOTER
-      && (gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.LISTENING));
+      && (hasMic || gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.LISTENING));
 
   useEffect(() => {
     if (!animationLoopActive) {
@@ -29731,7 +29737,7 @@ function App({ onReady }) {
       translate="no"
     >
       {appMode === APP_MODES.SHOOTER && typeof document !== "undefined" ? createPortal(
-        <ShooterPitchMonitor mobile={isMobileLayout} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} onStartMicrophone={startMic} />,
+        <ShooterPitchMonitor mobile={isMobileLayout} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} />,
         document.body,
       ) : null}
       {themeTransition && typeof document !== "undefined"
