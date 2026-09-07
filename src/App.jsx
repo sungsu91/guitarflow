@@ -1,3 +1,4 @@
+import { FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1, FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1_IDS } from "./shooter/instruments/fretivaPinkInstrumentSkinPackV1.js";
 ﻿import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Activity, startTransition } from "react";
 import {
@@ -8063,6 +8064,18 @@ const GUITAR_LAB_VARIANTS = [
     undefined,
     skin.instrumentSkinPack,
   ]),
+  ...FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1.map((skin) => [
+    skin.id,
+    skin.pack,
+    skin.title,
+    skin.description,
+    "#18191d",
+    "#d9aa55",
+    "image-fretiva-pink-instrument-v1",
+    skin.assetSrc,
+    undefined,
+    skin.instrumentSkinPack,
+  ]),
 ].map(([id, pack, model, description, bodyColor, accentColor, shape, assetSrc, projectileAssetSrc, instrumentSkinPack], index) => ({
   id,
   pack,
@@ -8211,6 +8224,14 @@ const SHOOTER_PLAYER_GUITAR_GEOMETRY_BY_VARIANT_ID = {
       muzzleHeightScale: skin.muzzleHeightScale,
     },
   ])),
+  ...Object.fromEntries(FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1.map((skin) => [
+    skin.id,
+    {
+      collisionAspectRatio: skin.collisionAspectRatio,
+      collisionHeight: SHOOTER_TRACE_GUITAR_LEGACY_COLLISION_HEIGHT,
+      muzzleHeightScale: skin.muzzleHeightScale,
+    },
+  ])),
 };
 const SHOOTER_PLAYER_GUITAR_VARIANT_IDS = [
   SHOOTER_TRACE_GUITAR_VARIANT_ID,
@@ -8233,6 +8254,7 @@ const SHOOTER_PLAYER_GUITAR_VARIANT_IDS = [
   ...FRETIVA_GUITAR_ADDON_V2_IDS,
   ...FRETIVA_CREATIVE_INSTRUMENT_PACK_V3_IDS,
   ...FRETIVA_ARTISAN_INSTRUMENT_SKIN_PACK_V2_IDS,
+  ...FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1_IDS,
 ];
 const SHOOTER_GUITAR_CATEGORIES = {
   ACOUSTIC: "acoustic",
@@ -9218,6 +9240,7 @@ const SHOOTER_GUITAR_CATEGORY_BY_VARIANT_ID = {
   ...Object.fromEntries(FRETIVA_GUITAR_ADDON_V2.map((skin) => [skin.id, skin.category])),
   ...Object.fromEntries(FRETIVA_CREATIVE_INSTRUMENT_PACK_V3.map((skin) => [skin.id, skin.category])),
   ...Object.fromEntries(FRETIVA_ARTISAN_INSTRUMENT_SKIN_PACK_V2.map((skin) => [skin.id, skin.category])),
+  ...Object.fromEntries(FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1.map((skin) => [skin.id, skin.category])),
 };
 const FRESH_GUITAR_VARIANT_IDS = new Set([
   ...SHOOTER_PLAYER_GUITAR_VARIANT_IDS,
@@ -29700,6 +29723,10 @@ function App({ onReady }) {
       style={shooterMobileViewportStyle}
       translate="no"
     >
+      {appMode === APP_MODES.SHOOTER && typeof document !== "undefined" ? createPortal(
+        <ShooterPitchMonitor mobile={isMobileLayout} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} />,
+        document.body,
+      ) : null}
       {themeTransition && typeof document !== "undefined"
         ? createPortal(
           <ThemeTransitionOverlay
@@ -32956,10 +32983,6 @@ function App({ onReady }) {
               <span>BEST SCORE {shooterRecords.best.score.toLocaleString()}</span>
               <span>BEST COMBO {shooterRecords.best.combo}</span>
             </div> : null}
-
-            {gameState === GAME_STATES.PLAYING && !shooterCountInLabel ? (
-              <ShooterPitchMonitor mobile={isMobileLayout} pitch={detectedPitch} reason={shooterPitchStatus} />
-            ) : null}
 
             {!isMobileLayout ? <div className="shooterGameHud" aria-label="슈팅게임 현재 상태">
               <div>

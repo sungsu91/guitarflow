@@ -1,0 +1,56 @@
+{
+  "pack_id": "fretiva_pink_instrument_skin_pack_v1",
+  "version": "1.0.0",
+  "status": "final",
+  "final_apply_spec": "CODEX_APPLY_PINK_INSTRUMENT_SKINS_V1.txt",
+  "counts": {
+    "acoustic": 1,
+    "electric": 1,
+    "bass": 1,
+    "total": 3
+  },
+  "image_contract": {
+    "width": 1024,
+    "height": 1536,
+    "format": "PNG",
+    "color_type": "sRGBA",
+    "background_alpha": 0,
+    "view": "straight_front",
+    "upright": true,
+    "fit": "contain",
+    "anchor": "bottom_center"
+  },
+  "items": [
+    {
+      "sort_order": 1,
+      "id": "acoustic_rose_quartz_v1",
+      "category": "acoustic",
+      "display_title": "ROSE QUARTZ",
+      "path": "acoustic/ROSE QUARTZ.png",
+      "string_count": 6,
+      "tuner_count": 6,
+      "tuner_layout": "3_left_3_right"
+    },
+    {
+      "sort_order": 1,
+      "id": "electric_pink_orbit_v1",
+      "category": "electric",
+      "display_title": "PINK ORBIT",
+      "path": "electric/PINK ORBIT.png",
+      "string_count": 6,
+      "tuner_count": 6,
+      "tuner_layout": "3_left_3_right"
+    },
+    {
+      "sort_order": 1,
+      "id": "bass_velvet_bloom_v1",
+      "category": "bass",
+      "display_title": "VELVET BLOOM",
+      "path": "bass/VELVET BLOOM.png",
+      "string_count": 4,
+      "tuner_count": 4,
+      "tuner_layout": "2_left_2_right",
+      "bridge": "single_cover_4_string_holes"
+    }
+  ]
+}

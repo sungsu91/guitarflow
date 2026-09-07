@@ -14,22 +14,22 @@ const STATUS = {
 
 function MobilePitchMonitor({ pitch, message }) {
   return <output className="shooterPitchMonitorMobile" aria-label="지금 감지한 음">
-    <span>입력 <b>{pitch?.note ?? "—"}</b></span>
+    <span>내가 친 음 <b>{pitch?.note ?? "—"}</b></span>
     <small>{message}</small>
   </output>;
 }
 
 function DesktopPitchMonitor({ pitch, message }) {
   return <output className="shooterPitchMonitorDesktop" aria-label="지금 감지한 음">
-    <span>지금 감지한 음</span>
+    <span>내가 친 음</span>
     <b>{pitch?.note ?? "—"}</b>
     <span>{pitch ? `${pitch.frequency.toFixed(1)} Hz` : "— Hz"}</span>
     <small>{message}</small>
   </output>;
 }
 
-export default function ShooterPitchMonitor({ mobile, pitch, reason }) {
-  const message = STATUS[reason] ?? "소리를 기다리는 중";
+export default function ShooterPitchMonitor({ mobile, pitch, reason, active = true }) {
+  const message = active ? (STATUS[reason] ?? "소리를 기다리는 중") : "시작하면 연주 음이 표시됩니다";
   return mobile
     ? <MobilePitchMonitor pitch={pitch} message={message} />
     : <DesktopPitchMonitor pitch={pitch} message={message} />;

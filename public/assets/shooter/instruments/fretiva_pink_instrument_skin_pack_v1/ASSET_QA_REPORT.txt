@@ -1,0 +1,14 @@
+FRETIVA LAB PINK INSTRUMENT SKINS V1 - QA
+=========================================
+
+결과: PASS
+
+- 최종 PNG 수: 3
+- 해상도: 전부 1024x1536
+- 색상/알파: 전부 sRGBA
+- 최소 알파: 전부 0
+- 정면 수직 구도 확인
+- ROSE QUARTZ: 6현 / 노브 3+3
+- PINK ORBIT: 6현 / 노브 3+3
+- VELVET BLOOM: 4현 / 노브 2+2
+

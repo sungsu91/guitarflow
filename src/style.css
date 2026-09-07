@@ -73488,6 +73488,7 @@ html body .shooterEffectDesktopCabinetSection .shooterGuitarCabinetPickerPreview
 html body img[data-instrument-skin-pack="fretiva-instrument-skins-v1"],
 html body img[data-instrument-skin-pack="fretiva-guitar-addon-v2"],
 html body img[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"],
+html body img[data-instrument-skin-pack="fretiva_pink_instrument_skin_pack_v1"] ,
 html body img[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"] {
   width: auto;
   max-width: 100%;
@@ -73504,6 +73505,8 @@ html body .shooterSkinConfigurator
 html body .shooterSkinConfigurator
   .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"],
 html body .shooterSkinConfigurator
+  .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_pink_instrument_skin_pack_v1"] ,
+html body .shooterSkinConfigurator
   .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"] {
   width: auto !important;
   height: 76px !important;
@@ -73519,6 +73522,8 @@ html body .shooterArena
 html body .shooterArena
   .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"],
 html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva_pink_instrument_skin_pack_v1"] ,
+html body .shooterArena
   .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"] {
   width: 60px !important;
   height: 137px !important;
@@ -73533,6 +73538,9 @@ html body .shooterArena
 html body .shooterArena
   .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
   .guitarPlayerAsset.guitarAssetImage,
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva_pink_instrument_skin_pack_v1"]
+  .guitarPlayerAsset.guitarAssetImage ,
 html body .shooterArena
   .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"]
   .guitarPlayerAsset.guitarAssetImage {
@@ -73569,6 +73577,9 @@ html body .shooterArena
   .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
   .guitarPlayerMuzzle,
 html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva_pink_instrument_skin_pack_v1"]
+  .guitarPlayerMuzzle ,
+html body .shooterArena
   .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"]
   .guitarPlayerMuzzle {
   top: 6px !important;
@@ -73582,6 +73593,8 @@ html body .shooterArena
   html body .shooterArena
     .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"],
   html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva_pink_instrument_skin_pack_v1"] ,
+html body .shooterArena
     .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"] {
     width: 57px !important;
     height: 127px !important;
@@ -73597,6 +73610,9 @@ html body .shooterArena
     .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
     .guitarPlayerAsset.guitarAssetImage,
   html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva_pink_instrument_skin_pack_v1"]
+    .guitarPlayerAsset.guitarAssetImage ,
+html body .shooterArena
     .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"]
     .guitarPlayerAsset.guitarAssetImage {
     height: 152px !important;
@@ -73613,6 +73629,9 @@ html body .shooterArena
     .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
     .guitarPlayerMuzzle,
   html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva_pink_instrument_skin_pack_v1"]
+    .guitarPlayerMuzzle ,
+html body .shooterArena
     .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"]
     .guitarPlayerMuzzle {
     top: -19px !important;
@@ -73627,6 +73646,8 @@ html body .shooterArena
   html body .desktopLayout .shooterArena--desktopPortrait
     .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"],
   html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva_pink_instrument_skin_pack_v1"] ,
+html body .desktopLayout .shooterArena--desktopPortrait
     .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"] {
     width: 57px !important;
     height: 127px !important;
@@ -73642,6 +73663,9 @@ html body .shooterArena
     .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
     .guitarPlayerAsset.guitarAssetImage,
   html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva_pink_instrument_skin_pack_v1"]
+    .guitarPlayerAsset.guitarAssetImage ,
+html body .desktopLayout .shooterArena--desktopPortrait
     .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"]
     .guitarPlayerAsset.guitarAssetImage {
     bottom: 0 !important;
@@ -73659,6 +73683,9 @@ html body .shooterArena
     .guitarPlayer[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"]
     .guitarPlayerMuzzle,
   html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva_pink_instrument_skin_pack_v1"]
+    .guitarPlayerMuzzle ,
+html body .desktopLayout .shooterArena--desktopPortrait
     .guitarPlayer[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"]
     .guitarPlayerMuzzle {
     top: 5px !important;
@@ -73671,6 +73698,8 @@ html body .shooterArena
   html body .shooterSkinConfigurator
     .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_creative_instrument_pack_v3"],
   html body .shooterSkinConfigurator
+    .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_pink_instrument_skin_pack_v1"] ,
+html body .shooterSkinConfigurator
     .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_artisan_instrument_skin_pack_v2"] {
     height: 96px !important;
     max-height: 96px !important;
