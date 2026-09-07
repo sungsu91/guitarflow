@@ -281,26 +281,26 @@
   /* Phone-only HUD sizing: preserve desktop layout while keeping Korean labels legible. */
   html.shooterCanonicalMobile body main.app.app.app.shooterMode
     .mobileShooterPrimaryHudRow {
-    grid-template-columns: 106px 126px minmax(58px, 1fr) 48px !important;
+    grid-template-columns: 112px 150px minmax(58px, 1fr) 54px !important;
   }
 
   html.shooterCanonicalMobile body main.app.app.app.shooterMode
     .mobileShooterDifficultyControl {
-    width: min(106px, 100%) !important;
+    width: min(112px, 100%) !important;
   }
 
   html.shooterCanonicalMobile body main.app.app.app.shooterMode
     .mobileShooterDifficultyMenu {
-    width: 106px !important;
+    width: 112px !important;
   }
 
   html.shooterCanonicalMobile body main.app.app.app.shooterMode
     .mobileShooterPlayHelpHud {
     grid-template-columns:
-      21px
-      minmax(27px, 30px)
-      repeat(2, minmax(19px, 22px))
-      17px !important;
+      24px
+      34px
+      repeat(2, 28px)
+      22px !important;
     justify-content: start !important;
     padding-left: 6px !important;
     box-sizing: border-box;
