@@ -10,7 +10,6 @@ export const SHOOTER_REFERENCE_FREQUENCY = TUNER_REFERENCE_FREQUENCY;
 export const SHOOTER_HIT_TOLERANCE_CENTS = 42;
 export const SHOOTER_STABLE_FRAME_COUNT = 3;
 export const SHOOTER_STABLE_MIN_MS = 55;
-export const SHOOTER_ATTACK_WINDOW_MS = 210;
 export const SHOOTER_REPICK_RISE_RATIO = 1.28;
 
 const getTargetFrequency = (target) => {
@@ -28,7 +27,6 @@ const getTargetFrequency = (target) => {
 
 export function createShooterPitchJudgmentState() {
   return {
-    attackWindowUntil: Number.NEGATIVE_INFINITY,
     candidateFirstAt: null,
     candidateFrames: 0,
     candidatePitch: null,
@@ -47,7 +45,6 @@ export function resetShooterPitchJudgmentState(state) {
 }
 
 export function releaseShooterPitchJudgment(state) {
-  state.attackWindowUntil = Number.NEGATIVE_INFINITY;
   state.candidateFirstAt = null;
   state.candidateFrames = 0;
   state.candidatePitch = null;
@@ -84,7 +81,6 @@ export function observeShooterPitchFrame(state, {
 
   const onset = !state.signalPresent
     || (state.lastRms > 0 && safeRms >= state.lastRms * SHOOTER_REPICK_RISE_RATIO);
-  if (onset) state.attackWindowUntil = safeNow + SHOOTER_ATTACK_WINDOW_MS;
   state.lastRms = safeRms;
   state.signalPresent = true;
 
@@ -96,9 +92,13 @@ export function observeShooterPitchFrame(state, {
   }
 
   if (!Number.isFinite(frequency) || frequency <= 0) {
+    state.candidateFrames = 0;
+    state.candidatePitch = null;
     return { accepted: false, reason: "no-pitch" };
   }
   if (!Number.isFinite(confidence) || confidence < TUNER_ATTACK_MIN_CONFIDENCE) {
+    state.candidateFrames = 0;
+    state.candidatePitch = null;
     return { accepted: false, reason: "low-confidence" };
   }
 
@@ -116,11 +116,14 @@ export function observeShooterPitchFrame(state, {
   if (state.lockedPitch && state.lockedPitch !== targetPitch) {
     state.lockedPitch = null;
     state.lockedTargetKey = null;
-    state.attackWindowUntil = Math.max(state.attackWindowUntil, safeNow + SHOOTER_ATTACK_WINDOW_MS);
   }
 
   if (state.lockedPitch === targetPitch && state.lockedTargetKey !== targetKey && !onset) {
     return { accepted: false, cents, detectedPitch: detected.pitch, reason: "sustain-lock" };
+  }
+  if (onset && state.lockedTargetKey !== targetKey) {
+    state.lockedPitch = null;
+    state.lockedTargetKey = null;
   }
   if (state.lockedTargetKey === targetKey) {
     return { accepted: false, cents, detectedPitch: detected.pitch, reason: "target-lock" };
@@ -137,7 +140,6 @@ export function observeShooterPitchFrame(state, {
   if (
     state.candidateFrames < SHOOTER_STABLE_FRAME_COUNT
     || stableMs < SHOOTER_STABLE_MIN_MS
-    || safeNow > state.attackWindowUntil
   ) {
     return { accepted: false, cents, detectedPitch: detected.pitch, reason: "stabilizing", stableMs };
   }

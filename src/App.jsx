@@ -70,6 +70,7 @@ import TunerMode, { TUNER_BACKGROUND_COUNT } from "./tuner/TunerMode";
 import {
   detectPitchAutocorrelation,
   detectPitchYinDetailed,
+  frequencyToChromaticPitch,
   frequencyToNearest,
   getRms,
 } from "./tuner/tunerMath.js";
@@ -178,6 +179,8 @@ import {
   releaseShooterPitchJudgment,
   resetShooterPitchJudgmentState,
 } from "./shooter/pitchJudgment.js";
+import { readShooterSignalFrame } from "./shooter/microphoneSignal.js";
+import ShooterPitchMonitor from "./shooter/ShooterPitchMonitor.jsx";
 import {
   SHOOTER_COUNT_IN_MS,
   SHOOTER_RUNTIME_DIFFICULTY,
@@ -16579,6 +16582,7 @@ function App({ onReady }) {
   const [micStatus, setMicStatus] = useState("No Signal");
   const [detected, setDetected] = useState(null);
   const [detectedPitch, setDetectedPitch] = useState(null);
+  const [shooterPitchStatus, setShooterPitchStatus] = useState("no-signal");
   const [signalLevel, setSignalLevel] = useState(0);
   const [enemies, setEnemies] = useState([]);
   const [score, setScore] = useState(0);
@@ -22422,8 +22426,10 @@ function App({ onReady }) {
       lastMicReadAtRef.current = now;
 
       analyser.getFloatTimeDomainData(buffer);
-      const detectionFrame = micSession?.readDetectionFrame?.(now);
-      const rms = detectionFrame?.rms ?? getRms(buffer);
+      const { rms, signalPresent } = readShooterSignalFrame(
+        micSession, now, shooterPitchJudgmentRef.current.signalPresent, getRms(buffer),
+        isMobileLayoutRef.current ? LOW_SIGNAL_LEVEL * 0.42 : LOW_SIGNAL_LEVEL,
+      );
       const inputGain = isMobileLayoutRef.current ? 22 : 12;
       const normalizedLevel = Math.min(1, rms * inputGain);
 
@@ -22436,16 +22442,14 @@ function App({ onReady }) {
         lastDebugUpdateRef.current = now;
       }
 
-      const minVolume = detectionFrame?.thresholdRms
-        ?? (isMobileLayoutRef.current ? LOW_SIGNAL_LEVEL * 0.42 : LOW_SIGNAL_LEVEL);
-
-      if ((detectionFrame && !detectionFrame.isSignalPresent) || rms < minVolume) {
+      if (!signalPresent) {
         shooterReleaseLockRef.current = null;
         releaseShooterPitchJudgment(shooterPitchJudgmentRef.current);
         if (now - lastDetectedDisplayUpdateRef.current > MIC_LOW_SIGNAL_DISPLAY_UPDATE_MS) {
           lastDetectedDisplayUpdateRef.current = now;
           setDetected(null);
           setDetectedPitch(null);
+          setShooterPitchStatus("no-signal");
         }
         return;
       }
@@ -22484,7 +22488,7 @@ function App({ onReady }) {
         frequency: pitch,
         now,
         rms,
-        signalPresent: Boolean(detectionFrame?.isSignalPresent ?? (rms >= minVolume)),
+        signalPresent,
         target: currentTargetPitch
           ? {
               frequency: currentTarget?.detail?.frequency,
@@ -22497,10 +22501,11 @@ function App({ onReady }) {
       if (now - lastDetectedDisplayUpdateRef.current > MIC_DISPLAY_UPDATE_MS) {
         lastDetectedDisplayUpdateRef.current = now;
         setDetected(displayNote);
+        setShooterPitchStatus(judgment.reason);
         const nextDetectedPitch = pitch
           ? {
               frequency: pitch,
-              note: displayNote?.pitch ?? "--",
+              note: frequencyToChromaticPitch(pitch)?.pitch ?? "--",
             }
           : null;
         setDetectedPitch((currentPitch) => {
@@ -22520,6 +22525,9 @@ function App({ onReady }) {
         judgment.accepted &&
         currentTargetPitch
       ) {
+        // The shared judgment already enforces one hit per pick. A confirmed
+        // re-pick must not be blocked by the legacy pitch-only latch.
+        shooterReleaseLockRef.current = null;
         judgeShooterNote(currentTargetPitch);
       }
     },
@@ -32948,6 +32956,10 @@ function App({ onReady }) {
               <span>BEST SCORE {shooterRecords.best.score.toLocaleString()}</span>
               <span>BEST COMBO {shooterRecords.best.combo}</span>
             </div> : null}
+
+            {gameState === GAME_STATES.PLAYING && !shooterCountInLabel ? (
+              <ShooterPitchMonitor mobile={isMobileLayout} pitch={detectedPitch} reason={shooterPitchStatus} />
+            ) : null}
 
             {!isMobileLayout ? <div className="shooterGameHud" aria-label="슈팅게임 현재 상태">
               <div>
