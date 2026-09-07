@@ -2,6 +2,7 @@ import { ABYSSAL_MOON_CATHEDRAL_MAP_SKIN } from "./skins/abyssalMoonCathedral.js
 import { AUTUMN_MOON_TEMPLE_PATH_MAP_SKIN } from "./skins/autumnMoonTemplePath.js";
 import { CELESTIAL_ECLIPSE_CLOCKTOWER_MAP_SKIN } from "./skins/celestialEclipseClocktower.js";
 import { COASTAL_COVE_MAP_SKIN } from "./skins/coastalCove.js";
+import { GACHA_ARCADE_MAP_SKIN } from "./skins/gachaArcade.js";
 import { CLOCKWORK_OPERA_CITADEL_MAP_SKIN } from "./skins/clockworkOperaCitadel.js";
 import { LAVA_CANYON_MAP_SKIN } from "./skins/lavaCanyon.js";
 import { PARK_MAP_SKIN } from "./skins/park.js";
@@ -18,6 +19,7 @@ export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
   ABYSSAL_MOON_CATHEDRAL_MAP_SKIN,
   CELESTIAL_ECLIPSE_CLOCKTOWER_MAP_SKIN,
   AUTUMN_MOON_TEMPLE_PATH_MAP_SKIN,
+  GACHA_ARCADE_MAP_SKIN,
 ]);
 
 export const DEVELOPER_SHOOTER_MAP_SKINS = Object.freeze([

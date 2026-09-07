@@ -1,0 +1,955 @@
+{
+  "png_count": 105,
+  "overlay_alpha_failures": [],
+  "all_overlay_edges_alpha_zero": true,
+  "animation_scale_changes": false,
+  "machine_cabinets_animated": false,
+  "claw_motion_clipped_to_window": true,
+  "files": {
+    "FRETIVA_GACHA_ARCADE_MAP_BASE_INTEGRATED.png": {
+      "width": 1536,
+      "height": 3328,
+      "mode": "RGBA",
+      "alpha_min": 255,
+      "alpha_max": 255,
+      "transparent_pixels": 0,
+      "edge_alpha_max": 255
+    },
+    "frames/claw_left_mid/claw_left_mid_00.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_01.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_02.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_03.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_04.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_05.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_06.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_07.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_08.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_09.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_10.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_11.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_12.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_13.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_14.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80606,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_15.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80560,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_16.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80560,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_17.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80560,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_18.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80560,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_19.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80560,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_20.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80560,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_21.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80606,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_22.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_left_mid/claw_left_mid_23.png": {
+      "width": 300,
+      "height": 280,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 80031,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_00.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_01.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_02.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_03.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_04.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_05.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_06.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_07.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_08.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_09.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_10.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_11.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_12.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_13.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_14.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 95364,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_15.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 95360,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_16.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 95360,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_17.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 95360,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_18.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 95360,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_19.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 95360,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_20.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 95360,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_21.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 95364,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_22.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_lower/claw_right_lower_23.png": {
+      "width": 320,
+      "height": 310,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 94760,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_00.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_01.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_02.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_03.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_04.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_05.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_06.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_07.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_08.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_09.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_10.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_11.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_12.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_13.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_14.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69643,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_15.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69612,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_16.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69612,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_17.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69612,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_18.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69612,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_19.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69612,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_20.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69612,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_21.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69643,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_22.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/claw_right_upper/claw_right_upper_23.png": {
+      "width": 290,
+      "height": 250,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 69146,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_00.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_01.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_02.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_03.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_04.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_05.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_06.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_07.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_08.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_09.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_10.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_11.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_12.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_13.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_14.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_15.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_16.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_17.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_18.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_19.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_20.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_21.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_22.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "frames/star_light_ring/star_light_ring_23.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "objects/claw_mechanism_source.png": {
+      "width": 208,
+      "height": 366,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 43756,
+      "edge_alpha_max": 0
+    },
+    "objects/star_light_ring.png": {
+      "width": 460,
+      "height": 364,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 117686,
+      "edge_alpha_max": 0
+    },
+    "preview/FRETIVA_GACHA_ARCADE_V2_COMPOSITE.png": {
+      "width": 1536,
+      "height": 3328,
+      "mode": "RGBA",
+      "alpha_min": 255,
+      "alpha_max": 255,
+      "transparent_pixels": 0,
+      "edge_alpha_max": 255
+    },
+    "runtime/FRETIVA_GACHA_ARCADE_MAP_BASE_RUNTIME.png": {
+      "width": 768,
+      "height": 1664,
+      "mode": "RGBA",
+      "alpha_min": 255,
+      "alpha_max": 255,
+      "transparent_pixels": 0,
+      "edge_alpha_max": 255
+    },
+    "spritesheets/claw_left_mid_sheet_6x4.png": {
+      "width": 1800,
+      "height": 1120,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 1925068,
+      "edge_alpha_max": 0
+    },
+    "spritesheets/claw_right_lower_sheet_6x4.png": {
+      "width": 1920,
+      "height": 1240,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 2279048,
+      "edge_alpha_max": 0
+    },
+    "spritesheets/claw_right_upper_sheet_6x4.png": {
+      "width": 1740,
+      "height": 1000,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 1663294,
+      "edge_alpha_max": 0
+    },
+    "spritesheets/star_light_ring_sheet_6x4.png": {
+      "width": 2760,
+      "height": 1456,
+      "mode": "RGBA",
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 2824464,
+      "edge_alpha_max": 0
+    }
+  }
+}

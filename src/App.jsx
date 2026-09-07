@@ -9308,7 +9308,7 @@ const DEFAULT_SHOOTER_EFFECT_LOADOUT = {
   aura: DEFAULT_SHOOTER_AURA_EFFECT_ID,
   floor: DEFAULT_SHOOTER_FLOOR_EFFECT_ID,
 };
-const DEFAULT_SHOOTER_MAP_ID = "river-garden";
+const DEFAULT_SHOOTER_MAP_ID = "gacha-arcade";
 const SHOOTER_GUITAR_CATEGORY_BY_VARIANT_ID = {
   [SHOOTER_TRACE_GUITAR_VARIANT_ID]: SHOOTER_GUITAR_CATEGORIES.ACOUSTIC,
   [SHOOTER_JP_D_BLACK_VARIANT_ID]: SHOOTER_GUITAR_CATEGORIES.ACOUSTIC,
@@ -12092,9 +12092,10 @@ function getStoredShooterMapPreference() {
   if (typeof window === "undefined") return SHOOTER_RANDOM_MAP_ID;
   const storedPreference = window.localStorage.getItem(SHOOTER_MAP_PREFERENCE_STORAGE_KEY);
   if (storedPreference === SHOOTER_RANDOM_MAP_ID) return SHOOTER_RANDOM_MAP_ID;
-  return SHOOTER_MAP_OPTIONS.some((map) => map.id === storedPreference)
-    ? storedPreference
-    : SHOOTER_RANDOM_MAP_ID;
+  if (SHOOTER_MAP_OPTIONS.some((map) => map.id === storedPreference)) return storedPreference;
+  const legacyStoredMapId = window.localStorage.getItem(SHOOTER_MAP_STORAGE_KEY);
+  if (SHOOTER_MAP_OPTIONS.some((map) => map.id === legacyStoredMapId)) return legacyStoredMapId;
+  return DEFAULT_SHOOTER_MAP_ID;
 }
 
 function getStoredShooterSolfegeOn() {

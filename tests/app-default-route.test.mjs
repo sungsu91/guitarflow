@@ -15,7 +15,7 @@ test("app launch and shooter use the requested operational defaults", async () =
     appSource,
     /`\$\{window\.location\.pathname\}\$\{window\.location\.search\}\$\{APP_DEFAULT_ROUTE\}`/,
   );
-  assert.match(appSource, /const DEFAULT_SHOOTER_MAP_ID = "river-garden";/);
+  assert.match(appSource, /const DEFAULT_SHOOTER_MAP_ID = "gacha-arcade";/);
   assert.match(appSource, /const SHOOTER_MAP_STORAGE_KEY = "rifflabShooterMapV2";/);
   assert.match(appSource, /const SHOOTER_MAP_PREFERENCE_STORAGE_KEY = "rifflabShooterMapPreferenceV3";/);
   assert.match(appSource, /label: "랜덤"/);

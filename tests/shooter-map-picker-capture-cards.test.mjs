@@ -86,6 +86,7 @@ test("map picker renders platform-sized full capture cards and a random montage"
       "abyssalMoonCathedral",
       "celestial-eclipse-clocktower",
       "autumn_moon_temple_path",
+      "gacha-arcade",
     ],
   );
   assert.match(styleSource, /Mobile map picker keeps every direct map choice visible/);

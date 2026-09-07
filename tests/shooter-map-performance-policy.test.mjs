@@ -13,6 +13,7 @@ import { COASTAL_COVE_MAP_SKIN } from "../src/shooter/maps/skins/coastalCove.js"
 import { LAVA_CANYON_MAP_SKIN } from "../src/shooter/maps/skins/lavaCanyon.js";
 import { PARK_MAP_SKIN } from "../src/shooter/maps/skins/park.js";
 import { RIVER_MAP_SKIN } from "../src/shooter/maps/skins/river.js";
+import { GACHA_ARCADE_MAP_SKIN } from "../src/shooter/maps/skins/gachaArcade.js";
 
 test("mobile map policy allows only audited effects that fit the common render budget", () => {
   assert.deepEqual(SHOOTER_MAP_MOBILE_RENDER_BUDGET, {
@@ -23,7 +24,7 @@ test("mobile map policy allows only audited effects that fit the common render b
     sharedSpriteSubscribers: 8,
   });
 
-  for (const map of [RIVER_MAP_SKIN, COASTAL_COVE_MAP_SKIN, PARK_MAP_SKIN]) {
+  for (const map of [RIVER_MAP_SKIN, COASTAL_COVE_MAP_SKIN, PARK_MAP_SKIN, GACHA_ARCADE_MAP_SKIN]) {
     assert.equal(isShooterMapMobileAuditWithinBudget(map.performance.mobileGameplay.audit), true);
     assert.equal(getShooterMapPerformancePolicy(map).mobileGameplayEffects, "full");
   }

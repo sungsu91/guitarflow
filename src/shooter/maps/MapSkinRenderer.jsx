@@ -5,6 +5,7 @@ import AmbientCreature from "./AmbientCreature.jsx";
 import AutumnMoonTemplePathField from "./AutumnMoonTemplePathField.jsx";
 import CelestialEclipseClocktowerField from "./CelestialEclipseClocktowerField.jsx";
 import ClockworkAmbientField from "./ClockworkAmbientField.jsx";
+import GachaArcadeField from "./GachaArcadeField.jsx";
 import MapAmbientEvents from "./FlyingDragonCrossing.jsx";
 import {
   getCoastalChestFacingScaleX,
@@ -1071,6 +1072,13 @@ function MapSkinRenderer({
         <CelestialEclipseClocktowerField
           active={animationsActive && !editMode}
           atlas={skin.animatedBackdrop}
+        />
+      ) : null}
+
+      {stage === "underlay" && skin.id === "gacha-arcade" ? (
+        <GachaArcadeField
+          active={animationsActive && !editMode}
+          runtimeAnimation={skin.runtimeAnimation}
         />
       ) : null}
 

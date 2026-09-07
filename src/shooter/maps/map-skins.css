@@ -40,6 +40,22 @@
   image-rendering: auto;
 }
 
+.shooterMapGachaArcadeField {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.shooterMapGachaArcadeSprite {
+  position: absolute;
+  display: block;
+  background-repeat: no-repeat;
+  image-rendering: auto;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 .shooterMapAmbientEvents {
   position: absolute;
   z-index: 32;
