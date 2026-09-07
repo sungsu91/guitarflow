@@ -16264,10 +16264,12 @@ function getShooterDifficultyPacing(difficulty) {
 
 function getShooterTargetDuration(difficulty) {
   const pacing = getShooterDifficultyPacing(difficulty);
-  if (pacing.durationMsMin && pacing.durationMsMax) {
-    return pacing.durationMsMin + Math.random() * (pacing.durationMsMax - pacing.durationMsMin);
-  }
-  return pacing.durationMs;
+  const baseDuration = pacing.durationMsMin && pacing.durationMsMax
+    ? pacing.durationMsMin + Math.random() * (pacing.durationMsMax - pacing.durationMsMin)
+    : pacing.durationMs;
+  // Start at the ceiling (0 instead of 8), keeping travel speed at 90%
+  // of the previous speed despite the longer path to the same endpoint.
+  return baseDuration * (88 / 80) / 0.9;
 }
 
 function getShooterSpawnGap(difficulty) {
@@ -16282,11 +16284,11 @@ function getShooterEnemyDifficultyClass(difficulty) {
 }
 
 function getShooterTargetYAt(target, now = 0) {
-  if (!target) return 8;
-  if (target.defeated) return Number(target.y) || 8;
+  if (!target) return 0;
+  if (target.defeated) return Number(target.y) || 0;
   const duration = Math.max(1, Number(target.duration) || 1);
   const progress = Math.max(0, Math.min(1, (now - (Number(target.bornAt) || 0)) / duration));
-  return 8 + progress * 80;
+  return progress * 88;
 }
 
 function getShooterEffectiveLevel(
@@ -21487,8 +21489,8 @@ function App({ onReady }) {
         note: detail.pitch,
         detail,
         x: nextX,
-        y: 8,
-        previousY: 8,
+        y: 0,
+        previousY: 0,
         bornAt: gameTimeRef.current,
         duration: targetDuration,
         hitboxActive: true,
@@ -21666,7 +21668,7 @@ function App({ onReady }) {
     const metrics = getShooterGuitarBaseMetrics();
     if (metrics) {
       const targetX = (metrics.arenaRect.width * (Number(target.x) || 50)) / 100;
-      const targetY = (metrics.arenaRect.height * (Number(target.y) || 8)) / 100;
+      const targetY = (metrics.arenaRect.height * (Number(target.y) || 0)) / 100;
       const pivotX = metrics.pivotX;
       const pivotY = metrics.pivotY;
       const dx = targetX - pivotX;
@@ -21674,7 +21676,7 @@ function App({ onReady }) {
       return clampValue(Math.atan2(dx, dy) * (180 / Math.PI), -SHOOTER_GUITAR_AIM_LIMIT_DEG, SHOOTER_GUITAR_AIM_LIMIT_DEG);
     }
     const dx = (Number(target.x) || 50) - SHOOTER_GUITAR_PIVOT_PERCENT.x;
-    const dy = Math.max(1.2, SHOOTER_GUITAR_PIVOT_PERCENT.y - (Number(target.y) || 8));
+    const dy = Math.max(1.2, SHOOTER_GUITAR_PIVOT_PERCENT.y - (Number(target.y) || 0));
     return clampValue(Math.atan2(dx, dy) * (180 / Math.PI), -SHOOTER_GUITAR_AIM_LIMIT_DEG, SHOOTER_GUITAR_AIM_LIMIT_DEG);
   }, [desktopHorizontalShooterActive, getShooterGuitarBaseMetrics]);
 
@@ -22915,8 +22917,8 @@ function App({ onReady }) {
       shooterTargetsRef.current.forEach((target) => {
         if (target.defeated) return;
         const progress = Math.min(1, (gameTimeRef.current - target.bornAt) / target.duration);
-        const nextY = 8 + progress * 80;
-        target.previousY = Number(target.y) || nextY;
+        const nextY = getShooterTargetYAt(target, gameTimeRef.current);
+        target.previousY = target.y ?? nextY;
         target.progress = progress;
         if (target.y !== nextY) {
           target.y = nextY;
