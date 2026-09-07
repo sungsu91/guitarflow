@@ -4,10 +4,10 @@
   "status": "final",
   "final_apply_spec": "CODEX_APPLY_PINK_INSTRUMENT_SKINS_V1.txt",
   "counts": {
-    "acoustic": 1,
+    "acoustic": 3,
     "electric": 1,
     "bass": 1,
-    "total": 3
+    "total": 5
   },
   "image_contract": {
     "width": 1024,
@@ -51,6 +51,26 @@
       "tuner_count": 4,
       "tuner_layout": "2_left_2_right",
       "bridge": "single_cover_4_string_holes"
+    },
+    {
+      "sort_order": 2,
+      "id": "acoustic_pink_peony_v1",
+      "category": "acoustic",
+      "display_title": "PINK PEONY",
+      "path": "acoustic/PINK PEONY.png",
+      "string_count": 6,
+      "tuner_count": 6,
+      "tuner_layout": "3_left_3_right"
+    },
+    {
+      "sort_order": 3,
+      "id": "acoustic_candy_imp_v1",
+      "category": "acoustic",
+      "display_title": "CANDY IMP ACOUSTIC",
+      "path": "acoustic/FRETIVA_CANDY_IMP_ACOUSTIC.png",
+      "string_count": 6,
+      "tuner_count": 6,
+      "tuner_layout": "3_left_3_right"
     }
   ]
 }

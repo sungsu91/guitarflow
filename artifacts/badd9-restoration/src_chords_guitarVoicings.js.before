@@ -1,0 +1,174 @@
+import { CHORD_TONE_INTERVALS } from "./chordTheory.js";
+import { NOTE_INDEX } from "../music/noteNotation.js";
+import { CHORD_SHAPE_TEMPLATES, CHORD_BUILDER_POSITION_TEMPLATES } from "./guitarVoicingTemplates.js";
+import { compareGuitarVoicings, getVoicingSelectionPriority } from "./voicingSelection.js";
+
+const OPEN = { 6: 4, 5: 9, 4: 2, 3: 7, 2: 11, 1: 4 };
+const mod = (n) => ((n % 12) + 12) % 12;
+const shape = (id, rootString, strings, omissions = []) => ({
+  id, rootString, strings, omissions, family: "practical", priority: 0,
+});
+
+// Compact root-bearing guitar grips, transposed as a whole, never tone by tone.
+// Ninth grips retain the third, seventh and ninth; omit5 is explicit.
+// References and policy rationale: docs/guitar-voicings.md.
+export const PRACTICAL_VOICINGS = {
+  major: {
+    add9: [
+      shape("e-add9-upper", 6, [[6, 0], [3, 1], [2, 0], [1, 2]]),
+      shape("a-add9-compact", 5, [[5, 0], [4, -1], [3, 2], [2, 0], [1, 0]]),
+      shape("d-add9", 4, [[4, 0], [3, -1], [2, -2], [1, 0]]),
+      shape("c-add9", 5, [[5, 0], [4, -1], [3, -3], [2, 0], [1, 0]]),
+    ],
+    "9": [
+      shape("a-nine", 5, [[5, 0], [4, -1], [3, 0], [2, 0], [1, 0]]),
+      shape("e-nine-shell", 6, [[6, 0], [4, 0], [3, 1], [2, 0], [1, 2]], [7]),
+    ],
+    maj9: [
+      shape("a-maj9-shell", 5, [[5, 0], [4, -1], [3, 1], [2, 0]], [7]),
+      shape("e-maj9-shell", 6, [[6, 0], [4, 1], [3, 1], [2, 0], [1, 2]], [7]),
+    ],
+    "6/9": [
+      shape("a-six-nine", 5, [[5, 0], [4, -1], [3, -1], [2, 0], [1, 0]]),
+      shape("e-six-nine", 6, [[6, 0], [5, -1], [4, -1], [3, -1], [2, 0]]),
+    ],
+    "6": [shape("e-six-shell", 6, [[6, 0], [4, -1], [3, 1], [2, 0]])],
+    sus2: [shape("d-sus2", 4, [[4, 0], [3, 2], [2, 3], [1, 0]])],
+    sus4: [shape("d-sus4", 4, [[4, 0], [3, 2], [2, 3], [1, 3]])],
+    "7sus4": [shape("d-seven-sus4", 4, [[4, 0], [3, 2], [2, 1], [1, 3]])],
+  },
+  minor: {
+    add9: [
+      shape("d-minor-add9", 4, [[4, 0], [3, -2], [2, -2], [1, 0]]),
+      shape("e-minor-add9-upper", 6, [[6, 0], [3, 0], [2, 0], [1, 2]]),
+    ],
+    m9: [
+      shape("a-minor-nine-shell", 5, [[5, 0], [4, -2], [3, 0], [2, 0]], [7]),
+      shape("e-minor-nine", 6, [[6, 0], [4, 0], [3, 0], [2, 0], [1, 2]]),
+    ],
+    m6: [shape("e-minor-six", 6, [[6, 0], [4, -1], [3, 0], [2, 0]])],
+    m7b5: [
+      shape("a-half-diminished", 5, [[5, 0], [4, 1], [3, 0], [2, 1]]),
+      shape("e-half-diminished", 6, [[6, 0], [4, 0], [3, 0], [2, -1]]),
+    ],
+  },
+  dim: { none: [shape("d-diminished", 4, [[4, 0], [3, 1], [2, 3], [1, 1]])] },
+  aug: { none: [shape("d-augmented", 4, [[4, 0], [3, 3], [2, 3], [1, 2]])] },
+};
+
+// Find a <=4-finger cover. A barre cannot cross a sounding open/lower fret.
+// Muted interior strings may be touched by the barre and muted by the other hand.
+export function planGuitarFingers(strings, preferredFingers) {
+  const notes = strings.filter(([, fret]) => fret > 0);
+  // Preserve established open-chord fingerings when they form a valid cover.
+  // Old annotations cannot authorize a barre through an open/lower string.
+  if (preferredFingers && notes.every(([s, f]) => /^[1-4]$/.test(preferredFingers[`${s}-${f}`] ?? ""))) {
+    const byFinger = new Map();
+    for (const note of notes) {
+      const label = preferredFingers[`${note[0]}-${note[1]}`];
+      byFinger.set(label, [...(byFinger.get(label) ?? []), note]);
+    }
+    const barres = [];
+    let valid = true;
+    for (const [label, group] of byFinger) {
+      const fret = group[0][1], fromString = Math.max(...group.map(([s]) => s)), toString = Math.min(...group.map(([s]) => s));
+      if (group.some(([, f]) => f !== fret) || strings.some(([s, f]) => s <= fromString && s >= toString && f < fret)) valid = false;
+      if (group.length > 1) barres.push({ fret, fromString, toString, label });
+    }
+    if (valid) return { fingers: Object.fromEntries(notes.map(([s, f]) => [`${s}-${f}`, preferredFingers[`${s}-${f}`]])), barres, fingerCount: byFinger.size };
+  }
+  const groups = notes.map(([string, fret], index) => ({ fret, fromString: string, toString: string, mask: 1 << index }));
+  for (const fret of new Set(notes.map(([, f]) => f))) {
+    const same = notes.filter(([, f]) => f === fret).map(([s]) => s).sort((a, b) => b - a);
+    for (let i = 0; i < same.length; i++) for (let j = i + 1; j < same.length; j++) {
+      const fromString = same[i], toString = same[j];
+      if (strings.some(([s, f]) => s <= fromString && s >= toString && f < fret)) continue;
+      const mask = notes.reduce((m, [s, f], n) => m | (f === fret && s <= fromString && s >= toString ? 1 << n : 0), 0);
+      groups.push({ fret, fromString, toString, mask });
+    }
+  }
+  const full = (1 << notes.length) - 1;
+  const plans = new Map([[0, []]]);
+  for (let mask = 0; mask <= full; mask++) {
+    const plan = plans.get(mask);
+    if (!plan) continue;
+    for (const group of groups) {
+      const next = mask | group.mask;
+      if (next === mask || plan.length >= 4) continue;
+      if (!plans.has(next) || plans.get(next).length > plan.length + 1) plans.set(next, [...plan, group]);
+    }
+  }
+  const plan = plans.get(full);
+  if (!plan) return null;
+  const fingers = {}, barres = [];
+  plan.sort((a, b) => a.fret - b.fret || b.fromString - a.fromString).forEach((group, i) => {
+    const label = String(i + 1);
+    notes.forEach(([s, f], n) => { if (group.mask & (1 << n)) fingers[`${s}-${f}`] = label; });
+    if (group.fromString !== group.toString) barres.push({ fret: group.fret, fromString: group.fromString, toString: group.toString, label });
+  });
+  return { fingers, barres, fingerCount: plan.length };
+}
+
+export function assessGuitarVoicing(root, quality, extension, strings, allowedOmissions = [7], preferredFingers) {
+  const theoreticalIntervals = CHORD_TONE_INTERVALS[quality]?.[extension];
+  if (!theoreticalIntervals || NOTE_INDEX[root] === undefined || strings.length < 3
+    || new Set(strings.map(([s]) => s)).size !== strings.length
+    || strings.some(([s, f]) => OPEN[s] === undefined || !Number.isInteger(f) || f < 0 || f > 24)) return null;
+  const playedIntervals = strings.map(([s, f]) => mod(OPEN[s] + f - NOTE_INDEX[root]));
+  if (playedIntervals.some((pc) => !theoreticalIntervals.some((i) => mod(i) === pc))) return null;
+  const omittedIntervals = theoreticalIntervals.filter((i) => !playedIntervals.includes(mod(i)));
+  if (omittedIntervals.some((i) => !allowedOmissions.includes(i))) return null;
+  const fingering = planGuitarFingers(strings, preferredFingers);
+  if (!fingering) return null;
+  const fretted = strings.map(([, f]) => f).filter((f) => f > 0);
+  const min = fretted.length ? Math.min(...fretted) : 0, max = Math.max(0, ...fretted);
+  const span = max - min;
+  // Four-fret stretches such as x24642 are unsuitable representative grips.
+  if (span > 3) return null;
+  const physicalSpan = 648 * (2 ** (-min / 12) - 2 ** (-max / 12));
+  const ordered = [...strings].sort((a, b) => b[0] - a[0]);
+  const interiorMutes = ordered[0][0] - ordered.at(-1)[0] + 1 - ordered.length;
+  const jumps = ordered.slice(1).reduce((sum, [, f], i) => sum + (f > 0 && ordered[i][1] > 0 ? Math.max(0, Math.abs(f - ordered[i][1]) - 1) : 0), 0);
+  const score = fingering.fingerCount * 4 + physicalSpan * 0.18 + jumps * 3 + max * 0.8
+    + fingering.barres.length * 2 + interiorMutes * 4 + (span === 3 ? 14 : 0) + omittedIntervals.length * 2;
+  return { theoreticalIntervals: [...theoreticalIntervals], playedIntervals,
+    omittedIntervals, omissions: omittedIntervals.map((i) => i === 7 ? "omit5" : i === 3 || i === 4 ? "omit3" : `omit${i}`),
+    doubledIntervals: [...new Set(playedIntervals.filter((pc, i) => playedIntervals.indexOf(pc) !== i))],
+    fingering, span, score };
+}
+
+export function getGuitarVoicingTemplates(quality, extension) {
+  return [
+    ...(PRACTICAL_VOICINGS[quality]?.[extension] ?? []),
+    ...(CHORD_SHAPE_TEMPLATES[quality]?.[extension] ?? []),
+    ...(CHORD_BUILDER_POSITION_TEMPLATES[quality]?.[extension] ?? []),
+  ];
+}
+
+const cache = new Map();
+export function getGuitarVoicingCandidates(root, quality, extension, maxFret = 15) {
+  const key = `${root}:${quality}:${extension}:${maxFret}`;
+  if (cache.has(key)) return cache.get(key);
+  const unique = new Map();
+  for (const template of getGuitarVoicingTemplates(quality, extension)) {
+    for (let baseFret = mod(NOTE_INDEX[root] - OPEN[template.rootString]); baseFret <= maxFret; baseFret += 12) {
+      if (baseFret < (template.minBaseFret ?? 0)) continue;
+      const strings = template.strings.map(([s, f]) => [s, f + baseFret]);
+      if (strings.some(([, f]) => f > maxFret)) continue;
+      const assessment = assessGuitarVoicing(root, quality, extension, strings, template.omissions ?? [7]);
+      if (!assessment) continue;
+      assessment.source = "guitar-vocabulary";
+      assessment.templateId = template.id;
+      assessment.family = strings.some(([, f]) => f === 0) ? "open"
+        : template.id.startsWith("caged-") ? "CAGED" : template.family ?? "barre";
+      assessment.selectionPriority = getVoicingSelectionPriority(quality, extension, template, strings, assessment);
+      const signature = JSON.stringify(strings);
+      const candidate = { template, baseFret, assessment, score: assessment.score,
+        startFret: Math.min(...strings.map(([, f]) => f)), maxFret: Math.max(...strings.map(([, f]) => f)) };
+      if (!unique.has(signature) || compareGuitarVoicings(candidate, unique.get(signature)) < 0) unique.set(signature, candidate);
+    }
+  }
+  const result = [...unique.values()].sort((a, b) => compareGuitarVoicings(a, b) || a.baseFret - b.baseFret || a.template.id.localeCompare(b.template.id));
+  cache.set(key, result);
+  return result;
+}

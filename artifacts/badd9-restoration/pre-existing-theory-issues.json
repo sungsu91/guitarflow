@@ -1,0 +1,274 @@
+[
+  {
+    "key": "C:major:7",
+    "missing": [
+      "G"
+    ],
+    "extra": []
+  },
+  {
+    "key": "C:major:maj9",
+    "missing": [
+      "G"
+    ],
+    "extra": []
+  },
+  {
+    "key": "C:major:6/9",
+    "missing": [
+      "A",
+      "D"
+    ],
+    "extra": []
+  },
+  {
+    "key": "C:minor:m7b5",
+    "missing": [
+      "F#",
+      "A#"
+    ],
+    "extra": [
+      "G"
+    ]
+  },
+  {
+    "key": "C#:major:maj9",
+    "missing": [
+      "G#"
+    ],
+    "extra": []
+  },
+  {
+    "key": "C#:major:6/9",
+    "missing": [
+      "A#",
+      "D#"
+    ],
+    "extra": []
+  },
+  {
+    "key": "C#:minor:m7b5",
+    "missing": [
+      "G",
+      "B"
+    ],
+    "extra": [
+      "G#"
+    ]
+  },
+  {
+    "key": "D:major:maj9",
+    "missing": [
+      "A"
+    ],
+    "extra": []
+  },
+  {
+    "key": "D:major:6/9",
+    "missing": [
+      "B",
+      "E"
+    ],
+    "extra": []
+  },
+  {
+    "key": "D:major:add9",
+    "missing": [
+      "F#"
+    ],
+    "extra": []
+  },
+  {
+    "key": "D:minor:m7b5",
+    "missing": [
+      "G#",
+      "C"
+    ],
+    "extra": [
+      "A"
+    ]
+  },
+  {
+    "key": "D#:major:maj9",
+    "missing": [
+      "A#"
+    ],
+    "extra": []
+  },
+  {
+    "key": "D#:major:6/9",
+    "missing": [
+      "C",
+      "F"
+    ],
+    "extra": []
+  },
+  {
+    "key": "D#:minor:m7b5",
+    "missing": [
+      "A",
+      "C#"
+    ],
+    "extra": [
+      "A#"
+    ]
+  },
+  {
+    "key": "E:major:6/9",
+    "missing": [
+      "C#",
+      "F#"
+    ],
+    "extra": []
+  },
+  {
+    "key": "E:minor:m7b5",
+    "missing": [
+      "A#",
+      "D"
+    ],
+    "extra": [
+      "B"
+    ]
+  },
+  {
+    "key": "F:major:6/9",
+    "missing": [
+      "D",
+      "G"
+    ],
+    "extra": []
+  },
+  {
+    "key": "F:minor:m7b5",
+    "missing": [
+      "B",
+      "D#"
+    ],
+    "extra": [
+      "C"
+    ]
+  },
+  {
+    "key": "F#:major:6/9",
+    "missing": [
+      "D#",
+      "G#"
+    ],
+    "extra": []
+  },
+  {
+    "key": "F#:minor:m7b5",
+    "missing": [
+      "C",
+      "E"
+    ],
+    "extra": [
+      "C#"
+    ]
+  },
+  {
+    "key": "G:major:6/9",
+    "missing": [
+      "E",
+      "A"
+    ],
+    "extra": []
+  },
+  {
+    "key": "G:minor:m7b5",
+    "missing": [
+      "C#",
+      "F"
+    ],
+    "extra": [
+      "D"
+    ]
+  },
+  {
+    "key": "G#:major:6/9",
+    "missing": [
+      "F",
+      "A#"
+    ],
+    "extra": []
+  },
+  {
+    "key": "G#:minor:m7b5",
+    "missing": [
+      "D",
+      "F#"
+    ],
+    "extra": [
+      "D#"
+    ]
+  },
+  {
+    "key": "A:major:6/9",
+    "missing": [
+      "F#",
+      "B"
+    ],
+    "extra": []
+  },
+  {
+    "key": "A:minor:m7b5",
+    "missing": [
+      "D#",
+      "G"
+    ],
+    "extra": [
+      "E"
+    ]
+  },
+  {
+    "key": "A#:major:maj9",
+    "missing": [
+      "F"
+    ],
+    "extra": []
+  },
+  {
+    "key": "A#:major:6/9",
+    "missing": [
+      "G",
+      "C"
+    ],
+    "extra": []
+  },
+  {
+    "key": "A#:minor:m7b5",
+    "missing": [
+      "E",
+      "G#"
+    ],
+    "extra": [
+      "F"
+    ]
+  },
+  {
+    "key": "B:major:maj9",
+    "missing": [
+      "F#"
+    ],
+    "extra": []
+  },
+  {
+    "key": "B:major:6/9",
+    "missing": [
+      "G#",
+      "C#"
+    ],
+    "extra": []
+  },
+  {
+    "key": "B:minor:m7b5",
+    "missing": [
+      "F",
+      "A"
+    ],
+    "extra": [
+      "F#"
+    ]
+  }
+]

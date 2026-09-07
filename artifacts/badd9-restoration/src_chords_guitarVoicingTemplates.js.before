@@ -1,0 +1,409 @@
+// Movable E/A and CAGED vocabulary. Offsets are relative to the root string.
+export const CHORD_SHAPE_TEMPLATES = {
+  major: {
+    none: [
+      {
+        id: "e-major",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 2], [3, 1], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "a-major",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    "7": [
+      {
+        id: "e7",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 0], [3, 1], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "a7",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 0], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    maj7: [
+      {
+        id: "emaj7",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 1], [3, 1], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "amaj7",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 1], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    sus2: [
+      {
+        id: "esus2",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 4], [3, 4], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "asus2",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    sus4: [
+      {
+        id: "esus4",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 2], [3, 2], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "asus4",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 3], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    "7sus4": [
+      {
+        id: "e7sus4",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 0], [3, 2], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "a7sus4",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 0], [2, 3], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    "6": [
+      {
+        id: "e6",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 2], [3, 1], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "a6",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 2], [1, 2]],
+        barres: [{ fretOffset: 2, fromString: 4, toString: 1, label: "3", minBaseFret: 0 }],
+      },
+    ],
+    add9: [
+      {
+        id: "eadd9",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 4], [3, 1], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "aadd9",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 4], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    "9": [
+      {
+        id: "e9",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 0], [3, 1], [2, 0], [1, 2]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 2, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "a9",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 4], [2, 2], [1, 3]],
+        barres: [{ fretOffset: 2, fromString: 4, toString: 2, label: "1", minBaseFret: 0 }],
+      },
+    ],
+    maj9: [
+      {
+        id: "emaj9",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 1], [3, 1], [2, 0], [1, 2]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 2, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "amaj9",
+        rootString: 5,
+        strings: [[5, 0], [4, -1], [3, 1], [2, 0]],
+        minBaseFret: 1,
+      },
+    ],
+  },
+  minor: {
+    none: [
+      {
+        id: "e-minor",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 2], [3, 0], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "a-minor",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 1], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    m7: [
+      {
+        id: "em7",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 0], [3, 0], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "am7",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 0], [2, 1], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    m6: [
+      {
+        id: "em6",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 2], [3, 0], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "am6",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 1], [1, 2]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    add9: [
+      {
+        id: "emadd9",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 4], [3, 0], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "amadd9",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 4], [2, 1], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+      },
+    ],
+    m9: [
+      {
+        id: "em9",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 0], [3, 0], [2, 0], [1, 2]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 2, label: "1", minBaseFret: 1 }],
+      },
+      {
+        id: "am9",
+        rootString: 5,
+        strings: [[5, 0], [4, -2], [3, 0], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+        minBaseFret: 2,
+      },
+    ],
+  },
+  dim: {
+    none: [
+      {
+        id: "a-dim",
+        rootString: 5,
+        strings: [[5, 0], [4, 1], [3, 2], [2, 1]],
+      },
+    ],
+  },
+  aug: {
+    none: [
+      {
+        id: "e-aug",
+        rootString: 6,
+        strings: [[6, 0], [4, 2], [3, 1], [2, 1]],
+      },
+      {
+        id: "a-aug",
+        rootString: 5,
+        strings: [[5, 0], [4, -1], [3, -2], [2, -2]],
+        minBaseFret: 2,
+      },
+    ],
+  },
+};
+
+export const CHORD_BUILDER_POSITION_TEMPLATES = {
+  major: {
+    none: [
+      {
+        id: "caged-c-major",
+        rootString: 5,
+        strings: [[5, 0], [4, -1], [3, -3], [2, -2], [1, -3]],
+        barres: [{ fretOffset: -3, fromString: 3, toString: 1, label: "1", minBaseFret: 4 }],
+        minBaseFret: 3,
+        priority: 0,
+      },
+      {
+        id: "caged-a-major",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 1,
+      },
+      {
+        id: "caged-g-major",
+        rootString: 6,
+        strings: [[6, 0], [5, -1], [4, -3], [3, -3], [2, -3], [1, 0]],
+        barres: [{ fretOffset: -3, fromString: 4, toString: 2, label: "1", minBaseFret: 4 }],
+        minBaseFret: 3,
+        priority: 2,
+      },
+      {
+        id: "caged-e-major",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 2], [3, 1], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 3,
+      },
+      {
+        id: "caged-d-major",
+        rootString: 4,
+        strings: [[4, 0], [3, 2], [2, 3], [1, 2]],
+        priority: 4,
+      },
+    ],
+    "7": [
+      {
+        id: "caged-c7",
+        rootString: 5,
+        strings: [[5, 0], [4, -1], [3, 0], [2, -2], [1, -3]],
+        barres: [{ fretOffset: -3, fromString: 2, toString: 1, label: "1", minBaseFret: 4 }],
+        minBaseFret: 3,
+        priority: 0,
+      },
+      {
+        id: "caged-a7",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 0], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 1,
+      },
+      {
+        id: "caged-g7",
+        rootString: 6,
+        strings: [[6, 0], [5, -1], [4, -3], [3, -3], [2, -3], [1, -2]],
+        barres: [{ fretOffset: -3, fromString: 4, toString: 2, label: "1", minBaseFret: 4 }],
+        minBaseFret: 3,
+        priority: 2,
+      },
+      {
+        id: "caged-e7",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 0], [3, 1], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 3,
+      },
+      {
+        id: "caged-d7",
+        rootString: 4,
+        strings: [[4, 0], [3, 2], [2, 1], [1, 2]],
+        priority: 4,
+      },
+    ],
+    maj7: [
+      {
+        id: "caged-cmaj7",
+        rootString: 5,
+        strings: [[5, 0], [4, -1], [3, -3], [2, -3], [1, -3]],
+        barres: [{ fretOffset: -3, fromString: 3, toString: 1, label: "1", minBaseFret: 4 }],
+        minBaseFret: 3,
+        priority: 0,
+      },
+      {
+        id: "caged-amaj7",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 1], [2, 2], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 1,
+      },
+      {
+        id: "caged-gmaj7",
+        rootString: 6,
+        strings: [[6, 0], [5, -1], [4, -3], [3, -3], [2, -3], [1, -1]],
+        barres: [{ fretOffset: -3, fromString: 4, toString: 2, label: "1", minBaseFret: 4 }],
+        minBaseFret: 3,
+        priority: 2,
+      },
+      {
+        id: "caged-emaj7",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 1], [3, 1], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 3,
+      },
+      {
+        id: "caged-dmaj7",
+        rootString: 4,
+        strings: [[4, 0], [3, 2], [2, 2], [1, 2]],
+        priority: 4,
+      },
+    ],
+  },
+  minor: {
+    none: [
+      {
+        id: "caged-a-minor",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 2], [2, 1], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 0,
+      },
+      {
+        id: "caged-e-minor",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 2], [3, 0], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 1,
+      },
+      {
+        id: "caged-d-minor",
+        rootString: 4,
+        strings: [[4, 0], [3, 2], [2, 3], [1, 1]],
+        priority: 2,
+      },
+    ],
+    m7: [
+      {
+        id: "caged-am7",
+        rootString: 5,
+        strings: [[5, 0], [4, 2], [3, 0], [2, 1], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 5, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 0,
+      },
+      {
+        id: "caged-em7",
+        rootString: 6,
+        strings: [[6, 0], [5, 2], [4, 0], [3, 0], [2, 0], [1, 0]],
+        barres: [{ fretOffset: 0, fromString: 6, toString: 1, label: "1", minBaseFret: 1 }],
+        priority: 1,
+      },
+      {
+        id: "caged-dm7",
+        rootString: 4,
+        strings: [[4, 0], [3, 2], [2, 1], [1, 1]],
+        barres: [{ fretOffset: 1, fromString: 2, toString: 1, label: "1", minBaseFret: 0 }],
+        priority: 2,
+      },
+    ],
+  },
+};
+

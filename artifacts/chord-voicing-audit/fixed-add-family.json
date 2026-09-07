@@ -1,0 +1,7346 @@
+{
+  "protectedCombinations": 373,
+  "roots": {
+    "C": "C",
+    "C#": "C#",
+    "Cb": "B",
+    "Db": "C#",
+    "D": "D",
+    "D#": "D#",
+    "Eb": "D#",
+    "E": "E",
+    "E#": "F",
+    "Fb": "E",
+    "F": "F",
+    "F#": "F#",
+    "Gb": "F#",
+    "G": "G",
+    "G#": "G#",
+    "Ab": "G#",
+    "A": "A",
+    "A#": "A#",
+    "Bb": "A#",
+    "B": "B",
+    "B#": "C"
+  },
+  "rows": [
+    {
+      "name": "Cadd9",
+      "root": "C",
+      "position": 1,
+      "shape": "x 3 2 0 3 0",
+      "notes": "X–C–E–G–D–E",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 3,
+          "pitch": "C3",
+          "label": "C",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 2,
+          "pitch": "E3",
+          "label": "E",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 0,
+          "pitch": "G3",
+          "label": "G",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 3,
+          "pitch": "D4",
+          "label": "D",
+          "degree": "9"
+        },
+        {
+          "string": 1,
+          "fret": 0,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "3"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "사용자 지정 Cadd9 기준 및 기타 개방형 교육 자료",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html",
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C",
+          "label": "C"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G",
+          "label": "G"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "D",
+          "label": "D"
+        }
+      ]
+    },
+    {
+      "name": "Cadd9",
+      "root": "C",
+      "position": 2,
+      "shape": "x 3 2 0 3 3",
+      "notes": "X–C–E–G–D–G",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 3,
+          "pitch": "C3",
+          "label": "C",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 2,
+          "pitch": "E3",
+          "label": "E",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 0,
+          "pitch": "G3",
+          "label": "G",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 3,
+          "pitch": "D4",
+          "label": "D",
+          "degree": "9"
+        },
+        {
+          "string": 1,
+          "fret": 3,
+          "pitch": "G4",
+          "label": "G",
+          "degree": "5"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Cadd2 자료의 대표 도표; 3도 유지, 5도 중복",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C",
+          "label": "C"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G",
+          "label": "G"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "D",
+          "label": "D"
+        }
+      ]
+    },
+    {
+      "name": "Cadd9",
+      "root": "C",
+      "position": 3,
+      "shape": "x x 10 9 8 10",
+      "notes": "X–X–C–E–G–D",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 10,
+          "pitch": "C4",
+          "label": "C",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 9,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 8,
+          "pitch": "G4",
+          "label": "G",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 10,
+          "pitch": "D5",
+          "label": "D",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 C 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C",
+          "label": "C"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G",
+          "label": "G"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "D",
+          "label": "D"
+        }
+      ]
+    },
+    {
+      "name": "Cadd2",
+      "root": "C",
+      "position": 1,
+      "shape": "x 3 2 0 3 3",
+      "notes": "X–C–E–G–D–G",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 3,
+          "pitch": "C3",
+          "label": "C",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 2,
+          "pitch": "E3",
+          "label": "E",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 0,
+          "pitch": "G3",
+          "label": "G",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 3,
+          "pitch": "D4",
+          "label": "D",
+          "degree": "2"
+        },
+        {
+          "string": 1,
+          "fret": 3,
+          "pitch": "G4",
+          "label": "G",
+          "degree": "5"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Cadd2 자료의 대표 도표; 3도 유지, 5도 중복",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C",
+          "label": "C"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G",
+          "label": "G"
+        }
+      ]
+    },
+    {
+      "name": "Cadd2",
+      "root": "C",
+      "position": 2,
+      "shape": "x 3 0 0 1 0",
+      "notes": "X–C–D–G–C–E",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 3,
+          "pitch": "C3",
+          "label": "C",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 0,
+          "pitch": "D3",
+          "label": "D",
+          "degree": "2"
+        },
+        {
+          "string": 3,
+          "fret": 0,
+          "pitch": "G3",
+          "label": "G",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 1,
+          "pitch": "C4",
+          "label": "C",
+          "degree": "1"
+        },
+        {
+          "string": 1,
+          "fret": 0,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "3"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "교육 자료의 Cadd2 개방형; 낮은 2도 배치의 후순위 대안",
+      "sources": [
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C",
+          "label": "C"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G",
+          "label": "G"
+        }
+      ]
+    },
+    {
+      "name": "Cadd2",
+      "root": "C",
+      "position": 3,
+      "shape": "x 3 2 0 3 0",
+      "notes": "X–C–E–G–D–E",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 3,
+          "pitch": "C3",
+          "label": "C",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 2,
+          "pitch": "E3",
+          "label": "E",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 0,
+          "pitch": "G3",
+          "label": "G",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 3,
+          "pitch": "D4",
+          "label": "D",
+          "degree": "2"
+        },
+        {
+          "string": 1,
+          "fret": 0,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "3"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "사용자 지정 Cadd9 기준 및 기타 개방형 교육 자료",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html",
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C",
+          "label": "C"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G",
+          "label": "G"
+        }
+      ]
+    },
+    {
+      "name": "Cadd2",
+      "root": "C",
+      "position": 4,
+      "shape": "x x 10 9 8 10",
+      "notes": "X–X–C–E–G–D",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 10,
+          "pitch": "C4",
+          "label": "C",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 9,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 8,
+          "pitch": "G4",
+          "label": "G",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 10,
+          "pitch": "D5",
+          "label": "D",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 C 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C",
+          "label": "C"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G",
+          "label": "G"
+        }
+      ]
+    },
+    {
+      "name": "C#add9",
+      "root": "C#",
+      "position": 1,
+      "shape": "x 4 3 1 4 1",
+      "notes": "X–C#–E#–G#–D#–E#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 4,
+          "pitch": "C#3",
+          "label": "C#",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 3,
+          "pitch": "F3",
+          "label": "E#",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 1,
+          "pitch": "G#3",
+          "label": "G#",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 4,
+          "pitch": "D#4",
+          "label": "D#",
+          "degree": "9"
+        },
+        {
+          "string": 1,
+          "fret": 1,
+          "pitch": "F4",
+          "label": "E#",
+          "degree": "3"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 5,
+      "barres": [
+        {
+          "fret": 1,
+          "fromString": 3,
+          "toString": 1,
+          "label": "1"
+        }
+      ],
+      "reason": "Dbadd9 자료의 명시적 shape",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C#",
+          "label": "C#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "F",
+          "label": "E#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G#",
+          "label": "G#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "D#",
+          "label": "D#"
+        }
+      ]
+    },
+    {
+      "name": "C#add9",
+      "root": "C#",
+      "position": 2,
+      "shape": "x x 11 10 9 11",
+      "notes": "X–X–C#–E#–G#–D#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 11,
+          "pitch": "C#4",
+          "label": "C#",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 10,
+          "pitch": "F4",
+          "label": "E#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 9,
+          "pitch": "G#4",
+          "label": "G#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 11,
+          "pitch": "D#5",
+          "label": "D#",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 Db 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C#",
+          "label": "C#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "F",
+          "label": "E#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G#",
+          "label": "G#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "D#",
+          "label": "D#"
+        }
+      ]
+    },
+    {
+      "name": "C#add2",
+      "root": "C#",
+      "position": 1,
+      "shape": "x 4 3 1 4 x",
+      "notes": "X–C#–E#–G#–D#–X",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 4,
+          "pitch": "C#3",
+          "label": "C#",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 3,
+          "pitch": "F3",
+          "label": "E#",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 1,
+          "pitch": "G#3",
+          "label": "G#",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 4,
+          "pitch": "D#4",
+          "label": "D#",
+          "degree": "2"
+        },
+        {
+          "string": 1,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        }
+      ],
+      "kind": "movable",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Dbadd2 항목의 명시적 shape",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C#",
+          "label": "C#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "D#",
+          "label": "D#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "F",
+          "label": "E#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G#",
+          "label": "G#"
+        }
+      ]
+    },
+    {
+      "name": "C#add2",
+      "root": "C#",
+      "position": 2,
+      "shape": "x x 11 10 9 11",
+      "notes": "X–X–C#–E#–G#–D#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 11,
+          "pitch": "C#4",
+          "label": "C#",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 10,
+          "pitch": "F4",
+          "label": "E#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 9,
+          "pitch": "G#4",
+          "label": "G#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 11,
+          "pitch": "D#5",
+          "label": "D#",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 Db 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C#",
+          "label": "C#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "D#",
+          "label": "D#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "F",
+          "label": "E#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G#",
+          "label": "G#"
+        }
+      ]
+    },
+    {
+      "name": "Cbadd9",
+      "root": "B",
+      "position": 1,
+      "shape": "x x 9 8 7 9",
+      "notes": "X–X–Cb–Eb–Gb–Db",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 9,
+          "pitch": "B3",
+          "label": "Cb",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 8,
+          "pitch": "D#4",
+          "label": "Eb",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 7,
+          "pitch": "F#4",
+          "label": "Gb",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 9,
+          "pitch": "C#5",
+          "label": "Db",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 B 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "B",
+          "label": "Cb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "D#",
+          "label": "Eb"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "F#",
+          "label": "Gb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "C#",
+          "label": "Db"
+        }
+      ]
+    },
+    {
+      "name": "Cbadd2",
+      "root": "B",
+      "position": 1,
+      "shape": "x 2 4 6 4 x",
+      "notes": "X–Cb–Gb–Db–Eb–X",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 2,
+          "pitch": "B2",
+          "label": "Cb",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 4,
+          "pitch": "F#3",
+          "label": "Gb",
+          "degree": "5"
+        },
+        {
+          "string": 3,
+          "fret": 6,
+          "pitch": "C#4",
+          "label": "Db",
+          "degree": "2"
+        },
+        {
+          "string": 2,
+          "fret": 4,
+          "pitch": "D#4",
+          "label": "Eb",
+          "degree": "3"
+        },
+        {
+          "string": 1,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        }
+      ],
+      "kind": "movable",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Badd2 자료의 명시적 대안. 넓은 운지이므로 쉬운 코드라고 표시하지 않음",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "B",
+          "label": "Cb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "C#",
+          "label": "Db"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "D#",
+          "label": "Eb"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "F#",
+          "label": "Gb"
+        }
+      ]
+    },
+    {
+      "name": "Cbadd2",
+      "root": "B",
+      "position": 2,
+      "shape": "x x 9 8 7 9",
+      "notes": "X–X–Cb–Eb–Gb–Db",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 9,
+          "pitch": "B3",
+          "label": "Cb",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 8,
+          "pitch": "D#4",
+          "label": "Eb",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 7,
+          "pitch": "F#4",
+          "label": "Gb",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 9,
+          "pitch": "C#5",
+          "label": "Db",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 B 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "B",
+          "label": "Cb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "C#",
+          "label": "Db"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "D#",
+          "label": "Eb"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "F#",
+          "label": "Gb"
+        }
+      ]
+    },
+    {
+      "name": "Dbadd9",
+      "root": "C#",
+      "position": 1,
+      "shape": "x 4 3 1 4 1",
+      "notes": "X–Db–F–Ab–Eb–F",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 4,
+          "pitch": "C#3",
+          "label": "Db",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 3,
+          "pitch": "F3",
+          "label": "F",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 1,
+          "pitch": "G#3",
+          "label": "Ab",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 4,
+          "pitch": "D#4",
+          "label": "Eb",
+          "degree": "9"
+        },
+        {
+          "string": 1,
+          "fret": 1,
+          "pitch": "F4",
+          "label": "F",
+          "degree": "3"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 5,
+      "barres": [
+        {
+          "fret": 1,
+          "fromString": 3,
+          "toString": 1,
+          "label": "1"
+        }
+      ],
+      "reason": "Dbadd9 자료의 명시적 shape",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C#",
+          "label": "Db"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "F",
+          "label": "F"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G#",
+          "label": "Ab"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "D#",
+          "label": "Eb"
+        }
+      ]
+    },
+    {
+      "name": "Dbadd9",
+      "root": "C#",
+      "position": 2,
+      "shape": "x x 11 10 9 11",
+      "notes": "X–X–Db–F–Ab–Eb",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 11,
+          "pitch": "C#4",
+          "label": "Db",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 10,
+          "pitch": "F4",
+          "label": "F",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 9,
+          "pitch": "G#4",
+          "label": "Ab",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 11,
+          "pitch": "D#5",
+          "label": "Eb",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 Db 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C#",
+          "label": "Db"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "F",
+          "label": "F"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G#",
+          "label": "Ab"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "D#",
+          "label": "Eb"
+        }
+      ]
+    },
+    {
+      "name": "Dbadd2",
+      "root": "C#",
+      "position": 1,
+      "shape": "x 4 3 1 4 x",
+      "notes": "X–Db–F–Ab–Eb–X",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 4,
+          "pitch": "C#3",
+          "label": "Db",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 3,
+          "pitch": "F3",
+          "label": "F",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 1,
+          "pitch": "G#3",
+          "label": "Ab",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 4,
+          "pitch": "D#4",
+          "label": "Eb",
+          "degree": "2"
+        },
+        {
+          "string": 1,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        }
+      ],
+      "kind": "movable",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Dbadd2 항목의 명시적 shape",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C#",
+          "label": "Db"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "D#",
+          "label": "Eb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "F",
+          "label": "F"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G#",
+          "label": "Ab"
+        }
+      ]
+    },
+    {
+      "name": "Dbadd2",
+      "root": "C#",
+      "position": 2,
+      "shape": "x x 11 10 9 11",
+      "notes": "X–X–Db–F–Ab–Eb",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 11,
+          "pitch": "C#4",
+          "label": "Db",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 10,
+          "pitch": "F4",
+          "label": "F",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 9,
+          "pitch": "G#4",
+          "label": "Ab",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 11,
+          "pitch": "D#5",
+          "label": "Eb",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 Db 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C#",
+          "label": "Db"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "D#",
+          "label": "Eb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "F",
+          "label": "F"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G#",
+          "label": "Ab"
+        }
+      ]
+    },
+    {
+      "name": "Dadd9",
+      "root": "D",
+      "position": 1,
+      "shape": "x x 0 2 5 2",
+      "notes": "X–X–D–A–E–F#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 0,
+          "pitch": "D3",
+          "label": "D",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 2,
+          "pitch": "A3",
+          "label": "A",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 5,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "9"
+        },
+        {
+          "string": 1,
+          "fret": 2,
+          "pitch": "F#4",
+          "label": "F#",
+          "degree": "3"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 4,
+      "barres": [],
+      "reason": "교육 자료 Dadd2 형태를 add9 표기 관행과 함께 사용",
+      "sources": [
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "F#",
+          "label": "F#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "A",
+          "label": "A"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "E",
+          "label": "E"
+        }
+      ]
+    },
+    {
+      "name": "Dadd9",
+      "root": "D",
+      "position": 2,
+      "shape": "x 5 4 x 5 5",
+      "notes": "X–D–F#–X–E–A",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 5,
+          "pitch": "D3",
+          "label": "D",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 4,
+          "pitch": "F#3",
+          "label": "F#",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 2,
+          "fret": 5,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "9"
+        },
+        {
+          "string": 1,
+          "fret": 5,
+          "pitch": "A4",
+          "label": "A",
+          "degree": "5"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Dadd2 대표 도표; 3번줄 뮤트",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "F#",
+          "label": "F#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "A",
+          "label": "A"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "E",
+          "label": "E"
+        }
+      ]
+    },
+    {
+      "name": "Dadd9",
+      "root": "D",
+      "position": 3,
+      "shape": "x x 12 11 10 12",
+      "notes": "X–X–D–F#–A–E",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 12,
+          "pitch": "D4",
+          "label": "D",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 11,
+          "pitch": "F#4",
+          "label": "F#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 10,
+          "pitch": "A4",
+          "label": "A",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 12,
+          "pitch": "E5",
+          "label": "E",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 D 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "F#",
+          "label": "F#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "A",
+          "label": "A"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "E",
+          "label": "E"
+        }
+      ]
+    },
+    {
+      "name": "Dadd2",
+      "root": "D",
+      "position": 1,
+      "shape": "x 5 4 x 5 5",
+      "notes": "X–D–F#–X–E–A",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 5,
+          "pitch": "D3",
+          "label": "D",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 4,
+          "pitch": "F#3",
+          "label": "F#",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 2,
+          "fret": 5,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "2"
+        },
+        {
+          "string": 1,
+          "fret": 5,
+          "pitch": "A4",
+          "label": "A",
+          "degree": "5"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Dadd2 대표 도표; 3번줄 뮤트",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "F#",
+          "label": "F#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "A",
+          "label": "A"
+        }
+      ]
+    },
+    {
+      "name": "Dadd2",
+      "root": "D",
+      "position": 2,
+      "shape": "x x 0 2 5 2",
+      "notes": "X–X–D–A–E–F#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 0,
+          "pitch": "D3",
+          "label": "D",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 2,
+          "pitch": "A3",
+          "label": "A",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 5,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "2"
+        },
+        {
+          "string": 1,
+          "fret": 2,
+          "pitch": "F#4",
+          "label": "F#",
+          "degree": "3"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 4,
+      "barres": [],
+      "reason": "교육 자료 Dadd2 형태를 add9 표기 관행과 함께 사용",
+      "sources": [
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "F#",
+          "label": "F#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "A",
+          "label": "A"
+        }
+      ]
+    },
+    {
+      "name": "Dadd2",
+      "root": "D",
+      "position": 3,
+      "shape": "x x 12 11 10 12",
+      "notes": "X–X–D–F#–A–E",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 12,
+          "pitch": "D4",
+          "label": "D",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 11,
+          "pitch": "F#4",
+          "label": "F#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 10,
+          "pitch": "A4",
+          "label": "A",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 12,
+          "pitch": "E5",
+          "label": "E",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 D 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "F#",
+          "label": "F#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "A",
+          "label": "A"
+        }
+      ]
+    },
+    {
+      "name": "D#add9",
+      "root": "D#",
+      "position": 1,
+      "shape": "x 6 5 3 6 3",
+      "notes": "X–D#–F##–A#–E#–F##",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 6,
+          "pitch": "D#3",
+          "label": "D#",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 5,
+          "pitch": "G3",
+          "label": "F##",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 3,
+          "pitch": "A#3",
+          "label": "A#",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 6,
+          "pitch": "F4",
+          "label": "E#",
+          "degree": "9"
+        },
+        {
+          "string": 1,
+          "fret": 3,
+          "pitch": "G4",
+          "label": "F##",
+          "degree": "3"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 5,
+      "barres": [
+        {
+          "fret": 3,
+          "fromString": 3,
+          "toString": 1,
+          "label": "1"
+        }
+      ],
+      "reason": "Ebadd9 항목의 명시적 shape",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "D#",
+          "label": "D#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G",
+          "label": "F##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "A#",
+          "label": "A#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "F",
+          "label": "E#"
+        }
+      ]
+    },
+    {
+      "name": "D#add9",
+      "root": "D#",
+      "position": 2,
+      "shape": "x x 13 12 11 13",
+      "notes": "X–X–D#–F##–A#–E#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 13,
+          "pitch": "D#4",
+          "label": "D#",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 12,
+          "pitch": "G4",
+          "label": "F##",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 11,
+          "pitch": "A#4",
+          "label": "A#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 13,
+          "pitch": "F5",
+          "label": "E#",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 Eb 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "D#",
+          "label": "D#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G",
+          "label": "F##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "A#",
+          "label": "A#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "F",
+          "label": "E#"
+        }
+      ]
+    },
+    {
+      "name": "D#add2",
+      "root": "D#",
+      "position": 1,
+      "shape": "x 6 5 3 6 x",
+      "notes": "X–D#–F##–A#–E#–X",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 6,
+          "pitch": "D#3",
+          "label": "D#",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 5,
+          "pitch": "G3",
+          "label": "F##",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 3,
+          "pitch": "A#3",
+          "label": "A#",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 6,
+          "pitch": "F4",
+          "label": "E#",
+          "degree": "2"
+        },
+        {
+          "string": 1,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        }
+      ],
+      "kind": "movable",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Ebadd2 항목의 명시적 shape",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "D#",
+          "label": "D#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "F",
+          "label": "E#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G",
+          "label": "F##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "A#",
+          "label": "A#"
+        }
+      ]
+    },
+    {
+      "name": "D#add2",
+      "root": "D#",
+      "position": 2,
+      "shape": "x x 13 12 11 13",
+      "notes": "X–X–D#–F##–A#–E#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 13,
+          "pitch": "D#4",
+          "label": "D#",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 12,
+          "pitch": "G4",
+          "label": "F##",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 11,
+          "pitch": "A#4",
+          "label": "A#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 13,
+          "pitch": "F5",
+          "label": "E#",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 Eb 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "D#",
+          "label": "D#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "F",
+          "label": "E#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G",
+          "label": "F##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "A#",
+          "label": "A#"
+        }
+      ]
+    },
+    {
+      "name": "Ebadd9",
+      "root": "D#",
+      "position": 1,
+      "shape": "x 6 5 3 6 3",
+      "notes": "X–Eb–G–Bb–F–G",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 6,
+          "pitch": "D#3",
+          "label": "Eb",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 5,
+          "pitch": "G3",
+          "label": "G",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 3,
+          "pitch": "A#3",
+          "label": "Bb",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 6,
+          "pitch": "F4",
+          "label": "F",
+          "degree": "9"
+        },
+        {
+          "string": 1,
+          "fret": 3,
+          "pitch": "G4",
+          "label": "G",
+          "degree": "3"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 5,
+      "barres": [
+        {
+          "fret": 3,
+          "fromString": 3,
+          "toString": 1,
+          "label": "1"
+        }
+      ],
+      "reason": "Ebadd9 항목의 명시적 shape",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "D#",
+          "label": "Eb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G",
+          "label": "G"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "A#",
+          "label": "Bb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "F",
+          "label": "F"
+        }
+      ]
+    },
+    {
+      "name": "Ebadd9",
+      "root": "D#",
+      "position": 2,
+      "shape": "x x 13 12 11 13",
+      "notes": "X–X–Eb–G–Bb–F",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 13,
+          "pitch": "D#4",
+          "label": "Eb",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 12,
+          "pitch": "G4",
+          "label": "G",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 11,
+          "pitch": "A#4",
+          "label": "Bb",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 13,
+          "pitch": "F5",
+          "label": "F",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 Eb 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "D#",
+          "label": "Eb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G",
+          "label": "G"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "A#",
+          "label": "Bb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "F",
+          "label": "F"
+        }
+      ]
+    },
+    {
+      "name": "Ebadd2",
+      "root": "D#",
+      "position": 1,
+      "shape": "x 6 5 3 6 x",
+      "notes": "X–Eb–G–Bb–F–X",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 6,
+          "pitch": "D#3",
+          "label": "Eb",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 5,
+          "pitch": "G3",
+          "label": "G",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 3,
+          "pitch": "A#3",
+          "label": "Bb",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 6,
+          "pitch": "F4",
+          "label": "F",
+          "degree": "2"
+        },
+        {
+          "string": 1,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        }
+      ],
+      "kind": "movable",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Ebadd2 항목의 명시적 shape",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "D#",
+          "label": "Eb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "F",
+          "label": "F"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G",
+          "label": "G"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "A#",
+          "label": "Bb"
+        }
+      ]
+    },
+    {
+      "name": "Ebadd2",
+      "root": "D#",
+      "position": 2,
+      "shape": "x x 13 12 11 13",
+      "notes": "X–X–Eb–G–Bb–F",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 13,
+          "pitch": "D#4",
+          "label": "Eb",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 12,
+          "pitch": "G4",
+          "label": "G",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 11,
+          "pitch": "A#4",
+          "label": "Bb",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 13,
+          "pitch": "F5",
+          "label": "F",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 Eb 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "D#",
+          "label": "Eb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "F",
+          "label": "F"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G",
+          "label": "G"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "A#",
+          "label": "Bb"
+        }
+      ]
+    },
+    {
+      "name": "Eadd9",
+      "root": "E",
+      "position": 1,
+      "shape": "0 2 2 1 0 2",
+      "notes": "E–B–E–G#–B–F#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": 0,
+          "pitch": "E2",
+          "label": "E",
+          "degree": "1"
+        },
+        {
+          "string": 5,
+          "fret": 2,
+          "pitch": "B2",
+          "label": "B",
+          "degree": "5"
+        },
+        {
+          "string": 4,
+          "fret": 2,
+          "pitch": "E3",
+          "label": "E",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 1,
+          "pitch": "G#3",
+          "label": "G#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 0,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 2,
+          "pitch": "F#4",
+          "label": "F#",
+          "degree": "9"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 6,
+      "barres": [],
+      "reason": "Eadd9 교육 원형: F#을 1번줄에 배치",
+      "sources": [
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G#",
+          "label": "G#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "B",
+          "label": "B"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "F#",
+          "label": "F#"
+        }
+      ]
+    },
+    {
+      "name": "Eadd9",
+      "root": "E",
+      "position": 2,
+      "shape": "0 2 4 1 0 0",
+      "notes": "E–B–F#–G#–B–E",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": 0,
+          "pitch": "E2",
+          "label": "E",
+          "degree": "1"
+        },
+        {
+          "string": 5,
+          "fret": 2,
+          "pitch": "B2",
+          "label": "B",
+          "degree": "5"
+        },
+        {
+          "string": 4,
+          "fret": 4,
+          "pitch": "F#3",
+          "label": "F#",
+          "degree": "9"
+        },
+        {
+          "string": 3,
+          "fret": 1,
+          "pitch": "G#3",
+          "label": "G#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 0,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 0,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "1"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 6,
+      "barres": [],
+      "reason": "Eadd2 교육 원형: F#을 4번줄에 배치",
+      "sources": [
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf",
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G#",
+          "label": "G#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "B",
+          "label": "B"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "F#",
+          "label": "F#"
+        }
+      ]
+    },
+    {
+      "name": "Eadd9",
+      "root": "E",
+      "position": 3,
+      "shape": "x x 14 13 12 14",
+      "notes": "X–X–E–G#–B–F#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 14,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 13,
+          "pitch": "G#4",
+          "label": "G#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 12,
+          "pitch": "B4",
+          "label": "B",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 14,
+          "pitch": "F#5",
+          "label": "F#",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 E 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G#",
+          "label": "G#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "B",
+          "label": "B"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "F#",
+          "label": "F#"
+        }
+      ]
+    },
+    {
+      "name": "Eadd2",
+      "root": "E",
+      "position": 1,
+      "shape": "0 2 4 1 0 0",
+      "notes": "E–B–F#–G#–B–E",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": 0,
+          "pitch": "E2",
+          "label": "E",
+          "degree": "1"
+        },
+        {
+          "string": 5,
+          "fret": 2,
+          "pitch": "B2",
+          "label": "B",
+          "degree": "5"
+        },
+        {
+          "string": 4,
+          "fret": 4,
+          "pitch": "F#3",
+          "label": "F#",
+          "degree": "2"
+        },
+        {
+          "string": 3,
+          "fret": 1,
+          "pitch": "G#3",
+          "label": "G#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 0,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 0,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "1"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 6,
+      "barres": [],
+      "reason": "Eadd2 교육 원형: F#을 4번줄에 배치",
+      "sources": [
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf",
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "F#",
+          "label": "F#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G#",
+          "label": "G#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "B",
+          "label": "B"
+        }
+      ]
+    },
+    {
+      "name": "Eadd2",
+      "root": "E",
+      "position": 2,
+      "shape": "0 2 2 1 0 2",
+      "notes": "E–B–E–G#–B–F#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": 0,
+          "pitch": "E2",
+          "label": "E",
+          "degree": "1"
+        },
+        {
+          "string": 5,
+          "fret": 2,
+          "pitch": "B2",
+          "label": "B",
+          "degree": "5"
+        },
+        {
+          "string": 4,
+          "fret": 2,
+          "pitch": "E3",
+          "label": "E",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 1,
+          "pitch": "G#3",
+          "label": "G#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 0,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 2,
+          "pitch": "F#4",
+          "label": "F#",
+          "degree": "2"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 6,
+      "barres": [],
+      "reason": "Eadd9 교육 원형: F#을 1번줄에 배치",
+      "sources": [
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "F#",
+          "label": "F#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G#",
+          "label": "G#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "B",
+          "label": "B"
+        }
+      ]
+    },
+    {
+      "name": "Eadd2",
+      "root": "E",
+      "position": 3,
+      "shape": "x x 14 13 12 14",
+      "notes": "X–X–E–G#–B–F#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 14,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 13,
+          "pitch": "G#4",
+          "label": "G#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 12,
+          "pitch": "B4",
+          "label": "B",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 14,
+          "pitch": "F#5",
+          "label": "F#",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 E 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "F#",
+          "label": "F#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G#",
+          "label": "G#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "B",
+          "label": "B"
+        }
+      ]
+    },
+    {
+      "name": "E#add9",
+      "root": "F",
+      "position": 1,
+      "shape": "x x 3 2 1 3",
+      "notes": "X–X–E#–G##–B#–F##",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 3,
+          "pitch": "F3",
+          "label": "E#",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 2,
+          "pitch": "A3",
+          "label": "G##",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 1,
+          "pitch": "C4",
+          "label": "B#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 3,
+          "pitch": "G4",
+          "label": "F##",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "두 코드 자료에 공통으로 실린 기본 F형",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "F",
+          "label": "E#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "A",
+          "label": "G##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "C",
+          "label": "B#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "G",
+          "label": "F##"
+        }
+      ]
+    },
+    {
+      "name": "E#add2",
+      "root": "F",
+      "position": 1,
+      "shape": "x x 3 2 1 3",
+      "notes": "X–X–E#–G##–B#–F##",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 3,
+          "pitch": "F3",
+          "label": "E#",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 2,
+          "pitch": "A3",
+          "label": "G##",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 1,
+          "pitch": "C4",
+          "label": "B#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 3,
+          "pitch": "G4",
+          "label": "F##",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "두 코드 자료에 공통으로 실린 기본 F형",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "F",
+          "label": "E#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "G",
+          "label": "F##"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "A",
+          "label": "G##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "C",
+          "label": "B#"
+        }
+      ]
+    },
+    {
+      "name": "Fbadd9",
+      "root": "E",
+      "position": 1,
+      "shape": "0 2 2 1 0 2",
+      "notes": "Fb–Cb–Fb–Ab–Cb–Gb",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": 0,
+          "pitch": "E2",
+          "label": "Fb",
+          "degree": "1"
+        },
+        {
+          "string": 5,
+          "fret": 2,
+          "pitch": "B2",
+          "label": "Cb",
+          "degree": "5"
+        },
+        {
+          "string": 4,
+          "fret": 2,
+          "pitch": "E3",
+          "label": "Fb",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 1,
+          "pitch": "G#3",
+          "label": "Ab",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 0,
+          "pitch": "B3",
+          "label": "Cb",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 2,
+          "pitch": "F#4",
+          "label": "Gb",
+          "degree": "9"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 6,
+      "barres": [],
+      "reason": "Eadd9 교육 원형: F#을 1번줄에 배치",
+      "sources": [
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "E",
+          "label": "Fb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G#",
+          "label": "Ab"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "B",
+          "label": "Cb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "F#",
+          "label": "Gb"
+        }
+      ]
+    },
+    {
+      "name": "Fbadd9",
+      "root": "E",
+      "position": 2,
+      "shape": "0 2 4 1 0 0",
+      "notes": "Fb–Cb–Gb–Ab–Cb–Fb",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": 0,
+          "pitch": "E2",
+          "label": "Fb",
+          "degree": "1"
+        },
+        {
+          "string": 5,
+          "fret": 2,
+          "pitch": "B2",
+          "label": "Cb",
+          "degree": "5"
+        },
+        {
+          "string": 4,
+          "fret": 4,
+          "pitch": "F#3",
+          "label": "Gb",
+          "degree": "9"
+        },
+        {
+          "string": 3,
+          "fret": 1,
+          "pitch": "G#3",
+          "label": "Ab",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 0,
+          "pitch": "B3",
+          "label": "Cb",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 0,
+          "pitch": "E4",
+          "label": "Fb",
+          "degree": "1"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 6,
+      "barres": [],
+      "reason": "Eadd2 교육 원형: F#을 4번줄에 배치",
+      "sources": [
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf",
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "E",
+          "label": "Fb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G#",
+          "label": "Ab"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "B",
+          "label": "Cb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "F#",
+          "label": "Gb"
+        }
+      ]
+    },
+    {
+      "name": "Fbadd9",
+      "root": "E",
+      "position": 3,
+      "shape": "x x 14 13 12 14",
+      "notes": "X–X–Fb–Ab–Cb–Gb",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 14,
+          "pitch": "E4",
+          "label": "Fb",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 13,
+          "pitch": "G#4",
+          "label": "Ab",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 12,
+          "pitch": "B4",
+          "label": "Cb",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 14,
+          "pitch": "F#5",
+          "label": "Gb",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 E 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "E",
+          "label": "Fb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G#",
+          "label": "Ab"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "B",
+          "label": "Cb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "F#",
+          "label": "Gb"
+        }
+      ]
+    },
+    {
+      "name": "Fbadd2",
+      "root": "E",
+      "position": 1,
+      "shape": "0 2 4 1 0 0",
+      "notes": "Fb–Cb–Gb–Ab–Cb–Fb",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": 0,
+          "pitch": "E2",
+          "label": "Fb",
+          "degree": "1"
+        },
+        {
+          "string": 5,
+          "fret": 2,
+          "pitch": "B2",
+          "label": "Cb",
+          "degree": "5"
+        },
+        {
+          "string": 4,
+          "fret": 4,
+          "pitch": "F#3",
+          "label": "Gb",
+          "degree": "2"
+        },
+        {
+          "string": 3,
+          "fret": 1,
+          "pitch": "G#3",
+          "label": "Ab",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 0,
+          "pitch": "B3",
+          "label": "Cb",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 0,
+          "pitch": "E4",
+          "label": "Fb",
+          "degree": "1"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 6,
+      "barres": [],
+      "reason": "Eadd2 교육 원형: F#을 4번줄에 배치",
+      "sources": [
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf",
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "E",
+          "label": "Fb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "F#",
+          "label": "Gb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G#",
+          "label": "Ab"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "B",
+          "label": "Cb"
+        }
+      ]
+    },
+    {
+      "name": "Fbadd2",
+      "root": "E",
+      "position": 2,
+      "shape": "0 2 2 1 0 2",
+      "notes": "Fb–Cb–Fb–Ab–Cb–Gb",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": 0,
+          "pitch": "E2",
+          "label": "Fb",
+          "degree": "1"
+        },
+        {
+          "string": 5,
+          "fret": 2,
+          "pitch": "B2",
+          "label": "Cb",
+          "degree": "5"
+        },
+        {
+          "string": 4,
+          "fret": 2,
+          "pitch": "E3",
+          "label": "Fb",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 1,
+          "pitch": "G#3",
+          "label": "Ab",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 0,
+          "pitch": "B3",
+          "label": "Cb",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 2,
+          "pitch": "F#4",
+          "label": "Gb",
+          "degree": "2"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 6,
+      "barres": [],
+      "reason": "Eadd9 교육 원형: F#을 1번줄에 배치",
+      "sources": [
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "E",
+          "label": "Fb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "F#",
+          "label": "Gb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G#",
+          "label": "Ab"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "B",
+          "label": "Cb"
+        }
+      ]
+    },
+    {
+      "name": "Fbadd2",
+      "root": "E",
+      "position": 3,
+      "shape": "x x 14 13 12 14",
+      "notes": "X–X–Fb–Ab–Cb–Gb",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 14,
+          "pitch": "E4",
+          "label": "Fb",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 13,
+          "pitch": "G#4",
+          "label": "Ab",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 12,
+          "pitch": "B4",
+          "label": "Cb",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 14,
+          "pitch": "F#5",
+          "label": "Gb",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 E 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "E",
+          "label": "Fb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "F#",
+          "label": "Gb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "G#",
+          "label": "Ab"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "B",
+          "label": "Cb"
+        }
+      ]
+    },
+    {
+      "name": "Fadd9",
+      "root": "F",
+      "position": 1,
+      "shape": "x x 3 2 1 3",
+      "notes": "X–X–F–A–C–G",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 3,
+          "pitch": "F3",
+          "label": "F",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 2,
+          "pitch": "A3",
+          "label": "A",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 1,
+          "pitch": "C4",
+          "label": "C",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 3,
+          "pitch": "G4",
+          "label": "G",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "두 코드 자료에 공통으로 실린 기본 F형",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "F",
+          "label": "F"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "A",
+          "label": "A"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "C",
+          "label": "C"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "G",
+          "label": "G"
+        }
+      ]
+    },
+    {
+      "name": "Fadd2",
+      "root": "F",
+      "position": 1,
+      "shape": "x x 3 2 1 3",
+      "notes": "X–X–F–A–C–G",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 3,
+          "pitch": "F3",
+          "label": "F",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 2,
+          "pitch": "A3",
+          "label": "A",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 1,
+          "pitch": "C4",
+          "label": "C",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 3,
+          "pitch": "G4",
+          "label": "G",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "두 코드 자료에 공통으로 실린 기본 F형",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "F",
+          "label": "F"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "G",
+          "label": "G"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "A",
+          "label": "A"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "C",
+          "label": "C"
+        }
+      ]
+    },
+    {
+      "name": "F#add9",
+      "root": "F#",
+      "position": 1,
+      "shape": "x x 4 3 2 4",
+      "notes": "X–X–F#–A#–C#–G#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 4,
+          "pitch": "F#3",
+          "label": "F#",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 3,
+          "pitch": "A#3",
+          "label": "A#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 2,
+          "pitch": "C#4",
+          "label": "C#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 4,
+          "pitch": "G#4",
+          "label": "G#",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "두 자료의 F#/Gb 항목",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "F#",
+          "label": "F#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "A#",
+          "label": "A#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "C#",
+          "label": "C#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "G#",
+          "label": "G#"
+        }
+      ]
+    },
+    {
+      "name": "F#add2",
+      "root": "F#",
+      "position": 1,
+      "shape": "x x 4 3 2 4",
+      "notes": "X–X–F#–A#–C#–G#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 4,
+          "pitch": "F#3",
+          "label": "F#",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 3,
+          "pitch": "A#3",
+          "label": "A#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 2,
+          "pitch": "C#4",
+          "label": "C#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 4,
+          "pitch": "G#4",
+          "label": "G#",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "두 자료의 F#/Gb 항목",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "F#",
+          "label": "F#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "G#",
+          "label": "G#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "A#",
+          "label": "A#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "C#",
+          "label": "C#"
+        }
+      ]
+    },
+    {
+      "name": "Gbadd9",
+      "root": "F#",
+      "position": 1,
+      "shape": "x x 4 3 2 4",
+      "notes": "X–X–Gb–Bb–Db–Ab",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 4,
+          "pitch": "F#3",
+          "label": "Gb",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 3,
+          "pitch": "A#3",
+          "label": "Bb",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 2,
+          "pitch": "C#4",
+          "label": "Db",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 4,
+          "pitch": "G#4",
+          "label": "Ab",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "두 자료의 F#/Gb 항목",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "F#",
+          "label": "Gb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "A#",
+          "label": "Bb"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "C#",
+          "label": "Db"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "G#",
+          "label": "Ab"
+        }
+      ]
+    },
+    {
+      "name": "Gbadd2",
+      "root": "F#",
+      "position": 1,
+      "shape": "x x 4 3 2 4",
+      "notes": "X–X–Gb–Bb–Db–Ab",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 4,
+          "pitch": "F#3",
+          "label": "Gb",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 3,
+          "pitch": "A#3",
+          "label": "Bb",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 2,
+          "pitch": "C#4",
+          "label": "Db",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 4,
+          "pitch": "G#4",
+          "label": "Ab",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "두 자료의 F#/Gb 항목",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "F#",
+          "label": "Gb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "G#",
+          "label": "Ab"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "A#",
+          "label": "Bb"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "C#",
+          "label": "Db"
+        }
+      ]
+    },
+    {
+      "name": "Gadd9",
+      "root": "G",
+      "position": 1,
+      "shape": "3 2 0 2 0 3",
+      "notes": "G–B–D–A–B–G",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": 3,
+          "pitch": "G2",
+          "label": "G",
+          "degree": "1"
+        },
+        {
+          "string": 5,
+          "fret": 2,
+          "pitch": "B2",
+          "label": "B",
+          "degree": "3"
+        },
+        {
+          "string": 4,
+          "fret": 0,
+          "pitch": "D3",
+          "label": "D",
+          "degree": "5"
+        },
+        {
+          "string": 3,
+          "fret": 2,
+          "pitch": "A3",
+          "label": "A",
+          "degree": "9"
+        },
+        {
+          "string": 2,
+          "fret": 0,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "3"
+        },
+        {
+          "string": 1,
+          "fret": 3,
+          "pitch": "G4",
+          "label": "G",
+          "degree": "1"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 6,
+      "barres": [],
+      "reason": "Gadd9 대표 도표 320203",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html",
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "G",
+          "label": "G"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "B",
+          "label": "B"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "A",
+          "label": "A"
+        }
+      ]
+    },
+    {
+      "name": "Gadd9",
+      "root": "G",
+      "position": 2,
+      "shape": "3 0 0 0 0 3",
+      "notes": "G–A–D–G–B–G",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": 3,
+          "pitch": "G2",
+          "label": "G",
+          "degree": "1"
+        },
+        {
+          "string": 5,
+          "fret": 0,
+          "pitch": "A2",
+          "label": "A",
+          "degree": "9"
+        },
+        {
+          "string": 4,
+          "fret": 0,
+          "pitch": "D3",
+          "label": "D",
+          "degree": "5"
+        },
+        {
+          "string": 3,
+          "fret": 0,
+          "pitch": "G3",
+          "label": "G",
+          "degree": "1"
+        },
+        {
+          "string": 2,
+          "fret": 0,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "3"
+        },
+        {
+          "string": 1,
+          "fret": 3,
+          "pitch": "G4",
+          "label": "G",
+          "degree": "1"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 6,
+      "barres": [],
+      "reason": "자료의 G 개방형 대안. G에만 사용하고 전조하지 않음",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "G",
+          "label": "G"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "B",
+          "label": "B"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "A",
+          "label": "A"
+        }
+      ]
+    },
+    {
+      "name": "Gadd9",
+      "root": "G",
+      "position": 3,
+      "shape": "x x 5 4 3 5",
+      "notes": "X–X–G–B–D–A",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 5,
+          "pitch": "G3",
+          "label": "G",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 4,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 3,
+          "pitch": "D4",
+          "label": "D",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 5,
+          "pitch": "A4",
+          "label": "A",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 G 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "G",
+          "label": "G"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "B",
+          "label": "B"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "A",
+          "label": "A"
+        }
+      ]
+    },
+    {
+      "name": "Gadd2",
+      "root": "G",
+      "position": 1,
+      "shape": "3 0 0 0 0 3",
+      "notes": "G–A–D–G–B–G",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": 3,
+          "pitch": "G2",
+          "label": "G",
+          "degree": "1"
+        },
+        {
+          "string": 5,
+          "fret": 0,
+          "pitch": "A2",
+          "label": "A",
+          "degree": "2"
+        },
+        {
+          "string": 4,
+          "fret": 0,
+          "pitch": "D3",
+          "label": "D",
+          "degree": "5"
+        },
+        {
+          "string": 3,
+          "fret": 0,
+          "pitch": "G3",
+          "label": "G",
+          "degree": "1"
+        },
+        {
+          "string": 2,
+          "fret": 0,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "3"
+        },
+        {
+          "string": 1,
+          "fret": 3,
+          "pitch": "G4",
+          "label": "G",
+          "degree": "1"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 6,
+      "barres": [],
+      "reason": "자료의 G 개방형 대안. G에만 사용하고 전조하지 않음",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "G",
+          "label": "G"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "A",
+          "label": "A"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "B",
+          "label": "B"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "D",
+          "label": "D"
+        }
+      ]
+    },
+    {
+      "name": "Gadd2",
+      "root": "G",
+      "position": 2,
+      "shape": "3 2 0 2 0 3",
+      "notes": "G–B–D–A–B–G",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": 3,
+          "pitch": "G2",
+          "label": "G",
+          "degree": "1"
+        },
+        {
+          "string": 5,
+          "fret": 2,
+          "pitch": "B2",
+          "label": "B",
+          "degree": "3"
+        },
+        {
+          "string": 4,
+          "fret": 0,
+          "pitch": "D3",
+          "label": "D",
+          "degree": "5"
+        },
+        {
+          "string": 3,
+          "fret": 2,
+          "pitch": "A3",
+          "label": "A",
+          "degree": "2"
+        },
+        {
+          "string": 2,
+          "fret": 0,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "3"
+        },
+        {
+          "string": 1,
+          "fret": 3,
+          "pitch": "G4",
+          "label": "G",
+          "degree": "1"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 6,
+      "barres": [],
+      "reason": "Gadd9 대표 도표 320203",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html",
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "G",
+          "label": "G"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "A",
+          "label": "A"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "B",
+          "label": "B"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "D",
+          "label": "D"
+        }
+      ]
+    },
+    {
+      "name": "Gadd2",
+      "root": "G",
+      "position": 3,
+      "shape": "x x 5 4 3 5",
+      "notes": "X–X–G–B–D–A",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 5,
+          "pitch": "G3",
+          "label": "G",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 4,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 3,
+          "pitch": "D4",
+          "label": "D",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 5,
+          "pitch": "A4",
+          "label": "A",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 G 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "G",
+          "label": "G"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "A",
+          "label": "A"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "B",
+          "label": "B"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "D",
+          "label": "D"
+        }
+      ]
+    },
+    {
+      "name": "G#add9",
+      "root": "G#",
+      "position": 1,
+      "shape": "x x 6 5 4 6",
+      "notes": "X–X–G#–B#–D#–A#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 6,
+          "pitch": "G#3",
+          "label": "G#",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 5,
+          "pitch": "C4",
+          "label": "B#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 4,
+          "pitch": "D#4",
+          "label": "D#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 6,
+          "pitch": "A#4",
+          "label": "A#",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "Ab 항목과 4번줄 이동형 검산; add9 본문 XX7657은 A 음형이므로 미사용",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "G#",
+          "label": "G#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "C",
+          "label": "B#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "D#",
+          "label": "D#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "A#",
+          "label": "A#"
+        }
+      ]
+    },
+    {
+      "name": "G#add2",
+      "root": "G#",
+      "position": 1,
+      "shape": "x x 6 5 4 6",
+      "notes": "X–X–G#–B#–D#–A#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 6,
+          "pitch": "G#3",
+          "label": "G#",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 5,
+          "pitch": "C4",
+          "label": "B#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 4,
+          "pitch": "D#4",
+          "label": "D#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 6,
+          "pitch": "A#4",
+          "label": "A#",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "Ab 항목과 4번줄 이동형 검산; add9 본문 XX7657은 A 음형이므로 미사용",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "G#",
+          "label": "G#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "A#",
+          "label": "A#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "C",
+          "label": "B#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "D#",
+          "label": "D#"
+        }
+      ]
+    },
+    {
+      "name": "Abadd9",
+      "root": "G#",
+      "position": 1,
+      "shape": "x x 6 5 4 6",
+      "notes": "X–X–Ab–C–Eb–Bb",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 6,
+          "pitch": "G#3",
+          "label": "Ab",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 5,
+          "pitch": "C4",
+          "label": "C",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 4,
+          "pitch": "D#4",
+          "label": "Eb",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 6,
+          "pitch": "A#4",
+          "label": "Bb",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "Ab 항목과 4번줄 이동형 검산; add9 본문 XX7657은 A 음형이므로 미사용",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "G#",
+          "label": "Ab"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "C",
+          "label": "C"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "D#",
+          "label": "Eb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "A#",
+          "label": "Bb"
+        }
+      ]
+    },
+    {
+      "name": "Abadd2",
+      "root": "G#",
+      "position": 1,
+      "shape": "x x 6 5 4 6",
+      "notes": "X–X–Ab–C–Eb–Bb",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 6,
+          "pitch": "G#3",
+          "label": "Ab",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 5,
+          "pitch": "C4",
+          "label": "C",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 4,
+          "pitch": "D#4",
+          "label": "Eb",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 6,
+          "pitch": "A#4",
+          "label": "Bb",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "Ab 항목과 4번줄 이동형 검산; add9 본문 XX7657은 A 음형이므로 미사용",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "G#",
+          "label": "Ab"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "A#",
+          "label": "Bb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "C",
+          "label": "C"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "D#",
+          "label": "Eb"
+        }
+      ]
+    },
+    {
+      "name": "Aadd9",
+      "root": "A",
+      "position": 1,
+      "shape": "x 0 2 4 2 0",
+      "notes": "X–A–E–B–C#–E",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 0,
+          "pitch": "A2",
+          "label": "A",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 2,
+          "pitch": "E3",
+          "label": "E",
+          "degree": "5"
+        },
+        {
+          "string": 3,
+          "fret": 4,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "9"
+        },
+        {
+          "string": 2,
+          "fret": 2,
+          "pitch": "C#4",
+          "label": "C#",
+          "degree": "3"
+        },
+        {
+          "string": 1,
+          "fret": 0,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "5"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Aadd2/add9가 공유하는 교육용 개방형; 임의의 차별 운지 미생성",
+      "sources": [
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "A",
+          "label": "A"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "C#",
+          "label": "C#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "B",
+          "label": "B"
+        }
+      ]
+    },
+    {
+      "name": "Aadd9",
+      "root": "A",
+      "position": 2,
+      "shape": "x x 7 6 5 7",
+      "notes": "X–X–A–C#–E–B",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 7,
+          "pitch": "A3",
+          "label": "A",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 6,
+          "pitch": "C#4",
+          "label": "C#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 5,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 7,
+          "pitch": "B4",
+          "label": "B",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 A 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "A",
+          "label": "A"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "C#",
+          "label": "C#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "E",
+          "label": "E"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "B",
+          "label": "B"
+        }
+      ]
+    },
+    {
+      "name": "Aadd2",
+      "root": "A",
+      "position": 1,
+      "shape": "x 0 2 4 2 0",
+      "notes": "X–A–E–B–C#–E",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 0,
+          "pitch": "A2",
+          "label": "A",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 2,
+          "pitch": "E3",
+          "label": "E",
+          "degree": "5"
+        },
+        {
+          "string": 3,
+          "fret": 4,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "2"
+        },
+        {
+          "string": 2,
+          "fret": 2,
+          "pitch": "C#4",
+          "label": "C#",
+          "degree": "3"
+        },
+        {
+          "string": 1,
+          "fret": 0,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "5"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Aadd2/add9가 공유하는 교육용 개방형; 임의의 차별 운지 미생성",
+      "sources": [
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf",
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "A",
+          "label": "A"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "B",
+          "label": "B"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "C#",
+          "label": "C#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "E",
+          "label": "E"
+        }
+      ]
+    },
+    {
+      "name": "Aadd2",
+      "root": "A",
+      "position": 2,
+      "shape": "x x 7 6 5 7",
+      "notes": "X–X–A–C#–E–B",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 7,
+          "pitch": "A3",
+          "label": "A",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 6,
+          "pitch": "C#4",
+          "label": "C#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 5,
+          "pitch": "E4",
+          "label": "E",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 7,
+          "pitch": "B4",
+          "label": "B",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 A 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "A",
+          "label": "A"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "B",
+          "label": "B"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "C#",
+          "label": "C#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "E",
+          "label": "E"
+        }
+      ]
+    },
+    {
+      "name": "A#add9",
+      "root": "A#",
+      "position": 1,
+      "shape": "x x 8 7 6 8",
+      "notes": "X–X–A#–C##–E#–B#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 8,
+          "pitch": "A#3",
+          "label": "A#",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 7,
+          "pitch": "D4",
+          "label": "C##",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 6,
+          "pitch": "F4",
+          "label": "E#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 8,
+          "pitch": "C5",
+          "label": "B#",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "Bbadd9 항목의 닫힌 기본형",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "A#",
+          "label": "A#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "D",
+          "label": "C##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "F",
+          "label": "E#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "C",
+          "label": "B#"
+        }
+      ]
+    },
+    {
+      "name": "A#add9",
+      "root": "A#",
+      "position": 2,
+      "shape": "x 1 0 3 1 1",
+      "notes": "X–A#–C##–A#–B#–E#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 1,
+          "pitch": "A#2",
+          "label": "A#",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 0,
+          "pitch": "D3",
+          "label": "C##",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 3,
+          "pitch": "A#3",
+          "label": "A#",
+          "degree": "1"
+        },
+        {
+          "string": 2,
+          "fret": 1,
+          "pitch": "C4",
+          "label": "B#",
+          "degree": "9"
+        },
+        {
+          "string": 1,
+          "fret": 1,
+          "pitch": "F4",
+          "label": "E#",
+          "degree": "5"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Bbadd2 항목의 개방 D 포함 원형; 다른 root에 이동하지 않음",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "A#",
+          "label": "A#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "D",
+          "label": "C##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "F",
+          "label": "E#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "C",
+          "label": "B#"
+        }
+      ]
+    },
+    {
+      "name": "A#add2",
+      "root": "A#",
+      "position": 1,
+      "shape": "x 1 0 3 1 1",
+      "notes": "X–A#–C##–A#–B#–E#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 1,
+          "pitch": "A#2",
+          "label": "A#",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 0,
+          "pitch": "D3",
+          "label": "C##",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 3,
+          "pitch": "A#3",
+          "label": "A#",
+          "degree": "1"
+        },
+        {
+          "string": 2,
+          "fret": 1,
+          "pitch": "C4",
+          "label": "B#",
+          "degree": "2"
+        },
+        {
+          "string": 1,
+          "fret": 1,
+          "pitch": "F4",
+          "label": "E#",
+          "degree": "5"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Bbadd2 항목의 개방 D 포함 원형; 다른 root에 이동하지 않음",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "A#",
+          "label": "A#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "C",
+          "label": "B#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "D",
+          "label": "C##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "F",
+          "label": "E#"
+        }
+      ]
+    },
+    {
+      "name": "A#add2",
+      "root": "A#",
+      "position": 2,
+      "shape": "x x 8 7 6 8",
+      "notes": "X–X–A#–C##–E#–B#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 8,
+          "pitch": "A#3",
+          "label": "A#",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 7,
+          "pitch": "D4",
+          "label": "C##",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 6,
+          "pitch": "F4",
+          "label": "E#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 8,
+          "pitch": "C5",
+          "label": "B#",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "Bbadd9 항목의 닫힌 기본형",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "A#",
+          "label": "A#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "C",
+          "label": "B#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "D",
+          "label": "C##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "F",
+          "label": "E#"
+        }
+      ]
+    },
+    {
+      "name": "Bbadd9",
+      "root": "A#",
+      "position": 1,
+      "shape": "x x 8 7 6 8",
+      "notes": "X–X–Bb–D–F–C",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 8,
+          "pitch": "A#3",
+          "label": "Bb",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 7,
+          "pitch": "D4",
+          "label": "D",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 6,
+          "pitch": "F4",
+          "label": "F",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 8,
+          "pitch": "C5",
+          "label": "C",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "Bbadd9 항목의 닫힌 기본형",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "A#",
+          "label": "Bb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "F",
+          "label": "F"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "C",
+          "label": "C"
+        }
+      ]
+    },
+    {
+      "name": "Bbadd9",
+      "root": "A#",
+      "position": 2,
+      "shape": "x 1 0 3 1 1",
+      "notes": "X–Bb–D–Bb–C–F",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 1,
+          "pitch": "A#2",
+          "label": "Bb",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 0,
+          "pitch": "D3",
+          "label": "D",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 3,
+          "pitch": "A#3",
+          "label": "Bb",
+          "degree": "1"
+        },
+        {
+          "string": 2,
+          "fret": 1,
+          "pitch": "C4",
+          "label": "C",
+          "degree": "9"
+        },
+        {
+          "string": 1,
+          "fret": 1,
+          "pitch": "F4",
+          "label": "F",
+          "degree": "5"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Bbadd2 항목의 개방 D 포함 원형; 다른 root에 이동하지 않음",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "A#",
+          "label": "Bb"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "F",
+          "label": "F"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "C",
+          "label": "C"
+        }
+      ]
+    },
+    {
+      "name": "Bbadd2",
+      "root": "A#",
+      "position": 1,
+      "shape": "x 1 0 3 1 1",
+      "notes": "X–Bb–D–Bb–C–F",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 1,
+          "pitch": "A#2",
+          "label": "Bb",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 0,
+          "pitch": "D3",
+          "label": "D",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 3,
+          "pitch": "A#3",
+          "label": "Bb",
+          "degree": "1"
+        },
+        {
+          "string": 2,
+          "fret": 1,
+          "pitch": "C4",
+          "label": "C",
+          "degree": "2"
+        },
+        {
+          "string": 1,
+          "fret": 1,
+          "pitch": "F4",
+          "label": "F",
+          "degree": "5"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Bbadd2 항목의 개방 D 포함 원형; 다른 root에 이동하지 않음",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "A#",
+          "label": "Bb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "C",
+          "label": "C"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "F",
+          "label": "F"
+        }
+      ]
+    },
+    {
+      "name": "Bbadd2",
+      "root": "A#",
+      "position": 2,
+      "shape": "x x 8 7 6 8",
+      "notes": "X–X–Bb–D–F–C",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 8,
+          "pitch": "A#3",
+          "label": "Bb",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 7,
+          "pitch": "D4",
+          "label": "D",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 6,
+          "pitch": "F4",
+          "label": "F",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 8,
+          "pitch": "C5",
+          "label": "C",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "Bbadd9 항목의 닫힌 기본형",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "A#",
+          "label": "Bb"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "C",
+          "label": "C"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "D",
+          "label": "D"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "F",
+          "label": "F"
+        }
+      ]
+    },
+    {
+      "name": "Badd9",
+      "root": "B",
+      "position": 1,
+      "shape": "x 2 4 6 4 2",
+      "notes": "X–B–F#–C#–D#–F#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 2,
+          "pitch": "B2",
+          "label": "B",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 4,
+          "pitch": "F#3",
+          "label": "F#",
+          "degree": "5"
+        },
+        {
+          "string": 3,
+          "fret": 6,
+          "pitch": "C#4",
+          "label": "C#",
+          "degree": "9"
+        },
+        {
+          "string": 2,
+          "fret": 4,
+          "pitch": "D#4",
+          "label": "D#",
+          "degree": "3"
+        },
+        {
+          "string": 1,
+          "fret": 2,
+          "pitch": "F#4",
+          "label": "F#",
+          "degree": "5"
+        }
+      ],
+      "kind": "preserved-closed",
+      "rootString": 5,
+      "barres": [
+        {
+          "fret": 2,
+          "fromString": 5,
+          "toString": 1,
+          "label": "1"
+        }
+      ],
+      "reason": "사용자 명시 보호 대상: 작업 전 Badd9 position 전체를 고정 스냅샷으로 보존. 재선정하지 않음.",
+      "sources": [
+        "사용자 명시 보존 요청",
+        "https://www.guitar-chord.org/badd9.html"
+      ],
+      "theory": [
+        "B",
+        "D#",
+        "F#",
+        "C#"
+      ]
+    },
+    {
+      "name": "Badd9",
+      "root": "B",
+      "position": 2,
+      "shape": "7 9 11 8 7 7",
+      "notes": "B–F#–C#–D#–F#–B",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": 7,
+          "pitch": "B2",
+          "label": "B",
+          "degree": "1"
+        },
+        {
+          "string": 5,
+          "fret": 9,
+          "pitch": "F#3",
+          "label": "F#",
+          "degree": "5"
+        },
+        {
+          "string": 4,
+          "fret": 11,
+          "pitch": "C#4",
+          "label": "C#",
+          "degree": "9"
+        },
+        {
+          "string": 3,
+          "fret": 8,
+          "pitch": "D#4",
+          "label": "D#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 7,
+          "pitch": "F#4",
+          "label": "F#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 7,
+          "pitch": "B4",
+          "label": "B",
+          "degree": "1"
+        }
+      ],
+      "kind": "preserved-closed",
+      "rootString": 6,
+      "barres": [
+        {
+          "fret": 7,
+          "fromString": 6,
+          "toString": 1,
+          "label": "1"
+        }
+      ],
+      "reason": "사용자 명시 보호 대상: 작업 전 Badd9 position 전체를 고정 스냅샷으로 보존. 재선정하지 않음.",
+      "sources": [
+        "사용자 명시 보존 요청",
+        "https://www.guitar-chord.org/badd9.html"
+      ],
+      "theory": [
+        "B",
+        "D#",
+        "F#",
+        "C#"
+      ]
+    },
+    {
+      "name": "Badd9",
+      "root": "B",
+      "position": 3,
+      "shape": "x 14 16 18 16 14",
+      "notes": "X–B–F#–C#–D#–F#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 14,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 16,
+          "pitch": "F#4",
+          "label": "F#",
+          "degree": "5"
+        },
+        {
+          "string": 3,
+          "fret": 18,
+          "pitch": "C#5",
+          "label": "C#",
+          "degree": "9"
+        },
+        {
+          "string": 2,
+          "fret": 16,
+          "pitch": "D#5",
+          "label": "D#",
+          "degree": "3"
+        },
+        {
+          "string": 1,
+          "fret": 14,
+          "pitch": "F#5",
+          "label": "F#",
+          "degree": "5"
+        }
+      ],
+      "kind": "preserved-closed",
+      "rootString": 5,
+      "barres": [
+        {
+          "fret": 14,
+          "fromString": 5,
+          "toString": 1,
+          "label": "1"
+        }
+      ],
+      "reason": "사용자 명시 보호 대상: 작업 전 Badd9 position 전체를 고정 스냅샷으로 보존. 재선정하지 않음.",
+      "sources": [
+        "사용자 명시 보존 요청",
+        "https://www.guitar-chord.org/badd9.html"
+      ],
+      "theory": [
+        "B",
+        "D#",
+        "F#",
+        "C#"
+      ]
+    },
+    {
+      "name": "Badd9",
+      "root": "B",
+      "position": 4,
+      "shape": "19 21 23 20 19 19",
+      "notes": "B–F#–C#–D#–F#–B",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": 19,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "1"
+        },
+        {
+          "string": 5,
+          "fret": 21,
+          "pitch": "F#4",
+          "label": "F#",
+          "degree": "5"
+        },
+        {
+          "string": 4,
+          "fret": 23,
+          "pitch": "C#5",
+          "label": "C#",
+          "degree": "9"
+        },
+        {
+          "string": 3,
+          "fret": 20,
+          "pitch": "D#5",
+          "label": "D#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 19,
+          "pitch": "F#5",
+          "label": "F#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 19,
+          "pitch": "B5",
+          "label": "B",
+          "degree": "1"
+        }
+      ],
+      "kind": "preserved-closed",
+      "rootString": 6,
+      "barres": [
+        {
+          "fret": 19,
+          "fromString": 6,
+          "toString": 1,
+          "label": "1"
+        }
+      ],
+      "reason": "사용자 명시 보호 대상: 작업 전 Badd9 position 전체를 고정 스냅샷으로 보존. 재선정하지 않음.",
+      "sources": [
+        "사용자 명시 보존 요청",
+        "https://www.guitar-chord.org/badd9.html"
+      ],
+      "theory": [
+        "B",
+        "D#",
+        "F#",
+        "C#"
+      ]
+    },
+    {
+      "name": "Badd2",
+      "root": "B",
+      "position": 1,
+      "shape": "x 2 4 6 4 x",
+      "notes": "X–B–F#–C#–D#–X",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 2,
+          "pitch": "B2",
+          "label": "B",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 4,
+          "pitch": "F#3",
+          "label": "F#",
+          "degree": "5"
+        },
+        {
+          "string": 3,
+          "fret": 6,
+          "pitch": "C#4",
+          "label": "C#",
+          "degree": "2"
+        },
+        {
+          "string": 2,
+          "fret": 4,
+          "pitch": "D#4",
+          "label": "D#",
+          "degree": "3"
+        },
+        {
+          "string": 1,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        }
+      ],
+      "kind": "movable",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Badd2 자료의 명시적 대안. 넓은 운지이므로 쉬운 코드라고 표시하지 않음",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "B",
+          "label": "B"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "C#",
+          "label": "C#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "D#",
+          "label": "D#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "F#",
+          "label": "F#"
+        }
+      ]
+    },
+    {
+      "name": "Badd2",
+      "root": "B",
+      "position": 2,
+      "shape": "x x 9 8 7 9",
+      "notes": "X–X–B–D#–F#–C#",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 9,
+          "pitch": "B3",
+          "label": "B",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 8,
+          "pitch": "D#4",
+          "label": "D#",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 7,
+          "pitch": "F#4",
+          "label": "F#",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 9,
+          "pitch": "C#5",
+          "label": "C#",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 B 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "B",
+          "label": "B"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "C#",
+          "label": "C#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "D#",
+          "label": "D#"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "F#",
+          "label": "F#"
+        }
+      ]
+    },
+    {
+      "name": "B#add9",
+      "root": "C",
+      "position": 1,
+      "shape": "x 3 2 0 3 0",
+      "notes": "X–B#–D##–F##–C##–D##",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 3,
+          "pitch": "C3",
+          "label": "B#",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 2,
+          "pitch": "E3",
+          "label": "D##",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 0,
+          "pitch": "G3",
+          "label": "F##",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 3,
+          "pitch": "D4",
+          "label": "C##",
+          "degree": "9"
+        },
+        {
+          "string": 1,
+          "fret": 0,
+          "pitch": "E4",
+          "label": "D##",
+          "degree": "3"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "사용자 지정 Cadd9 기준 및 기타 개방형 교육 자료",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html",
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C",
+          "label": "B#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "E",
+          "label": "D##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G",
+          "label": "F##"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "D",
+          "label": "C##"
+        }
+      ]
+    },
+    {
+      "name": "B#add9",
+      "root": "C",
+      "position": 2,
+      "shape": "x 3 2 0 3 3",
+      "notes": "X–B#–D##–F##–C##–F##",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 3,
+          "pitch": "C3",
+          "label": "B#",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 2,
+          "pitch": "E3",
+          "label": "D##",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 0,
+          "pitch": "G3",
+          "label": "F##",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 3,
+          "pitch": "D4",
+          "label": "C##",
+          "degree": "9"
+        },
+        {
+          "string": 1,
+          "fret": 3,
+          "pitch": "G4",
+          "label": "F##",
+          "degree": "5"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Cadd2 자료의 대표 도표; 3도 유지, 5도 중복",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C",
+          "label": "B#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "E",
+          "label": "D##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G",
+          "label": "F##"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "D",
+          "label": "C##"
+        }
+      ]
+    },
+    {
+      "name": "B#add9",
+      "root": "C",
+      "position": 3,
+      "shape": "x x 10 9 8 10",
+      "notes": "X–X–B#–D##–F##–C##",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 10,
+          "pitch": "C4",
+          "label": "B#",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 9,
+          "pitch": "E4",
+          "label": "D##",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 8,
+          "pitch": "G4",
+          "label": "F##",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 10,
+          "pitch": "D5",
+          "label": "C##",
+          "degree": "9"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 C 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C",
+          "label": "B#"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "E",
+          "label": "D##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G",
+          "label": "F##"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 14,
+          "noteName": "D",
+          "label": "C##"
+        }
+      ]
+    },
+    {
+      "name": "B#add2",
+      "root": "C",
+      "position": 1,
+      "shape": "x 3 2 0 3 3",
+      "notes": "X–B#–D##–F##–C##–F##",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 3,
+          "pitch": "C3",
+          "label": "B#",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 2,
+          "pitch": "E3",
+          "label": "D##",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 0,
+          "pitch": "G3",
+          "label": "F##",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 3,
+          "pitch": "D4",
+          "label": "C##",
+          "degree": "2"
+        },
+        {
+          "string": 1,
+          "fret": 3,
+          "pitch": "G4",
+          "label": "F##",
+          "degree": "5"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "Cadd2 자료의 대표 도표; 3도 유지, 5도 중복",
+      "sources": [
+        "https://www.guitar-chord.org/add2.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C",
+          "label": "B#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "D",
+          "label": "C##"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "E",
+          "label": "D##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G",
+          "label": "F##"
+        }
+      ]
+    },
+    {
+      "name": "B#add2",
+      "root": "C",
+      "position": 2,
+      "shape": "x 3 0 0 1 0",
+      "notes": "X–B#–C##–F##–B#–D##",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 3,
+          "pitch": "C3",
+          "label": "B#",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 0,
+          "pitch": "D3",
+          "label": "C##",
+          "degree": "2"
+        },
+        {
+          "string": 3,
+          "fret": 0,
+          "pitch": "G3",
+          "label": "F##",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 1,
+          "pitch": "C4",
+          "label": "B#",
+          "degree": "1"
+        },
+        {
+          "string": 1,
+          "fret": 0,
+          "pitch": "E4",
+          "label": "D##",
+          "degree": "3"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "교육 자료의 Cadd2 개방형; 낮은 2도 배치의 후순위 대안",
+      "sources": [
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C",
+          "label": "B#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "D",
+          "label": "C##"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "E",
+          "label": "D##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G",
+          "label": "F##"
+        }
+      ]
+    },
+    {
+      "name": "B#add2",
+      "root": "C",
+      "position": 3,
+      "shape": "x 3 2 0 3 0",
+      "notes": "X–B#–D##–F##–C##–D##",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": 3,
+          "pitch": "C3",
+          "label": "B#",
+          "degree": "1"
+        },
+        {
+          "string": 4,
+          "fret": 2,
+          "pitch": "E3",
+          "label": "D##",
+          "degree": "3"
+        },
+        {
+          "string": 3,
+          "fret": 0,
+          "pitch": "G3",
+          "label": "F##",
+          "degree": "5"
+        },
+        {
+          "string": 2,
+          "fret": 3,
+          "pitch": "D4",
+          "label": "C##",
+          "degree": "2"
+        },
+        {
+          "string": 1,
+          "fret": 0,
+          "pitch": "E4",
+          "label": "D##",
+          "degree": "3"
+        }
+      ],
+      "kind": "open-position",
+      "rootString": 5,
+      "barres": [],
+      "reason": "사용자 지정 Cadd9 기준 및 기타 개방형 교육 자료",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html",
+        "https://www.guitare-improvisation.com/img/pdf/Pleins_de_positions_d%27accords_ouverts_enrichis.pdf"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C",
+          "label": "B#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "D",
+          "label": "C##"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "E",
+          "label": "D##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G",
+          "label": "F##"
+        }
+      ]
+    },
+    {
+      "name": "B#add2",
+      "root": "C",
+      "position": 4,
+      "shape": "x x 10 9 8 10",
+      "notes": "X–X–B#–D##–F##–C##",
+      "stringNotes": [
+        {
+          "string": 6,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 5,
+          "fret": null,
+          "pitch": null,
+          "label": null,
+          "degree": null
+        },
+        {
+          "string": 4,
+          "fret": 10,
+          "pitch": "C4",
+          "label": "B#",
+          "degree": "1"
+        },
+        {
+          "string": 3,
+          "fret": 9,
+          "pitch": "E4",
+          "label": "D##",
+          "degree": "3"
+        },
+        {
+          "string": 2,
+          "fret": 8,
+          "pitch": "G4",
+          "label": "F##",
+          "degree": "5"
+        },
+        {
+          "string": 1,
+          "fret": 10,
+          "pitch": "D5",
+          "label": "C##",
+          "degree": "2"
+        }
+      ],
+      "kind": "movable",
+      "rootString": 4,
+      "barres": [],
+      "reason": "검증된 4번줄 루트 이동형의 C 위치",
+      "sources": [
+        "https://www.guitar-chord.org/add9.html"
+      ],
+      "theory": [
+        {
+          "degreeOffset": 0,
+          "interval": 0,
+          "noteName": "C",
+          "label": "B#"
+        },
+        {
+          "degreeOffset": 1,
+          "interval": 2,
+          "noteName": "D",
+          "label": "C##"
+        },
+        {
+          "degreeOffset": 2,
+          "interval": 4,
+          "noteName": "E",
+          "label": "D##"
+        },
+        {
+          "degreeOffset": 4,
+          "interval": 7,
+          "noteName": "G",
+          "label": "F##"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { readFile } from "node:fs/promises";
+import { CHORD_TONE_INTERVALS, getChordToneDescriptors, getChordToneLabel, getChordPitchClass } from "../src/chords/chordTheory.js";
+
+const examples = [
+  ["B", "major", "add9", ["B", "D#", "F#", "C#"]],
+  ["B", "major", "maj7", ["B", "D#", "F#", "A#"]],
+  ["C#", "major", "none", ["C#", "E#", "G#"]],
+  ["Db", "major", "none", ["Db", "F", "Ab"]],
+  ["F#", "major", "maj9", ["F#", "A#", "C#", "E#", "G#"]],
+  ["Eb", "major", "9", ["Eb", "G", "Bb", "Db", "F"]],
+  ["C", "minor", "m7b5", ["C", "Eb", "Gb", "Bb"]],
+  ["Db", "minor", "none", ["Db", "Fb", "Ab"]],
+  ["C", "dim", "none", ["C", "Eb", "Gb"]],
+  ["C", "aug", "none", ["C", "E", "G#"]],
+  ["B", "aug", "none", ["B", "D#", "F##"]],
+  ["C#", "aug", "none", ["C#", "E#", "G##"]],
+  ["Gb", "major", "sus4", ["Gb", "Cb", "Db"]],
+];
+
+test("chord labels follow root spelling and diatonic degrees", () => {
+  for (const [root, quality, extension, expected] of examples) {
+    const notes = getChordToneDescriptors(root, quality, extension);
+    assert.deepEqual(notes.map((n) => getChordToneLabel(n.noteName, { root, quality, extension })), expected);
+  }
+  assert.equal(getChordToneLabel("F", { root: "C#", displayName: "Db", quality: "major", extension: "none" }), "F");
+  assert.equal(getChordToneLabel("F", { root: "C#", displayName: "C#", quality: "major", extension: "none" }), "E#");
+});
+
+test("all chord types retain pitch identity and correct letter distances in sharp and flat keys", () => {
+  const letters = "CDEFGAB";
+  for (const root of ["C", "C#", "Db", "D", "D#", "Eb", "E", "F", "F#", "Gb", "G", "G#", "Ab", "A", "A#", "Bb", "B"]) {
+    for (const [quality, extensions] of Object.entries(CHORD_TONE_INTERVALS)) {
+      for (const extension of Object.keys(extensions)) {
+        for (const tone of getChordToneDescriptors(root, quality, extension)) {
+          const label = getChordToneLabel(tone.noteName, { root, quality, extension });
+          assert.equal(getChordPitchClass(label), getChordPitchClass(tone.noteName));
+          assert.equal(label[0], letters[(letters.indexOf(root[0]) + tone.degreeOffset) % 7]);
+        }
+      }
+    }
+  }
+});
+
+test("catalog, reference, mini cards, and progression labels share chord spelling", async () => {
+  const source = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /getChordDisplayNoteName/);
+  for (const name of ["makeChordViewOption", "buildStoredChordReferencePosition"]) {
+    const section = source.slice(source.indexOf(`function ${name}(`));
+    assert.match(section.slice(0, section.indexOf("\n}\n")), /getChordToneLabel/);
+  }
+  assert.match(source, /label: getChordToneLabel\(note.noteName, chord\)/);
+  assert.match(source, /getChordToneLabel\(note.noteName, chordPracticeCurrent\)/);
+});

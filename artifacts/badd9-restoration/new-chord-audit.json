@@ -1,0 +1,10100 @@
+[
+  {
+    "chord": "C5",
+    "theory": [
+      "C",
+      "G"
+    ],
+    "strings": [
+      "x",
+      "3:C",
+      "5:G",
+      "5:C",
+      "x",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C-major-5-a-power-a-power-3-position1",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-5-e-power-e-power-8-position2",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-5-a-power-a-power-15-position3",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-5-e-power-e-power-20-position4",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C11",
+    "theory": [
+      "C",
+      "E",
+      "G",
+      "Bb",
+      "D",
+      "F"
+    ],
+    "strings": [
+      "8:C",
+      "8:F",
+      "8:Bb",
+      "9:E",
+      "8:G",
+      "10:D"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C-major-11-full-e11-full-e11-8-position1",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-11-full-e11-full-e11-20-position2",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C13",
+    "theory": [
+      "C",
+      "E",
+      "G",
+      "Bb",
+      "D",
+      "F",
+      "A"
+    ],
+    "strings": [
+      "x",
+      "3:C",
+      "2:E",
+      "3:Bb",
+      "3:D",
+      "5:A"
+    ],
+    "omitted": [
+      "G",
+      "F"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-C-major-13-a13-a13-3-position1",
+        "frets": [
+          1,
+          6
+        ],
+        "omitted": [
+          "G",
+          "F"
+        ]
+      },
+      {
+        "id": "generated-shape-C-major-13-full-e13-full-e13-8-position2",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": [
+          "F"
+        ]
+      },
+      {
+        "id": "generated-shape-C-major-13-shell-e13-shell-e13-8-position3",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": [
+          "G",
+          "F"
+        ]
+      },
+      {
+        "id": "generated-shape-C-major-13-a13-a13-15-position4",
+        "frets": [
+          13,
+          18
+        ],
+        "omitted": [
+          "G",
+          "F"
+        ]
+      },
+      {
+        "id": "generated-shape-C-major-13-full-e13-full-e13-20-position5",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": [
+          "F"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "Cadd2",
+    "theory": [
+      "C",
+      "D",
+      "E",
+      "G"
+    ],
+    "strings": [
+      "x",
+      "3:C",
+      "0:D",
+      "0:G",
+      "1:C",
+      "0:E"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C-major-add2-c-add2-c-add2-3-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-add2-g-add2-g-add2-8-position2",
+        "frets": [
+          4,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-add2-c-add2-c-add2-15-position3",
+        "frets": [
+          11,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-add2-g-add2-g-add2-20-position4",
+        "frets": [
+          16,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Cadd11",
+    "theory": [
+      "C",
+      "E",
+      "G",
+      "F"
+    ],
+    "strings": [
+      "x",
+      "3:C",
+      "3:F",
+      "0:G",
+      "1:C",
+      "0:E"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C-major-add11-c-add11-c-add11-3-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-add11-e-add11-e-add11-8-position2",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-add11-c-add11-c-add11-15-position3",
+        "frets": [
+          11,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-add11-e-add11-e-add11-20-position4",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Cmaj11",
+    "theory": [
+      "C",
+      "E",
+      "G",
+      "B",
+      "D",
+      "F"
+    ],
+    "strings": [
+      "8:C",
+      "8:F",
+      "9:B",
+      "9:E",
+      "8:G",
+      "10:D"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C-major-maj11-full-emaj11-full-emaj11-8-position1",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-maj11-full-emaj11-full-emaj11-20-position2",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Cmaj13",
+    "theory": [
+      "C",
+      "E",
+      "G",
+      "B",
+      "D",
+      "F",
+      "A"
+    ],
+    "strings": [
+      "8:C",
+      "10:G",
+      "9:B",
+      "9:E",
+      "10:A",
+      "10:D"
+    ],
+    "omitted": [
+      "F"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-C-major-maj13-full-emaj13-full-emaj13-8-position1",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": [
+          "F"
+        ]
+      },
+      {
+        "id": "generated-shape-C-major-maj13-shell-emaj13-shell-emaj13-8-position2",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": [
+          "G",
+          "F"
+        ]
+      },
+      {
+        "id": "generated-shape-C-major-maj13-full-emaj13-full-emaj13-20-position3",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": [
+          "F"
+        ]
+      },
+      {
+        "id": "generated-shape-C-major-maj13-shell-emaj13-shell-emaj13-20-position4",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": [
+          "G",
+          "F"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "C7b5",
+    "theory": [
+      "C",
+      "E",
+      "Gb",
+      "Bb"
+    ],
+    "strings": [
+      "x",
+      "3:C",
+      "4:Gb",
+      "3:Bb",
+      "5:E",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C-major-7b5-a-seven-flat-five-a-seven-flat-five-3-position1",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-7b5-e-seven-flat-five-e-seven-flat-five-8-position2",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-7b5-a-seven-flat-five-a-seven-flat-five-15-position3",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-7b5-e-seven-flat-five-e-seven-flat-five-20-position4",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C7#5",
+    "theory": [
+      "C",
+      "E",
+      "G#",
+      "Bb"
+    ],
+    "strings": [
+      "x",
+      "3:C",
+      "6:G#",
+      "3:Bb",
+      "5:E",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C-major-7#5-a-seven-sharp-five-a-seven-sharp-five-3-position1",
+        "frets": [
+          2,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-7#5-e-seven-sharp-five-e-seven-sharp-five-8-position2",
+        "frets": [
+          7,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-7#5-a-seven-sharp-five-a-seven-sharp-five-15-position3",
+        "frets": [
+          14,
+          19
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-7#5-e-seven-sharp-five-e-seven-sharp-five-20-position4",
+        "frets": [
+          19,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C7b9",
+    "theory": [
+      "C",
+      "E",
+      "G",
+      "Bb",
+      "Db"
+    ],
+    "strings": [
+      "x",
+      "3:C",
+      "2:E",
+      "3:Bb",
+      "2:Db",
+      "3:G"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C-major-7b9-a-seven-flat-nine-a-seven-flat-nine-3-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-7b9-e-seven-flat-nine-e-seven-flat-nine-8-position2",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-7b9-a-seven-flat-nine-a-seven-flat-nine-15-position3",
+        "frets": [
+          13,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-7b9-e-seven-flat-nine-e-seven-flat-nine-20-position4",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C7#9",
+    "theory": [
+      "C",
+      "E",
+      "G",
+      "Bb",
+      "D#"
+    ],
+    "strings": [
+      "x",
+      "3:C",
+      "2:E",
+      "3:Bb",
+      "4:D#",
+      "3:G"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-3-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-8-position2",
+        "frets": [
+          7,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-15-position3",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-20-position4",
+        "frets": [
+          19,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C6/9",
+    "theory": [
+      "C",
+      "E",
+      "G",
+      "A",
+      "D"
+    ],
+    "strings": [
+      "x",
+      "3:C",
+      "2:E",
+      "2:A",
+      "3:D",
+      "3:G"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C-major-6/9-a-six-nine-a-six-nine-3-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-6/9-e-six-nine-e-six-nine-8-position2",
+        "frets": [
+          6,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-6/9-a-six-nine-a-six-nine-15-position3",
+        "frets": [
+          13,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-major-6/9-e-six-nine-e-six-nine-20-position4",
+        "frets": [
+          18,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Cm11",
+    "theory": [
+      "C",
+      "Eb",
+      "G",
+      "Bb",
+      "D",
+      "F"
+    ],
+    "strings": [
+      "8:C",
+      "8:F",
+      "8:Bb",
+      "8:Eb",
+      "8:G",
+      "10:D"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C-minor-m11-full-em11-full-em11-8-position1",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-minor-m11-full-em11-full-em11-20-position2",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Cm13",
+    "theory": [
+      "C",
+      "Eb",
+      "G",
+      "Bb",
+      "D",
+      "F",
+      "A"
+    ],
+    "strings": [
+      "x",
+      "3:C",
+      "1:Eb",
+      "3:Bb",
+      "3:D",
+      "5:A"
+    ],
+    "omitted": [
+      "G",
+      "F"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-C-minor-m13-am13-am13-3-position1",
+        "frets": [
+          1,
+          6
+        ],
+        "omitted": [
+          "G",
+          "F"
+        ]
+      },
+      {
+        "id": "generated-shape-C-minor-m13-full-em13-full-em13-8-position2",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": [
+          "F"
+        ]
+      },
+      {
+        "id": "generated-shape-C-minor-m13-shell-em13-shell-em13-8-position3",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": [
+          "G",
+          "F"
+        ]
+      },
+      {
+        "id": "generated-shape-C-minor-m13-am13-am13-15-position4",
+        "frets": [
+          12,
+          18
+        ],
+        "omitted": [
+          "G",
+          "F"
+        ]
+      },
+      {
+        "id": "generated-shape-C-minor-m13-full-em13-full-em13-20-position5",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": [
+          "F"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "Cm7b5",
+    "theory": [
+      "C",
+      "Eb",
+      "Gb",
+      "Bb"
+    ],
+    "strings": [
+      "x",
+      "3:C",
+      "4:Gb",
+      "3:Bb",
+      "4:Eb",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C-minor-m7b5-a-half-diminished-a-half-diminished-3-position1",
+        "frets": [
+          2,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-minor-m7b5-e-half-diminished-e-half-diminished-8-position2",
+        "frets": [
+          6,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-minor-m7b5-a-half-diminished-a-half-diminished-15-position3",
+        "frets": [
+          14,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-minor-m7b5-e-half-diminished-e-half-diminished-20-position4",
+        "frets": [
+          18,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Cdim7",
+    "theory": [
+      "C",
+      "Eb",
+      "Gb",
+      "Bbb"
+    ],
+    "strings": [
+      "x",
+      "3:C",
+      "4:Gb",
+      "2:Bbb",
+      "4:Eb",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C-dim-dim7-a-diminished-seven-a-diminished-seven-3-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-dim-dim7-e-diminished-seven-e-diminished-seven-8-position2",
+        "frets": [
+          6,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-dim-dim7-a-diminished-seven-a-diminished-seven-15-position3",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C-dim-dim7-e-diminished-seven-e-diminished-seven-20-position4",
+        "frets": [
+          18,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C#5",
+    "theory": [
+      "C#",
+      "G#"
+    ],
+    "strings": [
+      "x",
+      "4:C#",
+      "6:G#",
+      "6:C#",
+      "x",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C#-major-5-a-power-a-power-4-position1",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-5-e-power-e-power-9-position2",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-5-a-power-a-power-16-position3",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-5-e-power-e-power-21-position4",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C#11",
+    "theory": [
+      "C#",
+      "E#",
+      "G#",
+      "B",
+      "D#",
+      "F#"
+    ],
+    "strings": [
+      "9:C#",
+      "9:F#",
+      "9:B",
+      "10:E#",
+      "9:G#",
+      "11:D#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C#-major-11-full-e11-full-e11-9-position1",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-11-full-e11-full-e11-21-position2",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C#13",
+    "theory": [
+      "C#",
+      "E#",
+      "G#",
+      "B",
+      "D#",
+      "F#",
+      "A#"
+    ],
+    "strings": [
+      "x",
+      "4:C#",
+      "3:E#",
+      "4:B",
+      "4:D#",
+      "6:A#"
+    ],
+    "omitted": [
+      "G#",
+      "F#"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-C#-major-13-a13-a13-4-position1",
+        "frets": [
+          2,
+          7
+        ],
+        "omitted": [
+          "G#",
+          "F#"
+        ]
+      },
+      {
+        "id": "generated-shape-C#-major-13-full-e13-full-e13-9-position2",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": [
+          "F#"
+        ]
+      },
+      {
+        "id": "generated-shape-C#-major-13-shell-e13-shell-e13-9-position3",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": [
+          "G#",
+          "F#"
+        ]
+      },
+      {
+        "id": "generated-shape-C#-major-13-a13-a13-16-position4",
+        "frets": [
+          14,
+          19
+        ],
+        "omitted": [
+          "G#",
+          "F#"
+        ]
+      },
+      {
+        "id": "generated-shape-C#-major-13-full-e13-full-e13-21-position5",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": [
+          "F#"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "C#add2",
+    "theory": [
+      "C#",
+      "D#",
+      "E#",
+      "G#"
+    ],
+    "strings": [
+      "x",
+      "4:C#",
+      "1:D#",
+      "1:G#",
+      "2:C#",
+      "1:E#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C#-major-add2-c-add2-c-add2-4-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-add2-g-add2-g-add2-9-position2",
+        "frets": [
+          5,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-add2-c-add2-c-add2-16-position3",
+        "frets": [
+          12,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-add2-g-add2-g-add2-21-position4",
+        "frets": [
+          17,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C#add11",
+    "theory": [
+      "C#",
+      "E#",
+      "G#",
+      "F#"
+    ],
+    "strings": [
+      "x",
+      "4:C#",
+      "4:F#",
+      "1:G#",
+      "2:C#",
+      "1:E#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C#-major-add11-c-add11-c-add11-4-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-add11-e-add11-e-add11-9-position2",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-add11-c-add11-c-add11-16-position3",
+        "frets": [
+          12,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-add11-e-add11-e-add11-21-position4",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C#maj11",
+    "theory": [
+      "C#",
+      "E#",
+      "G#",
+      "B#",
+      "D#",
+      "F#"
+    ],
+    "strings": [
+      "9:C#",
+      "9:F#",
+      "10:B#",
+      "10:E#",
+      "9:G#",
+      "11:D#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C#-major-maj11-full-emaj11-full-emaj11-9-position1",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-maj11-full-emaj11-full-emaj11-21-position2",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C#maj13",
+    "theory": [
+      "C#",
+      "E#",
+      "G#",
+      "B#",
+      "D#",
+      "F#",
+      "A#"
+    ],
+    "strings": [
+      "9:C#",
+      "11:G#",
+      "10:B#",
+      "10:E#",
+      "11:A#",
+      "11:D#"
+    ],
+    "omitted": [
+      "F#"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-C#-major-maj13-full-emaj13-full-emaj13-9-position1",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": [
+          "F#"
+        ]
+      },
+      {
+        "id": "generated-shape-C#-major-maj13-shell-emaj13-shell-emaj13-9-position2",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": [
+          "G#",
+          "F#"
+        ]
+      },
+      {
+        "id": "generated-shape-C#-major-maj13-full-emaj13-full-emaj13-21-position3",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": [
+          "F#"
+        ]
+      },
+      {
+        "id": "generated-shape-C#-major-maj13-shell-emaj13-shell-emaj13-21-position4",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": [
+          "G#",
+          "F#"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "C#7b5",
+    "theory": [
+      "C#",
+      "E#",
+      "G",
+      "B"
+    ],
+    "strings": [
+      "x",
+      "4:C#",
+      "5:G",
+      "4:B",
+      "6:E#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C#-major-7b5-a-seven-flat-five-a-seven-flat-five-4-position1",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-7b5-e-seven-flat-five-e-seven-flat-five-9-position2",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-7b5-a-seven-flat-five-a-seven-flat-five-16-position3",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-7b5-e-seven-flat-five-e-seven-flat-five-21-position4",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C#7#5",
+    "theory": [
+      "C#",
+      "E#",
+      "G##",
+      "B"
+    ],
+    "strings": [
+      "x",
+      "4:C#",
+      "7:G##",
+      "4:B",
+      "6:E#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C#-major-7#5-a-seven-sharp-five-a-seven-sharp-five-4-position1",
+        "frets": [
+          3,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-7#5-e-seven-sharp-five-e-seven-sharp-five-9-position2",
+        "frets": [
+          8,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-7#5-a-seven-sharp-five-a-seven-sharp-five-16-position3",
+        "frets": [
+          15,
+          20
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-7#5-e-seven-sharp-five-e-seven-sharp-five-21-position4",
+        "frets": [
+          20,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C#7b9",
+    "theory": [
+      "C#",
+      "E#",
+      "G#",
+      "B",
+      "D"
+    ],
+    "strings": [
+      "x",
+      "4:C#",
+      "3:E#",
+      "4:B",
+      "3:D",
+      "4:G#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C#-major-7b9-a-seven-flat-nine-a-seven-flat-nine-4-position1",
+        "frets": [
+          2,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-7b9-e-seven-flat-nine-e-seven-flat-nine-9-position2",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-7b9-a-seven-flat-nine-a-seven-flat-nine-16-position3",
+        "frets": [
+          14,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-7b9-e-seven-flat-nine-e-seven-flat-nine-21-position4",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C#7#9",
+    "theory": [
+      "C#",
+      "E#",
+      "G#",
+      "B",
+      "D##"
+    ],
+    "strings": [
+      "x",
+      "4:C#",
+      "3:E#",
+      "4:B",
+      "5:D##",
+      "4:G#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C#-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-4-position1",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-9-position2",
+        "frets": [
+          8,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-16-position3",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-21-position4",
+        "frets": [
+          20,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C#6/9",
+    "theory": [
+      "C#",
+      "E#",
+      "G#",
+      "A#",
+      "D#"
+    ],
+    "strings": [
+      "x",
+      "4:C#",
+      "3:E#",
+      "3:A#",
+      "4:D#",
+      "4:G#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C#-major-6/9-a-six-nine-a-six-nine-4-position1",
+        "frets": [
+          2,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-6/9-e-six-nine-e-six-nine-9-position2",
+        "frets": [
+          7,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-6/9-a-six-nine-a-six-nine-16-position3",
+        "frets": [
+          14,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-major-6/9-e-six-nine-e-six-nine-21-position4",
+        "frets": [
+          19,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C#m11",
+    "theory": [
+      "C#",
+      "E",
+      "G#",
+      "B",
+      "D#",
+      "F#"
+    ],
+    "strings": [
+      "9:C#",
+      "9:F#",
+      "9:B",
+      "9:E",
+      "9:G#",
+      "11:D#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C#-minor-m11-full-em11-full-em11-9-position1",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-minor-m11-full-em11-full-em11-21-position2",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C#m13",
+    "theory": [
+      "C#",
+      "E",
+      "G#",
+      "B",
+      "D#",
+      "F#",
+      "A#"
+    ],
+    "strings": [
+      "x",
+      "4:C#",
+      "2:E",
+      "4:B",
+      "4:D#",
+      "6:A#"
+    ],
+    "omitted": [
+      "G#",
+      "F#"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-C#-minor-m13-am13-am13-4-position1",
+        "frets": [
+          1,
+          7
+        ],
+        "omitted": [
+          "G#",
+          "F#"
+        ]
+      },
+      {
+        "id": "generated-shape-C#-minor-m13-full-em13-full-em13-9-position2",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": [
+          "F#"
+        ]
+      },
+      {
+        "id": "generated-shape-C#-minor-m13-shell-em13-shell-em13-9-position3",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": [
+          "G#",
+          "F#"
+        ]
+      },
+      {
+        "id": "generated-shape-C#-minor-m13-am13-am13-16-position4",
+        "frets": [
+          13,
+          19
+        ],
+        "omitted": [
+          "G#",
+          "F#"
+        ]
+      },
+      {
+        "id": "generated-shape-C#-minor-m13-full-em13-full-em13-21-position5",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": [
+          "F#"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "C#m7b5",
+    "theory": [
+      "C#",
+      "E",
+      "G",
+      "B"
+    ],
+    "strings": [
+      "x",
+      "4:C#",
+      "5:G",
+      "4:B",
+      "5:E",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C#-minor-m7b5-a-half-diminished-a-half-diminished-4-position1",
+        "frets": [
+          3,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-minor-m7b5-e-half-diminished-e-half-diminished-9-position2",
+        "frets": [
+          7,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-minor-m7b5-a-half-diminished-a-half-diminished-16-position3",
+        "frets": [
+          15,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-minor-m7b5-e-half-diminished-e-half-diminished-21-position4",
+        "frets": [
+          19,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "C#dim7",
+    "theory": [
+      "C#",
+      "E",
+      "G",
+      "Bb"
+    ],
+    "strings": [
+      "x",
+      "4:C#",
+      "5:G",
+      "3:Bb",
+      "5:E",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-C#-dim-dim7-a-diminished-seven-a-diminished-seven-4-position1",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-dim-dim7-e-diminished-seven-e-diminished-seven-9-position2",
+        "frets": [
+          7,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-dim-dim7-a-diminished-seven-a-diminished-seven-16-position3",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-C#-dim-dim7-e-diminished-seven-e-diminished-seven-21-position4",
+        "frets": [
+          19,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D5",
+    "theory": [
+      "D",
+      "A"
+    ],
+    "strings": [
+      "x",
+      "5:D",
+      "7:A",
+      "7:D",
+      "x",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D-major-5-a-power-a-power-5-position1",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-5-e-power-e-power-10-position2",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-5-a-power-a-power-17-position3",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-5-e-power-e-power-22-position4",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D11",
+    "theory": [
+      "D",
+      "F#",
+      "A",
+      "C",
+      "E",
+      "G"
+    ],
+    "strings": [
+      "10:D",
+      "10:G",
+      "10:C",
+      "11:F#",
+      "10:A",
+      "12:E"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D-major-11-full-e11-full-e11-10-position1",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-11-full-e11-full-e11-22-position2",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D13",
+    "theory": [
+      "D",
+      "F#",
+      "A",
+      "C",
+      "E",
+      "G",
+      "B"
+    ],
+    "strings": [
+      "x",
+      "5:D",
+      "4:F#",
+      "5:C",
+      "5:E",
+      "7:B"
+    ],
+    "omitted": [
+      "A",
+      "G"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-D-major-13-a13-a13-5-position1",
+        "frets": [
+          3,
+          8
+        ],
+        "omitted": [
+          "A",
+          "G"
+        ]
+      },
+      {
+        "id": "generated-shape-D-major-13-full-e13-full-e13-10-position2",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": [
+          "G"
+        ]
+      },
+      {
+        "id": "generated-shape-D-major-13-shell-e13-shell-e13-10-position3",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": [
+          "A",
+          "G"
+        ]
+      },
+      {
+        "id": "generated-shape-D-major-13-a13-a13-17-position4",
+        "frets": [
+          15,
+          20
+        ],
+        "omitted": [
+          "A",
+          "G"
+        ]
+      },
+      {
+        "id": "generated-shape-D-major-13-full-e13-full-e13-22-position5",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": [
+          "G"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "Dadd2",
+    "theory": [
+      "D",
+      "E",
+      "F#",
+      "A"
+    ],
+    "strings": [
+      "x",
+      "5:D",
+      "2:E",
+      "2:A",
+      "3:D",
+      "2:F#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D-major-add2-c-add2-c-add2-5-position1",
+        "frets": [
+          1,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-add2-g-add2-g-add2-10-position2",
+        "frets": [
+          6,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-add2-c-add2-c-add2-17-position3",
+        "frets": [
+          13,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-add2-g-add2-g-add2-22-position4",
+        "frets": [
+          18,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Dadd11",
+    "theory": [
+      "D",
+      "F#",
+      "A",
+      "G"
+    ],
+    "strings": [
+      "x",
+      "5:D",
+      "5:G",
+      "2:A",
+      "3:D",
+      "2:F#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D-major-add11-c-add11-c-add11-5-position1",
+        "frets": [
+          1,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-add11-e-add11-e-add11-10-position2",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-add11-c-add11-c-add11-17-position3",
+        "frets": [
+          13,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-add11-e-add11-e-add11-22-position4",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Dmaj11",
+    "theory": [
+      "D",
+      "F#",
+      "A",
+      "C#",
+      "E",
+      "G"
+    ],
+    "strings": [
+      "10:D",
+      "10:G",
+      "11:C#",
+      "11:F#",
+      "10:A",
+      "12:E"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D-major-maj11-full-emaj11-full-emaj11-10-position1",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-maj11-full-emaj11-full-emaj11-22-position2",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Dmaj13",
+    "theory": [
+      "D",
+      "F#",
+      "A",
+      "C#",
+      "E",
+      "G",
+      "B"
+    ],
+    "strings": [
+      "10:D",
+      "12:A",
+      "11:C#",
+      "11:F#",
+      "12:B",
+      "12:E"
+    ],
+    "omitted": [
+      "G"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-D-major-maj13-full-emaj13-full-emaj13-10-position1",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": [
+          "G"
+        ]
+      },
+      {
+        "id": "generated-shape-D-major-maj13-shell-emaj13-shell-emaj13-10-position2",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": [
+          "A",
+          "G"
+        ]
+      },
+      {
+        "id": "generated-shape-D-major-maj13-full-emaj13-full-emaj13-22-position3",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": [
+          "G"
+        ]
+      },
+      {
+        "id": "generated-shape-D-major-maj13-shell-emaj13-shell-emaj13-22-position4",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": [
+          "A",
+          "G"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "D7b5",
+    "theory": [
+      "D",
+      "F#",
+      "Ab",
+      "C"
+    ],
+    "strings": [
+      "x",
+      "5:D",
+      "6:Ab",
+      "5:C",
+      "7:F#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D-major-7b5-a-seven-flat-five-a-seven-flat-five-5-position1",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-7b5-e-seven-flat-five-e-seven-flat-five-10-position2",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-7b5-a-seven-flat-five-a-seven-flat-five-17-position3",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-7b5-e-seven-flat-five-e-seven-flat-five-22-position4",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D7#5",
+    "theory": [
+      "D",
+      "F#",
+      "A#",
+      "C"
+    ],
+    "strings": [
+      "x",
+      "5:D",
+      "8:A#",
+      "5:C",
+      "7:F#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D-major-7#5-a-seven-sharp-five-a-seven-sharp-five-5-position1",
+        "frets": [
+          4,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-7#5-e-seven-sharp-five-e-seven-sharp-five-10-position2",
+        "frets": [
+          9,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-7#5-a-seven-sharp-five-a-seven-sharp-five-17-position3",
+        "frets": [
+          16,
+          21
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-7#5-e-seven-sharp-five-e-seven-sharp-five-22-position4",
+        "frets": [
+          21,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D7b9",
+    "theory": [
+      "D",
+      "F#",
+      "A",
+      "C",
+      "Eb"
+    ],
+    "strings": [
+      "x",
+      "5:D",
+      "4:F#",
+      "5:C",
+      "4:Eb",
+      "5:A"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D-major-7b9-a-seven-flat-nine-a-seven-flat-nine-5-position1",
+        "frets": [
+          3,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-7b9-e-seven-flat-nine-e-seven-flat-nine-10-position2",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-7b9-a-seven-flat-nine-a-seven-flat-nine-17-position3",
+        "frets": [
+          15,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-7b9-e-seven-flat-nine-e-seven-flat-nine-22-position4",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D7#9",
+    "theory": [
+      "D",
+      "F#",
+      "A",
+      "C",
+      "E#"
+    ],
+    "strings": [
+      "x",
+      "5:D",
+      "4:F#",
+      "5:C",
+      "6:E#",
+      "5:A"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-5-position1",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-10-position2",
+        "frets": [
+          9,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-17-position3",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D6/9",
+    "theory": [
+      "D",
+      "F#",
+      "A",
+      "B",
+      "E"
+    ],
+    "strings": [
+      "x",
+      "5:D",
+      "4:F#",
+      "4:B",
+      "5:E",
+      "5:A"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D-major-6/9-a-six-nine-a-six-nine-5-position1",
+        "frets": [
+          3,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-6/9-e-six-nine-e-six-nine-10-position2",
+        "frets": [
+          8,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-6/9-a-six-nine-a-six-nine-17-position3",
+        "frets": [
+          15,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-major-6/9-e-six-nine-e-six-nine-22-position4",
+        "frets": [
+          20,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Dm11",
+    "theory": [
+      "D",
+      "F",
+      "A",
+      "C",
+      "E",
+      "G"
+    ],
+    "strings": [
+      "10:D",
+      "10:G",
+      "10:C",
+      "10:F",
+      "10:A",
+      "12:E"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D-minor-m11-full-em11-full-em11-10-position1",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-minor-m11-full-em11-full-em11-22-position2",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Dm13",
+    "theory": [
+      "D",
+      "F",
+      "A",
+      "C",
+      "E",
+      "G",
+      "B"
+    ],
+    "strings": [
+      "x",
+      "5:D",
+      "3:F",
+      "5:C",
+      "5:E",
+      "7:B"
+    ],
+    "omitted": [
+      "A",
+      "G"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-D-minor-m13-am13-am13-5-position1",
+        "frets": [
+          2,
+          8
+        ],
+        "omitted": [
+          "A",
+          "G"
+        ]
+      },
+      {
+        "id": "generated-shape-D-minor-m13-full-em13-full-em13-10-position2",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": [
+          "G"
+        ]
+      },
+      {
+        "id": "generated-shape-D-minor-m13-shell-em13-shell-em13-10-position3",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": [
+          "A",
+          "G"
+        ]
+      },
+      {
+        "id": "generated-shape-D-minor-m13-am13-am13-17-position4",
+        "frets": [
+          14,
+          20
+        ],
+        "omitted": [
+          "A",
+          "G"
+        ]
+      },
+      {
+        "id": "generated-shape-D-minor-m13-full-em13-full-em13-22-position5",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": [
+          "G"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "Dm7b5",
+    "theory": [
+      "D",
+      "F",
+      "Ab",
+      "C"
+    ],
+    "strings": [
+      "x",
+      "5:D",
+      "6:Ab",
+      "5:C",
+      "6:F",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D-minor-m7b5-a-half-diminished-a-half-diminished-5-position1",
+        "frets": [
+          4,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-minor-m7b5-e-half-diminished-e-half-diminished-10-position2",
+        "frets": [
+          8,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-minor-m7b5-a-half-diminished-a-half-diminished-17-position3",
+        "frets": [
+          16,
+          19
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-minor-m7b5-e-half-diminished-e-half-diminished-22-position4",
+        "frets": [
+          20,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Ddim7",
+    "theory": [
+      "D",
+      "F",
+      "Ab",
+      "Cb"
+    ],
+    "strings": [
+      "x",
+      "5:D",
+      "6:Ab",
+      "4:Cb",
+      "6:F",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D-dim-dim7-a-diminished-seven-a-diminished-seven-5-position1",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-dim-dim7-e-diminished-seven-e-diminished-seven-10-position2",
+        "frets": [
+          8,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-dim-dim7-a-diminished-seven-a-diminished-seven-17-position3",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D-dim-dim7-e-diminished-seven-e-diminished-seven-22-position4",
+        "frets": [
+          20,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D#5",
+    "theory": [
+      "D#",
+      "A#"
+    ],
+    "strings": [
+      "x",
+      "6:D#",
+      "8:A#",
+      "8:D#",
+      "x",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D#-major-5-a-power-a-power-6-position1",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-5-e-power-e-power-11-position2",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-5-a-power-a-power-18-position3",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D#11",
+    "theory": [
+      "D#",
+      "F##",
+      "A#",
+      "C#",
+      "E#",
+      "G#"
+    ],
+    "strings": [
+      "11:D#",
+      "11:G#",
+      "11:C#",
+      "12:F##",
+      "11:A#",
+      "13:E#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D#-major-11-full-e11-full-e11-11-position1",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D#13",
+    "theory": [
+      "D#",
+      "F##",
+      "A#",
+      "C#",
+      "E#",
+      "G#",
+      "B#"
+    ],
+    "strings": [
+      "x",
+      "6:D#",
+      "5:F##",
+      "6:C#",
+      "6:E#",
+      "8:B#"
+    ],
+    "omitted": [
+      "A#",
+      "G#"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-D#-major-13-a13-a13-6-position1",
+        "frets": [
+          4,
+          9
+        ],
+        "omitted": [
+          "A#",
+          "G#"
+        ]
+      },
+      {
+        "id": "generated-shape-D#-major-13-full-e13-full-e13-11-position2",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": [
+          "G#"
+        ]
+      },
+      {
+        "id": "generated-shape-D#-major-13-shell-e13-shell-e13-11-position3",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": [
+          "A#",
+          "G#"
+        ]
+      },
+      {
+        "id": "generated-shape-D#-major-13-a13-a13-18-position4",
+        "frets": [
+          16,
+          21
+        ],
+        "omitted": [
+          "A#",
+          "G#"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "D#add2",
+    "theory": [
+      "D#",
+      "E#",
+      "F##",
+      "A#"
+    ],
+    "strings": [
+      "x",
+      "6:D#",
+      "3:E#",
+      "3:A#",
+      "4:D#",
+      "3:F##"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D#-major-add2-c-add2-c-add2-6-position1",
+        "frets": [
+          2,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-add2-g-add2-g-add2-11-position2",
+        "frets": [
+          7,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-add2-c-add2-c-add2-18-position3",
+        "frets": [
+          14,
+          19
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-add2-g-add2-g-add2-23-position4",
+        "frets": [
+          19,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D#add11",
+    "theory": [
+      "D#",
+      "F##",
+      "A#",
+      "G#"
+    ],
+    "strings": [
+      "x",
+      "6:D#",
+      "6:G#",
+      "3:A#",
+      "4:D#",
+      "3:F##"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D#-major-add11-c-add11-c-add11-6-position1",
+        "frets": [
+          2,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-add11-e-add11-e-add11-11-position2",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-add11-c-add11-c-add11-18-position3",
+        "frets": [
+          14,
+          19
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D#maj11",
+    "theory": [
+      "D#",
+      "F##",
+      "A#",
+      "C##",
+      "E#",
+      "G#"
+    ],
+    "strings": [
+      "11:D#",
+      "11:G#",
+      "12:C##",
+      "12:F##",
+      "11:A#",
+      "13:E#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D#-major-maj11-full-emaj11-full-emaj11-11-position1",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D#maj13",
+    "theory": [
+      "D#",
+      "F##",
+      "A#",
+      "C##",
+      "E#",
+      "G#",
+      "B#"
+    ],
+    "strings": [
+      "11:D#",
+      "13:A#",
+      "12:C##",
+      "12:F##",
+      "13:B#",
+      "13:E#"
+    ],
+    "omitted": [
+      "G#"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-D#-major-maj13-full-emaj13-full-emaj13-11-position1",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": [
+          "G#"
+        ]
+      },
+      {
+        "id": "generated-shape-D#-major-maj13-shell-emaj13-shell-emaj13-11-position2",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": [
+          "A#",
+          "G#"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "D#7b5",
+    "theory": [
+      "D#",
+      "F##",
+      "A",
+      "C#"
+    ],
+    "strings": [
+      "x",
+      "6:D#",
+      "7:A",
+      "6:C#",
+      "8:F##",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D#-major-7b5-a-seven-flat-five-a-seven-flat-five-6-position1",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-7b5-e-seven-flat-five-e-seven-flat-five-11-position2",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-7b5-a-seven-flat-five-a-seven-flat-five-18-position3",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-7b5-e-seven-flat-five-e-seven-flat-five-23-position4",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D#7#5",
+    "theory": [
+      "D#",
+      "F##",
+      "A##",
+      "C#"
+    ],
+    "strings": [
+      "x",
+      "6:D#",
+      "9:A##",
+      "6:C#",
+      "8:F##",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D#-major-7#5-a-seven-sharp-five-a-seven-sharp-five-6-position1",
+        "frets": [
+          5,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-7#5-e-seven-sharp-five-e-seven-sharp-five-11-position2",
+        "frets": [
+          10,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-7#5-a-seven-sharp-five-a-seven-sharp-five-18-position3",
+        "frets": [
+          17,
+          22
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-7#5-e-seven-sharp-five-e-seven-sharp-five-23-position4",
+        "frets": [
+          22,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D#7b9",
+    "theory": [
+      "D#",
+      "F##",
+      "A#",
+      "C#",
+      "E"
+    ],
+    "strings": [
+      "x",
+      "6:D#",
+      "5:F##",
+      "6:C#",
+      "5:E",
+      "6:A#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D#-major-7b9-a-seven-flat-nine-a-seven-flat-nine-6-position1",
+        "frets": [
+          4,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-7b9-e-seven-flat-nine-e-seven-flat-nine-11-position2",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-7b9-a-seven-flat-nine-a-seven-flat-nine-18-position3",
+        "frets": [
+          16,
+          19
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D#7#9",
+    "theory": [
+      "D#",
+      "F##",
+      "A#",
+      "C#",
+      "E##"
+    ],
+    "strings": [
+      "x",
+      "6:D#",
+      "5:F##",
+      "6:C#",
+      "7:E##",
+      "6:A#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D#-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-6-position1",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-11-position2",
+        "frets": [
+          10,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-18-position3",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D#6/9",
+    "theory": [
+      "D#",
+      "F##",
+      "A#",
+      "B#",
+      "E#"
+    ],
+    "strings": [
+      "x",
+      "6:D#",
+      "5:F##",
+      "5:B#",
+      "6:E#",
+      "6:A#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D#-major-6/9-a-six-nine-a-six-nine-6-position1",
+        "frets": [
+          4,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-6/9-e-six-nine-e-six-nine-11-position2",
+        "frets": [
+          9,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-6/9-a-six-nine-a-six-nine-18-position3",
+        "frets": [
+          16,
+          19
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-major-6/9-e-six-nine-e-six-nine-23-position4",
+        "frets": [
+          21,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D#m11",
+    "theory": [
+      "D#",
+      "F#",
+      "A#",
+      "C#",
+      "E#",
+      "G#"
+    ],
+    "strings": [
+      "11:D#",
+      "11:G#",
+      "11:C#",
+      "11:F#",
+      "11:A#",
+      "13:E#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D#-minor-m11-full-em11-full-em11-11-position1",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D#m13",
+    "theory": [
+      "D#",
+      "F#",
+      "A#",
+      "C#",
+      "E#",
+      "G#",
+      "B#"
+    ],
+    "strings": [
+      "x",
+      "6:D#",
+      "4:F#",
+      "6:C#",
+      "6:E#",
+      "8:B#"
+    ],
+    "omitted": [
+      "A#",
+      "G#"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-D#-minor-m13-am13-am13-6-position1",
+        "frets": [
+          3,
+          9
+        ],
+        "omitted": [
+          "A#",
+          "G#"
+        ]
+      },
+      {
+        "id": "generated-shape-D#-minor-m13-full-em13-full-em13-11-position2",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": [
+          "G#"
+        ]
+      },
+      {
+        "id": "generated-shape-D#-minor-m13-shell-em13-shell-em13-11-position3",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": [
+          "A#",
+          "G#"
+        ]
+      },
+      {
+        "id": "generated-shape-D#-minor-m13-am13-am13-18-position4",
+        "frets": [
+          15,
+          21
+        ],
+        "omitted": [
+          "A#",
+          "G#"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "D#m7b5",
+    "theory": [
+      "D#",
+      "F#",
+      "A",
+      "C#"
+    ],
+    "strings": [
+      "x",
+      "6:D#",
+      "7:A",
+      "6:C#",
+      "7:F#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D#-minor-m7b5-a-half-diminished-a-half-diminished-6-position1",
+        "frets": [
+          5,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-minor-m7b5-e-half-diminished-e-half-diminished-11-position2",
+        "frets": [
+          9,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-minor-m7b5-a-half-diminished-a-half-diminished-18-position3",
+        "frets": [
+          17,
+          20
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-minor-m7b5-e-half-diminished-e-half-diminished-23-position4",
+        "frets": [
+          21,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "D#dim7",
+    "theory": [
+      "D#",
+      "F#",
+      "A",
+      "C"
+    ],
+    "strings": [
+      "x",
+      "6:D#",
+      "7:A",
+      "5:C",
+      "7:F#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-D#-dim-dim7-a-diminished-seven-a-diminished-seven-6-position1",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-dim-dim7-e-diminished-seven-e-diminished-seven-11-position2",
+        "frets": [
+          9,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-dim-dim7-a-diminished-seven-a-diminished-seven-18-position3",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-D#-dim-dim7-e-diminished-seven-e-diminished-seven-23-position4",
+        "frets": [
+          21,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "E5",
+    "theory": [
+      "E",
+      "B"
+    ],
+    "strings": [
+      "0:E",
+      "2:B",
+      "2:E",
+      "x",
+      "x",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-E-major-5-e-power-e-power-0-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-5-a-power-a-power-7-position2",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-5-e-power-e-power-12-position3",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-5-a-power-a-power-19-position4",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "E11",
+    "theory": [
+      "E",
+      "G#",
+      "B",
+      "D",
+      "F#",
+      "A"
+    ],
+    "strings": [
+      "0:E",
+      "0:A",
+      "0:D",
+      "1:G#",
+      "0:B",
+      "2:F#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-E-major-11-full-e11-full-e11-0-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-11-full-e11-full-e11-12-position2",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "E13",
+    "theory": [
+      "E",
+      "G#",
+      "B",
+      "D",
+      "F#",
+      "A",
+      "C#"
+    ],
+    "strings": [
+      "0:E",
+      "2:B",
+      "0:D",
+      "1:G#",
+      "2:C#",
+      "2:F#"
+    ],
+    "omitted": [
+      "A"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-E-major-13-full-e13-full-e13-0-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": [
+          "A"
+        ]
+      },
+      {
+        "id": "generated-shape-E-major-13-shell-e13-shell-e13-0-position2",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": [
+          "B",
+          "A"
+        ]
+      },
+      {
+        "id": "generated-shape-E-major-13-a13-a13-7-position3",
+        "frets": [
+          5,
+          10
+        ],
+        "omitted": [
+          "B",
+          "A"
+        ]
+      },
+      {
+        "id": "generated-shape-E-major-13-full-e13-full-e13-12-position4",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": [
+          "A"
+        ]
+      },
+      {
+        "id": "generated-shape-E-major-13-shell-e13-shell-e13-12-position5",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": [
+          "B",
+          "A"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "Eadd2",
+    "theory": [
+      "E",
+      "F#",
+      "G#",
+      "B"
+    ],
+    "strings": [
+      "x",
+      "7:E",
+      "4:F#",
+      "4:B",
+      "5:E",
+      "4:G#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-E-major-add2-c-add2-c-add2-7-position1",
+        "frets": [
+          3,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-add2-g-add2-g-add2-12-position2",
+        "frets": [
+          8,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-add2-c-add2-c-add2-19-position3",
+        "frets": [
+          15,
+          20
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-add2-g-add2-g-add2-24-position4",
+        "frets": [
+          20,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Eadd11",
+    "theory": [
+      "E",
+      "G#",
+      "B",
+      "A"
+    ],
+    "strings": [
+      "0:E",
+      "0:A",
+      "2:E",
+      "1:G#",
+      "0:B",
+      "0:E"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-E-major-add11-e-add11-e-add11-0-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-add11-c-add11-c-add11-7-position2",
+        "frets": [
+          3,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-add11-e-add11-e-add11-12-position3",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-add11-c-add11-c-add11-19-position4",
+        "frets": [
+          15,
+          20
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Emaj11",
+    "theory": [
+      "E",
+      "G#",
+      "B",
+      "D#",
+      "F#",
+      "A"
+    ],
+    "strings": [
+      "0:E",
+      "0:A",
+      "1:D#",
+      "1:G#",
+      "0:B",
+      "2:F#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-E-major-maj11-full-emaj11-full-emaj11-0-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-maj11-full-emaj11-full-emaj11-12-position2",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Emaj13",
+    "theory": [
+      "E",
+      "G#",
+      "B",
+      "D#",
+      "F#",
+      "A",
+      "C#"
+    ],
+    "strings": [
+      "0:E",
+      "2:B",
+      "1:D#",
+      "1:G#",
+      "2:C#",
+      "2:F#"
+    ],
+    "omitted": [
+      "A"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-E-major-maj13-full-emaj13-full-emaj13-0-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": [
+          "A"
+        ]
+      },
+      {
+        "id": "generated-shape-E-major-maj13-shell-emaj13-shell-emaj13-0-position2",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": [
+          "B",
+          "A"
+        ]
+      },
+      {
+        "id": "generated-shape-E-major-maj13-full-emaj13-full-emaj13-12-position3",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": [
+          "A"
+        ]
+      },
+      {
+        "id": "generated-shape-E-major-maj13-shell-emaj13-shell-emaj13-12-position4",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": [
+          "B",
+          "A"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "E7b5",
+    "theory": [
+      "E",
+      "G#",
+      "Bb",
+      "D"
+    ],
+    "strings": [
+      "x",
+      "7:E",
+      "8:Bb",
+      "7:D",
+      "9:G#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-E-major-7b5-a-seven-flat-five-a-seven-flat-five-7-position1",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-7b5-e-seven-flat-five-e-seven-flat-five-12-position2",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-7b5-a-seven-flat-five-a-seven-flat-five-19-position3",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "E7#5",
+    "theory": [
+      "E",
+      "G#",
+      "B#",
+      "D"
+    ],
+    "strings": [
+      "0:E",
+      "x",
+      "0:D",
+      "1:G#",
+      "1:B#",
+      "0:E"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-E-major-7#5-e-seven-sharp-five-e-seven-sharp-five-0-position1",
+        "frets": [
+          1,
+          2
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-7#5-a-seven-sharp-five-a-seven-sharp-five-7-position2",
+        "frets": [
+          6,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-7#5-e-seven-sharp-five-e-seven-sharp-five-12-position3",
+        "frets": [
+          11,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-7#5-a-seven-sharp-five-a-seven-sharp-five-19-position4",
+        "frets": [
+          18,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "E7b9",
+    "theory": [
+      "E",
+      "G#",
+      "B",
+      "D",
+      "F"
+    ],
+    "strings": [
+      "0:E",
+      "2:B",
+      "0:D",
+      "1:G#",
+      "0:B",
+      "1:F"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-E-major-7b9-e-seven-flat-nine-e-seven-flat-nine-0-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-7b9-a-seven-flat-nine-a-seven-flat-nine-7-position2",
+        "frets": [
+          5,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-7b9-e-seven-flat-nine-e-seven-flat-nine-12-position3",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-7b9-a-seven-flat-nine-a-seven-flat-nine-19-position4",
+        "frets": [
+          17,
+          20
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "E7#9",
+    "theory": [
+      "E",
+      "G#",
+      "B",
+      "D",
+      "F##"
+    ],
+    "strings": [
+      "0:E",
+      "2:B",
+      "0:D",
+      "1:G#",
+      "3:D",
+      "3:F##"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-E-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-0-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-7-position2",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-12-position3",
+        "frets": [
+          11,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-19-position4",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "E6/9",
+    "theory": [
+      "E",
+      "G#",
+      "B",
+      "C#",
+      "F#"
+    ],
+    "strings": [
+      "x",
+      "7:E",
+      "6:G#",
+      "6:C#",
+      "7:F#",
+      "7:B"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-E-major-6/9-a-six-nine-a-six-nine-7-position1",
+        "frets": [
+          5,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-6/9-e-six-nine-e-six-nine-12-position2",
+        "frets": [
+          10,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-6/9-a-six-nine-a-six-nine-19-position3",
+        "frets": [
+          17,
+          20
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-major-6/9-e-six-nine-e-six-nine-24-position4",
+        "frets": [
+          22,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Em11",
+    "theory": [
+      "E",
+      "G",
+      "B",
+      "D",
+      "F#",
+      "A"
+    ],
+    "strings": [
+      "0:E",
+      "0:A",
+      "0:D",
+      "0:G",
+      "0:B",
+      "2:F#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-E-minor-m11-full-em11-full-em11-0-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-minor-m11-full-em11-full-em11-12-position2",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Em13",
+    "theory": [
+      "E",
+      "G",
+      "B",
+      "D",
+      "F#",
+      "A",
+      "C#"
+    ],
+    "strings": [
+      "0:E",
+      "2:B",
+      "0:D",
+      "0:G",
+      "2:C#",
+      "2:F#"
+    ],
+    "omitted": [
+      "A"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-E-minor-m13-full-em13-full-em13-0-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": [
+          "A"
+        ]
+      },
+      {
+        "id": "generated-shape-E-minor-m13-shell-em13-shell-em13-0-position2",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": [
+          "B",
+          "A"
+        ]
+      },
+      {
+        "id": "generated-shape-E-minor-m13-am13-am13-7-position3",
+        "frets": [
+          4,
+          10
+        ],
+        "omitted": [
+          "B",
+          "A"
+        ]
+      },
+      {
+        "id": "generated-shape-E-minor-m13-full-em13-full-em13-12-position4",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": [
+          "A"
+        ]
+      },
+      {
+        "id": "generated-shape-E-minor-m13-shell-em13-shell-em13-12-position5",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": [
+          "B",
+          "A"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "Em7b5",
+    "theory": [
+      "E",
+      "G",
+      "Bb",
+      "D"
+    ],
+    "strings": [
+      "x",
+      "7:E",
+      "8:Bb",
+      "7:D",
+      "8:G",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-E-minor-m7b5-a-half-diminished-a-half-diminished-7-position1",
+        "frets": [
+          6,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-minor-m7b5-e-half-diminished-e-half-diminished-12-position2",
+        "frets": [
+          10,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-minor-m7b5-a-half-diminished-a-half-diminished-19-position3",
+        "frets": [
+          18,
+          21
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-minor-m7b5-e-half-diminished-e-half-diminished-24-position4",
+        "frets": [
+          22,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Edim7",
+    "theory": [
+      "E",
+      "G",
+      "Bb",
+      "Db"
+    ],
+    "strings": [
+      "x",
+      "7:E",
+      "8:Bb",
+      "6:Db",
+      "8:G",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-E-dim-dim7-a-diminished-seven-a-diminished-seven-7-position1",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-dim-dim7-e-diminished-seven-e-diminished-seven-12-position2",
+        "frets": [
+          10,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-dim-dim7-a-diminished-seven-a-diminished-seven-19-position3",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-E-dim-dim7-e-diminished-seven-e-diminished-seven-24-position4",
+        "frets": [
+          22,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F5",
+    "theory": [
+      "F",
+      "C"
+    ],
+    "strings": [
+      "1:F",
+      "3:C",
+      "3:F",
+      "x",
+      "x",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F-major-5-e-power-e-power-1-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-5-a-power-a-power-8-position2",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-5-e-power-e-power-13-position3",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-5-a-power-a-power-20-position4",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F11",
+    "theory": [
+      "F",
+      "A",
+      "C",
+      "Eb",
+      "G",
+      "Bb"
+    ],
+    "strings": [
+      "1:F",
+      "1:Bb",
+      "1:Eb",
+      "2:A",
+      "1:C",
+      "3:G"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F-major-11-full-e11-full-e11-1-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-11-full-e11-full-e11-13-position2",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F13",
+    "theory": [
+      "F",
+      "A",
+      "C",
+      "Eb",
+      "G",
+      "Bb",
+      "D"
+    ],
+    "strings": [
+      "1:F",
+      "3:C",
+      "1:Eb",
+      "2:A",
+      "3:D",
+      "3:G"
+    ],
+    "omitted": [
+      "Bb"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-F-major-13-full-e13-full-e13-1-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": [
+          "Bb"
+        ]
+      },
+      {
+        "id": "generated-shape-F-major-13-shell-e13-shell-e13-1-position2",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": [
+          "C",
+          "Bb"
+        ]
+      },
+      {
+        "id": "generated-shape-F-major-13-a13-a13-8-position3",
+        "frets": [
+          6,
+          11
+        ],
+        "omitted": [
+          "C",
+          "Bb"
+        ]
+      },
+      {
+        "id": "generated-shape-F-major-13-full-e13-full-e13-13-position4",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": [
+          "Bb"
+        ]
+      },
+      {
+        "id": "generated-shape-F-major-13-shell-e13-shell-e13-13-position5",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": [
+          "C",
+          "Bb"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "Fadd2",
+    "theory": [
+      "F",
+      "G",
+      "A",
+      "C"
+    ],
+    "strings": [
+      "x",
+      "8:F",
+      "5:G",
+      "5:C",
+      "6:F",
+      "5:A"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F-major-add2-c-add2-c-add2-8-position1",
+        "frets": [
+          4,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-add2-g-add2-g-add2-13-position2",
+        "frets": [
+          9,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-add2-c-add2-c-add2-20-position3",
+        "frets": [
+          16,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Fadd11",
+    "theory": [
+      "F",
+      "A",
+      "C",
+      "Bb"
+    ],
+    "strings": [
+      "1:F",
+      "1:Bb",
+      "3:F",
+      "2:A",
+      "1:C",
+      "1:F"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F-major-add11-e-add11-e-add11-1-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-add11-c-add11-c-add11-8-position2",
+        "frets": [
+          4,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-add11-e-add11-e-add11-13-position3",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-add11-c-add11-c-add11-20-position4",
+        "frets": [
+          16,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Fmaj11",
+    "theory": [
+      "F",
+      "A",
+      "C",
+      "E",
+      "G",
+      "Bb"
+    ],
+    "strings": [
+      "1:F",
+      "1:Bb",
+      "2:E",
+      "2:A",
+      "1:C",
+      "3:G"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F-major-maj11-full-emaj11-full-emaj11-1-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-maj11-full-emaj11-full-emaj11-13-position2",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Fmaj13",
+    "theory": [
+      "F",
+      "A",
+      "C",
+      "E",
+      "G",
+      "Bb",
+      "D"
+    ],
+    "strings": [
+      "1:F",
+      "3:C",
+      "2:E",
+      "2:A",
+      "3:D",
+      "3:G"
+    ],
+    "omitted": [
+      "Bb"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-F-major-maj13-full-emaj13-full-emaj13-1-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": [
+          "Bb"
+        ]
+      },
+      {
+        "id": "generated-shape-F-major-maj13-shell-emaj13-shell-emaj13-1-position2",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": [
+          "C",
+          "Bb"
+        ]
+      },
+      {
+        "id": "generated-shape-F-major-maj13-full-emaj13-full-emaj13-13-position3",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": [
+          "Bb"
+        ]
+      },
+      {
+        "id": "generated-shape-F-major-maj13-shell-emaj13-shell-emaj13-13-position4",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": [
+          "C",
+          "Bb"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "F7b5",
+    "theory": [
+      "F",
+      "A",
+      "Cb",
+      "Eb"
+    ],
+    "strings": [
+      "1:F",
+      "x",
+      "1:Eb",
+      "2:A",
+      "0:Cb",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F-major-7b5-e-seven-flat-five-e-seven-flat-five-1-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-7b5-a-seven-flat-five-a-seven-flat-five-8-position2",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-7b5-e-seven-flat-five-e-seven-flat-five-13-position3",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-7b5-a-seven-flat-five-a-seven-flat-five-20-position4",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F7#5",
+    "theory": [
+      "F",
+      "A",
+      "C#",
+      "Eb"
+    ],
+    "strings": [
+      "1:F",
+      "x",
+      "1:Eb",
+      "2:A",
+      "2:C#",
+      "1:F"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F-major-7#5-e-seven-sharp-five-e-seven-sharp-five-1-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-7#5-a-seven-sharp-five-a-seven-sharp-five-8-position2",
+        "frets": [
+          7,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-7#5-e-seven-sharp-five-e-seven-sharp-five-13-position3",
+        "frets": [
+          12,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-7#5-a-seven-sharp-five-a-seven-sharp-five-20-position4",
+        "frets": [
+          19,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F7b9",
+    "theory": [
+      "F",
+      "A",
+      "C",
+      "Eb",
+      "Gb"
+    ],
+    "strings": [
+      "1:F",
+      "3:C",
+      "1:Eb",
+      "2:A",
+      "1:C",
+      "2:Gb"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F-major-7b9-e-seven-flat-nine-e-seven-flat-nine-1-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-7b9-a-seven-flat-nine-a-seven-flat-nine-8-position2",
+        "frets": [
+          6,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-7b9-e-seven-flat-nine-e-seven-flat-nine-13-position3",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-7b9-a-seven-flat-nine-a-seven-flat-nine-20-position4",
+        "frets": [
+          18,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F7#9",
+    "theory": [
+      "F",
+      "A",
+      "C",
+      "Eb",
+      "G#"
+    ],
+    "strings": [
+      "1:F",
+      "3:C",
+      "1:Eb",
+      "2:A",
+      "4:Eb",
+      "4:G#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-1-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-8-position2",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-13-position3",
+        "frets": [
+          12,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-20-position4",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F6/9",
+    "theory": [
+      "F",
+      "A",
+      "C",
+      "D",
+      "G"
+    ],
+    "strings": [
+      "1:F",
+      "0:A",
+      "0:D",
+      "0:G",
+      "1:C",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F-major-6/9-e-six-nine-e-six-nine-1-position1",
+        "frets": [
+          1,
+          2
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-6/9-a-six-nine-a-six-nine-8-position2",
+        "frets": [
+          6,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-6/9-e-six-nine-e-six-nine-13-position3",
+        "frets": [
+          11,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-major-6/9-a-six-nine-a-six-nine-20-position4",
+        "frets": [
+          18,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Fm11",
+    "theory": [
+      "F",
+      "Ab",
+      "C",
+      "Eb",
+      "G",
+      "Bb"
+    ],
+    "strings": [
+      "1:F",
+      "1:Bb",
+      "1:Eb",
+      "1:Ab",
+      "1:C",
+      "3:G"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F-minor-m11-full-em11-full-em11-1-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-minor-m11-full-em11-full-em11-13-position2",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Fm13",
+    "theory": [
+      "F",
+      "Ab",
+      "C",
+      "Eb",
+      "G",
+      "Bb",
+      "D"
+    ],
+    "strings": [
+      "1:F",
+      "3:C",
+      "1:Eb",
+      "1:Ab",
+      "3:D",
+      "3:G"
+    ],
+    "omitted": [
+      "Bb"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-F-minor-m13-full-em13-full-em13-1-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": [
+          "Bb"
+        ]
+      },
+      {
+        "id": "generated-shape-F-minor-m13-shell-em13-shell-em13-1-position2",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": [
+          "C",
+          "Bb"
+        ]
+      },
+      {
+        "id": "generated-shape-F-minor-m13-am13-am13-8-position3",
+        "frets": [
+          5,
+          11
+        ],
+        "omitted": [
+          "C",
+          "Bb"
+        ]
+      },
+      {
+        "id": "generated-shape-F-minor-m13-full-em13-full-em13-13-position4",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": [
+          "Bb"
+        ]
+      },
+      {
+        "id": "generated-shape-F-minor-m13-shell-em13-shell-em13-13-position5",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": [
+          "C",
+          "Bb"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "Fm7b5",
+    "theory": [
+      "F",
+      "Ab",
+      "Cb",
+      "Eb"
+    ],
+    "strings": [
+      "1:F",
+      "x",
+      "1:Eb",
+      "1:Ab",
+      "0:Cb",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F-minor-m7b5-e-half-diminished-e-half-diminished-1-position1",
+        "frets": [
+          1,
+          2
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-minor-m7b5-a-half-diminished-a-half-diminished-8-position2",
+        "frets": [
+          7,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-minor-m7b5-e-half-diminished-e-half-diminished-13-position3",
+        "frets": [
+          11,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-minor-m7b5-a-half-diminished-a-half-diminished-20-position4",
+        "frets": [
+          19,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Fdim7",
+    "theory": [
+      "F",
+      "Ab",
+      "Cb",
+      "Ebb"
+    ],
+    "strings": [
+      "1:F",
+      "x",
+      "0:Ebb",
+      "1:Ab",
+      "0:Cb",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F-dim-dim7-e-diminished-seven-e-diminished-seven-1-position1",
+        "frets": [
+          1,
+          2
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-dim-dim7-a-diminished-seven-a-diminished-seven-8-position2",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-dim-dim7-e-diminished-seven-e-diminished-seven-13-position3",
+        "frets": [
+          11,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F-dim-dim7-a-diminished-seven-a-diminished-seven-20-position4",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F#5",
+    "theory": [
+      "F#",
+      "C#"
+    ],
+    "strings": [
+      "2:F#",
+      "4:C#",
+      "4:F#",
+      "x",
+      "x",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F#-major-5-e-power-e-power-2-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-5-a-power-a-power-9-position2",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-5-e-power-e-power-14-position3",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-5-a-power-a-power-21-position4",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F#11",
+    "theory": [
+      "F#",
+      "A#",
+      "C#",
+      "E",
+      "G#",
+      "B"
+    ],
+    "strings": [
+      "2:F#",
+      "2:B",
+      "2:E",
+      "3:A#",
+      "2:C#",
+      "4:G#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F#-major-11-full-e11-full-e11-2-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-11-full-e11-full-e11-14-position2",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F#13",
+    "theory": [
+      "F#",
+      "A#",
+      "C#",
+      "E",
+      "G#",
+      "B",
+      "D#"
+    ],
+    "strings": [
+      "2:F#",
+      "4:C#",
+      "2:E",
+      "3:A#",
+      "4:D#",
+      "4:G#"
+    ],
+    "omitted": [
+      "B"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-F#-major-13-full-e13-full-e13-2-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": [
+          "B"
+        ]
+      },
+      {
+        "id": "generated-shape-F#-major-13-shell-e13-shell-e13-2-position2",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": [
+          "C#",
+          "B"
+        ]
+      },
+      {
+        "id": "generated-shape-F#-major-13-a13-a13-9-position3",
+        "frets": [
+          7,
+          12
+        ],
+        "omitted": [
+          "C#",
+          "B"
+        ]
+      },
+      {
+        "id": "generated-shape-F#-major-13-full-e13-full-e13-14-position4",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": [
+          "B"
+        ]
+      },
+      {
+        "id": "generated-shape-F#-major-13-shell-e13-shell-e13-14-position5",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": [
+          "C#",
+          "B"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "F#add2",
+    "theory": [
+      "F#",
+      "G#",
+      "A#",
+      "C#"
+    ],
+    "strings": [
+      "x",
+      "9:F#",
+      "6:G#",
+      "6:C#",
+      "7:F#",
+      "6:A#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F#-major-add2-c-add2-c-add2-9-position1",
+        "frets": [
+          5,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-add2-g-add2-g-add2-14-position2",
+        "frets": [
+          10,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-add2-c-add2-c-add2-21-position3",
+        "frets": [
+          17,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F#add11",
+    "theory": [
+      "F#",
+      "A#",
+      "C#",
+      "B"
+    ],
+    "strings": [
+      "2:F#",
+      "2:B",
+      "4:F#",
+      "3:A#",
+      "2:C#",
+      "2:F#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F#-major-add11-e-add11-e-add11-2-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-add11-c-add11-c-add11-9-position2",
+        "frets": [
+          5,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-add11-e-add11-e-add11-14-position3",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-add11-c-add11-c-add11-21-position4",
+        "frets": [
+          17,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F#maj11",
+    "theory": [
+      "F#",
+      "A#",
+      "C#",
+      "E#",
+      "G#",
+      "B"
+    ],
+    "strings": [
+      "2:F#",
+      "2:B",
+      "3:E#",
+      "3:A#",
+      "2:C#",
+      "4:G#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F#-major-maj11-full-emaj11-full-emaj11-2-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-maj11-full-emaj11-full-emaj11-14-position2",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F#maj13",
+    "theory": [
+      "F#",
+      "A#",
+      "C#",
+      "E#",
+      "G#",
+      "B",
+      "D#"
+    ],
+    "strings": [
+      "2:F#",
+      "4:C#",
+      "3:E#",
+      "3:A#",
+      "4:D#",
+      "4:G#"
+    ],
+    "omitted": [
+      "B"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-F#-major-maj13-full-emaj13-full-emaj13-2-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": [
+          "B"
+        ]
+      },
+      {
+        "id": "generated-shape-F#-major-maj13-shell-emaj13-shell-emaj13-2-position2",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": [
+          "C#",
+          "B"
+        ]
+      },
+      {
+        "id": "generated-shape-F#-major-maj13-full-emaj13-full-emaj13-14-position3",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": [
+          "B"
+        ]
+      },
+      {
+        "id": "generated-shape-F#-major-maj13-shell-emaj13-shell-emaj13-14-position4",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": [
+          "C#",
+          "B"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "F#7b5",
+    "theory": [
+      "F#",
+      "A#",
+      "C",
+      "E"
+    ],
+    "strings": [
+      "2:F#",
+      "x",
+      "2:E",
+      "3:A#",
+      "1:C",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F#-major-7b5-e-seven-flat-five-e-seven-flat-five-2-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-7b5-a-seven-flat-five-a-seven-flat-five-9-position2",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-7b5-e-seven-flat-five-e-seven-flat-five-14-position3",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-7b5-a-seven-flat-five-a-seven-flat-five-21-position4",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F#7#5",
+    "theory": [
+      "F#",
+      "A#",
+      "C##",
+      "E"
+    ],
+    "strings": [
+      "2:F#",
+      "x",
+      "2:E",
+      "3:A#",
+      "3:C##",
+      "2:F#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F#-major-7#5-e-seven-sharp-five-e-seven-sharp-five-2-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-7#5-a-seven-sharp-five-a-seven-sharp-five-9-position2",
+        "frets": [
+          8,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-7#5-e-seven-sharp-five-e-seven-sharp-five-14-position3",
+        "frets": [
+          13,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-7#5-a-seven-sharp-five-a-seven-sharp-five-21-position4",
+        "frets": [
+          20,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F#7b9",
+    "theory": [
+      "F#",
+      "A#",
+      "C#",
+      "E",
+      "G"
+    ],
+    "strings": [
+      "2:F#",
+      "4:C#",
+      "2:E",
+      "3:A#",
+      "2:C#",
+      "3:G"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F#-major-7b9-e-seven-flat-nine-e-seven-flat-nine-2-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-7b9-a-seven-flat-nine-a-seven-flat-nine-9-position2",
+        "frets": [
+          7,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-7b9-e-seven-flat-nine-e-seven-flat-nine-14-position3",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-7b9-a-seven-flat-nine-a-seven-flat-nine-21-position4",
+        "frets": [
+          19,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F#7#9",
+    "theory": [
+      "F#",
+      "A#",
+      "C#",
+      "E",
+      "G##"
+    ],
+    "strings": [
+      "2:F#",
+      "4:C#",
+      "2:E",
+      "3:A#",
+      "5:E",
+      "5:G##"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F#-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-2-position1",
+        "frets": [
+          1,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-9-position2",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-14-position3",
+        "frets": [
+          13,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-21-position4",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F#6/9",
+    "theory": [
+      "F#",
+      "A#",
+      "C#",
+      "D#",
+      "G#"
+    ],
+    "strings": [
+      "2:F#",
+      "1:A#",
+      "1:D#",
+      "1:G#",
+      "2:C#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F#-major-6/9-e-six-nine-e-six-nine-2-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-6/9-a-six-nine-a-six-nine-9-position2",
+        "frets": [
+          7,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-6/9-e-six-nine-e-six-nine-14-position3",
+        "frets": [
+          12,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-major-6/9-a-six-nine-a-six-nine-21-position4",
+        "frets": [
+          19,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F#m11",
+    "theory": [
+      "F#",
+      "A",
+      "C#",
+      "E",
+      "G#",
+      "B"
+    ],
+    "strings": [
+      "2:F#",
+      "2:B",
+      "2:E",
+      "2:A",
+      "2:C#",
+      "4:G#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F#-minor-m11-full-em11-full-em11-2-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-minor-m11-full-em11-full-em11-14-position2",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F#m13",
+    "theory": [
+      "F#",
+      "A",
+      "C#",
+      "E",
+      "G#",
+      "B",
+      "D#"
+    ],
+    "strings": [
+      "2:F#",
+      "4:C#",
+      "2:E",
+      "2:A",
+      "4:D#",
+      "4:G#"
+    ],
+    "omitted": [
+      "B"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-F#-minor-m13-full-em13-full-em13-2-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": [
+          "B"
+        ]
+      },
+      {
+        "id": "generated-shape-F#-minor-m13-shell-em13-shell-em13-2-position2",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": [
+          "C#",
+          "B"
+        ]
+      },
+      {
+        "id": "generated-shape-F#-minor-m13-am13-am13-9-position3",
+        "frets": [
+          6,
+          12
+        ],
+        "omitted": [
+          "C#",
+          "B"
+        ]
+      },
+      {
+        "id": "generated-shape-F#-minor-m13-full-em13-full-em13-14-position4",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": [
+          "B"
+        ]
+      },
+      {
+        "id": "generated-shape-F#-minor-m13-shell-em13-shell-em13-14-position5",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": [
+          "C#",
+          "B"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "F#m7b5",
+    "theory": [
+      "F#",
+      "A",
+      "C",
+      "E"
+    ],
+    "strings": [
+      "2:F#",
+      "x",
+      "2:E",
+      "2:A",
+      "1:C",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F#-minor-m7b5-e-half-diminished-e-half-diminished-2-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-minor-m7b5-a-half-diminished-a-half-diminished-9-position2",
+        "frets": [
+          8,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-minor-m7b5-e-half-diminished-e-half-diminished-14-position3",
+        "frets": [
+          12,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-minor-m7b5-a-half-diminished-a-half-diminished-21-position4",
+        "frets": [
+          20,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "F#dim7",
+    "theory": [
+      "F#",
+      "A",
+      "C",
+      "Eb"
+    ],
+    "strings": [
+      "2:F#",
+      "x",
+      "1:Eb",
+      "2:A",
+      "1:C",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-F#-dim-dim7-e-diminished-seven-e-diminished-seven-2-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-dim-dim7-a-diminished-seven-a-diminished-seven-9-position2",
+        "frets": [
+          7,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-dim-dim7-e-diminished-seven-e-diminished-seven-14-position3",
+        "frets": [
+          12,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-F#-dim-dim7-a-diminished-seven-a-diminished-seven-21-position4",
+        "frets": [
+          19,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G5",
+    "theory": [
+      "G",
+      "D"
+    ],
+    "strings": [
+      "3:G",
+      "5:D",
+      "5:G",
+      "x",
+      "x",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G-major-5-e-power-e-power-3-position1",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-5-a-power-a-power-10-position2",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-5-e-power-e-power-15-position3",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-5-a-power-a-power-22-position4",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G11",
+    "theory": [
+      "G",
+      "B",
+      "D",
+      "F",
+      "A",
+      "C"
+    ],
+    "strings": [
+      "3:G",
+      "3:C",
+      "3:F",
+      "4:B",
+      "3:D",
+      "5:A"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G-major-11-full-e11-full-e11-3-position1",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-11-full-e11-full-e11-15-position2",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G13",
+    "theory": [
+      "G",
+      "B",
+      "D",
+      "F",
+      "A",
+      "C",
+      "E"
+    ],
+    "strings": [
+      "3:G",
+      "5:D",
+      "3:F",
+      "4:B",
+      "5:E",
+      "5:A"
+    ],
+    "omitted": [
+      "C"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-G-major-13-full-e13-full-e13-3-position1",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": [
+          "C"
+        ]
+      },
+      {
+        "id": "generated-shape-G-major-13-shell-e13-shell-e13-3-position2",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": [
+          "D",
+          "C"
+        ]
+      },
+      {
+        "id": "generated-shape-G-major-13-a13-a13-10-position3",
+        "frets": [
+          8,
+          13
+        ],
+        "omitted": [
+          "D",
+          "C"
+        ]
+      },
+      {
+        "id": "generated-shape-G-major-13-full-e13-full-e13-15-position4",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": [
+          "C"
+        ]
+      },
+      {
+        "id": "generated-shape-G-major-13-shell-e13-shell-e13-15-position5",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": [
+          "D",
+          "C"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "Gadd2",
+    "theory": [
+      "G",
+      "A",
+      "B",
+      "D"
+    ],
+    "strings": [
+      "3:G",
+      "0:A",
+      "0:D",
+      "0:G",
+      "0:B",
+      "3:G"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G-major-add2-g-add2-g-add2-3-position1",
+        "frets": [
+          2,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-add2-c-add2-c-add2-10-position2",
+        "frets": [
+          6,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-add2-g-add2-g-add2-15-position3",
+        "frets": [
+          11,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-add2-c-add2-c-add2-22-position4",
+        "frets": [
+          18,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Gadd11",
+    "theory": [
+      "G",
+      "B",
+      "D",
+      "C"
+    ],
+    "strings": [
+      "3:G",
+      "3:C",
+      "5:G",
+      "4:B",
+      "3:D",
+      "3:G"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G-major-add11-e-add11-e-add11-3-position1",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-add11-c-add11-c-add11-10-position2",
+        "frets": [
+          6,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-add11-e-add11-e-add11-15-position3",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-add11-c-add11-c-add11-22-position4",
+        "frets": [
+          18,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Gmaj11",
+    "theory": [
+      "G",
+      "B",
+      "D",
+      "F#",
+      "A",
+      "C"
+    ],
+    "strings": [
+      "3:G",
+      "3:C",
+      "4:F#",
+      "4:B",
+      "3:D",
+      "5:A"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G-major-maj11-full-emaj11-full-emaj11-3-position1",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-maj11-full-emaj11-full-emaj11-15-position2",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Gmaj13",
+    "theory": [
+      "G",
+      "B",
+      "D",
+      "F#",
+      "A",
+      "C",
+      "E"
+    ],
+    "strings": [
+      "3:G",
+      "5:D",
+      "4:F#",
+      "4:B",
+      "5:E",
+      "5:A"
+    ],
+    "omitted": [
+      "C"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-G-major-maj13-full-emaj13-full-emaj13-3-position1",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": [
+          "C"
+        ]
+      },
+      {
+        "id": "generated-shape-G-major-maj13-shell-emaj13-shell-emaj13-3-position2",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": [
+          "D",
+          "C"
+        ]
+      },
+      {
+        "id": "generated-shape-G-major-maj13-full-emaj13-full-emaj13-15-position3",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": [
+          "C"
+        ]
+      },
+      {
+        "id": "generated-shape-G-major-maj13-shell-emaj13-shell-emaj13-15-position4",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": [
+          "D",
+          "C"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "G7b5",
+    "theory": [
+      "G",
+      "B",
+      "Db",
+      "F"
+    ],
+    "strings": [
+      "3:G",
+      "x",
+      "3:F",
+      "4:B",
+      "2:Db",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G-major-7b5-e-seven-flat-five-e-seven-flat-five-3-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-7b5-a-seven-flat-five-a-seven-flat-five-10-position2",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-7b5-e-seven-flat-five-e-seven-flat-five-15-position3",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-7b5-a-seven-flat-five-a-seven-flat-five-22-position4",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G7#5",
+    "theory": [
+      "G",
+      "B",
+      "D#",
+      "F"
+    ],
+    "strings": [
+      "3:G",
+      "x",
+      "3:F",
+      "4:B",
+      "4:D#",
+      "3:G"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G-major-7#5-e-seven-sharp-five-e-seven-sharp-five-3-position1",
+        "frets": [
+          2,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-7#5-a-seven-sharp-five-a-seven-sharp-five-10-position2",
+        "frets": [
+          9,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-7#5-e-seven-sharp-five-e-seven-sharp-five-15-position3",
+        "frets": [
+          14,
+          17
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G7b9",
+    "theory": [
+      "G",
+      "B",
+      "D",
+      "F",
+      "Ab"
+    ],
+    "strings": [
+      "3:G",
+      "5:D",
+      "3:F",
+      "4:B",
+      "3:D",
+      "4:Ab"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G-major-7b9-e-seven-flat-nine-e-seven-flat-nine-3-position1",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-7b9-a-seven-flat-nine-a-seven-flat-nine-10-position2",
+        "frets": [
+          8,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-7b9-e-seven-flat-nine-e-seven-flat-nine-15-position3",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-7b9-a-seven-flat-nine-a-seven-flat-nine-22-position4",
+        "frets": [
+          20,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G7#9",
+    "theory": [
+      "G",
+      "B",
+      "D",
+      "F",
+      "A#"
+    ],
+    "strings": [
+      "3:G",
+      "5:D",
+      "3:F",
+      "4:B",
+      "6:F",
+      "6:A#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-3-position1",
+        "frets": [
+          2,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-10-position2",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-15-position3",
+        "frets": [
+          14,
+          19
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-22-position4",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G6/9",
+    "theory": [
+      "G",
+      "B",
+      "D",
+      "E",
+      "A"
+    ],
+    "strings": [
+      "3:G",
+      "2:B",
+      "2:E",
+      "2:A",
+      "3:D",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G-major-6/9-e-six-nine-e-six-nine-3-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-6/9-a-six-nine-a-six-nine-10-position2",
+        "frets": [
+          8,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-6/9-e-six-nine-e-six-nine-15-position3",
+        "frets": [
+          13,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-major-6/9-a-six-nine-a-six-nine-22-position4",
+        "frets": [
+          20,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Gm11",
+    "theory": [
+      "G",
+      "Bb",
+      "D",
+      "F",
+      "A",
+      "C"
+    ],
+    "strings": [
+      "3:G",
+      "3:C",
+      "3:F",
+      "3:Bb",
+      "3:D",
+      "5:A"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G-minor-m11-full-em11-full-em11-3-position1",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-minor-m11-full-em11-full-em11-15-position2",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Gm13",
+    "theory": [
+      "G",
+      "Bb",
+      "D",
+      "F",
+      "A",
+      "C",
+      "E"
+    ],
+    "strings": [
+      "3:G",
+      "5:D",
+      "3:F",
+      "3:Bb",
+      "5:E",
+      "5:A"
+    ],
+    "omitted": [
+      "C"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-G-minor-m13-full-em13-full-em13-3-position1",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": [
+          "C"
+        ]
+      },
+      {
+        "id": "generated-shape-G-minor-m13-shell-em13-shell-em13-3-position2",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": [
+          "D",
+          "C"
+        ]
+      },
+      {
+        "id": "generated-shape-G-minor-m13-am13-am13-10-position3",
+        "frets": [
+          7,
+          13
+        ],
+        "omitted": [
+          "D",
+          "C"
+        ]
+      },
+      {
+        "id": "generated-shape-G-minor-m13-full-em13-full-em13-15-position4",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": [
+          "C"
+        ]
+      },
+      {
+        "id": "generated-shape-G-minor-m13-shell-em13-shell-em13-15-position5",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": [
+          "D",
+          "C"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "Gm7b5",
+    "theory": [
+      "G",
+      "Bb",
+      "Db",
+      "F"
+    ],
+    "strings": [
+      "3:G",
+      "x",
+      "3:F",
+      "3:Bb",
+      "2:Db",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G-minor-m7b5-e-half-diminished-e-half-diminished-3-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-minor-m7b5-a-half-diminished-a-half-diminished-10-position2",
+        "frets": [
+          9,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-minor-m7b5-e-half-diminished-e-half-diminished-15-position3",
+        "frets": [
+          13,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-minor-m7b5-a-half-diminished-a-half-diminished-22-position4",
+        "frets": [
+          21,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Gdim7",
+    "theory": [
+      "G",
+      "Bb",
+      "Db",
+      "Fb"
+    ],
+    "strings": [
+      "3:G",
+      "x",
+      "2:Fb",
+      "3:Bb",
+      "2:Db",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G-dim-dim7-e-diminished-seven-e-diminished-seven-3-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-dim-dim7-a-diminished-seven-a-diminished-seven-10-position2",
+        "frets": [
+          8,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-dim-dim7-e-diminished-seven-e-diminished-seven-15-position3",
+        "frets": [
+          13,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G-dim-dim7-a-diminished-seven-a-diminished-seven-22-position4",
+        "frets": [
+          20,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G#5",
+    "theory": [
+      "G#",
+      "D#"
+    ],
+    "strings": [
+      "4:G#",
+      "6:D#",
+      "6:G#",
+      "x",
+      "x",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G#-major-5-e-power-e-power-4-position1",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-5-a-power-a-power-11-position2",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-5-e-power-e-power-16-position3",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G#11",
+    "theory": [
+      "G#",
+      "B#",
+      "D#",
+      "F#",
+      "A#",
+      "C#"
+    ],
+    "strings": [
+      "4:G#",
+      "4:C#",
+      "4:F#",
+      "5:B#",
+      "4:D#",
+      "6:A#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G#-major-11-full-e11-full-e11-4-position1",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-11-full-e11-full-e11-16-position2",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G#13",
+    "theory": [
+      "G#",
+      "B#",
+      "D#",
+      "F#",
+      "A#",
+      "C#",
+      "E#"
+    ],
+    "strings": [
+      "4:G#",
+      "6:D#",
+      "4:F#",
+      "5:B#",
+      "6:E#",
+      "6:A#"
+    ],
+    "omitted": [
+      "C#"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-G#-major-13-full-e13-full-e13-4-position1",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": [
+          "C#"
+        ]
+      },
+      {
+        "id": "generated-shape-G#-major-13-shell-e13-shell-e13-4-position2",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": [
+          "D#",
+          "C#"
+        ]
+      },
+      {
+        "id": "generated-shape-G#-major-13-a13-a13-11-position3",
+        "frets": [
+          9,
+          14
+        ],
+        "omitted": [
+          "D#",
+          "C#"
+        ]
+      },
+      {
+        "id": "generated-shape-G#-major-13-full-e13-full-e13-16-position4",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": [
+          "C#"
+        ]
+      },
+      {
+        "id": "generated-shape-G#-major-13-shell-e13-shell-e13-16-position5",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": [
+          "D#",
+          "C#"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "G#add2",
+    "theory": [
+      "G#",
+      "A#",
+      "B#",
+      "D#"
+    ],
+    "strings": [
+      "4:G#",
+      "1:A#",
+      "1:D#",
+      "1:G#",
+      "1:B#",
+      "4:G#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G#-major-add2-g-add2-g-add2-4-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-add2-c-add2-c-add2-11-position2",
+        "frets": [
+          7,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-add2-g-add2-g-add2-16-position3",
+        "frets": [
+          12,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-add2-c-add2-c-add2-23-position4",
+        "frets": [
+          19,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G#add11",
+    "theory": [
+      "G#",
+      "B#",
+      "D#",
+      "C#"
+    ],
+    "strings": [
+      "4:G#",
+      "4:C#",
+      "6:G#",
+      "5:B#",
+      "4:D#",
+      "4:G#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G#-major-add11-e-add11-e-add11-4-position1",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-add11-c-add11-c-add11-11-position2",
+        "frets": [
+          7,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-add11-e-add11-e-add11-16-position3",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-add11-c-add11-c-add11-23-position4",
+        "frets": [
+          19,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G#maj11",
+    "theory": [
+      "G#",
+      "B#",
+      "D#",
+      "F##",
+      "A#",
+      "C#"
+    ],
+    "strings": [
+      "4:G#",
+      "4:C#",
+      "5:F##",
+      "5:B#",
+      "4:D#",
+      "6:A#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G#-major-maj11-full-emaj11-full-emaj11-4-position1",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-maj11-full-emaj11-full-emaj11-16-position2",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G#maj13",
+    "theory": [
+      "G#",
+      "B#",
+      "D#",
+      "F##",
+      "A#",
+      "C#",
+      "E#"
+    ],
+    "strings": [
+      "4:G#",
+      "6:D#",
+      "5:F##",
+      "5:B#",
+      "6:E#",
+      "6:A#"
+    ],
+    "omitted": [
+      "C#"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-G#-major-maj13-full-emaj13-full-emaj13-4-position1",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": [
+          "C#"
+        ]
+      },
+      {
+        "id": "generated-shape-G#-major-maj13-shell-emaj13-shell-emaj13-4-position2",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": [
+          "D#",
+          "C#"
+        ]
+      },
+      {
+        "id": "generated-shape-G#-major-maj13-full-emaj13-full-emaj13-16-position3",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": [
+          "C#"
+        ]
+      },
+      {
+        "id": "generated-shape-G#-major-maj13-shell-emaj13-shell-emaj13-16-position4",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": [
+          "D#",
+          "C#"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "G#7b5",
+    "theory": [
+      "G#",
+      "B#",
+      "D",
+      "F#"
+    ],
+    "strings": [
+      "4:G#",
+      "x",
+      "4:F#",
+      "5:B#",
+      "3:D",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G#-major-7b5-e-seven-flat-five-e-seven-flat-five-4-position1",
+        "frets": [
+          2,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-7b5-a-seven-flat-five-a-seven-flat-five-11-position2",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-7b5-e-seven-flat-five-e-seven-flat-five-16-position3",
+        "frets": [
+          14,
+          18
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G#7#5",
+    "theory": [
+      "G#",
+      "B#",
+      "D##",
+      "F#"
+    ],
+    "strings": [
+      "4:G#",
+      "x",
+      "4:F#",
+      "5:B#",
+      "5:D##",
+      "4:G#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G#-major-7#5-e-seven-sharp-five-e-seven-sharp-five-4-position1",
+        "frets": [
+          3,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-7#5-a-seven-sharp-five-a-seven-sharp-five-11-position2",
+        "frets": [
+          10,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-7#5-e-seven-sharp-five-e-seven-sharp-five-16-position3",
+        "frets": [
+          15,
+          18
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G#7b9",
+    "theory": [
+      "G#",
+      "B#",
+      "D#",
+      "F#",
+      "A"
+    ],
+    "strings": [
+      "4:G#",
+      "6:D#",
+      "4:F#",
+      "5:B#",
+      "4:D#",
+      "5:A"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G#-major-7b9-e-seven-flat-nine-e-seven-flat-nine-4-position1",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-7b9-a-seven-flat-nine-a-seven-flat-nine-11-position2",
+        "frets": [
+          9,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-7b9-e-seven-flat-nine-e-seven-flat-nine-16-position3",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-7b9-a-seven-flat-nine-a-seven-flat-nine-23-position4",
+        "frets": [
+          21,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G#7#9",
+    "theory": [
+      "G#",
+      "B#",
+      "D#",
+      "F#",
+      "A##"
+    ],
+    "strings": [
+      "4:G#",
+      "6:D#",
+      "4:F#",
+      "5:B#",
+      "7:F#",
+      "7:A##"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G#-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-4-position1",
+        "frets": [
+          3,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-11-position2",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-16-position3",
+        "frets": [
+          15,
+          20
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-23-position4",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G#6/9",
+    "theory": [
+      "G#",
+      "B#",
+      "D#",
+      "E#",
+      "A#"
+    ],
+    "strings": [
+      "4:G#",
+      "3:B#",
+      "3:E#",
+      "3:A#",
+      "4:D#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G#-major-6/9-e-six-nine-e-six-nine-4-position1",
+        "frets": [
+          2,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-6/9-a-six-nine-a-six-nine-11-position2",
+        "frets": [
+          9,
+          12
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-6/9-e-six-nine-e-six-nine-16-position3",
+        "frets": [
+          14,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-major-6/9-a-six-nine-a-six-nine-23-position4",
+        "frets": [
+          21,
+          24
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G#m11",
+    "theory": [
+      "G#",
+      "B",
+      "D#",
+      "F#",
+      "A#",
+      "C#"
+    ],
+    "strings": [
+      "4:G#",
+      "4:C#",
+      "4:F#",
+      "4:B",
+      "4:D#",
+      "6:A#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G#-minor-m11-full-em11-full-em11-4-position1",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-minor-m11-full-em11-full-em11-16-position2",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G#m13",
+    "theory": [
+      "G#",
+      "B",
+      "D#",
+      "F#",
+      "A#",
+      "C#",
+      "E#"
+    ],
+    "strings": [
+      "4:G#",
+      "6:D#",
+      "4:F#",
+      "4:B",
+      "6:E#",
+      "6:A#"
+    ],
+    "omitted": [
+      "C#"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-G#-minor-m13-full-em13-full-em13-4-position1",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": [
+          "C#"
+        ]
+      },
+      {
+        "id": "generated-shape-G#-minor-m13-shell-em13-shell-em13-4-position2",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": [
+          "D#",
+          "C#"
+        ]
+      },
+      {
+        "id": "generated-shape-G#-minor-m13-am13-am13-11-position3",
+        "frets": [
+          8,
+          14
+        ],
+        "omitted": [
+          "D#",
+          "C#"
+        ]
+      },
+      {
+        "id": "generated-shape-G#-minor-m13-full-em13-full-em13-16-position4",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": [
+          "C#"
+        ]
+      },
+      {
+        "id": "generated-shape-G#-minor-m13-shell-em13-shell-em13-16-position5",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": [
+          "D#",
+          "C#"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "G#m7b5",
+    "theory": [
+      "G#",
+      "B",
+      "D",
+      "F#"
+    ],
+    "strings": [
+      "4:G#",
+      "x",
+      "4:F#",
+      "4:B",
+      "3:D",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G#-minor-m7b5-e-half-diminished-e-half-diminished-4-position1",
+        "frets": [
+          2,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-minor-m7b5-a-half-diminished-a-half-diminished-11-position2",
+        "frets": [
+          10,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-minor-m7b5-e-half-diminished-e-half-diminished-16-position3",
+        "frets": [
+          14,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-minor-m7b5-a-half-diminished-a-half-diminished-23-position4",
+        "frets": [
+          22,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "G#dim7",
+    "theory": [
+      "G#",
+      "B",
+      "D",
+      "F"
+    ],
+    "strings": [
+      "4:G#",
+      "x",
+      "3:F",
+      "4:B",
+      "3:D",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-G#-dim-dim7-e-diminished-seven-e-diminished-seven-4-position1",
+        "frets": [
+          2,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-dim-dim7-a-diminished-seven-a-diminished-seven-11-position2",
+        "frets": [
+          9,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-dim-dim7-e-diminished-seven-e-diminished-seven-16-position3",
+        "frets": [
+          14,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-G#-dim-dim7-a-diminished-seven-a-diminished-seven-23-position4",
+        "frets": [
+          21,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A5",
+    "theory": [
+      "A",
+      "E"
+    ],
+    "strings": [
+      "x",
+      "0:A",
+      "2:E",
+      "2:A",
+      "x",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A-major-5-a-power-a-power-0-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-5-e-power-e-power-5-position2",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-5-a-power-a-power-12-position3",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-5-e-power-e-power-17-position4",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A11",
+    "theory": [
+      "A",
+      "C#",
+      "E",
+      "G",
+      "B",
+      "D"
+    ],
+    "strings": [
+      "5:A",
+      "5:D",
+      "5:G",
+      "6:C#",
+      "5:E",
+      "7:B"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A-major-11-full-e11-full-e11-5-position1",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-11-full-e11-full-e11-17-position2",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A13",
+    "theory": [
+      "A",
+      "C#",
+      "E",
+      "G",
+      "B",
+      "D",
+      "F#"
+    ],
+    "strings": [
+      "5:A",
+      "7:E",
+      "5:G",
+      "6:C#",
+      "7:F#",
+      "7:B"
+    ],
+    "omitted": [
+      "D"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-A-major-13-full-e13-full-e13-5-position1",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": [
+          "D"
+        ]
+      },
+      {
+        "id": "generated-shape-A-major-13-shell-e13-shell-e13-5-position2",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": [
+          "E",
+          "D"
+        ]
+      },
+      {
+        "id": "generated-shape-A-major-13-a13-a13-12-position3",
+        "frets": [
+          10,
+          15
+        ],
+        "omitted": [
+          "E",
+          "D"
+        ]
+      },
+      {
+        "id": "generated-shape-A-major-13-full-e13-full-e13-17-position4",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": [
+          "D"
+        ]
+      },
+      {
+        "id": "generated-shape-A-major-13-shell-e13-shell-e13-17-position5",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": [
+          "E",
+          "D"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "Aadd2",
+    "theory": [
+      "A",
+      "B",
+      "C#",
+      "E"
+    ],
+    "strings": [
+      "5:A",
+      "2:B",
+      "2:E",
+      "2:A",
+      "2:C#",
+      "5:A"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A-major-add2-g-add2-g-add2-5-position1",
+        "frets": [
+          1,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-add2-c-add2-c-add2-12-position2",
+        "frets": [
+          8,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-add2-g-add2-g-add2-17-position3",
+        "frets": [
+          13,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-add2-c-add2-c-add2-24-position4",
+        "frets": [
+          20,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Aadd11",
+    "theory": [
+      "A",
+      "C#",
+      "E",
+      "D"
+    ],
+    "strings": [
+      "5:A",
+      "5:D",
+      "7:A",
+      "6:C#",
+      "5:E",
+      "5:A"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A-major-add11-e-add11-e-add11-5-position1",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-add11-c-add11-c-add11-12-position2",
+        "frets": [
+          8,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-add11-e-add11-e-add11-17-position3",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-add11-c-add11-c-add11-24-position4",
+        "frets": [
+          20,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Amaj11",
+    "theory": [
+      "A",
+      "C#",
+      "E",
+      "G#",
+      "B",
+      "D"
+    ],
+    "strings": [
+      "5:A",
+      "5:D",
+      "6:G#",
+      "6:C#",
+      "5:E",
+      "7:B"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A-major-maj11-full-emaj11-full-emaj11-5-position1",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-maj11-full-emaj11-full-emaj11-17-position2",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Amaj13",
+    "theory": [
+      "A",
+      "C#",
+      "E",
+      "G#",
+      "B",
+      "D",
+      "F#"
+    ],
+    "strings": [
+      "5:A",
+      "7:E",
+      "6:G#",
+      "6:C#",
+      "7:F#",
+      "7:B"
+    ],
+    "omitted": [
+      "D"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-A-major-maj13-full-emaj13-full-emaj13-5-position1",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": [
+          "D"
+        ]
+      },
+      {
+        "id": "generated-shape-A-major-maj13-shell-emaj13-shell-emaj13-5-position2",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": [
+          "E",
+          "D"
+        ]
+      },
+      {
+        "id": "generated-shape-A-major-maj13-full-emaj13-full-emaj13-17-position3",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": [
+          "D"
+        ]
+      },
+      {
+        "id": "generated-shape-A-major-maj13-shell-emaj13-shell-emaj13-17-position4",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": [
+          "E",
+          "D"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "A7b5",
+    "theory": [
+      "A",
+      "C#",
+      "Eb",
+      "G"
+    ],
+    "strings": [
+      "x",
+      "0:A",
+      "1:Eb",
+      "0:G",
+      "2:C#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A-major-7b5-a-seven-flat-five-a-seven-flat-five-0-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-7b5-e-seven-flat-five-e-seven-flat-five-5-position2",
+        "frets": [
+          3,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-7b5-a-seven-flat-five-a-seven-flat-five-12-position3",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-7b5-e-seven-flat-five-e-seven-flat-five-17-position4",
+        "frets": [
+          15,
+          19
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A7#5",
+    "theory": [
+      "A",
+      "C#",
+      "E#",
+      "G"
+    ],
+    "strings": [
+      "x",
+      "0:A",
+      "3:E#",
+      "0:G",
+      "2:C#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A-major-7#5-a-seven-sharp-five-a-seven-sharp-five-0-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-7#5-e-seven-sharp-five-e-seven-sharp-five-5-position2",
+        "frets": [
+          4,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-7#5-a-seven-sharp-five-a-seven-sharp-five-12-position3",
+        "frets": [
+          11,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-7#5-e-seven-sharp-five-e-seven-sharp-five-17-position4",
+        "frets": [
+          16,
+          19
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A7b9",
+    "theory": [
+      "A",
+      "C#",
+      "E",
+      "G",
+      "Bb"
+    ],
+    "strings": [
+      "5:A",
+      "7:E",
+      "5:G",
+      "6:C#",
+      "5:E",
+      "6:Bb"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A-major-7b9-e-seven-flat-nine-e-seven-flat-nine-5-position1",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-7b9-a-seven-flat-nine-a-seven-flat-nine-12-position2",
+        "frets": [
+          10,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-7b9-e-seven-flat-nine-e-seven-flat-nine-17-position3",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-7b9-a-seven-flat-nine-a-seven-flat-nine-24-position4",
+        "frets": [
+          22,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A7#9",
+    "theory": [
+      "A",
+      "C#",
+      "E",
+      "G",
+      "B#"
+    ],
+    "strings": [
+      "5:A",
+      "7:E",
+      "5:G",
+      "6:C#",
+      "8:G",
+      "8:B#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-5-position1",
+        "frets": [
+          4,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-12-position2",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-17-position3",
+        "frets": [
+          16,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A6/9",
+    "theory": [
+      "A",
+      "C#",
+      "E",
+      "F#",
+      "B"
+    ],
+    "strings": [
+      "5:A",
+      "4:C#",
+      "4:F#",
+      "4:B",
+      "5:E",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A-major-6/9-e-six-nine-e-six-nine-5-position1",
+        "frets": [
+          3,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-6/9-a-six-nine-a-six-nine-12-position2",
+        "frets": [
+          10,
+          13
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-6/9-e-six-nine-e-six-nine-17-position3",
+        "frets": [
+          15,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-major-6/9-a-six-nine-a-six-nine-24-position4",
+        "frets": [
+          22,
+          25
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Am11",
+    "theory": [
+      "A",
+      "C",
+      "E",
+      "G",
+      "B",
+      "D"
+    ],
+    "strings": [
+      "5:A",
+      "5:D",
+      "5:G",
+      "5:C",
+      "5:E",
+      "7:B"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A-minor-m11-full-em11-full-em11-5-position1",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-minor-m11-full-em11-full-em11-17-position2",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Am13",
+    "theory": [
+      "A",
+      "C",
+      "E",
+      "G",
+      "B",
+      "D",
+      "F#"
+    ],
+    "strings": [
+      "5:A",
+      "7:E",
+      "5:G",
+      "5:C",
+      "7:F#",
+      "7:B"
+    ],
+    "omitted": [
+      "D"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-A-minor-m13-full-em13-full-em13-5-position1",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": [
+          "D"
+        ]
+      },
+      {
+        "id": "generated-shape-A-minor-m13-shell-em13-shell-em13-5-position2",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": [
+          "E",
+          "D"
+        ]
+      },
+      {
+        "id": "generated-shape-A-minor-m13-am13-am13-12-position3",
+        "frets": [
+          9,
+          15
+        ],
+        "omitted": [
+          "E",
+          "D"
+        ]
+      },
+      {
+        "id": "generated-shape-A-minor-m13-full-em13-full-em13-17-position4",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": [
+          "D"
+        ]
+      },
+      {
+        "id": "generated-shape-A-minor-m13-shell-em13-shell-em13-17-position5",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": [
+          "E",
+          "D"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "Am7b5",
+    "theory": [
+      "A",
+      "C",
+      "Eb",
+      "G"
+    ],
+    "strings": [
+      "x",
+      "0:A",
+      "1:Eb",
+      "0:G",
+      "1:C",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A-minor-m7b5-a-half-diminished-a-half-diminished-0-position1",
+        "frets": [
+          1,
+          2
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-minor-m7b5-e-half-diminished-e-half-diminished-5-position2",
+        "frets": [
+          3,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-minor-m7b5-a-half-diminished-a-half-diminished-12-position3",
+        "frets": [
+          11,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-minor-m7b5-e-half-diminished-e-half-diminished-17-position4",
+        "frets": [
+          15,
+          18
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Adim7",
+    "theory": [
+      "A",
+      "C",
+      "Eb",
+      "Gb"
+    ],
+    "strings": [
+      "5:A",
+      "x",
+      "4:Gb",
+      "5:C",
+      "4:Eb",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A-dim-dim7-e-diminished-seven-e-diminished-seven-5-position1",
+        "frets": [
+          3,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-dim-dim7-a-diminished-seven-a-diminished-seven-12-position2",
+        "frets": [
+          10,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A-dim-dim7-e-diminished-seven-e-diminished-seven-17-position3",
+        "frets": [
+          15,
+          18
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A#5",
+    "theory": [
+      "A#",
+      "E#"
+    ],
+    "strings": [
+      "x",
+      "1:A#",
+      "3:E#",
+      "3:A#",
+      "x",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A#-major-5-a-power-a-power-1-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-5-e-power-e-power-6-position2",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-5-a-power-a-power-13-position3",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-5-e-power-e-power-18-position4",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A#11",
+    "theory": [
+      "A#",
+      "C##",
+      "E#",
+      "G#",
+      "B#",
+      "D#"
+    ],
+    "strings": [
+      "6:A#",
+      "6:D#",
+      "6:G#",
+      "7:C##",
+      "6:E#",
+      "8:B#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A#-major-11-full-e11-full-e11-6-position1",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-11-full-e11-full-e11-18-position2",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A#13",
+    "theory": [
+      "A#",
+      "C##",
+      "E#",
+      "G#",
+      "B#",
+      "D#",
+      "F##"
+    ],
+    "strings": [
+      "x",
+      "1:A#",
+      "0:C##",
+      "1:G#",
+      "1:B#",
+      "3:F##"
+    ],
+    "omitted": [
+      "E#",
+      "D#"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-A#-major-13-a13-a13-1-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": [
+          "E#",
+          "D#"
+        ]
+      },
+      {
+        "id": "generated-shape-A#-major-13-full-e13-full-e13-6-position2",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": [
+          "D#"
+        ]
+      },
+      {
+        "id": "generated-shape-A#-major-13-shell-e13-shell-e13-6-position3",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": [
+          "E#",
+          "D#"
+        ]
+      },
+      {
+        "id": "generated-shape-A#-major-13-a13-a13-13-position4",
+        "frets": [
+          11,
+          16
+        ],
+        "omitted": [
+          "E#",
+          "D#"
+        ]
+      },
+      {
+        "id": "generated-shape-A#-major-13-full-e13-full-e13-18-position5",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": [
+          "D#"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "A#add2",
+    "theory": [
+      "A#",
+      "B#",
+      "C##",
+      "E#"
+    ],
+    "strings": [
+      "6:A#",
+      "3:B#",
+      "3:E#",
+      "3:A#",
+      "3:C##",
+      "6:A#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A#-major-add2-g-add2-g-add2-6-position1",
+        "frets": [
+          2,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-add2-c-add2-c-add2-13-position2",
+        "frets": [
+          9,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-add2-g-add2-g-add2-18-position3",
+        "frets": [
+          14,
+          19
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A#add11",
+    "theory": [
+      "A#",
+      "C##",
+      "E#",
+      "D#"
+    ],
+    "strings": [
+      "6:A#",
+      "6:D#",
+      "8:A#",
+      "7:C##",
+      "6:E#",
+      "6:A#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A#-major-add11-e-add11-e-add11-6-position1",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-add11-c-add11-c-add11-13-position2",
+        "frets": [
+          9,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-add11-e-add11-e-add11-18-position3",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A#maj11",
+    "theory": [
+      "A#",
+      "C##",
+      "E#",
+      "G##",
+      "B#",
+      "D#"
+    ],
+    "strings": [
+      "6:A#",
+      "6:D#",
+      "7:G##",
+      "7:C##",
+      "6:E#",
+      "8:B#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A#-major-maj11-full-emaj11-full-emaj11-6-position1",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-maj11-full-emaj11-full-emaj11-18-position2",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A#maj13",
+    "theory": [
+      "A#",
+      "C##",
+      "E#",
+      "G##",
+      "B#",
+      "D#",
+      "F##"
+    ],
+    "strings": [
+      "6:A#",
+      "8:E#",
+      "7:G##",
+      "7:C##",
+      "8:F##",
+      "8:B#"
+    ],
+    "omitted": [
+      "D#"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-A#-major-maj13-full-emaj13-full-emaj13-6-position1",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": [
+          "D#"
+        ]
+      },
+      {
+        "id": "generated-shape-A#-major-maj13-shell-emaj13-shell-emaj13-6-position2",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": [
+          "E#",
+          "D#"
+        ]
+      },
+      {
+        "id": "generated-shape-A#-major-maj13-full-emaj13-full-emaj13-18-position3",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": [
+          "D#"
+        ]
+      },
+      {
+        "id": "generated-shape-A#-major-maj13-shell-emaj13-shell-emaj13-18-position4",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": [
+          "E#",
+          "D#"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "A#7b5",
+    "theory": [
+      "A#",
+      "C##",
+      "E",
+      "G#"
+    ],
+    "strings": [
+      "x",
+      "1:A#",
+      "2:E",
+      "1:G#",
+      "3:C##",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A#-major-7b5-a-seven-flat-five-a-seven-flat-five-1-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-7b5-e-seven-flat-five-e-seven-flat-five-6-position2",
+        "frets": [
+          4,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-7b5-a-seven-flat-five-a-seven-flat-five-13-position3",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-7b5-e-seven-flat-five-e-seven-flat-five-18-position4",
+        "frets": [
+          16,
+          20
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A#7#5",
+    "theory": [
+      "A#",
+      "C##",
+      "E##",
+      "G#"
+    ],
+    "strings": [
+      "x",
+      "1:A#",
+      "4:E##",
+      "1:G#",
+      "3:C##",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A#-major-7#5-a-seven-sharp-five-a-seven-sharp-five-1-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-7#5-e-seven-sharp-five-e-seven-sharp-five-6-position2",
+        "frets": [
+          5,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-7#5-a-seven-sharp-five-a-seven-sharp-five-13-position3",
+        "frets": [
+          12,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-7#5-e-seven-sharp-five-e-seven-sharp-five-18-position4",
+        "frets": [
+          17,
+          20
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A#7b9",
+    "theory": [
+      "A#",
+      "C##",
+      "E#",
+      "G#",
+      "B"
+    ],
+    "strings": [
+      "x",
+      "1:A#",
+      "0:C##",
+      "1:G#",
+      "0:B",
+      "1:E#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A#-major-7b9-a-seven-flat-nine-a-seven-flat-nine-1-position1",
+        "frets": [
+          1,
+          2
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-7b9-e-seven-flat-nine-e-seven-flat-nine-6-position2",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-7b9-a-seven-flat-nine-a-seven-flat-nine-13-position3",
+        "frets": [
+          11,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-7b9-e-seven-flat-nine-e-seven-flat-nine-18-position4",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A#7#9",
+    "theory": [
+      "A#",
+      "C##",
+      "E#",
+      "G#",
+      "B##"
+    ],
+    "strings": [
+      "x",
+      "1:A#",
+      "0:C##",
+      "1:G#",
+      "2:B##",
+      "1:E#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A#-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-1-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-6-position2",
+        "frets": [
+          5,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-13-position3",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-18-position4",
+        "frets": [
+          17,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A#6/9",
+    "theory": [
+      "A#",
+      "C##",
+      "E#",
+      "F##",
+      "B#"
+    ],
+    "strings": [
+      "x",
+      "1:A#",
+      "0:C##",
+      "0:F##",
+      "1:B#",
+      "1:E#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A#-major-6/9-a-six-nine-a-six-nine-1-position1",
+        "frets": [
+          1,
+          2
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-6/9-e-six-nine-e-six-nine-6-position2",
+        "frets": [
+          4,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-6/9-a-six-nine-a-six-nine-13-position3",
+        "frets": [
+          11,
+          14
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-major-6/9-e-six-nine-e-six-nine-18-position4",
+        "frets": [
+          16,
+          19
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A#m11",
+    "theory": [
+      "A#",
+      "C#",
+      "E#",
+      "G#",
+      "B#",
+      "D#"
+    ],
+    "strings": [
+      "6:A#",
+      "6:D#",
+      "6:G#",
+      "6:C#",
+      "6:E#",
+      "8:B#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A#-minor-m11-full-em11-full-em11-6-position1",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-minor-m11-full-em11-full-em11-18-position2",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A#m13",
+    "theory": [
+      "A#",
+      "C#",
+      "E#",
+      "G#",
+      "B#",
+      "D#",
+      "F##"
+    ],
+    "strings": [
+      "6:A#",
+      "8:E#",
+      "6:G#",
+      "6:C#",
+      "8:F##",
+      "8:B#"
+    ],
+    "omitted": [
+      "D#"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-A#-minor-m13-full-em13-full-em13-6-position1",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": [
+          "D#"
+        ]
+      },
+      {
+        "id": "generated-shape-A#-minor-m13-shell-em13-shell-em13-6-position2",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": [
+          "E#",
+          "D#"
+        ]
+      },
+      {
+        "id": "generated-shape-A#-minor-m13-am13-am13-13-position3",
+        "frets": [
+          10,
+          16
+        ],
+        "omitted": [
+          "E#",
+          "D#"
+        ]
+      },
+      {
+        "id": "generated-shape-A#-minor-m13-full-em13-full-em13-18-position4",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": [
+          "D#"
+        ]
+      },
+      {
+        "id": "generated-shape-A#-minor-m13-shell-em13-shell-em13-18-position5",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": [
+          "E#",
+          "D#"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "A#m7b5",
+    "theory": [
+      "A#",
+      "C#",
+      "E",
+      "G#"
+    ],
+    "strings": [
+      "x",
+      "1:A#",
+      "2:E",
+      "1:G#",
+      "2:C#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A#-minor-m7b5-a-half-diminished-a-half-diminished-1-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-minor-m7b5-e-half-diminished-e-half-diminished-6-position2",
+        "frets": [
+          4,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-minor-m7b5-a-half-diminished-a-half-diminished-13-position3",
+        "frets": [
+          12,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-minor-m7b5-e-half-diminished-e-half-diminished-18-position4",
+        "frets": [
+          16,
+          19
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "A#dim7",
+    "theory": [
+      "A#",
+      "C#",
+      "E",
+      "G"
+    ],
+    "strings": [
+      "x",
+      "1:A#",
+      "2:E",
+      "0:G",
+      "2:C#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-A#-dim-dim7-a-diminished-seven-a-diminished-seven-1-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-dim-dim7-e-diminished-seven-e-diminished-seven-6-position2",
+        "frets": [
+          4,
+          7
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-dim-dim7-a-diminished-seven-a-diminished-seven-13-position3",
+        "frets": [
+          11,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-A#-dim-dim7-e-diminished-seven-e-diminished-seven-18-position4",
+        "frets": [
+          16,
+          19
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "B5",
+    "theory": [
+      "B",
+      "F#"
+    ],
+    "strings": [
+      "x",
+      "2:B",
+      "4:F#",
+      "4:B",
+      "x",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-B-major-5-a-power-a-power-2-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-5-e-power-e-power-7-position2",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-5-a-power-a-power-14-position3",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-5-e-power-e-power-19-position4",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "B11",
+    "theory": [
+      "B",
+      "D#",
+      "F#",
+      "A",
+      "C#",
+      "E"
+    ],
+    "strings": [
+      "7:B",
+      "7:E",
+      "7:A",
+      "8:D#",
+      "7:F#",
+      "9:C#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-B-major-11-full-e11-full-e11-7-position1",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-11-full-e11-full-e11-19-position2",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "B13",
+    "theory": [
+      "B",
+      "D#",
+      "F#",
+      "A",
+      "C#",
+      "E",
+      "G#"
+    ],
+    "strings": [
+      "x",
+      "2:B",
+      "1:D#",
+      "2:A",
+      "2:C#",
+      "4:G#"
+    ],
+    "omitted": [
+      "F#",
+      "E"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-B-major-13-a13-a13-2-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": [
+          "F#",
+          "E"
+        ]
+      },
+      {
+        "id": "generated-shape-B-major-13-full-e13-full-e13-7-position2",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": [
+          "E"
+        ]
+      },
+      {
+        "id": "generated-shape-B-major-13-shell-e13-shell-e13-7-position3",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": [
+          "F#",
+          "E"
+        ]
+      },
+      {
+        "id": "generated-shape-B-major-13-a13-a13-14-position4",
+        "frets": [
+          12,
+          17
+        ],
+        "omitted": [
+          "F#",
+          "E"
+        ]
+      },
+      {
+        "id": "generated-shape-B-major-13-full-e13-full-e13-19-position5",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": [
+          "E"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "Badd2",
+    "theory": [
+      "B",
+      "C#",
+      "D#",
+      "F#"
+    ],
+    "strings": [
+      "7:B",
+      "4:C#",
+      "4:F#",
+      "4:B",
+      "4:D#",
+      "7:B"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-B-major-add2-g-add2-g-add2-7-position1",
+        "frets": [
+          3,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-add2-c-add2-c-add2-14-position2",
+        "frets": [
+          10,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-add2-g-add2-g-add2-19-position3",
+        "frets": [
+          15,
+          20
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Badd11",
+    "theory": [
+      "B",
+      "D#",
+      "F#",
+      "E"
+    ],
+    "strings": [
+      "7:B",
+      "7:E",
+      "9:B",
+      "8:D#",
+      "7:F#",
+      "7:B"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-B-major-add11-e-add11-e-add11-7-position1",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-add11-c-add11-c-add11-14-position2",
+        "frets": [
+          10,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-add11-e-add11-e-add11-19-position3",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Bmaj11",
+    "theory": [
+      "B",
+      "D#",
+      "F#",
+      "A#",
+      "C#",
+      "E"
+    ],
+    "strings": [
+      "7:B",
+      "7:E",
+      "8:A#",
+      "8:D#",
+      "7:F#",
+      "9:C#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-B-major-maj11-full-emaj11-full-emaj11-7-position1",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-maj11-full-emaj11-full-emaj11-19-position2",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Bmaj13",
+    "theory": [
+      "B",
+      "D#",
+      "F#",
+      "A#",
+      "C#",
+      "E",
+      "G#"
+    ],
+    "strings": [
+      "7:B",
+      "9:F#",
+      "8:A#",
+      "8:D#",
+      "9:G#",
+      "9:C#"
+    ],
+    "omitted": [
+      "E"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-B-major-maj13-full-emaj13-full-emaj13-7-position1",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": [
+          "E"
+        ]
+      },
+      {
+        "id": "generated-shape-B-major-maj13-shell-emaj13-shell-emaj13-7-position2",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": [
+          "F#",
+          "E"
+        ]
+      },
+      {
+        "id": "generated-shape-B-major-maj13-full-emaj13-full-emaj13-19-position3",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": [
+          "E"
+        ]
+      },
+      {
+        "id": "generated-shape-B-major-maj13-shell-emaj13-shell-emaj13-19-position4",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": [
+          "F#",
+          "E"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "B7b5",
+    "theory": [
+      "B",
+      "D#",
+      "F",
+      "A"
+    ],
+    "strings": [
+      "x",
+      "2:B",
+      "3:F",
+      "2:A",
+      "4:D#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-B-major-7b5-a-seven-flat-five-a-seven-flat-five-2-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-7b5-e-seven-flat-five-e-seven-flat-five-7-position2",
+        "frets": [
+          5,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-7b5-a-seven-flat-five-a-seven-flat-five-14-position3",
+        "frets": [
+          13,
+          17
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-7b5-e-seven-flat-five-e-seven-flat-five-19-position4",
+        "frets": [
+          17,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "B7#5",
+    "theory": [
+      "B",
+      "D#",
+      "F##",
+      "A"
+    ],
+    "strings": [
+      "x",
+      "2:B",
+      "5:F##",
+      "2:A",
+      "4:D#",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-B-major-7#5-a-seven-sharp-five-a-seven-sharp-five-2-position1",
+        "frets": [
+          1,
+          6
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-7#5-e-seven-sharp-five-e-seven-sharp-five-7-position2",
+        "frets": [
+          6,
+          9
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-7#5-a-seven-sharp-five-a-seven-sharp-five-14-position3",
+        "frets": [
+          13,
+          18
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-7#5-e-seven-sharp-five-e-seven-sharp-five-19-position4",
+        "frets": [
+          18,
+          21
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "B7b9",
+    "theory": [
+      "B",
+      "D#",
+      "F#",
+      "A",
+      "C"
+    ],
+    "strings": [
+      "x",
+      "2:B",
+      "1:D#",
+      "2:A",
+      "1:C",
+      "2:F#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-B-major-7b9-a-seven-flat-nine-a-seven-flat-nine-2-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-7b9-e-seven-flat-nine-e-seven-flat-nine-7-position2",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-7b9-a-seven-flat-nine-a-seven-flat-nine-14-position3",
+        "frets": [
+          12,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-7b9-e-seven-flat-nine-e-seven-flat-nine-19-position4",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "B7#9",
+    "theory": [
+      "B",
+      "D#",
+      "F#",
+      "A",
+      "C##"
+    ],
+    "strings": [
+      "x",
+      "2:B",
+      "1:D#",
+      "2:A",
+      "3:C##",
+      "2:F#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-B-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-2-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-7-position2",
+        "frets": [
+          6,
+          11
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-7#9-a-seven-sharp-nine-a-seven-sharp-nine-14-position3",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-7#9-e-seven-sharp-nine-e-seven-sharp-nine-19-position4",
+        "frets": [
+          18,
+          23
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "B6/9",
+    "theory": [
+      "B",
+      "D#",
+      "F#",
+      "G#",
+      "C#"
+    ],
+    "strings": [
+      "x",
+      "2:B",
+      "1:D#",
+      "1:G#",
+      "2:C#",
+      "2:F#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-B-major-6/9-a-six-nine-a-six-nine-2-position1",
+        "frets": [
+          1,
+          3
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-6/9-e-six-nine-e-six-nine-7-position2",
+        "frets": [
+          5,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-6/9-a-six-nine-a-six-nine-14-position3",
+        "frets": [
+          12,
+          15
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-major-6/9-e-six-nine-e-six-nine-19-position4",
+        "frets": [
+          17,
+          20
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Bm11",
+    "theory": [
+      "B",
+      "D",
+      "F#",
+      "A",
+      "C#",
+      "E"
+    ],
+    "strings": [
+      "7:B",
+      "7:E",
+      "7:A",
+      "7:D",
+      "7:F#",
+      "9:C#"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-B-minor-m11-full-em11-full-em11-7-position1",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-minor-m11-full-em11-full-em11-19-position2",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Bm13",
+    "theory": [
+      "B",
+      "D",
+      "F#",
+      "A",
+      "C#",
+      "E",
+      "G#"
+    ],
+    "strings": [
+      "x",
+      "2:B",
+      "0:D",
+      "2:A",
+      "2:C#",
+      "4:G#"
+    ],
+    "omitted": [
+      "F#",
+      "E"
+    ],
+    "positions": [
+      {
+        "id": "generated-shape-B-minor-m13-am13-am13-2-position1",
+        "frets": [
+          1,
+          5
+        ],
+        "omitted": [
+          "F#",
+          "E"
+        ]
+      },
+      {
+        "id": "generated-shape-B-minor-m13-full-em13-full-em13-7-position2",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": [
+          "E"
+        ]
+      },
+      {
+        "id": "generated-shape-B-minor-m13-shell-em13-shell-em13-7-position3",
+        "frets": [
+          6,
+          10
+        ],
+        "omitted": [
+          "F#",
+          "E"
+        ]
+      },
+      {
+        "id": "generated-shape-B-minor-m13-am13-am13-14-position4",
+        "frets": [
+          11,
+          17
+        ],
+        "omitted": [
+          "F#",
+          "E"
+        ]
+      },
+      {
+        "id": "generated-shape-B-minor-m13-full-em13-full-em13-19-position5",
+        "frets": [
+          18,
+          22
+        ],
+        "omitted": [
+          "E"
+        ]
+      }
+    ]
+  },
+  {
+    "chord": "Bm7b5",
+    "theory": [
+      "B",
+      "D",
+      "F",
+      "A"
+    ],
+    "strings": [
+      "x",
+      "2:B",
+      "3:F",
+      "2:A",
+      "3:D",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-B-minor-m7b5-a-half-diminished-a-half-diminished-2-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-minor-m7b5-e-half-diminished-e-half-diminished-7-position2",
+        "frets": [
+          5,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-minor-m7b5-a-half-diminished-a-half-diminished-14-position3",
+        "frets": [
+          13,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-minor-m7b5-e-half-diminished-e-half-diminished-19-position4",
+        "frets": [
+          17,
+          20
+        ],
+        "omitted": []
+      }
+    ]
+  },
+  {
+    "chord": "Bdim7",
+    "theory": [
+      "B",
+      "D",
+      "F",
+      "Ab"
+    ],
+    "strings": [
+      "x",
+      "2:B",
+      "3:F",
+      "1:Ab",
+      "3:D",
+      "x"
+    ],
+    "omitted": [],
+    "positions": [
+      {
+        "id": "generated-shape-B-dim-dim7-a-diminished-seven-a-diminished-seven-2-position1",
+        "frets": [
+          1,
+          4
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-dim-dim7-e-diminished-seven-e-diminished-seven-7-position2",
+        "frets": [
+          5,
+          8
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-dim-dim7-a-diminished-seven-a-diminished-seven-14-position3",
+        "frets": [
+          12,
+          16
+        ],
+        "omitted": []
+      },
+      {
+        "id": "generated-shape-B-dim-dim7-e-diminished-seven-e-diminished-seven-19-position4",
+        "frets": [
+          17,
+          20
+        ],
+        "omitted": []
+      }
+    ]
+  }
+]

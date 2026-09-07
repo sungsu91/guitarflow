@@ -1,0 +1,60 @@
+# Guitar chord vocabulary
+
+The shared engine is `src/chords/guitarVoicings.js`. Both layouts consume the same
+catalog and position maps; no platform UI or state changes are required.
+
+Selection uses existing open/E/A/CAGED grips plus compact movable guitar grips.
+It never distributes individual chord tones over strings. Unsupported extensions
+return no candidates rather than silently substituting a major/minor triad.
+Every supported quality/extension is tested in all 12 keys with multiple positions.
+
+`theoreticalIntervals` is copied from chordTheory and never reduced. A voicing
+separately records `playedIntervals`, `omittedIntervals`, `omissions`, and
+`doubledIntervals`. Default representatives retain roots, thirds, altered fifths,
+suspensions, sevenths and named extensions. Only the perfect fifth may be omitted
+by default. Explicit omit3 grips can be assessed with an allowed-omission policy,
+but are not silently used as major/minor representatives.
+
+Candidates must pass harmonic checks before ergonomics: at least three sounding
+strings, no foreign tones, at most four fingers, no barre crossing a sounding open
+or lower fret, and at most three frets between the lowest/highest pressed note.
+Selection is lexicographic, not a weighted ergonomic contest:
+
+1. Validated built-in dictionary representatives.
+2. Open and basic movable families listed for each quality/extension in
+   `voicingSelection.js`.
+3. Other CAGED positions.
+4. Special upper-string, high-register, and omitted-tone alternatives.
+
+Open status, a first-position band (lowest pressed fret through fret 5), editorial
+family order, and position resolve ties before ergonomic score. The band only
+classifies candidates; it never sets the viewport or pins a root to a fret.
+An easy upper-register grip cannot displace an available basic representative.
+The editorial family order is explicit product vocabulary, not a measured claim
+that every guitar dictionary agrees on one universally most popular grip.
+
+Ergonomic tie-breaking accounts for fingers, barres, physical fret distance
+(648mm reference scale length), jumps and muting. Open strings do not inflate
+hand span. These are conservative heuristics, not biomechanical proof for every
+hand. Interior muted strings require controlled strumming/fingerpicking.
+
+The built-in catalog is validated before lookup maps are made, retaining legacy
+IDs when a rejected grip is replaced. Position maps use the same selection tuple
+as the catalog. Manually authored accompaniment voicings and
+the theoretical all-notes fretboard remain independent.
+
+Chord labels share `getChordToneLabel` in chordTheory. Canonical pitch identities
+remain unchanged for comparison/audio; displayed letters come from each tone's
+diatonic degree relative to the displayed root. This gives B–D#–F#–C# for Badd9,
+Db–F–Ab for Db major, and E# in F#maj7. Catalog cards, selected positions, and
+progression boards all use this spelling rather than global sharp/flat swaps.
+
+Vocabulary references (consulted September 2026):
+
+- [Guitar Prof: ninth omit5 grips](https://www.guitarprof.it/2021/01/20/accordo-di-nona-omit-5-voicing-costruzione-diteggiature/)
+- [Jazz Guitar Licks: major ninth vocabulary](https://www.jazz-guitar-licks.com/pages/chords/major-9th-guitar-chord-diagrams-drop-2-voicings.html)
+- [Badd9 upper-string grip](https://guitartoolhub.com/chords/b-add9-chord-guitar)
+- [Standard Guitar Badd9 variants and spelled chord tones](https://www.standardguitar.com/b-added-9th-guitar-chord)
+
+Fret data is maintained as compact root-relative patterns and independently
+checked against standard tuning; article text and illustrations are not copied.

@@ -1,0 +1,371 @@
+{
+  "scope": "14 new types + 6/9 and m7b5 data repairs; 12 pitch-class roots + 5 flat spellings",
+  "sourceHashes": {
+    "src/App.jsx": "40cfdefb8540f8a67cb3e48ad102db7289e37e70d00aa1b4507528244219f4f0",
+    "src/chords/additionalChords.js": "ec7fcb3fd31bf9c83a69c56bf048d17952e2a65d021b52d2dbee518b6ed66fb5",
+    "src/chords/chordTheory.js": "e2097c4cb74e2983ac1279bf30c7b79c14ad6de98726c4f4f4fc1af142f22e11",
+    "src/components/Fretboard.jsx": "ff41e11fa44336e8fe149e27341d5dc249957fe3dc641de53b78c8c081494a57"
+  },
+  "labelRoundTripFailures": [
+    {
+      "label": "Cm(add9)",
+      "result": {
+        "baseRoot": "C",
+        "bassRoot": "",
+        "accidental": "natural",
+        "root": "C",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "Cm"
+      }
+    },
+    {
+      "label": "C#m(add9)",
+      "result": {
+        "baseRoot": "C",
+        "bassRoot": "",
+        "accidental": "sharp",
+        "root": "C#",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "C#m"
+      }
+    },
+    {
+      "label": "Dm(add9)",
+      "result": {
+        "baseRoot": "D",
+        "bassRoot": "",
+        "accidental": "natural",
+        "root": "D",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "Dm"
+      }
+    },
+    {
+      "label": "D#m(add9)",
+      "result": {
+        "baseRoot": "D",
+        "bassRoot": "",
+        "accidental": "sharp",
+        "root": "D#",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "D#m"
+      }
+    },
+    {
+      "label": "Em(add9)",
+      "result": {
+        "baseRoot": "E",
+        "bassRoot": "",
+        "accidental": "natural",
+        "root": "E",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "Em"
+      }
+    },
+    {
+      "label": "Fm(add9)",
+      "result": {
+        "baseRoot": "F",
+        "bassRoot": "",
+        "accidental": "natural",
+        "root": "F",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "Fm"
+      }
+    },
+    {
+      "label": "F#m(add9)",
+      "result": {
+        "baseRoot": "F",
+        "bassRoot": "",
+        "accidental": "sharp",
+        "root": "F#",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "F#m"
+      }
+    },
+    {
+      "label": "Gm(add9)",
+      "result": {
+        "baseRoot": "G",
+        "bassRoot": "",
+        "accidental": "natural",
+        "root": "G",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "Gm"
+      }
+    },
+    {
+      "label": "G#m(add9)",
+      "result": {
+        "baseRoot": "G",
+        "bassRoot": "",
+        "accidental": "sharp",
+        "root": "G#",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "G#m"
+      }
+    },
+    {
+      "label": "Am(add9)",
+      "result": {
+        "baseRoot": "A",
+        "bassRoot": "",
+        "accidental": "natural",
+        "root": "A",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "Am"
+      }
+    },
+    {
+      "label": "A#m(add9)",
+      "result": {
+        "baseRoot": "A",
+        "bassRoot": "",
+        "accidental": "sharp",
+        "root": "A#",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "A#m"
+      }
+    },
+    {
+      "label": "Bm(add9)",
+      "result": {
+        "baseRoot": "B",
+        "bassRoot": "",
+        "accidental": "natural",
+        "root": "B",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "Bm"
+      }
+    },
+    {
+      "label": "Dbm(add9)",
+      "result": {
+        "baseRoot": "D",
+        "bassRoot": "",
+        "accidental": "flat",
+        "root": "C#",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "Dbm"
+      }
+    },
+    {
+      "label": "Ebm(add9)",
+      "result": {
+        "baseRoot": "E",
+        "bassRoot": "",
+        "accidental": "flat",
+        "root": "D#",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "Ebm"
+      }
+    },
+    {
+      "label": "Gbm(add9)",
+      "result": {
+        "baseRoot": "G",
+        "bassRoot": "",
+        "accidental": "flat",
+        "root": "F#",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "Gbm"
+      }
+    },
+    {
+      "label": "Abm(add9)",
+      "result": {
+        "baseRoot": "A",
+        "bassRoot": "",
+        "accidental": "flat",
+        "root": "G#",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "Abm"
+      }
+    },
+    {
+      "label": "Bbm(add9)",
+      "result": {
+        "baseRoot": "B",
+        "bassRoot": "",
+        "accidental": "flat",
+        "root": "A#",
+        "quality": "minor",
+        "extension": "none",
+        "displayName": "Bbm"
+      }
+    }
+  ],
+  "candidates": 1000,
+  "canonicalCandidates": 712,
+  "representatives": 272,
+  "pitchOrMetadataFailures": 20,
+  "mechanicalContradictions": 0,
+  "ergonomicReviewCandidates": 56,
+  "unverifiedRepresentatives": 272,
+  "legacyUnexpectedChanges": [],
+  "Fadd9Current": {
+    "theory": [
+      "F",
+      "A",
+      "C",
+      "G"
+    ],
+    "strings": [
+      {
+        "string": 6,
+        "fret": 1,
+        "state": "fretted",
+        "midi": 41,
+        "label": null,
+        "finger": "1"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "state": "fretted",
+        "midi": 48,
+        "label": null,
+        "finger": "3"
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "state": "fretted",
+        "midi": 55,
+        "label": null,
+        "finger": "4"
+      },
+      {
+        "string": 3,
+        "fret": 2,
+        "state": "fretted",
+        "midi": 57,
+        "label": null,
+        "finger": "2"
+      },
+      {
+        "string": 2,
+        "fret": 1,
+        "state": "fretted",
+        "midi": 60,
+        "label": null,
+        "finger": "1"
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "state": "fretted",
+        "midi": 65,
+        "label": null,
+        "finger": "1"
+      }
+    ],
+    "omitted": [],
+    "foreign": [],
+    "errors": [],
+    "mechanicalErrors": [],
+    "ergonomicReviewFlags": [
+      "low-position-span-at-least-three-review"
+    ],
+    "physicalPlayability": "NOT_CERTIFIED_BY_STATIC_CHECKS",
+    "representativeSuitability": "UNVERIFIED_NO_EXACT_VOICING_SOURCE_OR_REVIEW_RECORD"
+  },
+  "Fadd9Reported": {
+    "theory": [
+      "F",
+      "A",
+      "C",
+      "G"
+    ],
+    "strings": [
+      {
+        "string": 6,
+        "fret": 1,
+        "state": "fretted",
+        "midi": 41,
+        "label": null,
+        "finger": "1"
+      },
+      {
+        "string": 5,
+        "fret": 3,
+        "state": "fretted",
+        "midi": 48,
+        "label": null,
+        "finger": "3"
+      },
+      {
+        "string": 4,
+        "fret": 5,
+        "state": "fretted",
+        "midi": 55,
+        "label": null,
+        "finger": "4"
+      },
+      {
+        "string": 3,
+        "fret": 3,
+        "state": "fretted",
+        "midi": 58,
+        "label": "Bb",
+        "finger": "2"
+      },
+      {
+        "string": 2,
+        "fret": 1,
+        "state": "fretted",
+        "midi": 60,
+        "label": null,
+        "finger": "1"
+      },
+      {
+        "string": 1,
+        "fret": 1,
+        "state": "fretted",
+        "midi": 65,
+        "label": null,
+        "finger": "1"
+      }
+    ],
+    "omitted": [
+      "A"
+    ],
+    "foreign": [
+      {
+        "string": 3,
+        "fret": 3,
+        "state": "fretted",
+        "midi": 58,
+        "label": "Bb",
+        "finger": "2"
+      }
+    ],
+    "errors": [
+      "foreign-tone",
+      "undeclared-or-inaccurate-omission"
+    ],
+    "mechanicalErrors": [],
+    "ergonomicReviewFlags": [
+      "low-position-span-at-least-three-review"
+    ],
+    "physicalPlayability": "NOT_CERTIFIED_BY_STATIC_CHECKS",
+    "representativeSuitability": "UNVERIFIED_NO_EXACT_VOICING_SOURCE_OR_REVIEW_RECORD"
+  }
+}

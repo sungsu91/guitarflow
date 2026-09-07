@@ -1,0 +1,54 @@
+// Editorial vocabulary roles, separate from the ergonomic score.
+// These roles apply to whole movable families in every key, not root-specific frets.
+export const STANDARD_FAMILY_ORDER = Object.freeze({
+  major: {
+    none: ["e-major", "a-major"],
+    "7": ["e7", "a7"],
+    maj7: ["amaj7", "emaj7"],
+    sus2: ["asus2", "d-sus2", "esus2"],
+    sus4: ["esus4", "asus4", "d-sus4"],
+    "7sus4": ["e7sus4", "a7sus4", "d-seven-sus4"],
+    "6": ["a6", "e6", "e-six-shell"],
+    add9: ["c-add9", "a-add9-compact", "eadd9", "aadd9"],
+    "9": ["a-nine", "e9", "e-nine-shell", "a9"],
+    maj9: ["a-maj9-shell", "amaj9", "emaj9", "e-maj9-shell"],
+    "6/9": ["a-six-nine", "e-six-nine"],
+  },
+  minor: {
+    none: ["a-minor", "e-minor"],
+    m7: ["am7", "em7"],
+    m7b5: ["a-half-diminished", "e-half-diminished"],
+    m6: ["am6", "em6", "e-minor-six"],
+    add9: ["emadd9", "amadd9"],
+    m9: ["am9", "em9", "a-minor-nine-shell", "e-minor-nine"],
+  },
+  dim: { none: ["a-dim", "d-diminished"] },
+  aug: { none: ["a-aug", "e-aug", "d-augmented"] },
+});
+
+export function getVoicingSelectionPriority(quality, extension, template, strings, assessment, catalogStandard = false) {
+  const pressed = strings.map(([, f]) => f).filter((f) => f > 0);
+  const position = pressed.length ? Math.min(...pressed) : 0;
+  const open = strings.some(([, f]) => f === 0);
+  const order = STANDARD_FAMILY_ORDER[quality]?.[extension] ?? [];
+  const familyIndex = order.indexOf(template.id);
+  const caged = template.id.startsWith("caged-");
+  const special = /upper|^d-(minor-)?add9$/.test(template.id);
+  // A known catalog default wins. Otherwise first-position open/basic grips,
+  // then other CAGED grips, then upper-register/special/omitted-tone grips.
+  const tier = catalogStandard ? 0
+    : special || assessment.omittedIntervals.length || position > 5 ? 3
+    : open || familyIndex >= 0 ? 1 : caged ? 2 : 3;
+  return [tier, open ? 0 : 1, position > 5 ? 1 : 0, familyIndex < 0 ? 99 : familyIndex, position];
+}
+
+export function compareGuitarVoicings(a, b) {
+  const left = a.selectionPriority ?? a.assessment?.selectionPriority ?? a.voicing?.selectionPriority ?? [3];
+  const right = b.selectionPriority ?? b.assessment?.selectionPriority ?? b.voicing?.selectionPriority ?? [3];
+  for (let i = 0; i < Math.max(left.length, right.length); i++) {
+    const difference = (left[i] ?? 0) - (right[i] ?? 0);
+    if (difference) return difference;
+  }
+  return (a.score ?? a.assessment?.score ?? a.voicing?.score ?? 0)
+    - (b.score ?? b.assessment?.score ?? b.voicing?.score ?? 0);
+}

@@ -1,0 +1,128 @@
+import { compareGuitarVoicings, getVoicingSelectionPriority, STANDARD_FAMILY_ORDER } from "../src/chords/voicingSelection.js";
+import assert from "node:assert/strict";
+import test from "node:test";
+import { readFile } from "node:fs/promises";
+import vm from "node:vm";
+import { CHORD_TONE_INTERVALS } from "../src/chords/chordTheory.js";
+import { assessGuitarVoicing, getGuitarVoicingCandidates, planGuitarFingers } from "../src/chords/guitarVoicings.js";
+
+const roots = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const tuning = { 6: 4, 5: 9, 4: 2, 3: 7, 2: 11, 1: 4 };
+for (const [quality, extensions] of Object.entries(CHORD_TONE_INTERVALS)) {
+  for (const [extension, theory] of Object.entries(extensions)) {
+    test(`${quality}/${extension}: all 12 roots have multiple playable, harmonic vocabulary grips`, () => {
+      for (const [rootIndex, root] of roots.entries()) {
+        const candidates = getGuitarVoicingCandidates(root, quality, extension);
+        assert.ok(candidates.length >= 2, `${root}: missing alternatives`);
+        for (const { template, baseFret, assessment } of candidates) {
+          const strings = template.strings.map(([s, f]) => [s, f + baseFret]);
+          const pcs = strings.map(([s, f]) => (tuning[s] + f - rootIndex + 24) % 12);
+          assert.ok(pcs.every((pc) => theory.some((i) => i % 12 === pc)), `${root}/${template.id}: foreign tone`);
+          assert.deepEqual(assessment.theoreticalIntervals, theory);
+          const missing = theory.filter((i) => !pcs.includes(i % 12));
+          assert.deepEqual(assessment.omittedIntervals, missing);
+          assert.ok(missing.every((i) => i === 7), `${root}: identity tone missing`);
+          assert.ok(assessment.span <= 3);
+          assert.ok(assessment.fingering.fingerCount <= 4);
+          assert.equal(Object.keys(assessment.fingering.fingers).length, strings.filter(([, f]) => f > 0).length);
+          for (const barre of assessment.fingering.barres) {
+            assert.ok(!strings.some(([s, f]) => s <= barre.fromString && s >= barre.toString && f < barre.fret));
+          }
+        }
+      }
+    });
+  }
+}
+
+test("Badd9 rejects x24642 but keeps a complete low-position default", () => {
+  assert.equal(assessGuitarVoicing("B", "major", "add9", [[5, 2], [4, 4], [3, 6], [2, 4], [1, 2]]), null);
+  const best = getGuitarVoicingCandidates("B", "major", "add9")[0];
+  assert.ok(best.maxFret <= 4);
+  assert.deepEqual(best.assessment.omittedIntervals, []);
+  assert.equal(best.template.id, "a-add9-compact");
+  assert.equal(assessGuitarVoicing("B", "major", "add9", [[4, 9], [3, 8], [2, 7], [1, 7]]), null, "xx9877 has no ninth");
+});
+
+test("every chord type has an editorial family policy that ergonomic score cannot override", () => {
+  for (const [quality, extensions] of Object.entries(CHORD_TONE_INTERVALS)) {
+    for (const extension of Object.keys(extensions)) {
+      assert.ok(STANDARD_FAMILY_ORDER[quality][extension].length);
+      for (const root of roots) {
+        const candidates = getGuitarVoicingCandidates(root, quality, extension);
+        const winner = candidates[0];
+        for (const candidate of candidates.slice(1)) {
+          assert.ok(compareGuitarVoicings(winner, candidate) <= 0);
+          if (winner.assessment.selectionPriority[0] < candidate.assessment.selectionPriority[0]) {
+            assert.ok(compareGuitarVoicings({ ...winner, score: 1e9 }, { ...candidate, score: -1e9 }) < 0);
+          }
+        }
+      }
+    }
+  }
+});
+
+test("representatives keep different familiar positions for different chords", () => {
+  const examples = [
+    ["C", "major", "none", [null, 3, 2, 0, 1, 0]],
+    ["D", "major", "none", [null, null, 0, 2, 3, 2]],
+    ["E", "minor", "none", [0, 2, 2, 0, 0, 0]],
+    ["F", "major", "none", [1, 3, 3, 2, 1, 1]],
+    ["B", "major", "none", [null, 2, 4, 4, 4, 2]],
+    ["C", "major", "9", [null, 3, 2, 3, 3, 3]],
+    ["D", "major", "add9", [null, 5, 4, 2, 5, 5]],
+  ];
+  for (const [root, quality, extension, expected] of examples) {
+    const best = getGuitarVoicingCandidates(root, quality, extension)[0];
+    const strings = new Map(best.template.strings.map(([s, f]) => [s, f + best.baseFret]));
+    assert.deepEqual([6, 5, 4, 3, 2, 1].map((s) => strings.get(s) ?? null), expected, `${root}/${quality}/${extension}`);
+  }
+});
+
+test("omissions and duplicates never alter theory; omit3 requires explicit authorization", () => {
+  const cmaj9 = assessGuitarVoicing("C", "major", "maj9", [[5, 3], [4, 2], [3, 4], [2, 3]]);
+  assert.deepEqual(cmaj9.omissions, ["omit5"]);
+  assert.deepEqual(cmaj9.theoreticalIntervals, [0, 4, 7, 11, 14]);
+  const d = [[4, 0], [3, 2], [2, 3], [1, 0]];
+  assert.equal(assessGuitarVoicing("D", "major", "add9", d), null);
+  const omit3 = assessGuitarVoicing("D", "major", "add9", d, [4]);
+  assert.deepEqual(omit3.omissions, ["omit3"]);
+  assert.deepEqual(omit3.doubledIntervals, [0]);
+  assert.deepEqual(CHORD_TONE_INTERVALS.major.add9, [0, 4, 7, 14]);
+});
+
+test("finger solver does not barre over open/lower strings or invent five fingers", () => {
+  assert.deepEqual(planGuitarFingers([[6, 0], [5, 2], [4, 2], [3, 0], [2, 0], [1, 0]], { "5-2": "2", "4-2": "3" }).fingers, { "5-2": "2", "4-2": "3" });
+  const blocked = [[6, 2], [5, 0], [4, 2], [3, 0], [2, 2], [1, 0]];
+  assert.equal(planGuitarFingers(blocked).fingerCount, 3);
+  assert.equal(planGuitarFingers([[6, 1], [5, 2], [4, 3], [3, 4], [2, 5]]), null);
+  assert.equal(assessGuitarVoicing("C", "major", "6/9", [[5, 3], [4, 2], [3, 0], [2, 1], [1, 0]]), null);
+  assert.equal(getGuitarVoicingCandidates("C", "major", "unknown").length, 0);
+});
+
+test("position selection preserves dictionary ranking and filters invalid stored shapes", async () => {
+  const source = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+  const begin = source.indexOf("function buildChordReferencePositionMap(");
+  const end = source.indexOf("function buildChordToneReferencePosition(", begin);
+  const context = vm.createContext({
+    normalizeChordExtensionForQuality: (_, e) => e,
+    getChordShapeTemplateCandidates: getGuitarVoicingCandidates,
+    assessGuitarVoicing,
+    compareGuitarVoicings,
+    getVoicingSelectionPriority,
+    buildGeneratedChordShapeOption: ({ candidate }) => ({
+      id: candidate.template.id, voicing: candidate.assessment,
+      notes: candidate.template.strings.map(([stringNumber, f]) => ({ stringNumber, fretNumber: f + candidate.baseFret })),
+    }),
+    getChordReferenceSortInfo: (chord) => ({ startFret: Math.min(...chord.notes.map((n) => n.fretNumber)), maxFret: Math.max(...chord.notes.map((n) => n.fretNumber)) }),
+    getChordReferenceShapeSignature: (chord) => JSON.stringify(chord.notes),
+    buildStoredChordReferencePosition: (chord) => chord,
+    CHORD_VIEWER_POSITIONS: Array.from({ length: 5 }, (_, i) => ({ id: `position${i + 1}` })),
+  });
+  vm.runInContext(source.slice(begin, end), context);
+  const result = context.buildChordReferencePositionMap({ root: "B", quality: "major", extension: "add9", displayName: "Badd9",
+    storedChord: { id: "legacy", notes: [[5, 2], [4, 4], [3, 6], [2, 4], [1, 2]].map(([stringNumber, fretNumber]) => ({ stringNumber, fretNumber })) },
+  });
+  assert.equal(result.position1.id, "a-add9-compact");
+  assert.ok(!Object.values(result).some((c) => c.id === "legacy"));
+  assert.deepEqual(result.position1.voicing.theoreticalIntervals, [0, 4, 7, 14]);
+});

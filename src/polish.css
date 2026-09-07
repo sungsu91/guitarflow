@@ -9438,3 +9438,15 @@ html body main.app.app.app.app.app:is(.theme-brand, .theme-light)
     }
   }
 }
+
+/* Only conventional-omission chords add this explanatory row. */
+.chordVoicingOmissions {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  grid-column: 1 / -1;
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}

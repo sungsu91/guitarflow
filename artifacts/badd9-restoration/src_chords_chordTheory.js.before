@@ -1,9 +1,7 @@
 import { CHROMATIC_NOTES, NOTE_INDEX } from "../music/noteNotation.js";
-import { getAdditionalTheory } from "./additionalChords.js";
 
 export const CHORD_TONE_INTERVALS = Object.freeze({
   major: Object.freeze({
-    ...getAdditionalTheory("major", "intervals"),
     none: Object.freeze([0, 4, 7]),
     "7": Object.freeze([0, 4, 7, 10]),
     "9": Object.freeze([0, 4, 7, 10, 14]),
@@ -17,7 +15,6 @@ export const CHORD_TONE_INTERVALS = Object.freeze({
     add9: Object.freeze([0, 4, 7, 14]),
   }),
   minor: Object.freeze({
-    ...getAdditionalTheory("minor", "intervals"),
     none: Object.freeze([0, 3, 7]),
     m7: Object.freeze([0, 3, 7, 10]),
     m7b5: Object.freeze([0, 3, 6, 10]),
@@ -26,7 +23,6 @@ export const CHORD_TONE_INTERVALS = Object.freeze({
     add9: Object.freeze([0, 3, 7, 14]),
   }),
   dim: Object.freeze({
-    ...getAdditionalTheory("dim", "intervals"),
     none: Object.freeze([0, 3, 6]),
   }),
   aug: Object.freeze({
@@ -36,7 +32,6 @@ export const CHORD_TONE_INTERVALS = Object.freeze({
 
 export const CHORD_TONE_DEGREE_OFFSETS = Object.freeze({
   major: Object.freeze({
-    ...getAdditionalTheory("major", "degrees"),
     none: Object.freeze([0, 2, 4]),
     "7": Object.freeze([0, 2, 4, 6]),
     "9": Object.freeze([0, 2, 4, 6, 1]),
@@ -50,7 +45,6 @@ export const CHORD_TONE_DEGREE_OFFSETS = Object.freeze({
     add9: Object.freeze([0, 2, 4, 1]),
   }),
   minor: Object.freeze({
-    ...getAdditionalTheory("minor", "degrees"),
     none: Object.freeze([0, 2, 4]),
     m7: Object.freeze([0, 2, 4, 6]),
     m7b5: Object.freeze([0, 2, 4, 6]),
@@ -59,7 +53,6 @@ export const CHORD_TONE_DEGREE_OFFSETS = Object.freeze({
     add9: Object.freeze([0, 2, 4, 1]),
   }),
   dim: Object.freeze({
-    ...getAdditionalTheory("dim", "degrees"),
     none: Object.freeze([0, 2, 4]),
   }),
   aug: Object.freeze({
@@ -68,7 +61,7 @@ export const CHORD_TONE_DEGREE_OFFSETS = Object.freeze({
 });
 
 export function getChordToneDescriptors(root, quality = "major", extension = "none") {
-  const rootIndex = NOTE_INDEX[root] ?? NOTE_INDEX.C;
+  const rootIndex = getChordPitchClass(root) ?? NOTE_INDEX.C;
   const qualityIntervals = CHORD_TONE_INTERVALS[quality] ?? CHORD_TONE_INTERVALS.major;
   const qualityDegreeOffsets = CHORD_TONE_DEGREE_OFFSETS[quality] ?? CHORD_TONE_DEGREE_OFFSETS.major;
   const intervals = qualityIntervals[extension] ?? qualityIntervals.none;
@@ -82,4 +75,34 @@ export function getChordToneDescriptors(root, quality = "major", extension = "no
 
 export function getChordToneNames(root, quality = "major", extension = "none") {
   return [...new Set(getChordToneDescriptors(root, quality, extension).map((descriptor) => descriptor.noteName))];
+}
+
+const LETTERS = ["C", "D", "E", "F", "G", "A", "B"];
+const NATURALS = [0, 2, 4, 5, 7, 9, 11];
+
+export function getChordPitchClass(name = "") {
+  const match = /^([A-G])([#b]*)$/.exec(name);
+  if (!match) return undefined;
+  const offset = [...match[2]].reduce((n, accidental) => n + (accidental === "#" ? 1 : -1), 0);
+  return (NATURALS[LETTERS.indexOf(match[1])] + offset + 24) % 12;
+}
+
+export function formatChordToneLabel(noteName, displayRoot, descriptor) {
+  const rootLetter = /^([A-G])/.exec(displayRoot ?? "")?.[1];
+  const rootIndex = LETTERS.indexOf(rootLetter);
+  const pitchClass = getChordPitchClass(noteName);
+  if (rootIndex < 0 || pitchClass === undefined || !descriptor) return noteName;
+  const letterIndex = (rootIndex + descriptor.degreeOffset) % 7;
+  const difference = ((pitchClass - NATURALS[letterIndex] + 18) % 12) - 6;
+  return LETTERS[letterIndex] + (difference < 0 ? "b".repeat(-difference) : "#".repeat(difference));
+}
+
+// Pitch identities remain canonical for audio/comparison. Only display spelling
+// follows the chord's diatonic degrees, including E#, Cb and double accidentals.
+export function getChordToneLabel(noteName, chord = {}) {
+  const root = chord.root ?? "C";
+  const displayRoot = /^([A-G][#b]*)/.exec(chord.displayName ?? "")?.[1] ?? root;
+  const descriptor = getChordToneDescriptors(root, chord.quality, chord.extension)
+    .find((tone) => getChordPitchClass(tone.noteName) === getChordPitchClass(noteName));
+  return formatChordToneLabel(noteName, displayRoot, descriptor);
 }

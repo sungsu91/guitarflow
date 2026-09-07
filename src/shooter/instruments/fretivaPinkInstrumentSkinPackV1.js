@@ -2,6 +2,16 @@ import manifest from "../../../public/assets/shooter/instruments/fretiva_pink_in
 export const FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1_ID = manifest.pack_id;
 // Measure the solid silhouette for collisions; the original PNG stays untouched.
 const BOUNDS = {
+  "acoustic_candy_imp_v1": {
+    "visibleWidth": 633,
+    "visibleHeight": 1490,
+    "visibleTop": 12
+  },
+  "acoustic_pink_peony_v1": {
+    "visibleWidth": 632,
+    "visibleHeight": 1504,
+    "visibleTop": 7
+  },
   "acoustic_rose_quartz_v1": {
     "visibleWidth": 619,
     "visibleHeight": 1487,
