@@ -181,7 +181,7 @@ import {
   releaseShooterPitchJudgment,
   resetShooterPitchJudgmentState,
 } from "./shooter/pitchJudgment.js";
-import { readShooterSignalFrame } from "./shooter/microphoneSignal.js";
+import { isShooterPitchSignalPresent, readShooterSignalFrame } from "./shooter/microphoneSignal.js";
 import ShooterPitchMonitor from "./shooter/ShooterPitchMonitor.jsx";
 import { createShooterPitchDisplayState, updateShooterPitchDisplay } from "./shooter/pitchDisplay.js";
 import {
@@ -22444,12 +22444,13 @@ function App({ onReady }) {
       lastMicReadAtRef.current = now;
 
       analyser.getFloatTimeDomainData(buffer);
-      const { rms, signalPresent } = readShooterSignalFrame(
+      const signalFrame = readShooterSignalFrame(
         micSession, now, shooterPitchJudgmentRef.current.signalPresent, getRms(buffer),
         isMobileLayoutRef.current ? LOW_SIGNAL_LEVEL * 0.42 : LOW_SIGNAL_LEVEL,
       );
+      const { rms, canAnalyzePitch } = signalFrame;
       const attackId = observeShooterNoteOn(shooterPitchJudgmentRef.current.noteOn, {
-        now, rms, signalPresent,
+        now, rms, signalPresent: canAnalyzePitch,
       });
       const inputGain = isMobileLayoutRef.current ? 22 : 12;
       const normalizedLevel = Math.min(1, rms * inputGain);
@@ -22463,7 +22464,7 @@ function App({ onReady }) {
         lastDebugUpdateRef.current = now;
       }
 
-      if (!signalPresent) {
+      if (!canAnalyzePitch) {
         releaseShooterPitchJudgment(shooterPitchJudgmentRef.current);
         if (now - lastDetectedDisplayUpdateRef.current > MIC_LOW_SIGNAL_DISPLAY_UPDATE_MS) {
           lastDetectedDisplayUpdateRef.current = now;
@@ -22496,6 +22497,7 @@ function App({ onReady }) {
           0.006,
         );
       const displayNote = frequencyToNearest(pitch, DISPLAY_NOTES, 80);
+      const signalPresent = isShooterPitchSignalPresent(signalFrame, yinResult?.confidence ?? 0);
       const currentTarget = shooterTargetsRef.current.find((candidate) => (
         candidate.id === shooterActiveTargetIdRef.current
         && !candidate.defeated
@@ -22521,6 +22523,7 @@ function App({ onReady }) {
           : null,
         targetKey: currentTarget?.id ?? null,
       });
+      if (!signalPresent) judgment.reason = "low-confidence";
       if (judgment.accepted && gameStateRef.current === GAME_STATES.PLAYING && currentTargetPitch) {
         if (judgeShooterNote(currentTargetPitch, currentTarget.id)) {
           commitShooterPitchHit(shooterPitchJudgmentRef.current, judgment);
