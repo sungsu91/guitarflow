@@ -16868,6 +16868,7 @@ function App({ onReady }) {
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
   const [shooterDifficulty, setShooterDifficulty] = useState(SHOOTER_DIFFICULTIES.EASY);
   const [shooterScenarioRoundSummary, setShooterScenarioRoundSummary] = useState(null);
+  const [shooterScenarioCountdown, setShooterScenarioCountdown] = useState(null);
   const [shooterDifficultyMenuOpen, setShooterDifficultyMenuOpen] = useState(false);
   const [shooterPlayHelpInfoOpen, setShooterPlayHelpInfoOpen] = useState(false);
   const [shooterPlayHelpLevel, setShooterPlayHelpLevel] = useState(1);
@@ -18074,6 +18075,7 @@ function App({ onReady }) {
   const shooterTargetIdRef = useRef(1);
   const projectileIdRef = useRef(1);
   const shooterNextSpawnAtRef = useRef(0);
+  const shooterScenarioCountdownRef = useRef(null);
   const lastShooterNoteRef = useRef(null);
   const lastShooterXRef = useRef(50);
   const shooterLivesRef = useRef(SHOOTER_MAX_LIVES);
@@ -19448,6 +19450,8 @@ function App({ onReady }) {
     setShooterAim(undefined);
     setShooterLives(SHOOTER_MAX_LIVES);
     setShooterScenarioRoundSummary(null);
+    shooterScenarioCountdownRef.current = null;
+    setShooterScenarioCountdown(null);
     setFeedback("Ready");
   }, []);
 
@@ -21311,6 +21315,15 @@ function App({ onReady }) {
         : isDifficultScenario
           ? getShooterDifficultScenarioRound(patternRef.current, difficultPatternId)
           : 0;
+    if (isScriptedScenario && scenarioStep?.isSectionStart) {
+      if (shooterTargetsRef.current.some((target) => !target.defeated)) return false;
+      if (shooterScenarioCountdownRef.current?.stepIndex !== patternRef.current) {
+        shooterScenarioCountdownRef.current = { stepIndex: patternRef.current, elapsedMs: 0 };
+        setShooterScenarioCountdown({ ...scenarioStep, seconds: 3 });
+        return false;
+      }
+      if (shooterScenarioCountdownRef.current.elapsedMs < 3000) return false;
+    }
     if (
       isScriptedScenario
       && patternRef.current > 0
@@ -21401,6 +21414,8 @@ function App({ onReady }) {
         destroyHoldMs: resolvedScenarioStep?.isClimax ? 520 : SHOOTER_TARGET_DESTROY_ANIMATION_MS,
       },
     ];
+    shooterScenarioCountdownRef.current = null;
+    setShooterScenarioCountdown(null);
     shooterNextSpawnAtRef.current = gameTimeRef.current + (
       scenarioStepWindowMs ?? getShooterSpawnGap(difficulty)
     );
@@ -22331,6 +22346,7 @@ function App({ onReady }) {
 
   const judgeShooterNote = useCallback(
     (detectedPitchName, expectedTargetId = null) => {
+      if (shooterScenarioCountdownRef.current) return false;
 
       const target = shooterTargetsRef.current.find((candidate) => (
         candidate.id === shooterActiveTargetIdRef.current
@@ -22755,6 +22771,15 @@ function App({ onReady }) {
 
   const runShooterFrame = useCallback(
     (deltaMs) => {
+      const scenarioCountdown = shooterScenarioCountdownRef.current;
+      if (scenarioCountdown) {
+        scenarioCountdown.elapsedMs += Math.max(0, Number(deltaMs) || 0);
+        const seconds = Math.max(1, Math.ceil((3000 - scenarioCountdown.elapsedMs) / 1000));
+        setShooterScenarioCountdown((current) => current && current.seconds !== seconds
+          ? { ...current, seconds } : current);
+        if (scenarioCountdown.elapsedMs >= 3000) spawnShooterTarget();
+        return;
+      }
       if (shooterCountInActiveRef.current) {
         shooterCountInElapsedMsRef.current += Math.max(0, Number(deltaMs) || 0);
         const nextCountInLabel = getShooterCountInLabel(shooterCountInElapsedMsRef.current);
@@ -22785,6 +22810,7 @@ function App({ onReady }) {
 
       if (gameTimeRef.current >= shooterNextSpawnAtRef.current) {
         const spawned = spawnShooterTarget();
+        if (shooterScenarioCountdownRef.current) return;
         if (!spawned && shooterTargetsRef.current.length > 0) {
           shooterNextSpawnAtRef.current = gameTimeRef.current + 250;
         }
@@ -33421,14 +33447,15 @@ function App({ onReady }) {
             ) : null}
             {gameState === GAME_STATES.PLAYING
               && isShooterScriptedScenario
-              && shooterTarget?.scenarioStep?.isSectionStart ? (
+              && shooterScenarioCountdown ? (
               <div
                 aria-live="polite"
                 className={isMobileLayout ? "mobileShooterScenarioBanner" : "desktopShooterScenarioBanner"}
-                key={`${shooterTarget.scenarioRound}-${shooterTarget.scenarioStep.sectionId}`}
+                style={{ animation: "none" }}
               >
-                <strong>{shooterTarget.scenarioStep.sectionLabel}</strong>
-                <span>{shooterTarget.scenarioStep.sectionAnnouncement}</span>
+                <strong>{shooterScenarioCountdown.sectionLabel}</strong>
+                <span>{shooterScenarioCountdown.sectionAnnouncement}</span>
+                <b style={{ fontSize: 32, lineHeight: 1.2 }}>{shooterScenarioCountdown.seconds}</b>
               </div>
             ) : null}
             {gameState === GAME_STATES.PLAYING
