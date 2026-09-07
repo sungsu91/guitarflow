@@ -10,6 +10,7 @@ const STATUS = {
   "target-lock": "명중 · 다음 음을 기다려요",
   stabilizing: "음을 확인하는 중",
   hit: "명중",
+  held: "마지막 감지 음",
 };
 
 function MobilePitchMonitor({ pitch, message }) {

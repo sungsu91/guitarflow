@@ -22,7 +22,7 @@ const OPEN_STRINGS = [
 function playStableFrameSeries(state, { id, midi, now, pitch, rms = 0.05 }) {
   const target = { frequency: midiToFrequency(midi), id, pitch };
   const frames = [0, 34, 68].map((offset) => observeShooterPitchFrame(state, {
-    confidence: 0.99,
+    confidence: 0.9,
     frequency: target.frequency,
     now: now + offset,
     rms,

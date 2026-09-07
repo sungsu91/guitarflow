@@ -80,7 +80,7 @@ test("a pitch that settles after the old 210ms window can still hit once", () =>
   const results = [300, 334, 368, 402].map((now) => observeShooterPitchFrame(state, {
     now, rms: 0.01, target, confidence: 0.99, frequency: target.frequency,
   }));
-  assert.deepEqual(results.map(({ accepted }) => accepted), [false, false, true, false]);
+  assert.deepEqual(results.map(({ accepted }) => accepted), [true, false, false, false]);
 });
 
 test("re-picking a repeated note without silence unlocks confirmation across subsequent frames", () => {
@@ -89,8 +89,8 @@ test("re-picking a repeated note without silence unlocks confirmation across sub
   const frame = (now, rms, id) => observeShooterPitchFrame(state, {
     now, rms, target: { ...target, id }, confidence: 0.99, frequency: target.frequency,
   });
-  assert.equal([0, 34, 68].map((now) => frame(now, 0.01, 1)).at(-1).accepted, true);
-  assert.equal(frame(300, 0.02, 2).accepted, false);
+  assert.equal(frame(0, 0.01, 1).accepted, true);
+  assert.equal(frame(300, 0.02, 2).accepted, true);
   assert.equal(frame(334, 0.019, 2).accepted, false);
-  assert.equal(frame(368, 0.018, 2).accepted, true);
+  assert.equal(frame(368, 0.018, 2).accepted, false);
 });

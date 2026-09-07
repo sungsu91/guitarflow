@@ -10,6 +10,7 @@ export const SHOOTER_REFERENCE_FREQUENCY = TUNER_REFERENCE_FREQUENCY;
 export const SHOOTER_HIT_TOLERANCE_CENTS = 42;
 export const SHOOTER_STABLE_FRAME_COUNT = 3;
 export const SHOOTER_STABLE_MIN_MS = 55;
+export const SHOOTER_IMMEDIATE_HIT_CONFIDENCE = 0.94;
 export const SHOOTER_REPICK_RISE_RATIO = 1.28;
 
 const getTargetFrequency = (target) => {
@@ -138,8 +139,9 @@ export function observeShooterPitchFrame(state, {
   }
   const stableMs = Math.max(0, safeNow - (state.candidateFirstAt ?? safeNow));
   if (
-    state.candidateFrames < SHOOTER_STABLE_FRAME_COUNT
-    || stableMs < SHOOTER_STABLE_MIN_MS
+    confidence < SHOOTER_IMMEDIATE_HIT_CONFIDENCE
+    && (state.candidateFrames < SHOOTER_STABLE_FRAME_COUNT
+      || stableMs < SHOOTER_STABLE_MIN_MS)
   ) {
     return { accepted: false, cents, detectedPitch: detected.pitch, reason: "stabilizing", stableMs };
   }

@@ -47,7 +47,7 @@ test("open-string waveforms with weak octave resonance retain their octave in tu
               ...result, now, rms: getRms(buffer), signalPresent: true, target,
             });
           });
-          assert.deepEqual(results.map(({ accepted }) => accepted), [false, false, true], pitch);
+          assert.equal(results.filter(({ accepted }) => accepted).length, 1, pitch);
         }
       }
     }

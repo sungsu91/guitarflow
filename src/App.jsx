@@ -71,7 +71,6 @@ import TunerMode, { TUNER_BACKGROUND_COUNT } from "./tuner/TunerMode";
 import {
   detectPitchAutocorrelation,
   detectPitchYinDetailed,
-  frequencyToChromaticPitch,
   frequencyToNearest,
   getRms,
 } from "./tuner/tunerMath.js";
@@ -182,6 +181,7 @@ import {
 } from "./shooter/pitchJudgment.js";
 import { readShooterSignalFrame } from "./shooter/microphoneSignal.js";
 import ShooterPitchMonitor from "./shooter/ShooterPitchMonitor.jsx";
+import { createShooterPitchDisplayState, updateShooterPitchDisplay } from "./shooter/pitchDisplay.js";
 import {
   SHOOTER_COUNT_IN_MS,
   SHOOTER_RUNTIME_DIFFICULTY,
@@ -18052,6 +18052,7 @@ function App({ onReady }) {
   const lastHitRef = useRef({ note: null, time: 0 });
   const lastMissRef = useRef({ note: null, time: 0 });
   const shooterPitchJudgmentRef = useRef(createShooterPitchJudgmentState());
+  const shooterPitchDisplayRef = useRef(createShooterPitchDisplayState());
   const hitsRef = useRef(0);
   const lastDebugUpdateRef = useRef(0);
   const lastDetectedDisplayUpdateRef = useRef(0);
@@ -19427,6 +19428,7 @@ function App({ onReady }) {
     lastShooterXRef.current = 50;
     shooterReleaseLockRef.current = null;
     resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
+    shooterPitchDisplayRef.current = createShooterPitchDisplayState();
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     shooterScenarioRoundStatsRef.current = {
       hits: 0,
@@ -21191,6 +21193,7 @@ function App({ onReady }) {
       shooterActiveTargetIdRef.current = nextId;
       setShooterActiveTargetId(nextId);
       resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
+    shooterPitchDisplayRef.current = createShooterPitchDisplayState();
     }
     return next;
   }, []);
@@ -22471,8 +22474,9 @@ function App({ onReady }) {
         if (now - lastDetectedDisplayUpdateRef.current > MIC_LOW_SIGNAL_DISPLAY_UPDATE_MS) {
           lastDetectedDisplayUpdateRef.current = now;
           setDetected(null);
-          setDetectedPitch(null);
-          setShooterPitchStatus("no-signal");
+          const display = updateShooterPitchDisplay(shooterPitchDisplayRef.current, { now, reason: "no-signal" });
+          setDetectedPitch(display.pitch);
+          setShooterPitchStatus(display.reason);
         }
         return;
       }
@@ -22521,16 +22525,15 @@ function App({ onReady }) {
           : null,
         targetKey: currentTarget?.id ?? null,
       });
-      if (now - lastDetectedDisplayUpdateRef.current > MIC_DISPLAY_UPDATE_MS) {
+      const display = updateShooterPitchDisplay(shooterPitchDisplayRef.current, {
+        now, frequency: pitch, confidence: yinResult?.confidence ?? 0,
+        reason: judgment.reason, accepted: judgment.accepted,
+      });
+      if (judgment.accepted || now - lastDetectedDisplayUpdateRef.current > MIC_DISPLAY_UPDATE_MS) {
         lastDetectedDisplayUpdateRef.current = now;
         setDetected(displayNote);
-        setShooterPitchStatus(judgment.reason);
-        const nextDetectedPitch = pitch
-          ? {
-              frequency: pitch,
-              note: frequencyToChromaticPitch(pitch)?.pitch ?? "--",
-            }
-          : null;
+        setShooterPitchStatus(display.reason);
+        const nextDetectedPitch = display.pitch;
         setDetectedPitch((currentPitch) => {
           if (currentPitch == null || nextDetectedPitch == null) {
             return currentPitch === nextDetectedPitch ? currentPitch : nextDetectedPitch;
@@ -23633,6 +23636,7 @@ function App({ onReady }) {
     lastShooterXRef.current = 50;
     shooterReleaseLockRef.current = null;
     resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
+    shooterPitchDisplayRef.current = createShooterPitchDisplayState();
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     setShooterLives(SHOOTER_MAX_LIVES);
     setShooterAim(undefined);
@@ -25344,6 +25348,7 @@ function App({ onReady }) {
     lastShooterXRef.current = 50;
     shooterReleaseLockRef.current = null;
     resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
+    shooterPitchDisplayRef.current = createShooterPitchDisplayState();
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     setEnemies([]);
     setShooterTargets([]);
