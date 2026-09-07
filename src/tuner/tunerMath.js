@@ -173,8 +173,8 @@ function preferOctaveFundamentalTau(buffer, sampleRate, yin, tauEstimate, minFre
   if (detectedAmplitude <= 0) return { harmonicDivisor: 1, tau: tauEstimate };
 
   // A plucked low string can briefly present its second harmonic more strongly
-  // than the fundamental. Correcting a second harmonic is safe for a
-  // chromatic tuner because halving the frequency preserves the note name.
+  // than the fundamental. Halving still changes the octave, so a weak body
+  // resonance alone must not trigger correction (the shooter checks octaves).
   // Do not inspect a three-times-longer period here: every periodic signal also
   // creates a YIN minimum there, and a small 1/3-frequency resonance was enough
   // to turn G3/B3/E4 into C2/E2/A2 (about -1900 cents) on a real guitar.
@@ -183,7 +183,7 @@ function preferOctaveFundamentalTau(buffer, sampleRate, yin, tauEstimate, minFre
     const expectedTau = tauEstimate * divisor;
     if (fundamentalFrequency < minFrequency || expectedTau >= yin.length) continue;
     const fundamentalAmplitude = getWindowedToneAmplitude(buffer, sampleRate, fundamentalFrequency);
-    if (fundamentalAmplitude / detectedAmplitude < 0.04) continue;
+    if (fundamentalAmplitude / detectedAmplitude < 0.08) continue;
 
     let localTau = Math.round(expectedTau);
     const searchRadius = Math.max(3, divisor * 2);
@@ -192,7 +192,11 @@ function preferOctaveFundamentalTau(buffer, sampleRate, yin, tauEstimate, minFre
     for (let tau = searchStart; tau <= searchEnd; tau += 1) {
       if (yin[tau] < yin[localTau]) localTau = tau;
     }
-    if (yin[localTau] <= 0.24) return { harmonicDivisor: divisor, tau: localTau };
+    // Every periodic signal also repeats at twice its period. Require a
+    // meaningful absolute improvement, not merely another good minimum.
+    if (yin[localTau] <= 0.24 && yin[tauEstimate] - yin[localTau] >= 0.01) {
+      return { harmonicDivisor: divisor, tau: localTau };
+    }
   }
 
   return { harmonicDivisor: 1, tau: tauEstimate };
