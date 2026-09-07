@@ -279,7 +279,7 @@
   /* Phone-only HUD sizing: preserve desktop layout while keeping Korean labels legible. */
   html.shooterCanonicalMobile body main.app.app.app.shooterMode
     .mobileShooterPrimaryHudRow {
-    grid-template-columns: 106px minmax(0, 1fr) 58px 48px !important;
+    grid-template-columns: 106px 126px minmax(58px, 1fr) 48px !important;
   }
 
   html.shooterCanonicalMobile body main.app.app.app.shooterMode
@@ -299,7 +299,9 @@
       minmax(27px, 30px)
       repeat(2, minmax(19px, 22px))
       17px !important;
-    justify-content: center !important;
+    justify-content: start !important;
+    padding-left: 6px !important;
+    box-sizing: border-box;
   }
 
   html.shooterCanonicalMobile body main.app.app.app.shooterMode
