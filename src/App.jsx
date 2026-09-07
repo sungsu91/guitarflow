@@ -32942,11 +32942,6 @@ function App({ onReady }) {
                         ? shooterGuidePrimaryLabel
                         : "대기"}
                     </strong>
-                    <small>
-                      {shooterGuidePitch
-                        ? shooterGuideSecondaryLabel
-                        : "WAITING"}
-                    </small>
                 </div>
 
                 {shooterPlayHelpInfoOpen ? (
