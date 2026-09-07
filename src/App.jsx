@@ -1,3 +1,4 @@
+import { observeShooterNoteOn } from "./shooter/noteOn.js";
 import { FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1, FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1_IDS } from "./shooter/instruments/fretivaPinkInstrumentSkinPackV1.js";
 ﻿import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Activity, startTransition } from "react";
@@ -174,6 +175,7 @@ import {
 import useShooterNoteMonsterTuning from "./shooter/useShooterNoteMonsterTuning.js";
 import useShooterMobileViewport from "./shooter/useShooterMobileViewport.js";
 import {
+  commitShooterPitchHit,
   createShooterPitchJudgmentState,
   observeShooterPitchFrame,
   releaseShooterPitchJudgment,
@@ -18074,7 +18076,6 @@ function App({ onReady }) {
   const shooterNextSpawnAtRef = useRef(0);
   const lastShooterNoteRef = useRef(null);
   const lastShooterXRef = useRef(50);
-  const shooterReleaseLockRef = useRef(null);
   const shooterLivesRef = useRef(SHOOTER_MAX_LIVES);
   const shooterSoundOnRef = useRef(true);
   const shooterActiveSoundGroupsRef = useRef(new Map());
@@ -18099,7 +18100,6 @@ function App({ onReady }) {
   const scoreRef = useRef(0);
   const maxComboRef = useRef(0);
   const attemptsRef = useRef(0);
-  const lastShotRef = useRef({ note: null, time: 0 });
   const threeDLabAttackIdRef = useRef(1);
   const laneFeedbackIdRef = useRef(1);
   shooterDifficultyRef.current = shooterDifficulty;
@@ -19426,7 +19426,6 @@ function App({ onReady }) {
     shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
-    shooterReleaseLockRef.current = null;
     resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
     shooterPitchDisplayRef.current = createShooterPitchDisplayState();
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
@@ -19442,7 +19441,6 @@ function App({ onReady }) {
       window.clearTimeout(shooterScenarioSummaryTimerRef.current);
       shooterScenarioSummaryTimerRef.current = null;
     }
-    lastShotRef.current = { note: null, time: 0 };
     setShooterTargets([]);
     setShooterActiveTargetId(null);
     setShooterCountInLabel(null);
@@ -21192,8 +21190,7 @@ function App({ onReady }) {
     if (shooterActiveTargetIdRef.current !== nextId) {
       shooterActiveTargetIdRef.current = nextId;
       setShooterActiveTargetId(nextId);
-      resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
-    shooterPitchDisplayRef.current = createShooterPitchDisplayState();
+      // Target changes must not erase the incoming attack or sustain lock.
     }
     return next;
   }, []);
@@ -22333,10 +22330,7 @@ function App({ onReady }) {
   }, [completeShooterTargetImpact]);
 
   const judgeShooterNote = useCallback(
-    (detectedPitchName) => {
-      const now = gameTimeRef.current;
-      if (shooterReleaseLockRef.current === detectedPitchName) return;
-      if (lastShotRef.current.note === detectedPitchName && now - lastShotRef.current.time < 220) return;
+    (detectedPitchName, expectedTargetId = null) => {
 
       const target = shooterTargetsRef.current.find((candidate) => (
         candidate.id === shooterActiveTargetIdRef.current
@@ -22345,10 +22339,9 @@ function App({ onReady }) {
         && !candidate.pendingProjectileId
         && !candidate.slashPending
       )) ?? syncShooterActiveTarget(shooterTargetsRef.current, true);
+      if (expectedTargetId != null && target?.id !== expectedTargetId) return false;
       const targetPitchName = target?.detail?.pitch ?? target?.note ?? null;
       const matchesFrontTarget = Boolean(targetPitchName && detectedPitchName && targetPitchName === detectedPitchName);
-      lastShotRef.current = { note: detectedPitchName, time: now };
-      shooterReleaseLockRef.current = detectedPitchName;
 
       if (!target || !matchesFrontTarget) {
         comboRef.current = 0;
@@ -22356,15 +22349,15 @@ function App({ onReady }) {
         setFeedback("Miss");
         flashStage("miss");
         playShooterSound("miss");
-        return;
+        return false;
       }
 
       if (desktopHorizontalShooterActive || selectedMapIsThreeDLab) {
-        if (!resolveShooterSlashHit(target)) return;
+        if (!resolveShooterSlashHit(target)) return false;
         setFeedback("Slash");
       } else {
         const projectile = fireProjectile(target, detectedPitchName);
-        if (!projectile) return;
+        if (!projectile) return false;
         shooterTargetsRef.current = shooterTargetsRef.current.map((currentTarget) => (
           currentTarget.id === target.id
             ? {
@@ -22379,6 +22372,7 @@ function App({ onReady }) {
       }
       attemptsRef.current += 1;
       setAttempts((value) => value + 1);
+      return true;
     },
     [
       desktopHorizontalShooterActive,
@@ -22410,8 +22404,6 @@ function App({ onReady }) {
       ?? syncShooterActiveTarget(shooterTargetsRef.current, true);
     const pitch = target?.detail?.pitch ?? target?.note;
     if (!pitch) return;
-    shooterReleaseLockRef.current = null;
-    lastShotRef.current = { note: null, time: Number.NEGATIVE_INFINITY };
     judgeShooterNote(pitch);
   }, [judgeShooterNote, shooterHitboxDebugEnabled, syncShooterActiveTarget]);
 
@@ -22456,6 +22448,9 @@ function App({ onReady }) {
         micSession, now, shooterPitchJudgmentRef.current.signalPresent, getRms(buffer),
         isMobileLayoutRef.current ? LOW_SIGNAL_LEVEL * 0.42 : LOW_SIGNAL_LEVEL,
       );
+      const attackId = observeShooterNoteOn(shooterPitchJudgmentRef.current.noteOn, {
+        now, rms, signalPresent,
+      });
       const inputGain = isMobileLayoutRef.current ? 22 : 12;
       const normalizedLevel = Math.min(1, rms * inputGain);
 
@@ -22469,7 +22464,6 @@ function App({ onReady }) {
       }
 
       if (!signalPresent) {
-        shooterReleaseLockRef.current = null;
         releaseShooterPitchJudgment(shooterPitchJudgmentRef.current);
         if (now - lastDetectedDisplayUpdateRef.current > MIC_LOW_SIGNAL_DISPLAY_UPDATE_MS) {
           lastDetectedDisplayUpdateRef.current = now;
@@ -22511,6 +22505,8 @@ function App({ onReady }) {
       )) ?? syncShooterActiveTarget(shooterTargetsRef.current, true);
       const currentTargetPitch = currentTarget?.detail?.pitch ?? currentTarget?.note ?? null;
       const judgment = observeShooterPitchFrame(shooterPitchJudgmentRef.current, {
+        attackId,
+        deferCommit: true,
         confidence: yinResult?.confidence ?? 0,
         frequency: pitch,
         now,
@@ -22525,6 +22521,15 @@ function App({ onReady }) {
           : null,
         targetKey: currentTarget?.id ?? null,
       });
+      if (judgment.accepted && gameStateRef.current === GAME_STATES.PLAYING && currentTargetPitch) {
+        if (judgeShooterNote(currentTargetPitch, currentTarget.id)) {
+          commitShooterPitchHit(shooterPitchJudgmentRef.current, judgment);
+        } else {
+          // No projectile/slash means the attack has not been consumed.
+          judgment.accepted = false;
+          judgment.reason = "no-target";
+        }
+      }
       const display = updateShooterPitchDisplay(shooterPitchDisplayRef.current, {
         now, frequency: pitch, confidence: yinResult?.confidence ?? 0,
         reason: gameStateRef.current === GAME_STATES.PLAYING ? judgment.reason : "listening", accepted: judgment.accepted,
@@ -22545,17 +22550,7 @@ function App({ onReady }) {
         });
       }
 
-      if (
-        appModeRef.current === APP_MODES.SHOOTER &&
-        gameStateRef.current === GAME_STATES.PLAYING &&
-        judgment.accepted &&
-        currentTargetPitch
-      ) {
-        // The shared judgment already enforces one hit per pick. A confirmed
-        // re-pick must not be blocked by the legacy pitch-only latch.
-        shooterReleaseLockRef.current = null;
-        judgeShooterNote(currentTargetPitch);
-      }
+
     },
     [judgeShooterNote, syncShooterActiveTarget],
   );
@@ -23642,7 +23637,6 @@ function App({ onReady }) {
     shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
-    shooterReleaseLockRef.current = null;
     resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
     shooterPitchDisplayRef.current = createShooterPitchDisplayState();
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
@@ -23876,7 +23870,6 @@ function App({ onReady }) {
     shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
-    shooterReleaseLockRef.current = null;
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
     setShooterLives(SHOOTER_MAX_LIVES);
     if (modeToRestart === APP_MODES.SHOOTER) setShooterAim(undefined);
@@ -25354,7 +25347,6 @@ function App({ onReady }) {
     shooterNextSpawnAtRef.current = 0;
     lastShooterNoteRef.current = null;
     lastShooterXRef.current = 50;
-    shooterReleaseLockRef.current = null;
     resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
     shooterPitchDisplayRef.current = createShooterPitchDisplayState();
     shooterLivesRef.current = SHOOTER_MAX_LIVES;
@@ -25675,7 +25667,6 @@ function App({ onReady }) {
       shooterNextSpawnAtRef.current = 0;
       lastShooterNoteRef.current = null;
       lastShooterXRef.current = 50;
-      shooterReleaseLockRef.current = null;
       shooterLivesRef.current = SHOOTER_MAX_LIVES;
       setEnemies([]);
       setShooterTargets([]);

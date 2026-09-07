@@ -21,8 +21,8 @@ const OPEN_STRINGS = [
 
 function playStableFrameSeries(state, { id, midi, now, pitch, rms = 0.05 }) {
   const target = { frequency: midiToFrequency(midi), id, pitch };
-  const frames = [0, 34, 68].map((offset) => observeShooterPitchFrame(state, {
-    confidence: 0.9,
+  const frames = [0, 34].map((offset) => observeShooterPitchFrame(state, {
+    confidence: 0.86,
     frequency: target.frequency,
     now: now + offset,
     rms,
@@ -40,7 +40,7 @@ test("all six standard-tuned open strings hit reliably ten times after a real re
       const now = attempt * 300;
       observeShooterPitchFrame(state, { now: now - 20, signalPresent: false });
       const frames = playStableFrameSeries(state, { id: `${pitch}-${attempt}`, midi, now, pitch });
-      assert.deepEqual(frames.map(({ accepted }) => accepted), [false, false, true], `${pitch} attempt ${attempt + 1}`);
+      assert.deepEqual(frames.map(({ accepted }) => accepted), [false, true], `${pitch} attempt ${attempt + 1}`);
     }
   }
 });
