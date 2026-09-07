@@ -1,3 +1,4 @@
+import { useState } from "react";
 import "./pitch-monitor.css";
 
 const STATUS = {
@@ -11,27 +12,40 @@ const STATUS = {
   stabilizing: "음을 확인하는 중",
   hit: "명중",
   held: "마지막 감지 음",
+  listening: "연주 음 확인 중",
 };
 
-function MobilePitchMonitor({ pitch, message }) {
+function MobilePitchMonitor({ pitch, message, control }) {
   return <output className="shooterPitchMonitorMobile" aria-label="지금 감지한 음">
     <span>내가 친 음 <b>{pitch?.note ?? "—"}</b></span>
     <small>{message}</small>
+    {control}
   </output>;
 }
 
-function DesktopPitchMonitor({ pitch, message }) {
+function DesktopPitchMonitor({ pitch, message, control }) {
   return <output className="shooterPitchMonitorDesktop" aria-label="지금 감지한 음">
     <span>내가 친 음</span>
     <b>{pitch?.note ?? "—"}</b>
     <span>{pitch ? `${pitch.frequency.toFixed(1)} Hz` : "— Hz"}</span>
     <small>{message}</small>
+    {control}
   </output>;
 }
 
-export default function ShooterPitchMonitor({ mobile, pitch, reason, active = true }) {
-  const message = active ? (STATUS[reason] ?? "소리를 기다리는 중") : "시작하면 연주 음이 표시됩니다";
+export default function ShooterPitchMonitor({ mobile, pitch, reason, active = true, onStartMicrophone }) {
+  const [connecting, setConnecting] = useState(false);
+  const message = active ? (STATUS[reason] ?? "소리를 기다리는 중") : "게임 시작 전에도 확인할 수 있어요";
+  const control = !active && onStartMicrophone ? <button
+    className="shooterPitchMonitorConnect"
+    type="button"
+    disabled={connecting}
+    onClick={async () => {
+      setConnecting(true);
+      try { await onStartMicrophone(); } finally { setConnecting(false); }
+    }}
+  >{connecting ? "연결 중…" : "마이크 켜기"}</button> : null;
   return mobile
-    ? <MobilePitchMonitor pitch={pitch} message={message} />
-    : <DesktopPitchMonitor pitch={pitch} message={message} />;
+    ? <MobilePitchMonitor pitch={pitch} message={message} control={control} />
+    : <DesktopPitchMonitor pitch={pitch} message={message} control={control} />;
 }

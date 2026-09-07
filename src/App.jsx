@@ -22516,7 +22516,7 @@ function App({ onReady }) {
         now,
         rms,
         signalPresent,
-        target: currentTargetPitch
+        target: currentTargetPitch && gameStateRef.current === GAME_STATES.PLAYING
           ? {
               frequency: currentTarget?.detail?.frequency,
               id: currentTarget.id,
@@ -22527,7 +22527,7 @@ function App({ onReady }) {
       });
       const display = updateShooterPitchDisplay(shooterPitchDisplayRef.current, {
         now, frequency: pitch, confidence: yinResult?.confidence ?? 0,
-        reason: judgment.reason, accepted: judgment.accepted,
+        reason: gameStateRef.current === GAME_STATES.PLAYING ? judgment.reason : "listening", accepted: judgment.accepted,
       });
       if (judgment.accepted || now - lastDetectedDisplayUpdateRef.current > MIC_DISPLAY_UPDATE_MS) {
         lastDetectedDisplayUpdateRef.current = now;
@@ -23340,6 +23340,8 @@ function App({ onReady }) {
   );
 
   const stopMic = useCallback(() => {
+    shooterPitchDisplayRef.current = createShooterPitchDisplayState();
+    resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
     micRequestVersionRef.current += 1;
     micInputSessionRef.current?.release?.();
     micInputSessionRef.current = null;
@@ -29729,7 +29731,7 @@ function App({ onReady }) {
       translate="no"
     >
       {appMode === APP_MODES.SHOOTER && typeof document !== "undefined" ? createPortal(
-        <ShooterPitchMonitor mobile={isMobileLayout} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} />,
+        <ShooterPitchMonitor mobile={isMobileLayout} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} onStartMicrophone={startMic} />,
         document.body,
       ) : null}
       {themeTransition && typeof document !== "undefined"

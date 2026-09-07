@@ -35,3 +35,18 @@
 }
 .shooterPitchMonitorDesktop b { grid-column: 2; grid-row: 1 / 3; font-size: 30px; color: #99f6cf; }
 .shooterPitchMonitorDesktop small { grid-column: 1 / -1; color: #d3deec; font-size: 11px; }
+.shooterPitchMonitorConnect {
+  grid-column: 1 / -1;
+  min-height: 36px;
+  margin-top: 4px;
+  padding: 6px 12px;
+  border: 1px solid #99f6cf;
+  border-radius: 8px;
+  background: #99f6cf;
+  color: #102a23;
+  font: inherit;
+  font-weight: 700;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.shooterPitchMonitorConnect:disabled { opacity: 0.6; cursor: wait; }
