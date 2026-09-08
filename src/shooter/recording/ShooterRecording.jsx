@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Video } from "lucide-react";
 import { getActiveMicInputSession } from "../../audio/micInputEngine.js";
 import { getAudioBusGraph, getSharedAudioContext } from "../../audio/audioBus.js";
-import { cameraOverlayRect, drawComposite, recorderOptions, recordingError, saveRecording, stopTracks } from "./recordingMedia.js";
+import { RECORDING_WIDTH, cameraOverlayRect, drawComposite, recorderOptions, recordingError, saveRecording, stopTracks } from "./recordingMedia.js";
 import "./shooter-recording.css";
 
 function CameraControls({ phase, seconds, start, stop, ready }) {
@@ -143,7 +143,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
         const cameraHeight = Math.max(0, vh - top);
         const visibleGameHeight = bounds.height - liftPixels;
         const totalHeight = visibleGameHeight + cameraHeight;
-        overlayRef.current = { x: 0, y: visibleGameHeight / totalHeight, width: 1, height: cameraHeight / totalHeight, gameFraction: visibleGameHeight / totalHeight, gameSourceFraction: visibleGameHeight / bounds.height, fit: "contain" };
+        overlayRef.current = { x: 0, y: visibleGameHeight / totalHeight, width: 1, height: cameraHeight / totalHeight, gameFraction: visibleGameHeight / totalHeight, gameSourceFraction: visibleGameHeight / bounds.height, fit: "cover" };
         setCameraStyle({ left: bounds.left - (viewport?.offsetLeft || 0), top, width: bounds.width, height: cameraHeight });
         return;
       }
@@ -270,16 +270,16 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
       const camera = videoRef.current;
       if (!camera?.videoWidth || camera.readyState < 2) throw new Error("카메라가 준비되지 않았습니다. 다시 시도해주세요.");
       const panel = arenaRef.current.closest(".shooterPanel");
-      const { createGameCapture } = await import("./captureGameFrame.js");
+      const { createSceneCapture } = await import("./sceneCapture.js");
       if (session.disposed) return;
-      session.capture = createGameCapture(panel);
+      session.capture = createSceneCapture(panel);
       let game = await session.capture.capture();
       if (session.disposed) return;
       const canvas = document.createElement("canvas");
       const bounds = panel.getBoundingClientRect();
       const vw = bounds.width;
       const vh = mobile ? bounds.height * (overlayRef.current.gameSourceFraction ?? 1) / overlayRef.current.gameFraction : bounds.height;
-      canvas.width = Math.round(Math.min(vw, 720) / 2) * 2;
+      canvas.width = RECORDING_WIDTH;
       canvas.height = Math.round(canvas.width * vh / vw / 2) * 2;
       const context = canvas.getContext("2d", { alpha: false });
       if (!context) throw new Error("영상 합성 화면을 만들 수 없습니다.");
@@ -343,30 +343,18 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
         setSeconds(elapsed);
         if (elapsed >= 600) stop();
       }, 250);
-      let lastDraw = 0;
-      const draw = (now) => {
-        if (session.disposed || recorder.state === "inactive") return;
-        try {
-          if (now - lastDraw >= 1000 / 30) {
-            drawComposite(context, game, camera, canvas.width, canvas.height, overlayRef.current);
-            lastDraw = now;
-          }
-          session.frame = requestAnimationFrame(draw);
-        } catch (cause) { close(recordingError(cause)); }
-      };
-      session.frame = requestAnimationFrame(draw);
-      // Never overlap snapshots or put cloning in the game's animation loop.
-      const capture = async () => {
+      const draw = async () => {
         if (session.disposed || recorder.state !== "recording") return;
+        const started = performance.now();
         try {
-          const started = performance.now();
-          const next = await session.capture.capture();
+          game = await session.capture.capture();
           if (session.disposed || recorder.state !== "recording") return;
-          game = next;
-          session.captureTimer = setTimeout(capture, Math.max(125, (performance.now() - started) * 2));
+          drawComposite(context, game, camera, canvas.width, canvas.height, overlayRef.current);
+          session.captureTimer = setTimeout(draw, Math.max(0, 1000 / 30 - (performance.now() - started)));
         } catch (cause) { if (!session.disposed && recorder.state === "recording") close(recordingError(cause)); }
       };
-      session.captureTimer = setTimeout(capture, 125);
+      session.captureTimer = setTimeout(draw, 1000 / 30);
+      // One serialized loop samples the live game and camera into the same frame.
     } catch (cause) { if (!session.disposed) close(recordingError(cause)); }
   }
 

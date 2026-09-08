@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
-    "html2canvas": "^1.4.1",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",

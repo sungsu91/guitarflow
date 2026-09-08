@@ -1,0 +1,14 @@
+{
+  "path": "artifacts/shooter-recording/1080p-production/mobile.mp4",
+  "frames": 231,
+  "fps": 28.401173751249967,
+  "p95IntervalMs": 41.733333333333334,
+  "maxIntervalMs": 108
+}
+{
+  "path": "artifacts/shooter-recording/1080p-production/desktop.mp4",
+  "frames": 230,
+  "fps": 28.168094122257692,
+  "p95IntervalMs": 41.63333333333333,
+  "maxIntervalMs": 135.13333333333333
+}

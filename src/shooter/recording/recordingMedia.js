@@ -1,8 +1,11 @@
+export const RECORDING_WIDTH = 1080;
+
 export function recorderOptions(Recorder = globalThis.MediaRecorder) {
   if (!Recorder) throw new Error("이 브라우저는 영상 녹화를 지원하지 않습니다. 최신 Safari 또는 Chrome에서 열어주세요.");
-  const mimeType = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=vp8,opus", "video/webm"]
+  // Let the MP4 encoder select a level appropriate for tall 1080px recordings.
+  const mimeType = ["video/mp4", "video/webm;codecs=vp8,opus", "video/webm"]
     .find((type) => Recorder.isTypeSupported?.(type));
-  return { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: 2_500_000 };
+  return { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: 10_000_000 };
 }
 
 export function coverSourceRect(sourceWidth, sourceHeight, width, height) {

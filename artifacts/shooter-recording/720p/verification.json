@@ -1,0 +1,54 @@
+[
+  {
+    "name": "mobile",
+    "before": {
+      "width": 430,
+      "height": 804,
+      "nav": true
+    },
+    "video": {
+      "width": 720,
+      "height": 1560,
+      "size": 771733,
+      "type": "video/mp4",
+      "url": "blob:http://127.0.0.1:5178/4660a0b7-fee5-44ec-9802-1d9605ed9e78"
+    },
+    "resources": {
+      "camera": [
+        "ended"
+      ],
+      "outputs": [
+        "ended",
+        "ended"
+      ],
+      "micLive": true,
+      "captureFrames": 0
+    }
+  },
+  {
+    "name": "desktop",
+    "before": {
+      "width": 283,
+      "height": 616,
+      "nav": true
+    },
+    "video": {
+      "width": 720,
+      "height": 472,
+      "size": 132636,
+      "type": "video/mp4",
+      "url": "blob:http://127.0.0.1:5178/4f83d464-c98c-4a68-a884-aafcf87c1bca"
+    },
+    "resources": {
+      "camera": [
+        "ended"
+      ],
+      "outputs": [
+        "ended",
+        "ended"
+      ],
+      "micLive": true,
+      "captureFrames": 0
+    }
+  }
+]

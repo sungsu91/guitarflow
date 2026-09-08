@@ -2,6 +2,7 @@ import { FIXED_ADD_VOICINGS, isFixedAddFamily, preservedBadd9 } from "./chords/f
 import { ADDITIONAL_CHORD_SHAPES, isAdditionalChord, isPermittedChordOmission, parseAdditionalChordName, spellAdditionalChordTone } from "./chords/additionalChords.js";
 import { observeShooterNoteOn } from "./shooter/noteOn.js";
 import ShooterRecording from "./shooter/recording/ShooterRecording.jsx";
+import { useLazyRef } from "./useLazyRef.js";
 import { FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1, FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1_IDS } from "./shooter/instruments/fretivaPinkInstrumentSkinPackV1.js";
 ﻿import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Activity, startTransition } from "react";
@@ -16692,9 +16693,9 @@ function getJudgmentMode(modeId) {
 
 function App({ onReady }) {
   const isDesktopLayout = useDesktopLayout();
-  const initialRouteRef = useRef(getInitialAppRoute());
-  const initialStage3SettingsRef = useRef(getStoredStage3Settings());
-  const initialStage3QuickSlotsRef = useRef(getStoredStage3QuickSlots());
+  const initialRouteRef = useLazyRef(getInitialAppRoute);
+  const initialStage3SettingsRef = useLazyRef(getStoredStage3Settings);
+  const initialStage3QuickSlotsRef = useLazyRef(getStoredStage3QuickSlots);
   const viewerNoteStoreRef = useRef(null);
   if (!viewerNoteStoreRef.current) viewerNoteStoreRef.current = createFretboardNoteViewerStore();
   const viewerNoteStore = viewerNoteStoreRef.current;
@@ -16781,8 +16782,8 @@ function App({ onReady }) {
   const [metronomeVisualLabBeat, setMetronomeVisualLabBeat] = useState(0);
   const [svgLogoLabState, setSvgLogoLabState] = useState(getStoredSvgLogoLabState);
   const [svgLogoPreviewId, setSvgLogoPreviewId] = useState(() => getStoredSvgLogoLabState().activeLogo);
-  const [selectedHeaderCandidateId, setSelectedHeaderCandidateId] = useState(getStoredDesignLabHeaderState().activeHeader);
-  const [selectedAppIconCandidateId, setSelectedAppIconCandidateId] = useState(getStoredDesignLabAppIconState().activeIcon);
+  const [selectedHeaderCandidateId, setSelectedHeaderCandidateId] = useState(() => getStoredDesignLabHeaderState().activeHeader);
+  const [selectedAppIconCandidateId, setSelectedAppIconCandidateId] = useState(() => getStoredDesignLabAppIconState().activeIcon);
   const [selectedGuitarVariantId, setSelectedGuitarVariantId] = useState(getStoredGuitarLabVariantId);
   const [shooterPlayerSlots, setShooterPlayerSlots] = useState(getStoredShooterPlayerSlots);
   const [guitarLabDeletedIds, setGuitarLabDeletedIds] = useState(getStoredGuitarLabDeletedIds);
@@ -16907,7 +16908,7 @@ function App({ onReady }) {
   const [metronomeCountIn, setMetronomeCountIn] = useState(false);
   const [metronomeCountInBars, setMetronomeCountInBars] = useState(0);
   const [metronomeCountInVoiceMode, setMetronomeCountInVoiceMode] = useState("female");
-  const initialMiniChordGlobalSettingsRef = useRef(getStoredMiniChordGlobalSettings());
+  const initialMiniChordGlobalSettingsRef = useLazyRef(getStoredMiniChordGlobalSettings);
   const [backingDrumEnabled, setBackingDrumEnabled] = useState(initialMiniChordGlobalSettingsRef.current.enabled.drum);
   const [backingBassEnabled, setBackingBassEnabled] = useState(initialMiniChordGlobalSettingsRef.current.enabled.bass);
   const [backingPianoEnabled, setBackingPianoEnabled] = useState(initialMiniChordGlobalSettingsRef.current.enabled.piano);
@@ -16918,8 +16919,8 @@ function App({ onReady }) {
   const [backingBassBeat, setBackingBassBeat] = useState(initialMiniChordGlobalSettingsRef.current.bassBeat);
   const [backingPianoBeat, setBackingPianoBeat] = useState(initialMiniChordGlobalSettingsRef.current.pianoBeat);
   const [stage3BackingPrepareStatus, setStage3BackingPrepareStatus] = useState("idle");
-  const initialMiniChordArrangementRef = useRef(getStoredMiniChordDraftArrangement());
-  const initialBeatPresetLibraryRef = useRef(getStoredBeatPresetLibrary());
+  const initialMiniChordArrangementRef = useLazyRef(getStoredMiniChordDraftArrangement);
+  const initialBeatPresetLibraryRef = useLazyRef(getStoredBeatPresetLibrary);
   const [miniChordPianoStyle, setMiniChordPianoStyle] = useState(initialMiniChordArrangementRef.current.pianoStyle);
   const [miniChordSavedItems, setMiniChordSavedItems] = useState(getStoredMiniChordArrangements);
   const [miniChordRecommendedProgressionId, setMiniChordRecommendedProgressionId] = useState(
@@ -16999,7 +17000,7 @@ function App({ onReady }) {
     metronomeAdvancedPanelRef.current = nextPanel;
     setMetronomeAdvancedPanel(nextPanel);
   }, []);
-  const initialMetronomeTrackerProgressRef = useRef(getStoredMetronomeTrackerProgress());
+  const initialMetronomeTrackerProgressRef = useLazyRef(getStoredMetronomeTrackerProgress);
   const [metronomeTrackerMode, setMetronomeTrackerMode] = useState(initialMetronomeTrackerProgressRef.current.trackerMode);
   const [metronomeBarLimitEnabled, setMetronomeBarLimitEnabled] = useState(initialMetronomeTrackerProgressRef.current.barLimitEnabled);
   const [metronomeBarLimit, setMetronomeBarLimit] = useState(initialMetronomeTrackerProgressRef.current.barLimit);

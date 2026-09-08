@@ -1,0 +1,24 @@
+[
+  {
+    "withCapture": false,
+    "frames": 0,
+    "rafFps": 66.48594099378617,
+    "renderP50": 0,
+    "renderP95": 0,
+    "rafP95": 76.39999999999964,
+    "textureBuilds": 16
+  },
+  {
+    "withCapture": true,
+    "frames": 75,
+    "rafFps": 55.11292158383185,
+    "renderP50": 3.600000001490116,
+    "renderP95": 7.399999998509884,
+    "rafP95": 83.29999999999927,
+    "textureBuilds": 34
+  },
+  {
+    "spriteAndSvgPixels": "passed",
+    "preparationCancellation": "passed"
+  }
+]

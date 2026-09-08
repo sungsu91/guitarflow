@@ -20,7 +20,12 @@ async function open(mobile = true, fault = "") {
   page.on("pageerror", error => errors.push(error.message));
   page.on("dialog", dialog => dialog.dismiss());
   await page.addInitScript(fault => {
-    window.recordingQA = { streams: [], outputs: [], revoked: [] };
+    window.recordingQA = { streams: [], outputs: [], revoked: [], initialSettingsReads: 0 };
+    const readStorage = Storage.prototype.getItem;
+    Storage.prototype.getItem = function(key) {
+      if (["guitarTrainer.miniChordMakerDraft.v1", "rifflab.userBeatPresets.v1"].includes(key)) window.recordingQA.initialSettingsReads++;
+      return readStorage.call(this, key);
+    };
     Object.defineProperty(navigator, "canShare", { value: () => false });
     const get = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = async constraints => {
@@ -88,7 +93,7 @@ try {
       });
       assert.ok(Math.abs(geometry.panelBottom - geometry.lift - geometry.cameraTop) < 1);
       assert.ok(Math.abs(geometry.cameraBottom - geometry.height) < 1);
-      assert.equal(geometry.fit, "contain");
+      assert.equal(geometry.fit, "cover");
       assert.equal(await page.getByRole("button", { name: "카메라 위치 이동" }).count(), 0);
     } else {
     const cameraBefore = await page.locator(".shooterRecordingCamera").boundingBox();
@@ -110,7 +115,9 @@ try {
     await page.screenshot({ path: `${output}/${name}-preview.png` });
     await page.getByRole("button", { name: "● REC", exact: true }).click();
     await page.getByRole("button", { name: "녹화 중지" }).waitFor({ timeout: 30000 });
-    await page.waitForTimeout(3000);
+    const initialReads = await page.evaluate(() => window.recordingQA.initialSettingsReads);
+    await page.waitForTimeout(8000);
+    assert.equal(await page.evaluate(() => window.recordingQA.initialSettingsReads), initialReads, "Gameplay renders must not reload initial arrangement settings");
     const tracks = await page.evaluate(() => window.recordingQA.outputs.at(-1).getTracks().map(t => t.kind).sort());
     assert.deepEqual(tracks, ["audio", "video"]);
     await page.getByRole("button", { name: "녹화 중지" }).click();
@@ -125,11 +132,33 @@ try {
     assert.ok(reviewGeometry.actionsBottom <= reviewGeometry.height + 1);
     const video = await page.locator(".shooterRecordingReview video").evaluate(async node => {
       const blob = await fetch(node.src).then(r => r.blob());
-      node.currentTime = 1;
+      await new Promise((resolve, reject) => {
+        node.addEventListener("seeked", resolve, { once: true });
+        node.addEventListener("error", reject, { once: true });
+        node.currentTime = 1;
+      });
       return { width: node.videoWidth, height: node.videoHeight, size: blob.size, type: blob.type, url: node.src };
     });
     assert.ok(video.size > 1000);
-    assert.ok(video.width > 0 && video.height > 0);
+    assert.equal(video.width, 1080);
+    assert.ok(video.height > 0);
+    const frames = await page.locator(".shooterRecordingReview video").evaluate(async node => {
+      const canvas = document.createElement("canvas");
+      canvas.width = node.videoWidth; canvas.height = node.videoHeight;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      const frames = [];
+      for (const time of [1, 2, 3]) {
+        if (Math.abs(node.currentTime - time) > .01) await new Promise(resolve => {
+          node.addEventListener("seeked", resolve, { once: true }); node.currentTime = time;
+        });
+        ctx.drawImage(node, 0, 0);
+        const pixels = ctx.getImageData(canvas.width * .35, canvas.height * .2, 120, canvas.height * .45).data;
+        frames.push({ image: canvas.toDataURL(), sample: Array.from(pixels.filter((_, i) => i % 64 === 0)) });
+      }
+      return frames;
+    });
+    assert.notDeepEqual(frames[0].sample, frames[2].sample, "Recorded gameplay must advance independently of the camera");
+    for (let index = 0; index < frames.length; index++) await writeFile(`${output}/${name}-frame-${index + 1}.png`, Buffer.from(frames[index].image.split(",")[1], "base64"));
     const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "영상 저장", exact: true }).click()]);
     await download.saveAs(`${output}/${name}.${video.type.includes("mp4") ? "mp4" : "webm"}`);
     await page.screenshot({ path: `${output}/${name}-review.png` });
