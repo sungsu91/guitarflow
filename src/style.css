@@ -73903,8 +73903,8 @@ html body .shooterSkinConfigurator :is(
 /* Shooter companion pets share state and assets; placement stays layout-specific. */
 .shooterPetCompanion {
   position: absolute;
-  left: calc(var(--shooter-pet-x, 84) * 1%);
-  top: calc(var(--shooter-pet-y, 80) * 1%);
+  left: calc(var(--shooter-pet-x, 80) * 1%);
+  top: calc(var(--shooter-pet-y, 88) * 1%);
   z-index: 35;
   display: block;
   width: 86px;
@@ -73923,7 +73923,6 @@ html body .shooterSkinConfigurator :is(
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   transform: translate(-50%, -50%) !important;
-  animation: shooterPetSpriteIdle var(--shooter-pet-duration, 1.6s) steps(7, end) infinite;
 }
 
 html body main.app.app.app.shooterMode .shooterArena button.shooterPetCompanion,
@@ -73934,12 +73933,21 @@ html body main.app.app.app.shooterMode .shooterArena button.shooterPetCompanion:
   border: 0 !important;
   border-radius: 0 !important;
   background-color: transparent !important;
-  background-image: var(--shooter-pet-image) !important;
-  background-position-y: 0 !important;
-  background-repeat: no-repeat !important;
-  background-size: calc(var(--shooter-pet-columns, 8) * 100%) 100% !important;
+  background-image: none !important;
   box-shadow: none !important;
   transform: translate(-50%, -50%) !important;
+}
+
+.shooterPetCompanion::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--shooter-pet-image);
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  background-size: calc(var(--shooter-pet-columns, 8) * 100%) 100%;
+  pointer-events: none;
+  animation: shooterPetSpriteIdle var(--shooter-pet-duration, 1.6s) steps(7, end) infinite;
 }
 
 .shooterPetCompanion:hover,
@@ -73962,7 +73970,7 @@ html body main.app.app.app.shooterMode .shooterArena button.shooterPetCompanion:
     drop-shadow(0 0 7px rgba(255, 219, 139, 0.62));
 }
 
-.shooterPetCompanion[data-animation-active="false"] {
+.shooterPetCompanion[data-animation-active="false"]::before {
   animation-play-state: paused;
 }
 
@@ -73999,7 +74007,7 @@ html body main.app.app.app.shooterMode .shooterArena button.shooterPetCompanion:
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .shooterPetCompanion {
+  .shooterPetCompanion::before {
     animation: none;
   }
 }

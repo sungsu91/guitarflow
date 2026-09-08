@@ -7924,8 +7924,7 @@ const SHOOTER_PICK_SKIN_STORAGE_KEY = "rifflabShooterPickSkin";
 const SHOOTER_MONSTER_SKIN_STORAGE_KEY = "rifflabShooterMonsterSkin";
 const SHOOTER_PET_SKIN_STORAGE_KEY = "rifflabShooterPetSkin";
 const SHOOTER_PET_POSITION_STORAGE_KEY = "rifflabShooterPetPosition";
-const DEFAULT_SHOOTER_PET_POSITION = Object.freeze({ x: 84, y: 80 });
-const SHOOTER_PET_LONG_PRESS_MS = 280;
+const DEFAULT_SHOOTER_PET_POSITION = Object.freeze({ x: 80, y: 88 });
 const SHOOTER_EFFECT_STORAGE_KEY = "rifflabShooterEffect";
 const SHOOTER_EFFECT_LEGACY_LOADOUT_STORAGE_KEY = "rifflabShooterEffectLoadoutV2";
 const SHOOTER_AURA_EFFECT_STORAGE_KEY = "selectedAuraSkinId";
@@ -17008,6 +17007,9 @@ function App({ onReady }) {
   const [selectedShooterMonsterSkinId, setSelectedShooterMonsterSkinId] = useState(getStoredShooterMonsterSkinId);
   const [selectedShooterPetSkinId, setSelectedShooterPetSkinId] = useState(getStoredShooterPetSkinId);
   const [shooterPetPosition, setShooterPetPosition] = useState(getStoredShooterPetPosition);
+  const [shooterPetDocumentVisible, setShooterPetDocumentVisible] = useState(
+    () => typeof document === "undefined" || document.visibilityState !== "hidden",
+  );
   const [selectedShooterAuraEffectId, setSelectedShooterAuraEffectId] = useState(
     () => getStoredShooterEffectLoadout().aura,
   );
@@ -17510,12 +17512,6 @@ function App({ onReady }) {
     }
   }, []);
 
-  const clearShooterPetLongPress = useCallback(() => {
-    if (shooterPetLongPressTimerRef.current == null) return;
-    window.clearTimeout(shooterPetLongPressTimerRef.current);
-    shooterPetLongPressTimerRef.current = null;
-  }, []);
-
   const getShooterPetPositionAtPointer = useCallback((clientX, clientY) => {
     const arenaRect = shooterArenaRef.current?.getBoundingClientRect?.();
     const petRect = shooterPetRef.current?.getBoundingClientRect?.();
@@ -17549,26 +17545,16 @@ function App({ onReady }) {
   const handleShooterPetPointerDown = useCallback((event) => {
     if (event.button != null && event.button !== 0) return;
     event.stopPropagation();
-    clearShooterPetLongPress();
     event.currentTarget.setPointerCapture?.(event.pointerId);
+    event.currentTarget.dataset.dragging = "true";
     shooterPetDragRef.current = {
-      active: false,
+      active: true,
       clientX: event.clientX,
       clientY: event.clientY,
       nextPosition: shooterPetPosition,
       pointerId: event.pointerId,
     };
-    shooterPetLongPressTimerRef.current = window.setTimeout(() => {
-      shooterPetLongPressTimerRef.current = null;
-      const drag = shooterPetDragRef.current;
-      const petNode = shooterPetRef.current;
-      if (!drag || drag.pointerId !== event.pointerId || !petNode) return;
-      drag.active = true;
-      petNode.dataset.dragging = "true";
-      drag.nextPosition = moveShooterPetToPointer(drag.clientX, drag.clientY) ?? drag.nextPosition;
-      window.navigator?.vibrate?.(12);
-    }, SHOOTER_PET_LONG_PRESS_MS);
-  }, [clearShooterPetLongPress, moveShooterPetToPointer, shooterPetPosition]);
+  }, [shooterPetPosition]);
 
   const handleShooterPetPointerMove = useCallback((event) => {
     const drag = shooterPetDragRef.current;
@@ -17583,7 +17569,6 @@ function App({ onReady }) {
 
   const finishShooterPetDrag = useCallback((event) => {
     const drag = shooterPetDragRef.current;
-    clearShooterPetLongPress();
     shooterPetDragRef.current = null;
     if (!drag || drag.pointerId !== event.pointerId) return;
     event.stopPropagation();
@@ -17592,9 +17577,14 @@ function App({ onReady }) {
     if (!drag.active || !drag.nextPosition) return;
     setShooterPetPosition(drag.nextPosition);
     window.localStorage.setItem(SHOOTER_PET_POSITION_STORAGE_KEY, JSON.stringify(drag.nextPosition));
-  }, [clearShooterPetLongPress]);
+  }, []);
 
-  useEffect(() => () => clearShooterPetLongPress(), [clearShooterPetLongPress]);
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    const syncVisibility = () => setShooterPetDocumentVisible(document.visibilityState !== "hidden");
+    document.addEventListener("visibilitychange", syncVisibility);
+    return () => document.removeEventListener("visibilitychange", syncVisibility);
+  }, []);
 
   const applyShooterEffect = useCallback((equipmentSlot, effectId) => {
     if (!SHOOTER_EFFECT_OPTIONS_BY_SLOT[equipmentSlot]) return;
@@ -18297,7 +18287,6 @@ function App({ onReady }) {
   const shooterGuitarMotionRef = useRef(null);
   const shooterPetRef = useRef(null);
   const shooterPetDragRef = useRef(null);
-  const shooterPetLongPressTimerRef = useRef(null);
   const shooterGuitarBaseMetricsRef = useRef(null);
   const shooterTargetNodesRef = useRef(new Map());
   const shooterTargetRefCallbacksRef = useRef(new Map());
@@ -33671,9 +33660,13 @@ function App({ onReady }) {
             {!mapEditor.enabled ? <>
             {selectedPet.sheetSrc && !desktopHorizontalShooterActive ? (
               <button
-                aria-label={`${selectedPet.label} 위치 이동: 길게 누른 뒤 드래그`}
+                aria-label={`${selectedPet.label} 위치 이동: 눌러서 드래그`}
                 className="shooterPetCompanion"
-                data-animation-active={shooterMapAnimationsActive ? "true" : "false"}
+                data-animation-active={shooterPetDocumentVisible
+                  && gameState !== GAME_STATES.PAUSED
+                  && gameState !== GAME_STATES.GAMEOVER
+                  ? "true"
+                  : "false"}
                 data-pet-skin={selectedPet.id}
                 onClick={(event) => event.stopPropagation()}
                 onPointerCancel={finishShooterPetDrag}
@@ -33688,7 +33681,7 @@ function App({ onReady }) {
                   "--shooter-pet-x": shooterPetPosition.x,
                   "--shooter-pet-y": shooterPetPosition.y,
                 }}
-                title="길게 눌러 위치 이동"
+                title="눌러서 위치 이동"
                 type="button"
               />
             ) : null}

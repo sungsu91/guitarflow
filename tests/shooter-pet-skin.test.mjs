@@ -45,15 +45,18 @@ test("pet animation uses CSS sprite steps and separate mobile placement", async 
     readFile(appUrl, "utf8"),
     readFile(styleUrl, "utf8"),
   ]);
-  assert.match(style, /\.shooterPetCompanion[\s\S]*?animation: shooterPetSpriteIdle[\s\S]*?steps\(7, end\)/);
+  assert.match(style, /\.shooterPetCompanion::before[\s\S]*?animation: shooterPetSpriteIdle[\s\S]*?steps\(7, end\)/);
   assert.match(style, /@keyframes shooterPetSpriteIdle[\s\S]*?background-position-x: 100%/);
   assert.match(style, /@media \(max-width: 430px\)[\s\S]*?\.shooterArena \.shooterPetCompanion/);
-  assert.match(style, /data-animation-active="false"[\s\S]*?animation-play-state: paused/);
-  assert.match(style, /left: calc\(var\(--shooter-pet-x, 84\) \* 1%\)/);
-  assert.match(style, /top: calc\(var\(--shooter-pet-y, 80\) \* 1%\)/);
+  assert.match(style, /data-animation-active="false"\]::before[\s\S]*?animation-play-state: paused/);
+  assert.match(style, /left: calc\(var\(--shooter-pet-x, 80\) \* 1%\)/);
+  assert.match(style, /top: calc\(var\(--shooter-pet-y, 88\) \* 1%\)/);
   assert.match(style, /touch-action: none/);
-  assert.match(app, /SHOOTER_PET_LONG_PRESS_MS = 280/);
+  assert.match(app, /DEFAULT_SHOOTER_PET_POSITION = Object\.freeze\(\{ x: 80, y: 88 \}\)/);
+  assert.doesNotMatch(app, /SHOOTER_PET_LONG_PRESS_MS/);
   assert.match(app, /onPointerDown=\{handleShooterPetPointerDown\}/);
   assert.match(app, /onPointerMove=\{handleShooterPetPointerMove\}/);
+  assert.match(app, /event\.currentTarget\.dataset\.dragging = "true"/);
+  assert.match(app, /document\.addEventListener\("visibilitychange", syncVisibility\)/);
   assert.match(app, /localStorage\.setItem\(SHOOTER_PET_POSITION_STORAGE_KEY/);
 });
