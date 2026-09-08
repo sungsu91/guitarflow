@@ -125,7 +125,7 @@ test("App routes easy difficulty through the fixed course rather than the random
 
   assert.match(spawnSource, /getShooterEasyScenarioStep\(patternRef\.current\)/);
   assert.match(spawnSource, /getShooterEasyScenarioRound\(patternRef\.current\)/);
-  assert.match(spawnSource, /getShooterEasyStepDurationMs\(resolvedScenarioStep, bpmRef\.current, scenarioRound\)/);
+  assert.match(spawnSource, /getShooterEasyStepDurationMs\(resolvedScenarioStep, shooterBpmRef\.current, scenarioRound\)/);
   assert.match(spawnSource, /getShooterEasyTargetX\(resolvedScenarioStep\)/);
   assert.match(spawnSource, /"shooter-easy-scenario"/);
   assert.match(missSource, /const lifeLossCount = missedTargets\.length/);

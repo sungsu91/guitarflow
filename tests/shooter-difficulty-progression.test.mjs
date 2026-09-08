@@ -80,7 +80,7 @@ test("App routes normal difficulty through the scenario instead of the random no
 
   assert.match(spawnSource, /getShooterNormalScenarioStep\(patternRef\.current\)/);
   assert.match(spawnSource, /scenarioStep[\s\S]*makeGuitarNote/);
-  assert.match(spawnSource, /getShooterNormalStepDurationMs\(resolvedScenarioStep, bpmRef\.current\)/);
+  assert.match(spawnSource, /getShooterNormalStepDurationMs\(resolvedScenarioStep, shooterBpmRef\.current\)/);
   assert.match(spawnSource, /getShooterNormalTargetX\(resolvedScenarioStep\)/);
   assert.match(spawnSource, /resolvedScenarioStep\?\.isSectionStart[\s\S]*resolvedScenarioStep\.sectionAnnouncement/);
   assert.match(missSource, /const lifeLossCount = missedTargets\.length/);

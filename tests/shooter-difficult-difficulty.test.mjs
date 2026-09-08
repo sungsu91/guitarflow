@@ -131,8 +131,8 @@ test("App routes difficult targets through the main authored scenario without th
   const missSource = appSource.slice(missStart, missEnd);
 
   assert.match(spawnSource, /getShooterDifficultScenarioStep\(patternRef\.current, difficultPatternId\)/);
-  assert.match(spawnSource, /getShooterDifficultStepDurationMs\(resolvedScenarioStep, bpmRef\.current, scenarioRound\)/);
-  assert.match(spawnSource, /getShooterDifficultTechniqueLabel\(scenarioStep, bpmRef\.current\)/);
+  assert.match(spawnSource, /getShooterDifficultStepDurationMs\(resolvedScenarioStep, shooterBpmRef\.current, scenarioRound\)/);
+  assert.match(spawnSource, /getShooterDifficultTechniqueLabel\(scenarioStep, shooterBpmRef\.current\)/);
   assert.match(spawnSource, /isDifficultScenario[\s\S]*\? "shooter-difficult-scenario"/);
   assert.match(missSource, /const lifeLossCount = missedTargets\.length/);
   assert.match(spawnSource, /const difficultPatternId = SHOOTER_DIFFICULT_PATTERN_IDS\.MAIN/);

@@ -17070,6 +17070,8 @@ function App({ onReady }) {
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
   const [shooterDifficulty, setShooterDifficulty] = useState(DEFAULT_SHOOTER_DIFFICULTY);
+  const [shooterBpm, setShooterBpm] = useState(() => getShooterStartingBpm(DEFAULT_SHOOTER_DIFFICULTY));
+  const shooterBpmRef = useRef(shooterBpm);
   const [shooterScenarioRoundSummary, setShooterScenarioRoundSummary] = useState(null);
   const [shooterScenarioCountdown, setShooterScenarioCountdown] = useState(null);
   const [shooterDifficultyMenuOpen, setShooterDifficultyMenuOpen] = useState(false);
@@ -21516,7 +21518,7 @@ function App({ onReady }) {
         ? getShooterDifficultReviewMessage
         : getShooterNormalReviewMessage;
     const progress = getRoundProgress({
-      bpm: bpmRef.current,
+      bpm: shooterBpmRef.current,
       hits: stats.hits,
       misses: stats.misses,
       stableRounds: stats.stableRounds,
@@ -21542,9 +21544,9 @@ function App({ onReady }) {
       setShooterScenarioRoundSummary(null);
     }, 5200);
 
-    if (progress.bpm !== bpmRef.current) {
-      bpmRef.current = progress.bpm;
-      setBpm(progress.bpm);
+    if (progress.bpm !== shooterBpmRef.current) {
+      shooterBpmRef.current = progress.bpm;
+      setShooterBpm(progress.bpm);
       setFeedback(`TEMPO UP · ${progress.bpm} BPM`);
     }
     shooterScenarioRoundStatsRef.current = {
@@ -21654,7 +21656,7 @@ function App({ onReady }) {
     activeNotesRef.current = trainingNotes;
     const pool = getShooterPool(trainingNotes, level, { preservePositions: isEasyRandom });
     const techniqueLabel = isDifficultScenario
-      ? getShooterDifficultTechniqueLabel(scenarioStep, bpmRef.current)
+      ? getShooterDifficultTechniqueLabel(scenarioStep, shooterBpmRef.current)
       : "";
     const resolvedScenarioStep = scenarioStep
       ? { ...scenarioStep, techniqueLabel }
@@ -21684,10 +21686,10 @@ function App({ onReady }) {
       : getShooterSpawnX(lastShooterXRef.current);
     const scenarioStepWindowMs = resolvedScenarioStep
       ? isEasyScenario
-        ? getShooterEasyStepDurationMs(resolvedScenarioStep, bpmRef.current, scenarioRound)
+        ? getShooterEasyStepDurationMs(resolvedScenarioStep, shooterBpmRef.current, scenarioRound)
         : isDifficultScenario
-          ? getShooterDifficultStepDurationMs(resolvedScenarioStep, bpmRef.current, scenarioRound)
-          : getShooterNormalStepDurationMs(resolvedScenarioStep, bpmRef.current)
+          ? getShooterDifficultStepDurationMs(resolvedScenarioStep, shooterBpmRef.current, scenarioRound)
+          : getShooterNormalStepDurationMs(resolvedScenarioStep, shooterBpmRef.current)
       : null;
     const targetDuration = getShooterTargetDuration(difficulty);
     lastShooterNoteRef.current = detail;
@@ -23098,7 +23100,7 @@ function App({ onReady }) {
       }
       const previousGameTime = gameTimeRef.current;
       gameTimeRef.current += deltaMs;
-      const currentBeatMs = getBeatMs(bpmRef.current);
+      const currentBeatMs = getBeatMs(shooterBpmRef.current);
       const frameArenaSize = getShooterArenaSize();
 
       if (
@@ -23962,8 +23964,8 @@ function App({ onReady }) {
       || isDifficultScenario
     ) {
       const startingBpm = getShooterStartingBpm(shooterDifficultyRef.current);
-      bpmRef.current = startingBpm;
-      setBpm(startingBpm);
+      shooterBpmRef.current = startingBpm;
+      setShooterBpm(startingBpm);
     }
     shooterSessionSavedRef.current = false;
     shooterNextSpawnAtRef.current = 0;
@@ -25716,8 +25718,8 @@ function App({ onReady }) {
     shooterDifficultyRef.current = nextDifficulty;
     setShooterDifficulty(nextDifficulty);
     const startingBpm = getShooterStartingBpm(nextDifficulty);
-    bpmRef.current = startingBpm;
-    setBpm(startingBpm);
+    shooterBpmRef.current = startingBpm;
+    setShooterBpm(startingBpm);
     setState(GAME_STATES.IDLE);
   }, [finalizeShooterRecord, resetScore, setState]);
 
@@ -27394,7 +27396,7 @@ function App({ onReady }) {
     SHOOTER_DIFFICULT_PATTERN_IDS.MAIN,
   );
   const shooterScenarioDisplayBpm = gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.PAUSED
-    ? bpm
+    ? shooterBpm
     : getShooterStartingBpm(shooterDifficulty);
   const shooterPhaseDisplayLabel = isShooterScriptedDifficulty(shooterDifficulty)
     ? `${shooterLevel.phaseLabel} · ${shooterScenarioDisplayBpm} BPM`
