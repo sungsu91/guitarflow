@@ -25,8 +25,10 @@ export const SHOOTER_PET_SKINS = Object.freeze([
   }),
 ]);
 
-export const DEFAULT_SHOOTER_PET_SKIN_ID = SHOOTER_PET_SKIN_IDS.NONE;
+export const DEFAULT_SHOOTER_PET_SKIN_ID = SHOOTER_PET_SKIN_IDS.CREAM_POMERANIAN;
 
 export function getShooterPetSkinById(skinId) {
-  return SHOOTER_PET_SKINS.find((skin) => skin.id === skinId) ?? SHOOTER_PET_SKINS[0];
+  return SHOOTER_PET_SKINS.find((skin) => skin.id === skinId)
+    ?? SHOOTER_PET_SKINS.find((skin) => skin.id === DEFAULT_SHOOTER_PET_SKIN_ID)
+    ?? SHOOTER_PET_SKINS[0];
 }

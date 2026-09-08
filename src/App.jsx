@@ -12074,7 +12074,10 @@ function getStoredShooterMonsterSkinId() {
 
 function getStoredShooterPetSkinId() {
   if (typeof window === "undefined") return DEFAULT_SHOOTER_PET_SKIN_ID;
-  return getShooterPetSkinById(window.localStorage.getItem(SHOOTER_PET_SKIN_STORAGE_KEY)).id;
+  const storedPetSkinId = window.localStorage.getItem(SHOOTER_PET_SKIN_STORAGE_KEY);
+  return storedPetSkinId === null
+    ? DEFAULT_SHOOTER_PET_SKIN_ID
+    : getShooterPetSkinById(storedPetSkinId).id;
 }
 
 function getStoredShooterPetPosition() {

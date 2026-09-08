@@ -18,7 +18,7 @@ test("cream Pomeranian is an optional persisted 36-frame action pet skin", async
   const app = await readFile(appUrl, "utf8");
   const pet = getShooterPetSkinById("cream-pomeranian");
 
-  assert.equal(DEFAULT_SHOOTER_PET_SKIN_ID, "none");
+  assert.equal(DEFAULT_SHOOTER_PET_SKIN_ID, "cream-pomeranian");
   assert.equal(SHOOTER_PET_SKINS.length, 2);
   assert.equal(pet.columns, 36);
   assert.equal(pet.frameCount, 36);
@@ -26,6 +26,7 @@ test("cream Pomeranian is an optional persisted 36-frame action pet skin", async
   assert.match(pet.description, /갸우뚱.*엎드리고.*충성/);
   assert.match(app, /\{ id: "pet", label: "펫" \}/);
   assert.match(app, /SHOOTER_PET_SKIN_STORAGE_KEY = "rifflabShooterPetSkin"/);
+  assert.match(app, /storedPetSkinId === null[\s\S]*?DEFAULT_SHOOTER_PET_SKIN_ID/);
   assert.match(app, /localStorage\.setItem\(SHOOTER_PET_SKIN_STORAGE_KEY, nextSkin\.id\)/);
   assert.match(app, /className="shooterPetCompanion"/);
 });
