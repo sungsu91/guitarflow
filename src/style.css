@@ -73903,19 +73903,63 @@ html body .shooterSkinConfigurator :is(
 /* Shooter companion pets share state and assets; placement stays layout-specific. */
 .shooterPetCompanion {
   position: absolute;
-  left: calc(50% + 42px);
-  bottom: -2px;
-  z-index: 1;
+  left: calc(var(--shooter-pet-x, 84) * 1%);
+  top: calc(var(--shooter-pet-y, 80) * 1%);
+  z-index: 35;
   display: block;
   width: 86px;
   height: 86px;
+  padding: 0 !important;
+  border: 0 !important;
+  appearance: none;
+  background-color: transparent !important;
   background-position: 0 0;
   background-repeat: no-repeat;
   background-size: calc(var(--shooter-pet-columns, 8) * 100%) 100%;
   filter: drop-shadow(0 5px 5px rgba(12, 5, 18, 0.42));
   image-rendering: auto;
-  pointer-events: none;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transform: translate(-50%, -50%) !important;
   animation: shooterPetSpriteIdle var(--shooter-pet-duration, 1.6s) steps(7, end) infinite;
+}
+
+html body main.app.app.app.shooterMode .shooterArena button.shooterPetCompanion,
+html body main.app.app.app.shooterMode .shooterArena button.shooterPetCompanion:hover,
+html body main.app.app.app.shooterMode .shooterArena button.shooterPetCompanion:focus,
+html body main.app.app.app.shooterMode .shooterArena button.shooterPetCompanion:active {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  background-image: var(--shooter-pet-image) !important;
+  background-position-y: 0 !important;
+  background-repeat: no-repeat !important;
+  background-size: calc(var(--shooter-pet-columns, 8) * 100%) 100% !important;
+  box-shadow: none !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+.shooterPetCompanion:hover,
+.shooterPetCompanion:focus,
+.shooterPetCompanion:active {
+  border: 0 !important;
+  background-color: transparent !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+.shooterPetCompanion:focus-visible {
+  outline: 2px solid rgba(255, 221, 146, 0.92);
+  outline-offset: 3px;
+}
+
+.shooterPetCompanion[data-dragging="true"] {
+  cursor: grabbing;
+  filter:
+    drop-shadow(0 6px 7px rgba(12, 5, 18, 0.5))
+    drop-shadow(0 0 7px rgba(255, 219, 139, 0.62));
 }
 
 .shooterPetCompanion[data-animation-active="false"] {
@@ -73944,13 +73988,7 @@ html body .shooterSkinConfigurator :is(
 }
 
 @media (max-width: 430px) {
-  .shooterArena .guitarPlayer {
-    overflow: visible;
-  }
-
   .shooterArena .shooterPetCompanion {
-    left: calc(50% + 24px);
-    bottom: -1px;
     width: 62px;
     height: 62px;
   }

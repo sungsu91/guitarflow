@@ -7923,6 +7923,9 @@ const SHOOTER_GUITAR_CABINET_STORAGE_KEY = "rifflabShooterGuitarCabinet";
 const SHOOTER_PICK_SKIN_STORAGE_KEY = "rifflabShooterPickSkin";
 const SHOOTER_MONSTER_SKIN_STORAGE_KEY = "rifflabShooterMonsterSkin";
 const SHOOTER_PET_SKIN_STORAGE_KEY = "rifflabShooterPetSkin";
+const SHOOTER_PET_POSITION_STORAGE_KEY = "rifflabShooterPetPosition";
+const DEFAULT_SHOOTER_PET_POSITION = Object.freeze({ x: 84, y: 80 });
+const SHOOTER_PET_LONG_PRESS_MS = 280;
 const SHOOTER_EFFECT_STORAGE_KEY = "rifflabShooterEffect";
 const SHOOTER_EFFECT_LEGACY_LOADOUT_STORAGE_KEY = "rifflabShooterEffectLoadoutV2";
 const SHOOTER_AURA_EFFECT_STORAGE_KEY = "selectedAuraSkinId";
@@ -12073,6 +12076,22 @@ function getStoredShooterMonsterSkinId() {
 function getStoredShooterPetSkinId() {
   if (typeof window === "undefined") return DEFAULT_SHOOTER_PET_SKIN_ID;
   return getShooterPetSkinById(window.localStorage.getItem(SHOOTER_PET_SKIN_STORAGE_KEY)).id;
+}
+
+function getStoredShooterPetPosition() {
+  if (typeof window === "undefined") return { ...DEFAULT_SHOOTER_PET_POSITION };
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(SHOOTER_PET_POSITION_STORAGE_KEY) ?? "null");
+    if (!Number.isFinite(stored?.x) || !Number.isFinite(stored?.y)) {
+      return { ...DEFAULT_SHOOTER_PET_POSITION };
+    }
+    return {
+      x: clampValue(stored.x, 0, 100),
+      y: clampValue(stored.y, 0, 100),
+    };
+  } catch {
+    return { ...DEFAULT_SHOOTER_PET_POSITION };
+  }
 }
 
 function getStoredShooterEffectLoadout() {
@@ -16988,6 +17007,7 @@ function App({ onReady }) {
   const [selectedShooterPickSkinId, setSelectedShooterPickSkinId] = useState(getStoredShooterPickSkinId);
   const [selectedShooterMonsterSkinId, setSelectedShooterMonsterSkinId] = useState(getStoredShooterMonsterSkinId);
   const [selectedShooterPetSkinId, setSelectedShooterPetSkinId] = useState(getStoredShooterPetSkinId);
+  const [shooterPetPosition, setShooterPetPosition] = useState(getStoredShooterPetPosition);
   const [selectedShooterAuraEffectId, setSelectedShooterAuraEffectId] = useState(
     () => getStoredShooterEffectLoadout().aura,
   );
@@ -17489,6 +17509,92 @@ function App({ onReady }) {
       }
     }
   }, []);
+
+  const clearShooterPetLongPress = useCallback(() => {
+    if (shooterPetLongPressTimerRef.current == null) return;
+    window.clearTimeout(shooterPetLongPressTimerRef.current);
+    shooterPetLongPressTimerRef.current = null;
+  }, []);
+
+  const getShooterPetPositionAtPointer = useCallback((clientX, clientY) => {
+    const arenaRect = shooterArenaRef.current?.getBoundingClientRect?.();
+    const petRect = shooterPetRef.current?.getBoundingClientRect?.();
+    if (!arenaRect?.width || !arenaRect?.height) return null;
+    const halfWidth = (petRect?.width ?? 0) / 2;
+    const halfHeight = (petRect?.height ?? 0) / 2;
+    const margin = 6;
+    return {
+      x: clampValue(
+        ((clientX - arenaRect.left) / arenaRect.width) * 100,
+        ((halfWidth + margin) / arenaRect.width) * 100,
+        100 - ((halfWidth + margin) / arenaRect.width) * 100,
+      ),
+      y: clampValue(
+        ((clientY - arenaRect.top) / arenaRect.height) * 100,
+        ((halfHeight + margin) / arenaRect.height) * 100,
+        100 - ((halfHeight + margin) / arenaRect.height) * 100,
+      ),
+    };
+  }, []);
+
+  const moveShooterPetToPointer = useCallback((clientX, clientY) => {
+    const nextPosition = getShooterPetPositionAtPointer(clientX, clientY);
+    const petNode = shooterPetRef.current;
+    if (!nextPosition || !petNode) return null;
+    petNode.style.setProperty("--shooter-pet-x", String(nextPosition.x));
+    petNode.style.setProperty("--shooter-pet-y", String(nextPosition.y));
+    return nextPosition;
+  }, [getShooterPetPositionAtPointer]);
+
+  const handleShooterPetPointerDown = useCallback((event) => {
+    if (event.button != null && event.button !== 0) return;
+    event.stopPropagation();
+    clearShooterPetLongPress();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    shooterPetDragRef.current = {
+      active: false,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      nextPosition: shooterPetPosition,
+      pointerId: event.pointerId,
+    };
+    shooterPetLongPressTimerRef.current = window.setTimeout(() => {
+      shooterPetLongPressTimerRef.current = null;
+      const drag = shooterPetDragRef.current;
+      const petNode = shooterPetRef.current;
+      if (!drag || drag.pointerId !== event.pointerId || !petNode) return;
+      drag.active = true;
+      petNode.dataset.dragging = "true";
+      drag.nextPosition = moveShooterPetToPointer(drag.clientX, drag.clientY) ?? drag.nextPosition;
+      window.navigator?.vibrate?.(12);
+    }, SHOOTER_PET_LONG_PRESS_MS);
+  }, [clearShooterPetLongPress, moveShooterPetToPointer, shooterPetPosition]);
+
+  const handleShooterPetPointerMove = useCallback((event) => {
+    const drag = shooterPetDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.stopPropagation();
+    drag.clientX = event.clientX;
+    drag.clientY = event.clientY;
+    if (!drag.active) return;
+    event.preventDefault();
+    drag.nextPosition = moveShooterPetToPointer(event.clientX, event.clientY) ?? drag.nextPosition;
+  }, [moveShooterPetToPointer]);
+
+  const finishShooterPetDrag = useCallback((event) => {
+    const drag = shooterPetDragRef.current;
+    clearShooterPetLongPress();
+    shooterPetDragRef.current = null;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.stopPropagation();
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    delete event.currentTarget.dataset.dragging;
+    if (!drag.active || !drag.nextPosition) return;
+    setShooterPetPosition(drag.nextPosition);
+    window.localStorage.setItem(SHOOTER_PET_POSITION_STORAGE_KEY, JSON.stringify(drag.nextPosition));
+  }, [clearShooterPetLongPress]);
+
+  useEffect(() => () => clearShooterPetLongPress(), [clearShooterPetLongPress]);
 
   const applyShooterEffect = useCallback((equipmentSlot, effectId) => {
     if (!SHOOTER_EFFECT_OPTIONS_BY_SLOT[equipmentSlot]) return;
@@ -18189,6 +18295,9 @@ function App({ onReady }) {
   const shooterArenaSizeRef = useRef({ height: 0, node: null, width: 0 });
   const shooterGuitarPlayerRef = useRef(null);
   const shooterGuitarMotionRef = useRef(null);
+  const shooterPetRef = useRef(null);
+  const shooterPetDragRef = useRef(null);
+  const shooterPetLongPressTimerRef = useRef(null);
   const shooterGuitarBaseMetricsRef = useRef(null);
   const shooterTargetNodesRef = useRef(new Map());
   const shooterTargetRefCallbacksRef = useRef(new Map());
@@ -33504,19 +33613,6 @@ function App({ onReady }) {
                 <span className="guitarPlayerMuzzle" aria-hidden="true" />
               ) : null}
               </div>
-              {selectedPet.sheetSrc ? (
-                <span
-                  aria-hidden="true"
-                  className="shooterPetCompanion"
-                  data-animation-active={shooterMapAnimationsActive ? "true" : "false"}
-                  data-pet-skin={selectedPet.id}
-                  style={{
-                    "--shooter-pet-columns": selectedPet.columns,
-                    "--shooter-pet-duration": `${selectedPet.frameCount / selectedPet.framesPerSecond}s`,
-                    backgroundImage: `url(${selectedPet.sheetSrc})`,
-                  }}
-                />
-              ) : null}
             </div>
             </> : null}
             {mapEditor.enabled ? (
@@ -33573,6 +33669,29 @@ function App({ onReady }) {
               stage="overlay"
             />
             {!mapEditor.enabled ? <>
+            {selectedPet.sheetSrc && !desktopHorizontalShooterActive ? (
+              <button
+                aria-label={`${selectedPet.label} 위치 이동: 길게 누른 뒤 드래그`}
+                className="shooterPetCompanion"
+                data-animation-active={shooterMapAnimationsActive ? "true" : "false"}
+                data-pet-skin={selectedPet.id}
+                onClick={(event) => event.stopPropagation()}
+                onPointerCancel={finishShooterPetDrag}
+                onPointerDown={handleShooterPetPointerDown}
+                onPointerMove={handleShooterPetPointerMove}
+                onPointerUp={finishShooterPetDrag}
+                ref={shooterPetRef}
+                style={{
+                  "--shooter-pet-columns": selectedPet.columns,
+                  "--shooter-pet-duration": `${selectedPet.frameCount / selectedPet.framesPerSecond}s`,
+                  "--shooter-pet-image": `url(${selectedPet.sheetSrc})`,
+                  "--shooter-pet-x": shooterPetPosition.x,
+                  "--shooter-pet-y": shooterPetPosition.y,
+                }}
+                title="길게 눌러 위치 이동"
+                type="button"
+              />
+            ) : null}
             {!desktopHorizontalShooterActive ? (
               <div className="mobileShooterLives" aria-label={`남은 목숨 ${shooterLives}`}>
                 <span>LIFE {shooterLives}</span>
