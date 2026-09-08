@@ -1,7 +1,7 @@
 import { getScriptedDifficultyRoundProgress } from "./scriptedDifficultyProgress.js";
 import { createShooterTargetNote } from "./gameplayRules.js";
 
-export const SHOOTER_DIFFICULT_RECOMMENDED_BPMS = Object.freeze([56, 58, 60, 62, 64]);
+export const SHOOTER_DIFFICULT_RECOMMENDED_BPMS = Object.freeze([54, 56, 58, 60, 62]);
 export const SHOOTER_DIFFICULT_STABLE_ACCURACY = 85;
 export const SHOOTER_DIFFICULT_STABLE_ROUNDS = 1;
 

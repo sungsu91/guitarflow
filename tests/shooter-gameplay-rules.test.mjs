@@ -22,13 +22,13 @@ const styleSource = await readFile(new URL("../src/style.css", import.meta.url),
 test("urgent shooter pacing starts slow and keeps travel independent from spawn beats", () => {
   assert.equal(SHOOTER_COUNT_IN_MS, 3_000);
   assert.deepEqual(SHOOTER_RUNTIME_DIFFICULTY.easy, {
-    bpms: [44, 46, 48, 50, 52], maxTargets: 2, travelMs: 5_500, fretRange: [0, 3],
+    bpms: [42, 44, 46, 48, 50], maxTargets: 2, travelMs: 5_800, fretRange: [0, 3],
   });
   assert.deepEqual(SHOOTER_RUNTIME_DIFFICULTY.normal, {
-    bpms: [50, 52, 54, 56, 58], maxTargets: 3, travelMs: 5_000, fretRange: [5, 10],
+    bpms: [48, 50, 52, 54, 56], maxTargets: 3, travelMs: 5_300, fretRange: [5, 10],
   });
   assert.deepEqual(SHOOTER_RUNTIME_DIFFICULTY.difficult, {
-    bpms: [56, 58, 60, 62, 64], maxTargets: 3, travelMs: 4_500, fretRange: [0, 12],
+    bpms: [54, 56, 58, 60, 62], maxTargets: 3, travelMs: 4_800, fretRange: [0, 12],
   });
   assert.match(appSource, /const targetDuration = getShooterTargetDuration\(difficulty\)/);
   assert.match(appSource, /scenarioStepWindowMs \?\? getShooterSpawnGap\(difficulty\)/);

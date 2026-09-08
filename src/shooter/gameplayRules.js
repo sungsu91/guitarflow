@@ -4,21 +4,21 @@ export const SHOOTER_TEMPO_ACCURACY_PERCENT = 85;
 
 export const SHOOTER_RUNTIME_DIFFICULTY = Object.freeze({
   easy: Object.freeze({
-    bpms: Object.freeze([44, 46, 48, 50, 52]),
+    bpms: Object.freeze([42, 44, 46, 48, 50]),
     maxTargets: 2,
-    travelMs: 5_500,
+    travelMs: 5_800,
     fretRange: Object.freeze([0, 3]),
   }),
   normal: Object.freeze({
-    bpms: Object.freeze([50, 52, 54, 56, 58]),
+    bpms: Object.freeze([48, 50, 52, 54, 56]),
     maxTargets: 3,
-    travelMs: 5_000,
+    travelMs: 5_300,
     fretRange: Object.freeze([5, 10]),
   }),
   difficult: Object.freeze({
-    bpms: Object.freeze([56, 58, 60, 62, 64]),
+    bpms: Object.freeze([54, 56, 58, 60, 62]),
     maxTargets: 3,
-    travelMs: 4_500,
+    travelMs: 4_800,
     fretRange: Object.freeze([0, 12]),
   }),
 });

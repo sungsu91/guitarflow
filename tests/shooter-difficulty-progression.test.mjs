@@ -50,7 +50,7 @@ test("normal shooter contains only natural notes at frets 5 through 10", () => {
 });
 
 test("normal shooter tempo rises only two BPM at a time without shortening the beat spacing", () => {
-  assert.deepEqual(SHOOTER_NORMAL_RECOMMENDED_BPMS, [50, 52, 54, 56, 58]);
+  assert.deepEqual(SHOOTER_NORMAL_RECOMMENDED_BPMS, [48, 50, 52, 54, 56]);
   assert.equal(getShooterNormalStepDurationMs(SHOOTER_NORMAL_SCENARIO[0], 50), 2400);
   for (const bpm of SHOOTER_NORMAL_RECOMMENDED_BPMS) {
     assert.ok(SHOOTER_NORMAL_SCENARIO.every((step) => getShooterNormalStepBeats(step, bpm) === 2));

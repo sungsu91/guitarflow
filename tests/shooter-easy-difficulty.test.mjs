@@ -95,7 +95,7 @@ test("six one-string patterns each complete a zero-to-three round trip", () => {
 });
 
 test("easy tempo rises only two BPM at a time and keeps the same two-beat spacing", () => {
-  assert.deepEqual(SHOOTER_EASY_RECOMMENDED_BPMS, [44, 46, 48, 50, 52]);
+  assert.deepEqual(SHOOTER_EASY_RECOMMENDED_BPMS, [42, 44, 46, 48, 50]);
   for (const bpm of SHOOTER_EASY_RECOMMENDED_BPMS) {
     assert.ok(SHOOTER_EASY_SCENARIO.every((step) => getShooterEasyStepBeats(step, bpm) === 2));
   }
@@ -129,5 +129,5 @@ test("App routes easy difficulty through the fixed course rather than the random
   assert.match(spawnSource, /getShooterEasyTargetX\(resolvedScenarioStep\)/);
   assert.match(spawnSource, /"shooter-easy-scenario"/);
   assert.match(missSource, /const lifeLossCount = missedTargets\.length/);
-  assert.match(appSource, /44 BPM · 0~3프렛 기초 완성/);
+  assert.match(appSource, /42 BPM · 0~3프렛 기초 완성/);
 });

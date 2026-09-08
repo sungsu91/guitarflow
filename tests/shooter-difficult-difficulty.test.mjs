@@ -94,7 +94,7 @@ test("mini patterns A through D keep their exact frets and technique prompts", (
 });
 
 test("difficult tempo rises only two BPM at a time and never compresses target spacing", () => {
-  assert.deepEqual(SHOOTER_DIFFICULT_RECOMMENDED_BPMS, [56, 58, 60, 62, 64]);
+  assert.deepEqual(SHOOTER_DIFFICULT_RECOMMENDED_BPMS, [54, 56, 58, 60, 62]);
   for (const bpm of SHOOTER_DIFFICULT_RECOMMENDED_BPMS) {
     assert.ok(SHOOTER_DIFFICULT_MAIN_SCENARIO.every((step) => getShooterDifficultStepBeats(step, bpm) === 2));
   }

@@ -16039,10 +16039,10 @@ const SHOOTER_DIFFICULTIES = {
   DIFFICULT: "difficult",
 };
 const SHOOTER_DIFFICULTY_OPTIONS = [
-  { id: SHOOTER_DIFFICULTIES.EASY, label: "쉬움", hint: "44 BPM · 0~3프렛 기초 완성" },
+  { id: SHOOTER_DIFFICULTIES.EASY, label: "쉬움", hint: "42 BPM · 0~3프렛 기초 완성" },
   { id: SHOOTER_DIFFICULTIES.EASY_RANDOM, label: "쉬움 랜덤", hint: SHOOTER_EASY_RANDOM_RANGE_LABEL },
-  { id: SHOOTER_DIFFICULTIES.NORMAL, label: "보통", hint: "50 BPM · 5~10프렛 상행/하행" },
-  { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "56 BPM · E2~E5 E Major 왕복" },
+  { id: SHOOTER_DIFFICULTIES.NORMAL, label: "보통", hint: "48 BPM · 5~10프렛 상행/하행" },
+  { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "54 BPM · E2~E5 E Major 왕복" },
 ];
 const SHOOTER_DIFFICULTY_PACING = {
   [SHOOTER_DIFFICULTIES.EASY]: {
@@ -16052,8 +16052,8 @@ const SHOOTER_DIFFICULTY_PACING = {
   [SHOOTER_DIFFICULTIES.EASY_RANDOM]: {
     durationMs: SHOOTER_RUNTIME_DIFFICULTY.easy.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
     maxTargets: SHOOTER_RUNTIME_DIFFICULTY.easy.maxTargets,
-    spawnGapMinMs: 1500,
-    spawnGapMaxMs: 2200,
+    spawnGapMinMs: 1600,
+    spawnGapMaxMs: 2300,
   },
   [SHOOTER_DIFFICULTIES.NORMAL]: {
     durationMs: SHOOTER_RUNTIME_DIFFICULTY.normal.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
