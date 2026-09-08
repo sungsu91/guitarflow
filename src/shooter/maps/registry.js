@@ -11,6 +11,7 @@ import { RIVER_MAP_SKIN } from "./skins/river.js";
 import { THREE_D_LAB_MAP_SKIN } from "./skins/threeDLab.js";
 
 export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
+  GACHA_ARCADE_MAP_SKIN,
   RIVER_MAP_SKIN,
   LAVA_CANYON_MAP_SKIN,
   COASTAL_COVE_MAP_SKIN,
@@ -19,7 +20,6 @@ export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
   ABYSSAL_MOON_CATHEDRAL_MAP_SKIN,
   CELESTIAL_ECLIPSE_CLOCKTOWER_MAP_SKIN,
   AUTUMN_MOON_TEMPLE_PATH_MAP_SKIN,
-  GACHA_ARCADE_MAP_SKIN,
 ]);
 
 export const DEVELOPER_SHOOTER_MAP_SKINS = Object.freeze([

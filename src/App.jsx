@@ -34186,26 +34186,6 @@ function App({ onReady }) {
                   ) : shooterSkinTab === "map" ? (
                     <div className="shooterSkinOptionStack" aria-label="슈팅 맵 선택">
                       <div className="shooterMapPickerGrid">
-                        <button
-                          aria-pressed={shooterMapPreference === SHOOTER_RANDOM_MAP_ID}
-                          className={`shooterMapCard shooterMapCard--default shooterSkinDefaultButton ${
-                            shooterMapPreference === SHOOTER_RANDOM_MAP_ID ? "selected" : ""
-                          }`}
-                          onClick={() => applyShooterMap(SHOOTER_RANDOM_MAP_ID)}
-                          title={SHOOTER_RANDOM_MAP_OPTION.description}
-                          type="button"
-                        >
-                          <span className="shooterMapRandomPreview" aria-hidden="true">
-                            {shooterMapPickerOptions.slice(0, 4).map((map) => (
-                              <span
-                                className="shooterMapRandomPreviewTile shooterMapPreview--image"
-                                key={`random-preview-${map.id}`}
-                                style={getShooterMapCssVars(map)}
-                              />
-                            ))}
-                          </span>
-                          <strong>{SHOOTER_RANDOM_MAP_OPTION.label}</strong>
-                        </button>
                         {shooterMapPickerOptions.map((map) => {
                           const isSelected = shooterMapPreference === map.id;
                           const mapStyle = getShooterMapCssVars(map);
@@ -34231,6 +34211,26 @@ function App({ onReady }) {
                             </button>
                           );
                         })}
+                        <button
+                          aria-pressed={shooterMapPreference === SHOOTER_RANDOM_MAP_ID}
+                          className={`shooterMapCard shooterMapCard--default shooterSkinDefaultButton ${
+                            shooterMapPreference === SHOOTER_RANDOM_MAP_ID ? "selected" : ""
+                          }`}
+                          onClick={() => applyShooterMap(SHOOTER_RANDOM_MAP_ID)}
+                          title={SHOOTER_RANDOM_MAP_OPTION.description}
+                          type="button"
+                        >
+                          <span className="shooterMapRandomPreview" aria-hidden="true">
+                            {shooterMapPickerOptions.slice(0, 4).map((map) => (
+                              <span
+                                className="shooterMapRandomPreviewTile shooterMapPreview--image"
+                                key={`random-preview-${map.id}`}
+                                style={getShooterMapCssVars(map)}
+                              />
+                            ))}
+                          </span>
+                          <strong>{SHOOTER_RANDOM_MAP_OPTION.label}</strong>
+                        </button>
                         {developerShooterMapOptions.length > 0 ? (
                           <div className="shooterMapDevDivider">
                             <span><i />DEV</span>

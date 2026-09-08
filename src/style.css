@@ -73722,17 +73722,22 @@ html body .miniChordMeasureEditorPanel .miniChordPickerHeaderActions button {
 
 /* Keep the physical mobile map catalog clipped to the picker and scroll it in place. */
 @media (max-width: 719px) {
-  html body .shooterSkinConfigurator--arenaPreview .shooterGuitarPickerModal {
+  html body .shooterSkinConfigurator--arenaPreview .shooterGuitarPickerModal--map {
+    display: flex !important;
+    flex-direction: column !important;
     min-height: 0 !important;
     overflow: hidden !important;
   }
 
   html body .shooterSkinConfigurator--arenaPreview .shooterSkinPickerBodyFrame--map {
+    position: relative !important;
     display: block !important;
+    flex: 1 1 auto !important;
     min-height: 0 !important;
     height: auto !important;
-    max-height: 100% !important;
+    max-height: none !important;
     overflow: hidden !important;
+    contain: layout paint !important;
   }
 
   html body .shooterSkinConfigurator--arenaPreview
@@ -73747,6 +73752,24 @@ html body .miniChordMeasureEditorPanel .miniChordPickerHeaderActions button {
     overflow-y: auto !important;
     overscroll-behavior: contain;
     touch-action: pan-y !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html body .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarPickerModal--map
+    .shooterSkinOptionStack,
+  html body .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarPickerModal--map
+    .shooterMapPickerGrid {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  html body .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarPickerModal--map
+    .shooterMapPickerGrid {
+    overflow: visible !important;
+    padding-bottom: max(24px, env(safe-area-inset-bottom)) !important;
   }
 }
 

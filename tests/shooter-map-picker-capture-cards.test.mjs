@@ -74,10 +74,16 @@ test("map picker renders platform-sized full capture cards and a random montage"
   assert.match(appSource, /map\?\.pickerPreviewImage \?\? map\?\.previewImage/);
   assert.match(appSource, /className="shooterMapRandomPreview"/);
   assert.match(appSource, /className="shooterMapRandomPreviewTile shooterMapPreview--image"/);
+  assert.ok(
+    appSource.indexOf("{shooterMapPickerOptions.map((map) => {")
+      < appSource.indexOf("aria-pressed={shooterMapPreference === SHOOTER_RANDOM_MAP_ID}"),
+    "the ordered map catalog must render before the random option",
+  );
   assert.match(appSource, /const shooterMapPickerOptions = isMobileLayout\s*\? LAYERED_SHOOTER_MAP_SKINS/);
   assert.deepEqual(
     LAYERED_SHOOTER_MAP_SKINS.map((map) => map.id),
     [
+      "gacha-arcade",
       "river-garden",
       "lava-canyon",
       "coastal-cove",
@@ -86,7 +92,6 @@ test("map picker renders platform-sized full capture cards and a random montage"
       "abyssalMoonCathedral",
       "celestial-eclipse-clocktower",
       "autumn_moon_temple_path",
-      "gacha-arcade",
     ],
   );
   assert.match(styleSource, /Mobile map picker keeps every direct map choice visible/);

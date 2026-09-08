@@ -52,6 +52,12 @@ test("physical mobile map catalog keeps a dedicated touch-scroll area", async ()
   assert.match(appCss, /shooterSkinPickerBodyFrame--map[\s\S]*?height: 100%;[\s\S]*?overflow: hidden;/);
   assert.match(appCss, /shooterSkinConfigurator--arenaPreview \.shooterSkinPickerBody[\s\S]*?overflow-y: auto !important;[\s\S]*?touch-action: pan-y !important;/);
   assert.match(appCss, /shooterSkinPickerBodyFrame--map > \.shooterSkinPickerBody[\s\S]*?position: absolute !important;[\s\S]*?inset: 0 !important;[\s\S]*?overflow-y: auto !important;/);
+  const finalMobileMapRules = appCss.slice(
+    appCss.lastIndexOf("/* Keep the physical mobile map catalog clipped to the picker and scroll it in place. */"),
+  );
+  assert.match(finalMobileMapRules, /shooterGuitarPickerModal[\s\S]*?overflow: hidden !important;/);
+  assert.match(finalMobileMapRules, /shooterSkinPickerBodyFrame--map[\s\S]*?position: relative !important;[\s\S]*?flex: 1 1 auto !important;[\s\S]*?overflow: hidden !important;/);
+  assert.match(finalMobileMapRules, /shooterGuitarPickerModal--map[\s\S]*?shooterMapPickerGrid[\s\S]*?height: auto !important;[\s\S]*?min-height: 0 !important;/);
 });
 
 test("guitar tab filters acoustic, electric and bass from a bottom category bar", async () => {

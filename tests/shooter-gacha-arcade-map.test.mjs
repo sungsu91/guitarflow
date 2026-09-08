@@ -49,7 +49,7 @@ test("gacha arcade V3 uses an empty seven-bay background and layered render orde
     "guitar",
     "HUD",
   ]);
-  assert.equal(LAYERED_SHOOTER_MAP_SKINS.at(-1), GACHA_ARCADE_MAP_SKIN);
+  assert.equal(LAYERED_SHOOTER_MAP_SKINS.at(0), GACHA_ARCADE_MAP_SKIN);
 });
 
 test("four left and three right cabinets each own one staggered clipped claw", () => {
