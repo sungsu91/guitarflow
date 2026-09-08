@@ -51,8 +51,9 @@ test("silver cat builder holds actions and locks every runtime frame to one grou
   assert.match(builder, /GROUND_Y - contact_y/);
   assert.match(builder, /GROUND_Y \+ 1/);
   assert.match(builder, /RUNTIME_HOLDS = \(/);
-  assert.match(builder, /6, 10, 1, 7, 1, 7/);
-  assert.match(builder, /1, 1, 1, 4, 10, 5/);
+  assert.match(builder, /5, 18, 2, 4, 2, 4/);
+  assert.match(builder, /AFTERIMAGE_ALPHA = 0\.07/);
+  assert.match(builder, /transition\.alpha_composite\(next_pose\)/);
   assert.doesNotMatch(builder, /Image\.blend/);
   assert.match(builder, /Preserve the source cell's horizontal axis/);
 });

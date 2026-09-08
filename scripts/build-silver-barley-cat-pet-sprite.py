@@ -14,15 +14,17 @@ FRAME_COUNT = SOURCE_COLUMNS * SOURCE_ROWS
 FRAME_SIZE = 128
 SOURCE_RENDER_SIZE = 122
 GROUND_Y = 124
-# Transitional poses pass quickly while the readable action poses hold. The
-# unequal counts create variable timing without alpha-blended ghost frames.
+# The closed-eye standing doze is the one deliberate long hold. All other
+# actions keep moving, with one faint transition frame between source poses.
 RUNTIME_HOLDS = (
-    6, 10, 1, 7, 1, 7,   # calm idle, doze, and head tilts
-    1, 1, 1, 4, 10, 5,   # notice, bat, catch, and release the barley grass
-    4, 7, 2, 7, 2, 7,    # alternating kneading poses
-    1, 10, 2, 8, 10, 6,  # paw lick, face wash, chest lick, and recovery
+    5, 18, 2, 4, 2, 4,  # calm idle, standing doze, and head tilts
+    2, 2, 2, 4, 5, 3,   # notice, bat, catch, and release the barley grass
+    3, 4, 3, 4, 3, 4,   # alternating kneading poses
+    2, 5, 3, 4, 5, 3,   # paw lick, face wash, chest lick, and recovery
 )
-RUNTIME_FRAME_COUNT = sum(RUNTIME_HOLDS)
+TRANSITION_FRAMES = 1
+AFTERIMAGE_ALPHA = 0.07
+RUNTIME_FRAME_COUNT = sum(RUNTIME_HOLDS) + FRAME_COUNT * TRANSITION_FRAMES
 SOURCE = PET_DIR / "source/silver-barley-cat-actions-imagegen-fixed-checkerboard.png"
 MASTER = PET_DIR / "silver-barley-cat-actions-master-6x4.png"
 RUNTIME = PET_DIR / "silver-barley-cat-actions-sheet-120x1.png"
@@ -177,8 +179,18 @@ def normalize_pose(master: Image.Image, frame_index: int) -> Image.Image:
 def normalize_runtime(master: Image.Image) -> Image.Image:
     poses = [normalize_pose(master, frame_index) for frame_index in range(FRAME_COUNT)]
     runtime_frames: list[Image.Image] = []
-    for pose, hold_frames in zip(poses, RUNTIME_HOLDS, strict=True):
+    for frame_index, (pose, hold_frames) in enumerate(zip(poses, RUNTIME_HOLDS, strict=True)):
+        next_pose = poses[(frame_index + 1) % len(poses)]
         runtime_frames.extend([pose] * hold_frames)
+        # Keep the incoming pose crisp. Only pixels left behind by the outgoing
+        # pose remain at very low alpha, which softens the cut without a double
+        # exposed cat across the shared body area.
+        ghost = pose.copy()
+        ghost.putalpha(ghost.getchannel("A").point(lambda alpha: round(alpha * AFTERIMAGE_ALPHA)))
+        transition = Image.new("RGBA", (FRAME_SIZE, FRAME_SIZE), (0, 0, 0, 0))
+        transition.alpha_composite(ghost)
+        transition.alpha_composite(next_pose)
+        runtime_frames.append(transition)
 
     if len(runtime_frames) != RUNTIME_FRAME_COUNT:
         raise RuntimeError(f"Expected {RUNTIME_FRAME_COUNT} runtime frames, got {len(runtime_frames)}")
