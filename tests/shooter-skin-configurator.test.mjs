@@ -51,6 +51,7 @@ test("physical mobile map catalog keeps a dedicated touch-scroll area", async ()
   assert.match(appSource, /shooterSkinPickerBodyFrame--\$\{shooterSkinTab\}/);
   assert.match(appCss, /shooterSkinPickerBodyFrame--map[\s\S]*?height: 100%;[\s\S]*?overflow: hidden;/);
   assert.match(appCss, /shooterSkinConfigurator--arenaPreview \.shooterSkinPickerBody[\s\S]*?overflow-y: auto !important;[\s\S]*?touch-action: pan-y !important;/);
+  assert.match(appCss, /shooterSkinPickerBodyFrame--map > \.shooterSkinPickerBody[\s\S]*?position: absolute !important;[\s\S]*?inset: 0 !important;[\s\S]*?overflow-y: auto !important;/);
 });
 
 test("guitar tab filters acoustic, electric and bass from a bottom category bar", async () => {

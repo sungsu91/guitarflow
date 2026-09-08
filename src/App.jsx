@@ -213,6 +213,10 @@ import {
   FRETIVA_ARTISAN_INSTRUMENT_SKIN_PACK_V2,
   FRETIVA_ARTISAN_INSTRUMENT_SKIN_PACK_V2_IDS,
 } from "./shooter/instruments/fretivaArtisanInstrumentSkinPackV2.js";
+import {
+  FRETIVA_POMERANIAN_INSTRUMENT_PACK_V1,
+  FRETIVA_POMERANIAN_INSTRUMENT_PACK_V1_IDS,
+} from "./shooter/instruments/fretivaPomeranianInstrumentPackV1.js";
 import DesktopHorizontalBattleView, {
   DesktopHorizontalBattleControls,
 } from "./shooter/desktopHorizontal/DesktopHorizontalBattleView.jsx";
@@ -8174,6 +8178,18 @@ const GUITAR_LAB_VARIANTS = [
     undefined,
     skin.instrumentSkinPack,
   ]),
+  ...FRETIVA_POMERANIAN_INSTRUMENT_PACK_V1.map((skin) => [
+    skin.id,
+    skin.pack,
+    skin.title,
+    skin.description,
+    "#f3d4aa",
+    "#d99a85",
+    "image-fretiva-pomeranian-instrument-v1",
+    skin.assetSrc,
+    undefined,
+    skin.instrumentSkinPack,
+  ]),
 ].map(([id, pack, model, description, bodyColor, accentColor, shape, assetSrc, projectileAssetSrc, instrumentSkinPack], index) => ({
   id,
   pack,
@@ -8330,6 +8346,14 @@ const SHOOTER_PLAYER_GUITAR_GEOMETRY_BY_VARIANT_ID = {
       muzzleHeightScale: skin.muzzleHeightScale,
     },
   ])),
+  ...Object.fromEntries(FRETIVA_POMERANIAN_INSTRUMENT_PACK_V1.map((skin) => [
+    skin.id,
+    {
+      collisionAspectRatio: skin.collisionAspectRatio,
+      collisionHeight: SHOOTER_TRACE_GUITAR_LEGACY_COLLISION_HEIGHT,
+      muzzleHeightScale: skin.muzzleHeightScale,
+    },
+  ])),
 };
 const SHOOTER_PLAYER_GUITAR_VARIANT_IDS = [
   SHOOTER_TRACE_GUITAR_VARIANT_ID,
@@ -8353,6 +8377,7 @@ const SHOOTER_PLAYER_GUITAR_VARIANT_IDS = [
   ...FRETIVA_CREATIVE_INSTRUMENT_PACK_V3_IDS,
   ...FRETIVA_ARTISAN_INSTRUMENT_SKIN_PACK_V2_IDS,
   ...FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1_IDS,
+  ...FRETIVA_POMERANIAN_INSTRUMENT_PACK_V1_IDS,
 ];
 const SHOOTER_GUITAR_CATEGORIES = {
   ACOUSTIC: "acoustic",
@@ -9340,6 +9365,7 @@ const SHOOTER_GUITAR_CATEGORY_BY_VARIANT_ID = {
   ...Object.fromEntries(FRETIVA_CREATIVE_INSTRUMENT_PACK_V3.map((skin) => [skin.id, skin.category])),
   ...Object.fromEntries(FRETIVA_ARTISAN_INSTRUMENT_SKIN_PACK_V2.map((skin) => [skin.id, skin.category])),
   ...Object.fromEntries(FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1.map((skin) => [skin.id, skin.category])),
+  ...Object.fromEntries(FRETIVA_POMERANIAN_INSTRUMENT_PACK_V1.map((skin) => [skin.id, skin.category])),
 };
 const FRESH_GUITAR_VARIANT_IDS = new Set([
   ...SHOOTER_PLAYER_GUITAR_VARIANT_IDS,

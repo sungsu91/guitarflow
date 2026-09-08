@@ -73720,6 +73720,128 @@ html body .miniChordMeasureEditorPanel .miniChordPickerHeaderActions button {
   pointer-events: auto !important;
 }
 
+/* Keep the physical mobile map catalog clipped to the picker and scroll it in place. */
+@media (max-width: 719px) {
+  html body .shooterSkinConfigurator--arenaPreview .shooterGuitarPickerModal {
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body .shooterSkinConfigurator--arenaPreview .shooterSkinPickerBodyFrame--map {
+    display: block !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  html body .shooterSkinConfigurator--arenaPreview
+    .shooterSkinPickerBodyFrame--map > .shooterSkinPickerBody {
+    position: absolute !important;
+    inset: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    touch-action: pan-y !important;
+  }
+}
+
+/* Cream Pomeranian collection: use the same upright contain geometry on both layouts. */
+html body img[data-instrument-skin-pack="fretiva_pomeranian_instrument_pack_v1"] {
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: 50% 50%;
+  background: transparent;
+}
+
+html body .shooterSkinConfigurator
+  .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_pomeranian_instrument_pack_v1"] {
+  width: auto !important;
+  height: 76px !important;
+  max-width: 100% !important;
+  max-height: 76px !important;
+  object-fit: contain !important;
+}
+
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva_pomeranian_instrument_pack_v1"] {
+  width: 60px !important;
+  height: 137px !important;
+}
+
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva_pomeranian_instrument_pack_v1"]
+  .guitarPlayerAsset.guitarAssetImage {
+  bottom: 0 !important;
+  width: auto !important;
+  height: 137px !important;
+  max-width: none !important;
+  max-height: 137px !important;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
+}
+
+html body .shooterArena
+  .guitarPlayer[data-instrument-skin-pack="fretiva_pomeranian_instrument_pack_v1"]
+  .guitarPlayerMuzzle {
+  top: 6px !important;
+}
+
+@media (max-width: 680px) {
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva_pomeranian_instrument_pack_v1"] {
+    width: 57px !important;
+    height: 127px !important;
+  }
+
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva_pomeranian_instrument_pack_v1"]
+    .guitarPlayerAsset.guitarAssetImage {
+    height: 152px !important;
+    max-height: 152px !important;
+  }
+
+  html body .shooterArena
+    .guitarPlayer[data-instrument-skin-pack="fretiva_pomeranian_instrument_pack_v1"]
+    .guitarPlayerMuzzle {
+    top: -19px !important;
+  }
+}
+
+@media (min-width: 681px) {
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva_pomeranian_instrument_pack_v1"] {
+    width: 57px !important;
+    height: 127px !important;
+  }
+
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva_pomeranian_instrument_pack_v1"]
+    .guitarPlayerAsset.guitarAssetImage {
+    bottom: 0 !important;
+    height: 127px !important;
+    max-height: 127px !important;
+  }
+
+  html body .desktopLayout .shooterArena--desktopPortrait
+    .guitarPlayer[data-instrument-skin-pack="fretiva_pomeranian_instrument_pack_v1"]
+    .guitarPlayerMuzzle {
+    top: 5px !important;
+  }
+
+  html body .shooterSkinConfigurator
+    .shooterGuitarPickerAsset[data-instrument-skin-pack="fretiva_pomeranian_instrument_pack_v1"] {
+    height: 96px !important;
+    max-height: 96px !important;
+  }
+}
+
 /* Mini chord split editor: edit both one-beat slots without reopening the HUD. */
 .miniChordRestIcon {
   display: inline-block;
