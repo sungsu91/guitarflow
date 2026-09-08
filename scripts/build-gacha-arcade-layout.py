@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFilter
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,6 +43,18 @@ def place_on_runtime(canvas: Image.Image, image: Image.Image, placement: dict) -
     canvas.alpha_composite(resized, (round(placement["x"] / 2), round(placement["y"] / 2)))
 
 
+def build_grounded_plinth(source: Image.Image) -> Image.Image:
+    """Keep the illuminated plinth, but add a soft floor contact shadow below it."""
+    output = Image.new("RGBA", (640, 240), (0, 0, 0, 0))
+    shadow = Image.new("RGBA", output.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(shadow)
+    draw.ellipse((50, 158, 590, 230), fill=(8, 2, 18, 155))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(16))
+    output.alpha_composite(shadow)
+    output.alpha_composite(contain(crop_visible(source), (640, 190)), (0, 0))
+    return output
+
+
 def build_layout_preview(background: Image.Image, plinth: Image.Image, machine: Image.Image) -> None:
     manifest = json.loads((ASSET_DIR / "asset_manifest.json").read_text(encoding="utf-8"))
     rules = manifest["layout_rules"]
@@ -60,10 +72,10 @@ def build_layout_preview(background: Image.Image, plinth: Image.Image, machine: 
             "height": machine_height,
         }
         platform_width = round(machine_width * rules["plinth_width_ratio"])
-        platform_height = round(platform_width / 3.35)
+        platform_height = round(platform_width / (640 / 240))
         platform_placement = {
             "x": round(slot["center_x"] - platform_width / 2),
-            "y": round(slot["base_y"] - platform_height * 0.48),
+            "y": round(slot["base_y"] - platform_height * rules["plinth_top_anchor_ratio"]),
             "width": platform_width,
             "height": platform_height,
         }
@@ -134,7 +146,7 @@ def build() -> None:
         optimize=True,
     )
 
-    plinth = contain(crop_visible(Image.open(SOURCE_PLINTH)), (640, 190))
+    plinth = build_grounded_plinth(Image.open(SOURCE_PLINTH))
     plinth.save(RUNTIME_DIR / "machine_plinth_runtime.png", optimize=True)
     build_layout_preview(background, plinth, machine)
 

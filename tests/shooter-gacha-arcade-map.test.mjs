@@ -11,19 +11,21 @@ const assetRoot = new URL("../public/assets/maps/gacha-arcade/", import.meta.url
 
 test("V3 manifest fixes the shared axis, corridor, and seven machine slots", async () => {
   const manifest = JSON.parse(await readFile(new URL("asset_manifest.json", assetRoot), "utf8"));
-  assert.equal(manifest.version, "3.0.0");
+  assert.equal(manifest.version, "3.1.0");
   assert.equal(manifest.canvas.center_axis_x, 768);
   assert.deepEqual(manifest.canvas.clear_corridor, { left: 460, right: 1076 });
   assert.equal(manifest.layout_rules.machine_rotation_degrees, 0);
   assert.equal(manifest.layout_rules.plinth_rotation_degrees, 0);
-  assert.equal(manifest.layout_rules.plinth_width_ratio, 1.18);
+  assert.equal(manifest.layout_rules.plinth_width_ratio, 1.12);
+  assert.equal(manifest.layout_rules.plinth_top_anchor_ratio, 0.28);
+  assert.equal(manifest.layout_rules.plinth_has_floor_contact_shadow, true);
   assert.equal(manifest.machine_slots.length, 7);
   assert.equal(manifest.machine_slots.filter((slot) => slot.side === "left").length, 4);
   assert.equal(manifest.machine_slots.filter((slot) => slot.side === "right").length, 3);
 });
 
 test("gacha arcade V3 uses an empty seven-bay background and layered render order", () => {
-  assert.equal(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.version, "3.0.0");
+  assert.equal(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.version, "3.1.0");
   assert.deepEqual(getShooterMapPerformancePolicy(GACHA_ARCADE_MAP_SKIN), {
     mobileGameplayEffects: "full",
     mobileGameplayAuditPassed: true,
@@ -72,20 +74,23 @@ test("four left and three right cabinets each own one staggered clipped claw", (
     "machine_left_4",
   ]);
   assert.deepEqual(machines.map((machine) => machine.placement), [
-    { x: 200, y: 430, width: 220, height: 330 },
-    { x: 1106, y: 520, width: 240, height: 360 },
-    { x: 135, y: 755, width: 270, height: 405 },
-    { x: 1121, y: 955, width: 290, height: 435 },
-    { x: 60, y: 1260, width: 320, height: 480 },
-    { x: 1141, y: 1625, width: 350, height: 525 },
-    { x: -20, y: 1980, width: 380, height: 570 },
+    { x: 185, y: 385, width: 250, height: 375 },
+    { x: 1091, y: 475, width: 270, height: 405 },
+    { x: 115, y: 695, width: 310, height: 465 },
+    { x: 1101, y: 895, width: 330, height: 495 },
+    { x: 35, y: 1185, width: 370, height: 555 },
+    { x: 1116, y: 1550, width: 400, height: 600 },
+    { x: -40, y: 1920, width: 420, height: 630 },
   ]);
   for (const [index, machine] of machines.entries()) {
     const platform = platforms[index];
     const machineCenter = machine.placement.x + machine.placement.width / 2;
     const platformCenter = platform.placement.x + platform.placement.width / 2;
     assert.ok(Math.abs(machineCenter - platformCenter) <= 0.5);
-    assert.equal(platform.placement.width, Math.round(machine.placement.width * 1.18));
+    assert.equal(platform.placement.width, Math.round(machine.placement.width * 1.12));
+    const machineBaseY = machine.placement.y + machine.placement.height;
+    const platformTopAnchorY = platform.placement.y + platform.placement.height * 0.28;
+    assert.ok(Math.abs(machineBaseY - platformTopAnchorY) <= 1);
     if (machine.side === "left") {
       assert.ok(machine.placement.x + machine.placement.width < GACHA_ARCADE_CLEAR_CORRIDOR.left);
     } else {
@@ -127,7 +132,7 @@ test("runtime reuses two cabinet images and two claw sheets without frame duplic
     ["runtime/FRETIVA_GACHA_ARCADE_MAP_BASE_EMPTY_BAYS_RUNTIME.png", 768, 1664],
     ["runtime/machine_cabinet_left_runtime.png", 384, 576],
     ["runtime/machine_cabinet_right_runtime.png", 384, 576],
-    ["runtime/machine_plinth_runtime.png", 640, 190],
+    ["runtime/machine_plinth_runtime.png", 640, 240],
     ["runtime/claw_left_mid_wire_sheet_6x4.png", 1800, 1120],
     ["runtime/claw_right_upper_wire_sheet_6x4.png", 1740, 1000],
     ["runtime/star_mobile_horizontal_sheet_6x4.png", 2760, 1456],
