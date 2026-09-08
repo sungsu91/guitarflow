@@ -11,7 +11,7 @@ const assetRoot = new URL("../public/assets/maps/gacha-arcade/", import.meta.url
 
 test("V3 manifest fixes the shared axis, corridor, and seven machine slots", async () => {
   const manifest = JSON.parse(await readFile(new URL("asset_manifest.json", assetRoot), "utf8"));
-  assert.equal(manifest.version, "3.5.0");
+  assert.equal(manifest.version, "3.6.0");
   assert.equal(manifest.canvas.center_axis_x, 768);
   assert.deepEqual(manifest.canvas.clear_corridor, { left: 460, right: 1076 });
   assert.equal(manifest.layout_rules.machine_rotation_degrees, 0);
@@ -26,7 +26,7 @@ test("V3 manifest fixes the shared axis, corridor, and seven machine slots", asy
 });
 
 test("gacha arcade V3 uses an empty seven-bay background and layered render order", () => {
-  assert.equal(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.version, "3.5.0");
+  assert.equal(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.version, "3.6.0");
   assert.deepEqual(getShooterMapPerformancePolicy(GACHA_ARCADE_MAP_SKIN), {
     mobileGameplayEffects: "full",
     mobileGameplayAuditPassed: true,
@@ -63,6 +63,15 @@ test("four left and three right cabinets each own one staggered clipped claw", (
   assert.equal(machines.length, 7);
   assert.equal(machines.filter((machine) => machine.side === "left").length, 4);
   assert.equal(machines.filter((machine) => machine.side === "right").length, 3);
+  assert.deepEqual(machines.map((machine) => machine.theme), [
+    "lavender",
+    "mint",
+    "pink",
+    "lavender",
+    "mint",
+    "pink",
+    "lavender",
+  ]);
   assert.deepEqual(machines.map((machine) => machine.id), [
     "machine_left_1",
     "machine_right_1",
@@ -97,8 +106,8 @@ test("four left and three right cabinets each own one staggered clipped claw", (
       assert.ok(machine.placement.x > GACHA_ARCADE_CLEAR_CORRIDOR.right);
     }
   }
-  assert.equal(machines.find((machine) => machine.side === "left").src.endsWith("machine_cabinet_right_runtime.png"), true);
-  assert.equal(machines.find((machine) => machine.side === "right").src.endsWith("machine_cabinet_left_runtime.png"), true);
+  assert.equal(machines.find((machine) => machine.side === "left").src.endsWith("_right_runtime.png"), true);
+  assert.equal(machines.find((machine) => machine.side === "right").src.endsWith("_left_runtime.png"), true);
 
   assert.equal(claws.length, 7);
   assert.deepEqual(claws.map((claw) => claw.phaseOffsetMs), [0, 857, 1714, 2571, 3428, 4285, 5142]);
@@ -131,11 +140,15 @@ test("four left and three right cabinets each own one staggered clipped claw", (
   assert.equal("rotationTurns" in star, false);
 });
 
-test("runtime reuses two cabinet images and two claw sheets without frame duplication", async () => {
+test("runtime reuses three cabinet colorways and two claw sheets without frame duplication", async () => {
   const expected = [
     ["runtime/FRETIVA_GACHA_ARCADE_MAP_BASE_EMPTY_BAYS_RUNTIME.png", 768, 1664],
     ["runtime/machine_cabinet_left_runtime.png", 384, 576],
     ["runtime/machine_cabinet_right_runtime.png", 384, 576],
+    ["runtime/machine_cabinet_lavender_left_runtime.png", 384, 576],
+    ["runtime/machine_cabinet_lavender_right_runtime.png", 384, 576],
+    ["runtime/machine_cabinet_mint_left_runtime.png", 384, 576],
+    ["runtime/machine_cabinet_mint_right_runtime.png", 384, 576],
     ["runtime/machine_plinth_runtime.png", 640, 240],
     ["runtime/claw_left_mid_wire_sheet_6x4.png", 1800, 1120],
     ["runtime/claw_right_upper_wire_sheet_6x4.png", 1740, 1000],
@@ -158,7 +171,7 @@ test("runtime reuses two cabinet images and two claw sheets without frame duplic
   assert.equal(preview.readUInt32BE(20), 1664);
 
   const runtimeSources = getShooterMapAssetSources(GACHA_ARCADE_MAP_SKIN);
-  assert.equal(runtimeSources.length, 7);
+  assert.equal(runtimeSources.length, 11);
   assert.equal(runtimeSources.some((source) => source.includes("/frames/")), false);
   assert.equal(runtimeSources.some((source) => source.includes("COMPOSITE")), false);
   assert.equal(new Set(runtimeSources).size, runtimeSources.length);

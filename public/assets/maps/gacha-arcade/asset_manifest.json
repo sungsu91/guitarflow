@@ -1,6 +1,6 @@
 {
   "pack": "FRETIVA_GACHA_ARCADE_MAP_PACK",
-  "version": "3.5.0",
+  "version": "3.6.0",
   "canvas": {
     "width": 1536,
     "height": 3328,
@@ -18,6 +18,10 @@
     "plinth": "runtime/machine_plinth_runtime.png",
     "machine_left": "runtime/machine_cabinet_left_runtime.png",
     "machine_right": "runtime/machine_cabinet_right_runtime.png",
+    "machine_lavender_left": "runtime/machine_cabinet_lavender_left_runtime.png",
+    "machine_lavender_right": "runtime/machine_cabinet_lavender_right_runtime.png",
+    "machine_mint_left": "runtime/machine_cabinet_mint_left_runtime.png",
+    "machine_mint_right": "runtime/machine_cabinet_mint_right_runtime.png",
     "claw_left_sheet": "runtime/claw_left_mid_wire_sheet_6x4.png",
     "claw_right_sheet": "runtime/claw_right_upper_wire_sheet_6x4.png",
     "star_mobile_sheet": "runtime/star_mobile_horizontal_sheet_6x4.png"
@@ -32,13 +36,13 @@
     "plinth_rotation_degrees": 0
   },
   "machine_slots": [
-    { "id": "left_1", "side": "left", "center_x": 245, "base_y": 760, "machine_width": 339, "phase_offset_ms": 0 },
-    { "id": "right_1", "side": "right", "center_x": 1301, "base_y": 880, "machine_width": 363, "phase_offset_ms": 857 },
-    { "id": "left_2", "side": "left", "center_x": 210, "base_y": 1160, "machine_width": 454, "phase_offset_ms": 1714 },
-    { "id": "right_2", "side": "right", "center_x": 1331, "base_y": 1390, "machine_width": 484, "phase_offset_ms": 2571 },
-    { "id": "left_3", "side": "left", "center_x": 185, "base_y": 1740, "machine_width": 532, "phase_offset_ms": 3428 },
-    { "id": "right_3", "side": "right", "center_x": 1355, "base_y": 2150, "machine_width": 557, "phase_offset_ms": 4285 },
-    { "id": "left_4", "side": "left", "center_x": 150, "base_y": 2550, "machine_width": 569, "phase_offset_ms": 5142 }
+    { "id": "left_1", "side": "left", "theme": "lavender", "center_x": 245, "base_y": 760, "machine_width": 339, "phase_offset_ms": 0 },
+    { "id": "right_1", "side": "right", "theme": "mint", "center_x": 1301, "base_y": 880, "machine_width": 363, "phase_offset_ms": 857 },
+    { "id": "left_2", "side": "left", "theme": "pink", "center_x": 210, "base_y": 1160, "machine_width": 454, "phase_offset_ms": 1714 },
+    { "id": "right_2", "side": "right", "theme": "lavender", "center_x": 1331, "base_y": 1390, "machine_width": 484, "phase_offset_ms": 2571 },
+    { "id": "left_3", "side": "left", "theme": "mint", "center_x": 185, "base_y": 1740, "machine_width": 532, "phase_offset_ms": 3428 },
+    { "id": "right_3", "side": "right", "theme": "pink", "center_x": 1355, "base_y": 2150, "machine_width": 557, "phase_offset_ms": 4285 },
+    { "id": "left_4", "side": "left", "theme": "lavender", "center_x": 150, "base_y": 2550, "machine_width": 569, "phase_offset_ms": 5142 }
   ],
   "claw_animation": {
     "columns": 6,

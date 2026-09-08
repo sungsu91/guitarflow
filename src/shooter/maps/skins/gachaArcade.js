@@ -4,6 +4,17 @@ const GACHA_ARCADE_ROOT = "/assets/maps/gacha-arcade";
 const GACHA_ARCADE_RUNTIME_BACKGROUND = `${GACHA_ARCADE_ROOT}/runtime/FRETIVA_GACHA_ARCADE_MAP_BASE_EMPTY_BAYS_RUNTIME.png`;
 const GACHA_ARCADE_MACHINE_LEFT = `${GACHA_ARCADE_ROOT}/runtime/machine_cabinet_left_runtime.png`;
 const GACHA_ARCADE_MACHINE_RIGHT = `${GACHA_ARCADE_ROOT}/runtime/machine_cabinet_right_runtime.png`;
+const GACHA_ARCADE_MACHINE_COLORWAYS = Object.freeze({
+  pink: Object.freeze({ left: GACHA_ARCADE_MACHINE_LEFT, right: GACHA_ARCADE_MACHINE_RIGHT }),
+  lavender: Object.freeze({
+    left: `${GACHA_ARCADE_ROOT}/runtime/machine_cabinet_lavender_left_runtime.png`,
+    right: `${GACHA_ARCADE_ROOT}/runtime/machine_cabinet_lavender_right_runtime.png`,
+  }),
+  mint: Object.freeze({
+    left: `${GACHA_ARCADE_ROOT}/runtime/machine_cabinet_mint_left_runtime.png`,
+    right: `${GACHA_ARCADE_ROOT}/runtime/machine_cabinet_mint_right_runtime.png`,
+  }),
+});
 const GACHA_ARCADE_MACHINE_PLINTH = `${GACHA_ARCADE_ROOT}/runtime/machine_plinth_runtime.png`;
 const GACHA_ARCADE_LAYOUT_PREVIEW = `${GACHA_ARCADE_ROOT}/preview/FRETIVA_GACHA_ARCADE_V3_LAYOUT_PREVIEW.png`;
 const GACHA_ARCADE_CANVAS = Object.freeze({ width: 1536, height: 3328 });
@@ -28,8 +39,9 @@ const machineObjects = Object.freeze(GACHA_ARCADE_RESOLVED_SLOTS.map((slot, inde
   id: `machine_${slot.id}`,
   kind: "machine",
   side: slot.side,
+  theme: slot.theme,
   zIndex: 11 + index * 3,
-  src: slot.side === "left" ? GACHA_ARCADE_MACHINE_RIGHT : GACHA_ARCADE_MACHINE_LEFT,
+  src: GACHA_ARCADE_MACHINE_COLORWAYS[slot.theme][slot.side === "left" ? "right" : "left"],
   placement: slot.machine,
 })));
 
@@ -115,7 +127,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
       mode: "full",
       audit: Object.freeze({
         completed: true,
-        contentFingerprint: "3c52019c",
+        contentFingerprint: "1080b48f",
         activeCssAnimations: 0,
         ambientEventLayers: 0,
         filteredElements: 0,
@@ -138,7 +150,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
     locked: true,
   }),
   runtimeAnimation: Object.freeze({
-    version: "3.5.0",
+    version: "3.6.0",
     canvasWidth: GACHA_ARCADE_CANVAS.width,
     canvasHeight: GACHA_ARCADE_CANVAS.height,
     clockFramesPerSecond: 10,

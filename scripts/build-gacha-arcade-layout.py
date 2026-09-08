@@ -12,6 +12,8 @@ RUNTIME_DIR = ASSET_DIR / "runtime"
 PREVIEW_DIR = ASSET_DIR / "preview"
 SOURCE_BACKGROUND = ASSET_DIR / "FRETIVA_GACHA_ARCADE_EMPTY_BAYS_SOURCE.png"
 SOURCE_MACHINE = ASSET_DIR / "spritesheets/machine_cabinet_source.png"
+SOURCE_MACHINE_LAVENDER = ASSET_DIR / "spritesheets/machine_cabinet_lavender_source.png"
+SOURCE_MACHINE_MINT = ASSET_DIR / "spritesheets/machine_cabinet_mint_source.png"
 SOURCE_PLINTH = ASSET_DIR / "spritesheets/machine_plinth_source.png"
 
 
@@ -55,7 +57,7 @@ def build_grounded_plinth(source: Image.Image) -> Image.Image:
     return output
 
 
-def build_layout_preview(background: Image.Image, plinth: Image.Image, machine: Image.Image) -> None:
+def build_layout_preview(background: Image.Image, plinth: Image.Image, machines: dict[str, Image.Image]) -> None:
     manifest = json.loads((ASSET_DIR / "asset_manifest.json").read_text(encoding="utf-8"))
     rules = manifest["layout_rules"]
     slots = manifest["machine_slots"]
@@ -83,6 +85,7 @@ def build_layout_preview(background: Image.Image, plinth: Image.Image, machine: 
         resolved.append((slot, machine_placement, platform_placement))
 
     for slot, placement, platform_placement in resolved:
+        machine = machines[slot["theme"]]
         cabinet = machine.transpose(Image.Transpose.FLIP_LEFT_RIGHT) if slot["side"] == "left" else machine
         place_on_runtime(canvas, plinth, platform_placement)
         place_on_runtime(canvas, cabinet, placement)
@@ -140,16 +143,22 @@ def build() -> None:
         optimize=True,
     )
 
-    machine = contain(crop_visible(Image.open(SOURCE_MACHINE)), (384, 576))
-    machine.save(RUNTIME_DIR / "machine_cabinet_left_runtime.png", optimize=True)
-    machine.transpose(Image.Transpose.FLIP_LEFT_RIGHT).save(
-        RUNTIME_DIR / "machine_cabinet_right_runtime.png",
-        optimize=True,
-    )
+    machines = {
+        "pink": contain(crop_visible(Image.open(SOURCE_MACHINE)), (384, 576)),
+        "lavender": contain(crop_visible(Image.open(SOURCE_MACHINE_LAVENDER)), (384, 576)),
+        "mint": contain(crop_visible(Image.open(SOURCE_MACHINE_MINT)), (384, 576)),
+    }
+    for theme, machine in machines.items():
+        stem = "machine_cabinet" if theme == "pink" else f"machine_cabinet_{theme}"
+        machine.save(RUNTIME_DIR / f"{stem}_left_runtime.png", optimize=True)
+        machine.transpose(Image.Transpose.FLIP_LEFT_RIGHT).save(
+            RUNTIME_DIR / f"{stem}_right_runtime.png",
+            optimize=True,
+        )
 
     plinth = build_grounded_plinth(Image.open(SOURCE_PLINTH))
     plinth.save(RUNTIME_DIR / "machine_plinth_runtime.png", optimize=True)
-    build_layout_preview(background, plinth, machine)
+    build_layout_preview(background, plinth, machines)
 
 
 if __name__ == "__main__":
