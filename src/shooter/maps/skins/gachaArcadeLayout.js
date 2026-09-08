@@ -14,17 +14,18 @@ export function resolveGachaArcadeSlot(slot) {
   const machineHeight = Math.round(slot.machineWidth * 1.5);
   const platformWidth = Math.round(slot.machineWidth * 1.12);
   const platformHeight = Math.round(platformWidth / (640 / 240));
+  const machineInset = Math.round(platformHeight * 0.38);
   return Object.freeze({
     ...slot,
     machine: Object.freeze({
       x: Math.round(slot.centerX - slot.machineWidth / 2),
-      y: slot.baseY - machineHeight,
+      y: slot.baseY + machineInset - machineHeight,
       width: slot.machineWidth,
       height: machineHeight,
     }),
     platform: Object.freeze({
       x: Math.round(slot.centerX - platformWidth / 2),
-      y: Math.round(slot.baseY - platformHeight * 0.22),
+      y: slot.baseY,
       width: platformWidth,
       height: platformHeight,
     }),

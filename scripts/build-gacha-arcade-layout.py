@@ -65,24 +65,25 @@ def build_layout_preview(background: Image.Image, plinth: Image.Image, machine: 
     for slot in slots:
         machine_width = slot["machine_width"]
         machine_height = round(machine_width * rules["machine_height_ratio"])
+        platform_width = round(machine_width * rules["plinth_width_ratio"])
+        platform_height = round(platform_width / (640 / 240))
+        machine_inset = round(platform_height * rules["machine_plinth_inset_ratio"])
         machine_placement = {
             "x": round(slot["center_x"] - machine_width / 2),
-            "y": slot["base_y"] - machine_height,
+            "y": slot["base_y"] + machine_inset - machine_height,
             "width": machine_width,
             "height": machine_height,
         }
-        platform_width = round(machine_width * rules["plinth_width_ratio"])
-        platform_height = round(platform_width / (640 / 240))
         platform_placement = {
             "x": round(slot["center_x"] - platform_width / 2),
-            "y": round(slot["base_y"] - platform_height * rules["plinth_top_anchor_ratio"]),
+            "y": slot["base_y"],
             "width": platform_width,
             "height": platform_height,
         }
         resolved.append((slot, machine_placement, platform_placement))
 
     for slot, placement, platform_placement in resolved:
-        cabinet = machine if slot["side"] == "left" else machine.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+        cabinet = machine.transpose(Image.Transpose.FLIP_LEFT_RIGHT) if slot["side"] == "left" else machine
         place_on_runtime(canvas, cabinet, placement)
         place_on_runtime(canvas, plinth, platform_placement)
 

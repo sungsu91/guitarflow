@@ -29,7 +29,7 @@ const machineObjects = Object.freeze(GACHA_ARCADE_RESOLVED_SLOTS.map((slot, inde
   kind: "machine",
   side: slot.side,
   zIndex: 10 + index * 3,
-  src: slot.side === "left" ? GACHA_ARCADE_MACHINE_LEFT : GACHA_ARCADE_MACHINE_RIGHT,
+  src: slot.side === "left" ? GACHA_ARCADE_MACHINE_RIGHT : GACHA_ARCADE_MACHINE_LEFT,
   placement: slot.machine,
 })));
 
@@ -115,7 +115,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
       mode: "full",
       audit: Object.freeze({
         completed: true,
-        contentFingerprint: "0d23128b",
+        contentFingerprint: "cddd80ba",
         activeCssAnimations: 0,
         ambientEventLayers: 0,
         filteredElements: 0,
@@ -138,7 +138,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
     locked: true,
   }),
   runtimeAnimation: Object.freeze({
-    version: "3.1.0",
+    version: "3.2.0",
     canvasWidth: GACHA_ARCADE_CANVAS.width,
     canvasHeight: GACHA_ARCADE_CANVAS.height,
     clockFramesPerSecond: 10,

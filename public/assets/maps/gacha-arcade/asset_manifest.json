@@ -1,6 +1,6 @@
 {
   "pack": "FRETIVA_GACHA_ARCADE_MAP_PACK",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "canvas": {
     "width": 1536,
     "height": 3328,
@@ -8,7 +8,7 @@
     "center_axis_x": 768,
     "clear_corridor": { "left": 460, "right": 1076 }
   },
-  "design_rule": "empty background with reusable aligned plinth, cabinet, and claw object sets",
+  "design_rule": "empty background with inward-facing cabinets physically seated into aligned floor plinths",
   "background": {
     "source": "FRETIVA_GACHA_ARCADE_EMPTY_BAYS_SOURCE.png",
     "master": "FRETIVA_GACHA_ARCADE_MAP_BASE_EMPTY_BAYS.png",
@@ -25,7 +25,7 @@
   "layout_rules": {
     "machine_height_ratio": 1.5,
     "plinth_width_ratio": 1.12,
-    "plinth_top_anchor_ratio": 0.22,
+    "machine_plinth_inset_ratio": 0.38,
     "plinth_has_floor_contact_shadow": true,
     "machine_rotation_degrees": 0,
     "plinth_rotation_degrees": 0
