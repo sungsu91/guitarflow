@@ -1,12 +1,31 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { cameraContainRect, frontCameraConstraints, coverSourceRect, drawComposite, cameraOverlayRect, recorderOptions, saveRecording } from "../src/shooter/recording/recordingMedia.js";
+import { setCameraWideFraming, cameraContainRect, frontCameraConstraints, coverSourceRect, drawComposite, cameraOverlayRect, recorderOptions, saveRecording } from "../src/shooter/recording/recordingMedia.js";
 
 test("recorder negotiates MP4, then WebM, then browser defaults", () => {
   assert.match(recorderOptions({ isTypeSupported: (type) => type === "video/mp4" }).mimeType, /mp4/);
   assert.equal(recorderOptions({ isTypeSupported: (type) => type === "video/webm" }).mimeType, "video/webm");
   assert.equal(recorderOptions({ isTypeSupported: () => false }).mimeType, undefined);
   assert.throws(() => recorderOptions(null), /지원하지 않습니다/);
+});
+
+test('wide framing uses the device minimum zoom and restores the original setting', async () => {
+  let zoom = 2;
+  const track = {
+    getCapabilities: () => ({zoom:{min:1,max:4}}),
+    getSettings: () => ({zoom}),
+    getConstraints: () => ({width:{ideal:1280}}),
+    applyConstraints: async constraints => {
+      assert.deepEqual(constraints.width,{ideal:1280});
+      zoom = constraints.zoom.exact;
+    },
+  };
+  assert.equal(await setCameraWideFraming(track,true,2),true);
+  assert.equal(zoom,1);
+  assert.equal(await setCameraWideFraming(track,false,2),true);
+  assert.equal(zoom,2);
+  assert.equal(await setCameraWideFraming({},true,undefined),false);
+  await assert.rejects(setCameraWideFraming({...track,applyConstraints:async()=>{throw new Error('blocked');}},true,2),/blocked/);
 });
 
 test("composite preserves the complete game and places the mirrored camera at its live position", () => {

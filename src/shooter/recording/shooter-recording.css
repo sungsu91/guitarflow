@@ -87,6 +87,8 @@ html body main.app.app.app.shooterMode button.shooterRecordingHudButton:focus-vi
 .shooterRecordingCamera--mobile .shooterRecordingLive { object-fit: contain; transform: scaleX(-1); }
 .shooterRecordingCamera--mobile .shooterRecordingControls { inset: 0 6px 0 auto; width: 82px; gap: 4px; flex-direction: column; }
 .shooterRecordingCamera--mobile .shooterRecordingControls button { min-height: 34px; padding: 5px 12px; }
+.shooterRecordingCamera--mobile .shooterRecordingControls .shooterRecordingWide { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 44px; padding: 6px; background: #15241fee; }
+.shooterRecordingFramingStatus { padding: 4px; border-radius: 6px; background: #07110ed9; color: #ffdf9e; font-size: 10px; line-height: 1.4; }
 .shooterRecordingCamera--mobile .shooterRecordingClock { position: static; padding: 2px 4px; }
 .shooterRecordingCamera--mobile .shooterRecordingControls [role="status"] { font-size: 10px; text-align: center; }
 

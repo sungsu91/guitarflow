@@ -1,6 +1,17 @@
 export const RECORDING_WIDTH = 1080;
 export const MOBILE_CAMERA_ZOOM = 1.6;
-export const MOBILE_CAMERA_HEIGHT = .35;
+export const MOBILE_CAMERA_HEIGHT = .35 * .9;
+
+export async function setCameraWideFraming(track, wide, originalZoom) {
+  let range;
+  try { range = track?.getCapabilities?.().zoom; } catch { return false; }
+  if (!track?.applyConstraints || !Number.isFinite(originalZoom) || !Number.isFinite(range?.min) || range.min >= originalZoom) return false;
+  const zoom = wide ? range.min : originalZoom;
+  // Preserve resolution/facing constraints; never request a different camera.
+  await track.applyConstraints({ ...track.getConstraints?.(), zoom: { exact: zoom } });
+  const actual = track.getSettings?.().zoom;
+  return Number.isFinite(actual) && Math.abs(actual - zoom) < .001;
+}
 
 export function cameraContainRect(sourceWidth, sourceHeight, width, height, zoom = 1) {
   // Enlarge vertically as requested, but never cut off the guitar at the sides.

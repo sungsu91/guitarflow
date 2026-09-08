@@ -96,6 +96,15 @@ try {
       assert.ok(Math.abs(geometry.cameraBottom - geometry.height) < 1);
       assert.equal(geometry.fit, "contain");
       assert.equal(await page.locator('.shooterRecordingCamera input[type="range"]').count(), 0);
+      const wide = page.getByRole('button', { name: '넓게 찍기', exact: true });
+      await wide.click();
+      await page.waitForFunction(() => document.querySelector('.shooterRecordingWide')?.getAttribute('aria-pressed') === 'true');
+      await wide.click();
+      await page.waitForFunction(() => document.querySelector('.shooterRecordingWide')?.getAttribute('aria-pressed') === 'false');
+      await wide.click();
+      await page.waitForFunction(() => document.querySelector('.shooterRecordingWide')?.getAttribute('aria-pressed') === 'true');
+      const cameraBounds = await page.locator('.shooterRecordingCamera').boundingBox();
+      assert.ok(Math.abs(cameraBounds.height / geometry.height - .315) < .005);
       const framing = await page.locator('.shooterRecordingLive').evaluate(video => {
         const r = video.getBoundingClientRect(), dock = video.parentElement.getBoundingClientRect();
         return {left:r.left,right:r.right,dockLeft:dock.left,dockRight:dock.right,aspect:r.width/r.height,sourceAspect:video.videoWidth/video.videoHeight};
@@ -124,6 +133,7 @@ try {
     await page.screenshot({ path: `${output}/${name}-preview.png` });
     await page.getByRole("button", { name: "● REC", exact: true }).click();
     await page.getByRole("button", { name: "녹화 중지" }).waitFor({ timeout: 30000 });
+    assert.equal(await page.getByRole('button', { name: '넓게 찍기', exact: true }).count(), 0);
     const initialReads = await page.evaluate(() => window.recordingQA.initialSettingsReads);
     await page.waitForTimeout(8000);
     assert.equal(await page.evaluate(() => window.recordingQA.initialSettingsReads), initialReads, "Gameplay renders must not reload initial arrangement settings");
