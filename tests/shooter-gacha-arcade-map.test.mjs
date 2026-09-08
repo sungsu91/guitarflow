@@ -55,7 +55,7 @@ test("only three clipped claws and one fixed-size star ring animate", () => {
     x: 1165, y: 2160, width: 320, height: 310,
   });
   assert.deepEqual(sprites.star_light_ring.placement, {
-    x: 388, y: 260, width: 760, height: 601,
+    x: 538, y: 379, width: 460, height: 364,
   });
   assert.deepEqual([
     sprites.claw_left_mid.delayMs,
@@ -89,9 +89,10 @@ test("only three clipped claws and one fixed-size star ring animate", () => {
     { x: 0, y: 35 }, { x: 235, y: 60 }, { x: 225, y: 285 }, { x: 0, y: 260 },
   ]);
   assert.equal(sprites.star_light_ring.frameCount, 24);
-  assert.equal(sprites.star_light_ring.framesPerSecond, 6);
-  assert.equal(sprites.star_light_ring.durationMs, 4000);
+  assert.equal(sprites.star_light_ring.framesPerSecond, 8);
+  assert.equal(sprites.star_light_ring.durationMs, 3000);
   assert.equal(sprites.star_light_ring.scaleChange, false);
+  assert.equal(sprites.star_light_ring.rotationTurns, 1);
 });
 
 test("runtime loads one background and four sheets without individual frame duplication", async () => {
@@ -144,6 +145,7 @@ test("renderer uses one visibility-aware 10Hz loop without React frame state or 
   assert.doesNotMatch(field, /transform.*scale|scale\(/i);
   assert.match(field, /clipPath: getGlassClipPath\(sprite\)/);
   assert.match(field, /elapsedMs \+ \(sprite\.phaseOffsetMs \?\? 0\)/);
+  assert.match(field, /element\.style\.transform = `rotate\(/);
   assert.match(styles, /\.shooterMapGachaArcadeField[\s\S]*?overflow: hidden/);
   assert.match(styles, /\.shooterMapGachaArcadeSprite[\s\S]*?overflow: hidden/);
   assert.doesNotMatch(styles, /shooterMapGachaArcadeSprite[^{]*\{[^}]*transform\s*:/s);

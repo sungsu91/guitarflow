@@ -80,12 +80,13 @@ const sprites = Object.freeze([
     columns: 6,
     rows: 4,
     frameCount: 24,
-    framesPerSecond: 6,
-    durationMs: 4000,
+    framesPerSecond: 8,
+    durationMs: 3000,
     delayMs: 0,
     phaseOffsetMs: 1000,
     scaleChange: false,
-    placement: Object.freeze({ x: 388, y: 260, width: 760, height: 601 }),
+    rotationTurns: 1,
+    placement: Object.freeze({ x: 538, y: 379, width: 460, height: 364 }),
   },
 ].map((sprite) => Object.freeze(sprite)));
 
@@ -105,7 +106,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
       mode: "full",
       audit: Object.freeze({
         completed: true,
-        contentFingerprint: "6771cc4b",
+        contentFingerprint: "abc2d352",
         activeCssAnimations: 0,
         ambientEventLayers: 0,
         filteredElements: 0,

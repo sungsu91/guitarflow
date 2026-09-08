@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,7 +16,7 @@ SHEETS = (
 )
 
 PLUSH_SOURCE = SOURCE_DIR / "claw_bunny_plush_source.png"
-CLAW_RENDER_SCALE = 1.35
+CLAW_RENDER_SCALE = 1.65
 
 
 def broad_row_groups(alpha: Image.Image) -> list[list[int]]:
@@ -41,6 +41,21 @@ def add_tension_glint(frame: Image.Image, x: int, y: int) -> None:
     draw.line((x, y - 2, x, y + 2), fill=pale, width=2)
 
 
+def add_claw_with_depth(frame: Image.Image, claw: Image.Image, x: int, y: int) -> None:
+    alpha = claw.getchannel("A")
+    shadow_alpha = alpha.filter(ImageFilter.GaussianBlur(2)).point(lambda value: round(value * 0.72))
+    shadow = Image.new("RGBA", claw.size, (47, 17, 58, 0))
+    shadow.putalpha(shadow_alpha)
+    frame.alpha_composite(shadow, (x + 3, y + 4))
+
+    expanded_alpha = alpha.filter(ImageFilter.MaxFilter(5))
+    outline_alpha = ImageChops.subtract(expanded_alpha, alpha).point(lambda value: round(value * 0.9))
+    outline = Image.new("RGBA", claw.size, (74, 24, 78, 0))
+    outline.putalpha(outline_alpha)
+    frame.alpha_composite(outline, (x, y))
+    frame.alpha_composite(claw, (x, y))
+
+
 def build_runtime_sheet(source_name: str, output_name: str, frame_width: int, frame_height: int) -> None:
     source = Image.open(SOURCE_DIR / source_name).convert("RGBA")
     output = Image.new("RGBA", source.size, (0, 0, 0, 0))
@@ -49,7 +64,7 @@ def build_runtime_sheet(source_name: str, output_name: str, frame_width: int, fr
     if plush_bbox is None:
         raise RuntimeError("The generated bunny plush source has no visible pixels")
     plush_source = plush_source.crop(plush_bbox)
-    plush_height = round(frame_width * 0.22)
+    plush_height = round(frame_width * 0.44)
     plush_width = round(plush_source.width * plush_height / plush_source.height)
     plush = plush_source.resize((plush_width, plush_height), Image.Resampling.LANCZOS)
 
@@ -94,7 +109,7 @@ def build_runtime_sheet(source_name: str, output_name: str, frame_width: int, fr
             round(claw_crop.height * CLAW_RENDER_SCALE),
         ), Image.Resampling.LANCZOS)
         claw_left = center_x - claw_crop.width // 2
-        lift_y = -8 if frame_index == 16 else 0
+        lift_y = -14 if frame_index == 16 else 0
         rendered_claw_top = claw_top + lift_y
         rendered_claw_bottom = rendered_claw_top + claw_crop.height
 
@@ -107,18 +122,21 @@ def build_runtime_sheet(source_name: str, output_name: str, frame_width: int, fr
 
         if frame_index in (15, 16, 17):
             plush_x = center_x - plush_width // 2
-            plush_y = rendered_claw_bottom - round(plush_height * 0.38)
+            base_claw_bottom = claw_top + claw_crop.height
+            plush_bottom = min(frame_height - 8, base_claw_bottom + round(plush_height * 0.55)) + lift_y
+            plush_y = plush_bottom - plush_height
             runtime_frame.alpha_composite(plush, (plush_x, plush_y))
 
+        rendered_claw = claw_crop
         if frame_index == 13:
             # Add one visible articulation step without resizing the fingers.
             half = claw_crop.width // 2
             left_half = claw_crop.crop((0, 0, half + 2, claw_crop.height))
             right_half = claw_crop.crop((half - 2, 0, claw_crop.width, claw_crop.height))
-            runtime_frame.alpha_composite(left_half, (claw_left + 2, rendered_claw_top))
-            runtime_frame.alpha_composite(right_half, (claw_left + half - 4, rendered_claw_top))
-        else:
-            runtime_frame.alpha_composite(claw_crop, (claw_left, rendered_claw_top))
+            rendered_claw = Image.new("RGBA", claw_crop.size, (0, 0, 0, 0))
+            rendered_claw.alpha_composite(left_half, (2, 0))
+            rendered_claw.alpha_composite(right_half, (half - 4, 0))
+        add_claw_with_depth(runtime_frame, rendered_claw, claw_left, rendered_claw_top)
 
         # The carriage follows the rail horizontally but never descends with the claw.
         runtime_frame.alpha_composite(carriage_crop, (carriage_left, 2))
