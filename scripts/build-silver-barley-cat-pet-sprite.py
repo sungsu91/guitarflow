@@ -14,8 +14,8 @@ FRAME_COUNT = SOURCE_COLUMNS * SOURCE_ROWS
 FRAME_SIZE = 128
 SOURCE_RENDER_SIZE = 122
 GROUND_Y = 124
-POSE_HOLD_FRAMES = 2
-TRANSITION_FRAMES = 3
+POSE_HOLD_FRAMES = 4
+TRANSITION_FRAMES = 1
 RUNTIME_FRAME_COUNT = FRAME_COUNT * (POSE_HOLD_FRAMES + TRANSITION_FRAMES)
 SOURCE = PET_DIR / "source/silver-barley-cat-actions-imagegen-fixed-checkerboard.png"
 MASTER = PET_DIR / "silver-barley-cat-actions-master-6x4.png"
@@ -174,7 +174,8 @@ def normalize_runtime(master: Image.Image) -> Image.Image:
     for frame_index, pose in enumerate(poses):
         next_pose = poses[(frame_index + 1) % len(poses)]
         runtime_frames.extend([pose] * POSE_HOLD_FRAMES)
-        # Three blended frames soften the otherwise abrupt pose replacement.
+        # One short blend softens the pose change without creating constant
+        # ghosted motion; the longer hold keeps each action calm and readable.
         for tween_index in range(1, TRANSITION_FRAMES + 1):
             progress = tween_index / (TRANSITION_FRAMES + 1)
             runtime_frames.append(Image.blend(pose, next_pose, progress))
