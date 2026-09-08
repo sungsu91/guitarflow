@@ -105,7 +105,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
   label: "인형뽑기방",
   nameKo: "인형뽑기방",
   nameEn: "Gacha Arcade",
-  description: "빈 전용 단상에 배치된 좌측 네 대와 우측 세 대의 독립 인형뽑기 기계",
+  description: "벽면에 밀착된 전용 단상 위 좌측 네 대와 우측 세 대의 독립 인형뽑기 기계",
   mobileOnly: false,
   portraitOnly: true,
   previewImage: GACHA_ARCADE_RUNTIME_BACKGROUND,
@@ -115,7 +115,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
       mode: "full",
       audit: Object.freeze({
         completed: true,
-        contentFingerprint: "a2251c42",
+        contentFingerprint: "3c52019c",
         activeCssAnimations: 0,
         ambientEventLayers: 0,
         filteredElements: 0,
@@ -138,7 +138,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
     locked: true,
   }),
   runtimeAnimation: Object.freeze({
-    version: "3.4.0",
+    version: "3.5.0",
     canvasWidth: GACHA_ARCADE_CANVAS.width,
     canvasHeight: GACHA_ARCADE_CANVAS.height,
     clockFramesPerSecond: 10,

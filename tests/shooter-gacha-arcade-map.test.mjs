@@ -11,7 +11,7 @@ const assetRoot = new URL("../public/assets/maps/gacha-arcade/", import.meta.url
 
 test("V3 manifest fixes the shared axis, corridor, and seven machine slots", async () => {
   const manifest = JSON.parse(await readFile(new URL("asset_manifest.json", assetRoot), "utf8"));
-  assert.equal(manifest.version, "3.4.0");
+  assert.equal(manifest.version, "3.5.0");
   assert.equal(manifest.canvas.center_axis_x, 768);
   assert.deepEqual(manifest.canvas.clear_corridor, { left: 460, right: 1076 });
   assert.equal(manifest.layout_rules.machine_rotation_degrees, 0);
@@ -26,7 +26,7 @@ test("V3 manifest fixes the shared axis, corridor, and seven machine slots", asy
 });
 
 test("gacha arcade V3 uses an empty seven-bay background and layered render order", () => {
-  assert.equal(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.version, "3.4.0");
+  assert.equal(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.version, "3.5.0");
   assert.deepEqual(getShooterMapPerformancePolicy(GACHA_ARCADE_MAP_SKIN), {
     mobileGameplayEffects: "full",
     mobileGameplayAuditPassed: true,
@@ -73,13 +73,13 @@ test("four left and three right cabinets each own one staggered clipped claw", (
     "machine_left_4",
   ]);
   assert.deepEqual(machines.map((machine) => machine.placement), [
-    { x: 146, y: 347, width: 308, height: 462 },
-    { x: 1081, y: 438, width: 330, height: 495 },
-    { x: 39, y: 606, width: 413, height: 620 },
-    { x: 1081, y: 800, width: 440, height: 660 },
-    { x: -42, y: 1091, width: 484, height: 726 },
-    { x: 1078, y: 1472, width: 506, height: 759 },
-    { x: -108, y: 1857, width: 517, height: 776 },
+    { x: 76, y: 305, width: 339, height: 509 },
+    { x: 1120, y: 393, width: 363, height: 545 },
+    { x: -17, y: 552, width: 454, height: 681 },
+    { x: 1089, y: 741, width: 484, height: 726 },
+    { x: -81, y: 1027, width: 532, height: 798 },
+    { x: 1077, y: 1403, width: 557, height: 836 },
+    { x: -134, y: 1787, width: 569, height: 854 },
   ]);
   for (const [index, machine] of machines.entries()) {
     const platform = platforms[index];
