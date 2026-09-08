@@ -15,6 +15,14 @@ const results = [];
 try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, permissions: ["camera", "microphone"] });
   const errors = [];
+  await page.addInitScript(() => {
+    const serialize = XMLSerializer.prototype.serializeToString;
+    XMLSerializer.prototype.serializeToString = function(node) {
+      const markup = serialize.call(this, node);
+      if (/<foreignObject\b/i.test(markup)) throw new Error('Recording must not rasterize HTML through SVG foreignObject');
+      return markup;
+    };
+  });
   page.on("pageerror", error => errors.push(error.message));
   await page.goto(`${origin}/#shooter`);
   await page.getByRole("button", { name: "촬영모드", exact: true }).waitFor();

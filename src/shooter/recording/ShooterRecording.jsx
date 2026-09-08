@@ -47,6 +47,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
   const versionRef = useRef(0);
   const mounted = useRef(true);
   const active = !["idle", "requesting"].includes(phase);
+  const cameraVisible = active && phase !== "review";
   const callbacks = useRef({ onActiveChange });
   callbacks.current = { onActiveChange };
 
@@ -193,7 +194,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
   }
 
   useEffect(() => {
-    if (!active || !videoRef.current || !sessionRef.current) return;
+    if (!cameraVisible || !videoRef.current || !sessionRef.current) return;
     const video = videoRef.current;
     const session = sessionRef.current;
     let attached = true;
@@ -201,8 +202,8 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     video.play().catch(() => {
       if (attached && !session.disposed) close("카메라 프리뷰를 시작할 수 없습니다. 다시 시도해주세요.");
     });
-    return () => { attached = false; video.srcObject = null; };
-  }, [active]);
+    return () => { attached = false; video.pause(); video.srcObject = null; };
+  }, [cameraVisible]);
 
   useEffect(() => {
     if (phase !== "review") return;
@@ -407,7 +408,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     ) : null}
     {!active ? <div className="shooterRecordingEntry">
       {error ? <div className="shooterRecordingError" role="alert">{error}<button onClick={() => setError("")} type="button" aria-label="알림 닫기">×</button></div> : null}
-    </div> : <CameraLayout style={cameraStyle}>
+    </div> : cameraVisible ? <CameraLayout style={cameraStyle}>
       <video className="shooterRecordingLive" ref={videoRef} autoPlay muted playsInline onLoadedData={() => setCameraReady(true)} aria-label="촬영 구도 확인" />
       {!mobile ? <><button className="shooterRecordingDrag" type="button" aria-label="카메라 위치 이동" title="드래그 또는 방향키로 이동"
         onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); dragRef.current = { x: event.clientX, y: event.clientY }; }}
@@ -420,7 +421,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
         onPointerUp={() => { resizeRef.current = null; }} onPointerCancel={() => { resizeRef.current = null; }} onLostPointerCapture={() => { resizeRef.current = null; }}
         onKeyDown={event => { const delta = { ArrowLeft: -8, ArrowUp: -8, ArrowRight: 8, ArrowDown: 8 }[event.key]; if (delta) { event.preventDefault(); resizeCamera(delta); } }}>◢</button></> : null}
       <CameraControls phase={phase} seconds={seconds} start={start} stop={stop} ready={cameraReady} />
-    </CameraLayout>}
+    </CameraLayout> : null}
     {phase === "review" && result ? <div ref={reviewRef} className="shooterRecordingReview" role="dialog" aria-modal="true" aria-label="촬영 결과 확인" onKeyDown={(event) => {
       if (event.key !== "Tab") return;
       const controls = [...reviewRef.current.querySelectorAll("video, button:not(:disabled)")];

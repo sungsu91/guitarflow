@@ -1,0 +1,94 @@
+[
+  {
+    "name": "mobile",
+    "before": {
+      "width": 430,
+      "height": 804,
+      "nav": true
+    },
+    "video": {
+      "width": 1080,
+      "height": 2340,
+      "size": 9255971,
+      "type": "video/mp4",
+      "url": "blob:http://127.0.0.1:5179/a5cff6d3-c508-41f4-a2c0-f3eb0521a8ac"
+    },
+    "resources": {
+      "camera": [
+        "ended"
+      ],
+      "outputs": [
+        "ended",
+        "ended"
+      ],
+      "micLive": true,
+      "captureFrames": 0
+    }
+  },
+  {
+    "name": "desktop",
+    "before": {
+      "width": 283,
+      "height": 616,
+      "nav": true
+    },
+    "video": {
+      "width": 1080,
+      "height": 706,
+      "size": 6509505,
+      "type": "video/mp4",
+      "url": "blob:http://127.0.0.1:5179/1c218460-43db-4642-b479-e41fb91381dc"
+    },
+    "resources": {
+      "camera": [
+        "ended"
+      ],
+      "outputs": [
+        "ended",
+        "ended"
+      ],
+      "micLive": true,
+      "captureFrames": 0
+    }
+  },
+  {
+    "name": "denyCamera",
+    "passed": true
+  },
+  {
+    "name": "denyMicrophone",
+    "passed": true
+  },
+  {
+    "name": "unsupported",
+    "passed": true
+  },
+  {
+    "name": "failRecorder",
+    "passed": true
+  },
+  {
+    "name": "lateCamera",
+    "passed": true
+  },
+  {
+    "name": "navigation",
+    "passed": true
+  },
+  {
+    "name": "recordingError",
+    "passed": true
+  },
+  {
+    "name": "endedTrack",
+    "passed": true
+  },
+  {
+    "name": "emptyBlob",
+    "passed": true
+  },
+  {
+    "name": "urlFailure",
+    "passed": true
+  }
+]

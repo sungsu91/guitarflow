@@ -124,6 +124,7 @@ try {
     await page.getByRole("button", { name: "녹화 중지" }).click();
     await page.getByRole("button", { name: "영상 저장", exact: true }).waitFor({ timeout: 20000 });
     await page.waitForFunction(() => document.querySelector(".shooterRecordingReview video")?.readyState >= 2);
+    assert.equal(await page.locator('.shooterRecordingCamera').count(), 0, 'Live camera must unmount during playback');
     const reviewGeometry = await page.locator(".shooterRecordingReview").evaluate(node => {
       const video = node.querySelector("video"), actions = node.querySelector(":scope > div");
       return { fit: getComputedStyle(video).objectFit, bottom: video.getBoundingClientRect().bottom, actionsTop: actions.getBoundingClientRect().top, actionsBottom: actions.getBoundingClientRect().bottom, height: node.getBoundingClientRect().bottom };
@@ -164,6 +165,8 @@ try {
     await download.saveAs(`${output}/${name}.${video.type.includes("mp4") ? "mp4" : "webm"}`);
     await page.screenshot({ path: `${output}/${name}-review.png` });
     await page.getByRole("button", { name: "다시 촬영", exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('.shooterRecordingCamera video')?.readyState >= 2);
+    assert.equal(await page.locator('.shooterRecordingReview').count(), 0);
     assert.ok(await page.evaluate(url => window.recordingQA.revoked.includes(url), video.url));
     await page.getByRole("button", { name: "촬영모드 종료", exact: true }).click();
     assert.deepEqual(await metrics(page), before);

@@ -1,5 +1,5 @@
 import { RECORDING_WIDTH } from "./recordingMedia.js";
-import { createPaintTexture } from "./paintTexture.js";
+import { createPaintTexture } from "./canvasPaintTexture.js";
 const UI = ".mobileShooterTopHud,.mobileShooterTargetHud,.mobileShooterScoreHud,.mobileShooterLives,.shooterCenterStatus,.shooterCountInOverlay,.shooterScenarioCountdown,.shooterScenarioRoundSummary,.shooterPitchMonitorMobile,.shooterPitchMonitorDesktop,.shooterEnemyPitchLabel,.shooterGuitarCabinet--gameplay";
 const urlFrom = (value) => /^url\(["']?(.*?)["']?\)$/.exec(value)?.[1];
 const number = (value) => Number.parseFloat(value) || 0;
@@ -214,6 +214,7 @@ export function createSceneCapture(panel) {
   }
   function paint(n, parent, root = false) {
     if (!(n instanceof HTMLElement || n instanceof SVGElement)) return;
+    if (n.matches('[data-recording-ui],.shooterRecordingReview,.shooterRecordingCamera')) return;
     const s = style(n);
     if (s.display === "none" || s.visibility === "hidden" || number(s.opacity) === 0) return;
     const w = boxSize(n, s, "width"), h = boxSize(n, s, "height");
