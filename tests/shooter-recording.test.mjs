@@ -66,16 +66,16 @@ test("resizing camera preserves aspect and clamps all sizes inside the panel", (
   }
 });
 
-test("mobile bottom dock fills its whole width with an undistorted camera crop", () => {
+test("mobile bottom dock shows the full camera framing without cropping the player", () => {
   const calls = [];
   const ctx = Object.fromEntries(["fillRect", "drawImage", "save", "translate", "scale", "restore"].map(name => [name, (...args) => calls.push([name, ...args])]));
   const game = { width: 430, height: 844 };
   const camera = { readyState: 2, videoWidth: 1280, videoHeight: 720 };
-  drawComposite(ctx, game, camera, 430, 932, { x: 0, y: 844/932, width: 1, height: 88/932, gameFraction: 844/932, fit: "cover" });
+  drawComposite(ctx, game, camera, 430, 932, { x: 0, y: 844/932, width: 1, height: 88/932, gameFraction: 844/932, fit: "contain" });
   const frames = calls.filter(([name]) => name === "drawImage");
   assert.deepEqual(frames[0].slice(2), [0, 0, 430, 844]);
-  assert.deepEqual(frames[1].slice(6), [0, 0, 430, 88]);
-  assert.ok(Math.abs(frames[1][4] / frames[1][5] - 430/88) < 1e-10);
+  assert.equal(frames[1].length, 6, "Draw the complete source without a crop rectangle");
+  assert.ok(Math.abs(frames[1][4] / frames[1][5] - 1280/720) < 1e-10);
   assert.ok(calls.some(([name,x,y]) => name === "translate" && x === 430 && y === 844));
 });
 

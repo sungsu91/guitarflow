@@ -135,7 +135,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
       const viewport = window.visualViewport;
       if (mobile) {
         const vh = viewport?.height || window.innerHeight;
-        const lift = arena.clientHeight * .125;
+        const lift = arena.clientHeight * .16;
         arena.style.setProperty("--recording-lift", `${lift}px`);
         arena.dataset.recordingRaised = "true";
         const liftPixels = lift * arena.getBoundingClientRect().height / arena.clientHeight;
@@ -143,7 +143,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
         const cameraHeight = Math.max(0, vh - top);
         const visibleGameHeight = bounds.height - liftPixels;
         const totalHeight = visibleGameHeight + cameraHeight;
-        overlayRef.current = { x: 0, y: visibleGameHeight / totalHeight, width: 1, height: cameraHeight / totalHeight, gameFraction: visibleGameHeight / totalHeight, gameSourceFraction: visibleGameHeight / bounds.height, fit: "cover" };
+        overlayRef.current = { x: 0, y: visibleGameHeight / totalHeight, width: 1, height: cameraHeight / totalHeight, gameFraction: visibleGameHeight / totalHeight, gameSourceFraction: visibleGameHeight / bounds.height, fit: "contain" };
         setCameraStyle({ left: bounds.left - (viewport?.offsetLeft || 0), top, width: bounds.width, height: cameraHeight });
         return;
       }
@@ -223,10 +223,10 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     sessionRef.current = session;
     const current = () => token === versionRef.current && !session.disposed;
     try {
+      if (!window.isSecureContext) throw new Error("촬영에는 보안 연결이 필요합니다. HTTPS 주소로 열어주세요. [SECURE_CONTEXT]");
       recorderOptions();
-      if (!navigator.mediaDevices?.getUserMedia || !HTMLCanvasElement.prototype.captureStream) {
-        throw new Error("이 환경에서는 합성 촬영을 지원하지 않습니다. HTTPS의 최신 Safari 또는 Chrome에서 열어주세요.");
-      }
+      if (!navigator.mediaDevices?.getUserMedia) throw new Error("현재 실행 환경에서 카메라에 접근할 수 없습니다. Safari에서 같은 주소를 직접 열어 확인해주세요. [CAMERA_API]");
+      if (!HTMLCanvasElement.prototype.captureStream) throw new Error("현재 실행 환경에서 게임 화면의 영상 출력을 지원하지 않습니다. [CANVAS_STREAM]");
       session.camera = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "user" }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
       if (!current()) { stopTracks(session.camera); return; }
       if (!getActiveMicInputSession()?.rawStream?.getAudioTracks().some((track) => track.readyState === "live")) {

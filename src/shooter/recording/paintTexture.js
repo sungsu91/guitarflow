@@ -123,23 +123,35 @@ export function createPaintTexture(panel, options = {}) {
       clone.style.left = `${padding}px`;
       clone.style.top = `${padding}px`;
       wrapper.append(clone);
-      // Detect browsers that decode SVG but silently omit foreignObject HTML.
-      const probe = document.createElement("span");
-      probe.style.cssText = "position:absolute;left:0;top:0;width:4px;height:4px;background:rgb(1,2,3);z-index:2147483647;";
-      wrapper.append(probe);
       const markup = new XMLSerializer().serializeToString(wrapper);
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.ceil((width + padding * 2) * resolution)}" height="${Math.ceil((height + padding * 2) * resolution)}" viewBox="0 0 ${width + padding * 2} ${height + padding * 2}"><foreignObject width="${width + padding * 2}" height="${height + padding * 2}">${markup}</foreignObject></svg>`;
+      const pixelWidth = Math.ceil((width + padding * 2) * resolution);
+      const pixelHeight = Math.ceil((height + padding * 2) * resolution);
+      // An isolated HTML probe sits OUTSIDE the captured artwork. Overflowing
+      // children, transforms and color rounding must not reject a valid image.
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${pixelWidth + 8}" height="${pixelHeight}"><svg width="${pixelWidth}" height="${pixelHeight}" viewBox="0 0 ${width + padding * 2} ${height + padding * 2}"><foreignObject width="${width + padding * 2}" height="${height + padding * 2}">${markup}</foreignObject></svg><foreignObject x="${pixelWidth}" y="0" width="8" height="8"><div xmlns="http://www.w3.org/1999/xhtml" style="width:8px;height:8px;background:#ff00ff"></div></foreignObject></svg>`;
       const img = new Image();
       img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
       await img.decode();
       if (disposed) throw new Error("촬영이 종료되었습니다.");
-      canvas.width = Math.ceil((width + padding * 2) * resolution);
-      canvas.height = Math.ceil((height + padding * 2) * resolution);
+      const probe = document.createElement("canvas");
+      probe.width = probe.height = 8;
+      const probeContext = probe.getContext("2d", { willReadFrequently: true });
+      const checkPaint = () => {
+        probeContext.clearRect(0, 0, 8, 8);
+        probeContext.drawImage(img, pixelWidth, 0, 8, 8, 0, 0, 8, 8);
+        const pixel = probeContext.getImageData(4, 4, 1, 1).data;
+        return pixel[3] >= 240 && pixel[0] >= 160 && pixel[2] >= 160 && pixel[1] <= 100;
+      };
+      if (!checkPaint()) {
+        // Retry a blank first draw before declaring conversion unavailable.
+        await new Promise(resolve => setTimeout(resolve, 32));
+        if (disposed) throw new Error("촬영이 종료되었습니다.");
+        if (!checkPaint()) throw new Error("게임 화면을 영상으로 변환하지 못했습니다. Safari에서 같은 주소를 직접 열어 다시 촬영해주세요. [FRAME_PAINT]");
+      }
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
       context.clearRect(0, 0, canvas.width, canvas.height);
-      context.drawImage(img, 0, 0);
-      const pixel = context.getImageData(Math.floor(resolution * 2), Math.floor(resolution * 2), 1, 1).data;
-      if (pixel[3] !== 255 || pixel[0] > 4 || pixel[1] > 5 || pixel[2] > 6) throw new Error("이 브라우저에서는 게임 화면을 정확히 녹화할 수 없습니다. 최신 브라우저에서 다시 시도해주세요.");
-      context.clearRect(0, 0, Math.ceil(resolution * 4), Math.ceil(resolution * 4));
+      context.drawImage(img, 0, 0, pixelWidth, pixelHeight, 0, 0, pixelWidth, pixelHeight);
       return canvas;
     }
   };

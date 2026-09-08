@@ -12,6 +12,7 @@ const origin = process.env.RECORDING_TEST_URL || "http://127.0.0.1:5173";
 const output = process.env.RECORDING_TEST_OUTPUT || "artifacts/shooter-recording";
 await mkdir(output, { recursive: true });
 const results = [];
+const mobileOnly = process.env.RECORDING_TEST_MOBILE_ONLY === "1";
 
 async function open(mobile = true, fault = "") {
   const context = await browser.newContext({ viewport: mobile ? { width: 390, height: 844 } : { width: 1366, height: 768 }, isMobile: mobile, hasTouch: mobile, permissions: ["camera", "microphone"] });
@@ -76,7 +77,7 @@ async function assertReleased(page) {
 }
 
 try {
-  for (const mobile of [true, false]) {
+  for (const mobile of (mobileOnly ? [true] : [true, false])) {
     const { page, context, errors } = await open(mobile);
     const name = mobile ? "mobile" : "desktop";
     const before = await metrics(page);
@@ -89,11 +90,11 @@ try {
       const geometry = await page.evaluate(() => {
         const panel = document.querySelector(".shooterPanel").getBoundingClientRect();
         const camera = document.querySelector(".shooterRecordingCamera").getBoundingClientRect();
-        return { panelBottom: panel.bottom, lift: document.querySelector(".shooterArena").getBoundingClientRect().height * .125, cameraTop: camera.top, cameraBottom: camera.bottom, height: window.innerHeight, fit: getComputedStyle(document.querySelector(".shooterRecordingLive")).objectFit };
+        return { panelBottom: panel.bottom, lift: document.querySelector(".shooterArena").getBoundingClientRect().height * .16, cameraTop: camera.top, cameraBottom: camera.bottom, height: window.innerHeight, fit: getComputedStyle(document.querySelector(".shooterRecordingLive")).objectFit };
       });
       assert.ok(Math.abs(geometry.panelBottom - geometry.lift - geometry.cameraTop) < 1);
       assert.ok(Math.abs(geometry.cameraBottom - geometry.height) < 1);
-      assert.equal(geometry.fit, "cover");
+      assert.equal(geometry.fit, "contain");
       assert.equal(await page.getByRole("button", { name: "카메라 위치 이동" }).count(), 0);
     } else {
     const cameraBefore = await page.locator(".shooterRecordingCamera").boundingBox();
@@ -172,7 +173,7 @@ try {
     results.push({ name, before, video, resources });
     await context.close();
   }
-  for (const fault of ["denyCamera", "denyMicrophone", "unsupported", "failRecorder", "lateCamera", "navigation", "recordingError", "endedTrack", "emptyBlob", "urlFailure"]) {
+  for (const fault of (mobileOnly ? [] : ["denyCamera", "denyMicrophone", "unsupported", "failRecorder", "lateCamera", "navigation", "recordingError", "endedTrack", "emptyBlob", "urlFailure"])) {
     const { page, context, errors } = await open(true, fault);
     const before = await metrics(page);
     if (fault === "unsupported") await page.evaluate(() => { window.MediaRecorder = undefined; });

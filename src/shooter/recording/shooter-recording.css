@@ -83,7 +83,7 @@ html body main.app.app.app.shooterMode button.shooterRecordingHudButton:focus-vi
 
 /* Mobile camera replaces the navigation rail without resizing the arena. */
 .shooterRecordingCamera--mobile { border-radius: 0; box-shadow: inset 0 1px #d2ab5838; background: #09110e; }
-.shooterRecordingCamera--mobile .shooterRecordingLive { object-fit: cover; }
+.shooterRecordingCamera--mobile .shooterRecordingLive { object-fit: contain; }
 .shooterRecordingCamera--mobile .shooterRecordingControls { inset: 0 6px 0 auto; width: 82px; gap: 4px; flex-direction: column; }
 .shooterRecordingCamera--mobile .shooterRecordingControls button { min-height: 34px; padding: 5px 12px; }
 .shooterRecordingCamera--mobile .shooterRecordingClock { position: static; padding: 2px 4px; }

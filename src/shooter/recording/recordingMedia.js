@@ -1,7 +1,7 @@
 export const RECORDING_WIDTH = 1080;
 
 export function recorderOptions(Recorder = globalThis.MediaRecorder) {
-  if (!Recorder) throw new Error("이 브라우저는 영상 녹화를 지원하지 않습니다. 최신 Safari 또는 Chrome에서 열어주세요.");
+  if (!Recorder) throw new Error("현재 실행 환경에서 영상 녹화 기능을 지원하지 않습니다. Safari에서 같은 주소를 직접 열어 확인해주세요. [RECORDER_API]");
   // Let the MP4 encoder select a level appropriate for tall 1080px recordings.
   const mimeType = ["video/mp4", "video/webm;codecs=vp8,opus", "video/webm"]
     .find((type) => Recorder.isTypeSupported?.(type));
