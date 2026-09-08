@@ -34143,8 +34143,8 @@ function App({ onReady }) {
                               aria-hidden="true"
                               className={`shooterPetSkinPreview ${skin.sheetSrc ? "shooterPetSkinPreview--sprite" : "shooterPetSkinPreview--none"}`}
                               style={skin.sheetSrc ? {
-                                backgroundImage: `url(${skin.sheetSrc})`,
-                                backgroundSize: `${skin.columns * 100}% 100%`,
+                                "--shooter-pet-preview-image": `url(${skin.sheetSrc})`,
+                                "--shooter-pet-preview-columns": skin.columns,
                               } : undefined}
                             >
                               {skin.sheetSrc ? null : "—"}
