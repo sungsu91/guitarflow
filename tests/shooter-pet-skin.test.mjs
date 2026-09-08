@@ -19,7 +19,7 @@ test("cream Pomeranian is an optional persisted 36-frame action pet skin", async
   const pet = getShooterPetSkinById("cream-pomeranian");
 
   assert.equal(DEFAULT_SHOOTER_PET_SKIN_ID, "cream-pomeranian");
-  assert.equal(SHOOTER_PET_SKINS.length, 2);
+  assert.equal(SHOOTER_PET_SKINS.length, 3);
   assert.equal(pet.columns, 36);
   assert.equal(pet.frameCount, 36);
   assert.equal(pet.framesPerSecond, 3);

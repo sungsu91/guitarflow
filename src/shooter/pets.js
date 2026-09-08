@@ -1,6 +1,7 @@
 export const SHOOTER_PET_SKIN_IDS = Object.freeze({
   NONE: "none",
   CREAM_POMERANIAN: "cream-pomeranian",
+  SILVER_BARLEY_CAT: "silver-barley-cat",
 });
 
 export const SHOOTER_PET_SKINS = Object.freeze([
@@ -21,6 +22,16 @@ export const SHOOTER_PET_SKINS = Object.freeze([
     masterSrc: "/assets/pets/pomeranian/pomeranian-pet-actions-master-6x4.png",
     columns: 36,
     frameCount: 36,
+    framesPerSecond: 3,
+  }),
+  Object.freeze({
+    id: SHOOTER_PET_SKIN_IDS.SILVER_BARLEY_CAT,
+    label: "실버 고양이",
+    description: "보리풀 놀이와 꾹꾹이, 앞발 핥기와 세수를 하는 은백색 고양이",
+    sheetSrc: "/assets/pets/silver-barley-cat/silver-barley-cat-actions-sheet-60x1.png",
+    masterSrc: "/assets/pets/silver-barley-cat/silver-barley-cat-actions-master-6x4.png",
+    columns: 60,
+    frameCount: 60,
     framesPerSecond: 3,
   }),
 ]);
