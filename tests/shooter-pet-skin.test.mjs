@@ -75,8 +75,8 @@ test("every pet catalog preview uses a small undistorted sprite viewport", async
   ]);
 
   assert.match(app, /"--shooter-pet-preview-image": `url\(\$\{skin\.sheetSrc\}\)`/);
-  assert.match(app, /"--shooter-pet-preview-columns": skin\.columns/);
+  assert.match(app, /"--shooter-pet-preview-sheet-size": `\$\{skin\.columns \* 100\}%`/);
   assert.match(style, /\.shooterPetSkinPreview--sprite::before[\s\S]*?width: 64px;[\s\S]*?height: 64px;/);
-  assert.match(style, /background-size: calc\(var\(--shooter-pet-preview-columns, 1\) \* 100%\) 100%/);
+  assert.match(style, /background-size: var\(--shooter-pet-preview-sheet-size, 100%\) 100%/);
   assert.match(style, /@media \(max-width: 430px\)[\s\S]*?\.shooterPetSkinPreview--sprite::before[\s\S]*?width: 56px;[\s\S]*?height: 56px;/);
 });

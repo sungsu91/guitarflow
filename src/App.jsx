@@ -34144,7 +34144,7 @@ function App({ onReady }) {
                               className={`shooterPetSkinPreview ${skin.sheetSrc ? "shooterPetSkinPreview--sprite" : "shooterPetSkinPreview--none"}`}
                               style={skin.sheetSrc ? {
                                 "--shooter-pet-preview-image": `url(${skin.sheetSrc})`,
-                                "--shooter-pet-preview-columns": skin.columns,
+                                "--shooter-pet-preview-sheet-size": `${skin.columns * 100}%`,
                               } : undefined}
                             >
                               {skin.sheetSrc ? null : "—"}

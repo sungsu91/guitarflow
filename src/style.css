@@ -74126,7 +74126,7 @@ html body main.app.app.app.shooterMode .shooterArena button.shooterPetCompanion:
   background-image: var(--shooter-pet-preview-image);
   background-position: 0 50%;
   background-repeat: no-repeat;
-  background-size: calc(var(--shooter-pet-preview-columns, 1) * 100%) 100%;
+  background-size: var(--shooter-pet-preview-sheet-size, 100%) 100%;
   filter: drop-shadow(0 3px 3px rgba(36, 20, 10, 0.18));
   image-rendering: auto;
 }
