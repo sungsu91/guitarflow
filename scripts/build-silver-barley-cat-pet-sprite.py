@@ -14,9 +14,15 @@ FRAME_COUNT = SOURCE_COLUMNS * SOURCE_ROWS
 FRAME_SIZE = 128
 SOURCE_RENDER_SIZE = 122
 GROUND_Y = 124
-POSE_HOLD_FRAMES = 4
-TRANSITION_FRAMES = 1
-RUNTIME_FRAME_COUNT = FRAME_COUNT * (POSE_HOLD_FRAMES + TRANSITION_FRAMES)
+# Transitional poses pass quickly while the readable action poses hold. The
+# unequal counts create variable timing without alpha-blended ghost frames.
+RUNTIME_HOLDS = (
+    6, 10, 1, 7, 1, 7,   # calm idle, doze, and head tilts
+    1, 1, 1, 4, 10, 5,   # notice, bat, catch, and release the barley grass
+    4, 7, 2, 7, 2, 7,    # alternating kneading poses
+    1, 10, 2, 8, 10, 6,  # paw lick, face wash, chest lick, and recovery
+)
+RUNTIME_FRAME_COUNT = sum(RUNTIME_HOLDS)
 SOURCE = PET_DIR / "source/silver-barley-cat-actions-imagegen-fixed-checkerboard.png"
 MASTER = PET_DIR / "silver-barley-cat-actions-master-6x4.png"
 RUNTIME = PET_DIR / "silver-barley-cat-actions-sheet-120x1.png"
@@ -171,14 +177,8 @@ def normalize_pose(master: Image.Image, frame_index: int) -> Image.Image:
 def normalize_runtime(master: Image.Image) -> Image.Image:
     poses = [normalize_pose(master, frame_index) for frame_index in range(FRAME_COUNT)]
     runtime_frames: list[Image.Image] = []
-    for frame_index, pose in enumerate(poses):
-        next_pose = poses[(frame_index + 1) % len(poses)]
-        runtime_frames.extend([pose] * POSE_HOLD_FRAMES)
-        # One short blend softens the pose change without creating constant
-        # ghosted motion; the longer hold keeps each action calm and readable.
-        for tween_index in range(1, TRANSITION_FRAMES + 1):
-            progress = tween_index / (TRANSITION_FRAMES + 1)
-            runtime_frames.append(Image.blend(pose, next_pose, progress))
+    for pose, hold_frames in zip(poses, RUNTIME_HOLDS, strict=True):
+        runtime_frames.extend([pose] * hold_frames)
 
     if len(runtime_frames) != RUNTIME_FRAME_COUNT:
         raise RuntimeError(f"Expected {RUNTIME_FRAME_COUNT} runtime frames, got {len(runtime_frames)}")

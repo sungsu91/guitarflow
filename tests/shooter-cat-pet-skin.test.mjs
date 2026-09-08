@@ -26,7 +26,7 @@ test("silver cat is a selectable 120-frame pet without changing the Pomeranian d
   assert.equal(pet.label, "실버 고양이");
   assert.equal(pet.columns, 120);
   assert.equal(pet.frameCount, 120);
-  assert.equal(pet.framesPerSecond, 4);
+  assert.equal(pet.framesPerSecond, 6);
   assert.match(pet.description, /보리풀.*꾹꾹이.*핥기.*세수/);
 });
 
@@ -50,8 +50,9 @@ test("silver cat builder holds actions and locks every runtime frame to one grou
   assert.match(builder, /GROUND_Y = 124/);
   assert.match(builder, /GROUND_Y - contact_y/);
   assert.match(builder, /GROUND_Y \+ 1/);
-  assert.match(builder, /POSE_HOLD_FRAMES = 4/);
-  assert.match(builder, /TRANSITION_FRAMES = 1/);
-  assert.match(builder, /Image\.blend\(pose, next_pose, progress\)/);
+  assert.match(builder, /RUNTIME_HOLDS = \(/);
+  assert.match(builder, /6, 10, 1, 7, 1, 7/);
+  assert.match(builder, /1, 1, 1, 4, 10, 5/);
+  assert.doesNotMatch(builder, /Image\.blend/);
   assert.match(builder, /Preserve the source cell's horizontal axis/);
 });

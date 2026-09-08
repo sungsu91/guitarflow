@@ -32,7 +32,7 @@ export const SHOOTER_PET_SKINS = Object.freeze([
     masterSrc: "/assets/pets/silver-barley-cat/silver-barley-cat-actions-master-6x4.png",
     columns: 120,
     frameCount: 120,
-    framesPerSecond: 4,
+    framesPerSecond: 6,
   }),
 ]);
 
