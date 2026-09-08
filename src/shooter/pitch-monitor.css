@@ -5,18 +5,17 @@
   top: calc(72px + env(safe-area-inset-top));
   display: grid;
   box-sizing: border-box;
-  width: 140px;
-  height: 68px;
+  width: max-content;
   grid-template-rows: 22px 28px;
   align-content: center;
-  gap: 2px;
+  gap: 0;
   /* Reserve the centered 132px target HUD, plus a 6px gap. */
   max-width: calc(50vw - 82px);
-  padding: 6px;
-  border: 1px solid #ffffff40;
-  border-radius: 10px;
+  padding: 0;
+  border: 0;
   color: #fff;
-  background: #101827e8;
+  background: transparent;
+  text-shadow: 0 1px 3px #000, 0 0 8px #000c;
   pointer-events: none;
   font-size: 10px;
 }
@@ -24,7 +23,7 @@
 .shooterPitchMonitorMobile b { display: inline-block; min-width: 3.5ch; margin-left: 4px; font-size: 16px; color: #99f6cf; }
 .shooterPitchMonitorMobile small { font-size: 10px; line-height: 14px; overflow-wrap: anywhere; color: #d3deec; }
 @media (max-width: 350px) {
-  .shooterPitchMonitorMobile { padding-inline: 4px; font-size: 9px; }
+  .shooterPitchMonitorMobile { font-size: 9px; }
   .shooterPitchMonitorMobile b { min-width: 3ch; font-size: 14px; }
   .shooterPitchMonitorMobile small { font-size: 9px; }
 }
@@ -35,18 +34,17 @@
   top: 80px;
   display: grid;
   box-sizing: border-box;
-  width: 220px;
-  height: 94px;
-  grid-template-columns: minmax(0, 1fr) 72px;
+  width: max-content;
+  grid-template-columns: auto 72px;
   grid-template-rows: 18px 18px 18px;
   align-content: center;
   align-items: center;
   gap: 4px 12px;
-  padding: 10px 14px;
-  border: 1px solid #ffffff40;
-  border-radius: 12px;
+  padding: 0;
+  border: 0;
   color: #fff;
-  background: #101827e8;
+  background: transparent;
+  text-shadow: 0 1px 3px #000, 0 0 8px #000c;
   pointer-events: none;
   font-size: 12px;
 }
