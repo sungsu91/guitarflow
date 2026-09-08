@@ -144,6 +144,9 @@ test("runtime reuses two cabinet images and two claw sheets without frame duplic
   const master = await readFile(new URL("FRETIVA_GACHA_ARCADE_MAP_BASE_EMPTY_BAYS.png", assetRoot));
   assert.equal(master.readUInt32BE(16), 1536);
   assert.equal(master.readUInt32BE(20), 3328);
+  const preview = await readFile(new URL("preview/FRETIVA_GACHA_ARCADE_V3_LAYOUT_PREVIEW.png", assetRoot));
+  assert.equal(preview.readUInt32BE(16), 768);
+  assert.equal(preview.readUInt32BE(20), 1664);
 
   const runtimeSources = getShooterMapAssetSources(GACHA_ARCADE_MAP_SKIN);
   assert.equal(runtimeSources.length, 7);
@@ -151,7 +154,10 @@ test("runtime reuses two cabinet images and two claw sheets without frame duplic
   assert.equal(runtimeSources.some((source) => source.includes("COMPOSITE")), false);
   assert.equal(new Set(runtimeSources).size, runtimeSources.length);
   assert.equal(GACHA_ARCADE_MAP_SKIN.previewImage, GACHA_ARCADE_MAP_SKIN.background.src);
-  assert.equal(GACHA_ARCADE_MAP_SKIN.pickerPreviewImage, GACHA_ARCADE_MAP_SKIN.background.src);
+  assert.equal(
+    GACHA_ARCADE_MAP_SKIN.pickerPreviewImage,
+    "/assets/maps/gacha-arcade/preview/FRETIVA_GACHA_ARCADE_V3_LAYOUT_PREVIEW.png",
+  );
   assert.deepEqual(GACHA_ARCADE_MAP_SKIN.layout, []);
   assert.deepEqual(GACHA_ARCADE_MAP_SKIN.layers, []);
 });

@@ -5,6 +5,7 @@ const GACHA_ARCADE_RUNTIME_BACKGROUND = `${GACHA_ARCADE_ROOT}/runtime/FRETIVA_GA
 const GACHA_ARCADE_MACHINE_LEFT = `${GACHA_ARCADE_ROOT}/runtime/machine_cabinet_left_runtime.png`;
 const GACHA_ARCADE_MACHINE_RIGHT = `${GACHA_ARCADE_ROOT}/runtime/machine_cabinet_right_runtime.png`;
 const GACHA_ARCADE_MACHINE_PLINTH = `${GACHA_ARCADE_ROOT}/runtime/machine_plinth_runtime.png`;
+const GACHA_ARCADE_LAYOUT_PREVIEW = `${GACHA_ARCADE_ROOT}/preview/FRETIVA_GACHA_ARCADE_V3_LAYOUT_PREVIEW.png`;
 const GACHA_ARCADE_CANVAS = Object.freeze({ width: 1536, height: 3328 });
 const GACHA_ARCADE_RENDER_ORDER = Object.freeze([
   "empty_seven_bay_background",
@@ -108,7 +109,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
   mobileOnly: false,
   portraitOnly: true,
   previewImage: GACHA_ARCADE_RUNTIME_BACKGROUND,
-  pickerPreviewImage: GACHA_ARCADE_RUNTIME_BACKGROUND,
+  pickerPreviewImage: GACHA_ARCADE_LAYOUT_PREVIEW,
   performance: Object.freeze({
     mobileGameplay: Object.freeze({
       mode: "full",

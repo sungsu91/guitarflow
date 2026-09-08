@@ -1,5 +1,6 @@
-"""Build the empty seven-bay arcade background and reusable cabinet assets."""
+"""Build the empty arcade, reusable objects, and manifest-driven layout preview."""
 
+import json
 from pathlib import Path
 
 from PIL import Image
@@ -8,6 +9,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 ASSET_DIR = ROOT / "public/assets/maps/gacha-arcade"
 RUNTIME_DIR = ASSET_DIR / "runtime"
+PREVIEW_DIR = ASSET_DIR / "preview"
 SOURCE_BACKGROUND = ASSET_DIR / "FRETIVA_GACHA_ARCADE_EMPTY_BAYS_SOURCE.png"
 SOURCE_MACHINE = ASSET_DIR / "spritesheets/machine_cabinet_source.png"
 SOURCE_PLINTH = ASSET_DIR / "spritesheets/machine_plinth_source.png"
@@ -35,6 +37,83 @@ def contain(source: Image.Image, size: tuple[int, int]) -> Image.Image:
     return output
 
 
+def place_on_runtime(canvas: Image.Image, image: Image.Image, placement: dict) -> None:
+    size = (round(placement["width"] / 2), round(placement["height"] / 2))
+    resized = image.resize(size, Image.Resampling.LANCZOS)
+    canvas.alpha_composite(resized, (round(placement["x"] / 2), round(placement["y"] / 2)))
+
+
+def build_layout_preview(background: Image.Image, plinth: Image.Image, machine: Image.Image) -> None:
+    manifest = json.loads((ASSET_DIR / "asset_manifest.json").read_text(encoding="utf-8"))
+    rules = manifest["layout_rules"]
+    slots = manifest["machine_slots"]
+    canvas = background.resize((768, 1664), Image.Resampling.LANCZOS)
+
+    resolved = []
+    for slot in slots:
+        machine_width = slot["machine_width"]
+        machine_height = round(machine_width * rules["machine_height_ratio"])
+        machine_placement = {
+            "x": round(slot["center_x"] - machine_width / 2),
+            "y": slot["base_y"] - machine_height,
+            "width": machine_width,
+            "height": machine_height,
+        }
+        platform_width = round(machine_width * rules["plinth_width_ratio"])
+        platform_height = round(platform_width / 3.35)
+        platform_placement = {
+            "x": round(slot["center_x"] - platform_width / 2),
+            "y": round(slot["base_y"] - platform_height * 0.48),
+            "width": platform_width,
+            "height": platform_height,
+        }
+        resolved.append((slot, machine_placement))
+        place_on_runtime(canvas, plinth, platform_placement)
+
+    for slot, placement in resolved:
+        cabinet = machine if slot["side"] == "left" else machine.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+        place_on_runtime(canvas, cabinet, placement)
+
+    elapsed_ms = 2700
+    for slot, placement in resolved:
+        is_left = slot["side"] == "left"
+        frame_width, frame_height = (300, 280) if is_left else (290, 250)
+        sheet_name = "claw_left_mid_wire_sheet_6x4.png" if is_left else "claw_right_upper_wire_sheet_6x4.png"
+        sheet = Image.open(RUNTIME_DIR / sheet_name).convert("RGBA")
+        frame_index = int(((elapsed_ms + slot["phase_offset_ms"]) * 4) / 1000) % 24
+        column, row = frame_index % 6, frame_index // 6
+        frame = sheet.crop((
+            column * frame_width,
+            row * frame_height,
+            (column + 1) * frame_width,
+            (row + 1) * frame_height,
+        ))
+        claw_height = round(placement["height"] * 0.36)
+        claw_width = round(claw_height * frame_width / frame_height)
+        place_on_runtime(canvas, frame, {
+            "x": round(placement["x"] + (placement["width"] - claw_width) / 2),
+            "y": round(placement["y"] + placement["height"] * 0.245),
+            "width": claw_width,
+            "height": claw_height,
+        })
+
+    star = manifest["star_mobile"]
+    star_sheet = Image.open(RUNTIME_DIR / "star_mobile_horizontal_sheet_6x4.png").convert("RGBA")
+    star_frame = int(((elapsed_ms + star["phase_offset_ms"]) * star["fps"]) / 1000) % star["frames"]
+    column, row = star_frame % star["columns"], star_frame // star["columns"]
+    frame_width, frame_height = star["frame_size"]
+    star_image = star_sheet.crop((
+        column * frame_width,
+        row * frame_height,
+        (column + 1) * frame_width,
+        (row + 1) * frame_height,
+    ))
+    place_on_runtime(canvas, star_image, star["placement_on_1536x3328"])
+
+    PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
+    canvas.save(PREVIEW_DIR / "FRETIVA_GACHA_ARCADE_V3_LAYOUT_PREVIEW.png", optimize=True)
+
+
 def build() -> None:
     RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -57,6 +136,7 @@ def build() -> None:
 
     plinth = contain(crop_visible(Image.open(SOURCE_PLINTH)), (640, 190))
     plinth.save(RUNTIME_DIR / "machine_plinth_runtime.png", optimize=True)
+    build_layout_preview(background, plinth, machine)
 
 
 if __name__ == "__main__":

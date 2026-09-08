@@ -52,7 +52,10 @@
     "frames": 24,
     "fps": 8,
     "duration_ms": 3000,
-    "ring_geometry_fixed": true
+    "ring_geometry_fixed": true,
+    "phase_offset_ms": 1000,
+    "frame_size": [460, 364],
+    "placement_on_1536x3328": { "x": 538, "y": 305, "width": 460, "height": 364 }
   },
   "render_order": [
     "empty_seven_bay_background",
