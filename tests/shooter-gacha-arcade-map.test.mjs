@@ -62,6 +62,12 @@ test("only three clipped claws and one fixed-size star ring animate", () => {
     sprites.claw_right_upper.delayMs,
     sprites.claw_right_lower.delayMs,
   ], [0, 1800, 3600]);
+  assert.deepEqual([
+    sprites.claw_left_mid.phaseOffsetMs,
+    sprites.star_light_ring.phaseOffsetMs,
+    sprites.claw_right_upper.phaseOffsetMs,
+    sprites.claw_right_lower.phaseOffsetMs,
+  ], [0, 1000, 2000, 4000]);
   for (const claw of [sprites.claw_left_mid, sprites.claw_right_upper, sprites.claw_right_lower]) {
     assert.equal(claw.columns, 6);
     assert.equal(claw.rows, 4);
@@ -91,9 +97,9 @@ test("only three clipped claws and one fixed-size star ring animate", () => {
 test("runtime loads one background and four sheets without individual frame duplication", async () => {
   const expected = [
     ["runtime/FRETIVA_GACHA_ARCADE_MAP_BASE_RUNTIME.png", 768, 1664],
-    ["spritesheets/claw_left_mid_sheet_6x4.png", 1800, 1120],
-    ["spritesheets/claw_right_upper_sheet_6x4.png", 1740, 1000],
-    ["spritesheets/claw_right_lower_sheet_6x4.png", 1920, 1240],
+    ["runtime/claw_left_mid_wire_sheet_6x4.png", 1800, 1120],
+    ["runtime/claw_right_upper_wire_sheet_6x4.png", 1740, 1000],
+    ["runtime/claw_right_lower_wire_sheet_6x4.png", 1920, 1240],
     ["spritesheets/star_light_ring_sheet_6x4.png", 2760, 1456],
   ];
   for (const [file, width, height] of expected) {
@@ -103,6 +109,14 @@ test("runtime loads one background and four sheets without individual frame dupl
     assert.equal(png.readUInt32BE(20), height, file);
     assert.equal(png[24], 8, `${file} bit depth`);
     assert.equal(png[25], 6, `${file} RGBA color type`);
+  }
+  for (const original of [
+    "spritesheets/claw_left_mid_sheet_6x4.png",
+    "spritesheets/claw_right_upper_sheet_6x4.png",
+    "spritesheets/claw_right_lower_sheet_6x4.png",
+  ]) {
+    const png = await readFile(new URL(original, assetRoot));
+    assert.equal(png.subarray(0, 8).toString("hex"), "89504e470d0a1a0a", `${original} preserved`);
   }
   const runtimeSources = getShooterMapAssetSources(GACHA_ARCADE_MAP_SKIN);
   assert.equal(runtimeSources.length, 5);
@@ -129,6 +143,7 @@ test("renderer uses one visibility-aware 10Hz loop without React frame state or 
   assert.doesNotMatch(field, /useState/);
   assert.doesNotMatch(field, /transform.*scale|scale\(/i);
   assert.match(field, /clipPath: getGlassClipPath\(sprite\)/);
+  assert.match(field, /elapsedMs \+ \(sprite\.phaseOffsetMs \?\? 0\)/);
   assert.match(styles, /\.shooterMapGachaArcadeField[\s\S]*?overflow: hidden/);
   assert.match(styles, /\.shooterMapGachaArcadeSprite[\s\S]*?overflow: hidden/);
   assert.doesNotMatch(styles, /shooterMapGachaArcadeSprite[^{]*\{[^}]*transform\s*:/s);

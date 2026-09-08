@@ -32,10 +32,8 @@ export default function GachaArcadeField({ active = true, runtimeAnimation }) {
       field.querySelectorAll("[data-gacha-sprite-index]").forEach((element) => {
         const sprite = sprites[Number(element.dataset.gachaSpriteIndex)];
         if (!sprite) return;
-        const delayedElapsedMs = Math.max(0, elapsedMs - sprite.delayMs);
-        const frameIndex = elapsedMs < sprite.delayMs
-          ? 0
-          : Math.floor((delayedElapsedMs * sprite.framesPerSecond) / 1000) % sprite.frameCount;
+        const phasedElapsedMs = elapsedMs + (sprite.phaseOffsetMs ?? 0);
+        const frameIndex = Math.floor((phasedElapsedMs * sprite.framesPerSecond) / 1000) % sprite.frameCount;
         if (element.dataset.frameIndex !== String(frameIndex)) {
           setSpriteFrame(element, frameIndex, sprite.columns, sprite.rows);
         }
@@ -53,7 +51,7 @@ export default function GachaArcadeField({ active = true, runtimeAnimation }) {
       {sprites.map((sprite, index) => (
         <span
           className={`shooterMapGachaArcadeSprite shooterMapGachaArcadeSprite--${sprite.id}`}
-          data-animation-delay-ms={sprite.delayMs}
+          data-animation-phase-offset-ms={sprite.phaseOffsetMs ?? 0}
           data-frame-count={sprite.frameCount}
           data-frame-index="0"
           data-frames-per-second={sprite.framesPerSecond}
