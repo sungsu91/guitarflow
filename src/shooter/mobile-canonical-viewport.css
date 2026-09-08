@@ -278,6 +278,20 @@
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.94) !important;
   }
 
+  html.shooterCanonicalMobile body main.app.app.app.shooterMode
+    .shooterArena .mobileShooterScenarioBanner > span {
+    justify-self: center !important;
+    width: 100% !important;
+    max-width: 246px !important;
+    margin-top: 2px !important;
+    padding: 0 4px 3px !important;
+    box-sizing: border-box !important;
+    font-size: 13.5px !important;
+    line-height: 1.4 !important;
+    white-space: normal !important;
+    text-wrap: balance;
+  }
+
   /* Phone-only HUD sizing: preserve desktop layout while keeping Korean labels legible. */
   html.shooterCanonicalMobile body main.app.app.app.shooterMode
     .mobileShooterPrimaryHudRow {
