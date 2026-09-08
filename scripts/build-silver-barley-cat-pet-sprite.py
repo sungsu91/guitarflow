@@ -12,6 +12,7 @@ SOURCE_COLUMNS = 6
 SOURCE_ROWS = 4
 FRAME_COUNT = SOURCE_COLUMNS * SOURCE_ROWS
 FRAME_SIZE = 192
+SOURCE_RENDER_SIZE = 184
 GROUND_Y = 187
 RUNTIME_TIMELINE = (
     # Calm idle with readable pauses between the two head tilts.
@@ -23,7 +24,7 @@ RUNTIME_TIMELINE = (
     # Paw lick, face wash, chest lick, and recovery.
     18, 18, 19, 19, 19, 20, 20, 21, 21, 21, 22, 22, 23, 23,
 )
-SOURCE = PET_DIR / "source/silver-barley-cat-actions-generated-checkerboard.png"
+SOURCE = PET_DIR / "source/silver-barley-cat-actions-imagegen-fixed-checkerboard.png"
 MASTER = PET_DIR / "silver-barley-cat-actions-master-6x4.png"
 RUNTIME = PET_DIR / "silver-barley-cat-actions-sheet-60x1.png"
 
@@ -156,12 +157,17 @@ def normalize_runtime(master: Image.Image) -> Image.Image:
     for runtime_index, frame_index in enumerate(RUNTIME_TIMELINE):
         column = frame_index % SOURCE_COLUMNS
         row = frame_index // SOURCE_COLUMNS
-        frame = master.crop((
+        source_frame = master.crop((
             column * source_cell[0],
             row * source_cell[1],
             (column + 1) * source_cell[0],
             (row + 1) * source_cell[1],
-        )).resize((FRAME_SIZE, FRAME_SIZE), Image.Resampling.LANCZOS)
+        )).resize((SOURCE_RENDER_SIZE, SOURCE_RENDER_SIZE), Image.Resampling.LANCZOS)
+        frame = Image.new("RGBA", (FRAME_SIZE, FRAME_SIZE), (0, 0, 0, 0))
+        frame.alpha_composite(
+            source_frame,
+            ((FRAME_SIZE - SOURCE_RENDER_SIZE) // 2, (FRAME_SIZE - SOURCE_RENDER_SIZE) // 2),
+        )
         contact_center, contact_y = cat_contact(frame)
         grounded = Image.new("RGBA", (FRAME_SIZE, FRAME_SIZE), (0, 0, 0, 0))
         grounded.alpha_composite(

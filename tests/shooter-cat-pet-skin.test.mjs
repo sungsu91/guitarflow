@@ -46,6 +46,7 @@ test("silver cat builder holds actions and locks every runtime frame to one grou
   const builder = await readFile(builderUrl, "utf8");
 
   assert.match(builder, /FRAME_SIZE = 192/);
+  assert.match(builder, /SOURCE_RENDER_SIZE = 184/);
   assert.match(builder, /GROUND_Y = 187/);
   assert.match(builder, /GROUND_Y - contact_y/);
   assert.match(builder, /GROUND_Y \+ 1/);
