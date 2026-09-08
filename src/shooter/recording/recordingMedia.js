@@ -1,4 +1,20 @@
 export const RECORDING_WIDTH = 1080;
+export const MOBILE_CAMERA_ZOOM = 1.6;
+export const MOBILE_CAMERA_HEIGHT = .35;
+
+export function cameraContainRect(sourceWidth, sourceHeight, width, height, zoom = 1) {
+  // Enlarge vertically as requested, but never cut off the guitar at the sides.
+  const scale = Math.min(Math.min(width / sourceWidth, height / sourceHeight) * zoom, width / sourceWidth);
+  const w = sourceWidth * scale, h = sourceHeight * scale;
+  return { x: (width - w) / 2, y: (height - h) / 2, width: w, height: h };
+}
+
+export function frontCameraConstraints(mobile, supported = {}) {
+  return { audio: false, video: {
+    facingMode: { ideal: 'user' }, width: { ideal: 1280 }, height: { ideal: 720 },
+    ...(mobile ? { aspectRatio: { ideal: 16 / 9 }, ...(supported.resizeMode ? { resizeMode: { ideal: 'none' } } : {}) } : {}),
+  } };
+}
 
 export function recorderOptions(Recorder = globalThis.MediaRecorder) {
   if (!Recorder) throw new Error("현재 실행 환경에서 영상 녹화 기능을 지원하지 않습니다. Safari에서 같은 주소를 직접 열어 확인해주세요. [RECORDER_API]");
@@ -44,9 +60,8 @@ export function drawComposite(context, game, camera, width, height, overlay) {
     context.clip();
     if (overlay.fit === "contain") {
       const zoom = Math.max(1, Math.min(1.6, overlay.zoom ?? 1));
-      const scale = Math.min(w / camera.videoWidth, h / camera.videoHeight) * zoom;
-      const cw = camera.videoWidth * scale, ch = camera.videoHeight * scale;
-      context.drawImage(camera, (w - cw) / 2, (h - ch) / 2, cw, ch);
+      const rect = cameraContainRect(camera.videoWidth, camera.videoHeight, w, h, zoom);
+      context.drawImage(camera, rect.x, rect.y, rect.width, rect.height);
     } else {
       context.drawImage(camera, ...coverSourceRect(camera.videoWidth, camera.videoHeight, w, h), 0, 0, w, h);
     }

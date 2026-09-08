@@ -82,10 +82,9 @@ html body main.app.app.app.shooterMode button.shooterRecordingHudButton:focus-vi
 .shooterRecordingCamera .shooterRecordingClock { position: absolute; bottom: 36px; left: 0; right: -28px; text-align: center; white-space: nowrap; }
 
 /* Mobile camera replaces the navigation rail without resizing the arena. */
+.shooterPanel > .shooterPitchMonitorMobile { position: absolute; z-index: 10001; top: 72px; max-width: calc(50% - 82px); }
 .shooterRecordingCamera--mobile { border-radius: 0; box-shadow: inset 0 1px #d2ab5838; background: #09110e; }
-.shooterRecordingCamera--mobile .shooterRecordingLive { object-fit: contain; transform: scale(calc(-1 * var(--camera-zoom, 1)), var(--camera-zoom, 1)); }
-.shooterRecordingZoom { position: absolute; left: 10px; bottom: max(8px, env(safe-area-inset-bottom)); width: min(180px, calc(100% - 112px)); display: grid; gap: 2px; padding: 6px 10px; border: 1px solid #d2ab5855; border-radius: 12px; background: #07110ed9; color: #ffdf9e; font-size: 11px; }
-.shooterRecordingZoom input { width: 100%; min-width: 0; height: 28px; margin: 0; accent-color: #e8c16d; touch-action: pan-y; }
+.shooterRecordingCamera--mobile .shooterRecordingLive { object-fit: contain; transform: scaleX(-1); }
 .shooterRecordingCamera--mobile .shooterRecordingControls { inset: 0 6px 0 auto; width: 82px; gap: 4px; flex-direction: column; }
 .shooterRecordingCamera--mobile .shooterRecordingControls button { min-height: 34px; padding: 5px 12px; }
 .shooterRecordingCamera--mobile .shooterRecordingClock { position: static; padding: 2px 4px; }

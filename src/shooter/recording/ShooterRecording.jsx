@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Video } from "lucide-react";
 import { getActiveMicInputSession } from "../../audio/micInputEngine.js";
 import { getAudioBusGraph, getSharedAudioContext } from "../../audio/audioBus.js";
-import { RECORDING_WIDTH, cameraOverlayRect, drawComposite, recorderOptions, recordingError, saveRecording, stopTracks } from "./recordingMedia.js";
+import { RECORDING_WIDTH, MOBILE_CAMERA_ZOOM, MOBILE_CAMERA_HEIGHT, cameraContainRect, frontCameraConstraints, cameraOverlayRect, drawComposite, recorderOptions, recordingError, saveRecording, stopTracks } from "./recordingMedia.js";
 import "./shooter-recording.css";
 
 function CameraControls({ phase, seconds, start, stop, ready }) {
@@ -18,13 +18,8 @@ function CameraControls({ phase, seconds, start, stop, ready }) {
 }
 
 // Platform UI remains separate; media ownership and controls are shared.
-function MobileCameraLayout({ children, style, zoom, onZoom, phase }) {
-  return <section className="shooterRecordingCamera shooterRecordingCamera--mobile" style={{ ...style, '--camera-zoom': zoom }} aria-label="전면 카메라">{children}
-    <label className="shooterRecordingZoom">
-      <span>화면 크기 {zoom.toFixed(2)}배</span>
-      <input type="range" min="1" max="1.6" step="0.05" value={zoom} aria-label="카메라 화면 크기" disabled={!['preview', 'recording'].includes(phase)} onChange={event => onZoom(Number(event.target.value))} />
-    </label>
-  </section>;
+function MobileCameraLayout({ children, style }) {
+  return <section className="shooterRecordingCamera shooterRecordingCamera--mobile" style={style} aria-label="전면 카메라">{children}</section>;
 }
 function DesktopCameraLayout({ children, style }) {
   return <section className="shooterRecordingCamera shooterRecordingCamera--desktop" style={style} aria-label="전면 카메라">{children}</section>;
@@ -39,8 +34,6 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
   const [saving, setSaving] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraStyle, setCameraStyle] = useState({});
-  const [cameraZoom, setCameraZoom] = useState(1.15);
-  const cameraZoomRef = useRef(1.15);
   const positionRef = useRef({ x: 1, y: .24 });
   const sizeRef = useRef(1);
   const resizeRef = useRef(null);
@@ -144,21 +137,26 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     const panel = arenaRef.current?.closest(".shooterPanel");
     if (!panel) return;
     const arena = arenaRef.current;
+    const originalScale = panel.style.scale;
+    const originalOrigin = panel.style.transformOrigin;
     const update = () => {
+      if (mobile) panel.style.scale = originalScale;
       const bounds = panel.getBoundingClientRect();
       const viewport = window.visualViewport;
       if (mobile) {
         const vh = viewport?.height || window.innerHeight;
-        const lift = arena.clientHeight * .16;
-        arena.style.setProperty("--recording-lift", `${lift}px`);
-        arena.dataset.recordingRaised = "true";
-        const liftPixels = lift * arena.getBoundingClientRect().height / arena.clientHeight;
-        const top = bounds.bottom - (viewport?.offsetTop || 0) - liftPixels;
-        const cameraHeight = Math.max(0, vh - top);
-        const visibleGameHeight = bounds.height - liftPixels;
-        const totalHeight = visibleGameHeight + cameraHeight;
-        overlayRef.current = { x: 0, y: visibleGameHeight / totalHeight, width: 1, height: cameraHeight / totalHeight, gameFraction: visibleGameHeight / totalHeight, gameSourceFraction: visibleGameHeight / bounds.height, fit: "contain", zoom: cameraZoomRef.current };
-        setCameraStyle({ left: bounds.left - (viewport?.offsetLeft || 0), top, width: bounds.width, height: cameraHeight });
+        const vw = viewport?.width || window.innerWidth;
+        const panelTop = bounds.top - (viewport?.offsetTop || 0);
+        const totalHeight = Math.max(1, vh - panelTop);
+        const gameHeight = totalHeight * (1 - MOBILE_CAMERA_HEIGHT);
+        const scale = Math.min(1, gameHeight / bounds.height, vw / bounds.width);
+        panel.style.transformOrigin = '50% 0';
+        panel.style.scale = String(scale);
+        // Scale the complete game once. Logical arena coordinates stay intact.
+        const visibleGameHeight = bounds.height * scale;
+        const top = panelTop + visibleGameHeight;
+        overlayRef.current = { x: 0, y: visibleGameHeight / totalHeight, width: 1, height: (vh - top) / totalHeight, gameFraction: visibleGameHeight / totalHeight, gameSourceFraction: 1, outputAspect: vw / totalHeight, fit: "contain", zoom: MOBILE_CAMERA_ZOOM };
+        setCameraStyle({ left: 0, top, width: vw, height: vh - top });
         return;
       }
       const rect = cameraOverlayRect(bounds.width, bounds.height, positionRef.current, mobile, sizeRef.current);
@@ -178,6 +176,8 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     return () => {
       arena.style.removeProperty("--recording-lift");
       delete arena.dataset.recordingRaised;
+      panel.style.scale = originalScale;
+      panel.style.transformOrigin = originalOrigin;
       cancelAnimationFrame(frame);
       moveCameraRef.current = () => {};
       observer.disconnect();
@@ -193,13 +193,6 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     const clamp = value => Math.max(0, Math.min(1, value));
     positionRef.current = { x: clamp(positionRef.current.x + dx / Math.max(1, bounds.width - rect.width - 16)), y: clamp(positionRef.current.y + dy / Math.max(1, bounds.height - rect.height - 64)) };
     moveCameraRef.current();
-  }
-
-  function changeCameraZoom(value) {
-    const zoom = Math.max(1, Math.min(1.6, value));
-    cameraZoomRef.current = zoom;
-    if (overlayRef.current) overlayRef.current.zoom = zoom;
-    setCameraZoom(zoom);
   }
 
   function resizeCamera(delta) {
@@ -248,7 +241,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
       recorderOptions();
       if (!navigator.mediaDevices?.getUserMedia) throw new Error("현재 실행 환경에서 카메라에 접근할 수 없습니다. Safari에서 같은 주소를 직접 열어 확인해주세요. [CAMERA_API]");
       if (!HTMLCanvasElement.prototype.captureStream) throw new Error("현재 실행 환경에서 게임 화면의 영상 출력을 지원하지 않습니다. [CANVAS_STREAM]");
-      session.camera = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "user" }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+      session.camera = await navigator.mediaDevices.getUserMedia(frontCameraConstraints(mobile, navigator.mediaDevices.getSupportedConstraints?.()));
       if (!current()) { stopTracks(session.camera); return; }
       if (!getActiveMicInputSession()?.rawStream?.getAudioTracks().some((track) => track.readyState === "live")) {
         await ensureMic();
@@ -299,8 +292,8 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
       if (session.disposed) return;
       const canvas = document.createElement("canvas");
       const bounds = panel.getBoundingClientRect();
-      const vw = bounds.width;
-      const vh = mobile ? bounds.height * (overlayRef.current.gameSourceFraction ?? 1) / overlayRef.current.gameFraction : bounds.height;
+      const vw = mobile ? (window.visualViewport?.width || window.innerWidth) : bounds.width;
+      const vh = mobile ? vw / overlayRef.current.outputAspect : bounds.height;
       canvas.width = RECORDING_WIDTH;
       canvas.height = Math.round(canvas.width * vh / vw / 2) * 2;
       const context = canvas.getContext("2d", { alpha: false });
@@ -423,6 +416,9 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     } finally { if (session) session.sharing = false; if (mounted.current) setSaving(false); }
   }
 
+  const cameraFrame = mobile && videoRef.current?.videoWidth && cameraStyle.width
+    ? cameraContainRect(videoRef.current.videoWidth, videoRef.current.videoHeight, cameraStyle.width, cameraStyle.height, MOBILE_CAMERA_ZOOM)
+    : null;
   const CameraLayout = mobile ? MobileCameraLayout : DesktopCameraLayout;
   return createPortal(<div ref={uiRef} className={`shooterRecordingUI ${mobile ? "isMobile" : "isDesktop"}`} data-recording-ui="true">
     {entryTarget ? createPortal(
@@ -433,8 +429,8 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     ) : null}
     {!active ? <div className="shooterRecordingEntry">
       {error ? <div className="shooterRecordingError" role="alert">{error}<button onClick={() => setError("")} type="button" aria-label="알림 닫기">×</button></div> : null}
-    </div> : cameraVisible ? <CameraLayout style={cameraStyle} zoom={cameraZoom} onZoom={changeCameraZoom} phase={phase}>
-      <video className="shooterRecordingLive" ref={videoRef} autoPlay muted playsInline onLoadedData={() => setCameraReady(true)} aria-label="촬영 구도 확인" />
+    </div> : cameraVisible ? <CameraLayout style={cameraStyle}>
+      <video className="shooterRecordingLive" style={cameraFrame ? { left: cameraFrame.x, top: cameraFrame.y, width: cameraFrame.width, height: cameraFrame.height } : undefined} ref={videoRef} autoPlay muted playsInline onLoadedData={() => { setCameraReady(true); moveCameraRef.current(); }} onResize={() => moveCameraRef.current()} aria-label="촬영 구도 확인" />
       {!mobile ? <><button className="shooterRecordingDrag" type="button" aria-label="카메라 위치 이동" title="드래그 또는 방향키로 이동"
         onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); dragRef.current = { x: event.clientX, y: event.clientY }; }}
         onPointerMove={event => { if (!dragRef.current) return; moveCamera(event.clientX - dragRef.current.x, event.clientY - dragRef.current.y); dragRef.current = { x: event.clientX, y: event.clientY }; }}

@@ -92,14 +92,17 @@ try {
         const camera = document.querySelector(".shooterRecordingCamera").getBoundingClientRect();
         return { panelBottom: panel.bottom, lift: document.querySelector(".shooterArena").getBoundingClientRect().height * .16, cameraTop: camera.top, cameraBottom: camera.bottom, height: window.innerHeight, fit: getComputedStyle(document.querySelector(".shooterRecordingLive")).objectFit };
       });
-      assert.ok(Math.abs(geometry.panelBottom - geometry.lift - geometry.cameraTop) < 1);
+      assert.ok(Math.abs(geometry.panelBottom - geometry.cameraTop) < 1);
       assert.ok(Math.abs(geometry.cameraBottom - geometry.height) < 1);
       assert.equal(geometry.fit, "contain");
-      const zoom = page.getByRole('slider', { name: '카메라 화면 크기' });
-      assert.equal(await zoom.inputValue(), '1.15');
-      await zoom.fill('1.3');
-      assert.equal(await page.locator('.shooterRecordingLive').evaluate(node => new DOMMatrix(getComputedStyle(node).transform).a), -1.3);
-      await zoom.fill('1.15');
+      assert.equal(await page.locator('.shooterRecordingCamera input[type="range"]').count(), 0);
+      const framing = await page.locator('.shooterRecordingLive').evaluate(video => {
+        const r = video.getBoundingClientRect(), dock = video.parentElement.getBoundingClientRect();
+        return {left:r.left,right:r.right,dockLeft:dock.left,dockRight:dock.right,aspect:r.width/r.height,sourceAspect:video.videoWidth/video.videoHeight};
+      });
+      assert.ok(framing.left >= framing.dockLeft - 1 && framing.right <= framing.dockRight + 1, 'Do not cut guitar ends off horizontally');
+      assert.ok(Math.abs(framing.aspect - framing.sourceAspect) < .01);
+      assert.equal(await page.locator('.shooterPanel > .shooterPitchMonitorMobile').count(), 1);
       assert.equal(await page.getByRole("button", { name: "카메라 위치 이동" }).count(), 0);
     } else {
     const cameraBefore = await page.locator(".shooterRecordingCamera").boundingBox();

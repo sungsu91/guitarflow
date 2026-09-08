@@ -30067,7 +30067,7 @@ function App({ onReady }) {
       ) : null}
       {appMode === APP_MODES.SHOOTER && typeof document !== "undefined" ? createPortal(
         <ShooterPitchMonitor mobile={isMobileLayout} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} />,
-        document.body,
+        shooterRecordingActive && isMobileLayout ? (shooterArenaRef.current?.closest('.shooterPanel') ?? document.body) : document.body,
       ) : null}
       {themeTransition && typeof document !== "undefined"
         ? createPortal(

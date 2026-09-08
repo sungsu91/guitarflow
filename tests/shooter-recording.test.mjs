@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { coverSourceRect, drawComposite, cameraOverlayRect, recorderOptions, saveRecording } from "../src/shooter/recording/recordingMedia.js";
+import { cameraContainRect, frontCameraConstraints, coverSourceRect, drawComposite, cameraOverlayRect, recorderOptions, saveRecording } from "../src/shooter/recording/recordingMedia.js";
 
 test("recorder negotiates MP4, then WebM, then browser defaults", () => {
   assert.match(recorderOptions({ isTypeSupported: (type) => type === "video/mp4" }).mimeType, /mp4/);
@@ -98,4 +98,17 @@ test("camera zoom preserves aspect and clips enlargement to the dock", () => {
   assert.deepEqual(draw.slice(2), [132.5,-20,135,240]);
   assert.deepEqual(calls.find(([name]) => name === "rect"), ["rect",0,0,400,200]);
   assert.ok(calls.findIndex(([name]) => name === "clip") < calls.findIndex(([name]) => name === "drawImage"));
+});
+
+
+test("mobile framing retains both horizontal edges for portrait and landscape camera sources", () => {
+  for (const [sw,sh] of [[720,1280],[1280,720],[640,480]]) {
+    const r = cameraContainRect(sw,sh,390,295,1.6);
+    assert.ok(r.x >= 0 && r.x + r.width <= 390);
+    assert.ok(Math.abs(r.width/r.height - sw/sh) < 1e-10);
+  }
+  const c = frontCameraConstraints(true,{resizeMode:true});
+  assert.equal(c.video.resizeMode.ideal,'none');
+  assert.equal(c.video.aspectRatio.ideal,16/9);
+  assert.equal(frontCameraConstraints(false).video.resizeMode,undefined);
 });

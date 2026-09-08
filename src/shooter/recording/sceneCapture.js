@@ -334,7 +334,7 @@ export function createSceneCapture(panel) {
     paint(panel, null, true);
     // Pitch monitor is a body portal, but belongs in the recorded game view.
     const monitor = document.querySelector(".shooterPitchMonitorMobile,.shooterPitchMonitorDesktop");
-    if (monitor) {
+    if (monitor && !panel.contains(monitor)) {
       const r = monitor.getBoundingClientRect(), p = panel.getBoundingClientRect(), s = style(monitor);
       ctx.save();
       ctx.translate((r.left - p.left) * panel.clientWidth / p.width, (r.top - p.top) * panel.clientHeight / p.height);
