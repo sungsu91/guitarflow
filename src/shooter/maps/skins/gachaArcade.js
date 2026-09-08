@@ -1,80 +1,83 @@
+import { GACHA_ARCADE_RESOLVED_SLOTS } from "./gachaArcadeLayout.js";
+
 const GACHA_ARCADE_ROOT = "/assets/maps/gacha-arcade";
-const GACHA_ARCADE_RUNTIME_BACKGROUND = `${GACHA_ARCADE_ROOT}/runtime/FRETIVA_GACHA_ARCADE_MAP_BASE_RUNTIME.png`;
+const GACHA_ARCADE_RUNTIME_BACKGROUND = `${GACHA_ARCADE_ROOT}/runtime/FRETIVA_GACHA_ARCADE_MAP_BASE_EMPTY_BAYS_RUNTIME.png`;
+const GACHA_ARCADE_MACHINE_LEFT = `${GACHA_ARCADE_ROOT}/runtime/machine_cabinet_left_runtime.png`;
+const GACHA_ARCADE_MACHINE_RIGHT = `${GACHA_ARCADE_ROOT}/runtime/machine_cabinet_right_runtime.png`;
+const GACHA_ARCADE_MACHINE_PLINTH = `${GACHA_ARCADE_ROOT}/runtime/machine_plinth_runtime.png`;
 const GACHA_ARCADE_CANVAS = Object.freeze({ width: 1536, height: 3328 });
 const GACHA_ARCADE_RENDER_ORDER = Object.freeze([
-  "integrated_background",
-  "three_claw_window_layers",
+  "empty_seven_bay_background",
+  "seven_machine_plinths",
+  "seven_machine_cabinets",
+  "seven_claw_window_layers",
   "star_light_ring",
   "gameplay",
   "guitar",
   "HUD",
 ]);
 
+const platformObjects = Object.freeze(GACHA_ARCADE_RESOLVED_SLOTS.map((slot) => Object.freeze({
+  id: `platform_${slot.id}`,
+  kind: "platform",
+  zIndex: 1,
+  src: GACHA_ARCADE_MACHINE_PLINTH,
+  placement: slot.platform,
+})));
+
+const machineObjects = Object.freeze(GACHA_ARCADE_RESOLVED_SLOTS.map((slot) => Object.freeze({
+  id: `machine_${slot.id}`,
+  kind: "machine",
+  side: slot.side,
+  zIndex: 2,
+  src: slot.side === "left" ? GACHA_ARCADE_MACHINE_LEFT : GACHA_ARCADE_MACHINE_RIGHT,
+  placement: slot.machine,
+})));
+
+const CLAW_PHASE_OFFSETS = Object.freeze([0, 857, 1714, 2571, 3428, 4285, 5142]);
+
+const clawSprites = GACHA_ARCADE_RESOLVED_SLOTS.map((slot, index) => {
+  const machine = slot.machine;
+  const isLeft = slot.side === "left";
+  const sourceFrameWidth = isLeft ? 300 : 290;
+  const sourceFrameHeight = isLeft ? 280 : 250;
+  const height = Math.round(machine.height * 0.36);
+  const width = Math.round(height * (sourceFrameWidth / sourceFrameHeight));
+  const placement = Object.freeze({
+    x: Math.round(machine.x + (machine.width - width) / 2),
+    y: Math.round(machine.y + machine.height * 0.245),
+    width,
+    height,
+  });
+  return Object.freeze({
+    id: `claw_${slot.id}`,
+    machineId: `machine_${slot.id}`,
+    src: isLeft
+      ? `${GACHA_ARCADE_ROOT}/runtime/claw_left_mid_wire_sheet_6x4.png`
+      : `${GACHA_ARCADE_ROOT}/runtime/claw_right_upper_wire_sheet_6x4.png`,
+    columns: 6,
+    rows: 4,
+    frameCount: 24,
+    framesPerSecond: 4,
+    durationMs: 6000,
+    delayMs: CLAW_PHASE_OFFSETS[index],
+    phaseOffsetMs: CLAW_PHASE_OFFSETS[index],
+    direction: isLeft ? "left-wall to right" : "right-wall to left",
+    scaleChange: false,
+    placement,
+    clipRect: Object.freeze({ x: 0, y: 0, width, height }),
+    glassClipPolygon: Object.freeze([
+      Object.freeze({ x: 0, y: 0 }),
+      Object.freeze({ x: width, y: 0 }),
+      Object.freeze({ x: width, y: height }),
+      Object.freeze({ x: 0, y: height }),
+    ]),
+  });
+});
+
 const sprites = Object.freeze([
-  {
-    id: "claw_left_mid",
-    src: `${GACHA_ARCADE_ROOT}/runtime/claw_left_mid_wire_sheet_6x4.png`,
-    columns: 6,
-    rows: 4,
-    frameCount: 24,
-    framesPerSecond: 4,
-    durationMs: 6000,
-    delayMs: 0,
-    phaseOffsetMs: 0,
-    direction: "left-wall to right",
-    scaleChange: false,
-    placement: Object.freeze({ x: 88, y: 1125, width: 300, height: 280 }),
-    clipRect: Object.freeze({ x: 0, y: 0, width: 300, height: 280 }),
-    glassClipPolygon: Object.freeze([
-      Object.freeze({ x: 62, y: 40 }),
-      Object.freeze({ x: 292, y: 8 }),
-      Object.freeze({ x: 300, y: 270 }),
-      Object.freeze({ x: 76, y: 270 }),
-    ]),
-  },
-  {
-    id: "claw_right_upper",
-    src: `${GACHA_ARCADE_ROOT}/runtime/claw_right_upper_wire_sheet_6x4.png`,
-    columns: 6,
-    rows: 4,
-    frameCount: 24,
-    framesPerSecond: 4,
-    durationMs: 6000,
-    delayMs: 1800,
-    phaseOffsetMs: 2000,
-    direction: "right-wall to left",
-    scaleChange: false,
-    placement: Object.freeze({ x: 1180, y: 690, width: 290, height: 250 }),
-    clipRect: Object.freeze({ x: 0, y: 0, width: 290, height: 250 }),
-    glassClipPolygon: Object.freeze([
-      Object.freeze({ x: 0, y: 21 }),
-      Object.freeze({ x: 215, y: 40 }),
-      Object.freeze({ x: 210, y: 210 }),
-      Object.freeze({ x: 0, y: 210 }),
-    ]),
-  },
-  {
-    id: "claw_right_lower",
-    src: `${GACHA_ARCADE_ROOT}/runtime/claw_right_lower_wire_sheet_6x4.png`,
-    columns: 6,
-    rows: 4,
-    frameCount: 24,
-    framesPerSecond: 4,
-    durationMs: 6000,
-    delayMs: 3600,
-    phaseOffsetMs: 4000,
-    direction: "right-wall to left",
-    scaleChange: false,
-    placement: Object.freeze({ x: 1165, y: 2160, width: 320, height: 310 }),
-    clipRect: Object.freeze({ x: 0, y: 0, width: 320, height: 310 }),
-    glassClipPolygon: Object.freeze([
-      Object.freeze({ x: 0, y: 35 }),
-      Object.freeze({ x: 235, y: 60 }),
-      Object.freeze({ x: 225, y: 285 }),
-      Object.freeze({ x: 0, y: 260 }),
-    ]),
-  },
-  {
+  ...clawSprites,
+  Object.freeze({
     id: "star_light_ring",
     src: `${GACHA_ARCADE_ROOT}/runtime/star_mobile_horizontal_sheet_6x4.png`,
     columns: 6,
@@ -85,9 +88,15 @@ const sprites = Object.freeze([
     delayMs: 0,
     phaseOffsetMs: 1000,
     scaleChange: false,
-    placement: Object.freeze({ x: 538, y: 379, width: 460, height: 364 }),
-  },
-].map((sprite) => Object.freeze(sprite)));
+    placement: Object.freeze({ x: 538, y: 305, width: 460, height: 364 }),
+  }),
+]);
+
+const preloadSources = Object.freeze([...new Set([
+  ...platformObjects.map((platform) => platform.src),
+  ...machineObjects.map((machine) => machine.src),
+  ...sprites.map((sprite) => sprite.src),
+])]);
 
 export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
   id: "gacha-arcade",
@@ -95,7 +104,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
   label: "인형뽑기방",
   nameKo: "인형뽑기방",
   nameEn: "Gacha Arcade",
-  description: "고정된 세 대의 뽑기 기계 안에서 집게와 별 조명만 움직이는 아케이드",
+  description: "빈 전용 단상에 배치된 좌측 네 대와 우측 세 대의 독립 인형뽑기 기계",
   mobileOnly: false,
   portraitOnly: true,
   previewImage: GACHA_ARCADE_RUNTIME_BACKGROUND,
@@ -105,7 +114,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
       mode: "full",
       audit: Object.freeze({
         completed: true,
-        contentFingerprint: "180814d7",
+        contentFingerprint: "5bf1d2e1",
         activeCssAnimations: 0,
         ambientEventLayers: 0,
         filteredElements: 0,
@@ -120,21 +129,22 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
     deviceHeight: 844,
   }),
   background: Object.freeze({
-    id: "gacha-arcade-background-v2",
+    id: "gacha-arcade-background-v3",
     src: GACHA_ARCADE_RUNTIME_BACKGROUND,
-    masterSrc: `${GACHA_ARCADE_ROOT}/FRETIVA_GACHA_ARCADE_MAP_BASE_INTEGRATED.png`,
+    masterSrc: `${GACHA_ARCADE_ROOT}/FRETIVA_GACHA_ARCADE_MAP_BASE_EMPTY_BAYS.png`,
     fit: "fill",
     position: "50% 50%",
     locked: true,
   }),
   runtimeAnimation: Object.freeze({
-    version: "2.0.0",
+    version: "3.0.0",
     canvasWidth: GACHA_ARCADE_CANVAS.width,
     canvasHeight: GACHA_ARCADE_CANVAS.height,
     clockFramesPerSecond: 10,
     renderOrder: GACHA_ARCADE_RENDER_ORDER,
+    staticObjects: Object.freeze([...platformObjects, ...machineObjects]),
     sprites,
-    preloadSources: Object.freeze(sprites.map((sprite) => sprite.src)),
+    preloadSources,
   }),
   assetCatalog: Object.freeze([]),
   ambientEvents: Object.freeze([]),

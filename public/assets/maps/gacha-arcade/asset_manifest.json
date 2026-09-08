@@ -1,129 +1,64 @@
 {
   "pack": "FRETIVA_GACHA_ARCADE_MAP_PACK",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "canvas": {
     "width": 1536,
     "height": 3328,
-    "reference_viewport": "390x844"
+    "reference_viewport": "390x844",
+    "center_axis_x": 768,
+    "clear_corridor": { "left": 460, "right": 1076 }
   },
-  "design_rule": "machines baked into base; only claws and star light animate",
+  "design_rule": "empty background with reusable aligned plinth, cabinet, and claw object sets",
   "background": {
-    "master": "FRETIVA_GACHA_ARCADE_MAP_BASE_INTEGRATED.png",
-    "mobile_runtime": "runtime/FRETIVA_GACHA_ARCADE_MAP_BASE_RUNTIME.png"
+    "source": "FRETIVA_GACHA_ARCADE_EMPTY_BAYS_SOURCE.png",
+    "master": "FRETIVA_GACHA_ARCADE_MAP_BASE_EMPTY_BAYS.png",
+    "mobile_runtime": "runtime/FRETIVA_GACHA_ARCADE_MAP_BASE_EMPTY_BAYS_RUNTIME.png"
   },
-  "claws": [
-    {
-      "id": "claw_left_mid",
-      "display_title": "좌측 중앙 집게",
-      "file": "spritesheets/claw_left_mid_sheet_6x4.png",
-      "frame_size": [
-        300,
-        280
-      ],
-      "columns": 6,
-      "rows": 4,
-      "frames": 24,
-      "fps": 4,
-      "duration_ms": 6000,
-      "loop": true,
-      "placement_on_1536x3328": {
-        "x": 88,
-        "y": 1125
-      },
-      "clip_rect": {
-        "x": 0,
-        "y": 0,
-        "width": 300,
-        "height": 280
-      },
-      "motion": "home hold -> short horizontal move -> pause -> vertical down -> close -> pause -> vertical up -> return -> hold",
-      "direction": "left-wall to right",
-      "scale_change": false
-    },
-    {
-      "id": "claw_right_upper",
-      "display_title": "우측 상단 집게",
-      "file": "spritesheets/claw_right_upper_sheet_6x4.png",
-      "frame_size": [
-        290,
-        250
-      ],
-      "columns": 6,
-      "rows": 4,
-      "frames": 24,
-      "fps": 4,
-      "duration_ms": 6000,
-      "loop": true,
-      "placement_on_1536x3328": {
-        "x": 1180,
-        "y": 690
-      },
-      "clip_rect": {
-        "x": 0,
-        "y": 0,
-        "width": 290,
-        "height": 250
-      },
-      "motion": "home hold -> short horizontal move -> pause -> vertical down -> close -> pause -> vertical up -> return -> hold",
-      "direction": "right-wall to left",
-      "scale_change": false
-    },
-    {
-      "id": "claw_right_lower",
-      "display_title": "우측 하단 집게",
-      "file": "spritesheets/claw_right_lower_sheet_6x4.png",
-      "frame_size": [
-        320,
-        310
-      ],
-      "columns": 6,
-      "rows": 4,
-      "frames": 24,
-      "fps": 4,
-      "duration_ms": 6000,
-      "loop": true,
-      "placement_on_1536x3328": {
-        "x": 1165,
-        "y": 2160
-      },
-      "clip_rect": {
-        "x": 0,
-        "y": 0,
-        "width": 320,
-        "height": 310
-      },
-      "motion": "home hold -> short horizontal move -> pause -> vertical down -> close -> pause -> vertical up -> return -> hold",
-      "direction": "right-wall to left",
-      "scale_change": false
-    }
+  "shared_objects": {
+    "plinth": "runtime/machine_plinth_runtime.png",
+    "machine_left": "runtime/machine_cabinet_left_runtime.png",
+    "machine_right": "runtime/machine_cabinet_right_runtime.png",
+    "claw_left_sheet": "runtime/claw_left_mid_wire_sheet_6x4.png",
+    "claw_right_sheet": "runtime/claw_right_upper_wire_sheet_6x4.png",
+    "star_mobile_sheet": "runtime/star_mobile_horizontal_sheet_6x4.png"
+  },
+  "layout_rules": {
+    "machine_height_ratio": 1.5,
+    "plinth_width_ratio": 1.18,
+    "machine_rotation_degrees": 0,
+    "plinth_rotation_degrees": 0
+  },
+  "machine_slots": [
+    { "id": "left_1", "side": "left", "center_x": 310, "base_y": 760, "machine_width": 220, "phase_offset_ms": 0 },
+    { "id": "right_1", "side": "right", "center_x": 1226, "base_y": 880, "machine_width": 240, "phase_offset_ms": 857 },
+    { "id": "left_2", "side": "left", "center_x": 270, "base_y": 1160, "machine_width": 270, "phase_offset_ms": 1714 },
+    { "id": "right_2", "side": "right", "center_x": 1266, "base_y": 1390, "machine_width": 290, "phase_offset_ms": 2571 },
+    { "id": "left_3", "side": "left", "center_x": 220, "base_y": 1740, "machine_width": 320, "phase_offset_ms": 3428 },
+    { "id": "right_3", "side": "right", "center_x": 1316, "base_y": 2150, "machine_width": 350, "phase_offset_ms": 4285 },
+    { "id": "left_4", "side": "left", "center_x": 170, "base_y": 2550, "machine_width": 380, "phase_offset_ms": 5142 }
   ],
-  "star_light": {
-    "display_title": "원형 별 조명",
-    "file": "spritesheets/star_light_ring_sheet_6x4.png",
-    "frame_size": [
-      460,
-      364
-    ],
-    "render_size": [
-      760,
-      601
-    ],
-    "placement_on_1536x3328": {
-      "x": 388,
-      "y": 260
-    },
+  "claw_animation": {
     "columns": 6,
     "rows": 4,
     "frames": 24,
-    "fps": 6,
-    "duration_ms": 4000,
+    "fps": 4,
+    "duration_ms": 6000,
     "loop": true,
-    "geometry_scale_change": false,
-    "motion": "clockwise illumination sequence around a fixed-size ring; ceiling mount baked into background"
+    "scale_change": false
+  },
+  "star_mobile": {
+    "columns": 6,
+    "rows": 4,
+    "frames": 24,
+    "fps": 8,
+    "duration_ms": 3000,
+    "ring_geometry_fixed": true
   },
   "render_order": [
-    "integrated_background",
-    "three_claw_window_layers",
+    "empty_seven_bay_background",
+    "seven_machine_plinths",
+    "seven_machine_cabinets",
+    "seven_claw_window_layers",
     "star_light_ring",
     "gameplay",
     "guitar",

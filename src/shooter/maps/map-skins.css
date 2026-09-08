@@ -56,6 +56,17 @@
   pointer-events: none;
 }
 
+.shooterMapGachaArcadeObject {
+  position: absolute;
+  z-index: 1;
+  display: block;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  background-size: contain;
+  image-rendering: auto;
+  pointer-events: none;
+}
+
 .shooterMapAmbientEvents {
   position: absolute;
   z-index: 32;

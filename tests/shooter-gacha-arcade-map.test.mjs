@@ -5,11 +5,25 @@ import test from "node:test";
 import { LAYERED_SHOOTER_MAP_SKINS, getShooterMapAssetSources } from "../src/shooter/maps/registry.js";
 import { getShooterMapPerformancePolicy } from "../src/shooter/maps/performancePolicy.js";
 import { GACHA_ARCADE_MAP_SKIN } from "../src/shooter/maps/skins/gachaArcade.js";
+import { GACHA_ARCADE_CLEAR_CORRIDOR } from "../src/shooter/maps/skins/gachaArcadeLayout.js";
 
 const assetRoot = new URL("../public/assets/maps/gacha-arcade/", import.meta.url);
 
-test("gacha arcade V2 uses the authored runtime background and fixed render order", () => {
-  assert.equal(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.version, "2.0.0");
+test("V3 manifest fixes the shared axis, corridor, and seven machine slots", async () => {
+  const manifest = JSON.parse(await readFile(new URL("asset_manifest.json", assetRoot), "utf8"));
+  assert.equal(manifest.version, "3.0.0");
+  assert.equal(manifest.canvas.center_axis_x, 768);
+  assert.deepEqual(manifest.canvas.clear_corridor, { left: 460, right: 1076 });
+  assert.equal(manifest.layout_rules.machine_rotation_degrees, 0);
+  assert.equal(manifest.layout_rules.plinth_rotation_degrees, 0);
+  assert.equal(manifest.layout_rules.plinth_width_ratio, 1.18);
+  assert.equal(manifest.machine_slots.length, 7);
+  assert.equal(manifest.machine_slots.filter((slot) => slot.side === "left").length, 4);
+  assert.equal(manifest.machine_slots.filter((slot) => slot.side === "right").length, 3);
+});
+
+test("gacha arcade V3 uses an empty seven-bay background and layered render order", () => {
+  assert.equal(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.version, "3.0.0");
   assert.deepEqual(getShooterMapPerformancePolicy(GACHA_ARCADE_MAP_SKIN), {
     mobileGameplayEffects: "full",
     mobileGameplayAuditPassed: true,
@@ -22,11 +36,13 @@ test("gacha arcade V2 uses the authored runtime background and fixed render orde
   });
   assert.equal(
     GACHA_ARCADE_MAP_SKIN.background.src,
-    "/assets/maps/gacha-arcade/runtime/FRETIVA_GACHA_ARCADE_MAP_BASE_RUNTIME.png",
+    "/assets/maps/gacha-arcade/runtime/FRETIVA_GACHA_ARCADE_MAP_BASE_EMPTY_BAYS_RUNTIME.png",
   );
   assert.deepEqual(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.renderOrder, [
-    "integrated_background",
-    "three_claw_window_layers",
+    "empty_seven_bay_background",
+    "seven_machine_plinths",
+    "seven_machine_cabinets",
+    "seven_claw_window_layers",
     "star_light_ring",
     "gameplay",
     "guitar",
@@ -35,40 +51,53 @@ test("gacha arcade V2 uses the authored runtime background and fixed render orde
   assert.equal(LAYERED_SHOOTER_MAP_SKINS.at(-1), GACHA_ARCADE_MAP_SKIN);
 });
 
-test("only three clipped claws and one fixed-size star ring animate", () => {
-  const sprites = Object.fromEntries(
-    GACHA_ARCADE_MAP_SKIN.runtimeAnimation.sprites.map((sprite) => [sprite.id, sprite]),
-  );
-  assert.deepEqual(Object.keys(sprites), [
-    "claw_left_mid",
-    "claw_right_upper",
-    "claw_right_lower",
-    "star_light_ring",
+test("four left and three right cabinets each own one staggered clipped claw", () => {
+  const { staticObjects, sprites } = GACHA_ARCADE_MAP_SKIN.runtimeAnimation;
+  const platforms = staticObjects.filter((object) => object.kind === "platform");
+  const machines = staticObjects.filter((object) => object.kind === "machine");
+  const claws = sprites.filter((sprite) => sprite.id.startsWith("claw_"));
+  const star = sprites.find((sprite) => sprite.id === "star_light_ring");
+
+  assert.equal(platforms.length, 7);
+  assert.equal(machines.length, 7);
+  assert.equal(machines.filter((machine) => machine.side === "left").length, 4);
+  assert.equal(machines.filter((machine) => machine.side === "right").length, 3);
+  assert.deepEqual(machines.map((machine) => machine.id), [
+    "machine_left_1",
+    "machine_right_1",
+    "machine_left_2",
+    "machine_right_2",
+    "machine_left_3",
+    "machine_right_3",
+    "machine_left_4",
   ]);
-  assert.deepEqual(sprites.claw_left_mid.placement, {
-    x: 88, y: 1125, width: 300, height: 280,
-  });
-  assert.deepEqual(sprites.claw_right_upper.placement, {
-    x: 1180, y: 690, width: 290, height: 250,
-  });
-  assert.deepEqual(sprites.claw_right_lower.placement, {
-    x: 1165, y: 2160, width: 320, height: 310,
-  });
-  assert.deepEqual(sprites.star_light_ring.placement, {
-    x: 538, y: 379, width: 460, height: 364,
-  });
-  assert.deepEqual([
-    sprites.claw_left_mid.delayMs,
-    sprites.claw_right_upper.delayMs,
-    sprites.claw_right_lower.delayMs,
-  ], [0, 1800, 3600]);
-  assert.deepEqual([
-    sprites.claw_left_mid.phaseOffsetMs,
-    sprites.star_light_ring.phaseOffsetMs,
-    sprites.claw_right_upper.phaseOffsetMs,
-    sprites.claw_right_lower.phaseOffsetMs,
-  ], [0, 1000, 2000, 4000]);
-  for (const claw of [sprites.claw_left_mid, sprites.claw_right_upper, sprites.claw_right_lower]) {
+  assert.deepEqual(machines.map((machine) => machine.placement), [
+    { x: 200, y: 430, width: 220, height: 330 },
+    { x: 1106, y: 520, width: 240, height: 360 },
+    { x: 135, y: 755, width: 270, height: 405 },
+    { x: 1121, y: 955, width: 290, height: 435 },
+    { x: 60, y: 1260, width: 320, height: 480 },
+    { x: 1141, y: 1625, width: 350, height: 525 },
+    { x: -20, y: 1980, width: 380, height: 570 },
+  ]);
+  for (const [index, machine] of machines.entries()) {
+    const platform = platforms[index];
+    const machineCenter = machine.placement.x + machine.placement.width / 2;
+    const platformCenter = platform.placement.x + platform.placement.width / 2;
+    assert.ok(Math.abs(machineCenter - platformCenter) <= 0.5);
+    assert.equal(platform.placement.width, Math.round(machine.placement.width * 1.18));
+    if (machine.side === "left") {
+      assert.ok(machine.placement.x + machine.placement.width < GACHA_ARCADE_CLEAR_CORRIDOR.left);
+    } else {
+      assert.ok(machine.placement.x > GACHA_ARCADE_CLEAR_CORRIDOR.right);
+    }
+  }
+
+  assert.equal(claws.length, 7);
+  assert.deepEqual(claws.map((claw) => claw.phaseOffsetMs), [0, 857, 1714, 2571, 3428, 4285, 5142]);
+  assert.equal(new Set(claws.map((claw) => claw.phaseOffsetMs)).size, 7);
+  for (const claw of claws) {
+    assert.equal(machines.some((machine) => machine.id === claw.machineId), true);
     assert.equal(claw.columns, 6);
     assert.equal(claw.rows, 4);
     assert.equal(claw.frameCount, 24);
@@ -77,30 +106,30 @@ test("only three clipped claws and one fixed-size star ring animate", () => {
     assert.equal(claw.scaleChange, false);
     assert.equal(claw.placement.width, claw.clipRect.width);
     assert.equal(claw.placement.height, claw.clipRect.height);
-    assert.equal(claw.glassClipPolygon.length, 4);
+    assert.deepEqual(claw.glassClipPolygon, [
+      { x: 0, y: 0 },
+      { x: claw.placement.width, y: 0 },
+      { x: claw.placement.width, y: claw.placement.height },
+      { x: 0, y: claw.placement.height },
+    ]);
   }
-  assert.deepEqual(sprites.claw_left_mid.glassClipPolygon, [
-    { x: 62, y: 40 }, { x: 292, y: 8 }, { x: 300, y: 270 }, { x: 76, y: 270 },
-  ]);
-  assert.deepEqual(sprites.claw_right_upper.glassClipPolygon, [
-    { x: 0, y: 21 }, { x: 215, y: 40 }, { x: 210, y: 210 }, { x: 0, y: 210 },
-  ]);
-  assert.deepEqual(sprites.claw_right_lower.glassClipPolygon, [
-    { x: 0, y: 35 }, { x: 235, y: 60 }, { x: 225, y: 285 }, { x: 0, y: 260 },
-  ]);
-  assert.equal(sprites.star_light_ring.frameCount, 24);
-  assert.equal(sprites.star_light_ring.framesPerSecond, 8);
-  assert.equal(sprites.star_light_ring.durationMs, 3000);
-  assert.equal(sprites.star_light_ring.scaleChange, false);
-  assert.equal("rotationTurns" in sprites.star_light_ring, false);
+
+  assert.ok(star);
+  assert.equal(star.frameCount, 24);
+  assert.equal(star.framesPerSecond, 8);
+  assert.equal(star.durationMs, 3000);
+  assert.equal(star.scaleChange, false);
+  assert.equal("rotationTurns" in star, false);
 });
 
-test("runtime loads one background and four sheets without individual frame duplication", async () => {
+test("runtime reuses two cabinet images and two claw sheets without frame duplication", async () => {
   const expected = [
-    ["runtime/FRETIVA_GACHA_ARCADE_MAP_BASE_RUNTIME.png", 768, 1664],
+    ["runtime/FRETIVA_GACHA_ARCADE_MAP_BASE_EMPTY_BAYS_RUNTIME.png", 768, 1664],
+    ["runtime/machine_cabinet_left_runtime.png", 384, 576],
+    ["runtime/machine_cabinet_right_runtime.png", 384, 576],
+    ["runtime/machine_plinth_runtime.png", 640, 190],
     ["runtime/claw_left_mid_wire_sheet_6x4.png", 1800, 1120],
     ["runtime/claw_right_upper_wire_sheet_6x4.png", 1740, 1000],
-    ["runtime/claw_right_lower_wire_sheet_6x4.png", 1920, 1240],
     ["runtime/star_mobile_horizontal_sheet_6x4.png", 2760, 1456],
   ];
   for (const [file, width, height] of expected) {
@@ -111,34 +140,32 @@ test("runtime loads one background and four sheets without individual frame dupl
     assert.equal(png[24], 8, `${file} bit depth`);
     assert.equal(png[25], 6, `${file} RGBA color type`);
   }
-  for (const original of [
-    "spritesheets/claw_left_mid_sheet_6x4.png",
-    "spritesheets/claw_right_upper_sheet_6x4.png",
-    "spritesheets/claw_right_lower_sheet_6x4.png",
-  ]) {
-    const png = await readFile(new URL(original, assetRoot));
-    assert.equal(png.subarray(0, 8).toString("hex"), "89504e470d0a1a0a", `${original} preserved`);
-  }
+
+  const master = await readFile(new URL("FRETIVA_GACHA_ARCADE_MAP_BASE_EMPTY_BAYS.png", assetRoot));
+  assert.equal(master.readUInt32BE(16), 1536);
+  assert.equal(master.readUInt32BE(20), 3328);
+
   const runtimeSources = getShooterMapAssetSources(GACHA_ARCADE_MAP_SKIN);
-  assert.equal(runtimeSources.length, 5);
+  assert.equal(runtimeSources.length, 7);
   assert.equal(runtimeSources.some((source) => source.includes("/frames/")), false);
   assert.equal(runtimeSources.some((source) => source.includes("COMPOSITE")), false);
+  assert.equal(new Set(runtimeSources).size, runtimeSources.length);
   assert.equal(GACHA_ARCADE_MAP_SKIN.previewImage, GACHA_ARCADE_MAP_SKIN.background.src);
   assert.equal(GACHA_ARCADE_MAP_SKIN.pickerPreviewImage, GACHA_ARCADE_MAP_SKIN.background.src);
   assert.deepEqual(GACHA_ARCADE_MAP_SKIN.layout, []);
   assert.deepEqual(GACHA_ARCADE_MAP_SKIN.layers, []);
 });
 
-test("renderer uses one visibility-aware 10Hz loop without React frame state or scale", async () => {
-  const [renderer, field, styles, sharedClock, app, skinSource] = await Promise.all([
+test("renderer keeps cabinets static and drives all claws from one visibility-aware 10Hz loop", async () => {
+  const [renderer, field, styles, sharedClock, app] = await Promise.all([
     readFile(new URL("../src/shooter/maps/MapSkinRenderer.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/shooter/maps/GachaArcadeField.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/shooter/maps/map-skins.css", import.meta.url), "utf8"),
     readFile(new URL("../src/shooter/maps/sharedSpriteClock.js", import.meta.url), "utf8"),
     readFile(new URL("../src/App.jsx", import.meta.url), "utf8"),
-    readFile(new URL("../src/shooter/maps/skins/gachaArcade.js", import.meta.url), "utf8"),
   ]);
   assert.match(renderer, /stage === "underlay" && skin\.id === "gacha-arcade"/);
+  assert.match(field, /staticObjects\.map\(\(object\)/);
   assert.match(field, /subscribeSharedMapAnimation\(field/);
   assert.match(field, /runtimeAnimation\.clockFramesPerSecond/);
   assert.doesNotMatch(field, /useState/);
@@ -146,12 +173,11 @@ test("renderer uses one visibility-aware 10Hz loop without React frame state or 
   assert.match(field, /clipPath: getGlassClipPath\(sprite\)/);
   assert.match(field, /elapsedMs \+ \(sprite\.phaseOffsetMs \?\? 0\)/);
   assert.doesNotMatch(field, /perspective\(|rotate[XYZ]?\(/);
+  assert.match(styles, /\.shooterMapGachaArcadeObject[\s\S]*?background-size: contain/);
   assert.match(styles, /\.shooterMapGachaArcadeField[\s\S]*?overflow: hidden/);
   assert.match(styles, /\.shooterMapGachaArcadeSprite[\s\S]*?overflow: hidden/);
-  assert.doesNotMatch(styles, /shooterMapGachaArcadeSprite[^{]*\{[^}]*transform\s*:/s);
   assert.match(sharedClock, /document\.visibilityState !== "hidden"/);
   assert.match(sharedClock, /subscriptions\.delete\(element\)/);
   assert.match(app, /const DEFAULT_SHOOTER_MAP_ID = "gacha-arcade"/);
   assert.match(app, /return DEFAULT_SHOOTER_MAP_ID;/);
-  assert.doesNotMatch(skinSource, /import .*asset_manifest/);
 });

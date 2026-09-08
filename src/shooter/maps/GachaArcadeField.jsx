@@ -19,6 +19,7 @@ function getGlassClipPath(sprite) {
 export default function GachaArcadeField({ active = true, runtimeAnimation }) {
   const fieldRef = useRef(null);
   const startedAtRef = useRef(null);
+  const staticObjects = runtimeAnimation?.staticObjects ?? [];
   const sprites = runtimeAnimation?.sprites ?? [];
 
   useEffect(() => {
@@ -48,6 +49,21 @@ export default function GachaArcadeField({ active = true, runtimeAnimation }) {
       data-gacha-hitboxes="none"
       ref={fieldRef}
     >
+      {staticObjects.map((object) => (
+        <span
+          className="shooterMapGachaArcadeObject"
+          data-gacha-object-id={object.id}
+          key={object.id}
+          style={{
+            backgroundImage: `url(${object.src})`,
+            height: `${(object.placement.height / runtimeAnimation.canvasHeight) * 100}%`,
+            left: `${(object.placement.x / runtimeAnimation.canvasWidth) * 100}%`,
+            top: `${(object.placement.y / runtimeAnimation.canvasHeight) * 100}%`,
+            width: `${(object.placement.width / runtimeAnimation.canvasWidth) * 100}%`,
+            zIndex: object.zIndex,
+          }}
+        />
+      ))}
       {sprites.map((sprite, index) => (
         <span
           className={`shooterMapGachaArcadeSprite shooterMapGachaArcadeSprite--${sprite.id}`}
@@ -67,6 +83,7 @@ export default function GachaArcadeField({ active = true, runtimeAnimation }) {
             left: `${(sprite.placement.x / runtimeAnimation.canvasWidth) * 100}%`,
             top: `${(sprite.placement.y / runtimeAnimation.canvasHeight) * 100}%`,
             width: `${(sprite.placement.width / runtimeAnimation.canvasWidth) * 100}%`,
+            zIndex: sprite.id === "star_light_ring" ? 4 : 3,
           }}
         />
       ))}
