@@ -33675,9 +33675,10 @@ function App({ onReady }) {
                 onPointerUp={finishShooterPetDrag}
                 ref={shooterPetRef}
                 style={{
-                  "--shooter-pet-columns": selectedPet.columns,
-                  "--shooter-pet-duration": `${selectedPet.frameCount / selectedPet.framesPerSecond}s`,
-                  "--shooter-pet-image": `url(${selectedPet.sheetSrc})`,
+                    "--shooter-pet-columns": selectedPet.columns,
+                    "--shooter-pet-duration": `${selectedPet.frameCount / selectedPet.framesPerSecond}s`,
+                    "--shooter-pet-image": `url(${selectedPet.sheetSrc})`,
+                    "--shooter-pet-steps": selectedPet.frameCount - 1,
                   "--shooter-pet-x": shooterPetPosition.x,
                   "--shooter-pet-y": shooterPetPosition.y,
                 }}

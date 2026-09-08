@@ -73947,7 +73947,7 @@ html body main.app.app.app.shooterMode .shooterArena button.shooterPetCompanion:
   background-repeat: no-repeat;
   background-size: calc(var(--shooter-pet-columns, 8) * 100%) 100%;
   pointer-events: none;
-  animation: shooterPetSpriteIdle var(--shooter-pet-duration, 1.6s) steps(7, end) infinite;
+  animation: shooterPetSpriteIdle var(--shooter-pet-duration, 8s) steps(var(--shooter-pet-steps, 23), end) infinite;
 }
 
 .shooterPetCompanion:hover,

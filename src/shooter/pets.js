@@ -16,12 +16,12 @@ export const SHOOTER_PET_SKINS = Object.freeze([
   Object.freeze({
     id: SHOOTER_PET_SKIN_IDS.CREAM_POMERANIAN,
     label: "크림 포메",
-    description: "눈을 깜박이고 꼬리를 흔드는 크림 포메라니안",
-    sheetSrc: "/assets/pets/pomeranian/pomeranian-pet-idle-sheet-8x1.png",
-    masterSrc: "/assets/pets/pomeranian/pomeranian-pet-master-4x2.png",
-    columns: 8,
-    frameCount: 8,
-    framesPerSecond: 5,
+    description: "갸우뚱하고 엎드리고 충성 자세를 하는 크림 포메라니안",
+    sheetSrc: "/assets/pets/pomeranian/pomeranian-pet-actions-sheet-24x1.png",
+    masterSrc: "/assets/pets/pomeranian/pomeranian-pet-actions-master-6x4.png",
+    columns: 24,
+    frameCount: 24,
+    framesPerSecond: 3,
   }),
 ]);
 
