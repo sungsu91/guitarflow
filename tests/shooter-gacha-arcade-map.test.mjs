@@ -145,7 +145,7 @@ test("renderer uses one visibility-aware 10Hz loop without React frame state or 
   assert.doesNotMatch(field, /transform.*scale|scale\(/i);
   assert.match(field, /clipPath: getGlassClipPath\(sprite\)/);
   assert.match(field, /elapsedMs \+ \(sprite\.phaseOffsetMs \?\? 0\)/);
-  assert.match(field, /element\.style\.transform = `rotate\(/);
+  assert.match(field, /perspective\(520px\) rotateY\(/);
   assert.match(styles, /\.shooterMapGachaArcadeField[\s\S]*?overflow: hidden/);
   assert.match(styles, /\.shooterMapGachaArcadeSprite[\s\S]*?overflow: hidden/);
   assert.doesNotMatch(styles, /shooterMapGachaArcadeSprite[^{]*\{[^}]*transform\s*:/s);

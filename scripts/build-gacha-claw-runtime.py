@@ -120,11 +120,9 @@ def build_runtime_sheet(source_name: str, output_name: str, frame_width: int, fr
         draw.line((center_x - 1, 0, center_x - 1, cable_bottom), fill=(170, 93, 72, 255), width=2)
         draw.line((center_x, 0, center_x, cable_bottom), fill=(247, 193, 126, 255), width=1)
 
-        if frame_index in (15, 16, 17):
+        if frame_index in (15, 16, 17, 18, 19, 20):
             plush_x = center_x - plush_width // 2
-            base_claw_bottom = claw_top + claw_crop.height
-            plush_bottom = min(frame_height - 8, base_claw_bottom + round(plush_height * 0.55)) + lift_y
-            plush_y = plush_bottom - plush_height
+            plush_y = rendered_claw_bottom - round(plush_height * 0.38)
             runtime_frame.alpha_composite(plush, (plush_x, plush_y))
 
         rendered_claw = claw_crop

@@ -37,7 +37,7 @@ export default function GachaArcadeField({ active = true, runtimeAnimation }) {
         if (element.dataset.frameIndex !== String(frameIndex)) {
           setSpriteFrame(element, frameIndex, sprite.columns, sprite.rows);
           if (sprite.rotationTurns) {
-            element.style.transform = `rotate(${(frameIndex / sprite.frameCount) * sprite.rotationTurns * 360}deg)`;
+            element.style.transform = `perspective(520px) rotateY(${(frameIndex / sprite.frameCount) * sprite.rotationTurns * 360}deg)`;
           }
         }
       });
