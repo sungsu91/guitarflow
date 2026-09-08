@@ -57,12 +57,14 @@ test("pet animation uses CSS sprite steps and separate mobile placement", async 
   assert.match(style, /top: calc\(var\(--shooter-pet-y, 88\) \* 1%\)/);
   assert.match(style, /touch-action: none/);
   assert.match(app, /DEFAULT_SHOOTER_PET_POSITION = Object\.freeze\(\{ x: 80, y: 88 \}\)/);
+  assert.match(app, /useState\(\s*\(\) => \(\{ \.\.\.DEFAULT_SHOOTER_PET_POSITION \}\),\s*\)/);
+  assert.match(app, /setSelectedShooterPetSkinId\(nextSkin\.id\);\s*setShooterPetPosition\(\{ \.\.\.DEFAULT_SHOOTER_PET_POSITION \}\)/);
   assert.doesNotMatch(app, /SHOOTER_PET_LONG_PRESS_MS/);
   assert.match(app, /onPointerDown=\{handleShooterPetPointerDown\}/);
   assert.match(app, /onPointerMove=\{handleShooterPetPointerMove\}/);
   assert.match(app, /event\.currentTarget\.dataset\.dragging = "true"/);
   assert.match(app, /document\.addEventListener\("visibilitychange", syncVisibility\)/);
-  assert.match(app, /localStorage\.setItem\(SHOOTER_PET_POSITION_STORAGE_KEY/);
+  assert.doesNotMatch(app, /SHOOTER_PET_POSITION_STORAGE_KEY/);
   assert.match(builder, /ground_offset = 187 - visible_bounds\[3\]/);
   assert.match(builder, /contact_center = \(min\(contact_x\) \+ max\(contact_x\)\) \/ 2/);
   assert.match(builder, /for frame_index in \(18, 19, 20\):/);

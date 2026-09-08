@@ -7932,7 +7932,6 @@ const SHOOTER_GUITAR_CABINET_STORAGE_KEY = "rifflabShooterGuitarCabinet";
 const SHOOTER_PICK_SKIN_STORAGE_KEY = "rifflabShooterPickSkin";
 const SHOOTER_MONSTER_SKIN_STORAGE_KEY = "rifflabShooterMonsterSkin";
 const SHOOTER_PET_SKIN_STORAGE_KEY = "rifflabShooterPetSkin";
-const SHOOTER_PET_POSITION_STORAGE_KEY = "rifflabShooterPetPosition";
 const DEFAULT_SHOOTER_PET_POSITION = Object.freeze({ x: 80, y: 88 });
 const SHOOTER_EFFECT_STORAGE_KEY = "rifflabShooterEffect";
 const SHOOTER_EFFECT_LEGACY_LOADOUT_STORAGE_KEY = "rifflabShooterEffectLoadoutV2";
@@ -12109,22 +12108,6 @@ function getStoredShooterPetSkinId() {
   return storedPetSkinId === null
     ? DEFAULT_SHOOTER_PET_SKIN_ID
     : getShooterPetSkinById(storedPetSkinId).id;
-}
-
-function getStoredShooterPetPosition() {
-  if (typeof window === "undefined") return { ...DEFAULT_SHOOTER_PET_POSITION };
-  try {
-    const stored = JSON.parse(window.localStorage.getItem(SHOOTER_PET_POSITION_STORAGE_KEY) ?? "null");
-    if (!Number.isFinite(stored?.x) || !Number.isFinite(stored?.y)) {
-      return { ...DEFAULT_SHOOTER_PET_POSITION };
-    }
-    return {
-      x: clampValue(stored.x, 0, 100),
-      y: clampValue(stored.y, 0, 100),
-    };
-  } catch {
-    return { ...DEFAULT_SHOOTER_PET_POSITION };
-  }
 }
 
 function getStoredShooterEffectLoadout() {
@@ -17090,7 +17073,9 @@ function App({ onReady }) {
   const [selectedShooterPickSkinId, setSelectedShooterPickSkinId] = useState(getStoredShooterPickSkinId);
   const [selectedShooterMonsterSkinId, setSelectedShooterMonsterSkinId] = useState(getStoredShooterMonsterSkinId);
   const [selectedShooterPetSkinId, setSelectedShooterPetSkinId] = useState(getStoredShooterPetSkinId);
-  const [shooterPetPosition, setShooterPetPosition] = useState(getStoredShooterPetPosition);
+  const [shooterPetPosition, setShooterPetPosition] = useState(
+    () => ({ ...DEFAULT_SHOOTER_PET_POSITION }),
+  );
   const [shooterPetDocumentVisible, setShooterPetDocumentVisible] = useState(
     () => typeof document === "undefined" || document.visibilityState !== "hidden",
   );
@@ -17587,6 +17572,7 @@ function App({ onReady }) {
   const applyShooterPetSkin = useCallback((skinId) => {
     const nextSkin = getShooterPetSkinById(skinId);
     setSelectedShooterPetSkinId(nextSkin.id);
+    setShooterPetPosition({ ...DEFAULT_SHOOTER_PET_POSITION });
     if (typeof window !== "undefined") {
       window.localStorage.setItem(SHOOTER_PET_SKIN_STORAGE_KEY, nextSkin.id);
       if (nextSkin.sheetSrc) {
@@ -17660,7 +17646,6 @@ function App({ onReady }) {
     delete event.currentTarget.dataset.dragging;
     if (!drag.active || !drag.nextPosition) return;
     setShooterPetPosition(drag.nextPosition);
-    window.localStorage.setItem(SHOOTER_PET_POSITION_STORAGE_KEY, JSON.stringify(drag.nextPosition));
   }, []);
 
   useEffect(() => {
