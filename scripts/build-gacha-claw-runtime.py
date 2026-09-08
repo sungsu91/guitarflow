@@ -16,6 +16,7 @@ SHEETS = (
 )
 
 PLUSH_SOURCE = SOURCE_DIR / "claw_bunny_plush_source.png"
+CLAW_RENDER_SCALE = 1.35
 
 
 def broad_row_groups(alpha: Image.Image) -> list[list[int]]:
@@ -48,7 +49,7 @@ def build_runtime_sheet(source_name: str, output_name: str, frame_width: int, fr
     if plush_bbox is None:
         raise RuntimeError("The generated bunny plush source has no visible pixels")
     plush_source = plush_source.crop(plush_bbox)
-    plush_height = round(frame_width * 0.11)
+    plush_height = round(frame_width * 0.22)
     plush_width = round(plush_source.width * plush_height / plush_source.height)
     plush = plush_source.resize((plush_width, plush_height), Image.Resampling.LANCZOS)
 
@@ -86,10 +87,16 @@ def build_runtime_sheet(source_name: str, output_name: str, frame_width: int, fr
             raise RuntimeError(f"Missing claw pixels in {source_name} frame {frame_index}")
         claw_left, _, claw_right, claw_bottom_local = alpha_box
         claw_bottom = claw_top + claw_bottom_local
-        claw_crop = source_frame.crop((claw_left, claw_top, claw_right, claw_bottom))
         center_x = round((claw_left + claw_right) / 2)
+        claw_crop = source_frame.crop((claw_left, claw_top, claw_right, claw_bottom))
+        claw_crop = claw_crop.resize((
+            round(claw_crop.width * CLAW_RENDER_SCALE),
+            round(claw_crop.height * CLAW_RENDER_SCALE),
+        ), Image.Resampling.LANCZOS)
+        claw_left = center_x - claw_crop.width // 2
         lift_y = -8 if frame_index == 16 else 0
         rendered_claw_top = claw_top + lift_y
+        rendered_claw_bottom = rendered_claw_top + claw_crop.height
 
         runtime_frame = Image.new("RGBA", (frame_width, frame_height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(runtime_frame)
@@ -100,7 +107,7 @@ def build_runtime_sheet(source_name: str, output_name: str, frame_width: int, fr
 
         if frame_index in (15, 16, 17):
             plush_x = center_x - plush_width // 2
-            plush_y = claw_bottom + lift_y - round(plush_height * 0.24)
+            plush_y = rendered_claw_bottom - round(plush_height * 0.38)
             runtime_frame.alpha_composite(plush, (plush_x, plush_y))
 
         if frame_index == 13:
