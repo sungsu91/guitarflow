@@ -17,10 +17,10 @@ export const SHOOTER_PET_SKINS = Object.freeze([
     id: SHOOTER_PET_SKIN_IDS.CREAM_POMERANIAN,
     label: "크림 포메",
     description: "갸우뚱하고 엎드리고 충성 자세를 하는 크림 포메라니안",
-    sheetSrc: "/assets/pets/pomeranian/pomeranian-pet-actions-sheet-24x1.png",
+    sheetSrc: "/assets/pets/pomeranian/pomeranian-pet-actions-sheet-36x1.png",
     masterSrc: "/assets/pets/pomeranian/pomeranian-pet-actions-master-6x4.png",
-    columns: 24,
-    frameCount: 24,
+    columns: 36,
+    frameCount: 36,
     framesPerSecond: 3,
   }),
 ]);

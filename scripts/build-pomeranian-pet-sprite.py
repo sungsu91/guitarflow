@@ -3,7 +3,7 @@
 from collections import deque
 from pathlib import Path
 
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,9 +11,15 @@ PET_DIR = ROOT / "public/assets/pets/pomeranian"
 SOURCE_COLUMNS = 6
 SOURCE_ROWS = 4
 FRAME_COUNT = SOURCE_COLUMNS * SOURCE_ROWS
+RUNTIME_TIMELINE = (
+    0, 1, 2, 3, 4, 5, 5, 0,
+    6, 7, 8, 9, 9, 9, 9, 10, 11,
+    12, 13, 14, 15, 15, 15, 15, 15, 16, 17,
+    18, 18, 19, 19, 19, 20, 21, 22, 23,
+)
 SOURCE = PET_DIR / "source/pomeranian-actions-generated-checkerboard.png"
 MASTER = PET_DIR / "pomeranian-pet-actions-master-6x4.png"
-RUNTIME = PET_DIR / "pomeranian-pet-actions-sheet-24x1.png"
+RUNTIME = PET_DIR / "pomeranian-pet-actions-sheet-36x1.png"
 
 
 def remove_checkerboard(source: Image.Image) -> Image.Image:
@@ -103,8 +109,8 @@ def extract_dog(frame: Image.Image) -> Image.Image:
 def normalize_runtime(master: Image.Image) -> Image.Image:
     source_cell = (master.width // SOURCE_COLUMNS, master.height // SOURCE_ROWS)
     frame_size = 192
-    runtime = Image.new("RGBA", (frame_size * FRAME_COUNT, frame_size), (0, 0, 0, 0))
-    for frame_index in range(FRAME_COUNT):
+    runtime = Image.new("RGBA", (frame_size * len(RUNTIME_TIMELINE), frame_size), (0, 0, 0, 0))
+    for runtime_index, frame_index in enumerate(RUNTIME_TIMELINE):
         column = frame_index % SOURCE_COLUMNS
         row = frame_index // SOURCE_COLUMNS
         frame = master.crop((
@@ -116,14 +122,37 @@ def normalize_runtime(master: Image.Image) -> Image.Image:
         if frame.getchannel("A").getbbox() is None:
             raise RuntimeError(f"Pomeranian frame {frame_index} is empty")
         frame = frame.resize((frame_size, frame_size), Image.Resampling.LANCZOS)
-        runtime.alpha_composite(frame, (frame_index * frame_size, 0))
+        visible_bounds = frame.getchannel("A").getbbox()
+        alpha = frame.getchannel("A")
+        alpha_pixels = alpha.load()
+        contact_x = [
+            x
+            for y in range(max(0, visible_bounds[3] - 8), visible_bounds[3])
+            for x in range(frame_size)
+            if alpha_pixels[x, y] >= 128
+        ]
+        contact_center = (min(contact_x) + max(contact_x)) / 2 if contact_x else frame_size / 2
+        grounded_frame = Image.new("RGBA", (frame_size, frame_size), (0, 0, 0, 0))
+        center_offset = round(frame_size / 2 - contact_center)
+        ground_offset = 187 - visible_bounds[3]
+        grounded_frame.alpha_composite(frame, (center_offset, ground_offset))
+        runtime.alpha_composite(grounded_frame, (runtime_index * frame_size, 0))
     return runtime
 
 
-def hold_closed_eye_salute(master: Image.Image) -> None:
+def hold_single_eye_salute(master: Image.Image) -> None:
     cell_width = master.width // SOURCE_COLUMNS
     cell_height = master.height // SOURCE_ROWS
+    open_salute_index = 18
     closed_salute_index = 19
+    open_column = open_salute_index % SOURCE_COLUMNS
+    open_row = open_salute_index // SOURCE_COLUMNS
+    open_salute = master.crop((
+        open_column * cell_width,
+        open_row * cell_height,
+        (open_column + 1) * cell_width,
+        (open_row + 1) * cell_height,
+    ))
     source_column = closed_salute_index % SOURCE_COLUMNS
     source_row = closed_salute_index // SOURCE_COLUMNS
     closed_salute = master.crop((
@@ -132,16 +161,20 @@ def hold_closed_eye_salute(master: Image.Image) -> None:
         (source_column + 1) * cell_width,
         (source_row + 1) * cell_height,
     ))
-    for frame_index in (18, 20):
+    right_eye_mask = Image.new("L", (cell_width, cell_height), 0)
+    ImageDraw.Draw(right_eye_mask).ellipse((86, 65, 124, 102), fill=255)
+    right_eye_mask = right_eye_mask.filter(ImageFilter.GaussianBlur(2.2))
+    wink_salute = Image.composite(closed_salute, open_salute, right_eye_mask)
+    for frame_index in (18, 19, 20):
         column = frame_index % SOURCE_COLUMNS
         row = frame_index // SOURCE_COLUMNS
-        master.paste(closed_salute, (column * cell_width, row * cell_height))
+        master.paste(wink_salute, (column * cell_width, row * cell_height))
 
 
 def build() -> None:
     PET_DIR.mkdir(parents=True, exist_ok=True)
     master = remove_checkerboard(Image.open(SOURCE))
-    hold_closed_eye_salute(master)
+    hold_single_eye_salute(master)
     master.save(MASTER, optimize=True)
     normalize_runtime(master).save(RUNTIME, optimize=True)
 
