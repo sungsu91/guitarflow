@@ -76,7 +76,7 @@ const sprites = Object.freeze([
   },
   {
     id: "star_light_ring",
-    src: `${GACHA_ARCADE_ROOT}/spritesheets/star_light_ring_sheet_6x4.png`,
+    src: `${GACHA_ARCADE_ROOT}/runtime/star_mobile_horizontal_sheet_6x4.png`,
     columns: 6,
     rows: 4,
     frameCount: 24,
@@ -85,7 +85,6 @@ const sprites = Object.freeze([
     delayMs: 0,
     phaseOffsetMs: 1000,
     scaleChange: false,
-    rotationTurns: 1,
     placement: Object.freeze({ x: 538, y: 379, width: 460, height: 364 }),
   },
 ].map((sprite) => Object.freeze(sprite)));
@@ -106,7 +105,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
       mode: "full",
       audit: Object.freeze({
         completed: true,
-        contentFingerprint: "abc2d352",
+        contentFingerprint: "180814d7",
         activeCssAnimations: 0,
         ambientEventLayers: 0,
         filteredElements: 0,

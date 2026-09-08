@@ -36,9 +36,6 @@ export default function GachaArcadeField({ active = true, runtimeAnimation }) {
         const frameIndex = Math.floor((phasedElapsedMs * sprite.framesPerSecond) / 1000) % sprite.frameCount;
         if (element.dataset.frameIndex !== String(frameIndex)) {
           setSpriteFrame(element, frameIndex, sprite.columns, sprite.rows);
-          if (sprite.rotationTurns) {
-            element.style.transform = `perspective(520px) rotateY(${(frameIndex / sprite.frameCount) * sprite.rotationTurns * 360}deg)`;
-          }
         }
       });
     }, { framesPerSecond: runtimeAnimation.clockFramesPerSecond });
@@ -69,7 +66,6 @@ export default function GachaArcadeField({ active = true, runtimeAnimation }) {
             height: `${(sprite.placement.height / runtimeAnimation.canvasHeight) * 100}%`,
             left: `${(sprite.placement.x / runtimeAnimation.canvasWidth) * 100}%`,
             top: `${(sprite.placement.y / runtimeAnimation.canvasHeight) * 100}%`,
-            transformOrigin: sprite.rotationTurns ? "50% 50%" : undefined,
             width: `${(sprite.placement.width / runtimeAnimation.canvasWidth) * 100}%`,
           }}
         />

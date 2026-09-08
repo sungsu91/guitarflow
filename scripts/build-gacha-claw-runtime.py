@@ -16,7 +16,7 @@ SHEETS = (
 )
 
 PLUSH_SOURCE = SOURCE_DIR / "claw_bunny_plush_source.png"
-CLAW_RENDER_SCALE = 1.65
+CLAW_RENDER_SCALE = 1.4
 
 
 def broad_row_groups(alpha: Image.Image) -> list[list[int]]:

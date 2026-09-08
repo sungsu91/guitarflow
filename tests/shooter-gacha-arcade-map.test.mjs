@@ -92,7 +92,7 @@ test("only three clipped claws and one fixed-size star ring animate", () => {
   assert.equal(sprites.star_light_ring.framesPerSecond, 8);
   assert.equal(sprites.star_light_ring.durationMs, 3000);
   assert.equal(sprites.star_light_ring.scaleChange, false);
-  assert.equal(sprites.star_light_ring.rotationTurns, 1);
+  assert.equal("rotationTurns" in sprites.star_light_ring, false);
 });
 
 test("runtime loads one background and four sheets without individual frame duplication", async () => {
@@ -101,7 +101,7 @@ test("runtime loads one background and four sheets without individual frame dupl
     ["runtime/claw_left_mid_wire_sheet_6x4.png", 1800, 1120],
     ["runtime/claw_right_upper_wire_sheet_6x4.png", 1740, 1000],
     ["runtime/claw_right_lower_wire_sheet_6x4.png", 1920, 1240],
-    ["spritesheets/star_light_ring_sheet_6x4.png", 2760, 1456],
+    ["runtime/star_mobile_horizontal_sheet_6x4.png", 2760, 1456],
   ];
   for (const [file, width, height] of expected) {
     const png = await readFile(new URL(file, assetRoot));
@@ -145,7 +145,7 @@ test("renderer uses one visibility-aware 10Hz loop without React frame state or 
   assert.doesNotMatch(field, /transform.*scale|scale\(/i);
   assert.match(field, /clipPath: getGlassClipPath\(sprite\)/);
   assert.match(field, /elapsedMs \+ \(sprite\.phaseOffsetMs \?\? 0\)/);
-  assert.match(field, /perspective\(520px\) rotateY\(/);
+  assert.doesNotMatch(field, /perspective\(|rotate[XYZ]?\(/);
   assert.match(styles, /\.shooterMapGachaArcadeField[\s\S]*?overflow: hidden/);
   assert.match(styles, /\.shooterMapGachaArcadeSprite[\s\S]*?overflow: hidden/);
   assert.doesNotMatch(styles, /shooterMapGachaArcadeSprite[^{]*\{[^}]*transform\s*:/s);
