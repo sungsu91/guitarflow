@@ -24,7 +24,7 @@ test("brand-dark mobile skin loadout uses the compact speech-bubble typography",
   }
 });
 
-test("skin tabs follow the requested guitar, effect, map, pick, monster order", async () => {
+test("skin tabs include the pet catalog beside the effect catalog", async () => {
   const appSource = await readFile(appSourceUrl, "utf8");
   const tabBlock = appSource.match(/const SHOOTER_SKIN_TABS = \[([\s\S]*?)\n\];/)?.[1] ?? "";
 
@@ -34,6 +34,7 @@ test("skin tabs follow the requested guitar, effect, map, pick, monster order", 
     [
       ["guitar", "기타"],
       ["effect", "이펙트"],
+      ["pet", "펫"],
       ["map", "맵"],
       ["pick", "피크"],
       ["monster", "몹스킨"],

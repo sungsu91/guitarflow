@@ -1,0 +1,49 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+import {
+  DEFAULT_SHOOTER_PET_SKIN_ID,
+  SHOOTER_PET_SKINS,
+  getShooterPetSkinById,
+} from "../src/shooter/pets.js";
+
+const appUrl = new URL("../src/App.jsx", import.meta.url);
+const styleUrl = new URL("../src/style.css", import.meta.url);
+const runtimeUrl = new URL("../public/assets/pets/pomeranian/pomeranian-pet-idle-sheet-8x1.png", import.meta.url);
+const masterUrl = new URL("../public/assets/pets/pomeranian/pomeranian-pet-master-4x2.png", import.meta.url);
+
+test("cream Pomeranian is an optional persisted 8-frame pet skin", async () => {
+  const app = await readFile(appUrl, "utf8");
+  const pet = getShooterPetSkinById("cream-pomeranian");
+
+  assert.equal(DEFAULT_SHOOTER_PET_SKIN_ID, "none");
+  assert.equal(SHOOTER_PET_SKINS.length, 2);
+  assert.equal(pet.columns, 8);
+  assert.equal(pet.frameCount, 8);
+  assert.equal(pet.framesPerSecond, 5);
+  assert.match(app, /\{ id: "pet", label: "펫" \}/);
+  assert.match(app, /SHOOTER_PET_SKIN_STORAGE_KEY = "rifflabShooterPetSkin"/);
+  assert.match(app, /localStorage\.setItem\(SHOOTER_PET_SKIN_STORAGE_KEY, nextSkin\.id\)/);
+  assert.match(app, /className="shooterPetCompanion"/);
+});
+
+test("pet assets are transparent RGBA sheets with stable frame geometry", async () => {
+  const [runtime, master] = await Promise.all([readFile(runtimeUrl), readFile(masterUrl)]);
+  for (const asset of [runtime, master]) {
+    assert.equal(asset.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+    assert.equal(asset[25], 6, "pet sheet must use RGBA color type");
+  }
+  assert.equal(runtime.readUInt32BE(16), 2048);
+  assert.equal(runtime.readUInt32BE(20), 256);
+  assert.equal(master.readUInt32BE(16), 1536);
+  assert.equal(master.readUInt32BE(20), 1024);
+});
+
+test("pet animation uses CSS sprite steps and separate mobile placement", async () => {
+  const style = await readFile(styleUrl, "utf8");
+  assert.match(style, /\.shooterPetCompanion[\s\S]*?animation: shooterPetSpriteIdle[\s\S]*?steps\(7, end\)/);
+  assert.match(style, /@keyframes shooterPetSpriteIdle[\s\S]*?background-position-x: 100%/);
+  assert.match(style, /@media \(max-width: 430px\)[\s\S]*?\.shooterArena \.shooterPetCompanion/);
+  assert.match(style, /data-animation-active="false"[\s\S]*?animation-play-state: paused/);
+});

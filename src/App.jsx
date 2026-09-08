@@ -154,6 +154,11 @@ import {
   toggleShooterGuitarCabinetSkinId,
 } from "./shooter/guitarCabinet";
 import {
+  DEFAULT_SHOOTER_PET_SKIN_ID,
+  SHOOTER_PET_SKINS,
+  getShooterPetSkinById,
+} from "./shooter/pets.js";
+import {
   DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID,
   SHOOTER_NOTE_MONSTER_BREAK_FRAME_COUNT,
   SHOOTER_NOTE_MONSTER_ROOTS,
@@ -7917,6 +7922,7 @@ const SHOOTER_GUITAR_STORAGE_KEY = "rifflabSelectedGuitar";
 const SHOOTER_GUITAR_CABINET_STORAGE_KEY = "rifflabShooterGuitarCabinet";
 const SHOOTER_PICK_SKIN_STORAGE_KEY = "rifflabShooterPickSkin";
 const SHOOTER_MONSTER_SKIN_STORAGE_KEY = "rifflabShooterMonsterSkin";
+const SHOOTER_PET_SKIN_STORAGE_KEY = "rifflabShooterPetSkin";
 const SHOOTER_EFFECT_STORAGE_KEY = "rifflabShooterEffect";
 const SHOOTER_EFFECT_LEGACY_LOADOUT_STORAGE_KEY = "rifflabShooterEffectLoadoutV2";
 const SHOOTER_AURA_EFFECT_STORAGE_KEY = "selectedAuraSkinId";
@@ -8359,6 +8365,7 @@ const SHOOTER_GUITAR_CATEGORY_OPTIONS = [
 const SHOOTER_SKIN_TABS = [
   { id: "guitar", label: "기타" },
   { id: "effect", label: "이펙트" },
+  { id: "pet", label: "펫" },
   { id: "map", label: "맵" },
   { id: "pick", label: "피크" },
   { id: "monster", label: "몹스킨" },
@@ -12061,6 +12068,11 @@ function getStoredShooterGuitarCabinetSkinId() {
 function getStoredShooterMonsterSkinId() {
   if (typeof window === "undefined") return DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID;
   return getShooterMonsterSkinById(window.localStorage.getItem(SHOOTER_MONSTER_SKIN_STORAGE_KEY)).id;
+}
+
+function getStoredShooterPetSkinId() {
+  if (typeof window === "undefined") return DEFAULT_SHOOTER_PET_SKIN_ID;
+  return getShooterPetSkinById(window.localStorage.getItem(SHOOTER_PET_SKIN_STORAGE_KEY)).id;
 }
 
 function getStoredShooterEffectLoadout() {
@@ -16975,6 +16987,7 @@ function App({ onReady }) {
   );
   const [selectedShooterPickSkinId, setSelectedShooterPickSkinId] = useState(getStoredShooterPickSkinId);
   const [selectedShooterMonsterSkinId, setSelectedShooterMonsterSkinId] = useState(getStoredShooterMonsterSkinId);
+  const [selectedShooterPetSkinId, setSelectedShooterPetSkinId] = useState(getStoredShooterPetSkinId);
   const [selectedShooterAuraEffectId, setSelectedShooterAuraEffectId] = useState(
     () => getStoredShooterEffectLoadout().aura,
   );
@@ -17072,6 +17085,10 @@ function App({ onReady }) {
     () => getShooterMonsterSkinById(selectedShooterMonsterSkinId),
     [selectedShooterMonsterSkinId],
   );
+  const selectedShooterPetSkin = useMemo(
+    () => getShooterPetSkinById(selectedShooterPetSkinId),
+    [selectedShooterPetSkinId],
+  );
   const selectedShooterAuraEffect = useMemo(
     () => getShooterEffectById(SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA, selectedShooterAuraEffectId),
     [selectedShooterAuraEffectId],
@@ -17095,6 +17112,7 @@ function App({ onReady }) {
   );
   const selectedPick = selectedShooterPickSkin;
   const selectedMonsterSkin = selectedShooterMonsterSkin;
+  const selectedPet = selectedShooterPetSkin;
   const selectedAuraEffect = selectedShooterAuraEffect;
   const selectedFloorEffect = selectedShooterFloorEffect;
   const selectedMap = selectedShooterMap;
@@ -17458,6 +17476,18 @@ function App({ onReady }) {
       window.localStorage.setItem(SHOOTER_MONSTER_SKIN_STORAGE_KEY, nextSkin.id);
     }
     void preloadShooterEnemyAssets(nextSkin.id);
+  }, []);
+
+  const applyShooterPetSkin = useCallback((skinId) => {
+    const nextSkin = getShooterPetSkinById(skinId);
+    setSelectedShooterPetSkinId(nextSkin.id);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SHOOTER_PET_SKIN_STORAGE_KEY, nextSkin.id);
+      if (nextSkin.sheetSrc) {
+        const image = new Image();
+        image.src = nextSkin.sheetSrc;
+      }
+    }
   }, []);
 
   const applyShooterEffect = useCallback((equipmentSlot, effectId) => {
@@ -33474,6 +33504,19 @@ function App({ onReady }) {
                 <span className="guitarPlayerMuzzle" aria-hidden="true" />
               ) : null}
               </div>
+              {selectedPet.sheetSrc ? (
+                <span
+                  aria-hidden="true"
+                  className="shooterPetCompanion"
+                  data-animation-active={shooterMapAnimationsActive ? "true" : "false"}
+                  data-pet-skin={selectedPet.id}
+                  style={{
+                    "--shooter-pet-columns": selectedPet.columns,
+                    "--shooter-pet-duration": `${selectedPet.frameCount / selectedPet.framesPerSecond}s`,
+                    backgroundImage: `url(${selectedPet.sheetSrc})`,
+                  }}
+                />
+              ) : null}
             </div>
             </> : null}
             {mapEditor.enabled ? (
@@ -33835,8 +33878,8 @@ function App({ onReady }) {
                   <div>
                     <strong>스킨변경</strong>
                     {isMobileLayout ? (
-                      <span title={`${getShooterSkinGuitarTitle(selectedGuitar.title)} · ${selectedGuitarCabinet.label} · ${selectedMonsterSkin.label} · ${selectedPick.label} · ${selectedMap.label}`}>
-                        {getShooterSkinGuitarTitle(selectedGuitar.title)} · {selectedGuitarCabinet.label} · {selectedMonsterSkin.label} · {selectedPick.label} · {selectedMap.label}
+                      <span title={`${getShooterSkinGuitarTitle(selectedGuitar.title)} · ${selectedGuitarCabinet.label} · ${selectedMonsterSkin.label} · ${selectedPet.label} · ${selectedPick.label} · ${selectedMap.label}`}>
+                        {getShooterSkinGuitarTitle(selectedGuitar.title)} · {selectedGuitarCabinet.label} · {selectedMonsterSkin.label} · {selectedPet.label} · {selectedPick.label} · {selectedMap.label}
                       </span>
                     ) : null}
                   </div>
@@ -33934,6 +33977,35 @@ function App({ onReady }) {
                                   src={skin.assets[noteRoot][0]}
                                 />
                               ))}
+                            </span>
+                            <strong>{skin.label}</strong>
+                            <small>{skin.description}</small>
+                            <em>{isSelected ? "선택됨" : "선택"}</em>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : shooterSkinTab === "pet" ? (
+                    <div className="shooterSkinOptionGrid shooterSkinOptionGrid--pets" aria-label="펫 스킨 선택">
+                      {SHOOTER_PET_SKINS.map((skin) => {
+                        const isSelected = selectedPet.id === skin.id;
+                        return (
+                          <button
+                            aria-pressed={isSelected}
+                            className={`shooterSkinOptionCard shooterSkinOptionCard--pet ${isSelected ? "selected" : ""}`}
+                            key={skin.id}
+                            onClick={() => applyShooterPetSkin(skin.id)}
+                            type="button"
+                          >
+                            <span
+                              aria-hidden="true"
+                              className={`shooterPetSkinPreview ${skin.sheetSrc ? "shooterPetSkinPreview--sprite" : "shooterPetSkinPreview--none"}`}
+                              style={skin.sheetSrc ? {
+                                backgroundImage: `url(${skin.sheetSrc})`,
+                                backgroundSize: `${skin.columns * 100}% 100%`,
+                              } : undefined}
+                            >
+                              {skin.sheetSrc ? null : "—"}
                             </span>
                             <strong>{skin.label}</strong>
                             <small>{skin.description}</small>
