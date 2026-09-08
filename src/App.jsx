@@ -16044,6 +16044,7 @@ const SHOOTER_DIFFICULTY_OPTIONS = [
   { id: SHOOTER_DIFFICULTIES.NORMAL, label: "보통", hint: "48 BPM · 5~10프렛 상행/하행" },
   { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "54 BPM · E2~E5 E Major 왕복" },
 ];
+const DEFAULT_SHOOTER_DIFFICULTY = SHOOTER_DIFFICULTIES.EASY_RANDOM;
 const SHOOTER_DIFFICULTY_PACING = {
   [SHOOTER_DIFFICULTIES.EASY]: {
     durationMs: SHOOTER_RUNTIME_DIFFICULTY.easy.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
@@ -16190,7 +16191,7 @@ const RecordService = {
     const accuracy = Math.max(0, Math.min(100, Number(session.accuracy) || 0));
     const difficulty = SHOOTER_DIFFICULTY_OPTIONS.some((option) => option.id === session.difficulty)
       ? session.difficulty
-      : SHOOTER_DIFFICULTIES.EASY;
+      : DEFAULT_SHOOTER_DIFFICULTY;
     const difficultyRecord = current.difficulty[difficulty] ?? getDefaultShooterDifficultyRecord();
     const next = {
       ...current,
@@ -17068,7 +17069,7 @@ function App({ onReady }) {
   const [shooterAim, setShooterAim] = useState(undefined);
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
   const [shooterSoundOn, setShooterSoundOn] = useState(true);
-  const [shooterDifficulty, setShooterDifficulty] = useState(SHOOTER_DIFFICULTIES.EASY);
+  const [shooterDifficulty, setShooterDifficulty] = useState(DEFAULT_SHOOTER_DIFFICULTY);
   const [shooterScenarioRoundSummary, setShooterScenarioRoundSummary] = useState(null);
   const [shooterScenarioCountdown, setShooterScenarioCountdown] = useState(null);
   const [shooterDifficultyMenuOpen, setShooterDifficultyMenuOpen] = useState(false);
@@ -18382,7 +18383,7 @@ function App({ onReady }) {
   const shooterSoundOnRef = useRef(true);
   const shooterActiveSoundGroupsRef = useRef(new Map());
   const shooterNoiseBufferCacheRef = useRef(new Map());
-  const shooterDifficultyRef = useRef(SHOOTER_DIFFICULTIES.EASY);
+  const shooterDifficultyRef = useRef(DEFAULT_SHOOTER_DIFFICULTY);
   const shooterSessionSavedRef = useRef(true);
   const shooterScenarioRoundStatsRef = useRef({
     hits: 0,
@@ -21964,7 +21965,7 @@ function App({ onReady }) {
     return createShooterEnemyHurtbox({
       centerX: center.x,
       centerY: center.y,
-      difficulty: target.difficulty ?? SHOOTER_DIFFICULTIES.EASY,
+      difficulty: target.difficulty ?? DEFAULT_SHOOTER_DIFFICULTY,
       height: target.renderHeight || renderSize * (horizontalProjection?.scale ?? 1),
       width: target.renderWidth || renderSize * (horizontalProjection?.scale ?? 1),
     });
