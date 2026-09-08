@@ -1,16 +1,40 @@
+import { mediaPermissionGuide } from "../../audio/mediaPermissionGuide.js";
+
 export const RECORDING_WIDTH = 1080;
 export const MOBILE_CAMERA_ZOOM = 1.6;
 export const MOBILE_CAMERA_HEIGHT = .35 * .9;
+export const CAMERA_FILTERS = [
+  { id: 'original', label: '원본', color: null, blend: 'source-over' },
+  { id: 'warm', label: '따뜻하게', color: 'rgba(255, 166, 72, 0.16)', blend: 'source-over' },
+  { id: 'cool', label: '차갑게', color: 'rgba(68, 155, 255, 0.16)', blend: 'source-over' },
+  { id: 'mono', label: '흑백', color: '#808080', blend: 'saturation' },
+];
+
+export function paintCameraFilter(context, rect, id) {
+  const filter = CAMERA_FILTERS.find(item => item.id === id);
+  if (!filter?.color) return;
+  context.save();
+  context.globalCompositeOperation = filter.blend;
+  context.fillStyle = filter.color;
+  context.fillRect(rect.x, rect.y, rect.width, rect.height);
+  context.restore();
+}
 
 export async function setCameraWideFraming(track, wide, originalZoom) {
   let range;
   try { range = track?.getCapabilities?.().zoom; } catch { return false; }
   if (!track?.applyConstraints || !Number.isFinite(originalZoom) || !Number.isFinite(range?.min) || range.min >= originalZoom) return false;
   const zoom = wide ? range.min : originalZoom;
+  const previous = track.getSettings?.().zoom;
+  const constraints = track.getConstraints?.() || {};
   // Preserve resolution/facing constraints; never request a different camera.
-  await track.applyConstraints({ ...track.getConstraints?.(), zoom: { exact: zoom } });
+  await track.applyConstraints({ ...constraints, zoom: { exact: zoom } });
   const actual = track.getSettings?.().zoom;
-  return Number.isFinite(actual) && Math.abs(actual - zoom) < .001;
+  if (Number.isFinite(actual) && Math.abs(actual - zoom) < .001) return true;
+  // A browser may accept constraints without reaching the requested setting.
+  // Restore the prior framing instead of reporting a successful toggle.
+  if (Number.isFinite(previous)) await track.applyConstraints({ ...constraints, zoom: { exact: previous } });
+  return false;
 }
 
 export function cameraContainRect(sourceWidth, sourceHeight, width, height, zoom = 1) {
@@ -73,8 +97,10 @@ export function drawComposite(context, game, camera, width, height, overlay) {
       const zoom = Math.max(1, Math.min(1.6, overlay.zoom ?? 1));
       const rect = cameraContainRect(camera.videoWidth, camera.videoHeight, w, h, zoom);
       context.drawImage(camera, rect.x, rect.y, rect.width, rect.height);
+      paintCameraFilter(context, rect, overlay.filter);
     } else {
       context.drawImage(camera, ...coverSourceRect(camera.videoWidth, camera.videoHeight, w, h), 0, 0, w, h);
+      paintCameraFilter(context, { x: 0, y: 0, width: w, height: h }, overlay.filter);
     }
     context.restore();
   }
@@ -86,8 +112,8 @@ export function stopTracks(stream) {
   });
 }
 
-export function recordingError(error) {
-  if (["NotAllowedError", "PermissionDeniedError"].includes(error?.name)) return "카메라와 마이크 권한을 허용한 뒤 다시 시도해주세요.";
+export function recordingError(error, { mobile = false, resource = "camera" } = {}) {
+  if (["NotAllowedError", "PermissionDeniedError"].includes(error?.name)) return mediaPermissionGuide({ mobile, resource });
   if (["NotFoundError", "NotReadableError", "OverconstrainedError"].includes(error?.name)) return "카메라를 사용할 수 없습니다. 다른 앱에서 사용 중인지 확인해주세요.";
   return error?.message || "촬영을 완료하지 못했습니다. 다시 시도해주세요.";
 }

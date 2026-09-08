@@ -1,32 +1,48 @@
+import { mediaPermissionGuide } from "../../audio/mediaPermissionGuide.js";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Video, Maximize2, Minimize2 } from "lucide-react";
 import { getActiveMicInputSession } from "../../audio/micInputEngine.js";
 import { getAudioBusGraph, getSharedAudioContext } from "../../audio/audioBus.js";
-import { RECORDING_WIDTH, MOBILE_CAMERA_ZOOM, MOBILE_CAMERA_HEIGHT, setCameraWideFraming, cameraContainRect, frontCameraConstraints, cameraOverlayRect, drawComposite, recorderOptions, recordingError, saveRecording, stopTracks } from "./recordingMedia.js";
+import { RECORDING_WIDTH, CAMERA_FILTERS, MOBILE_CAMERA_ZOOM, MOBILE_CAMERA_HEIGHT, setCameraWideFraming, cameraContainRect, frontCameraConstraints, cameraOverlayRect, drawComposite, recorderOptions, recordingError, saveRecording, stopTracks } from "./recordingMedia.js";
 import "./shooter-recording.css";
 
-function CameraControls({ phase, seconds, start, stop, ready, framing }) {
+function CameraControls({ phase, seconds, start, stop, ready, exit }) {
   return <div className="shooterRecordingControls">
     {phase === "preview" ? <button onClick={start} disabled={!ready} type="button">{ready ? "● REC" : "카메라 준비 중…"}</button> : null}
-    {phase === 'preview' && framing ? <>
-      <button className="shooterRecordingWide" type="button" onClick={framing.toggle} disabled={!ready || framing.busy} aria-pressed={framing.wide} aria-label="넓게 찍기">
-        {framing.wide ? <Minimize2 size={16} aria-hidden="true" /> : <Maximize2 size={16} aria-hidden="true" />}
-        {framing.busy ? '적용 중…' : framing.wide ? '기본 구도' : '넓게 찍기'}
-      </button>
-      {framing.message ? <span className="shooterRecordingFramingStatus" role="status">{framing.message}</span> : null}
-    </> : null}
     {phase === "recording" ? <>
       <span className="shooterRecordingClock">● REC {String(Math.floor(seconds / 60)).padStart(2, "0")}:{String(seconds % 60).padStart(2, "0")}</span>
       <button onClick={stop} type="button" aria-label="녹화 중지">■</button>
     </> : null}
     {["preparing", "stopping"].includes(phase) ? <span role="status">{phase === "preparing" ? "녹화 준비 중…" : "영상 만드는 중…"}</span> : null}
+    {exit ? <button className="shooterRecordingExit" type="button" onClick={exit} aria-label="하단 촬영모드 종료">종료</button> : null}
   </div>;
 }
 
 // Platform UI remains separate; media ownership and controls are shared.
-function MobileCameraLayout({ children, style }) {
-  return <section className="shooterRecordingCamera shooterRecordingCamera--mobile" style={style} aria-label="전면 카메라">{children}</section>;
+function MobileCameraLayout({ children, style, onFilter, filter, phase }) {
+  const swipe = useRef(null);
+  const interactive = ['preview', 'recording'].includes(phase);
+  return <section className="shooterRecordingCamera shooterRecordingCamera--mobile" style={style} aria-label="전면 카메라" tabIndex={interactive ? 0 : -1}
+    onTouchStart={event => {
+      swipe.current = interactive && event.touches.length === 1 && !event.target.closest('button,input')
+        ? { x: event.touches[0].clientX, y: event.touches[0].clientY } : null;
+    }}
+    onTouchMove={event => { if (event.touches.length !== 1) swipe.current = null; }}
+    onTouchCancel={() => { swipe.current = null; }}
+    onTouchEnd={event => {
+      const start = swipe.current; swipe.current = null;
+      if (!start || !interactive || !event.changedTouches.length) return;
+      const dx = event.changedTouches[0].clientX - start.x, dy = event.changedTouches[0].clientY - start.y;
+      if (Math.abs(dx) >= 45 && Math.abs(dx) > Math.abs(dy) * 1.5) onFilter(dx < 0 ? 1 : -1);
+    }}
+    onKeyDown={event => {
+      if (!interactive || event.target !== event.currentTarget) return;
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); onFilter(event.key === 'ArrowLeft' ? 1 : -1); }
+    }}>
+    {children}
+    {interactive ? <span className="shooterRecordingFilterName" aria-live="polite">{filter.label}</span> : null}
+  </section>;
 }
 function DesktopCameraLayout({ children, style }) {
   return <section className="shooterRecordingCamera shooterRecordingCamera--desktop" style={style} aria-label="전면 카메라">{children}</section>;
@@ -41,9 +57,10 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
   const [saving, setSaving] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraStyle, setCameraStyle] = useState({});
+  const [filterIndex, setFilterIndex] = useState(0);
+  const filterRef = useRef(0);
   const [wideCamera, setWideCamera] = useState(false);
   const [framingBusy, setFramingBusy] = useState(false);
-  const [framingMessage, setFramingMessage] = useState('');
   const framingBusyRef = useRef(false);
   const cameraZoomRef = useRef(MOBILE_CAMERA_ZOOM);
   const positionRef = useRef({ x: 1, y: .24 });
@@ -167,7 +184,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
         // Scale the complete game once. Logical arena coordinates stay intact.
         const visibleGameHeight = bounds.height * scale;
         const top = panelTop + visibleGameHeight;
-        overlayRef.current = { x: 0, y: visibleGameHeight / totalHeight, width: 1, height: (vh - top) / totalHeight, gameFraction: visibleGameHeight / totalHeight, gameSourceFraction: 1, outputAspect: vw / totalHeight, fit: "contain", zoom: cameraZoomRef.current };
+        overlayRef.current = { x: 0, y: visibleGameHeight / totalHeight, width: 1, height: (vh - top) / totalHeight, gameFraction: visibleGameHeight / totalHeight, gameSourceFraction: 1, outputAspect: vw / totalHeight, fit: "contain", zoom: cameraZoomRef.current, filter: CAMERA_FILTERS[filterRef.current].id };
         setCameraStyle({ left: 0, top, width: vw, height: vh - top });
         return;
       }
@@ -218,6 +235,13 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     moveCameraRef.current();
   }
 
+  function changeCameraFilter(step) {
+    const index = (filterRef.current + step + CAMERA_FILTERS.length) % CAMERA_FILTERS.length;
+    filterRef.current = index;
+    if (overlayRef.current) overlayRef.current.filter = CAMERA_FILTERS[index].id;
+    setFilterIndex(index);
+  }
+
   async function toggleWideCamera() {
     const session = sessionRef.current;
     if (!session || phase !== 'preview' || framingBusyRef.current) return;
@@ -225,15 +249,13 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     setFramingBusy(true);
     const wide = !wideCamera;
     try {
-      const adjusted = await setCameraWideFraming(session.camera.getVideoTracks()[0], wide, session.originalCameraZoom);
-      if (session.disposed || sessionRef.current !== session) return;
-      cameraZoomRef.current = wide ? 1 : MOBILE_CAMERA_ZOOM;
-      if (overlayRef.current) overlayRef.current.zoom = cameraZoomRef.current;
+      const applied = await setCameraWideFraming(session.camera.getVideoTracks()[0], wide, session.originalCameraZoom);
+      if (!applied || session.disposed || sessionRef.current !== session) return;
+      // Change the camera's actual capture range, not the CSS display zoom.
       setWideCamera(wide);
-      setFramingMessage(wide ? adjusted ? '넓은 촬영 구도' : '원본 전체 구도 · 추가 광각 미지원' : '');
       moveCameraRef.current();
     } catch {
-      if (!session.disposed && sessionRef.current === session) setFramingMessage('구도를 변경하지 못했습니다. 다시 눌러주세요.');
+      // Keep the existing framing if the device rejects the adjustment.
     } finally {
       if (sessionRef.current === session) { framingBusyRef.current = false; setFramingBusy(false); }
     }
@@ -265,15 +287,17 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     setError("");
     setCameraReady(false);
     setWideCamera(false);
+    setFilterIndex(0);
+    filterRef.current = 0;
     cameraZoomRef.current = MOBILE_CAMERA_ZOOM;
     framingBusyRef.current = false;
     setFramingBusy(false);
-    setFramingMessage('');
     setPhase("requesting");
     const token = ++versionRef.current;
     const session = { disposed: false, chunks: [] };
     sessionRef.current = session;
     const current = () => token === versionRef.current && !session.disposed;
+    let permissionResource = "camera";
     try {
       if (!window.isSecureContext) throw new Error("촬영에는 보안 연결이 필요합니다. HTTPS 주소로 열어주세요. [SECURE_CONTEXT]");
       recorderOptions();
@@ -283,11 +307,12 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
       if (!current()) { stopTracks(session.camera); return; }
       session.originalCameraZoom = session.camera.getVideoTracks()[0]?.getSettings?.().zoom;
       if (!getActiveMicInputSession()?.rawStream?.getAudioTracks().some((track) => track.readyState === "live")) {
-        await ensureMic();
+        permissionResource = "microphone";
+        await ensureMic({ quiet: true });
       }
       if (!current()) return;
       const microphone = getActiveMicInputSession()?.rawStream;
-      if (!microphone?.getAudioTracks().some((track) => track.readyState === "live")) throw new Error("마이크 권한을 허용한 뒤 다시 시도해주세요.");
+      if (!microphone?.getAudioTracks().some((track) => track.readyState === "live")) throw new Error(mediaPermissionGuide({ mobile }));
       session.mic = new MediaStream(microphone.getAudioTracks().map((track) => track.clone()));
       [...session.camera.getTracks(), ...session.mic.getTracks()].forEach((track) => {
         track.onended = () => {
@@ -298,7 +323,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
         };
       });
       setPhase("preview");
-    } catch (cause) { if (current()) close(recordingError(cause)); }
+    } catch (cause) { if (current()) close(recordingError(cause, { mobile, resource: permissionResource })); }
   }
 
   function finishOutput(session) {
@@ -455,6 +480,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     } finally { if (session) session.sharing = false; if (mounted.current) setSaving(false); }
   }
 
+  const cameraFilter = CAMERA_FILTERS[filterIndex];
   const cameraFrame = mobile && videoRef.current?.videoWidth && cameraStyle.width
     ? cameraContainRect(videoRef.current.videoWidth, videoRef.current.videoHeight, cameraStyle.width, cameraStyle.height, cameraZoomRef.current)
     : null;
@@ -467,9 +493,13 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
       </button>, entryTarget,
     ) : null}
     {!active ? <div className="shooterRecordingEntry">
-      {error ? <div className="shooterRecordingError" role="alert">{error}<button onClick={() => setError("")} type="button" aria-label="알림 닫기">×</button></div> : null}
-    </div> : cameraVisible ? <CameraLayout style={cameraStyle}>
+      {error ? <div className="shooterRecordingError" role="alert"><span>{error}</span><button onClick={() => setError("")} type="button" aria-label="알림 닫기">×</button></div> : null}
+    </div> : cameraVisible ? <CameraLayout style={cameraStyle} onFilter={changeCameraFilter} filter={cameraFilter} phase={phase}>
       <video className="shooterRecordingLive" style={cameraFrame ? { left: cameraFrame.x, top: cameraFrame.y, width: cameraFrame.width, height: cameraFrame.height } : undefined} ref={videoRef} autoPlay muted playsInline onLoadedData={() => { setCameraReady(true); moveCameraRef.current(); }} onResize={() => moveCameraRef.current()} aria-label="촬영 구도 확인" />
+      {mobile && cameraFrame && cameraFilter.color ? <div className="shooterRecordingFilterOverlay" aria-hidden="true" style={{ left: cameraFrame.x, top: cameraFrame.y, width: cameraFrame.width, height: cameraFrame.height, background: cameraFilter.color, mixBlendMode: cameraFilter.blend === 'source-over' ? 'normal' : cameraFilter.blend }} /> : null}
+      {mobile && phase === 'preview' ? <button className="shooterRecordingWide" type="button" onClick={toggleWideCamera} disabled={!cameraReady || framingBusy} aria-pressed={wideCamera} aria-busy={framingBusy} aria-label="넓게 찍기">
+        {wideCamera ? <Minimize2 size={19} aria-hidden="true" /> : <Maximize2 size={19} aria-hidden="true" />}
+      </button> : null}
       {!mobile ? <><button className="shooterRecordingDrag" type="button" aria-label="카메라 위치 이동" title="드래그 또는 방향키로 이동"
         onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); dragRef.current = { x: event.clientX, y: event.clientY }; }}
         onPointerMove={event => { if (!dragRef.current) return; moveCamera(event.clientX - dragRef.current.x, event.clientY - dragRef.current.y); dragRef.current = { x: event.clientX, y: event.clientY }; }}
@@ -480,7 +510,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
         onPointerMove={event => { if (!resizeRef.current) return; const dx = event.clientX - resizeRef.current.x; const dy = (event.clientY - resizeRef.current.y) / 1.12; resizeCamera(Math.abs(dx) >= Math.abs(dy) ? dx : dy); resizeRef.current = { x: event.clientX, y: event.clientY }; }}
         onPointerUp={() => { resizeRef.current = null; }} onPointerCancel={() => { resizeRef.current = null; }} onLostPointerCapture={() => { resizeRef.current = null; }}
         onKeyDown={event => { const delta = { ArrowLeft: -8, ArrowUp: -8, ArrowRight: 8, ArrowDown: 8 }[event.key]; if (delta) { event.preventDefault(); resizeCamera(delta); } }}>◢</button></> : null}
-      <CameraControls phase={phase} seconds={seconds} start={start} stop={stop} ready={cameraReady && !framingBusy} framing={mobile ? { wide: wideCamera, busy: framingBusy, message: framingMessage, toggle: toggleWideCamera } : null} />
+      <CameraControls phase={phase} seconds={seconds} start={start} stop={stop} ready={cameraReady && !framingBusy} exit={mobile ? () => close() : undefined} />
     </CameraLayout> : null}
     {phase === "review" && result ? <div ref={reviewRef} className="shooterRecordingReview" role="dialog" aria-modal="true" aria-label="촬영 결과 확인" onKeyDown={(event) => {
       if (event.key !== "Tab") return;

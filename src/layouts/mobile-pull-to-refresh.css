@@ -1,0 +1,17 @@
+.mobilePullRefresh {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 24px;
+  background: #14201ff2;
+  color: #fff1ce;
+  font: 12px/1.4 system-ui, sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+}

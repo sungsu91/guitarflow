@@ -97,12 +97,12 @@ try {
       assert.equal(geometry.fit, "contain");
       assert.equal(await page.locator('.shooterRecordingCamera input[type="range"]').count(), 0);
       const wide = page.getByRole('button', { name: '넓게 찍기', exact: true });
+      // The fake camera has no wider hardware zoom: keep its framing unchanged.
+      const beforeWide = await page.locator('.shooterRecordingLive').boundingBox();
       await wide.click();
-      await page.waitForFunction(() => document.querySelector('.shooterRecordingWide')?.getAttribute('aria-pressed') === 'true');
-      await wide.click();
-      await page.waitForFunction(() => document.querySelector('.shooterRecordingWide')?.getAttribute('aria-pressed') === 'false');
-      await wide.click();
-      await page.waitForFunction(() => document.querySelector('.shooterRecordingWide')?.getAttribute('aria-pressed') === 'true');
+      await page.waitForFunction(() => document.querySelector('.shooterRecordingWide')?.getAttribute('aria-busy') === 'false');
+      assert.equal(await wide.getAttribute('aria-pressed'), 'false');
+      assert.deepEqual(await page.locator('.shooterRecordingLive').boundingBox(), beforeWide);
       const cameraBounds = await page.locator('.shooterRecordingCamera').boundingBox();
       assert.ok(Math.abs(cameraBounds.height / geometry.height - .315) < .005);
       const framing = await page.locator('.shooterRecordingLive').evaluate(video => {
@@ -112,6 +112,24 @@ try {
       assert.ok(framing.left >= framing.dockLeft - 1 && framing.right <= framing.dockRight + 1, 'Do not cut guitar ends off horizontally');
       assert.ok(Math.abs(framing.aspect - framing.sourceAspect) < .01);
       assert.equal(await page.locator('.shooterPanel > .shooterPitchMonitorMobile').count(), 1);
+      const leftButton = await wide.boundingBox();
+      assert.ok(leftButton.x < cameraBounds.x + cameraBounds.width / 4);
+      const cdp = await page.context().newCDPSession(page);
+      async function swipeFilter(direction) {
+        const x = direction < 0 ? 255 : 125, y = cameraBounds.y + cameraBounds.height * .55;
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+        for (let i = 1; i <= 8; i++) {
+          await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + direction * i * 15, y }] });
+          await page.waitForTimeout(20);
+        }
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      }
+      await swipeFilter(-1);
+      assert.equal(await page.locator('.shooterRecordingFilterName').innerText(), '따뜻하게');
+      await swipeFilter(1);
+      assert.equal(await page.locator('.shooterRecordingFilterName').innerText(), '원본');
+      for (let i = 0; i < 3; i++) await swipeFilter(-1);
+      assert.equal(await page.locator('.shooterRecordingFilterName').innerText(), '흑백');
       assert.equal(await page.getByRole("button", { name: "카메라 위치 이동" }).count(), 0);
     } else {
     const cameraBefore = await page.locator(".shooterRecordingCamera").boundingBox();
@@ -162,6 +180,15 @@ try {
     assert.ok(video.size > 1000);
     assert.equal(video.width, 1080);
     assert.ok(video.height > 0);
+    if (mobile) {
+      const pixel = await page.locator('.shooterRecordingReview video').evaluate(node => {
+        const canvas = document.createElement('canvas'); canvas.width = node.videoWidth; canvas.height = node.videoHeight;
+        const ctx = canvas.getContext('2d'); ctx.drawImage(node, 0, 0);
+        return Array.from(ctx.getImageData(canvas.width * .5, canvas.height * .85, 1, 1).data);
+      });
+      assert.ok(Math.max(...pixel.slice(0, 3)) - Math.min(...pixel.slice(0, 3)) < 8, 'Saved camera frame must include grayscale filter');
+      assert.ok(pixel[0] > 20, 'Verify camera pixels, not black padding');
+    }
     const frames = await page.locator(".shooterRecordingReview video").evaluate(async node => {
       const canvas = document.createElement("canvas");
       canvas.width = node.videoWidth; canvas.height = node.videoHeight;

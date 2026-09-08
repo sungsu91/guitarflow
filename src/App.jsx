@@ -1,7 +1,9 @@
+import { mediaPermissionGuide } from "./audio/mediaPermissionGuide.js";
 import { FIXED_ADD_VOICINGS, isFixedAddFamily, preservedBadd9 } from "./chords/fixedAddVoicings.js";
 import { ADDITIONAL_CHORD_SHAPES, isAdditionalChord, isPermittedChordOmission, parseAdditionalChordName, spellAdditionalChordTone } from "./chords/additionalChords.js";
 import { observeShooterNoteOn } from "./shooter/noteOn.js";
 import ShooterRecording from "./shooter/recording/ShooterRecording.jsx";
+import MobilePullToRefresh from "./layouts/MobilePullToRefresh.jsx";
 import { useLazyRef } from "./useLazyRef.js";
 import { FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1, FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1_IDS } from "./shooter/instruments/fretivaPinkInstrumentSkinPackV1.js";
 ﻿import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -23682,7 +23684,7 @@ function App({ onReady }) {
     const requestVersion = ++micRequestVersionRef.current;
     const showPermissionGuide = () => {
       if (quiet) return;
-      window.alert("마이크 권한이 꺼져 있습니다.\n\n새로고침 후 다시 시도하거나,\n브라우저 설정에서 마이크 권한을 허용해주세요.");
+      window.alert(mediaPermissionGuide({ mobile: isMobileLayout }));
     };
 
     try {
@@ -23734,7 +23736,7 @@ function App({ onReady }) {
       console.error(error);
       return false;
     }
-  }, [setState]);
+  }, [setState, isMobileLayout]);
 
   useEffect(() => {
     if (appMode !== APP_MODES.SHOOTER) return;
@@ -30062,6 +30064,7 @@ function App({ onReady }) {
       style={shooterMobileViewportStyle}
       translate="no"
     >
+      {isMobileLayout && [APP_MODES.SHOOTER, APP_MODES.TUNER].includes(appMode) ? <MobilePullToRefresh enabled={!utilityMenuOpen && !helpGuideOpen && !mapEditor.enabled && !shooterRecordingActive && !appContentInteractionLocked && (appMode !== APP_MODES.SHOOTER || (gameState !== GAME_STATES.PLAYING && shooterCountInLabel === null))} /> : null}
       {appMode === APP_MODES.SHOOTER && !mapEditor.enabled ? (
         <ShooterRecording arenaRef={shooterArenaRef} entryTarget={shooterRecordingEntryTarget} mobile={isMobileLayout} ensureMic={startMic} onActiveChange={setShooterRecordingActive} />
       ) : null}
@@ -30305,6 +30308,16 @@ function App({ onReady }) {
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
+              {isMobileLayout && [APP_MODES.SHOOTER, APP_MODES.TUNER].includes(appMode) ? <button
+                className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
+                type="button"
+                onClick={() => window.location.reload()}
+                disabled={shooterRecordingActive || (appMode === APP_MODES.SHOOTER && (gameState === GAME_STATES.PLAYING || shooterCountInLabel !== null))}
+              >
+                <span className="utilityMenuIcon" aria-hidden="true"><RotateCw size={19} /></span>
+                <div className="utilityMenuText"><strong>새로고침</strong><small>현재 화면 다시 불러오기</small></div>
+                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
+              </button> : null}
               <a
                 className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive utilityMenuItemExternal utilityMenuItemInstagram"
                 href="https://www.instagram.com/sungsu91_/"

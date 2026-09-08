@@ -87,8 +87,12 @@ html body main.app.app.app.shooterMode button.shooterRecordingHudButton:focus-vi
 .shooterRecordingCamera--mobile .shooterRecordingLive { object-fit: contain; transform: scaleX(-1); }
 .shooterRecordingCamera--mobile .shooterRecordingControls { inset: 0 6px 0 auto; width: 82px; gap: 4px; flex-direction: column; }
 .shooterRecordingCamera--mobile .shooterRecordingControls button { min-height: 34px; padding: 5px 12px; }
-.shooterRecordingCamera--mobile .shooterRecordingControls .shooterRecordingWide { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 44px; padding: 6px; background: #15241fee; }
-.shooterRecordingFramingStatus { padding: 4px; border-radius: 6px; background: #07110ed9; color: #ffdf9e; font-size: 10px; line-height: 1.4; }
+.shooterRecordingCamera--mobile { isolation: isolate; touch-action: pan-y; }
+.shooterRecordingCamera--mobile > .shooterRecordingWide { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); z-index: 2; display: grid; place-items: center; width: 46px; height: 46px; padding: 0; background: #15241fee; }
+.shooterRecordingCamera--mobile .shooterRecordingControls { z-index: 2; }
+.shooterRecordingFilterOverlay { position: absolute; pointer-events: none; z-index: 1; }
+.shooterRecordingFilterName { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 2; padding: 3px 9px; border-radius: 12px; background: #07110eb8; font-size: 11px; pointer-events: none; }
+.shooterRecordingCamera--mobile .shooterRecordingControls .shooterRecordingExit { min-height: 44px; background: #15241fee; }
 .shooterRecordingCamera--mobile .shooterRecordingClock { position: static; padding: 2px 4px; }
 .shooterRecordingCamera--mobile .shooterRecordingControls [role="status"] { font-size: 10px; text-align: center; }
 
@@ -97,3 +101,7 @@ html.shooterCanonicalMobile body main.app.app.app.shooterMode .shooterArena[data
 html.shooterCanonicalMobile body main.app.app.app.shooterMode .shooterArena[data-recording-raised="true"] > .shooterGuitarCabinet--gameplay { bottom: calc(var(--shooter-guitar-bottom, 22px) - 3px + var(--recording-lift)) !important; }
 html.shooterCanonicalMobile body main.app.app.app.shooterMode .shooterArena[data-recording-raised="true"] > .mobileShooterLives { bottom: calc(16px + var(--recording-lift)) !important; }
 html.shooterCanonicalMobile body main.app.app.app.shooterMode .shooterArena[data-recording-raised="true"] > .shooterPetCompanion { top: calc(var(--shooter-pet-y, 88) * 1% - var(--recording-lift)) !important; }
+
+.shooterRecordingError { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.55; }
+.shooterRecordingError > span { white-space: pre-line; }
+.shooterRecordingError > button { flex: 0 0 36px; min-width: 36px; min-height: 36px; padding: 0; }

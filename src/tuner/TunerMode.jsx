@@ -1,3 +1,4 @@
+import { mediaPermissionGuide } from "../audio/mediaPermissionGuide.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, ChevronRight, Mic, MicOff, X } from "lucide-react";
 import { acquireMicInput } from "../audio/micInputEngine.js";
@@ -1010,7 +1011,7 @@ function TunerGauge({ controller, guidance, showDirectionScale = true }) {
               src={guidanceBadgeSrc}
             />
           ) : (
-            <strong className="tunerGuidanceText">{needsMicAction ? "마이크를 켜주세요" : guidanceText}</strong>
+            <strong className="tunerGuidanceText">{needsMicAction ? (micState === "denied" ? "마이크 권한을 허용해주세요" : "마이크를 켜주세요") : guidanceText}</strong>
           )}
           <small>{micState === "requesting" ? "마이크 권한을 확인하고 있어요" : guidance.detail}</small>
           {needsMicAction && micState !== "unsupported" ? (
@@ -1316,6 +1317,11 @@ export default function TunerMode({
   onBackgroundChange,
 }) {
   const controller = useTunerController(active);
+  useEffect(() => {
+    if (active && controller.micState === "denied") {
+      window.alert(mediaPermissionGuide({ mobile }));
+    }
+  }, [active, controller.micState, mobile]);
   const [activeSheet, setActiveSheet] = useState(null);
   const [backgroundIndex, setBackgroundIndex] = useState(
     () => Math.abs(Number(backgroundEntryIndex) || 0) % TUNER_BACKGROUNDS.length,
