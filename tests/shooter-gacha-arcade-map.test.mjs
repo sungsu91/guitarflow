@@ -71,7 +71,17 @@ test("only three clipped claws and one fixed-size star ring animate", () => {
     assert.equal(claw.scaleChange, false);
     assert.equal(claw.placement.width, claw.clipRect.width);
     assert.equal(claw.placement.height, claw.clipRect.height);
+    assert.equal(claw.glassClipPolygon.length, 4);
   }
+  assert.deepEqual(sprites.claw_left_mid.glassClipPolygon, [
+    { x: 62, y: 40 }, { x: 292, y: 8 }, { x: 300, y: 270 }, { x: 76, y: 270 },
+  ]);
+  assert.deepEqual(sprites.claw_right_upper.glassClipPolygon, [
+    { x: 0, y: 21 }, { x: 215, y: 40 }, { x: 210, y: 210 }, { x: 0, y: 210 },
+  ]);
+  assert.deepEqual(sprites.claw_right_lower.glassClipPolygon, [
+    { x: 0, y: 35 }, { x: 235, y: 60 }, { x: 225, y: 285 }, { x: 0, y: 260 },
+  ]);
   assert.equal(sprites.star_light_ring.frameCount, 24);
   assert.equal(sprites.star_light_ring.framesPerSecond, 6);
   assert.equal(sprites.star_light_ring.durationMs, 4000);
@@ -118,6 +128,7 @@ test("renderer uses one visibility-aware 10Hz loop without React frame state or 
   assert.match(field, /runtimeAnimation\.clockFramesPerSecond/);
   assert.doesNotMatch(field, /useState/);
   assert.doesNotMatch(field, /transform.*scale|scale\(/i);
+  assert.match(field, /clipPath: getGlassClipPath\(sprite\)/);
   assert.match(styles, /\.shooterMapGachaArcadeField[\s\S]*?overflow: hidden/);
   assert.match(styles, /\.shooterMapGachaArcadeSprite[\s\S]*?overflow: hidden/);
   assert.doesNotMatch(styles, /shooterMapGachaArcadeSprite[^{]*\{[^}]*transform\s*:/s);

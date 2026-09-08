@@ -24,6 +24,12 @@ const sprites = Object.freeze([
     scaleChange: false,
     placement: Object.freeze({ x: 88, y: 1125, width: 300, height: 280 }),
     clipRect: Object.freeze({ x: 0, y: 0, width: 300, height: 280 }),
+    glassClipPolygon: Object.freeze([
+      Object.freeze({ x: 62, y: 40 }),
+      Object.freeze({ x: 292, y: 8 }),
+      Object.freeze({ x: 300, y: 270 }),
+      Object.freeze({ x: 76, y: 270 }),
+    ]),
   },
   {
     id: "claw_right_upper",
@@ -38,6 +44,12 @@ const sprites = Object.freeze([
     scaleChange: false,
     placement: Object.freeze({ x: 1180, y: 690, width: 290, height: 250 }),
     clipRect: Object.freeze({ x: 0, y: 0, width: 290, height: 250 }),
+    glassClipPolygon: Object.freeze([
+      Object.freeze({ x: 0, y: 21 }),
+      Object.freeze({ x: 215, y: 40 }),
+      Object.freeze({ x: 210, y: 210 }),
+      Object.freeze({ x: 0, y: 210 }),
+    ]),
   },
   {
     id: "claw_right_lower",
@@ -52,6 +64,12 @@ const sprites = Object.freeze([
     scaleChange: false,
     placement: Object.freeze({ x: 1165, y: 2160, width: 320, height: 310 }),
     clipRect: Object.freeze({ x: 0, y: 0, width: 320, height: 310 }),
+    glassClipPolygon: Object.freeze([
+      Object.freeze({ x: 0, y: 35 }),
+      Object.freeze({ x: 235, y: 60 }),
+      Object.freeze({ x: 225, y: 285 }),
+      Object.freeze({ x: 0, y: 260 }),
+    ]),
   },
   {
     id: "star_light_ring",
@@ -83,7 +101,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
       mode: "full",
       audit: Object.freeze({
         completed: true,
-        contentFingerprint: "194a638f",
+        contentFingerprint: "8e6975c4",
         activeCssAnimations: 0,
         ambientEventLayers: 0,
         filteredElements: 0,
