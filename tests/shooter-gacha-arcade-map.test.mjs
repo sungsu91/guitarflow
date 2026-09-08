@@ -11,13 +11,14 @@ const assetRoot = new URL("../public/assets/maps/gacha-arcade/", import.meta.url
 
 test("V3 manifest fixes the shared axis, corridor, and seven machine slots", async () => {
   const manifest = JSON.parse(await readFile(new URL("asset_manifest.json", assetRoot), "utf8"));
-  assert.equal(manifest.version, "3.3.0");
+  assert.equal(manifest.version, "3.4.0");
   assert.equal(manifest.canvas.center_axis_x, 768);
   assert.deepEqual(manifest.canvas.clear_corridor, { left: 460, right: 1076 });
   assert.equal(manifest.layout_rules.machine_rotation_degrees, 0);
   assert.equal(manifest.layout_rules.plinth_rotation_degrees, 0);
-  assert.equal(manifest.layout_rules.plinth_width_ratio, 1.12);
-  assert.equal(manifest.layout_rules.machine_plinth_inset_ratio, 0.38);
+  assert.equal(manifest.layout_rules.plinth_width_ratio, 1.28);
+  assert.equal(manifest.layout_rules.machine_base_offset_ratio, 0.16);
+  assert.equal(manifest.layout_rules.machine_footline_on_plinth_ratio, 0.5);
   assert.equal(manifest.layout_rules.plinth_has_floor_contact_shadow, true);
   assert.equal(manifest.machine_slots.length, 7);
   assert.equal(manifest.machine_slots.filter((slot) => slot.side === "left").length, 4);
@@ -25,7 +26,7 @@ test("V3 manifest fixes the shared axis, corridor, and seven machine slots", asy
 });
 
 test("gacha arcade V3 uses an empty seven-bay background and layered render order", () => {
-  assert.equal(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.version, "3.3.0");
+  assert.equal(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.version, "3.4.0");
   assert.deepEqual(getShooterMapPerformancePolicy(GACHA_ARCADE_MAP_SKIN), {
     mobileGameplayEffects: "full",
     mobileGameplayAuditPassed: true,
@@ -78,16 +79,16 @@ test("four left and three right cabinets each own one staggered clipped claw", (
     { x: 1081, y: 800, width: 440, height: 660 },
     { x: -42, y: 1091, width: 484, height: 726 },
     { x: 1078, y: 1472, width: 506, height: 759 },
-    { x: -108, y: 1856, width: 517, height: 776 },
+    { x: -108, y: 1857, width: 517, height: 776 },
   ]);
   for (const [index, machine] of machines.entries()) {
     const platform = platforms[index];
     const machineCenter = machine.placement.x + machine.placement.width / 2;
     const platformCenter = platform.placement.x + platform.placement.width / 2;
     assert.ok(Math.abs(machineCenter - platformCenter) <= 0.5);
-    assert.equal(platform.placement.width, Math.round(machine.placement.width * 1.12));
+    assert.equal(platform.placement.width, Math.round(machine.placement.width * 1.28));
     const machineBaseY = machine.placement.y + machine.placement.height;
-    const seatedMachineBaseY = platform.placement.y + platform.placement.height * 0.38;
+    const seatedMachineBaseY = platform.placement.y + platform.placement.height * 0.5;
     assert.ok(Math.abs(machineBaseY - seatedMachineBaseY) <= 1);
     assert.equal(machine.zIndex, platform.zIndex + 1);
     if (machine.side === "left") {

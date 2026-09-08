@@ -67,16 +67,16 @@ def build_layout_preview(background: Image.Image, plinth: Image.Image, machine: 
         machine_height = round(machine_width * rules["machine_height_ratio"])
         platform_width = round(machine_width * rules["plinth_width_ratio"])
         platform_height = round(platform_width / (640 / 240))
-        machine_inset = round(platform_height * rules["machine_plinth_inset_ratio"])
+        machine_base_y = slot["base_y"] + round(machine_width * rules["machine_base_offset_ratio"])
         machine_placement = {
             "x": round(slot["center_x"] - machine_width / 2),
-            "y": slot["base_y"] + machine_inset - machine_height,
+            "y": machine_base_y - machine_height,
             "width": machine_width,
             "height": machine_height,
         }
         platform_placement = {
             "x": round(slot["center_x"] - platform_width / 2),
-            "y": slot["base_y"],
+            "y": round(machine_base_y - platform_height * rules["machine_footline_on_plinth_ratio"]),
             "width": platform_width,
             "height": platform_height,
         }

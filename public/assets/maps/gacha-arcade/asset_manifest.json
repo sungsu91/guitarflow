@@ -1,6 +1,6 @@
 {
   "pack": "FRETIVA_GACHA_ARCADE_MAP_PACK",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "canvas": {
     "width": 1536,
     "height": 3328,
@@ -24,8 +24,9 @@
   },
   "layout_rules": {
     "machine_height_ratio": 1.5,
-    "plinth_width_ratio": 1.12,
-    "machine_plinth_inset_ratio": 0.38,
+    "plinth_width_ratio": 1.28,
+    "machine_base_offset_ratio": 0.16,
+    "machine_footline_on_plinth_ratio": 0.5,
     "plinth_has_floor_contact_shadow": true,
     "machine_rotation_degrees": 0,
     "plinth_rotation_degrees": 0
