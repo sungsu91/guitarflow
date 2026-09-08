@@ -1,0 +1,39 @@
+{
+  "currentFailures": [
+    "✖ 3D LAB is a developer-only map isolated from MODE7 LAB and formal map cycling",
+    "✖ 3D LAB shares current-target pitch judgment but replaces projectiles with an automatic slash",
+    "✖ app launch and shooter use the requested operational defaults",
+    "✖ deployed defaults include the desktop editor calibration for every monster root",
+    "✖ failing tests:",
+    "✖ Lava Canyon combines visible lava scenery, torch flames, dragons, and reusable map assets",
+    "✖ mobile map policy allows only audited effects that fit the common render budget",
+    "✖ moving the wheel updates only its track and commits once after exact settlement",
+    "✖ renderer keeps background, astrolabe, combat, foreground, and HUD order",
+    "✖ rhythm-code landscape reserves the left rail for progression and fretboard growth",
+    "✖ scale practice reuses the shared mobile Backing Loop presentation",
+    "✖ shooter exposes only the current layered maps and no emblem catalog",
+    "✖ shooter uses the mobile-master HUD at mobile and desktop sizes",
+    "✖ source-backed effect tunings are merged with local editor overrides"
+  ],
+  "baselineFailures": [
+    "✖ 3D LAB is a developer-only map isolated from MODE7 LAB and formal map cycling",
+    "✖ 3D LAB shares current-target pitch judgment but replaces projectiles with an automatic slash",
+    "✖ app launch and shooter use the requested operational defaults",
+    "✖ deployed defaults include the desktop editor calibration for every monster root",
+    "✖ desktop rhythm transport reuses the metronome card without sharing playback controls",
+    "✖ failing tests:",
+    "✖ Lava Canyon combines visible lava scenery, torch flames, dragons, and reusable map assets",
+    "✖ mini chord recommendations lock only the in-page panel while shared menus stay independent",
+    "✖ mobile map policy allows only audited effects that fit the common render budget",
+    "✖ moving the wheel updates only its track and commits once after exact settlement",
+    "✖ renderer keeps background, astrolabe, combat, foreground, and HUD order",
+    "✖ rhythm settings selection stays local and does not move the active accompaniment",
+    "✖ rhythm-code landscape reserves the left rail for progression and fretboard growth",
+    "✖ scale practice reuses the shared mobile Backing Loop presentation",
+    "✖ shooter exposes only the current layered maps and no emblem catalog",
+    "✖ shooter uses the mobile-master HUD at mobile and desktop sizes",
+    "✖ source-backed effect tunings are merged with local editor overrides"
+  ],
+  "newFailures": [],
+  "focusedTestsPassed": 33
+}

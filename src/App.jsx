@@ -1,6 +1,7 @@
 import { FIXED_ADD_VOICINGS, isFixedAddFamily, preservedBadd9 } from "./chords/fixedAddVoicings.js";
 import { ADDITIONAL_CHORD_SHAPES, isAdditionalChord, isPermittedChordOmission, parseAdditionalChordName, spellAdditionalChordTone } from "./chords/additionalChords.js";
 import { observeShooterNoteOn } from "./shooter/noteOn.js";
+import ShooterRecording from "./shooter/recording/ShooterRecording.jsx";
 import { FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1, FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1_IDS } from "./shooter/instruments/fretivaPinkInstrumentSkinPackV1.js";
 ﻿import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Activity, startTransition } from "react";
@@ -16342,9 +16343,9 @@ function getShooterTargetDuration(difficulty) {
   const baseDuration = pacing.durationMsMin && pacing.durationMsMax
     ? pacing.durationMsMin + Math.random() * (pacing.durationMsMax - pacing.durationMsMin)
     : pacing.durationMs;
-  // Start at the ceiling (0 instead of 8), keeping travel speed at 90%
-  // of the previous speed despite the longer path to the same endpoint.
-  return baseDuration * (88 / 80) / 0.9;
+  // Keep the ceiling spawn path and reduce the previous 90% fall speed by 15%.
+  // Duration is inverse to speed; spawn cadence and BPM stay independent.
+  return baseDuration * (88 / 80) / (0.9 * 0.85);
 }
 
 function getShooterSpawnGap(difficulty) {
@@ -17034,6 +17035,8 @@ function App({ onReady }) {
   const [feelPlaybackIndex, setFeelPlaybackIndex] = useState(-1);
   const [feelPlaybackProgress, setFeelPlaybackProgress] = useState(0);
   const [isMobileLayout, setIsMobileLayout] = useState(getIsMobileLayout);
+  const [shooterRecordingActive, setShooterRecordingActive] = useState(false);
+  const [shooterRecordingEntryTarget, setShooterRecordingEntryTarget] = useState(null);
   // Mobile shooter is portrait-only. A physical phone rotation must not alter
   // its map catalog or switch it to a landscape renderer.
   const shooterPortraitLayout = !isMobileLayout || isPortraitOnlyMode(APP_MODES.SHOOTER);
@@ -17589,6 +17592,8 @@ function App({ onReady }) {
     const halfWidth = (petRect?.width ?? 0) / 2;
     const halfHeight = (petRect?.height ?? 0) / 2;
     const margin = 6;
+    const arena = shooterArenaRef.current;
+    const liftPercent = (Number.parseFloat(arena?.style.getPropertyValue("--recording-lift")) || 0) / (arena?.clientHeight || 1) * 100;
     return {
       x: clampValue(
         ((clientX - arenaRect.left) / arenaRect.width) * 100,
@@ -17596,8 +17601,8 @@ function App({ onReady }) {
         100 - ((halfWidth + margin) / arenaRect.width) * 100,
       ),
       y: clampValue(
-        ((clientY - arenaRect.top) / arenaRect.height) * 100,
-        ((halfHeight + margin) / arenaRect.height) * 100,
+        ((clientY - arenaRect.top) / arenaRect.height) * 100 + liftPercent,
+        ((halfHeight + margin) / arenaRect.height) * 100 + liftPercent,
         100 - ((halfHeight + margin) / arenaRect.height) * 100,
       ),
     };
@@ -21837,6 +21842,7 @@ function App({ onReady }) {
       && cached.arenaWidth === arenaSize.width
       && cached.assetNode === assetNode
       && cached.playerNode === playerNode
+      && cached.playerOffsetTop === playerNode?.offsetTop
     ) {
       return cached;
     }
@@ -21853,6 +21859,7 @@ function App({ onReady }) {
       assetHeight: Math.max(1, assetNode?.offsetHeight || playerRect.height || 1),
       assetNode,
       assetWidth: Math.max(1, assetNode?.offsetWidth || playerRect.width || 1),
+      playerOffsetTop: playerNode.offsetTop,
       pivotX: (playerRect.left - arenaRect.left + playerRect.width / 2) / renderedScaleX,
       pivotY: (playerRect.bottom - arenaRect.top) / renderedScaleY,
       playerNode,
@@ -22073,7 +22080,7 @@ function App({ onReady }) {
       window.removeEventListener("resize", refreshMetrics);
       observer?.disconnect();
     };
-  }, [appMode, isMobileLayout, refreshShooterArenaSize, selectedGuitar.id]);
+  }, [appMode, isMobileLayout, refreshShooterArenaSize, selectedGuitar.id, shooterRecordingActive]);
 
   useEffect(() => {
     if (!shooterHitboxDebugEnabled || appMode !== APP_MODES.SHOOTER) {
@@ -30038,6 +30045,9 @@ function App({ onReady }) {
       style={shooterMobileViewportStyle}
       translate="no"
     >
+      {appMode === APP_MODES.SHOOTER && !mapEditor.enabled ? (
+        <ShooterRecording arenaRef={shooterArenaRef} entryTarget={shooterRecordingEntryTarget} mobile={isMobileLayout} ensureMic={startMic} onActiveChange={setShooterRecordingActive} />
+      ) : null}
       {appMode === APP_MODES.SHOOTER && typeof document !== "undefined" ? createPortal(
         <ShooterPitchMonitor mobile={isMobileLayout} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} />,
         document.body,
@@ -30055,7 +30065,7 @@ function App({ onReady }) {
         active={metronomeFlashEnabled && metronomeFlashPulse > 0}
         pulseKey={`metronome-global-flash-${metronomeFlashPulse}`}
       />
-      <DesktopSidebarNavigation
+      {!shooterRecordingActive && <DesktopSidebarNavigation
         activeKey={desktopSidebarActiveKey}
         accompanimentControlsDisabled={stage3RecommendedAccompanimentLocked}
         appTheme={appTheme}
@@ -30083,7 +30093,7 @@ function App({ onReady }) {
         themeOptions={themeMenuVisible ? themeOptions : []}
         themeTransitionActive={Boolean(themeTransition)}
         versionLabel={APP_VERSION_LABEL}
-      />
+      />}
       {utilityMenuOpen && !isDesktopLayout ? (
         <div className="utilityMenuLayer" role="presentation">
           <button
@@ -30381,6 +30391,7 @@ function App({ onReady }) {
       ) : null}
 
       {appMode !== APP_MODES.MENU
+        && !shooterRecordingActive
         && !(appMode === APP_MODES.SHOOTER && mapEditor.enabled)
         && !hideFretboardLandscapeNavigation
         && <section className="hud">
@@ -33144,6 +33155,8 @@ function App({ onReady }) {
                     <span className={!shooterSolfegeOn ? "active" : ""}>EN</span>
                   </b>
                 </button>
+
+                <div className="shooterRecordingEntrySlot" ref={setShooterRecordingEntryTarget} />
 
                 <button
                   aria-label={streamRef.current ? "슈팅게임 마이크 켜짐" : "슈팅게임 마이크 켜기"}

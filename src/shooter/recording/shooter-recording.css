@@ -1,0 +1,96 @@
+.shooterRecordingUI { position: fixed; inset: 0; z-index: 1800; pointer-events: none; color: #fff; font: 13px/1.4 system-ui, sans-serif; }
+.shooterRecordingUI button { pointer-events: auto; appearance: none; min-height: 42px; border: 1px solid #ffffff38; border-radius: 24px; padding: 9px 15px; color: #fff; background: #15241fee; font: inherit; cursor: pointer; }
+.shooterRecordingUI button:focus-visible { outline: 3px solid #7ef0b9; outline-offset: 3px; }
+.shooterRecordingUI button:disabled { opacity: .5; cursor: wait; }
+.shooterRecordingEntry { position: absolute; right: max(12px, env(safe-area-inset-right)); top: max(12px, env(safe-area-inset-top)); display: grid; justify-items: end; gap: 8px; }
+.shooterRecordingEntrySlot { height: 40px; min-width: 0; pointer-events: auto; }
+html body main.app.app.app.shooterMode .mobileShooterPrimaryHudRow:has(.shooterRecordingEntrySlot) {
+  grid-template-columns: 82px minmax(90px, 1fr) 58px 48px 48px !important;
+}
+html.shooterCanonicalMobile body main.app.app.app.shooterMode .mobileShooterPrimaryHudRow:has(.shooterRecordingEntrySlot) {
+  grid-template-columns: 112px 150px 58px minmax(0, 1fr) 54px !important;
+}
+/* Desktop's narrower portrait HUD needs its own width; the arena is unchanged. */
+html body .desktopLayout main.app.app.app.shooterMode .mobileShooterTopHud:has(.shooterRecordingEntrySlot) {
+  min-width: 360px;
+}
+html body main.app.app.app.shooterMode button.shooterRecordingHudButton {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 4px 0 !important;
+  border: 0 !important;
+  border-inline: 1px solid rgba(239, 193, 105, .18) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #f4ce82 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  pointer-events: auto;
+  cursor: pointer;
+}
+html body main.app.app.app.shooterMode button.shooterRecordingHudButton > span {
+  color: inherit !important;
+  font: 800 8px/1 system-ui, sans-serif !important;
+  letter-spacing: -.025em;
+  white-space: nowrap;
+}
+html body main.app.app.app.shooterMode button.shooterRecordingHudButton > svg {
+  display: block;
+  width: 13px !important;
+  height: 13px !important;
+  color: inherit !important;
+}
+html body main.app.app.app.shooterMode button.shooterRecordingHudButton:hover {
+  background: rgba(245, 190, 84, .09) !important;
+  color: #ffe09a !important;
+}
+html body main.app.app.app.shooterMode button.shooterRecordingHudButton:focus-visible {
+  outline: 1px solid #ffe09a !important;
+  outline-offset: -3px;
+}
+.shooterRecordingError { pointer-events: auto; max-width: min(330px, 90vw); padding: 12px; border-radius: 12px; background: #402425; }
+.shooterRecordingCamera { position: absolute; inset: auto; border-radius: 12px; overflow: hidden; background: #020503; pointer-events: auto; box-shadow: 0 3px 16px #0008; }
+.shooterRecordingLive { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; transform: scaleX(-1); }
+.shooterRecordingControls { position: absolute; bottom: max(10px, env(safe-area-inset-bottom)); left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.shooterRecordingControls button:first-child { background: #9e2338e8; }
+.shooterRecordingClock { background: #131b18dd; border-radius: 20px; padding: 10px; font-variant-numeric: tabular-nums; color: #ff768b; }
+.shooterRecordingHint { position: absolute; top: 6px; left: 8px; right: 8px; margin: 0; text-align: center; font-size: 11px; text-shadow: 0 1px 4px #000; }
+.shooterRecordingCamera--desktop .shooterRecordingControls { gap: 16px; }
+.shooterRecordingCamera--desktop .shooterRecordingHint { font-size: 13px; }
+.shooterRecordingReview { pointer-events: auto; position: absolute; inset: 0; overflow: hidden; background: #020503; display: flex; flex-direction: column; }
+.shooterRecordingReview > video { display: block; flex: 1 1 0; min-height: 0; width: 100%; max-width: none; object-fit: contain; background: #000; }
+.shooterRecordingReview > div { flex: 0 0 auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 10px 8px max(10px, env(safe-area-inset-bottom)); background: #07110e; }
+.shooterRecordingReview p { position: absolute; left: 12px; right: 12px; bottom: max(82px, calc(env(safe-area-inset-bottom) + 70px)); margin: 0; padding: 8px 12px; border-radius: 12px; background: #06100ddd; text-align: center; pointer-events: none; }
+/* Floating camera keeps the existing game viewport and map composition intact. */
+.shooterRecordingCamera .shooterRecordingControls { bottom: 5px; gap: 4px; }
+.shooterRecordingCamera .shooterRecordingControls button { min-height: 30px; padding: 4px 10px; font-size: 11px; }
+.shooterRecordingCamera .shooterRecordingClock { padding: 4px; font-size: 10px; }
+.shooterRecordingUI .shooterRecordingDrag { position: absolute; top: 0; left: 0; width: 100%; min-height: 28px; padding: 4px; border: 0; border-radius: 0; background: #0007; font-size: 10px; touch-action: none; cursor: move; }
+
+.shooterRecordingUI .shooterRecordingResize { position: absolute; right: 0; bottom: 0; z-index: 2; min-height: 30px; width: 30px; padding: 0; border: 0; border-radius: 10px 0 0 0; background: #0008; color: #fff; touch-action: none; cursor: nwse-resize; }
+.shooterRecordingCamera .shooterRecordingControls { right: 28px; }
+.shooterRecordingCamera { z-index: 0; }
+.shooterRecordingReview { z-index: 1; }
+.shooterRecordingCamera .shooterRecordingClock { position: absolute; bottom: 36px; left: 0; right: -28px; text-align: center; white-space: nowrap; }
+
+/* Mobile camera replaces the navigation rail without resizing the arena. */
+.shooterRecordingCamera--mobile { border-radius: 0; box-shadow: inset 0 1px #d2ab5838; background: #09110e; }
+.shooterRecordingCamera--mobile .shooterRecordingLive { object-fit: contain; }
+.shooterRecordingCamera--mobile .shooterRecordingControls { inset: 0 6px 0 auto; width: 82px; gap: 4px; flex-direction: column; }
+.shooterRecordingCamera--mobile .shooterRecordingControls button { min-height: 34px; padding: 5px 12px; }
+.shooterRecordingCamera--mobile .shooterRecordingClock { position: static; padding: 2px 4px; }
+.shooterRecordingCamera--mobile .shooterRecordingControls [role="status"] { font-size: 10px; text-align: center; }
+
+/* Raise only gameplay actors; leave the authored map and arena dimensions intact. */
+html.shooterCanonicalMobile body main.app.app.app.shooterMode .shooterArena[data-recording-raised="true"] > .guitarPlayer { bottom: calc(var(--shooter-guitar-bottom, 22px) + var(--recording-lift)) !important; }
+html.shooterCanonicalMobile body main.app.app.app.shooterMode .shooterArena[data-recording-raised="true"] > .shooterGuitarCabinet--gameplay { bottom: calc(var(--shooter-guitar-bottom, 22px) - 3px + var(--recording-lift)) !important; }
+html.shooterCanonicalMobile body main.app.app.app.shooterMode .shooterArena[data-recording-raised="true"] > .mobileShooterLives { bottom: calc(16px + var(--recording-lift)) !important; }
+html.shooterCanonicalMobile body main.app.app.app.shooterMode .shooterArena[data-recording-raised="true"] > .shooterPetCompanion { top: calc(var(--shooter-pet-y, 88) * 1% - var(--recording-lift)) !important; }

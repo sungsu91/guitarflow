@@ -133,7 +133,7 @@ export default Object.freeze({
   },
   "backline-resonance": {
     "C": {
-      "jointScale": 1.05,
+      "jointScale": 0.95,
       "labelColor": "",
       "labelOffsetX": 0,
       "labelOffsetY": -1,
@@ -142,7 +142,7 @@ export default Object.freeze({
       "scale": 1.15
     },
     "D": {
-      "jointScale": 0.8999999999999999,
+      "jointScale": 0.7999999999999998,
       "labelColor": "",
       "labelOffsetX": 0,
       "labelOffsetY": 0,
@@ -151,7 +151,7 @@ export default Object.freeze({
       "scale": 1.15
     },
     "E": {
-      "jointScale": 0.7999999999999998,
+      "jointScale": 0.6999999999999997,
       "labelColor": "",
       "labelOffsetX": 0,
       "labelOffsetY": 0,
@@ -160,7 +160,7 @@ export default Object.freeze({
       "scale": 1.15
     },
     "F": {
-      "jointScale": 1.05,
+      "jointScale": 0.8999999999999999,
       "labelColor": "",
       "labelOffsetX": 0,
       "labelOffsetY": -1,
@@ -169,7 +169,7 @@ export default Object.freeze({
       "scale": 1.15
     },
     "G": {
-      "jointScale": 1.1,
+      "jointScale": 0.95,
       "labelColor": "",
       "labelOffsetX": 0,
       "labelOffsetY": -1,
@@ -178,7 +178,7 @@ export default Object.freeze({
       "scale": 1.15
     },
     "A": {
-      "jointScale": 0.7999999999999998,
+      "jointScale": 0.6999999999999997,
       "labelColor": "",
       "labelOffsetX": 0,
       "labelOffsetY": -5,
@@ -187,7 +187,7 @@ export default Object.freeze({
       "scale": 1.15
     },
     "B": {
-      "jointScale": 1,
+      "jointScale": 0.8499999999999999,
       "labelColor": "",
       "labelOffsetX": 0,
       "labelOffsetY": 0,

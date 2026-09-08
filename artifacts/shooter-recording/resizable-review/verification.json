@@ -1,0 +1,28 @@
+[
+  {
+    "name": "mobile",
+    "before": {
+      "width": 430,
+      "height": 804,
+      "nav": true
+    },
+    "video": {
+      "width": 390,
+      "height": 766,
+      "size": 153434,
+      "type": "video/mp4",
+      "url": "blob:http://127.0.0.1:5178/0b7f35d4-f4a8-4627-88dc-990551fd06f1"
+    },
+    "resources": {
+      "camera": [
+        "ended"
+      ],
+      "outputs": [
+        "ended",
+        "ended"
+      ],
+      "micLive": true,
+      "captureFrames": 0
+    }
+  }
+]

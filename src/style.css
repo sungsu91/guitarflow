@@ -74191,3 +74191,17 @@ html body main.app.app.app.shooterMode .shooterArena button.shooterPetCompanion:
     animation: none;
   }
 }
+/* Portrait gameplay uses one lower anchor for the guitar and its saved effects.
+   Keep editor previews and the desktop horizontal battle layout independent. */
+html.shooterCanonicalMobile body .shooterArena:not(.shooterArena--mapEdit):not(.shooterMapSkin--dev-three-d-lab),
+html body .desktopLayout .shooterArena--desktopPortrait:not(.shooterArena--mapEdit):not(.shooterMapSkin--dev-three-d-lab) {
+  --shooter-guitar-bottom: 22px;
+}
+html.shooterCanonicalMobile body .shooterArena:not(.shooterArena--mapEdit):not(.shooterMapSkin--dev-three-d-lab) > .guitarPlayer,
+html body .desktopLayout .shooterArena--desktopPortrait:not(.shooterArena--mapEdit):not(.shooterMapSkin--dev-three-d-lab) > .guitarPlayer {
+  bottom: var(--shooter-guitar-bottom) !important;
+}
+html.shooterCanonicalMobile body .shooterArena:not(.shooterArena--mapEdit):not(.shooterMapSkin--dev-three-d-lab) > .shooterGuitarCabinet--gameplay,
+html body .desktopLayout .shooterArena--desktopPortrait:not(.shooterArena--mapEdit):not(.shooterMapSkin--dev-three-d-lab) > .shooterGuitarCabinet--gameplay {
+  bottom: calc(var(--shooter-guitar-bottom) - 3px);
+}
