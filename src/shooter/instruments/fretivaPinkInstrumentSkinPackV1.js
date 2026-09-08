@@ -17,6 +17,11 @@ const BOUNDS = {
     "visibleHeight": 1487,
     "visibleTop": 15
   },
+  "acoustic_kitty_bloom_v1": {
+    "visibleWidth": 655,
+    "visibleHeight": 1492,
+    "visibleTop": 7
+  },
   "electric_pink_orbit_v1": {
     "visibleWidth": 547,
     "visibleHeight": 1501,

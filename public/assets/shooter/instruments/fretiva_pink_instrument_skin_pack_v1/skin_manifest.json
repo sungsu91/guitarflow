@@ -1,13 +1,13 @@
 {
   "pack_id": "fretiva_pink_instrument_skin_pack_v1",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "status": "final",
   "final_apply_spec": "CODEX_APPLY_PINK_INSTRUMENT_SKINS_V1.txt",
   "counts": {
-    "acoustic": 3,
+    "acoustic": 4,
     "electric": 1,
     "bass": 1,
-    "total": 5
+    "total": 6
   },
   "image_contract": {
     "width": 1024,
@@ -68,6 +68,16 @@
       "category": "acoustic",
       "display_title": "CANDY IMP ACOUSTIC",
       "path": "acoustic/FRETIVA_CANDY_IMP_ACOUSTIC.png",
+      "string_count": 6,
+      "tuner_count": 6,
+      "tuner_layout": "3_left_3_right"
+    },
+    {
+      "sort_order": 4,
+      "id": "acoustic_kitty_bloom_v1",
+      "category": "acoustic",
+      "display_title": "KITTY BLOOM",
+      "path": "acoustic/KITTY BLOOM.png",
       "string_count": 6,
       "tuner_count": 6,
       "tuner_layout": "3_left_3_right"
