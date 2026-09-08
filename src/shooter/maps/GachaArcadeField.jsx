@@ -83,7 +83,7 @@ export default function GachaArcadeField({ active = true, runtimeAnimation }) {
             left: `${(sprite.placement.x / runtimeAnimation.canvasWidth) * 100}%`,
             top: `${(sprite.placement.y / runtimeAnimation.canvasHeight) * 100}%`,
             width: `${(sprite.placement.width / runtimeAnimation.canvasWidth) * 100}%`,
-            zIndex: sprite.id === "star_light_ring" ? 4 : 3,
+            zIndex: sprite.zIndex,
           }}
         />
       ))}

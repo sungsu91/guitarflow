@@ -9,28 +9,26 @@ const GACHA_ARCADE_LAYOUT_PREVIEW = `${GACHA_ARCADE_ROOT}/preview/FRETIVA_GACHA_
 const GACHA_ARCADE_CANVAS = Object.freeze({ width: 1536, height: 3328 });
 const GACHA_ARCADE_RENDER_ORDER = Object.freeze([
   "empty_seven_bay_background",
-  "seven_machine_plinths",
-  "seven_machine_cabinets",
-  "seven_claw_window_layers",
+  "far_to_near_machine_groups_cabinet_plinth_claw",
   "star_light_ring",
   "gameplay",
   "guitar",
   "HUD",
 ]);
 
-const platformObjects = Object.freeze(GACHA_ARCADE_RESOLVED_SLOTS.map((slot) => Object.freeze({
+const platformObjects = Object.freeze(GACHA_ARCADE_RESOLVED_SLOTS.map((slot, index) => Object.freeze({
   id: `platform_${slot.id}`,
   kind: "platform",
-  zIndex: 1,
+  zIndex: 11 + index * 3,
   src: GACHA_ARCADE_MACHINE_PLINTH,
   placement: slot.platform,
 })));
 
-const machineObjects = Object.freeze(GACHA_ARCADE_RESOLVED_SLOTS.map((slot) => Object.freeze({
+const machineObjects = Object.freeze(GACHA_ARCADE_RESOLVED_SLOTS.map((slot, index) => Object.freeze({
   id: `machine_${slot.id}`,
   kind: "machine",
   side: slot.side,
-  zIndex: 2,
+  zIndex: 10 + index * 3,
   src: slot.side === "left" ? GACHA_ARCADE_MACHINE_LEFT : GACHA_ARCADE_MACHINE_RIGHT,
   placement: slot.machine,
 })));
@@ -65,6 +63,7 @@ const clawSprites = GACHA_ARCADE_RESOLVED_SLOTS.map((slot, index) => {
     phaseOffsetMs: CLAW_PHASE_OFFSETS[index],
     direction: isLeft ? "left-wall to right" : "right-wall to left",
     scaleChange: false,
+    zIndex: 12 + index * 3,
     placement,
     clipRect: Object.freeze({ x: 0, y: 0, width, height }),
     glassClipPolygon: Object.freeze([
@@ -89,6 +88,7 @@ const sprites = Object.freeze([
     delayMs: 0,
     phaseOffsetMs: 1000,
     scaleChange: false,
+    zIndex: 100,
     placement: Object.freeze({ x: 538, y: 305, width: 460, height: 364 }),
   }),
 ]);
@@ -115,7 +115,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
       mode: "full",
       audit: Object.freeze({
         completed: true,
-        contentFingerprint: "c2c5f6f3",
+        contentFingerprint: "0d23128b",
         activeCssAnimations: 0,
         ambientEventLayers: 0,
         filteredElements: 0,

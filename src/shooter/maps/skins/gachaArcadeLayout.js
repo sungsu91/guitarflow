@@ -1,13 +1,13 @@
 export const GACHA_ARCADE_CLEAR_CORRIDOR = Object.freeze({ left: 460, right: 1076 });
 
 export const GACHA_ARCADE_MACHINE_SLOTS = Object.freeze([
-  { id: "left_1", side: "left", centerX: 310, baseY: 760, machineWidth: 250 },
-  { id: "right_1", side: "right", centerX: 1226, baseY: 880, machineWidth: 270 },
-  { id: "left_2", side: "left", centerX: 270, baseY: 1160, machineWidth: 310 },
-  { id: "right_2", side: "right", centerX: 1266, baseY: 1390, machineWidth: 330 },
-  { id: "left_3", side: "left", centerX: 220, baseY: 1740, machineWidth: 370 },
-  { id: "right_3", side: "right", centerX: 1316, baseY: 2150, machineWidth: 400 },
-  { id: "left_4", side: "left", centerX: 170, baseY: 2550, machineWidth: 420 },
+  { id: "left_1", side: "left", centerX: 300, baseY: 760, machineWidth: 280 },
+  { id: "right_1", side: "right", centerX: 1236, baseY: 880, machineWidth: 300 },
+  { id: "left_2", side: "left", centerX: 245, baseY: 1160, machineWidth: 375 },
+  { id: "right_2", side: "right", centerX: 1291, baseY: 1390, machineWidth: 400 },
+  { id: "left_3", side: "left", centerX: 200, baseY: 1740, machineWidth: 440 },
+  { id: "right_3", side: "right", centerX: 1331, baseY: 2150, machineWidth: 460 },
+  { id: "left_4", side: "left", centerX: 150, baseY: 2550, machineWidth: 470 },
 ].map((slot) => Object.freeze(slot)));
 
 export function resolveGachaArcadeSlot(slot) {
@@ -24,7 +24,7 @@ export function resolveGachaArcadeSlot(slot) {
     }),
     platform: Object.freeze({
       x: Math.round(slot.centerX - platformWidth / 2),
-      y: Math.round(slot.baseY - platformHeight * 0.28),
+      y: Math.round(slot.baseY - platformHeight * 0.22),
       width: platformWidth,
       height: platformHeight,
     }),

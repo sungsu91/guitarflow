@@ -17,7 +17,7 @@ test("V3 manifest fixes the shared axis, corridor, and seven machine slots", asy
   assert.equal(manifest.layout_rules.machine_rotation_degrees, 0);
   assert.equal(manifest.layout_rules.plinth_rotation_degrees, 0);
   assert.equal(manifest.layout_rules.plinth_width_ratio, 1.12);
-  assert.equal(manifest.layout_rules.plinth_top_anchor_ratio, 0.28);
+  assert.equal(manifest.layout_rules.plinth_top_anchor_ratio, 0.22);
   assert.equal(manifest.layout_rules.plinth_has_floor_contact_shadow, true);
   assert.equal(manifest.machine_slots.length, 7);
   assert.equal(manifest.machine_slots.filter((slot) => slot.side === "left").length, 4);
@@ -42,9 +42,7 @@ test("gacha arcade V3 uses an empty seven-bay background and layered render orde
   );
   assert.deepEqual(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.renderOrder, [
     "empty_seven_bay_background",
-    "seven_machine_plinths",
-    "seven_machine_cabinets",
-    "seven_claw_window_layers",
+    "far_to_near_machine_groups_cabinet_plinth_claw",
     "star_light_ring",
     "gameplay",
     "guitar",
@@ -74,13 +72,13 @@ test("four left and three right cabinets each own one staggered clipped claw", (
     "machine_left_4",
   ]);
   assert.deepEqual(machines.map((machine) => machine.placement), [
-    { x: 185, y: 385, width: 250, height: 375 },
-    { x: 1091, y: 475, width: 270, height: 405 },
-    { x: 115, y: 695, width: 310, height: 465 },
-    { x: 1101, y: 895, width: 330, height: 495 },
-    { x: 35, y: 1185, width: 370, height: 555 },
-    { x: 1116, y: 1550, width: 400, height: 600 },
-    { x: -40, y: 1920, width: 420, height: 630 },
+    { x: 160, y: 340, width: 280, height: 420 },
+    { x: 1086, y: 430, width: 300, height: 450 },
+    { x: 58, y: 597, width: 375, height: 563 },
+    { x: 1091, y: 790, width: 400, height: 600 },
+    { x: -20, y: 1080, width: 440, height: 660 },
+    { x: 1101, y: 1460, width: 460, height: 690 },
+    { x: -85, y: 1845, width: 470, height: 705 },
   ]);
   for (const [index, machine] of machines.entries()) {
     const platform = platforms[index];
@@ -89,8 +87,9 @@ test("four left and three right cabinets each own one staggered clipped claw", (
     assert.ok(Math.abs(machineCenter - platformCenter) <= 0.5);
     assert.equal(platform.placement.width, Math.round(machine.placement.width * 1.12));
     const machineBaseY = machine.placement.y + machine.placement.height;
-    const platformTopAnchorY = platform.placement.y + platform.placement.height * 0.28;
+    const platformTopAnchorY = platform.placement.y + platform.placement.height * 0.22;
     assert.ok(Math.abs(machineBaseY - platformTopAnchorY) <= 1);
+    assert.equal(platform.zIndex, machine.zIndex + 1);
     if (machine.side === "left") {
       assert.ok(machine.placement.x + machine.placement.width < GACHA_ARCADE_CLEAR_CORRIDOR.left);
     } else {
@@ -109,6 +108,8 @@ test("four left and three right cabinets each own one staggered clipped claw", (
     assert.equal(claw.framesPerSecond, 4);
     assert.equal(claw.durationMs, 6000);
     assert.equal(claw.scaleChange, false);
+    const machine = machines.find((candidate) => candidate.id === claw.machineId);
+    assert.equal(claw.zIndex, machine.zIndex + 2);
     assert.equal(claw.placement.width, claw.clipRect.width);
     assert.equal(claw.placement.height, claw.clipRect.height);
     assert.deepEqual(claw.glassClipPolygon, [

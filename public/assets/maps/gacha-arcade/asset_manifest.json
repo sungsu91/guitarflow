@@ -25,19 +25,19 @@
   "layout_rules": {
     "machine_height_ratio": 1.5,
     "plinth_width_ratio": 1.12,
-    "plinth_top_anchor_ratio": 0.28,
+    "plinth_top_anchor_ratio": 0.22,
     "plinth_has_floor_contact_shadow": true,
     "machine_rotation_degrees": 0,
     "plinth_rotation_degrees": 0
   },
   "machine_slots": [
-    { "id": "left_1", "side": "left", "center_x": 310, "base_y": 760, "machine_width": 250, "phase_offset_ms": 0 },
-    { "id": "right_1", "side": "right", "center_x": 1226, "base_y": 880, "machine_width": 270, "phase_offset_ms": 857 },
-    { "id": "left_2", "side": "left", "center_x": 270, "base_y": 1160, "machine_width": 310, "phase_offset_ms": 1714 },
-    { "id": "right_2", "side": "right", "center_x": 1266, "base_y": 1390, "machine_width": 330, "phase_offset_ms": 2571 },
-    { "id": "left_3", "side": "left", "center_x": 220, "base_y": 1740, "machine_width": 370, "phase_offset_ms": 3428 },
-    { "id": "right_3", "side": "right", "center_x": 1316, "base_y": 2150, "machine_width": 400, "phase_offset_ms": 4285 },
-    { "id": "left_4", "side": "left", "center_x": 170, "base_y": 2550, "machine_width": 420, "phase_offset_ms": 5142 }
+    { "id": "left_1", "side": "left", "center_x": 300, "base_y": 760, "machine_width": 280, "phase_offset_ms": 0 },
+    { "id": "right_1", "side": "right", "center_x": 1236, "base_y": 880, "machine_width": 300, "phase_offset_ms": 857 },
+    { "id": "left_2", "side": "left", "center_x": 245, "base_y": 1160, "machine_width": 375, "phase_offset_ms": 1714 },
+    { "id": "right_2", "side": "right", "center_x": 1291, "base_y": 1390, "machine_width": 400, "phase_offset_ms": 2571 },
+    { "id": "left_3", "side": "left", "center_x": 200, "base_y": 1740, "machine_width": 440, "phase_offset_ms": 3428 },
+    { "id": "right_3", "side": "right", "center_x": 1331, "base_y": 2150, "machine_width": 460, "phase_offset_ms": 4285 },
+    { "id": "left_4", "side": "left", "center_x": 150, "base_y": 2550, "machine_width": 470, "phase_offset_ms": 5142 }
   ],
   "claw_animation": {
     "columns": 6,
@@ -61,9 +61,7 @@
   },
   "render_order": [
     "empty_seven_bay_background",
-    "seven_machine_plinths",
-    "seven_machine_cabinets",
-    "seven_claw_window_layers",
+    "far_to_near_machine_groups_cabinet_plinth_claw",
     "star_light_ring",
     "gameplay",
     "guitar",

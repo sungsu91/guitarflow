@@ -48,7 +48,7 @@ def build_grounded_plinth(source: Image.Image) -> Image.Image:
     output = Image.new("RGBA", (640, 240), (0, 0, 0, 0))
     shadow = Image.new("RGBA", output.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(shadow)
-    draw.ellipse((50, 158, 590, 230), fill=(8, 2, 18, 155))
+    draw.ellipse((28, 150, 612, 238), fill=(46, 6, 64, 205))
     shadow = shadow.filter(ImageFilter.GaussianBlur(16))
     output.alpha_composite(shadow)
     output.alpha_composite(contain(crop_visible(source), (640, 190)), (0, 0))
@@ -79,15 +79,15 @@ def build_layout_preview(background: Image.Image, plinth: Image.Image, machine: 
             "width": platform_width,
             "height": platform_height,
         }
-        resolved.append((slot, machine_placement))
-        place_on_runtime(canvas, plinth, platform_placement)
+        resolved.append((slot, machine_placement, platform_placement))
 
-    for slot, placement in resolved:
+    for slot, placement, platform_placement in resolved:
         cabinet = machine if slot["side"] == "left" else machine.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
         place_on_runtime(canvas, cabinet, placement)
+        place_on_runtime(canvas, plinth, platform_placement)
 
     elapsed_ms = 2700
-    for slot, placement in resolved:
+    for slot, placement, _platform_placement in resolved:
         is_left = slot["side"] == "left"
         frame_width, frame_height = (300, 280) if is_left else (290, 250)
         sheet_name = "claw_left_mid_wire_sheet_6x4.png" if is_left else "claw_right_upper_wire_sheet_6x4.png"
