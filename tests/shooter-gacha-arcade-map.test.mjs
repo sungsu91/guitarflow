@@ -11,13 +11,13 @@ const assetRoot = new URL("../public/assets/maps/gacha-arcade/", import.meta.url
 
 test("V3 manifest fixes the shared axis, corridor, and seven machine slots", async () => {
   const manifest = JSON.parse(await readFile(new URL("asset_manifest.json", assetRoot), "utf8"));
-  assert.equal(manifest.version, "3.2.0");
+  assert.equal(manifest.version, "3.3.0");
   assert.equal(manifest.canvas.center_axis_x, 768);
   assert.deepEqual(manifest.canvas.clear_corridor, { left: 460, right: 1076 });
   assert.equal(manifest.layout_rules.machine_rotation_degrees, 0);
   assert.equal(manifest.layout_rules.plinth_rotation_degrees, 0);
   assert.equal(manifest.layout_rules.plinth_width_ratio, 1.12);
-  assert.equal(manifest.layout_rules.machine_plinth_inset_ratio, 0.76);
+  assert.equal(manifest.layout_rules.machine_plinth_inset_ratio, 0.38);
   assert.equal(manifest.layout_rules.plinth_has_floor_contact_shadow, true);
   assert.equal(manifest.machine_slots.length, 7);
   assert.equal(manifest.machine_slots.filter((slot) => slot.side === "left").length, 4);
@@ -25,7 +25,7 @@ test("V3 manifest fixes the shared axis, corridor, and seven machine slots", asy
 });
 
 test("gacha arcade V3 uses an empty seven-bay background and layered render order", () => {
-  assert.equal(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.version, "3.2.0");
+  assert.equal(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.version, "3.3.0");
   assert.deepEqual(getShooterMapPerformancePolicy(GACHA_ARCADE_MAP_SKIN), {
     mobileGameplayEffects: "full",
     mobileGameplayAuditPassed: true,
@@ -42,7 +42,7 @@ test("gacha arcade V3 uses an empty seven-bay background and layered render orde
   );
   assert.deepEqual(GACHA_ARCADE_MAP_SKIN.runtimeAnimation.renderOrder, [
     "empty_seven_bay_background",
-    "far_to_near_machine_groups_cabinet_plinth_claw",
+    "far_to_near_machine_groups_plinth_cabinet_claw",
     "star_light_ring",
     "gameplay",
     "guitar",
@@ -72,13 +72,13 @@ test("four left and three right cabinets each own one staggered clipped claw", (
     "machine_left_4",
   ]);
   assert.deepEqual(machines.map((machine) => machine.placement), [
-    { x: 160, y: 430, width: 280, height: 420 },
-    { x: 1086, y: 526, width: 300, height: 450 },
-    { x: 58, y: 717, width: 375, height: 563 },
-    { x: 1091, y: 918, width: 400, height: 600 },
-    { x: -20, y: 1221, width: 440, height: 660 },
-    { x: 1101, y: 1607, width: 460, height: 690 },
-    { x: -85, y: 1995, width: 470, height: 705 },
+    { x: 146, y: 347, width: 308, height: 462 },
+    { x: 1081, y: 438, width: 330, height: 495 },
+    { x: 39, y: 606, width: 413, height: 620 },
+    { x: 1081, y: 800, width: 440, height: 660 },
+    { x: -42, y: 1091, width: 484, height: 726 },
+    { x: 1078, y: 1472, width: 506, height: 759 },
+    { x: -108, y: 1856, width: 517, height: 776 },
   ]);
   for (const [index, machine] of machines.entries()) {
     const platform = platforms[index];
@@ -87,9 +87,9 @@ test("four left and three right cabinets each own one staggered clipped claw", (
     assert.ok(Math.abs(machineCenter - platformCenter) <= 0.5);
     assert.equal(platform.placement.width, Math.round(machine.placement.width * 1.12));
     const machineBaseY = machine.placement.y + machine.placement.height;
-    const seatedMachineBaseY = platform.placement.y + platform.placement.height * 0.76;
+    const seatedMachineBaseY = platform.placement.y + platform.placement.height * 0.38;
     assert.ok(Math.abs(machineBaseY - seatedMachineBaseY) <= 1);
-    assert.equal(platform.zIndex, machine.zIndex + 1);
+    assert.equal(machine.zIndex, platform.zIndex + 1);
     if (machine.side === "left") {
       assert.ok(machine.placement.x + machine.placement.width < GACHA_ARCADE_CLEAR_CORRIDOR.left);
     } else {
@@ -111,7 +111,7 @@ test("four left and three right cabinets each own one staggered clipped claw", (
     assert.equal(claw.durationMs, 6000);
     assert.equal(claw.scaleChange, false);
     const machine = machines.find((candidate) => candidate.id === claw.machineId);
-    assert.equal(claw.zIndex, machine.zIndex + 2);
+    assert.equal(claw.zIndex, machine.zIndex + 1);
     assert.equal(claw.placement.width, claw.clipRect.width);
     assert.equal(claw.placement.height, claw.clipRect.height);
     assert.deepEqual(claw.glassClipPolygon, [

@@ -9,7 +9,7 @@ const GACHA_ARCADE_LAYOUT_PREVIEW = `${GACHA_ARCADE_ROOT}/preview/FRETIVA_GACHA_
 const GACHA_ARCADE_CANVAS = Object.freeze({ width: 1536, height: 3328 });
 const GACHA_ARCADE_RENDER_ORDER = Object.freeze([
   "empty_seven_bay_background",
-  "far_to_near_machine_groups_cabinet_plinth_claw",
+  "far_to_near_machine_groups_plinth_cabinet_claw",
   "star_light_ring",
   "gameplay",
   "guitar",
@@ -19,7 +19,7 @@ const GACHA_ARCADE_RENDER_ORDER = Object.freeze([
 const platformObjects = Object.freeze(GACHA_ARCADE_RESOLVED_SLOTS.map((slot, index) => Object.freeze({
   id: `platform_${slot.id}`,
   kind: "platform",
-  zIndex: 11 + index * 3,
+  zIndex: 10 + index * 3,
   src: GACHA_ARCADE_MACHINE_PLINTH,
   placement: slot.platform,
 })));
@@ -28,7 +28,7 @@ const machineObjects = Object.freeze(GACHA_ARCADE_RESOLVED_SLOTS.map((slot, inde
   id: `machine_${slot.id}`,
   kind: "machine",
   side: slot.side,
-  zIndex: 10 + index * 3,
+  zIndex: 11 + index * 3,
   src: slot.side === "left" ? GACHA_ARCADE_MACHINE_RIGHT : GACHA_ARCADE_MACHINE_LEFT,
   placement: slot.machine,
 })));
@@ -115,7 +115,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
       mode: "full",
       audit: Object.freeze({
         completed: true,
-        contentFingerprint: "5b3c39ec",
+        contentFingerprint: "5bd45b5e",
         activeCssAnimations: 0,
         ambientEventLayers: 0,
         filteredElements: 0,
@@ -138,7 +138,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
     locked: true,
   }),
   runtimeAnimation: Object.freeze({
-    version: "3.2.0",
+    version: "3.3.0",
     canvasWidth: GACHA_ARCADE_CANVAS.width,
     canvasHeight: GACHA_ARCADE_CANVAS.height,
     clockFramesPerSecond: 10,

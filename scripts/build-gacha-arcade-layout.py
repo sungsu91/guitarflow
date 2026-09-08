@@ -84,8 +84,8 @@ def build_layout_preview(background: Image.Image, plinth: Image.Image, machine: 
 
     for slot, placement, platform_placement in resolved:
         cabinet = machine.transpose(Image.Transpose.FLIP_LEFT_RIGHT) if slot["side"] == "left" else machine
-        place_on_runtime(canvas, cabinet, placement)
         place_on_runtime(canvas, plinth, platform_placement)
+        place_on_runtime(canvas, cabinet, placement)
 
     elapsed_ms = 2700
     for slot, placement, _platform_placement in resolved:
