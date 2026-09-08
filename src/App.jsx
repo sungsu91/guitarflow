@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { createPortal, flushSync } from "react-dom";
 import { acquireMicInput } from "./audio/micInputEngine";
+import { installMicForegroundRecovery } from "./audio/micForegroundRecovery.js";
 import { MIC_INPUT_PRESETS } from "./audio/micInputPresets";
 import { playGuitarPositions } from "./audio/fretboardPreviewEngine";
 import {
@@ -23676,10 +23677,11 @@ function App({ onReady }) {
     setMicStatus("No Signal");
   }, []);
 
-  const startMic = useCallback(async () => {
+  const startMic = useCallback(async ({ quiet = false } = {}) => {
     if (appModeRef.current !== APP_MODES.SHOOTER) return false;
     const requestVersion = ++micRequestVersionRef.current;
     const showPermissionGuide = () => {
+      if (quiet) return;
       window.alert("마이크 권한이 꺼져 있습니다.\n\n새로고침 후 다시 시도하거나,\n브라우저 설정에서 마이크 권한을 허용해주세요.");
     };
 
@@ -23727,12 +23729,26 @@ function App({ onReady }) {
       if (error?.name === "NotAllowedError" || error?.name === "PermissionDeniedError") {
         showPermissionGuide();
       } else {
-        window.alert("마이크를 시작할 수 없습니다.\n\n새로고침 후 다시 시도해주세요.");
+        if (!quiet) window.alert("마이크를 시작할 수 없습니다.\n\n새로고침 후 다시 시도해주세요.");
       }
       console.error(error);
       return false;
     }
   }, [setState]);
+
+  useEffect(() => {
+    if (appMode !== APP_MODES.SHOOTER) return;
+    return installMicForegroundRecovery({
+      getSession: () => micInputSessionRef.current,
+      restart: () => startMic({ quiet: true }),
+      onHidden: () => {
+        if (gameStateRef.current === GAME_STATES.PLAYING) {
+          setState(GAME_STATES.PAUSED);
+          setFeedback("돌아오면 계속 버튼을 눌러주세요.");
+        }
+      },
+    });
+  }, [appMode, startMic, setState]);
 
   useEffect(() => {
     if (appMode === APP_MODES.SHOOTER && !streamRef.current) {

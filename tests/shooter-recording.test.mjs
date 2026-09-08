@@ -11,7 +11,7 @@ test("recorder negotiates MP4, then WebM, then browser defaults", () => {
 
 test("composite preserves the complete game and places the mirrored camera at its live position", () => {
   const calls = [];
-  const ctx = Object.fromEntries(["fillRect", "drawImage", "save", "translate", "scale", "restore"].map(name => [name, (...args) => calls.push([name, ...args])]));
+  const ctx = Object.fromEntries(["fillRect", "drawImage", "save", "translate", "scale", "restore", "beginPath", "rect", "clip"].map(name => [name, (...args) => calls.push([name, ...args])]));
   const game = { width: 430, height: 844 };
   const camera = { readyState: 2, videoWidth: 1280, videoHeight: 720 };
   const overlay = { x: .6, y: .2, width: .36, height: .18 };
@@ -68,7 +68,7 @@ test("resizing camera preserves aspect and clamps all sizes inside the panel", (
 
 test("mobile bottom dock shows the full camera framing without cropping the player", () => {
   const calls = [];
-  const ctx = Object.fromEntries(["fillRect", "drawImage", "save", "translate", "scale", "restore"].map(name => [name, (...args) => calls.push([name, ...args])]));
+  const ctx = Object.fromEntries(["fillRect", "drawImage", "save", "translate", "scale", "restore", "beginPath", "rect", "clip"].map(name => [name, (...args) => calls.push([name, ...args])]));
   const game = { width: 430, height: 844 };
   const camera = { readyState: 2, videoWidth: 1280, videoHeight: 720 };
   drawComposite(ctx, game, camera, 430, 932, { x: 0, y: 844/932, width: 1, height: 88/932, gameFraction: 844/932, fit: "contain" });
@@ -81,9 +81,21 @@ test("mobile bottom dock shows the full camera framing without cropping the play
 
 test("raised dock crops only the covered map footer without scaling the visible map", () => {
   const calls = [];
-  const ctx = Object.fromEntries(["fillRect", "drawImage", "save", "translate", "scale", "restore"].map(name => [name, (...args) => calls.push([name, ...args])]));
+  const ctx = Object.fromEntries(["fillRect", "drawImage", "save", "translate", "scale", "restore", "beginPath", "rect", "clip"].map(name => [name, (...args) => calls.push([name, ...args])]));
   const game = {width:430,height:844};
   drawComposite(ctx,game,{readyState:0},430,932,{gameFraction:744/932,gameSourceFraction:744/844});
   const call = calls.find(([name]) => name === "drawImage");
   assert.deepEqual(call.slice(2),[0,0,430,744,0,0,430,744]);
+});
+
+
+test("camera zoom preserves aspect and clips enlargement to the dock", () => {
+  const calls = [];
+  const ctx = Object.fromEntries(["fillRect", "drawImage", "save", "translate", "scale", "restore", "beginPath", "rect", "clip"].map(name => [name, (...args) => calls.push([name, ...args])]));
+  const camera = {readyState:2, videoWidth:720, videoHeight:1280};
+  drawComposite(ctx, null, camera, 400, 800, {x:0,y:.75,width:1,height:.25,fit:"contain",zoom:1.2});
+  const draw = calls.find(([name]) => name === "drawImage");
+  assert.deepEqual(draw.slice(2), [132.5,-20,135,240]);
+  assert.deepEqual(calls.find(([name]) => name === "rect"), ["rect",0,0,400,200]);
+  assert.ok(calls.findIndex(([name]) => name === "clip") < calls.findIndex(([name]) => name === "drawImage"));
 });

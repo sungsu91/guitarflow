@@ -39,8 +39,12 @@ export function drawComposite(context, game, camera, width, height, overlay) {
     context.save();
     context.translate(x + w, y);
     context.scale(-1, 1);
+    context.beginPath();
+    context.rect(0, 0, w, h);
+    context.clip();
     if (overlay.fit === "contain") {
-      const scale = Math.min(w / camera.videoWidth, h / camera.videoHeight);
+      const zoom = Math.max(1, Math.min(1.6, overlay.zoom ?? 1));
+      const scale = Math.min(w / camera.videoWidth, h / camera.videoHeight) * zoom;
       const cw = camera.videoWidth * scale, ch = camera.videoHeight * scale;
       context.drawImage(camera, (w - cw) / 2, (h - ch) / 2, cw, ch);
     } else {

@@ -18,8 +18,13 @@ function CameraControls({ phase, seconds, start, stop, ready }) {
 }
 
 // Platform UI remains separate; media ownership and controls are shared.
-function MobileCameraLayout({ children, style }) {
-  return <section className="shooterRecordingCamera shooterRecordingCamera--mobile" style={style} aria-label="전면 카메라">{children}</section>;
+function MobileCameraLayout({ children, style, zoom, onZoom, phase }) {
+  return <section className="shooterRecordingCamera shooterRecordingCamera--mobile" style={{ ...style, '--camera-zoom': zoom }} aria-label="전면 카메라">{children}
+    <label className="shooterRecordingZoom">
+      <span>화면 크기 {zoom.toFixed(2)}배</span>
+      <input type="range" min="1" max="1.6" step="0.05" value={zoom} aria-label="카메라 화면 크기" disabled={!['preview', 'recording'].includes(phase)} onChange={event => onZoom(Number(event.target.value))} />
+    </label>
+  </section>;
 }
 function DesktopCameraLayout({ children, style }) {
   return <section className="shooterRecordingCamera shooterRecordingCamera--desktop" style={style} aria-label="전면 카메라">{children}</section>;
@@ -34,6 +39,8 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
   const [saving, setSaving] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraStyle, setCameraStyle] = useState({});
+  const [cameraZoom, setCameraZoom] = useState(1.15);
+  const cameraZoomRef = useRef(1.15);
   const positionRef = useRef({ x: 1, y: .24 });
   const sizeRef = useRef(1);
   const resizeRef = useRef(null);
@@ -91,16 +98,22 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
   useEffect(() => {
     mounted.current = true;
     const interrupt = () => {
-      if (document.hidden && sessionRef.current && !sessionRef.current.review) close("화면을 벗어나 촬영모드를 종료했습니다.");
+      const session = sessionRef.current;
+      if (!session || session.review || session.sharing) return;
+      if (session.recorder && (session.recorder.state !== 'inactive' || session.stopRequested)) {
+        session.interrupted = true;
+        stop();
+      } else close("화면을 벗어나 촬영모드를 종료했습니다. 다시 촬영모드를 켜주세요.");
     };
-    const pageHide = () => { if (!sessionRef.current?.sharing) close(); };
-    document.addEventListener("visibilitychange", interrupt);
+    const visibility = () => { if (document.hidden) interrupt(); };
+    const pageHide = () => interrupt();
+    document.addEventListener("visibilitychange", visibility);
     window.addEventListener("pagehide", pageHide);
     return () => {
       mounted.current = false;
       dispose();
       callbacks.current.onActiveChange(false);
-      document.removeEventListener("visibilitychange", interrupt);
+      document.removeEventListener("visibilitychange", visibility);
       window.removeEventListener("pagehide", pageHide);
     };
   }, []);
@@ -144,7 +157,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
         const cameraHeight = Math.max(0, vh - top);
         const visibleGameHeight = bounds.height - liftPixels;
         const totalHeight = visibleGameHeight + cameraHeight;
-        overlayRef.current = { x: 0, y: visibleGameHeight / totalHeight, width: 1, height: cameraHeight / totalHeight, gameFraction: visibleGameHeight / totalHeight, gameSourceFraction: visibleGameHeight / bounds.height, fit: "contain" };
+        overlayRef.current = { x: 0, y: visibleGameHeight / totalHeight, width: 1, height: cameraHeight / totalHeight, gameFraction: visibleGameHeight / totalHeight, gameSourceFraction: visibleGameHeight / bounds.height, fit: "contain", zoom: cameraZoomRef.current };
         setCameraStyle({ left: bounds.left - (viewport?.offsetLeft || 0), top, width: bounds.width, height: cameraHeight });
         return;
       }
@@ -180,6 +193,13 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     const clamp = value => Math.max(0, Math.min(1, value));
     positionRef.current = { x: clamp(positionRef.current.x + dx / Math.max(1, bounds.width - rect.width - 16)), y: clamp(positionRef.current.y + dy / Math.max(1, bounds.height - rect.height - 64)) };
     moveCameraRef.current();
+  }
+
+  function changeCameraZoom(value) {
+    const zoom = Math.max(1, Math.min(1.6, value));
+    cameraZoomRef.current = zoom;
+    if (overlayRef.current) overlayRef.current.zoom = zoom;
+    setCameraZoom(zoom);
   }
 
   function resizeCamera(delta) {
@@ -240,7 +260,8 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
       [...session.camera.getTracks(), ...session.mic.getTracks()].forEach((track) => {
         track.onended = () => {
           if (!current()) return;
-          if (session.review) { session.previewEnded = true; return; }
+          if (session.review || session.stopRequested) { session.previewEnded = true; return; }
+          if (session.recorder?.state === 'recording') { session.previewEnded = true; session.interrupted = true; stop(); return; }
           close("카메라 또는 마이크 연결이 끊어져 촬영을 종료했습니다.");
         };
       });
@@ -312,6 +333,8 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
       }
       const recorder = new MediaRecorder(session.output, recorderOptions());
       session.recorder = recorder;
+      session.stopRequested = false;
+      session.interrupted = false;
       session.chunks = [];
       session.bytes = 0;
       recorder.ondataavailable = (event) => {
@@ -331,6 +354,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
           session.url = URL.createObjectURL(blob);
           session.review = true;
           setResult({ blob, url: session.url });
+          if (session.interrupted) setSaveMessage("화면 전환 또는 장치 연결 중단으로 녹화를 멈췄습니다. 여기까지 찍은 영상을 저장할 수 있습니다.");
           setPhase("review");
         } catch (cause) { close(recordingError(cause)); }
       };
@@ -361,7 +385,8 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
 
   function stop() {
     const session = sessionRef.current;
-    if (!session?.recorder || session.recorder.state === "inactive") return;
+    if (!session?.recorder || session.stopRequested || session.recorder.state === "inactive") return;
+    session.stopRequested = true;
     setPhase("stopping");
     clearTimeout(session.captureTimer);
     clearInterval(session.clock);
@@ -379,7 +404,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
       return;
     }
     if (session?.url) URL.revokeObjectURL(session.url);
-    if (session) { session.url = null; session.recorder = null; session.review = false; }
+    if (session) { session.url = null; session.recorder = null; session.review = false; session.stopRequested = false; }
     setResult(null);
     setSaveMessage("");
     setPhase("preview");
@@ -392,7 +417,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     setSaving(true);
     try {
       const method = await saveRecording(result.blob, result.url);
-      if (!session?.disposed) setSaveMessage(method === "shared" ? "공유 메뉴에서 저장을 진행할 수 있습니다." : "다운로드를 요청했습니다. 파일 앱 또는 다운로드 목록을 확인해주세요.");
+      if (!session?.disposed) setSaveMessage(method === "shared" ? "사진첩에서 영상을 확인해주세요." : "다운로드 목록에서 영상을 확인해주세요.");
     } catch (cause) {
       if (!session?.disposed) setSaveMessage(cause?.name === "AbortError" ? "저장을 취소했습니다. 영상은 유지됩니다." : "저장하지 못했습니다. 아래 영상 메뉴에서 다운로드하거나 다시 시도해주세요.");
     } finally { if (session) session.sharing = false; if (mounted.current) setSaving(false); }
@@ -408,7 +433,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     ) : null}
     {!active ? <div className="shooterRecordingEntry">
       {error ? <div className="shooterRecordingError" role="alert">{error}<button onClick={() => setError("")} type="button" aria-label="알림 닫기">×</button></div> : null}
-    </div> : cameraVisible ? <CameraLayout style={cameraStyle}>
+    </div> : cameraVisible ? <CameraLayout style={cameraStyle} zoom={cameraZoom} onZoom={changeCameraZoom} phase={phase}>
       <video className="shooterRecordingLive" ref={videoRef} autoPlay muted playsInline onLoadedData={() => setCameraReady(true)} aria-label="촬영 구도 확인" />
       {!mobile ? <><button className="shooterRecordingDrag" type="button" aria-label="카메라 위치 이동" title="드래그 또는 방향키로 이동"
         onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); dragRef.current = { x: event.clientX, y: event.clientY }; }}

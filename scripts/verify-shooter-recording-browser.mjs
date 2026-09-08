@@ -95,6 +95,11 @@ try {
       assert.ok(Math.abs(geometry.panelBottom - geometry.lift - geometry.cameraTop) < 1);
       assert.ok(Math.abs(geometry.cameraBottom - geometry.height) < 1);
       assert.equal(geometry.fit, "contain");
+      const zoom = page.getByRole('slider', { name: '카메라 화면 크기' });
+      assert.equal(await zoom.inputValue(), '1.15');
+      await zoom.fill('1.3');
+      assert.equal(await page.locator('.shooterRecordingLive').evaluate(node => new DOMMatrix(getComputedStyle(node).transform).a), -1.3);
+      await zoom.fill('1.15');
       assert.equal(await page.getByRole("button", { name: "카메라 위치 이동" }).count(), 0);
     } else {
     const cameraBefore = await page.locator(".shooterRecordingCamera").boundingBox();
@@ -168,7 +173,30 @@ try {
     await page.waitForFunction(() => document.querySelector('.shooterRecordingCamera video')?.readyState >= 2);
     assert.equal(await page.locator('.shooterRecordingReview').count(), 0);
     assert.ok(await page.evaluate(url => window.recordingQA.revoked.includes(url), video.url));
-    await page.getByRole("button", { name: "촬영모드 종료", exact: true }).click();
+    if (mobile) {
+      await page.getByRole('button', { name: '● REC', exact: true }).click();
+      await page.getByRole('button', { name: '녹화 중지' }).waitFor({ timeout: 30000 });
+      await page.waitForTimeout(1500);
+      // Simulate lifecycle delivery, including pagehide following visibilitychange.
+      // This checks our ownership logic, not actual OS background execution.
+      await page.evaluate(() => {
+        Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
+        Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
+        document.dispatchEvent(new Event('visibilitychange'));
+        window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true }));
+      });
+      await page.getByRole('button', { name: '영상 저장', exact: true }).waitFor({ timeout: 20000 });
+      await page.evaluate(() => {
+        delete document.hidden; delete document.visibilityState;
+        document.dispatchEvent(new Event('visibilitychange'));
+        window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+      });
+      await page.waitForFunction(() => document.querySelector('.shooterRecordingReview video')?.readyState >= 2);
+      assert.match(await page.locator('.shooterRecordingReview p').innerText(), /여기까지 찍은 영상/);
+      assert.ok(await page.locator('.shooterRecordingReview video').evaluate(async node => (await fetch(node.src).then(r => r.blob())).size > 1000));
+      results.push({ name: 'backgroundRetainsRecording', passed: true });
+    }
+    await (mobile ? page.locator('.shooterRecordingReview') : page).getByRole("button", { name: "촬영모드 종료", exact: true }).click();
     assert.deepEqual(await metrics(page), before);
     const resources = await assertReleased(page);
     assert.equal(resources.micLive, true, "Recording must not stop game microphone input");
