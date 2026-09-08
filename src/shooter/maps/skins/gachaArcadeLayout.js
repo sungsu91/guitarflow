@@ -14,7 +14,7 @@ export function resolveGachaArcadeSlot(slot) {
   const machineHeight = Math.round(slot.machineWidth * 1.5);
   const platformWidth = Math.round(slot.machineWidth * 1.12);
   const platformHeight = Math.round(platformWidth / (640 / 240));
-  const machineInset = Math.round(platformHeight * 0.38);
+  const machineInset = Math.round(platformHeight * 0.76);
   return Object.freeze({
     ...slot,
     machine: Object.freeze({

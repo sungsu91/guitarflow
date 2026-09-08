@@ -25,7 +25,7 @@
   "layout_rules": {
     "machine_height_ratio": 1.5,
     "plinth_width_ratio": 1.12,
-    "machine_plinth_inset_ratio": 0.38,
+    "machine_plinth_inset_ratio": 0.76,
     "plinth_has_floor_contact_shadow": true,
     "machine_rotation_degrees": 0,
     "plinth_rotation_degrees": 0

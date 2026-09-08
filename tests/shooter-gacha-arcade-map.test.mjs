@@ -17,7 +17,7 @@ test("V3 manifest fixes the shared axis, corridor, and seven machine slots", asy
   assert.equal(manifest.layout_rules.machine_rotation_degrees, 0);
   assert.equal(manifest.layout_rules.plinth_rotation_degrees, 0);
   assert.equal(manifest.layout_rules.plinth_width_ratio, 1.12);
-  assert.equal(manifest.layout_rules.machine_plinth_inset_ratio, 0.38);
+  assert.equal(manifest.layout_rules.machine_plinth_inset_ratio, 0.76);
   assert.equal(manifest.layout_rules.plinth_has_floor_contact_shadow, true);
   assert.equal(manifest.machine_slots.length, 7);
   assert.equal(manifest.machine_slots.filter((slot) => slot.side === "left").length, 4);
@@ -72,13 +72,13 @@ test("four left and three right cabinets each own one staggered clipped claw", (
     "machine_left_4",
   ]);
   assert.deepEqual(machines.map((machine) => machine.placement), [
-    { x: 160, y: 385, width: 280, height: 420 },
-    { x: 1086, y: 478, width: 300, height: 450 },
-    { x: 58, y: 657, width: 375, height: 563 },
-    { x: 1091, y: 854, width: 400, height: 600 },
-    { x: -20, y: 1150, width: 440, height: 660 },
-    { x: 1101, y: 1533, width: 460, height: 690 },
-    { x: -85, y: 1920, width: 470, height: 705 },
+    { x: 160, y: 430, width: 280, height: 420 },
+    { x: 1086, y: 526, width: 300, height: 450 },
+    { x: 58, y: 717, width: 375, height: 563 },
+    { x: 1091, y: 918, width: 400, height: 600 },
+    { x: -20, y: 1221, width: 440, height: 660 },
+    { x: 1101, y: 1607, width: 460, height: 690 },
+    { x: -85, y: 1995, width: 470, height: 705 },
   ]);
   for (const [index, machine] of machines.entries()) {
     const platform = platforms[index];
@@ -87,7 +87,7 @@ test("four left and three right cabinets each own one staggered clipped claw", (
     assert.ok(Math.abs(machineCenter - platformCenter) <= 0.5);
     assert.equal(platform.placement.width, Math.round(machine.placement.width * 1.12));
     const machineBaseY = machine.placement.y + machine.placement.height;
-    const seatedMachineBaseY = platform.placement.y + platform.placement.height * 0.38;
+    const seatedMachineBaseY = platform.placement.y + platform.placement.height * 0.76;
     assert.ok(Math.abs(machineBaseY - seatedMachineBaseY) <= 1);
     assert.equal(platform.zIndex, machine.zIndex + 1);
     if (machine.side === "left") {

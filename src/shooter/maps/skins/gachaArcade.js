@@ -115,7 +115,7 @@ export const GACHA_ARCADE_MAP_SKIN = Object.freeze({
       mode: "full",
       audit: Object.freeze({
         completed: true,
-        contentFingerprint: "cddd80ba",
+        contentFingerprint: "5b3c39ec",
         activeCssAnimations: 0,
         ambientEventLayers: 0,
         filteredElements: 0,
