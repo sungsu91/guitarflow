@@ -1,7 +1,7 @@
 // Landmark analysis and its source bitmap travel together. Never apply a mask
 // from an older camera frame to the current live frame.
 self.exports = {};
-importScripts('./vision_bundle.js');
+importScripts('./vision_bundle.js', './cheek-balance.js');
 let model;
 const canvas = new OffscreenCanvas(256, 256);
 const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -44,7 +44,8 @@ self.onmessage = async ({data}) => {
       const rgba=ctx.getImageData(0,0,256,256).data;
       const mask=new Uint8Array(256*256);
       for(let i=0;i<mask.length;i++)mask[i]=rgba[i*4];
-      self.postMessage({type:'result',bitmap:data.bitmap,mask,timestamp:data.timestamp,detected:!!points,elapsed:performance.now()-start},[data.bitmap,mask.buffer]);
+      const balance=self.cheekBalance(points,data.bitmap.width/data.bitmap.height);
+      self.postMessage({type:'result',bitmap:data.bitmap,mask,balance,timestamp:data.timestamp,detected:!!points,elapsed:performance.now()-start},[data.bitmap,mask.buffer]);
     } catch {data.bitmap.close();self.postMessage({type:'unavailable'});}
   }
 };

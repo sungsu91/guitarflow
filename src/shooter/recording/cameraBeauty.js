@@ -7,10 +7,20 @@ void main(){ uv=(position+1.0)*0.5; gl_Position=vec4(position,0.0,1.0); }`;
 const fragment = `precision mediump float;
 uniform sampler2D frame; uniform sampler2D skinMask;
 uniform vec2 pixel; uniform float strength;
+uniform vec4 pulls[2]; uniform float radius; uniform float aspect;
 varying vec2 uv;
 void main(){
-  // ImageBitmap and mask both use top-left rows. Never shift the face geometry.
+  // Image and mask use the same inverse coordinates so skin boundaries stay aligned.
   vec2 p=vec2(uv.x,1.0-uv.y);
+  vec2 offset=vec2(0.0);
+  if(radius>0.0 && strength>0.0){
+    for(int i=0;i<2;i++){
+      float d=length((p-pulls[i].xy)*vec2(aspect,1.0))/radius;
+      float weight=1.0-smoothstep(0.0,1.0,d);
+      offset+=pulls[i].zw*weight*weight*strength;
+    }
+  }
+  p+=offset;
   vec3 c=texture2D(frame,p).rgb;
   float mask=texture2D(skinMask,p).r;
   // Erode/feather mask boundaries instead of smearing into eyes/lips/hair.
@@ -18,6 +28,8 @@ void main(){
   mask=min(mask,texture2D(skinMask,p-vec2(1.0/256.0,0.0)).r);
   mask=min(mask,texture2D(skinMask,p+vec2(0.0,1.0/256.0)).r);
   mask=min(mask,texture2D(skinMask,p-vec2(0.0,1.0/256.0)).r);
+  // Most camera pixels are outside the skin ROI; skip 25 texture taps there.
+  if(mask<.01 || strength<=0.0){gl_FragColor=vec4(c,1.0);return;}
   vec3 sum=vec3(0.0);float weights=0.0;
   for(int x=-2;x<=2;x++)for(int y=-2;y<=2;y++){
     vec3 n=texture2D(frame,p+vec2(float(x),float(y))*pixel*2.3).rgb;
@@ -31,7 +43,8 @@ void main(){
   float amount=smoothstep(.35,.95,mask)*protectedDetail*strength;
   vec3 base=sum/max(weights,.001);
   vec3 smoothSkin=mix(c,base,.78);
-  smoothSkin+=.07*smoothSkin*(1.0-smoothSkin);
+  // Lift skin midtones without a white overlay or blown highlights.
+  smoothSkin+=vec3(.26,.245,.235)*smoothSkin*(1.0-smoothSkin);
   gl_FragColor=vec4(clamp(mix(c,smoothSkin,amount),0.0,1.0),1.0);
 }`;
 
@@ -74,7 +87,11 @@ function createRenderer() {
     gl.uniform1i(gl.getUniformLocation(program, 'frame'), 0);
     const pixel = gl.getUniformLocation(program, 'pixel');
     const amount = gl.getUniformLocation(program, 'strength');
-    return { dispose, render(video, level, mask) {
+    const pullsUniform=gl.getUniformLocation(program,'pulls[0]');
+    const radiusUniform=gl.getUniformLocation(program,'radius');
+    const aspectUniform=gl.getUniformLocation(program,'aspect');
+    const noPulls=new Float32Array(8);
+    return { dispose, render(video, level, mask, balance) {
       if (gl.isContextLost()) throw new Error('Beauty context lost');
       const scale = Math.min(1, 1280 / Math.max(video.width, video.height));
       const width = Math.max(1, Math.round(video.width * scale));
@@ -87,6 +104,9 @@ function createRenderer() {
       gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,256,256,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,mask);
       gl.activeTexture(gl.TEXTURE0);
       gl.uniform2f(pixel, 1 / width, 1 / height);
+      gl.uniform4fv(pullsUniform,balance?.pulls || noPulls);
+      gl.uniform1f(radiusUniform,balance?.radius || 0);
+      gl.uniform1f(aspectUniform,video.width/video.height);
       gl.uniform1f(amount, level === 0 ? 0 : level === 2 ? 1.0 : 0.55);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       return canvas;
@@ -101,7 +121,7 @@ export function beautyFrame(video, level) {
   if (!processors.has(video)) {
     const renderer=createRenderer();
     if(!renderer){processors.set(video,null);return video;}
-    const pipeline=createSkinPipeline(video,(bitmap,amount,mask)=>renderer.render(bitmap,amount,mask));
+    const pipeline=createSkinPipeline(video,(bitmap,amount,mask,balance)=>renderer.render(bitmap,amount,mask,balance));
     processors.set(video,{frame:pipeline.frame,dispose(){pipeline.dispose();renderer.dispose();}});
   }
   return processors.get(video)?.frame(level) ?? (processors.get(video)?null:video);

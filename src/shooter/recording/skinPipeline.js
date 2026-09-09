@@ -34,7 +34,7 @@ export function createSkinPipeline(video, render) {
         if(slow>=8){fail();return;}
         // GPU compilation can make the first result seconds old: discard it.
         if(performance.now()-data.timestamp<150){
-          output=render(data.bitmap,level,data.mask);
+          output=render(data.bitmap,level,data.mask,data.balance);
           completedAt=data.timestamp;
         } else { output=null; }
       }catch{fail();}
