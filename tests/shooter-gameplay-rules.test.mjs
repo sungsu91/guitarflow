@@ -18,6 +18,7 @@ import { SHOOTER_DIFFICULT_MAIN_SCENARIO } from "../src/shooter/difficultDifficu
 
 const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
 const styleSource = await readFile(new URL("../src/style.css", import.meta.url), "utf8");
+const pitchMonitorStyleSource = await readFile(new URL("../src/shooter/pitch-monitor.css", import.meta.url), "utf8");
 
 test("urgent shooter pacing starts slow and keeps travel independent from spawn beats", () => {
   assert.equal(SHOOTER_COUNT_IN_MS, 3_000);
@@ -31,6 +32,9 @@ test("urgent shooter pacing starts slow and keeps travel independent from spawn 
     bpms: [54, 56, 58, 60, 62], maxTargets: 3, travelMs: 4_800, fretRange: [0, 12],
   });
   assert.match(appSource, /const targetDuration = getShooterTargetDuration\(difficulty\)/);
+  assert.match(appSource, /\[SHOOTER_DIFFICULTIES\.EASY\]:[\s\S]*?speedScale: 0\.8/);
+  assert.match(appSource, /\[SHOOTER_DIFFICULTIES\.EASY_RANDOM\]:[\s\S]*?speedScale: 0\.8/);
+  assert.match(appSource, /0\.9 \* 0\.85 \* \(pacing\.speedScale \?\? 1\)/);
   assert.match(appSource, /scenarioStepWindowMs \?\? getShooterSpawnGap\(difficulty\)/);
   assert.doesNotMatch(appSource, /scenarioStepWindowMs \/ \(\(SHOOTER_LIFE_LINE_PERCENT - 8\) \/ 80\)/);
 });
@@ -45,6 +49,12 @@ test("count-in exposes 3, 2, 1, START before gameplay", () => {
   assert.match(appSource, /className="shooterCountInOverlay"/);
   assert.match(styleSource, /\.shooterCountInOverlay strong[\s\S]*linear-gradient\(135deg, #fff95c[\s\S]*#54f6ff[\s\S]*#ff78dc/);
   assert.match(styleSource, /-webkit-text-stroke: 1\.5px/);
+});
+
+test("pitch monitor text keeps readable colors over every shooter map", () => {
+  assert.match(pitchMonitorStyleSource, /\.shooterPitchMonitorMobile > span \{[\s\S]*?color: #fff;[\s\S]*?-webkit-text-fill-color: currentColor !important;/);
+  assert.match(pitchMonitorStyleSource, /\.shooterPitchMonitorMobile b \{[\s\S]*?color: #bfffe3;[\s\S]*?-webkit-text-fill-color: currentColor !important;/);
+  assert.match(pitchMonitorStyleSource, /\.shooterPitchMonitorMobile small \{[\s\S]*?color: #eef6ff;[\s\S]*?-webkit-text-fill-color: currentColor !important;/);
 });
 
 test("every scripted target carries exact MIDI, octave label, string, and fret", () => {

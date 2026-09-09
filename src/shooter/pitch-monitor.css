@@ -19,9 +19,27 @@
   pointer-events: none;
   font-size: 10px;
 }
-.shooterPitchMonitorMobile > span { white-space: nowrap; line-height: 22px; }
-.shooterPitchMonitorMobile b { display: inline-block; min-width: 3.5ch; margin-left: 4px; font-size: 16px; color: #99f6cf; }
-.shooterPitchMonitorMobile small { font-size: 10px; line-height: 14px; overflow-wrap: anywhere; color: #d3deec; }
+.shooterPitchMonitorMobile > span {
+  color: #fff;
+  -webkit-text-fill-color: currentColor !important;
+  white-space: nowrap;
+  line-height: 22px;
+}
+.shooterPitchMonitorMobile b {
+  display: inline-block;
+  min-width: 3.5ch;
+  margin-left: 4px;
+  font-size: 16px;
+  color: #bfffe3;
+  -webkit-text-fill-color: currentColor !important;
+}
+.shooterPitchMonitorMobile small {
+  font-size: 10px;
+  line-height: 14px;
+  overflow-wrap: anywhere;
+  color: #eef6ff;
+  -webkit-text-fill-color: currentColor !important;
+}
 @media (max-width: 350px) {
   .shooterPitchMonitorMobile { font-size: 9px; }
   .shooterPitchMonitorMobile b { min-width: 3ch; font-size: 14px; }
@@ -48,9 +66,9 @@
   pointer-events: none;
   font-size: 12px;
 }
-.shooterPitchMonitorDesktop b { grid-column: 2; grid-row: 1 / 3; justify-self: end; white-space: nowrap; font-size: 30px; color: #99f6cf; }
-.shooterPitchMonitorDesktop > span { white-space: nowrap; font-variant-numeric: tabular-nums; }
-.shooterPitchMonitorDesktop small { grid-column: 1 / -1; color: #d3deec; font-size: 11px; line-height: 18px; white-space: nowrap; }
+.shooterPitchMonitorDesktop b { grid-column: 2; grid-row: 1 / 3; justify-self: end; white-space: nowrap; font-size: 30px; color: #bfffe3; -webkit-text-fill-color: currentColor !important; }
+.shooterPitchMonitorDesktop > span { color: #fff; -webkit-text-fill-color: currentColor !important; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.shooterPitchMonitorDesktop small { grid-column: 1 / -1; color: #eef6ff; -webkit-text-fill-color: currentColor !important; font-size: 11px; line-height: 18px; white-space: nowrap; }
 
 /* The pitch monitor is portaled to body. Raise the menu's containing layer
    above that portal only while the difficulty selector is open. */

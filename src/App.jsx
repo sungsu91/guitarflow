@@ -16042,6 +16042,7 @@ const SHOOTER_DIFFICULTY_PACING = {
   [SHOOTER_DIFFICULTIES.EASY]: {
     durationMs: SHOOTER_RUNTIME_DIFFICULTY.easy.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
     maxTargets: SHOOTER_RUNTIME_DIFFICULTY.easy.maxTargets,
+    speedScale: 0.8,
   },
   [SHOOTER_DIFFICULTIES.EASY_RANDOM]: {
     durationMs: SHOOTER_RUNTIME_DIFFICULTY.easy.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
@@ -16054,6 +16055,7 @@ const SHOOTER_DIFFICULTY_PACING = {
     maxTargets: SHOOTER_RUNTIME_DIFFICULTY.easy.maxTargets,
     spawnGapMinMs: 1600,
     spawnGapMaxMs: 2300,
+    speedScale: 0.8,
   },
   [SHOOTER_DIFFICULTIES.NORMAL]: {
     durationMs: SHOOTER_RUNTIME_DIFFICULTY.normal.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
@@ -16375,7 +16377,7 @@ function getShooterTargetDuration(difficulty) {
     : pacing.durationMs;
   // Keep the ceiling spawn path and reduce the previous 90% fall speed by 15%.
   // Duration is inverse to speed; spawn cadence and BPM stay independent.
-  return baseDuration * (88 / 80) / (0.9 * 0.85);
+  return baseDuration * (88 / 80) / (0.9 * 0.85 * (pacing.speedScale ?? 1));
 }
 
 function getShooterSpawnGap(difficulty) {
