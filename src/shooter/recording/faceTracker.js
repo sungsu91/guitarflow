@@ -27,7 +27,7 @@ export function createFaceTracker(video) {
       const next = faceShapeControls(data.points, video.videoWidth / video.videoHeight);
       const now = performance.now();
       // Smooth minor tracking jitter, but do not drag stale landmarks to a new face.
-      const sameFace = controls && next && now - lastResult < 400 && Math.hypot(next[0].x - controls[0].x, next[0].y - controls[0].y) < 0.06;
+      const sameFace = controls && next && controls.length === next.length && now - lastResult < 400 && Math.hypot(next[0].x - controls[0].x, next[0].y - controls[0].y) < 0.06;
       controls = sameFace ? next.map((p, i) => Object.fromEntries(Object.keys(p).map(k => [k, controls[i][k] * 0.35 + p[k] * 0.65]))) : next;
       lastResult = now;
     }

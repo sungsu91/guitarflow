@@ -20,7 +20,7 @@ self.onmessage = async ({ data }) => {
     try {
       const started = performance.now();
       const points = landmarker.detectForVideo(data.bitmap, data.timestamp).faceLandmarks[0];
-      self.postMessage({ type: 'face', points: points ? [132, 361, 172, 397, 1].map(i => ({ x: points[i].x, y: points[i].y })) : null, elapsed: performance.now() - started });
+      self.postMessage({ type: 'face', points: points ? [132, 361, 172, 397, 1, 33, 133, 362, 263, 145, 374, 152].map(i => ({ x: points[i].x, y: points[i].y, z: points[i].z })) : null, elapsed: performance.now() - started });
     } catch { self.postMessage({ type: 'unavailable' }); }
     finally { data.bitmap.close(); }
   }

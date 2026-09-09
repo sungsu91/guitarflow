@@ -60,9 +60,13 @@ const metrics = page => page.evaluate(() => {
 async function enter(page) {
   await page.getByRole("button", { name: "촬영모드", exact: true }).click();
   await page.getByRole("button", { name: "● REC", exact: true }).waitFor({ timeout: 30000 });
-  if (process.env.RECORDING_TEST_BEAUTY === "1") {
-    await page.getByRole('button', {name:'피부·윤곽 보정: 끔', exact:true}).click();
-    await page.getByRole('button', {name:'피부·윤곽 보정: 자연', exact:true}).waitFor();
+  if (["1", "2"].includes(process.env.RECORDING_TEST_BEAUTY)) {
+    await page.getByRole('button', {name:'피부 보정: 끔', exact:true}).click();
+    await page.getByRole('button', {name:'피부 보정: 자연', exact:true}).waitFor();
+    if (process.env.RECORDING_TEST_BEAUTY === '2') {
+      await page.getByRole('button', {name:'피부 보정: 자연', exact:true}).click();
+      await page.getByRole('button', {name:'피부 보정: 뽀샤시', exact:true}).waitFor();
+    }
     await page.waitForFunction(() => document.querySelector('.shooterRecordingBeautyPreview')?.width > 300);
   }
 }
