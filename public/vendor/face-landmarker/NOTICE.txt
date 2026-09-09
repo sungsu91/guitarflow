@@ -1,0 +1,12 @@
+MediaPipe Tasks Vision 0.10.32, Copyright Google LLC / MediaPipe Authors.
+JavaScript and WASM files copied from @mediapipe/tasks-vision 0.10.32.
+https://github.com/google-ai-edge/mediapipe
+Licensed under the Apache License, Version 2.0.
+https://www.apache.org/licenses/LICENSE-2.0
+
+Face Landmarker float16 model, version 1:
+https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task
+https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker
+
+face-worker.js is application integration code. All inference is local;
+no camera frames are sent to Google or any other service.

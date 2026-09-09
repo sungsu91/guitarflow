@@ -1,10 +1,12 @@
+import CameraBeautyPreview from "./CameraBeautyPreview.jsx";
+import { BEAUTY_LEVELS } from "./cameraBeauty.js";
 import { mediaPermissionGuide } from "../../audio/mediaPermissionGuide.js";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Video, Maximize2, Minimize2 } from "lucide-react";
 import { getActiveMicInputSession } from "../../audio/micInputEngine.js";
 import { getAudioBusGraph, getSharedAudioContext } from "../../audio/audioBus.js";
-import { RECORDING_WIDTH, CAMERA_FILTERS, MOBILE_CAMERA_ZOOM, MOBILE_CAMERA_HEIGHT, setCameraWideFraming, cameraContainRect, frontCameraConstraints, cameraOverlayRect, drawComposite, recorderOptions, recordingError, saveRecording, stopTracks } from "./recordingMedia.js";
+import { RECORDING_WIDTH, CAMERA_FILTERS, MOBILE_CAMERA_ZOOM, MOBILE_CAMERA_HEIGHT, verifyCameraWideFraming, setCameraWideFraming, cameraContainRect, frontCameraConstraints, cameraOverlayRect, drawComposite, recorderOptions, recordingError, saveRecording, stopTracks } from "./recordingMedia.js";
 import "./shooter-recording.css";
 
 function CameraControls({ phase, seconds, start, stop, ready, exit }) {
@@ -59,7 +61,23 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
   const [cameraStyle, setCameraStyle] = useState({});
   const [filterIndex, setFilterIndex] = useState(0);
   const filterRef = useRef(0);
+  const [beautyLevel, setBeautyLevel] = useState(0);
+  const [beautyUnavailable, setBeautyUnavailable] = useState(false);
+  const beautyRef = useRef(0);
+  const disableBeauty = useCallback(() => {
+    beautyRef.current = 0;
+    setBeautyLevel(0);
+    setBeautyUnavailable(true);
+    if (overlayRef.current) overlayRef.current.beauty = 0;
+  }, []);
+  function changeBeauty() {
+    const next = (beautyRef.current + 1) % BEAUTY_LEVELS.length;
+    beautyRef.current = next;
+    setBeautyLevel(next);
+    if (overlayRef.current) overlayRef.current.beauty = next;
+  }
   const [wideCamera, setWideCamera] = useState(false);
+  const [canWidenCamera, setCanWidenCamera] = useState(false);
   const [framingBusy, setFramingBusy] = useState(false);
   const framingBusyRef = useRef(false);
   const cameraZoomRef = useRef(MOBILE_CAMERA_ZOOM);
@@ -184,12 +202,12 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
         // Scale the complete game once. Logical arena coordinates stay intact.
         const visibleGameHeight = bounds.height * scale;
         const top = panelTop + visibleGameHeight;
-        overlayRef.current = { x: 0, y: visibleGameHeight / totalHeight, width: 1, height: (vh - top) / totalHeight, gameFraction: visibleGameHeight / totalHeight, gameSourceFraction: 1, outputAspect: vw / totalHeight, fit: "contain", zoom: cameraZoomRef.current, filter: CAMERA_FILTERS[filterRef.current].id };
+        overlayRef.current = { x: 0, y: visibleGameHeight / totalHeight, width: 1, height: (vh - top) / totalHeight, gameFraction: visibleGameHeight / totalHeight, gameSourceFraction: 1, outputAspect: vw / totalHeight, fit: "contain", zoom: cameraZoomRef.current, filter: CAMERA_FILTERS[filterRef.current].id, beauty: beautyRef.current };
         setCameraStyle({ left: 0, top, width: vw, height: vh - top });
         return;
       }
       const rect = cameraOverlayRect(bounds.width, bounds.height, positionRef.current, mobile, sizeRef.current);
-      overlayRef.current = { x: rect.x / bounds.width, y: rect.y / bounds.height, width: rect.width / bounds.width, height: rect.height / bounds.height };
+      overlayRef.current = { x: rect.x / bounds.width, y: rect.y / bounds.height, width: rect.width / bounds.width, height: rect.height / bounds.height, beauty: beautyRef.current };
       setCameraStyle({ left: bounds.left - (viewport?.offsetLeft || 0) + rect.x, top: bounds.top - (viewport?.offsetTop || 0) + rect.y, width: rect.width, height: rect.height });
     };
     let frame = 0;
@@ -250,12 +268,14 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     const wide = !wideCamera;
     try {
       const applied = await setCameraWideFraming(session.camera.getVideoTracks()[0], wide, session.originalCameraZoom);
-      if (!applied || session.disposed || sessionRef.current !== session) return;
+      if (session.disposed || sessionRef.current !== session) return;
+      if (!applied) { setCanWidenCamera(false); return; }
       // Change the camera's actual capture range, not the CSS display zoom.
       setWideCamera(wide);
       moveCameraRef.current();
     } catch {
-      // Keep the existing framing if the device rejects the adjustment.
+      // Stop offering a control the device has stopped accepting.
+      if (!session.disposed && sessionRef.current === session) setCanWidenCamera(false);
     } finally {
       if (sessionRef.current === session) { framingBusyRef.current = false; setFramingBusy(false); }
     }
@@ -287,6 +307,10 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     setError("");
     setCameraReady(false);
     setWideCamera(false);
+    setCanWidenCamera(false);
+    setBeautyLevel(0);
+    beautyRef.current = 0;
+    setBeautyUnavailable(false);
     setFilterIndex(0);
     filterRef.current = 0;
     cameraZoomRef.current = MOBILE_CAMERA_ZOOM;
@@ -322,6 +346,9 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
           close("카메라 또는 마이크 연결이 끊어져 촬영을 종료했습니다.");
         };
       });
+      const canWiden = mobile && await verifyCameraWideFraming(session.camera.getVideoTracks()[0], session.originalCameraZoom);
+      if (!current()) return;
+      setCanWidenCamera(canWiden);
       setPhase("preview");
     } catch (cause) { if (current()) close(recordingError(cause, { mobile, resource: permissionResource })); }
   }
@@ -496,8 +523,10 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
       {error ? <div className="shooterRecordingError" role="alert"><span>{error}</span><button onClick={() => setError("")} type="button" aria-label="알림 닫기">×</button></div> : null}
     </div> : cameraVisible ? <CameraLayout style={cameraStyle} onFilter={changeCameraFilter} filter={cameraFilter} phase={phase}>
       <video className="shooterRecordingLive" style={cameraFrame ? { left: cameraFrame.x, top: cameraFrame.y, width: cameraFrame.width, height: cameraFrame.height } : undefined} ref={videoRef} autoPlay muted playsInline onLoadedData={() => { setCameraReady(true); moveCameraRef.current(); }} onResize={() => moveCameraRef.current()} aria-label="촬영 구도 확인" />
+      {beautyLevel > 0 ? <CameraBeautyPreview videoRef={videoRef} level={beautyLevel} frame={cameraFrame} onUnavailable={disableBeauty} /> : null}
+      {['preview', 'recording'].includes(phase) && !beautyUnavailable ? <button className="shooterRecordingBeauty" type="button" onClick={changeBeauty} disabled={!cameraReady} aria-label={`피부·윤곽 보정: ${BEAUTY_LEVELS[beautyLevel]}`} aria-pressed={beautyLevel > 0}>보정<br />{BEAUTY_LEVELS[beautyLevel]}</button> : null}
       {mobile && cameraFrame && cameraFilter.color ? <div className="shooterRecordingFilterOverlay" aria-hidden="true" style={{ left: cameraFrame.x, top: cameraFrame.y, width: cameraFrame.width, height: cameraFrame.height, background: cameraFilter.color, mixBlendMode: cameraFilter.blend === 'source-over' ? 'normal' : cameraFilter.blend }} /> : null}
-      {mobile && phase === 'preview' ? <button className="shooterRecordingWide" type="button" onClick={toggleWideCamera} disabled={!cameraReady || framingBusy} aria-pressed={wideCamera} aria-busy={framingBusy} aria-label="넓게 찍기">
+      {mobile && canWidenCamera && phase === 'preview' ? <button className="shooterRecordingWide" type="button" onClick={toggleWideCamera} disabled={!cameraReady || framingBusy} aria-pressed={wideCamera} aria-busy={framingBusy} aria-label="넓게 찍기">
         {wideCamera ? <Minimize2 size={19} aria-hidden="true" /> : <Maximize2 size={19} aria-hidden="true" />}
       </button> : null}
       {!mobile ? <><button className="shooterRecordingDrag" type="button" aria-label="카메라 위치 이동" title="드래그 또는 방향키로 이동"

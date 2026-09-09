@@ -60,6 +60,11 @@ const metrics = page => page.evaluate(() => {
 async function enter(page) {
   await page.getByRole("button", { name: "촬영모드", exact: true }).click();
   await page.getByRole("button", { name: "● REC", exact: true }).waitFor({ timeout: 30000 });
+  if (process.env.RECORDING_TEST_BEAUTY === "1") {
+    await page.getByRole('button', {name:'피부·윤곽 보정: 끔', exact:true}).click();
+    await page.getByRole('button', {name:'피부·윤곽 보정: 자연', exact:true}).waitFor();
+    await page.waitForFunction(() => document.querySelector('.shooterRecordingBeautyPreview')?.width > 300);
+  }
 }
 async function assertReleased(page) {
   const status = await page.evaluate(() => ({
@@ -90,30 +95,24 @@ try {
       const geometry = await page.evaluate(() => {
         const panel = document.querySelector(".shooterPanel").getBoundingClientRect();
         const camera = document.querySelector(".shooterRecordingCamera").getBoundingClientRect();
-        return { panelBottom: panel.bottom, lift: document.querySelector(".shooterArena").getBoundingClientRect().height * .16, cameraTop: camera.top, cameraBottom: camera.bottom, height: window.innerHeight, fit: getComputedStyle(document.querySelector(".shooterRecordingLive")).objectFit };
+        return { panelBottom: panel.bottom, lift: document.querySelector(".shooterArena").getBoundingClientRect().height * .16, cameraTop: camera.top, cameraBottom: camera.bottom, height: window.innerHeight, fit: getComputedStyle(document.querySelector("video.shooterRecordingLive")).objectFit };
       });
       assert.ok(Math.abs(geometry.panelBottom - geometry.cameraTop) < 1);
       assert.ok(Math.abs(geometry.cameraBottom - geometry.height) < 1);
       assert.equal(geometry.fit, "contain");
       assert.equal(await page.locator('.shooterRecordingCamera input[type="range"]').count(), 0);
       const wide = page.getByRole('button', { name: '넓게 찍기', exact: true });
-      // The fake camera has no wider hardware zoom: keep its framing unchanged.
-      const beforeWide = await page.locator('.shooterRecordingLive').boundingBox();
-      await wide.click();
-      await page.waitForFunction(() => document.querySelector('.shooterRecordingWide')?.getAttribute('aria-busy') === 'false');
-      assert.equal(await wide.getAttribute('aria-pressed'), 'false');
-      assert.deepEqual(await page.locator('.shooterRecordingLive').boundingBox(), beforeWide);
+      // Unsupported hardware must not expose a nonfunctional control.
+      assert.equal(await wide.count(), 0);
       const cameraBounds = await page.locator('.shooterRecordingCamera').boundingBox();
       assert.ok(Math.abs(cameraBounds.height / geometry.height - .315) < .005);
-      const framing = await page.locator('.shooterRecordingLive').evaluate(video => {
+      const framing = await page.locator('video.shooterRecordingLive').evaluate(video => {
         const r = video.getBoundingClientRect(), dock = video.parentElement.getBoundingClientRect();
         return {left:r.left,right:r.right,dockLeft:dock.left,dockRight:dock.right,aspect:r.width/r.height,sourceAspect:video.videoWidth/video.videoHeight};
       });
       assert.ok(framing.left >= framing.dockLeft - 1 && framing.right <= framing.dockRight + 1, 'Do not cut guitar ends off horizontally');
       assert.ok(Math.abs(framing.aspect - framing.sourceAspect) < .01);
       assert.equal(await page.locator('.shooterPanel > .shooterPitchMonitorMobile').count(), 1);
-      const leftButton = await wide.boundingBox();
-      assert.ok(leftButton.x < cameraBounds.x + cameraBounds.width / 4);
       const cdp = await page.context().newCDPSession(page);
       async function swipeFilter(direction) {
         const x = direction < 0 ? 255 : 125, y = cameraBounds.y + cameraBounds.height * .55;

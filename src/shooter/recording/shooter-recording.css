@@ -105,3 +105,15 @@ html.shooterCanonicalMobile body main.app.app.app.shooterMode .shooterArena[data
 .shooterRecordingError { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.55; }
 .shooterRecordingError > span { white-space: pre-line; }
 .shooterRecordingError > button { flex: 0 0 36px; min-width: 36px; min-height: 36px; padding: 0; }
+
+.shooterRecordingBeautyPreview { pointer-events: none; }
+.shooterRecordingUI .shooterRecordingBeauty { position: absolute; z-index: 2; left: 10px; top: 10px; min-width: 48px; min-height: 44px; padding: 5px 7px; font-size: 11px; line-height: 1.35; background: #15241fee; }
+.shooterRecordingUI .shooterRecordingBeauty[aria-pressed="true"] { color: #ffe4bd; border-color: #e7bb79; background: #513b2eee; }
+.shooterRecordingCamera--mobile > .shooterRecordingBeauty { top: calc(50% + 30px); }
+.shooterRecordingCamera--desktop > .shooterRecordingBeauty { top: 34px; }
+
+/* Position the two left controls without hover-sensitive translation. */
+.shooterRecordingUI .shooterRecordingCamera--mobile > .shooterRecordingWide { top: calc(50% - 51px); transform: none !important; }
+.shooterRecordingCamera--mobile > .shooterRecordingBeauty { top: calc(50% + 3px); }
+
+.shooterRecordingCamera--mobile:not(:has(> .shooterRecordingWide)) > .shooterRecordingBeauty { top: calc(50% - 22px); }

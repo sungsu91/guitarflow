@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { setCameraWideFraming, cameraContainRect, frontCameraConstraints, coverSourceRect, drawComposite, cameraOverlayRect, recorderOptions, saveRecording } from "../src/shooter/recording/recordingMedia.js";
+import { verifyCameraWideFraming, setCameraWideFraming, cameraContainRect, frontCameraConstraints, coverSourceRect, drawComposite, cameraOverlayRect, recorderOptions, saveRecording } from "../src/shooter/recording/recordingMedia.js";
 
 test("recorder negotiates MP4, then WebM, then browser defaults", () => {
   assert.match(recorderOptions({ isTypeSupported: (type) => type === "video/mp4" }).mimeType, /mp4/);
@@ -131,3 +131,16 @@ test("mobile framing retains both horizontal edges for portrait and landscape ca
   assert.equal(c.video.aspectRatio.ideal,16/9);
   assert.equal(frontCameraConstraints(false).video.resizeMode,undefined);
 });
+
+ test('wide camera availability requires a real round trip, including restoration', async () => {
+  let zoom=2;
+  const calls=[];
+  const track={getCapabilities:()=>({zoom:{min:1,max:4}}),getSettings:()=>({zoom}),getConstraints:()=>({}),applyConstraints:async c=>{calls.push(c.zoom.exact);zoom=c.zoom.exact;}};
+  assert.equal(await verifyCameraWideFraming(track,2),true);
+  assert.deepEqual(calls,[1,2]);assert.equal(zoom,2);
+  assert.equal(await verifyCameraWideFraming({},undefined),false);
+  assert.equal(await verifyCameraWideFraming(track,1),false);
+  assert.equal(await verifyCameraWideFraming({...track,applyConstraints:async()=>{}},2),false);
+  assert.equal(await verifyCameraWideFraming({...track,applyConstraints:async()=>{throw Error('denied');}},2),false);
+  assert.equal(await verifyCameraWideFraming({...track,applyConstraints:async c=>{if(c.zoom.exact===1)zoom=1;}},2),false);
+ });

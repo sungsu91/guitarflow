@@ -1,3 +1,4 @@
+import { beautyFrame } from "./cameraBeauty.js";
 import { mediaPermissionGuide } from "../../audio/mediaPermissionGuide.js";
 
 export const RECORDING_WIDTH = 1080;
@@ -35,6 +36,20 @@ export async function setCameraWideFraming(track, wide, originalZoom) {
   // Restore the prior framing instead of reporting a successful toggle.
   if (Number.isFinite(previous)) await track.applyConstraints({ ...constraints, zoom: { exact: previous } });
   return false;
+}
+
+// Probe before the camera preview is shown. Capability metadata alone is not
+// sufficient: some browsers accept constraints without changing the capture.
+export async function verifyCameraWideFraming(track, originalZoom) {
+  try {
+    const widened = await setCameraWideFraming(track, true, originalZoom);
+    if (!widened) return false;
+    return await setCameraWideFraming(track, false, originalZoom);
+  } catch {
+    // Restore the original capture range even if either leg was rejected.
+    try { await setCameraWideFraming(track, false, originalZoom); } catch { /* Unavailable. */ }
+    return false;
+  }
 }
 
 export function cameraContainRect(sourceWidth, sourceHeight, width, height, zoom = 1) {
@@ -85,6 +100,9 @@ export function drawComposite(context, game, camera, width, height, overlay) {
     else context.drawImage(game, (width - w) / 2, (gameHeight - h) / 2, w, h);
   }
   if (overlay && camera.readyState >= 2 && camera.videoWidth && camera.videoHeight) {
+    const cameraSource = beautyFrame(camera, overlay.beauty);
+    const sourceWidth = cameraSource.videoWidth || cameraSource.width;
+    const sourceHeight = cameraSource.videoHeight || cameraSource.height;
     const x = overlay.x * width, y = overlay.y * height;
     const w = overlay.width * width, h = overlay.height * height;
     context.save();
@@ -96,10 +114,10 @@ export function drawComposite(context, game, camera, width, height, overlay) {
     if (overlay.fit === "contain") {
       const zoom = Math.max(1, Math.min(1.6, overlay.zoom ?? 1));
       const rect = cameraContainRect(camera.videoWidth, camera.videoHeight, w, h, zoom);
-      context.drawImage(camera, rect.x, rect.y, rect.width, rect.height);
+      context.drawImage(cameraSource, rect.x, rect.y, rect.width, rect.height);
       paintCameraFilter(context, rect, overlay.filter);
     } else {
-      context.drawImage(camera, ...coverSourceRect(camera.videoWidth, camera.videoHeight, w, h), 0, 0, w, h);
+      context.drawImage(cameraSource, ...coverSourceRect(sourceWidth, sourceHeight, w, h), 0, 0, w, h);
       paintCameraFilter(context, { x: 0, y: 0, width: w, height: h }, overlay.filter);
     }
     context.restore();
