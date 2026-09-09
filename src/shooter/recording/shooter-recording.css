@@ -117,3 +117,5 @@ html.shooterCanonicalMobile body main.app.app.app.shooterMode .shooterArena[data
 .shooterRecordingCamera--mobile > .shooterRecordingBeauty { top: calc(50% + 3px); }
 
 .shooterRecordingCamera--mobile:not(:has(> .shooterRecordingWide)) > .shooterRecordingBeauty { top: calc(50% - 22px); }
+
+.shooterRecordingBeautyStatus { position: absolute; z-index: 2; top: 32px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; padding: 3px 8px; border-radius: 10px; background: #07110ecc; pointer-events: none; }

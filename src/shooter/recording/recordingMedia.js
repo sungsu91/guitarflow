@@ -100,7 +100,7 @@ export function drawComposite(context, game, camera, width, height, overlay) {
     else context.drawImage(game, (width - w) / 2, (gameHeight - h) / 2, w, h);
   }
   if (overlay && camera.readyState >= 2 && camera.videoWidth && camera.videoHeight) {
-    const cameraSource = beautyFrame(camera, overlay.beauty);
+    const cameraSource = beautyFrame(camera, overlay.beauty) || camera;
     const sourceWidth = cameraSource.videoWidth || cameraSource.width;
     const sourceHeight = cameraSource.videoHeight || cameraSource.height;
     const x = overlay.x * width, y = overlay.y * height;

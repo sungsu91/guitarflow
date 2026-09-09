@@ -1,36 +1,48 @@
-// One small GPU pass shared by preview and recording. No CPU pixel readback,
-// per-frame canvas allocation, face tracking, masks, or geometry changes.
+import { createSkinPipeline } from "./skinPipeline.js";
+// Frame-matched face-skin processing shared by preview and recording.
 const processors = new WeakMap();
-export const BEAUTY_LEVELS = ['끔', '자연', '뽀샤시'];
+export const BEAUTY_LEVELS = ['끔', '자연', '매끈'];
 const vertex = `attribute vec2 position; varying vec2 uv;
 void main(){ uv=(position+1.0)*0.5; gl_Position=vec4(position,0.0,1.0); }`;
 const fragment = `precision mediump float;
-uniform sampler2D frame; uniform vec2 pixel; uniform float strength;
+uniform sampler2D frame; uniform sampler2D skinMask;
+uniform vec2 pixel; uniform float strength;
 varying vec2 uv;
 void main(){
-  vec3 original=texture2D(frame,uv).rgb;
-  vec3 blurred=vec3(0.0);
-  // A uniform soft-focus kernel. No face-shaped masks can linger as the person moves.
-  for(int x=-1;x<=1;x++) for(int y=-1;y<=1;y++) {
-    float weight=(x==0?2.0:1.0)*(y==0?2.0:1.0);
-    blurred+=texture2D(frame,uv+vec2(float(x),float(y))*pixel*2.5).rgb*weight;
+  // ImageBitmap and mask both use top-left rows. Never shift the face geometry.
+  vec2 p=vec2(uv.x,1.0-uv.y);
+  vec3 c=texture2D(frame,p).rgb;
+  float mask=texture2D(skinMask,p).r;
+  // Erode/feather mask boundaries instead of smearing into eyes/lips/hair.
+  mask=min(mask,texture2D(skinMask,p+vec2(1.0/256.0,0.0)).r);
+  mask=min(mask,texture2D(skinMask,p-vec2(1.0/256.0,0.0)).r);
+  mask=min(mask,texture2D(skinMask,p+vec2(0.0,1.0/256.0)).r);
+  mask=min(mask,texture2D(skinMask,p-vec2(0.0,1.0/256.0)).r);
+  vec3 sum=vec3(0.0);float weights=0.0;
+  for(int x=-2;x<=2;x++)for(int y=-2;y<=2;y++){
+    vec3 n=texture2D(frame,p+vec2(float(x),float(y))*pixel*2.3).rgb;
+    vec3 delta=n-c;
+    float w=exp(-float(x*x+y*y)*.22-dot(delta,delta)*55.0);
+    sum+=n*w;weights+=w;
   }
-  vec3 soft=mix(original,blurred/16.0,strength*0.48);
-  // Gentle global midtone lift; black and white endpoints remain intact.
-  soft+=strength*0.18*soft*(1.0-soft);
-  float light=dot(soft,vec3(.299,.587,.114));
-  soft=mix(soft,vec3(light),strength*0.025);
-  gl_FragColor=vec4(clamp(soft,0.0,1.0),1.0);
+  float light=dot(c,vec3(.299,.587,.114));
+  // Dark hair/nostrils and saturated lip colors remain sharp even inside the oval.
+  float protectedDetail=smoothstep(.025,.085,light)*(1.0-smoothstep(.18,.32,c.r-c.g));
+  float amount=smoothstep(.35,.95,mask)*protectedDetail*strength;
+  vec3 base=sum/max(weights,.001);
+  vec3 smoothSkin=mix(c,base,.78);
+  smoothSkin+=.07*smoothSkin*(1.0-smoothSkin);
+  gl_FragColor=vec4(clamp(mix(c,smoothSkin,amount),0.0,1.0),1.0);
 }`;
 
-function createProcessor() {
+function createRenderer() {
   const canvas = document.createElement('canvas');
   const gl = canvas.getContext('webgl', { alpha: false, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
   if (!gl) return null;
   const shaders = [];
-  let program, buffer, texture;
+  let program, buffer, texture, maskTexture;
   const dispose = () => {
-    gl.deleteTexture(texture); gl.deleteBuffer(buffer); gl.deleteProgram(program);
+    gl.deleteTexture(maskTexture); gl.deleteTexture(texture); gl.deleteBuffer(buffer); gl.deleteProgram(program);
     shaders.forEach(shader => gl.deleteShader(shader));
     gl.getExtension('WEBGL_lose_context')?.loseContext();
   };
@@ -52,38 +64,48 @@ function createProcessor() {
     texture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, texture);
     for (const param of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, param, gl.CLAMP_TO_EDGE);
     for (const param of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, param, gl.LINEAR);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.activeTexture(gl.TEXTURE1);
+    maskTexture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,maskTexture);
+    for(const param of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T])gl.texParameteri(gl.TEXTURE_2D,param,gl.CLAMP_TO_EDGE);
+    for(const param of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,param,gl.LINEAR);
+    gl.uniform1i(gl.getUniformLocation(program,'skinMask'),1);
+    gl.activeTexture(gl.TEXTURE0);
     gl.uniform1i(gl.getUniformLocation(program, 'frame'), 0);
     const pixel = gl.getUniformLocation(program, 'pixel');
     const amount = gl.getUniformLocation(program, 'strength');
-    let lastTime = -1, lastLevel = -1, lastWidth = 0, lastHeight = 0;
-    return { dispose, render(video, level) {
-      if (gl.isContextLost()) return null;
-      if (lastTime === video.currentTime && lastLevel === level && lastWidth === video.videoWidth && lastHeight === video.videoHeight) return canvas;
-      const scale = Math.min(1, 1280 / Math.max(video.videoWidth, video.videoHeight));
-      const width = Math.max(1, Math.round(video.videoWidth * scale));
-      const height = Math.max(1, Math.round(video.videoHeight * scale));
+    return { dispose, render(video, level, mask) {
+      if (gl.isContextLost()) throw new Error('Beauty context lost');
+      const scale = Math.min(1, 1280 / Math.max(video.width, video.height));
+      const width = Math.max(1, Math.round(video.width * scale));
+      const height = Math.max(1, Math.round(video.height * scale));
       if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
       gl.viewport(0, 0, width, height);
+      gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
+      gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,maskTexture);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,256,256,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,mask);
+      gl.activeTexture(gl.TEXTURE0);
       gl.uniform2f(pixel, 1 / width, 1 / height);
-      gl.uniform1f(amount, level === 2 ? 1.0 : 0.55);
+      gl.uniform1f(amount, level === 0 ? 0 : level === 2 ? 1.0 : 0.55);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      lastTime = video.currentTime; lastLevel = level; lastWidth = video.videoWidth; lastHeight = video.videoHeight;
       return canvas;
     } };
   } catch { dispose(); return null; }
 }
 
+// Exported renderer permits deterministic mask/frame alignment tests.
+export { createRenderer as createSkinRenderer };
 export function beautyFrame(video, level) {
   if (!level || video.readyState < 2 || !video.videoWidth) return video;
-  if (!processors.has(video)) processors.set(video, createProcessor());
-  const processor = processors.get(video);
-  try { return processor?.render(video, level) || video; }
-  catch { processor?.dispose(); processors.set(video, null); return video; }
+  if (!processors.has(video)) {
+    const renderer=createRenderer();
+    if(!renderer){processors.set(video,null);return video;}
+    const pipeline=createSkinPipeline(video,(bitmap,amount,mask)=>renderer.render(bitmap,amount,mask));
+    processors.set(video,{frame:pipeline.frame,dispose(){pipeline.dispose();renderer.dispose();}});
+  }
+  return processors.get(video)?.frame(level) ?? (processors.get(video)?null:video);
 }
-
 export function releaseBeauty(video) {
-  processors.get(video)?.dispose();
-  processors.delete(video);
+  processors.get(video)?.dispose();processors.delete(video);
 }

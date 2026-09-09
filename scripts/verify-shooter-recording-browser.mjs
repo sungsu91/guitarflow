@@ -1,7 +1,7 @@
 // Run against a local Vite server. Playwright is a QA-only dependency.
 // PLAYWRIGHT_MODULE may point to an existing installation's file URL.
 import assert from "node:assert/strict";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || "playwright");
 const browser = await chromium.launch({
   headless: true,
@@ -20,7 +20,8 @@ async function open(mobile = true, fault = "") {
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
   page.on("dialog", dialog => dialog.dismiss());
-  await page.addInitScript(fault => {
+  if (process.env.RECORDING_TEST_FACE) await page.route('**/__qa_skin_photo.jpg', async route => route.fulfill({body:await readFile(process.env.RECORDING_TEST_FACE),contentType:'image/jpeg'}));
+  await page.addInitScript(({fault,face}) => {
     window.recordingQA = { streams: [], outputs: [], revoked: [], initialSettingsReads: 0 };
     const readStorage = Storage.prototype.getItem;
     Storage.prototype.getItem = function(key) {
@@ -32,7 +33,14 @@ async function open(mobile = true, fault = "") {
     navigator.mediaDevices.getUserMedia = async constraints => {
       if (constraints.audio && fault === "denyMicrophone") throw new DOMException("denied", "NotAllowedError");
       if (constraints.video && window.recordingQA.denyCamera) throw new DOMException("denied", "NotAllowedError");
-      const stream = await get(constraints);
+      let stream;
+      if (face && constraints.video) {
+        const photo=new Image();photo.src='/__qa_skin_photo.jpg';await photo.decode();
+        const c=document.createElement('canvas');c.width=666;c.height=888;const ctx=c.getContext('2d');
+        let frame=0;const paint=()=>{ctx.fillStyle='#102030';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(photo,0,195,666,888,Math.sin(frame++*.07)*28,0,666,888);};
+        paint();const timer=setInterval(paint,33);stream=c.captureStream(30);
+        const track=stream.getVideoTracks()[0],stop=track.stop.bind(track);track.stop=()=>{clearInterval(timer);stop();};
+      } else stream = await get(constraints);
       window.recordingQA.streams.push(stream);
       if (constraints.video && window.recordingQA.delayCamera) await new Promise(resolve => { window.recordingQA.resolveCamera = resolve; });
       return stream;
@@ -48,7 +56,7 @@ async function open(mobile = true, fault = "") {
     };
     const revoke = URL.revokeObjectURL;
     URL.revokeObjectURL = url => { window.recordingQA.revoked.push(url); revoke(url); };
-  }, fault);
+  }, {fault,face:!!process.env.RECORDING_TEST_FACE});
   await page.goto(`${origin}/#shooter`);
   await page.getByRole("button", { name: "촬영모드", exact: true }).waitFor({ timeout: 60000 });
   return { page, context, errors };
@@ -65,7 +73,7 @@ async function enter(page) {
     await page.getByRole('button', {name:'피부 보정: 자연', exact:true}).waitFor();
     if (process.env.RECORDING_TEST_BEAUTY === '2') {
       await page.getByRole('button', {name:'피부 보정: 자연', exact:true}).click();
-      await page.getByRole('button', {name:'피부 보정: 뽀샤시', exact:true}).waitFor();
+      await page.getByRole('button', {name:'피부 보정: 매끈', exact:true}).waitFor();
     }
     await page.waitForFunction(() => document.querySelector('.shooterRecordingBeautyPreview')?.width > 300);
   }
@@ -281,7 +289,7 @@ try {
           await page.evaluate(fault => {
             if (fault === "emptyBlob") window.recordingQA.recorder.ondataavailable = () => {};
             else URL.createObjectURL = () => { throw new Error("영상 생성 시험 오류"); };
-          }, fault);
+          }, {fault,face:!!process.env.RECORDING_TEST_FACE});
           await page.getByRole("button", { name: "녹화 중지" }).click();
         }
         await page.getByRole("alert").waitFor({ timeout: 30000 });

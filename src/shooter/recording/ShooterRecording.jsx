@@ -63,6 +63,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
   const filterRef = useRef(0);
   const [beautyLevel, setBeautyLevel] = useState(0);
   const [beautyUnavailable, setBeautyUnavailable] = useState(false);
+  const [beautyReady, setBeautyReady] = useState(false);
   const beautyRef = useRef(0);
   const disableBeauty = useCallback(() => {
     beautyRef.current = 0;
@@ -72,6 +73,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
   }, []);
   function changeBeauty() {
     const next = (beautyRef.current + 1) % BEAUTY_LEVELS.length;
+    if (beautyRef.current === 0) setBeautyReady(false);
     beautyRef.current = next;
     setBeautyLevel(next);
     if (overlayRef.current) overlayRef.current.beauty = next;
@@ -523,7 +525,8 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
       {error ? <div className="shooterRecordingError" role="alert"><span>{error}</span><button onClick={() => setError("")} type="button" aria-label="알림 닫기">×</button></div> : null}
     </div> : cameraVisible ? <CameraLayout style={cameraStyle} onFilter={changeCameraFilter} filter={cameraFilter} phase={phase}>
       <video className="shooterRecordingLive" style={cameraFrame ? { left: cameraFrame.x, top: cameraFrame.y, width: cameraFrame.width, height: cameraFrame.height } : undefined} ref={videoRef} autoPlay muted playsInline onLoadedData={() => { setCameraReady(true); moveCameraRef.current(); }} onResize={() => moveCameraRef.current()} aria-label="촬영 구도 확인" />
-      {beautyLevel > 0 ? <CameraBeautyPreview videoRef={videoRef} level={beautyLevel} frame={cameraFrame} onUnavailable={disableBeauty} /> : null}
+      {beautyLevel > 0 ? <CameraBeautyPreview videoRef={videoRef} level={beautyLevel} frame={cameraFrame} onUnavailable={disableBeauty} onReady={setBeautyReady} /> : null}
+      {beautyLevel > 0 && !beautyReady ? <span className="shooterRecordingBeautyStatus" role="status">피부 보정 준비 중…</span> : null}
       {['preview', 'recording'].includes(phase) && !beautyUnavailable ? <button className="shooterRecordingBeauty" type="button" onClick={changeBeauty} disabled={!cameraReady} aria-label={`피부 보정: ${BEAUTY_LEVELS[beautyLevel]}`} aria-pressed={beautyLevel > 0}>보정<br />{BEAUTY_LEVELS[beautyLevel]}</button> : null}
       {mobile && cameraFrame && cameraFilter.color ? <div className="shooterRecordingFilterOverlay" aria-hidden="true" style={{ left: cameraFrame.x, top: cameraFrame.y, width: cameraFrame.width, height: cameraFrame.height, background: cameraFilter.color, mixBlendMode: cameraFilter.blend === 'source-over' ? 'normal' : cameraFilter.blend }} /> : null}
       {mobile && canWidenCamera && phase === 'preview' ? <button className="shooterRecordingWide" type="button" onClick={toggleWideCamera} disabled={!cameraReady || framingBusy} aria-pressed={wideCamera} aria-busy={framingBusy} aria-label="넓게 찍기">
@@ -539,7 +542,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
         onPointerMove={event => { if (!resizeRef.current) return; const dx = event.clientX - resizeRef.current.x; const dy = (event.clientY - resizeRef.current.y) / 1.12; resizeCamera(Math.abs(dx) >= Math.abs(dy) ? dx : dy); resizeRef.current = { x: event.clientX, y: event.clientY }; }}
         onPointerUp={() => { resizeRef.current = null; }} onPointerCancel={() => { resizeRef.current = null; }} onLostPointerCapture={() => { resizeRef.current = null; }}
         onKeyDown={event => { const delta = { ArrowLeft: -8, ArrowUp: -8, ArrowRight: 8, ArrowDown: 8 }[event.key]; if (delta) { event.preventDefault(); resizeCamera(delta); } }}>◢</button></> : null}
-      <CameraControls phase={phase} seconds={seconds} start={start} stop={stop} ready={cameraReady && !framingBusy} exit={mobile ? () => close() : undefined} />
+      <CameraControls phase={phase} seconds={seconds} start={start} stop={stop} ready={cameraReady && !framingBusy && (beautyLevel === 0 || beautyReady)} exit={mobile ? () => close() : undefined} />
     </CameraLayout> : null}
     {phase === "review" && result ? <div ref={reviewRef} className="shooterRecordingReview" role="dialog" aria-modal="true" aria-label="촬영 결과 확인" onKeyDown={(event) => {
       if (event.key !== "Tab") return;

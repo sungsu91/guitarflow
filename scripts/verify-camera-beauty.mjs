@@ -7,7 +7,7 @@ try {
   page.on('request',request=>{if(request.url().includes('/face-landmarker/')) trackingRequests.push(request.url());});
   await page.goto(process.env.RECORDING_TEST_URL || 'http://127.0.0.1:5178');
   const result = await page.evaluate(async () => {
-    const { beautyFrame, releaseBeauty } = await import('/src/shooter/recording/cameraBeauty.js');
+    const { createSkinRenderer } = await import('/src/shooter/recording/cameraBeauty.js');
     const c = document.createElement('canvas'); c.width=320; c.height=240;
     const ctx=c.getContext('2d'); ctx.fillStyle='#0010e0'; ctx.fillRect(0,0,320,240);
     for(let y=0;y<240;y++) for(let x=0;x<160;x++) {
@@ -15,21 +15,25 @@ try {
       ctx.fillStyle=`rgb(${180+d},${130+d},${110+d})`;ctx.fillRect(x,y,1,1);
     }
     ctx.fillStyle='#00ff00';ctx.fillRect(250,0,70,30);
-    const video=document.createElement('video');video.muted=true;video.playsInline=true;
-    const stream=c.captureStream(30);video.srcObject=stream;await video.play();
-    await new Promise(resolve => setTimeout(resolve, 100));
+    const bitmap=await createImageBitmap(c);
+    const renderer=createSkinRenderer();
+    const mask=new Uint8Array(256*256);
+    for(let y=0;y<256;y++)for(let x=0;x<128;x++)mask[y*256+x]=255;
     const out=document.createElement('canvas');out.width=320;out.height=240;const o=out.getContext('2d');
-    o.drawImage(video,0,0);const before=o.getImageData(0,0,320,240).data;
-    const source=beautyFrame(video,2);o.drawImage(source,0,0);const after=o.getImageData(0,0,320,240).data;
+    o.drawImage(c,0,0);const before=o.getImageData(0,0,320,240).data;
+    const source=renderer.render(bitmap,2,mask);o.drawImage(source,0,0);const after=o.getImageData(0,0,320,240).data;
     const pixel=(data,x,y)=>Array.from(data.slice((y*320+x)*4,(y*320+x)*4+3));
     let pre=0,post=0;
     for(let y=40;y<200;y++)for(let x=20;x<130;x++) {pre+=Math.abs(before[(y*320+x)*4]-before[(y*320+x+1)*4]);post+=Math.abs(after[(y*320+x)*4]-after[(y*320+x+1)*4]);}
-    const result={supported:source!==video,pre,post,blue:pixel(after,220,100),top:pixel(after,280,10),bottom:pixel(after,280,230),offSame:beautyFrame(video,0)===video};
-    releaseBeauty(video);stream.getTracks().forEach(t=>t.stop());return result;
+    o.drawImage(renderer.render(bitmap,0,mask),0,0);
+    const unretouched=o.getImageData(0,0,320,240).data;
+    const offSame=unretouched.every((value,i)=>Math.abs(value-before[i])<=1);
+    const result={supported:!!source,pre,post,blue:pixel(after,220,100),top:pixel(after,280,10),bottom:pixel(after,280,230),offSame};
+    renderer.dispose();bitmap.close();return result;
   });
   assert.equal(result.supported,true);assert.ok(result.post<result.pre*.9,JSON.stringify(result));
   assert.ok(result.blue[2]>180&&result.blue[0]<10);
   assert.ok(result.top[1]>220);assert.ok(result.bottom[2]>180);assert.equal(result.offSame,true);
-  assert.deepEqual(trackingRequests,[],'Global soft focus must not load face tracking or masks');
-  console.log('GPU soft focus: texture softened, orientation preserved, off bypasses processing; no tracking requests',result);
+  assert.deepEqual(trackingRequests,[],'Isolated renderer test must not initiate tracking');
+  console.log('GPU skin renderer: skin texture softened, masked background and orientation preserved',result);
 } finally {await browser.close();}

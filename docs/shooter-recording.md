@@ -119,3 +119,15 @@ public/vendor/face-landmarker에는 @mediapipe/tasks-vision 0.10.32의 WASM/JS�
 ## 전체 영상 소프트 포커스 보정
 
 부분 보정이 얼굴 위에 떠 보인다는 실기기 피드백에 따라 얼굴 추적과 눈 아래·피부색 마스크를 렌더링 경로에서 제거했다. 캠 전체에 동일한 약한 소프트 포커스와 중간 밝기 보정을 적용하며 얼굴 형태는 바꾸지 않는다. 보정 시 Worker나 얼굴 모델을 로드하지 않는다. 자연·뽀샤시는 동일 효과의 강도 차이이며 원본은 우회한다. 기존 색감 필터와 게임 합성은 유지한다. 이전 얼굴 보정 설명은 과거 구현 기록이다.
+
+## 피부 보정 방식 조사 및 프레임 일치 구현
+
+공식 참고: Banuba는 피부 분할 신경망과 Skin.softening/Skin.color를 구분한다(https://docs.banuba.com/far-sdk/effects/makeup_deprecated/makeup/). DeepAR도 skinSmoothing과 colorFilters를 별개 기능으로 제공한다(https://docs.deepar.ai/deepar-beauty/parameters/). 이는 스노우·유라이크가 해당 SDK나 동일 내부 알고리즘을 사용한다는 증거는 아니다. 두 앱의 비공개 구현이나 동등한 품질을 주장하지 않는다.
+
+Google SelfieMulticlass의 공식 Pixel 6 GPU 지연은 71.24ms로, 게임과 30fps 녹화의 모든 프레임에 함께 적용하기 어렵다(https://developers.google.com/edge/mediapipe/solutions/vision/image_segmenter). 이번 구현은 기존 GPU Face Landmarker로 얼굴 외곽과 눈·눈썹·입술 제외 영역을 구한다. 이는 범용 의미론적 피부 분할 모델과 다르며 얼굴 피부에 한정한다. 머리카락이 얼굴을 가리는 경우 등에는 오분류가 가능하다.
+
+skin-worker.js는 처리한 원본 ImageBitmap과 그 프레임에서 만든 피부 마스크를 함께 반환한다. skinPipeline.js는 한 번에 한 프레임만 보내고 완료된 원본/마스크 쌍으로 GPU 양방향 필터(색상 경계를 보존하는 평활화)를 적용한다. 눈·눈썹·입술·얼굴 밖은 제외하고 피부 질감과 톤만 약하게 정돈하며 기하 변형은 없다. 미리보기와 녹화는 같은 완료 프레임을 소비한다. 과거 마스크를 새로운 영상에 얹거나 얼굴좌표를 보간해 화면을 당기지 않는다. 최대 30fps로 처리하며 준비 중 REC는 잠시 비활성화한다. 과도한 지연·기기 미지원·오류 시 원본으로 복귀한다. 얼굴/사진 업로드는 없다.
+
+검증: 실제 첨부 사진의 로컬 비교에서 눈·입술·배경을 유지하는지 확인했다. PC Chrome에서 초기 GPU 준비 이후 얼굴 인식은 약 12~18ms였다. 최초 준비는 수 초 걸릴 수 있다. 이는 iPhone/Galaxy 실측이 아니다. RECORDING_TEST_FACE에 로컬 테스트 사진 경로를 지정하면 프레임마다 좌우 이동하는 사진을 가상 카메라로 공급하여 녹화 경로를 검사한다. 테스트 사진과 결과 영상은 배포에 포함하지 않는다.
+
+현재 피부 보정 단계: 끔 → 자연 → 매끈. PC Chrome에서 첨부 사진을 좌우로 움직이는 가상 카메라와 게임을 함께 녹화한 1080×2338 MP4는 26.6fps였다. 초기 지연 프레임 폐기와 원본/마스크 프레임 일치는 tests/skin-pipeline.test.mjs로 검사한다.
