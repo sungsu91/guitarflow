@@ -35,8 +35,11 @@ test("urgent shooter pacing starts slow and keeps travel independent from spawn 
   assert.match(appSource, /\[SHOOTER_DIFFICULTIES\.EASY\]:[\s\S]*?speedScale: 0\.8/);
   assert.match(appSource, /\[SHOOTER_DIFFICULTIES\.EASY_RANDOM\]: \{[^}]*spawnGapMinMs: 3200,[^}]*spawnGapMaxMs: 4200,[^}]*speedScale: 0\.8,[^}]*\}/);
   assert.doesNotMatch(appSource, /\[SHOOTER_DIFFICULTIES\.NORMAL_RANDOM\]: \{[^}]*speedScale:/);
-  assert.match(appSource, /const SHOOTER_BEGINNER_SINGLE_TARGET_MS = 30_000;/);
-  assert.match(appSource, /isBeginnerMode && elapsedMs < SHOOTER_BEGINNER_SINGLE_TARGET_MS[\s\S]*?\? 1[\s\S]*?: pacing\.maxTargets/);
+  assert.match(appSource, /const SHOOTER_NOTE_RECOVERY_MS = 1000;/);
+  assert.match(appSource, /const SHOOTER_MAX_SIMULTANEOUS_TARGETS = 1;/);
+  assert.match(appSource, /const maxTargets = Math\.min\(pacing\.maxTargets, SHOOTER_MAX_SIMULTANEOUS_TARGETS\);/);
+  assert.match(appSource, /shooterNextSpawnAtRef\.current = Math\.max\([\s\S]*?gameTimeRef\.current \+ SHOOTER_NOTE_RECOVERY_MS/);
+  assert.doesNotMatch(appSource, /SHOOTER_EMPTY_REFILL_MS/);
   assert.match(appSource, /0\.9 \* 0\.85 \* \(pacing\.speedScale \?\? 1\)/);
   assert.match(appSource, /scenarioStepWindowMs \?\? getShooterSpawnGap\(difficulty\)/);
   assert.doesNotMatch(appSource, /scenarioStepWindowMs \/ \(\(SHOOTER_LIFE_LINE_PERCENT - 8\) \/ 80\)/);

@@ -13605,7 +13605,7 @@ const SHOOTER_LIFE_LINE_PERCENT = 86;
 const SHOOTER_TARGET_DESTROY_ANIMATION_MS = 260;
 const SHOOTER_PROJECTILE_MS = 640;
 const SHOOTER_PROJECTILE_CONTACT_HOLD_MS = 58;
-const SHOOTER_EMPTY_REFILL_MS = 420;
+const SHOOTER_NOTE_RECOVERY_MS = 1000;
 const SHOOTER_HITBOX_DEBUG_INTERVAL_MS = 32;
 // Default-off developer overlay. In dev builds it can also be enabled with ?debugHitbox=1#shooter.
 const DEBUG_HITBOX = false;
@@ -16038,7 +16038,7 @@ const SHOOTER_DIFFICULTY_OPTIONS = [
   { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "54 BPM · E2~E5 E Major 왕복" },
 ];
 const DEFAULT_SHOOTER_DIFFICULTY = SHOOTER_DIFFICULTIES.EASY_RANDOM;
-const SHOOTER_BEGINNER_SINGLE_TARGET_MS = 30_000;
+const SHOOTER_MAX_SIMULTANEOUS_TARGETS = 1;
 const SHOOTER_DIFFICULTY_PACING = {
   [SHOOTER_DIFFICULTIES.EASY]: {
     durationMs: SHOOTER_RUNTIME_DIFFICULTY.easy.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
@@ -16392,14 +16392,6 @@ function getShooterEnemyDifficultyClass(difficulty) {
   return "shooterEnemy--easy";
 }
 
-function getShooterMaxTargets(pacing, difficulty, elapsedMs = 0) {
-  const isBeginnerMode = difficulty === SHOOTER_DIFFICULTIES.EASY
-    || difficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM;
-  return isBeginnerMode && elapsedMs < SHOOTER_BEGINNER_SINGLE_TARGET_MS
-    ? 1
-    : pacing.maxTargets;
-}
-
 function getShooterTargetYAt(target, now = 0) {
   if (!target) return 0;
   if (target.defeated) return Number(target.y) || 0;
@@ -16417,7 +16409,7 @@ function getShooterEffectiveLevel(
 ) {
   const phase = getShooterDifficultyPhase(difficulty, elapsedMs, spawnedCount, difficultPatternId);
   const pacing = getShooterDifficultyPacing(difficulty);
-  const maxTargets = getShooterMaxTargets(pacing, difficulty, elapsedMs);
+  const maxTargets = Math.min(pacing.maxTargets, SHOOTER_MAX_SIMULTANEOUS_TARGETS);
   if (isShooterRandomDifficulty(difficulty)) {
     return {
       name: "랜덤",
@@ -22319,6 +22311,10 @@ function App({ onReady }) {
           }
         : currentTarget
     ));
+    shooterNextSpawnAtRef.current = Math.max(
+      shooterNextSpawnAtRef.current,
+      gameTimeRef.current + SHOOTER_NOTE_RECOVERY_MS,
+    );
 
     setFeedback("Success");
     flashStage("hit");
@@ -23149,9 +23145,9 @@ function App({ onReady }) {
         !isShooterScriptedDifficulty(shooterDifficultyRef.current)
         &&
         shooterTargetsRef.current.length === 0
-        && shooterNextSpawnAtRef.current - gameTimeRef.current > SHOOTER_EMPTY_REFILL_MS
+        && shooterNextSpawnAtRef.current - gameTimeRef.current > SHOOTER_NOTE_RECOVERY_MS
       ) {
-        shooterNextSpawnAtRef.current = gameTimeRef.current + SHOOTER_EMPTY_REFILL_MS;
+        shooterNextSpawnAtRef.current = gameTimeRef.current + SHOOTER_NOTE_RECOVERY_MS;
       }
 
       if (gameTimeRef.current >= shooterNextSpawnAtRef.current) {
@@ -23262,6 +23258,10 @@ function App({ onReady }) {
         shooterTargetsRef.current = shooterTargetsRef.current.filter((target) => !removedTargetIds.has(target.id));
       }
       if (missedTargets.length > 0) {
+        shooterNextSpawnAtRef.current = Math.max(
+          shooterNextSpawnAtRef.current,
+          gameTimeRef.current + SHOOTER_NOTE_RECOVERY_MS,
+        );
         missedTargets.forEach((target) => {
           target.lifeLost = true;
           if (
