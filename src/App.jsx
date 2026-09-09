@@ -255,6 +255,9 @@ import {
   SHOOTER_EASY_RANDOM_DIFFICULTY_ID,
   SHOOTER_EASY_RANDOM_POSITIONS,
   SHOOTER_EASY_RANDOM_RANGE_LABEL,
+  SHOOTER_NORMAL_RANDOM_DIFFICULTY_ID,
+  SHOOTER_NORMAL_RANDOM_POSITIONS,
+  SHOOTER_NORMAL_RANDOM_RANGE_LABEL,
 } from "./shooter/easyRandomDifficulty.js";
 import {
   SHOOTER_NORMAL_RECOMMENDED_BPMS,
@@ -16024,12 +16027,14 @@ const SHOOTER_DIFFICULTIES = {
   EASY: "easy",
   EASY_RANDOM: SHOOTER_EASY_RANDOM_DIFFICULTY_ID,
   NORMAL: "normal",
+  NORMAL_RANDOM: SHOOTER_NORMAL_RANDOM_DIFFICULTY_ID,
   DIFFICULT: "difficult",
 };
 const SHOOTER_DIFFICULTY_OPTIONS = [
   { id: SHOOTER_DIFFICULTIES.EASY, label: "쉬움", hint: "42 BPM · 0~3프렛 기초 완성" },
   { id: SHOOTER_DIFFICULTIES.EASY_RANDOM, label: "쉬움 랜덤", hint: SHOOTER_EASY_RANDOM_RANGE_LABEL },
   { id: SHOOTER_DIFFICULTIES.NORMAL, label: "보통", hint: "48 BPM · 5~10프렛 상행/하행" },
+  { id: SHOOTER_DIFFICULTIES.NORMAL_RANDOM, label: "보통 랜덤", hint: SHOOTER_NORMAL_RANDOM_RANGE_LABEL },
   { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "54 BPM · E2~E5 E Major 왕복" },
 ];
 const DEFAULT_SHOOTER_DIFFICULTY = SHOOTER_DIFFICULTIES.EASY_RANDOM;
@@ -16039,6 +16044,12 @@ const SHOOTER_DIFFICULTY_PACING = {
     maxTargets: SHOOTER_RUNTIME_DIFFICULTY.easy.maxTargets,
   },
   [SHOOTER_DIFFICULTIES.EASY_RANDOM]: {
+    durationMs: SHOOTER_RUNTIME_DIFFICULTY.easy.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
+    maxTargets: SHOOTER_RUNTIME_DIFFICULTY.easy.maxTargets,
+    spawnGapMinMs: 1600,
+    spawnGapMaxMs: 2300,
+  },
+  [SHOOTER_DIFFICULTIES.NORMAL_RANDOM]: {
     durationMs: SHOOTER_RUNTIME_DIFFICULTY.easy.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
     maxTargets: SHOOTER_RUNTIME_DIFFICULTY.easy.maxTargets,
     spawnGapMinMs: 1600,
@@ -16060,8 +16071,13 @@ function isShooterScriptedDifficulty(difficulty) {
     || difficulty === SHOOTER_DIFFICULTIES.DIFFICULT;
 }
 
+function isShooterRandomDifficulty(difficulty) {
+  return difficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM
+    || difficulty === SHOOTER_DIFFICULTIES.NORMAL_RANDOM;
+}
+
 function getShooterStartingBpm(difficulty) {
-  if (difficulty === SHOOTER_DIFFICULTIES.EASY || difficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM) {
+  if (difficulty === SHOOTER_DIFFICULTIES.EASY || isShooterRandomDifficulty(difficulty)) {
     return SHOOTER_EASY_RECOMMENDED_BPMS[0];
   }
   if (difficulty === SHOOTER_DIFFICULTIES.NORMAL) return SHOOTER_NORMAL_RECOMMENDED_BPMS[0];
@@ -16322,6 +16338,16 @@ function getShooterDifficultyPhase(
       jumpBiasBonus: 0,
     };
   }
+  if (difficulty === SHOOTER_DIFFICULTIES.NORMAL_RANDOM) {
+    return {
+      label: SHOOTER_NORMAL_RANDOM_RANGE_LABEL,
+      maxFret: 3,
+      poolRatioFloor: 1,
+      poolRatioCap: 1,
+      randomnessBonus: 0,
+      jumpBiasBonus: 0,
+    };
+  }
   if (difficulty === SHOOTER_DIFFICULTIES.EASY) {
     return getShooterEasySectionForSpawnCount(spawnedCount, spawnedCount > 0);
   }
@@ -16380,7 +16406,7 @@ function getShooterEffectiveLevel(
 ) {
   const phase = getShooterDifficultyPhase(difficulty, elapsedMs, spawnedCount, difficultPatternId);
   const pacing = getShooterDifficultyPacing(difficulty);
-  if (difficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM) {
+  if (isShooterRandomDifficulty(difficulty)) {
     return {
       name: "랜덤",
       phaseLabel: phase.label,
@@ -16484,6 +16510,14 @@ function getShooterDifficultyNotes(
       stringNumber: step.stringNumber,
       fretNumber: step.fretNumber,
       group: "shooter-easy-random",
+    }));
+  }
+  if (difficulty === SHOOTER_DIFFICULTIES.NORMAL_RANDOM) {
+    return SHOOTER_NORMAL_RANDOM_POSITIONS.map((step) => makeGuitarNote({
+      pitch: step.pitch,
+      stringNumber: step.stringNumber,
+      fretNumber: step.fretNumber,
+      group: "shooter-normal-random",
     }));
   }
   if (difficulty === SHOOTER_DIFFICULTIES.EASY) {
@@ -21593,7 +21627,7 @@ function App({ onReady }) {
   const spawnShooterTarget = useCallback(() => {
     if (gameStateRef.current === GAME_STATES.GAMEOVER) return false;
     const difficulty = shooterDifficultyRef.current;
-    const isEasyRandom = difficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM;
+    const isRandomDifficulty = isShooterRandomDifficulty(difficulty);
     const isEasyScenario = difficulty === SHOOTER_DIFFICULTIES.EASY;
     const isNormalScenario = difficulty === SHOOTER_DIFFICULTIES.NORMAL;
     const isDifficultScenario = difficulty === SHOOTER_DIFFICULTIES.DIFFICULT;
@@ -21648,7 +21682,7 @@ function App({ onReady }) {
       difficultPatternId,
     );
     activeNotesRef.current = trainingNotes;
-    const pool = getShooterPool(trainingNotes, level, { preservePositions: isEasyRandom });
+    const pool = getShooterPool(trainingNotes, level, { preservePositions: isRandomDifficulty });
     const techniqueLabel = isDifficultScenario
       ? getShooterDifficultTechniqueLabel(scenarioStep, shooterBpmRef.current)
       : "";
@@ -23970,7 +24004,7 @@ function App({ onReady }) {
     const isDifficultScenario = shooterDifficultyRef.current === SHOOTER_DIFFICULTIES.DIFFICULT;
     if (
       isEasyScenario
-      || shooterDifficultyRef.current === SHOOTER_DIFFICULTIES.EASY_RANDOM
+      || isShooterRandomDifficulty(shooterDifficultyRef.current)
       || isNormalScenario
       || isDifficultScenario
     ) {
@@ -27366,11 +27400,11 @@ function App({ onReady }) {
   const shooterGuidePitch = shooterTargetDetail?.octaveNote ?? shooterTargetDetail?.pitch;
   const shooterGuideDifficulty = shooterTarget?.difficulty ?? shooterDifficulty;
   const isShooterEasyScenario = shooterGuideDifficulty === SHOOTER_DIFFICULTIES.EASY;
-  const isShooterEasyRandom = shooterGuideDifficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM;
+  const isShooterRandom = isShooterRandomDifficulty(shooterGuideDifficulty);
   const isShooterNormalScenario = shooterGuideDifficulty === SHOOTER_DIFFICULTIES.NORMAL;
   const isShooterDifficultScenario = shooterGuideDifficulty === SHOOTER_DIFFICULTIES.DIFFICULT;
   const isShooterScriptedScenario = isShooterEasyScenario || isShooterNormalScenario || isShooterDifficultScenario;
-  const isShooterExactPositionMode = isShooterScriptedScenario || isShooterEasyRandom;
+  const isShooterExactPositionMode = isShooterScriptedScenario || isShooterRandom;
   const shooterGuidePositions = shooterGuidePitch
     ? isShooterExactPositionMode && shooterTargetDetail
       ? [shooterTargetDetail]
@@ -33363,8 +33397,12 @@ function App({ onReady }) {
             {gameState === GAME_STATES.PLAYING && shooterCountInLabel ? (
               <div aria-live="assertive" className="shooterCountInOverlay" role="status">
                 <strong>{shooterCountInLabel}</strong>
-                {shooterDifficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM ? (
-                  <span>{SHOOTER_EASY_RANDOM_RANGE_LABEL}</span>
+                {isShooterRandomDifficulty(shooterDifficulty) ? (
+                  <span>
+                    {shooterDifficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM
+                      ? SHOOTER_EASY_RANDOM_RANGE_LABEL
+                      : SHOOTER_NORMAL_RANDOM_RANGE_LABEL}
+                  </span>
                 ) : null}
               </div>
             ) : null}
