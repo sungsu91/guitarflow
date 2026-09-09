@@ -1,5 +1,6 @@
-@media (min-width: 681px) {
+@media (min-width: 681px), (orientation: landscape) {
   html body .desktopLayout .shooterPanel--desktopHorizontal {
+    position: relative !important;
     width: min(100%, 1180px) !important;
     max-width: 1180px !important;
     margin-inline: auto !important;
@@ -188,7 +189,7 @@
     left: 0;
     z-index: 70;
     display: grid;
-    grid-template-columns: minmax(120px, 1.2fr) repeat(4, minmax(92px, 0.8fr));
+    grid-template-columns: minmax(120px, 1.2fr) repeat(3, minmax(92px, 0.8fr));
     width: min(690px, calc(100% - 310px));
     min-height: 76px;
     padding: 10px 14px;
@@ -470,6 +471,60 @@
       drop-shadow(0 0 20px rgba(255, 174, 62, 0.3));
   }
 
+  .desktopHorizontalStrumArc,
+  .desktopHorizontalSlashTrail,
+  .desktopHorizontalCutMark {
+    position: absolute;
+    z-index: 36;
+    display: block;
+    pointer-events: none;
+  }
+
+  .desktopHorizontalStrumArc {
+    width: 82px;
+    height: 128px;
+    border-right: 7px solid rgba(255, 239, 169, 0.94);
+    border-radius: 50%;
+    filter: drop-shadow(0 0 5px #fff5bf) drop-shadow(0 0 14px rgba(255, 173, 51, 0.92));
+    transform: translate(-62%, -34%) rotate(-18deg) scaleY(0.22);
+    transform-origin: 50% 10%;
+    animation: desktopHorizontalStrumDown 250ms cubic-bezier(0.08, 0.82, 0.16, 1) 24ms both;
+  }
+
+  .desktopHorizontalSlashTrail {
+    height: 10px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), #fff9ca 18%, #ffd35e 58%, rgba(255, 149, 34, 0));
+    box-shadow: 0 0 5px #fffbd7, 0 0 13px #ffc347, 0 0 26px rgba(255, 101, 19, 0.68);
+    transform: translateY(-50%) rotate(var(--desktop-slash-angle, 0deg)) scaleX(0.03);
+    transform-origin: left center;
+    animation: desktopHorizontalSlashTravel 270ms cubic-bezier(0.12, 0.78, 0.18, 1) var(--desktop-slash-delay, 92ms) both;
+  }
+
+  .desktopHorizontalCutMark {
+    width: calc(118px * var(--desktop-cut-scale, 1));
+    height: calc(118px * var(--desktop-cut-scale, 1));
+    transform: translate(-50%, -50%) rotate(-24deg) scale(0.3);
+    animation: desktopHorizontalCutMark 238ms cubic-bezier(0.1, 0.84, 0.2, 1) var(--desktop-cut-delay, 216ms) both;
+  }
+
+  .desktopHorizontalCutMark::before,
+  .desktopHorizontalCutMark::after {
+    position: absolute;
+    left: 4%;
+    top: 50%;
+    width: 92%;
+    height: 5px;
+    border-radius: 999px;
+    content: "";
+    background: linear-gradient(90deg, transparent, #fff 12%, #ffe063 62%, transparent);
+    box-shadow: 0 0 7px #fff, 0 0 18px #ffb426, 0 0 28px rgba(255, 76, 25, 0.72);
+  }
+
+  .desktopHorizontalCutMark::after {
+    transform: rotate(48deg) scaleX(0.78);
+  }
+
   .desktopHorizontalSlashSprite,
   .desktopHorizontalImpactSprite {
     position: absolute;
@@ -632,6 +687,846 @@
     border-color: rgba(106, 222, 242, 0.42);
     color: #d8f9ff;
   }
+
+  html body .desktopLayout .shooterPanel--desktopHorizontal:not(.shooterPanel--mapEditorWorkspace)
+    > .desktopHorizontalBattleControls {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    bottom: auto;
+    left: auto;
+    z-index: 90;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    width: min(650px, calc(100% - 16px));
+    margin: 0;
+    background: rgba(2, 8, 12, 0.82);
+    backdrop-filter: blur(7px);
+  }
+
+  html body .desktopLayout .shooterArena--desktopHorizontal .desktopHorizontalBattleHud {
+    top: 54px;
+  }
+
+  .shooterArena--desktopHorizontal .shooterCenterStatus.gameOver {
+    top: 50% !important;
+    left: 50% !important;
+    z-index: 84 !important;
+    display: grid !important;
+    justify-items: center !important;
+    gap: 10px !important;
+    width: min(360px, calc(100% - 32px)) !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .desktopHorizontalGameOverStats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(92px, 1fr));
+    gap: 8px;
+    width: min(250px, 100%);
+  }
+
+  .desktopHorizontalResultReceipt {
+    padding: 18px 18px 14px !important;
+    border: 1px solid rgba(247, 225, 177, 0.58) !important;
+    border-radius: 8px !important;
+    background:
+      linear-gradient(135deg, transparent 6px, rgba(8, 12, 14, 0.96) 0) top left,
+      linear-gradient(225deg, transparent 6px, rgba(8, 12, 14, 0.96) 0) top right,
+      linear-gradient(45deg, transparent 6px, rgba(8, 12, 14, 0.96) 0) bottom left,
+      linear-gradient(315deg, transparent 6px, rgba(8, 12, 14, 0.96) 0) bottom right !important;
+    background-size: 51% 51% !important;
+    background-repeat: no-repeat !important;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  .desktopHorizontalResultReceipt::before {
+    content: "PLAY RECORD · RESULT";
+    color: rgba(247, 225, 177, 0.68);
+    font-size: 8px;
+    font-weight: 950;
+    letter-spacing: 0.18em;
+  }
+
+  .desktopHorizontalResultReceipt .desktopHorizontalGameOverStats {
+    grid-template-columns: repeat(3, minmax(74px, 1fr));
+    width: min(320px, 100%);
+    padding-block: 9px;
+    border-block: 1px dashed rgba(247, 225, 177, 0.3);
+  }
+
+  .desktopHorizontalResultReceipt .desktopHorizontalRestartNow {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    width: min(220px, 100%) !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    border: 1px solid rgba(255, 226, 153, 0.82) !important;
+    border-radius: 10px !important;
+    background: linear-gradient(180deg, #fff3c2 0%, #e7b94c 100%) !important;
+    color: #171209 !important;
+    font-size: 14px !important;
+    font-weight: 950 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.38), inset 0 1px rgba(255, 255, 255, 0.72) !important;
+  }
+
+  .desktopHorizontalGameOverStats > span {
+    display: grid;
+    gap: 3px;
+    padding: 11px 14px;
+    border: 1px solid rgba(246, 218, 159, 0.28);
+    border-radius: 12px;
+    background: rgba(3, 10, 14, 0.84);
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  .desktopHorizontalGameOverStats small {
+    color: rgba(246, 218, 159, 0.72);
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+  }
+
+  .desktopHorizontalGameOverStats b {
+    color: #fff2c8;
+    font-size: clamp(20px, 5cqh, 28px);
+    line-height: 1;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 400 !important;
+    display: block !important;
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #02070c !important;
+    transform: none !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter > .hud,
+  html body #root main.app.app.app.mobileLandscapeShooter > .modeHeader,
+  html body #root main.app.app.app.mobileLandscapeShooter .shooterPanel--mobileLandscape > :is(
+    .modeHelper,
+    .shooterDifficultyPanel,
+    .shooterFretGuide,
+    .shooterRecordsPanel,
+    .mobileShooterTopHud
+  ) {
+    display: none !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .shooterPanel--mobileLandscape {
+    position: fixed !important;
+    inset: 0 !important;
+    display: block !important;
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterPanel--mobileLandscape > .shooterArena--mobileLandscape {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    contain: layout paint !important;
+    container-type: size;
+    isolation: isolate;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .shooterArena--desktopHorizontal .enemy.shooterEnemy {
+    z-index: var(--desktop-target-z, 8) !important;
+    filter:
+      drop-shadow(0 9px 10px rgba(0, 0, 0, 0.34))
+      drop-shadow(0 0 calc(5px + var(--desktop-target-progress, 0) * 10px) rgba(111, 224, 247, 0.22));
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .shooterArena--desktopHorizontal
+    .enemy.shooterEnemy.shooterEnemy--monster,
+  html body #root main.app.app.app.mobileLandscapeShooter .shooterArena--desktopHorizontal
+    .enemy.shooterEnemy.shooterEnemy--monster .shooterEnemyMonsterVisual,
+  html body #root main.app.app.app.mobileLandscapeShooter .shooterArena--desktopHorizontal
+    .enemy.shooterEnemy.shooterEnemy--monster .shooterEnemyMonsterAsset {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .shooterArena--desktopHorizontal
+    .enemy.shooterEnemy.shooterEnemy--monster {
+    width: calc(var(--target-render-size, 86.4px) * 1.48) !important;
+    height: calc(var(--target-render-size, 86.4px) * 1.48) !important;
+    overflow: visible !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .shooterArena--desktopHorizontal
+    .enemy.shooterEnemy.shooterEnemy--monster .shooterEnemyPitchLabel {
+    font-size: calc(var(--target-label-font-size, 13px) * 1.2) !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.02em !important;
+    text-shadow: 0 2px 3px rgba(0, 0, 0, 0.9), 0 0 5px rgba(255, 255, 255, 0.34) !important;
+    -webkit-text-stroke-width: max(1px, calc(var(--target-label-outline-width, 0.9px) * 1.16)) !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .shooterArena--desktopHorizontal
+    .enemy.shooterEnemy.shooterEnemy--monster .shooterEnemyMonsterAsset {
+    filter:
+      saturate(1.12)
+      contrast(1.08)
+      drop-shadow(0 4px 7px rgba(0, 4, 8, 0.42))
+      drop-shadow(0 0 8px rgba(102, 221, 242, 0.2));
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .shooterArena--desktopHorizontal
+    .enemy.shooterEnemy.shooterEnemy--monster.defeated {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    outline: 0 !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .shooterArena--desktopHorizontal
+    .enemy.shooterEnemy[data-current-target="true"] {
+    filter:
+      brightness(1.12)
+      drop-shadow(0 0 16px rgba(255, 236, 151, 0.72));
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .shooterArena--desktopHorizontal .guitarPlayer {
+    left: 17% !important;
+    top: 66% !important;
+    bottom: auto !important;
+    z-index: 18 !important;
+    width: clamp(86px, 15cqh, 126px) !important;
+    height: clamp(132px, 28cqh, 190px) !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterArena--desktopHorizontal .guitarPlayerAsset,
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterArena--desktopHorizontal .guitarPlayerAsset.guitarAssetImage {
+    left: 44% !important;
+    top: 50% !important;
+    bottom: auto !important;
+    width: auto !important;
+    height: clamp(118px, 25cqh, 170px) !important;
+    max-width: none !important;
+    max-height: 44cqh !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterArena--desktopHorizontal :is(.guitarPlayerEffectLayer, .shooterGuitarCabinet--gameplay) {
+    display: none !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterArena--desktopHorizontal .shooterCenterStatus.shooterCenterStatus--startMenu {
+    top: 59% !important;
+    width: min(330px, calc(100% - 150px)) !important;
+    padding: 6px !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterArena--desktopHorizontal .shooterCenterStatus--startMenu > .shooterStartPanel {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterArena--desktopHorizontal .shooterCenterStatus--startMenu .shooterStartPanelButton {
+    min-height: 44px !important;
+    height: 44px !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .desktopHorizontalBattleHud {
+    top: calc(env(safe-area-inset-top) + 56px);
+    left: calc(env(safe-area-inset-left) + 8px);
+    grid-template-columns: repeat(3, max-content) 72px;
+    gap: clamp(16px, 4vw, 42px);
+    width: auto;
+    min-height: 0;
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .desktopHorizontalScorePair {
+    display: grid;
+    align-content: center;
+    gap: 3px;
+    min-width: 68px;
+    padding-left: 10px;
+    border-left: 1px solid rgba(247, 215, 151, 0.26);
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .desktopHorizontalScorePair > span {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .desktopHorizontalScorePair small {
+    color: rgba(247, 215, 151, 0.76);
+    font-size: 7px;
+    font-weight: 900;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .desktopHorizontalScorePair b {
+    color: #fff1c5;
+    font-size: 11px;
+    text-align: right;
+    text-shadow: 0 2px 7px #000;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .desktopHorizontalHudItem {
+    gap: 2px;
+    padding: 0;
+    border: 0;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .desktopHorizontalHudItem > strong {
+    font-size: clamp(14px, 3.5cqh, 19px);
+    text-shadow: 0 2px 7px #000, 0 0 12px rgba(0, 0, 0, 0.92);
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .desktopHorizontalHudItem > small {
+    font-size: 7px;
+    text-shadow: 0 1px 5px #000;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .desktopHorizontalBattleControls {
+    position: absolute;
+    top: calc(env(safe-area-inset-top) + 6px);
+    right: calc(env(safe-area-inset-right) + 8px);
+    bottom: auto;
+    left: calc(env(safe-area-inset-left) + 116px);
+    z-index: 90;
+    grid-template-columns: minmax(126px, 1.1fr) minmax(104px, 0.9fr) minmax(92px, 0.8fr) minmax(82px, 0.7fr) minmax(76px, 0.65fr);
+    width: auto;
+    margin: 0;
+    padding: 3px;
+    background: rgba(2, 8, 12, 0.82);
+    backdrop-filter: blur(7px);
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .desktopHorizontalBattleControls button {
+    min-width: 0;
+    min-height: 40px;
+    padding: 4px 3px;
+    overflow: hidden;
+    color: #eaf7f8;
+    font-size: clamp(7px, 1.5vw, 9px);
+    opacity: 1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .desktopHorizontalSelectControl {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    min-height: 40px;
+    padding: 3px 5px;
+    border: 1px solid rgba(217, 170, 85, 0.3);
+    border-radius: 8px;
+    background: rgba(9, 16, 20, 0.9);
+    color: #eefbfc;
+    font-size: 8px;
+    font-weight: 900;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .desktopHorizontalSelectControl select {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    cursor: pointer;
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
+    opacity: 0 !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter .desktopHorizontalSelectControl > span {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .desktopHorizontalBattleControls .desktopHorizontalMicButton {
+    gap: 2px;
+    padding-inline: 2px;
+    font-size: clamp(6.5px, 1.3vw, 8px);
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterArena--desktopHorizontal .shooterCenterStatus--pauseMenu {
+    top: 54% !important;
+    width: min(230px, calc(100% - 32px)) !important;
+    padding: 8px !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterArena--desktopHorizontal .shooterPausePanel {
+    gap: 6px !important;
+    padding: 9px !important;
+    border-radius: 14px !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterArena--desktopHorizontal .shooterPausePanelHeader {
+    min-height: 28px !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterArena--desktopHorizontal .shooterPausePanelButton {
+    min-height: 38px !important;
+    height: 38px !important;
+  }
+
+  .mobileLandscapeShooterNavigation {
+    position: absolute;
+    left: calc(env(safe-area-inset-left) + 8px);
+    top: calc(env(safe-area-inset-top) + 8px);
+    z-index: 100;
+    display: flex;
+    gap: 4px;
+    width: auto;
+    height: 44px;
+  }
+
+  .mobileLandscapeShooterNavigation > button {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 44px;
+    padding: 3px;
+    border: 1px solid rgba(151, 226, 239, 0.36);
+    border-radius: 12px;
+    background: rgba(2, 11, 16, 0.84);
+    color: #e9fbff;
+    box-shadow: 0 7px 20px rgba(0, 3, 7, 0.3);
+    backdrop-filter: blur(7px);
+  }
+
+  .mobileLandscapeShooterNavigation > button:active {
+    transform: translateY(1px) scale(0.98);
+  }
+
+  .mobileLandscapeShooterNavigation span {
+    font-size: 8px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .mobileLandscapeShooterReturn {
+    border-color: rgba(246, 211, 139, 0.42) !important;
+    color: #fff1c5 !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterRecordingEntrySlot--landscapeControl {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    pointer-events: auto;
+  }
+
+  html body .shooterRecordingUI.isLandscape .shooterRecordingCamera--mobile {
+    border: 1px solid rgba(169, 231, 240, 0.58);
+    border-radius: 14px;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.52), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterRecordingEntrySlot--landscapeControl > .shooterRecordingHudButton {
+    position: relative !important;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    padding: 4px 3px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(169, 231, 240, 0.52) !important;
+    border-radius: 8px !important;
+    background: linear-gradient(145deg, rgba(7, 20, 25, 0.94), rgba(1, 7, 10, 0.9)) !important;
+    color: #e8fbff !important;
+    box-shadow: 0 10px 24px rgba(0, 2, 5, 0.34), inset 0 0 0 1px rgba(255, 255, 255, 0.04) !important;
+    backdrop-filter: blur(8px) !important;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterRecordingEntrySlot--landscapeControl > .shooterRecordingHudButton > svg {
+    width: 13px !important;
+    height: 13px !important;
+    margin: 0;
+  }
+
+  html body #root main.app.app.app.mobileLandscapeShooter
+    .shooterRecordingEntrySlot--landscapeControl > .shooterRecordingHudButton > span {
+    display: block !important;
+    font-size: 8px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+  }
+
+  body:has(main.mobileLandscapeShooter) .shooterGuitarPickerOverlay--arenaPreview {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1200 !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)) !important;
+  }
+
+  body:has(main.mobileLandscapeShooter) .shooterSkinConfigurator--arenaPreview {
+    width: min(760px, 94vw) !important;
+    height: min(370px, calc(100dvh - 10px)) !important;
+    max-height: none !important;
+    transform: none !important;
+  }
+
+  /* The landscape catalog is a display case, not a stretched portrait list. */
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterGuitarPickerModal {
+    gap: 6px !important;
+    padding: 9px 12px !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterGuitarPickerHeader {
+    padding-bottom: 5px !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterSkinTabs {
+    min-height: 34px !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview :is(
+      .shooterSkinPickerBodyFrame,
+      .shooterSkinPickerBody
+    ) {
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterSkinPickerBody {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding: 1px 5px 7px 1px !important;
+    touch-action: pan-y !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterSkinPickerBodyFrame--guitar {
+    grid-template-rows: minmax(0, 1fr) 34px !important;
+    gap: 5px !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview
+    .shooterGuitarPickerList--filtered .shooterGuitarPickerGrid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-flow: row !important;
+    grid-auto-columns: auto !important;
+    gap: 6px !important;
+    width: 100% !important;
+    overflow: visible !important;
+    padding: 1px 0 6px !important;
+    touch-action: pan-y !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterGuitarPickerItem {
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    grid-template-rows: 44px !important;
+    min-height: 52px !important;
+    padding: 3px 8px !important;
+    text-align: left !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview
+    :is(.shooterGuitarPickerAsset, .shooterGuitarPickerAsset.guitarAssetImage) {
+    width: auto !important;
+    height: 42px !important;
+    max-height: 42px !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterGuitarCategoryTabs--mobile {
+    margin: 0 !important;
+    padding: 3px !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterEffectSetPicker {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.35fr) minmax(210px, 0.8fr) !important;
+    align-items: stretch !important;
+    gap: 9px !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview :is(
+      .shooterEffectSetSection,
+      .shooterEffectStandaloneSection
+    ) {
+    display: grid !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    align-content: stretch !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterEffectStandaloneSection {
+    padding-left: 9px !important;
+    border-left: 1px solid rgba(217, 170, 85, 0.2) !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview :is(
+      .shooterEffectSetScroller,
+      .shooterEffectStandaloneScroller
+    ) {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin !important;
+    scroll-snap-type: none !important;
+    touch-action: pan-y !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview :is(
+      .shooterEffectSetTrack,
+      .shooterEffectStandaloneTrack
+    ) {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-flow: row !important;
+    grid-auto-columns: auto !important;
+    gap: 6px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 1px 3px 7px 0 !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterEffectSetColumn {
+    display: grid !important;
+    grid-template-rows: 12px 64px 48px !important;
+    gap: 3px !important;
+    min-width: 0 !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterEffectSetPicker
+    .shooterSkinOptionCard--effect {
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    padding: 2px !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterEffectSetCard--aura {
+    grid-template-rows: 43px minmax(14px, auto) !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterEffectSetCard--floor {
+    grid-template-rows: 28px minmax(14px, auto) !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview
+    :is(.shooterEffectSetCard--aura, .shooterEffectSetCard--floor)
+    .shooterEffectPreview {
+    width: min(100%, 88px) !important;
+    height: 100% !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterEffectStandaloneTrack > * {
+    width: auto !important;
+    min-width: 0 !important;
+  }
+
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview .shooterEffectStandaloneCard,
+  body:has(main.mobileLandscapeShooter)
+    .shooterSkinConfigurator--arenaPreview
+    .shooterEffectStandaloneTrack > .shooterGuitarCabinetPickerItem--standalone {
+    grid-template-rows: 48px minmax(15px, auto) !important;
+    min-height: 70px !important;
+    height: 70px !important;
+  }
+}
+
+html body #root main.app.app.app.mobileLandscapeShooterSelected:not(.mobileLandscapeShooter) {
+  background: #0a0a0a !important;
+}
+
+html body #root main.app.app.app.mobileLandscapeShooterSelected:not(.mobileLandscapeShooter) > :is(
+  .hud,
+  .modeHeader
+) {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+html body #root main.app.app.app.mobileLandscapeShooterSelected:not(.mobileLandscapeShooter)
+  > .shooterPanel > .mobileShooterTopHud {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+html body #root main.app.app.app.mobileLandscapeShooterSelected:not(.mobileLandscapeShooter)
+  > .shooterPanel > .shooterArena {
+  inset: 0 !important;
+  height: 100% !important;
+}
+
+html body #root main.app.app.app.mobileLandscapeShooterSelected:not(.mobileLandscapeShooter)
+  > .shooterPanel > .shooterArena > :not(.threeDLabHorizontalScene):not(.mobileLandscapeShooterPrompt) {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+html body #root main.app.app.app.mobileLandscapeShooterSelected
+  .shooterArena > .mobileLandscapeShooterPrompt {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 14px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  box-sizing: border-box;
+  width: auto !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  padding: 9px 10px 9px 12px !important;
+  border: 1px solid rgba(255, 226, 153, 0.32) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(90deg, rgba(4, 9, 12, 0.9), rgba(8, 14, 16, 0.76)) !important;
+  color: #fff !important;
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.24), inset 0 1px rgba(255, 255, 255, 0.05);
+  text-align: left;
+  pointer-events: none;
+  backdrop-filter: blur(7px) saturate(1.08);
+}
+
+html body #root main.app.app.app.mobileLandscapeShooterSelected
+  .shooterArena > .mobileLandscapeShooterPrompt > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+html body #root main.app.app.app.mobileLandscapeShooterSelected
+  .shooterArena > .mobileLandscapeShooterPrompt strong {
+  padding: 0;
+  color: #fff3c8;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+html body #root main.app.app.app.mobileLandscapeShooterSelected
+  .shooterArena > .mobileLandscapeShooterPrompt small {
+  overflow: hidden;
+  margin: 0;
+  color: rgba(235, 244, 246, 0.74);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html body #root main.app.app.app.mobileLandscapeShooterSelected
+  .shooterArena > .mobileLandscapeShooterPrompt button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 226, 153, 0.58) !important;
+  border-radius: 9px !important;
+  background: rgba(255, 244, 213, 0.94) !important;
+  color: #171209 !important;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+  pointer-events: auto;
+}
+
+html body #root main.app.app.app.mobileLandscapeShooterSelected
+  .shooterArena > .mobileLandscapeShooterPrompt button:active {
+  transform: translateY(1px) scale(0.99);
 }
 
 @keyframes desktopHorizontalWaveFar {
@@ -694,10 +1589,41 @@
 }
 
 @keyframes desktopHorizontalSlashSpriteEnvelope {
-  0% { opacity: 0; transform: translateY(-50%) rotate(var(--desktop-slash-angle, 0deg)) scaleX(0.72); }
+  0% { clip-path: inset(0 100% 0 0); opacity: 0; transform: translateY(-50%) rotate(var(--desktop-slash-angle, 0deg)) scaleX(0.72); }
   13% { opacity: 1; }
-  68% { opacity: 1; transform: translateY(-50%) rotate(var(--desktop-slash-angle, 0deg)) scaleX(1); }
+  68% { clip-path: inset(0 0 0 0); opacity: 1; transform: translateY(-50%) rotate(var(--desktop-slash-angle, 0deg)) scaleX(1); }
   100% { opacity: 0; transform: translateY(-50%) rotate(var(--desktop-slash-angle, 0deg)) scaleX(1.025); }
+}
+
+@keyframes desktopHorizontalStrumDown {
+  0% { opacity: 0; transform: translate(-62%, -44%) rotate(-18deg) scaleY(0.16); }
+  18% { opacity: 1; }
+  72% { opacity: 1; transform: translate(-44%, -18%) rotate(24deg) scaleY(1); }
+  100% { opacity: 0; transform: translate(-38%, -8%) rotate(28deg) scaleY(1.08); }
+}
+
+@keyframes desktopHorizontalSlashTravel {
+  0% { opacity: 0; transform: translateY(-50%) rotate(var(--desktop-slash-angle, 0deg)) scaleX(0.03); }
+  12% { opacity: 1; }
+  72% { opacity: 1; transform: translateY(-50%) rotate(var(--desktop-slash-angle, 0deg)) scaleX(1); }
+  100% { opacity: 0; transform: translateY(-50%) rotate(var(--desktop-slash-angle, 0deg)) scaleX(1.04); }
+}
+
+@keyframes desktopHorizontalCutMark {
+  0% { opacity: 0; filter: brightness(2); transform: translate(-50%, -50%) rotate(-24deg) scale(0.3); }
+  24% { opacity: 1; transform: translate(-50%, -50%) rotate(-24deg) scale(1.12); }
+  64% { opacity: 1; transform: translate(-50%, -50%) rotate(-24deg) scale(1); }
+  100% { opacity: 0; filter: brightness(1); transform: translate(-50%, -50%) rotate(-24deg) scale(1.08); }
+}
+
+@keyframes desktopHorizontalAttackKick {
+  0%, 45% { filter: none; }
+  52% { filter: brightness(1.14) saturate(1.16); }
+  62%, 100% { filter: none; }
+}
+
+.shooterArena--desktopHorizontal.desktopHorizontalAttackKick {
+  animation: desktopHorizontalAttackKick 520ms ease-out both;
 }
 
 @keyframes desktopHorizontalImpactSpriteFrames {
@@ -722,7 +1648,10 @@
   }
 
   .desktopHorizontalSlashSprite,
-  .desktopHorizontalImpactSprite {
+  .desktopHorizontalImpactSprite,
+  .desktopHorizontalStrumArc,
+  .desktopHorizontalSlashTrail,
+  .desktopHorizontalCutMark {
     animation-duration: 120ms !important;
   }
 }

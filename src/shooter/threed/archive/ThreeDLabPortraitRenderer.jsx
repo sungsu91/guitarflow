@@ -5,8 +5,8 @@ import {
   DEFAULT_THREE_D_LAB_SETTINGS,
   createThreeDLabViewProjection,
   normalizeThreeDLabSettings,
-} from "./threeDLabProjection.js";
-import "./three-d-lab.css";
+} from "../threeDLabProjection.js";
+import "./three-d-lab-portrait.css";
 
 const CONTROL_GROUPS = Object.freeze([
   Object.freeze({

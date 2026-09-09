@@ -1,3 +1,14 @@
+/* A portal preserves one mobile navigation surface outside scaled mode content. */
+html body #root main.app.mobileNavigationSurface,
+html body #root main.app.mobileNavigationSurface > .hud {
+  display: contents !important;
+}
+
+/* Keep the light rail opaque so the ocean/game backdrop cannot tint it. */
+html body #root main.app.mobileNavigationSurface.theme-light > .hud > .modeSwitch {
+  background-color: #ecdad3 !important;
+}
+
 /* Interaction feedback lives outside React state so pointer-down can paint before
    route work starts. Keep the press short and physical on every app layout. */
 html body main.app.app.app :is(

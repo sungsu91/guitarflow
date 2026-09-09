@@ -20,6 +20,7 @@ import {
   Gamepad2,
   Grid3X3,
   Guitar,
+  House,
   LoaderCircle,
   Lock,
   LockOpen,
@@ -74,6 +75,7 @@ import {
   normalizeTrackerTimerParts,
 } from "./metronome/runtime";
 import AudioStudio from "./audio-studio/AudioStudio";
+import EtudeStudio from "./etudes/EtudeStudio.jsx";
 import { createMiniChordLoadLibrary } from "./mini-chord/loadLibrary.js";
 import TunerMode, { TUNER_BACKGROUND_COUNT } from "./tuner/TunerMode";
 import {
@@ -105,6 +107,7 @@ import { createFretboardNoteViewerStore } from "./fretboard/noteViewerStore.js";
 import { getChordFretWindow } from "./fretboard/chordFretWindow.js";
 import SplashIntro from "./launch/SplashIntro";
 import DesktopSidebarNavigation from "./navigation/DesktopSidebarNavigation";
+import MobileNavigationSurface from "./navigation/MobileNavigationSurface.jsx";
 import { useDesktopLayout } from "./layouts/DesktopLayout.jsx";
 import { RIFFLAB_COMMON_CUTAWAY_SPRITE_SRC } from "./assets/rifflabCommonCutawaySprite";
 import { CHROMATIC_NOTES, NOTE_INDEX, SOLFEGE } from "./music/noteNotation.js";
@@ -306,6 +309,7 @@ import {
 import { getSpriteSheetFrameRect } from "./shooter/effects/spriteSheetFrames.js";
 import {
   DEVELOPER_SHOOTER_MAP_SKINS,
+  LANDSCAPE_SHOOTER_MAP_SKINS,
   LAYERED_SHOOTER_MAP_SKINS,
   getRandomShooterMapId,
   getShooterMapAssetSources,
@@ -321,11 +325,9 @@ import {
   projectGameplayPointToPseudo3D,
 } from "./shooter/pseudo3d/projection.js";
 import {
-  DEFAULT_THREE_D_LAB_SETTINGS,
-  normalizeThreeDLabSettings,
-  projectGameplayPointToThreeDLab,
-} from "./shooter/threed/threeDLabProjection.js";
-import { projectGameplayPointToThreeDLabHorizontal } from "./shooter/threed/threeDLabHorizontalProjection.js";
+  projectGameplayPointToThreeDLabHorizontal,
+  projectGameplayPointToThreeDLabMobileLandscape,
+} from "./shooter/threed/threeDLabHorizontalProjection.js";
 import {
   createMountedModeSet,
   getCachedModeElement,
@@ -8521,6 +8523,7 @@ const SHOOTER_RANDOM_MAP_OPTION = {
 };
 const SHOOTER_MAP_OPTIONS = [
   ...LAYERED_SHOOTER_MAP_SKINS,
+  ...LANDSCAPE_SHOOTER_MAP_SKINS,
   ...(import.meta.env.DEV ? DEVELOPER_SHOOTER_MAP_SKINS : []),
 ];
 const SHOOTER_MAP_LEGACY_ID_MAP = {
@@ -14058,6 +14061,7 @@ const SHOOTER_GUITAR_CABINET_OPEN_DELAY_MS = 480;
 const SHOOTER_GUITAR_CABINET_MOVE_DELAY_MS = 520;
 
 const APP_MODES = {
+  ETUDES: "etudes",
   MENU: "menu",
   CURRICULUM: "curriculum",
   PRACTICE: "practice",
@@ -14071,6 +14075,7 @@ const APP_MODES = {
 };
 
 const APP_ROUTES = {
+  ETUDES: "#etudes",
   MAIN: "#main",
   FRETBOARD_VIEWER: "#fretboard",
   CURRICULUM: "#rhythm-training",
@@ -14114,6 +14119,8 @@ function isAudioStudioEnabled() {
 function getRouteFromHash(hash) {
   const normalizedHash = hash || APP_DEFAULT_ROUTE;
   switch (normalizedHash) {
+    case APP_ROUTES.ETUDES:
+      return { appMode: APP_MODES.ETUDES, categoryId: MAIN_DEFAULT_CATEGORY.id };
     case APP_ROUTES.FRETBOARD_VIEWER:
       return { appMode: APP_MODES.FRETBOARD_VIEWER, categoryId: MAIN_DEFAULT_CATEGORY.id };
     case APP_ROUTES.CURRICULUM:
@@ -14151,6 +14158,7 @@ function getRouteFromHash(hash) {
 }
 
 function getHashFromRoute(appMode, categoryId = MAIN_DEFAULT_CATEGORY.id) {
+  if (appMode === APP_MODES.ETUDES) return APP_ROUTES.ETUDES;
   if (appMode === APP_MODES.FRETBOARD_VIEWER) return APP_ROUTES.FRETBOARD_VIEWER;
   if (appMode === APP_MODES.CURRICULUM) return APP_ROUTES.CURRICULUM;
   if (appMode === APP_MODES.METRONOME) return APP_ROUTES.METRONOME;
@@ -14173,6 +14181,7 @@ function getInitialAppRoute() {
 }
 
 function getDesktopSidebarActiveKey(appMode, categoryId) {
+  if (appMode === APP_MODES.ETUDES) return "etudes";
   if (appMode === APP_MODES.TUNER) return "tuner";
   if (appMode === APP_MODES.FRETBOARD_VIEWER) return "fretboard";
   if (appMode === APP_MODES.METRONOME) return "metronome";
@@ -16831,6 +16840,8 @@ function App({ onReady }) {
   const [guitarLabPurgedIds, setGuitarLabPurgedIds] = useState(getStoredGuitarLabPurgedIds);
   const [guitarLabSelectedDeleteIds, setGuitarLabSelectedDeleteIds] = useState([]);
   const [shooterGuitarPickerOpen, setShooterGuitarPickerOpen] = useState(false);
+  const [shooterLandscapeHint, setShooterLandscapeHint] = useState("");
+  const shooterLandscapeFullscreenRef = useRef(false);
   const [viewportProfile, setViewportProfile] = useState(getViewportProfile);
   const [gameState, setGameState] = useState(GAME_STATES.IDLE);
   const [micStatus, setMicStatus] = useState("No Signal");
@@ -17079,12 +17090,9 @@ function App({ onReady }) {
   const [isMobileLayout, setIsMobileLayout] = useState(getIsMobileLayout);
   const [shooterRecordingActive, setShooterRecordingActive] = useState(false);
   const [shooterRecordingEntryTarget, setShooterRecordingEntryTarget] = useState(null);
-  // Mobile shooter is portrait-only. A physical phone rotation must not alter
-  // its map catalog or switch it to a landscape renderer.
+  // The regular mobile shooter catalog remains portrait-authored. A selected
+  // landscape-only map opts into its separate renderer farther below.
   const shooterPortraitLayout = !isMobileLayout || isPortraitOnlyMode(APP_MODES.SHOOTER);
-  const shooterMobileViewportStyle = useShooterMobileViewport(
-    (appMode === APP_MODES.SHOOTER || appMode === APP_MODES.TUNER) && isMobileLayout,
-  );
   const [trainingNoteGuideEnabled, setTrainingNoteGuideEnabled] = useState(true);
   const [hitZoneNote, setHitZoneNote] = useState(null);
   const [isHitWindowActive, setIsHitWindowActive] = useState(false);
@@ -17158,13 +17166,10 @@ function App({ onReady }) {
       ? getRandomShooterMapId(storedMapId, Math.random(), layoutMaps)
       : getShooterMapById(storedMapId, mapLookupOptions).id;
   });
+  const lastPortraitShooterMapIdRef = useRef("");
   const [pseudo3dTuningState, setPseudo3dTuningState] = useState(() => ({
     mapId: "",
     settings: normalizePseudo3DSettings(DEFAULT_PSEUDO3D_SETTINGS),
-  }));
-  const [threeDLabTuningState, setThreeDLabTuningState] = useState(() => ({
-    mapId: "",
-    settings: normalizeThreeDLabSettings(DEFAULT_THREE_D_LAB_SETTINGS),
   }));
   const [shooterRecords, setShooterRecords] = useState(() => RecordService.getShooterRecords());
   const [showShooterRecords, setShowShooterRecords] = useState(false);
@@ -17252,6 +17257,10 @@ function App({ onReady }) {
   const selectedAuraEffect = selectedShooterAuraEffect;
   const selectedFloorEffect = selectedShooterFloorEffect;
   const selectedMap = selectedShooterMap;
+  useEffect(() => {
+    if (!selectedMap?.id || selectedMap.landscapeOnly) return;
+    lastPortraitShooterMapIdRef.current = selectedMap.id;
+  }, [selectedMap.id, selectedMap.landscapeOnly]);
   const shooterSessionVisible = gameState === GAME_STATES.PLAYING
     || gameState === GAME_STATES.PAUSED
     || gameState === GAME_STATES.GAMEOVER;
@@ -17298,6 +17307,16 @@ function App({ onReady }) {
   }, []);
   const selectedMapIsPseudo3D = isPseudo3DShooterMap(selectedMap);
   const selectedMapIsThreeDLab = isThreeDLabShooterMap(selectedMap);
+  const mobileLandscapeShooterSelected = appMode === APP_MODES.SHOOTER
+    && isMobileLayout
+    && selectedMap.landscapeOnly === true;
+  const mobileLandscapeShooterActive = mobileLandscapeShooterSelected
+    && viewportProfile.isLandscape;
+  const shooterMobileViewportStyle = useShooterMobileViewport(
+    (appMode === APP_MODES.SHOOTER || appMode === APP_MODES.TUNER)
+      && isMobileLayout
+      && !mobileLandscapeShooterActive,
+  );
   const selectedPseudo3DDefaults = useMemo(
     () => normalizePseudo3DSettings(selectedMap?.pseudo3d ?? DEFAULT_PSEUDO3D_SETTINGS),
     [selectedMap],
@@ -17312,20 +17331,6 @@ function App({ onReady }) {
       settings: normalizePseudo3DSettings(nextSettings),
     });
   }, [selectedMap]);
-  const selectedThreeDLabDefaults = useMemo(
-    () => normalizeThreeDLabSettings(selectedMap?.threeD ?? DEFAULT_THREE_D_LAB_SETTINGS),
-    [selectedMap],
-  );
-  const selectedThreeDLabSettings = threeDLabTuningState.mapId === selectedMap.id
-    ? threeDLabTuningState.settings
-    : selectedThreeDLabDefaults;
-  const updateSelectedThreeDLabSettings = useCallback((nextSettings) => {
-    if (!isThreeDLabShooterMap(selectedMap)) return;
-    setThreeDLabTuningState({
-      mapId: selectedMap.id,
-      settings: normalizeThreeDLabSettings(nextSettings),
-    });
-  }, [selectedMap]);
   const mapEditor = useMapEditMode(
     selectedMap,
     !isMobileLayout,
@@ -17336,9 +17341,12 @@ function App({ onReady }) {
     featureEnabled: DESKTOP_HORIZONTAL_SHOOTER_FEATURE.enabled,
     isMobileLayout,
     mapEditorEnabled: mapEditor.enabled,
+    mobileLandscapeActive: mobileLandscapeShooterActive,
   });
   const desktopHorizontalShooterActive = appMode === APP_MODES.SHOOTER
     && shooterRendererMode === SHOOTER_RENDERER_MODES.DESKTOP_HORIZONTAL;
+  const horizontalShooterActive = desktopHorizontalShooterActive
+    || shooterRendererMode === SHOOTER_RENDERER_MODES.MOBILE_HORIZONTAL;
   const desktopHorizontalClickAttackActive = import.meta.env.DEV && desktopHorizontalShooterActive;
   const commitShooterEffectEditorLoadout = useCallback(async (effectIds) => {
     const nextLoadout = normalizeShooterEffectLoadout(effectIds);
@@ -17375,7 +17383,7 @@ function App({ onReady }) {
   const previewAuraEffect = shooterEffectEditor.previewEffects.find(
     (effect) => effect.slot === SHOOTER_EFFECT_EQUIPMENT_SLOTS.AURA,
   ) ?? selectedAuraEffect;
-  const shooterMapRenderLayout = desktopHorizontalShooterActive ? "desktop" : "mobile";
+  const shooterMapRenderLayout = horizontalShooterActive ? "desktop" : "mobile";
   const selectedMapRenderSkin = mapEditor.renderSkin;
   const selectedGuitarCategory = SHOOTER_GUITAR_CATEGORY_OPTIONS.find(
     (option) => option.id === getShooterGuitarCategoryId(selectedGuitar.id),
@@ -17385,18 +17393,10 @@ function App({ onReady }) {
     ...(selectedMapIsPseudo3D ? {
       "--pseudo3d-horizon": `${selectedPseudo3DSettings.horizon * 100}%`,
     } : {}),
-    ...(selectedMapIsThreeDLab ? {
-      "--three-d-lab-horizon": `${selectedThreeDLabSettings.horizonPosition * 100}%`,
-      "--three-d-lab-guitar-left": `${selectedThreeDLabSettings.guitarIdleX * 100}%`,
-      "--three-d-lab-guitar-bottom": `${(1 - selectedThreeDLabSettings.guitarIdleY) * 100}%`,
-      "--three-d-lab-guitar-scale": selectedThreeDLabSettings.guitarIdleScale,
-    } : {}),
   }), [
     selectedMap,
     selectedMapIsPseudo3D,
-    selectedMapIsThreeDLab,
     selectedPseudo3DSettings.horizon,
-    selectedThreeDLabSettings,
   ]);
   const selectedMapIsLayered = isLayeredShooterMap(selectedMap);
   const selectedMapSkinClassName = `shooterMapSkin shooterMapSkin--${selectedMap.id}`;
@@ -17416,7 +17416,10 @@ function App({ onReady }) {
       includeMobileOnly: shooterMapEditorSessionActive,
       isPortraitLayout: shooterPortraitLayout,
     });
-  const developerShooterMapOptions = SHOOTER_MAP_OPTIONS.filter((map) => map.devOnly);
+  const landscapeShooterMapOptions = SHOOTER_MAP_OPTIONS.filter((map) => map.landscapeOnly);
+  const developerShooterMapOptions = SHOOTER_MAP_OPTIONS.filter(
+    (map) => map.devOnly && !map.landscapeOnly,
+  );
   const selectedEffectLayers = useMemo(
     () => applyShooterEffectTuning([
         ...getShooterEffectLayers(previewAuraEffect),
@@ -21911,7 +21914,7 @@ function App({ onReady }) {
   }, [getShooterArenaSize]);
 
   const getShooterGuitarAimAngle = useCallback((target) => {
-    if (desktopHorizontalShooterActive) return 0;
+    if (horizontalShooterActive) return 0;
     if (!target) return 0;
     const metrics = getShooterGuitarBaseMetrics();
     if (metrics) {
@@ -21926,7 +21929,7 @@ function App({ onReady }) {
     const dx = (Number(target.x) || 50) - SHOOTER_GUITAR_PIVOT_PERCENT.x;
     const dy = Math.max(1.2, SHOOTER_GUITAR_PIVOT_PERCENT.y - (Number(target.y) || 0));
     return clampValue(Math.atan2(dx, dy) * (180 / Math.PI), -SHOOTER_GUITAR_AIM_LIMIT_DEG, SHOOTER_GUITAR_AIM_LIMIT_DEG);
-  }, [desktopHorizontalShooterActive, getShooterGuitarBaseMetrics]);
+  }, [getShooterGuitarBaseMetrics, horizontalShooterActive]);
 
   const applyShooterGuitarAim = useCallback((target, force = false) => {
     const node = shooterGuitarPlayerRef.current;
@@ -21966,6 +21969,12 @@ function App({ onReady }) {
     };
   }, [getShooterArenaSize]);
 
+  const projectHorizontalShooterPoint = useCallback((point, arenaSize) => (
+    mobileLandscapeShooterActive
+      ? projectGameplayPointToThreeDLabMobileLandscape(point, arenaSize)
+      : projectGameplayPointToThreeDLabHorizontal(point, arenaSize)
+  ), [mobileLandscapeShooterActive]);
+
   const getShooterGuitarCollisionGeometry = useCallback((forceMetrics = false) => {
     const metrics = getShooterGuitarBaseMetrics(forceMetrics);
     if (!metrics) return null;
@@ -21990,8 +21999,8 @@ function App({ onReady }) {
   const getShooterTargetHurtbox = useCallback((target, y = target?.y) => {
     if (!target || target.defeated || target.hitboxActive === false) return null;
     const arenaSize = getShooterArenaSize();
-    const horizontalProjection = desktopHorizontalShooterActive
-      ? projectGameplayPointToThreeDLabHorizontal({ ...target, y }, arenaSize)
+    const horizontalProjection = horizontalShooterActive
+      ? projectHorizontalShooterPoint({ ...target, y }, arenaSize)
       : null;
     const center = horizontalProjection
       ? { x: horizontalProjection.screenX, y: horizontalProjection.screenY }
@@ -22005,7 +22014,7 @@ function App({ onReady }) {
       height: target.renderHeight || renderSize * (horizontalProjection?.scale ?? 1),
       width: target.renderWidth || renderSize * (horizontalProjection?.scale ?? 1),
     });
-  }, [desktopHorizontalShooterActive, getShooterArenaPoint, getShooterArenaSize]);
+  }, [getShooterArenaPoint, getShooterArenaSize, horizontalShooterActive, projectHorizontalShooterPoint]);
 
   const getShooterProjectileHitbox = useCallback((projectile, point) => {
     const hitbox = createShooterProjectileHitbox({
@@ -22025,11 +22034,9 @@ function App({ onReady }) {
     const arenaSize = getShooterArenaSize();
     const gameplayPoint = getShooterArenaPoint(pointPercent.x, pointPercent.y);
     if (!node || !gameplayPoint) return;
-    const projection = selectedMapIsThreeDLab
-      ? projectGameplayPointToThreeDLab(pointPercent, selectedThreeDLabSettings, arenaSize)
-      : selectedMapIsPseudo3D
-        ? projectGameplayPointToPseudo3D(pointPercent, selectedPseudo3DSettings, arenaSize)
-        : null;
+    const projection = selectedMapIsPseudo3D
+      ? projectGameplayPointToPseudo3D(pointPercent, selectedPseudo3DSettings, arenaSize)
+      : null;
     const point = projection
       ? { x: projection.screenX, y: projection.screenY }
       : gameplayPoint;
@@ -22043,9 +22050,7 @@ function App({ onReady }) {
     getShooterArenaPoint,
     getShooterArenaSize,
     selectedMapIsPseudo3D,
-    selectedMapIsThreeDLab,
     selectedPseudo3DSettings,
-    selectedThreeDLabSettings,
   ]);
 
   const updateShooterHitboxDebug = useCallback((force = false) => {
@@ -22145,8 +22150,8 @@ function App({ onReady }) {
     const node = shooterTargetNodesRef.current.get(target?.id);
     if (!node || !target) return;
     const arenaSize = getShooterArenaSize();
-    if (desktopHorizontalShooterActive) {
-      const projection = projectGameplayPointToThreeDLabHorizontal({ ...target, y }, arenaSize);
+    if (horizontalShooterActive) {
+      const projection = projectHorizontalShooterPoint({ ...target, y }, arenaSize);
       const point = { x: projection.screenX, y: projection.screenY };
       if (syncEffectPosition) {
         node.style.setProperty("--target-x-px", `${point.x.toFixed(2)}px`);
@@ -22162,11 +22167,9 @@ function App({ onReady }) {
     }
     const gameplayPoint = getShooterArenaPoint(target.x, y);
     if (!gameplayPoint) return;
-    const projection = selectedMapIsThreeDLab
-      ? projectGameplayPointToThreeDLab({ x: target.x, y }, selectedThreeDLabSettings, arenaSize)
-      : selectedMapIsPseudo3D
-        ? projectGameplayPointToPseudo3D({ x: target.x, y }, selectedPseudo3DSettings, arenaSize)
-        : null;
+    const projection = selectedMapIsPseudo3D
+      ? projectGameplayPointToPseudo3D({ x: target.x, y }, selectedPseudo3DSettings, arenaSize)
+      : null;
     const point = projection
       ? { x: projection.screenX, y: projection.screenY }
       : gameplayPoint;
@@ -22175,9 +22178,7 @@ function App({ onReady }) {
       node.style.setProperty("--target-y-px", `${point.y.toFixed(2)}px`);
     }
     if (projection) {
-      const visualDepth = Number.isFinite(projection.depth)
-        ? projection.depth
-        : Math.max(0, Math.min(1, 1 - projection.cameraDepth / (selectedThreeDLabSettings.enemySpawnZ + 8)));
+      const visualDepth = Number.isFinite(projection.depth) ? projection.depth : 0;
       node.style.setProperty("--pseudo3d-depth", visualDepth.toFixed(3));
       node.style.zIndex = String(3 + Math.round(visualDepth * 8));
       node.style.transform = `translate3d(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px, 0) translate(-50%, -50%) scale(${projection.scale.toFixed(3)})`;
@@ -22187,13 +22188,12 @@ function App({ onReady }) {
       node.style.transform = `translate3d(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px, 0) translate(-50%, -50%)`;
     }
   }, [
-    desktopHorizontalShooterActive,
+    horizontalShooterActive,
     getShooterArenaPoint,
     getShooterArenaSize,
+    projectHorizontalShooterPoint,
     selectedMapIsPseudo3D,
-    selectedMapIsThreeDLab,
     selectedPseudo3DSettings,
-    selectedThreeDLabSettings,
   ]);
 
   useLayoutEffect(() => {
@@ -22323,169 +22323,13 @@ function App({ onReady }) {
     syncShooterActiveTarget(shooterTargetsRef.current, true);
   }, [applyShooterTargetTransform, flashStage, playShooterSound, syncShooterActiveTarget]);
 
-  const playThreeDLabGuitarSlash = useCallback((target) => {
-    const settings = selectedThreeDLabSettings;
-    const totalDuration = settings.guitarDashDuration
-      + settings.guitarSlashDuration
-      + settings.guitarReturnDuration;
-    const impactDelay = Math.round(settings.guitarDashDuration + settings.guitarSlashDuration * 0.46);
-    const arena = shooterArenaRef.current;
-    const motion = shooterGuitarMotionRef.current;
-    const player = shooterGuitarPlayerRef.current;
-    const arenaSize = getShooterArenaSize();
-    if (!arena || !motion || !player || !arenaSize.width || !arenaSize.height) return impactDelay;
-
-    const targetY = getShooterTargetYAt(target, gameTimeRef.current);
-    const projection = projectGameplayPointToThreeDLab(
-      { x: target.x, y: targetY },
-      settings,
-      arenaSize,
-    );
-    const arenaRect = arena.getBoundingClientRect();
-    const playerRect = player.getBoundingClientRect();
-    const renderedScaleX = arenaRect.width / arenaSize.width;
-    const renderedScaleY = arenaRect.height / arenaSize.height;
-    const playerCenterX = (
-      playerRect.left - arenaRect.left + playerRect.width * 0.5
-    ) / renderedScaleX;
-    const playerCenterY = (
-      playerRect.top - arenaRect.top + playerRect.height * 0.66
-    ) / renderedScaleY;
-    const dashX = projection.screenX - playerCenterX;
-    const dashY = projection.screenY - playerCenterY;
-    const side = dashX < 0 ? -1 : 1;
-    const approachRotation = clampValue(dashX * 0.08, -24, 24);
-    const slashRotation = settings.slashRotation * side;
-    const slashOffsetX = side * settings.slashArcSize * 0.34;
-    const slashOffsetY = -settings.slashArcSize * 0.42;
-    const dashOffset = settings.guitarDashDuration / totalDuration;
-    const slashPeakOffset = (settings.guitarDashDuration + settings.guitarSlashDuration * 0.58) / totalDuration;
-    const slashEndOffset = (settings.guitarDashDuration + settings.guitarSlashDuration) / totalDuration;
-    const idleScale = settings.guitarIdleScale;
-
-    motion.getAnimations?.().forEach((animation) => animation.cancel());
-    motion.classList.add("threeDLabGuitarMotion--attacking");
-    const attackAnimation = motion.animate([
-      {
-        offset: 0,
-        transform: `translate3d(0, 0, 0) rotate(0deg) scale(${idleScale})`,
-      },
-      {
-        easing: "cubic-bezier(0.12, 0.9, 0.24, 1)",
-        offset: dashOffset,
-        transform: `translate3d(${(dashX * 0.9).toFixed(2)}px, ${(dashY * 0.9).toFixed(2)}px, 0) rotate(${approachRotation.toFixed(2)}deg) scale(${(idleScale * 1.06).toFixed(3)})`,
-      },
-      {
-        easing: "cubic-bezier(0.14, 0.82, 0.28, 1)",
-        offset: slashPeakOffset,
-        transform: `translate3d(${(dashX + slashOffsetX).toFixed(2)}px, ${(dashY + slashOffsetY).toFixed(2)}px, 0) rotate(${slashRotation.toFixed(2)}deg) scale(${(idleScale * 1.12).toFixed(3)})`,
-      },
-      {
-        easing: "cubic-bezier(0.42, 0, 0.58, 1)",
-        offset: slashEndOffset,
-        transform: `translate3d(${(dashX - slashOffsetX * 0.45).toFixed(2)}px, ${(dashY - slashOffsetY * 0.18).toFixed(2)}px, 0) rotate(${(slashRotation * 0.28).toFixed(2)}deg) scale(${(idleScale * 1.02).toFixed(3)})`,
-      },
-      {
-        easing: "cubic-bezier(0.16, 0.72, 0.2, 1)",
-        offset: 1,
-        transform: `translate3d(0, 0, 0) rotate(0deg) scale(${idleScale})`,
-      },
-    ], {
-      duration: totalDuration,
-      fill: "none",
-    });
-    attackAnimation.finished
-      .catch(() => {})
-      .finally(() => motion.classList.remove("threeDLabGuitarMotion--attacking"));
-
-    const asset = motion.querySelector(".guitarPlayerAsset");
-    const afterimageCount = settings.afterimageStrength > 0.54 ? 2 : settings.afterimageStrength > 0.08 ? 1 : 0;
-    if (asset && afterimageCount > 0) {
-      const assetRect = asset.getBoundingClientRect();
-      for (let index = 0; index < afterimageCount; index += 1) {
-        const afterimage = document.createElement("span");
-        afterimage.className = "threeDLabAfterimage";
-        afterimage.style.left = `${(assetRect.left - arenaRect.left) / renderedScaleX}px`;
-        afterimage.style.top = `${(assetRect.top - arenaRect.top) / renderedScaleY}px`;
-        afterimage.style.width = `${assetRect.width / renderedScaleX}px`;
-        afterimage.style.height = `${assetRect.height / renderedScaleY}px`;
-        afterimage.style.opacity = String(0.16 + settings.afterimageStrength * 0.28);
-        const clone = asset.cloneNode(true);
-        clone.removeAttribute("class");
-        clone.className = "threeDLabAfterimageAsset";
-        clone.setAttribute("aria-hidden", "true");
-        afterimage.appendChild(clone);
-        arena.appendChild(afterimage);
-        const afterimageDelay = index * 24;
-        const afterimageDuration = Math.min(120, settings.guitarDashDuration + 38 + index * 14);
-        const afterimageAnimation = afterimage.animate([
-          { opacity: 0, transform: `translate3d(0, 0, 0) rotate(0deg) scale(${idleScale})` },
-          { opacity: 0.12 + settings.afterimageStrength * 0.3, offset: 0.18 },
-          {
-            opacity: 0,
-            transform: `translate3d(${(dashX * (0.58 + index * 0.14)).toFixed(2)}px, ${(dashY * (0.58 + index * 0.14)).toFixed(2)}px, 0) rotate(${(approachRotation + side * 10).toFixed(2)}deg) scale(${(idleScale * 1.05).toFixed(3)})`,
-          },
-        ], {
-          delay: afterimageDelay,
-          duration: afterimageDuration,
-          easing: "cubic-bezier(0.14, 0.88, 0.2, 1)",
-          fill: "both",
-        });
-        afterimageAnimation.finished.catch(() => {}).finally(() => afterimage.remove());
-      }
-    }
-
-    window.setTimeout(() => {
-      if (!arena.isConnected) return;
-      const slash = document.createElement("span");
-      slash.className = "threeDLabSlashArc";
-      slash.style.left = `${projection.screenX}px`;
-      slash.style.top = `${projection.screenY}px`;
-      slash.style.setProperty("--three-lab-slash-size", `${74 + settings.slashArcSize * 1.45}px`);
-      slash.style.setProperty("--three-lab-slash-rotation", `${slashRotation * 0.42}deg`);
-      slash.style.setProperty("--three-lab-slash-duration", `${Math.max(80, settings.guitarSlashDuration)}ms`);
-
-      const particles = document.createElement("span");
-      particles.className = "threeDLabHitParticles";
-      particles.style.left = `${projection.screenX}px`;
-      particles.style.top = `${projection.screenY}px`;
-      const particleCount = Math.round(3 + settings.hitParticleStrength * 9);
-      for (let index = 0; index < particleCount; index += 1) {
-        const particle = document.createElement("i");
-        const angle = (Math.PI * 2 * index) / particleCount + (index % 2) * 0.2;
-        const distance = 22 + settings.hitParticleStrength * 42 * (0.62 + (index % 3) * 0.19);
-        particle.style.setProperty("--particle-x", `${Math.cos(angle) * distance}px`);
-        particle.style.setProperty("--particle-y", `${Math.sin(angle) * distance}px`);
-        particle.style.setProperty("--particle-delay", `${(index % 4) * 8}ms`);
-        particles.appendChild(particle);
-      }
-      arena.appendChild(slash);
-      arena.appendChild(particles);
-      window.setTimeout(() => slash.remove(), Math.max(170, settings.guitarSlashDuration + 70));
-      window.setTimeout(() => particles.remove(), 280);
-
-      const scene = arena.querySelector(".threeDLabScene");
-      const shake = settings.cameraShakeStrength * 5.2;
-      if (scene && shake > 0.1) {
-        scene.animate([
-          { transform: "translate3d(0, 0, 0)" },
-          { transform: `translate3d(${shake.toFixed(2)}px, ${(-shake * 0.4).toFixed(2)}px, 0)` },
-          { transform: `translate3d(${(-shake * 0.72).toFixed(2)}px, ${(shake * 0.3).toFixed(2)}px, 0)` },
-          { transform: "translate3d(0, 0, 0)" },
-        ], { duration: 110, easing: "ease-out" });
-      }
-    }, impactDelay);
-
-    return impactDelay;
-  }, [getShooterArenaSize, selectedThreeDLabSettings]);
-
   const playDesktopHorizontalGuitarSlash = useCallback((target) => {
     const arena = shooterArenaRef.current;
     const motion = shooterGuitarMotionRef.current;
     const player = shooterGuitarPlayerRef.current;
     const arenaSize = getShooterArenaSize();
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-    const projection = projectGameplayPointToThreeDLabHorizontal(target, arenaSize);
+    const projection = projectHorizontalShooterPoint(target, arenaSize);
     return runDesktopHorizontalGuitarSlash({
       arena,
       arenaSize,
@@ -22498,7 +22342,7 @@ function App({ onReady }) {
       },
       reducedMotion,
     });
-  }, [getShooterArenaSize]);
+  }, [getShooterArenaSize, projectHorizontalShooterPoint]);
 
   const resolveShooterSlashHit = useCallback((target) => {
     if (!target || target.defeated || target.hitboxActive === false) return false;
@@ -22539,33 +22383,27 @@ function App({ onReady }) {
     });
     setShooterTargets([...shooterTargetsRef.current]);
     syncShooterActiveTarget(shooterTargetsRef.current, true);
-    const impactDelay = desktopHorizontalShooterActive
-      ? playDesktopHorizontalGuitarSlash({ ...target, progress: target.progress, y: targetY })
-      : playThreeDLabGuitarSlash({ ...target, y: targetY });
-    if (desktopHorizontalShooterActive) {
-      const previousTimer = desktopHorizontalImpactTimersRef.current.get(target.id);
-      if (previousTimer != null) window.clearTimeout(previousTimer);
-      const impactTimer = window.setTimeout(() => {
-        desktopHorizontalImpactTimersRef.current.delete(target.id);
-        completeShooterTargetImpact(target.id, { x: target.x, y: targetY });
-      }, impactDelay);
-      desktopHorizontalImpactTimersRef.current.set(target.id, impactTimer);
-    } else {
-      window.setTimeout(() => {
-        completeShooterTargetImpact(target.id, { x: target.x, y: targetY });
-      }, impactDelay);
-    }
+    const impactDelay = playDesktopHorizontalGuitarSlash({
+      ...target,
+      progress: target.progress,
+      y: targetY,
+    });
+    const previousTimer = desktopHorizontalImpactTimersRef.current.get(target.id);
+    if (previousTimer != null) window.clearTimeout(previousTimer);
+    const impactTimer = window.setTimeout(() => {
+      desktopHorizontalImpactTimersRef.current.delete(target.id);
+      completeShooterTargetImpact(target.id, { x: target.x, y: targetY });
+    }, impactDelay);
+    desktopHorizontalImpactTimersRef.current.set(target.id, impactTimer);
     return true;
   }, [
     completeShooterTargetImpact,
-    desktopHorizontalShooterActive,
     playDesktopHorizontalGuitarSlash,
-    playThreeDLabGuitarSlash,
     syncShooterActiveTarget,
   ]);
 
   useEffect(() => {
-    if (!desktopHorizontalShooterActive) return undefined;
+    if (!horizontalShooterActive) return undefined;
     return () => {
       cleanupDesktopHorizontalAttack(shooterArenaRef.current, shooterGuitarMotionRef.current);
       desktopHorizontalImpactTimersRef.current.forEach((timerId, targetId) => {
@@ -22576,7 +22414,7 @@ function App({ onReady }) {
       shooterGuitarBaseMetricsRef.current = null;
       lastShooterGuitarAimRef.current = { targetId: null, angle: null };
     };
-  }, [completeShooterTargetImpact, desktopHorizontalShooterActive]);
+  }, [completeShooterTargetImpact, horizontalShooterActive]);
 
   const fireProjectile = useCallback((target, noteName) => {
     const arenaSize = refreshShooterArenaSize();
@@ -24192,12 +24030,14 @@ function App({ onReady }) {
   }, [ensureAudioReady, loadMetronomeSamples, setState, startBackingScheduler, startMetronomeAudioScheduler, warmCoreAudioEngine]);
 
   const portraitOnlyModeActive = isPortraitOnlyMode(appMode, selectedCategoryId)
-    && viewportProfile.isMobileSurface;
-  const portraitOrientationGuardActive = shouldGuardPortraitOrientation(
-    appMode,
-    viewportProfile,
-    selectedCategoryId,
-  );
+    && viewportProfile.isMobileSurface
+    && !mobileLandscapeShooterSelected;
+  const portraitOrientationGuardActive = !mobileLandscapeShooterSelected
+    && shouldGuardPortraitOrientation(
+      appMode,
+      viewportProfile,
+      selectedCategoryId,
+    );
   useEffect(() => {
     if (!portraitOnlyModeActive || typeof window === "undefined") return undefined;
     const screenOrientation = window.screen?.orientation;
@@ -24218,6 +24058,40 @@ function App({ onReady }) {
       }
     };
   }, [portraitOnlyModeActive]);
+
+  const requestMobileShooterLandscape = useCallback(async () => {
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+    setShooterLandscapeHint("휴대폰을 가로로 돌려주세요.");
+    try {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+        shooterLandscapeFullscreenRef.current = true;
+      }
+      const orientation = window.screen?.orientation;
+      if (orientation?.lock) await orientation.lock("landscape");
+    } catch {
+      setShooterLandscapeHint("회전 잠금을 풀고 휴대폰을 직접 가로로 돌려주세요.");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mobileLandscapeShooterSelected || typeof window === "undefined") return undefined;
+    try {
+      window.screen?.orientation?.unlock?.();
+    } catch {
+      // Orientation unlock is optional in mobile browsers.
+    }
+    if (
+      shooterLandscapeFullscreenRef.current
+      && typeof document !== "undefined"
+      && document.fullscreenElement === document.documentElement
+    ) {
+      document.exitFullscreen?.().catch(() => {});
+    }
+    shooterLandscapeFullscreenRef.current = false;
+    setShooterLandscapeHint("");
+    return undefined;
+  }, [mobileLandscapeShooterSelected]);
 
   const handleShooterArenaClick = useCallback((event) => {
     if (appModeRef.current !== APP_MODES.SHOOTER || gameStateRef.current !== GAME_STATES.PLAYING) return;
@@ -25766,6 +25640,35 @@ function App({ onReady }) {
     setState(GAME_STATES.IDLE);
   }, [finalizeShooterRecord, setState, stopBackingScheduler]);
 
+  const returnToPortraitShooterMap = useCallback(() => {
+    stopPracticeSession();
+    const portraitMaps = getShooterMapsForLayout(true, {
+      includeMobileOnly: false,
+      isPortraitLayout: true,
+    }).filter((map) => !map.landscapeOnly);
+    const nextMap = portraitMaps.find((map) => map.id === lastPortraitShooterMapIdRef.current)
+      ?? portraitMaps[0]
+      ?? LAYERED_SHOOTER_MAP_SKINS[0];
+    if (nextMap) queueShooterMapSelection(nextMap, nextMap.id);
+
+    if (typeof window !== "undefined") {
+      try {
+        window.screen?.orientation?.unlock?.();
+      } catch {
+        // Orientation unlock is optional in mobile browsers.
+      }
+    }
+    if (
+      shooterLandscapeFullscreenRef.current
+      && typeof document !== "undefined"
+      && document.fullscreenElement === document.documentElement
+    ) {
+      document.exitFullscreen?.().catch(() => {});
+    }
+    shooterLandscapeFullscreenRef.current = false;
+    setShooterLandscapeHint("");
+  }, [queueShooterMapSelection, stopPracticeSession]);
+
   const changeShooterDifficulty = useCallback((nextDifficulty) => {
     if (gameStateRef.current === GAME_STATES.PLAYING || gameStateRef.current === GAME_STATES.PAUSED) return;
     if (!SHOOTER_DIFFICULTY_OPTIONS.some((option) => option.id === nextDifficulty)) return;
@@ -26196,6 +26099,25 @@ function App({ onReady }) {
       setState(GAME_STATES.IDLE);
     });
   }, [designLabEnabled, requestNavigationCommit, setState, stopMic, syncMetronomeTrackerFromRuntime]);
+
+  const showEtudes = useCallback(() => {
+    const sourceMode = appModeRef.current;
+    requestNavigationCommit({
+      categoryId: selectedCategoryIdRef.current,
+      hash: APP_ROUTES.ETUDES,
+      mode: APP_MODES.ETUDES,
+    }, () => {
+      if (sourceMode === APP_MODES.METRONOME) syncMetronomeTrackerFromRuntime();
+      stopBackingScheduler();
+      stopMic();
+      utilityMenuOpenRef.current = false;
+      setUtilityMenuOpen(false);
+      setStage3StorageOpen(false);
+      appModeRef.current = APP_MODES.ETUDES;
+      setAppMode(APP_MODES.ETUDES);
+      setState(GAME_STATES.IDLE);
+    });
+  }, [requestNavigationCommit, setState, stopBackingScheduler, stopMic, syncMetronomeTrackerFromRuntime]);
 
   const showAudioStudio = useCallback(() => {
     if (!audioStudioEnabled) return;
@@ -29145,7 +29067,9 @@ function App({ onReady }) {
     };
   }, [appMode, closeMiniChordFloatingEditors, miniChordActiveBarIndex, miniChordChordPickerSlot]);
 
-  const contentHeader = appMode === APP_MODES.FRETBOARD_VIEWER
+  const contentHeader = appMode === APP_MODES.ETUDES
+      ? { title: "에튀드 스튜디오", subtitle: "오선보 · TAB으로 연습하는 기타 테크닉" }
+    : appMode === APP_MODES.FRETBOARD_VIEWER
       ? { title: "지판보기", subtitle: "음표와 코드 위치를 빠르게 확인" }
     : appMode === APP_MODES.MINI_CHORD_MAKER
       ? { title: "미니코드 반주", subtitle: `최대 ${MINI_CHORD_MAX_BARS}마디 코드 타임라인` }
@@ -30101,7 +30025,7 @@ function App({ onReady }) {
       aria-hidden={appContentInteractionLocked ? true : undefined}
       className={`app notranslate theme-${appTheme} ${appMode === APP_MODES.MENU ? "menuApp" : ""} ${
         appMode === APP_MODES.MINI_CHORD_MAKER ? "miniChordMakerMode" : ""
-      } ${appMode === APP_MODES.PRACTICE ? "practiceMode" : ""} ${appMode === APP_MODES.METRONOME ? "metronomeMode" : ""} ${appMode === APP_MODES.TUNER ? "tunerMode" : ""} ${appMode === APP_MODES.SHOOTER ? "shooterMode" : ""} ${appMode === APP_MODES.AUDIO_STUDIO ? "audioStudioMode" : ""} ${utilityMenuOpen ? "utilityMenuOpen" : ""} ${isSignalActive ? "signalGlow" : ""} ${viewportClassName} ${landscapePlayFocus ? "landscapePlayFocus" : ""} ${portraitOrientationGuardActive ? "portraitOrientationGuarded" : ""}`}
+      } ${appMode === APP_MODES.PRACTICE ? "practiceMode" : ""} ${appMode === APP_MODES.METRONOME ? "metronomeMode" : ""} ${appMode === APP_MODES.TUNER ? "tunerMode" : ""} ${appMode === APP_MODES.SHOOTER ? "shooterMode" : ""} ${appMode === APP_MODES.AUDIO_STUDIO ? "audioStudioMode" : ""} ${utilityMenuOpen ? "utilityMenuOpen" : ""} ${isSignalActive ? "signalGlow" : ""} ${viewportClassName} ${landscapePlayFocus ? "landscapePlayFocus" : ""} ${mobileLandscapeShooterSelected ? "mobileLandscapeShooterSelected" : ""} ${mobileLandscapeShooterActive ? "mobileLandscapeShooter" : ""} ${portraitOrientationGuardActive ? "portraitOrientationGuarded" : ""}`}
       onClickCapture={handleAppClickCapture}
       onPointerCancelCapture={handleAppPointerCancelCapture}
       onPointerDownCapture={handleAppPointerDownCapture}
@@ -30112,9 +30036,9 @@ function App({ onReady }) {
     >
       {isMobileLayout && [APP_MODES.SHOOTER, APP_MODES.TUNER].includes(appMode) ? <MobilePullToRefresh enabled={!utilityMenuOpen && !helpGuideOpen && !mapEditor.enabled && !shooterRecordingActive && !appContentInteractionLocked && (appMode !== APP_MODES.SHOOTER || (gameState !== GAME_STATES.PLAYING && shooterCountInLabel === null))} /> : null}
       {appMode === APP_MODES.SHOOTER && !mapEditor.enabled ? (
-        <ShooterRecording arenaRef={shooterArenaRef} entryTarget={shooterRecordingEntryTarget} mobile={isMobileLayout} ensureMic={startMic} onActiveChange={setShooterRecordingActive} />
+        <ShooterRecording arenaRef={shooterArenaRef} entryTarget={shooterRecordingEntryTarget} landscape={mobileLandscapeShooterActive} mobile={isMobileLayout} ensureMic={startMic} onActiveChange={setShooterRecordingActive} />
       ) : null}
-      {appMode === APP_MODES.SHOOTER && typeof document !== "undefined" ? createPortal(
+      {appMode === APP_MODES.SHOOTER && !mobileLandscapeShooterActive && typeof document !== "undefined" ? createPortal(
         <ShooterPitchMonitor mobile={isMobileLayout} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} />,
         shooterRecordingActive && isMobileLayout ? (shooterArenaRef.current?.closest('.shooterPanel') ?? document.body) : document.body,
       ) : null}
@@ -30131,7 +30055,7 @@ function App({ onReady }) {
         active={metronomeFlashEnabled && metronomeFlashPulse > 0}
         pulseKey={`metronome-global-flash-${metronomeFlashPulse}`}
       />
-      {!shooterRecordingActive && <DesktopSidebarNavigation
+      {isDesktopLayout && !shooterRecordingActive && <DesktopSidebarNavigation
         activeKey={desktopSidebarActiveKey}
         accompanimentControlsDisabled={stage3RecommendedAccompanimentLocked}
         appTheme={appTheme}
@@ -30141,6 +30065,7 @@ function App({ onReady }) {
         getBackingVolumeValue={getBackingVolumeValue}
         handleBackingVolumeInput={handleBackingVolumeInput}
         onOpenAudioStudio={showAudioStudio}
+        onOpenEtudes={showEtudes}
         onOpenFretboard={showFretboardViewer}
         onOpenHelp={() => {
           setHelpGuideOpen(true);
@@ -30215,6 +30140,11 @@ function App({ onReady }) {
               </section>
             ) : null}
             <nav className="utilityMenuList" aria-label="부가 기능 목록">
+              <button className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive" onClick={showEtudes} type="button">
+                <span className="utilityMenuIcon" aria-hidden="true"><Music2 size={19} /></span>
+                <div className="utilityMenuText"><strong className="utilityMenuTitle"><span className="utilityMenuTitleLabel">에튀드 스튜디오</span><span className="etudeProMark">PRO</span></strong><small>오선보 · TAB · 포지션 연결 훈련</small></div>
+                <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
+              </button>
               <button
                 className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
                 onClick={() => showIndependentPracticeCategory("first-position")}
@@ -30467,10 +30397,16 @@ function App({ onReady }) {
       ) : null}
 
       {appMode !== APP_MODES.MENU
+        && !(appMode === APP_MODES.ETUDES && isMobileLayout)
         && !shooterRecordingActive
         && !(appMode === APP_MODES.SHOOTER && mapEditor.enabled)
         && !hideFretboardLandscapeNavigation
-        && <section className="hud">
+        && <MobileNavigationSurface
+          detached={isMobileLayout && !viewportProfile.isLandscape}
+          theme={appTheme}
+          viewportClassName={viewportClassName}
+          locked={appContentInteractionLocked}
+        ><section className="hud">
         <div className="modeSwitch">
           <button
             aria-pressed={appMode === APP_MODES.TUNER}
@@ -30521,7 +30457,9 @@ function App({ onReady }) {
             메뉴
           </button>
         </div>
-      </section>}
+      </section></MobileNavigationSurface>}
+
+      {appMode === APP_MODES.ETUDES ? <EtudeStudio mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer} /> : null}
 
       {isAppModeMounted(APP_MODES.TUNER) ? (
         <Activity mode={getModeActivityState(appMode, APP_MODES.TUNER)}>
@@ -32983,7 +32921,7 @@ function App({ onReady }) {
         <Activity mode={getModeActivityState(appMode, APP_MODES.SHOOTER)}>
         {renderAppMode(APP_MODES.SHOOTER, () => (
         <section
-          className={`shooterPanel ${desktopHorizontalShooterActive ? "shooterPanel--desktopHorizontal" : ""} ${mapEditor.enabled ? "shooterPanel--mapEditorWorkspace" : ""}`}
+          className={`shooterPanel ${horizontalShooterActive ? "shooterPanel--desktopHorizontal" : ""} ${mobileLandscapeShooterActive ? "shooterPanel--mobileLandscape" : ""} ${mapEditor.enabled ? "shooterPanel--mapEditorWorkspace" : ""}`}
           aria-label={mapEditor.enabled ? "맵 스튜디오" : "슈팅게임"}
         >
           <div className="modeHelper shooterHelper">
@@ -33232,7 +33170,9 @@ function App({ onReady }) {
                   </b>
                 </button>
 
-                <div className="shooterRecordingEntrySlot" ref={setShooterRecordingEntryTarget} />
+                {!mobileLandscapeShooterActive ? (
+                  <div className="shooterRecordingEntrySlot" ref={setShooterRecordingEntryTarget} />
+                ) : null}
 
                 <button
                   aria-label={streamRef.current ? "슈팅게임 마이크 켜짐" : "슈팅게임 마이크 켜기"}
@@ -33257,10 +33197,11 @@ function App({ onReady }) {
           ) : null}
 
           <div
-            className={`shooterArena ${shooterRendererMode === SHOOTER_RENDERER_MODES.DESKTOP_PORTRAIT ? "shooterArena--desktopPortrait" : ""} ${desktopHorizontalShooterActive ? "shooterArena--desktopHorizontal" : ""} ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapIsLayered ? "shooterArena--layeredMap" : ""} ${mapEditor.enabled ? "shooterArena--mapEdit" : ""} ${shooterMapRuntimePerformance.reduceEffects ? "shooterArena--mapEffectsReduced" : ""} shooterArena--aura-${selectedAuraEffect.id} shooterArena--floor-${selectedFloorEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""} ${gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER ? "shooterArena--animationsPaused" : ""} ${gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterArena--lobby" : "shooterArena--session"}`}
+            className={`shooterArena ${shooterRendererMode === SHOOTER_RENDERER_MODES.DESKTOP_PORTRAIT ? "shooterArena--desktopPortrait" : ""} ${horizontalShooterActive ? "shooterArena--desktopHorizontal" : ""} ${mobileLandscapeShooterActive ? "shooterArena--mobileLandscape" : ""} ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapIsLayered ? "shooterArena--layeredMap" : ""} ${mapEditor.enabled ? "shooterArena--mapEdit" : ""} ${shooterMapRuntimePerformance.reduceEffects ? "shooterArena--mapEffectsReduced" : ""} shooterArena--aura-${selectedAuraEffect.id} shooterArena--floor-${selectedFloorEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""} ${gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER ? "shooterArena--animationsPaused" : ""} ${gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterArena--lobby" : "shooterArena--session"}`}
             data-shooter-renderer={shooterRendererMode}
             onClick={(event) => {
               if (mapEditor.enabled) return;
+              if (mobileLandscapeShooterSelected && !mobileLandscapeShooterActive) return;
               if (shooterDifficultyMenuOpen) setShooterDifficultyMenuOpen(false);
               if (shooterPlayHelpInfoOpen) setShooterPlayHelpInfoOpen(false);
               handleShooterArenaClick(event);
@@ -33279,7 +33220,6 @@ function App({ onReady }) {
               onCreatureAnchorPointerDown={mapEditor.beginCreatureAnchorGesture}
               onEventSound={playShooterSound}
               onPseudo3DSettingsChange={updateSelectedPseudo3DSettings}
-              onThreeDLabSettingsChange={updateSelectedThreeDLabSettings}
               onStagePointerDown={mapEditor.handleStagePointerDown}
               pseudo3dActive={shooterMapAnimationsActive}
               pseudo3dDeveloper={import.meta.env.DEV && selectedMapIsPseudo3D}
@@ -33287,16 +33227,43 @@ function App({ onReady }) {
               threeDLabActive={shooterMapAnimationsActive}
               threeDLabBattleState={gameState}
               threeDLabDeveloper={import.meta.env.DEV && selectedMapIsThreeDLab}
-              threeDLabHorizontalBattle={desktopHorizontalShooterActive}
-              threeDLabSettings={selectedThreeDLabSettings}
+              threeDLabHorizontalBattle={horizontalShooterActive}
+              threeDLabPreview={mobileLandscapeShooterSelected && !mobileLandscapeShooterActive}
               selectedAssetId={mapEditor.selectedInstanceId}
               skin={selectedMapRenderSkin}
               stage="underlay"
             />
 
-            {desktopHorizontalShooterActive && !mapEditor.enabled ? (
-                <DesktopHorizontalBattleView
-                combo={combo}
+            {mobileLandscapeShooterSelected && !mobileLandscapeShooterActive ? (
+              <section
+                aria-label="가로 전용 맵 안내"
+                className="mobileLandscapeShooterPrompt"
+                role="region"
+              >
+                <span>
+                  <strong>가로 전용 맵</strong>
+                  <small role={shooterLandscapeHint ? "status" : undefined}>
+                    {shooterLandscapeHint || "휴대폰을 가로로 돌려주세요."}
+                  </small>
+                </span>
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    requestMobileShooterLandscape();
+                  }}
+                  type="button"
+                >
+                  <RotateCw aria-hidden="true" size={15} />
+                  가로로 보기
+                </button>
+              </section>
+            ) : null}
+
+            {horizontalShooterActive && !mapEditor.enabled ? (
+              <DesktopHorizontalBattleView
+                bestScore={shooterRecords.best.score}
+                currentPitch={detectedPitch?.note ?? ""}
+                currentScore={score}
                 difficultyLabel={shooterDifficultyLabel}
                 judgment={gameState === GAME_STATES.PLAYING ? feedback : ""}
                 level={shooterLevel.name.replace("레벨 ", "")}
@@ -33304,11 +33271,39 @@ function App({ onReady }) {
                 lives={shooterLives}
                 maxLives={SHOOTER_MAX_LIVES}
                 mapId={selectedMap.id}
-                score={score}
+                  mobileLandscape={mobileLandscapeShooterActive}
                   targetLabel={shooterGuidePrimaryLabel}
                   targetPitch={shooterGuidePitch ?? ""}
                 waterFlowActive={false}
               />
+            ) : null}
+            {mobileLandscapeShooterActive && !mapEditor.enabled ? (
+              <nav aria-label="가로 전용 맵 이동" className="mobileLandscapeShooterNavigation">
+                <button
+                  aria-label="가로 전용 맵에서 나가기"
+                  className="mobileLandscapeShooterHome"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    showMainMenu();
+                  }}
+                  type="button"
+                >
+                  <House aria-hidden="true" size={20} />
+                  <span>홈</span>
+                </button>
+                <button
+                  aria-label="이전에 사용한 세로 맵으로 돌아가기"
+                  className="mobileLandscapeShooterReturn"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    returnToPortraitShooterMap();
+                  }}
+                  type="button"
+                >
+                  <ChevronLeft aria-hidden="true" size={18} />
+                  <span>돌아가기</span>
+                </button>
+              </nav>
             ) : null}
 
             {!mapEditor.enabled ? (
@@ -33523,7 +33518,7 @@ function App({ onReady }) {
                   </span>
                 ) : null}
                 <div className="shooterEnemyMonsterVisual">
-                  {desktopHorizontalShooterActive && !target.defeated ? (
+                  {horizontalShooterActive && !target.defeated ? (
                     <>
                       <span aria-hidden="true" className="threeDLabEnemySpawnAura" />
                       <span aria-hidden="true" className="threeDLabEnemyReflection" />
@@ -33741,9 +33736,9 @@ function App({ onReady }) {
                   <ShooterEffectLayerMedia layer={layer} />
                 </span>
               ))}
-              {desktopHorizontalShooterActive || !shooterGuitarCabinetActive || shooterGuitarCabinetPhase === SHOOTER_GUITAR_CABINET_PHASES.EJECTED ? (
+              {horizontalShooterActive || !shooterGuitarCabinetActive || shooterGuitarCabinetPhase === SHOOTER_GUITAR_CABINET_PHASES.EJECTED ? (
                 <span
-                  className={`shooterGameplayGuitarHost ${!desktopHorizontalShooterActive && shooterGuitarCabinetActive ? "shooterGameplayGuitarHost--ejected" : ""}`.trim()}
+                  className={`shooterGameplayGuitarHost ${!horizontalShooterActive && shooterGuitarCabinetActive ? "shooterGameplayGuitarHost--ejected" : ""}`.trim()}
                 >
                   <GuitarAssetSvg
                     className="guitarPlayerAsset"
@@ -33757,7 +33752,7 @@ function App({ onReady }) {
                   <img alt="" draggable="false" src={layer.asset} />
                 </span>
               ))}
-              {desktopHorizontalShooterActive || !shooterGuitarCabinetActive || shooterGuitarCabinetPhase === SHOOTER_GUITAR_CABINET_PHASES.EJECTED ? (
+              {horizontalShooterActive || !shooterGuitarCabinetActive || shooterGuitarCabinetPhase === SHOOTER_GUITAR_CABINET_PHASES.EJECTED ? (
                 <span className="guitarPlayerMuzzle" aria-hidden="true" />
               ) : null}
               </div>
@@ -33802,7 +33797,6 @@ function App({ onReady }) {
               onAssetSelect={mapEditor.selectInstance}
               onEventSound={playShooterSound}
               onPseudo3DSettingsChange={updateSelectedPseudo3DSettings}
-              onThreeDLabSettingsChange={updateSelectedThreeDLabSettings}
               onStagePointerDown={mapEditor.handleStagePointerDown}
               pseudo3dActive={shooterMapAnimationsActive}
               pseudo3dDeveloper={import.meta.env.DEV && selectedMapIsPseudo3D}
@@ -33810,14 +33804,13 @@ function App({ onReady }) {
               threeDLabActive={shooterMapAnimationsActive}
               threeDLabBattleState={gameState}
               threeDLabDeveloper={import.meta.env.DEV && selectedMapIsThreeDLab}
-              threeDLabHorizontalBattle={desktopHorizontalShooterActive}
-              threeDLabSettings={selectedThreeDLabSettings}
+              threeDLabHorizontalBattle={horizontalShooterActive}
               selectedAssetId={mapEditor.selectedInstanceId}
               skin={selectedMapRenderSkin}
               stage="overlay"
             />
             {!mapEditor.enabled ? <>
-            {selectedPet.sheetSrc && !desktopHorizontalShooterActive ? (
+            {selectedPet.sheetSrc && !horizontalShooterActive ? (
               <button
                 aria-label={`${selectedPet.label} 위치 이동: 눌러서 드래그`}
                 className="shooterPetCompanion"
@@ -33845,7 +33838,7 @@ function App({ onReady }) {
                 type="button"
               />
             ) : null}
-            {!desktopHorizontalShooterActive ? (
+            {!horizontalShooterActive ? (
               <div className="mobileShooterLives" aria-label={`남은 목숨 ${shooterLives}`}>
                 <span>LIFE {shooterLives}</span>
                 {Array.from({ length: SHOOTER_MAX_LIVES }, (_, index) => (
@@ -33893,7 +33886,7 @@ function App({ onReady }) {
               </div>
             ) : null}
             {gameState !== GAME_STATES.PLAYING && !(isMobileLayout && shooterGuitarPickerOpen) && (
-              <div className={`shooterCenterStatus ${gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterCenterStatus--startMenu" : ""} ${gameState === GAME_STATES.PAUSED ? "shooterCenterStatus--pauseMenu" : ""} ${classNameFromLabel(feedback)} ${gameState === GAME_STATES.GAMEOVER ? "gameOver" : ""}`}>
+              <div className={`shooterCenterStatus ${gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterCenterStatus--startMenu" : ""} ${gameState === GAME_STATES.PAUSED ? "shooterCenterStatus--pauseMenu" : ""} ${classNameFromLabel(feedback)} ${gameState === GAME_STATES.GAMEOVER ? "gameOver" : ""} ${gameState === GAME_STATES.GAMEOVER && horizontalShooterActive ? "desktopHorizontalResultReceipt" : ""}`}>
                 {gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? (
                   <div
                     className={`shooterStartPanel ${mapEditor.available ? "shooterStartPanel--withMapEdit" : ""}`}
@@ -34015,9 +34008,25 @@ function App({ onReady }) {
                           ? "일시정지"
                           : t(feedback)}
                     </strong>
-                    {gameState === GAME_STATES.GAMEOVER && <span></span>}
+                    {gameState === GAME_STATES.GAMEOVER && horizontalShooterActive ? (
+                      <div className="desktopHorizontalGameOverStats" aria-label="가로 슈팅게임 최종 결과">
+                        <span>
+                          <small>SCORE</small>
+                          <b>{score.toLocaleString()}</b>
+                        </span>
+                        <span>
+                          <small>COMBO</small>
+                          <b>{maxCombo}</b>
+                        </span>
+                        <span>
+                          <small>BEST</small>
+                          <b>{Math.max(score, Number(shooterRecords.best.score || 0)).toLocaleString()}</b>
+                        </span>
+                      </div>
+                    ) : null}
+                    {gameState === GAME_STATES.GAMEOVER && !horizontalShooterActive ? <span></span> : null}
                     <button
-                      className="mobileShooterStartButton primary"
+                      className={`mobileShooterStartButton primary ${gameState === GAME_STATES.GAMEOVER && horizontalShooterActive ? "desktopHorizontalRestartNow" : ""}`}
                       onClick={(event) => {
                         event.stopPropagation();
                         startShooter();
@@ -34025,14 +34034,18 @@ function App({ onReady }) {
                       type="button"
                     >
                       <Play size={18} />
-                      {gameState === GAME_STATES.PAUSED ? "계속" : "시작"}
+                      {gameState === GAME_STATES.PAUSED
+                        ? "계속"
+                        : gameState === GAME_STATES.GAMEOVER && horizontalShooterActive
+                          ? "바로 시작"
+                          : "시작"}
                     </button>
-                    {gameState !== GAME_STATES.PAUSED && (
+                    {gameState !== GAME_STATES.PAUSED && !(gameState === GAME_STATES.GAMEOVER && horizontalShooterActive) && (
                       <small className="shooterPlayerSelectedLabel">
                         {selectedGuitar.title}
                       </small>
                     )}
-                    {gameState !== GAME_STATES.PAUSED && (
+                    {gameState !== GAME_STATES.PAUSED && !(gameState === GAME_STATES.GAMEOVER && horizontalShooterActive) && (
                       <button
                         className="mobileShooterStartButton"
                         onClick={(event) => {
@@ -34075,12 +34088,15 @@ function App({ onReady }) {
             </> : null}
           </div>
 
-          {desktopHorizontalShooterActive && !mapEditor.enabled ? (
+          {horizontalShooterActive && !mapEditor.enabled ? (
             <DesktopHorizontalBattleControls
               difficultyLabel={shooterDifficultyLabel}
+              difficultyOptions={SHOOTER_DIFFICULTY_OPTIONS}
+              difficultyValue={shooterDifficulty}
               difficultyLocked={isShooterDifficultyLocked}
               helpLevel={shooterPlayHelpLevel}
               micActive={Boolean(streamRef.current)}
+              mobileLandscape={mobileLandscapeShooterActive}
               onDifficulty={() => {
                 if (isShooterDifficultyLocked) return;
                 const currentIndex = SHOOTER_DIFFICULTY_OPTIONS.findIndex((option) => option.id === shooterDifficulty);
@@ -34088,12 +34104,16 @@ function App({ onReady }) {
                 changeShooterDifficulty(SHOOTER_DIFFICULTY_OPTIONS[nextIndex].id);
               }}
               onHelpChange={setShooterPlayHelpLevel}
+              onDifficultySelect={changeShooterDifficulty}
               onMic={startShooterMic}
+              onPause={gameState === GAME_STATES.PAUSED ? resumeGame : pauseGame}
               onRecords={() => setShowShooterRecords((current) => !current)}
               onSkin={() => setShooterGuitarPickerOpen(true)}
               onSolfege={() => setShooterSolfegeOn((current) => !current)}
               onSound={() => setShooterSoundOn((current) => !current)}
               recordsOpen={showShooterRecords}
+              recordingEntryRef={mobileLandscapeShooterActive ? setShooterRecordingEntryTarget : undefined}
+              paused={gameState === GAME_STATES.PAUSED}
               solfegeOn={shooterSolfegeOn}
               soundOn={shooterSoundOn}
             />
@@ -34361,6 +34381,38 @@ function App({ onReady }) {
                           </span>
                           <strong>{SHOOTER_RANDOM_MAP_OPTION.label}</strong>
                         </button>
+                        {landscapeShooterMapOptions.length > 0 ? (
+                          <div className="shooterMapLandscapeDivider">
+                            <span><i />가로 전용</span>
+                            <small>휴대폰 가로 화면용 맵</small>
+                          </div>
+                        ) : null}
+                        {landscapeShooterMapOptions.map((map) => {
+                          const isSelected = shooterMapPreference === map.id;
+                          const mapStyle = getShooterMapCssVars(map);
+                          const hasMapImage = Boolean(map.pickerPreviewImage ?? map.previewImage ?? map.backgroundImage);
+                          return (
+                            <button
+                              aria-pressed={isSelected}
+                              className={`shooterMapCard shooterMapCard--landscape ${isSelected ? "selected" : ""}`}
+                              key={map.id}
+                              onClick={() => applyShooterMap(map.id)}
+                              type="button"
+                            >
+                              <span className="shooterMapLandscapeBadge">가로</span>
+                              <strong>{map.label}</strong>
+                              <span
+                                className={`shooterMapPreview shooterMapSkin shooterMapSkin--${map.id} ${hasMapImage ? "shooterMapPreview--image" : ""}`}
+                                aria-hidden="true"
+                                style={mapStyle}
+                              >
+                                <i />
+                              </span>
+                              <small>{map.description}</small>
+                              <em>{isSelected ? "선택됨" : "선택"}</em>
+                            </button>
+                          );
+                        })}
                         {developerShooterMapOptions.length > 0 ? (
                           <div className="shooterMapDevDivider">
                             <span><i />DEV</span>

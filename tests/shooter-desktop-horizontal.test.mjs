@@ -14,12 +14,14 @@ import {
   DESKTOP_HORIZONTAL_MAP_BACKDROPS,
   getDesktopHorizontalMapBackdrop,
 } from "../src/shooter/desktopHorizontal/desktopHorizontalMaps.js";
+import { projectGameplayPointToThreeDLabMobileLandscape } from "../src/shooter/threed/threeDLabHorizontalProjection.js";
 
-test("desktop horizontal renderer is isolated to desktop DEV 3D LAB", () => {
+test("wide renderer is isolated to desktop 3D LAB or its mobile landscape mode", () => {
   assert.equal(DESKTOP_HORIZONTAL_SHOOTER_FEATURE.devMapId, "dev-three-d-lab");
   assert.equal(getShooterRendererMode({ devMapActive: true, featureEnabled: true, isMobileLayout: false }), SHOOTER_RENDERER_MODES.DESKTOP_HORIZONTAL);
   assert.equal(getShooterRendererMode({ devMapActive: false, featureEnabled: true, isMobileLayout: false }), SHOOTER_RENDERER_MODES.DESKTOP_PORTRAIT);
   assert.equal(getShooterRendererMode({ devMapActive: true, featureEnabled: true, isMobileLayout: true }), SHOOTER_RENDERER_MODES.MOBILE_VERTICAL);
+  assert.equal(getShooterRendererMode({ devMapActive: true, featureEnabled: true, isMobileLayout: true, mobileLandscapeActive: true }), SHOOTER_RENDERER_MODES.MOBILE_HORIZONTAL);
   assert.equal(getShooterRendererMode({ devMapActive: true, featureEnabled: true, isMobileLayout: false, mapEditorEnabled: true }), SHOOTER_RENDERER_MODES.MAP_EDITOR);
   assert.equal(getShooterRendererMode({ featureEnabled: false, isMobileLayout: false }), SHOOTER_RENDERER_MODES.DESKTOP_PORTRAIT);
 });
@@ -43,6 +45,15 @@ test("lane variation stays inside the desktop playfield", () => {
 
   assert.equal(upper.y, 30);
   assert.equal(lower.y, 72);
+});
+
+test("mobile landscape targets stay in a readable middle-height band", () => {
+  const viewport = { width: 844, height: 390 };
+  const upper = projectGameplayPointToThreeDLabMobileLandscape({ progress: 0.4, x: 18 }, viewport);
+  const lower = projectGameplayPointToThreeDLabMobileLandscape({ progress: 0.4, x: 82 }, viewport);
+
+  assert.equal(upper.screenYPercent, 44);
+  assert.equal(lower.screenYPercent, 56);
 });
 
 test("front target selection follows progress, never pitch or visual lane", () => {
@@ -94,7 +105,12 @@ test("desktop battle CSS is scoped to the dedicated renderer class", async () =>
   assert.match(css, /shooterArena--desktopHorizontal\.shooterArena--layeredMap \.shooterMapSkinStage \{[\s\S]*display: none !important/);
   assert.match(css, /desktopHorizontalMapBackdropImage/);
   assert.match(css, /shooterEnemy--monster \.shooterEnemyMonsterAsset \{[\s\S]*background: transparent !important/);
+  assert.match(css, /mobileLandscapeShooter[\s\S]*shooterEnemy--monster \{[\s\S]*width: calc\(var\(--target-render-size, 86\.4px\) \* 1\.48\) !important;[\s\S]*height: calc\(var\(--target-render-size, 86\.4px\) \* 1\.48\) !important/);
+  assert.match(css, /mobileLandscapeShooter[\s\S]*shooterEnemyPitchLabel \{[\s\S]*font-size: calc\(var\(--target-label-font-size, 13px\) \* 1\.2\) !important/);
+  assert.match(css, /desktopHorizontalSelectControl select \{[\s\S]*color: transparent !important;[\s\S]*opacity: 0 !important/);
   assert.match(componentSource, /aria-live="polite"/);
+  assert.match(componentSource, /<HudItem label="BEST" meta="HIGH SCORE">\{Number\(bestScore \|\| 0\)\.toLocaleString\(\)\}<\/HudItem>/);
+  assert.doesNotMatch(componentSource, /<HudItem label="(?:SCORE|COMBO)"/);
   assert.doesNotMatch(componentSource, /MONSTER FLOW|DEV · HORIZONTAL BATTLE/);
   assert.match(componentSource, /data-desktop-map=\{mapBackdrop\.id\}/);
   assert.equal(mapSource.match(/\/assets\/maps\/desktop-horizontal\//g)?.length, 4);
@@ -103,7 +119,8 @@ test("desktop battle CSS is scoped to the dedicated renderer class", async () =>
   assert.equal(componentSource.match(/desktopHorizontalWaveLayer--/g)?.length, 3);
   assert.doesNotMatch(componentSource, /requestAnimationFrame|setInterval/);
   assert.match(appSource, /devMapActive: selectedMapIsThreeDLab/);
-  assert.match(appSource, /threeDLabHorizontalBattle=\{desktopHorizontalShooterActive\}/);
+  assert.match(appSource, /const horizontalShooterActive = desktopHorizontalShooterActive[\s\S]*SHOOTER_RENDERER_MODES\.MOBILE_HORIZONTAL/);
+  assert.match(appSource, /threeDLabHorizontalBattle=\{horizontalShooterActive\}/);
   assert.match(appSource, /waterFlowActive=\{false\}/);
   assert.match(appSource, /mapId=\{selectedMap\.id\}/);
   assert.match(css, /@keyframes desktopHorizontalWaveFar/);
@@ -116,6 +133,35 @@ test("desktop battle CSS is scoped to the dedicated renderer class", async () =>
   assert.match(appSource, /const desktopHorizontalClickAttackActive = import\.meta\.env\.DEV && desktopHorizontalShooterActive/);
   assert.match(appSource, /data-click-attack=\{desktopHorizontalClickAttackActive/);
   assert.match(appSource, /detectorReady = shooterHitboxDebugEnabled[\s\S]*\|\| desktopHorizontalClickAttackActive/);
-  assert.match(appSource, /desktopHorizontalShooterActive \|\| !shooterGuitarCabinetActive/);
+  assert.match(appSource, /horizontalShooterActive \|\| !shooterGuitarCabinetActive/);
+  assert.match(appSource, /<ShootingMapRenderer[\s\S]*threeDLabPreview=\{mobileLandscapeShooterSelected && !mobileLandscapeShooterActive\}[\s\S]*className="mobileLandscapeShooterPrompt"/);
+  assert.match(appSource, /className="mobileLandscapeShooterHome"/);
+  assert.match(appSource, /className="mobileLandscapeShooterReturn"[\s\S]*returnToPortraitShooterMap\(\)[\s\S]*돌아가기/);
+  assert.match(appSource, /lastPortraitShooterMapIdRef[\s\S]*selectedMap\.landscapeOnly[\s\S]*lastPortraitShooterMapIdRef\.current = selectedMap\.id/);
+  assert.match(appSource, /const returnToPortraitShooterMap = useCallback[\s\S]*orientation\?\.unlock[\s\S]*exitFullscreen/);
+  assert.match(componentSource, /className="shooterRecordingEntrySlot shooterRecordingEntrySlot--landscapeControl"/);
+  assert.match(appSource, /appMode === APP_MODES\.SHOOTER && !mobileLandscapeShooterActive && typeof document !== "undefined" \? createPortal\([\s\S]*<ShooterPitchMonitor/);
+  assert.match(appSource, /className="desktopHorizontalGameOverStats"[\s\S]*SCORE[\s\S]*score\.toLocaleString\(\)[\s\S]*COMBO[\s\S]*maxCombo/);
+  assert.match(appSource, /desktopHorizontalRestartNow[\s\S]*바로 시작/);
+  assert.match(css, /main\.app\.app\.app\.mobileLandscapeShooter/);
+  assert.match(css, /mobileLandscapeShooter \.desktopHorizontalBattleControls \{[\s\S]*top: calc\(env\(safe-area-inset-top\) \+ 6px\)[\s\S]*bottom: auto[\s\S]*grid-template-columns: minmax\(126px, 1\.1fr\)[\s\S]*minmax\(82px, 0\.7fr\)/);
+  assert.match(componentSource, /mobileLandscape \? \([\s\S]*label="SIGNAL"[\s\S]*currentPitch/);
+  assert.match(componentSource, /!mobileLandscape \? <button onClick=\{onSkin\}/);
+  assert.match(componentSource, /!mobileLandscape \? <button aria-pressed=\{soundOn\}/);
+  assert.doesNotMatch(componentSource, /desktopHorizontalPauseButton/);
+  assert.match(componentSource, /desktopHorizontalSelectControl[\s\S]*aria-label="난이도 선택"/);
+  assert.match(componentSource, /desktopHorizontalScorePair[\s\S]*BEST[\s\S]*현재/);
+  assert.match(css, /mobileLandscapeShooter[\s\S]*shooterGuitarPickerList--filtered \.shooterGuitarPickerGrid \{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\) !important/);
+  assert.match(css, /mobileLandscapeShooter[\s\S]*shooterEffectSetPicker \{[\s\S]*grid-template-columns: minmax\(0, 1\.35fr\) minmax\(210px, 0\.8fr\) !important/);
+  assert.match(css, /shooterEffectSetTrack,[\s\S]*shooterEffectStandaloneTrack[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\) !important/);
+  assert.match(css, /desktopLayout \.shooterPanel--desktopHorizontal:not\(\.shooterPanel--mapEditorWorkspace\)[\s\S]*> \.desktopHorizontalBattleControls \{[\s\S]*position: absolute[\s\S]*top: 8px[\s\S]*grid-template-columns: repeat\(7, minmax\(0, 1fr\)\)/);
+  assert.match(css, /mobileLandscapeShooterSelected:not\(\.mobileLandscapeShooter\)[\s\S]*background: #0a0a0a !important/);
+  assert.match(css, /shooterArena > \.mobileLandscapeShooterPrompt \{[\s\S]*position: absolute[\s\S]*bottom: 14px[\s\S]*pointer-events: none/);
+  assert.match(css, /shooterArena > \.mobileLandscapeShooterPrompt button \{[\s\S]*pointer-events: auto/);
+  assert.match(css, /mobileLandscapeShooter \.desktopHorizontalBattleHud \{[\s\S]*background: transparent;[\s\S]*box-shadow: none/);
+  assert.match(css, /desktopHorizontalResultReceipt[\s\S]*PLAY RECORD · RESULT/);
+  assert.match(css, /desktopHorizontalResultReceipt \.desktopHorizontalRestartNow[\s\S]*visibility: visible !important/);
+  assert.match(css, /shooterRecordingEntrySlot--landscapeControl \{[\s\S]*width: 100%;[\s\S]*height: 40px/);
+  assert.match(css, /shooterRecordingEntrySlot--landscapeControl > \.shooterRecordingHudButton \{[\s\S]*width: 100% !important[\s\S]*height: 100% !important/);
   assert.doesNotMatch(css, /@media \(max-width: 680px\)[\s\S]*shooterArena--desktopHorizontal/);
 });

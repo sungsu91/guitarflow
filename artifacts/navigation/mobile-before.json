@@ -1,0 +1,667 @@
+[
+  {
+    "name": "메트로놈",
+    "scroll": 0,
+    "width": 390,
+    "styles": [
+      {
+        "s": "main.app",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "radial-gradient(circle at 50% 0%, rgba(255, 248, 244, 0.48), rgba(0, 0, 0, 0) 34%) repeat scroll 0% 0% / auto padding-box border-box, rgba(0, 0, 0, 0) linear-gradient(rgb(248, 241, 235) 0%, rgb(234, 216, 207) 100%) repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "box-shadow 0.14s",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".desktopSidebar",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".desktopSidebarNavItem",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "750 16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(36, 40, 44)",
+        "background": "linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.22)) repeat scroll 0% 0% / auto padding-box border-box, rgb(244, 239, 228) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "transform 0.14s, border-color 0.14s, background 0.14s, box-shadow 0.14s, color 0.14s",
+        "animation": "none",
+        "contain": "none",
+        "position": "relative"
+      },
+      {
+        "s": ".desktopSidebarLabel",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "750 16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(36, 40, 44)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".hud",
+        "rect": {
+          "x": 10,
+          "y": 6,
+          "width": 0,
+          "height": 0,
+          "top": 6,
+          "right": 10,
+          "bottom": 6,
+          "left": 10
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".modeSwitch",
+        "rect": {
+          "x": 10,
+          "y": 756,
+          "width": 370,
+          "height": 78,
+          "top": 756,
+          "right": 380,
+          "bottom": 834,
+          "left": 10
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "radial-gradient(circle at 50% 0%, rgba(255, 250, 248, 0.72), rgba(0, 0, 0, 0) 48%) repeat scroll 0% 0% / auto padding-box border-box, rgba(0, 0, 0, 0) linear-gradient(rgba(247, 235, 231, 0.98), rgba(233, 211, 205, 0.94)) repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "matrix(1, 0, 0, 1, -185, 0)",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "fixed"
+      }
+    ]
+  },
+  {
+    "name": "슈팅게임",
+    "scroll": 0,
+    "width": 390,
+    "styles": [
+      {
+        "s": "main.app",
+        "rect": {
+          "x": 0.296875,
+          "y": 0,
+          "width": 389.3991394042969,
+          "height": 844,
+          "top": 0,
+          "right": 389.6960144042969,
+          "bottom": 844,
+          "left": 0.296875
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "rgb(2, 5, 3) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "matrix(0.905579, 0, 0, 0.905579, 0, 0)",
+        "transition": "box-shadow 0.14s",
+        "animation": "none",
+        "contain": "none",
+        "position": "fixed"
+      },
+      {
+        "s": ".desktopSidebar",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".desktopSidebarNavItem",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "750 16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(36, 40, 44)",
+        "background": "linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.22)) repeat scroll 0% 0% / auto padding-box border-box, rgb(244, 239, 228) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "transform 0.14s, border-color 0.14s, background 0.14s, box-shadow 0.14s, color 0.14s",
+        "animation": "none",
+        "contain": "none",
+        "position": "relative"
+      },
+      {
+        "s": ".desktopSidebarLabel",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "750 16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(36, 40, 44)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".hud",
+        "rect": {
+          "x": 0.296875,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0.296875,
+          "bottom": 0,
+          "left": 0.296875
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "linear-gradient(rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.16) 46%, rgba(158, 124, 61, 0.035)) repeat scroll 0% 0% / auto padding-box border-box, rgb(248, 245, 238) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".modeSwitch",
+        "rect": {
+          "x": 9.996438026428223,
+          "y": 756.0103149414062,
+          "width": 370.0000305175781,
+          "height": 78,
+          "top": 756.0103149414062,
+          "right": 379.99646854400635,
+          "bottom": 834.0103149414062,
+          "left": 9.996438026428223
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "radial-gradient(circle at 50% 0%, rgba(255, 250, 248, 0.72), rgba(0, 0, 0, 0) 48%) repeat scroll 0% 0% / auto padding-box border-box, rgba(0, 0, 0, 0) linear-gradient(rgba(247, 235, 231, 0.98), rgba(233, 211, 205, 0.94)) repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "matrix(1.10427, 0, 0, 1.10427, -185, 0)",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "fixed"
+      }
+    ]
+  },
+  {
+    "name": "지판 보기",
+    "scroll": 0,
+    "width": 390,
+    "styles": [
+      {
+        "s": "main.app",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 2442,
+          "top": 0,
+          "right": 390,
+          "bottom": 2442,
+          "left": 0
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "radial-gradient(circle at 50% 0%, rgba(255, 248, 244, 0.48), rgba(0, 0, 0, 0) 34%) repeat scroll 0% 0% / auto padding-box border-box, rgba(0, 0, 0, 0) linear-gradient(rgb(248, 241, 235) 0%, rgb(234, 216, 207) 100%) repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "box-shadow 0.14s",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".desktopSidebar",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".desktopSidebarNavItem",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "750 16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(36, 40, 44)",
+        "background": "linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.22)) repeat scroll 0% 0% / auto padding-box border-box, rgb(244, 239, 228) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "transform 0.14s, border-color 0.14s, background 0.14s, box-shadow 0.14s, color 0.14s",
+        "animation": "none",
+        "contain": "none",
+        "position": "relative"
+      },
+      {
+        "s": ".desktopSidebarLabel",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "750 16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(36, 40, 44)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".hud",
+        "rect": {
+          "x": 10,
+          "y": 6,
+          "width": 370,
+          "height": 8,
+          "top": 6,
+          "right": 380,
+          "bottom": 14,
+          "left": 10
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "linear-gradient(rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.16) 46%, rgba(158, 124, 61, 0.035)) repeat scroll 0% 0% / auto padding-box border-box, rgb(248, 245, 238) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".modeSwitch",
+        "rect": {
+          "x": 10,
+          "y": 756,
+          "width": 370,
+          "height": 78,
+          "top": 756,
+          "right": 380,
+          "bottom": 834,
+          "left": 10
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "radial-gradient(circle at 50% 0%, rgba(255, 250, 248, 0.72), rgba(0, 0, 0, 0) 48%) repeat scroll 0% 0% / auto padding-box border-box, rgba(0, 0, 0, 0) linear-gradient(rgba(247, 235, 231, 0.98), rgba(233, 211, 205, 0.94)) repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "matrix(1, 0, 0, 1, -185, 0)",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "fixed"
+      }
+    ]
+  },
+  {
+    "name": "튜너",
+    "scroll": 0,
+    "width": 390,
+    "styles": [
+      {
+        "s": "main.app",
+        "rect": {
+          "x": 0.296875,
+          "y": 0,
+          "width": 389.3991394042969,
+          "height": 844,
+          "top": 0,
+          "right": 389.6960144042969,
+          "bottom": 844,
+          "left": 0.296875
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "radial-gradient(circle at 50% 0%, rgba(255, 248, 244, 0.48), rgba(0, 0, 0, 0) 34%) repeat scroll 0% 0% / auto padding-box border-box, rgba(0, 0, 0, 0) linear-gradient(rgb(248, 241, 235) 0%, rgb(234, 216, 207) 100%) repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "matrix(0.905579, 0, 0, 0.905579, 0, 0)",
+        "transition": "box-shadow 0.14s",
+        "animation": "none",
+        "contain": "none",
+        "position": "fixed"
+      },
+      {
+        "s": ".desktopSidebar",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".desktopSidebarNavItem",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "750 16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(36, 40, 44)",
+        "background": "linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.22)) repeat scroll 0% 0% / auto padding-box border-box, rgb(244, 239, 228) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "transform 0.14s, border-color 0.14s, background 0.14s, box-shadow 0.14s, color 0.14s",
+        "animation": "none",
+        "contain": "none",
+        "position": "relative"
+      },
+      {
+        "s": ".desktopSidebarLabel",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "750 16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(36, 40, 44)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".hud",
+        "rect": {
+          "x": 9.352668762207031,
+          "y": 5.433476448059082,
+          "width": 371.2875671386719,
+          "height": 7.244634628295898,
+          "top": 5.433476448059082,
+          "right": 380.6402359008789,
+          "bottom": 12.67811107635498,
+          "left": 9.352668762207031
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "linear-gradient(rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.16) 46%, rgba(158, 124, 61, 0.035)) repeat scroll 0% 0% / auto padding-box border-box, rgb(248, 245, 238) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".modeSwitch",
+        "rect": {
+          "x": 9.996438026428223,
+          "y": 756.0103149414062,
+          "width": 370.0000305175781,
+          "height": 78,
+          "top": 756.0103149414062,
+          "right": 379.99646854400635,
+          "bottom": 834.0103149414062,
+          "left": 9.996438026428223
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "radial-gradient(circle at 50% 0%, rgba(255, 250, 248, 0.72), rgba(0, 0, 0, 0) 48%) repeat scroll 0% 0% / auto padding-box border-box, rgba(0, 0, 0, 0) linear-gradient(rgba(247, 235, 231, 0.98), rgba(233, 211, 205, 0.94)) repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "matrix(1.10427, 0, 0, 1.10427, -185, 0)",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "fixed"
+      }
+    ]
+  },
+  {
+    "name": "메트로놈",
+    "scroll": 0,
+    "width": 390,
+    "styles": [
+      {
+        "s": "main.app",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "top": 0,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "radial-gradient(circle at 50% 0%, rgba(255, 248, 244, 0.48), rgba(0, 0, 0, 0) 34%) repeat scroll 0% 0% / auto padding-box border-box, rgba(0, 0, 0, 0) linear-gradient(rgb(248, 241, 235) 0%, rgb(234, 216, 207) 100%) repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "box-shadow 0.14s",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".desktopSidebar",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".desktopSidebarNavItem",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "750 16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(36, 40, 44)",
+        "background": "linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.22)) repeat scroll 0% 0% / auto padding-box border-box, rgb(244, 239, 228) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "transform 0.14s, border-color 0.14s, background 0.14s, box-shadow 0.14s, color 0.14s",
+        "animation": "none",
+        "contain": "none",
+        "position": "relative"
+      },
+      {
+        "s": ".desktopSidebarLabel",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        "font": "750 16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(36, 40, 44)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".hud",
+        "rect": {
+          "x": 10,
+          "y": 6,
+          "width": 0,
+          "height": 0,
+          "top": 6,
+          "right": 10,
+          "bottom": 6,
+          "left": 10
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "none",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "static"
+      },
+      {
+        "s": ".modeSwitch",
+        "rect": {
+          "x": 10,
+          "y": 756,
+          "width": 370,
+          "height": 78,
+          "top": 756,
+          "right": 380,
+          "bottom": 834,
+          "left": 10
+        },
+        "font": "16px Inter, Pretendard, \"Noto Sans KR\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "color": "rgb(34, 38, 43)",
+        "background": "radial-gradient(circle at 50% 0%, rgba(255, 250, 248, 0.72), rgba(0, 0, 0, 0) 48%) repeat scroll 0% 0% / auto padding-box border-box, rgba(0, 0, 0, 0) linear-gradient(rgba(247, 235, 231, 0.98), rgba(233, 211, 205, 0.94)) repeat scroll 0% 0% / auto padding-box border-box",
+        "transform": "matrix(1, 0, 0, 1, -185, 0)",
+        "transition": "all",
+        "animation": "none",
+        "contain": "none",
+        "position": "fixed"
+      }
+    ]
+  }
+]

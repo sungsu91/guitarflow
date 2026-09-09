@@ -24,6 +24,9 @@ export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
 
 export const DEVELOPER_SHOOTER_MAP_SKINS = Object.freeze([
   PSEUDO3D_TEST_MAP_SKIN,
+]);
+
+export const LANDSCAPE_SHOOTER_MAP_SKINS = Object.freeze([
   THREE_D_LAB_MAP_SKIN,
 ]);
 

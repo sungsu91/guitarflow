@@ -120,6 +120,27 @@ export function projectGameplayPointToThreeDLabHorizontal(
   };
 }
 
+export function projectGameplayPointToThreeDLabMobileLandscape(
+  point,
+  viewport = { width: 1, height: 1 },
+  layout = THREE_D_LAB_HORIZONTAL_LAYOUT,
+) {
+  const projection = projectGameplayPointToThreeDLabHorizontal(point, viewport, layout);
+  const height = Math.max(1, Number(viewport.height) || 1);
+  const laneRatio = clamp(
+    (projection.worldZ + layout.combat.laneDepth * 0.5) / layout.combat.laneDepth,
+    0,
+    1,
+  );
+  const screenYPercent = lerp(44, 56, laneRatio);
+
+  return {
+    ...projection,
+    screenY: height * screenYPercent / 100,
+    screenYPercent,
+  };
+}
+
 function multiplyMatrices(left, right) {
   const output = new Float32Array(16);
   for (let column = 0; column < 4; column += 1) {

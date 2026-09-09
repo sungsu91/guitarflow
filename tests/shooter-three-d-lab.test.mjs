@@ -21,7 +21,8 @@ import { THREE_D_LAB_MAP_SKIN } from "../src/shooter/maps/skins/threeDLab.js";
 
 const appSource = fs.readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
 const registrySource = fs.readFileSync(new URL("../src/shooter/maps/registry.js", import.meta.url), "utf8");
-const rendererSource = fs.readFileSync(new URL("../src/shooter/threed/ThreeDLabRenderer.jsx", import.meta.url), "utf8");
+const rendererSource = fs.readFileSync(new URL("../src/shooter/threed/archive/ThreeDLabPortraitRenderer.jsx", import.meta.url), "utf8");
+const archiveReadmeSource = fs.readFileSync(new URL("../src/shooter/threed/archive/README.md", import.meta.url), "utf8");
 const horizontalRendererSource = fs.readFileSync(new URL("../src/shooter/threed/ThreeDLabHorizontalRenderer.jsx", import.meta.url), "utf8");
 const canalArtSource = fs.readFileSync(new URL("../src/shooter/threed/moonlitLotusCanalArt.js", import.meta.url), "utf8");
 const mapRendererSource = fs.readFileSync(new URL("../src/shooter/maps/ShootingMapRenderer.jsx", import.meta.url), "utf8");
@@ -60,18 +61,20 @@ test("3D LAB tuning clamps every live developer control to mobile-safe ranges", 
   assert.equal(normalized.afterimageStrength, 1);
 });
 
-test("3D LAB is a developer-only map isolated from MODE7 LAB and formal map cycling", () => {
+test("3D LAB is a deployable landscape map isolated from MODE7 LAB and random cycling", () => {
   assert.equal(THREE_D_LAB_MAP_SKIN.id, "dev-three-d-lab");
   assert.equal(THREE_D_LAB_MAP_SKIN.renderer, "perspective3d");
-  assert.equal(THREE_D_LAB_MAP_SKIN.devOnly, true);
-  assert.equal(THREE_D_LAB_MAP_SKIN.label, "3D LAB");
-  assert.match(registrySource, /PSEUDO3D_TEST_MAP_SKIN,\s*THREE_D_LAB_MAP_SKIN/);
-  assert.match(appSource, /\.\.\.\(import\.meta\.env\.DEV \? DEVELOPER_SHOOTER_MAP_SKINS : \[\]\)/);
-  assert.match(appSource, /developerShooterMapOptions/);
+  assert.equal(THREE_D_LAB_MAP_SKIN.devOnly, undefined);
+  assert.equal(THREE_D_LAB_MAP_SKIN.landscapeOnly, true);
+  assert.equal(THREE_D_LAB_MAP_SKIN.label, "입체 실험실");
+  assert.match(registrySource, /LANDSCAPE_SHOOTER_MAP_SKINS = Object\.freeze\(\[\s*THREE_D_LAB_MAP_SKIN/);
+  assert.match(appSource, /\.\.\.LANDSCAPE_SHOOTER_MAP_SKINS/);
+  assert.match(appSource, /landscapeShooterMapOptions/);
   assert.match(mapRendererSource, /skin\?\.renderer === "perspective3d"/);
 });
 
-test("3D LAB renders lightweight WebGL planes and exposes the complete live tuning panel", () => {
+test("the retired portrait 3D renderer remains archived for a future front-facing mode", () => {
+  assert.match(archiveReadmeSource, /intentionally not\s+imported by the production map renderer/);
   assert.match(rendererSource, /getContext\?\.\("webgl"/);
   assert.match(rendererSource, /createThreeDLabViewProjection/);
   assert.match(rendererSource, /gl\.drawArrays\(gl\.TRIANGLES/);
@@ -109,10 +112,14 @@ test("3D LAB renders lightweight WebGL planes and exposes the complete live tuni
 test("3D LAB shares current-target pitch judgment but replaces projectiles with an automatic slash", () => {
   assert.match(appSource, /candidate\.id === shooterActiveTargetIdRef\.current/);
   assert.match(appSource, /targetPitchName === detectedPitchName/);
-  assert.match(appSource, /if \(desktopHorizontalShooterActive \|\| selectedMapIsThreeDLab\) \{\s*if \(!resolveShooterSlashHit\(target\)\) return;/);
-  assert.match(appSource, /playThreeDLabGuitarSlash/);
-  assert.match(appSource, /threeDLabAfterimage/);
-  assert.match(appSource, /threeDLabSlashArc/);
+  assert.match(appSource, /if \(desktopHorizontalShooterActive \|\| selectedMapIsThreeDLab\) \{\s*if \(!resolveShooterSlashHit\(target\)\) return false;/);
+  assert.match(appSource, /playDesktopHorizontalGuitarSlash/);
+  assert.doesNotMatch(appSource, /playThreeDLabGuitarSlash|threeDLabAfterimage|threeDLabSlashArc/);
+  assert.match(horizontalAttackSource, /gold-slash-8x\.png/);
+  assert.match(horizontalAttackSource, /desktopHorizontalStrumArc/);
+  assert.match(horizontalAttackSource, /desktopHorizontalSlashTrail/);
+  assert.match(horizontalAttackSource, /desktopHorizontalCutMark/);
+  assert.match(horizontalAttackSource, /translate3d\(-2px, -15px, 0\) rotate\(-18deg\)[\s\S]*translate3d\(6px, 19px, 0\) rotate\(25deg\)/);
   assert.match(appSource, /target\.hitboxActive !== false/);
   assert.doesNotMatch(appSource, /handleShooterArenaClick[\s\S]{0,500}resolveShooterSlashHit/);
 });
@@ -144,6 +151,9 @@ test("desktop 3D LAB layout exposes replaceable scene layers and role-specific b
   assert.equal(THREE_D_LAB_HORIZONTAL_LAYOUT.billboardRoles.waterDecor, THREE_D_LAB_BILLBOARD_MODES.HORIZONTAL_PLANE);
   assert.deepEqual(Object.keys(THREE_D_LAB_HORIZONTAL_LAYOUT.assetSlots).sort(), ["effectTextures", "farBackground", "foregroundProps", "midgroundProps", "skyHorizon", "waterTexture"]);
   assert.equal(THREE_D_LAB_HORIZONTAL_LAYOUT.endless.chunkCount, 6);
+  assert.equal(THREE_D_LAB_HORIZONTAL_LAYOUT.endless.scrollSpeeds.idle, 0.16);
+  assert.equal(THREE_D_LAB_HORIZONTAL_LAYOUT.endless.scrollSpeeds.listening, 0.24);
+  assert.equal(THREE_D_LAB_HORIZONTAL_LAYOUT.endless.scrollSpeeds.playing, 1.25);
   assert.equal(new Set(THREE_D_LAB_HORIZONTAL_LAYOUT.endless.chunkVariants.map((chunk) => chunk.landmark)).size, 6);
   assert.ok(new Set(THREE_D_LAB_HORIZONTAL_LAYOUT.layers.map((layer) => layer.scrollRate)).size >= 5);
 });
@@ -164,12 +174,14 @@ test("desktop 3D LAB uses one Canvas loop with cached six-scene diorama chunks",
   assert.match(canalArtSource, /drawCachedLayer\(ctx, cache\.chunks/);
 });
 
-test("map renderer selects the horizontal Canvas scene only through the dedicated flag", () => {
-  assert.match(mapRendererSource, /if \(threeDLabHorizontalBattle\)/);
+test("production map renderer never falls back to the archived portrait scene", () => {
+  assert.match(mapRendererSource, /if \(!threeDLabHorizontalBattle && !threeDLabPreview\) return null/);
+  assert.match(mapRendererSource, /active=\{threeDLabHorizontalBattle && threeDLabActive\}/);
   assert.match(mapRendererSource, /<ThreeDLabHorizontalRenderer/);
-  assert.match(mapRendererSource, /<ThreeDLabRenderer/);
+  assert.doesNotMatch(mapRendererSource, /ThreeDLabPortraitRenderer|ThreeDLabRenderer/);
   assert.match(appSource, /devMapActive: selectedMapIsThreeDLab/);
-  assert.match(appSource, /threeDLabHorizontalBattle=\{desktopHorizontalShooterActive\}/);
+  assert.match(appSource, /threeDLabHorizontalBattle=\{horizontalShooterActive\}/);
+  assert.match(appSource, /threeDLabPreview=\{mobileLandscapeShooterSelected && !mobileLandscapeShooterActive\}/);
   assert.match(appSource, /threeDLabBattleState=\{gameState\}/);
   assert.match(appSource, /projectGameplayPointToThreeDLabHorizontal/);
 });
@@ -233,15 +245,17 @@ test("Moonlit Lotus Canal scrolls a seamless river, foam, debris, and sparse for
   assert.doesNotMatch(canalArtSource, /verticalBobbing|drawForegroundBank/);
 });
 
-test("desktop 3D LAB keeps the guitar fixed and plays exact eight-frame slash and impact sheets", () => {
-  assert.match(horizontalAttackSource, /impactDelay: 188/);
-  assert.match(horizontalAttackSource, /totalDuration: 410/);
+test("desktop 3D LAB plays a downward guitar smash into an eight-frame travelling cut", () => {
+  assert.match(horizontalAttackSource, /impactDelay: 258/);
+  assert.match(horizontalAttackSource, /slashDelay: 92/);
+  assert.match(horizontalAttackSource, /totalDuration: 520/);
   assert.match(horizontalAttackSource, /frameCount: 8/);
   assert.match(horizontalAttackSource, /gold-slash-8x\.png/);
   assert.match(horizontalAttackSource, /water-impact-8x\.png/);
   assert.match(horizontalAttackSource, /Math\.hypot\(deltaX, deltaY\)/);
-  assert.match(horizontalAttackSource, /rotate\(17deg\) scale\(1\.045\)/);
-  assert.doesNotMatch(horizontalAttackSource, /translate3d\(|dashX|dashY|GuitarAfterimage|ReturnGlow/);
+  assert.match(horizontalAttackSource, /translate3d\(-2px, -15px, 0\) rotate\(-18deg\)/);
+  assert.match(horizontalAttackSource, /translate3d\(6px, 19px, 0\) rotate\(25deg\)/);
+  assert.doesNotMatch(horizontalAttackSource, /dashX|dashY|GuitarAfterimage|ReturnGlow/);
   assert.match(appSource, /threeDLabEnemySpawnAura/);
   assert.match(appSource, /threeDLabEnemyReflection/);
 });

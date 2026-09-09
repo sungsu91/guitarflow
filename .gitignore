@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # Local project backups
 backup/
+
+# Local shooter deployment worktrees and bundles
+/work/shooter-deploy-*/

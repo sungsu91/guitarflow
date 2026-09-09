@@ -60,10 +60,10 @@ export const THREE_D_LAB_HORIZONTAL_LAYOUT = Object.freeze({
     chunkWidth: 18,
     scrollSpeeds: Object.freeze({
       gameover: 0,
-      idle: 0.28,
-      listening: 0.44,
+      idle: 0.16,
+      listening: 0.24,
       paused: 0,
-      playing: 2.75,
+      playing: 1.25,
     }),
     speedEase: 2.35,
   }),

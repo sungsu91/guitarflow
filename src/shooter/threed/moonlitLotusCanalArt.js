@@ -740,8 +740,9 @@ export function renderMoonlitLotusCanalFrame(ctx, cache, options) {
   ctx.scale(scale, scale);
   drawTiledPanorama(ctx, cache.assets.panoramaSky, referenceWidth, flowDistance);
   drawCachedLayer(ctx, cache.chunks, referenceWidth, midgroundOffset, "midground");
-  drawWaterFloor(ctx, cache.assets, referenceWidth, time, flowDistance);
   drawAnimatedLandmarks(ctx, cache, referenceWidth, midgroundOffset, time);
+  // Water is painted after landmarks so submerged supports disappear below the river line.
+  drawWaterFloor(ctx, cache.assets, referenceWidth, time, flowDistance);
   drawLandmarkWaterContact(ctx, cache, referenceWidth, midgroundOffset, time);
   drawLanternGlows(ctx, cache, referenceWidth, midgroundOffset, time);
   drawMist(ctx, referenceWidth, time);

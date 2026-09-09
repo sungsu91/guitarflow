@@ -1,12 +1,22 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { verifyCameraWideFraming, setCameraWideFraming, cameraContainRect, frontCameraConstraints, coverSourceRect, drawComposite, cameraOverlayRect, recorderOptions, saveRecording } from "../src/shooter/recording/recordingMedia.js";
+import { readFile } from "node:fs/promises";
 
 test("recorder negotiates MP4, then WebM, then browser defaults", () => {
   assert.match(recorderOptions({ isTypeSupported: (type) => type === "video/mp4" }).mimeType, /mp4/);
   assert.equal(recorderOptions({ isTypeSupported: (type) => type === "video/webm" }).mimeType, "video/webm");
   assert.equal(recorderOptions({ isTypeSupported: () => false }).mimeType, undefined);
   assert.throws(() => recorderOptions(null), /지원하지 않습니다/);
+});
+
+test("mobile landscape recording expands into a wide camera and keeps a valid output aspect", async () => {
+  const source = await readFile(new URL("../src/shooter/recording/ShooterRecording.jsx", import.meta.url), "utf8");
+  assert.match(source, /if \(mobile && !landscape\)/);
+  assert.match(source, /if \(landscape\) \{[\s\S]*const edgeInset = 2;[\s\S]*const width = Math\.min\(300, Math\.max\(225, bounds\.width \* 0\.36\)\)[\s\S]*const height = width \* 9 \/ 16/);
+  assert.match(source, /const topInset = edgeInset;[\s\S]*const top = bounds\.top[\s\S]*\+ topInset/);
+  assert.match(source, /outputAspect: bounds\.width \/ bounds\.height/);
+  assert.match(source, /landscape \? active \? "촬영 OFF" : "촬영 ON"/);
 });
 
 test('wide framing uses the device minimum zoom and restores the original setting', async () => {

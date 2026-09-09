@@ -69837,6 +69837,61 @@ html body .shooterSkinConfigurator .shooterGuitarCategoryTabs > button.selected 
   font-size: 9px;
 }
 
+.shooterMapLandscapeDivider {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 8px 2px 3px;
+  border-top: 1px solid rgba(116, 201, 255, 0.28);
+}
+
+.shooterMapLandscapeDivider span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #8fd8ff;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.shooterMapLandscapeDivider span i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #75d2ff;
+  box-shadow: 0 0 8px rgba(117, 210, 255, 0.72);
+}
+
+.shooterMapLandscapeDivider small {
+  color: rgba(207, 235, 252, 0.62);
+  font-size: 9px;
+}
+
+.shooterMapCard--landscape {
+  position: relative;
+  border-color: rgba(117, 210, 255, 0.3) !important;
+  background: linear-gradient(145deg, rgba(40, 98, 137, 0.2), rgba(7, 27, 42, 0.24)) !important;
+}
+
+.shooterMapLandscapeBadge {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  z-index: 2;
+  padding: 3px 5px;
+  border: 1px solid rgba(117, 210, 255, 0.45);
+  border-radius: 999px;
+  background: rgba(6, 32, 48, 0.82);
+  color: #a9e3ff;
+  font-size: 8px;
+  font-weight: 950;
+  line-height: 1;
+}
+
 .shooterMapCard--dev {
   position: relative;
   border-color: rgba(105, 243, 157, 0.23) !important;

@@ -1,0 +1,141 @@
+.etudeStudio{--etude-ink:#27342f;--etude-muted:#66736c;--etude-line:#ccd4cc;--etude-panel:#f3f5ee;--etude-accent:#477660;color:var(--etude-ink);width:100%;min-width:0;margin:0 auto;padding:18px 14px 34px;box-sizing:border-box}
+.theme-dark .etudeStudio{--etude-ink:#e8eee7;--etude-muted:#a8b5ad;--etude-line:#414c45;--etude-panel:#232d27;--etude-accent:#9bc2a7}
+.etudeStudio *{box-sizing:border-box}.etudeHeading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}.etudeEyebrow{font-size:10px;letter-spacing:2px;color:var(--etude-muted)}.etudeHeading h1{font-size:24px;letter-spacing:-1px;margin:7px 0}.etudeHeading h1 b,.etudeProMark{display:inline-block;vertical-align:middle;font-size:10px;letter-spacing:1px;border:1px solid #ac9564;background:#eee5cc;color:#6b5225;border-radius:5px;padding:4px 6px}.etudeHeading p{font-size:12px;color:var(--etude-muted);margin:0}
+.etudeFilters{padding:16px;border:1px solid var(--etude-line);border-radius:14px;background:var(--etude-panel)}.etudeFilterGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.etudeSelect{display:flex;flex-direction:column;gap:6px;min-width:0;margin-bottom:12px}.etudeSelect>span{font-size:11px;font-weight:700;color:var(--etude-muted)}.etudeStudio .etudeSelect select{display:block;width:100%;min-width:0;height:42px;border:1px solid var(--etude-line);border-radius:8px;background:var(--etude-panel);color:var(--etude-ink);padding:0 8px;font:inherit;font-size:13px}.etudePurpose{font-size:12px;line-height:1.65;color:var(--etude-muted);margin:3px 0 0}.etudeEmpty{font-size:13px;line-height:1.6}.etudeEmpty button{display:block;margin-top:12px}
+.etudeSheetTools{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 0 9px;font-size:11px;color:var(--etude-muted)}.etudeStudio button{font:inherit;cursor:pointer;color:var(--etude-ink);background:var(--etude-panel);border:1px solid var(--etude-line);border-radius:8px;padding:8px 12px}.etudeSheetTools button{font-size:11px;padding:7px 9px}.etudeSheet{background:#fff;color:#171d1a;padding:18px 14px 6px;border:1px solid #d9ddd8;border-radius:3px;box-shadow:0 5px 20px #00000009;overflow:hidden}.etudeSheetHeader{padding:0 8px}.etudeSheetBrand{display:flex;align-items:center;gap:6px;font:700 8px Arial,sans-serif;letter-spacing:1.6px}.etudeSheetBrand img{width:23px;height:23px;border-radius:5px}.etudeSheetHeader h2{text-align:center;font:27px Georgia,'Times New Roman',serif;margin:9px 0 15px;line-height:1.15}.etudeSheetHeader h2 span{font-size:20px}.etudeSheetMeta{display:flex;justify-content:space-between;gap:10px;font:10px Arial,sans-serif;padding-bottom:6px}.etudeSheetMeta>span:last-child{font-size:15px}.etudeNotation{width:100%;color:#111}.etudeNotation svg{background:#fff;overflow:visible}.etudeNotation svg text{fill:#111}.etudeLoading{text-align:center;padding:60px 0;color:#555}
+.etudeMetronome{margin-top:14px;border:1px solid var(--etude-line);background:var(--etude-panel);padding:16px 20px;border-radius:14px}.etudeBeatRow{display:flex;justify-content:center;align-items:center;gap:28px;margin-bottom:15px}.etudeBeat{display:flex;align-items:center;flex-direction:column;gap:5px;font-size:9px;color:var(--etude-muted)}.etudeBeat i{display:block;width:13px;height:13px;border-radius:50%;background:var(--etude-line)}.etudeBeat.is-on i{background:var(--etude-accent);box-shadow:0 0 0 4px #6a9c7220}.etudeBeat.is-on.is-downbeat i{background:#c49648}.etudeBeatRow small{font-size:11px;color:var(--etude-muted)}.etudeTempoRow{display:flex;align-items:center;justify-content:center;gap:12px}.etudeTempoRow label{display:flex;align-items:center;flex-direction:column;font-size:9px;letter-spacing:2px}.etudeTempoRow input{width:74px;text-align:center;border:0;background:transparent;color:var(--etude-ink);font-size:28px;font-weight:650;appearance:textfield}.etudeTempoRow input::-webkit-inner-spin-button{appearance:none}.etudeTempoRow>button{min-height:42px;min-width:40px}.etudeTempoRow .etudePlay{background:#345b48;color:#fff;min-width:85px}.etudeTempoSlider{width:100%;accent-color:#527b62;margin:17px 0 0}.etudeDesktopBody{display:grid;grid-template-columns:245px minmax(0,1fr);gap:24px}.etudeStudio--desktop{max-width:1340px;padding:26px 28px 45px}.etudeStudio--desktop .etudeHeading{margin-bottom:24px}.etudeStudio--desktop .etudeSheetTools{padding-top:0}.etudeStudio--desktop .etudeSheet{padding:24px 20px 12px}.etudeStudio--desktop .etudeSheetHeader h2{font-size:32px}.etudeScoreColumn{min-width:0}.etudeLibraryNote{margin:25px 12px;color:var(--etude-muted);font-size:12px;line-height:1.8}.etudeLibraryNote b{font-size:10px;letter-spacing:2px}.etudeStudio--mobile .etudeHeading{display:block;margin-bottom:12px}.etudeStudio--mobile .etudeHeading h1{font-size:22px}.etudeStudio--mobile .etudeHeading p{font-size:11px}.etudeStudio--mobile .etudeFilters{padding:12px}.etudeStudio--mobile .etudeFilterGrid{gap:8px}.etudeStudio--mobile .etudeSelect{margin-bottom:8px}.etudeStudio--mobile .etudeSheet{padding:13px 3px 4px}.etudeStudio--mobile .etudeSheetHeader h2{font-size:23px}.etudeStudio--mobile .etudeSheetHeader h2 span{font-size:17px}.etudeStudio--mobile .etudeSheetMeta{font-size:8px}.etudeZoom{position:fixed;inset:0;z-index:20000;overflow:auto;background:#222b27f5;padding:65px 16px 24px;overscroll-behavior:contain}.etudeZoom>button{position:fixed;right:20px;top:15px;z-index:1}.etudeZoom .etudeSheet{width:900px;max-width:none;margin:auto}.etudeStudio button:focus-visible,.etudeStudio select:focus-visible,.etudeStudio input:focus-visible{outline:2px solid var(--etude-accent);outline-offset:3px}
+
+.etudeStudio--mobile{padding-bottom:110px}.etudeMobileFilterDetails{margin-bottom:10px}.etudeMobileFilterDetails summary{display:flex;justify-content:space-between;gap:8px;cursor:pointer;font-size:12px;font-weight:700;padding:4px 0 10px}.etudeMobileFilterDetails summary span{font-size:10px;font-weight:400;color:var(--etude-muted)}.etudeMobileFilterDetails[open] .etudePurpose{margin:0 0 12px}.etudeStudio--desktop .etudePurpose{margin:0 0 15px}.etudeZoom{margin:0;width:100vw;height:100dvh;max-width:none;max-height:none;border:0}.etudeZoom::backdrop{background:#222b27f5}.etudeZoom>button{font:inherit;cursor:pointer;border:1px solid #bcc8bf;border-radius:8px;padding:10px 18px;background:#fff;color:#25392d}.etudeSheet text{letter-spacing:normal;text-shadow:none}
+
+
+.etudeStudio--mobile{padding-top:8px;padding-bottom:26px}.etudeMobileNav{display:flex;justify-content:space-between;gap:12px;margin-bottom:14px}.etudeMobileNav button{font-size:11px;padding:7px 10px;min-height:36px}.etudeStudio--mobile .etudeSheetHeader h2{margin:5px 0 8px;line-height:1.05}.etudeStudio--mobile .etudeMetronome{padding:12px 16px}.etudeStudio--mobile .etudeBeatRow{margin-bottom:8px}
+
+
+@media (min-width:1024px) and (max-width:1250px){.etudeStudio--desktop .etudeDesktopBody{grid-template-columns:minmax(0,1fr);gap:16px}.etudeStudio--desktop .etudeFilterGrid{grid-template-columns:repeat(4,minmax(0,1fr))}.etudeStudio--desktop .etudeHeading{margin-bottom:14px}}
+
+
+/* Mobile disclosure and full-screen score reader. */
+.etudeMobileFilterDetails summary{min-height:52px;border:1px solid var(--etude-line);border-radius:9px;padding:10px 12px;align-items:center;background:var(--etude-panel);list-style:none}.etudeMobileFilterDetails summary::-webkit-details-marker{display:none}.etudeMobileFilterDetails summary strong{font-size:13px}.etudeMobileFilterDetails summary .etudeFilterToggle{display:flex;align-items:center;gap:8px;color:var(--etude-ink)}.etudeFilterToggle svg{flex:none;transition:transform .15s}.etudeMobileFilterDetails[open] .etudeFilterToggle svg{transform:rotate(180deg)}.etudeMobileFilterDetails[open] .etudeFilterGrid{margin-top:14px}.etudeMobileFilterDetails summary:focus-visible{outline:2px solid var(--etude-accent);outline-offset:3px}
+.etudeZoom{padding:0 16px 24px;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;scrollbar-gutter:stable}.etudeZoom .etudeSheet{box-sizing:border-box;width:100%;max-width:1100px;min-width:0;margin:0 auto}.etudeZoomToolbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px;padding:10px 0;background:#222b27;color:#f2f5f2;font-size:13px}.etudeZoomToolbar button{position:static;min-height:44px;min-width:76px;border:1px solid #bcc8bf;border-radius:8px;padding:10px 14px;background:#fff;color:#25392d;font:inherit;cursor:pointer}.etudeZoom--mobile{padding:0 6px max(16px,env(safe-area-inset-bottom));scrollbar-gutter:auto}.etudeZoom--mobile .etudeSheet{padding:14px 3px 8px}.etudeZoom--mobile .etudeSheetHeader h2{font-size:25px;overflow-wrap:anywhere}.etudeZoom--mobile .etudeSheetHeader h2 span{font-size:19px}.etudeZoom--mobile .etudeSheetMeta{font-size:9px}.etudeZoom--mobile .etudeSheetBrand{font-size:8px}
+
+
+.etudeZoomToolbar>div{display:flex;gap:8px}.etudeRotationHint{color:#eef3ed;font-size:12px;line-height:1.5;margin:0;padding:8px 5px 14px}.etudeZoomToolbar button:focus-visible{outline:3px solid #99c4a5;outline-offset:2px}@media (orientation:landscape){.etudeZoom--mobile{padding-right:max(8px,env(safe-area-inset-right));padding-left:max(8px,env(safe-area-inset-left))}.etudeZoom--mobile .etudeSheetHeader h2{font-size:22px;margin:4px 0}.etudeZoom--mobile .etudeSheetHeader h2 span{font-size:18px}.etudeStudio--mobile .etudeFilterGrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+
+.app .etudeZoom .etudeZoomToolbar>span,.app .etudeZoom .etudeRotationHint{color:#f0f5f1!important;text-shadow:none!important}@media (orientation:landscape){.etudeZoom--mobile .etudeZoomToolbar{min-height:54px;padding:5px 0}.etudeZoom--mobile .etudeSheetHeader{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:0 6px}.etudeZoom--mobile .etudeSheetHeader h2{font-size:19px;margin:0;line-height:1.1}.etudeZoom--mobile .etudeSheetHeader h2 span{font-size:16px}.etudeZoom--mobile .etudeSheetMeta{flex-direction:column;align-items:flex-end;gap:4px;padding:0}.etudeZoom--mobile .etudeSheetBrand{max-width:95px;letter-spacing:.5px;font-size:7px}.etudeZoom--mobile .etudeRotationHint{padding:4px 5px 8px}}
+
+
+.etudeMobileNav{justify-content:flex-end;gap:8px}
+.etudeCommonTips{margin-top:8px}.etudeCommonTips li>strong{display:block;margin-bottom:3px}.etudePickingExamples{padding:4px 12px 12px}.etudePickingExamples table{width:100%;border-collapse:collapse;font-size:10px;line-height:1.6}.etudePickingExamples caption{text-align:left;margin-bottom:7px;color:var(--etude-muted)}.etudePickingExamples th,.etudePickingExamples td{padding:7px 4px;text-align:left;border-bottom:1px solid var(--etude-line)}.etudePickingExamples td{white-space:nowrap}.etudePickingExamples th{font-weight:600}
+
+
+.etudeLesson{margin-top:12px}.etudeLessonNav{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:9px}.etudeLessonNav>span{font-size:10px;color:var(--etude-muted);text-align:center}.etudeLessonNav button{font-size:11px;padding:7px 10px;min-height:38px}.etudeLessonNav button:disabled{opacity:.4;cursor:default}.etudeTips{border:1px solid var(--etude-line);border-radius:10px;background:var(--etude-panel)}.etudeTips summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;min-height:46px;cursor:pointer;font-size:12px;list-style:none}.etudeTips summary::-webkit-details-marker{display:none}.etudeTips[open] summary svg{transform:rotate(180deg)}.etudeTips ul{margin:0;padding:0 18px 0 30px;font-size:12px;line-height:1.7}.etudeTips li{margin:0 0 9px}.etudeTips p{padding:0 13px 10px;margin:5px 0;font-size:10px;color:var(--etude-muted)}.etudeTips summary:focus-visible{outline:2px solid var(--etude-accent);outline-offset:2px}
+
+
+.etudeSheetHeader h2{font-size:25px;text-wrap:balance;line-height:1.2}.etudeStudio--desktop .etudeSheetHeader h2{font-size:28px}.etudeStudio--mobile .etudeSheetHeader h2{font-size:21px;line-height:1.2}.etudeZoom--mobile .etudeSheetHeader h2{font-size:23px;line-height:1.2}@media (orientation:landscape){.etudeZoom--mobile .etudeSheetHeader h2{font-size:19px}}
+
+/* Etude Studio owns a paper-first visual system in every app theme. */
+.etudeStudio,
+.theme-dark .etudeStudio,
+.theme-light .etudeStudio {
+  --etude-ink: #202a26;
+  --etude-muted: #5e6b65;
+  --etude-line: #d5ddd7;
+  --etude-line-strong: #b7c5bc;
+  --etude-panel: #f8faf7;
+  --etude-paper: #ffffff;
+  --etude-accent: #376b53;
+  color-scheme: light;
+  color: var(--etude-ink);
+  background: linear-gradient(180deg, #fbfcfa 0%, #f3f6f2 100%);
+}
+
+.etudeStudio :is(.etudeFilters, .etudeMetronome, .etudeTips),
+.etudeStudio .etudeMobileFilterDetails summary {
+  border-color: var(--etude-line) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: var(--etude-ink) !important;
+  box-shadow: 0 5px 18px rgba(38, 58, 48, 0.055);
+}
+
+.etudeStudio :is(button, .etudeSelect select) {
+  border-color: var(--etude-line-strong) !important;
+  background: #fff !important;
+  color: var(--etude-ink) !important;
+  box-shadow: 0 2px 7px rgba(38, 58, 48, 0.045);
+}
+
+.etudeStudio :is(button, .etudeSelect select):is(:hover, :focus-visible) {
+  border-color: #6f9582 !important;
+  background: #f7fbf8 !important;
+}
+
+.etudeStudio .etudeTempoRow .etudePlay {
+  border-color: #315e49 !important;
+  background: #376b53 !important;
+  color: #fff !important;
+  box-shadow: 0 5px 14px rgba(55, 107, 83, 0.18);
+}
+
+.etudeStudio .etudeSheet,
+.etudeZoom .etudeSheet {
+  border-color: #d9dfdb !important;
+  background: var(--etude-paper, #fff) !important;
+  color: #171d1a !important;
+  box-shadow: 0 10px 30px rgba(31, 48, 40, 0.075) !important;
+}
+
+.etudeNotation,
+.etudeNotation svg {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+.etudeNotation svg :is(text, path, line, rect) {
+  visibility: visible;
+}
+
+.etudeNotation svg .etudeMeasureNumber {
+  fill: #34423b !important;
+  stroke: #fff;
+  stroke-width: 2.5px;
+  paint-order: stroke fill;
+  font: 800 12px Arial, sans-serif;
+  letter-spacing: 0 !important;
+}
+
+.etudeZoom,
+.theme-dark .etudeZoom,
+.theme-light .etudeZoom {
+  --etude-ink: #202a26;
+  --etude-muted: #5e6b65;
+  --etude-line: #d5ddd7;
+  --etude-accent: #376b53;
+  color-scheme: light;
+  background: rgba(245, 248, 245, 0.985) !important;
+  color: var(--etude-ink) !important;
+}
+
+.etudeZoom::backdrop {
+  background: rgba(22, 31, 27, 0.42) !important;
+  backdrop-filter: blur(3px);
+}
+
+.etudeZoom .etudeZoomToolbar {
+  border-bottom: 1px solid #d8e0da;
+  background: rgba(250, 252, 250, 0.96) !important;
+  color: #26332d !important;
+  box-shadow: 0 5px 16px rgba(33, 50, 42, 0.06);
+}
+
+.app .etudeZoom .etudeZoomToolbar > span,
+.app .etudeZoom .etudeRotationHint {
+  color: #394740 !important;
+}
+
+.etudeZoom .etudeZoomToolbar button {
+  border-color: #afbeb5 !important;
+  background: #fff !important;
+  color: #26382f !important;
+}
+

@@ -1,7 +1,6 @@
 import MapSkinRenderer from "./MapSkinRenderer.jsx";
 import Pseudo3DRenderer from "../pseudo3d/Pseudo3DRenderer.jsx";
 import ThreeDLabHorizontalRenderer from "../threed/ThreeDLabHorizontalRenderer.jsx";
-import ThreeDLabRenderer from "../threed/ThreeDLabRenderer.jsx";
 
 export default function ShootingMapRenderer({
   pseudo3dActive,
@@ -12,8 +11,7 @@ export default function ShootingMapRenderer({
   threeDLabBattleState,
   threeDLabDeveloper,
   threeDLabHorizontalBattle,
-  threeDLabSettings,
-  onThreeDLabSettingsChange,
+  threeDLabPreview = false,
   skin,
   ...mapSkinProps
 }) {
@@ -31,23 +29,12 @@ export default function ShootingMapRenderer({
   }
 
   if (skin?.renderer === "perspective3d") {
-    if (threeDLabHorizontalBattle) {
-      return (
-        <ThreeDLabHorizontalRenderer
-          active={threeDLabActive}
-          battleState={threeDLabBattleState}
-          developer={threeDLabDeveloper}
-          stage={mapSkinProps.stage}
-        />
-      );
-    }
+    if (!threeDLabHorizontalBattle && !threeDLabPreview) return null;
     return (
-      <ThreeDLabRenderer
-        active={threeDLabActive}
+      <ThreeDLabHorizontalRenderer
+        active={threeDLabHorizontalBattle && threeDLabActive}
+        battleState={threeDLabBattleState}
         developer={threeDLabDeveloper}
-        onSettingsChange={onThreeDLabSettingsChange}
-        settings={threeDLabSettings ?? skin.threeD}
-        skin={skin}
         stage={mapSkinProps.stage}
       />
     );

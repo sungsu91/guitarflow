@@ -42,7 +42,10 @@ export default function useShooterMobileViewport(active) {
       });
     };
 
-    update();
+    // Set the entry frame before paint. Scheduling this first measurement leaves
+    // one visible frame of the unscaled 430 x 932 canvas when changing modes.
+    const entryFrame = getShooterMobileViewportSnapshot(window);
+    setFrame((currentFrame) => sameFrame(currentFrame, entryFrame) ? currentFrame : entryFrame);
     window.addEventListener("resize", update);
     window.addEventListener("orientationchange", update);
     window.visualViewport?.addEventListener?.("resize", update);

@@ -110,9 +110,9 @@
  * iOS Safari can use the canonical 430px canvas while reporting a different
  * layout viewport during standalone/startup transitions.
  *
- * Keep the map catalog as three explicit flex rows. This stylesheet is loaded
- * after the shared skin styles, so WebKit cannot fall back to the nested
- * grid/minmax/scroll sizing chain that exposed only RANDOM, RIVER and LAVA.
+ * Keep the map catalog in one bounded touch-scroll surface. This stylesheet is
+ * loaded after the shared skin styles, so it must preserve the inner scroller
+ * instead of letting later map sections escape into the arena preview.
  */
 html body .shooterGuitarPickerOverlay--arenaPreview
   .shooterSkinConfigurator--arenaPreview
@@ -123,7 +123,7 @@ html body .shooterGuitarPickerOverlay--arenaPreview
   height: 318px !important;
   min-height: 318px !important;
   max-height: none !important;
-  overflow: visible !important;
+  overflow: hidden !important;
 }
 
 html body .shooterGuitarPickerOverlay--arenaPreview
@@ -134,9 +134,9 @@ html body .shooterGuitarPickerOverlay--arenaPreview
   height: 205px !important;
   min-height: 205px !important;
   max-height: 205px !important;
-  overflow: visible !important;
-  contain: none !important;
-  isolation: auto !important;
+  overflow: hidden !important;
+  contain: layout paint !important;
+  isolation: isolate !important;
 }
 
 html body .shooterGuitarPickerOverlay--arenaPreview
@@ -148,10 +148,38 @@ html body .shooterGuitarPickerOverlay--arenaPreview
   height: 205px !important;
   min-height: 205px !important;
   max-height: 205px !important;
-  overflow: visible !important;
-  padding: 0 !important;
-  touch-action: manipulation !important;
-  -webkit-overflow-scrolling: auto !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding: 0 4px 12px 0 !important;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(132, 82, 31, 0.72) rgba(132, 82, 31, 0.12);
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  touch-action: pan-y !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+html body .shooterGuitarPickerOverlay--arenaPreview
+  .shooterGuitarPickerModal--map
+  .shooterSkinPickerBodyFrame--map
+  > .shooterSkinPickerBody::-webkit-scrollbar {
+  width: 5px;
+}
+
+html body .shooterGuitarPickerOverlay--arenaPreview
+  .shooterGuitarPickerModal--map
+  .shooterSkinPickerBodyFrame--map
+  > .shooterSkinPickerBody::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(132, 82, 31, 0.12);
+}
+
+html body .shooterGuitarPickerOverlay--arenaPreview
+  .shooterGuitarPickerModal--map
+  .shooterSkinPickerBodyFrame--map
+  > .shooterSkinPickerBody::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(132, 82, 31, 0.72);
 }
 
 html body .shooterGuitarPickerOverlay--arenaPreview
@@ -168,7 +196,8 @@ html body .shooterGuitarPickerOverlay--arenaPreview
   .shooterSkinOptionStack {
   display: block !important;
   width: 100% !important;
-  height: 205px !important;
+  height: auto !important;
+  min-height: 205px !important;
 }
 
 html body .shooterGuitarPickerOverlay--arenaPreview
@@ -179,12 +208,19 @@ html body .shooterGuitarPickerOverlay--arenaPreview
   align-content: flex-start !important;
   align-items: flex-start !important;
   width: 100% !important;
-  height: 205px !important;
+  height: auto !important;
   min-height: 205px !important;
   gap: 6px !important;
   padding: 2px 0 8px !important;
   overflow: visible !important;
   touch-action: manipulation !important;
+}
+
+html body .shooterGuitarPickerOverlay--arenaPreview
+  .shooterGuitarPickerModal--map
+  :is(.shooterMapLandscapeDivider, .shooterMapDevDivider) {
+  flex: 0 0 100% !important;
+  width: 100% !important;
 }
 
 html body .shooterGuitarPickerOverlay--arenaPreview

@@ -10,7 +10,7 @@ export const VIEWPORT_SHORT_MAX_HEIGHT = 560;
 
 const VIEWPORT_TRANSITION_DRIFT_PX = 48;
 const VIEWPORT_PAIR_MATCH_TOLERANCE_PX = 24;
-const MOBILE_LANDSCAPE_APP_MODES = new Set(["fretboard-viewer", "metronome"]);
+const MOBILE_LANDSCAPE_APP_MODES = new Set(["fretboard-viewer", "metronome", "etudes"]);
 const MOBILE_LANDSCAPE_PRACTICE_CATEGORIES = new Set([
   "first-position",
   "scale-block",

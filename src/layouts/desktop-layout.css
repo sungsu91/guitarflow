@@ -3262,7 +3262,8 @@
     padding-inline: clamp(18px, 2vw, 34px);
   }
 
-  html:has(body .desktopLayout .fretboardViewerPanel--desktopUnified) {
+  /* Reserve the same scrollbar space before and after the first viewer visit. */
+  html:has(body .desktopLayout) {
     scrollbar-gutter: stable;
   }
 

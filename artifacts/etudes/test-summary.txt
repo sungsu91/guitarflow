@@ -1,0 +1,21 @@
+✖ app launch and shooter use the requested operational defaults (16.9262ms)
+✖ shooter exposes only the current layered maps and no emblem catalog (141.2358ms)
+✖ renderer keeps background, astrolabe, combat, foreground, and HUD order (15.422ms)
+✖ shooter uses the mobile-master HUD at mobile and desktop sizes (17.4222ms)
+✖ Lava Canyon combines visible lava scenery, torch flames, dragons, and reusable map assets (6.9775ms)
+✖ moving the wheel updates only its track and commits once after exact settlement (15.1444ms)
+✖ rhythm-code landscape reserves the left rail for progression and fretboard growth (24.9021ms)
+✖ responsive implementation changes layout without orientation remount or storage migration (25.5608ms)
+✖ desktop rhythm transport reuses the metronome card without sharing playback controls (1.9577ms)
+✖ scale practice reuses the shared mobile Backing Loop presentation (1.6507ms)
+✖ mini chord recommendations lock only the in-page panel while shared menus stay independent (2.116ms)
+✖ rhythm settings selection stays local and does not move the active accompaniment (1.9738ms)
+✖ source-backed effect tunings are merged with local editor overrides (1.0265ms)
+✖ mobile map policy allows only audited effects that fit the common render budget (5.3037ms)
+✖ deployed defaults include the desktop editor calibration for every monster root (1.2058ms)
+✖ 3D LAB is a developer-only map isolated from MODE7 LAB and formal map cycling (1.3777ms)
+✖ 3D LAB shares current-target pitch judgment but replaces projectiles with an automatic slash (4.2021ms)
+ℹ tests 785
+ℹ pass 768
+ℹ fail 17
+ℹ duration_ms 5178.4129

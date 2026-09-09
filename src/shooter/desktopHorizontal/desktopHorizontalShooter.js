@@ -2,7 +2,7 @@ const ENV = import.meta.env ?? {};
 
 export const DESKTOP_HORIZONTAL_SHOOTER_FEATURE = Object.freeze({
   devMapId: "dev-three-d-lab",
-  enabled: Boolean(ENV.DEV) && ENV.VITE_DEV_DESKTOP_HORIZONTAL_SHOOTER !== "false",
+  enabled: ENV.VITE_DESKTOP_HORIZONTAL_SHOOTER !== "false",
   id: "desktopHorizontalShooter",
 });
 
@@ -10,6 +10,7 @@ export const SHOOTER_RENDERER_MODES = Object.freeze({
   DESKTOP_HORIZONTAL: "desktop-horizontal",
   DESKTOP_PORTRAIT: "desktop-portrait",
   MAP_EDITOR: "map-editor",
+  MOBILE_HORIZONTAL: "mobile-horizontal",
   MOBILE_VERTICAL: "mobile-vertical",
 });
 
@@ -25,8 +26,10 @@ export function getShooterRendererMode({
   featureEnabled = DESKTOP_HORIZONTAL_SHOOTER_FEATURE.enabled,
   isMobileLayout = false,
   mapEditorEnabled = false,
+  mobileLandscapeActive = false,
 } = {}) {
   if (mapEditorEnabled) return SHOOTER_RENDERER_MODES.MAP_EDITOR;
+  if (isMobileLayout && mobileLandscapeActive) return SHOOTER_RENDERER_MODES.MOBILE_HORIZONTAL;
   if (isMobileLayout) return SHOOTER_RENDERER_MODES.MOBILE_VERTICAL;
   return featureEnabled && devMapActive
     ? SHOOTER_RENDERER_MODES.DESKTOP_HORIZONTAL

@@ -4,6 +4,7 @@ import test from "node:test";
 
 const appStyleUrl = new URL("../src/style.css", import.meta.url);
 const appSourceUrl = new URL("../src/App.jsx", import.meta.url);
+const mobileConfiguratorStyleUrl = new URL("../src/shooter/mobile-skin-configurator.css", import.meta.url);
 
 test("brand-dark mobile skin loadout uses the compact speech-bubble typography", async () => {
   const appCss = await readFile(appStyleUrl, "utf8");
@@ -43,9 +44,10 @@ test("skin tabs include the pet catalog beside the effect catalog", async () => 
 });
 
 test("physical mobile map catalog keeps a dedicated touch-scroll area", async () => {
-  const [appSource, appCss] = await Promise.all([
+  const [appSource, appCss, mobileConfiguratorCss] = await Promise.all([
     readFile(appSourceUrl, "utf8"),
     readFile(appStyleUrl, "utf8"),
+    readFile(mobileConfiguratorStyleUrl, "utf8"),
   ]);
 
   assert.match(appSource, /shooterSkinPickerBodyFrame--\$\{shooterSkinTab\}/);
@@ -58,6 +60,24 @@ test("physical mobile map catalog keeps a dedicated touch-scroll area", async ()
   assert.match(finalMobileMapRules, /shooterGuitarPickerModal[\s\S]*?overflow: hidden !important;/);
   assert.match(finalMobileMapRules, /shooterSkinPickerBodyFrame--map[\s\S]*?position: relative !important;[\s\S]*?flex: 1 1 auto !important;[\s\S]*?overflow: hidden !important;/);
   assert.match(finalMobileMapRules, /shooterGuitarPickerModal--map[\s\S]*?shooterMapPickerGrid[\s\S]*?height: auto !important;[\s\S]*?min-height: 0 !important;/);
+  assert.match(mobileConfiguratorCss, /shooterGuitarPickerModal--map[\s\S]*?overflow: hidden !important;/);
+  assert.match(mobileConfiguratorCss, /shooterSkinPickerBodyFrame--map[\s\S]*?overflow: hidden !important;/);
+  assert.match(mobileConfiguratorCss, /shooterSkinPickerBodyFrame--map[\s\S]*?> \.shooterSkinPickerBody[\s\S]*?overflow-y: auto !important;[\s\S]*?scrollbar-width: thin;[\s\S]*?touch-action: pan-y !important;/);
+  assert.match(mobileConfiguratorCss, /shooterSkinOptionStack[\s\S]*?height: auto !important;/);
+  assert.match(mobileConfiguratorCss, /shooterMapPickerGrid[\s\S]*?height: auto !important;/);
+});
+
+test("the wide 3D lab map has its own landscape-only catalog section", async () => {
+  const [appSource, threeDLabSource] = await Promise.all([
+    readFile(appSourceUrl, "utf8"),
+    readFile(new URL("../src/shooter/maps/skins/threeDLab.js", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(threeDLabSource, /landscapeOnly: true/);
+  assert.match(appSource, /const landscapeShooterMapOptions = SHOOTER_MAP_OPTIONS\.filter\(\(map\) => map\.landscapeOnly\)/);
+  assert.match(appSource, /className="shooterMapLandscapeDivider"[\s\S]*?가로 전용[\s\S]*?휴대폰 가로 화면용 맵/);
+  assert.match(appSource, /landscapeShooterMapOptions\.map[\s\S]*?shooterMapCard--landscape[\s\S]*?shooterMapLandscapeBadge/);
+  assert.match(appSource, /map\.devOnly && !map\.landscapeOnly/);
 });
 
 test("guitar tab filters acoustic, electric and bass from a bottom category bar", async () => {

@@ -1,0 +1,34 @@
+[
+  {
+    "name": "backgroundRetainsRecording",
+    "passed": true
+  },
+  {
+    "name": "mobile",
+    "before": {
+      "width": 430,
+      "height": 804,
+      "nav": true
+    },
+    "video": {
+      "width": 1080,
+      "height": 2338,
+      "size": 4591133,
+      "type": "video/mp4",
+      "url": "blob:http://127.0.0.1:5178/25c65788-0e76-4ca7-9b0f-c237181daee7"
+    },
+    "resources": {
+      "camera": [
+        "ended"
+      ],
+      "outputs": [
+        "ended",
+        "ended",
+        "ended",
+        "ended"
+      ],
+      "micLive": true,
+      "captureFrames": 0
+    }
+  }
+]

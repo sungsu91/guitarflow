@@ -162,7 +162,8 @@ test("shooter route applies the canonical frame to the entire app surface", asyn
   ]);
 
   assert.match(appSource, /useShooterMobileViewport/);
-  assert.match(appSource, /\(appMode === APP_MODES\.SHOOTER \|\| appMode === APP_MODES\.TUNER\) && isMobileLayout/);
+  assert.match(appSource, /\(appMode === APP_MODES\.SHOOTER \|\| appMode === APP_MODES\.TUNER\)[\s\S]*&& isMobileLayout[\s\S]*&& !mobileLandscapeShooterActive/);
+  assert.match(appSource, /const portraitOrientationGuardActive = !mobileLandscapeShooterSelected[\s\S]*&& shouldGuardPortraitOrientation/);
   assert.match(appSource, /style=\{shooterMobileViewportStyle\}/);
   assert.match(runtimeSource, /mobile-canonical-viewport\.css/);
   assert.match(styles, /width: 430px !important/);

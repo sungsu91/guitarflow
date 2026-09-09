@@ -50,7 +50,7 @@ function DesktopCameraLayout({ children, style }) {
   return <section className="shooterRecordingCamera shooterRecordingCamera--desktop" style={style} aria-label="전면 카메라">{children}</section>;
 }
 
-export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensureMic, onActiveChange }) {
+export default function ShooterRecording({ arenaRef, entryTarget, landscape = false, mobile, ensureMic, onActiveChange }) {
   const [phase, setPhase] = useState("idle");
   const [seconds, setSeconds] = useState(0);
   const [error, setError] = useState("");
@@ -192,7 +192,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
       if (mobile) panel.style.scale = originalScale;
       const bounds = panel.getBoundingClientRect();
       const viewport = window.visualViewport;
-      if (mobile) {
+      if (mobile && !landscape) {
         const vh = viewport?.height || window.innerHeight;
         const vw = viewport?.width || window.innerWidth;
         const panelTop = bounds.top - (viewport?.offsetTop || 0);
@@ -206,6 +206,27 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
         const top = panelTop + visibleGameHeight;
         overlayRef.current = { x: 0, y: visibleGameHeight / totalHeight, width: 1, height: (vh - top) / totalHeight, gameFraction: visibleGameHeight / totalHeight, gameSourceFraction: 1, outputAspect: vw / totalHeight, fit: "contain", zoom: cameraZoomRef.current, filter: CAMERA_FILTERS[filterRef.current].id, beauty: beautyRef.current };
         setCameraStyle({ left: 0, top, width: vw, height: vh - top });
+        return;
+      }
+      if (landscape) {
+        const edgeInset = 2;
+        const width = Math.min(300, Math.max(225, bounds.width * 0.36));
+        const height = width * 9 / 16;
+        const left = bounds.left - (viewport?.offsetLeft || 0) + bounds.width - width - edgeInset;
+        const topInset = edgeInset;
+        const top = bounds.top - (viewport?.offsetTop || 0) + topInset;
+        overlayRef.current = {
+          x: (bounds.width - width - edgeInset) / bounds.width,
+          y: topInset / bounds.height,
+          width: width / bounds.width,
+          height: height / bounds.height,
+          fit: "contain",
+          outputAspect: bounds.width / bounds.height,
+          zoom: cameraZoomRef.current,
+          filter: CAMERA_FILTERS[filterRef.current].id,
+          beauty: beautyRef.current,
+        };
+        setCameraStyle({ left, top, width, height });
         return;
       }
       const rect = cameraOverlayRect(bounds.width, bounds.height, positionRef.current, mobile, sizeRef.current);
@@ -234,7 +255,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
       window.visualViewport?.removeEventListener("resize", update);
       window.visualViewport?.removeEventListener("scroll", update);
     };
-  }, [active, mobile, arenaRef]);
+  }, [active, landscape, mobile, arenaRef]);
 
   function moveCamera(dx, dy) {
     const bounds = arenaRef.current.closest(".shooterPanel").getBoundingClientRect();
@@ -514,11 +535,11 @@ export default function ShooterRecording({ arenaRef, entryTarget, mobile, ensure
     ? cameraContainRect(videoRef.current.videoWidth, videoRef.current.videoHeight, cameraStyle.width, cameraStyle.height, cameraZoomRef.current)
     : null;
   const CameraLayout = mobile ? MobileCameraLayout : DesktopCameraLayout;
-  return createPortal(<div ref={uiRef} className={`shooterRecordingUI ${mobile ? "isMobile" : "isDesktop"}`} data-recording-ui="true">
+  return createPortal(<div ref={uiRef} className={`shooterRecordingUI ${mobile ? "isMobile" : "isDesktop"} ${landscape ? "isLandscape" : ""}`} data-recording-ui="true">
     {entryTarget ? createPortal(
       <button className="shooterRecordingHudButton" aria-label={active ? "촬영모드 종료" : phase === "requesting" ? "권한 확인 중 · 취소" : "촬영모드"} title={active ? "촬영모드 종료" : phase === "requesting" ? "권한 요청 취소" : "촬영모드"} onClick={active || phase === "requesting" ? () => close() : enter} type="button">
         <Video aria-hidden="true" size={13} strokeWidth={1.8} />
-        <span>{active ? "촬영 종료" : phase === "requesting" ? "취소" : "촬영모드"}</span>
+        <span>{phase === "requesting" ? "취소" : landscape ? active ? "촬영 OFF" : "촬영 ON" : active ? "촬영 종료" : "촬영모드"}</span>
       </button>, entryTarget,
     ) : null}
     {!active ? <div className="shooterRecordingEntry">

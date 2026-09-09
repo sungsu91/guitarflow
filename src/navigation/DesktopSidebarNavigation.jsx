@@ -67,6 +67,7 @@ export default function DesktopSidebarNavigation({
   handleBackingVolumeInput,
   accompanimentControlsDisabled = false,
   onOpenAudioStudio,
+  onOpenEtudes,
   onOpenFretboard,
   onOpenHelp,
   onOpenMetronome,
@@ -107,6 +108,7 @@ export default function DesktopSidebarNavigation({
           <DesktopSidebarItem active={activeKey === "stage1"} index="①" label="단일 음 위치 익히기" mark="초보 ★" onClick={onOpenSingleNote} tone="beginner" />
           <DesktopSidebarItem active={activeKey === "stage2"} index="②" label="스케일 · 펜타토닉" mark="SOLO" onClick={onOpenScale} tone="solo" />
           <DesktopSidebarItem active={activeKey === "stage3"} index="③" label="리듬 코드 전환" mark="HOT •" onClick={onOpenRhythm} tone="rhythm" />
+          <DesktopSidebarItem active={activeKey === "etudes"} icon={Music2} label="에튀드 스튜디오" mark="PRO" onClick={onOpenEtudes} tone="arranger" />
         </div>
 
         <DesktopSidebarSectionHeading>반주 · 편집</DesktopSidebarSectionHeading>
