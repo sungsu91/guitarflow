@@ -16038,6 +16038,7 @@ const SHOOTER_DIFFICULTY_OPTIONS = [
   { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "54 BPM · E2~E5 E Major 왕복" },
 ];
 const DEFAULT_SHOOTER_DIFFICULTY = SHOOTER_DIFFICULTIES.EASY_RANDOM;
+const SHOOTER_BEGINNER_SINGLE_TARGET_MS = 30_000;
 const SHOOTER_DIFFICULTY_PACING = {
   [SHOOTER_DIFFICULTIES.EASY]: {
     durationMs: SHOOTER_RUNTIME_DIFFICULTY.easy.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
@@ -16047,15 +16048,15 @@ const SHOOTER_DIFFICULTY_PACING = {
   [SHOOTER_DIFFICULTIES.EASY_RANDOM]: {
     durationMs: SHOOTER_RUNTIME_DIFFICULTY.easy.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
     maxTargets: SHOOTER_RUNTIME_DIFFICULTY.easy.maxTargets,
-    spawnGapMinMs: 1600,
-    spawnGapMaxMs: 2300,
+    spawnGapMinMs: 3200,
+    spawnGapMaxMs: 4200,
+    speedScale: 0.8,
   },
   [SHOOTER_DIFFICULTIES.NORMAL_RANDOM]: {
     durationMs: SHOOTER_RUNTIME_DIFFICULTY.easy.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
     maxTargets: SHOOTER_RUNTIME_DIFFICULTY.easy.maxTargets,
     spawnGapMinMs: 1600,
     spawnGapMaxMs: 2300,
-    speedScale: 0.8,
   },
   [SHOOTER_DIFFICULTIES.NORMAL]: {
     durationMs: SHOOTER_RUNTIME_DIFFICULTY.normal.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
@@ -16391,6 +16392,14 @@ function getShooterEnemyDifficultyClass(difficulty) {
   return "shooterEnemy--easy";
 }
 
+function getShooterMaxTargets(pacing, difficulty, elapsedMs = 0) {
+  const isBeginnerMode = difficulty === SHOOTER_DIFFICULTIES.EASY
+    || difficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM;
+  return isBeginnerMode && elapsedMs < SHOOTER_BEGINNER_SINGLE_TARGET_MS
+    ? 1
+    : pacing.maxTargets;
+}
+
 function getShooterTargetYAt(target, now = 0) {
   if (!target) return 0;
   if (target.defeated) return Number(target.y) || 0;
@@ -16408,11 +16417,12 @@ function getShooterEffectiveLevel(
 ) {
   const phase = getShooterDifficultyPhase(difficulty, elapsedMs, spawnedCount, difficultPatternId);
   const pacing = getShooterDifficultyPacing(difficulty);
+  const maxTargets = getShooterMaxTargets(pacing, difficulty, elapsedMs);
   if (isShooterRandomDifficulty(difficulty)) {
     return {
       name: "랜덤",
       phaseLabel: phase.label,
-      maxTargets: pacing.maxTargets,
+      maxTargets,
       poolRatio: 1,
       randomness: 1,
       jumpBias: 0.3,
@@ -16422,7 +16432,7 @@ function getShooterEffectiveLevel(
     return {
       ...level,
       phaseLabel: phase.label,
-      maxTargets: pacing.maxTargets,
+      maxTargets,
       poolRatio: 1,
       randomness: 0,
       jumpBias: 0,
@@ -16432,7 +16442,7 @@ function getShooterEffectiveLevel(
     return {
       ...level,
       phaseLabel: phase.label,
-      maxTargets: pacing.maxTargets,
+      maxTargets,
       poolRatio: 1,
       randomness: 0,
       jumpBias: 0,
@@ -16442,7 +16452,7 @@ function getShooterEffectiveLevel(
     return {
       ...level,
       phaseLabel: phase.label,
-      maxTargets: pacing.maxTargets,
+      maxTargets,
       poolRatio: 1,
       randomness: 0,
       jumpBias: 0,
@@ -16451,7 +16461,7 @@ function getShooterEffectiveLevel(
   return {
     ...level,
     phaseLabel: phase.label,
-    maxTargets: pacing.maxTargets,
+    maxTargets,
     poolRatio: Math.max(phase.poolRatioFloor ?? 0, Math.min(phase.poolRatioCap, level.poolRatio)),
     randomness: clampValue(level.randomness + phase.randomnessBonus, 0.12, 1),
     jumpBias: clampValue(level.jumpBias + phase.jumpBiasBonus, 0.04, 1),
