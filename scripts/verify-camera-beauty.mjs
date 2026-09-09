@@ -3,6 +3,8 @@ const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright')
 const browser = await chromium.launch({ headless:true, executablePath:process.env.CHROME_PATH });
 try {
   const page = await browser.newPage();
+  const trackingRequests=[];
+  page.on('request',request=>{if(request.url().includes('/face-landmarker/')) trackingRequests.push(request.url());});
   await page.goto(process.env.RECORDING_TEST_URL || 'http://127.0.0.1:5178');
   const result = await page.evaluate(async () => {
     const { beautyFrame, releaseBeauty } = await import('/src/shooter/recording/cameraBeauty.js');
@@ -28,5 +30,6 @@ try {
   assert.equal(result.supported,true);assert.ok(result.post<result.pre*.9,JSON.stringify(result));
   assert.ok(result.blue[2]>180&&result.blue[0]<10);
   assert.ok(result.top[1]>220);assert.ok(result.bottom[2]>180);assert.equal(result.offSame,true);
-  console.log('GPU beauty: skin texture softened, non-skin color and orientation preserved, off bypasses processing',result);
+  assert.deepEqual(trackingRequests,[],'Global soft focus must not load face tracking or masks');
+  console.log('GPU soft focus: texture softened, orientation preserved, off bypasses processing; no tracking requests',result);
 } finally {await browser.close();}
