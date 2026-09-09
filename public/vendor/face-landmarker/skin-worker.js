@@ -44,6 +44,26 @@ self.onmessage = async ({data}) => {
       const rgba=ctx.getImageData(0,0,256,256).data;
       const mask=new Uint8Array(256*256);
       for(let i=0;i<mask.length;i++)mask[i]=rgba[i*4];
+      // Separable mask feathering also works where Canvas2D.filter is absent.
+      const horizontal=new Uint8Array(mask.length), softened=new Uint8Array(mask.length);
+      const radius=6,span=radius*2+1;
+      for(let y=0;y<256;y++){
+        let sum=0;for(let x=0;x<=radius;x++)sum+=mask[y*256+x];
+        for(let x=0;x<256;x++){
+          horizontal[y*256+x]=sum/span;
+          if(x-radius>=0)sum-=mask[y*256+x-radius];
+          if(x+radius+1<256)sum+=mask[y*256+x+radius+1];
+        }
+      }
+      for(let x=0;x<256;x++){
+        let sum=0;for(let y=0;y<=radius;y++)sum+=horizontal[y*256+x];
+        for(let y=0;y<256;y++){
+          softened[y*256+x]=sum/span;
+          if(y-radius>=0)sum-=horizontal[(y-radius)*256+x];
+          if(y+radius+1<256)sum+=horizontal[(y+radius+1)*256+x];
+        }
+      }
+      mask.set(softened);
       const balance=self.cheekBalance(points,data.bitmap.width/data.bitmap.height);
       self.postMessage({type:'result',bitmap:data.bitmap,mask,balance,timestamp:data.timestamp,detected:!!points,elapsed:performance.now()-start},[data.bitmap,mask.buffer]);
     } catch {data.bitmap.close();self.postMessage({type:'unavailable'});}

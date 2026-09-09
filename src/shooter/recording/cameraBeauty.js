@@ -40,11 +40,11 @@ void main(){
   float light=dot(c,vec3(.299,.587,.114));
   // Dark hair/nostrils and saturated lip colors remain sharp even inside the oval.
   float protectedDetail=smoothstep(.025,.085,light)*(1.0-smoothstep(.18,.32,c.r-c.g));
-  float amount=smoothstep(.35,.95,mask)*protectedDetail*strength;
+  float amount=smoothstep(.02,.95,mask)*protectedDetail*strength;
   vec3 base=sum/max(weights,.001);
   vec3 smoothSkin=mix(c,base,.78);
   // Lift skin midtones without a white overlay or blown highlights.
-  smoothSkin+=vec3(.26,.245,.235)*smoothSkin*(1.0-smoothSkin);
+  smoothSkin+=vec3(.20,.19,.18)*smoothSkin*(1.0-smoothSkin);
   gl_FragColor=vec4(clamp(mix(c,smoothSkin,amount),0.0,1.0),1.0);
 }`;
 
