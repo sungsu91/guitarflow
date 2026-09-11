@@ -15,6 +15,9 @@ const BLUES = [0, 3, 5, 6, 7, 10];
 const MAJOR_SHAPE = [[6,8],[6,10],[5,7],[5,8],[5,10],[4,7],[4,9],[4,10],[3,7],[3,9],[3,10],[2,8],[2,10],[1,7],[1,8]];
 const PENTA_SHAPE = [[6,8],[6,11],[5,8],[5,10],[4,8],[4,10],[4,13],[3,10],[3,12],[2,11],[2,13]];
 const BLUES_SHAPE = [[6,8],[6,11],[5,8],[5,9],[5,10],[4,8],[4,10],[3,8],[3,10],[3,11],[2,8],[2,11],[1,8]];
+// C major notes arranged as beginner finger pairs: 1–2, 1–2, 1–3,
+// 1–4, 1–3, 1–2. Other keys transpose the whole hand shape intact.
+const BEGINNER_FINGER_PAIR_SHAPE = [[6,7],[6,8],[5,7],[5,8],[4,7],[4,9],[3,7],[3,10],[2,8],[2,10],[1,7],[1,8]];
 // Same pitches as MAJOR_SHAPE, connected diagonally across positions.
 const CONNECTED_SHAPE = [[6,8],[6,10],[6,12],[5,8],[5,10],[5,12],[4,9],[4,10],[4,12],[3,9],[3,10],[3,12],[2,10],[2,12],[2,13]];
 const bars = (...patterns) => patterns;
@@ -29,29 +32,31 @@ export const TEMPLATES = Object.freeze([
     patterns: bars([0,2,1,2,3,2,1,0],[2,4,3,4,5,4,3,2],[4,6,5,6,7,6,5,4],[7,5,6,4,5,3,1,0]) },
   { id: 'ballad-line', level: '초급', style: '발라드', type: '릭', name: '4·8분음표 리듬 릭', english: 'Quarter & Eighth Note Lick', bpm: 64, family: 'major', shape: MAJOR_SHAPE, durations: ['4','8','8','4','4'],
     purpose: '4분음표와 8분음표를 구분하며 프레이즈 끝 음을 충분히 유지합니다.',
-    patterns: bars([0,1,2,4,2],[3,4,5,4,3],[4,5,6,7,4],[3,2,1,0,0]) },
+    patterns: bars([0,1,2,4,2],[3,4,5,4,3],[4,5,6,7,5],[3,2,1,0,0]) },
   { id: 'rock-penta', level: '중급', style: '락', type: '펜타토닉', name: '펜타토닉 포지션 왕복', english: 'Pentatonic Position Run', bpm: 84, family: 'minor', intervals: PENTA, shape: PENTA_SHAPE,
     purpose: '마이너 펜타토닉의 세 음 묶음을 되짚으며 두 옥타브를 왕복합니다.',
     patterns: bars([0,1,2,1,2,3,4,3],[4,5,6,5,6,7,8,7],[8,9,10,9,8,7,8,6],[7,5,6,4,5,3,1,0]) },
-  { id: 'blue-turn', level: '초급', style: '블루스', type: '릭', name: '블루 노트 왕복 릭', english: 'Blues Scale Lick', bpm: 76, family: 'minor', intervals: BLUES, shape: BLUES_SHAPE,
-    purpose: '블루 노트(♭5)를 짧게 지나 5도로 연결합니다. 스트레이트 8분음표입니다.',
-    patterns: bars([0,1,2,3,4,2,1,0],[2,3,4,5,6,5,4,2],[6,7,8,9,10,11,12,10],[8,9,10,8,6,5,1,0]) },
+  { id: 'blue-turn', level: '초급', style: '블루스', type: '릭', name: '블루 노트 계단 왕복', english: 'Stepwise Blues Note Run', bpm: 64, family: 'minor', intervals: BLUES, shape: BLUES_SHAPE, complete: true,
+    purpose: '인접한 줄만 따라가며 블루 노트(♭5)를 한 음씩 통과합니다. 같은 프렛 수직 이동이나 줄 건너뛰기는 사용하지 않습니다.',
+    difficultyReason: '초급 후반 · 연속 8분음표로 블루 노트를 익히되, 줄 이동은 인접 줄로 제한하고 같은 프렛 수직 이동은 피합니다.',
+    patterns: bars([0,1,0,1,2,3,4,3],[2,3,4,3,2,3,4,5],[4,5,6,5,4,5,6,7],[6,7,8,7,8,9,8,7],[7,8,9,8,9,10,11,10],[10,11,12,11,10,9,8,7],[7,8,7,6,5,4,3,2],[2,3,4,3,2,1,0,0]) },
   { id: 'jazz-seventh', level: '중급', style: '재즈', type: '아르페지오', name: '재즈 메이저7 아르페지오', english: 'Seventh Arpeggio Workout', bpm: 88, family: 'major', shape: CONNECTED_SHAPE,
     purpose: '메이저 세븐의 1·3·5·7음을 줄 건너뛰기와 포지션 이동으로 연결합니다.',
     patterns: bars([0,2,4,6,4,2,4,6],[7,6,4,6,7,9,11,13],[14,13,11,9,11,13,11,9],[7,6,7,4,6,2,4,0]) },
   { id: 'diagonal-sequence', level: '고급', style: '기초', type: '스케일', name: '16분음표 포지션 이동', english: 'Sixteenth Note Scale Run', bpm: 80, family: 'major', shape: CONNECTED_SHAPE, duration: '16',
     purpose: '네 음 시퀀스를 상승·하강하며 여러 포지션을 연결합니다. 한 박에 네 음입니다.',
     patterns: bars([0,1,2,1,2,3,4,3,4,5,6,5,6,7,8,7],[8,9,10,9,10,11,12,11,12,13,14,13,12,11,10,9],[10,9,8,9,8,7,6,7,6,5,4,5,4,3,2,3],[2,3,4,3,4,5,6,5,6,5,4,3,2,1,2,0]) },
-  { id: 'triad-start', level: '초급', style: '팝', type: '아르페지오', name: '4분음표 트라이어드', english: 'Quarter Note Triad Arpeggio', bpm: 56, family: 'major', shape: MAJOR_SHAPE, duration: '4',
-    purpose: '메이저 코드의 1·3·5음을 한 음씩 분리해서 연주합니다.',
-    patterns: bars([0,2,4,2],[4,7,4,2],[7,9,11,9],[7,4,2,0]) },
+  { id: 'triad-start', level: '초급', style: '기초', type: '스케일', name: '손가락 간격 첫걸음', english: 'Finger Pair Foundation', bpm: 48, family: 'major', shape: BEGINNER_FINGER_PAIR_SHAPE, duration: '4', complete: true,
+    purpose: '한 마디 동안 한 줄에 머물며 검지와 다음 손가락의 간격을 차례로 익힌 뒤, 마지막 두 마디에서 천천히 내려옵니다.',
+    difficultyReason: '초급 입문 · 한 줄에서 두 음만 4분음표로 반복합니다. 새 줄은 다음 마디에서 시작하고 마지막에만 한 음씩 천천히 내려옵니다.',
+    patterns: bars([0,1,0,1],[2,3,2,3],[4,5,4,5],[6,7,6,7],[8,9,8,9],[10,11,10,11],[11,10,9,8],[7,5,2,1]) },
   { id: 'hammer-start', level: '초급', style: '기초', type: '해머온', name: '두 음 해머온', english: 'Two-note Hammer-on Exercise', bpm: 50, family: 'major', shape: MAJOR_SHAPE,
     purpose: 'H로 연결된 두 번째 음은 다시 피킹하지 않고 손가락으로 눌러 냅니다.',
-    patterns: bars([0,1,0,1,2,3,2,3],[2,4,2,4,5,6,5,6],[8,9,8,9,11,12,11,12],[5,6,2,3,0,1,1,0]),
+    patterns: bars([0,1,0,1,2,4,2,4],[2,4,2,4,5,6,5,6],[8,9,8,9,11,12,11,12],[5,6,2,4,0,1,1,0]),
     techniqueMap: techniques([[0,'H'],[2,'H'],[4,'H'],[6,'H']],[[0,'H'],[2,'H'],[4,'H'],[6,'H']],[[0,'H'],[2,'H'],[4,'H'],[6,'H']],[[0,'H'],[2,'H'],[4,'H']]) },
   { id: 'pull-return', level: '초급', style: '락', type: '풀오프', name: '하행 풀오프 릭', english: 'Descending Pull-off Lick', bpm: 60, family: 'major', shape: MAJOR_SHAPE,
     purpose: 'P의 도착음을 미리 잡고 높은 음에서 낮은 음으로 소리를 연결합니다.',
-    patterns: bars([0,1,0,1,0,4,2,2],[4,3,4,2,6,5,6,5],[9,8,9,8,12,11,12,11],[6,5,4,2,3,2,1,0]),
+    patterns: bars([0,1,0,1,0,4,2,2],[3,2,4,2,6,5,6,5],[9,8,9,8,12,11,12,11],[6,5,4,2,3,2,1,0]),
     techniqueMap: techniques([[1,'P'],[3,'P'],[5,'P']],[[0,'P'],[2,'P'],[4,'P'],[6,'P']],[[0,'P'],[2,'P'],[4,'P'],[6,'P']],[[0,'P'],[2,'P'],[4,'P'],[6,'P']]) },
   { id: 'slide-path', level: '중급', style: '발라드', type: '슬라이드', name: '슬라이드로 포지션 연결', english: 'Position Slide Exercise', bpm: 60, family: 'major', shape: CONNECTED_SHAPE,
     purpose: 'SL 선의 두 음을 같은 손가락으로 연결하며 도착 박자를 지킵니다.',
@@ -73,11 +78,9 @@ const COURSE_ORDER = [...CURRICULUM_ORDER.slice(0,24),'chord-accompaniment',...C
 // Technique studies rearrange intact two-beat cells, preserving their links.
 const DEVELOPMENT = {
   'first-path': bars([7,8,9,8,7,8,9,10],[9,10,11,10,9,10,11,12],[11,12,13,12,11,10,9,8],[9,8,7,6,7,8,7,6]),
-  'pop-answer': bars([6,8,7,8,9,8,7,6],[8,10,9,10,11,10,9,8],[10,12,11,12,13,12,11,10],[9,7,8,6,7,5,6,7]),
+  'pop-answer': bars([6,8,7,8,9,8,7,6],[8,10,9,10,11,10,9,8],[10,11,12,11,13,12,11,10],[9,7,8,6,7,5,6,7]),
   'ballad-line': bars([5,6,7,9,7],[7,8,9,11,9],[9,10,11,9,7],[7,6,5,4,3]),
   'rock-penta': bars([5,6,7,6,7,8,9,8],[8,9,10,8,9,7,8,6],[6,7,8,6,7,5,6,4],[4,5,6,4,5,6,7,6]),
-  'blue-turn': bars([10,9,8,9,10,8,7,6],[6,5,4,3,4,5,6,8],[8,9,10,11,12,11,10,8],[6,7,8,9,10,9,8,6]),
-  'triad-start': bars([11,9,7,9],[11,14,11,9],[7,9,7,4],[2,4,7,4]),
   'triad-cross': bars([7,9,11,9,11,14,11,9],[11,9,7,9,7,4,7,9],[7,4,2,4,7,9,7,4],[2,4,7,4,7,9,7,4]),
   'jazz-seventh': bars([9,11,13,11,9,7,6,7],[6,4,2,4,6,7,9,7],[9,11,13,14,13,11,9,7],[6,7,9,7,6,4,6,7]),
   'diagonal-sequence': bars([8,7,6,7,8,9,10,9,10,11,12,11,12,13,14,13],[12,11,10,11,10,9,8,9,8,7,6,7,6,5,4,5],[4,5,6,7,6,7,8,9,8,9,10,11,10,11,12,13],[12,11,10,9,10,9,8,7,8,7,6,5,6,5,4,3]),
@@ -103,7 +106,7 @@ const TECHNIQUE_TIPS = {
 // Editorial difficulty, evaluated at the recommended tempo, not a certificate
 // of player proficiency. Genre and technique names do not determine level.
 const DIFFICULTY = {
-  'triad-start': '초급 입문 · 느린 4분음표로 1·3·5음을 분리합니다. 빠른 피킹이나 복합 기법이 없습니다.',
+  'triad-start': '초급 입문 · 한 줄에서 두 음만 4분음표로 반복합니다. 새 줄은 다음 마디에서 시작하고 마지막에만 한 음씩 천천히 내려옵니다.',
   'ballad-line': '초급 · 4분·8분음표 구분과 짧은 음형 연결이 중심입니다.',
   'first-path': '초급 · 일정한 8분음표와 인접 줄 이동을 익힙니다.',
   'pop-answer': '초급 · 한 포지션의 짧은 상행·하행 음형을 연결합니다.',

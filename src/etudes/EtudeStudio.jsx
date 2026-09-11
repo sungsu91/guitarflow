@@ -9,6 +9,8 @@ import { COMMON_PRACTICE_TIPS, PICKING_EXAMPLES } from './practiceTips.js';
 const Score = lazy(() => import('./Score.jsx'));
 const STYLES = ['전체', '기초', '팝', '발라드', '락', '블루스', '재즈'];
 const TYPES = ['전체', '스케일', '펜타토닉', '릭', '아르페지오', '코드 아르페지오', '해머온', '풀오프', '슬라이드', '레가토'];
+const DEFAULT_ETUDE_ID = 'C-triad-start';
+const DEFAULT_ETUDE_BPM = ETUDES.find(etude => etude.id === DEFAULT_ETUDE_ID)?.bpm ?? 60;
 
 function Select({ label, value, options, onChange }) {
   return <label className="etudeSelect"><span>{label}</span><select aria-label={label} value={value} onChange={e => onChange(e.target.value)}>
@@ -147,8 +149,8 @@ function DesktopLayout({ model }) {
 export default function EtudeStudio({ mobile, onOpenMenu, onExit }) {
   const defaults = { level: '초급', root: 'C', style: '전체', type: '전체' };
   const [filters, setFilters] = useState(defaults);
-  const [selectedId, setSelectedId] = useState('C-triad-start');
-  const [bpm, updateBpm] = useState(56);
+  const [selectedId, setSelectedId] = useState(DEFAULT_ETUDE_ID);
+  const [bpm, updateBpm] = useState(DEFAULT_ETUDE_BPM);
   const metro = useEtudeMetronome(bpm);
   const list = useMemo(() => filterEtudes(filters), [filters]);
   const selected = list.find(e => e.id === selectedId) ?? list[0];
@@ -163,6 +165,6 @@ export default function EtudeStudio({ mobile, onOpenMenu, onExit }) {
   const model = { filters, setFilter, list, selected, select, bpm, metro, onOpenMenu, onExit,
     openLesson: lesson => { if (!canOpenLesson(selected, lesson, filters)) return; select(lesson.id); },
     setBpm: v => { metro.stop(); updateBpm(Math.min(240, Math.max(30, Math.round(Number(v) || 30)))); },
-    reset: () => { metro.stop(); setFilters(defaults); setSelectedId('C-triad-start'); updateBpm(56); } };
+    reset: () => { metro.stop(); setFilters(defaults); setSelectedId(DEFAULT_ETUDE_ID); updateBpm(DEFAULT_ETUDE_BPM); } };
   return mobile ? <MobileLayout model={model} /> : <DesktopLayout model={model} />;
 }

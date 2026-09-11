@@ -7,6 +7,7 @@ import { isMobileLandscapeAllowed, shouldGuardPortraitOrientation } from '../src
 
 const etudeScoreSource = fs.readFileSync(new URL('../src/etudes/Score.jsx', import.meta.url), 'utf8');
 const etudeCssSource = fs.readFileSync(new URL('../src/etudes/etudes.css', import.meta.url), 'utf8');
+const etudeStudioSource = fs.readFileSync(new URL('../src/etudes/EtudeStudio.jsx', import.meta.url), 'utf8');
 
 test('score measure numbers stay attached to the staff and Etude remains paper-light in every theme', () => {
   assert.match(etudeScoreSource, /class', 'etudeMeasureNumber'/);
@@ -125,12 +126,68 @@ test('lesson navigation stays within the current difficulty, including All filte
   assert.deepEqual(['초급','중급','고급'].map(level=>ETUDES.filter(e=>e.root==='C'&&e.level===level).length),[12,13,12]);
 });
 
+test('the first beginner lesson builds finger spacing one string at a time', () => {
+  const first = ETUDES.find(e=>e.id==='C-triad-start');
+  assert.equal(first.lesson,1);
+  assert.equal(first.type,'스케일');
+  assert.equal(first.style,'기초');
+  assert.equal(first.bpm,48);
+  assert.deepEqual(
+    first.measures.slice(0,6).map(measure=>measure.map(note=>[note.string,note.fret])),
+    [
+      [[6,7],[6,8],[6,7],[6,8]],
+      [[5,7],[5,8],[5,7],[5,8]],
+      [[4,7],[4,9],[4,7],[4,9]],
+      [[3,7],[3,10],[3,7],[3,10]],
+      [[2,8],[2,10],[2,8],[2,10]],
+      [[1,7],[1,8],[1,7],[1,8]],
+    ],
+  );
+  assert.ok(first.measures.slice(0,6).every(measure=>new Set(measure.map(note=>note.string)).size===1));
+  const notes = first.measures.flat();
+  for (let index=1; index<notes.length; index++) {
+    if (notes[index].string !== notes[index-1].string) {
+      assert.equal(Math.abs(notes[index].string-notes[index-1].string),1,'intro string changes stay adjacent');
+      assert.notEqual(notes[index].fret,notes[index-1].fret,'intro avoids same-fret vertical jumps');
+    }
+  }
+  assert.equal(first.measures.at(-1).at(-1).midi % 12,0);
+  assert.match(etudeStudioSource, /useState\(DEFAULT_ETUDE_BPM\)/);
+  assert.match(etudeStudioSource, /updateBpm\(DEFAULT_ETUDE_BPM\)/);
+});
+
+test('the late-beginner blues lesson removes surprise vertical and skipped-string moves', () => {
+  const blues = ETUDES.find(e=>e.id==='C-blue-turn');
+  const notes = blues.measures.flat();
+  assert.equal(blues.bpm,64);
+  assert.ok(notes.every(note=>note.duration==='8'));
+  for (let index=1; index<notes.length; index++) {
+    if (notes[index].string !== notes[index-1].string) {
+      assert.equal(Math.abs(notes[index].string-notes[index-1].string),1,'beginner blues changes only to an adjacent string');
+      assert.notEqual(notes[index].fret,notes[index-1].fret,'beginner blues avoids same-fret vertical jumps');
+    }
+  }
+});
+
+test('beginner lessons avoid unannounced vertical and skipped-string jumps', () => {
+  for (const etude of ETUDES.filter(e=>e.level==='초급')) {
+    const notes = etude.measures.flat();
+    for (let index=1; index<notes.length; index++) {
+      const previous = notes[index-1];
+      const current = notes[index];
+      if (previous.rest || current.rest || previous.string===current.string) continue;
+      assert.equal(Math.abs(current.string-previous.string),1,`${etude.id}: skipped string`);
+      assert.notEqual(current.fret,previous.fret,`${etude.id}: same-fret vertical jump`);
+    }
+  }
+});
+
 test('independent pitch spelling, transposition, duration and movement checks', () => {
   const pitch = { c:0, d:2, e:4, f:5, g:7, a:9, b:11 };
   const sig = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 };
   for (const e of ETUDES) {
     const notes = e.measures.flat().filter(n=>!n.rest);
-    assert.equal(notes[0].midi % 12, sig[e.root]);
+    assert.equal(notes[0].midi % 12, e.templateId==='triad-start' ? (sig[e.root]+11)%12 : sig[e.root]);
     assert.equal(notes.at(-1).midi % 12, sig[e.root]);
     for (const [i,n] of notes.entries()) {
       const [,letter,alter,oct] = n.pitch.key.match(/^([a-g])([#b]?)[/]([0-9])$/);

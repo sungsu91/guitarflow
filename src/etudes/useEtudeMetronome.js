@@ -1,8 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AUDIO_BUS_IDS, getAudioBusInput, resumeSharedAudioContext } from '../audio/audioBus.js';
+import { AUDIO_BUS_IDS, getAudioBusInput, resumeSharedAudioContext, smoothAudioParam } from '../audio/audioBus.js';
 import { createAudioTransportCursor, collectAudioTransportSteps, getAudioTransportStepSeconds } from '../audio/transportClock.js';
+import { useMetronomeVolume } from '../audio/metronomeVolumeStore.js';
+
+// The etude reader is commonly used with an unamplified guitar, so start near
+// full digital level and let the device volume control the listening level.
+// The shared master limiter remains the final peak guard.
+const ETUDE_CLICK_PEAK = 1.08;
+const ETUDE_WEAK_CLICK_PEAK = 0.9;
 
 export default function useEtudeMetronome(bpm) {
+  const { volume } = useMetronomeVolume();
   const [playing, setPlaying] = useState(false);
   const [beat, setBeat] = useState(-1);
   const [error, setError] = useState('');
@@ -27,10 +35,11 @@ export default function useEtudeMetronome(bpm) {
       if (request !== token.current) return;
       if (!context || context.state !== 'running') throw new Error('오디오를 시작할 수 없습니다. 다시 눌러 주세요.');
       const gain = context.createGain();
+      gain.gain.setValueAtTime(volume, context.currentTime);
       gain.connect(getAudioBusInput(AUDIO_BUS_IDS.METRONOME));
       const origin = context.currentTime + 0.06;
       const stepSeconds = getAudioTransportStepSeconds(bpm);
-      const s = { gain, oscillators: new Set(), cursor: createAudioTransportCursor({ originTime: origin, stepSeconds }), frame: 0, timer: 0 };
+      const s = { context, gain, oscillators: new Set(), cursor: createAudioTransportCursor({ originTime: origin, stepSeconds }), frame: 0, timer: 0 };
       session.current = s;
       const schedule = () => {
         if (session.current !== s) return;
@@ -38,9 +47,10 @@ export default function useEtudeMetronome(bpm) {
         s.cursor = batch.cursor;
         batch.steps.forEach(step => {
           const o = context.createOscillator(), envelope = context.createGain();
-          o.frequency.value = step.index % 4 === 0 ? 1200 : 850;
+          const downbeat = step.index % 4 === 0;
+          o.frequency.value = downbeat ? 1200 : 850;
           envelope.gain.setValueAtTime(0.0001, step.time);
-          envelope.gain.exponentialRampToValueAtTime(0.22, step.time + 0.002);
+          envelope.gain.exponentialRampToValueAtTime(downbeat ? ETUDE_CLICK_PEAK : ETUDE_WEAK_CLICK_PEAK, step.time + 0.002);
           envelope.gain.exponentialRampToValueAtTime(0.0001, step.time + 0.045);
           o.connect(envelope); envelope.connect(gain);
           s.oscillators.add(o);
@@ -55,7 +65,11 @@ export default function useEtudeMetronome(bpm) {
       };
       schedule(); s.timer = setInterval(schedule, 25); paint(); setPlaying(true); setError('');
     } catch (e) { stop(); setError(e.message); }
-  }, [bpm, stop]);
+  }, [bpm, stop, volume]);
+  useEffect(() => {
+    const s = session.current;
+    if (s) smoothAudioParam(s.gain.gain, volume, s.context, { timeConstant: 0.01 });
+  }, [volume]);
   useEffect(() => { stop(); return stop; }, [bpm, stop]);
   useEffect(() => {
     const hide = () => { if (document.hidden) stop(); };

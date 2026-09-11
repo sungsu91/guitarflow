@@ -5,6 +5,9 @@ import test from "node:test";
 const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
 const panelSource = await readFile(new URL("../src/rhythm/SharedAccompanimentPanel.jsx", import.meta.url), "utf8");
 const appCss = await readFile(new URL("../src/style.css", import.meta.url), "utf8");
+const desktopNavigationSource = await readFile(new URL("../src/navigation/DesktopSidebarNavigation.jsx", import.meta.url), "utf8");
+const metronomeControlSource = await readFile(new URL("../src/components/MetronomeVolumeControl.jsx", import.meta.url), "utf8");
+const etudeMetronomeSource = await readFile(new URL("../src/etudes/useEtudeMetronome.js", import.meta.url), "utf8");
 
 function getSourceRange(startMarker, endMarker) {
   const start = appSource.indexOf(startMarker);
@@ -118,6 +121,18 @@ test("menu owns sound and rhythm entry while the rhythm dialog contains no dupli
   assert.match(appSource, /className="utilityRhythmSettingsButton"/);
   assert.match(rhythmDialogSource, /리듬 사용자 설정/);
   assert.doesNotMatch(rhythmDialogSource, /miniChordRhythmSoundRow|기본 볼륨|onSoundToggle/);
+});
+
+test("mobile, desktop, and etude metronomes share the persisted maximum-volume control", () => {
+  assert.match(appSource, /<MetronomeVolumeControl className="utilitySoundSliderRow"/);
+  assert.match(desktopNavigationSource, /<MetronomeVolumeControl className="desktopSidebarSoundRow"/);
+  assert.match(metronomeControlSource, /aria-label="메트로놈 볼륨"/);
+  assert.match(metronomeControlSource, /setMetronomeVolume\(event\.currentTarget\.valueAsNumber \/ 100\)/);
+  assert.match(appSource, /subscribeMetronomeVolume[\s\S]*metronomeVolumeRef\.current = getMetronomeVolumeSnapshot\(\)\.volume/);
+  assert.match(appSource, /const resetSoundSettings = useCallback[\s\S]*setMetronomeVolume\(1\)[\s\S]*resetBackingVolumeSettings\(\)/);
+  assert.match(appSource, /utterance\.volume = Math\.max\(0, Math\.min\(1, metronomeVolumeRef\.current \?\? 1\)\)/);
+  assert.match(etudeMetronomeSource, /const \{ volume \} = useMetronomeVolume\(\)/);
+  assert.match(etudeMetronomeSource, /smoothAudioParam\(s\.gain\.gain, volume/);
 });
 
 test("rhythm settings keep editing compact and expose part and full previews", () => {

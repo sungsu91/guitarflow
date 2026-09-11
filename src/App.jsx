@@ -76,6 +76,12 @@ import {
 } from "./metronome/runtime";
 import AudioStudio from "./audio-studio/AudioStudio";
 import EtudeStudio from "./etudes/EtudeStudio.jsx";
+import MetronomeVolumeControl from "./components/MetronomeVolumeControl.jsx";
+import {
+  getMetronomeVolumeSnapshot,
+  setMetronomeVolume,
+  subscribeMetronomeVolume,
+} from "./audio/metronomeVolumeStore.js";
 import { createMiniChordLoadLibrary } from "./mini-chord/loadLibrary.js";
 import TunerMode, { TUNER_BACKGROUND_COUNT } from "./tuner/TunerMode";
 import {
@@ -13960,8 +13966,8 @@ const HELP_GUIDE_SECTIONS = [
     group: "settings",
     content: (
       <>
-        <p>리듬코드와 미니반주가 함께 사용하는 <b>드럼·베이스·피아노</b>의 켜기/끄기, 볼륨과 기본 리듬을 조절합니다.</p>
-        <p>여기서 바꾼 설정은 관련 모드에 공통으로 반영됩니다. 각 모드의 화면 배치는 달라도 사운드 설정은 공유됩니다.</p>
+        <p><b>메트로놈</b> 음량과 리듬코드·미니반주가 함께 사용하는 <b>드럼·베이스·피아노</b>의 켜기/끄기, 볼륨과 기본 리듬을 조절합니다.</p>
+        <p>메트로놈 음량은 일반 메트로놈과 에튀드 스튜디오에 함께 반영됩니다. 각 모드의 화면 배치는 달라도 사운드 설정은 공유됩니다.</p>
       </>
     ),
   },
@@ -18197,7 +18203,10 @@ function App({ onReady }) {
   const metronomeCountInRef = useRef(false);
   const metronomeCountInBarsRef = useRef(0);
   const metronomeCountInVoiceModeRef = useRef("female");
-  const metronomeVolumeRef = useRef(0.72);
+  const metronomeVolumeRef = useRef(getMetronomeVolumeSnapshot().volume);
+  useEffect(() => subscribeMetronomeVolume(() => {
+    metronomeVolumeRef.current = getMetronomeVolumeSnapshot().volume;
+  }), []);
   const metronomeBeatPatternRef = useRef(normalizeMetronomeBeatPattern([], 4));
   const activeMetronomeScopeRef = useRef(
     initialRouteRef.current.appMode === APP_MODES.METRONOME
@@ -19968,7 +19977,7 @@ function App({ onReady }) {
     const masterGain = audio.createGain();
     const accentGain = audio.createGain();
     const weakGain = audio.createGain();
-    masterGain.gain.setValueAtTime(Math.max(0, Math.min(1, metronomeVolumeRef.current ?? 0.72)), audio.currentTime);
+    masterGain.gain.setValueAtTime(Math.max(0, Math.min(1, metronomeVolumeRef.current ?? 1)), audio.currentTime);
     accentGain.gain.setValueAtTime(1, audio.currentTime);
     weakGain.gain.setValueAtTime(0.5, audio.currentTime);
     accentGain.connect(masterGain);
@@ -20554,7 +20563,7 @@ function App({ onReady }) {
         ? (accent ? metronomeAccentToneRef.current : metronomeWeakToneRef.current)
         : metronomeToneRef.current;
     const selectedTone = getMetronomeToneOption(toneId);
-    const masterLevel = Math.max(0, Math.min(1, metronomeVolumeRef.current ?? 0.72));
+    const masterLevel = Math.max(0, Math.min(1, metronomeVolumeRef.current ?? 1));
     const tickLevel = (accent ? 1 : 0.5) * masterLevel;
 
     if (selectedTone.id === "tick") {
@@ -21296,7 +21305,7 @@ function App({ onReady }) {
       utterance.lang = englishVoice?.lang || "en-US";
       utterance.rate = 1.18;
       utterance.pitch = voiceMode === "male" ? 0.76 : 0.88;
-      utterance.volume = Math.max(0.25, Math.min(0.9, metronomeVolumeRef.current ?? 0.72));
+      utterance.volume = Math.max(0, Math.min(1, metronomeVolumeRef.current ?? 1));
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
     } catch {
@@ -26702,7 +26711,7 @@ function App({ onReady }) {
   useEffect(() => {
     if (!metronomeMasterGainRef.current || !audioRef.current) return;
     metronomeMasterGainRef.current.gain.setTargetAtTime(
-      Math.max(0, Math.min(1, metronomeVolumeRef.current ?? 0.72)),
+      Math.max(0, Math.min(1, metronomeVolumeRef.current ?? 1)),
       audioRef.current.currentTime,
       0.012,
     );
@@ -29186,6 +29195,11 @@ function App({ onReady }) {
     setBackingPianoVolume(BACKING_DEFAULT_PART_VOLUMES.piano);
   }, [applyBackingPartVolume, stage3RecommendedAccompanimentLocked, updateBackingVolumeReadout]);
 
+  const resetSoundSettings = useCallback(() => {
+    setMetronomeVolume(1);
+    resetBackingVolumeSettings();
+  }, [resetBackingVolumeSettings]);
+
   const toggleBackingPartEnabled = useCallback((part) => {
     if (stage3RecommendedAccompanimentLocked) return;
     const enabledRef = part === "bass"
@@ -30079,7 +30093,7 @@ function App({ onReady }) {
         onOpenShooter={showShooterMode}
         onOpenSingleNote={() => showIndependentPracticeCategory("first-position")}
         onOpenTuner={showTunerMode}
-        onResetSound={resetBackingVolumeSettings}
+        onResetSound={resetSoundSettings}
         onSelectTheme={selectAppTheme}
         themeOptions={themeMenuVisible ? themeOptions : []}
         themeTransitionActive={Boolean(themeTransition)}
@@ -30215,11 +30229,12 @@ function App({ onReady }) {
                     </span>
                     <div className="utilityMenuText">
                       <strong>사운드 및 리듬 설정</strong>
-                      <small>반주 밸런스·공통 리듬 관리</small>
+                      <small>메트로놈·반주·공통 리듬 관리</small>
                     </div>
                     <span className="utilityMenuChevron" aria-hidden="true"><ChevronDown size={18} /></span>
                   </summary>
                   <div className="utilitySoundSliders">
+                    <MetronomeVolumeControl className="utilitySoundSliderRow" />
                     {BACKING_PART_VOLUME_CONTROLS.map((control) => {
                       const value = getBackingVolumeValue(control.id);
                       return (
@@ -30260,7 +30275,7 @@ function App({ onReady }) {
                     <button
                       className="utilitySoundResetButton"
                       disabled={stage3RecommendedAccompanimentLocked}
-                      onClick={resetBackingVolumeSettings}
+                      onClick={resetSoundSettings}
                       type="button"
                     >
                       사운드 초기화

@@ -12,6 +12,7 @@ import {
   Timer,
   Volume2,
 } from "lucide-react";
+import MetronomeVolumeControl from "../components/MetronomeVolumeControl.jsx";
 
 function InstagramMark({ size = 18 }) {
   return (
@@ -144,6 +145,7 @@ export default function DesktopSidebarNavigation({
               <ChevronDown className="desktopSidebarChevron" size={16} aria-hidden="true" />
             </summary>
             <div className="desktopSidebarSoundControls">
+              <MetronomeVolumeControl className="desktopSidebarSoundRow" />
               {backingVolumeControls.map((control) => {
                 const value = getBackingVolumeValue(control.id);
                 return (

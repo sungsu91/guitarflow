@@ -17,6 +17,13 @@ import {
   setBackingVolume,
   toggleBackingMute,
 } from "../src/backing-loop/backingVolumeStore.js";
+import {
+  DEFAULT_METRONOME_VOLUME,
+  getMetronomeVolumeSnapshot,
+  resetMetronomeVolumeForTests,
+  setMetronomeVolume,
+  subscribeMetronomeVolume,
+} from "../src/audio/metronomeVolumeStore.js";
 
 class FakeParam {
   constructor(value = 0) { this.value = value; }
@@ -131,6 +138,35 @@ test("backing volume mute restores the last audible shared value", () => {
     assert.ok(writes.length >= 3);
   } finally {
     resetBackingVolumeForTests();
+    globalThis.window = previousWindow;
+  }
+});
+
+test("metronome volume starts at maximum and persists one shared clamped value", () => {
+  const previousWindow = globalThis.window;
+  const writes = [];
+  globalThis.window = {
+    localStorage: {
+      setItem: (key, value) => writes.push([key, value]),
+    },
+  };
+  resetMetronomeVolumeForTests();
+  let notifications = 0;
+  const unsubscribe = subscribeMetronomeVolume(() => { notifications += 1; });
+  try {
+    assert.equal(getMetronomeVolumeSnapshot().volume, DEFAULT_METRONOME_VOLUME);
+    assert.equal(DEFAULT_METRONOME_VOLUME, 1);
+    setMetronomeVolume(0.37);
+    assert.equal(getMetronomeVolumeSnapshot().volume, 0.37);
+    setMetronomeVolume(5);
+    assert.equal(getMetronomeVolumeSnapshot().volume, 1);
+    setMetronomeVolume(-2);
+    assert.equal(getMetronomeVolumeSnapshot().volume, 0);
+    assert.equal(notifications, 3);
+    assert.deepEqual(writes.map(([, value]) => value), ["0.37", "1", "0"]);
+  } finally {
+    unsubscribe();
+    resetMetronomeVolumeForTests();
     globalThis.window = previousWindow;
   }
 });
