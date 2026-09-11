@@ -39,12 +39,15 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     stave.setNoteStartX(start);
     tab.setNoteStartX(start);
     stave.draw(); tab.draw();
+    // Keep the first number of each system inside the clef/key-signature area.
+    // Other measure numbers sit directly above the barline that starts them.
+    const measureNumberX = first ? Math.max(start - 14, x + 50) : x + 4;
     const measureNumber = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     measureNumber.textContent = String(index + 1);
     measureNumber.setAttribute('class', 'etudeMeasureNumber');
-    measureNumber.setAttribute('x', String(x + 7));
+    measureNumber.setAttribute('x', String(measureNumberX));
     measureNumber.setAttribute('y', String(stave.getYForLine(0) - 13));
-    measureNumber.setAttribute('text-anchor', 'start');
+    measureNumber.setAttribute('text-anchor', 'middle');
     element.querySelector('svg').append(measureNumber);
     if(etude.harmony?.[index]&&!etude.chordShapes) context.setFont('Arial',14,'bold').fillText(etude.harmony[index],x+35,y+5);
     if (first) new StaveConnector(stave, tab).setType(StaveConnector.type.BRACKET).setContext(context).draw();

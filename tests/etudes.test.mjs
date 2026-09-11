@@ -11,6 +11,8 @@ const etudeStudioSource = fs.readFileSync(new URL('../src/etudes/EtudeStudio.jsx
 
 test('score measure numbers stay attached to the staff and Etude remains paper-light in every theme', () => {
   assert.match(etudeScoreSource, /class', 'etudeMeasureNumber'/);
+  assert.match(etudeScoreSource, /first \? Math\.max\(start - 14, x \+ 50\) : x \+ 4/);
+  assert.match(etudeScoreSource, /measureNumber\.setAttribute\('text-anchor', 'middle'\)/);
   assert.match(etudeScoreSource, /stave\.getYForLine\(0\) - 13/);
   assert.doesNotMatch(etudeScoreSource, /fillText\(String\(index \+ 1\), x \+ 3, y \+ 5\)/);
   assert.match(etudeCssSource, /\.theme-dark \.etudeStudio[\s\S]*color-scheme: light/);
