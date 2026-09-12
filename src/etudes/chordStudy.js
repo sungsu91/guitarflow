@@ -18,11 +18,12 @@ const patterns=progression.map((chord,bar)=>{
 
 export const CHORD_STUDY = {
   id:'chord-accompaniment',level:'중급',style:'발라드',type:'아르페지오',
+  openChordCourse:'progression',
   name:'코드 진행과 루트 동시 뜯기',english:'Chord Progression Fingerpicking',bpm:56,
   family:'major',shape:positions,patterns,complete:true,
   accompaniment:true,chordShapes:progression.map(i=>shapes[i]),
   harmony:[[0,''],[5,'m'],[3,''],[4,''],[0,''],[5,'m'],[4,''],[0,'']],
-  difficultyReason:'중급 · 바레 코드 진행 위에서 1·3박의 루트와 높은 음을 함께 뜯고 나머지를 8분음표로 연결합니다.',
+  difficultyReason:'중급 · 낮은 포지션의 코드 진행에 필요한 바레 운지를 더하고 1·3박 동시 뜯기와 8분음표를 연결합니다.',
   purpose:'각 마디의 코드표를 먼저 잡습니다. 1·3박의 베이스와 높은 음은 동시에 뜯고, 그 사이에는 높은 줄을 순서대로 뜯습니다. 같은 코드 안에서는 앞 음이 겹쳐 울리게 하세요.',
 };
 
@@ -34,7 +35,7 @@ export function drawChordDiagram(svg, shape, name, x, y) {
   group.setAttribute('aria-label',`${name}, 6번줄부터 ${shape.frets.map(f=>f===null?'뮤트':f+'프렛').join(', ')}`);
   const add=(tag,attrs,text)=>{const node=document.createElementNS(ns,tag);for(const [key,value] of Object.entries(attrs))node.setAttribute(key,String(value));if(text!==undefined)node.textContent=text;group.append(node);return node;};
   const positive=shape.frets.filter(f=>f>0);
-  const base=Math.max(1,Math.min(...positive));
+  const base=shape.frets.includes(0)?1:Math.max(1,Math.min(...positive));
   const gx=x+27, gy=y+34, gap=12, step=14;
   const text=(tx,ty,label,size=14)=>add('text',{x:tx,y:ty,'text-anchor':'middle',fill:'#111',style:`font:600 ${size}px Arial,sans-serif`},label);
   text(gx+30,y+12,name,17);

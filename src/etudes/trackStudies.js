@@ -1,3 +1,4 @@
+import { beginnerOpenChordStudies } from './openChordStudies.js';
 // Original, deterministic studies. Links are authored inside cells; a cell's
 // first note is picked again. Rests give beginners time to prepare a new grip.
 const quarter = ['4','4','4','4'];
@@ -125,8 +126,6 @@ export function trackStudies({penta, pentaIntervals}) {
 }
 
 export function chordTrackStudies(chordStudy) {
-  const c = {frets:[null,null,10,9,8,null],fingers:[null,null,3,2,1,null]};
-  const am = {frets:[null,null,7,5,5,null],fingers:[null,null,3,1,2,null]};
   const produce = (id,level,name,english,bpm,grips,harmony,stringRows,rhythm,purpose,goal) => {
     const shape=[];
     const patterns=stringRows.map((row,bar)=>row.map(cell=>{
@@ -137,18 +136,7 @@ export function chordTrackStudies(chordStudy) {
     return make(id,level,'아르페지오',name,english,bpm,shape,patterns,rhythm,purpose,goal,
       {style:'발라드',accompaniment:true,chordShapes:grips,harmony});
   };
-  const result=[
-    produce('chord-three-strings','초급','루트와 높은 음 함께 뜯기','Root and Treble Pinch',44,
-      Array(8).fill(c),Array.from({length:8},()=>[0,'']),
-      [[[4,2],3,2,3],[[4,2],3,2,-1],[[4,2],3,2,3],[[4,2],3,4,-1],[[4,2],3,[4,2],3],[[4,2],2,3,-1],[[4,2],3,2,-1],[[4,2],3,2,4]],quarter,
-      '세 줄 미니 코드를 미리 잡습니다. 매 마디 첫 박의 4·2번줄을 엄지와 중지로 함께 뜯고, 검지로 3번줄을 이어 뜯으세요. 첫 음은 루트와 5음이 함께 울립니다.',
-      '초급 입문 · 바레 없는 한 코드·4분음표·두 손가락 동시 뜯기로 시작합니다.'),
-    produce('chord-two-grips','초급','두 코드 루트와 분산 반주','Two Chord Pinch and Picking',48,
-      [c,c,am,am,c,c,am,c],[[0,''],[0,''],[5,'m'],[5,'m'],[0,''],[0,''],[5,'m'],[0,'']],
-      [[[4,2],3,2,-1],[[4,2],2,3,-1],[[4,2],3,2,-1],[[4,2],2,3,-1],[[4,2],3,[4,2],-1],[[4,2],2,3,-1],[[4,2],3,2,-1],[[4,2],3,2,4]],quarter,
-      '메이저와 관계 단조의 두 코드 모양을 바꿉니다. 각 마디 첫 박에는 해당 코드의 루트와 높은 음을 함께 뜯습니다. 마지막 박의 쉼표에서 잔향을 끊고 새 모양을 준비하세요.',
-      '바레 없이 두 코드 모양과 엄지·중지 동시 뜯기를 연결합니다. 이동은 쉼표 동안 준비합니다.'),
-  ];
+  const result=beginnerOpenChordStudies();
   for(const [id,level,name,english,bpm,mode] of [
     ['chord-bass-answer','중급','루트·5음 교대 베이스 반주','Alternating Bass Fingerpicking',60,'eighth'],
     ['chord-sixteenths','고급','동시 뜯기와 16분 분산 반주','Pinch and Sixteenth Picking',60,'sixteenth'],

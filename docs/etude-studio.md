@@ -4,7 +4,7 @@ Route: #etudes. Shared catalog, course/filter/selection state and metronome; sep
 
 ## Type-first curriculum
 
-65 original eight-bar studies × 7 keys = 455 scores. Nine technique courses each contain beginner, intermediate and advanced stages with at least two studies per stage. See [curriculum and sources](etude-curriculum.md).
+65 original eight-bar studies: 451 scores across supported keys. Beginner arpeggios use actual C/D/E/G/A open grips (0–3 frets), with F/B introduced at intermediate level. Their key selector shows only supported keys; entering this course from F/B selects C visibly. Open-string chords are resolved per key rather than shifted along the neck. Nine technique courses each contain beginner, intermediate and advanced stages with at least two studies per stage. See [curriculum and sources](etude-curriculum.md).
 
 src/etudes/tracks.js is the single course-order registry. catalog.js builds and validates the scores; trackStudies.js adds graded technique, triad and chord accompaniment studies. Existing template ids remain valid. trackLesson is local to type and level; lesson is the internal catalog ordering.
 
@@ -21,7 +21,7 @@ Scores retain the existing paper layout, responsive reader and 12-entry SVG cach
 ## Verification
 
 - node --test tests/etudes.test.mjs: course coverage, unique patterns, pitch/spelling/TAB, chord tones, rhythm, technique links, difficulty progression and navigation boundaries.
-- scripts/verify-etude-tracks.mjs: 1,820 renders across desktop, mobile portrait, enlarged portrait and enlarged landscape; 27 course combinations per layout; navigation, style/key changes, transport reset, TIP, chord diagrams and zoom/viewport checks.
+- scripts/verify-etude-tracks.mjs: 1,804 renders across desktop, mobile portrait, enlarged portrait and enlarged landscape; 27 course combinations per layout; navigation, style/key changes, transport reset, TIP, chord diagrams and zoom/viewport checks.
 - scripts/verify-etude-phrasing.mjs: rests, technique label spacing, chord labels and common TIP.
 - The older verify-etudes-browser and verify-etude-filter-navigation entry points run the current course verification.
 

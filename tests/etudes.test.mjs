@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { ETUDES, ROOTS, LEVELS, TEMPLATES, TUNING, validateEtude } from '../src/etudes/catalog.js';
-import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson, availableStyles } from '../src/etudes/filters.js';
+import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson, availableStyles, availableRoots } from '../src/etudes/filters.js';
+import { OPEN_CHORD_ROOTS } from '../src/etudes/openChordStudies.js';
 import { TRACKS, TRACK_ORDER, TYPES } from '../src/etudes/tracks.js';
 import { isMobileLandscapeAllowed, shouldGuardPortraitOrientation } from '../src/layouts/viewportProfile.js';
 
@@ -28,17 +29,18 @@ test('etude rotation is allowed without changing portrait-only shooter policy', 
   assert.equal(shouldGuardPortraitOrientation('shooter', landscape), true);
 });
 
-test('nine courses each cover three levels with at least two complete studies in seven keys', () => {
+test('nine courses cover three levels in their supported keys', () => {
   assert.equal(TRACKS.length,9);
   assert.equal(TEMPLATES.length,65);
-  assert.equal(ETUDES.length,TEMPLATES.length*ROOTS.length);
+  assert.equal(ETUDES.length,451);
   assert.equal(new Set(ETUDES.map(e => e.id)).size,ETUDES.length);
   assert.equal(new Set(TRACK_ORDER).size,TEMPLATES.length);
   assert.deepEqual(new Set(TRACK_ORDER),new Set(TEMPLATES.map(t=>t.id)));
   for (const root of ROOTS) {
-    assert.deepEqual(ETUDES.filter(e => e.root === root).map(e=>e.lesson), Array.from({length:TEMPLATES.length},(_,i)=>i+1));
+    assert.deepEqual(ETUDES.filter(e => e.root === root).map(e=>e.lesson),TRACK_ORDER.flatMap((id,i)=>TEMPLATES.find(t=>t.id===id).roots?.includes(root)===false?[]:[i+1]));
     for(const track of TRACKS) for(const [index,level] of LEVELS.entries()) {
       const course=filterEtudes({root,type:track.type,level,style:'전체'});
+      if(!availableRoots({type:track.type,level}).includes(root)) { assert.equal(course.length,0);continue; }
       assert.ok(course.length>=2,`${root} ${track.type} ${level}: incomplete course`);
       assert.deepEqual(course.map(e=>e.templateId),track.stages[index][1]);
       assert.deepEqual(course.map(e=>e.trackLesson),course.map((_,i)=>i+1));
@@ -57,7 +59,8 @@ test('changing a course or level never relaxes it to a different technique or le
       const next=changeEtudeFilter({root:e.root,level:e.level,style:e.style,type:e.type},key,value);
       const result=filterEtudes(next);
       assert.ok(result.length, `${e.id}: ${key} ${value}`);
-      assert.ok(result.every(study=>study[key]===value && study.root===e.root));
+      const expectedRoot=availableRoots(next).includes(e.root)?e.root:availableRoots(next)[0];
+      assert.ok(result.every(study=>study[key]===value && study.root===expectedRoot));
       assert.equal(next[key==='type'?'level':'type'],e[key==='type'?'level':'type']);
     }
   }
@@ -178,7 +181,7 @@ test('technique courses teach their named technique and introduce legato progres
   assert.ok(new Set(advanced.measures.flat().map(n=>n.string)).size>=3);
   for(const e of ETUDES.filter(e=>e.type==='아르페지오'&&e.level==='초급')) {
     assert.ok(e.chordShapes.every(shape=>!shape.barre));
-    assert.ok(e.chordShapes.every(shape=>shape.frets.filter(f=>f!==null).length===3));
+    assert.ok(e.chordShapes.every(shape=>shape.frets.includes(0)&&shape.frets.every(f=>f===null||(f>=0&&f<=3))));
   }
 });
 
@@ -283,7 +286,9 @@ test('arpeggio accompaniment has root pinches, held feasible grips and graded ba
       }
       if(e.level==='초급') {
         assert.ok(!grip.barre);
-        assert.equal(frets.length,3);
+        assert.ok(frets.length>=4 && frets.length<=6);
+        assert.ok(frets.includes(0));
+        assert.ok(frets.every(f=>f>=0&&f<=3));
         assert.ok(bar.every(n=>n.duration==='4'));
         assert.ok(bar.every(n=>!n.tones||n.tones.length===2));
       }
@@ -299,12 +304,31 @@ test('arpeggio accompaniment has root pinches, held feasible grips and graded ba
 
 test('validator checks every simultaneous tone, duplicate strings and unchanged beat duration',()=>{
   const source=ETUDES.find(e=>e.id==='C-chord-three-strings');
-  assert.deepEqual(source.measures[0][0].tones.map(t=>[t.string,t.fret,t.midi]),[[4,10,60],[2,8,67]]);
+  assert.deepEqual(source.measures[0][0].tones.map(t=>[t.string,t.fret,t.midi]),[[5,3,48],[2,1,60]]);
   for(const mutate of [n=>n.tones[1].fret++, n=>n.tones[1].pitch.octave++, n=>n.tones[1].string=n.tones[0].string, n=>n.tones=[]]) {
     const broken=structuredClone(source); mutate(broken.measures[0][0]);
     assert.ok(validateEtude(broken).length);
   }
   for(const m of source.measures) assert.equal(m.reduce((sum,n)=>sum+4/Number(n.duration),0),4);
+});
+
+test('beginner arpeggios use real low-position open grips with no movable-shape fallback',()=>{
+  const expected={C:[null,3,2,0,1,0],D:[null,null,0,2,3,2],E:[0,2,2,1,0,0],G:[3,2,0,0,0,3],A:[null,0,2,2,2,0]};
+  assert.deepEqual(availableRoots({type:'아르페지오',level:'초급'}),OPEN_CHORD_ROOTS);
+  for(const root of OPEN_CHORD_ROOTS) {
+    const first=ETUDES.find(e=>e.id===`${root}-chord-three-strings`);
+    assert.deepEqual(first.chordShapes[0].frets,expected[root]);
+    assert.ok(first.measures.flat().filter(n=>!n.rest).flatMap(n=>n.tones??[n]).some(n=>n.fret===0));
+    for(const chord of first.chordShapes) assert.ok(!chord.barre);
+  }
+  const c=ETUDES.find(e=>e.id==='C-chord-two-grips');
+  assert.deepEqual(c.chordShapes[2].frets,[null,0,2,2,1,0]);
+  assert.deepEqual(c.harmony,['C','C','Am','Am','C','C','Am','C']);
+  assert.ok(!ETUDES.some(e=>e.level==='초급'&&e.type==='아르페지오'&&['F','B'].includes(e.root)));
+  for(const root of ROOTS)assert.ok(ETUDES.some(e=>e.root===root&&e.type==='아르페지오'&&e.level==='중급'));
+  const intermediate=ETUDES.find(e=>e.id==='C-chord-accompaniment');
+  assert.deepEqual(intermediate.chordShapes[0].frets,expected.C);
+  assert.deepEqual(intermediate.chordShapes[2].frets,[null,null,3,2,1,1]);
 });
 
 test('F major uses Bb; B major A#; C blues Gb and natural G', () => {

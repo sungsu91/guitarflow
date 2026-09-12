@@ -64,12 +64,16 @@ try {
     await page.getByLabel('연습 유형',{exact:true}).selectOption('아르페지오');
     assert.equal(await page.getByRole('button',{name:'중급',exact:true}).getAttribute('aria-pressed'),'true');
     assert.equal(await page.getByLabel('스타일',{exact:true}).inputValue(),'전체');
-    await page.getByRole('button',{name:'초급',exact:true}).click();
     await page.getByLabel('조성',{exact:true}).selectOption('F');
-    assert.equal(await page.getByLabel('연습곡 · 2개',{exact:true}).inputValue(),'F-chord-three-strings');
+    await page.getByRole('button',{name:'초급',exact:true}).click();
+    assert.equal(await page.getByLabel('연습곡 · 2개',{exact:true}).inputValue(),'C-chord-three-strings');
+    assert.deepEqual(await page.getByLabel('조성',{exact:true}).locator('option').allTextContents(),['C','D','E','G','A']);
+    assert.equal(await page.getByLabel('조성',{exact:true}).inputValue(),'C');
     await page.locator('.etudeTips:not(.etudeCommonTips) summary').click();
     await page.locator('.etudePrerequisite').waitFor();
     assert.equal(await page.locator('.etudeNotation .etudeChordDiagram').count(),8);
+    assert.equal(await page.locator('.etudeNotation .etudeChordDiagram').first().getAttribute('aria-label'),'C, 6번줄부터 뮤트, 3프렛, 2프렛, 0프렛, 1프렛, 0프렛');
+    assert.deepEqual(await page.locator('.etudeNotation .vf-tabnote').first().locator('text').allTextContents(),['3','1']);
     await page.screenshot({path:`${output}/${mobile?'mobile':'desktop'}-chord-beginner.png`,fullPage:true});
     await page.getByLabel('조성',{exact:true}).selectOption('C');
     for(const level of LEVELS) {

@@ -3,6 +3,7 @@ import { curriculumTemplates } from './curriculum.js';
 import { CHORD_STUDY } from './chordStudy.js';
 import { trackStudies, chordTrackStudies } from './trackStudies.js';
 import { TRACK_ORDER, getTrack } from './tracks.js';
+import { resolveOpenChordStudy } from './openChordStudies.js';
 export const TUNING = Object.freeze([64, 59, 55, 50, 45, 40]);
 export const ROOTS = Object.freeze(['C', 'D', 'E', 'F', 'G', 'A', 'B']);
 export const LEVELS = Object.freeze(['초급', '중급', '고급']);
@@ -137,9 +138,10 @@ export function spellMidi(midi, root, family, blue = false) {
 }
 
 export function buildEtude(root, template) {
+  template = resolveOpenChordStudy(root,template);
   // Keep an entire movable grip course together when a downward transposition
   // would put one of its frets below the nut.
-  const shift = SHIFT[root] + (Math.min(...template.shape.map(([,f])=>f)) + SHIFT[root] < 0 ? 12 : 0);
+  const shift = template.concertFrets ? 0 : SHIFT[root] + (Math.min(...template.shape.map(([,f])=>f)) + SHIFT[root] < 0 ? 12 : 0);
   const measures = expandedBars(template).map(({pattern, marks}, bar) => pattern.map((index, i) => {
     const indices = Array.isArray(index) ? index : [index];
     const [string, baseFret] = template.shape[Math.max(0,indices[0])];
@@ -202,7 +204,7 @@ export function validateEtude(etude) {
   return errors;
 }
 
-export const ETUDES = ROOTS.flatMap(root => TEMPLATES.map(template => buildEtude(root, template))).sort((a,b) => a.lesson - b.lesson || ROOTS.indexOf(a.root) - ROOTS.indexOf(b.root));
+export const ETUDES = ROOTS.flatMap(root => TEMPLATES.filter(t=>!t.roots||t.roots.includes(root)).map(template => buildEtude(root, template))).sort((a,b) => a.lesson - b.lesson || ROOTS.indexOf(a.root) - ROOTS.indexOf(b.root));
 for (const etude of ETUDES) {
   const errors = validateEtude(etude);
   if (errors.length) throw new Error(`${etude.id}: ${errors.join(', ')}`);

@@ -9,6 +9,7 @@ export const filterEtudes = filters => ETUDES.filter(e => e.root===filters.root 
 
 export const availableStyles = filters => ['전체', ...new Set(ETUDES.filter(e =>
   e.root===filters.root && e.type===filters.type && e.level===filters.level).map(e=>e.style))];
+export const availableRoots = filters => ROOTS.filter(root=>ETUDES.some(e=>e.root===root&&e.type===filters.type&&e.level===filters.level));
 
 export const lessonCourse = (selected, filters) => selected ? filterEtudes({
   root:selected.root, type:selected.type, level:selected.level, style:filters?.style ?? '전체',
@@ -22,7 +23,8 @@ export function changeEtudeFilter(filters, key, value) {
   const next = { ...filters, [key]: value };
   if (!TYPES.includes(next.type)) next.type=DEFAULT_FILTERS.type;
   if (!LEVELS.includes(next.level)) next.level=DEFAULT_FILTERS.level;
-  if (!ROOTS.includes(next.root)) next.root=DEFAULT_FILTERS.root;
+  const roots=availableRoots(next);
+  if (!roots.includes(next.root)) next.root=roots[0];
   // Never jump to another technique or difficulty to satisfy a genre selection.
   if (!availableStyles(next).includes(next.style)) next.style='전체';
   return next;

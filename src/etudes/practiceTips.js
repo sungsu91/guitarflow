@@ -5,7 +5,7 @@ export const PICKING_EXAMPLES = [
 ];
 
 export const FINGERSTYLE_EXAMPLES = [
-  {rhythm:'초급 · 4분음표',count:'1 2 3 4',strokes:'p+m · i · m · i'},
+  {rhythm:'초급 · 4분음표',count:'1 2 3 4',strokes:'p+m · i · a · i'},
   {rhythm:'중급 · 8분음표',count:'1 & 2 & 3 & 4 &',strokes:'p+m · i · m · i · p+a · m · i · p'},
   {rhythm:'고급 · 첫 박 네 칸',count:'1 e & a',strokes:'p+i+a · i · m · a'},
 ];

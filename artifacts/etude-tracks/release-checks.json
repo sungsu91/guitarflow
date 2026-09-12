@@ -1,7 +1,7 @@
 {
   "etudeTests": {
     "failed": 0,
-    "passed": 18
+    "passed": 19
   },
   "build": "passed",
   "fullSuite": {
@@ -13,8 +13,8 @@
   "browser": {
     "errors": 0,
     "courseCombinationsPerLayout": 27,
-    "renders": 1820
+    "renders": 1804
   },
   "phrasing": "passed",
-  "arpeggio": "All simultaneous tones, root pinches, chord grips, mobile SVG anchors, fingerstyle TIP and three levels verified."
+  "arpeggio": "Beginner C x32010, C-Am open changes, five beginner open-chord keys, intermediate low-position progressions, simultaneous pitches, TAB, chord diagrams and filter boundaries verified."
 }

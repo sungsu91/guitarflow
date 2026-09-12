@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ETUDES, ROOTS, LEVELS } from './catalog.js';
-import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson, availableStyles, DEFAULT_FILTERS } from './filters.js';
+import { ETUDES, LEVELS } from './catalog.js';
+import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson, availableStyles, availableRoots, DEFAULT_FILTERS } from './filters.js';
 import { TYPES, getTrack } from './tracks.js';
 import useEtudeMetronome from './useEtudeMetronome.js';
 import './etudes.css';
@@ -22,7 +22,7 @@ function Filters({ model, mobile = false }) {
   const track = getTrack(filters.type);
   const fields = <>
     <div className="etudeFilterGrid">
-      <Select label="조성" value={filters.root} options={ROOTS} onChange={v => setFilter('root', v)} />
+      <Select label="조성" value={filters.root} options={availableRoots(filters)} onChange={v => setFilter('root', v)} />
       <Select label="스타일" value={filters.style} options={availableStyles(filters)} onChange={v => setFilter('style', v)} />
     </div>
   </>;
@@ -34,6 +34,7 @@ function Filters({ model, mobile = false }) {
         {LEVELS.map((level,index) => <button type="button" key={level} aria-label={level} aria-pressed={filters.level===level} onClick={()=>setFilter('level',level)}><strong>{level}</strong><small>{track.stages[index][1].length}개</small></button>)}
       </div>
       <p className="etudeTrackGoal">{track.stages[LEVELS.indexOf(filters.level)][0]}</p>
+      {filters.type==='아르페지오'&&filters.level==='초급'&&<p className="etudeTrackSummary">기본 오픈 코드 · C·D·E·G·A 조성<br/>F·B 조성은 중급부터 제공합니다.</p>}
     </div>
     {mobile ? <details className="etudeMobileFilterDetails"><summary><strong>조성 · {filters.root} / 스타일 · {filters.style}</strong><span className="etudeFilterToggle"><ChevronDown aria-hidden="true" size={26} strokeWidth={2.5} /></span></summary>{fields}</details> : fields}
     {list.length ? <Select label={`연습곡 · ${list.length}개`} value={selected.id} options={list.map((e,index) => ({id:e.id,title:`${String(index+1).padStart(2,'0')} · ${e.title}`}))} onChange={select} /> : <div className="etudeEmpty" role="status">이 조건의 연습곡은 아직 없습니다.<button type="button" onClick={model.reset}>필터 초기화</button></div>}

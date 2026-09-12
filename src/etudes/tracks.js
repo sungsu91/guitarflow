@@ -24,10 +24,10 @@ export const TRACKS = Object.freeze([
       ['두 옥타브 → 코드톤 연결과 메이저7', ['triad-cross', 'pop-chord-route', 'jazz-seventh']],
       ['16분음표 트라이어드 → 메이저7 지그재그', ['triad-engine', 'seventh-weave']],
     ] },
-  { type: '아르페지오', summary: '코드를 잡고 베이스·높은 음을 함께 뜯은 뒤 이어가는 분산 반주', prerequisite: '초급은 바레 없는 미니 코드부터 시작합니다. 코드표를 미리 잡고, 세로로 겹친 TAB 숫자는 동시에 뜯으세요.',
+  { type: '아르페지오', summary: '코드를 잡고 베이스·높은 음을 함께 뜯은 뒤 이어가는 분산 반주', prerequisite: '초급은 0–3프렛의 기본 오픈 코드부터 시작합니다. 0은 개방현입니다. 코드표를 미리 잡고, 세로로 겹친 TAB 숫자는 동시에 뜯으세요.',
     stages: [
-      ['루트·높은 음 동시 뜯기 → 두 코드 반주', ['chord-three-strings', 'chord-two-grips']],
-      ['코드 진행과 분산 반주 → 루트·5음 교대 베이스', ['chord-accompaniment', 'chord-bass-answer']],
+      ['기본 오픈 코드 한 개 → 두 오픈 코드 반주', ['chord-three-strings', 'chord-two-grips']],
+      ['낮은 포지션의 코드 진행·바레 입문 → 하이코드·교대 베이스', ['chord-accompaniment', 'chord-bass-answer']],
       ['동시 뜯기와 16분 반주 → 세 음 동시 뜯기·리듬 전환', ['chord-sixteenths', 'chord-density']],
     ] },
   { type: '해머온', summary: '한 번 피킹한 뒤 높은 음을 왼손으로 내기', prerequisite: '낮은 음을 선명하게 짚고 높은 음을 누를 손가락을 준비하세요.',
