@@ -42,7 +42,7 @@ export const TEMPLATES = Object.freeze([
     purpose: '인접한 줄만 따라가며 블루 노트(♭5)를 한 음씩 통과합니다. 같은 프렛 수직 이동이나 줄 건너뛰기는 사용하지 않습니다.',
     difficultyReason: '초급 후반 · 연속 8분음표로 블루 노트를 익히되, 줄 이동은 인접 줄로 제한하고 같은 프렛 수직 이동은 피합니다.',
     patterns: bars([0,1,0,1,2,3,4,3],[2,3,4,3,2,3,4,5],[4,5,6,5,4,5,6,7],[6,7,8,7,8,9,8,7],[7,8,9,8,9,10,11,10],[10,11,12,11,10,9,8,7],[7,8,7,6,5,4,3,2],[2,3,4,3,2,1,0,0]) },
-  { id: 'jazz-seventh', level: '중급', style: '재즈', type: '아르페지오', name: '재즈 메이저7 아르페지오', english: 'Seventh Arpeggio Workout', bpm: 88, family: 'major', shape: CONNECTED_SHAPE,
+  { id: 'jazz-seventh', level: '중급', style: '재즈', type: '코드톤 런', name: '재즈 메이저7 아르페지오', english: 'Seventh Arpeggio Workout', bpm: 88, family: 'major', shape: CONNECTED_SHAPE,
     purpose: '메이저 세븐의 1·3·5·7음을 줄 건너뛰기와 포지션 이동으로 연결합니다.',
     patterns: bars([0,2,4,6,4,2,4,6],[7,6,4,6,7,9,11,13],[14,13,11,9,11,13,11,9],[7,6,7,4,6,2,4,0]) },
   { id: 'diagonal-sequence', level: '고급', style: '기초', type: '스케일', name: '16분음표 포지션 이동', english: 'Sixteenth Note Scale Run', bpm: 80, family: 'major', shape: CONNECTED_SHAPE, duration: '16',
@@ -64,7 +64,7 @@ export const TEMPLATES = Object.freeze([
     purpose: 'SL 선의 두 음을 같은 손가락으로 연결하며 도착 박자를 지킵니다.',
     patterns: bars([0,1,2,1,3,4,5,4],[6,7,8,7,9,10,11,10],[12,13,14,13,12,13,14,12],[11,10,9,8,7,6,1,0]),
     techniqueMap: techniques([[0,'S'],[2,'S'],[4,'S'],[6,'S']],[[0,'S'],[2,'S'],[4,'S'],[6,'S']],[[0,'S'],[2,'S'],[4,'S'],[6,'S']],[[0,'S'],[3,'S'],[6,'S']]) },
-  { id: 'triad-cross', level: '중급', style: '팝', type: '아르페지오', name: '두 옥타브 트라이어드', english: 'Two-octave Triad Arpeggio', bpm: 68, family: 'major', shape: CONNECTED_SHAPE,
+  { id: 'triad-cross', level: '중급', style: '팝', type: '코드톤 런', name: '두 옥타브 트라이어드', english: 'Two-octave Triad Arpeggio', bpm: 68, family: 'major', shape: CONNECTED_SHAPE,
     purpose: '1·3·5음을 두 옥타브로 연결하면서 줄을 건너뛰는 피킹을 연습합니다.',
     patterns: bars([0,2,4,2,4,7,4,2],[4,7,9,7,9,11,9,7],[7,9,11,14,11,9,11,9],[7,4,7,4,2,4,2,0]) },
   { id: 'legato-phrase', level: '중급', style: '락', type: '레가토', name: '해머·풀·슬라이드 혼합 릭', english: 'Mixed Legato Lick', bpm: 76, family: 'major', shape: CONNECTED_SHAPE,
@@ -137,14 +137,23 @@ export function spellMidi(midi, root, family, blue = false) {
 }
 
 export function buildEtude(root, template) {
+  // Keep an entire movable grip course together when a downward transposition
+  // would put one of its frets below the nut.
+  const shift = SHIFT[root] + (Math.min(...template.shape.map(([,f])=>f)) + SHIFT[root] < 0 ? 12 : 0);
   const measures = expandedBars(template).map(({pattern, marks}, bar) => pattern.map((index, i) => {
-    const [string, baseFret] = template.shape[Math.max(0,index)];
-    const fret = baseFret + SHIFT[root];
+    const indices = Array.isArray(index) ? index : [index];
+    const [string, baseFret] = template.shape[Math.max(0,indices[0])];
+    const fret = baseFret + shift;
     const midi = TUNING[string - 1] + fret;
     const nextPosition = template.shape[pattern[i+1]];
     const automatic = template.autoTechnique && index>=0 && nextPosition?.[0]===string && nextPosition[1]!==baseFret
       ? (i%4===1 ? 'S' : nextPosition[1]>baseFret?'H':'P') : null;
-    return { string, fret, midi, rest:index<0, duration: template.rhythms?.[bar]?.[i] ?? template.durations?.[i] ?? template.duration ?? '8', technique: marks?.[i] ?? automatic,
+    const tones = indices.length > 1 ? indices.map(position => {
+      const [s, f] = template.shape[position];
+      const sounding = TUNING[s-1] + f + shift;
+      return {string:s, fret:f+shift, midi:sounding, pitch:spellMidi(sounding,root,template.family)};
+    }) : undefined;
+    return { string, fret, midi, tones, rest:index<0, duration: template.rhythms?.[bar]?.[i] ?? template.durations?.[i] ?? template.duration ?? '8', technique: marks?.[i] ?? automatic,
       pitch: spellMidi(midi, root, template.family, template.intervals === BLUES) };
   }));
   return { id: `${root}-${template.id}`, root, templateId: template.id, title: `${root} ${template.family === 'major' ? 'Major' : 'Minor'} ${template.name}`,
@@ -153,13 +162,14 @@ export function buildEtude(root, template) {
     trackLesson: getTrack(template.type).stages[LEVELS.indexOf(template.level)][1].indexOf(template.id) + 1,
     difficultyReason: template.difficultyReason ?? DIFFICULTY[template.id],
     accompaniment:Boolean(template.accompaniment),
-    chordShapes:template.chordShapes?.map(shape=>({...shape,frets:shape.frets.map(f=>f===null?null:f+SHIFT[root]),barre:shape.barre?{...shape.barre,fret:shape.barre.fret+SHIFT[root]}:null})),
+    chordShapes:template.chordShapes?.map(shape=>({...shape,frets:shape.frets.map(f=>f===null?null:f+shift),barre:shape.barre?{...shape.barre,fret:shape.barre.fret+shift}:null})),
     harmony:template.harmony?.map(([degree,quality])=>{
       const pitch=spellMidi(48+NATURAL[root]+MAJOR[degree],root,'major');
       return `${pitch.letter}${pitch.alter===1?'♯':pitch.alter===-1?'♭':''}${quality}`;
     }),
     tips: [template.difficultyReason ?? DIFFICULTY[template.id], template.purpose, template.complete ? '2마디씩 익힌 뒤 4마디, 8마디로 연결하세요. 같은 음형이 다시 나오는 곳과 변형되는 곳을 귀로 구별해 보세요.' : '1–3마디는 기본 음형, 4–7마디는 음역·음형 변형, 8마디는 으뜸음으로 마무리합니다. 구간별로 익힌 뒤 8마디를 연결하세요.', ...[...new Set(measures.flat().map(n => n.technique).filter(Boolean))].map(t => TECHNIQUE_TIPS[t]),
-      template.accompaniment ? '코드표는 왼쪽부터 6→1번줄입니다. ×는 뜯지 않는 줄, 굵은 선은 바레, 왼쪽 숫자는 시작 프렛, 아래 1·2·3·4는 검지·중지·약지·새끼입니다. 3이 연속된 줄은 약지 미니 바레로 잡습니다. 오른손은 엄지로 6·5·4번줄, 검지·중지·약지로 3·2·1번줄을 뜯는 방법부터 연습하세요. 이 과제는 매 음을 끊는 얼터네이트 피킹 과제가 아닙니다.' : template.type === '아르페지오' ? '음을 동시에 울리는 코드가 아닙니다. 한 음씩 연주하고 지나간 줄은 가볍게 뮤트하세요.' : '표시 없는 음은 피킹합니다. 먼저 한 마디씩 반복하고, 리듬이 안정되면 다음 마디와 연결하세요.',
+      template.accompaniment ? 'TAB 숫자가 세로로 겹친 곳은 동시에 뜯습니다. 엄지(p)로 베이스, 검지(i)·중지(m)·약지(a)로 3·2·1번줄을 맡으세요. 같은 코드 안에서는 왼손 모양을 유지해 음이 겹쳐 울리게 하고(let ring), 쉼표나 코드가 바뀔 때 이전 음을 정리합니다.' : template.type === '코드톤 런' ? '리드용 코드 구성음 연습입니다. 한 음씩 연주하고 지나간 줄은 가볍게 뮤트하세요. 코드 모양을 유지하며 베이스와 높은 음을 함께 뜯는 반주는 아르페지오 과정에 있습니다.' : '표시 없는 음은 피킹합니다. 먼저 한 마디씩 반복하고, 리듬이 안정되면 다음 마디와 연결하세요.',
+      ...(template.accompaniment ? ['코드표는 왼쪽부터 6→1번줄입니다. ×는 뜯지 않는 줄, 굵은 선은 바레, 왼쪽 숫자는 시작 프렛, 아래 1·2·3·4는 검지·중지·약지·새끼손가락입니다. 같은 프렛도 손 모양을 유지하므로 매번 손가락을 옮겨 누르지 않습니다.'] : []),
       `권장 시작 템포는 ${template.bpm} BPM입니다. 느리게 시작해 음량과 박자가 고르게 유지되는지 확인하세요.`,
       '같은 템포에서 3회 연속 끊김 없이 연주한 뒤 4 BPM씩 올려 보세요. 손에 불편함이 생기면 쉬고 힘을 줄이세요.'],
     keySignature: root + (template.family === 'minor' ? 'm' : ''),
@@ -172,11 +182,16 @@ export function validateEtude(etude) {
     if (measure.reduce((sum, n) => sum + 4 / Number(n.duration), 0) !== 4) errors.push(`마디 ${bar + 1}: 박자 합계`);
     measure.forEach((n, i) => {
       const label = `${bar + 1}:${i + 1}`;
-      if(etude.chordShapes && !n.rest && etude.chordShapes[bar]?.frets[6-n.string]!==n.fret) errors.push(`${label}: 코드표와 TAB 불일치`);
-      if (n.string < 1 || n.string > 6 || !Number.isInteger(n.fret) || n.fret < 0 || n.fret > 24) errors.push(`${label}: 운지 범위`);
-      if (TUNING[n.string - 1] + n.fret !== n.midi) errors.push(`${label}: TAB 음높이`);
-      if ((n.pitch.octave + 1) * 12 + NATURAL[n.pitch.letter] + n.pitch.alter !== n.midi) errors.push(`${label}: 기보 음높이`);
-      if (!etude.intervals.includes((n.midi - NATURAL[etude.root] + 120) % 12)) errors.push(`${label}: 음계`);
+      const sounding = n.tones ?? [n];
+      if(n.tones && (n.rest || n.tones.length<2 || n.technique || new Set(n.tones.map(t=>t.string)).size!==n.tones.length)) errors.push(`${label}: 동시음 구성`);
+      if(n.tones && ['string','fret','midi'].some(key=>n[key]!==n.tones[0]?.[key])) errors.push(`${label}: 동시음 기준음`);
+      for(const tone of sounding) {
+        if(etude.chordShapes && !n.rest && etude.chordShapes[bar]?.frets[6-tone.string]!==tone.fret) errors.push(`${label}: 코드표와 TAB 불일치`);
+        if (tone.string < 1 || tone.string > 6 || !Number.isInteger(tone.fret) || tone.fret < 0 || tone.fret > 24) errors.push(`${label}: 운지 범위`);
+        if (TUNING[tone.string - 1] + tone.fret !== tone.midi) errors.push(`${label}: TAB 음높이`);
+        if ((tone.pitch.octave + 1) * 12 + NATURAL[tone.pitch.letter] + tone.pitch.alter !== tone.midi) errors.push(`${label}: 기보 음높이`);
+        if (!etude.intervals.includes((tone.midi - NATURAL[etude.root] + 120) % 12)) errors.push(`${label}: 음계`);
+      }
       if (n.technique) {
         const next = measure[i + 1];
         if (!TECHNIQUES[n.technique] || n.rest || !next || next.rest || next.string !== n.string || next.fret === n.fret) errors.push(`${label}: 기법 연결`);

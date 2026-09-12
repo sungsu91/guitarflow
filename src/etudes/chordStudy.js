@@ -11,18 +11,19 @@ const positions=[];
 const patterns=progression.map((chord,bar)=>{
   const grip=shapes[chord];
   const bass=grip.frets[0]===null?5:6;
-  const strings=bar<4?[bass,4,3,2,1,2,3,bass]:[bass,3,2,1,2,3,4,bass];
-  return strings.map(string=>{positions.push([string,grip.frets[6-string]]);return positions.length-1;});
+  const strings=bar<4?[[bass,2],3,2,3,[bass,1],2,3,bass]:[[bass,1],2,3,2,[bass,2],3,2,bass];
+  const position=string=>{positions.push([string,grip.frets[6-string]]);return positions.length-1;};
+  return strings.map(cell=>Array.isArray(cell)?cell.map(position):position(cell));
 });
 
 export const CHORD_STUDY = {
-  id:'chord-accompaniment',level:'중급',style:'발라드',type:'코드 아르페지오',
-  name:'코드 잡고 줄 나누어 뜯기',english:'Chord Shape Fingerpicking',bpm:60,
+  id:'chord-accompaniment',level:'중급',style:'발라드',type:'아르페지오',
+  name:'코드 진행과 루트 동시 뜯기',english:'Chord Progression Fingerpicking',bpm:56,
   family:'major',shape:positions,patterns,complete:true,
   accompaniment:true,chordShapes:progression.map(i=>shapes[i]),
   harmony:[[0,''],[5,'m'],[3,''],[4,''],[0,''],[5,'m'],[4,''],[0,'']],
-  difficultyReason:'중급 · 바레 코드 모양을 유지하며 베이스와 높은 줄을 분리하고 코드 전환을 연결합니다.',
-  purpose:'코드표의 모양을 잡은 채 TAB 순서대로 줄을 뜯습니다. 먼저 뜯은 음은 다음 음과 자연스럽게 겹쳐 울리게 하세요.',
+  difficultyReason:'중급 · 바레 코드 진행 위에서 1·3박의 루트와 높은 음을 함께 뜯고 나머지를 8분음표로 연결합니다.',
+  purpose:'각 마디의 코드표를 먼저 잡습니다. 1·3박의 베이스와 높은 음은 동시에 뜯고, 그 사이에는 높은 줄을 순서대로 뜯습니다. 같은 코드 안에서는 앞 음이 겹쳐 울리게 하세요.',
 };
 
 export function drawChordDiagram(svg, shape, name, x, y) {

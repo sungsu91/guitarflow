@@ -18,17 +18,17 @@ export const TRACKS = Object.freeze([
       ['짧은 16분음표 → 포지션 이동과 엇박 응답', ['speed-window', 'intermediate-finale']],
       ['블루 노트 → 리듬 밀도 전환과 복합 시퀀스', ['blues-burst', 'density-switch', 'advanced-finale']],
     ] },
-  { type: '아르페지오', summary: '코드의 구성음을 한 음씩 분리해 연주하기', prerequisite: '이 과정은 각 음을 분리하는 리드 연습입니다. 코드 모양을 유지하는 반주는 코드 아르페지오에서 배웁니다.',
+  { type: '코드톤 런', summary: '코드 구성음을 따라 이동하는 단음 리드 연습', prerequisite: '이 과정은 각 음을 분리하는 리드 연습입니다. 코드 모양을 유지하며 베이스와 높은 음을 함께 뜯는 반주는 아르페지오에서 배웁니다.',
     stages: [
       ['세 줄의 1·3·5음 → 느린 8분음표', ['triad-three-strings', 'triad-eighth-answer']],
       ['두 옥타브 → 코드톤 연결과 메이저7', ['triad-cross', 'pop-chord-route', 'jazz-seventh']],
       ['16분음표 트라이어드 → 메이저7 지그재그', ['triad-engine', 'seventh-weave']],
     ] },
-  { type: '코드 아르페지오', summary: '코드 모양을 유지하며 줄을 나누어 뜯는 반주', prerequisite: '초급은 바레 없는 세 줄 코드로 시작합니다. 먼저 코드표를 보고 손 모양을 준비하세요.',
+  { type: '아르페지오', summary: '코드를 잡고 베이스·높은 음을 함께 뜯은 뒤 이어가는 분산 반주', prerequisite: '초급은 바레 없는 미니 코드부터 시작합니다. 코드표를 미리 잡고, 세로로 겹친 TAB 숫자는 동시에 뜯으세요.',
     stages: [
-      ['세 줄 코드 고정 → 두 코드 전환', ['chord-three-strings', 'chord-two-grips']],
-      ['바레 코드 진행 → 베이스와 높은 줄 교차', ['chord-accompaniment', 'chord-bass-answer']],
-      ['빠른 분산 반주 → 리듬 밀도와 코드 전환', ['chord-sixteenths', 'chord-density']],
+      ['루트·높은 음 동시 뜯기 → 두 코드 반주', ['chord-three-strings', 'chord-two-grips']],
+      ['코드 진행과 분산 반주 → 루트·5음 교대 베이스', ['chord-accompaniment', 'chord-bass-answer']],
+      ['동시 뜯기와 16분 반주 → 세 음 동시 뜯기·리듬 전환', ['chord-sixteenths', 'chord-density']],
     ] },
   { type: '해머온', summary: '한 번 피킹한 뒤 높은 음을 왼손으로 내기', prerequisite: '낮은 음을 선명하게 짚고 높은 음을 누를 손가락을 준비하세요.',
     stages: [

@@ -39,6 +39,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     stave.setNoteStartX(start);
     tab.setNoteStartX(start);
     stave.draw(); tab.draw();
+    if(etude.accompaniment && first) context.setFont('Arial',13,'italic').fillText('let ring',x+150,y-45);
     // Keep the first number of each system inside the clef/key-signature area.
     // Other measure numbers sit directly above the barline that starts them.
     const measureNumberX = first ? Math.max(start - 14, x + 50) : x + 4;
@@ -51,10 +52,10 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     element.querySelector('svg').append(measureNumber);
     if(etude.harmony?.[index]&&!etude.chordShapes) context.setFont('Arial',14,'bold').fillText(etude.harmony[index],x+35,y+5);
     if (first) new StaveConnector(stave, tab).setType(StaveConnector.type.BRACKET).setContext(context).draw();
-    const notes = measure.map(n => new StaveNote({ keys: [n.rest?'b/4':n.pitch.key], duration: n.duration+(n.rest?'r':''), auto_stem: true }));
+    const notes = measure.map(n => new StaveNote({ keys: n.rest ? ['b/4'] : (n.tones ?? [n]).map(t=>t.pitch.key), duration: n.duration+(n.rest?'r':''), auto_stem: true }));
     const tabs = measure.map(n => {
       if(n.rest) return new GhostNote({duration:n.duration});
-      const note = new TabNote({ positions: [{ str: n.string, fret: n.fret }], duration: n.duration });
+      const note = new TabNote({ positions: (n.tones ?? [n]).map(t=>({ str: t.string, fret: t.fret })), duration: n.duration });
       note.render_options.font = '18px Arial';
       return note;
     });
@@ -65,6 +66,17 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     const beams = Beam.generateBeams(notes);
     new Formatter().joinVoices([voice]).joinVoices([tabVoice]).formatToStave([voice, tabVoice], stave);
     voice.draw(context, stave); tabVoice.draw(context, tab);
+    // Use a common SVG anchor for a pinch instead of separate glyph-width
+    // offsets: mobile font measurement can otherwise shift one/two-digit frets.
+    measure.forEach((event,i)=>{
+      if(!event.tones)return;
+      for(const digit of tabs[i].getSVGElement()?.querySelectorAll('text') ?? []) {
+        digit.setAttribute('x',String(tabs[i].getStemX()));
+        digit.setAttribute('text-anchor','middle');
+        digit.style.font='18px Arial';
+        digit.style.letterSpacing='0';
+      }
+    });
     beams.forEach(beam => beam.setContext(context).draw());
     measure.forEach((n, i) => {
       if (!n.technique) return;
@@ -93,6 +105,10 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     });
     metrics.push(notes.map((n, i) => ({ noteX: n.getAbsoluteX(), tabX: tabs[i].getAbsoluteX(), end: x + w,
       rest:measure[i].rest, line: n.getKeyProps()[0].line, expectedLine: measure[i].rest ? n.getKeyProps()[0].line : ((measure[i].pitch.octave - 3) * 7 + 'CDEFGAB'.indexOf(measure[i].pitch.letter)) / 2,
+      tones: measure[i].rest ? [] : (measure[i].tones ?? [measure[i]]).map((tone,j)=>({
+        line:n.getKeyProps()[j].line, expectedLine:((tone.pitch.octave-3)*7+'CDEFGAB'.indexOf(tone.pitch.letter))/2,
+        tab:tabs[i].getPositions()[j], expectedTab:{str:tone.string,fret:tone.fret},
+      })),
       accidentals: n.getModifiers().filter(m => m.getCategory() === 'Accidental').map(m => m.type) })));
   });
   const svg = element.querySelector('svg');

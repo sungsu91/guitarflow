@@ -8,7 +8,7 @@ const output='artifacts/etude-tracks';
 await mkdir(output,{recursive:true});
 const report=[];
 try {
-  for(const mobile of [false,true]) {
+  for(const mobile of process.env.ETUDE_LAYOUT==='mobile'?[true]:[false,true]) {
     const page=await browser.newPage({viewport:mobile?{width:390,height:844}:{width:1440,height:1000},isMobile:mobile,hasTouch:mobile,
       ...(mobile?{userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'}:{})});
     const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -61,7 +61,7 @@ try {
     assert.equal(await page.locator('.etudeLessonNav>span>strong').textContent(),'1 / 2');
     await next.click();
     assert.ok(await next.isDisabled());
-    await page.getByLabel('연습 유형',{exact:true}).selectOption('코드 아르페지오');
+    await page.getByLabel('연습 유형',{exact:true}).selectOption('아르페지오');
     assert.equal(await page.getByRole('button',{name:'중급',exact:true}).getAttribute('aria-pressed'),'true');
     assert.equal(await page.getByLabel('스타일',{exact:true}).inputValue(),'전체');
     await page.getByRole('button',{name:'초급',exact:true}).click();
@@ -71,6 +71,12 @@ try {
     await page.locator('.etudePrerequisite').waitFor();
     assert.equal(await page.locator('.etudeNotation .etudeChordDiagram').count(),8);
     await page.screenshot({path:`${output}/${mobile?'mobile':'desktop'}-chord-beginner.png`,fullPage:true});
+    await page.getByLabel('조성',{exact:true}).selectOption('C');
+    for(const level of LEVELS) {
+      await page.getByRole('button',{name:level,exact:true}).click();
+      await page.locator('.etudeNotation svg').waitFor();
+      await page.screenshot({path:`${output}/${mobile?'mobile':'desktop'}-arpeggio-${level}.png`,fullPage:true});
+    }
     const renderSummary=await page.evaluate(async mobile=>{
       const {ETUDES}=await import('/src/etudes/catalog.js');
       const {drawScore}=await import('/src/etudes/Score.jsx');
@@ -82,6 +88,20 @@ try {
           const svg=holder.querySelector('svg');
           const fail=message=>{throw new Error(`${e.id} ${JSON.stringify(options)}: ${message}`)};
           if(!metrics.flat().every(n=>Math.abs(n.noteX-n.tabX)<0.1&&n.line===n.expectedLine&&n.noteX<n.end-8))fail('staff/TAB alignment, pitch or bar fit');
+          if(!metrics.flat().every(n=>n.tones.every(t=>t.line===t.expectedLine&&t.tab.str===t.expectedTab.str&&t.tab.fret===t.expectedTab.fret)))fail('simultaneous pitch/TAB mismatch');
+          const events=e.measures.flat().filter(n=>!n.rest);
+          const tabGroups=[...svg.querySelectorAll('.vf-tabnote')];
+          if(tabGroups.length!==events.length)fail('TAB event count');
+          events.forEach((event,i)=>{
+            if(!event.tones)return;
+            const digits=[...tabGroups[i].querySelectorAll('text')];
+            if(digits.length!==event.tones.length)fail('missing stacked fret number');
+            const boxes=digits.map(d=>d.getBBox());
+            // Ink bounds differ by digit and mobile raster scale; the SVG text
+            // anchor, not the ink bounding box, defines typographic centering.
+            if(digits.some(t=>t.getAttribute('text-anchor')!=='middle'||Math.abs(Number(t.getAttribute('x'))-Number(digits[0].getAttribute('x')))>0.01))fail('pinch frets not vertically aligned');
+            if(boxes.some((a,j)=>boxes.slice(j+1).some(b=>a.y<b.y+b.height&&a.y+a.height>b.y)))fail('stacked fret numbers overlap');
+          });
           if(svg.outerHTML.includes('NaN'))fail('non-finite SVG');
           const bounds=svg.getBBox();
           if(bounds.y+bounds.height>svg.viewBox.baseVal.height)fail('vertical clipping');

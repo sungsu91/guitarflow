@@ -1,18 +1,20 @@
 {
   "etudeTests": {
     "failed": 0,
-    "passed": 16
+    "passed": 18
   },
   "build": "passed",
   "fullSuite": {
     "passed": 790,
     "baseline": "All 18 failing test cases also fail on prior commit e42496c; unchanged launch, shooter, and layout expectations.",
-    "failed": 18
+    "failed": 18,
+    "checkedBefore": "f44f10a (previous type-course change; not rerun for the arpeggio update)"
   },
   "browser": {
     "errors": 0,
     "courseCombinationsPerLayout": 27,
     "renders": 1820
   },
-  "phrasing": "passed"
+  "phrasing": "passed",
+  "arpeggio": "All simultaneous tones, root pinches, chord grips, mobile SVG anchors, fingerstyle TIP and three levels verified."
 }

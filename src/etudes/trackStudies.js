@@ -113,11 +113,11 @@ export function trackStudies({penta, pentaIntervals}) {
     make('penta-turns','고급','펜타토닉','펜타토닉 교차 왕복','Pentatonic Crossing Turns',80,penta,pentaRows,sixteenth,
       '두 음을 건너갔다가 한 음 되돌아오는 음형을 연속해서 연주합니다. 방향 전환에서도 16분음표 간격을 유지하세요.',
       '연속 16분음표에서 순차 진행과 도약을 교대합니다.',{family:'minor',intervals:pentaIntervals,style:'락'}),
-    make('triad-three-strings','초급','아르페지오','세 줄 1·3·5음 첫걸음','Three-string Triad',48,triad,
+    make('triad-three-strings','초급','코드톤 런','세 줄 1·3·5음 첫걸음','Three-string Triad',48,triad,
       [[0,1,2,1],[0,1,2,-1],[0,1,2,1],[0,1,0,-1],[0,1,2,1],[0,1,2,-1],[2,1,0,1],[2,1,0,0]],quarter,
       '메이저 코드의 1·3·5음을 인접한 세 줄에서 한 음씩 연주합니다. 지나간 줄을 뮤트해 음을 분리하고, 줄 이동은 4분음표로 천천히 합니다.',
       '한 포지션·세 줄·4분음표로 트라이어드의 세 구성음을 익힙니다.'),
-    make('triad-eighth-answer','초급','아르페지오','세 줄 8분음표 왕복','Triad Eighth-note Return',56,triad,
+    make('triad-eighth-answer','초급','코드톤 런','세 줄 8분음표 왕복','Triad Eighth-note Return',56,triad,
       [[0,1,2,1,0,1,2,1],[0,1,2,1,0,1,0,-1],[0,1,2,1,2,1,0,1],[2,1,0,1,2,1,0,-1],[0,1,2,1,0,1,0,1],[2,1,0,1,0,1,2,1],[0,1,2,1,0,1,0,-1],[2,1,0,1,2,1,0,0]],eighth,
       '앞 과제의 세 줄 운지를 8분음표로 왕복합니다. 마지막 쉼표에서도 박자를 세고 다시 들어오세요.',
       '세 줄 운지를 유지하며 8분음표와 쉼표를 연결합니다.'),
@@ -126,48 +126,51 @@ export function trackStudies({penta, pentaIntervals}) {
 
 export function chordTrackStudies(chordStudy) {
   const c = {frets:[null,null,10,9,8,null],fingers:[null,null,3,2,1,null]};
-  const g = {frets:[null,null,9,7,8,null],fingers:[null,null,3,1,2,null]};
+  const am = {frets:[null,null,7,5,5,null],fingers:[null,null,3,1,2,null]};
   const produce = (id,level,name,english,bpm,grips,harmony,stringRows,rhythm,purpose,goal) => {
     const shape=[];
-    const patterns=stringRows.map((row,bar)=>row.map(string=>{
-      if(string===-1)return -1;
-      shape.push([string,grips[bar].frets[6-string]]);return shape.length-1;
+    const patterns=stringRows.map((row,bar)=>row.map(cell=>{
+      if(cell===-1)return -1;
+      const position=string=>{shape.push([string,grips[bar].frets[6-string]]);return shape.length-1;};
+      return Array.isArray(cell) ? cell.map(position) : position(cell);
     }));
-    return make(id,level,'코드 아르페지오',name,english,bpm,shape,patterns,rhythm,purpose,goal,
+    return make(id,level,'아르페지오',name,english,bpm,shape,patterns,rhythm,purpose,goal,
       {style:'발라드',accompaniment:true,chordShapes:grips,harmony});
   };
   const result=[
-    produce('chord-three-strings','초급','세 줄 코드 잡고 뜯기','Three-string Chord Picking',48,
+    produce('chord-three-strings','초급','루트와 높은 음 함께 뜯기','Root and Treble Pinch',44,
       Array(8).fill(c),Array.from({length:8},()=>[0,'']),
-      [[4,3,2,3],[4,3,2,3],[4,3,2,-1],[2,3,4,-1],[4,3,2,3],[2,3,4,3],[4,3,2,-1],[2,3,4,4]],quarter,
-      '바레 없는 세 줄 코드 모양을 유지합니다. 엄지로 4번줄, 검지로 3번줄, 중지로 2번줄을 뜯고 앞 음이 자연스럽게 겹치게 하세요.',
-      '세 손가락으로 잡는 한 코드·세 줄·4분음표로 시작합니다.'),
-    produce('chord-two-grips','초급','세 줄 두 코드 전환','Two Chord Grip Changes',52,
-      [c,c,g,g,c,c,g,c],[[0,''],[0,''],[4,''],[4,''],[0,''],[0,''],[4,''],[0,'']],
-      [[4,3,2,-1],[2,3,4,-1],[4,3,2,-1],[2,3,4,-1],[4,3,2,-1],[2,3,4,-1],[4,3,2,-1],[2,3,4,4]],quarter,
-      '으뜸화음과 딸림화음의 세 줄 코드 모양을 바꿉니다. 마지막 박의 쉼표에서 새 모양을 준비하세요. 딸림화음은 그 코드의 3음이 가장 낮게 들리는 모양입니다.',
-      '바레 없이 두 코드 모양을 전환합니다. 쉼표가 손 모양을 바꿀 시간을 줍니다.'),
+      [[[4,2],3,2,3],[[4,2],3,2,-1],[[4,2],3,2,3],[[4,2],3,4,-1],[[4,2],3,[4,2],3],[[4,2],2,3,-1],[[4,2],3,2,-1],[[4,2],3,2,4]],quarter,
+      '세 줄 미니 코드를 미리 잡습니다. 매 마디 첫 박의 4·2번줄을 엄지와 중지로 함께 뜯고, 검지로 3번줄을 이어 뜯으세요. 첫 음은 루트와 5음이 함께 울립니다.',
+      '초급 입문 · 바레 없는 한 코드·4분음표·두 손가락 동시 뜯기로 시작합니다.'),
+    produce('chord-two-grips','초급','두 코드 루트와 분산 반주','Two Chord Pinch and Picking',48,
+      [c,c,am,am,c,c,am,c],[[0,''],[0,''],[5,'m'],[5,'m'],[0,''],[0,''],[5,'m'],[0,'']],
+      [[[4,2],3,2,-1],[[4,2],2,3,-1],[[4,2],3,2,-1],[[4,2],2,3,-1],[[4,2],3,[4,2],-1],[[4,2],2,3,-1],[[4,2],3,2,-1],[[4,2],3,2,4]],quarter,
+      '메이저와 관계 단조의 두 코드 모양을 바꿉니다. 각 마디 첫 박에는 해당 코드의 루트와 높은 음을 함께 뜯습니다. 마지막 박의 쉼표에서 잔향을 끊고 새 모양을 준비하세요.',
+      '바레 없이 두 코드 모양과 엄지·중지 동시 뜯기를 연결합니다. 이동은 쉼표 동안 준비합니다.'),
   ];
   for(const [id,level,name,english,bpm,mode] of [
-    ['chord-bass-answer','중급','베이스와 높은 줄 응답','Bass and Treble Answer',68,'eighth'],
-    ['chord-sixteenths','고급','16분음표 분산 코드','Sixteenth Chord Picking',60,'sixteenth'],
-    ['chord-density','고급','8분·16분 코드 반주','Chord Rhythm Density',64,'mixed'],
+    ['chord-bass-answer','중급','루트·5음 교대 베이스 반주','Alternating Bass Fingerpicking',60,'eighth'],
+    ['chord-sixteenths','고급','동시 뜯기와 16분 분산 반주','Pinch and Sixteenth Picking',60,'sixteenth'],
+    ['chord-density','고급','세 음 동시 뜯기와 리듬 전환','Three-note Pinch Rhythm',64,'mixed'],
   ]) {
     const rows=chordStudy.chordShapes.map((grip,bar)=>{
       const bass=grip.frets[0]===null?5:6;
-      const a=[bass,3,2,3,4,3,4,bass];
-      const b=[bass,4,3,2,1,2,3,4];
-      if(mode==='eighth') return bar<4?a:[bass,3,2,4,3,2,3,bass];
-      if(mode==='mixed'&&bar%2===1)return [bass,4,3,2,1,2,3,bass];
-      return [...b,...(bar<4?a:[4,3,2,1,2,3,4,bass])];
+      const fifth=bass===6?5:4;
+      const a=[[bass,2],3,2,3,[fifth,1],2,3,bass];
+      if(mode==='eighth') return bar<4?a:[[bass,1],2,3,2,[fifth,2],3,2,bass];
+      const opening=mode==='mixed'?[bass,3,1]:[bass,1];
+      if(mode==='mixed'&&bar%2===1)return [opening,3,2,3,[fifth,2],3,2,bass];
+      return [opening,3,2,1,2,3,4,3,[fifth,2],3,2,1,...(bar<4?[2,3,4,bass]:[3,2,3,bass])];
     });
     result.push(produce(id,level,name,english,bpm,chordStudy.chordShapes,chordStudy.harmony,rows,
       rows.map(row=>row.length===16?sixteenth:eighth),
-      mode==='eighth'?'코드 모양을 유지하면서 베이스음과 높은 줄을 교대로 뜯습니다. 줄을 건너뛸 때 다른 줄을 건드리지 않도록 하세요.'
-        :'바레 코드 진행 위에서 분산 반주를 이어갑니다. 엄지와 나머지 손가락을 나누어 쓰고 코드 변경 직전의 음도 충분히 유지하세요.',
-      mode==='eighth'?'바레 코드 전환에 줄 건너뛰기와 8분음표 베이스 응답을 더합니다.'
-        :mode==='mixed'?'16분음표와 8분음표 마디를 교대하면서 바레 코드와 오른손 패턴을 전환합니다.'
-        :'바레 코드 진행과 연속 16분음표를 함께 유지하며 높은 줄까지 확장합니다.'));
+      mode==='eighth'?'엄지는 1박의 루트와 3박의 5음을 교대로 뜯습니다. 두 박 모두 높은 음을 함께 뜯고, 사이의 8분음표는 손 모양을 유지하며 분산합니다.'
+        :mode==='mixed'?'마디 첫 박의 베이스·3번줄·1번줄을 엄지·검지·약지로 함께 뜯습니다. 8분음표와 16분음표 마디가 바뀌어도 베이스의 박자는 유지하세요.'
+        :'1박에는 루트와 1번줄을, 3박에는 5음 베이스와 2번줄을 함께 뜯습니다. 사이를 16분음표로 채우고 베이스보다 높은 음이 지나치게 크지 않게 조절하세요.',
+      mode==='eighth'?'바레 코드 전환과 8분음표 위에서 루트·5음 교대 베이스와 동시 뜯기를 제어합니다.'
+        :mode==='mixed'?'세 손가락 동시 뜯기·바레 전환·8분/16분 리듬 밀도 전환을 함께 연습합니다.'
+        :'바레 코드 진행과 연속 16분음표 안에서 두 음 동시 뜯기와 분산음을 교대합니다.'));
   }
   return result;
 }

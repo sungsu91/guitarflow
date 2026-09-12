@@ -5,7 +5,7 @@ import { TYPES, getTrack } from './tracks.js';
 import useEtudeMetronome from './useEtudeMetronome.js';
 import './etudes.css';
 import { ChevronDown } from 'lucide-react';
-import { COMMON_PRACTICE_TIPS, PICKING_EXAMPLES } from './practiceTips.js';
+import { COMMON_PRACTICE_TIPS, PICKING_EXAMPLES, FINGERSTYLE_PRACTICE_TIPS, FINGERSTYLE_EXAMPLES } from './practiceTips.js';
 
 const Score = lazy(() => import('./Score.jsx'));
 const DEFAULT_ETUDE_ID = 'C-triad-start';
@@ -46,12 +46,14 @@ function LessonTips({ model }) {
   if (!selected) return null;
   const course = lessonCourse(selected, model.filters);
   const index = course.findIndex(e => e.id === selected.id);
+  const commonTips = selected.accompaniment ? FINGERSTYLE_PRACTICE_TIPS : COMMON_PRACTICE_TIPS;
+  const examples = selected.accompaniment ? FINGERSTYLE_EXAMPLES : PICKING_EXAMPLES;
   return <section className="etudeLesson" aria-label="연습 커리큘럼">
     <div className="etudeLessonNav"><button type="button" disabled={index <= 0} onClick={() => model.openLesson(course[index - 1])}>‹ 이전</button><span><span>{selected.type} · {selected.level}</span><strong>{index + 1} / {course.length}</strong></span><button type="button" disabled={index < 0 || index === course.length - 1} onClick={() => model.openLesson(course[index + 1])}>다음 ›</button></div>
-    <details key={selected.id} className="etudeTips"><summary><strong>TIP · 연습 방법</strong><ChevronDown size={24} aria-hidden="true" /></summary><p className="etudePrerequisite">{getTrack(selected.type).prerequisite}</p><ul>{selected.tips.map(tip => <li key={tip}>{tip}</li>)}</ul><p>표기: H 해머온 · P 풀오프 · SL 슬라이드</p></details>
-    <details className="etudeTips etudeCommonTips"><summary><strong>공통 TIP · 피킹과 연습 기본</strong><ChevronDown size={24} aria-hidden="true" /></summary>
-      <ul>{COMMON_PRACTICE_TIPS.map(tip=><li key={tip.title}><strong>{tip.title}</strong><div>{tip.text}</div></li>)}</ul>
-      <div className="etudePickingExamples"><table><caption>일정한 박에 맞추는 피킹 예시 · D 다운 / U 업</caption><thead><tr><th>리듬</th><th>세는 법</th><th>피킹</th></tr></thead><tbody>{PICKING_EXAMPLES.map(row=><tr key={row.rhythm}><th scope="row">{row.rhythm}</th><td>{row.count}</td><td>{row.strokes}</td></tr>)}</tbody></table></div>
+    <details key={selected.id} className="etudeTips"><summary><strong>TIP · 연습 방법</strong><ChevronDown size={24} aria-hidden="true" /></summary><p className="etudePrerequisite">{getTrack(selected.type).prerequisite}</p><ul>{selected.tips.map(tip => <li key={tip}>{tip}</li>)}</ul><p>{selected.accompaniment?'표기: 세로 TAB은 동시 뜯기 · let ring은 잔향 유지':'표기: H 해머온 · P 풀오프 · SL 슬라이드'}</p></details>
+    <details className="etudeTips etudeCommonTips"><summary><strong>공통 TIP · {selected.accompaniment ? '핑거스타일 반주' : '피킹과 연습 기본'}</strong><ChevronDown size={24} aria-hidden="true" /></summary>
+      <ul>{commonTips.map(tip=><li key={tip.title}><strong>{tip.title}</strong><div>{tip.text}</div></li>)}</ul>
+      <div className="etudePickingExamples"><table><caption>{selected.accompaniment ? '오른손 예시 · p 엄지 / i 검지 / m 중지 / a 약지 · +는 동시에' : '일정한 박에 맞추는 피킹 예시 · D 다운 / U 업'}</caption><thead><tr><th>리듬</th><th>세는 법</th><th>{selected.accompaniment?'오른손':'피킹'}</th></tr></thead><tbody>{examples.map(row=><tr key={row.rhythm}><th scope="row">{row.rhythm}</th><td>{row.count}</td><td>{row.strokes}</td></tr>)}</tbody></table></div>
       <p>공통 연습 예시이며 모든 음의 피킹 방향을 지정한 악보는 아닙니다.</p>
     </details>
   </section>;

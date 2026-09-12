@@ -14,7 +14,7 @@ Mobile always shows the type selector and three level buttons; only key/style co
 
 ## Notation and sound
 
-VexFlow SVG renders staff and TAB from shared sounding MIDI data; written guitar notation is an octave higher. All scores are 4/4. Explicit H/P/SL links are preserved for both complete eight-bar and expanded studies. Technique labels remain SVG text. Triad exercises separate notes; chord accompaniment shows the held shape above each measure, with picked strings checked against that shape.
+VexFlow SVG renders staff and TAB from shared sounding MIDI data; written guitar notation is an octave higher. All scores are 4/4. Explicit H/P/SL links are preserved for both complete eight-bar and expanded studies. Technique labels remain SVG text. Code-tone runs separate notes. The Arpeggio course holds a chord shape above each measure and uses simultaneous root/treble pinches with broken-chord picking. Each attack has one duration and optional tones for all simultaneous pitches; both staff keys and TAB positions come from these same tones. All tones are validated against the chord diagram, sounding pitch and key. Let-ring guidance instructs resonance within a chord; this is not independent-voice sustain playback.
 
 Scores retain the existing paper layout, responsive reader and 12-entry SVG cache. Tempo-only changes do not re-engrave. Shared metronome transport stops on course changes and unmount. The click is a metronome, not score playback.
 

@@ -101,7 +101,10 @@ test('chord boxes and picked strings agree in all keys',()=>{
         const interval=(TUNING[5-j]+fret-tonic+120)%12;
         assert.ok(chordTones.includes(interval),`${e.id}: diagram contains a non-chord tone`);
       }
-      for(const n of bar.filter(n=>!n.rest)) assert.equal(box.frets[6-n.string],n.fret);
+      for(const n of bar.filter(n=>!n.rest)) for(const tone of n.tones ?? [n]) {
+        assert.equal(box.frets[6-tone.string],tone.fret);
+        assert.ok(chordTones.includes((tone.midi-tonic+120)%12));
+      }
     });
     const broken=structuredClone(e);broken.chordShapes[0].frets[6-e.measures[0][0].string]++;
     assert.ok(validateEtude(broken).some(error=>error.includes('코드표와 TAB')));
@@ -110,7 +113,7 @@ test('chord boxes and picked strings agree in all keys',()=>{
 
 test('65 distinct patterns include phrasing, rests, chord targets and advanced rhythm', () => {
   const course=ETUDES.filter(e=>e.root==='C');
-  const fingerprints=course.map(e=>JSON.stringify(e.measures.map(m=>m.map(n=>[n.rest?'rest':n.midi,n.duration,n.technique]))));
+  const fingerprints=course.map(e=>JSON.stringify(e.measures.map(m=>m.map(n=>[n.rest?'rest':(n.tones??[n]).map(t=>t.midi),n.duration,n.technique]))));
   assert.equal(new Set(fingerprints).size,course.length,'keys or titles alone must not inflate the pattern count');
   for(const id of ['penta-hook','ballad-breath','beginner-finale','offbeat-hook','offbeat-drive']) {
     const e=course.find(e=>e.templateId===id);
@@ -173,7 +176,7 @@ test('technique courses teach their named technique and introduce legato progres
   const advanced=ETUDES.find(e=>e.id==='C-legato-chain');
   assert.ok(advanced.measures.flat().every(n=>n.duration==='16'));
   assert.ok(new Set(advanced.measures.flat().map(n=>n.string)).size>=3);
-  for(const e of ETUDES.filter(e=>e.type==='코드 아르페지오'&&e.level==='초급')) {
+  for(const e of ETUDES.filter(e=>e.type==='아르페지오'&&e.level==='초급')) {
     assert.ok(e.chordShapes.every(shape=>!shape.barre));
     assert.ok(e.chordShapes.every(shape=>shape.frets.filter(f=>f!==null).length===3));
   }
@@ -222,8 +225,8 @@ test('the late-beginner blues lesson removes surprise vertical and skipped-strin
   }
 });
 
-test('beginner lessons avoid unannounced vertical and skipped-string jumps', () => {
-  for (const etude of ETUDES.filter(e=>e.level==='초급')) {
+test('beginner single-note lessons avoid unannounced vertical and skipped-string jumps', () => {
+  for (const etude of ETUDES.filter(e=>e.level==='초급'&&!e.accompaniment)) {
     const notes = etude.measures.flat();
     for (let index=1; index<notes.length; index++) {
       const previous = notes[index-1];
@@ -244,16 +247,64 @@ test('independent pitch spelling, transposition, duration and movement checks', 
     // Their cadence is still the tonic; every written/sounding pitch is checked below.
     assert.equal(notes.at(-1).midi % 12, sig[e.root]);
     for (const [i,n] of notes.entries()) {
-      const [,letter,alter,oct] = n.pitch.key.match(/^([a-g])([#b]?)[/]([0-9])$/);
-      const writtenMidi = (Number(oct)+1)*12 + pitch[letter] + (alter === '#' ? 1 : alter === 'b' ? -1 : 0);
-      assert.equal(writtenMidi, TUNING[n.string-1] + n.fret + 12, `${e.id} ${i}: octave-transposing guitar notation`);
-      if (i) {
+      for(const tone of n.tones ?? [n]) {
+        const [,letter,alter,oct] = tone.pitch.key.match(/^([a-g])([#b]?)[/]([0-9])$/);
+        const writtenMidi = (Number(oct)+1)*12 + pitch[letter] + (alter === '#' ? 1 : alter === 'b' ? -1 : 0);
+        assert.equal(writtenMidi, TUNING[tone.string-1] + tone.fret + 12, `${e.id} ${i}: octave-transposing guitar notation`);
+      }
+      // A held chord assigns different right-hand fingers to separated strings;
+      // scalar lead-note travel is not its left-hand difficulty measure.
+      if (i && !e.accompaniment) {
         assert.ok(Math.abs(n.fret-notes[i-1].fret) <= 5, `${e.id}: unplanned large fret jump`);
         assert.ok(Math.abs(n.string-notes[i-1].string) <= (e.accompaniment ? 3 : 2), `${e.id}: unplanned string jump`);
       }
     }
     for (const m of e.measures) assert.equal(m.reduce((sum,n)=>sum+16/Number(n.duration),0),16);
   }
+});
+
+test('arpeggio accompaniment has root pinches, held feasible grips and graded bass patterns',()=>{
+  const roots={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+  for(const e of ETUDES.filter(e=>e.type==='아르페지오')) {
+    assert.equal(e.accompaniment,true);
+    assert.match(e.tips.join(' '),/동시에 뜯/);
+    for(const [i,bar] of e.measures.entries()) {
+      const [,letter,acc]=e.harmony[i].match(/^([A-G])([♯♭]?)/);
+      const root=(roots[letter]+(acc==='♯'?1:acc==='♭'?-1:0)+12)%12;
+      assert.ok(bar[0].tones?.length>=2,`${e.id} ${i}: missing root pinch`);
+      assert.equal(Math.min(...bar[0].tones.map(t=>t.midi))%12,root);
+      const grip=e.chordShapes[i];
+      const frets=grip.frets.filter(f=>f!==null);
+      assert.ok(Math.max(...frets)-Math.min(...frets)<=3,`${e.id}: overstretched chord`);
+      assert.ok(new Set(grip.fingers.filter(Boolean)).size<=4);
+      if(i) {
+        const previous=e.chordShapes[i-1].frets.filter(f=>f!==null);
+        assert.ok(Math.abs(Math.min(...frets)-Math.min(...previous))<=4);
+      }
+      if(e.level==='초급') {
+        assert.ok(!grip.barre);
+        assert.equal(frets.length,3);
+        assert.ok(bar.every(n=>n.duration==='4'));
+        assert.ok(bar.every(n=>!n.tones||n.tones.length===2));
+      }
+      if(e.templateId==='chord-bass-answer') {
+        assert.equal(bar[4].tones[0].midi%12,(root+7)%12,'beat 3 alternates to fifth');
+      }
+    }
+  }
+  assert.ok(ETUDES.filter(e=>e.type==='코드톤 런').every(e=>!e.accompaniment&&!e.measures.flat().some(n=>n.tones)));
+  const advanced=ETUDES.find(e=>e.id==='C-chord-density');
+  assert.ok(advanced.measures.every(m=>m[0].tones.length===3));
+});
+
+test('validator checks every simultaneous tone, duplicate strings and unchanged beat duration',()=>{
+  const source=ETUDES.find(e=>e.id==='C-chord-three-strings');
+  assert.deepEqual(source.measures[0][0].tones.map(t=>[t.string,t.fret,t.midi]),[[4,10,60],[2,8,67]]);
+  for(const mutate of [n=>n.tones[1].fret++, n=>n.tones[1].pitch.octave++, n=>n.tones[1].string=n.tones[0].string, n=>n.tones=[]]) {
+    const broken=structuredClone(source); mutate(broken.measures[0][0]);
+    assert.ok(validateEtude(broken).length);
+  }
+  for(const m of source.measures) assert.equal(m.reduce((sum,n)=>sum+4/Number(n.duration),0),4);
 });
 
 test('F major uses Bb; B major A#; C blues Gb and natural G', () => {
