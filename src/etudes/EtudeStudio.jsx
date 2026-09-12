@@ -1,14 +1,13 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ETUDES, ROOTS, LEVELS } from './catalog.js';
-import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson } from './filters.js';
+import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson, availableStyles, DEFAULT_FILTERS } from './filters.js';
+import { TYPES, getTrack } from './tracks.js';
 import useEtudeMetronome from './useEtudeMetronome.js';
 import './etudes.css';
 import { ChevronDown } from 'lucide-react';
 import { COMMON_PRACTICE_TIPS, PICKING_EXAMPLES } from './practiceTips.js';
 
 const Score = lazy(() => import('./Score.jsx'));
-const STYLES = ['전체', '기초', '팝', '발라드', '락', '블루스', '재즈'];
-const TYPES = ['전체', '스케일', '펜타토닉', '릭', '아르페지오', '코드 아르페지오', '해머온', '풀오프', '슬라이드', '레가토'];
 const DEFAULT_ETUDE_ID = 'C-triad-start';
 const DEFAULT_ETUDE_BPM = ETUDES.find(etude => etude.id === DEFAULT_ETUDE_ID)?.bpm ?? 60;
 
@@ -20,18 +19,25 @@ function Select({ label, value, options, onChange }) {
 
 function Filters({ model, mobile = false }) {
   const { filters, setFilter, list, selected, select } = model;
+  const track = getTrack(filters.type);
   const fields = <>
     <div className="etudeFilterGrid">
-      <Select label="난이도" value={filters.level} options={['전체', ...LEVELS]} onChange={v => setFilter('level', v)} />
       <Select label="조성" value={filters.root} options={ROOTS} onChange={v => setFilter('root', v)} />
-      <Select label="스타일" value={filters.style} options={STYLES} onChange={v => setFilter('style', v)} />
-      <Select label="연습 유형" value={filters.type} options={TYPES} onChange={v => setFilter('type', v)} />
+      <Select label="스타일" value={filters.style} options={availableStyles(filters)} onChange={v => setFilter('style', v)} />
     </div>
-    {selected && <p className="etudePurpose">{selected.purpose}</p>}
   </>;
   return <div className="etudeFilters">
-    {mobile ? <details className="etudeMobileFilterDetails"><summary><strong>필터 · {filters.level} · {filters.root}</strong><span className="etudeFilterToggle"><span>선택 변경</span><ChevronDown aria-hidden="true" size={26} strokeWidth={2.5} /></span></summary>{fields}</details> : fields}
-    {list.length ? <Select label={`연습곡 · ${list.length}개`} value={selected.id} options={list.map(e => ({id:e.id,title:`${e.level} ${String(lessonCourse(e).findIndex(item=>item.id===e.id)+1).padStart(2,'0')} · ${e.title}`}))} onChange={select} /> : <div className="etudeEmpty" role="status">이 조건의 연습곡은 아직 없습니다.<button type="button" onClick={model.reset}>필터 초기화</button></div>}
+    <div className="etudeTrackPicker">
+      <Select label="연습 유형" value={filters.type} options={TYPES} onChange={v => setFilter('type', v)} />
+      <p className="etudeTrackSummary">{track.summary}</p>
+      <div className="etudeLevelChoices" role="group" aria-label="난이도">
+        {LEVELS.map((level,index) => <button type="button" key={level} aria-label={level} aria-pressed={filters.level===level} onClick={()=>setFilter('level',level)}><strong>{level}</strong><small>{track.stages[index][1].length}개</small></button>)}
+      </div>
+      <p className="etudeTrackGoal">{track.stages[LEVELS.indexOf(filters.level)][0]}</p>
+    </div>
+    {mobile ? <details className="etudeMobileFilterDetails"><summary><strong>조성 · {filters.root} / 스타일 · {filters.style}</strong><span className="etudeFilterToggle"><ChevronDown aria-hidden="true" size={26} strokeWidth={2.5} /></span></summary>{fields}</details> : fields}
+    {list.length ? <Select label={`연습곡 · ${list.length}개`} value={selected.id} options={list.map((e,index) => ({id:e.id,title:`${String(index+1).padStart(2,'0')} · ${e.title}`}))} onChange={select} /> : <div className="etudeEmpty" role="status">이 조건의 연습곡은 아직 없습니다.<button type="button" onClick={model.reset}>필터 초기화</button></div>}
+    {selected && <p className="etudePurpose">{selected.purpose}</p>}
   </div>;
 }
 
@@ -41,8 +47,8 @@ function LessonTips({ model }) {
   const course = lessonCourse(selected, model.filters);
   const index = course.findIndex(e => e.id === selected.id);
   return <section className="etudeLesson" aria-label="연습 커리큘럼">
-    <div className="etudeLessonNav"><button type="button" disabled={index === 0} onClick={() => model.openLesson(course[index - 1])}>‹ 이전</button><span>{selected.level} · {index + 1} / {course.length}</span><button type="button" disabled={index === course.length - 1} onClick={() => model.openLesson(course[index + 1])}>다음 ›</button></div>
-    <details key={selected.id} className="etudeTips"><summary><strong>TIP · 연습 방법</strong><ChevronDown size={24} aria-hidden="true" /></summary><ul>{selected.tips.map(tip => <li key={tip}>{tip}</li>)}</ul><p>표기: H 해머온 · P 풀오프 · SL 슬라이드</p></details>
+    <div className="etudeLessonNav"><button type="button" disabled={index <= 0} onClick={() => model.openLesson(course[index - 1])}>‹ 이전</button><span><span>{selected.type} · {selected.level}</span><strong>{index + 1} / {course.length}</strong></span><button type="button" disabled={index < 0 || index === course.length - 1} onClick={() => model.openLesson(course[index + 1])}>다음 ›</button></div>
+    <details key={selected.id} className="etudeTips"><summary><strong>TIP · 연습 방법</strong><ChevronDown size={24} aria-hidden="true" /></summary><p className="etudePrerequisite">{getTrack(selected.type).prerequisite}</p><ul>{selected.tips.map(tip => <li key={tip}>{tip}</li>)}</ul><p>표기: H 해머온 · P 풀오프 · SL 슬라이드</p></details>
     <details className="etudeTips etudeCommonTips"><summary><strong>공통 TIP · 피킹과 연습 기본</strong><ChevronDown size={24} aria-hidden="true" /></summary>
       <ul>{COMMON_PRACTICE_TIPS.map(tip=><li key={tip.title}><strong>{tip.title}</strong><div>{tip.text}</div></li>)}</ul>
       <div className="etudePickingExamples"><table><caption>일정한 박에 맞추는 피킹 예시 · D 다운 / U 업</caption><thead><tr><th>리듬</th><th>세는 법</th><th>피킹</th></tr></thead><tbody>{PICKING_EXAMPLES.map(row=><tr key={row.rhythm}><th scope="row">{row.rhythm}</th><td>{row.count}</td><td>{row.strokes}</td></tr>)}</tbody></table></div>
@@ -135,7 +141,7 @@ function Sheet({ model, mobile }) {
 }
 
 function Heading() {
-  return <header className="etudeHeading"><div><span className="etudeEyebrow">FRETIVA LAB / STUDIES</span><h1>에튀드 스튜디오 <b>PRO</b></h1></div><p>지판을 넘어, 프레이즈로.</p></header>;
+  return <header className="etudeHeading"><div><span className="etudeEyebrow">FRETIVA LAB / STUDIES</span><h1>에튀드 스튜디오 <b>PRO</b></h1></div><p>유형별로, 기초부터 응용까지.</p></header>;
 }
 
 function MobileLayout({ model }) {
@@ -147,7 +153,7 @@ function DesktopLayout({ model }) {
 }
 
 export default function EtudeStudio({ mobile, onOpenMenu, onExit }) {
-  const defaults = { level: '초급', root: 'C', style: '전체', type: '전체' };
+  const defaults = DEFAULT_FILTERS;
   const [filters, setFilters] = useState(defaults);
   const [selectedId, setSelectedId] = useState(DEFAULT_ETUDE_ID);
   const [bpm, updateBpm] = useState(DEFAULT_ETUDE_BPM);
@@ -159,7 +165,7 @@ export default function EtudeStudio({ mobile, onOpenMenu, onExit }) {
     metro.stop();
     const next = changeEtudeFilter(filters, key, value);
     const available = filterEtudes(next);
-    const match = available.find(e => e.templateId === selected?.templateId) ?? available[0];
+    const match = (key==='root' || key==='style' ? available.find(e => e.templateId === selected?.templateId) : null) ?? available[0];
     setFilters(next); setSelectedId(match?.id ?? ''); updateBpm(match?.bpm ?? 60);
   };
   const model = { filters, setFilter, list, selected, select, bpm, metro, onOpenMenu, onExit,

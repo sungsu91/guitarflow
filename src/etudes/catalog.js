@@ -1,6 +1,8 @@
 // Sounding MIDI is the source of truth. Guitar notation is written one octave up.
-import { curriculumTemplates, CURRICULUM_ORDER } from './curriculum.js';
+import { curriculumTemplates } from './curriculum.js';
 import { CHORD_STUDY } from './chordStudy.js';
+import { trackStudies, chordTrackStudies } from './trackStudies.js';
+import { TRACK_ORDER, getTrack } from './tracks.js';
 export const TUNING = Object.freeze([64, 59, 55, 50, 45, 40]);
 export const ROOTS = Object.freeze(['C', 'D', 'E', 'F', 'G', 'A', 'B']);
 export const LEVELS = Object.freeze(['초급', '중급', '고급']);
@@ -71,9 +73,11 @@ export const TEMPLATES = Object.freeze([
     techniqueMap: techniques([[0,'H'],[1,'S'],[2,'P'],[4,'H'],[5,'S'],[6,'P']],[[0,'H'],[1,'S'],[2,'P'],[4,'H'],[5,'S'],[6,'P']],[[0,'H'],[1,'H'],[2,'P'],[4,'S'],[5,'H'],[6,'P']],[[0,'P'],[1,'P'],[3,'S'],[4,'P'],[6,'P']]) },
   ...curriculumTemplates({major:MAJOR_SHAPE,connected:CONNECTED_SHAPE,penta:PENTA_SHAPE,blues:BLUES_SHAPE,pentaIntervals:PENTA,bluesIntervals:BLUES}),
   CHORD_STUDY,
+  ...trackStudies({penta:PENTA_SHAPE,pentaIntervals:PENTA}),
+  ...chordTrackStudies(CHORD_STUDY),
 ]);
 
-const COURSE_ORDER = [...CURRICULUM_ORDER.slice(0,24),'chord-accompaniment',...CURRICULUM_ORDER.slice(24)];
+const COURSE_ORDER = TRACK_ORDER;
 // Four development bars between the opening three bars and the final cadence.
 // Technique studies rearrange intact two-beat cells, preserving their links.
 const DEVELOPMENT = {
@@ -87,7 +91,7 @@ const DEVELOPMENT = {
 };
 
 function expandedBars(template) {
-  if(template.complete) return template.patterns.map(pattern=>({pattern}));
+  if(template.complete) return template.patterns.map((pattern,i)=>({pattern, marks:template.techniqueMap?.[i]}));
   const opening = template.patterns.map((pattern, i) => ({pattern, marks:template.techniqueMap?.[i]}));
   const development = DEVELOPMENT[template.id]?.map(pattern => ({pattern})) ?? [2,1,0,1].map((bar, section) => {
     const pattern = template.patterns[bar];
@@ -146,6 +150,7 @@ export function buildEtude(root, template) {
   return { id: `${root}-${template.id}`, root, templateId: template.id, title: `${root} ${template.family === 'major' ? 'Major' : 'Minor'} ${template.name}`,
     english: template.english, level: template.level, style: template.style, type: template.type,
     purpose: template.purpose, bpm: template.bpm, lesson: COURSE_ORDER.indexOf(template.id) + 1,
+    trackLesson: getTrack(template.type).stages[LEVELS.indexOf(template.level)][1].indexOf(template.id) + 1,
     difficultyReason: template.difficultyReason ?? DIFFICULTY[template.id],
     accompaniment:Boolean(template.accompaniment),
     chordShapes:template.chordShapes?.map(shape=>({...shape,frets:shape.frets.map(f=>f===null?null:f+SHIFT[root]),barre:shape.barre?{...shape.barre,fret:shape.barre.fret+SHIFT[root]}:null})),

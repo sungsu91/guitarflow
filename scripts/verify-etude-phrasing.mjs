@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { ETUDES } from '../src/etudes/catalog.js';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});
 try {
@@ -26,7 +27,8 @@ try {
   for(const check of checks){assert.equal(check.tabNotes,check.expected,check.id+': rest must have no fret');assert.equal(check.labelOverlap,false);assert.ok(check.chords);}
   await page.locator('.etudeMobileFilterDetails summary').click();
   for(const [level,id] of [['초급','C-ballad-breath'],['중급','C-pop-chord-route'],['중급','C-chord-accompaniment'],['고급','C-legato-drive']]) {
-    await page.getByLabel('난이도',{exact:true}).selectOption(level);
+    await page.getByLabel('연습 유형',{exact:true}).selectOption(ETUDES.find(e=>e.id===id).type);
+    await page.getByRole('button',{name:level,exact:true}).click();
     await page.getByLabel(/^연습곡 ·/).selectOption(id);
     await page.waitForTimeout(150);
     await page.locator('.etudeSheet').screenshot({path:`artifacts/etudes/${id}.png`});
@@ -38,7 +40,7 @@ try {
   await page.setViewportSize({width:320,height:740});
   assert.ok(await common.evaluate(d=>d.scrollWidth<=d.clientWidth+1),'common TIP fits narrow mobile');
   await common.screenshot({path:'artifacts/etudes/common-tip-mobile.png'});
-  await page.getByLabel('난이도',{exact:true}).selectOption('초급');
+  await page.getByRole('button',{name:'초급',exact:true}).click();
   assert.ok(await common.evaluate(d=>d.open),'common TIP stays open across lessons');
   await common.locator('summary').click();
   assert.equal(await common.evaluate(d=>d.open),false);

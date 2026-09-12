@@ -121,12 +121,3 @@ export function curriculumTemplates({major, connected, penta, blues, pentaInterv
       '고급 종합: 빠른 리듬을 유지하면서 서로 다른 도약 규칙을 마디마다 전환합니다.'),
   ];
 }
-
-export const CURRICULUM_ORDER = [
-  'triad-start','two-note-answer','ballad-line','major-landing','first-path','pop-answer',
-  'hammer-start','pull-return','penta-hook','ballad-breath','blue-turn','beginner-finale',
-  'slide-path','rock-penta','thirds-dialogue','pivot-return','triad-cross','fourth-crossing',
-  'offbeat-hook','pop-chord-route','jazz-seventh','speed-window','legato-phrase','intermediate-finale',
-  'diagonal-sequence','thirds-drive','fourths-drive','pivot-drive','penta-groups','triad-engine',
-  'seventh-weave','blues-burst','density-switch','offbeat-drive','legato-drive','advanced-finale',
-];

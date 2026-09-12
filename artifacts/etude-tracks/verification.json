@@ -1,0 +1,14 @@
+[
+  {
+    "mobile": false,
+    "count": 455,
+    "courseCombinations": 27,
+    "errors": []
+  },
+  {
+    "mobile": true,
+    "count": 1365,
+    "courseCombinations": 27,
+    "errors": []
+  }
+]

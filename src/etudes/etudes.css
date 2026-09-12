@@ -139,3 +139,15 @@
   color: #26382f !important;
 }
 
+.etudeTrackPicker{margin-bottom:16px}
+.etudeTrackSummary{margin:0 0 12px;font-size:12px;line-height:1.6;color:var(--etude-muted)}
+.etudeLevelChoices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.etudeStudio .etudeLevelChoices button{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:52px;padding:9px 4px;font-size:12px}
+.etudeStudio .etudeLevelChoices button small{font-size:10px;font-weight:400}
+.etudeStudio .etudeLevelChoices button[aria-pressed="true"]{background:#345b48;color:#fff;border-color:#345b48}
+.etudeTrackGoal{margin:10px 0 0;font-size:12px;line-height:1.65;font-weight:650}
+.etudeLessonNav>span{display:flex;flex-direction:column;gap:4px;text-align:center;min-width:0;line-height:1.4}
+.etudeLessonNav>span>strong{font-size:12px;color:var(--etude-ink)}
+.etudeStudio .etudePrerequisite{margin:12px 0;padding:10px;border-left:3px solid #477660;font-size:12px;line-height:1.7}
+.etudeStudio--mobile .etudeTrackPicker{margin-bottom:12px}
+.etudeStudio--desktop .etudeTrackPicker .etudeSelect select{min-height:46px;font-weight:700}

@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { ETUDES, ROOTS, TUNING, validateEtude } from '../src/etudes/catalog.js';
-import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson } from '../src/etudes/filters.js';
+import { ETUDES, ROOTS, LEVELS, TEMPLATES, TUNING, validateEtude } from '../src/etudes/catalog.js';
+import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson, availableStyles } from '../src/etudes/filters.js';
+import { TRACKS, TRACK_ORDER, TYPES } from '../src/etudes/tracks.js';
 import { isMobileLandscapeAllowed, shouldGuardPortraitOrientation } from '../src/layouts/viewportProfile.js';
 
 const etudeScoreSource = fs.readFileSync(new URL('../src/etudes/Score.jsx', import.meta.url), 'utf8');
@@ -27,10 +28,22 @@ test('etude rotation is allowed without changing portrait-only shooter policy', 
   assert.equal(shouldGuardPortraitOrientation('shooter', landscape), true);
 });
 
-test('259 complete studies: seven keys and thirty-seven ordered lessons', () => {
-  assert.equal(ETUDES.length, 259);
-  assert.equal(new Set(ETUDES.map(e => e.id)).size, 259);
-  for (const root of ROOTS) assert.deepEqual(ETUDES.filter(e => e.root === root).map(e=>e.lesson), Array.from({length:37},(_,i)=>i+1));
+test('nine courses each cover three levels with at least two complete studies in seven keys', () => {
+  assert.equal(TRACKS.length,9);
+  assert.equal(TEMPLATES.length,65);
+  assert.equal(ETUDES.length,TEMPLATES.length*ROOTS.length);
+  assert.equal(new Set(ETUDES.map(e => e.id)).size,ETUDES.length);
+  assert.equal(new Set(TRACK_ORDER).size,TEMPLATES.length);
+  assert.deepEqual(new Set(TRACK_ORDER),new Set(TEMPLATES.map(t=>t.id)));
+  for (const root of ROOTS) {
+    assert.deepEqual(ETUDES.filter(e => e.root === root).map(e=>e.lesson), Array.from({length:TEMPLATES.length},(_,i)=>i+1));
+    for(const track of TRACKS) for(const [index,level] of LEVELS.entries()) {
+      const course=filterEtudes({root,type:track.type,level,style:'전체'});
+      assert.ok(course.length>=2,`${root} ${track.type} ${level}: incomplete course`);
+      assert.deepEqual(course.map(e=>e.templateId),track.stages[index][1]);
+      assert.deepEqual(course.map(e=>e.trackLesson),course.map((_,i)=>i+1));
+    }
+  }
   for (const e of ETUDES) {
     assert.equal(e.measures.length, 8, e.id);
     assert.notDeepEqual(e.measures.slice(0,4), e.measures.slice(4), 'development must not just repeat the opening');
@@ -38,14 +51,26 @@ test('259 complete studies: seven keys and thirty-seven ordered lessons', () => 
   }
 });
 
-test('every selectable facet produces matching studies from conflicting prior filters', () => {
-  for (const e of ETUDES) for (const key of ['level','style','type']) {
+test('changing a course or level never relaxes it to a different technique or level', () => {
+  for (const e of ETUDES) for (const key of ['level','type']) {
     for (const value of new Set(ETUDES.map(study=>study[key]))) {
       const next=changeEtudeFilter({root:e.root,level:e.level,style:e.style,type:e.type},key,value);
       const result=filterEtudes(next);
       assert.ok(result.length, `${e.id}: ${key} ${value}`);
       assert.ok(result.every(study=>study[key]===value && study.root===e.root));
+      assert.equal(next[key==='type'?'level':'type'],e[key==='type'?'level':'type']);
     }
+  }
+  for(const type of TYPES) for(const level of LEVELS) {
+    const filters={type,level,root:'C',style:'전체'};
+    for(const style of availableStyles(filters)) {
+      const next=changeEtudeFilter(filters,'style',style);
+      assert.equal(next.type,type); assert.equal(next.level,level);
+      assert.ok(filterEtudes(next).length);
+      assert.ok(filterEtudes(next).every(e=>style==='전체'||e.style===style));
+    }
+    const invalid=changeEtudeFilter(filters,'style','missing');
+    assert.deepEqual(invalid,filters);
   }
 });
 
@@ -58,33 +83,35 @@ test('lesson counter and navigation use the filtered type and style within a lev
   assert.equal(canOpenLesson(selected,ETUDES.find(e=>e.id==='C-rock-penta'),filters),false);
   assert.equal(canOpenLesson(selected,course[1],filters),true);
   assert.equal(lessonCourse(selected,{...filters,style:'기초'}).length,2);
-  assert.equal(lessonCourse(selected,{...filters,type:'전체'}).length,13);
-  assert.deepEqual(lessonCourse(selected,{...filters,level:'전체'}),course);
+  assert.equal(lessonCourse(selected).length,3);
+  assert.equal(canOpenLesson(selected,course[1],{...filters,type:'레가토'}),false);
+  assert.equal(canOpenLesson(selected,course[1],{...filters,level:'초급'}),false);
 });
 
 test('chord boxes and picked strings agree in all keys',()=>{
   const roots={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
-  const degrees=[0,9,5,7,0,9,7,0];
   for(const e of ETUDES.filter(e=>e.accompaniment)){
     assert.equal(e.chordShapes.length,8);
     e.measures.forEach((bar,i)=>{
       const box=e.chordShapes[i];
-      const chordTones=[0,i===1||i===5?3:4,7];
+      const [,letter,accidental,quality]=e.harmony[i].match(/^([A-G])([♯♭]?)(m?)$/);
+      const tonic=roots[letter]+(accidental==='♯'?1:accidental==='♭'?-1:0);
+      const chordTones=[0,quality==='m'?3:4,7];
       for(const [j,fret] of box.frets.entries()) if(fret!==null){
-        const interval=(TUNING[5-j]+fret-roots[e.root]-degrees[i]+120)%12;
+        const interval=(TUNING[5-j]+fret-tonic+120)%12;
         assert.ok(chordTones.includes(interval),`${e.id}: diagram contains a non-chord tone`);
       }
-      for(const n of bar) assert.equal(box.frets[6-n.string],n.fret);
+      for(const n of bar.filter(n=>!n.rest)) assert.equal(box.frets[6-n.string],n.fret);
     });
-    const broken=structuredClone(e);broken.chordShapes[0].frets[0]++;
+    const broken=structuredClone(e);broken.chordShapes[0].frets[6-e.measures[0][0].string]++;
     assert.ok(validateEtude(broken).some(error=>error.includes('코드표와 TAB')));
   }
 });
 
-test('37 distinct patterns include phrasing, rests, chord targets and advanced rhythm', () => {
+test('65 distinct patterns include phrasing, rests, chord targets and advanced rhythm', () => {
   const course=ETUDES.filter(e=>e.root==='C');
   const fingerprints=course.map(e=>JSON.stringify(e.measures.map(m=>m.map(n=>[n.rest?'rest':n.midi,n.duration,n.technique]))));
-  assert.equal(new Set(fingerprints).size,37,'keys or titles alone must not inflate the pattern count');
+  assert.equal(new Set(fingerprints).size,course.length,'keys or titles alone must not inflate the pattern count');
   for(const id of ['penta-hook','ballad-breath','beginner-finale','offbeat-hook','offbeat-drive']) {
     const e=course.find(e=>e.templateId===id);
     assert.ok(e.measures.flat().some(n=>n.rest),id);
@@ -115,17 +142,41 @@ test('technique pairs stay on the same string with correct direction and tips', 
   assert.ok(validateEtude(broken).some(e=>e.includes('기법 방향')));
 });
 
-test('lesson navigation stays within the current difficulty, including All filter', () => {
+test('lesson navigation stays within the current type, difficulty and key', () => {
   for(const selected of ETUDES) {
     const course=lessonCourse(selected);
     assert.ok(course.includes(selected));
-    assert.ok(course.every(e=>e.level===selected.level && e.root===selected.root));
-    for(const target of ETUDES) assert.equal(canOpenLesson(selected,target),target.root===selected.root && target.level===selected.level);
+    assert.ok(course.every(e=>e.level===selected.level && e.root===selected.root && e.type===selected.type));
+    for(const target of ETUDES) assert.equal(canOpenLesson(selected,target),target.root===selected.root && target.level===selected.level && target.type===selected.type);
     assert.equal(canOpenLesson(selected,undefined),false);
     assert.ok(selected.difficultyReason.startsWith(selected.level));
   }
   assert.equal(ETUDES[0].templateId,'triad-start');
-  assert.deepEqual(['초급','중급','고급'].map(level=>ETUDES.filter(e=>e.root==='C'&&e.level===level).length),[12,13,12]);
+  for(const level of LEVELS) assert.ok(ETUDES.filter(e=>e.root==='C'&&e.level===level).length>=18);
+});
+
+test('technique courses teach their named technique and introduce legato progressively', () => {
+  const expected={'해머온':['H'],'풀오프':['P'],'슬라이드':['S'],'레가토':['H','P']};
+  for(const e of ETUDES.filter(e=>expected[e.type])) {
+    const actual=new Set(e.measures.flat().map(n=>n.technique).filter(Boolean));
+    for(const mark of expected[e.type]) assert.ok(actual.has(mark),`${e.id}: missing ${mark}`);
+    if(e.type!=='레가토') assert.deepEqual([...actual],expected[e.type],`${e.id}: mixed technique in an isolated course`);
+  }
+  const intro=ETUDES.find(e=>e.id==='C-legato-single');
+  assert.equal(new Set(intro.measures.flat().filter(n=>!n.rest).map(n=>n.string)).size,1);
+  assert.equal(new Set(intro.measures.flat().filter(n=>!n.rest).map(n=>n.fret)).size,2);
+  assert.ok(intro.measures.slice(0,7).every(m=>m.at(-1).rest));
+  assert.ok(intro.measures.flat().every(n=>n.duration==='4'));
+  const middle=ETUDES.find(e=>e.id==='C-legato-three');
+  assert.equal(new Set(middle.measures.flat().map(n=>n.fret)).size,3);
+  assert.ok(middle.measures.flat().every(n=>n.duration==='8'));
+  const advanced=ETUDES.find(e=>e.id==='C-legato-chain');
+  assert.ok(advanced.measures.flat().every(n=>n.duration==='16'));
+  assert.ok(new Set(advanced.measures.flat().map(n=>n.string)).size>=3);
+  for(const e of ETUDES.filter(e=>e.type==='코드 아르페지오'&&e.level==='초급')) {
+    assert.ok(e.chordShapes.every(shape=>!shape.barre));
+    assert.ok(e.chordShapes.every(shape=>shape.frets.filter(f=>f!==null).length===3));
+  }
 });
 
 test('the first beginner lesson builds finger spacing one string at a time', () => {
@@ -189,7 +240,8 @@ test('independent pitch spelling, transposition, duration and movement checks', 
   const sig = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 };
   for (const e of ETUDES) {
     const notes = e.measures.flat().filter(n=>!n.rest);
-    assert.equal(notes[0].midi % 12, e.templateId==='triad-start' ? (sig[e.root]+11)%12 : sig[e.root]);
+    // Technical cells may begin on a chord third (e.g. a descending pull-off).
+    // Their cadence is still the tonic; every written/sounding pitch is checked below.
     assert.equal(notes.at(-1).midi % 12, sig[e.root]);
     for (const [i,n] of notes.entries()) {
       const [,letter,alter,oct] = n.pitch.key.match(/^([a-g])([#b]?)[/]([0-9])$/);

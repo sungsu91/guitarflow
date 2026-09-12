@@ -1,0 +1,18 @@
+{
+  "etudeTests": {
+    "failed": 0,
+    "passed": 16
+  },
+  "build": "passed",
+  "fullSuite": {
+    "passed": 790,
+    "baseline": "All 18 failing test cases also fail on prior commit e42496c; unchanged launch, shooter, and layout expectations.",
+    "failed": 18
+  },
+  "browser": {
+    "errors": 0,
+    "courseCombinationsPerLayout": 27,
+    "renders": 1820
+  },
+  "phrasing": "passed"
+}
