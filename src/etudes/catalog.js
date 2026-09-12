@@ -1,28 +1,25 @@
 // Sounding MIDI is the source of truth. Guitar notation is written one octave up.
 import { curriculumTemplates } from './curriculum.js';
-import { CHORD_STUDY } from './chordStudy.js';
-import { trackStudies, chordTrackStudies } from './trackStudies.js';
+import { trackStudies } from './trackStudies.js';
 import { TRACK_ORDER, getTrack } from './tracks.js';
-import { resolveOpenChordStudy } from './openChordStudies.js';
+import { chordStudies } from './openChordStudies.js';
 export const TUNING = Object.freeze([64, 59, 55, 50, 45, 40]);
 export const ROOTS = Object.freeze(['C', 'D', 'E', 'F', 'G', 'A', 'B']);
 export const LEVELS = Object.freeze(['초급', '중급', '고급']);
 const NATURAL = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
-const SHIFT = { C: 0, D: 2, E: 4, F: -7, G: -5, A: -3, B: -1 };
 const MAJOR = [0, 2, 4, 5, 7, 9, 11];
 const MINOR = [0, 2, 3, 5, 7, 8, 10];
 const PENTA = [0, 3, 5, 7, 10];
 const BLUES = [0, 3, 5, 6, 7, 10];
-// Explicit movable two-octave shapes; adjacent notes never require a random
-// choice among the many equivalent frets for one pitch.
-const MAJOR_SHAPE = [[6,8],[6,10],[5,7],[5,8],[5,10],[4,7],[4,9],[4,10],[3,7],[3,9],[3,10],[2,8],[2,10],[1,7],[1,8]];
-const PENTA_SHAPE = [[6,8],[6,11],[5,8],[5,10],[4,8],[4,10],[4,13],[3,10],[3,12],[2,11],[2,13]];
-const BLUES_SHAPE = [[6,8],[6,11],[5,8],[5,9],[5,10],[4,8],[4,10],[3,8],[3,10],[3,11],[2,8],[2,11],[1,8]];
-// C major notes arranged as beginner finger pairs: 1–2, 1–2, 1–3,
-// 1–4, 1–3, 1–2. Other keys transpose the whole hand shape intact.
-const BEGINNER_FINGER_PAIR_SHAPE = [[6,7],[6,8],[5,7],[5,8],[4,7],[4,9],[3,7],[3,10],[2,8],[2,10],[1,7],[1,8]];
-// Same pitches as MAJOR_SHAPE, connected diagonally across positions.
-const CONNECTED_SHAPE = [[6,8],[6,10],[6,12],[5,8],[5,10],[5,12],[4,9],[4,10],[4,12],[3,9],[3,10],[3,12],[2,10],[2,12],[2,13]];
+// Authored concert-pitch routes: G major/minor, C major and A blues, all within frets 0–8.
+// Different string choices are written explicitly, never guessed at runtime.
+const MAJOR_SHAPE = [[6,3],[6,5],[5,2],[5,3],[5,5],[4,2],[4,4],[4,5],[3,2],[3,4],[3,5],[2,3],[2,5],[1,2],[1,3]];
+const PENTA_SHAPE = [[6,3],[6,6],[5,3],[5,5],[4,3],[4,5],[4,8],[3,5],[3,7],[2,6],[2,8]];
+const BLUES_SHAPE = [[6,5],[6,8],[5,5],[5,6],[5,7],[4,5],[4,7],[3,5],[3,7],[3,8],[2,5],[2,8],[1,5]];
+// G-major finger pairs at frets 2–5: one fretted pair per string.
+const BEGINNER_FINGER_PAIR_SHAPE = [[6,2],[6,3],[5,2],[5,3],[4,2],[4,4],[3,2],[3,5],[2,3],[2,5],[1,2],[1,3]];
+// C-major route with three notes per string, explicitly placed at frets 3–8.
+const CONNECTED_SHAPE = [[5,3],[5,5],[5,7],[4,3],[4,5],[4,7],[3,4],[3,5],[3,7],[2,5],[2,6],[2,8],[1,5],[1,7],[1,8]];
 const bars = (...patterns) => patterns;
 const techniques = (...rows) => rows.map(row => Object.fromEntries(row.map(([index, kind]) => [index, kind])));
 export const TECHNIQUES = Object.freeze({ H: '해머온', P: '풀오프', S: '슬라이드' });
@@ -49,7 +46,7 @@ export const TEMPLATES = Object.freeze([
   { id: 'diagonal-sequence', level: '고급', style: '기초', type: '스케일', name: '16분음표 포지션 이동', english: 'Sixteenth Note Scale Run', bpm: 80, family: 'major', shape: CONNECTED_SHAPE, duration: '16',
     purpose: '네 음 시퀀스를 상승·하강하며 여러 포지션을 연결합니다. 한 박에 네 음입니다.',
     patterns: bars([0,1,2,1,2,3,4,3,4,5,6,5,6,7,8,7],[8,9,10,9,10,11,12,11,12,13,14,13,12,11,10,9],[10,9,8,9,8,7,6,7,6,5,4,5,4,3,2,3],[2,3,4,3,4,5,6,5,6,5,4,3,2,1,2,0]) },
-  { id: 'triad-start', level: '초급', style: '기초', type: '스케일', name: '손가락 간격 첫걸음', english: 'Finger Pair Foundation', bpm: 48, family: 'major', shape: BEGINNER_FINGER_PAIR_SHAPE, duration: '4', complete: true,
+  { id: 'triad-start', fixedRoot:'G', level: '초급', style: '기초', type: '스케일', name: '손가락 간격 첫걸음', english: 'Finger Pair Foundation', bpm: 48, family: 'major', shape: BEGINNER_FINGER_PAIR_SHAPE, duration: '4', complete: true,
     purpose: '한 마디 동안 한 줄에 머물며 검지와 다음 손가락의 간격을 차례로 익힌 뒤, 마지막 두 마디에서 천천히 내려옵니다.',
     difficultyReason: '초급 입문 · 한 줄에서 두 음만 4분음표로 반복합니다. 새 줄은 다음 마디에서 시작하고 마지막에만 한 음씩 천천히 내려옵니다.',
     patterns: bars([0,1,0,1],[2,3,2,3],[4,5,4,5],[6,7,6,7],[8,9,8,9],[10,11,10,11],[11,10,9,8],[7,5,2,1]) },
@@ -73,10 +70,9 @@ export const TEMPLATES = Object.freeze([
     patterns: bars([0,1,2,1,3,4,5,4],[6,7,8,7,9,10,11,10],[12,13,14,13,12,13,14,12],[11,10,9,8,7,6,1,0]),
     techniqueMap: techniques([[0,'H'],[1,'S'],[2,'P'],[4,'H'],[5,'S'],[6,'P']],[[0,'H'],[1,'S'],[2,'P'],[4,'H'],[5,'S'],[6,'P']],[[0,'H'],[1,'H'],[2,'P'],[4,'S'],[5,'H'],[6,'P']],[[0,'P'],[1,'P'],[3,'S'],[4,'P'],[6,'P']]) },
   ...curriculumTemplates({major:MAJOR_SHAPE,connected:CONNECTED_SHAPE,penta:PENTA_SHAPE,blues:BLUES_SHAPE,pentaIntervals:PENTA,bluesIntervals:BLUES}),
-  CHORD_STUDY,
   ...trackStudies({penta:PENTA_SHAPE,pentaIntervals:PENTA}),
-  ...chordTrackStudies(CHORD_STUDY),
-]);
+  ...chordStudies(),
+].map(template=>({...template,fixedRoot:template.fixedRoot ?? (template.shape===MAJOR_SHAPE || template.shape===PENTA_SHAPE ? 'G' : template.family==='minor' ? 'A' : 'C')})));
 
 const COURSE_ORDER = TRACK_ORDER;
 // Four development bars between the opening three bars and the final cadence.
@@ -126,46 +122,58 @@ const DIFFICULTY = {
   'diagonal-sequence': '고급 · 이 커리큘럼의 상위 단계입니다. 80 BPM의 연속 16분음표(초당 약 5.3음)를 8마디 유지하면서 포지션과 진행 방향을 바꿉니다.',
 };
 
+export function parseChord(symbol) {
+  const match=symbol.match(/^([A-G])([#♯b♭]?)(maj7|m7|m|7|add9)?$/);
+  if(!match)throw new Error('지원하지 않는 코드: '+symbol);
+  const [,letter,acc,quality='']=match;
+  const root=letter+(acc==='♯'?'#':acc==='♭'?'b':acc);
+  const pc=(NATURAL[letter]+(acc==='#'||acc==='♯'?1:acc==='b'||acc==='♭'?-1:0)+12)%12;
+  const intervals=quality==='maj7'?[0,4,7,11]:quality==='m7'?[0,3,7,10]:quality==='7'?[0,4,7,10]:quality==='add9'?[0,2,4,7]:quality==='m'?[0,3,7]:[0,4,7];
+  return {root,pc,intervals,family:quality==='m'||quality==='m7'?'minor':'major'};
+}
+
 export function spellMidi(midi, root, family, blue = false) {
   const degrees = family === 'major' ? MAJOR : MINOR;
-  const interval = ((midi - NATURAL[root]) % 12 + 12) % 12;
-  const degree = blue && interval === 6 ? 4 : degrees.indexOf(interval);
+  const tonic=NATURAL[root[0]]+(root[1]==='#'?1:root[1]==='b'?-1:0);
+  const interval = ((midi - tonic) % 12 + 12) % 12;
+  const degree = blue && interval === 6 ? 4 : interval === 10 && family === 'major' ? 6 : degrees.indexOf(interval);
   if (degree < 0) throw new Error(`음계 밖의 음: ${root} ${midi}`);
-  const letter = ROOTS[(ROOTS.indexOf(root) + degree) % 7];
+  const letter = ROOTS[(ROOTS.indexOf(root[0]) + degree) % 7];
   let alter = ((midi % 12) - NATURAL[letter] + 18) % 12 - 6;
   const octave = (midi - NATURAL[letter] - alter) / 12 - 1;
   return { letter, alter, octave, key: `${letter.toLowerCase()}${alter === -1 ? 'b' : alter === 1 ? '#' : ''}/${octave + 1}` };
 }
 
-export function buildEtude(root, template) {
-  template = resolveOpenChordStudy(root,template);
-  // Keep an entire movable grip course together when a downward transposition
-  // would put one of its frets below the nut.
-  const shift = template.concertFrets ? 0 : SHIFT[root] + (Math.min(...template.shape.map(([,f])=>f)) + SHIFT[root] < 0 ? 12 : 0);
+export function buildEtude(template) {
+  const root = template.fixedRoot;
+  const spelling = (midi,bar) => {
+    const chord=template.chordNames?.[bar] ? parseChord(template.chordNames[bar]) : null;
+    return spellMidi(midi,chord?.root??root,chord?.family??template.family,template.intervals===BLUES);
+  };
   const measures = expandedBars(template).map(({pattern, marks}, bar) => pattern.map((index, i) => {
     const indices = Array.isArray(index) ? index : [index];
     const [string, baseFret] = template.shape[Math.max(0,indices[0])];
-    const fret = baseFret + shift;
+    const fret = baseFret;
     const midi = TUNING[string - 1] + fret;
     const nextPosition = template.shape[pattern[i+1]];
     const automatic = template.autoTechnique && index>=0 && nextPosition?.[0]===string && nextPosition[1]!==baseFret
       ? (i%4===1 ? 'S' : nextPosition[1]>baseFret?'H':'P') : null;
     const tones = indices.length > 1 ? indices.map(position => {
       const [s, f] = template.shape[position];
-      const sounding = TUNING[s-1] + f + shift;
-      return {string:s, fret:f+shift, midi:sounding, pitch:spellMidi(sounding,root,template.family)};
+      const sounding = TUNING[s-1] + f;
+      return {string:s, fret:f, midi:sounding, pitch:spelling(sounding,bar)};
     }) : undefined;
     return { string, fret, midi, tones, rest:index<0, duration: template.rhythms?.[bar]?.[i] ?? template.durations?.[i] ?? template.duration ?? '8', technique: marks?.[i] ?? automatic,
-      pitch: spellMidi(midi, root, template.family, template.intervals === BLUES) };
+      pitch: spelling(midi,bar) };
   }));
-  return { id: `${root}-${template.id}`, root, templateId: template.id, title: `${root} ${template.family === 'major' ? 'Major' : 'Minor'} ${template.name}`,
+  return { id: `${root}-${template.id}`, root, templateId: template.id, title: template.name,
     english: template.english, level: template.level, style: template.style, type: template.type,
     purpose: template.purpose, bpm: template.bpm, lesson: COURSE_ORDER.indexOf(template.id) + 1,
     trackLesson: getTrack(template.type).stages[LEVELS.indexOf(template.level)][1].indexOf(template.id) + 1,
     difficultyReason: template.difficultyReason ?? DIFFICULTY[template.id],
     accompaniment:Boolean(template.accompaniment),
-    chordShapes:template.chordShapes?.map(shape=>({...shape,frets:shape.frets.map(f=>f===null?null:f+shift),barre:shape.barre?{...shape.barre,fret:shape.barre.fret+shift}:null})),
-    harmony:template.harmony?.map(([degree,quality])=>{
+    chordShapes:template.chordShapes,
+    harmony:template.chordNames ?? template.harmony?.map(([degree,quality])=>{
       const pitch=spellMidi(48+NATURAL[root]+MAJOR[degree],root,'major');
       return `${pitch.letter}${pitch.alter===1?'♯':pitch.alter===-1?'♭':''}${quality}`;
     }),
@@ -192,7 +200,8 @@ export function validateEtude(etude) {
         if (tone.string < 1 || tone.string > 6 || !Number.isInteger(tone.fret) || tone.fret < 0 || tone.fret > 24) errors.push(`${label}: 운지 범위`);
         if (TUNING[tone.string - 1] + tone.fret !== tone.midi) errors.push(`${label}: TAB 음높이`);
         if ((tone.pitch.octave + 1) * 12 + NATURAL[tone.pitch.letter] + tone.pitch.alter !== tone.midi) errors.push(`${label}: 기보 음높이`);
-        if (!etude.intervals.includes((tone.midi - NATURAL[etude.root] + 120) % 12)) errors.push(`${label}: 음계`);
+        const chord=etude.accompaniment ? parseChord(etude.harmony[bar]) : null;
+        if (!n.rest && !(chord?.intervals??etude.intervals).includes((tone.midi - (chord?.pc??NATURAL[etude.root]) + 120) % 12)) errors.push(`${label}: 음계 또는 코드 구성음`);
       }
       if (n.technique) {
         const next = measure[i + 1];
@@ -204,7 +213,7 @@ export function validateEtude(etude) {
   return errors;
 }
 
-export const ETUDES = ROOTS.flatMap(root => TEMPLATES.filter(t=>!t.roots||t.roots.includes(root)).map(template => buildEtude(root, template))).sort((a,b) => a.lesson - b.lesson || ROOTS.indexOf(a.root) - ROOTS.indexOf(b.root));
+export const ETUDES = TEMPLATES.map(buildEtude).sort((a,b) => a.lesson - b.lesson);
 for (const etude of ETUDES) {
   const errors = validateEtude(etude);
   if (errors.length) throw new Error(`${etude.id}: ${errors.join(', ')}`);

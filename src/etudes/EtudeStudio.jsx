@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ETUDES, LEVELS } from './catalog.js';
-import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson, availableStyles, availableRoots, DEFAULT_FILTERS } from './filters.js';
+import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson, availableStyles, DEFAULT_FILTERS } from './filters.js';
 import { TYPES, getTrack } from './tracks.js';
 import useEtudeMetronome from './useEtudeMetronome.js';
 import './etudes.css';
@@ -8,7 +8,7 @@ import { ChevronDown } from 'lucide-react';
 import { COMMON_PRACTICE_TIPS, PICKING_EXAMPLES, FINGERSTYLE_PRACTICE_TIPS, FINGERSTYLE_EXAMPLES } from './practiceTips.js';
 
 const Score = lazy(() => import('./Score.jsx'));
-const DEFAULT_ETUDE_ID = 'C-triad-start';
+const DEFAULT_ETUDE_ID = 'G-triad-start';
 const DEFAULT_ETUDE_BPM = ETUDES.find(etude => etude.id === DEFAULT_ETUDE_ID)?.bpm ?? 60;
 
 function Select({ label, value, options, onChange }) {
@@ -21,8 +21,7 @@ function Filters({ model, mobile = false }) {
   const { filters, setFilter, list, selected, select } = model;
   const track = getTrack(filters.type);
   const fields = <>
-    <div className="etudeFilterGrid">
-      <Select label="조성" value={filters.root} options={availableRoots(filters)} onChange={v => setFilter('root', v)} />
+    <div className="etudeStyleFilter">
       <Select label="스타일" value={filters.style} options={availableStyles(filters)} onChange={v => setFilter('style', v)} />
     </div>
   </>;
@@ -34,9 +33,8 @@ function Filters({ model, mobile = false }) {
         {LEVELS.map((level,index) => <button type="button" key={level} aria-label={level} aria-pressed={filters.level===level} onClick={()=>setFilter('level',level)}><strong>{level}</strong><small>{track.stages[index][1].length}개</small></button>)}
       </div>
       <p className="etudeTrackGoal">{track.stages[LEVELS.indexOf(filters.level)][0]}</p>
-      {filters.type==='아르페지오'&&filters.level==='초급'&&<p className="etudeTrackSummary">기본 오픈 코드 · C·D·E·G·A 조성<br/>F·B 조성은 중급부터 제공합니다.</p>}
     </div>
-    {mobile ? <details className="etudeMobileFilterDetails"><summary><strong>조성 · {filters.root} / 스타일 · {filters.style}</strong><span className="etudeFilterToggle"><ChevronDown aria-hidden="true" size={26} strokeWidth={2.5} /></span></summary>{fields}</details> : fields}
+    {mobile ? <details className="etudeMobileFilterDetails"><summary><strong>스타일 · {filters.style}</strong><span className="etudeFilterToggle"><ChevronDown aria-hidden="true" size={26} strokeWidth={2.5} /></span></summary>{fields}</details> : fields}
     {list.length ? <Select label={`연습곡 · ${list.length}개`} value={selected.id} options={list.map((e,index) => ({id:e.id,title:`${String(index+1).padStart(2,'0')} · ${e.title}`}))} onChange={select} /> : <div className="etudeEmpty" role="status">이 조건의 연습곡은 아직 없습니다.<button type="button" onClick={model.reset}>필터 초기화</button></div>}
     {selected && <p className="etudePurpose">{selected.purpose}</p>}
   </div>;
@@ -131,8 +129,8 @@ function Sheet({ model, mobile }) {
   const content = (enlarged = false) => <>
     <header className="etudeSheetHeader">
       <div className="etudeSheetBrand"><img src="/icons/fretiva-lab-icon-192.png" alt="" /><span>FRETIVA LAB</span></div>
-      <h2>{etude.root} {etude.keySignature.endsWith('m') ? 'Minor' : 'Major'} {etude.english}</h2>
-      <div className="etudeSheetMeta"><span>Standard tuning · E A D G B E</span><span>♩ = {bpm}</span></div>
+      <h2>{etude.english}</h2>
+      <div className="etudeSheetMeta"><span>Standard tuning · E A D G B E · {etude.keySignature}</span><span>♩ = {bpm}</span></div>
     </header>
     <Suspense fallback={<p className="etudeLoading">악보를 준비하고 있습니다…</p>}><Score etude={etude} mobile={mobile} bpm={bpm} enlarged={enlarged} /></Suspense>
   </>;
@@ -168,7 +166,7 @@ export default function EtudeStudio({ mobile, onOpenMenu, onExit }) {
     metro.stop();
     const next = changeEtudeFilter(filters, key, value);
     const available = filterEtudes(next);
-    const match = (key==='root' || key==='style' ? available.find(e => e.templateId === selected?.templateId) : null) ?? available[0];
+    const match = (key==='style' ? available.find(e => e.templateId === selected?.templateId) : null) ?? available[0];
     setFilters(next); setSelectedId(match?.id ?? ''); updateBpm(match?.bpm ?? 60);
   };
   const model = { filters, setFilter, list, selected, select, bpm, metro, onOpenMenu, onExit,

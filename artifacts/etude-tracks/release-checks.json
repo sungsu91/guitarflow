@@ -13,8 +13,9 @@
   "browser": {
     "errors": 0,
     "courseCombinationsPerLayout": 27,
-    "renders": 1804
+    "renders": 260
   },
   "phrasing": "passed",
-  "arpeggio": "Beginner C x32010, C-Am open changes, five beginner open-chord keys, intermediate low-position progressions, simultaneous pitches, TAB, chord diagrams and filter boundaries verified."
+  "arpeggio": "Intermediate Bmaj7 x24342, D#m x68876, Emaj7 x79897 and Em7 x79787. Advanced reuses identical positions with independent bass/rhythm. Borrowed G/D naturals, chord tones, fixed-key navigation and all 65 scores checked.",
+  "fixedCurriculum": "65 fixed scores; no key control or transposition; every score within frets 0–9."
 }

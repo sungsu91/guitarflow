@@ -11,8 +11,8 @@ try {
     const {drawScore}=await import('/src/etudes/Score.jsx');
     const holder=document.createElement('div');holder.style.cssText='width:366px;background:white';document.body.append(holder);
     const results=[];
-    for(const id of ['C-ballad-breath','F-pop-chord-route','C-legato-drive','C-chord-accompaniment','F-chord-accompaniment']) {
-      const e=ETUDES.find(e=>e.id===id);
+    for(const id of ['ballad-breath','pop-chord-route','legato-drive','chord-accompaniment','chord-bass-answer']) {
+      const e=ETUDES.find(e=>e.templateId===id);
       drawScore(holder,e,{mobile:true,enlarged:true});
       if(e.chordShapes && holder.querySelectorAll('.etudeChordDiagram').length!==8) throw new Error('Missing chord boxes');
       const bounds=holder.querySelector('svg').getBBox();
@@ -26,10 +26,10 @@ try {
   });
   for(const check of checks){assert.equal(check.tabNotes,check.expected,check.id+': rest must have no fret');assert.equal(check.labelOverlap,false);assert.ok(check.chords);}
   await page.locator('.etudeMobileFilterDetails summary').click();
-  for(const [level,id] of [['초급','C-ballad-breath'],['중급','C-pop-chord-route'],['중급','C-chord-accompaniment'],['고급','C-legato-drive']]) {
-    await page.getByLabel('연습 유형',{exact:true}).selectOption(ETUDES.find(e=>e.id===id).type);
+  for(const [level,id] of [['초급','ballad-breath'],['중급','pop-chord-route'],['중급','chord-accompaniment'],['고급','legato-drive']]) {
+    await page.getByLabel('연습 유형',{exact:true}).selectOption(ETUDES.find(e=>e.templateId===id).type);
     await page.getByRole('button',{name:level,exact:true}).click();
-    await page.getByLabel(/^연습곡 ·/).selectOption(id);
+    await page.getByLabel(/^연습곡 ·/).selectOption(ETUDES.find(e=>e.templateId===id).id);
     await page.waitForTimeout(150);
     await page.locator('.etudeSheet').screenshot({path:`artifacts/etudes/${id}.png`});
   }
@@ -49,5 +49,5 @@ try {
   await desktop.locator('.etudeCommonTips summary').click();
   assert.ok(await desktop.locator('.etudeCommonTips').evaluate(d=>d.scrollWidth<=d.clientWidth+1));
   await desktop.locator('.etudeCommonTips').screenshot({path:'artifacts/etudes/common-tip-desktop.png'});
-  console.log('PASS: rests hide TAB frets, chord labels transpose, dense technique labels do not overlap.');
+  console.log('PASS: rests hide TAB frets, fixed chord labels and borrowed harmony render, dense technique labels do not overlap.');
 }finally{await browser.close();}

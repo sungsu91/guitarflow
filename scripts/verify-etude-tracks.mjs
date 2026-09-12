@@ -33,7 +33,7 @@ try {
       await page.getByLabel('연습 유형',{exact:true}).selectOption(type);
       for(const level of LEVELS) {
         await page.getByRole('button',{name:level,exact:true}).click();
-        const expected=ETUDES.filter(e=>e.root==='C'&&e.type===type&&e.level===level);
+        const expected=ETUDES.filter(e=>e.type===type&&e.level===level);
         const select=page.getByLabel(`연습곡 · ${expected.length}개`,{exact:true});
         assert.equal(await select.inputValue(),expected[0].id);
         assert.equal(await page.locator('.etudeLessonNav>span>strong').textContent(),`1 / ${expected.length}`);
@@ -64,23 +64,25 @@ try {
     await page.getByLabel('연습 유형',{exact:true}).selectOption('아르페지오');
     assert.equal(await page.getByRole('button',{name:'중급',exact:true}).getAttribute('aria-pressed'),'true');
     assert.equal(await page.getByLabel('스타일',{exact:true}).inputValue(),'전체');
-    await page.getByLabel('조성',{exact:true}).selectOption('F');
     await page.getByRole('button',{name:'초급',exact:true}).click();
     assert.equal(await page.getByLabel('연습곡 · 2개',{exact:true}).inputValue(),'C-chord-three-strings');
-    assert.deepEqual(await page.getByLabel('조성',{exact:true}).locator('option').allTextContents(),['C','D','E','G','A']);
-    assert.equal(await page.getByLabel('조성',{exact:true}).inputValue(),'C');
+    assert.equal(await page.getByLabel('조성',{exact:true}).count(),0);
     await page.locator('.etudeTips:not(.etudeCommonTips) summary').click();
     await page.locator('.etudePrerequisite').waitFor();
     assert.equal(await page.locator('.etudeNotation .etudeChordDiagram').count(),8);
     assert.equal(await page.locator('.etudeNotation .etudeChordDiagram').first().getAttribute('aria-label'),'C, 6번줄부터 뮤트, 3프렛, 2프렛, 0프렛, 1프렛, 0프렛');
     assert.deepEqual(await page.locator('.etudeNotation .vf-tabnote').first().locator('text').allTextContents(),['3','1']);
     await page.screenshot({path:`${output}/${mobile?'mobile':'desktop'}-chord-beginner.png`,fullPage:true});
-    await page.getByLabel('조성',{exact:true}).selectOption('C');
     for(const level of LEVELS) {
       await page.getByRole('button',{name:level,exact:true}).click();
       await page.locator('.etudeNotation svg').waitFor();
       await page.screenshot({path:`${output}/${mobile?'mobile':'desktop'}-arpeggio-${level}.png`,fullPage:true});
     }
+    await page.getByRole('button',{name:'중급',exact:true}).click();
+    await next.click();
+    await page.locator('.etudeNotation svg[aria-label*="Bmaj7"]').waitFor();
+    assert.deepEqual(await page.locator('.etudeChordDiagram').evaluateAll(nodes=>nodes.slice(0,4).map(n=>n.getAttribute('aria-label').split(',')[0])),['Bmaj7','D#m','Emaj7','Em7']);
+    await page.locator('.etudeSheet').screenshot({path:`${output}/${mobile?'mobile':'desktop'}-moving-chords.png`});
     const renderSummary=await page.evaluate(async mobile=>{
       const {ETUDES}=await import('/src/etudes/catalog.js');
       const {drawScore}=await import('/src/etudes/Score.jsx');
@@ -106,6 +108,7 @@ try {
             if(digits.some(t=>t.getAttribute('text-anchor')!=='middle'||Math.abs(Number(t.getAttribute('x'))-Number(digits[0].getAttribute('x')))>0.01))fail('pinch frets not vertically aligned');
             if(boxes.some((a,j)=>boxes.slice(j+1).some(b=>a.y<b.y+b.height&&a.y+a.height>b.y)))fail('stacked fret numbers overlap');
           });
+          if(e.templateId==='chord-bass-answer' && metrics[3].flatMap(n=>n.accidentals).filter(a=>a==='n').length<2)fail('borrowed Em7 missing G/D naturals');
           if(svg.outerHTML.includes('NaN'))fail('non-finite SVG');
           const bounds=svg.getBBox();
           if(bounds.y+bounds.height>svg.viewBox.baseVal.height)fail('vertical clipping');

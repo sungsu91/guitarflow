@@ -27,8 +27,8 @@ export const TRACKS = Object.freeze([
   { type: '아르페지오', summary: '코드를 잡고 베이스·높은 음을 함께 뜯은 뒤 이어가는 분산 반주', prerequisite: '초급은 0–3프렛의 기본 오픈 코드부터 시작합니다. 0은 개방현입니다. 코드표를 미리 잡고, 세로로 겹친 TAB 숫자는 동시에 뜯으세요.',
     stages: [
       ['기본 오픈 코드 한 개 → 두 오픈 코드 반주', ['chord-three-strings', 'chord-two-grips']],
-      ['낮은 포지션의 코드 진행·바레 입문 → 하이코드·교대 베이스', ['chord-accompaniment', 'chord-bass-answer']],
-      ['동시 뜯기와 16분 반주 → 세 음 동시 뜯기·리듬 전환', ['chord-sixteenths', 'chord-density']],
+      ['C·Am·F·G → Bmaj7·D#m·Emaj7·Em7 코드 이동', ['chord-accompaniment', 'chord-bass-answer']],
+      ['익힌 코드 이동 + 독립 베이스 → 동시 뜯기·엇박·리듬 변형', ['chord-sixteenths', 'chord-density']],
     ] },
   { type: '해머온', summary: '한 번 피킹한 뒤 높은 음을 왼손으로 내기', prerequisite: '낮은 음을 선명하게 짚고 높은 음을 누를 손가락을 준비하세요.',
     stages: [

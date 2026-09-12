@@ -1,4 +1,3 @@
-import { beginnerOpenChordStudies } from './openChordStudies.js';
 // Original, deterministic studies. Links are authored inside cells; a cell's
 // first note is picked again. Rests give beginners time to prepare a new grip.
 const quarter = ['4','4','4','4'];
@@ -18,9 +17,9 @@ function techniqueStudies() {
     ['hammer','해머온','H','Hammer-on'], ['pull','풀오프','P','Pull-off'],
     ['slide','슬라이드','S','Slide'], ['legato','레가토','HP','Legato'],
   ];
-  const singleShape = [[1,8],[1,10],[2,13],[2,15]]; // C–D on either string.
-  // Three notes per string in a connected C-major route; no random voicing lookup.
-  const route = [[4,10],[4,12],[4,14],[3,10],[3,12],[3,14],[2,12],[2,13],[2,15],[1,12],[1,13],[1,15]];
+  const singleShape = [[3,5],[3,7],[2,1],[2,3]]; // C–D on either string.
+  // Three notes per string in a connected G-major route; no random voicing lookup.
+  const route = [[6,3],[6,5],[6,7],[5,3],[5,5],[5,7],[4,4],[4,5],[4,7],[3,4],[3,5],[3,7]];
   for (const [prefix, type, kind, english] of definitions) {
     const pair = (base, reverse = false) => kind === 'H' ? [base,base+1,base,-1]
       : kind === 'P' ? [base+1,base,base+1,-1]
@@ -92,15 +91,15 @@ function techniqueStudies() {
       rows[7]=finish(rows[7]);
       const id=prefix==='legato'&&suffix==='drive'?'legato-chain':`${prefix}-${suffix}`;
       result.push(make(id,level,type,name,`${en} ${english}`,bpm,route,rows,times===4?sixteenth:eighth,purpose,goal,
-        {techniqueMap:marksFor(rows)}));
+        {fixedRoot:'G',techniqueMap:marksFor(rows)}));
     }
   }
   return result;
 }
 
 export function trackStudies({penta, pentaIntervals}) {
-  const triad = [[4,10],[3,9],[2,8]]; // C E G on adjacent strings, distinct frets.
-  const pentaPairs = [[6,8],[6,11],[5,8],[5,10]];
+  const triad = [[5,3],[4,2],[3,0]]; // C E G on adjacent strings, distinct frets.
+  const pentaPairs = [[6,5],[6,8],[5,5],[5,7]];
   const pentaRows = [0,1,2,3,3,2,1,0].map((s, bar) => {
     const cell = bar<4 ? [s,s+2,s+1,s+2,s+3,s+2,s+1,s] : [s+3,s+1,s+2,s+1,s,s+1,s+2,s];
     return repeat(cell,2);
@@ -123,42 +122,4 @@ export function trackStudies({penta, pentaIntervals}) {
       '앞 과제의 세 줄 운지를 8분음표로 왕복합니다. 마지막 쉼표에서도 박자를 세고 다시 들어오세요.',
       '세 줄 운지를 유지하며 8분음표와 쉼표를 연결합니다.'),
   ];
-}
-
-export function chordTrackStudies(chordStudy) {
-  const produce = (id,level,name,english,bpm,grips,harmony,stringRows,rhythm,purpose,goal) => {
-    const shape=[];
-    const patterns=stringRows.map((row,bar)=>row.map(cell=>{
-      if(cell===-1)return -1;
-      const position=string=>{shape.push([string,grips[bar].frets[6-string]]);return shape.length-1;};
-      return Array.isArray(cell) ? cell.map(position) : position(cell);
-    }));
-    return make(id,level,'아르페지오',name,english,bpm,shape,patterns,rhythm,purpose,goal,
-      {style:'발라드',accompaniment:true,chordShapes:grips,harmony});
-  };
-  const result=beginnerOpenChordStudies();
-  for(const [id,level,name,english,bpm,mode] of [
-    ['chord-bass-answer','중급','루트·5음 교대 베이스 반주','Alternating Bass Fingerpicking',60,'eighth'],
-    ['chord-sixteenths','고급','동시 뜯기와 16분 분산 반주','Pinch and Sixteenth Picking',60,'sixteenth'],
-    ['chord-density','고급','세 음 동시 뜯기와 리듬 전환','Three-note Pinch Rhythm',64,'mixed'],
-  ]) {
-    const rows=chordStudy.chordShapes.map((grip,bar)=>{
-      const bass=grip.frets[0]===null?5:6;
-      const fifth=bass===6?5:4;
-      const a=[[bass,2],3,2,3,[fifth,1],2,3,bass];
-      if(mode==='eighth') return bar<4?a:[[bass,1],2,3,2,[fifth,2],3,2,bass];
-      const opening=mode==='mixed'?[bass,3,1]:[bass,1];
-      if(mode==='mixed'&&bar%2===1)return [opening,3,2,3,[fifth,2],3,2,bass];
-      return [opening,3,2,1,2,3,4,3,[fifth,2],3,2,1,...(bar<4?[2,3,4,bass]:[3,2,3,bass])];
-    });
-    result.push(produce(id,level,name,english,bpm,chordStudy.chordShapes,chordStudy.harmony,rows,
-      rows.map(row=>row.length===16?sixteenth:eighth),
-      mode==='eighth'?'엄지는 1박의 루트와 3박의 5음을 교대로 뜯습니다. 두 박 모두 높은 음을 함께 뜯고, 사이의 8분음표는 손 모양을 유지하며 분산합니다.'
-        :mode==='mixed'?'마디 첫 박의 베이스·3번줄·1번줄을 엄지·검지·약지로 함께 뜯습니다. 8분음표와 16분음표 마디가 바뀌어도 베이스의 박자는 유지하세요.'
-        :'1박에는 루트와 1번줄을, 3박에는 5음 베이스와 2번줄을 함께 뜯습니다. 사이를 16분음표로 채우고 베이스보다 높은 음이 지나치게 크지 않게 조절하세요.',
-      mode==='eighth'?'바레 코드 전환과 8분음표 위에서 루트·5음 교대 베이스와 동시 뜯기를 제어합니다.'
-        :mode==='mixed'?'세 손가락 동시 뜯기·바레 전환·8분/16분 리듬 밀도 전환을 함께 연습합니다.'
-        :'바레 코드 진행과 연속 16분음표 안에서 두 음 동시 뜯기와 분산음을 교대합니다.'));
-  }
-  return result;
 }
