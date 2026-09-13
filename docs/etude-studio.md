@@ -28,3 +28,9 @@ Scores retain the existing paper layout, responsive reader and 12-entry SVG cach
 - The older verify-etudes-browser and verify-etude-filter-navigation entry points run the current course verification.
 
 These checks validate data, navigation and rendering; they do not constitute an expert guitarist's performance review. Screenshots and JSON reports are written to artifacts/etude-tracks.
+
+## Editable source and horizontal chord boxes
+
+Chord diagrams now run string 1 at the top through string 6 at the bottom, with frets increasing rightward. Source fret arrays retain the existing string-6-to-1 order. Dots, barre, open/muted markers and finger numbers are rendered from data rather than rotated text.
+
+The score editor supports per-event notes, rests, duration, simultaneous tones, techniques, chord grips and measure duplication/deletion. Saved edits are local to the browser; portable JSON import/export and the repository override command share the same versioned document compiler. See [editing guide](etude-editing.md).

@@ -4,10 +4,13 @@ import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson, available
 import { TYPES, getTrack } from './tracks.js';
 import useEtudeMetronome from './useEtudeMetronome.js';
 import './etudes.css';
+import {readScoreEdits,persistScoreEdit} from './scoreDocument.js';
 import { ChevronDown } from 'lucide-react';
 import { COMMON_PRACTICE_TIPS, PICKING_EXAMPLES, FINGERSTYLE_PRACTICE_TIPS, FINGERSTYLE_EXAMPLES } from './practiceTips.js';
 
 const Score = lazy(() => import('./Score.jsx'));
+const ScoreEditor = lazy(() => import('./ScoreEditor.jsx'));
+function loadEdits(){try{return readScoreEdits(window.localStorage,ETUDES);}catch{return {scores:{},errors:['이 브라우저에서는 수정본 저장소를 사용할 수 없습니다.']};}}
 const DEFAULT_ETUDE_ID = 'G-triad-start';
 const DEFAULT_ETUDE_BPM = ETUDES.find(etude => etude.id === DEFAULT_ETUDE_ID)?.bpm ?? 60;
 
@@ -124,6 +127,7 @@ function Metronome({ model }) {
 
 function Sheet({ model, mobile }) {
   const [expanded, setExpanded] = useState(false);
+  const [editing,setEditing]=useState(false);
   const { selected: etude, bpm } = model;
   if (!etude) return null;
   const content = (enlarged = false) => <>
@@ -135,8 +139,9 @@ function Sheet({ model, mobile }) {
     <Suspense fallback={<p className="etudeLoading">악보를 준비하고 있습니다…</p>}><Score etude={etude} mobile={mobile} bpm={bpm} enlarged={enlarged} /></Suspense>
   </>;
   return <>
-    <div className="etudeSheetTools"><span>{etude.level} · {etude.style} · {etude.type}</span><button type="button" onClick={() => setExpanded(true)}>{mobile ? '가로 전환 ↻' : '악보 크게 보기 ↗'}</button></div>
+    <div className="etudeSheetTools"><span>{etude.level} · {etude.style} · {etude.type}{etude.edited?' · 내 수정본':''}</span><div className="etudeSheetActions"><button type="button" onClick={()=>{model.metro.stop();setEditing(true);}}>악보 편집</button><button type="button" onClick={() => setExpanded(true)}>{mobile ? '가로 전환 ↻' : '악보 크게 보기 ↗'}</button></div></div>
     <article className="etudeSheet" aria-label="연습 악보">{content()}</article>
+    {editing&&<Suspense fallback={<p role="status">편집기를 준비하고 있습니다…</p>}><ScoreEditor key={etude.id} score={etude} original={ETUDES.find(e=>e.id===etude.id)} mobile={mobile} onClose={()=>setEditing(false)} onSave={model.saveEdit} onRestore={()=>model.saveEdit(null)}/></Suspense>}
     {expanded && <ZoomSheet mobile={mobile} onClose={() => setExpanded(false)}>{content(true)}</ZoomSheet>}
   </>;
 }
@@ -155,23 +160,31 @@ function DesktopLayout({ model }) {
 
 export default function EtudeStudio({ mobile, onOpenMenu, onExit }) {
   const defaults = DEFAULT_FILTERS;
+  const [edits,setEdits]=useState(loadEdits);
   const [filters, setFilters] = useState(defaults);
   const [selectedId, setSelectedId] = useState(DEFAULT_ETUDE_ID);
-  const [bpm, updateBpm] = useState(DEFAULT_ETUDE_BPM);
+  const [bpm, updateBpm] = useState(()=>edits.scores[DEFAULT_ETUDE_ID]?.bpm??DEFAULT_ETUDE_BPM);
   const metro = useEtudeMetronome(bpm);
-  const list = useMemo(() => filterEtudes(filters), [filters]);
+  const list = useMemo(() => filterEtudes(filters).map(e=>edits.scores[e.id]??e), [filters,edits]);
   const selected = list.find(e => e.id === selectedId) ?? list[0];
-  const select = id => { metro.stop(); setSelectedId(id); updateBpm(ETUDES.find(e => e.id === id)?.bpm ?? 60); };
+  const select = id => { metro.stop(); setSelectedId(id); updateBpm((edits.scores[id]??ETUDES.find(e => e.id === id))?.bpm ?? 60); };
   const setFilter = (key, value) => {
     metro.stop();
     const next = changeEtudeFilter(filters, key, value);
-    const available = filterEtudes(next);
+    const available = filterEtudes(next).map(e=>edits.scores[e.id]??e);
     const match = (key==='style' ? available.find(e => e.templateId === selected?.templateId) : null) ?? available[0];
     setFilters(next); setSelectedId(match?.id ?? ''); updateBpm(match?.bpm ?? 60);
   };
-  const model = { filters, setFilter, list, selected, select, bpm, metro, onOpenMenu, onExit,
+  const saveEdit=document=>{
+    const base=ETUDES.find(e=>e.id===selected.id);
+    let result;
+    try{result=persistScoreEdit(window.localStorage,base,document);}catch{result={score:null,errors:['브라우저에 저장하지 못했습니다. 악보 파일을 내려받아 보관해 주세요.']};}
+    if(result.score){metro.stop();setEdits(current=>{const scores={...current.scores};if(document)scores[base.id]=result.score;else delete scores[base.id];return {...current,scores};});updateBpm(result.score.bpm);}
+    return result;
+  };
+  const model = { saveEdit, filters, setFilter, list, selected, select, bpm, metro, onOpenMenu, onExit,
     openLesson: lesson => { if (!canOpenLesson(selected, lesson, filters)) return; select(lesson.id); },
     setBpm: v => { metro.stop(); updateBpm(Math.min(240, Math.max(30, Math.round(Number(v) || 30)))); },
-    reset: () => { metro.stop(); setFilters(defaults); setSelectedId(DEFAULT_ETUDE_ID); updateBpm(DEFAULT_ETUDE_BPM); } };
-  return mobile ? <MobileLayout model={model} /> : <DesktopLayout model={model} />;
+    reset: () => { metro.stop(); setFilters(defaults); setSelectedId(DEFAULT_ETUDE_ID); updateBpm(edits.scores[DEFAULT_ETUDE_ID]?.bpm??DEFAULT_ETUDE_BPM); } };
+  return <>{edits.errors.length>0&&<p role="status" className="etudeStorageNotice">{edits.errors.join(' ')}</p>}{mobile ? <MobileLayout model={model} /> : <DesktopLayout model={model} />}</>;
 }

@@ -153,3 +153,5 @@
 .etudeStudio--desktop .etudeTrackPicker .etudeSelect select{min-height:46px;font-weight:700}
 
 .etudeMobileFilterDetails[open] .etudeStyleFilter{margin-top:14px}
+
+.etudeSheetActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.etudeStudio--mobile .etudeSheetTools{align-items:flex-start;gap:8px}.etudeStudio--mobile .etudeSheetActions{gap:6px}.etudeStudio--mobile .etudeSheetActions button{padding:9px 10px;font-size:11px}.etudeStorageNotice{padding:12px;color:#713f27;font-size:13px}

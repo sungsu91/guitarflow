@@ -10,7 +10,11 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   const perRow = mobile && !landscape && (enlarged || dense) ? 1 : 2;
   const width = mobile && landscape ? (dense ? 1100 : 980) : mobile ? (enlarged && !dense ? 460 : perRow === 1 ? 600 : 740) : 980;
   const chordHeight=etude.chordShapes?120:0;
-  const rowHeight = 228+chordHeight;
+  // User edits may add high notes. Reserve headroom for their ledger lines
+  // instead of clipping the top of the SVG or colliding with a chord box.
+  const highestLine=Math.max(7,...etude.measures.flat().filter(n=>!n.rest).flatMap(n=>n.tones??[n]).map(n=>((n.pitch.octave-3)*7+'CDEFGAB'.indexOf(n.pitch.letter))/2));
+  const headroom=Math.ceil(Math.max(0,highestLine-7)*10);
+  const rowHeight = 228+chordHeight+headroom;
   const height = Math.ceil(etude.measures.length / perRow) * rowHeight + 50;
   const renderer = new Renderer(element, Renderer.Backends.SVG);
   renderer.resize(width, height);
@@ -19,8 +23,8 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   etude.measures.forEach((measure, index) => {
     const first = index % perRow === 0;
     const x = 12 + (index % perRow) * (width - 24) / perRow;
-    const y = 18 + Math.floor(index / perRow) * rowHeight+chordHeight;
-    if(etude.chordShapes) drawChordDiagram(element.querySelector('svg'),etude.chordShapes[index],etude.harmony[index],x+12,y-chordHeight);
+    const y = 18 + Math.floor(index / perRow) * rowHeight+chordHeight+headroom;
+    if(etude.chordShapes) drawChordDiagram(element.querySelector('svg'),etude.chordShapes[index],etude.harmony[index],x+12,y-chordHeight-headroom);
     const w = (width - 24) / perRow;
     const stave = new Stave(x, y, w);
     const tab = new TabStave(x, y + 84, w);

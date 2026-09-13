@@ -70,7 +70,7 @@ try {
     await page.locator('.etudeTips:not(.etudeCommonTips) summary').click();
     await page.locator('.etudePrerequisite').waitFor();
     assert.equal(await page.locator('.etudeNotation .etudeChordDiagram').count(),8);
-    assert.equal(await page.locator('.etudeNotation .etudeChordDiagram').first().getAttribute('aria-label'),'C, 6번줄부터 뮤트, 3프렛, 2프렛, 0프렛, 1프렛, 0프렛');
+    assert.equal(await page.locator('.etudeNotation .etudeChordDiagram').first().getAttribute('aria-label'),'C, 위에서 1번줄부터 0프렛, 1프렛, 0프렛, 2프렛, 3프렛, 뮤트');
     assert.deepEqual(await page.locator('.etudeNotation .vf-tabnote').first().locator('text').allTextContents(),['3','1']);
     await page.screenshot({path:`${output}/${mobile?'mobile':'desktop'}-chord-beginner.png`,fullPage:true});
     for(const level of LEVELS) {
@@ -109,6 +109,12 @@ try {
             if(boxes.some((a,j)=>boxes.slice(j+1).some(b=>a.y<b.y+b.height&&a.y+a.height>b.y)))fail('stacked fret numbers overlap');
           });
           if(e.templateId==='chord-bass-answer' && metrics[3].flatMap(n=>n.accidentals).filter(a=>a==='n').length<2)fail('borrowed Em7 missing G/D naturals');
+          for(const diagram of svg.querySelectorAll('.etudeChordDiagram')) {
+            const rows=[...diagram.querySelectorAll('.etudeChordStringLabel')];
+            if(rows.map(n=>n.textContent).join('')!=='123456')fail('chord strings must run 1 to 6 from top');
+            if(rows.some((n,i)=>i&&Number(n.getAttribute('y'))<=Number(rows[i-1].getAttribute('y'))))fail('chord row direction');
+            for(const dot of diagram.querySelectorAll('circle')) {const row=diagram.querySelector('line[data-string="'+dot.getAttribute('data-string')+'"]');if(Number(dot.getAttribute('cy'))!==Number(row.getAttribute('y1')))fail('rotated fret dot string mismatch');}
+          }
           if(svg.outerHTML.includes('NaN'))fail('non-finite SVG');
           const bounds=svg.getBBox();
           if(bounds.y+bounds.height>svg.viewBox.baseVal.height)fail('vertical clipping');

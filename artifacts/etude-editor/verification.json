@@ -1,0 +1,16 @@
+[
+  {
+    "mobile": false,
+    "errors": [],
+    "saveReloadRestore": true,
+    "jsonRoundTrip": true,
+    "chordSync": true
+  },
+  {
+    "mobile": true,
+    "errors": [],
+    "saveReloadRestore": true,
+    "jsonRoundTrip": true,
+    "chordSync": true
+  }
+]

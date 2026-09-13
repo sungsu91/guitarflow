@@ -1,7 +1,7 @@
 {
   "etudeTests": {
     "failed": 0,
-    "passed": 19
+    "passed": 25
   },
   "build": "passed",
   "fullSuite": {
@@ -17,5 +17,7 @@
   },
   "phrasing": "passed",
   "arpeggio": "Intermediate Bmaj7 x24342, D#m x68876, Emaj7 x79897 and Em7 x79787. Advanced reuses identical positions with independent bass/rhythm. Borrowed G/D naturals, chord tones, fixed-key navigation and all 65 scores checked.",
-  "fixedCurriculum": "65 fixed scores; no key control or transposition; every score within frets 0–9."
+  "fixedCurriculum": "65 fixed scores; no key control or transposition; every score within frets 0–9.",
+  "editor": "All 65 document round-trips, note/chord synchronization, invalid-data rejection, local save/reload including BPM, JSON import/export, restore, and mobile/desktop editor verified.",
+  "chordLayout": "Horizontal, string 1–6 top to bottom, fret direction rightward; source arrays remain 6–1."
 }
