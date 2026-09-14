@@ -7,7 +7,7 @@ import MobilePullToRefresh from "./layouts/MobilePullToRefresh.jsx";
 import { useLazyRef } from "./useLazyRef.js";
 import { FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1, FRETIVA_PINK_INSTRUMENT_SKIN_PACK_V1_IDS } from "./shooter/instruments/fretivaPinkInstrumentSkinPackV1.js";
 ﻿import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Activity, startTransition } from "react";
+import { Activity, startTransition, lazy, Suspense } from "react";
 import {
   AudioLines,
   ChevronLeft,
@@ -75,7 +75,7 @@ import {
   normalizeTrackerTimerParts,
 } from "./metronome/runtime";
 import AudioStudio from "./audio-studio/AudioStudio";
-import EtudeStudio from "./etudes/EtudeStudio.jsx";
+const EtudeStudio = lazy(() => import("./pdf/PdfStudio.jsx"));
 import MetronomeVolumeControl from "./components/MetronomeVolumeControl.jsx";
 import {
   getMetronomeVolumeSnapshot,
@@ -24962,7 +24962,8 @@ function App({ onReady }) {
     const target = event.target;
     if (!target?.closest) return;
     beginNavigationPressFeedback(target, event.pointerId);
-    const directInteractiveTarget = target.closest(
+    // PDF mapping captures a drag on its paper even when touch hit-testing starts on a nearby bar.
+    const directInteractiveTarget = target.closest('[data-pointer-interaction-scope="pdf-mapping"]') || target.closest(
       "button, a, input, select, textarea, summary, [role=\"button\"], [role=\"radio\"], [role=\"tab\"], [role=\"option\"], [aria-expanded], [aria-haspopup]",
     );
     const desktopMetronomeOptionsTarget = !isMobileLayout
@@ -30474,7 +30475,7 @@ function App({ onReady }) {
         </div>
       </section></MobileNavigationSurface>}
 
-      {appMode === APP_MODES.ETUDES ? <EtudeStudio mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer} /> : null}
+      {appMode === APP_MODES.ETUDES ? <Suspense fallback={<p>악보 연습실 준비 중…</p>}><EtudeStudio mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer} /></Suspense> : null}
 
       {isAppModeMounted(APP_MODES.TUNER) ? (
         <Activity mode={getModeActivityState(appMode, APP_MODES.TUNER)}>

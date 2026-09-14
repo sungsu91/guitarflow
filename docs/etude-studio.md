@@ -4,11 +4,11 @@ Route: #etudes. Shared catalog, course/filter/selection state and metronome; sep
 
 ## Type-first curriculum
 
-65 original eight-bar studies, one fixed score per exercise. There is no key selection or runtime transposition. Each template has an authored key, pitch spelling and explicit string/fret route. All current notes stay within frets 0–9. This is a register constraint, not a difficulty score. Nine technique courses each contain beginner, intermediate and advanced stages with at least two studies per stage. See [curriculum and sources](etude-curriculum.md).
+87 original eight-bar studies, one fixed score per exercise. There is no key selection or runtime transposition. Each template has an authored key, pitch spelling and explicit string/fret route. All current notes stay within frets 0–9. This is a register constraint, not a difficulty score. Nine technique courses each contain beginner, intermediate and advanced stages with at least three studies per stage. See [curriculum and sources](etude-curriculum.md).
 
 Arpeggio beginner: C x32010, then C/Am changes at frets 0–3. Intermediate: C–Am–F–G, then Bmaj7 x24342 → D#m x68876 → Emaj7 x79897 → Em7 x79787, with root/fifth bass and shape changes. Advanced reuses these same 2–9-fret grips while adding steady bass against sixteenth-note upper notes, pinches, rests and rhythmic changes. Higher frets do not determine level. Em7 is an intentional borrowed minor chord; spell D/G naturals in the B-major signature and validate against that chord, not just the home scale.
 
-src/etudes/tracks.js is the single course-order registry. catalog.js builds and validates the scores; trackStudies.js adds graded technique and triad studies; openChordStudies.js authors the six accompaniment scores. Template ids remain stable; full score ids include their fixed key. trackLesson is local to type and level; lesson is the internal catalog ordering.
+src/etudes/tracks.js is the single course-order registry. catalog.js builds and validates the scores; trackStudies.js adds graded technique and triad studies; openChordStudies.js authors the nine accompaniment scores. Template ids remain stable; full score ids include their fixed key. trackLesson is local to type and level; lesson is the internal catalog ordering.
 
 Type and difficulty have no All option. Previous/next and the dropdown use the same filtered course. Counters start at 1 within the chosen type/level/style. Changing type or difficulty opens its first study. Style options are derived from the current course; an incompatible style resets to All without relaxing type or level.
 
@@ -16,14 +16,14 @@ Mobile always shows the type selector and three level buttons; only style collap
 
 ## Notation and sound
 
-VexFlow SVG renders staff and TAB from shared sounding MIDI data; written guitar notation is an octave higher. All scores are 4/4. Explicit H/P/SL links are preserved for both complete eight-bar and expanded studies. Technique labels remain SVG text. Code-tone runs separate notes. The Arpeggio course holds a chord shape above each measure and uses simultaneous root/treble pinches with broken-chord picking. Each attack has one duration and optional tones for all simultaneous pitches; both staff keys and TAB positions come from these same tones. All tones are validated against the chord diagram, sounding pitch and actual chord tones, including borrowed chords. Let-ring guidance instructs resonance within a chord; this is not independent-voice sustain playback.
+VexFlow SVG renders staff and TAB from the same v2 string/fret document used by playback; written guitar notation is an octave higher. All built-in scores are 4/4; editable scores also support 2/4, 3/4 and 6/8. Explicit H/P/SL links are preserved for both complete eight-bar and expanded studies. Technique labels remain SVG text. Code-tone runs separate notes. The Arpeggio course holds a chord shape above each measure and uses simultaneous root/treble pinches with broken-chord picking. Each attack has one duration and optional tones for all simultaneous pitches; both staff keys and TAB positions come from these same tones. All tones are validated against the chord diagram, sounding pitch and actual chord tones, including borrowed chords. Let-ring guidance instructs resonance within a chord; this is not independent-voice sustain playback.
 
-Scores retain the existing paper layout, responsive reader and 12-entry SVG cache. Tempo-only changes do not re-engrave. Shared metronome transport stops on course changes and unmount. The click is a metronome, not score playback.
+Scores retain the existing paper layout, responsive reader and 12-entry SVG cache. Tempo-only changes do not re-engrave. Shared metronome transport stops on course changes and unmount. The metronome remains separate. ScorePlayback now auditions the same compiled note data with synthesized pitches/rhythms; H/P/SL guitar articulation and independent let-ring voices are not synthesized.
 
 ## Verification
 
 - node --test tests/etudes.test.mjs: course coverage, unique patterns, pitch/spelling/TAB, chord tones, rhythm, technique links, difficulty progression and navigation boundaries.
-- scripts/verify-etude-tracks.mjs: 260 renders across desktop, mobile portrait, enlarged portrait and enlarged landscape; 27 course combinations per layout; navigation, style changes and absence of key controls, transport reset, TIP, chord diagrams and zoom/viewport checks.
+- scripts/verify-etude-tracks.mjs: 348 renders across desktop, mobile portrait, enlarged portrait and enlarged landscape; 27 course combinations per layout; navigation, style changes and absence of key controls, transport reset, TIP, chord diagrams and zoom/viewport checks.
 - scripts/verify-etude-phrasing.mjs: rests, technique label spacing, chord labels and common TIP.
 - The older verify-etudes-browser and verify-etude-filter-navigation entry points run the current course verification.
 
@@ -34,3 +34,6 @@ These checks validate data, navigation and rendering; they do not constitute an 
 Chord diagrams now run string 1 at the top through string 6 at the bottom, with frets increasing rightward. Source fret arrays retain the existing string-6-to-1 order. Dots, barre, open/muted markers and finger numbers are rendered from data rather than rotated text.
 
 The score editor supports per-event notes, rests, duration, simultaneous tones, techniques, chord grips and measure duplication/deletion. Saved edits are local to the browser; portable JSON import/export and the repository override command share the same versioned document compiler. See [editing guide](etude-editing.md).
+
+
+The current v2 editor/data/storage and support matrix supersede the original v1 form workflow: see [editing guide](etude-editing.md), [pre-implementation benchmark](etude-editor-benchmark.md), and [per-study audit](etude-curriculum-audit.md).

@@ -1,11 +1,22 @@
 import {TUNING, spellMidi, parseChord, validateEtude} from './notationData.js';
+import {compileDocumentV2,upgradeDocument} from './scoreModel.js';
+export {upgradeDocument} from './scoreModel.js';
+export function toScoreDocument(score) {
+ if(score.document)return structuredClone(score.document);
+ const d={...upgradeDocument(legacyDocument(score)),keySignature:score.keySignature??'C',meter:score.meter??[4,4],tuning:score.tuning??[...TUNING]};
+ d.measures.forEach((m,b)=>m.events.forEach((e,i)=>e.notes.forEach((n,j)=>{const p=(score.measures[b][i].tones??[score.measures[b][i]])[j].pitch;n.spelling={letter:p.letter,alter:p.alter};})));
+ return d;
+}
+export function compileScoreDocument(document,base,options={}) {
+ return document?.version===2?compileDocumentV2(document,base,options):compileLegacyDocument(document,base);
+}
 export const DOCUMENT_FORMAT='fretiva.etude';
 export const EDITS_STORAGE_KEY='fretiva.etude.edits.v1';
 const copy=value=>structuredClone(value);
 const integer=(v,min,max)=>Number.isInteger(v)&&v>=min&&v<=max;
 
 // Portable authoring format: no generated MIDI, staff coordinates or SVG paths.
-export function toScoreDocument(score) {
+function legacyDocument(score) {
  return {format:DOCUMENT_FORMAT,version:1,templateId:score.templateId,title:score.title,english:score.english,bpm:score.bpm,purpose:score.purpose,tips:[...score.tips],
   measures:score.measures.map((events,i)=>({
    chord:score.chordShapes?{name:score.harmony[i],...copy(score.chordShapes[i])}:null,
@@ -15,10 +26,10 @@ export function toScoreDocument(score) {
   }))};
 }
 
-export function compileScoreDocument(document,base) {
+function compileLegacyDocument(document,base) {
  const errors=[];
  const fail=message=>errors.push(message);
- if(!document||document.format!==DOCUMENT_FORMAT||document.version!==1||document.templateId!==base.templateId)return {score:null,errors:['현재 과제의 악보 파일(version 1)을 선택하세요.']};
+ if(!base||!document||document.format!==DOCUMENT_FORMAT||document.version!==1||document.templateId!==base.templateId)return {score:null,errors:['현재 과제의 악보 파일(version 1)을 선택하세요.']};
  for(const key of ['title','english','purpose'])if(typeof document[key]!=='string'||!document[key].trim()||document[key].length>2000)fail('제목과 연습 설명을 입력하세요.');
  if(!integer(document.bpm,30,240))fail('BPM은 30–240 사이의 정수입니다.');
  if(!Array.isArray(document.tips)||document.tips.length>30||document.tips.some(t=>typeof t!=='string'||t.length>2000))fail('TIP은 30줄 이내의 문장으로 작성하세요.');
@@ -72,7 +83,7 @@ export function compileScoreDocument(document,base) {
  }
  if(errors.length)return {score:null,errors:[...new Set(errors)]};
  const score={...base,title:document.title.trim(),english:document.english.trim(),purpose:document.purpose.trim(),bpm:document.bpm,tips:[...document.tips],measures,
-  chordShapes:base.accompaniment?chordShapes:undefined,harmony:harmony.length?harmony:undefined,edited:true};
+  chordShapes:base.accompaniment?chordShapes:undefined,harmony:harmony.length?harmony:undefined,document:undefined,edited:true};
  errors.push(...validateEtude(score));
  return {score:errors.length?null:score,errors:[...new Set(errors)]};
 }
@@ -83,7 +94,7 @@ export function updateDocumentChordFret(document,bar,string,fret) {
  if(fret===null||fret===0)measure.chord.fingers[6-string]=null;
  measure.events=measure.events.map(event=>{
   if(event.rest)return event;
-  const notes=event.notes.flatMap(n=>n.string!==string?[n]:fret===null?[]:[{...n,fret}]);
+  const notes=event.notes.flatMap(n=>{if(n.string!==string)return [n];if(fret===null)return [];const changed={...n,fret,locked:true};delete changed.spelling;return [changed];});
   return {...event,notes,rest:notes.length===0,technique:notes.length?event.technique:null};
  });
  return next;
@@ -108,6 +119,7 @@ export function readScoreEdits(storage,bases) {
 
 export function persistScoreEdit(storage,base,document) {
  const result=document?compileScoreDocument(document,base):{score:base,errors:[]};
+ if(result.issues?.length)return {score:null,errors:result.issues};
  if(!result.score)return result;
  try {
   const raw=storage.getItem(EDITS_STORAGE_KEY),parsed=raw?JSON.parse(raw):{};

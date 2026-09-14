@@ -4,13 +4,17 @@ import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson, available
 import { TYPES, getTrack } from './tracks.js';
 import useEtudeMetronome from './useEtudeMetronome.js';
 import './etudes.css';
-import {readScoreEdits,persistScoreEdit} from './scoreDocument.js';
+import {toScoreDocument} from './scoreDocument.js';
+import {loadLibrary,saveLibraryDocument} from './scoreLibrary.js';
+import {createBlankDocument,copyDocument} from './scoreModel.js';
+import {TUNING} from './notationData.js';
+import ScorePlayback from './ScorePlayback.jsx';
 import { ChevronDown } from 'lucide-react';
 import { COMMON_PRACTICE_TIPS, PICKING_EXAMPLES, FINGERSTYLE_PRACTICE_TIPS, FINGERSTYLE_EXAMPLES } from './practiceTips.js';
 
 const Score = lazy(() => import('./Score.jsx'));
 const ScoreEditor = lazy(() => import('./ScoreEditor.jsx'));
-function loadEdits(){try{return readScoreEdits(window.localStorage,ETUDES);}catch{return {scores:{},errors:['이 브라우저에서는 수정본 저장소를 사용할 수 없습니다.']};}}
+function loadEdits(){try{return {...loadLibrary(window.localStorage,ETUDES),scores:{}};}catch{return {records:{},scores:{},errors:['이 브라우저에서는 수정본 저장소를 사용할 수 없습니다.']};}}
 const DEFAULT_ETUDE_ID = 'G-triad-start';
 const DEFAULT_ETUDE_BPM = ETUDES.find(etude => etude.id === DEFAULT_ETUDE_ID)?.bpm ?? 60;
 
@@ -31,15 +35,12 @@ function Filters({ model, mobile = false }) {
   return <div className="etudeFilters">
     <div className="etudeTrackPicker">
       <Select label="연습 유형" value={filters.type} options={TYPES} onChange={v => setFilter('type', v)} />
-      <p className="etudeTrackSummary">{track.summary}</p>
       <div className="etudeLevelChoices" role="group" aria-label="난이도">
         {LEVELS.map((level,index) => <button type="button" key={level} aria-label={level} aria-pressed={filters.level===level} onClick={()=>setFilter('level',level)}><strong>{level}</strong><small>{track.stages[index][1].length}개</small></button>)}
       </div>
-      <p className="etudeTrackGoal">{track.stages[LEVELS.indexOf(filters.level)][0]}</p>
     </div>
     {mobile ? <details className="etudeMobileFilterDetails"><summary><strong>스타일 · {filters.style}</strong><span className="etudeFilterToggle"><ChevronDown aria-hidden="true" size={26} strokeWidth={2.5} /></span></summary>{fields}</details> : fields}
     {list.length ? <Select label={`연습곡 · ${list.length}개`} value={selected.id} options={list.map((e,index) => ({id:e.id,title:`${String(index+1).padStart(2,'0')} · ${e.title}`}))} onChange={select} /> : <div className="etudeEmpty" role="status">이 조건의 연습곡은 아직 없습니다.<button type="button" onClick={model.reset}>필터 초기화</button></div>}
-    {selected && <p className="etudePurpose">{selected.purpose}</p>}
   </div>;
 }
 
@@ -52,7 +53,12 @@ function LessonTips({ model }) {
   const examples = selected.accompaniment ? FINGERSTYLE_EXAMPLES : PICKING_EXAMPLES;
   return <section className="etudeLesson" aria-label="연습 커리큘럼">
     <div className="etudeLessonNav"><button type="button" disabled={index <= 0} onClick={() => model.openLesson(course[index - 1])}>‹ 이전</button><span><span>{selected.type} · {selected.level}</span><strong>{index + 1} / {course.length}</strong></span><button type="button" disabled={index < 0 || index === course.length - 1} onClick={() => model.openLesson(course[index + 1])}>다음 ›</button></div>
-    <details key={selected.id} className="etudeTips"><summary><strong>TIP · 연습 방법</strong><ChevronDown size={24} aria-hidden="true" /></summary><p className="etudePrerequisite">{getTrack(selected.type).prerequisite}</p><ul>{selected.tips.map(tip => <li key={tip}>{tip}</li>)}</ul><p>{selected.accompaniment?'표기: 세로 TAB은 동시 뜯기 · let ring은 잔향 유지':'표기: H 해머온 · P 풀오프 · SL 슬라이드'}</p></details>
+    <details key={selected.id} className="etudeTips"><summary><strong>TIP · 연습 방법</strong><ChevronDown size={24} aria-hidden="true" /></summary>
+      <p><strong>학습목표</strong> · {selected.pedagogy.objective}</p><p className="etudePrerequisite">{selected.pedagogy.preparation}</p>
+      {selected.pedagogy.prerequisites.length>0&&<p>선행 연습: {selected.pedagogy.prerequisites.map(id=>ETUDES.find(e=>e.templateId===id)?.title??id).join(' → ')}</p>}
+      <p>{selected.pedagogy.instructions}</p><ul>{selected.tips.map((tip,i)=><li key={i}>{tip}</li>)}</ul><ul>{selected.pedagogy.keyBars.map(k=><li key={k.bar}><strong>{k.bar}마디 {k.event}음</strong> · {k.text}</li>)}</ul>
+      <p>준비 {selected.pedagogy.tempo.start} BPM → 기준 {selected.pedagogy.tempo.target} BPM</p><strong>완료 점검</strong><ul>{selected.pedagogy.checks.map(c=><li key={c}>{c}</li>)}</ul><p>{selected.pedagogy.review}</p>
+      <p>{selected.accompaniment?'표기: 세로 TAB은 동시 뜯기 · let ring은 잔향 유지':'표기: H 해머온 · P 풀오프 · SL 슬라이드'}</p></details>
     <details className="etudeTips etudeCommonTips"><summary><strong>공통 TIP · {selected.accompaniment ? '핑거스타일 반주' : '피킹과 연습 기본'}</strong><ChevronDown size={24} aria-hidden="true" /></summary>
       <ul>{commonTips.map(tip=><li key={tip.title}><strong>{tip.title}</strong><div>{tip.text}</div></li>)}</ul>
       <div className="etudePickingExamples"><table><caption>{selected.accompaniment ? '오른손 예시 · p 엄지 / i 검지 / m 중지 / a 약지 · +는 동시에' : '일정한 박에 맞추는 피킹 예시 · D 다운 / U 업'}</caption><thead><tr><th>리듬</th><th>세는 법</th><th>{selected.accompaniment?'오른손':'피킹'}</th></tr></thead><tbody>{examples.map(row=><tr key={row.rhythm}><th scope="row">{row.rhythm}</th><td>{row.count}</td><td>{row.strokes}</td></tr>)}</tbody></table></div>
@@ -127,21 +133,22 @@ function Metronome({ model }) {
 
 function Sheet({ model, mobile }) {
   const [expanded, setExpanded] = useState(false);
-  const [editing,setEditing]=useState(false);
   const { selected: etude, bpm } = model;
   if (!etude) return null;
+  const customTuning = etude.tuning?.some((pitch,index) => pitch !== TUNING[index]);
+  const tuningLabel = customTuning ? [...etude.tuning].reverse().map(pitch => `${['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'][pitch % 12]}${Math.floor(pitch / 12) - 1}`).join(' ') : '';
   const content = (enlarged = false) => <>
     <header className="etudeSheetHeader">
       <div className="etudeSheetBrand"><img src="/icons/fretiva-lab-icon-192.png" alt="" /><span>FRETIVA LAB</span></div>
       <h2>{etude.english}</h2>
-      <div className="etudeSheetMeta"><span>Standard tuning · E A D G B E · {etude.keySignature}</span><span>♩ = {bpm}</span></div>
+      <div className="etudeSheetMeta"><span>{customTuning && `튜닝 (6→1번줄) · ${tuningLabel} · `}{etude.keySignature}</span><span>♩ = {bpm}</span></div>
     </header>
     <Suspense fallback={<p className="etudeLoading">악보를 준비하고 있습니다…</p>}><Score etude={etude} mobile={mobile} bpm={bpm} enlarged={enlarged} /></Suspense>
   </>;
   return <>
-    <div className="etudeSheetTools"><span>{etude.level} · {etude.style} · {etude.type}{etude.edited?' · 내 수정본':''}</span><div className="etudeSheetActions"><button type="button" onClick={()=>{model.metro.stop();setEditing(true);}}>악보 편집</button><button type="button" onClick={() => setExpanded(true)}>{mobile ? '가로 전환 ↻' : '악보 크게 보기 ↗'}</button></div></div>
+    <div className="etudeSheetTools"><span>{etude.level} · {etude.style} · {etude.type}</span><div className="etudeSheetActions"><button type="button" onClick={()=>model.editScore(etude)}>악보 편집</button><button type="button" onClick={() => setExpanded(true)}>{mobile ? '가로 전환 ↻' : '악보 크게 보기 ↗'}</button></div></div>
     <article className="etudeSheet" aria-label="연습 악보">{content()}</article>
-    {editing&&<Suspense fallback={<p role="status">편집기를 준비하고 있습니다…</p>}><ScoreEditor key={etude.id} score={etude} original={ETUDES.find(e=>e.id===etude.id)} mobile={mobile} onClose={()=>setEditing(false)} onSave={model.saveEdit} onRestore={()=>model.saveEdit(null)}/></Suspense>}
+    <ScorePlayback score={etude} bpm={bpm} disabled={Boolean(model.editing)}/>
     {expanded && <ZoomSheet mobile={mobile} onClose={() => setExpanded(false)}>{content(true)}</ZoomSheet>}
   </>;
 }
@@ -161,6 +168,7 @@ function DesktopLayout({ model }) {
 export default function EtudeStudio({ mobile, onOpenMenu, onExit }) {
   const defaults = DEFAULT_FILTERS;
   const [edits,setEdits]=useState(loadEdits);
+  const [editing,setEditing]=useState(null);
   const [filters, setFilters] = useState(defaults);
   const [selectedId, setSelectedId] = useState(DEFAULT_ETUDE_ID);
   const [bpm, updateBpm] = useState(()=>edits.scores[DEFAULT_ETUDE_ID]?.bpm??DEFAULT_ETUDE_BPM);
@@ -175,16 +183,15 @@ export default function EtudeStudio({ mobile, onOpenMenu, onExit }) {
     const match = (key==='style' ? available.find(e => e.templateId === selected?.templateId) : null) ?? available[0];
     setFilters(next); setSelectedId(match?.id ?? ''); updateBpm(match?.bpm ?? 60);
   };
-  const saveEdit=document=>{
-    const base=ETUDES.find(e=>e.id===selected.id);
-    let result;
-    try{result=persistScoreEdit(window.localStorage,base,document);}catch{result={score:null,errors:['브라우저에 저장하지 못했습니다. 악보 파일을 내려받아 보관해 주세요.']};}
-    if(result.score){metro.stop();setEdits(current=>{const scores={...current.scores};if(document)scores[base.id]=result.score;else delete scores[base.id];return {...current,scores};});updateBpm(result.score.bpm);}
-    return result;
-  };
-  const model = { saveEdit, filters, setFilter, list, selected, select, bpm, metro, onOpenMenu, onExit,
+  const saveEdit=document=>{let result;try{result=saveLibraryDocument(window.localStorage,document,ETUDES);}catch{result={saved:false,errors:['이 브라우저에서는 저장할 수 없습니다. 파일로 내보내세요.']};}if(result.saved)setEdits(current=>({...current,records:{...current.records,[document.id]:result.record}}));return result;};
+  const editScore=score=>{metro.stop();setEditing(copyDocument(toScoreDocument(score)));};
+  const model = { editing, saveEdit, editScore, filters, setFilter, list, selected, select, bpm, metro, onOpenMenu, onExit,
     openLesson: lesson => { if (!canOpenLesson(selected, lesson, filters)) return; select(lesson.id); },
     setBpm: v => { metro.stop(); updateBpm(Math.min(240, Math.max(30, Math.round(Number(v) || 30)))); },
     reset: () => { metro.stop(); setFilters(defaults); setSelectedId(DEFAULT_ETUDE_ID); updateBpm(edits.scores[DEFAULT_ETUDE_ID]?.bpm??DEFAULT_ETUDE_BPM); } };
-  return <>{edits.errors.length>0&&<p role="status" className="etudeStorageNotice">{edits.errors.join(' ')}</p>}{mobile ? <MobileLayout model={model} /> : <DesktopLayout model={model} />}</>;
+  return <>{edits.errors.length>0&&<p role="status" className="etudeStorageNotice">{edits.errors.join(' ')}</p>}
+    <section className="etudeLibrary" aria-label="내 악보 보관함"><details><summary>내 악보 보관함 · {Object.keys(edits.records??{}).length}개</summary><p>기본 교육곡과 별도로 보관됩니다. 사용자 악보는 난이도·학습목표 검수를 받은 곡이 아닙니다.</p><button type="button" onClick={()=>{metro.stop();setEditing(createBlankDocument());}}>빈 악보 만들기</button>{Object.values(edits.records??{}).map(r=><div key={r.document.id}><span>{r.document.title} · {r.status==='saved'?'저장됨':'초안'}</span><button type="button" disabled={r.status==='unreadable'} onClick={()=>{metro.stop();setEditing(r.document);}}>열기</button><button type="button" disabled={r.status==='unreadable'} onClick={()=>setEditing(copyDocument(r.document))}>복사해 편집</button></div>)}</details></section>
+    {mobile ? <MobileLayout model={model} /> : <DesktopLayout model={model} />}
+    {editing&&<Suspense fallback={<p role="status">편집기를 준비하고 있습니다…</p>}><ScoreEditor key={editing.id} document={editing} original={ETUDES.find(e=>e.templateId===editing.origin?.templateId)} mobile={mobile} onClose={()=>setEditing(null)} onSave={saveEdit}/></Suspense>}
+  </>;
 }

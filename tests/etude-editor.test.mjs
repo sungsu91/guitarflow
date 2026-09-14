@@ -5,13 +5,13 @@ import {toScoreDocument,compileScoreDocument,updateDocumentChordFret,persistScor
 const study=id=>BASE_ETUDES.find(e=>e.templateId===id);
 const memory=()=>{const values=new Map();return {getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value)};};
 
-test('all 65 built-in scores round-trip through the portable editor format',()=>{
+test('all built-in scores round-trip through the portable editor format',()=>{
  for(const base of BASE_ETUDES){
   const doc=JSON.parse(JSON.stringify(toScoreDocument(base)));
   const {score,errors}=compileScoreDocument(doc,base);
   assert.deepEqual(errors,[],base.id);assert.ok(score);
   assert.deepEqual(score.measures.map(m=>m.map(n=>({rest:n.rest,duration:n.duration,technique:n.technique??null,tones:n.rest?[]:(n.tones??[n]).map(t=>[t.string,t.fret,t.midi,t.pitch.key])}))),base.measures.map(m=>m.map(n=>({rest:n.rest,duration:n.duration,technique:n.technique??null,tones:n.rest?[]:(n.tones??[n]).map(t=>[t.string,t.fret,t.midi,t.pitch.key])}))));
-  assert.deepEqual(score.chordShapes,base.chordShapes?.map(g=>({...g,barre:g.barre??null})));
+  assert.deepEqual(score.chordShapes,base.chordShapes);
  }
 });
 
@@ -35,22 +35,19 @@ test('editing a chord fret synchronizes its notes and retains the six-to-one sto
  assert.equal(score.measures[0][2].pitch.key,'g/5');
 });
 
-test('malformed notes, wrong chords, metre, duplicate strings and invalid links cannot be saved',()=>{
+test('malformed notes and duplicate strings cannot render; music choices remain free',()=>{
  const base=study('chord-three-strings');
  for(const mutate of [
-  d=>d.measures[0].events[0].duration='8',
-  d=>d.measures[0].events[0].notes[0].fret=4,
+  d=>d.measures[0].events[0].duration='bad',
+  d=>d.measures[0].events[0].notes[0].fret=25,
   d=>d.measures[0].events[0].notes[0].string=0,
   d=>d.measures[0].events[0].notes=[null],
   d=>d.measures[0].events[0].notes[1].string=5,
-  d=>d.measures[0].events[0].technique='H',
-  d=>d.measures[0].chord.name='Am',
-  d=>d.measures[0].chord.frets.fill(null),
-  d=>d.measures[0].chord.barre={fret:1,from:6,to:1},
+  d=>d.measures[0].events[0].technique='unsupported',
   d=>d.measures=[],
   d=>d.measures[0].events[0].rest='true',
  ]){const doc=toScoreDocument(base);mutate(doc);const result=compileScoreDocument(doc,base);assert.equal(result.score,null);assert.ok(result.errors.length);}
- const wrong=toScoreDocument(study('chord-bass-answer'));assert.equal(compileScoreDocument(wrong,base).score,null);
+ const other=toScoreDocument(study('chord-bass-answer'));assert.ok(compileScoreDocument(other,base).score);
 });
 
 test('save, reload and restore operate on one lesson and preserve other saved edits',()=>{

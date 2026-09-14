@@ -65,7 +65,7 @@ try {
     assert.equal(await page.getByRole('button',{name:'중급',exact:true}).getAttribute('aria-pressed'),'true');
     assert.equal(await page.getByLabel('스타일',{exact:true}).inputValue(),'전체');
     await page.getByRole('button',{name:'초급',exact:true}).click();
-    assert.equal(await page.getByLabel('연습곡 · 2개',{exact:true}).inputValue(),'C-chord-three-strings');
+    assert.equal(await page.getByLabel('연습곡 · 3개',{exact:true}).inputValue(),'C-chord-three-strings');
     assert.equal(await page.getByLabel('조성',{exact:true}).count(),0);
     await page.locator('.etudeTips:not(.etudeCommonTips) summary').click();
     await page.locator('.etudePrerequisite').waitFor();
@@ -79,6 +79,7 @@ try {
       await page.screenshot({path:`${output}/${mobile?'mobile':'desktop'}-arpeggio-${level}.png`,fullPage:true});
     }
     await page.getByRole('button',{name:'중급',exact:true}).click();
+    await next.click();
     await next.click();
     await page.locator('.etudeNotation svg[aria-label*="Bmaj7"]').waitFor();
     assert.deepEqual(await page.locator('.etudeChordDiagram').evaluateAll(nodes=>nodes.slice(0,4).map(n=>n.getAttribute('aria-label').split(',')[0])),['Bmaj7','D#m','Emaj7','Em7']);

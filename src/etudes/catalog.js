@@ -1,10 +1,13 @@
-// Sounding MIDI is the source of truth. Guitar notation is written one octave up.
+// Authored patterns materialize once into editable string/fret documents.
+// Display and playback derive sounding MIDI from that document; notation is one octave up.
 import { curriculumTemplates } from './curriculum.js';
 import { trackStudies } from './trackStudies.js';
 import { TRACK_ORDER, getTrack } from './tracks.js';
 import { chordStudies } from './openChordStudies.js';
+import {curriculumAdditions,reviseTemplate} from './curriculumRevision.js';
+import {educationIssues,lessonPedagogy} from './pedagogy.js';
 import scoreOverrides from './scoreOverrides.json' with {type:'json'};
-import {compileScoreDocument} from './scoreDocument.js';
+import {compileScoreDocument,toScoreDocument} from './scoreDocument.js';
 import { TUNING, ROOTS, NATURAL, MAJOR, MINOR, PENTA, BLUES, TECHNIQUES, spellMidi, parseChord, validateEtude } from './notationData.js';
 export { TUNING, ROOTS, TECHNIQUES, spellMidi, parseChord, validateEtude } from './notationData.js';
 export const LEVELS = Object.freeze(['초급', '중급', '고급']);
@@ -68,7 +71,8 @@ export const TEMPLATES = Object.freeze([
   ...curriculumTemplates({major:MAJOR_SHAPE,connected:CONNECTED_SHAPE,penta:PENTA_SHAPE,blues:BLUES_SHAPE,pentaIntervals:PENTA,bluesIntervals:BLUES}),
   ...trackStudies({penta:PENTA_SHAPE,pentaIntervals:PENTA}),
   ...chordStudies(),
-].map(template=>({...template,fixedRoot:template.fixedRoot ?? (template.shape===MAJOR_SHAPE || template.shape===PENTA_SHAPE ? 'G' : template.family==='minor' ? 'A' : 'C')})));
+  ...curriculumAdditions(),
+].map(reviseTemplate).map(template=>({...template,fixedRoot:template.fixedRoot ?? (template.shape===MAJOR_SHAPE || template.shape===PENTA_SHAPE ? 'G' : template.family==='minor' ? 'A' : 'C')})));
 
 const COURSE_ORDER = TRACK_ORDER;
 // Four development bars between the opening three bars and the final cadence.
@@ -160,15 +164,25 @@ export function buildEtude(template) {
     meter: [4,4], intervals: template.intervals ?? MAJOR, measures };
 }
 
-export const BASE_ETUDES = TEMPLATES.map(buildEtude).sort((a,b) => a.lesson - b.lesson);
+export const BASE_ETUDES = TEMPLATES.map(template=>{
+ const base=buildEtude(template),document=toScoreDocument(base);
+ document.id=base.id;document.kind='builtin';document.origin={templateId:base.templateId,revision:template.revision??1};
+ const result=compileScoreDocument(document,base);
+ if(!result.score||result.issues.length)throw Error(`${base.id}: ${[...result.errors,...result.issues].join(', ')}`);
+ return {...result.score,edited:false};
+}).sort((a,b) => a.lesson - b.lesson);
 export const ETUDES = BASE_ETUDES.map(base=>{
   const document=scoreOverrides[base.templateId];
   if(!document)return base;
   const result=compileScoreDocument(document,base);
   if(!result.score)throw new Error(`${base.templateId}: ${result.errors.join(', ')}`);
-  return {...result.score,edited:false};
+  const normalized={...toScoreDocument(result.score),id:base.id,kind:'builtin',origin:document.origin??base.document.origin};
+  const ready=compileScoreDocument(normalized,base);
+  if(!ready.score||ready.issues.length)throw new Error(`${base.templateId}: ${[...ready.errors,...ready.issues].join(', ')}`);
+  return {...ready.score,edited:false};
 });
 for (const etude of ETUDES) {
-  const errors = validateEtude(etude);
+  const errors = [...validateEtude(etude),...educationIssues(etude)];
   if (errors.length) throw new Error(`${etude.id}: ${errors.join(', ')}`);
+  etude.pedagogy=lessonPedagogy(etude);
 }

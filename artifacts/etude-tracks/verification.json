@@ -1,13 +1,13 @@
 [
   {
     "mobile": false,
-    "count": 65,
+    "count": 87,
     "courseCombinations": 27,
     "errors": []
   },
   {
     "mobile": true,
-    "count": 195,
+    "count": 261,
     "courseCombinations": 27,
     "errors": []
   }

@@ -155,3 +155,5 @@
 .etudeMobileFilterDetails[open] .etudeStyleFilter{margin-top:14px}
 
 .etudeSheetActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.etudeStudio--mobile .etudeSheetTools{align-items:flex-start;gap:8px}.etudeStudio--mobile .etudeSheetActions{gap:6px}.etudeStudio--mobile .etudeSheetActions button{padding:9px 10px;font-size:11px}.etudeStorageNotice{padding:12px;color:#713f27;font-size:13px}
+
+.etudeScorePlayback{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0}.etudeScorePlayback small{font-size:11px;max-width:440px}.etudeLibrary{max-width:1200px;margin:12px auto;padding:12px 18px}.etudeLibrary summary{cursor:pointer;min-height:44px}.etudeLibrary button{margin:4px 8px;min-height:44px}.etudeLibrary p,.etudeLibrary span{font-size:13px}

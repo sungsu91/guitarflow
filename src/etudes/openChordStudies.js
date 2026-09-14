@@ -30,12 +30,15 @@ function study(spec) {
   return row.map(cell=>cell===-1?-1:Array.isArray(cell)?cell.map(add):add(cell));
  });
  return {...spec,type:'아르페지오',style:'발라드',family:'major',complete:true,accompaniment:true,
-  shape,patterns,chordShapes,chordNames:spec.chords,rhythms:spec.rows.map(row=>Array(row.length).fill(String(row.length))),difficultyReason:spec.level+' · '+spec.goal};
+  shape,patterns,chordShapes,chordNames:spec.chords,rhythms:spec.rhythms??spec.rows.map(row=>Array(row.length).fill(String(row.length))),difficultyReason:spec.level+' · '+spec.goal};
 }
 export function chordStudies() {
  const progression=['C','Am','F','G','C','Am','G','C'];
  const sevenths=['Bmaj7','D#m','Emaj7','Em7','Bmaj7','D#m','Em7','Bmaj7'];
  return [
+  study({id:'chord-small-barre',fixedRoot:'C',level:'초급',name:'C에서 작은 F 바레 준비',english:'Open C to Small F Barre',bpm:44,chords:['C','C','F','F','C','F','C','C'],rows:[[[B,2],3,1,-1],[[B,1],2,3,-1],[[B,2],3,1,-1],[[B,1],2,3,-1],[[B,2],3,1,-1],[[B,1],2,3,-1],[[B,2],3,[B,1],-1],[[B,1],3,2,B]],purpose:'3–4마디에서 처음 F의 1·2번줄만 검지로 누릅니다. 마지막 쉼에 압력을 풀고 다음 코드표를 준비합니다.',goal:'C·Am 다음 단계로 작은 F 바레를 느린 4분음표와 준비 쉼에 적용합니다.'}),
+  study({id:'chord-moving-preparation',fixedRoot:'B',level:'중급',name:'같은 바레 모양 이동 준비',english:'Barre Shape Shift Preparation',bpm:48,chords:['Bmaj7','Bmaj7','Emaj7','Emaj7','D#m','D#m','Em7','Bmaj7'],rows:[[[B,1],3,2,-1],[[B,2],1,3,-1],[[B,1],3,2,-1],[[B,2],1,3,-1],[[B,1],3,2,-1],[[B,2],1,3,-1],[[B,1],3,2,-1],[[B,2],3,1,B]],purpose:'1–4마디 Bmaj7→Emaj7은 같은 모양을 옮기고, 5–6마디 D#m과 7마디 Em7에서는 안쪽 손가락을 바꿉니다. 마지막 박의 쉼 동안 다음 위치를 준비하세요.',goal:'2–9프렛 이동을 느린 4분음표·쉼으로 먼저 준비한 뒤 다음 곡의 연속 8분 반주로 연결합니다.'}),
+  study({id:'chord-melody-response',fixedRoot:'B',level:'고급',name:'베이스와 높은 음의 밀도 응답',english:'Bass and Treble Rhythm Response',bpm:60,chords:sevenths,rows:sevenths.map((_,i)=>i%2?[[B,1],2,3,2,[V,1],3,2,B]:[[B,2],3,1,2,[V,2],1,3,B]),rhythms:sevenths.map((_,i)=>i%2?['8','8','8','8','4','8','16','16']:['8','8','16','16','8','4','8','8']),purpose:'1·3·5·7마디는 높은 줄의 16분 응답 뒤 4분음표에 머뭅니다. 짝수 마디는 마지막 박 끝의 짧은 베이스를 다음 코드 첫 박과 연결합니다.',goal:'같은 코드 이동에 베이스·높은 음의 서로 다른 리듬 위치, 긴 도착음, 다음 코드 직전의 짧은 준비음을 결합합니다.'}),
   study({id:'chord-three-strings',fixedRoot:'C',level:'초급',name:'기본 C 코드로 첫 반주',english:'Open C Chord First Accompaniment',bpm:44,chords:Array(8).fill('C'),rows:FIRST,
    purpose:'C 기본형 x32010을 잡습니다. 첫 박의 5번줄 베이스와 높은 음은 함께 뜯고 나머지는 순서대로 이어갑니다. 0은 개방현입니다.',goal:'기본 C 코드 한 개를 유지하며 4분음표로 베이스와 높은 음을 함께 뜯습니다.'}),
   study({id:'chord-two-grips',fixedRoot:'C',level:'초급',name:'C·Am 두 오픈 코드 반주',english:'C and Am Open Chord Changes',bpm:48,chords:['C','C','Am','Am','C','C','Am','C'],rows:CHANGES,

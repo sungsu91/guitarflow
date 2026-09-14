@@ -147,3 +147,8 @@ backup/
 
 # Local shooter deployment worktrees and bundles
 /work/shooter-deploy-*/
+
+# Local exports, unpacked working copies, and generated verification output
+/exports/
+/tmp/
+/artifacts/
