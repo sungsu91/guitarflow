@@ -31,5 +31,5 @@ test('New bars snap vertically to the same row without changing prior bars or ho
 });
 test('A whole row splits into independent equal rectangles within the original bounds',()=>{
  const r={page:3,x:.1,y:.4,width:.8,height:.12};const parts=splitBarRow(r,4);
- assert.equal(parts.length,4);parts.forEach((b,i)=>{assert.equal(b.width,.2);assert.equal(b.y,r.y);assert.equal(b.height,r.height);assert.ok(Math.abs(b.x-(.1+i*.2))<1e-10);});assert.ok(Math.abs(parts.at(-1).x+parts.at(-1).width-.9)<1e-10);assert.equal(splitBarRow(r,100).length,16);
+ assert.equal(parts.length,4);parts.forEach((b,i)=>{assert.equal(b.width,.2);assert.equal(b.y,r.y);assert.equal(b.height,r.height);assert.ok(Math.abs(b.x-(.1+i*.2))<1e-10);});assert.ok(Math.abs(parts.at(-1).x+parts.at(-1).width-.9)<1e-10);assert.equal(splitBarRow(r,100).length,64);
 });

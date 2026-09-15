@@ -144,7 +144,7 @@ test("desktop battle CSS is scoped to the dedicated renderer class", async () =>
   assert.match(appSource, /className="desktopHorizontalGameOverStats"[\s\S]*SCORE[\s\S]*score\.toLocaleString\(\)[\s\S]*COMBO[\s\S]*maxCombo/);
   assert.match(appSource, /desktopHorizontalRestartNow[\s\S]*바로 시작/);
   assert.match(css, /main\.app\.app\.app\.mobileLandscapeShooter/);
-  assert.match(css, /mobileLandscapeShooter \.desktopHorizontalBattleControls \{[\s\S]*top: calc\(env\(safe-area-inset-top\) \+ 6px\)[\s\S]*bottom: auto[\s\S]*grid-template-columns: minmax\(126px, 1\.1fr\)[\s\S]*minmax\(82px, 0\.7fr\)/);
+  assert.match(css, /mobileLandscapeShooter \.desktopHorizontalBattleControls \{[\s\S]*top: calc\(env\(safe-area-inset-top\) \+ 6px\)[\s\S]*bottom: auto[\s\S]*grid-template-columns: minmax\(98px, 1\.2fr\)[\s\S]*minmax\(72px, \.85fr\)/);
   assert.match(componentSource, /mobileLandscape \? \([\s\S]*label="SIGNAL"[\s\S]*currentPitch/);
   assert.match(componentSource, /!mobileLandscape \? <button onClick=\{onSkin\}/);
   assert.match(componentSource, /!mobileLandscape \? <button aria-pressed=\{soundOn\}/);
@@ -154,7 +154,7 @@ test("desktop battle CSS is scoped to the dedicated renderer class", async () =>
   assert.match(css, /mobileLandscapeShooter[\s\S]*shooterGuitarPickerList--filtered \.shooterGuitarPickerGrid \{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\) !important/);
   assert.match(css, /mobileLandscapeShooter[\s\S]*shooterEffectSetPicker \{[\s\S]*grid-template-columns: minmax\(0, 1\.35fr\) minmax\(210px, 0\.8fr\) !important/);
   assert.match(css, /shooterEffectSetTrack,[\s\S]*shooterEffectStandaloneTrack[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\) !important/);
-  assert.match(css, /desktopLayout \.shooterPanel--desktopHorizontal:not\(\.shooterPanel--mapEditorWorkspace\)[\s\S]*> \.desktopHorizontalBattleControls \{[\s\S]*position: absolute[\s\S]*top: 8px[\s\S]*grid-template-columns: repeat\(7, minmax\(0, 1fr\)\)/);
+  assert.match(css, /desktopLayout \.shooterPanel--desktopHorizontal:not\(\.shooterPanel--mapEditorWorkspace\)[\s\S]*> \.desktopHorizontalBattleControls \{[\s\S]*position: absolute[\s\S]*top: 8px[\s\S]*grid-template-columns: repeat\(8, minmax\(0, 1fr\)\)/);
   assert.match(css, /mobileLandscapeShooterSelected:not\(\.mobileLandscapeShooter\)[\s\S]*background: #0a0a0a !important/);
   assert.match(css, /shooterArena > \.mobileLandscapeShooterPrompt \{[\s\S]*position: absolute[\s\S]*bottom: 14px[\s\S]*pointer-events: none/);
   assert.match(css, /shooterArena > \.mobileLandscapeShooterPrompt button \{[\s\S]*pointer-events: auto/);

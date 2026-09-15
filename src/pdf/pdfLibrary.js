@@ -17,7 +17,8 @@ function openDatabase() {
 async function transaction(mode, action) {
   const db = await openDatabase();
   return new Promise((resolve,reject) => {
-    const tx = db.transaction(stores, mode); let result;
+    let tx;try{tx=db.transaction(stores,mode);}catch(error){db.close();reject(error);return;}
+    let result;
     tx.oncomplete = () => {db.close();resolve(result);};
     tx.onabort = tx.onerror = () => {db.close();reject(tx.fretivaError ?? tx.error ?? Error('악보 저장 작업에 실패했습니다.'));};
     try { action(tx, value => {result=value;}); } catch(error) {tx.abort();db.close();reject(error);}

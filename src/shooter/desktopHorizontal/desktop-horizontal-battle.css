@@ -659,7 +659,7 @@
   .desktopHorizontalBattleControls {
     order: 5;
     display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(8, minmax(0, 1fr));
     gap: 5px;
     width: 100%;
     padding: 5px;
@@ -696,7 +696,7 @@
     bottom: auto;
     left: auto;
     z-index: 90;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(8, minmax(0, 1fr));
     width: min(650px, calc(100% - 16px));
     margin: 0;
     background: rgba(2, 8, 12, 0.82);
@@ -1028,7 +1028,7 @@
     bottom: auto;
     left: calc(env(safe-area-inset-left) + 116px);
     z-index: 90;
-    grid-template-columns: minmax(126px, 1.1fr) minmax(104px, 0.9fr) minmax(92px, 0.8fr) minmax(82px, 0.7fr) minmax(76px, 0.65fr);
+    grid-template-columns: minmax(98px, 1.2fr) minmax(72px, .8fr) minmax(72px, .8fr) minmax(88px, 1fr) minmax(76px, .85fr) minmax(72px, .85fr);
     width: auto;
     margin: 0;
     padding: 3px;
@@ -1654,4 +1654,34 @@ html body #root main.app.app.app.mobileLandscapeShooterSelected
   .desktopHorizontalCutMark {
     animation-duration: 120ms !important;
   }
+}
+
+/* The portrait orientation prompt must also offer an exit to another map. */
+html body #root main.app.app.app.mobileLandscapeShooterSelected
+  .shooterArena > .mobileLandscapeShooterPrompt {
+  flex-wrap: wrap;
+}
+html body #root main.app.app.app.mobileLandscapeShooterSelected
+  .mobileLandscapeShooterPromptActions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+html body #root main.app.app.app.mobileLandscapeShooterSelected
+  .shooterArena > .mobileLandscapeShooterPrompt strong {
+  color: #fff3c8 !important;
+  -webkit-text-fill-color: #fff3c8;
+}
+html body #root main.app.app.app.mobileLandscapeShooterSelected
+  .shooterArena > .mobileLandscapeShooterPrompt small {
+  color: #c9d3d5 !important;
+  -webkit-text-fill-color: #c9d3d5;
+}
+html body #root main.app.app.app.mobileLandscapeShooterSelected
+  .shooterArena > .mobileLandscapeShooterPrompt button {
+  min-height: 48px;
+  font-size: 12px;
+  color: #171209 !important;
+  -webkit-text-fill-color: #171209;
 }

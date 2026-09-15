@@ -256,6 +256,14 @@ function getPluckBuffer(audio, position, duration) {
   }
 
   cache.set(cacheKey, buffer);
+  // Score playback can visit many pitches/durations. Bound retained PCM memory.
+  let frames = 0;
+  for (const value of cache.values()) frames += value.length;
+  while (frames > audio.sampleRate * 32 && cache.size > 1) {
+    const oldest = cache.keys().next().value;
+    frames -= cache.get(oldest).length;
+    cache.delete(oldest);
+  }
   return buffer;
 }
 
@@ -269,6 +277,7 @@ function schedulePluck(
   bodyInput,
   attackSeconds,
   brightnessScale,
+  phrase = null,
 ) {
   const source = audio.createBufferSource();
   const lowCut = audio.createBiquadFilter();
@@ -278,7 +287,37 @@ function schedulePluck(
   const gain = audio.createGain();
   const panner = typeof audio.createStereoPanner === "function" ? audio.createStereoPanner() : null;
   const profile = getCleanGuitarVoiceProfile(position);
-  source.buffer = getPluckBuffer(audio, position, duration);
+  const maxRate = phrase ? Math.max(1, ...phrase.segments.map(s=>2 ** ((s.midi-position.midi)/12))) : 1;
+  const bufferDuration = phrase ? Math.min(8, duration * maxRate + 0.3) : duration;
+  source.buffer = getPluckBuffer(audio, position, bufferDuration);
+  if (phrase) {
+    if (duration * maxRate > bufferDuration - 0.3) {
+      // Sustain long ties without allocating minutes of PCM. The loop is in
+      // the decayed string body, never the initial pick transient.
+      const period = Math.round(audio.sampleRate / position.frequency) - (0.46 + position.stringNumber * 0.012);
+      source.loop = true;
+      source.loopStart = 0.6;
+      source.loopEnd = 0.6 + period * 16 / audio.sampleRate;
+    }
+    source.playbackRate.setValueAtTime(1, when);
+    let previous = phrase.segments[0];
+    for (const segment of phrase.segments.slice(1)) {
+      const arrival = when + segment.start - phrase.start;
+      const rate = 2 ** ((segment.midi-position.midi)/12);
+      const oldRate = 2 ** ((previous.midi-position.midi)/12);
+      if (segment.connection === 'S') {
+        const glide = Math.min(0.18, previous.duration * 0.65);
+        source.playbackRate.setValueAtTime(oldRate, arrival - glide);
+        source.playbackRate.exponentialRampToValueAtTime(rate, arrival);
+      } else {
+        // H/P change the vibrating string's pitch, without creating a source
+        // or re-running the pick envelope at the destination.
+        source.playbackRate.setValueAtTime(oldRate, arrival);
+        source.playbackRate.exponentialRampToValueAtTime(rate, arrival + Math.min(0.008, segment.duration * 0.1));
+      }
+      previous = segment;
+    }
+  }
   lowCut.type = "highpass";
   lowCut.frequency.setValueAtTime(48, when);
   lowCut.Q.setValueAtTime(0.58, when);
@@ -300,7 +339,8 @@ function schedulePluck(
   const safeAttack = clamp(Number(attackSeconds) || 0.008, 0.004, 0.035);
   gain.gain.setValueAtTime(0.0001, when);
   gain.gain.exponentialRampToValueAtTime(level, when + safeAttack);
-  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, level * 0.32), when + duration * 0.74);
+  const sustainUntil = phrase ? duration - Math.min(0.08, duration * 0.2) : duration * 0.74;
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, level * 0.32), when + sustainUntil);
   gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
   source.connect(lowCut);
   lowCut.connect(tone);
@@ -310,10 +350,10 @@ function schedulePluck(
   if (panner) {
     gain.connect(panner);
     panner.connect(output);
-    panner.connect(bodyInput);
+    if (bodyInput) panner.connect(bodyInput);
   } else {
     gain.connect(output);
-    gain.connect(bodyInput);
+    if (bodyInput) gain.connect(bodyInput);
   }
   source.start(when);
   source.stop(when + duration + 0.02);
@@ -327,6 +367,24 @@ function schedulePluck(
     panner?.disconnect();
   };
   return source;
+}
+
+// Reuse the fretboard's plucked-string PCM, filtering and attack envelope.
+// MIDI comes from the compiled score, so alternate tuning is preserved.
+export function scheduleGuitarPhrase(audio, phrase, when, output, level = 0.5) {
+  if (phrase.dead) {
+    const source = audio.createBufferSource(), gain = audio.createGain();
+    const length = Math.ceil(audio.sampleRate * 0.06), buffer = audio.createBuffer(1,length,audio.sampleRate);
+    const noise = createSeededNoise(phrase.midi * 7919 + phrase.string);
+    const samples = buffer.getChannelData(0);
+    for (let i=0;i<length;i++) samples[i]=noise()*Math.exp(-i/(audio.sampleRate*0.012));
+    source.buffer=buffer;gain.gain.value=level*0.3;source.connect(gain);gain.connect(output);
+    source.start(when);source.stop(when+0.06);
+    source.onended=()=>{source.disconnect();gain.disconnect();};
+    return source;
+  }
+  const position = {stringNumber:phrase.string, fretNumber:phrase.fret ?? 0, midi:phrase.midi, frequency:440*2**((phrase.midi-69)/12)};
+  return schedulePluck(audio,position,when,level,phrase.duration,output,null,0.007,1,phrase);
 }
 
 /**

@@ -5,6 +5,7 @@ import {
   Gauge,
   Guitar,
   Languages,
+  Map,
   Mic,
   Trophy,
   Volume2,
@@ -114,6 +115,7 @@ export const DesktopHorizontalBattleControls = memo(function DesktopHorizontalBa
   onDifficultySelect,
   onHelpChange,
   onMic,
+  onMap,
   onRecords,
   onSkin,
   onSolfege,
@@ -160,6 +162,10 @@ export const DesktopHorizontalBattleControls = memo(function DesktopHorizontalBa
         <Guitar aria-hidden="true" size={16} />
         스킨 변경
       </button> : null}
+      <button onClick={onMap} type="button" aria-label="맵 변경">
+        <Map aria-hidden="true" size={mobileLandscape ? 13 : 15} />
+        맵 변경
+      </button>
       <button aria-pressed={solfegeOn} className={solfegeOn ? "selected" : ""} onClick={onSolfege} type="button">
         <Languages aria-hidden="true" size={15} />
         {solfegeOn ? "계이름 KO" : "음이름 EN"}

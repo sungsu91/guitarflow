@@ -1,0 +1,38 @@
+/* Mobile chrome only; the renderer, annotations, history and audio are shared. */
+html body main.app.app.app .pdfStudio .pdfPractice--mobile{position:fixed;inset:0;z-index:1200;width:100%;height:100dvh;min-height:0;margin:0;padding:0!important;display:flex;flex-direction:column;background:var(--pdf-bg,#faf7f0);overflow:hidden;color:var(--pdf-text,#30261c)}
+html body main.app.app.app .pdfPractice--mobile .pdfPracticeBody{display:flex;flex:1;min-height:0;gap:0}
+html body main.app.app.app .pdfPractice--mobile .pdfDocument{flex:1;min-height:0;border:0;border-radius:0;background:#eeeae1;overflow:hidden}
+html body main.app.app.app .pdfPractice--mobile .pdfScoreStage{flex:1;min-height:0}
+html body main.app.app.app .pdfPractice--mobile .pdfScoreStage>.pdfViewport{flex:1 1 0;height:0;min-height:0;max-height:none;padding:8px;box-sizing:border-box;overflow:auto;overscroll-behavior:contain}
+html body main.app.app.app .pdfPractice--mobile .pdfPracticeDock{position:relative;inset:auto;flex:none;width:100%;z-index:30;background:var(--pdf-bg,#faf7f0)}
+html body main.app.app.app .pdfPractice--mobile :is(.mobilePdfHud,.mobilePdfTransport,.mobilePdfMenu,.mobilePdfBpm,.mobilePdfSettingsSheet) button{display:inline-flex;align-items:center;justify-content:center;min-width:0;min-height:42px;padding:5px 8px;border:1px solid transparent;border-radius:3px;background:transparent;background-image:none;box-shadow:none;color:var(--pdf-text,#30261c);-webkit-text-fill-color:currentColor;text-shadow:none;font-size:13px;white-space:nowrap;transform:none}
+html body main.app.app.app .pdfPractice--mobile :is(.mobilePdfHud,.mobilePdfTransport,.mobilePdfMenu,.mobilePdfBpm) button::before,html body main.app.app.app .pdfPractice--mobile :is(.mobilePdfHud,.mobilePdfTransport,.mobilePdfMenu,.mobilePdfBpm) button::after{content:none}
+.mobilePdfHud{position:relative;z-index:40;display:grid;grid-template-columns:42px minmax(0,1fr) 36px 48px;align-items:center;gap:2px;padding:calc(4px + env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 4px max(8px,env(safe-area-inset-left));border-bottom:1px solid var(--pdf-border,#ded7cc);flex:none;background:var(--pdf-bg,#faf7f0)}
+html body main.app.app.app .pdfPractice--mobile .mobilePdfHud h1{font-size:16px;line-height:1.3;margin:0;padding:0;text-align:center;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.mobilePdfMenu,.mobilePdfSettingsSheet,.mobilePdfBpm{position:absolute;z-index:50;background:var(--pdf-bg,#fffaf2);border:1px solid var(--pdf-border,#c9bca6);border-radius:4px;box-shadow:0 2px 8px #0002;color:var(--pdf-text,#30261c)}
+.mobilePdfMenu{right:8px;top:calc(100% + 3px);width:210px;max-height:70dvh;overflow:auto;padding:6px;display:flex;flex-direction:column}
+.mobilePdfMenu small{font-size:11px;padding:6px;color:var(--pdf-muted,#746c60)}
+html body main.app.app.app .pdfPractice--mobile .mobilePdfMenu button{justify-content:flex-start;border-bottom:1px solid var(--pdf-border,#ded7cc)}
+.mobilePdfSettingsSheet{top:100%;left:8px;right:8px;max-height:65dvh;overflow:auto;padding:12px;overscroll-behavior:contain}.mobilePdfSettingsSheet>*{margin-bottom:12px}.mobilePdfSheetClose{float:right}.mobilePdfSettingsSheet h2{font-size:17px}
+html body main.app.app.app .pdfPractice--mobile .mobilePdfTransport{display:grid;grid-template-columns:52px minmax(0,1fr) 72px 52px;gap:5px;position:relative;border-top:1px solid var(--pdf-border,#ded7cc);padding:6px max(8px,env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));min-height:56px;box-sizing:border-box}
+html body main.app.app.app .pdfPractice--mobile .mobilePdfTransport button.pdfPrimary{background:#60462f;color:#fffaf0;border-color:#60462f}
+.mobilePdfTransport button:disabled{opacity:.4}.mobilePdfBpm{right:8px;bottom:calc(100% + 5px);display:flex;align-items:center;gap:4px;padding:6px}.mobilePdfBpm input{width:64px;min-width:0!important;height:38px;padding:4px!important}
+html body main.app.app.app .pdfStudio .pdfAnnotationToolbar--compact .pdfAnnotationContext--floating{position:absolute;bottom:100%;left:6px;right:6px;min-height:0;height:auto;padding:0;pointer-events:none}
+.pdfAnnotationContext--floating:empty{display:none}
+.pdfAnnotationContext--floating>div{pointer-events:auto;background:var(--pdf-bg,#fffaf2);border:1px solid var(--pdf-border,#c9bca6);padding:5px;box-sizing:border-box;min-height:42px}
+html body main.app.app.app .pdfStudio .pdfAnnotationToolbar--compact .pdfCropApply{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+html body main.app.app.app .pdfStudio .pdfAnnotationToolbar--compact .pdfCropApply button:last-child{background:#60462f!important;color:#fffaf0!important}
+.pdfAnnotationToolbar--compact .pdfPenPopover{bottom:calc(100% + 8px);left:8px}
+.pdfAnnotationToolbar--compact .pdfPenPopover:after{content:'';position:absolute;bottom:-7px;left:calc(25% - 5px);width:12px;height:12px;background:inherit;border-right:1px solid #c9bca6;border-bottom:1px solid #c9bca6;transform:rotate(45deg)}
+.pdfPenPopover input[type=range]{accent-color:#60462f}
+html body main.app.app.app .pdfPractice--mobile>.pdfEditNotice,html body main.app.app.app .pdfPractice--mobile .pdfEditNotice{position:absolute;bottom:115px;left:8px;right:8px;z-index:90;margin:0;font-size:12px}
+html body main.app.app.app .pdfPractice--mobile>div[role=alert],html body main.app.app.app .pdfPractice--mobile>p[role=alert]{position:absolute;top:54px;left:8px;right:8px;z-index:100;background:#fff4e2;color:#49301e;padding:10px;border:1px solid #ac8d6b}
+html body main.app.theme-brand.theme-brand .pdfPractice--mobile{--pdf-bg:#201c16;--pdf-text:#eadfca;--pdf-border:#5b4b36;--pdf-muted:#b8aa94}
+
+/* Existing app-wide button treatments must not turn the document HUD into cards. */
+html body main.app.app.app.app.app .pdfStudio .pdfPractice--mobile :is(.mobilePdfHud,.mobilePdfTransport) button{background:transparent!important;background-image:none!important;color:var(--pdf-text,#30261c)!important;border-color:transparent!important;border-radius:3px!important;box-shadow:none!important;text-shadow:none!important}
+html body main.app.app.app.app.app .pdfStudio .pdfPractice--mobile .mobilePdfTransport button.pdfPrimary{background:#60462f!important;color:#fffaf0!important;border-color:#60462f!important}
+html body main.app.app.app.app.app .pdfStudio .pdfAnnotationToolbar--compact .pdfAnnotationIcons>button{background:transparent!important;color:var(--pdf-text,#30261c)!important;border-color:transparent!important;box-shadow:none!important}
+html body main.app.app.app.app.app .pdfStudio .pdfAnnotationToolbar--compact .pdfAnnotationIcons>button[aria-pressed=true]{background:#60462f!important;color:#fffaf0!important}
+
+html body main.app.app.app.app.app .pdfStudio .pdfAnnotationToolbar--compact .pdfAnnotationIcons>button{transition:none!important;animation:none!important}

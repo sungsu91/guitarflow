@@ -55,10 +55,11 @@ function compileBar(bar,d) {
   end=Math.max(end,e.onset+ticksOf(e));
   if(!e.rest&&(!e.notes.length||new Set(e.notes.map(n=>n.string)).size!==e.notes.length))errors.push(`${e.id}: 같은 줄 중복 또는 빈 음표`);
   const tones=e.notes.map(n=>{if(!Number.isInteger(n.string)||n.string<1||n.string>6||!Number.isInteger(n.fret)||n.fret<0||n.fret>24){errors.push(`${e.id}: 줄 1–6, 프렛 0–24를 입력하세요.`);return null;}const midi=d.tuning[n.string-1]+n.fret;return {...n,midi,pitch:pitchForMidi(midi,d.keySignature,n.spelling)};}).filter(Boolean);
+  if(e.dead!=null&&typeof e.dead!=='boolean')errors.push(`${e.id}: 뮤트음 값은 true/false입니다.`);
   if(e.technique&&!['H','P','S'].includes(e.technique))errors.push(`${e.id}: 지원하지 않는 연결 주법`);
   if(e.notes.some(n=>n.finger!=null&&![1,2,3,4].includes(n.finger)||n.rightFinger!=null&&!['p','i','m','a'].includes(n.rightFinger)))errors.push(`${e.id}: 손가락 기호를 확인하세요.`);
   if(e.pickStroke!=null&&!['up','down'].includes(e.pickStroke))errors.push(`${e.id}: 피킹 방향을 확인하세요.`);
-  for(const key of ['bend','vibrato','palmMute','letRing','ghost','dead','grace'])if(e[key]!=null)issues.push(`${e.id}: ${key}는 현재 표시·재생을 지원하지 않습니다. 입력 데이터는 보존합니다.`);
+  for(const key of ['bend','vibrato','palmMute','letRing','ghost','grace'])if(e[key]!=null)issues.push(`${e.id}: ${key}는 현재 표시·재생을 지원하지 않습니다. 입력 데이터는 보존합니다.`);
   events.push({...e,...(tones[0]??{string:1,fret:0,midi:d.tuning[0],pitch:pitchForMidi(d.tuning[0],d.keySignature)}),id:e.id,...(tones.length>1?{tones}:{}),rest:Boolean(e.rest),duration:e.duration,technique:e.technique??null});
  }
  if(end!==capacity)issues.push(`마디 길이 ${end/TICKS} / ${capacity/TICKS}박 (${end>capacity?'초과':'부족'})`);

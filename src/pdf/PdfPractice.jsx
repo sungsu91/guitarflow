@@ -1,28 +1,60 @@
+import {MobilePdfHeader,MobilePdfTransport} from './MobilePdfChrome.jsx';
+import PdfBarCount from './PdfBarCount.jsx';
+import {cropMargins,pageCrop} from './pdfAnnotations.js';
+import {PdfAnnotationToolbar} from './PdfAnnotationLayer.jsx';
 import {useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import PdfPage from './PdfPage.jsx';
+import PdfContinuous from './PdfContinuous.jsx';
+import PdfViewToolbar from './PdfViewToolbar.jsx';
+import usePdfFullscreen from './usePdfFullscreen.js';
 import useEtudeMetronome from '../etudes/useEtudeMetronome.js';
 import {useMetronomeVolume,setMetronomeVolume} from '../audio/metronomeVolumeStore.js';
 import {patchPdf,storageError,downloadBlob} from './pdfLibrary.js';
 import {practiceOrder,barAtTick,alignBarRow,splitBarRow} from './pdfModel.js';
 const emptyBars=[];
-export default function PdfPractice({initial,blob,mobile,onClose}) {
+export default function PdfPractice({initial,blob,mobile,onClose,onInfo,closeController,initialEditing=false}) {
+ const fullscreen=usePdfFullscreen(),zoomController=useRef(null);
+ const [mobileZoom,setMobileZoom]=useState(100);
  const [record,setRecord]=useState(initial),[saveState,setSaveState]=useState('저장됨'),[error,setError]=useState(''),[mapping,setMapping]=useState(false),[activeBar,setActiveBar]=useState(null),[selectedBar,setSelectedBar]=useState(null),[orderText,setOrderText]=useState((initial.practiceOrder??[]).join(', '));
- const [rowMode,setRowMode]=useState(false),[snapRows,setSnapRows]=useState(true),[rowCount,setRowCount]=useState(4),[draftRow,setDraftRow]=useState(null);
+ const [snapRows,setSnapRows]=useState(true),[rowCount,setRowCount]=useState(4),[draftRow,setDraftRow]=useState(null),[copiedBar,setCopiedBar]=useState(null);
+ const [editing,setEditing]=useState(initialEditing||mobile),[editTool,setEditTool]=useState('select'),[noteDraft,setNoteDraft]=useState(null),[,setHistoryVersion]=useState(0),[notice,setNotice]=useState('');
+ const [original,setOriginal]=useState(false);
+ const [pen,setPen]=useState({color:'brown',width:.003,opacity:1});
+ const undo=useRef([]),redo=useRef([]);
+ const [cropDraft,setCropDraft]=useState(null);
  const current=useRef(initial),queue=useRef(Promise.resolve()),revision=useRef(0),saved=useRef(0),shell=useRef(null),startIndex=useRef(0);
+ useEffect(()=>{if(!mobile)return;const previous=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=previous;};},[mobile]);
  const {volume}=useMetronomeVolume();
  const [compact,setCompact]=useState(mobile);
  useLayoutEffect(()=>{const observer=new ResizeObserver(([entry])=>setCompact(mobile||entry.contentRect.width<850));observer.observe(shell.current);return()=>observer.disconnect();},[mobile]);
- // Preserve each layout's explicit zoom; a desktop-sized document must not open cropped on a phone.
- const zoom=mobile?(record.mobileZoom??'fit'):record.zoom;
- const setZoom=value=>void update(mobile?{mobileZoom:value}:{zoom:value});
+ // Desktop restores its saved scale; every mobile opening starts at fitted 100%.
+ const zoom=mobile?mobileZoom:record.zoom;
+ const setZoom=value=>mobile?zoomController.current?.zoomTo(100):void update({zoom:value,...(value==='page'?{viewMode:'single'}:{})});
+ const continuous=record.viewMode==='continuous',PageView=continuous?PdfContinuous:PdfPage;
 
  const metro=useEtudeMetronome(record.bpm,{beatsPerBar:record.meter[0],beatUnit:record.meter[1],audible:record.audible!==false,downbeatAt:tick=>{const r=current.current;if(!r.highlight||!r.barMap?.length)return tick%r.meter[0]===0;const count=r.countIn?r.meter[0]:0;if(tick<count)return tick===0;const sequence=practiceOrder(r),offset=sequence.slice(0,startIndex.current).reduce((n,b)=>n+b.beats,0);return barAtTick(sequence,tick-count+offset,Boolean(r.loop))?.beat===0;}});
  const update=useCallback(patch=>{
   const next={...current.current,...patch};current.current=next;setRecord(next);setSaveState('저장 중…');const version=++revision.current;
   queue.current=queue.current.catch(()=>{}).then(()=>patchPdf(initial.id,next)).then(()=>{saved.current=version;if(version===revision.current){setSaveState('기기에 저장됨');setError('');}}).catch(e=>{setSaveState('저장 실패');setError(storageError(e));});return queue.current;
  },[initial.id]);
+ // Edit history stores only annotation fields. Page, BPM and the original PDF are independent.
+ const applyEdit=useCallback(patch=>{
+  undo.current.push(Object.fromEntries(Object.keys(patch).map(key=>[key,current.current[key]])));
+  if(undo.current.length>60)undo.current.shift();redo.current=[];setHistoryVersion(v=>v+1);void update(patch);
+ },[update]);
+ const travelHistory=direction=>{const from=direction==='undo'?undo:redo,to=direction==='undo'?redo:undo,patch=from.current.pop();if(!patch)return;
+  to.current.push(Object.fromEntries(Object.keys(patch).map(key=>[key,current.current[key]])));void update(patch);setHistoryVersion(v=>v+1);
+  if('practiceOrder' in patch)setOrderText((patch.practiceOrder??[]).join(', '));setSelectedBar(null);setDraftRow(null);setCropDraft(null);setCopiedBar(null);setNoteDraft(null);
+ };
+ const editPage=(patch,pageNumber=current.current.lastPage)=>{const edits=current.current.pageEdits??{};applyEdit({pageEdits:{...edits,[pageNumber]:{crop:null,notes:[],...edits[pageNumber],...patch}}});};
+ const saveNote=()=>{if(!noteDraft?.text.trim())return;const {page:notePage,...note}=noteDraft,notes=current.current.pageEdits?.[notePage]?.notes??[];
+  if(notes.length>=200&&!notes.some(n=>n.id===note.id)){setNotice('한 페이지에는 메모를 200개까지 저장할 수 있습니다.');return;}
+  editPage({notes:[...notes.filter(n=>n.id!==note.id),{...note,text:note.text.trim()}]},notePage);setNoteDraft(null);
+ };
+ const chooseTool=tool=>{if(noteDraft&&tool!=='text'){setNotice('메모를 저장하거나 취소한 뒤 도구를 바꿔 주세요.');return;}metro.stop();setOriginal(false);setEditTool(tool);setMapping(tool==='bar');setDraftRow(null);setCropDraft(tool==='crop'?{page:current.current.lastPage,rect:pageCrop(current.current.pageEdits?.[current.current.lastPage])}:null);setCopiedBar(null);setSelectedBar(null);setNotice('');};
+ const toggleEditing=()=>{if(noteDraft){setNotice('작성 중인 메모를 저장하거나 취소한 뒤 편집을 마쳐 주세요.');return;}metro.stop();setEditing(!editing);setMapping(!editing&&editTool==='bar');setDraftRow(null);setCropDraft(null);setCopiedBar(null);setSelectedBar(null);};
  useEffect(()=>{void update({lastPracticedAt:new Date().toISOString()});},[update]);
- useEffect(()=>{const warn=e=>{if(saved.current<revision.current){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[]);
+ useEffect(()=>{const warn=e=>{if(saved.current<revision.current||noteDraft){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[noteDraft]);
  const bars=record.barMap??emptyBars,order=useMemo(()=>practiceOrder(record),[bars,record.practiceOrder,record.loop,record.loopStart,record.loopEnd]);
  const countTicks=record.countIn?record.meter[0]:0;
  useEffect(()=>{
@@ -41,24 +73,30 @@ export default function PdfPractice({initial,blob,mobile,onClose}) {
  const removeBar=useCallback(number=>{
   metro.stop();const r=current.current;
   const nextOrder=(r.practiceOrder??[]).filter(n=>n!==number);
-  void update({barMap:(r.barMap??[]).filter(b=>b.number!==number),practiceOrder:nextOrder});
+  applyEdit({barMap:(r.barMap??[]).filter(b=>b.number!==number),practiceOrder:nextOrder});
   setOrderText(nextOrder.join(', '));setSelectedBar(null);setActiveBar(null);
- },[metro.stop,update]);
- const toggleMapping=()=>{metro.stop();setSelectedBar(null);setDraftRow(null);setMapping(v=>!v);};
+ },[metro.stop,applyEdit]);
  const page=record.lastPage;
- const goPage=useCallback(n=>{const next=Math.max(1,Math.min(current.current.pageCount,n));void update({lastPage:next});},[update]);
+ const goPage=useCallback(n=>{if(noteDraft){setNotice('메모를 저장하거나 취소한 뒤 페이지를 이동해 주세요.');return;}const next=Math.max(1,Math.min(current.current.pageCount,n));void update({lastPage:next});},[update,noteDraft]);
  const selectBar=useCallback(number=>{const bar=current.current.barMap.find(b=>b.number===number);if(bar){metro.stop();setActiveBar(number);setSelectedBar(number);goPage(bar.page);}},[metro.stop,goPage]);
  const appendBars=useCallback(rects=>{const r=current.current,number=Math.max(0,...(r.barMap??[]).map(b=>b.number))+1;
-  void update({barMap:[...(r.barMap??[]),...rects.map((rect,i)=>({...rect,number:number+i,beats:r.meter[0]}))]});setSelectedBar(null);setActiveBar(number);
- },[update]);
- const addBar=useCallback(rect=>{const aligned=alignBarRow(rect,current.current.barMap??[],snapRows);if(rowMode)setDraftRow(aligned);else appendBars([aligned]);},[snapRows,rowMode,appendBars]);
- useEffect(()=>setDraftRow(null),[page,rowMode,mapping]);
+  applyEdit({barMap:[...(r.barMap??[]),...rects.map((rect,i)=>({...rect,number:number+i,beats:rect.beats??r.meter[0]}))]});setSelectedBar(null);setActiveBar(number);
+ },[applyEdit]);
+ const addBar=useCallback(rect=>{const aligned=alignBarRow(rect,current.current.barMap??[],snapRows);setDraftRow(aligned);},[snapRows]);
+ useEffect(()=>{setDraftRow(null);setCropDraft(editTool==='crop'?{page,rect:pageCrop(current.current.pageEdits?.[page])}:null);},[page]);
+ useEffect(()=>{setDraftRow(null);},[mapping]);
+ const commitRow=count=>{if(draftRow){appendBars(splitBarRow(draftRow,count));setDraftRow(null);}};
+ const fitCrop=()=>{if(mobile)setMobileZoom(100);else void update({zoom:'fit'});};
+ const commitCrop=()=>{if(!cropDraft)return;editPage({crop:null,margins:cropMargins(cropDraft.rect)},cropDraft.page);fitCrop();chooseTool('select');};
 
- const toggle=()=>{if(metro.playing){metro.stop();return;}setMapping(false);setDraftRow(null);setSelectedBar(null);startIndex.current=Math.max(0,order.findIndex(b=>b.number===activeBar));void metro.start();};
+ const toggle=()=>{setCopiedBar(null);if(metro.playing){metro.stop();return;}if(noteDraft){setNotice('메모를 저장하거나 취소한 뒤 연습을 시작해 주세요.');return;}setEditing(false);setMapping(false);setDraftRow(null);setSelectedBar(null);startIndex.current=Math.max(0,order.findIndex(b=>b.number===activeBar));void metro.start();};
  const stepBar=delta=>{const i=bars.findIndex(b=>b.number===activeBar),next=bars[Math.max(0,Math.min(bars.length-1,i+delta))];if(next)selectBar(next.number);};
- const close=async()=>{metro.stop();await queue.current;if(saved.current<revision.current){setError('저장되지 않은 설정이 있습니다. 다시 저장하거나 변경을 버리고 나가세요.');return;}onClose();};
+ const close=async(after)=>{metro.stop();if(noteDraft){setNotice('작성 중인 메모를 저장하거나 취소해 주세요.');return;}await queue.current;if(saved.current<revision.current){setError('저장되지 않은 설정이 있습니다. 다시 저장하거나 변경을 버리고 나가세요.');return;}onClose();if(typeof after==='function')after();};
+ if(closeController)closeController.current=close;
  const settings=<>
   <h2>연습 설정</h2>
+  {onInfo&&<button type="button" onClick={()=>{metro.stop();onInfo(current.current,update);}}>악보 정보 수정</button>}
+  <label className="pdfCheck"><input type="checkbox" aria-label="PDF 연속 스크롤" checked={continuous} onChange={e=>void update({viewMode:e.target.checked?'continuous':'single',...(e.target.checked?(mobile?{mobileZoom:'fit'}:{zoom:'fit'}):{})})}/>모든 페이지 이어 보기</label>
   <label>BPM · 4분음표 기준<input aria-label="PDF BPM" type="number" min="30" max="240" value={record.bpm} onChange={e=>{metro.stop();void update({bpm:Math.max(30,Math.min(240,Number(e.target.value)||30))});}}/></label>
   <label>박자<select aria-label="PDF 박자" value={record.meter.join('/')} onChange={e=>{metro.stop();void update({meter:e.target.value.split('/').map(Number)});}}>{['2/4','3/4','4/4','5/4','6/8','7/8','9/8','12/8'].map(v=><option key={v}>{v}</option>)}</select></label>
   <label className="pdfCheck"><input type="checkbox" checked={record.audible!==false} onChange={e=>void update({audible:e.target.checked})}/>메트로놈 소리</label>
@@ -75,25 +113,32 @@ export default function PdfPractice({initial,blob,mobile,onClose}) {
   </details>
   {record.memo&&<p className="pdfMemo">{record.memo}</p>}
   <button type="button" onClick={()=>downloadBlob(blob,`${record.title}.pdf`)}>원본 PDF 내보내기</button>
-  <small>PDF는 고정 문서입니다. 오선보·TAB의 자동 분리나 음표 편집은 하지 않습니다.</small>
+  <small>PDF 위에 마디와 메모를 덧붙일 수 있습니다. 원본 PDF 내보내기에는 여백 자르기와 메모가 포함되지 않습니다.</small>
  </>;
- const controls=<div className="pdfTransport"><button type="button" aria-label="이전 PDF 페이지" disabled={page<=1} onClick={()=>goPage(page-1)}>‹ 이전</button><div className="pdfTransportCenter"><div className="pdfBeatDots" aria-label={metro.beat<0?'정지':`${metro.beat+1}박`}>{Array.from({length:record.meter[0]},(_,i)=><i key={i} className={metro.beat===i?'is-on':''}/>)}</div><button type="button" className="pdfPrimary" aria-label="PDF 연습 시작 정지" aria-pressed={metro.playing} onClick={toggle}>{metro.playing?'■ 정지':'▶ 연습 시작'}</button><span>{metro.playing&&metro.tick<countTicks?'카운트인':`${record.bpm} BPM`}</span></div><button type="button" aria-label="다음 PDF 페이지" disabled={page>=record.pageCount} onClick={()=>goPage(page+1)}>다음 ›</button></div>;
- return <section ref={shell} className={`pdfPractice ${mobile?'pdfPractice--mobile':'pdfPractice--desktop'} ${compact?'pdfPractice--compact':''}`}>
-  <header className="pdfPracticeHeader"><button type="button" onClick={close}>‹ 내 악보 보관함</button><div><h1>{record.title}</h1><small>{record.artist} · PDF · <span role="status">{saveState}</span></small></div></header>
+ const onMobileAction=action=>{
+  if(noteDraft){setNotice('메모를 저장하거나 취소한 뒤 메뉴를 이용해 주세요.');return;}
+  if(action==='bar'){setEditing(true);chooseTool('bar');}
+  if(action==='info'){metro.stop();onInfo?.(current.current,update);}
+  if(action==='fit')zoomController.current?.zoomTo(100);
+  if(action==='reset'){editPage({crop:null,margins:null});fitCrop();chooseTool('select');}
+  if(action==='original'){metro.stop();setOriginal(v=>!v);setMapping(false);setCropDraft(null);setEditTool('select');}
+  if(action==='fullscreen')void fullscreen.enter();
+ };
+ const controls=mobile?<MobilePdfTransport page={page} pageCount={record.pageCount} onPage={goPage} bpm={record.bpm} onBpm={value=>{metro.stop();void update({bpm:Math.max(30,Math.min(240,value||30))});}} playing={metro.playing} onPlay={toggle} countIn={metro.playing&&metro.tick<countTicks}/>:<div className="pdfTransport"><button type="button" aria-label="이전 PDF 페이지" disabled={page<=1} onClick={()=>goPage(page-1)}>‹ 이전</button><div className="pdfTransportCenter"><div className="pdfBeatDots" aria-label={metro.beat<0?'정지':`${metro.beat+1}박`}>{Array.from({length:record.meter[0]},(_,i)=><i key={i} className={metro.beat===i?'is-on':''}/>)}</div><button type="button" className="pdfPrimary" aria-label="PDF 연습 시작 정지" aria-pressed={metro.playing} onClick={toggle}>{metro.playing?'■ 정지':'▶ 연습 시작'}</button><span>{metro.playing&&metro.tick<countTicks?'카운트인':`${record.bpm} BPM`}</span></div><button type="button" aria-label="다음 PDF 페이지" disabled={page>=record.pageCount} onClick={()=>goPage(page+1)}>다음 ›</button></div>;
+ const toolbar=editing&&!original&&<PdfAnnotationToolbar compact={mobile} tool={editTool} choose={chooseTool} {...{pen,setPen}} undo={()=>travelHistory('undo')} redo={()=>travelHistory('redo')} canUndo={Boolean(undo.current.length)&&!noteDraft} canRedo={Boolean(redo.current.length)&&!noteDraft}>
+  {editTool==='crop'?<div className="pdfCropApply"><button type="button" aria-label="여백 초기화" onClick={()=>{editPage({crop:null,margins:null});fitCrop();chooseTool('select');}}>초기화</button><button type="button" aria-label="자르기 취소" onClick={()=>chooseTool('select')}>취소</button><button type="button" aria-label="여백 제거 적용" onClick={commitCrop}>적용</button></div>:mapping?<div className="pdfCompactBarTools">{draftRow?<PdfBarCount value={rowCount} onChange={setRowCount} onApply={commitRow} onCancel={()=>setDraftRow(null)}/>:<><button type="button" onClick={()=>chooseTool('select')}>마디 설정 완료</button><label><input type="checkbox" checked={snapRows} onChange={e=>setSnapRows(e.target.checked)}/>줄 맞춤</label>{copiedBar&&<button type="button" onClick={()=>setCopiedBar(null)}>복사 취소</button>}</>}</div>:editTool==='pen'||mobile?null:<button type="button" aria-pressed={mapping} onClick={()=>chooseTool('bar')}>마디 설정</button>}
+ </PdfAnnotationToolbar>;
+ return <section ref={shell} className={`pdfPractice ${mobile?'pdfPractice--mobile':'pdfPractice--desktop'} ${compact?'pdfPractice--compact':''} ${editing?'pdfPractice--editing':''}`}>
+  {mobile?<MobilePdfHeader title={record.title} editing={editing} onBack={close} onDone={()=>{setOriginal(false);toggleEditing();}} onAction={onMobileAction} settings={settings} saveState={saveState} page={page} pageCount={record.pageCount} original={original}/>:<header className="pdfPracticeHeader"><button type="button" onClick={close}>‹ 내 악보 보관함</button><div><h1>{record.title}</h1><small>{record.artist} · PDF · <span role="status">{saveState}</span></small></div></header>}
   {error&&<div role="alert">{error}<button type="button" onClick={()=>void update(current.current)}>다시 저장</button><button type="button" onClick={onClose}>저장 안 된 변경 버리고 나가기</button></div>}{metro.error&&<p role="alert">{metro.error}</p>}
-  <div className="pdfPracticeBody"><main className="pdfDocument"><div className="pdfViewTools">
-    <div className="pdfPageControls"><label>페이지<input aria-label="PDF 페이지" type="number" inputMode="numeric" min="1" max={record.pageCount} value={page} onChange={e=>goPage(Number(e.target.value)||1)}/></label><strong>/ {record.pageCount}</strong><button type="button" className="pdfFullscreen" onClick={async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(shell.current.requestFullscreen)await shell.current.requestFullscreen();else setError('이 브라우저는 전체화면을 지원하지 않습니다. 기기를 가로로 돌려주세요.');}catch{setError('전체화면을 열 수 없습니다. 기기의 가로 모드를 이용하세요.');}}}>전체화면</button></div>
-    <div className="pdfZoomControls"><select aria-label="PDF 확대" value={zoom} onChange={e=>setZoom(e.target.value==='fit'?'fit':Number(e.target.value))}><option value="fit">너비 맞춤</option>{[...new Set([25,50,75,100,125,150,175,200,225,250,...(zoom==='fit'?[]:[zoom])])].sort((a,b)=>a-b).map(n=><option key={n} value={n}>{n}%</option>)}</select><button type="button" className="pdfMappingQuick" aria-label="마디 위치 설정" aria-pressed={mapping} onClick={toggleMapping}>{mapping?'✓ 설정 완료':'마디 설정'}</button></div>
-   </div>
-   {mapping&&<div className="pdfRowTools">
-    <label>지정 방식<select aria-label="마디 지정 방식" value={rowMode?'row':'single'} onChange={e=>setRowMode(e.target.value==='row')}><option value="single">한 마디씩</option><option value="row">한 줄 나누기</option></select></label>
-    <label className="pdfCheck"><input type="checkbox" checked={snapRows} onChange={e=>setSnapRows(e.target.checked)}/>같은 줄 높이 맞춤</label>
-    <small className="pdfRowHint">{rowMode?'한 줄 전체를 끌어 선택한 뒤 마디 수를 정하세요.':'빈 곳에서 마디 영역을 끌어 지정하세요. 같은 줄은 윗선·높이를 맞춥니다.'}</small>
-    {draftRow&&<div className="pdfRowConfirm"><label>선택한 줄<select aria-label="나눌 마디 수" value={rowCount} onChange={e=>setRowCount(Number(e.target.value))}>{Array.from({length:16},(_,i)=><option key={i+1} value={i+1}>{i+1}마디</option>)}</select></label><button type="button" onClick={()=>{appendBars(splitBarRow(draftRow,rowCount));setDraftRow(null);}}>나누어 저장</button><button type="button" onClick={()=>setDraftRow(null)}>취소</button><small>선택 영역을 같은 너비로 나눕니다. 인쇄된 마디 폭이 다르면 ‘한 마디씩’으로 지정하세요.</small></div>}
-   </div>}
-   {zoom!=='fit'&&<small className="pdfPanHint">확대한 악보는 좌우·위아래로 밀어 볼 수 있습니다.</small>}
-   <PdfPage {...{blob,mapping,barMap:bars,activeBar,selectedBar,getBarPosition,snapRows,draftRow,rowCount}} playing={metro.playing&&Boolean(record.highlight)} pageNumber={page} zoom={zoom} onAdd={addBar} onSelect={selectBar} onRemove={removeBar} onDeselect={()=>setSelectedBar(null)}/>
-   {bars.length>0&&<div className="pdfBarNav"><button type="button" onClick={()=>stepBar(-1)}>‹ 이전 마디</button><span>{activeBar?`${activeBar}마디`:'마디 선택'}</span><button type="button" onClick={()=>stepBar(1)}>다음 마디 ›</button></div>}
-  </main>{compact?<details className="pdfMobileSettings"><summary>연습 설정 · {record.bpm} BPM · {record.meter.join('/')}</summary>{settings}</details>:<aside className="pdfSettings">{settings}</aside>}</div>{controls}
+  <div className="pdfPracticeBody"><main className="pdfDocument">{!mobile&&<PdfViewToolbar {...{zoom,setZoom,mobile}} previewRoot={shell}><button type="button" className="pdfMappingQuick" aria-label="PDF 간단 편집" aria-pressed={editing} onClick={toggleEditing}>{editing?'✓ 편집 완료':'간단 편집'}</button><button type="button" className="pdfFullscreen" aria-label="전체화면" title="전체화면" onClick={()=>void fullscreen.enter()}>⛶</button></PdfViewToolbar>}
+
+   {notice&&<p className="pdfEditNotice" role="alert">{notice}<button type="button" onClick={()=>setNotice('')}>닫기</button></p>}
+   <div ref={fullscreen.ref} className={`pdfScoreStage ${fullscreen.active?'is-fullscreen':''}`} aria-label="PDF 악보 영역">
+   {fullscreen.active&&<div className="pdfFullscreenControls" role="group" aria-label="전체화면 악보 조작"><button type="button" aria-label="전체화면 이전 페이지" disabled={page<=1} onClick={()=>goPage(page-1)}>‹</button><span>{page} / {record.pageCount}</span><button type="button" aria-label="전체화면 다음 페이지" disabled={page>=record.pageCount} onClick={()=>goPage(page+1)}>›</button><button type="button" aria-label="악보 전체화면 닫기" onClick={()=>void fullscreen.exit()}>닫기 ×</button></div>}
+   <PageView mobile={mobile} onZoomChange={setMobileZoom} zoomController={zoomController} pageCount={record.pageCount} pageEdits={original?{}:record.pageEdits} onPageSeen={n=>{if(current.current.lastPage!==n)void update({lastPage:n});}} pageEdit={original?undefined:record.pageEdits?.[page]} editing={editing&&!original} editTool={editing&&!original?editTool:null} cropDraft={cropDraft} annotation={{pen,noteDraft,onNoteDraft:setNoteDraft,onSaveNote:saveNote,onUpdateNote:(note,n)=>editPage({notes:(current.current.pageEdits?.[n]?.notes??[]).map(item=>item.id===note.id?note:item)},n),onCancelNote:()=>{setNoteDraft(null);setNotice('');},onDeleteNote:(id,n)=>{editPage({notes:(current.current.pageEdits?.[n]?.notes??[]).filter(note=>note.id!==id)},n);setNoteDraft(null);},onStroke:(stroke,n)=>{const strokes=current.current.pageEdits?.[n]?.strokes??[];if(strokes.length>=1000){setNotice('한 페이지의 필기는 1,000개까지 저장할 수 있습니다. 불필요한 필기를 지운 뒤 다시 써 주세요.');return;}editPage({strokes:[...strokes,stroke]},n);},onUpdateStroke:(stroke,n)=>editPage({strokes:(current.current.pageEdits?.[n]?.strokes??[]).map(s=>s.id===stroke.id?stroke:s)},n),onDeleteStroke:(id,n)=>editPage({strokes:(current.current.pageEdits?.[n]?.strokes??[]).filter(s=>s.id!==id)},n),onCropDraft:(rect,n)=>setCropDraft({rect,page:n})}} onTextPoint={(point,n=page)=>{if(noteDraft&&noteDraft.page!==n){setNotice('현재 메모를 저장하거나 취소한 뒤 다른 페이지에 입력해 주세요.');return;}setNoteDraft(d=>d??{id:crypto.randomUUID(),page:n,...point,text:'',size:.035,color:'brown'});}} onSelectNote={(note,n=page)=>{if(noteDraft&&noteDraft.id!==note.id){setNotice('작성 중인 메모를 저장하거나 취소해 주세요.');return;}metro.stop();setMapping(false);setEditTool('select');setNoteDraft({...note,page:n});}} {...{blob,mapping,barMap:bars,activeBar,selectedBar,getBarPosition,snapRows,draftRow,rowCount,copiedBar}} onCopy={bar=>{metro.stop();setEditing(true);setEditTool('bar');setMapping(true);setDraftRow(null);setSelectedBar(null);setCopiedBar({...bar});}} onPaste={rect=>{appendBars([rect]);setCopiedBar(null);}} onCancelCopy={()=>setCopiedBar(null)} onCountPreview={setRowCount} onCommitRow={commitRow} onCancelRow={()=>setDraftRow(null)} playing={metro.playing&&Boolean(record.highlight)} pageNumber={page} zoom={zoom} barMap={original?emptyBars:bars} onAdd={addBar} onSelect={selectBar} onRemove={removeBar} onDeselect={()=>setSelectedBar(null)}/>
+   {fullscreen.active&&toolbar}</div>
+   {!mobile&&bars.length>0&&<div className="pdfBarNav"><button type="button" onClick={()=>stepBar(-1)}>‹ 이전 마디</button><span>{activeBar?`${activeBar}마디`:'마디 선택'}</span><button type="button" onClick={()=>stepBar(1)}>다음 마디 ›</button></div>}
+  {!mobile&&!fullscreen.active&&toolbar}</main>{!mobile&&(compact?<details className="pdfMobileSettings"><summary>연습 설정 · {record.bpm} BPM · {record.meter.join('/')}</summary>{settings}</details>:<aside className="pdfSettings">{settings}</aside>)}</div>{mobile?<div className="pdfPracticeDock">{!fullscreen.active&&toolbar}{controls}</div>:controls}
  </section>;
 }

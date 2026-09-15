@@ -29,7 +29,7 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
     }
     setPlaying(false); setBeat(-1); setTick(-1);
   }, []);
-  const start = useCallback(async () => {
+  const start = useCallback(async ({beatOffset=0}={}) => {
     stop();
     const request = token.current;
     try {
@@ -41,7 +41,8 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
       gain.connect(getAudioBusInput(AUDIO_BUS_IDS.METRONOME));
       const origin = context.currentTime + 0.06;
       const stepSeconds = getAudioTransportStepSeconds(bpm) * 4 / beatUnit;
-      const s = { context, gain, origin, stepSeconds, oscillators: new Set(), cursor: createAudioTransportCursor({ originTime: origin, stepSeconds }), frame: 0, timer: 0 };
+      const fraction=beatOffset-Math.floor(beatOffset),clickOrigin=origin+(fraction?1-fraction:0)*stepSeconds,firstBeat=Math.ceil(beatOffset);
+      const s = { context, gain, origin, stepSeconds, oscillators: new Set(), cursor: createAudioTransportCursor({ originTime: clickOrigin, stepSeconds }), frame: 0, timer: 0 };
       session.current = s;
       const schedule = () => {
         if (session.current !== s) return;
@@ -49,7 +50,7 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
         s.cursor = batch.cursor;
         batch.steps.forEach(step => {
           const o = context.createOscillator(), envelope = context.createGain();
-          const downbeat = downbeatRef.current ? downbeatRef.current(step.index) : step.index % beatsPerBar === 0;
+          const downbeat = downbeatRef.current ? downbeatRef.current(step.index) : (step.index+firstBeat) % beatsPerBar === 0;
           o.frequency.value = downbeat ? 1200 : 850;
           envelope.gain.setValueAtTime(0.0001, step.time);
           envelope.gain.exponentialRampToValueAtTime(downbeat ? ETUDE_CLICK_PEAK : ETUDE_WEAK_CLICK_PEAK, step.time + 0.002);
@@ -62,11 +63,12 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
       };
       const paint = () => {
         if (session.current !== s) return;
-        const step = context.currentTime < origin ? -1 : Math.floor((context.currentTime - origin) / stepSeconds);
+        const step = context.currentTime < clickOrigin ? -1 : Math.floor((context.currentTime - clickOrigin) / stepSeconds)+firstBeat;
         setBeat(step < 0 ? -1 : step % beatsPerBar); setTick(step);
         s.frame = requestAnimationFrame(paint);
       };
       schedule(); s.timer = setInterval(schedule, 25); paint(); setPlaying(true); setError('');
+      return {context,origin};
     } catch (e) { stop(); setError(e.message); }
   }, [bpm, stop, volume, beatsPerBar, beatUnit, audible]);
   useEffect(() => {

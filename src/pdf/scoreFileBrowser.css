@@ -1,0 +1,32 @@
+/* The saved-file browser has its own neutral document styling. Practice and
+   editing retain FRETIVA's existing theme and share the same stored records. */
+.scoreFileLocation{display:flex;align-items:center;gap:9px;height:30px;padding:0 9px;margin:0 0 6px;border:1px solid #d4d7db;background:#fff;color:#434a50;font:12px 'Segoe UI',sans-serif}
+.scoreFileLocation>span:first-child{color:#a98739;font-size:22px}
+.scoreFilePane{background:#fff;border:1px solid #cbd0d5;min-width:0;color:#252b31;font-family:'Segoe UI',Arial,sans-serif}
+.scoreFileColumns{display:grid;grid-template-columns:minmax(0,1fr) 130px 150px 112px 40px;align-items:center;height:29px;background:#f2f3f5;border-bottom:1px solid #d8dce0;font-size:11px;color:#58616a}
+.scoreFileColumns>span{padding-left:8px;border-right:1px solid #dde1e4}.scoreFileColumns>span:first-child{padding-left:42px}
+.scoreFilePane .scoreLibraryList{border:0;max-width:none}
+.scoreFilePane .scoreLibraryRow{border:0;border-bottom:1px solid #edf0f2;background:#fff}
+html body .app:is(.theme-light,.theme-dark,.theme-brand) .pdfStudio .scoreFilePane button.scoreLibraryOpen{display:grid;grid-template-columns:24px minmax(0,1fr) 130px 150px 112px;align-items:center;gap:0;min-height:43px;height:43px;padding:4px 0 4px 8px!important;border:0!important;border-radius:0!important;background:#fff!important;background-image:none!important;box-shadow:none!important;text-shadow:none!important;color:#252b31!important;filter:none!important;transform:none!important;font-family:'Segoe UI',Arial,sans-serif!important}
+html body .app:is(.theme-light,.theme-dark,.theme-brand) .pdfStudio .scoreFilePane button.scoreLibraryOpen:hover{background:#eff5fa!important}
+html body .app:is(.theme-light,.theme-dark,.theme-brand) .pdfStudio .scoreFilePane button.scoreLibraryOpen:focus-visible{background:#e7f0f8!important;outline:1px solid #8faec7;outline-offset:-1px}
+.scoreFileIcon{width:21px;height:28px;display:block;flex-shrink:0}
+.scoreFilePane .scoreFileName{min-width:0;padding:0 8px!important;text-align:left}
+.scoreFilePane .scoreFileName strong{display:block;font-family:'Segoe UI',Arial,sans-serif!important;font-size:13px!important;font-weight:400!important;line-height:1.5!important;color:#202830!important;text-shadow:none!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scoreFilePane .scoreFileName small{display:block;font-size:10px!important;font-weight:400!important;color:#737b83!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;margin:0}
+.scoreFilePane :is(.scoreFileKind,.scoreFileDetail,.scoreFileDate){padding-left:8px;font:11px/1.5 'Segoe UI',Arial,sans-serif!important;color:#66707a!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.scoreFileStatus{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:27px;padding:4px 9px;background:#f5f6f7;border-top:1px solid #d8dce0;font-size:11px;color:#626c75}
+.scoreFilePane .scoreLibraryMenu{flex-basis:40px}.scoreFilePane .scoreLibraryMenu>summary{min-height:40px;font-size:19px;color:#737c84}
+html body .app:is(.theme-light,.theme-dark,.theme-brand) .pdfStudio .scoreFilePane .scoreLibraryMenu button{background:#fff!important;background-image:none!important;color:#252b31!important;font-family:'Segoe UI',Arial,sans-serif!important}
+.scoreFilePane .scoreLibraryMenu>div{background:#fff;border-color:#bfc6cc}
+html body .app:is(.theme-light,.theme-dark,.theme-brand) .pdfStudio[data-library-view="pdf"] .scoreLibraryAdd>button{background:#f4f5f6!important;background-image:none!important;color:#384149!important;border:1px solid #cbd0d5!important;border-radius:2px!important;box-shadow:none!important;font-family:'Segoe UI',Arial,sans-serif!important;font-size:12px!important;min-height:32px;height:32px;padding:4px 9px!important}
+html body .app:is(.theme-light,.theme-dark,.theme-brand) .pdfStudio[data-library-view="pdf"] .pdfLibraryTools :is(input,select){background:#fff!important;background-image:none!important;color:#384149!important;border:1px solid #cbd0d5!important;border-radius:2px!important;box-shadow:none!important;font-family:'Segoe UI',Arial,sans-serif!important;font-size:12px!important;min-height:34px;height:34px;padding:4px 8px!important}
+.pdfStudio .scoreMainTabs{background:#f4f5f6;border-bottom:1px solid #bac2c9}
+html body .app:is(.theme-light,.theme-dark,.theme-brand) .pdfStudio .scoreMainTabs>button{background:#f4f5f6!important;background-image:none!important;border-bottom:0!important;border-right:1px solid #d6dce0!important;font:14px 'Segoe UI',Arial,sans-serif!important;color:#616b74!important}
+html body .app:is(.theme-light,.theme-dark,.theme-brand) .pdfStudio .scoreMainTabs>button[aria-selected=true]{background:#fff!important;color:#26323c!important;border-top:2px solid #8198a9!important;font-weight:600!important}
+.pdfStudio--mobile .scoreFileColumns{grid-template-columns:minmax(0,1fr) 74px 32px;font-size:10px;height:27px}
+.pdfStudio--mobile .scoreFilePane .scoreLibraryMenu{flex-basis:32px}
+html body .app:is(.theme-light,.theme-dark,.theme-brand) .pdfStudio--mobile .scoreFilePane button.scoreLibraryOpen{grid-template-columns:24px minmax(0,1fr) 74px;height:54px;min-height:54px}
+.pdfStudio--mobile .scoreFilePane .scoreFileDate{font-size:10px!important;padding-left:2px}
+.pdfStudio--mobile .scoreFileColumns>span{padding-left:2px}.pdfStudio--mobile .scoreFileColumns>span:first-child{padding-left:40px}
+.pdfStudio--mobile[data-library-view="pdf"] .scoreLibraryAdd{margin-bottom:6px}.pdfStudio--mobile[data-library-view="pdf"] .pdfLibraryTools{margin-bottom:8px}

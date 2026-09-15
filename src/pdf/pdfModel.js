@@ -29,6 +29,6 @@ export function alignBarRow(rect,bars,enabled=true) {
  return match?{...rect,y:match.y,height:match.height}:{...rect};
 }
 export function splitBarRow(rect,count) {
- const n=Math.max(1,Math.min(16,Math.floor(Number(count)||1)));
+ const n=Math.max(1,Math.min(64,Math.floor(Number(count)||1)));
  return Array.from({length:n},(_,i)=>({...rect,x:rect.x+rect.width*i/n,width:rect.width/n}));
 }

@@ -22,10 +22,11 @@ try {for(const mobile of process.env.ONLY_MOBILE?[true]:[false,true]) {
  const audio=await p.evaluate(()=>window.audioStarts);assert.ok(audio.length>4);const gaps=audio.slice(1).map((e,i)=>Math.round((e.time-audio[i].time)*1000));
  const pagePhase=await p.evaluate(async()=>{const url=performance.getEntriesByType('resource').map(x=>x.name).find(x=>new URL(x).pathname==='/src/pdf/PdfPage.jsx');return (await import(url)).pdfRenderStats;});
  await p.getByRole('button',{name:'PDF 연습 시작 정지',exact:true}).click();
- await p.getByLabel('PDF 확대',{exact:true}).selectOption('fit');await ready(24);await settings();await p.locator('summary').filter({hasText:'마디 위치 · 반복 연습'}).click();await p.getByRole('button',{name:'마디 위치 설정',exact:true}).click();
+ await p.getByLabel('PDF 확대',{exact:true}).selectOption('fit');await ready(24);await settings();await p.locator('summary').filter({hasText:'마디 위치 · 반복 연습'}).click();await p.getByRole('button',{name:'PDF 간단 편집',exact:true}).click();
  const paper=p.locator('.pdfPaper');await paper.scrollIntoViewIfNeeded();const box=await paper.boundingBox();const start={x:box.x+box.width*.1,y:box.y+box.height*.15},end={x:box.x+box.width*.4,y:box.y+box.height*.28};
- if(mobile){const cdp=await context.newCDPSession(p);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:start.x,y:start.y}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:end.x,y:end.y}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});}else{await p.mouse.move(start.x,start.y);await p.mouse.down();await p.mouse.move(end.x,end.y,{steps:8});await p.mouse.up();}
- await p.locator('[data-pdf-bar="1"]').waitFor();await settings();await p.getByRole('button',{name:'마디 위치 설정',exact:true}).click();
+ if(mobile){await p.touchscreen.tap(start.x,start.y);await p.touchscreen.tap(end.x,end.y);}else{await p.mouse.click(start.x,start.y);await p.mouse.click(end.x,end.y);}
+ await p.getByRole('button',{name:'1마디로 저장',exact:true}).click();
+ await p.locator('[data-pdf-bar="1"]').waitFor();await settings();await p.getByRole('button',{name:'PDF 간단 편집',exact:true}).click();
  await p.getByLabel('지정한 마디 자동 강조',{exact:true}).check();await p.getByLabel('카운트인 1마디',{exact:true}).check();await p.getByLabel('구간 반복',{exact:true}).check();await p.getByRole('button',{name:'PDF 연습 시작 정지',exact:true}).click();await p.waitForTimeout(1400);assert.ok((await p.locator('[data-pdf-bar="1"]').getAttribute('class')).includes('is-active'));
  await p.getByRole('button',{name:'PDF 연습 시작 정지',exact:true}).click();
  await p.getByLabel('PDF 확대',{exact:true}).selectOption('150');await p.getByRole('button',{name:'‹ 내 악보 보관함',exact:true}).click();

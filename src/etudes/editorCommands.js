@@ -1,5 +1,5 @@
-import {patchEvent,newId,ticksOf,blankEvent,cloneMeasures,moveSamePitch} from './scoreModel.js';
-export function enterFret(d,c,fret){return patchEvent(d,c.bar,c.event,e=>{const old=e.notes.find(n=>n.string===c.string);const tone={...(old??{id:newId('tone')}),string:c.string,fret,locked:true};delete tone.spelling;const notes=e.rest?[tone]:old?e.notes.map(n=>n===old?tone:n):[...e.notes,tone];return {...e,rest:false,notes};});}
+import {patchEvent,newId,ticksOf,blankEvent,cloneMeasures,moveSamePitch,blankMeasure} from './scoreModel.js';
+export function enterFret(d,c,fret){return patchEvent(d,c.bar,c.event,e=>{const old=e.notes.find(n=>n.string===c.string);const tone={...(old??{id:newId('tone')}),string:c.string,fret,locked:true};delete tone.spelling;const notes=e.rest?[tone]:old?e.notes.map(n=>n===old?tone:n):[...e.notes,tone];return {...e,dead:false,rest:false,notes};});}
 export function setEventDuration(d,c,duration){
  const allowed=['1','2','4','8','16'];if(!allowed.includes(String(duration)))throw Error('지원하지 않는 음표 길이입니다.');
  const measure=d.measures[c.bar],event=measure?.events[c.event];if(!event||event.duration===String(duration))return d;
@@ -25,9 +25,9 @@ export function resolveFretInput(previous,key,location,time,twoDigit=false){
  const value=combined?Number(previous.text+key):Number(key);
  return {value,combined,advanceBefore:Boolean(same&&!combined),wait:twoDigit&&!combined&&/^[12]$/.test(key),text:String(value),location,time};
 }
-export function deleteTone(d,c){return patchEvent(d,c.bar,c.event,e=>{const notes=e.notes.filter(n=>n.string!==c.string);return {...e,notes,rest:!notes.length,technique:notes.length?e.technique:null};});}
+export function deleteTone(d,c){return patchEvent(d,c.bar,c.event,e=>{const notes=e.notes.filter(n=>n.string!==c.string);return {...e,notes,rest:!notes.length,technique:notes.length?e.technique:null,...(!notes.length?{pickStroke:null,tieTo:null,dead:false}:{})};});}
 export function moveFingering(d,c,direction){return patchEvent(d,c.bar,c.event,e=>{const tone=e.notes.find(n=>n.string===c.string);if(!tone)return e;const next=moveSamePitch(tone,direction,d.tuning);if(e.notes.some(n=>n!==tone&&n.string===next.string))return e;return {...e,notes:e.notes.map(n=>n===tone?next:n)};});}
-export function setRest(d,c){return patchEvent(d,c.bar,c.event,{rest:true,notes:[],technique:null});}
+export function setRest(d,c){return patchEvent(d,c.bar,c.event,{rest:true,notes:[],technique:null,pickStroke:null,tieTo:null,dead:false});}
 export function durationStep(d,c,step){const values=['1','2','4','8','16'];const event=d.measures[c.bar].events[c.event];return patchEvent(d,c.bar,c.event,{duration:values[Math.max(0,Math.min(4,values.indexOf(event.duration)+step))]});}
 export function insertEvent(d,c,{duplicate=false,before=false}={}){const m=d.measures[c.bar],e=m.events[c.event];if(m.events.length>=64)throw Error('한 마디에 최대 64개 박을 입력할 수 있습니다.');const length=ticksOf(e),at=c.event+(before?0:1),onset=e.onset+(before?0:length),added=duplicate?{...structuredClone(e),id:newId('event'),onset,notes:e.notes.map(n=>({...n,id:newId('tone')}))}:blankEvent(onset,e.duration);const events=[...m.events.slice(0,at),added,...m.events.slice(at).map(n=>({...n,onset:n.onset+length}))];return {...d,measures:d.measures.map((bar,i)=>i===c.bar?{...bar,events}:bar)};}
 // Dragging is an explicit local edit, never a rerun of fingering generation.
@@ -65,3 +65,10 @@ export function copyBars(d,start,end){return d.measures.slice(Math.min(start,end
 export function pasteBars(d,after,bars){if(d.measures.length+bars.length>64)throw Error('최대 64마디입니다.');return {...d,measures:[...d.measures.slice(0,after+1),...cloneMeasures(bars),...d.measures.slice(after+1)]};}
 export function cursorStep(d,c,direction){let bar=c.bar,event=c.event+direction;if(event<0&&bar>0){bar--;event=d.measures[bar].events.length-1;}if(event>=d.measures[bar].events.length&&bar<d.measures.length-1){bar++;event=0;}return {...c,bar,event:Math.max(0,Math.min(d.measures[bar].events.length-1,event))};}
 export function inputDigits(previous,key,location,time,windowMs=700){const combined=previous&&previous.location===location&&time-previous.time<windowMs&&previous.text.length===1?Number(previous.text+key):99;const value=combined<=24?combined:Number(key);return {value,text:combined<=24?String(combined):key,time,location};}
+
+// Only explicit continued entry appends a measure; browsing and picking do not.
+export function nextEntry(d,c){const next=cursorStep(d,c,1);if(next.bar!==c.bar||next.event!==c.event)return {document:d,cursor:next};
+ const e=d.measures[c.bar].events[c.event],capacity=d.meter[0]*1920/d.meter[1];
+ if(e.onset+ticksOf(e)!==capacity||d.measures.length>=64)return {document:d,cursor:c};
+ return {document:{...d,measures:[...d.measures,blankMeasure(d.meter)]},cursor:{...c,bar:c.bar+1,event:0}};
+}

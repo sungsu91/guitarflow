@@ -1,0 +1,83 @@
+/* Mobile library chrome; no fixed dimensions or changes to document storage. */
+html body main.app.app.app .pdfStudio.pdfStudio--mobile[data-library-view]{padding:8px 16px calc(12px + env(safe-area-inset-bottom));background:var(--mobile-library-bg,#faf7f0);min-width:0}
+.mobileLibraryHud{height:48px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+.mobileLibraryHud>div{display:flex;align-items:center;gap:9px;min-width:0}.mobileLibraryHud img{width:30px;height:30px;border-radius:5px;object-fit:cover}.mobileLibraryHud strong{font-size:17px;letter-spacing:.6px;white-space:nowrap;color:var(--mobile-list-ink,#302b24)}
+html body main.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibraryHud button{display:flex;align-items:center;gap:6px;min-height:44px;min-width:70px;padding:4px 0!important;border:0!important;background:transparent!important;background-image:none!important;box-shadow:none!important;color:var(--mobile-list-ink)!important;text-shadow:none!important;font-size:15px!important;transform:none!important}
+html body main.app.app.app .pdfStudio.pdfStudio--mobile .scoreTabsAnchor{height:46px;margin-bottom:12px}
+html body main.app.app.app .pdfStudio.pdfStudio--mobile .scoreMainTabs>button{height:46px;min-height:44px;padding:8px!important;border-radius:0!important}
+html body main.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreLibraryAdd{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 12px}
+html body main.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreLibraryAdd>button{height:44px!important;min-height:44px!important;border-radius:5px!important;font-size:13px!important;background:var(--mobile-list-bg)!important;border-color:var(--mobile-list-line)!important;color:var(--mobile-list-ink)!important;padding:5px!important}
+.mobileLibrarySearch{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:8px;margin-bottom:8px}
+.mobileLibrarySearch>label{display:flex;align-items:center;gap:7px;min-width:0;height:44px;padding:0 9px;border:1px solid var(--mobile-list-line);border-radius:5px;background:var(--mobile-list-bg);box-sizing:border-box;color:var(--mobile-list-muted)}.mobileLibrarySearch>label svg{flex:none}
+html body main.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibrarySearch input{width:100%!important;min-width:0!important;height:42px!important;min-height:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:var(--mobile-list-ink)!important;font-size:13px!important}.mobileLibrarySearch input::placeholder{color:var(--mobile-list-muted)!important}
+html body main.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibrarySearch button{display:flex;align-items:center;justify-content:space-between;gap:6px;height:44px;min-height:44px;padding:5px 9px!important;border:1px solid var(--mobile-list-line)!important;border-radius:5px!important;background:var(--mobile-list-bg)!important;background-image:none!important;color:var(--mobile-list-ink)!important;font-size:13px!important;box-shadow:none!important;text-shadow:none!important;transform:none!important}
+.mobileLibrarySortMenu{position:absolute;top:49px;right:0;width:150px;z-index:45;padding:4px;background:var(--mobile-list-bg);border:1px solid var(--mobile-list-line);border-radius:5px;box-shadow:0 2px 6px #0001}
+html body main.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibrarySortMenu>button{width:100%;border:0!important;justify-content:flex-start}.mobileLibrarySortMenu>button[aria-pressed=true]{font-weight:650!important;text-decoration:underline;text-decoration-color:var(--mobile-list-accent);text-underline-offset:6px}
+html body main.app.app.app .pdfStudio.pdfStudio--mobile .scoreListFilters{margin:0 0 8px;gap:22px}
+html body main.app.app.app .pdfStudio.pdfStudio--mobile .scoreListFilters>button{min-height:44px;font-size:14px;padding:6px 3px!important}
+html body main.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileSectionHeader{min-height:44px;margin:0 0 2px}
+html body main.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileSectionHeader h2{font-size:17px!important}
+html body main.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList.scoreFilePane{background:transparent!important;border-radius:0!important}
+html body main.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList :is(.scoreFolderRows,.scoreLibraryList){background:var(--mobile-list-bg);border:1px solid var(--mobile-list-line)!important;border-radius:5px;overflow:visible}
+html body main.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList :is(.scoreFolderRows,.scoreLibraryList):empty{display:none}
+html body main.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList :is(.scoreFolderRows,.scoreLibraryList)>li:last-child{border-bottom:0!important;border-radius:0 0 5px 5px}
+html body main.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList :is(.scoreFolderRows,.scoreLibraryList)>li:first-child{border-radius:5px 5px 0 0}
+html body main.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList button.scoreFolderOpen{min-height:52px;padding:8px 12px!important}
+html body main.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList button.scoreMobileOpen{min-height:66px;padding:9px 12px!important}
+html body main.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileScoresHeading{font-size:17px!important;padding:16px 0 10px;margin:0;background:transparent!important}
+.mobileFolderCrumb{display:flex;align-items:center;gap:6px;min-height:36px;font-size:13px;color:var(--mobile-list-muted)}.mobileFolderCrumb strong{font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+html body main.app.app.app.app .pdfStudio.pdfStudio--mobile :is(.mobileFolderCrumb,.mobileFolderEmpty)>button{flex:none;border:0!important;background:transparent!important;background-image:none!important;box-shadow:none!important;color:var(--mobile-list-ink)!important;padding:4px 0!important;min-height:44px;font-size:13px!important}
+.mobileFolderEmpty{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--mobile-list-muted);padding:0 10px;background:var(--mobile-list-bg);border-radius:5px}
+html body main.app.app.app.app .pdfStudio.pdfStudio--mobile button.mobileLibraryStorage{display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:10px 2px!important;margin:16px 0 0;border:0!important;border-top:1px solid var(--mobile-list-line)!important;border-radius:0!important;background:transparent!important;background-image:none!important;color:var(--mobile-list-ink)!important;box-shadow:none!important;text-shadow:none!important;font-size:15px!important;text-align:left}.mobileLibraryStorage>span{flex:1}
+.mobileLibraryStorageDialog{max-height:85dvh;overflow:auto}.mobileLibraryStorageDialog>header{display:flex;align-items:center;justify-content:space-between;gap:8px}.mobileLibraryStorageDialog h2{font-size:18px}.mobileLibraryStorageDialog p{font-size:13px;line-height:1.6}.mobileLibraryStorageDialog>div>button{width:100%;margin-bottom:8px}
+html body main.app.app.app.app .pdfStudio.pdfStudio--mobile :is(.mobileLibraryHud,.mobileLibrarySearch,.mobileLibraryStorage) button::before,html body main.app.app.app.app .pdfStudio.pdfStudio--mobile :is(.mobileLibraryHud,.mobileLibrarySearch) button::after,html body main.app.app.app.app .pdfStudio.pdfStudio--mobile button.mobileLibraryStorage::before,html body main.app.app.app.app .pdfStudio.pdfStudio--mobile button.mobileLibraryStorage::after{content:none!important}
+
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibrarySearch>label{display:flex!important;flex-direction:row!important;align-items:center!important;gap:7px!important;height:44px!important;margin:0!important;min-width:0!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibrarySearch input{display:block!important;flex:1;align-self:center;margin:0!important;width:0!important;height:42px!important;color:var(--mobile-list-ink)!important;-webkit-text-fill-color:var(--mobile-list-ink)!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile :is(.mobileLibraryHud,.mobileLibrarySearch,.scoreLibraryAdd,.mobileLibraryStorage,.scoreMobileSectionHeader,.scoreMobileList,.scoreListFilters,.mobileFolderCrumb){text-shadow:none!important;-webkit-text-fill-color:currentColor!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList :is(.scoreMobileName strong,.scoreFolderOpen strong){color:var(--mobile-list-ink)!important;-webkit-text-fill-color:var(--mobile-list-ink)!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList :is(small,.scoreRowArrow){color:var(--mobile-list-muted)!important;-webkit-text-fill-color:var(--mobile-list-muted)!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile :is(.mobileLibrarySearch,.scoreLibraryAdd) button{-webkit-text-fill-color:var(--mobile-list-ink)!important;transition:none!important}
+html body main.app.app.app:has(.pdfStudio--mobile[data-library-view]){background:#faf7f0!important;background-image:none!important}
+html body main.app.app.app.theme-brand:has(.pdfStudio--mobile[data-library-view]){background:#171612!important}
+
+html body main.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibraryHud button.mobileLibraryBrand{gap:9px;min-width:0;text-align:left}
+
+/* Measured 390px visual specification. No transform/zoom; remove nested gutter. */
+html body main.app.app.app.app.app:has(>.pdfStudio--mobile[data-library-view]){padding:0!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile[data-library-view]{padding:8px 16px calc(12px + env(safe-area-inset-bottom))!important;--mobile-library-bg:#faf8f3;--mobile-list-ink:#211a15;--mobile-list-muted:#777779;--mobile-list-line:#e7e4df;--mobile-list-accent:#49301d;font-family:Arial,'Segoe UI',sans-serif}
+html body main.app.app.app.app.app.theme-brand .pdfStudio.pdfStudio--mobile[data-library-view]{--mobile-library-bg:#171612;--mobile-list-ink:#eee8da;--mobile-list-muted:#beb49f;--mobile-list-line:#403a2e;--mobile-list-accent:#b89763}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibraryHud{height:46px;margin-bottom:8px}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibraryHud strong{font:700 18px/1.25 Arial,'Segoe UI',sans-serif!important;letter-spacing:.6px;color:var(--mobile-list-ink)!important;-webkit-text-fill-color:currentColor!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibraryHud button{font:500 16px/1.25 Arial,'Segoe UI',sans-serif!important;gap:8px!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibraryBrand>svg{color:var(--mobile-list-accent)!important;flex:none}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreTabsAnchor{height:48px;margin:0 0 16px}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMainTabs.scoreMainTabs>button{height:48px;min-height:48px;font:500 19px/1.25 Arial,'Segoe UI',sans-serif!important;padding:10px 0!important;transition:none!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMainTabs.scoreMainTabs>button[aria-selected=true]{font-weight:700!important;border-bottom-width:2px!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreLibraryAdd{margin-bottom:16px;gap:8px}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreLibraryAdd>button{height:46px!important;min-height:46px!important;font:500 15px/1.3 Arial,'Segoe UI',sans-serif!important;border-color:#d1ceca!important;border-radius:6px!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibrarySearch{grid-template-columns:minmax(0,1fr) 112px;gap:8px;margin-bottom:12px}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibrarySearch>label{height:46px!important;padding:0 11px;border-color:#d1ceca;border-radius:6px;gap:8px!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibrarySearch input{height:44px!important;font:400 14px/1.3 Arial,'Segoe UI',sans-serif!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibrarySearch input::placeholder{color:var(--mobile-list-muted)!important;-webkit-text-fill-color:var(--mobile-list-muted)!important;opacity:1}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .mobileLibrarySearch button{height:46px;min-height:46px;font:500 15px/1.3 Arial,'Segoe UI',sans-serif!important;border-color:#d1ceca!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreListFilters{gap:27px;margin:0 0 12px}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreListFilters>button{height:40px;min-height:40px;font:400 16px/1.3 Arial,'Segoe UI',sans-serif!important;padding:5px 4px!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreListFilters>button[aria-pressed=true]{font-weight:700!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileSectionHeader{height:36px;min-height:36px;margin:0 0 8px}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileSectionHeader h2,html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileScoresHeading{font:700 19px/24px Arial,'Segoe UI',sans-serif!important;color:var(--mobile-list-ink)!important;-webkit-text-fill-color:currentColor!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileSectionHeader>button{font:400 15px/1.3 Arial,'Segoe UI',sans-serif!important;min-height:36px}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileScoresHeading{padding:16px 0 8px!important;margin:0!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList button.scoreFolderOpen{height:68px;min-height:68px;padding:12px 16px!important;gap:14px}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList .scoreFolderOpen strong{font:500 18px/1.35 Arial,'Segoe UI',sans-serif!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList .scoreFolderOpen small{font:400 14px/1.35 Arial,'Segoe UI',sans-serif!important}
+.scoreFolderLineIcon{flex:none;color:var(--mobile-list-ink)}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList button.scoreMobileOpen{height:76px;min-height:76px;padding:12px 16px!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList .scoreMobileName strong{font:600 18px/1.35 Arial,'Segoe UI',sans-serif!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList .scoreMobileName small{font:400 13px/1.45 Arial,'Segoe UI',sans-serif!important;margin-top:5px}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreMobileList .scoreRowArrow{font:300 24px/1 Arial,sans-serif!important;width:15px}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile .scoreFolderEmpty{font:400 14px/1.6 Arial,'Segoe UI',sans-serif!important;padding:20px 4px!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile button.mobileLibraryStorage{height:64px;min-height:64px;margin-top:12px;padding:12px 5px!important;gap:13px;font:500 17px/1.4 Arial,'Segoe UI',sans-serif!important}
+html body main.app.app.app.app.app .pdfStudio.pdfStudio--mobile button.mobileLibraryStorage>svg{flex:none}
+
+.mobileLibraryBrand .lucide-music circle{fill:currentColor}

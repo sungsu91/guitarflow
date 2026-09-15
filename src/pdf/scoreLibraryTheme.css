@@ -1,0 +1,50 @@
+/* Gold-dark library chrome. Printed notation and PDF canvases remain paper-white. */
+html body main.app.theme-brand.theme-brand .pdfStudio{
+ --library-bg:#171612;--library-panel:#211f19;--library-hover:#2e291e;
+ --library-line:#494030;--library-text:#eee8da;--library-muted:#beb49f;--library-gold:#c8a566;
+}
+html body main.app.theme-brand.theme-brand .pdfStudio[data-library-view]{
+ background:var(--library-bg)!important;color:var(--library-text)!important;color-scheme:dark;
+}
+html body main.app.theme-brand.theme-brand .pdfStudio .scoreMainTabs{background:var(--library-bg)!important;border-color:var(--library-line)!important}
+html body main.app.theme-brand.theme-brand .pdfStudio .scoreMainTabs>button{
+ background:var(--library-bg)!important;background-image:none!important;color:var(--library-muted)!important;
+ border:0!important;border-bottom:2px solid transparent!important;box-shadow:none!important;text-shadow:none!important;
+}
+html body main.app.theme-brand.theme-brand .pdfStudio .scoreMainTabs>button[aria-selected=true]{background:var(--library-panel)!important;color:var(--library-gold)!important;border-bottom-color:var(--library-gold)!important}
+html body main.app.theme-brand.theme-brand .pdfStudio[data-library-view] .scoreMainTabs>button[aria-selected=true]{border-top:0!important}
+html body main.app.theme-brand.theme-brand .pdfStudio[data-library-view] :is(.scoreLibraryAdd,.scoreFolderTools,.scoreFolderPath,.pdfLibraryTools,.pdfStorage,.pdfMobileNav) :is(button,input,select){
+ background:var(--library-panel)!important;background-image:none!important;color:var(--library-text)!important;
+ border:1px solid var(--library-line)!important;border-radius:3px!important;box-shadow:none!important;text-shadow:none!important;filter:none!important;
+}
+html body main.app.theme-brand.theme-brand .pdfStudio[data-library-view] :is(.scoreLibraryAdd,.scoreFolderTools,.scoreFolderPath,.pdfMobileNav) button::before,
+html body main.app.theme-brand.theme-brand .pdfStudio[data-library-view] :is(.scoreLibraryAdd,.scoreFolderTools,.scoreFolderPath,.pdfMobileNav) button::after{content:none!important}
+html body main.app.theme-brand.theme-brand .pdfStudio[data-library-view] :is(.scoreFolderPath,.scoreLibraryGuidance,.scoreFileStatus,.pdfStorage,.scoreFolderMessage,.scoreFolderEmpty){color:var(--library-muted)!important;border-color:var(--library-line)!important}
+html body main.app.theme-brand.theme-brand .pdfStudio .pdfLibraryTools input::placeholder{color:var(--library-muted)!important;opacity:1}
+html body main.app.theme-brand.theme-brand .pdfStudio .scoreFilePane{background:var(--library-bg)!important;color:var(--library-text)!important;border-color:var(--library-line)!important}
+html body main.app.theme-brand.theme-brand .pdfStudio :is(.scoreFileColumns,.scoreFileStatus){background:var(--library-panel)!important;color:var(--library-muted)!important;border-color:var(--library-line)!important}
+html body main.app.theme-brand.theme-brand .pdfStudio :is(.scoreFileColumns>span,.scoreLibraryRow,.scoreFolderRows>li){border-color:var(--library-line)!important}
+html body main.app.theme-brand.theme-brand .pdfStudio .scoreFilePane :is(.scoreLibraryRow,button.scoreLibraryOpen,button.scoreFolderOpen,.scoreLibraryMenu>div,.scoreLibraryMenu button){background:var(--library-bg)!important;background-image:none!important;color:var(--library-text)!important;box-shadow:none!important;text-shadow:none!important;border-color:var(--library-line)!important}
+html body main.app.theme-brand.theme-brand .pdfStudio .scoreFilePane :is(.scoreFileName strong,.scoreFolderOpen strong){color:var(--library-text)!important}
+html body main.app.theme-brand.theme-brand .pdfStudio .scoreFilePane :is(.scoreFileName small,.scoreFileKind,.scoreFileDetail,.scoreFileDate,.scoreFolderOpen small,.scoreLibraryMenu>summary){color:var(--library-muted)!important}
+html body main.app.theme-brand.theme-brand .pdfStudio .scoreFilePane :is(button.scoreLibraryOpen,button.scoreFolderOpen,.scoreLibraryMenu button):hover,
+html body main.app.theme-brand.theme-brand .pdfStudio .scoreFilePane .scoreLibraryRow[data-selected=true] button.scoreLibraryOpen{background:var(--library-hover)!important}
+html body main.app.theme-brand.theme-brand .pdfStudio[data-library-view] :is(button,input,select):focus-visible{outline:2px solid var(--library-gold)!important;outline-offset:-2px}
+html body main.app.theme-brand.theme-brand .pdfStudio .scoreSelectionMark{background:var(--library-panel);border-color:var(--library-gold)}
+html body main.app.theme-brand.theme-brand .pdfStudio .scoreSelectionMark.is-selected{background:var(--library-gold);color:#171612}
+html body main.app.theme-brand.theme-brand .pdfStudio .scoreFolderTools button[aria-pressed=true]{border-color:var(--library-gold)!important;color:var(--library-gold)!important}
+html body main.app.theme-brand.theme-brand .pdfStudio[data-library-view] button:disabled{opacity:.45!important}
+html body main.app.theme-brand.theme-brand .pdfStudio[data-library-view] .pdfDialog{background:var(--library-panel)!important;color:var(--library-text)!important;border-color:var(--library-line)!important;color-scheme:dark}
+html body main.app.theme-brand.theme-brand .pdfStudio[data-library-view] .pdfDialog :is(input,select,textarea,button){background:var(--library-bg)!important;background-image:none!important;color:var(--library-text)!important;border:1px solid var(--library-line)!important;box-shadow:none!important;text-shadow:none!important}
+html body main.app.theme-brand.theme-brand .pdfStudio .etudeStudio{
+ --etude-ink:var(--library-text);--etude-muted:var(--library-muted);--etude-line:var(--library-line);
+ --etude-line-strong:var(--library-line);--etude-panel:var(--library-panel);--etude-accent:var(--library-gold);
+ background:var(--library-bg)!important;color:var(--library-text)!important;color-scheme:dark;
+}
+html body main.app.theme-brand.theme-brand .pdfStudio .etudeStudio :is(.etudeQuickBrowse,.etudePracticeExtras) :is(button,select,input,.etudeTips,.etudeMetronome){background:var(--library-panel)!important;background-image:none!important;color:var(--library-text)!important;border-color:var(--library-line)!important;box-shadow:none!important;text-shadow:none!important;filter:none!important}
+html body main.app.theme-brand.theme-brand .pdfStudio .etudeQuickBrowse :is(button,select)::before,
+html body main.app.theme-brand.theme-brand .pdfStudio .etudeQuickBrowse :is(button,select)::after{content:none!important}
+html body main.app.theme-brand.theme-brand .pdfStudio .etudeQuickPages :is(span,small),
+html body main.app.theme-brand.theme-brand .pdfStudio .etudeSelect>span,
+html body main.app.theme-brand.theme-brand .pdfStudio .etudePracticeExtras>summary{color:var(--library-muted)!important}
+html body main.app.theme-brand.theme-brand .pdfStudio .etudeQuickBrowse :is(button,select):hover{border-color:var(--library-gold)!important}

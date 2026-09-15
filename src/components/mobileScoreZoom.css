@@ -1,0 +1,6 @@
+.mobileScoreZoom{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
+.mobileScoreZoom output{font:600 12px system-ui;color:inherit;min-width:36px;text-align:center}
+.mobileScoreZoom button{font-size:12px;min-height:36px;padding:4px 7px;border-radius:2px;box-shadow:none}
+[data-document-pinch=true]{touch-action:pan-x pan-y!important;overflow-anchor:none}
+[data-document-pinch=true] [data-pinch-anchor]{touch-action:pan-x pan-y!important}
+[data-pinching=true]{user-select:none}

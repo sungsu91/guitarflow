@@ -8459,8 +8459,8 @@ function scheduleShooterScrollHint(scrollArea, axis) {
   shooterScrollHintFrames.set(scrollArea, frame);
 }
 
-function ShooterSkinTabController({ children }) {
-  const [shooterSkinTab, setShooterSkinTab] = useState(SHOOTER_SKIN_TABS[0].id);
+function ShooterSkinTabController({ children, initialTab = SHOOTER_SKIN_TABS[0].id }) {
+  const [shooterSkinTab, setShooterSkinTab] = useState(initialTab);
   const [shooterGuitarCategoryId, setShooterGuitarCategoryId] = useState(
     SHOOTER_GUITAR_CATEGORIES.ACOUSTIC,
   );
@@ -16846,6 +16846,7 @@ function App({ onReady }) {
   const [guitarLabPurgedIds, setGuitarLabPurgedIds] = useState(getStoredGuitarLabPurgedIds);
   const [guitarLabSelectedDeleteIds, setGuitarLabSelectedDeleteIds] = useState([]);
   const [shooterGuitarPickerOpen, setShooterGuitarPickerOpen] = useState(false);
+  const [shooterPickerInitialTab, setShooterPickerInitialTab] = useState("guitar");
   const [shooterLandscapeHint, setShooterLandscapeHint] = useState("");
   const shooterLandscapeFullscreenRef = useRef(false);
   const [viewportProfile, setViewportProfile] = useState(getViewportProfile);
@@ -33262,6 +33263,18 @@ function App({ onReady }) {
                     {shooterLandscapeHint || "휴대폰을 가로로 돌려주세요."}
                   </small>
                 </span>
+                <div className="mobileLandscapeShooterPromptActions">
+                <button
+                  aria-label="맵 변경"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setShooterPickerInitialTab("map");
+                    setShooterGuitarPickerOpen(true);
+                  }}
+                  type="button"
+                >
+                  맵 변경
+                </button>
                 <button
                   onClick={(event) => {
                     event.stopPropagation();
@@ -33272,6 +33285,7 @@ function App({ onReady }) {
                   <RotateCw aria-hidden="true" size={15} />
                   가로로 보기
                 </button>
+                </div>
               </section>
             ) : null}
 
@@ -33933,6 +33947,7 @@ function App({ onReady }) {
                       className="mobileShooterStartButton shooterStartPanelButton shooterStartPanelButton--secondary"
                       onClick={(event) => {
                         event.stopPropagation();
+                        setShooterPickerInitialTab("guitar");
                         setShooterGuitarPickerOpen(true);
                       }}
                       type="button"
@@ -34066,7 +34081,8 @@ function App({ onReady }) {
                         className="mobileShooterStartButton"
                         onClick={(event) => {
                           event.stopPropagation();
-                          setShooterGuitarPickerOpen(true);
+                          setShooterPickerInitialTab("guitar");
+                        setShooterGuitarPickerOpen(true);
                         }}
                         type="button"
                       >
@@ -34124,7 +34140,8 @@ function App({ onReady }) {
               onMic={startShooterMic}
               onPause={gameState === GAME_STATES.PAUSED ? resumeGame : pauseGame}
               onRecords={() => setShowShooterRecords((current) => !current)}
-              onSkin={() => setShooterGuitarPickerOpen(true)}
+              onSkin={() => { setShooterPickerInitialTab("guitar"); setShooterGuitarPickerOpen(true); }}
+              onMap={() => { setShooterPickerInitialTab("map"); setShooterGuitarPickerOpen(true); }}
               onSolfege={() => setShooterSolfegeOn((current) => !current)}
               onSound={() => setShooterSoundOn((current) => !current)}
               recordsOpen={showShooterRecords}
@@ -34164,7 +34181,7 @@ function App({ onReady }) {
                 }`}
                 onClick={(event) => event.stopPropagation()}
               >
-              <ShooterSkinTabController>
+              <ShooterSkinTabController initialTab={shooterPickerInitialTab}>
               {({
                 shooterSkinTab,
                 setShooterSkinTab,

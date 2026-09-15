@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ETUDES, LEVELS } from './catalog.js';
-import { filterEtudes, changeEtudeFilter, lessonCourse, canOpenLesson, availableStyles, DEFAULT_FILTERS } from './filters.js';
-import { TYPES, getTrack } from './tracks.js';
+import { ETUDES } from './catalog.js';
+import { lessonCourse, canOpenLesson } from './filters.js';
 import useEtudeMetronome from './useEtudeMetronome.js';
 import './etudes.css';
 import {toScoreDocument} from './scoreDocument.js';
@@ -24,24 +23,13 @@ function Select({ label, value, options, onChange }) {
   </select></label>;
 }
 
-function Filters({ model, mobile = false }) {
-  const { filters, setFilter, list, selected, select } = model;
-  const track = getTrack(filters.type);
-  const fields = <>
-    <div className="etudeStyleFilter">
-      <Select label="스타일" value={filters.style} options={availableStyles(filters)} onChange={v => setFilter('style', v)} />
-    </div>
-  </>;
-  return <div className="etudeFilters">
-    <div className="etudeTrackPicker">
-      <Select label="연습 유형" value={filters.type} options={TYPES} onChange={v => setFilter('type', v)} />
-      <div className="etudeLevelChoices" role="group" aria-label="난이도">
-        {LEVELS.map((level,index) => <button type="button" key={level} aria-label={level} aria-pressed={filters.level===level} onClick={()=>setFilter('level',level)}><strong>{level}</strong><small>{track.stages[index][1].length}개</small></button>)}
-      </div>
-    </div>
-    {mobile ? <details className="etudeMobileFilterDetails"><summary><strong>스타일 · {filters.style}</strong><span className="etudeFilterToggle"><ChevronDown aria-hidden="true" size={26} strokeWidth={2.5} /></span></summary>{fields}</details> : fields}
-    {list.length ? <Select label={`연습곡 · ${list.length}개`} value={selected.id} options={list.map((e,index) => ({id:e.id,title:`${String(index+1).padStart(2,'0')} · ${e.title}`}))} onChange={select} /> : <div className="etudeEmpty" role="status">이 조건의 연습곡은 아직 없습니다.<button type="button" onClick={model.reset}>필터 초기화</button></div>}
-  </div>;
+function SongPicker({ model }) {
+ const {list,selected,select}=model;
+ const types=[...new Set(list.map(e=>e.type))],course=list.filter(e=>e.type===selected?.type),index=course.findIndex(e=>e.id===selected?.id);
+ return <div className="etudeSongPicker etudeQuickBrowse">
+  <div className="etudeQuickSelects"><Select label="연습 유형" value={selected?.type??types[0]} options={types} onChange={type=>select(list.find(e=>e.type===type).id)}/></div>
+  <nav className="etudeQuickPages" aria-label="에튀드 쪽넘김"><button type="button" aria-label="이전 연습곡" disabled={index<=0} onClick={()=>select(course[index-1].id)}>‹ 이전</button><span aria-live="polite">{index+1} / {course.length}</span><button type="button" aria-label="다음 연습곡" disabled={index<0||index>=course.length-1} onClick={()=>select(course[index+1].id)}>다음 ›</button></nav>
+ </div>;
 }
 
 function LessonTips({ model }) {
@@ -146,52 +134,39 @@ function Sheet({ model, mobile }) {
     <Suspense fallback={<p className="etudeLoading">악보를 준비하고 있습니다…</p>}><Score etude={etude} mobile={mobile} bpm={bpm} enlarged={enlarged} /></Suspense>
   </>;
   return <>
-    <div className="etudeSheetTools"><span>{etude.level} · {etude.style} · {etude.type}</span><div className="etudeSheetActions"><button type="button" onClick={()=>model.editScore(etude)}>악보 편집</button><button type="button" onClick={() => setExpanded(true)}>{mobile ? '가로 전환 ↻' : '악보 크게 보기 ↗'}</button></div></div>
     <article className="etudeSheet" aria-label="연습 악보">{content()}</article>
-    <ScorePlayback score={etude} bpm={bpm} disabled={Boolean(model.editing)}/>
+    <details className="etudePracticeExtras"><summary>연습 도구 · TIP</summary><div className="etudeSheetActions"><button type="button" onClick={()=>model.editScore(etude)}>악보 편집</button><button type="button" onClick={() => setExpanded(true)}>{mobile?'가로 전환 ↻':'악보 크게 보기 ↗'}</button></div><ScorePlayback score={etude} bpm={bpm} disabled={Boolean(model.editing)}/><Metronome model={model}/><LessonTips model={model}/>{model.library}</details>
     {expanded && <ZoomSheet mobile={mobile} onClose={() => setExpanded(false)}>{content(true)}</ZoomSheet>}
   </>;
 }
 
-function Heading() {
-  return <header className="etudeHeading"><div><span className="etudeEyebrow">FRETIVA LAB / STUDIES</span><h1>에튀드 스튜디오 <b>PRO</b></h1></div><p>유형별로, 기초부터 응용까지.</p></header>;
+function MobileLayout({model}) {
+ return <section className="etudeStudio etudeStudio--mobile etudeStudio--simple"><SongPicker model={model}/><Sheet model={model} mobile/></section>;
+}
+function DesktopLayout({model}) {
+ return <section className="etudeStudio etudeStudio--desktop etudeStudio--simple"><SongPicker model={model}/><div className="etudeScoreColumn"><Sheet model={model} mobile={false}/></div></section>;
 }
 
-function MobileLayout({ model }) {
-  return <section className="etudeStudio etudeStudio--mobile"><nav className="etudeMobileNav"><button type="button" onClick={model.onExit} aria-label="홈으로 가기">홈 ⌂</button><button type="button" onClick={model.onOpenMenu} aria-label="메뉴 열기">메뉴 ☰</button></nav><Heading /><Filters model={model} mobile /><LessonTips model={model} /><Sheet model={model} mobile />{model.selected && <Metronome model={model} />}</section>;
-}
-
-function DesktopLayout({ model }) {
-  return <section className="etudeStudio etudeStudio--desktop"><Heading /><div className="etudeDesktopBody"><aside><Filters model={model} /><LessonTips model={model} /></aside><div className="etudeScoreColumn"><Sheet model={model} mobile={false} />{model.selected && <Metronome model={model} />}</div></div></section>;
-}
-
-export default function EtudeStudio({ mobile, onOpenMenu, onExit }) {
-  const defaults = DEFAULT_FILTERS;
+export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, initialId=DEFAULT_ETUDE_ID }) {
   const [edits,setEdits]=useState(loadEdits);
   const [editing,setEditing]=useState(null);
-  const [filters, setFilters] = useState(defaults);
-  const [selectedId, setSelectedId] = useState(DEFAULT_ETUDE_ID);
-  const [bpm, updateBpm] = useState(()=>edits.scores[DEFAULT_ETUDE_ID]?.bpm??DEFAULT_ETUDE_BPM);
+  const [selectedId, setSelectedId] = useState(initialId);
+  const [bpm, updateBpm] = useState(()=>edits.scores[initialId]?.bpm??ETUDES.find(e=>e.id===initialId)?.bpm??DEFAULT_ETUDE_BPM);
   const metro = useEtudeMetronome(bpm);
-  const list = useMemo(() => filterEtudes(filters).map(e=>edits.scores[e.id]??e), [filters,edits]);
+  const list = useMemo(() => ETUDES.map(e=>edits.scores[e.id]??e), [edits]);
   const selected = list.find(e => e.id === selectedId) ?? list[0];
+  const filters=selected?{type:selected.type,level:selected.level,style:'전체'}:undefined;
   const select = id => { metro.stop(); setSelectedId(id); updateBpm((edits.scores[id]??ETUDES.find(e => e.id === id))?.bpm ?? 60); };
-  const setFilter = (key, value) => {
-    metro.stop();
-    const next = changeEtudeFilter(filters, key, value);
-    const available = filterEtudes(next).map(e=>edits.scores[e.id]??e);
-    const match = (key==='style' ? available.find(e => e.templateId === selected?.templateId) : null) ?? available[0];
-    setFilters(next); setSelectedId(match?.id ?? ''); updateBpm(match?.bpm ?? 60);
-  };
   const saveEdit=document=>{let result;try{result=saveLibraryDocument(window.localStorage,document,ETUDES);}catch{result={saved:false,errors:['이 브라우저에서는 저장할 수 없습니다. 파일로 내보내세요.']};}if(result.saved)setEdits(current=>({...current,records:{...current.records,[document.id]:result.record}}));return result;};
   const editScore=score=>{metro.stop();setEditing(copyDocument(toScoreDocument(score)));};
-  const model = { editing, saveEdit, editScore, filters, setFilter, list, selected, select, bpm, metro, onOpenMenu, onExit,
+  const library = <section className="etudeLibrary" aria-label="내 악보 보관함"><details><summary>내 악보 보관함 · {Object.keys(edits.records??{}).length}개</summary><p>기본 교육곡과 별도로 보관됩니다. 사용자 악보는 난이도·학습목표 검수를 받은 곡이 아닙니다.</p><button type="button" onClick={()=>{metro.stop();setEditing(createBlankDocument());}}>빈 악보 만들기</button>{Object.values(edits.records??{}).map(r=><div key={r.document.id}><span>{r.document.title} · {r.status==='saved'?'저장됨':'초안'}</span><button type="button" disabled={r.status==='unreadable'} onClick={()=>{metro.stop();setEditing(r.document);}}>열기</button><button type="button" disabled={r.status==='unreadable'} onClick={()=>setEditing(copyDocument(r.document))}>복사해 편집</button></div>)}</details></section>;
+  const model = { library, editing, saveEdit, editScore, filters, list, selected, select, bpm, metro, onOpenMenu, onExit,
     openLesson: lesson => { if (!canOpenLesson(selected, lesson, filters)) return; select(lesson.id); },
     setBpm: v => { metro.stop(); updateBpm(Math.min(240, Math.max(30, Math.round(Number(v) || 30)))); },
-    reset: () => { metro.stop(); setFilters(defaults); setSelectedId(DEFAULT_ETUDE_ID); updateBpm(edits.scores[DEFAULT_ETUDE_ID]?.bpm??DEFAULT_ETUDE_BPM); } };
+ };
   return <>{edits.errors.length>0&&<p role="status" className="etudeStorageNotice">{edits.errors.join(' ')}</p>}
-    <section className="etudeLibrary" aria-label="내 악보 보관함"><details><summary>내 악보 보관함 · {Object.keys(edits.records??{}).length}개</summary><p>기본 교육곡과 별도로 보관됩니다. 사용자 악보는 난이도·학습목표 검수를 받은 곡이 아닙니다.</p><button type="button" onClick={()=>{metro.stop();setEditing(createBlankDocument());}}>빈 악보 만들기</button>{Object.values(edits.records??{}).map(r=><div key={r.document.id}><span>{r.document.title} · {r.status==='saved'?'저장됨':'초안'}</span><button type="button" disabled={r.status==='unreadable'} onClick={()=>{metro.stop();setEditing(r.document);}}>열기</button><button type="button" disabled={r.status==='unreadable'} onClick={()=>setEditing(copyDocument(r.document))}>복사해 편집</button></div>)}</details></section>
+
     {mobile ? <MobileLayout model={model} /> : <DesktopLayout model={model} />}
-    {editing&&<Suspense fallback={<p role="status">편집기를 준비하고 있습니다…</p>}><ScoreEditor key={editing.id} document={editing} original={ETUDES.find(e=>e.templateId===editing.origin?.templateId)} mobile={mobile} onClose={()=>setEditing(null)} onSave={saveEdit}/></Suspense>}
+    {editing&&<Suspense fallback={<p role="status">편집기를 준비하고 있습니다…</p>}><ScoreEditor key={editing.id} document={editing} original={ETUDES.find(e=>e.templateId===editing.origin?.templateId)} mobile={mobile} onClose={()=>setEditing(null)} onSave={saveEdit} onImportPdf={onImportPdf}/></Suspense>}
   </>;
 }

@@ -157,3 +157,15 @@
 .etudeSheetActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.etudeStudio--mobile .etudeSheetTools{align-items:flex-start;gap:8px}.etudeStudio--mobile .etudeSheetActions{gap:6px}.etudeStudio--mobile .etudeSheetActions button{padding:9px 10px;font-size:11px}.etudeStorageNotice{padding:12px;color:#713f27;font-size:13px}
 
 .etudeScorePlayback{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0}.etudeScorePlayback small{font-size:11px;max-width:440px}.etudeLibrary{max-width:1200px;margin:12px auto;padding:12px 18px}.etudeLibrary summary{cursor:pointer;min-height:44px}.etudeLibrary button{margin:4px 8px;min-height:44px}.etudeLibrary p,.etudeLibrary span{font-size:13px}
+
+/* Existing studies: one catalog picker and the score; optional tools stay folded. */
+.etudeStudio--simple{padding-top:8px}.etudeStudio--simple .etudeSongPicker{margin-bottom:12px}.etudeStudio--simple .etudeSongPicker .etudeSelect{margin:0}.etudeStudio--simple .etudeSongPicker select{min-height:46px;height:46px;border-radius:4px;font-size:14px;font-weight:600}.etudeStudio--simple .etudeSongPicker .etudeSelect>span{font-size:13px}
+.etudeStudio--simple .etudePracticeExtras{margin-top:14px;border-top:1px solid var(--etude-line);padding-top:10px}.etudePracticeExtras>summary{font-size:13px;cursor:pointer;color:var(--etude-muted);padding:8px 0}.etudePracticeExtras>.etudeLesson{margin-top:12px}.etudeStudio--simple .etudeLibrary{margin-top:14px}.etudeStudio--desktop.etudeStudio--simple{padding:8px 0 28px;max-width:none}.etudeStudio--mobile.etudeStudio--simple{padding:6px 0 24px}.etudeStudio--mobile.etudeStudio--simple .etudeSongPicker select{font-size:13px}
+.etudeQuickSelects{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.etudeQuickPages{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
+.etudeQuickPages>span{text-align:center;font-size:13px;font-variant-numeric:tabular-nums}
+.etudeQuickPages small{display:block;color:var(--muted,#69736e);font-size:11px;margin-top:2px}
+html body .app .etudeQuickPages>button{min-height:38px;padding:5px 14px!important;border-radius:3px!important;box-shadow:none!important}
+.etudeStudio--mobile .etudeQuickSelects{grid-template-columns:minmax(0,1fr);gap:6px}
+.etudeQuickBrowse .etudeSelect{min-width:0}
+.etudeQuickBrowse .etudeSelect select{width:100%;min-width:0;text-overflow:ellipsis}
