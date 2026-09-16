@@ -409,6 +409,7 @@ import {
   shouldSmoothMiniChordPianoCommonTone,
 } from "./mini-chord/playbackDynamics";
 import { getMiniChordRecommendedProgressions } from "./mini-chord/originalPracticeSongs.js";
+import { arrangeBuiltinPianoEvents, markBuiltinPianoProgression, matchesBuiltinMiniSlots } from "./audio/builtinPianoPerformance.js";
 import { getMiniChordPersonalRecommendedProgressions } from "./mini-chord/personalPracticeProjects.js";
 import {
   MINI_CHORD_BARS_PER_PAGE,
@@ -4843,7 +4844,7 @@ const getBackingSessionKey = ({
   smoothChordTransitions ? "smooth" : "plain",
   normalizeMiniChordPianoStyle(pianoStyle),
   getMiniChordPatternKey(resolvedPatterns),
-  progression.map((chord) => `${chord?.id ?? ""}:${chord?.displayName ?? chord?.fretboardDisplayName ?? ""}:${chord?.fretboardSignature ?? ""}:${chord?.beatLength ?? ""}:${getMiniChordArrangementKey(chord?.backingArrangement)}`).join("|"),
+  progression.map((chord) => `${chord?.builtinPianoPerformance ?? ""}:${chord?.id ?? ""}:${chord?.displayName ?? chord?.fretboardDisplayName ?? ""}:${chord?.fretboardSignature ?? ""}:${chord?.beatLength ?? ""}:${getMiniChordArrangementKey(chord?.backingArrangement)}`).join("|"),
 ].join("::");
 
 const getBackingChordLogLabel = (chord) => String(chord?.displayName || chord?.fretboardDisplayName || chord?.root || "C").replace(/\s+/g, "");
@@ -5048,8 +5049,10 @@ const createBackingTimelineEvents = ({
     ? normalizeMiniChordPianoStyle(pianoStyle)
     : MINI_CHORD_DEFAULT_PIANO_STYLE;
   const events = [];
+  let pianoAttackId = 0;
   const addEvent = (offsetSeconds, instrument, sample, volume, playbackRate = 1, duration = null, stepIndex = 0, chordIndex = 0, shape = "", debugLog = "", options = {}) => {
-    events.push({ offsetSeconds, instrument, sample, volume, playbackRate, duration, stepIndex, chordIndex, shape, debugLog, ...options });
+    if (instrument === "piano" && debugLog) pianoAttackId += 1;
+    events.push({ offsetSeconds, instrument, sample, volume, playbackRate, duration, stepIndex, chordIndex, shape, debugLog, pianoAttackId, ...options });
   };
   const addDrumEvent = (beatOffset, sample, offset = 0, volume = 0.5, beatInBar = 0, chordIndex = 0, patternLabel = defaultDrumPattern) => {
     const isKick = sample === "kick";
@@ -5638,9 +5641,10 @@ const createBackingTimelineEvents = ({
     }
   });
 
+  const performedEvents = arrangeBuiltinPianoEvents(events, scheduledProgression, playbackStepSeconds, beatSeconds, cycleSeconds);
   const cycleBoundedEvents = isRhythmChordTimeline
-    ? events.filter((event) => event.offsetSeconds < cycleSeconds - 1e-9)
-    : events;
+    ? performedEvents.filter((event) => event.offsetSeconds < cycleSeconds - 1e-9)
+    : performedEvents;
   const compiledEvents = (isRhythmChordTimeline
     ? muteRhythmChordRestEvents(
         clampRhythmChordMelodicEvents(
@@ -15773,6 +15777,7 @@ function getMiniChordBackingChordFromLabel(label = "", barIndex = 0, sequenceInd
 }
 
 function buildMiniChordBackingProgression({
+  builtinPreset = null,
   slots = [],
   barCount = 4,
   slotSequence = null,
@@ -15785,6 +15790,7 @@ function buildMiniChordBackingProgression({
   globalArrangement = {},
 } = {}) {
   const safeBarCount = normalizeMiniChordBarCount(barCount);
+  const builtinPerformance = matchesBuiltinMiniSlots(builtinPreset, slots, safeBarCount);
   const safeTransposeSemitones = clampMiniChordTranspose(transposeSemitones);
   const normalizedSlots = normalizeMiniChordSlots(slots, safeBarCount);
   const normalizedSourceKey = getMiniChordSourceKey(normalizedSlots, sourceKey);
@@ -15839,6 +15845,7 @@ function buildMiniChordBackingProgression({
       return {
         ...chord,
         sourceDisplayName: sourceChordLabel,
+        builtinPianoPerformance: builtinPerformance ? "mini" : undefined,
         soundingDisplayName: chord.displayName,
         miniChordSourceKey: normalizedSourceKey.label,
         miniChordSoundingKey: soundingKey.label,
@@ -19063,8 +19070,13 @@ function App({ onReady }) {
     })
     .filter(Boolean), [getChordFromSelector]);
   const chordTransitionProgression = useMemo(
-    () => buildStage3Progression(stage3ChordIds),
-    [buildStage3Progression, stage3ChordIds],
+    () => markBuiltinPianoProgression(
+      buildStage3Progression(stage3ChordIds),
+      [...RHYTHM_RECOMMENDED_PROGRESSIONS, ...VOICING_MOVEMENT_COURSES]
+        .find((preset) => `slot:${preset.id}` === chordProgressionId),
+      "rhythm",
+    ),
+    [buildStage3Progression, stage3ChordIds, chordProgressionId],
   );
   const hasChordTransitionProgression = chordTransitionProgression.length > 0;
   const stage3StorageProgression = useMemo(
@@ -20887,7 +20899,8 @@ function App({ onReady }) {
         }
       });
     }
-    const naturalStopAt = when + buffer.duration / Math.max(0.25, Math.min(4, playbackRate));
+    const minimumRate = options.builtinPianoPerformance ? 0.125 : 0.25;
+    const naturalStopAt = when + buffer.duration / Math.max(minimumRate, Math.min(4, playbackRate));
     const activeSource = {
       source,
       gain,
@@ -20912,15 +20925,16 @@ function App({ onReady }) {
       }
     };
     source.buffer = buffer;
-    source.playbackRate.setValueAtTime(Math.max(0.25, Math.min(4, playbackRate)), when);
+    source.playbackRate.setValueAtTime(Math.max(minimumRate, Math.min(4, playbackRate)), when);
     if (part === "piano") {
       const pianoAttack = Math.max(0.005, Math.min(0.015, Number(options.attackSeconds) || 0.009));
       const pianoDecay = Math.max(0.35, Math.min(0.65, Number(options.decaySeconds) || 0.5));
       const pianoSustain = Math.max(0.35, Math.min(0.55, Number(options.sustainLevel) || 0.44));
       const pianoRelease = Math.max(0.15, Math.min(2, Number(options.releaseSeconds) || 0.55));
+      const performedRelease = options.builtinPianoPerformance ? Math.max(0.002, options.releaseSeconds) : pianoRelease;
       const gateDuration = Number.isFinite(duration) && duration > 0 ? duration : 0.42;
-      const gateEnd = when + Math.max(pianoAttack + 0.02, gateDuration);
-      const releaseEnd = gateEnd + pianoRelease;
+      const gateEnd = when + Math.max(options.builtinPianoPerformance ? 0.006 : pianoAttack + 0.02, gateDuration);
+      const releaseEnd = gateEnd + performedRelease;
       const peakLevel = Math.max(0.0001, safeVolume * (options.commonTone ? 0.9 : 0.97));
       const bodyLevel = Math.max(0.0001, peakLevel * pianoSustain);
       const decayEnd = Math.min(gateEnd, when + pianoAttack + pianoDecay);
@@ -21038,6 +21052,11 @@ function App({ onReady }) {
     lastStage3MetronomeTickRef.current = -1;
     cancelScheduledMetronomeTicks();
     fadeOutActiveBackingSources();
+    const roomWet = backingPianoRoomRef.current?.wetGain?.gain;
+    if (audioRef.current && roomWet) {
+      roomWet.cancelScheduledValues(audioRef.current.currentTime);
+      roomWet.setTargetAtTime(0.0001, audioRef.current.currentTime, 0.012);
+    }
     if (backingSchedulerTimerRef.current) {
       window.clearInterval(backingSchedulerTimerRef.current);
       backingSchedulerTimerRef.current = null;
@@ -21177,6 +21196,20 @@ function App({ onReady }) {
     const session = backingPreparedSessionRef.current;
     if (!audio || !session?.events?.length) return;
     stopBackingScheduler();
+    const room = backingPianoRoomRef.current;
+    if (room?.convolver && room?.preDelay && room?.wetGain) {
+      // Reconnect a fresh room so a stopped song cannot leak into the next one.
+      const impulse = room.convolver.buffer;
+      room.preDelay.disconnect(room.convolver);
+      room.convolver.disconnect();
+      room.convolver = audio.createConvolver();
+      room.convolver.buffer = impulse;
+      room.preDelay.connect(room.convolver);
+      room.convolver.connect(room.wetGain);
+      room.wetGain.gain.cancelScheduledValues(audio.currentTime);
+      room.wetGain.gain.setValueAtTime(0.0001, audio.currentTime);
+      room.wetGain.gain.setTargetAtTime(BACKING_PIANO_ROOM.wetLevel, audio.currentTime + 0.05, 0.012);
+    }
     backingSchedulerModeRef.current = mode;
     if (mode === BACKING_SCHEDULER_MODES.STAGE3) lastStage3MetronomeTickRef.current = -1;
     const playbackUnitSeconds = mode === BACKING_SCHEDULER_MODES.MINI_CHORD
@@ -28552,6 +28585,8 @@ function App({ onReady }) {
       slotSequence,
       barSequence,
       progression: buildMiniChordBackingProgression({
+        builtinPreset: [...getMiniChordRecommendedProgressions(), ...getMiniChordPersonalRecommendedProgressions()]
+          .find((preset) => preset.id === miniChordRecommendedProgressionId),
         slots: miniChordSlots,
         barCount: miniChordBarCount,
         slotSequence,
@@ -28569,6 +28604,7 @@ function App({ onReady }) {
     miniChordSlots,
     miniChordTransposeSemitones,
     normalizedMiniChordSourceKey.label,
+    miniChordRecommendedProgressionId,
   ]);
 
   const stopMiniChordPreview = useCallback(() => {
@@ -29847,7 +29883,11 @@ function App({ onReady }) {
     setStage3StorageSelectedId(item.id);
     applyStage3LibraryItem(item);
     prepareStage3BackingSession({
-      progression: buildStage3Progression(item.chordIds),
+      progression: markBuiltinPianoProgression(
+        buildStage3Progression(item.chordIds),
+        [...RHYTHM_RECOMMENDED_PROGRESSIONS, ...VOICING_MOVEMENT_COURSES].find((preset) => preset.id === item.id),
+        "rhythm",
+      ),
       bpmValue: item.bpm ?? bpm,
       timeSignatureValue: item.time_signature ?? stage3MetronomeTimeSignatureRef.current,
       rhythmPattern: backingRhythmPatternRef.current,

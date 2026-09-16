@@ -1,9 +1,10 @@
+import {expandPdfBars} from './pdfBarRows.js';
 export function normalizedRect(start,end) {
  const x=Math.max(0,Math.min(1,start.x,end.x)),y=Math.max(0,Math.min(1,start.y,end.y));
  return {x,y,width:Math.min(1-x,Math.abs(end.x-start.x)),height:Math.min(1-y,Math.abs(end.y-start.y))};
 }
 export function practiceOrder(record) {
- const bars=record.barMap??[],byNumber=new Map(bars.map(b=>[b.number,b]));
+ const bars=expandPdfBars(record.barMap??[]),byNumber=new Map(bars.map(b=>[b.number,b]));
  const order=(record.practiceOrder?.length?record.practiceOrder:bars.map(b=>b.number)).map(n=>byNumber.get(n)).filter(Boolean);
  const start=Math.max(0,Math.min(order.length-1,(record.loopStart??1)-1));
  const end=Math.max(start,Math.min(order.length-1,(record.loopEnd??order.length)-1));

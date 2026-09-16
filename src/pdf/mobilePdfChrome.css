@@ -36,3 +36,13 @@ html body main.app.app.app.app.app .pdfStudio .pdfAnnotationToolbar--compact .pd
 html body main.app.app.app.app.app .pdfStudio .pdfAnnotationToolbar--compact .pdfAnnotationIcons>button[aria-pressed=true]{background:#60462f!important;color:#fffaf0!important}
 
 html body main.app.app.app.app.app .pdfStudio .pdfAnnotationToolbar--compact .pdfAnnotationIcons>button{transition:none!important;animation:none!important}
+.mobilePdfBpm{left:8px;right:8px;display:block;max-height:60dvh;overflow:auto;padding:10px;overscroll-behavior:contain}
+.mobilePdfBpmSteps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) minmax(64px,1.4fr) repeat(2,minmax(0,1fr));gap:5px;align-items:center}
+.mobilePdfBpmSteps output{font-size:24px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
+.mobilePdfBpmSteps output small{display:block;font-size:10px;font-weight:400}
+html body main.app.app.app.app.app .pdfStudio .mobilePdfBpmSteps button{border:1px solid var(--pdf-border,#ded7cc)!important;font-size:16px!important;min-height:44px}
+.mobilePdfPracticeOptions{margin-top:8px;border-top:1px solid var(--pdf-border,#ded7cc);padding-top:6px;font-size:13px}
+.mobilePdfPracticeOptions>summary{padding:8px 0;cursor:pointer}
+.mobilePdfPracticeOptions>label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0}
+.mobilePdfPracticeOptions h2{font-size:15px}
+.pdfPractice--mobile:not(.pdfPractice--editing) .pdfScoreStage>.pdfViewport>:is(.pdfZoomBounds,.pdfContinuousBounds){margin-bottom:50px}

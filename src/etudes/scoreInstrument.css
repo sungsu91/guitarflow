@@ -1,0 +1,6 @@
+.etudeSoundControls{display:flex;align-items:center;gap:5px;margin:0 0 4px;font-size:12px;color:#66503b}
+.etudeSoundControls>span{margin-right:3px}
+.etudeSoundControls button{padding:4px 10px;font-size:12px;min-height:28px;border:1px solid #d4c5b0;border-radius:4px;background:#fffdf9;color:#4c3a29}
+.etudeSoundControls button[aria-pressed=true]{background:#67503a;color:white}
+.mobileScoreWorkspace .etudeSoundControls{flex-shrink:0;margin:0;gap:4px;height:30px}
+.mobileScoreWorkspace .etudeSoundControls button{min-height:26px!important;height:26px!important;padding:2px 9px!important;font-size:11px!important;line-height:18px!important}

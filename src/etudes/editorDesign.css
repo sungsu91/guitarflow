@@ -1,0 +1,116 @@
+/* Presentation-only editor theme. Important declarations in this layer isolate
+   the workspace from the application's older global button overrides. */
+@layer score-workspace {
+ .editorDesign{--ed-bg:#F3F1ED;--ed-tool:#ECE8E2;--ed-ink:#242321;--ed-muted:#69635D;--ed-line:#DDD8D0;--ed-active:#49382C;background:var(--ed-bg)!important;color:var(--ed-ink)!important;font-family:Pretendard,'Noto Sans KR',Arial,sans-serif!important}
+ .editorDesign button{box-sizing:border-box;background:linear-gradient(#fff,#FAF8F5)!important;color:var(--ed-ink)!important;-webkit-text-fill-color:currentColor!important;border:1px solid var(--ed-line)!important;border-radius:8px!important;box-shadow:0 1px 2px rgba(35,28,20,.08)!important;font-family:inherit!important;font-size:13px!important;font-weight:600!important;line-height:1.3!important;transition:background-color 150ms,box-shadow 150ms,transform 150ms!important;filter:none!important;opacity:1!important;display:inline-flex;justify-content:center;align-items:center;gap:5px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+ .editorDesign button :is(span,svg,path,circle,text){color:inherit!important;-webkit-text-fill-color:inherit!important}
+ .editorDesign :is(button,button span,output){text-shadow:none!important;letter-spacing:normal!important}
+ .editorDesign button span{font-family:inherit!important}
+ .editorDesign .mobileInputExtras button>span{font-size:inherit!important;font-weight:inherit!important}
+ .editorDesign button[aria-pressed=true],.editorDesign .etudeEditorSave,.editorDesign .editorPlay{background:#49382C!important;color:#fff!important;border-color:#49382C!important}
+ .editorDesign button:disabled{background:#EFEBE6!important;border-color:#E4DFD8!important;color:#AAA39A!important;box-shadow:none!important;cursor:not-allowed!important}
+ .editorDesign button:not(:disabled):active{transform:translateY(1px)!important;box-shadow:inset 0 1px 2px #231c2015!important;background:#E7E1D8!important}
+ .editorDesign button[aria-pressed=true]:not(:disabled):active,.editorDesign .editorPlay:not(:disabled):active{background:#382A21!important}
+ .editorDesign :is(button,input,select,summary):focus-visible{outline:2px solid #836B57!important;outline-offset:2px!important}
+ .editorDesign .is-delete{color:#A63E36!important}
+ .editorDesign :is(input,select){background:#fff!important;border:1px solid var(--ed-line)!important;border-radius:8px!important;color:var(--ed-ink)!important;font-family:inherit!important}
+ .editorDesign :is(.mobileEditorFeedbackText,.rhythmInputStatus,.mobileTechniqueHint,.techniqueApplyHint,.editorAudioStatus){color:var(--ed-muted)!important;font-size:12px!important;font-weight:400!important}
+ .editorDesign .mobileScoreSettingsTitle{border:0!important;box-shadow:none!important;background:transparent!important;text-align:center!important;font-size:17px!important;font-weight:700!important;justify-content:center!important}
+ .editorDesign .mobileDurationRow button{min-width:0!important;height:44px!important;min-height:44px!important;padding:0!important}
+ .editorDesign .mobileFretPad button{font-size:20px!important;min-height:44px!important;height:44px!important;padding:0!important}
+ .editorDesign .mobileCursorPad button{min-height:44px!important;height:44px!important;padding:0 4px!important}
+ .editorDesign .mobileInputExtras button{min-height:44px!important;height:44px!important;padding:0 3px!important;font-size:13px!important}
+ .editorDesign .mobileNotationViews button{border:0!important;background:transparent!important;box-shadow:none!important;height:34px!important;min-height:34px!important}
+ .editorDesign .mobileNotationViews button[aria-pressed=true]{background:#49382C!important;color:#fff!important;box-shadow:0 1px 3px #231c201a!important}
+ .editorDesign :is(.mobileDockPopover,.mobileScoreSmallSheet){background:#fff!important;border:1px solid #DDD8D0!important;border-radius:20px 20px 12px 12px!important;box-shadow:0 -8px 28px rgba(35,28,20,.16)!important;color:var(--ed-ink)!important}
+ .editorDesign :is(.mobileDockPopover,.mobileScoreSmallSheet)>header{background:#fff!important;min-height:52px!important;border-bottom:1px solid var(--ed-line)!important;margin:0!important;padding:4px 12px!important}
+ .editorDesign :is(.mobileDockPopover,.mobileScoreSmallSheet)>header strong{font-size:16px!important;font-weight:700!important;color:var(--ed-ink)!important}
+ .editorDesign :is(.mobileDockPopover,.mobileScoreSmallSheet)>header button{height:44px!important;min-height:44px!important;width:44px!important;border:0!important;box-shadow:none!important;background:#F3F1ED!important;border-radius:50%!important;padding:0!important}
+ .editorDesign .mobileTechniqueTools button,.editorDesign .mobilePickRow button{min-height:62px!important;padding:6px 2px!important;flex-direction:column!important;gap:3px!important;font-size:12px!important;white-space:normal!important;word-break:keep-all!important}
+ .editorDesign .mobileBeamPopoverBody button{min-height:44px!important}
+ .editorDesign .editorTimbre button{height:32px!important;min-height:32px!important;padding:2px!important;border:0!important;box-shadow:none!important;background:transparent!important;border-radius:7px!important}
+ .editorDesign .editorTimbre button[aria-pressed=true]{background:#49382C!important;color:#fff!important}
+ .editorDesign .editorTransport>button,.editorDesign .editorTempo{min-height:46px!important;height:46px!important}
+ .editorDesign .editorTempo{flex-direction:row!important;flex-wrap:nowrap!important}
+ .editorDesign .editorTempo input{border:0!important;box-shadow:none!important;height:44px!important;min-height:44px!important;width:51px!important;padding:0!important;font-size:18px!important;text-align:center!important;appearance:textfield!important;outline-offset:-3px!important;background:transparent!important}
+ .editorDesign .editorTempo button{width:38px!important;min-width:38px!important;min-height:44px!important;height:44px!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+ .editorDesign .mobileScoreHeader{height:52px!important;flex:0 0 52px!important;padding:3px 0!important;margin:0!important;border:0!important}
+ .editorDesign .mobileScoreHeader button{height:44px!important;min-height:44px!important}
+ .editorDesign .mobileScoreHeader .etudeToolbarGroup button{width:38px!important}
+ @media(prefers-reduced-motion:reduce){.editorDesign *{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+}
+.editorDesign.mobileScoreWorkspace{height:var(--editor-viewport-height,100dvh);max-height:var(--editor-viewport-height,100dvh);top:var(--editor-viewport-top,0px);padding:env(safe-area-inset-top) 8px 0;gap:6px;overflow-y:auto;overscroll-behavior:contain}
+.editorDesign .mobileScoreHeader>.mobileScoreSettingsTitle{flex:1;width:auto}
+.editorDesign .etudeEditorPreview{background:#fff;border:1px solid #DDD8D0;border-radius:12px;box-shadow:none}
+.editorDesign.mobileScoreWorkspace>.etudeEditorPreview{padding:0;min-height:160px;flex:1;border:0;background:transparent;overflow:visible}
+.editorDesign .mobileNotationTools{background:#ECE8E2;border-radius:12px 12px 0 0;padding:7px 0 0;gap:5px}
+.editorDesign .mobileNotationViews{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:2px;background:#E2DDD5;border-radius:10px;margin:0 3px 4px;gap:2px}
+.editorDesign .mobileDurationRow{margin:0 2px;gap:3px;grid-template-columns:5fr 1fr 2fr}
+.editorDesign .mobileDurationRow .etudeDurationButtons{gap:3px}
+.editorDesign .mobileDurationRow .rhythmModifiers{gap:3px;padding-left:3px;border-color:#CFC7BC}
+.editorDesign .rhythmInputStatus{height:15px;line-height:15px;padding:0 5px}
+.editorDesign .etudeMeasureLayoutBar{background:#ECE8E2;min-height:40px;padding:2px 5px 6px;border:0;gap:5px;flex-shrink:0}
+.editorDesign .etudeMeasureLayoutBar button{min-height:32px;padding:3px 8px}
+.editorDesign .etudeEditorCanvas{background:#fff;border:1px solid #DDD8D0;border-radius:10px;padding:0;scroll-padding-top:8px;scroll-padding-bottom:var(--tool-overlap,8px)}
+.editorDesign .mobileScoreInput{background:#ECE8E2;padding:8px 0 0;border-top:1px solid #DDD8D0;gap:7px;border-radius:12px 12px 0 0;flex-shrink:0}
+.editorDesign .mobileCursorPad{gap:4px;grid-template-columns:1fr minmax(140px,1.25fr) 1fr}
+.editorDesign .mobileCursorPad output{border-radius:8px;background:#E2DDD5;color:#69635D;font-size:12px;font-weight:500;text-align:center}
+.editorDesign .mobileFretPad{gap:4px}
+.editorDesign .mobileInputExtras{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.editorDesign .mobileEditorFeedback{height:16px;min-height:16px;flex-basis:16px;margin:0;padding:0 3px;line-height:16px}
+.editorDesign.mobileScoreWorkspace .etudeEditorCanvas{padding-bottom:var(--tool-overlap,0px)}
+.editorDesign .etudeDocumentMenus{padding:0;gap:8px}
+.editorDesign .etudeDocumentMenus>details{margin:0}
+.editorDesign .etudeDesktopToolbarRow{padding:0;background:transparent}
+.editorDesign .etudeEditorStatusMessage{margin:0;font-size:12px;color:#69635D}
+.editorDesign .mobileToolDock :is(.mobileScoreSmallSheet.is-anchored,.mobileDockPopover){bottom:calc(100% + 7px);left:0;right:0;max-height:min(350px,44dvh);overflow:hidden;display:flex;flex-direction:column}
+.editorDesign .mobileToolDock :is(.mobileScoreSmallSheet.is-anchored,.mobileDockPopover){animation:editor-panel-enter 150ms ease-out}
+@keyframes editor-panel-enter{from{opacity:0;translate:0 3px}to{opacity:1;translate:0 0}}
+.editorDesign :is(.mobileDockPopover,.mobileScoreSmallSheet)>header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.editorDesign :is(.mobileScoreSmallSheetBody,.mobilePickingColumns,.mobileBeamPopoverBody){overflow-y:auto;overscroll-behavior:contain;padding:12px;min-height:0}
+.editorDesign .mobileTechniqueTools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.editorDesign .techniqueApplyHint{grid-column:1/-1;margin:3px 0 0;line-height:1.5;min-height:18px}
+.editorDesign .mobilePickingColumns{display:grid;grid-template-columns:1fr;gap:12px}
+.editorDesign .mobilePickRow{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.editorDesign .mobilePickRow>span{grid-column:1/-1;text-align:left;font-size:12px;font-weight:600;color:#69635D}
+.editorDesign .pickSymbol{display:flex;align-items:center}
+.editorDesign .editorAudioDock{background:#F3F1ED;border:1px solid #DDD8D0;border-bottom:0;border-radius:12px 12px 0 0;padding:7px 7px calc(4px + env(safe-area-inset-bottom));display:grid;gap:6px;flex-shrink:0;margin:0;box-sizing:border-box}
+.editorDesign .editorTimbre{display:flex;gap:9px;align-items:center;font-size:12px;color:#69635D}
+.editorDesign .editorTimbre>div{display:grid;grid-template-columns:1fr 1fr;flex:1;min-width:0;border-radius:9px;background:#ECE8E2;padding:2px}
+.editorDesign .editorTransport{display:grid;grid-template-columns:minmax(0,1fr) 100px 46px;gap:6px}
+.editorDesign .editorPlay{gap:9px;font-size:14px}
+.editorDesign .editorTempo{display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid #DDD8D0;border-radius:8px;gap:4px;margin:0;font-size:12px;color:#69635D;box-sizing:border-box;box-shadow:0 1px 2px #231c2014}
+.editorDesign .editorTempo input::-webkit-inner-spin-button{appearance:none}
+.editorDesign .editorAudioStatus{font-size:11px;line-height:13px;min-height:13px;padding-left:2px}
+.editorDesign.etudeEditor--desktop{width:min(1640px,98vw);height:96dvh;max-height:96dvh;display:flex;flex-direction:column;gap:6px;padding:12px 16px;overflow:hidden;border-radius:16px}
+.editorDesign.etudeEditor--desktop>header{flex-shrink:0;margin:0;min-height:52px;padding:0 0 6px;border-bottom:1px solid #DDD8D0}
+.editorDesign.etudeEditor--desktop .etudeInputPalette{background:#ECE8E2;border-radius:12px;padding:6px}
+.editorDesign.etudeEditor--desktop .etudeToolbarStrip{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.editorDesign .desktopNotationViews{display:flex;gap:2px;background:#E2DDD5;padding:3px;border-radius:10px;margin-right:6px}
+.editorDesign .desktopNotationViews button{min-height:36px;padding:4px 10px}
+.editorDesign .desktopNotationViews button:not([aria-pressed=true]){background:transparent!important;box-shadow:none!important;border-color:transparent!important}
+.editorDesign .etudeToolbarMore summary{display:flex;align-items:center;gap:6px}
+.editorDesign .etudeEditorDesktopBody{display:grid;grid-template-columns:minmax(0,1fr) 320px;flex:1;min-height:0;margin:0;gap:14px;align-items:stretch}
+.editorDesign .desktopToolColumn{overflow:auto;min-height:0;background:#ECE8E2;padding:10px;border:1px solid #DDD8D0;border-radius:14px}
+.editorDesign .desktopScoreInput{display:flex;flex-direction:column;gap:10px}
+.editorDesign .desktopCursorStatus{font-size:12px;color:#69635D;padding:4px 0;text-align:center}
+.editorDesign .desktopScoreInput .mobileCursorPad{grid-template-columns:1fr 138px 1fr}
+.editorDesign .desktopScoreInput .mobileFretPad{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
+.editorDesign .desktopToolColumn .mobileInputExtras{grid-template-columns:repeat(2,minmax(0,1fr))}
+.editorDesign .desktopToolColumn .mobileToolDock{display:flex;flex-direction:column-reverse;gap:12px}
+.editorDesign .desktopToolColumn .mobileToolDock :is(.mobileDockPopover,.mobileScoreSmallSheet.is-anchored){position:static;inset:auto;max-height:none;flex-shrink:0}
+.editorDesign .desktopToolColumn :is(.mobileDockPopover,.mobileScoreSmallSheet)>header{position:sticky;top:0;z-index:1}
+.editorDesign.etudeEditor--desktop .etudeEditorPreview{display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:8px}
+.editorDesign.etudeEditor--desktop .etudeEditorCanvas{flex:1;min-height:0;max-height:none}
+.editorDesign .desktopAdvanced{margin-top:12px;padding:10px;border-top:1px solid #DDD8D0}
+.editorDesign .desktopAdvanced>summary{min-height:32px;cursor:pointer;font-size:13px;font-weight:600}
+.editorDesign .desktopAdvanced .etudePropertiesPanel{padding:0;border:0;box-shadow:none;background:transparent}
+.editorDesign .etudeEditorBottom{display:flex;align-items:center;gap:18px;flex-shrink:0;margin:0;padding:0;border:0}
+.editorDesign.etudeEditor--desktop .editorAudioDock{width:min(650px,65%);border-bottom:1px solid #DDD8D0;border-radius:12px;padding:7px 10px}
+.editorDesign .etudeEditorBottom footer{flex:1;display:flex;justify-content:flex-end;gap:6px;border:0;padding:0}
+.editorDesign .etudeInputHelp{margin:0;padding:0 5px;flex-shrink:0;font-size:12px}
+.editorDesign .etudeInputHelp>summary{min-height:24px}
+.editorDesign .etudePaperHeading{padding:6px 10px}
+.editorDesign .etudePaperHeading h3{margin:3px 0}
+@media(max-width:375px){.editorDesign.mobileScoreWorkspace{padding-inline:6px;gap:4px}.editorDesign .mobileDurationRow,.editorDesign .mobileDurationRow .etudeDurationButtons{gap:1px}.editorDesign .mobileDurationRow .rhythmModifiers{gap:1px;padding-left:2px}.editorDesign .mobileScoreInput{gap:5px;padding-top:5px}.editorDesign .editorTransport{grid-template-columns:minmax(0,1fr) 94px 44px}}
+@media(max-height:650px){.editorDesign.mobileScoreWorkspace{overflow-y:auto}.editorDesign.mobileScoreWorkspace>.etudeEditorPreview{flex:none;height:240px;min-height:240px}.editorDesign .mobileScoreInput{position:relative}.editorDesign .mobileToolDock :is(.mobileScoreSmallSheet.is-anchored,.mobileDockPopover){max-height:220px}}

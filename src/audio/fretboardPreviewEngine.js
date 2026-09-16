@@ -1,3 +1,4 @@
+import {getStringBuffer,PLUCK_VARIANTS} from "./pluckedString.js";
 import { AUDIO_BUS_IDS, getAudioBusInput } from "./audioBus.js";
 
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -13,7 +14,12 @@ export const GUITAR_OPEN_STRING_MIDI = Object.freeze({
 });
 
 const outputGraphs = new WeakMap();
-const pluckBufferCaches = new WeakMap();
+const voiceSequences=new WeakMap();
+const activeVoices=new WeakMap();
+export const guitarVoiceStats=audio=>({active:activeVoices.get(audio)?.size??0});
+function nextVariant(audio){const n=voiceSequences.get(audio)??0;voiceSequences.set(audio,n+1);return n%PLUCK_VARIANTS;}
+function trackVoice(audio,source){let voices=activeVoices.get(audio);if(!voices){voices=new Set();activeVoices.set(audio,voices);}voices.add(source);source.addEventListener("ended",()=>voices.delete(source),{once:true});}
+function attachRelease(audio,source,output,when){let releaseAt=Infinity;source.release=(at=audio.currentTime)=>{const start=Math.max(at,audio.currentTime);if(start>=releaseAt)return;releaseAt=start;output.gain.cancelScheduledValues(start);output.gain.setValueAtTime(1,start);output.gain.linearRampToValueAtTime(0,start+.012);source.stop(start+.014);};trackVoice(audio,source);}
 const STRUM_VELOCITY_ATTENUATION = [0, 0.55, 0.2, 0.85, 0.4, 1];
 const STRUM_INTERVAL_SHAPE = [1.02, 1.1, 0.97, 0.9, 0.84];
 const STRUM_ATTACK_SHAPE = [0.93, 1.08, 0.98, 1.12, 0.95, 1.04];
@@ -194,79 +200,6 @@ function getOutputGraph(audio) {
   return graph;
 }
 
-function createSeededNoise(seedValue) {
-  let seed = seedValue >>> 0;
-  return () => {
-    seed = (seed * 1664525 + 1013904223) >>> 0;
-    return seed / 2147483648 - 1;
-  };
-}
-
-function getPluckBuffer(audio, position, duration) {
-  let cache = pluckBufferCaches.get(audio);
-  if (!cache) {
-    cache = new Map();
-    pluckBufferCaches.set(audio, cache);
-  }
-  const cacheKey = `${position.stringNumber}:${position.fretNumber}:${position.midi}:${duration.toFixed(2)}:${audio.sampleRate}`;
-  const cached = cache.get(cacheKey);
-  if (cached) return cached;
-
-  const sampleRate = audio.sampleRate;
-  const frameCount = Math.max(1, Math.ceil(sampleRate * duration));
-  const period = Math.max(2, Math.round(sampleRate / position.frequency));
-  const profile = getCleanGuitarVoiceProfile(position);
-  const buffer = audio.createBuffer(1, frameCount, sampleRate);
-  const data = buffer.getChannelData(0);
-  const random = createSeededNoise(
-    position.midi * 2654435761
-      + position.stringNumber * 2246822519
-      + position.fretNumber * 3266489917
-      + period,
-  );
-  let previousNoise = 0;
-
-  for (let index = 0; index < Math.min(period, frameCount); index += 1) {
-    const noise = random();
-    const pickPositionNotch = Math.sin(Math.PI * (index / period) * profile.pickPosition);
-    data[index] = (noise * 0.68 + previousNoise * 0.32) * (0.6 + pickPositionNotch * 0.4);
-    previousNoise = noise;
-  }
-
-  const transientFrames = Math.min(frameCount, Math.max(1, Math.round(sampleRate * 0.009)));
-  for (let index = 0; index < transientFrames; index += 1) {
-    const transientEnvelope = Math.exp(-index / Math.max(1, sampleRate * 0.0022));
-    data[index] += random() * transientEnvelope * profile.transientLevel;
-  }
-
-  const damping = Math.exp(-1 / (position.frequency * profile.dampingSeconds));
-  const adjacentMix = 0.46 + position.stringNumber * 0.012;
-  for (let index = period; index < frameCount; index += 1) {
-    const delayed = data[index - period];
-    const adjacent = data[index - period + 1] ?? delayed;
-    data[index] = (delayed * (1 - adjacentMix) + adjacent * adjacentMix) * damping;
-  }
-
-  const attackFrames = Math.max(1, Math.round(sampleRate * 0.0018));
-  const releaseFrames = Math.max(1, Math.round(sampleRate * Math.min(0.24, duration * 0.22)));
-  for (let index = 0; index < frameCount; index += 1) {
-    const attack = Math.min(1, index / attackFrames);
-    const release = Math.min(1, (frameCount - index) / releaseFrames);
-    data[index] *= attack * release * 0.88;
-  }
-
-  cache.set(cacheKey, buffer);
-  // Score playback can visit many pitches/durations. Bound retained PCM memory.
-  let frames = 0;
-  for (const value of cache.values()) frames += value.length;
-  while (frames > audio.sampleRate * 32 && cache.size > 1) {
-    const oldest = cache.keys().next().value;
-    frames -= cache.get(oldest).length;
-    cache.delete(oldest);
-  }
-  return buffer;
-}
-
 function schedulePluck(
   audio,
   position,
@@ -289,16 +222,14 @@ function schedulePluck(
   const profile = getCleanGuitarVoiceProfile(position);
   const maxRate = phrase ? Math.max(1, ...phrase.segments.map(s=>2 ** ((s.midi-position.midi)/12))) : 1;
   const bufferDuration = phrase ? Math.min(8, duration * maxRate + 0.3) : duration;
-  source.buffer = getPluckBuffer(audio, position, bufferDuration);
+  const variant=nextVariant(audio);
+  source.buffer = getStringBuffer(audio, position, bufferDuration,{variant});
+  const releaseGain=audio.createGain();releaseGain.gain.value=1;
+  level*=1+(variant-1.5)*.018+getHumanizedUnit(voiceSequences.get(audio),position.stringNumber,1)*.012;
+  brightnessScale*=1+(variant-1.5)*.025+getHumanizedUnit(voiceSequences.get(audio),position.stringNumber,2)*.015;
   if (phrase) {
-    if (duration * maxRate > bufferDuration - 0.3) {
-      // Sustain long ties without allocating minutes of PCM. The loop is in
-      // the decayed string body, never the initial pick transient.
-      const period = Math.round(audio.sampleRate / position.frequency) - (0.46 + position.stringNumber * 0.012);
-      source.loop = true;
-      source.loopStart = 0.6;
-      source.loopEnd = 0.6 + period * 16 / audio.sampleRate;
-    }
+    // Even a long tie decays like a real string. Do not loop a PCM seam or
+    // allocate buffers for the full score duration; cached tails end at zero.
     source.playbackRate.setValueAtTime(1, when);
     let previous = phrase.segments[0];
     for (const segment of phrase.segments.slice(1)) {
@@ -319,6 +250,13 @@ function schedulePluck(
     }
   }
   lowCut.type = "highpass";
+  if(phrase)for(const segment of phrase.segments){
+    if(!segment.vibrato)continue;
+    const length=Math.min(segment.duration,phrase.duration-(segment.start-phrase.start));if(length<=0)continue;
+    const curve=new Float32Array(Math.max(16,Math.ceil(length*120)));
+    for(let i=0;i<curve.length;i++){const t=i/(curve.length-1)*length;curve[i]=Math.sin(t*Math.PI*2*5.5)*18*Math.min(1,t/.08,(length-t)/.04);}
+    source.detune.setValueCurveAtTime(curve,when+segment.start-phrase.start,length);
+  }
   lowCut.frequency.setValueAtTime(48, when);
   lowCut.Q.setValueAtTime(0.58, when);
   tone.type = "lowpass";
@@ -348,13 +286,16 @@ function schedulePluck(
   bodyLow.connect(bodyHigh);
   bodyHigh.connect(gain);
   if (panner) {
-    gain.connect(panner);
+    gain.connect(releaseGain);
+    releaseGain.connect(panner);
     panner.connect(output);
     if (bodyInput) panner.connect(bodyInput);
   } else {
-    gain.connect(output);
-    if (bodyInput) gain.connect(bodyInput);
+    gain.connect(releaseGain);
+    releaseGain.connect(output);
+    if (bodyInput) releaseGain.connect(bodyInput);
   }
+  attachRelease(audio,source,releaseGain,when);
   source.start(when);
   source.stop(when + duration + 0.02);
   source.onended = () => {
@@ -364,6 +305,7 @@ function schedulePluck(
     bodyLow.disconnect();
     bodyHigh.disconnect();
     gain.disconnect();
+    releaseGain.disconnect();
     panner?.disconnect();
   };
   return source;
@@ -371,20 +313,25 @@ function schedulePluck(
 
 // Reuse the fretboard's plucked-string PCM, filtering and attack envelope.
 // MIDI comes from the compiled score, so alternate tuning is preserved.
-export function scheduleGuitarPhrase(audio, phrase, when, output, level = 0.5) {
-  if (phrase.dead) {
-    const source = audio.createBufferSource(), gain = audio.createGain();
-    const length = Math.ceil(audio.sampleRate * 0.06), buffer = audio.createBuffer(1,length,audio.sampleRate);
-    const noise = createSeededNoise(phrase.midi * 7919 + phrase.string);
-    const samples = buffer.getChannelData(0);
-    for (let i=0;i<length;i++) samples[i]=noise()*Math.exp(-i/(audio.sampleRate*0.012));
-    source.buffer=buffer;gain.gain.value=level*0.3;source.connect(gain);gain.connect(output);
-    source.start(when);source.stop(when+0.06);
-    source.onended=()=>{source.disconnect();gain.disconnect();};
-    return source;
+export function scheduleGuitarPhrase(audio, phrase, when, output, level = 0.4) {
+  const position={stringNumber:phrase.string,fretNumber:phrase.fret??0,midi:phrase.midi,frequency:440*2**((phrase.midi-69)/12)};
+  if(phrase.dead){
+    const source=audio.createBufferSource(),gain=audio.createGain(),tone=audio.createBiquadFilter(),release=audio.createGain();
+    source.buffer=getStringBuffer(audio,position,.075,{variant:nextVariant(audio),muted:true});
+    tone.type='lowpass';tone.frequency.value=1600+(6-phrase.string)*240;
+    gain.gain.value=level*.8;release.gain.value=1;source.connect(tone);tone.connect(gain);gain.connect(release);release.connect(output);
+    attachRelease(audio,source,release,when);source.start(when);source.stop(when+.075);
+    source.onended=()=>{source.disconnect();tone.disconnect();gain.disconnect();release.disconnect();};return source;
   }
-  const position = {stringNumber:phrase.string, fretNumber:phrase.fret ?? 0, midi:phrase.midi, frequency:440*2**((phrase.midi-69)/12)};
-  return schedulePluck(audio,position,when,level,phrase.duration,output,null,0.007,1,phrase);
+  const down=phrase.pickStroke==='down',up=phrase.pickStroke==='up';
+  const natural=1.5+phrase.string*.18;
+  return schedulePluck(audio,position,when,level*(down?1.07:up?.93:1),Math.max(natural,phrase.duration),output,null,down?.004:up?.006:.005,down?.87:up?1.13:1,phrase);
+}
+export function warmGuitarPhrase(audio,phrase,offset=0){
+ const position={stringNumber:phrase.string,fretNumber:phrase.fret??0,midi:phrase.midi,frequency:440*2**((phrase.midi-69)/12)};
+ const duration=Math.max(1.5+phrase.string*.18,phrase.duration),rate=Math.max(1,...(phrase.segments??[]).map(s=>2**((s.midi-phrase.midi)/12)));
+ // One upcoming attack only; variants fill the bounded cache as they are used.
+ return getStringBuffer(audio,position,Math.min(8,duration*rate+.3),{variant:((voiceSequences.get(audio)??0)+offset)%PLUCK_VARIANTS,muted:phrase.dead});
 }
 
 /**
@@ -402,7 +349,7 @@ export function playGuitarPositions(audio, notes, {
 } = {}) {
   if (!audio || audio.state !== "running") return [];
   const resolvedHumanizeSeed = humanizeSeed == null
-    ? (strumSeconds > 0 ? nextStrumHumanizeSeed() : 0)
+    ? nextStrumHumanizeSeed()
     : humanizeSeed;
   const voices = getGuitarStrumVoices(notes, {
     humanizeSeed: resolvedHumanizeSeed,
@@ -414,7 +361,8 @@ export function playGuitarPositions(audio, notes, {
   const { bodyInput, master } = getOutputGraph(audio);
   const safeDuration = clamp(Number(duration) || 1.7, 0.35, 3.2);
   const perStringLevel = clamp((Number(volume) || 0.52) / Math.sqrt(voices.length), 0.07, 0.5);
-  const startTime = audio.currentTime + 0.008;
+  voices.forEach((voice,index)=>getStringBuffer(audio,voice,safeDuration*voice.durationScale,{variant:((voiceSequences.get(audio)??0)+index)%PLUCK_VARIANTS}));
+  const startTime = audio.currentTime + 0.016;
 
   return voices.map((voice) => ({
     ...voice,

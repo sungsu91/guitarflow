@@ -95,7 +95,7 @@ export function updateDocumentChordFret(document,bar,string,fret) {
  measure.events=measure.events.map(event=>{
   if(event.rest)return event;
   const notes=event.notes.flatMap(n=>{if(n.string!==string)return [n];if(fret===null)return [];const changed={...n,fret,locked:true};delete changed.spelling;return [changed];});
-  return {...event,notes,rest:notes.length===0,technique:notes.length?event.technique:null};
+  return {...event,notes,rest:notes.length===0,blank:notes.length===0,technique:notes.length?event.technique:null};
  });
  return next;
 }

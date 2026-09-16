@@ -1,3 +1,4 @@
+export const NATURAL_HARMONICS={3:31,4:28,5:24,7:19,9:28,12:12,16:28,19:19,24:24};
 import {TUNING, NATURAL, MAJOR, MINOR, spellMidi} from './notationData.js';
 export function midiAtStaffStep(step,key='C') {
  const d=2+step,letter='CDEFGAB'[((d%7)+7)%7],octave=3+Math.floor(d/7),root=key[0],tonic=NATURAL[root]+(key[1]==='#'?1:key[1]==='b'?-1:0),degree=('CDEFGAB'.indexOf(letter)-'CDEFGAB'.indexOf(root)+7)%7;
@@ -5,8 +6,10 @@ export function midiAtStaffStep(step,key='C') {
 }
 export const TICKS=480;
 export const newId=(kind='id')=>`${kind}-${globalThis.crypto.randomUUID()}`;
-export const ticksOf=event=>1920/Number(event.duration);
-export const blankEvent=(onset=0,duration='4')=>({id:newId('event'),onset,duration,rest:true,technique:null,notes:[]});
+export const ticksOf=event=>1920/Number(event.duration)*(event.dotted?1.5:1)*(event.tuplet?event.tuplet.normalNotes/event.tuplet.actualNotes:1);
+export function tupletGroups(events){const groups=[];let group=[];for(let i=0;i<events.length;i++){const t=events[i].tuplet,previous=events[group.at(-1)]?.tuplet;if(!t||group.length===3||previous?.groupId!==t.groupId){if(group.length)groups.push(group);group=[];}if(t)group.push(i);}if(group.length)groups.push(group);return groups;}
+export const isBlankEvent=e=>e.blank===true&&e.rest&&e.notes.length===0;
+export const blankEvent=(onset=0,duration='4')=>({id:newId('event'),onset,duration,rest:true,blank:true,technique:null,notes:[]});
 export const blankMeasure=(meter=[4,4])=>({id:newId('bar'),chord:null,harmony:null,events:Array.from({length:meter[0]},(_,i)=>blankEvent(i*1920/meter[1],String(meter[1])))});
 // Editable drafts may contain invalid values, but their container structure must
 // remain safe for the retained form controls. Preserve unreadable files verbatim.
@@ -19,9 +22,9 @@ export function upgradeDocument(input) {
  d.measures.forEach((bar,b)=>{bar.id=`${d.id}:bar:${b}`;let onset=0;bar.events.forEach((e,i)=>{e.id=`${bar.id}:event:${i}`;e.onset=onset;onset+=ticksOf(e);e.notes.forEach((n,j)=>{n.id=`${e.id}:tone:${j}`;n.locked=true;});});});
  return d;
 }
-export function createBlankDocument(){return {format:'fretiva.etude',version:2,id:newId('score'),templateId:'custom',kind:'user',origin:null,title:'새 악보',english:'Untitled Study',purpose:'직접 입력한 악보',tips:[],bpm:60,meter:[4,4],keySignature:'C',tuning:[...TUNING],measures:[blankMeasure()]};}
+export function createBlankDocument(){return {format:'fretiva.etude',version:2,id:newId('score'),templateId:'custom',kind:'user',origin:null,viewSettings:{tabRhythm:true},title:'새 악보',english:'Untitled Study',purpose:'직접 입력한 악보',tips:[],bpm:60,meter:[4,4],keySignature:'C',tuning:[...TUNING],measures:[blankMeasure()]};}
 export function copyDocument(source){const d=structuredClone(source);d.id=newId('score');d.kind='user';d.title=`${d.title} · 복사`;return d;}
-export function cloneMeasures(measures){const result=structuredClone(measures),ids=new Map();result.forEach(m=>{m.id=newId('bar');m.events.forEach(e=>{const old=e.id;e.id=newId('event');ids.set(old,e.id);e.notes.forEach(n=>{n.id=newId('tone');});});});result.forEach(m=>m.events.forEach(e=>{if(e.tieTo)e.tieTo=ids.get(e.tieTo)??`outside-copy:${e.tieTo}`;}));return result;}
+export function cloneMeasures(measures){const result=structuredClone(measures),ids=new Map();result.forEach(m=>{m.id=newId('bar');m.events.forEach(e=>{const old=e.id;e.id=newId('event');ids.set(old,e.id);e.notes.forEach(n=>{n.id=newId('tone');});});});result.forEach(m=>m.events.forEach(e=>{if(e.tieTo)e.tieTo=ids.get(e.tieTo)??`outside-copy:${e.tieTo}`;if(e.tuplet?.groupId)e.tuplet.groupId=ids.get(e.tuplet.groupId)??e.tuplet.groupId;}));return result;}
 export function cloneMeasure(m){return cloneMeasures([m])[0];}
 export function patchEvent(d,bar,index,patch){const measures=[...d.measures],events=[...measures[bar].events];events[index]=typeof patch==='function'?patch(events[index]):{...events[index],...patch};measures[bar]={...measures[bar],events};return {...d,measures};}
 // Structural sharing for the retained properties panel, which mutates a clone.
@@ -50,18 +53,25 @@ function compileBar(bar,d) {
  const capacity=d.meter[0]*1920/d.meter[1];
  if(!Array.isArray(bar.events)||!bar.events.length||bar.events.length>64)return {errors:['마디에 1–64개의 음표/쉼표가 필요합니다.'],issues,events};
  for(const e of bar.events){
-  if(!e.id||!['1','2','4','8','16'].includes(e.duration)||!Number.isInteger(e.onset)||e.onset<0||!Array.isArray(e.notes)||e.notes.length>6){errors.push('음표 ID·시점·길이·동시음을 확인하세요.');continue;}
+  if(!e.id||!['1','2','4','8','16',...(isBlankEvent(e)?['32']:[])].includes(e.duration)||!Number.isInteger(e.onset)||e.onset<0||!Array.isArray(e.notes)||e.notes.length>6){errors.push('음표 ID·시점·길이·동시음을 확인하세요.');continue;}
+  if(e.dotted!=null&&(typeof e.dotted!=='boolean'||(e.dotted&&Boolean(e.tuplet))))errors.push('점음표와 셋잇단음표를 함께 적용할 수 없습니다.');
+  if(e.tuplet&&(e.tuplet.actualNotes!==3||e.tuplet.normalNotes!==2||!['8','16'].includes(e.duration)))errors.push(`${e.id}: 지원 연음은 8분·16분음표의 3:2입니다.`);
   if(e.onset!==end)issues.push(`${e.id}: ${e.onset<end?'앞 음과 겹침':'입력되지 않은 박'} (${e.onset/TICKS}박 시작)`);
   end=Math.max(end,e.onset+ticksOf(e));
   if(!e.rest&&(!e.notes.length||new Set(e.notes.map(n=>n.string)).size!==e.notes.length))errors.push(`${e.id}: 같은 줄 중복 또는 빈 음표`);
-  const tones=e.notes.map(n=>{if(!Number.isInteger(n.string)||n.string<1||n.string>6||!Number.isInteger(n.fret)||n.fret<0||n.fret>24){errors.push(`${e.id}: 줄 1–6, 프렛 0–24를 입력하세요.`);return null;}const midi=d.tuning[n.string-1]+n.fret;return {...n,midi,pitch:pitchForMidi(midi,d.keySignature,n.spelling)};}).filter(Boolean);
+  const tones=e.notes.map(n=>{if(!Number.isInteger(n.string)||n.string<1||n.string>6||!Number.isInteger(n.fret)||n.fret<0||n.fret>24){errors.push(`${e.id}: 줄 1–6, 프렛 0–24를 입력하세요.`);return null;}if(n.dead!=null&&typeof n.dead!=='boolean')errors.push(`${e.id}: 줄별 뮤트음 값은 true/false입니다.`);if(n.harmonic&&!NATURAL_HARMONICS[n.fret])errors.push(`${e.id}: 자연 하모닉스 위치를 확인하세요.`);const midi=d.tuning[n.string-1]+(n.harmonic?(NATURAL_HARMONICS[n.fret]??n.fret):n.fret);return {...n,dead:Boolean(n.dead??e.dead),midi,pitch:pitchForMidi(midi,d.keySignature,n.spelling)};}).filter(Boolean);
+  if(e.beamBefore!=null&&!['auto','join','break'].includes(e.beamBefore))errors.push(`${e.id}: 빔 설정을 확인하세요.`);
   if(e.dead!=null&&typeof e.dead!=='boolean')errors.push(`${e.id}: 뮤트음 값은 true/false입니다.`);
+  if(e.vibrato!=null&&typeof e.vibrato!=='boolean')errors.push(`${e.id}: 비브라토 설정을 확인하세요.`);
+  if(e.arpeggio!=null&&!['up','down'].includes(e.arpeggio))errors.push(`${e.id}: 아르페지오 방향을 확인하세요.`);
   if(e.technique&&!['H','P','S'].includes(e.technique))errors.push(`${e.id}: 지원하지 않는 연결 주법`);
   if(e.notes.some(n=>n.finger!=null&&![1,2,3,4].includes(n.finger)||n.rightFinger!=null&&!['p','i','m','a'].includes(n.rightFinger)))errors.push(`${e.id}: 손가락 기호를 확인하세요.`);
   if(e.pickStroke!=null&&!['up','down'].includes(e.pickStroke))errors.push(`${e.id}: 피킹 방향을 확인하세요.`);
-  for(const key of ['bend','vibrato','palmMute','letRing','ghost','grace'])if(e[key]!=null)issues.push(`${e.id}: ${key}는 현재 표시·재생을 지원하지 않습니다. 입력 데이터는 보존합니다.`);
+  for(const key of ['bend','palmMute','letRing','ghost','grace'])if(e[key]!=null)issues.push(`${e.id}: ${key}는 현재 표시·재생을 지원하지 않습니다. 입력 데이터는 보존합니다.`);
   events.push({...e,...(tones[0]??{string:1,fret:0,midi:d.tuning[0],pitch:pitchForMidi(d.tuning[0],d.keySignature)}),id:e.id,...(tones.length>1?{tones}:{}),rest:Boolean(e.rest),duration:e.duration,technique:e.technique??null});
  }
+ for(const group of tupletGroups(bar.events)){const first=bar.events[group[0]];if(group.length!==3||group.some((index,j)=>bar.events[index].duration!==first.duration||bar.events[index].onset!==first.onset+j*ticksOf(first)))errors.push('셋잇단음표는 같은 길이의 연속된 세 위치로 구성해야 합니다.');}
+ for(const group of tupletGroups(bar.events)){if(group.some(i=>isBlankEvent(bar.events[i])))issues.push(`${Math.floor(bar.events[group[0]].onset/TICKS)+1}박: 셋잇단음표 그룹 미완성`);}
  if(end!==capacity)issues.push(`마디 길이 ${end/TICKS} / ${capacity/TICKS}박 (${end>capacity?'초과':'부족'})`);
  if(bar.chord&&(!Array.isArray(bar.chord.frets)||bar.chord.frets.length!==6||bar.chord.frets.some(f=>f!==null&&(!Number.isInteger(f)||f<0||f>24))||typeof bar.chord.name!=='string'))errors.push('코드표의 이름·6개 줄 프렛을 확인하세요.');
  if(bar.chord&&(!Array.isArray(bar.chord.fingers)||bar.chord.fingers.length!==6||bar.chord.fingers.some(f=>f!==null&&![1,2,3,4].includes(f))))errors.push('코드표 손가락은 6개 줄 각각 1–4 또는 null입니다.');

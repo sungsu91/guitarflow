@@ -198,8 +198,26 @@ html body .app:is(.theme-light,.theme-dark) .pdfStudio .pdfViewTools--singleRow 
 .pdfContinuousSlot{position:relative;box-sizing:border-box}
 .pdfPageNumber{height:30px;box-sizing:border-box;padding:5px 2px;font-size:12px}
 .pdfContinuous .pdfEmbeddedPage{height:auto!important;min-height:0!important;overflow:visible;padding:0!important;flex:none}
-.pdfViewport .pdfPageStatus{position:absolute;top:6px;left:8px;margin:0;pointer-events:none}
+.pdfViewport .pdfPageStatus{position:absolute;top:6px;left:8px;margin:0;padding:4px 8px;font-size:12px;border-radius:4px;background:#fffdf2ed;color:#57412d;pointer-events:none;z-index:10}
+.pdfThumbnailPreview{position:absolute;inset:0;overflow:hidden;pointer-events:none;background:white}
+.pdfThumbnailPreview img{position:absolute;max-width:none;object-fit:fill}
+.pdfCanvas{position:relative}
+html body main.app.app.app.app.app .pdfStudio button.pdfBarRow{position:absolute;min-height:0!important;min-width:0!important;padding:0!important;border:1px solid #88634130!important;border-radius:1px!important;background:rgba(136,99,65,.02)!important;background-image:none!important;box-shadow:none!important;transform:none!important;overflow:visible!important;z-index:2}
+html body main.app.app.app.app.app .pdfStudio button.pdfBarRow::before,html body main.app.app.app.app.app .pdfStudio button.pdfBarRow::after{content:none!important}
+html body main.app.app.app.app.app .pdfStudio button.pdfBarRow.is-active{border-color:#91673488!important;background:rgba(173,127,56,.04)!important;background-image:none!important}
+html body main.app.app.app.app.app .pdfStudio button.pdfBarRow.is-selected{border-color:#916734!important}
+.pdfRowStartNumber{position:absolute;left:-15px;top:0;width:12px;font:10px/1.2 Arial,sans-serif;color:#725a40;text-align:right;pointer-events:none}
+.pdfRowGuide{position:absolute;top:0;bottom:0;width:1px;background:#88634128;pointer-events:none}
+.pdfRowResize{position:absolute;right:-12px;bottom:-12px;width:28px;height:28px;z-index:6;touch-action:none;cursor:nwse-resize}
+.pdfRowResize::after{content:'';position:absolute;right:9px;bottom:9px;width:9px;height:9px;background:#fff;border:1px solid #916734}
+.pdfCurrentMeasure{position:absolute;background:#a9762c12;pointer-events:none;z-index:3}
+.pdfUnifiedRowDraft{background:#ad7f3818;border:1px solid #91673488}
+.pdfOpeningPreview{padding:12px;min-height:70dvh;background:var(--pdf-bg,#faf8f3)}
+.pdfOpeningPreview header{display:flex;justify-content:space-between;align-items:center;min-height:44px;gap:12px}
+.pdfOpeningPreview img{display:block;width:100%;max-height:75dvh;object-fit:contain;background:white}
 .pdfPractice--mobile .pdfZoomBounds{margin:0}
 .pdfStudio .pdfViewTools .mobileScoreZoom button{padding:4px 7px;font-size:12px}
 .pdfStudio .pdfViewTools .mobileScoreZoom output{color:#4c3829}
 html body .app:is(.theme-light,.theme-dark) .pdfStudio .pdfFullscreenControls button{min-width:40px;min-height:40px;padding:6px 8px;border-radius:2px!important;box-shadow:none!important;background:#fffdf8!important;color:#302b24!important;font-size:13px}
+
+html body main.app.app.app.app.app .pdfStudio button.pdfBarRow.is-emphasized{background:rgba(173,127,56,.1)!important}

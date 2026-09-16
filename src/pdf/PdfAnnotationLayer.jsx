@@ -1,5 +1,5 @@
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {Hand,PenLine,Type,Crop,Undo2,Redo2,Check,X,Trash2,Move,Settings2} from 'lucide-react';
+import {Hand,PenLine,Type,Crop,Undo2,Redo2,Check,X,Trash2,Move,Settings2,Columns4} from 'lucide-react';
 import {ANNOTATION_COLORS,originalPoint,projectRect,resizeCrop,moveStroke} from './pdfAnnotations.js';
 import './pdfAnnotationTools.css';
 
@@ -8,14 +8,14 @@ export function PdfAnnotationToolbar({tool,choose,pen,setPen,undo,redo,canUndo,c
  useEffect(()=>{const close=e=>{if(!root.current?.contains(e.target))setSettings(false);};document.addEventListener('pointerdown',close,true);return()=>document.removeEventListener('pointerdown',close,true);},[]);
  useEffect(()=>setSettings(tool==='pen'),[tool]);
  return <div className={`pdfAnnotationToolbar ${compact?'pdfAnnotationToolbar--compact':''}`} ref={root}>
-  <div className={`pdfAnnotationContext ${compact?'pdfAnnotationContext--floating':''}`}>{children}{!compact&&tool==='pen'&&<button type="button" className="pdfPenSettingsButton" aria-label="펜 설정" aria-expanded={settings} onClick={()=>setSettings(v=>!v)}><i className="pdfCurrentPenColor" style={{background:ANNOTATION_COLORS[pen.color]}}/>색상 · 두께</button>}</div>
+  {(children||(!compact&&tool==='pen'))&&<div className={`pdfAnnotationContext ${compact?'pdfAnnotationContext--floating':''}`}>{children}{!compact&&tool==='pen'&&<button type="button" className="pdfPenSettingsButton" aria-label="펜 설정" aria-expanded={settings} onClick={()=>setSettings(v=>!v)}><i className="pdfCurrentPenColor" style={{background:ANNOTATION_COLORS[pen.color]}}/>색상 · 두께</button>}</div>}
   {settings&&<div className="pdfPenPopover" role="group" aria-label="펜 설정">
    <div><span>색상</span>{Object.entries(ANNOTATION_COLORS).map(([color,value])=><button key={color} type="button" aria-label={`펜 색상 ${color}`} aria-pressed={pen.color===color} className="pdfColorChoice" style={{'--swatch':value}} onClick={()=>setPen({...pen,color})}/>)}</div>
    <div><span>두께</span>{[.0015,.003,.006,.01].map((width,i)=><button key={width} type="button" aria-label={`펜 두께 ${i+1}`} aria-pressed={pen.width===width} onClick={()=>setPen({...pen,width})}><i style={{width:4+i*3,height:4+i*3,borderRadius:'50%',background:'currentColor'}}/></button>)}</div>
    <label>불투명도<input aria-label="펜 불투명도" type="range" min=".1" max="1" step=".1" value={pen.opacity} onChange={e=>setPen({...pen,opacity:Number(e.target.value)})}/></label>
   </div>}
   <div className="pdfAnnotationIcons" role="toolbar" aria-label="PDF 편집 도구">
-   {[["select","이동 선택",Hand],["pen","펜",PenLine],["text","텍스트",Type],["crop","여백 자르기",Crop]].map(([key,label,Icon])=><button key={key} type="button" aria-label={label} title={label} aria-pressed={tool===key} onClick={()=>{if(key==='pen'&&tool==='pen'){setSettings(v=>!v);}else{choose(key);setSettings(key==='pen');}}}><Icon size={21}/></button>)}
+   {[["select","이동 선택",Hand],["pen","펜",PenLine],["text","텍스트",Type],["crop","여백 자르기",Crop],["bar","마디 설정",Columns4]].map(([key,label,Icon])=><button key={key} type="button" aria-label={label} title={label} aria-pressed={tool===key} onClick={()=>{if(key==='pen'&&tool==='pen'){setSettings(v=>!v);}else{choose(key);setSettings(key==='pen');}}}><Icon size={21}/></button>)}
    <button type="button" aria-label="PDF 편집 실행 취소" disabled={!canUndo} onClick={undo}><Undo2 size={21}/></button><button type="button" aria-label="PDF 편집 다시 실행" disabled={!canRedo} onClick={redo}><Redo2 size={21}/></button>
   </div>
  </div>;

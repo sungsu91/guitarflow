@@ -1,3 +1,4 @@
+import {normalizePdfBarEntry} from './pdfBarRows.js';
 import {MobileLibraryHeader,MobileLibrarySearch,MobileLibraryStorage} from './MobileLibraryChrome.jsx';
 import ScoreLibraryTabs from './ScoreLibraryTabs.jsx';
 import {normalizePageEdits} from './pdfAnnotations.js';
@@ -12,7 +13,8 @@ import './pdfStudio.css';
 import './scoreFileBrowser.css';
 import './scoreLibraryTheme.css';
 import './scoreLibraryMobile.css';
-const PdfPractice=lazy(()=>import('./PdfPractice.jsx'));
+const preloadPdfPractice=()=>import('./PdfPractice.jsx');
+const PdfPractice=lazy(preloadPdfPractice);
 const ScoreEditor=lazy(()=>import('../etudes/ScoreEditor.jsx'));
 const EditablePractice=lazy(()=>import('./EditablePractice.jsx'));
 const Lessons=lazy(()=>import('../etudes/EtudeStudio.jsx'));
@@ -20,7 +22,7 @@ function readEditableLibrary(){try{return loadLibrary(localStorage,ETUDES);}catc
 const meters=['2/4','3/4','4/4','5/4','6/8','7/8','9/8','12/8'];
 export function pdfMetadata(source={}) {
  const count=Math.max(1,Math.floor(Number(source.pageCount)||1));
- return {viewMode:source.viewMode==='continuous'?'continuous':'single',pageEdits:normalizePageEdits(source.pageEdits,count),title:String(source.title||'새 PDF 악보').slice(0,200),artist:String(source.artist??'').slice(0,200),bpm:Math.max(30,Math.min(240,Number(source.bpm)||80)),meter:meters.includes(source.meter?.join('/'))?source.meter:[4,4],difficulty:['미지정','초급','중급','고급'].includes(source.difficulty)?source.difficulty:'미지정',tags:Array.isArray(source.tags)?source.tags.map(String).slice(0,30):[],memo:String(source.memo??'').slice(0,5000),pageCount:count,lastPage:Math.max(1,Math.min(count,Number(source.lastPage)||1)),zoom:['fit','page'].includes(source.zoom)?source.zoom:Math.max(25,Math.min(250,Number(source.zoom)||100)),mobileZoom:source.mobileZoom==null?'fit':['fit','page'].includes(source.mobileZoom)?source.mobileZoom:Math.max(25,Math.min(250,Number(source.mobileZoom)||100)),barMap:(Array.isArray(source.barMap)?source.barMap:[]).filter(b=>Number.isInteger(b.number)&&b.number>0&&Number.isInteger(b.page)&&b.page>0&&b.page<=count&&[b.x,b.y,b.width,b.height,b.beats].every(Number.isFinite)&&b.x>=0&&b.y>=0&&b.width>0&&b.height>0&&b.x+b.width<=1.001&&b.y+b.height<=1.001&&b.beats>=1&&b.beats<=32).slice(0,5000),practiceOrder:Array.isArray(source.practiceOrder)?source.practiceOrder.filter(Number.isInteger).slice(0,1000):[],countIn:Boolean(source.countIn),audible:source.audible!==false,highlight:Boolean(source.highlight),loop:Boolean(source.loop),loopStart:Math.max(1,Number(source.loopStart)||1),loopEnd:Math.max(1,Number(source.loopEnd)||1)};
+ return {viewMode:source.viewMode==='continuous'?'continuous':'single',pageEdits:normalizePageEdits(source.pageEdits,count),title:String(source.title||'새 PDF 악보').slice(0,200),artist:String(source.artist??'').slice(0,200),bpm:Math.max(30,Math.min(240,Number(source.bpm)||80)),meter:meters.includes(source.meter?.join('/'))?source.meter:[4,4],difficulty:['미지정','초급','중급','고급'].includes(source.difficulty)?source.difficulty:'미지정',tags:Array.isArray(source.tags)?source.tags.map(String).slice(0,30):[],memo:String(source.memo??'').slice(0,5000),pageCount:count,lastPage:Math.max(1,Math.min(count,Number(source.lastPage)||1)),zoom:['fit','page'].includes(source.zoom)?source.zoom:Math.max(25,Math.min(250,Number(source.zoom)||100)),mobileZoom:source.mobileZoom==null?'fit':['fit','page'].includes(source.mobileZoom)?source.mobileZoom:Math.max(25,Math.min(250,Number(source.mobileZoom)||100)),barMap:(Array.isArray(source.barMap)?source.barMap:[]).filter(b=>Number.isInteger(b.number)&&b.number>0&&Number.isInteger(b.page)&&b.page>0&&b.page<=count&&[b.x,b.y,b.width,b.height,b.beats].every(Number.isFinite)&&b.x>=0&&b.y>=0&&b.width>0&&b.height>0&&b.x+b.width<=1.001&&b.y+b.height<=1.001&&b.beats>=1&&b.beats<=32).slice(0,5000).map(normalizePdfBarEntry),practiceOrder:Array.isArray(source.practiceOrder)?source.practiceOrder.filter(Number.isInteger).slice(0,1000):[],countIn:Boolean(source.countIn),audible:source.audible!==false,highlight:Boolean(source.highlight),loop:Boolean(source.loop),loopStart:Math.max(1,Number(source.loopStart)||1),loopEnd:Math.max(1,Number(source.loopEnd)||1)};
 }
 function MetadataDialog({record,onSave,onClose,busy,error}) {
  const ref=useRef(null),[draft,setDraft]=useState(record);
@@ -35,7 +37,7 @@ export default function PdfStudio({mobile,onOpenMenu,onExit}) {
  const refresh=async()=>{try{setRecords(await listPdfs());setEstimate(await navigator.storage?.estimate?.());}catch(e){setError(storageError(e));}setLibrary(readEditableLibrary());};
  useEffect(()=>{void refresh();},[]);
  useLayoutEffect(()=>{if(firstView.current){firstView.current=false;return;}if(mobile)return;studio.current.querySelector('.scoreTabsAnchor')?.scrollIntoView({block:'start'});},[mode,opened?.record.id,scoreOpened?.id]);
- const open=async (record,edit=false)=>{setBusy(true);setError('');try{const blob=await getPdf(record.id);if(!blob)throw Error('저장된 원본 PDF가 없습니다. 백업 또는 원본을 다시 불러오세요.');setOpened({record,blob,edit});}catch(e){setError(e.message);}finally{setBusy(false);}};
+ const open=async (record,edit=false)=>{void preloadPdfPractice();setBusy(true);setError('');try{const blob=await getPdf(record.id);if(!blob)throw Error('저장된 원본 PDF가 없습니다. 백업 또는 원본을 다시 불러오세요.');setOpened({record,blob,edit});}catch(e){setError(e.message);}finally{setBusy(false);}};
  const importPdfFile=async (blob,openAfterSave=false)=>{if(!blob){input.current.click();return;}setBusy(true);setError('');setMessage('PDF 확인 및 첫 페이지 준비 중…');try{const fingerprint=await fingerprintPdf(blob),existing=await findPdf(fingerprint);if(existing){setDuplicate(existing);setMessage('동일한 PDF가 이미 저장되어 있습니다.');return;}const info=await inspectPdf(blob);const record={...pdfMetadata({title:blob.name.replace(/\.pdf$/i,''),...info,zoom:'fit'}),...info,id:crypto.randomUUID(),fingerprint,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),lastPracticedAt:null};setPending({record,blob,openAfterSave});setMessage('정보를 확인한 후 저장하세요.');}catch(e){setError(e.name==='PasswordException'?'암호를 해제한 PDF 사본을 선택하세요.':e.message);}finally{setBusy(false);}};
  const importPdf=e=>{const blob=e.target.files?.[0];e.target.value='';if(blob)void importPdfFile(blob);};
  const importScorePdf=blob=>{setMode('pdf');setScoreOpened(null);void importPdfFile(blob,true);};
@@ -59,7 +61,7 @@ export default function PdfStudio({mobile,onOpenMenu,onExit}) {
   {(!mobile||!opened)&&top}
   {error&&<p role="alert" className="pdfError">{error}</p>}{message&&!opened&&<p role="status">{message}</p>}
   <div id="score-library-panel" role="tabpanel" aria-labelledby={`score-tab-${mode}`}>
-  {opened?<Suspense fallback={<p>PDF 연습실 준비 중…</p>}><PdfPractice key={opened.record.id} closeController={pdfClose} initial={opened.record} blob={opened.blob} initialEditing={opened.edit} mobile={mobile} onInfo={(record,onSaved)=>setPending({record,onSaved})} onClose={()=>{setOpened(null);void refresh();}}/></Suspense>:scoreOpened?<Suspense fallback={<p>악보 준비 중…</p>}><EditablePractice key={scoreOpened.id} document={scoreOpened} mobile={mobile} editing={Boolean(editing)} onEdit={()=>setEditing(scoreOpened)} onClose={()=>{setScoreOpened(null);void refresh();}}/></Suspense>:mode==='lessons'?<>
+  {opened?<Suspense fallback={<div className="pdfOpeningPreview"><header><strong>{opened.record.title}</strong><span>{opened.record.lastPage} / {opened.record.pageCount}</span></header>{opened.record.thumbnail&&<img src={opened.record.thumbnail} alt="저장된 첫 페이지 미리보기"/>}</div>}><PdfPractice key={opened.record.id} closeController={pdfClose} initial={opened.record} blob={opened.blob} initialEditing={opened.edit} mobile={mobile} onInfo={(record,onSaved)=>setPending({record,onSaved})} onClose={()=>{setOpened(null);void refresh();}}/></Suspense>:scoreOpened?<Suspense fallback={<p>악보 준비 중…</p>}><EditablePractice key={scoreOpened.id} document={scoreOpened} mobile={mobile} editing={Boolean(editing)} onEdit={()=>setEditing(scoreOpened)} onClose={()=>{setScoreOpened(null);void refresh();}}/></Suspense>:mode==='lessons'?<>
    <Suspense fallback={<p>연습곡 준비 중…</p>}><Lessons {...{mobile,onOpenMenu,onExit}} onImportPdf={importScorePdf}/></Suspense>
   </>:<>
    {additions}

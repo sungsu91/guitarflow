@@ -1,0 +1,41 @@
+.mobileScoreWorkspace .mobileScoreHeader>.mobileScoreSettingsTitle{flex:1;width:auto;min-width:0;text-align:left;font-size:16px;font-weight:700;padding:4px 0;white-space:nowrap}
+html body .app:is(.theme-light,.theme-dark) .pdfStudio dialog.etudeEditor.mobileScoreWorkspace .mobileScoreSettingsTitle{border:0!important;background:transparent!important;text-align:left!important}
+.mobileScoreSmallSheet{position:absolute;inset:auto 6px calc(4px + env(safe-area-inset-bottom));z-index:15;max-height:min(310px,38dvh);display:flex;flex-direction:column;background:#fffaf3;border:1px solid #c8b59d;border-radius:5px;box-shadow:0 -2px 9px #3827191a;color:#493523}
+.mobileScoreWorkspace .mobileScoreSmallSheet>header{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px;padding:4px 10px;border-bottom:1px solid #e1d8cd}
+.mobileScoreSmallSheet>header strong{font-size:15px}
+.mobileScoreWorkspace .mobileScoreSmallSheet>header button{min-height:36px;height:36px;padding:4px 10px;font-size:13px}
+.mobileScoreSmallSheetBody{overflow:auto;overscroll-behavior:contain;min-height:0;padding:8px 10px;display:flex;flex-direction:column;gap:8px}
+.mobileScoreWorkspace .mobileScoreSmallSheet label{display:flex;flex-direction:column;gap:4px;margin:0;font-size:12px;font-weight:600;min-width:0}
+.mobileScoreWorkspace .mobileScoreSmallSheet :is(input:not([type=checkbox]),select){box-sizing:border-box;width:100%;min-width:0;height:36px;min-height:36px;padding:4px 8px;font-size:16px;border:1px solid #d4c5b0;border-radius:4px;background:white;color:#493523}
+.mobileScoreWorkspace .mobileScoreSmallSheet .mobileScoreTitleField{display:grid;grid-template-columns:52px minmax(0,1fr);align-items:center}
+.mobileScoreSettingFields,.mobileScoreViewButtons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.mobileScoreWorkspace .mobileScoreViewButtons button{font-size:13px;min-height:38px;padding:4px 2px}
+.mobileScoreWorkspace .mobileScoreSmallSheet .mobileScoreRhythmOption{flex-direction:row;align-items:center;gap:8px;min-height:30px;font-size:13px}
+.mobileScoreWorkspace .mobileScoreRhythmOption input{width:18px;height:18px;min-height:0;margin:0;accent-color:#67503a}
+.mobileScoreSmallSheet.is-note{max-height:min(290px,35dvh)}
+.mobileToolDock{position:relative;flex-shrink:0}
+.mobileToolDock .mobileScoreSmallSheet.is-anchored,.mobileDockPopover{position:absolute;inset:auto 0 calc(100% + 5px);z-index:15;max-height:min(260px,34dvh);background:#fffaf3;border:1px solid #c8b59d;border-radius:5px;box-shadow:0 -2px 9px #3827191a;color:#493523;overflow:auto}
+.mobileScoreWorkspace .mobileDockPopover>header{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-bottom:1px solid #e1d8cd}
+.mobileDockPopover>header strong{font-size:14px}
+.mobileScoreWorkspace .mobileDockPopover>header button{min-height:32px;height:32px;padding:2px 6px;font-size:12px}
+.mobileDockPopover .mobilePickingColumns{padding:8px}
+.mobileBeamPopoverBody{display:flex;flex-direction:column;gap:6px;padding:8px}
+.mobileBeamRangeActions{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.mobileTupletTool{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #e1d8cd;padding-top:6px;font-size:12px}
+.mobileScoreWorkspace .mobileBeamPopoverBody button{min-height:36px;padding:4px 10px;font-size:12px}
+.mobileInputExtras [data-mobile-tool-toggle]{display:flex;align-items:center;justify-content:center;gap:6px}
+.mobileInputExtras [data-mobile-tool-toggle]>span{font-size:18px;line-height:1}
+html body main.app.app.app .pdfStudio dialog.mobileScoreWorkspace .mobileInputExtras [data-mobile-tool-toggle][aria-expanded=true]{background:#67503a!important;color:white!important;-webkit-text-fill-color:white!important;border-color:#67503a!important;opacity:1!important;filter:none!important;transition:none!important}
+html body main.app.app.app .pdfStudio dialog.mobileScoreWorkspace .mobileInputExtras [data-mobile-tool-toggle][aria-expanded=true]>span{color:inherit!important;-webkit-text-fill-color:inherit!important}
+.mobileScoreSmallSheet .etudeBeamControls{margin:0}
+.mobileScoreWorkspace .mobileScoreSmallSheet .etudeBeamControls button{font-size:12px;min-height:40px;padding:4px 3px;white-space:nowrap}
+.mobileScoreNoteExtras summary{font-size:12px;min-height:26px;cursor:pointer}
+.mobileScoreNoteExtras>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding-top:6px}
+.mobileScoreWorkspace .mobileScoreNoteExtras button{font-size:12px;min-height:36px;padding:4px}
+
+.mobileScoreWorkspace .mobileScoreSmallSheet .mobileScoreNoteExtras{margin:0;padding:0;border:0;border-radius:0;background:transparent}
+.mobileScoreWorkspace .mobileScoreNoteExtras>summary{min-height:26px;padding:4px 0;font-size:12px;margin:0}
+
+.mobileTechniqueTools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.mobileScoreWorkspace .mobileTechniqueTools button{font-size:12px;min-height:40px;padding:4px 2px}.mobileScoreSmallSheet .mobileTechniqueHint{font-size:11px;color:#766958;margin:0;line-height:1.5}.mobileScoreWorkspace .mobileScoreNoteExtras>.etudeBeamControls{display:flex}
+
+html body main.app.app.app .pdfStudio dialog.mobileScoreWorkspace .mobileTechniqueTools button[aria-pressed=true]{background:#67503a!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#67503a!important;opacity:1!important;transition:none!important;filter:none!important}

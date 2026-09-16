@@ -103,13 +103,16 @@
 .mobileFretPad{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}.mobileFretPad button{height:44px;font-size:20px}
 .mobilePickRow{display:grid;grid-template-columns:34px repeat(3,minmax(0,1fr));gap:4px;align-items:center}.mobilePickRow>span{font-size:11px;text-align:center}.mobileScoreWorkspace .mobilePickRow button{min-height:32px;height:32px;font-size:13px}
 .mobileInputExtras{display:flex;gap:4px}.mobileScoreWorkspace .mobileInputExtras button{flex:1;min-height:32px;height:32px;font-size:11px;white-space:nowrap;padding:2px}
-.mobileScoreWorkspace .etudeScorePlayback.is-compact{display:flex;align-items:center;gap:8px;margin:0;padding:4px 0 0;border-top:1px solid #dfd3c3;min-height:48px}.mobileScoreWorkspace .etudeScorePlayback>button{width:44px;background:#67503a;color:white;font-size:20px}.mobileScoreWorkspace .etudeScorePlayback label{display:flex;flex-direction:row;gap:4px;align-items:center;margin:0;font-size:11px}.mobileScoreWorkspace .etudeScorePlayback input[type=number]{width:55px;min-height:36px;height:36px;padding:2px;text-align:center}.mobileScoreWorkspace .mobileMetro{margin-left:auto!important}.mobileMetro input{width:18px;height:18px}.mobileBeatPosition{font-size:11px;color:#826848}
-.mobileEditorSheet{position:absolute;bottom:calc(420px + env(safe-area-inset-bottom));left:6px;right:6px;z-index:15;max-height:min(40dvh,300px);display:flex;flex-direction:column;border:1px solid #b89d78;border-radius:5px;background:#fffaf1;box-shadow:0 -3px 10px #38271922}.mobileEditorSheet>header{display:flex;align-items:center;justify-content:space-between;padding:4px 8px;flex-shrink:0}.mobileEditorSheet strong{font-size:13px}.mobileSheetContent{overflow:auto;padding:6px 10px;min-height:0}.mobileDetailTabs{display:flex;gap:4px;margin:4px 0}.mobileEditorSheet .etudeDocumentMenus{flex-wrap:wrap;z-index:1}.mobileEditorSheet .etudeDocumentMenus>details>div{position:static;width:100%;max-height:200px;box-shadow:none}.mobileEditorSheet .etudeDocumentMenus>details[open]{flex-basis:100%;order:1}.mobileEditorSheet .etudePropertiesPanel{border:0;padding:0}
-.mobileEditorNotice{position:absolute;left:10px;right:10px;top:54px;z-index:20;background:#fff4db;border:1px solid #d5bc8c;padding:8px;font-size:12px;max-height:90px;overflow:auto}.mobileValidation{position:absolute;right:8px;top:54px;z-index:9;font-size:11px!important;min-height:26px!important}
-@media(max-height:740px){.mobileScoreWorkspace .mobileCursorPad button{height:34px;min-height:34px}.mobileScoreInput{gap:3px}.mobileEditorSheet{bottom:390px;max-height:30dvh}}
+.mobileScoreWorkspace .etudeScorePlayback.is-compact{display:flex;align-items:center;gap:8px;margin:0;padding:4px 0 0;border-top:1px solid #dfd3c3;min-height:48px}.mobileScoreWorkspace .etudeScorePlayback>button{width:44px;background:#67503a;color:white;font-size:20px}.mobileScoreWorkspace .etudeScorePlayback label{display:flex;flex-direction:row;gap:4px;align-items:center;margin:0;font-size:11px}.mobileScoreWorkspace .etudeScorePlayback input[type=number]{width:55px;min-height:36px;height:36px;padding:2px;text-align:center}.mobilePlaybackStatus{display:flex;align-items:center;gap:2px;min-width:0}.mobileScoreWorkspace .mobilePlaybackStatus .mobileMetro{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;margin:0;padding:0;background:transparent;border-color:transparent;color:#67503a}.mobilePlaybackStatus .mobileBeatPosition{white-space:nowrap}.mobileBeatPosition{font-size:11px;color:#826848}
+
+.mobileEditorFeedback{display:flex;align-items:center;gap:6px;flex:0 0 24px;height:24px;min-height:24px;min-width:0;padding:0 3px;overflow:hidden}
+.mobileEditorFeedbackText{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#705334;pointer-events:none}
+.mobileScoreWorkspace .mobileEditorFeedback .mobileValidation{position:static;flex:0 0 auto;height:24px;min-height:24px;margin:0;padding:0 4px;font-size:11px;background:transparent;border:0;color:#705334;box-shadow:none}
+
+@media(max-height:740px){.mobileScoreWorkspace .mobileCursorPad button{height:34px;min-height:34px}.mobileScoreInput{gap:3px}}
 
 .mobileScoreWorkspace .mobileDurationRow .etudeDurationButtons button[aria-pressed=true]{background:#67503a;color:white;border-color:#67503a}
-.mobileScoreWorkspace .mobileEditorSheet{bottom:calc(var(--mobile-input-height,420px) + 4px + env(safe-area-inset-bottom));max-height:min(22dvh,190px)}
+
 
 html body .app:is(.theme-light,.theme-dark) .pdfStudio dialog.etudeEditor.mobileScoreWorkspace button{background:#fffdf9!important;background-image:none!important;color:#4c3a29!important;border:1px solid #d4c5b0!important;border-radius:4px!important;box-shadow:none!important;transform:none!important}
 html body .app:is(.theme-light,.theme-dark) .pdfStudio dialog.etudeEditor.mobileScoreWorkspace button::before,html body .app:is(.theme-light,.theme-dark) .pdfStudio dialog.etudeEditor.mobileScoreWorkspace button::after{content:none!important;display:none!important}
@@ -120,18 +123,43 @@ html body .app:is(.theme-light,.theme-dark) .pdfStudio dialog.etudeEditor.mobile
 .etudeEditorPreview:has(.etudeMeasureLayoutBar){display:flex;flex-direction:column}
 .etudeMeasureLayoutBar{display:flex;align-items:center;gap:6px;flex:0 0 auto;padding:4px 2px 6px;border-bottom:1px solid #d7c6b1;color:#493523;font-size:13px;font-weight:600}
 .etudeMeasureLayoutBar>div{display:flex;gap:3px}.etudeEditor .etudeMeasureLayoutBar button{height:34px;min-height:34px;min-width:34px;padding:3px 8px;font-size:14px;font-weight:600}.etudeMeasureLayoutBar>button:last-child{margin-left:auto}
-.etudeMeasureGrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:8px;align-items:start;padding:4px;box-sizing:border-box}
+.etudeMeasureGrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:0;row-gap:8px;align-items:start;padding:4px;box-sizing:border-box}
 .etudeZoomBounds{min-width:0;flex-shrink:0}
 .mobileScoreWorkspace .etudeEditorPreview>.mobileScoreZoom{flex:0 0 auto;justify-content:flex-end;min-height:36px;padding:0 3px 3px}
-.etudeEditor .etudeMeasureGrid .etudeEditorMeasure{min-width:0;padding:3px;margin:0;border:1px solid #cdbcaa;border-radius:3px;overflow:hidden;background:white}
-.etudeMeasureGrip{display:grid;grid-template-columns:minmax(0,1fr) 28px;gap:2px;border-bottom:1px solid #d7c6b1;padding:2px;background:#f6efe5;color:#4b3422;font:600 12px system-ui}
-.etudeMeasureGrip>span{grid-column:1 / -1}.etudeEditor .etudeMeasureGrip button{padding:2px;min-height:30px;height:30px;font-size:11px}.etudeMeasureGrip button:last-child{touch-action:none;cursor:ns-resize;font-size:22px}
+.etudeEditor .etudeMeasureGrid .etudeEditorMeasure{min-width:0;padding:0;margin:0;border:0;border-radius:0;overflow:hidden;background:white}
+.etudeMeasureLayoutTools{display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;border-bottom:1px solid #e8e0d5;color:#4b3422;font:500 12px system-ui}
+.etudeEditor .etudeMeasureLayoutTools button{display:inline-flex;align-items:center;justify-content:center;width:44px;min-height:44px;height:44px;margin:0;padding:0;font-size:23px;line-height:1;background:transparent;border:0;box-shadow:none}.etudeMeasureLayoutTools>span{color:#77695b}
+.etudeEditor--mobile .etudeMeasureLayoutTools{position:relative;top:8px;z-index:1;min-height:28px;height:28px;gap:3px;margin:0 3px calc(-1 * var(--layout-tool-overlap));border:0;font-size:10px}
+.etudeEditor--mobile .etudeMeasureLayoutTools button{width:28px;min-width:28px;min-height:28px;height:28px;font-size:17px;border:1px solid #e8e0d5;border-radius:4px;background:#fffdf9}
+
 .mobileScoreWorkspace .mobilePickingColumns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mobileScoreWorkspace .mobilePickRow{grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}.mobileScoreWorkspace .mobilePickRow>span{grid-column:1/-1;text-align:left;font-size:12px;font-weight:700;color:#493523;line-height:16px}.mobileScoreWorkspace .mobilePickRow button{height:34px;min-height:34px;font-size:19px;font-weight:600}.mobileScoreWorkspace .mobilePickRow button:last-child{font-size:15px}
 .mobileScoreWorkspace .mobileInputExtras button{font-size:13px;font-weight:600;height:36px;min-height:36px}
 .mobileScoreWorkspace .mobileCursorPad output{font-size:13px;font-weight:600;color:#493523}.mobileScoreWorkspace .mobileCursorPad button{font-size:16px;font-weight:600}.mobileScoreWorkspace .mobileFretPad button{font-size:22px;font-weight:600}
-.mobileScoreWorkspace .mobileSheetContent{font-size:14px;color:#493523}.mobileScoreWorkspace .mobileDetailTabs button{flex:1;font-size:14px;font-weight:600}.mobileScoreWorkspace .mobileEditorSheet strong{font-size:15px}.mobileScoreWorkspace .mobileSheetContent .etudePropertiesPanel>h3{font-size:16px;margin:5px 0}
-.mobileScoreWorkspace .etudeMeasureLayoutBar{font-size:12px;gap:4px}.mobileScoreWorkspace .etudeMeasureLayoutBar button{font-size:13px;min-height:32px;height:32px;padding:2px 6px}.mobileScoreWorkspace .etudeMeasureGrid{gap:6px;padding:3px}
+
+.mobileScoreWorkspace .etudeMeasureLayoutBar{font-size:12px;gap:4px}.mobileScoreWorkspace .etudeMeasureLayoutBar button{font-size:13px;min-height:32px;height:32px;padding:2px 6px}.mobileScoreWorkspace .etudeMeasureGrid{column-gap:0;row-gap:6px;padding:3px}
 html body .app:is(.theme-light,.theme-dark) .pdfStudio dialog.etudeEditor.mobileScoreWorkspace :is(.mobileCursorPad output,.mobilePickRow>span,.etudeMeasureLayoutBar,.mobileBeatPosition){color:#493523!important}
 
 .etudeLayoutHint{flex-shrink:0;font-size:11px;padding:3px 4px;color:#61472f}
+.etudeEditorPreview{position:relative}
+.scoreBeamRangeTools{position:absolute;z-index:5;bottom:8px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:4px;padding:4px;background:#fffdf9;border:1px solid #d8cbb8;border-radius:5px;white-space:nowrap}
+.etudeEditor .scoreBeamRangeTools button{min-height:36px;min-width:42px;margin:0;padding:4px 10px;font-size:13px;background:transparent;color:#4b3422;border:0;box-shadow:none}
+.scoreBeamRangeTools span{padding:0 6px;font-size:12px;color:#61472f}
+
+.etudeBeamControls{display:flex;align-items:center;gap:4px;margin:4px 0;flex-wrap:nowrap}.etudeBeamControls>span{font-size:13px;font-weight:600;margin-right:3px}.etudeEditor .etudeBeamControls button{flex:1;min-width:0;min-height:36px;padding:4px 7px;font-size:13px;border-radius:3px}.etudeEditor .etudeBeamControls button[aria-pressed=true]{background:#60462f!important;color:#fffaf0!important}
+
+.mobileDurationRow button[aria-pressed="true"]{background:#68503a;color:white}
+
+.mobileNotationTools{flex:0 0 auto;display:flex;flex-direction:column;gap:4px;padding:2px 0 4px}.mobileNotationViews{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}.mobileScoreWorkspace .mobileNotationViews button{height:34px;min-height:34px;padding:2px;font-size:12px;white-space:nowrap}.mobileScoreWorkspace .mobilePickRow button{font-family:Arial,sans-serif}.mobileScoreWorkspace .mobileNotationTools .mobileDurationRow{flex-shrink:0}
+
+/* Rhythm input stays independent of the lower beam tools. */
+.rhythmModifiers{display:flex;gap:2px;border-left:1px solid #d4c5b0;padding-left:2px;align-items:center}
+.rhythmModifiers button{-webkit-tap-highlight-color:transparent;position:relative;min-width:42px;min-height:44px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.dottedLock{position:absolute;right:2px;top:2px}
+.mobileScoreWorkspace .mobileDurationRow{display:grid;grid-template-columns:5fr 1fr 2fr;gap:0;height:44px;margin-inline:-2px}
+.mobileScoreWorkspace .mobileDurationRow .etudeDurationButtons{gap:0;min-width:0;grid-template-columns:repeat(5,minmax(0,1fr))}
+.mobileScoreWorkspace .mobileDurationRow button{min-width:42px;width:100%;min-height:44px;height:44px;padding:1px;border-radius:3px;font-size:13px}
+.mobileScoreWorkspace .mobileDurationRow .rhythmModifiers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;padding-left:1px;min-width:0}
+.mobileScoreWorkspace .rhythmInputStatus{height:14px;line-height:14px;font-size:10px;color:#78634c;white-space:nowrap;text-align:right;padding-right:2px}
+
+.mobileBeamPopoverBody .mobileBeamRangeActions{grid-template-columns:repeat(2,minmax(0,1fr))}

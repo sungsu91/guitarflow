@@ -1,0 +1,19 @@
+import assert from 'node:assert/strict';import {mkdir} from 'node:fs/promises';
+const {chromium}=await import('file:///C:/Users/User/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs');const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});await mkdir('artifacts/mobile-tool-dock',{recursive:true});
+try{for(const width of [360,390,444]){
+ const p=await browser.newPage({viewport:{width,height:844},isMobile:true,hasTouch:true}),errors=[];p.on('pageerror',e=>{errors.push(e.message);console.log(e.stack);});await p.addInitScript(()=>localStorage.setItem('rifflabThemeMode','light'));await p.goto('http://127.0.0.1:5173/#etudes');await p.getByRole('button',{name:/간단 악보 만들기/}).click();await p.locator('[data-draw-count]').first().waitFor();const d=p.getByRole('dialog',{name:'악보 편집',exact:true}),btn=name=>d.getByRole('button',{name,exact:true});
+ const fixture=await p.evaluate(async()=>{const m=await import('/src/etudes/scoreModel.js'),c=await import('/src/etudes/editorCommands.js');let doc=m.createBlankDocument();doc.measures[0].events=Array.from({length:8},(_,i)=>m.blankEvent(i*240,'8'));for(let i=0;i<8;i++)doc=c.enterFret(doc,{bar:0,event:i,string:5},i%2?7:5);return doc;});await p.getByLabel('악보 파일 선택',{exact:true}).setInputFiles({name:'dock.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(fixture))});
+ const canvas=p.locator('[data-score-input]'),before=await canvas.boundingBox(),dock=p.locator('.mobileToolDock'),dockBefore=await dock.boundingBox();
+ assert.equal(await p.locator('.mobileNotationViews').getByRole('button').count(),3);assert.equal(await btn('3연음 입력').count(),0);
+ for(const label of ['피킹','주법','빔']){
+  await btn(`${label} 도구 열기`).click();assert.equal(await btn(`${label} 도구 열기`).getAttribute('aria-expanded'),'true');
+  const popup=p.getByRole('region',{name:`${label} 도구`,exact:true});await popup.waitFor();const r=await popup.boundingBox();assert(r.y+r.height<=dockBefore.y);assert.deepEqual(await canvas.boundingBox(),before);assert.deepEqual(await dock.boundingBox(),dockBefore);
+  assert(await btn(`${label} 도구 열기`).evaluate(n=>{const r=n.getBoundingClientRect();return n.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}));
+  if(width===390)await p.screenshot({path:`artifacts/mobile-tool-dock/390-${label}.png`});
+  await btn(`${label} 도구 열기`).click();assert.equal(await popup.count(),0);assert.equal(await btn(`${label} 도구 열기`).getAttribute('aria-expanded'),'false');
+ }
+ await btn('피킹 도구 열기').click();await btn('모두 다운').click();await btn('직접 피킹 업').click();assert.equal(await p.getByRole('region',{name:'피킹 도구',exact:true}).count(),1);
+ await btn('주법 도구 열기').click();assert.equal(await p.getByRole('region',{name:'피킹 도구',exact:true}).count(),0);await p.locator('[data-bar-index="0"] .etudeNoteHandle[data-event="0"][data-mode="tab"]').click();await btn('H · 해머온').click();assert.equal(await p.locator('.etudeTechniqueLabel').first().textContent(),'H');
+ await btn('빔 도구 열기').click();assert.equal(await p.getByRole('region',{name:'주법 도구',exact:true}).count(),0);await p.locator('[data-bar-index="0"] .etudeNoteHandle[data-event="0"][data-mode="tab"]').click();await p.locator('[data-bar-index="0"] .etudeNoteHandle[data-event="3"][data-mode="tab"]').click();await btn('선택 범위 빔 묶기').click();assert.equal(await p.locator('[data-beam-events="0,1,2,3"]').count(),1);
+ await btn('8분음표').click();await btn('3연음 입력').click();assert.equal(await btn('3연음 입력').getAttribute('aria-pressed'),'true');await btn('빔 도구 열기').click();assert.equal(await p.getByRole('region',{name:'빔 도구',exact:true}).count(),0);assert.deepEqual(errors,[]);console.log({width,toggle:true,anchor:true,noShift:true,picking:true,technique:true,beam:true,triplet:true,errors});await p.close();
+}}finally{await browser.close();}

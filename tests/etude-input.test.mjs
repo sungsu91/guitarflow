@@ -16,8 +16,8 @@ test('free chromatic TAB, staff and playback derive from one source',()=>{
 test('partial edit compiles one bar, keeps other IDs data references and manual choices',()=>{
  const d=toScoreDocument(ETUDES[0]);compileScoreDocument(d);const before=compileStats.bars,c={bar:2,event:0,string:4};const next=enterFret(d,c,9);compileScoreDocument(next);assert.equal(compileStats.bars-before,1);assert.strictEqual(next.measures[1],d.measures[1]);assert.strictEqual(next.measures[3],d.measures[3]);assert.equal(next.measures[2].events[0].id,d.measures[2].events[0].id);assert.equal(next.measures[2].events[0].notes.find(n=>n.string===4).locked,true);
 });
-test('duration change reports gaps without shifting later onsets, draft survives reload',()=>{
- const d=createBlankDocument(),next=durationStep(d,cursor,1),r=compileScoreDocument(next);assert.ok(r.issues.some(s=>s.includes('입력되지 않은 박')));assert.equal(next.measures[0].events[1].onset,480);const s=memory();assert.equal(saveLibraryDocument(s,next).record.status,'draft');assert.deepEqual(loadLibrary(s).records[next.id].document,next);assert.deepEqual(d.measures[0].events.map(e=>e.duration),['4','4','4','4']);
+test('duration changes fill vacant slots without shifting later notes and survive reload',()=>{
+ const d=createBlankDocument(),later=d.measures[0].events[1],next=durationStep(d,cursor,1),r=compileScoreDocument(next);assert.deepEqual(r.issues,[]);assert.equal(next.measures[0].events[2],later);const s=memory();assert.ok(saveLibraryDocument(s,next).saved);assert.deepEqual(loadLibrary(s).records[next.id].document,next);assert.deepEqual(d.measures[0].events.map(e=>e.duration),['4','4','4','4']);
 });
 test('same pitch changes strings without changing staff or locked neighbours',()=>{
  const n={id:'n',string:2,fret:5,locked:true};const next=moveSamePitch(n,1);assert.deepEqual([next.string,next.fret],[3,9]);assert.equal(TUNING[next.string-1]+next.fret,64);assert.equal(pitchCandidates(n,64)[0].string,2);assert.equal(n.string,2);
@@ -36,20 +36,14 @@ test('a longer entry duration consumes only contiguous following rests',()=>{
  const next=setEventDuration(d,cursor,'4');assert.deepEqual(next.measures[0].events.slice(0,2).map(e=>[e.onset,e.duration]),[[0,'4'],[480,'4']]);
  assert.strictEqual(next.measures[0].events[1],untouched);assert.deepEqual(compileScoreDocument(next).issues,[]);
 });
-test('continuous digits never combine while explicit two-digit mode resolves 10 12 15 and 23',()=>{
- for(const digit of ['0','1','2','3','7','9']){const n=resolveFretInput(null,digit,'a',0);assert.equal(n.wait,false);assert.equal(n.value,Number(digit));}
- assert.equal(resolveFretInput({text:'2',time:0,location:'a'},'3','a',80,false).value,3);
- for(const value of ['10','12','15','23','24']){const first=resolveFretInput(null,value[0],'a',0,true),next=resolveFretInput(first,value[1],'a',80,true);assert.equal(next.value,Number(value));assert.equal(next.combined,true);assert.equal(next.wait,false);}
- const first=resolveFretInput(null,'2','a',0,true);
- assert.equal(resolveFretInput(first,'3','a',420,true).combined,false);
- assert.equal(resolveFretInput(first,'3','b',80,true).combined,false);
- const invalid=resolveFretInput(first,'7','a',80,true);assert.equal(invalid.value,7);assert.equal(invalid.advanceBefore,true);assert.equal(invalid.wait,false);
+test('digits combine without a mode or timeout only at the selected position',()=>{
+ for(const value of ['10','12','15','23','24']){const first=resolveFretInput(null,value[0],'a'),next=resolveFretInput({...first,time:-999999},value[1],'a');assert.equal(next.value,Number(value));assert.equal(next.combined,true);}
+ const first=resolveFretInput(null,'2','a');assert.equal(resolveFretInput(first,'3','b').value,3);assert.equal(resolveFretInput(first,'7','a').value,7);
 });
-test('duration edits preserve occupied neighbours and annotated rests, reporting overlaps',()=>{
- let d=enterFret(createBlankDocument(),{...cursor,event:1},5);const occupied=d.measures[0].events[1];
- const next=setEventDuration(d,cursor,'2');assert.strictEqual(next.measures[0].events[1],occupied);assert.ok(compileScoreDocument(next).issues.length);
- d=patchEvent(createBlankDocument(),0,1,{pickStroke:'up'});const annotated=d.measures[0].events[1];
- assert.strictEqual(setEventDuration(d,cursor,'2').measures[0].events[1],annotated);
+test('duration edits reject overlaps with occupied neighbours and annotated rests atomically',()=>{
+ let d=enterFret(createBlankDocument(),{...cursor,event:1},5),before=structuredClone(d);
+ assert.throws(()=>setEventDuration(d,cursor,'2'),/겹칩니다/);assert.deepEqual(d,before);
+ d=patchEvent(createBlankDocument(),0,1,{pickStroke:'up'});assert.throws(()=>setEventDuration(d,cursor,'2'),/겹칩니다/);
 });
 test('range copy paste assigns new IDs and preserves source bars, notes and rhythms',()=>{
  const d=toScoreDocument(ETUDES[0]),copy=copyBars(d,1,2),next=pasteBars(d,4,copy);assert.equal(next.measures.length,10);assert.strictEqual(next.measures[0],d.measures[0]);assert.notEqual(next.measures[5].id,d.measures[1].id);assert.deepEqual(next.measures[5].events.map(e=>e.onset),d.measures[1].events.map(e=>e.onset));assert.deepEqual(compileScoreDocument(next).errors,[]);
@@ -64,7 +58,7 @@ test('v1 migration retains original key and raw storage; quota failure does not 
  const bad={document:{id:'broken',measures:[null]},status:'draft'};s.setItem(LIBRARY_KEY,JSON.stringify({version:2,records:{broken:bad}}));const recovered=loadLibrary(s);assert.equal(recovered.records.broken.status,'unreadable');saveLibraryDocument(s,createBlankDocument());assert.deepEqual(loadLibrary(s).records.broken.raw,bad,'unreadable source survives saving another document');
 });
 test('score timeline handles simultaneous notes, rests, tuning and meter',()=>{
- let d=createBlankDocument();d=enterFret(d,cursor,5);d=enterFret(d,{...cursor,string:2},1);d={...d,tuning:[64,59,55,50,45,38]};const r=compileScoreDocument(d),timeline=scoreTimeline(r.score);assert.equal(timeline.events.length,2);assert.equal(timeline.events[0].start,timeline.events[1].start);assert.deepEqual(timeline.events.map(e=>e.midi),[60,60]);assert.equal(timeline.duration,4);
+ let d=createBlankDocument();d=enterFret(d,cursor,5);d=enterFret(d,{...cursor,string:2},1);d={...d,tuning:[64,59,55,50,45,38]};const r=compileScoreDocument(d),timeline=scoreTimeline(r.score);assert.equal(timeline.events.length,2);assert.equal(timeline.events[0].start,timeline.events[1].start);assert.deepEqual(timeline.events.map(e=>e.midi),[60,60]);assert.equal(timeline.duration,1);
 });
 test('educational code-tone rules detect non-chord tones without blocking free score',()=>{
  const base=ETUDES.find(e=>e.templateId==='triad-engine'),d=toScoreDocument(base);const changed=patchEvent(d,7,14,e=>({...e,notes:[{...e.notes[0],string:5,fret:5}]})),r=compileScoreDocument(changed,base);assert.ok(r.score);assert.ok(educationIssues(r.score).length);assert.deepEqual(educationIssues(base),[]);

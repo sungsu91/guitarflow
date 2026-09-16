@@ -14,7 +14,7 @@ test('score measure numbers stay attached to the staff and Etude remains paper-l
   assert.match(etudeScoreSource, /class', 'etudeMeasureNumber'/);
   assert.match(etudeScoreSource, /first \? Math\.max\(start - 14, x \+ 50\) : x \+ 4/);
   assert.match(etudeScoreSource, /measureNumber\.setAttribute\('text-anchor', 'middle'\)/);
-  assert.match(etudeScoreSource, /stave\.getYForLine\(0\) - 13/);
+  assert.match(etudeScoreSource, /\(view==='tab'\?tab:stave\)\.getYForLine\(0\) - 13/);
   assert.doesNotMatch(etudeScoreSource, /fillText\(String\(index \+ 1\), x \+ 3, y \+ 5\)/);
   assert.match(etudeCssSource, /\.theme-dark \.etudeStudio[\s\S]*color-scheme: light/);
   assert.match(etudeCssSource, /\.etudeNotation svg \.etudeMeasureNumber[\s\S]*font: 800 12px Arial/);
