@@ -72,6 +72,7 @@ export default function useShooterMobileViewport(active) {
     "--shooter-mobile-canvas-transform": transform,
     "--shooter-mobile-nav-bottom": `${(10 / frame.scale).toFixed(4)}px`,
     "--shooter-mobile-nav-inverse-scale": (1 / frame.scale).toFixed(8),
-    "--portrait-mobile-canvas-height": `${SHOOTER_MOBILE_CANVAS_HEIGHT}px`,
+    "--portrait-mobile-canvas-height": `${frame.rotation ? SHOOTER_MOBILE_CANVAS_HEIGHT : frame.height / frame.scale}px`,
+    "--portrait-mobile-canvas-width": `${frame.width / frame.scale}px`,
   };
 }

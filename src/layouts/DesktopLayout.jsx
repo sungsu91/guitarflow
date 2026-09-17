@@ -26,6 +26,11 @@ export default function DesktopLayout({ children }) {
   const [isDesktopLayout, setIsDesktopLayout] = useState(getIsDesktopLayout);
 
   useLayoutEffect(() => {
+    document.documentElement.dataset.rifflabLayout = isDesktopLayout ? "desktop" : "mobile";
+    return () => { delete document.documentElement.dataset.rifflabLayout; };
+  }, [isDesktopLayout]);
+
+  useLayoutEffect(() => {
     const mediaQuery = typeof window.matchMedia === "function"
       ? window.matchMedia(DESKTOP_LAYOUT_QUERY)
       : null;

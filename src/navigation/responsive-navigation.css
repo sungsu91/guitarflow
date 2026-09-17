@@ -4,11 +4,6 @@ html body #root main.app.mobileNavigationSurface > .hud {
   display: contents !important;
 }
 
-/* Keep the light rail opaque so the ocean/game backdrop cannot tint it. */
-html body #root main.app.mobileNavigationSurface.theme-light > .hud > .modeSwitch {
-  background-color: #ecdad3 !important;
-}
-
 /* Interaction feedback lives outside React state so pointer-down can paint before
    route work starts. Keep the press short and physical on every app layout. */
 html body main.app.app.app :is(
@@ -26,4 +21,164 @@ html body main.app.app.app :is(
   transition:
     transform 70ms cubic-bezier(0.2, 0.8, 0.2, 1),
     filter 70ms ease-out !important;
+}
+
+/* Palette follows the owning app, including its detached navigation portal. */
+.integratedBottomNav {
+  --bottom-nav-background: #F4F0EA;
+  --bottom-nav-border: #DCD4C9;
+  --bottom-nav-muted: #756D65;
+  --bottom-nav-active: #49382C;
+  --bottom-nav-tint: rgba(114, 84, 51, .075);
+  --bottom-nav-press: rgba(114, 84, 51, .13);
+  --bottom-nav-shadow: inset 0 1px 0 rgba(255, 252, 247, .65),
+    0 -4px 16px rgba(49, 38, 27, .08), 0 -12px 32px rgba(49, 38, 27, .025);
+}
+.theme-brand .integratedBottomNav {
+  --bottom-nav-background: #171612;
+  --bottom-nav-border: #433B2C;
+  --bottom-nav-muted: #B3AA9B;
+  --bottom-nav-active: #F1CF86;
+  --bottom-nav-tint: rgba(241, 207, 134, .08);
+  --bottom-nav-press: rgba(241, 207, 134, .15);
+  --bottom-nav-shadow: inset 0 1px 0 rgba(255, 238, 207, .045),
+    0 -4px 16px rgba(0, 0, 0, .32), 0 -12px 32px rgba(0, 0, 0, .14);
+}
+
+/* The mobile bottom rail owns its geometry; desktop and landscape focus keep
+   their existing navigation policy. IDs intentionally outrank legacy themes. */
+html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav {
+  position: fixed !important;
+  inset: auto auto 0 var(--bottom-nav-left, 0px) !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  box-sizing: border-box !important;
+  width: var(--bottom-nav-width, 100%) !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 0 env(safe-area-inset-bottom, 0px) !important;
+  gap: 0 !important;
+  border: 0 !important;
+  border-top: 1px solid var(--bottom-nav-border) !important;
+  border-radius: 0 !important;
+  background: var(--bottom-nav-background) !important;
+  box-shadow: var(--bottom-nav-shadow) !important;
+  backdrop-filter: none !important;
+  transform: none !important;
+  overflow: visible !important;
+  pointer-events: auto;
+}
+
+html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav > button {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 63px !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 4px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--bottom-nav-muted) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  line-height: 15px !important;
+  letter-spacing: .01em !important;
+  white-space: nowrap !important;
+  text-shadow: none !important;
+  transform: none !important;
+  filter: none !important;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: color 160ms ease, opacity 100ms ease !important;
+}
+
+html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav > button:is(.selected, [aria-pressed="true"], [aria-expanded="true"]) {
+  color: var(--bottom-nav-active) !important;
+  font-weight: 700 !important;
+  background: radial-gradient(ellipse 32px 25px at 50% 24px, var(--bottom-nav-tint), transparent) !important;
+}
+
+html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav > button > svg {
+  flex: 0 0 23px !important;
+  width: 23px !important;
+  height: 23px !important;
+  margin: 0 !important;
+  color: inherit !important;
+  stroke-width: 1.8 !important;
+  opacity: 1 !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav::before,
+html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav::after,
+html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav > button::after {
+  content: none !important;
+}
+
+html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav > button::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 4px auto auto 50% !important;
+  width: 24px !important;
+  height: 3px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--bottom-nav-active) !important;
+  box-shadow: none !important;
+  transform: translateX(-50%) !important;
+  opacity: 0 !important;
+  transition: opacity 160ms ease !important;
+}
+
+html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav > button:is(.selected, [aria-pressed="true"], [aria-expanded="true"])::before {
+  opacity: 1 !important;
+}
+
+/* Press feedback never changes the icon position or the button's touch target. */
+html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav > button:is(:active, .is-instant-pressed) {
+  background: radial-gradient(ellipse 40px 32px at 50% 24px, var(--bottom-nav-press), transparent) !important;
+  opacity: .68 !important;
+  transform: none !important;
+  filter: none !important;
+  transition: opacity 70ms ease !important;
+}
+
+html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav > button:focus-visible {
+  outline: 2px solid var(--bottom-nav-active) !important;
+  outline-offset: -5px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav > button,
+  html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav > button::before {
+    transition: none !important;
+  }
+}
+
+/* Replace existing navigation clearance instead of adding a second spacer.
+   Scaled tuner/game canvases already reserve navigation space internally. */
+html body #root:has(.mobileNavigationSurface, main.menuApp) .mobileLayoutShell main.app:not(.mobileNavigationSurface):not(.landscapePlayFocus):not(.tunerMode):not(.shooterMode) {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+html body #root:has(.mobileNavigationSurface, main.menuApp) .mobileLayoutShell main.app:not(.mobileNavigationSurface):not(.landscapePlayFocus)
+  :is(.mainHub, .firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel, .standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck), .stage3StorageRoom.chordTransitionPanel, .stage3BackingBandPanel) {
+  padding-bottom: 0 !important;
 }

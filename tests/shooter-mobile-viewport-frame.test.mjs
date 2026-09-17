@@ -107,14 +107,13 @@ test("device emulation uses one coherent viewport pair during desktop-to-mobile 
     visualScale: 0.4,
     visualWidth: 1035,
   }));
-  const expectedScale = Math.min(
-    414 / SHOOTER_MOBILE_CANVAS_WIDTH,
-    896 / SHOOTER_MOBILE_CANVAS_HEIGHT,
-  );
+  const expectedScale = Math.min(414 / SHOOTER_MOBILE_CANVAS_WIDTH, 896 / SHOOTER_MOBILE_CANVAS_HEIGHT);
 
   assert.ok(Math.abs(frame.scale - expectedScale) < 1e-12);
-  assert.ok(frame.left >= 0);
-  assert.ok(frame.height <= 896);
+  assert.equal(frame.left, 0);
+  assert.equal(frame.top, 0);
+  assert.equal(frame.width, 414);
+  assert.equal(frame.height, 896);
 });
 
 test("a stale visual viewport height cannot inflate the inverse-scaled mobile navigation", () => {

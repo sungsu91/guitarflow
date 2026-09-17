@@ -114,6 +114,9 @@ import { getChordFretWindow } from "./fretboard/chordFretWindow.js";
 import SplashIntro from "./launch/SplashIntro";
 import DesktopSidebarNavigation from "./navigation/DesktopSidebarNavigation";
 import MobileNavigationSurface from "./navigation/MobileNavigationSurface.jsx";
+import BottomNavigation from "./navigation/BottomNavigation.jsx";
+import MetronomeSettingsPanel from "./components/MetronomeSettingsPanel.jsx";
+import UtilityMenuSurface from "./navigation/UtilityMenuSurface.jsx";
 import { useDesktopLayout } from "./layouts/DesktopLayout.jsx";
 import { RIFFLAB_COMMON_CUTAWAY_SPRITE_SRC } from "./assets/rifflabCommonCutawaySprite";
 import { CHROMATIC_NOTES, NOTE_INDEX, SOLFEGE } from "./music/noteNotation.js";
@@ -7075,70 +7078,17 @@ function MetronomeControl({
             ? null
             : <strong className="metronomeOptionsCollapsedTitle">{optionsCollapseLabel}</strong>
         ) : (
-          <>
-        <MetronomeSelectControl
-          className="metronomeSelectControl--wallPicker"
-          label="박자"
-          layout="grid"
-          onChange={onTimeSignatureChange}
-          options={TIME_SIGNATURE_OPTIONS}
-          value={timeSignature}
-        />
-        {splitToneControls && !toneControlsAfterSubdivision ? (
-          <MetronomeSelectControl
-            ariaLabel="1박 음색"
-            className="metronomeSelectControl--tonePicker metronomeSelectControl--toneSlot metronomeSelectControl--accentTone"
-            label="음색 1박"
-            labelDot="strong"
-            layout="grid"
-            onChange={onAccentToneChange}
-            options={METRONOME_TONE_OPTIONS}
-            value={accentTone}
-          />
-        ) : null}
-        <MetronomeSelectControl
-          className="metronomeSelectControl--wallPicker"
-          label="세분"
-          layout="grid"
-          onChange={onSubdivisionChange}
-          options={SUBDIVISION_OPTIONS}
-          value={subdivision}
-        />
-        {splitToneControls && toneControlsAfterSubdivision ? (
-          <MetronomeSelectControl
-            ariaLabel="1박 음색"
-            className="metronomeSelectControl--tonePicker metronomeSelectControl--toneSlot metronomeSelectControl--accentTone"
-            label="음색 1박"
-            labelDot="strong"
-            layout="grid"
-            onChange={onAccentToneChange}
-            options={METRONOME_TONE_OPTIONS}
-            value={accentTone}
-          />
-        ) : null}
-        {splitToneControls ? (
-          <MetronomeSelectControl
-            ariaLabel="나머지 박 음색"
-            className="metronomeSelectControl--tonePicker metronomeSelectControl--toneSlot metronomeSelectControl--weakTone"
-            label="음색 2박"
-            labelDot="weak"
-            layout="grid"
-            onChange={onWeakToneChange}
-            options={METRONOME_TONE_OPTIONS}
-            value={weakTone}
-          />
-        ) : (
-          <MetronomeSelectControl
-            className="metronomeSelectControl--tonePicker"
-            label="음색"
-            layout="grid"
-            onChange={onToneChange}
-            options={METRONOME_TONE_OPTIONS}
-            value={tone}
-          />
-        )}
-          </>
-        )}
+          <MetronomeSettingsPanel
+            renderOption={renderMetronomeOptionLabel}
+            fields={[
+              { id: "meter", label: "박자", options: TIME_SIGNATURE_OPTIONS, value: timeSignature, onChange: onTimeSignatureChange },
+              ...(splitToneControls ? [{ id: "accent", label: "음색 1박", ariaLabel: "1박 음색", dot: "strong", tone: true, options: METRONOME_TONE_OPTIONS, value: accentTone, onChange: onAccentToneChange }] : []),
+              { id: "subdivision", label: "세분", options: SUBDIVISION_OPTIONS, value: subdivision, onChange: onSubdivisionChange },
+              splitToneControls
+                ? { id: "weak", label: "음색 2박", ariaLabel: "나머지 박 음색", dot: "weak", tone: true, options: METRONOME_TONE_OPTIONS, value: weakTone, onChange: onWeakToneChange }
+                : { id: "tone", label: "음색", tone: true, options: METRONOME_TONE_OPTIONS, value: tone, onChange: onToneChange },
+            ]}
+          />        )}
         {onOptionsCollapseChange && !optionsHeaderToggle ? (
           <button
             aria-controls={`${inputId}-options`}
@@ -30142,6 +30092,7 @@ function App({ onReady }) {
         versionLabel={APP_VERSION_LABEL}
       />}
       {utilityMenuOpen && !isDesktopLayout ? (
+        <UtilityMenuSurface theme={appTheme} onClose={closeUtilityMenu}>
         <div className="utilityMenuLayer" role="presentation">
           <button
             aria-label="메뉴 닫기"
@@ -30150,13 +30101,14 @@ function App({ onReady }) {
             type="button"
           />
           <aside
+            role="dialog"
+            aria-modal="true"
             aria-label="메뉴"
             className="utilityMenuPanel"
             id="utility-menu-panel"
           >
             <div className="utilityMenuHeader">
               <div>
-                <span>MENU</span>
                 <strong>메뉴</strong>
               </div>
               <button
@@ -30167,6 +30119,7 @@ function App({ onReady }) {
                 <X aria-hidden="true" size={22} />
               </button>
             </div>
+            <div className="utilityMenuBody">
             {themeMenuVisible ? (
               <section className="utilityThemePanel" aria-label="테마 설정">
                 <div className="utilityThemeHeader">
@@ -30196,13 +30149,14 @@ function App({ onReady }) {
               </section>
             ) : null}
             <nav className="utilityMenuList" aria-label="부가 기능 목록">
-              <button className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive" onClick={showEtudes} type="button">
+              <button aria-current={desktopSidebarActiveKey === "etudes" ? "page" : undefined} className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive" onClick={showEtudes} type="button">
                 <span className="utilityMenuIcon" aria-hidden="true"><Music2 size={19} /></span>
                 <div className="utilityMenuText"><strong className="utilityMenuTitle"><span className="utilityMenuTitleLabel">에튀드 스튜디오</span><span className="etudeProMark">PRO</span></strong><small>오선보 · TAB · 포지션 연결 훈련</small></div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </button>
               <button
                 className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
+                aria-current={desktopSidebarActiveKey === "stage1" ? "page" : undefined}
                 onClick={() => showIndependentPracticeCategory("first-position")}
                 type="button"
               >
@@ -30215,6 +30169,7 @@ function App({ onReady }) {
               </button>
               <button
                 className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
+                aria-current={desktopSidebarActiveKey === "stage2" ? "page" : undefined}
                 onClick={() => showIndependentPracticeCategory("scale-block")}
                 type="button"
               >
@@ -30227,6 +30182,7 @@ function App({ onReady }) {
               </button>
               <button
                 className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
+                aria-current={desktopSidebarActiveKey === "stage3" ? "page" : undefined}
                 onClick={showCurriculum}
                 type="button"
               >
@@ -30239,6 +30195,7 @@ function App({ onReady }) {
               </button>
               <button
                 className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive"
+                aria-current={desktopSidebarActiveKey === "mini-chord" ? "page" : undefined}
                 onClick={showMiniChordMaker}
                 type="button"
               >
@@ -30252,6 +30209,7 @@ function App({ onReady }) {
               {audioStudioEnabled ? (
                 <button
                   className="utilityMenuItem utilityMenuItemSecondary utilityMenuItemActive audioStudioMenuItem"
+                  aria-current={desktopSidebarActiveKey === "audio-studio" ? "page" : undefined}
                   onClick={showAudioStudio}
                   type="button"
                 >
@@ -30374,8 +30332,10 @@ function App({ onReady }) {
             <p className="utilityMenuVersion" aria-label={`앱 ${APP_VERSION_LABEL}`}>
               FRETIVA LAB {APP_VERSION_LABEL}
             </p>
+            </div>
           </aside>
         </div>
+        </UtilityMenuSurface>
       ) : null}
 
       {sharedAccompanimentConfigurationDialogs}
@@ -30464,7 +30424,7 @@ function App({ onReady }) {
           viewportClassName={viewportClassName}
           locked={appContentInteractionLocked}
         ><section className="hud">
-        <div className="modeSwitch">
+        <BottomNavigation>
           <button
             aria-pressed={appMode === APP_MODES.TUNER}
             className={appMode === APP_MODES.TUNER ? "selected" : ""}
@@ -30513,7 +30473,7 @@ function App({ onReady }) {
             <Settings size={17} aria-hidden="true" />
             메뉴
           </button>
-        </div>
+        </BottomNavigation>
       </section></MobileNavigationSurface>}
 
       {appMode === APP_MODES.ETUDES ? <Suspense fallback={<p>악보 연습실 준비 중…</p>}><EtudeStudio mobile={isMobileLayout} onOpenMenu={toggleUtilityMenu} onExit={showFretboardViewer} /></Suspense> : null}
@@ -30587,17 +30547,21 @@ function App({ onReady }) {
             </button>
           </div>
 
-          <div className="modeSwitch mainBottomNav" aria-label="앱 하단 네비게이션">
-            <button onClick={showFretboardViewer} type="button">
-              지판보기
-            </button>
+          <BottomNavigation className="mainBottomNav">
             <button onClick={showTunerMode} type="button">
+              <Radio size={24} aria-hidden="true" />
               튜너
             </button>
+            <button onClick={showFretboardViewer} type="button">
+              <Grid3X3 size={24} aria-hidden="true" />
+              지판 보기
+            </button>
             <button onClick={showMetronomeMode} type="button">
+              <Timer size={24} aria-hidden="true" />
               메트로놈
             </button>
             <button onClick={showShooterMode} translate="no" type="button">
+              <Gamepad2 size={24} aria-hidden="true" />
               슈팅게임
             </button>
             <button
@@ -30608,9 +30572,10 @@ function App({ onReady }) {
               onClick={toggleUtilityMenu}
               type="button"
             >
+              <Settings size={24} aria-hidden="true" />
               메뉴
             </button>
-          </div>
+          </BottomNavigation>
         </section>
         ))}
         </Activity>

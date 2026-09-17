@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import mobileSurfaceCss from "./scripts/mobile-surface-css.mjs";
 import { writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
@@ -426,5 +427,6 @@ function effectTuningSavePlugin() {
 }
 
 export default defineConfig({
+  css: { postcss: { plugins: [mobileSurfaceCss()] } },
   plugins: [react(), mapEditorSavePlugin(), noteMonsterTuningSavePlugin(), effectTuningSavePlugin()],
 });

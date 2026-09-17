@@ -1,0 +1,14 @@
+/* Mini diagrams: fret wires stop at the outside strings, not in the fret labels. */
+html body #root .chordCatalogPanel .chordMiniSharedFretboard .fretboardGrid {
+  top: calc(var(--fretboard-board-top) + var(--fretboard-board-height) / 12) !important;
+  bottom: auto !important;
+  height: calc(var(--fretboard-board-height) * 5 / 6) !important;
+}
+
+/* Keep offscreen fingering diagrams mounted, but skip their expensive subtree
+   styling/painting during navigation. Card dimensions already come from the
+   catalog's fixed flex basis and minimum height; measured sizes are remembered. */
+.chordCatalogPanel .chordMiniCard {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 0px;
+}

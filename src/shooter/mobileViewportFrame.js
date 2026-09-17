@@ -43,7 +43,16 @@ export function getShooterMobileViewportSnapshot(targetWindow = window) {
       : viewport.width || SHOOTER_MOBILE_CANVAS_WIDTH,
   });
 
-  if (!portraitLocked) return { ...frame, rotation: 0 };
+  // Portrait uses the full device width. Its authored height is allowed to
+  // reflow, so controls retain their proportions without letterboxing the stage.
+  if (!portraitLocked) return {
+    width: viewport.width,
+    height: viewport.height,
+    scale: frame.scale,
+    left: 0,
+    top: 0,
+    rotation: 0,
+  };
 
   // Screen Orientation locking is unavailable in several mobile browsers.
   // Rotate the complete portrait canvas as one unit in that fallback case so

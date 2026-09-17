@@ -19,12 +19,13 @@ export default function ScorePlayback({score,bpm=score?.bpm,disabled=false,compa
   try{
    const ctx=await resumeSharedAudioContext();if(!ctx)throw Error('이 브라우저에서 오디오를 시작할 수 없습니다.');
    const piano=await prepareScoreInstrument(ctx,instrument);if(request!==token.current)return;
-   const timeline=guitarVoiceTimeline(score,bpm),capacity=score.meter[0]*1920/score.meter[1],offset=(from.bar*capacity+(score.measures[from.bar]?.[from.event]?.onset??0))/480*60/bpm;
+   const timeline=guitarVoiceTimeline(score,bpm),capacity=score.meter[0]*1920/score.meter[1],offset=(timeline.order.indexOf(from.bar)*capacity+(score.measures[from.bar]?.[from.event]?.onset??0))/480*60/bpm;
+   if(!timeline.order.includes(from.bar))throw Error('선택한 마디는 현재 반복 경로에서 연주되지 않습니다. 시작 마디를 선택하세요.');
    if(offset>=timeline.duration-1e-7)return;
    const voices=voicesFrom(timeline,offset);
    if(instrument!=='piano')voices.slice(0,6).forEach((voice,index)=>warmGuitarPhrase(ctx,voice,index));
    const clock=await metro.start({beatOffset:(score.measures[from.bar]?.[from.event]?.onset??0)/(1920/score.meter[1]),durationSeconds:timeline.duration-offset});if(request!==token.current||!clock)return;
-   const slots=score.measures.flatMap((m,bar)=>m.map((e,event)=>({bar,event,start:(bar*capacity+e.onset)/480*60/bpm}))).filter(e=>e.start<timeline.duration-1e-7);
+   const slots=timeline.order.flatMap((bar,visit)=>score.measures[bar].map((e,event)=>({bar,event,barStart:visit*capacity,start:(visit*capacity+e.onset)/480*60/bpm}))).filter(e=>e.start<timeline.duration-1e-7);
    const s={output:createScoreVoiceOutput(ctx),index:0,start:clock.origin-offset,timer:0,slot:-1};session.current=s;setPlaying(true);setError('');
    const tick=()=>{
     if(session.current!==s)return;
@@ -34,7 +35,7 @@ export default function ScorePlayback({score,bpm=score?.bpm,disabled=false,compa
      s.output.schedule(group,s.start+start,instrument,piano);
     }
     const elapsed=ctx.currentTime-s.start,i=slots.findLastIndex(e=>e.start<=elapsed);
-    if(i>=0&&i!==s.slot){s.slot=i;const current={...slots[i],playing:true,getBarTick:()=>Math.max(0,Math.min(capacity,(ctx.currentTime-s.start)*480*bpm/60-slots[i].bar*capacity))};setPosition(current);notify.current?.(current);}
+    if(i>=0&&i!==s.slot){s.slot=i;const current={...slots[i],playing:true,getBarTick:()=>Math.max(0,Math.min(capacity,(ctx.currentTime-s.start)*480*bpm/60-slots[i].barStart))};setPosition(current);notify.current?.(current);}
     if(elapsed>=timeline.duration){clearInterval(s.timer);metro.stop();s.output.finish();trailing.current=s.output;session.current=null;setPlaying(false);setPosition(null);notify.current?.(null);}
    };
    s.timer=setInterval(tick,25);tick();

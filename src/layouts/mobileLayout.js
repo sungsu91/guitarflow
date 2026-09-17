@@ -1,4 +1,4 @@
-export const MOBILE_LAYOUT_MAX_WIDTH = 680;
+export const MOBILE_LAYOUT_MAX_WIDTH = 1023;
 export const MOBILE_LAYOUT_MEDIA_QUERY = `(max-width: ${MOBILE_LAYOUT_MAX_WIDTH}px)`;
 
 const MOBILE_USER_AGENT_PATTERN = /Android|iPhone|iPad|iPod|Mobile|Windows Phone|BlackBerry|Opera Mini|IEMobile/i;
@@ -18,6 +18,8 @@ export function getIsMobileLayout(
   if (!targetWindow) return false;
   const compactViewport = typeof targetWindow.matchMedia === "function"
     && targetWindow.matchMedia(MOBILE_LAYOUT_MEDIA_QUERY).matches;
-  return compactViewport || isLikelyMobileDevice(targetWindow.navigator);
+  const touchSurface = typeof targetWindow.matchMedia === "function"
+    && targetWindow.matchMedia("(pointer: coarse)").matches;
+  return compactViewport || touchSurface || isLikelyMobileDevice(targetWindow.navigator);
 }
 

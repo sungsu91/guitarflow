@@ -1,4 +1,11 @@
 import {NATURAL_HARMONICS,patchEvent,newId,ticksOf,blankEvent,cloneMeasures,moveSamePitch,blankMeasure,isBlankEvent} from './scoreModel.js';
+export function deleteMeasure(d,bar){
+ if(d.measures.length<=1)throw Error('악보에는 최소 한 마디가 필요합니다.');
+ if(!d.measures[bar])return d;
+ const removed=d.measures[bar],ids=new Set(removed.events.map(e=>e.id));
+ const measures=d.measures.filter((_,i)=>i!==bar).map(m=>m.events.some(e=>ids.has(e.tieTo))?{...m,events:m.events.map(e=>ids.has(e.tieTo)?{...e,tieTo:null}:e)}:m);
+ return {...d,measures,viewSettings:{...d.viewSettings,systemBreaks:(d.viewSettings?.systemBreaks??[]).filter(id=>id!==removed.id)}};
+}
 // Connections belong to the starting event; reject impossible destinations
 // instead of saving a symbol that playback cannot interpret.
 export function setNoteConnection(d,c,kind){
@@ -44,7 +51,7 @@ export function enterMutedTone(d,c,duration='4'){
 }
 
 // Duration edits consume vacant time only, retaining later onsets and IDs.
-const vacant=e=>isBlankEvent(e)&&!e.tuplet&&!e.technique&&!e.tieTo&&!e.pickStroke;
+const vacant=e=>isBlankEvent(e)&&!e.tuplet;
 function retimeEvent(d,c,duration,dotted=false){
  const m=d.measures[c.bar],e=m?.events[c.event];if(!e)return d;
  if(e.duration===duration&&Boolean(e.dotted)===dotted)return d;
@@ -52,12 +59,14 @@ function retimeEvent(d,c,duration,dotted=false){
  const end=e.onset+ticksOf({duration,dotted}),capacity=d.meter[0]*1920/d.meter[1];
  if(end>capacity)throw Error('이 음표 길이는 마디 끝을 넘습니다.');
  let stop=c.event+1,covered=Math.min(e.onset+ticksOf(e),m.events[stop]?.onset??capacity);
- while(covered<end&&stop<m.events.length){
+ // Empty time need not have a placeholder. Only an entered sound/rest or a
+ // reserved tuplet occupies it; stale picking on a blank does not add time.
+ while(stop<m.events.length&&m.events[stop].onset<end){
   const next=m.events[stop];
-  if(!vacant(next)||next.onset!==covered)break;
-  covered+=ticksOf(next);stop++;
+  if(!vacant(next))throw Error(`${c.bar+1}마디 · ${next.onset/480+1}박: 뒤의 음표·쉼표 또는 셋잇단 입력 위치와 겹칩니다. 더 짧은 길이를 선택하세요.`);
+  covered=Math.max(covered,next.onset+ticksOf(next));stop++;
  }
- if(covered<end)throw Error('뒤의 음표·쉼표와 겹칩니다. 길이를 늘릴 빈 시간이 필요합니다.');
+ covered=Math.max(end,Math.min(covered,m.events[stop]?.onset??capacity));
  const tail=[];let at=end;
  // Reuse this subdivision when shortening; split an overshot blank if needed.
  const values=['1','2','4','8','16','32'].filter(v=>Number(v)>=Number(duration));

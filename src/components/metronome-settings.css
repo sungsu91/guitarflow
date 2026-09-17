@@ -1,0 +1,43 @@
+/* Only the shared rhythm settings surface; transport and other dropdowns stay intact. */
+html body #root .metronomeOptions:has(> .rhythmSettings) { display:flex !important; flex-direction:column !important; height:auto !important; min-height:0 !important; overflow:visible !important; }
+html body #root .rhythmSettings { display:grid !important; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr) !important; gap:6px 10px !important; width:100% !important; min-width:0 !important; container-type:inline-size; }
+html body #root .rhythmSetting { display:flex !important; align-items:center !important; gap:6px !important; min-width:0 !important; }
+html body #root .rhythmSettingLabel { display:inline-flex !important; align-items:center !important; flex:none; gap:4px; white-space:nowrap; font-size:12px !important; font-weight:650; color:var(--theme-text); }
+html body #root .rhythmSettingLabel .metronomeSelectLabelDot { width:12px !important; height:12px !important; margin:0 !important; }
+html body #root .rhythmSettingTrigger { display:flex !important; align-items:center !important; justify-content:space-between !important; gap:4px !important; flex:1; min-width:0 !important; width:auto !important; min-height:40px !important; height:auto !important; padding:7px 8px !important; border:1px solid var(--theme-border-control) !important; border-radius:9px !important; background:var(--theme-surface) !important; color:var(--theme-text) !important; box-shadow:none !important; transform:none !important; font-size:13px !important; line-height:1.25 !important; }
+html body #root .rhythmSettingTrigger > span { min-width:0; overflow-wrap:anywhere; }
+html body #root .rhythmSettingTrigger > svg { flex:none; }
+html body #root .rhythmSettingTrigger[aria-expanded=true] { background:color-mix(in srgb,var(--theme-accent) 14%,var(--theme-surface)) !important; border-color:var(--theme-accent) !important; }
+html body #root .rhythmSettingTrigger:focus-visible, html body .rhythmSettingsPopup button:focus-visible { outline:2px solid var(--theme-accent) !important; outline-offset:2px !important; }
+html body .rhythmSettingsPopup { position:fixed; z-index:100400; box-sizing:border-box; display:flex; flex-direction:column; padding:7px; border:1px solid var(--theme-border-control); border-radius:12px; background:var(--theme-surface); color:var(--theme-text); box-shadow:0 4px 16px color-mix(in srgb,var(--theme-text) 14%,transparent); font-family:inherit; }
+html body .rhythmSettingsTail { position:absolute; left:calc(var(--tail-x) - 20px); bottom:-12px; overflow:visible; pointer-events:none; }
+html body .rhythmSettingsTail path { fill:var(--theme-surface); stroke:var(--theme-border-control); stroke-width:1; }
+html body .rhythmSettingsPopup.opens-down .rhythmSettingsTail { bottom:auto; top:-12px; transform:rotate(180deg); }
+html body .rhythmSettingsChoices { display:grid; gap:5px; overflow:auto; min-height:0; overscroll-behavior:contain; scrollbar-width:thin; }
+html body .rhythmSettingsChoices.tile-choices { grid-template-columns:repeat(4,minmax(0,1fr)); }
+html body .rhythmSettingsChoices.tone-choices { grid-template-columns:repeat(2,minmax(0,1fr)); }
+html body .rhythmSettingsChoice { display:flex; align-items:stretch; min-width:0; border:1px solid var(--theme-border-control); border-radius:8px; background:var(--theme-surface); }
+html body .rhythmSettingsChoice.selected { background:color-mix(in srgb,var(--theme-accent) 14%,var(--theme-surface)); border-color:var(--theme-accent); }
+html body .rhythmSettingsPopup button { margin:0; box-shadow:none; border:0; border-radius:7px; background:transparent; color:inherit; font-family:inherit; font-size:13px; min-height:40px; transform:none; cursor:pointer; }
+html body .rhythmSettingsChoose { display:flex; align-items:center; justify-content:space-between; flex:1; gap:4px; min-width:0; padding:7px; text-align:left; font-weight:650; }
+html body .rhythmSettingsChoose > span { overflow-wrap:anywhere; min-width:0; }
+html body .rhythmSettingsChoose > svg { flex:none; }
+html body .tile-choices .rhythmSettingsChoose { justify-content:center; font-size:17px; font-variant-numeric:tabular-nums; }
+html body .rhythmSettingsPopup .rhythmSettingsPreview { flex:0 0 36px; width:36px; display:grid; place-items:center; padding:4px; border-left:1px solid var(--theme-border-control); border-radius:0 7px 7px 0; }
+html body .rhythmSettingsPopup button:hover { background:color-mix(in srgb,var(--theme-accent) 14%,var(--theme-surface)); }
+html body .rhythmSettingsPopup button:disabled { opacity:.45; cursor:default; }
+@container (max-width:285px) { html body #root .rhythmSetting { grid-column:1 / -1; } }
+
+html body #root .rhythmSettingLabel .metronomeSelectLabelDot { background:transparent !important; border:1.5px solid var(--riff-dot-off-weak,var(--theme-accent)) !important; box-shadow:none !important; position:relative; }
+html body #root .rhythmSettingLabel .metronomeSelectLabelDot--strong { border-color:var(--riff-dot-off-strong,var(--theme-accent)) !important; }
+html body #root .rhythmSettingLabel .metronomeSelectLabelDot--strong::after { content:""; position:absolute; inset:-4px; border:1px solid var(--riff-dot-off-strong,var(--theme-accent)); border-radius:50%; }
+html body #root .rhythmSettingLabel:has(.metronomeSelectLabelDot--strong) { gap:6px; }
+
+.rhythmSettings { --rhythm-safe-top:env(safe-area-inset-top,0px); --rhythm-safe-bottom:env(safe-area-inset-bottom,0px); --rhythm-safe-left:env(safe-area-inset-left,0px); --rhythm-safe-right:env(safe-area-inset-right,0px); }
+html body #root .rhythmSetting--meter { grid-column:1; grid-row:1; }
+html body #root .rhythmSetting--subdivision { grid-column:1; grid-row:2; }
+html body #root :is(.rhythmSetting--accent,.rhythmSetting--tone) { grid-column:2; grid-row:1; }
+html body #root .rhythmSetting--weak { grid-column:2; grid-row:2; }
+@container (max-width:285px) { html body #root .rhythmSettings > .rhythmSetting { grid-column:1 / -1; grid-row:auto; } }
+/* Selected long tone names must not resize the two-row settings grid. */
+html body #root .rhythmSettingTrigger > span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }

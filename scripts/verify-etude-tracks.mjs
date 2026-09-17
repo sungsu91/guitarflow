@@ -94,7 +94,7 @@ try {
           const metrics=drawScore(holder,e,options);
           const svg=holder.querySelector('svg');
           const fail=message=>{throw new Error(`${e.id} ${JSON.stringify(options)}: ${message}`)};
-          if(!metrics.flat().every(n=>Math.abs(n.noteX-n.tabX)<0.1&&n.line===n.expectedLine&&n.noteX<n.end-8))fail('staff/TAB alignment, pitch or bar fit');
+          if(!metrics.flat().every(n=>(n.rest||Math.abs(n.noteCenterX-n.tabCenterX)<0.1)&&n.line===n.expectedLine&&n.noteX<n.end-8))fail('staff/TAB alignment, pitch or bar fit');
           if(!metrics.flat().every(n=>n.tones.every(t=>t.line===t.expectedLine&&t.tab.str===t.expectedTab.str&&t.tab.fret===t.expectedTab.fret)))fail('simultaneous pitch/TAB mismatch');
           const events=e.measures.flat().filter(n=>!n.rest);
           const tabGroups=[...svg.querySelectorAll('.vf-tabnote')];

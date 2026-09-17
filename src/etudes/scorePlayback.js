@@ -1,9 +1,13 @@
+import {scoreBarOrder} from './scoreRepeats.js';
 import {ticksOf} from './scoreModel.js';
 // All times use sounding MIDI (the guitar staff is engraved one octave higher).
 export function scoreTimeline(score, bpm = score.bpm) {
   const events = [], pending = new Map();
   let offset = 0, writtenEnd = 0;
-  for (const [bar, measure] of score.measures.entries()) {
+  const order=scoreBarOrder(score);
+  for (const [visit,bar] of order.entries()) {
+    const measure=score.measures[bar];
+    if(visit&&bar!==order[visit-1]+1)pending.clear();
     let sequential = 0;
     for (const e of measure) {
       const onset = e.onset ?? sequential, beats = ticksOf(e) / 480;
@@ -19,7 +23,7 @@ export function scoreTimeline(score, bpm = score.bpm) {
         pending.delete(key);
         // A tie may not bridge a gap, change string/pitch, or sustain a dead note.
         const prior = candidate && !(tone.dead??e.dead) && !candidate.dead && Math.abs(candidate.start + candidate.duration - start) < 1e-6 ? candidate : null;
-        const note = prior ?? {id:e.id, bar, pickStroke:e.pickStroke??null, vibrato:Boolean(e.vibrato), harmonic:Boolean(tone.harmonic), dead:Boolean(tone.dead??e.dead), midi:tone.midi, fret:tone.fret, string:tone.string, start:toneStart, duration:0, technique:null};
+        const note = prior ?? {id:e.id, bar, visit, pickStroke:e.pickStroke??null, vibrato:Boolean(e.vibrato), harmonic:Boolean(tone.harmonic), dead:Boolean(tone.dead??e.dead), midi:tone.midi, fret:tone.fret, string:tone.string, start:toneStart, duration:0, technique:null};
         note.duration += prior?duration:toneDuration;
         note.technique = e.technique ?? null;
         if (!prior) events.push(note);
@@ -29,7 +33,7 @@ export function scoreTimeline(score, bpm = score.bpm) {
     }
     offset += (score.meter ?? [4,4])[0] * 4 / (score.meter ?? [4,4])[1];
   }
-  return {events:events.sort((a,b)=>a.start-b.start), duration:writtenEnd};
+  return {events:events.sort((a,b)=>a.start-b.start), duration:writtenEnd,order};
 }
 
 // Connect only adjacent notes on the same physical string. Other strings keep
@@ -37,10 +41,11 @@ export function scoreTimeline(score, bpm = score.bpm) {
 export function guitarVoiceTimeline(score, bpm = score.bpm) {
   const timeline = scoreTimeline(score, bpm), voices = [], last = new Map();
   const capacity=(score.meter??[4,4])[0]*1920/(score.meter??[4,4])[1];
-  const rests=score.measures.flatMap((measure,bar)=>measure.filter(e=>e.rest&&!e.blank).map(e=>(bar*capacity+e.onset)/480*60/bpm));
+  const rests=timeline.order.flatMap((bar,visit)=>score.measures[bar].filter(e=>e.rest&&!e.blank).map(e=>(visit*capacity+e.onset)/480*60/bpm));
   for (const note of timeline.events) {
     const previous = last.get(note.string), tail = previous?.tail;
-    const connected = tail && !tail.dead && !note.dead && Math.abs(tail.start + tail.duration - note.start) < 1e-6 &&
+    const forward = tail && (tail.visit===note.visit || (tail.visit+1===note.visit && tail.bar+1===note.bar));
+    const connected = forward && !tail.dead && !note.dead && Math.abs(tail.start + tail.duration - note.start) < 1e-6 &&
       ((tail.technique === 'H' && note.midi > tail.midi) || (tail.technique === 'P' && note.midi < tail.midi) || (tail.technique === 'S' && note.midi !== tail.midi));
     if (connected) {
       previous.segments.push({...note, connection:tail.technique});
@@ -54,7 +59,7 @@ export function guitarVoiceTimeline(score, bpm = score.bpm) {
   }
   // Entered rests damp ringing strings; empty drafting slots do not invent a pick.
   for(const voice of voices){const rest=rests.find(start=>start>voice.start+1e-6);if(rest!==undefined)voice.silenceAt=rest;}
-  return {voices, duration:timeline.duration};
+  return {voices, duration:timeline.duration,order:timeline.order};
 }
 
 // Seeking starts a fresh picked voice at the chosen position; subsequent

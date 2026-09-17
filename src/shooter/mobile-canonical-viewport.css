@@ -1,7 +1,7 @@
 /*
  * The 430 x 932 development preview is the single authored mobile canvas.
- * Real phones fit this complete canvas uniformly instead of independently
- * reflowing/cropping the map, HUD, player, effects, or navigation.
+ * Portrait phones scale its width and reflow its height to fill the viewport.
+ * The landscape orientation fallback retains the complete rotated canvas.
  */
   html.shooterCanonicalMobile,
   html.shooterCanonicalMobile body,
@@ -347,3 +347,42 @@
     line-height: 1.1 !important;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.96), 0 0 7px rgba(245, 190, 84, 0.3) !important;
   }
+
+/* Portrait stages fill the viewport above the detached navigation. Only the
+   canvas width is scaled; height reflows so artwork and controls are not stretched. */
+html.shooterCanonicalMobile body #root main.app.viewport-portrait:is(.tunerMode, .shooterMode) {
+  --shooter-mobile-nav-space: calc((64px + env(safe-area-inset-bottom, 0px)) / var(--shooter-mobile-canvas-scale, 1));
+  width: var(--portrait-mobile-canvas-width) !important;
+  min-width: var(--portrait-mobile-canvas-width) !important;
+  max-width: var(--portrait-mobile-canvas-width) !important;
+  height: var(--portrait-mobile-canvas-height) !important;
+  min-height: var(--portrait-mobile-canvas-height) !important;
+  max-height: var(--portrait-mobile-canvas-height) !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+html.shooterCanonicalMobile body #root main.app.viewport-portrait:is(.tunerMode, .shooterMode) > .hud {
+  display: none !important;
+}
+
+html.shooterCanonicalMobile body #root main.app.viewport-portrait.tunerMode > .tunerModeShell--mobile,
+html.shooterCanonicalMobile body #root main.app.viewport-portrait.shooterMode > .shooterPanel {
+  position: absolute !important;
+  inset: 0 0 var(--shooter-mobile-nav-space) !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+html.shooterCanonicalMobile body #root main.app.viewport-portrait.tunerMode .tunerModeBody--mobile {
+  height: 100% !important;
+  min-height: 0 !important;
+}

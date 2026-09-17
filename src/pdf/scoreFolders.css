@@ -7,3 +7,10 @@ html body .app .pdfStudio button.scoreFolderOpen{display:flex;align-items:center
 .scoreFolderRows .scoreLibraryMenu{position:relative}.scoreFolderMessage,.scoreFolderEmpty{font-size:12px;padding:7px 10px}
 .scoreSelectionMark{display:flex;align-items:center;justify-content:center;width:19px;height:19px;border:1px solid #91a0ac;border-radius:2px;color:#fff;background:#fff}.scoreSelectionMark.is-selected{background:#647d91}
 .scoreLibraryRow[data-selected=true]{background:#eff5fa}
+
+/* Visible destructive actions in list editing, including inside a folder. */
+.pdfStudio .scoreDeleteAction{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex-shrink:0;min-height:44px;min-width:44px;padding:8px;color:#a63e36;background:#fff;border:1px solid #ddd8d0;border-radius:8px;font-size:13px}
+.pdfStudio .scoreDeleteAction:focus-visible{outline:2px solid #a63e36;outline-offset:2px}
+.scoreLibraryPractice>header{flex-wrap:wrap}.scoreLibraryPractice>header h1{min-width:0;overflow-wrap:anywhere}
+
+html body main.app.app .pdfStudio button.scoreDeleteAction{color:#a63e36!important;min-height:44px!important}

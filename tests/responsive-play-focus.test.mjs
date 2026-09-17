@@ -26,7 +26,8 @@ function createWindow(options) {
     innerHeight: height,
     innerWidth: width,
     matchMedia(query) {
-      return { matches: query.includes("max-width") ? mediaWidth <= 680 : false };
+      const maxWidth = query.match(/max-width:\s*(\d+)px/);
+      return { matches: maxWidth ? mediaWidth <= Number(maxWidth[1]) : false };
     },
     navigator: {
       maxTouchPoints: mobile ? 5 : 0,

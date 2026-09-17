@@ -1,3 +1,4 @@
+import {repeatIssues} from './scoreRepeats.js';
 export const NATURAL_HARMONICS={3:31,4:28,5:24,7:19,9:28,12:12,16:28,19:19,24:24};
 import {TUNING, NATURAL, MAJOR, MINOR, spellMidi} from './notationData.js';
 export function midiAtStaffStep(step,key='C') {
@@ -89,6 +90,7 @@ export function compileDocumentV2(d,base={}) {
  if(!Array.isArray(d.measures)||!d.measures.length||d.measures.length>64)errors.push('악보는 1–64마디입니다.');
  else if(d.measures.some(m=>!m||!Array.isArray(m.events)||m.events.some(e=>!e||typeof e.rest!=='boolean'||!Array.isArray(e.notes)||e.notes.some(n=>!n||typeof n!=='object'))))errors.push('음표·쉼표 구조를 확인하세요.');
  if(errors.length)return {score:null,errors,issues};
+ issues.push(...repeatIssues(d.measures));
  const ids=new Set(),measures=d.measures.map((m,i)=>{for(const id of [m.id,...m.events.flatMap(e=>[e.id,...e.notes.map(n=>n.id)])]){if(!id||ids.has(id))errors.push(`${i+1}마디: 식별자가 없거나 중복됩니다.`);ids.add(id);}const result=compileBar(m,d);errors.push(...result.errors.map(s=>`${i+1}마디: ${s}`));issues.push(...result.issues.map(s=>`${i+1}마디: ${s}`));return result.events;});
  measures.forEach((bar,b)=>bar.forEach((e,i)=>{const next=bar[i+1]??measures[b+1]?.[0];if(e.technique&&i===bar.length-1)issues.push(`${b+1}마디 ${i+1}음: 마디 경계를 잇는 H/P/SL 표시는 아직 지원하지 않습니다. 데이터를 보존합니다.`);if(e.technique&&(e.rest||e.tones||!next||next.rest||next.tones||next.string!==e.string||next.fret===e.fret||(e.technique==='H'&&next.fret<e.fret)||(e.technique==='P'&&next.fret>e.fret)))issues.push(`${b+1}마디 ${i+1}음: ${e.technique} 연결 대상을 확인하세요.`);if(e.tieTo&&(!next||next.id!==e.tieTo||e.rest||next.rest||JSON.stringify((e.tones??[e]).map(n=>`${n.string}:${n.midi}`).sort())!==JSON.stringify((next.tones??[next]).map(n=>`${n.string}:${n.midi}`).sort())))issues.push(`${b+1}마디 ${i+1}음: 붙임줄 대상·음높이가 다릅니다.`);}));
  const score=errors.length?null:{...base,id:d.id,templateId:d.templateId,title:d.title||'제목 없음',english:d.english||d.title||'Untitled',purpose:d.purpose,tips:d.tips,bpm:d.bpm,meter:d.meter,tuning:d.tuning,keySignature:d.keySignature,measures,document:d,edited:true,reviewStatus:'사용자 악보 · 교육 검수 안 됨',chordShapes:d.measures.some(m=>m.chord)?d.measures.map(m=>m.chord):undefined,harmony:d.measures.map(m=>m.chord?.name??m.harmony),accompaniment:Boolean(base.accompaniment),issues};

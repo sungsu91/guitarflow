@@ -1,11 +1,12 @@
 import {getAudioBusInput,AUDIO_BUS_IDS} from './audioBus.js';
 import {scheduleGuitarPhrase,warmGuitarPhrase} from './fretboardPreviewEngine.js';
+import {alignScorePianoAttack} from './scorePianoSample.js';
 
 const pianoBuffers=new WeakMap();
 export async function prepareScoreInstrument(audio,instrument){
  if(instrument!=='piano')return;
  if(!pianoBuffers.has(audio)){
-  const load=fetch('/sounds/gpg4.wav').then(r=>{if(!r.ok)throw Error('피아노 음원을 불러오지 못했습니다.');return r.arrayBuffer();}).then(data=>audio.decodeAudioData(data)).catch(e=>{pianoBuffers.delete(audio);throw e;});
+  const load=fetch('/sounds/gpg4.wav').then(r=>{if(!r.ok)throw Error('피아노 음원을 불러오지 못했습니다.');return r.arrayBuffer();}).then(data=>audio.decodeAudioData(data)).then(buffer=>alignScorePianoAttack(audio,buffer)).catch(e=>{pianoBuffers.delete(audio);throw e;});
   pianoBuffers.set(audio,load);
  }
  return pianoBuffers.get(audio);

@@ -154,8 +154,8 @@ test("rhythm-code landscape reserves the left rail for progression and fretboard
   assert.match(sharedAccompanimentSource, /!hidePartSummary \? <b>드럼 · 베이스 · 피아노<\/b> : null/);
 });
 
-test("temporary viewport testing does not change the production compact-width fallback", async () => {
+test("non-desktop widths share the mobile surface through the desktop breakpoint", async () => {
   const mobileLayoutSource = await readFile(mobileLayoutUrl, "utf8");
 
-  assert.match(mobileLayoutSource, /MOBILE_LAYOUT_MAX_WIDTH = 680/);
+  assert.match(mobileLayoutSource, /MOBILE_LAYOUT_MAX_WIDTH = 1023/);
 });

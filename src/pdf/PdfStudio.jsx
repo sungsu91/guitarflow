@@ -1,5 +1,8 @@
+import {FilePlus2,Plus} from 'lucide-react';
+import {LibraryHeader,LibraryStorage} from './LibraryChrome.jsx';
+import './libraryDesign.css';
 import {normalizePdfBarEntry} from './pdfBarRows.js';
-import {MobileLibraryHeader,MobileLibrarySearch,MobileLibraryStorage} from './MobileLibraryChrome.jsx';
+import {MobileLibraryHeader} from './MobileLibraryChrome.jsx';
 import ScoreLibraryTabs from './ScoreLibraryTabs.jsx';
 import {normalizePageEdits} from './pdfAnnotations.js';
 import ScoreFolderList from './ScoreFolderList.jsx';
@@ -36,7 +39,7 @@ export default function PdfStudio({mobile,onOpenMenu,onExit}) {
  const studio=useRef(null),firstView=useRef(true),pdfClose=useRef(null),input=useRef(null),backup=useRef(null);
  const refresh=async()=>{try{setRecords(await listPdfs());setEstimate(await navigator.storage?.estimate?.());}catch(e){setError(storageError(e));}setLibrary(readEditableLibrary());};
  useEffect(()=>{void refresh();},[]);
- useLayoutEffect(()=>{if(firstView.current){firstView.current=false;return;}if(mobile)return;studio.current.querySelector('.scoreTabsAnchor')?.scrollIntoView({block:'start'});},[mode,opened?.record.id,scoreOpened?.id]);
+ useLayoutEffect(()=>{if(firstView.current){firstView.current=false;return;}if(mobile)return;studio.current.querySelector('.scoreTabsAnchor,.libraryTabAnchor')?.scrollIntoView({block:'start'});},[mode,opened?.record.id,scoreOpened?.id]);
  const open=async (record,edit=false)=>{void preloadPdfPractice();setBusy(true);setError('');try{const blob=await getPdf(record.id);if(!blob)throw Error('저장된 원본 PDF가 없습니다. 백업 또는 원본을 다시 불러오세요.');setOpened({record,blob,edit});}catch(e){setError(e.message);}finally{setBusy(false);}};
  const importPdfFile=async (blob,openAfterSave=false)=>{if(!blob){input.current.click();return;}setBusy(true);setError('');setMessage('PDF 확인 및 첫 페이지 준비 중…');try{const fingerprint=await fingerprintPdf(blob),existing=await findPdf(fingerprint);if(existing){setDuplicate(existing);setMessage('동일한 PDF가 이미 저장되어 있습니다.');return;}const info=await inspectPdf(blob);const record={...pdfMetadata({title:blob.name.replace(/\.pdf$/i,''),...info,zoom:'fit'}),...info,id:crypto.randomUUID(),fingerprint,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),lastPracticedAt:null};setPending({record,blob,openAfterSave});setMessage('정보를 확인한 후 저장하세요.');}catch(e){setError(e.name==='PasswordException'?'암호를 해제한 PDF 사본을 선택하세요.':e.message);}finally{setBusy(false);}};
  const importPdf=e=>{const blob=e.target.files?.[0];e.target.value='';if(blob)void importPdfFile(blob);};
@@ -52,29 +55,27 @@ export default function PdfStudio({mobile,onOpenMenu,onExit}) {
 
  const run=async action=>{setBusy(true);setError('');try{await action();}catch(e){setError(storageError(e));}finally{setBusy(false);}};
  const storageContent=<><p>현재 브라우저의 기기에만 저장됩니다. 브라우저 데이터 삭제·기기 변경 시 사라질 수 있으므로 원본과 백업을 별도로 보관하세요.</p>{estimate&&<p>이 사이트 사용량 {(estimate.usage/1048576).toFixed(1)} MB / 허용량 {(estimate.quota/1048576).toFixed(0)} MB</p>}<button type="button" onClick={()=>void run(async()=>{const granted=await navigator.storage?.persist?.();setMessage(granted?'기기 저장소 유지 요청이 승인되었습니다.':'브라우저가 저장소 유지 요청을 승인하지 않았습니다. 백업을 보관하세요.');})}>저장소 유지 요청</button><button type="button" disabled={busy||!records.length} onClick={()=>void run(async()=>downloadBlob(await exportPdfLibrary(),'FRETIVA-PDF-library.fretiva-pdf'))}>PDF 보관함 백업</button><button type="button" disabled={busy} onClick={()=>backup.current.click()}>PDF 백업 복원</button><p>PDF 백업에는 원본·여백 자르기·텍스트 메모·마디 및 연습 설정이 포함됩니다. 편집 악보는 편집기의 파일 내보내기로 보관합니다.</p></>;
- const top=<ScoreLibraryTabs mode={mode} onChange={switchTab}/>;
- const additions=<div className="scoreLibraryAdd"><button type="button" disabled={busy} onClick={()=>input.current.click()}>+ PDF 불러오기</button><button type="button" onClick={()=>setEditing(createBlankDocument())}>+ 간단 악보 만들기</button></div>;
+ const top=<ScoreLibraryTabs library={!opened&&!scoreOpened} mode={mode} onChange={switchTab}/>;
+ const additions=<div className="libraryActions"><button type="button" disabled={busy} onClick={()=>input.current.click()}><FilePlus2 size={20}/>PDF 불러오기</button><button type="button" onClick={()=>setEditing(createBlankDocument())}><Plus size={20}/>악보 만들기</button></div>;
 
- return <section ref={studio} data-library-view={!opened&&!scoreOpened?mode:undefined} className={`pdfStudio ${mobile?'pdfStudio--mobile':'pdfStudio--desktop'}`}>
-  {mobile&&!opened&&<MobileLibraryHeader onMenu={onOpenMenu} onExit={onExit}/>}
+ return <section id={!opened&&!scoreOpened?'scoreLibraryHome':undefined} ref={studio} data-library-view={!opened&&!scoreOpened?mode:undefined} className={`pdfStudio ${mobile?'pdfStudio--mobile':'pdfStudio--desktop'}`}>
+  {!opened&&!scoreOpened?<LibraryHeader onMenu={onOpenMenu} onExit={onExit}/>:mobile&&!opened&&<MobileLibraryHeader onMenu={onOpenMenu} onExit={onExit}/>}
   <input ref={input} type="file" accept="application/pdf,.pdf" hidden aria-label="PDF 파일 선택" onChange={importPdf}/><input ref={backup} type="file" accept=".fretiva-pdf" hidden aria-label="PDF 백업 선택" onChange={restore}/>
   {(!mobile||!opened)&&top}
   {error&&<p role="alert" className="pdfError">{error}</p>}{message&&!opened&&<p role="status">{message}</p>}
   <div id="score-library-panel" role="tabpanel" aria-labelledby={`score-tab-${mode}`}>
-  {opened?<Suspense fallback={<div className="pdfOpeningPreview"><header><strong>{opened.record.title}</strong><span>{opened.record.lastPage} / {opened.record.pageCount}</span></header>{opened.record.thumbnail&&<img src={opened.record.thumbnail} alt="저장된 첫 페이지 미리보기"/>}</div>}><PdfPractice key={opened.record.id} closeController={pdfClose} initial={opened.record} blob={opened.blob} initialEditing={opened.edit} mobile={mobile} onInfo={(record,onSaved)=>setPending({record,onSaved})} onClose={()=>{setOpened(null);void refresh();}}/></Suspense>:scoreOpened?<Suspense fallback={<p>악보 준비 중…</p>}><EditablePractice key={scoreOpened.id} document={scoreOpened} mobile={mobile} editing={Boolean(editing)} onEdit={()=>setEditing(scoreOpened)} onClose={()=>{setScoreOpened(null);void refresh();}}/></Suspense>:mode==='lessons'?<>
+  {opened?<Suspense fallback={<div className="pdfOpeningPreview"><header><strong>{opened.record.title}</strong><span>{opened.record.lastPage} / {opened.record.pageCount}</span></header>{opened.record.thumbnail&&<img src={opened.record.thumbnail} alt="저장된 첫 페이지 미리보기"/>}</div>}><PdfPractice key={opened.record.id} closeController={pdfClose} initial={opened.record} blob={opened.blob} initialEditing={opened.edit} mobile={mobile} onInfo={(record,onSaved)=>setPending({record,onSaved})} onClose={()=>{setOpened(null);void refresh();}}/></Suspense>:scoreOpened?<Suspense fallback={<p>악보 준비 중…</p>}><EditablePractice key={scoreOpened.id} document={scoreOpened} mobile={mobile} editing={Boolean(editing)||Boolean(remove)} onDelete={()=>setRemove({id:scoreOpened.id,type:'score',title:scoreOpened.title})} onEdit={()=>setEditing(scoreOpened)} onClose={()=>{setScoreOpened(null);void refresh();}}/></Suspense>:mode==='lessons'?<>
    <Suspense fallback={<p>연습곡 준비 중…</p>}><Lessons {...{mobile,onOpenMenu,onExit}} onImportPdf={importScorePdf}/></Suspense>
   </>:<>
    {additions}
-   {mobile?<MobileLibrarySearch search={search} onSearch={setSearch} sort={sort} onSort={setSort}/>:<div className="pdfLibraryTools"><input aria-label="악보 검색" placeholder="제목, 아티스트, 태그 검색" value={search} onChange={e=>setSearch(e.target.value)}/><select aria-label="악보 정렬" value={sort} onChange={e=>setSort(e.target.value)}><option value="practice">최근 연습</option><option value="added">최근 추가</option><option value="title">제목순</option><option value="bpm">BPM순</option></select></div>}
    {library.errors.map(e=><p role="alert" key={e}>{e}</p>)}
-   <ScoreFolderList filter={libraryFilter} onFilterChange={setLibraryFilter} items={filtered} allItems={items} search={search} mobile={mobile} busy={busy} folderId={folderId} onFolderChange={setFolderId} onOpen={item=>item.type==='pdf'?void open(item.record):openScore(item)} onRename={setRename} onDelete={setRemove}/>
-   {!mobile&&<p className="scoreLibraryGuidance">간단 악보는 빠른 연습용입니다.<br/>정밀한 악보 편집은 전문 악보 프로그램을 이용해 주세요.</p>}
-   {mobile?<MobileLibraryStorage>{storageContent}</MobileLibraryStorage>:<details className="pdfStorage"><summary>기기 저장 공간 · 백업</summary>{storageContent}</details>}
+   <ScoreFolderList sort={sort} onSort={setSort} onSearch={setSearch} filter={libraryFilter} onFilterChange={setLibraryFilter} items={filtered} allItems={items} search={search} mobile={mobile} busy={busy} folderId={folderId} onFolderChange={setFolderId} onOpen={item=>item.type==='pdf'?void open(item.record):openScore(item)} onRename={setRename} onDelete={setRemove}/>
+   <LibraryStorage mobile={mobile}>{storageContent}</LibraryStorage>
   </>}
   </div>
   {pending&&<MetadataDialog key={pending.record.id} record={pending.record} {...{busy,error}} onSave={save} onClose={()=>setPending(null)}/>}
   {rename&&<RenameDialog title={rename.title} busy={busy} error={error} onSave={renameItem} onClose={()=>setRename(null)}/>}
-  {remove&&<Confirm text={`‘${remove.title}’${remove.type==='pdf'?' PDF 원본과 연결된 설정':' 편집 악보'}을 이 기기에서 삭제할까요?`} busy={busy} onCancel={()=>setRemove(null)} onConfirm={()=>void run(async()=>{if(remove.type==='pdf')await deletePdf(remove.id);else{const result=deleteLibraryDocument(localStorage,remove.id,ETUDES);if(!result.saved)throw Error(result.errors.join(' '));}setRemove(null);setMessage('악보를 삭제했습니다.');await refresh();})}/>}
+  {remove&&<Confirm text={`‘${remove.title}’${remove.type==='pdf'?' PDF 원본과 연결된 설정':' 편집 악보'}을 이 기기에서 삭제할까요?`} busy={busy} onCancel={()=>setRemove(null)} onConfirm={()=>void run(async()=>{if(remove.type==='pdf')await deletePdf(remove.id);else{const result=deleteLibraryDocument(localStorage,remove.id,ETUDES);if(!result.saved)throw Error(result.errors.join(' '));}if(scoreOpened?.id===remove.id)setScoreOpened(null);setRemove(null);setMessage('악보를 삭제했습니다.');await refresh();})}/>}
   {duplicate&&<Confirm text={`같은 PDF ‘${duplicate.title}’이 이미 있습니다. 기존 악보를 열까요?`} onCancel={()=>setDuplicate(null)} onConfirm={()=>{void open(duplicate);setDuplicate(null);}}/>}
   {editing&&<Suspense fallback={<p>기존 편집기 준비 중…</p>}><ScoreEditor compactImport key={editing.id} document={editing} mobile={mobile} onClose={()=>{setEditing(null);void refresh();}} onSave={saveScore} onImportPdf={importScorePdf}/></Suspense>}
  </section>;

@@ -10,14 +10,16 @@ import {
 
 function createWindow({
   maxTouchPoints = 0,
+  coarse = false,
   mobile = false,
   userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
   width = 1440,
 } = {}) {
   return {
     matchMedia(query) {
+      if (query === "(pointer: coarse)") return { matches: coarse };
       assert.equal(query, MOBILE_LAYOUT_MEDIA_QUERY);
-      return { matches: width <= 680 };
+      return { matches: width <= 1023 };
     },
     navigator: {
       maxTouchPoints,
@@ -29,6 +31,13 @@ function createWindow({
 
 test("compact desktop windows continue to use the mobile layout", () => {
   assert.equal(getIsMobileLayout(createWindow({ width: 430 })), true);
+  assert.equal(getIsMobileLayout(createWindow({ width: 832 })), true);
+  assert.equal(getIsMobileLayout(createWindow({ width: 1023 })), true);
+  assert.equal(getIsMobileLayout(createWindow({ width: 1024 })), false);
+});
+
+test("wide touch surfaces use mobile controls without requiring a known device name", () => {
+  assert.equal(getIsMobileLayout(createWindow({ width: 1376, coarse: true })), true);
 });
 
 test("an unfolded Galaxy Fold remains a mobile device above the old breakpoint", () => {
@@ -60,4 +69,3 @@ test("the canonical shooter canvas is gated by the runtime mobile class, not vie
   assert.match(styles, /html\.shooterCanonicalMobile/);
   assert.doesNotMatch(styles, /@media \(max-width: 680px\)/);
 });
-

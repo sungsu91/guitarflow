@@ -65,7 +65,7 @@ html body main.app.app.app.viewport-tablet.viewport-mobile-surface:not(.shooterM
 
 html body main.app.app.app.viewport-tablet.viewport-portrait.viewport-mobile-surface
   :is(.referenceTrainingMainRow, .chordTransitionBody) {
-  grid-template-columns: minmax(0, 1.65fr) minmax(250px, 0.85fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
 }
 
@@ -73,7 +73,7 @@ html body main.app.app.app.viewport-tablet.viewport-portrait.viewport-mobile-sur
   :is(.firstPositionTrainingPanel.referenceTrainingPanel, .scaleBlockTrainingPanel.referenceTrainingPanel)
   > .referenceTrainingMainRow {
   display: grid !important;
-  grid-template-columns: minmax(0, 1.65fr) minmax(220px, 0.85fr) !important;
+  grid-template-columns: minmax(0, 1fr) !important;
   align-items: start;
   gap: clamp(10px, 2vw, 18px);
 }
@@ -5404,4 +5404,32 @@ html body main.app.app.app.viewport-mobile-surface
 html body main.app.app.app.shooterOrientationPaused .shooterArena *,
 html body main.app.app.app.shooterOrientationPaused .shooterMapSkinAsset {
   animation-play-state: paused !important;
+}
+
+/* The mobile shell follows the device width, not the old 430px preview frame.
+   Authored game/tuner canvases still scale uniformly inside this full-width host. */
+html body #root:has(.mobileLayoutShell) {
+  width: 100% !important;
+  max-width: none !important;
+  border-inline: 0 !important;
+  box-shadow: none !important;
+}
+
+html body #root .mobileLayoutShell main.app:not(.shooterMode):not(.tunerMode) {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Light-theme page paint must not leak into the game's letterbox area. */
+html.shooterCanonicalMobile body:has(#root .mobileLayoutShell),
+html.shooterCanonicalMobile body #root:has(.mobileLayoutShell),
+html.shooterCanonicalMobile body #root .mobileLayoutShell main.app:is(.shooterMode, .tunerMode) {
+  background: #020503 !important;
+}
+
+/* Preserve the phone composition on unfolded/tablet portrait surfaces. */
+html body #root .mobileLayoutShell main.app.viewport-tablet.viewport-portrait
+  > .miniChordMakerPanelCompact {
+  width: var(--responsive-content-width) !important;
+  max-width: 1120px !important;
 }

@@ -58032,6 +58032,46 @@ html body main.app.app.app
   }
 }
 
+/* Keep mobile playback visible while the visual options are being adjusted. */
+html[data-rifflab-layout="mobile"] body main.app.app.app
+  .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+  .metronomeBeatMatrix--main .metronomeBeatBar.active {
+  display: block !important;
+  visibility: visible !important;
+  z-index: 31 !important;
+  animation: metronomeBeatBarTravel calc(var(--metronome-beat-ms, 600ms) * 2) linear infinite !important;
+}
+
+html[data-rifflab-layout="mobile"] body main.app.app.app
+  .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+  .metronomeBeatMatrix--main .metronomeBeatBar.active::before,
+html[data-rifflab-layout="mobile"] body main.app.app.app
+  .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+  .metronomeBeatMatrix--main .metronomeBeatBar.active::after {
+  display: block !important;
+  visibility: visible !important;
+}
+
+html[data-rifflab-layout="mobile"] body main.app.app.app
+  .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+  .metronomeBeatMatrix--main .metronomeBeatBar.active::before {
+  animation: metronomeBeatBarTrail calc(var(--metronome-beat-ms, 600ms) * 2) linear infinite !important;
+}
+
+html[data-rifflab-layout="mobile"] body main.app.app.app
+  .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+  .metronomeBeatMatrix--main .metronomeBeatBar.active::after {
+  animation: metronomeBeatBarTrailCore calc(var(--metronome-beat-ms, 600ms) * 2) linear infinite !important;
+}
+
+@media (max-width: 720px) {
+  html[data-rifflab-layout="mobile"] body main.app.app.app
+    .standaloneMetronomePanel.standaloneMetronomePanel:not(.referenceStandaloneMetronomeDeck)
+    .metronomeBeatMatrix--main .metronomeBeatBar.active {
+    animation-name: metronomeBeatBarMobileTravel !important;
+  }
+}
+
 @keyframes metronomeBeatBarMobileTravel {
   0% {
     transform: translate3d(0, 0, 0);
