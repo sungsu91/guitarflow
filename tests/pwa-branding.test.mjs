@@ -6,7 +6,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const iconVersion = "b06184cb";
+const iconVersion = "236d47ee";
 
 function readProjectFile(relativePath) {
   return readFileSync(path.join(projectRoot, relativePath));
@@ -34,10 +34,10 @@ test("PWA manifest exposes FRETIVA LAB with separate regular and maskable icons"
   assert.deepEqual(
     manifest.icons.map(({ src, sizes, type, purpose }) => ({ src, sizes, type, purpose })),
     [
-      { src: `/icons/fretiva-lab-icon-192.png?v=${iconVersion}`, sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: `/icons/fretiva-lab-icon-512.png?v=${iconVersion}`, sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: `/icons/fretiva-lab-icon-maskable-192.png?v=${iconVersion}`, sizes: "192x192", type: "image/png", purpose: "maskable" },
-      { src: `/icons/fretiva-lab-icon-maskable-512.png?v=${iconVersion}`, sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: `/icons/fretiva-lab-pink-v1-icon-192.png?v=${iconVersion}`, sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: `/icons/fretiva-lab-pink-v1-icon-512.png?v=${iconVersion}`, sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: `/icons/fretiva-lab-pink-v1-icon-maskable-192.png?v=${iconVersion}`, sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: `/icons/fretiva-lab-pink-v1-icon-maskable-512.png?v=${iconVersion}`, sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   );
 });
@@ -45,14 +45,14 @@ test("PWA manifest exposes FRETIVA LAB with separate regular and maskable icons"
 test("PWA, iOS, and favicon PNG assets have their declared dimensions", () => {
   const expectedSizes = new Map([
     ["public/assets/branding/fretiva-lab-app-icon-master.png", 1254],
-    ["public/icons/fretiva-lab-icon-1024.png", 1024],
-    ["public/icons/fretiva-lab-icon-192.png", 192],
-    ["public/icons/fretiva-lab-icon-512.png", 512],
-    ["public/icons/fretiva-lab-icon-maskable-192.png", 192],
-    ["public/icons/fretiva-lab-icon-maskable-512.png", 512],
-    ["public/icons/fretiva-lab-apple-touch-icon.png", 180],
-    ["public/icons/fretiva-lab-favicon-32.png", 32],
-    ["public/icons/fretiva-lab-favicon-48.png", 48],
+    ["public/icons/fretiva-lab-pink-v1-icon-1024.png", 1024],
+    ["public/icons/fretiva-lab-pink-v1-icon-192.png", 192],
+    ["public/icons/fretiva-lab-pink-v1-icon-512.png", 512],
+    ["public/icons/fretiva-lab-pink-v1-icon-maskable-192.png", 192],
+    ["public/icons/fretiva-lab-pink-v1-icon-maskable-512.png", 512],
+    ["public/icons/fretiva-lab-pink-v1-apple-touch-icon.png", 180],
+    ["public/icons/fretiva-lab-pink-v1-favicon-32.png", 32],
+    ["public/icons/fretiva-lab-pink-v1-favicon-48.png", 48],
     ["public/icons/just-play-icon-1024.png", 1024],
     ["public/icons/just-play-icon-192.png", 192],
     ["public/icons/just-play-icon-512.png", 512],
@@ -82,14 +82,14 @@ test("PWA, iOS, and favicon PNG assets have their declared dimensions", () => {
     );
   }
 
-  assert.ok(readProjectFile("public/fretiva-lab-favicon.ico").length > 0);
+  assert.ok(readProjectFile("public/fretiva-lab-pink-v1-favicon.ico").length > 0);
   assert.deepEqual(
     readProjectFile("public/favicon.ico"),
-    readProjectFile("public/fretiva-lab-favicon.ico"),
+    readProjectFile("public/fretiva-lab-pink-v1-favicon.ico"),
   );
   assert.deepEqual(
     readProjectFile("public/just-play-favicon.ico"),
-    readProjectFile("public/fretiva-lab-favicon.ico"),
+    readProjectFile("public/fretiva-lab-pink-v1-favicon.ico"),
   );
 });
 
@@ -97,17 +97,17 @@ test("the supplied FRETIVA LAB icon remains the exact deployment master", () => 
   const master = readProjectFile("public/assets/branding/fretiva-lab-app-icon-master.png");
   assert.equal(
     createHash("sha256").update(master).digest("hex"),
-    "e65aa4a498f43dcf3ddeaaeaf10696818c7bc430e141890dd72d80a756b90173",
+    "236d47eedaefe2916c57b1245fc4f1e8cf5b9f660338084cf5d6684531a15dcf",
   );
 });
 
-test("installable icons are opaque RGB assets so platforms cannot add a white alpha background", () => {
+test("installable icons are opaque RGB assets to preserve the supplied white background", () => {
   const installableIcons = [
-    "public/icons/fretiva-lab-apple-touch-icon.png",
-    "public/icons/fretiva-lab-icon-192.png",
-    "public/icons/fretiva-lab-icon-512.png",
-    "public/icons/fretiva-lab-icon-maskable-192.png",
-    "public/icons/fretiva-lab-icon-maskable-512.png",
+    "public/icons/fretiva-lab-pink-v1-apple-touch-icon.png",
+    "public/icons/fretiva-lab-pink-v1-icon-192.png",
+    "public/icons/fretiva-lab-pink-v1-icon-512.png",
+    "public/icons/fretiva-lab-pink-v1-icon-maskable-192.png",
+    "public/icons/fretiva-lab-pink-v1-icon-maskable-512.png",
     "public/icons/just-play-apple-touch-icon.png",
     "public/icons/just-play-icon-192.png",
     "public/icons/just-play-icon-512.png",
@@ -131,8 +131,9 @@ test("document metadata connects FRETIVA LAB names and platform icons", () => {
   assert.match(html, /<meta name="application-name" content="FRETIVA LAB"/);
   assert.match(html, /<meta name="apple-mobile-web-app-title" content="FRETIVA LAB"/);
   assert.match(html, new RegExp(`<link rel="manifest" href="/manifest\\.webmanifest\\?v=${iconVersion}"`));
-  assert.match(html, new RegExp(`<link rel="apple-touch-icon" sizes="180x180" href="/icons/fretiva-lab-apple-touch-icon\\.png\\?v=${iconVersion}"`));
-  assert.match(html, new RegExp(`<link rel="shortcut icon" href="/fretiva-lab-favicon\\.ico\\?v=${iconVersion}"`));
+  assert.match(html, new RegExp(`<link rel="apple-touch-icon" sizes="180x180" href="/icons/fretiva-lab-pink-v1-apple-touch-icon\\.png\\?v=${iconVersion}"`));
+  assert.match(html, new RegExp(`<link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="/fretiva-lab-pink-v1-favicon\\.ico\\?v=${iconVersion}"`));
+  assert.equal((html.match(/<link rel="(?:shortcut )?icon"/g) ?? []).length, 1, "Use one multi-size favicon across mode navigation");
   assert.match(html, /<title>FRETIVA LAB<\/title>/);
 });
 
@@ -148,7 +149,7 @@ test("Vercel revalidates manifest and FRETIVA LAB icon metadata", () => {
 
   assert.equal(cacheControlBySource.get("/manifest.webmanifest"), revalidate);
   assert.equal(cacheControlBySource.get("/icons/(.*)"), revalidate);
-  assert.equal(cacheControlBySource.get("/fretiva-lab-favicon.ico"), revalidate);
+  assert.equal(cacheControlBySource.get("/fretiva-lab-pink-v1-favicon.ico"), revalidate);
   assert.equal(cacheControlBySource.get("/just-play-favicon.ico"), revalidate);
   assert.equal(cacheControlBySource.get("/favicon.ico"), revalidate);
 });
