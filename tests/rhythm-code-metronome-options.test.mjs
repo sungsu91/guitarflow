@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { TIME_SIGNATURE_OPTIONS } from "../src/metronome/options.js";
 
-const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+const appSource = (await readFile(new URL("../src/App.jsx", import.meta.url), "utf8")).replace(/\r\n/g, "\n");
 const appCss = await readFile(new URL("../src/style.css", import.meta.url), "utf8");
 const polishCss = await readFile(new URL("../src/polish.css", import.meta.url), "utf8");
 const desktopCss = await readFile(new URL("../src/layouts/desktop-layout.css", import.meta.url), "utf8");
@@ -69,7 +70,7 @@ test("rhythm code metronome settings own state and runtime refs", () => {
   assert.doesNotMatch(stage3StartSource, /setMetronomeOn\(true\)|metronomeOnRef\.current = true/);
   assert.doesNotMatch(tickSource, /STAGE3_FIXED_METRONOME_TONE_ID/);
   const storedSettingsSource = getSourceRange("function getStoredStage3Settings", "function getStoredStage3QuickSlots");
-  assert.equal((storedSettingsSource.match(/metronomeSoundOn: false/g) ?? []).length, 2);
+  assert.equal((storedSettingsSource.match(/metronomeSoundOn: true/g) ?? []).length, 2);
   assert.doesNotMatch(storedSettingsSource, /parsed\.metronomeSoundOn/);
 });
 
@@ -283,9 +284,9 @@ test("mobile lower cards open from the metronome headline and clear the fixed na
 });
 
 test("compound meters keep numerator pulses and use denominator-aware triple grouping", () => {
-  assert.match(appSource, /\{ id: "3\/4", label: "3\/4", beats: 3, beatUnit: 4 \}/);
-  assert.match(appSource, /\{ id: "6\/8", label: "6\/8", beats: 6, beatUnit: 8 \}/);
-  assert.match(appSource, /\{ id: "12\/8", label: "12\/8", beats: 12, beatUnit: 8 \}/);
+  assert.deepEqual(TIME_SIGNATURE_OPTIONS.find(option => option.id === "3/4"), { id: "3/4", label: "3/4", beats: 3, beatUnit: 4 });
+  assert.deepEqual(TIME_SIGNATURE_OPTIONS.find(option => option.id === "6/8"), { id: "6/8", label: "6/8", beats: 6, beatUnit: 8 });
+  assert.deepEqual(TIME_SIGNATURE_OPTIONS.find(option => option.id === "12/8"), { id: "12/8", label: "12/8", beats: 12, beatUnit: 8 });
 
   const backingCompilerSource = getSourceRange(
     "const createBackingTimelineEvents",

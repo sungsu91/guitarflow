@@ -46,8 +46,8 @@ test("mobile scale picker removes visible field labels and enlarges dropdown tex
 
 test("scale practice reuses the shared mobile Backing Loop presentation", () => {
   const sharedPlayerPass = polishCss.slice(
-    polishCss.indexOf("/* Backing Loop mini player: one cohesive music-player surface on mobile. */"),
-    polishCss.indexOf("/* Mobile fretboard viewer layout tuning */"),
+    polishCss.indexOf("/* Backing Loop mini player:"),
+    polishCss.indexOf("/* Scale play: BackingLoop keeps shared behavior"),
   );
   const scalePlacementPass = polishCss.slice(
     polishCss.indexOf("/* Scale play: BackingLoop keeps shared behavior"),

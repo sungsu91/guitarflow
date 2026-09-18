@@ -150,8 +150,8 @@ test("rhythm-code landscape reserves the left rail for progression and fretboard
   assert.match(appSource, /event\.pointerType !== "touch" && event\.pointerType !== "pen"/);
   assert.match(appSource, /onPointerUp=\{handlePointerUp\}/);
   assert.match(appSource, /Array\.from\(\{ length: landscapePlayFocus \? 8 : 4 \}/);
-  assert.match(sharedAccompanimentSource, /<span>반주 사운드<\/span>/);
-  assert.match(sharedAccompanimentSource, /!hidePartSummary \? <b>드럼 · 베이스 · 피아노<\/b> : null/);
+  assert.match(sharedAccompanimentSource, /<summary>[\s\S]*반주 사운드[\s\S]*className="sharedAccompanimentMasterToggle"/);
+  assert.match(sharedAccompanimentSource, /!hidePartSummary \? <b>\{disabled \? `\$\{lockedLabel\} · 반주 고정` : "드럼 · 베이스 · 피아노"\}<\/b> : null/);
 });
 
 test("non-desktop widths share the mobile surface through the desktop breakpoint", async () => {

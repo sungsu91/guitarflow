@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { isEditableShooterMap } from "../registry.js";
 
 import {
   getShooterNoteMonsterLabelLayout,
@@ -1132,7 +1133,7 @@ function MapEditSessionActions({ editor, effectEditor, monsterEditor }) {
 }
 
 function MapEditMapSwitcher({ editor, mapOptions, onMapChange }) {
-  const options = Array.isArray(mapOptions) ? mapOptions : [];
+  const options = Array.isArray(mapOptions) ? mapOptions.filter(isEditableShooterMap) : [];
   const selectedIndex = Math.max(0, options.findIndex((map) => map.id === editor.skin.id));
   const switchBy = (offset) => {
     if (options.length < 2 || typeof onMapChange !== "function") return;

@@ -90,7 +90,12 @@ export function isThreeDLabShooterMap(map) {
 }
 
 export function isEditableShooterMap(map) {
-  return isLayeredShooterMap(map);
+  // Procedural maps have no placement catalog or writable layout. They can
+  // be played, but must not expose the local placement editor/save action.
+  return isLayeredShooterMap(map)
+    && Array.isArray(map.assetCatalog)
+    && map.assetCatalog.length > 0
+    && Array.isArray(map.layout);
 }
 
 export function getShooterMapAssetSources(map, { includeFallbacks = true } = {}) {

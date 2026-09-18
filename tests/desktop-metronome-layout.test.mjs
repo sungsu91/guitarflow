@@ -94,7 +94,7 @@ test("desktop supporting panels move beside the unchanged mobile-first content",
   assert.match(styles, /\.rhythmChordMeasure\.active \{[\s\S]*border-color: var\(--riff-border-selected\) !important/);
   assert.match(styles, /\.miniChordMakerPanel\.miniChordMakerPanelCompact[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(360px, 420px\)/);
   assert.match(styles, /--desktop-fretboard-catalog-width: clamp\(720px, 53%, 920px\)/);
-  assert.match(styles, /html:has\(body \.desktopLayout \.fretboardViewerPanel--desktopUnified\) \{[\s\S]*scrollbar-gutter: stable/);
+  assert.match(styles, /html:has\(body \.desktopLayout\) \{[\s\S]*scrollbar-gutter: stable/);
   assert.match(styles, /\.fretboardViewerPanel\.fretboardViewerPanel--desktopUnified[\s\S]*grid-template-columns: minmax\(0, 1fr\) var\(--desktop-fretboard-catalog-width\)/);
   assert.match(styles, /> \.fretboardViewerPanel--desktopUnified[\s\S]*> \.viewerControlPanel \{[\s\S]*grid-column: 1[\s\S]*width: 100% !important/);
   assert.match(styles, /\.fretboardViewerPanel--desktopUnified\.fretboardViewerPanel:not\(\.fretboardViewerPanel--chord\)[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);

@@ -267,7 +267,10 @@ test("responsive implementation changes layout without orientation remount or st
   assert.doesNotMatch(appSource, /shooterOrientationResumeRef/);
   assert.doesNotMatch(appSource, /shooterOrientationPaused/);
   assert.doesNotMatch(appSource, /key=\{(?:isLandscape|orientation|viewportProfile\.orientation)\}/);
-  assert.doesNotMatch(appSource, /location\.reload\(\)/);
+  // Only the explicit menu action may reload; orientation changes must not.
+  const manualReload = 'onClick={() => window.location.reload()}';
+  assert.equal(appSource.split(manualReload).length - 1, 1);
+  assert.doesNotMatch(appSource.replace(manualReload, ''), /location\.reload\(/);
   assert.match(css, /100dvh/);
   assert.match(css, /env\(safe-area-inset-left/);
   assert.match(css, /\.landscapePlayFocus/);

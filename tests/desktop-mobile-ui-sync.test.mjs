@@ -51,7 +51,7 @@ test("shooter uses the mobile-master HUD at mobile and desktop sizes", async () 
   assert.match(appSource, /function getShooterPitchDisplayLabel\(noteName, solfegeOn\)/);
   assert.match(appSource, /const octave = getPitchOctave\(noteName\);/);
   assert.match(appSource, /`\$\{solfege\}\$\{octave \?\? ""\}`/);
-  assert.match(appSource, /<b>\{targetPitchDisplayLabel\}<\/b>/);
+  assert.match(appSource, /<b>\{monsterPitchLabel\}<\/b>/);
   assert.match(appSource, /getShooterPitchDisplayLabel\(shooterGuidePitch, shooterSolfegeOn\)/);
   assert.match(appSource, /shooterPlayHelpLevel > 0 \? \(\s*<div className="mobileShooterPlayHelpMessageBar"/);
   assert.match(appSource, /className="mobileShooterPrimaryHudRow"/);
@@ -108,7 +108,7 @@ test("desktop map studio keeps its editor panel beside the preview", async () =>
   assert.match(useMapEditModeSource, /referenceViewport\?\.height \?\? referenceViewport\?\.deviceHeight \?\? 756/);
   assert.match(
     appSource,
-    /const shooterMapRenderLayout = desktopHorizontalShooterActive \? "desktop" : "mobile"/,
+    /const shooterMapRenderLayout = horizontalShooterActive \? "desktop" : "mobile"/,
   );
   assert.doesNotMatch(appSource, /shooterUsesMobileMapLayout/);
   assert.match(mapEditorCss, /\.mapEditEffectSlotTabs > button\.is-selected/);

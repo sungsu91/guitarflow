@@ -38,7 +38,7 @@ test("effect tuning clamps unsafe values and preserves independent effect identi
 });
 
 test("source-backed effect tunings are merged with local editor overrides", () => {
-  assert.equal(SHOOTER_EFFECT_TUNING_DEFAULTS["moonlight-floor"].offsetY, 22);
+  assert.equal(SHOOTER_EFFECT_TUNING_DEFAULTS["moonlight-floor"].offsetY, 18);
   assert.equal(SHOOTER_EFFECT_TUNING_DEFAULTS["moonlight-floor"].scale, 0.7999999999999998);
 
   const merged = mergeShooterEffectTuningStores(

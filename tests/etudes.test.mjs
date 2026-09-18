@@ -206,8 +206,8 @@ test('the first beginner lesson builds finger spacing one string at a time', () 
     }
   }
   assert.equal(first.measures.at(-1).at(-1).midi % 12,7);
-  assert.match(etudeStudioSource, /useState\(\(\)=>edits.scores\[DEFAULT_ETUDE_ID\]\?\.bpm\?\?DEFAULT_ETUDE_BPM\)/);
-  assert.match(etudeStudioSource, /updateBpm\(edits.scores\[DEFAULT_ETUDE_ID\]\?\.bpm\?\?DEFAULT_ETUDE_BPM\)/);
+  assert.match(etudeStudioSource, /useState\(\(\)=>edits.scores\[initialId\]\?\.bpm\?\?ETUDES.find\(e=>e.id===initialId\)\?\.bpm\?\?DEFAULT_ETUDE_BPM\)/);
+  assert.match(etudeStudioSource, /updateBpm\(\(edits.scores\[id\]\?\?ETUDES.find\(e => e.id === id\)\)\?\.bpm \?\? 60\)/);
 });
 
 test('the late-beginner blues lesson removes surprise vertical and skipped-string moves', () => {

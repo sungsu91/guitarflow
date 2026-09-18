@@ -137,7 +137,10 @@ test("moving the wheel updates only its track and commits once after exact settl
     source.indexOf("const WheelPickerColumn"),
     source.indexOf("function TrainingPanelHeader"),
   );
-  const fixedWheelCssBlock = css.slice(css.indexOf("/* Timer wheel: the values move underneath"));
+  const wheelCssStart = css.indexOf("/* Timer wheel: the values move underneath");
+  const wheelCssEnd = css.indexOf("/* Help guide editorial hierarchy:", wheelCssStart);
+  assert.ok(wheelCssStart >= 0 && wheelCssEnd > wheelCssStart);
+  const fixedWheelCssBlock = css.slice(wheelCssStart, wheelCssEnd);
 
   assert.doesNotMatch(liveDetentBlock, /onChange|classList|setAttribute/);
   assert.doesNotMatch(wheelComponentBlock, /onScroll|scrollTo|scrollIntoView/);

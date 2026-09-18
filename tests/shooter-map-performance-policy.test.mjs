@@ -24,7 +24,7 @@ test("mobile map policy allows only audited effects that fit the common render b
     sharedSpriteSubscribers: 8,
   });
 
-  for (const map of [RIVER_MAP_SKIN, COASTAL_COVE_MAP_SKIN, PARK_MAP_SKIN, GACHA_ARCADE_MAP_SKIN]) {
+  for (const map of [COASTAL_COVE_MAP_SKIN, PARK_MAP_SKIN, GACHA_ARCADE_MAP_SKIN]) {
     assert.equal(isShooterMapMobileAuditWithinBudget(map.performance.mobileGameplay.audit), true);
     assert.equal(getShooterMapPerformancePolicy(map).mobileGameplayEffects, "full");
   }
@@ -34,6 +34,15 @@ test("mobile map policy allows only audited effects that fit the common render b
     false,
   );
   assert.equal(getShooterMapPerformancePolicy(LAVA_CANYON_MAP_SKIN).mobileGameplayEffects, "reduced");
+});
+
+test("river layout changes invalidate its older mobile audit until measured again", () => {
+  assert.equal(isShooterMapMobileAuditWithinBudget(RIVER_MAP_SKIN.performance.mobileGameplay.audit), true);
+  assert.notEqual(getShooterMapPerformanceFingerprint(RIVER_MAP_SKIN),
+    RIVER_MAP_SKIN.performance.mobileGameplay.audit.contentFingerprint);
+  assert.deepEqual(getShooterMapPerformancePolicy(RIVER_MAP_SKIN), {
+    mobileGameplayEffects: "reduced", mobileGameplayAuditPassed: false,
+  });
 });
 
 test("new and incomplete maps fail closed to reduced mobile gameplay effects", () => {

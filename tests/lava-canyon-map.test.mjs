@@ -22,6 +22,18 @@ function readPngHeader(buffer) {
   };
 }
 
+test("procedural maps cannot enter the placement editor or its unsupported save endpoint", () => {
+  for (const id of ["gacha-arcade", "celestial-eclipse-clocktower", "autumn_moon_temple_path"]) {
+    const map = LAYERED_SHOOTER_MAP_SKINS.find(skin => skin.id === id);
+    assert.ok(map, id);
+    assert.equal(isLayeredShooterMap(map), true);
+    assert.equal(isEditableShooterMap(map), false, id);
+    assert.equal(MAP_EDIT_SKINS.has(id), false, id);
+  }
+  assert.equal(isEditableShooterMap(undefined), false);
+  assert.equal(isEditableShooterMap({kind: "layered", layout: [], assetCatalog: []}), false);
+});
+
 test("Lava Canyon combines visible lava scenery, torch flames, dragons, and reusable map assets", async () => {
   assert.equal(isLayeredShooterMap(LAVA_CANYON_MAP_SKIN), true);
   assert.equal(isEditableShooterMap(LAVA_CANYON_MAP_SKIN), true);
@@ -201,11 +213,11 @@ test("Lava Canyon combines visible lava scenery, torch flames, dragons, and reus
   assert.ok(LAYERED_SHOOTER_MAP_SKINS.includes(LAVA_CANYON_MAP_SKIN));
   assert.deepEqual(
     [...MAP_EDIT_SKINS.keys()].sort(),
-    LAYERED_SHOOTER_MAP_SKINS.map((skin) => skin.id).sort(),
+    LAYERED_SHOOTER_MAP_SKINS.filter(isEditableShooterMap).map((skin) => skin.id).sort(),
   );
   assert.equal(
     LAYERED_SHOOTER_MAP_SKINS.every((skin) => (
-      isEditableShooterMap(skin) && skin.background?.locked === true
+      skin.background?.locked === true
     )),
     true,
   );

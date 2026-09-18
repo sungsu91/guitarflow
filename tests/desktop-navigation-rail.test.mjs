@@ -80,7 +80,7 @@ test("desktop uses direct sidebar utilities while mobile keeps the popup navigat
     /> \.hud > \.modeSwitch,[\s\S]*?\.mainHub > \.mainBottomNav \{\s*display: none !important;/,
   );
   assert.match(appSource, /\{utilityMenuOpen && !isDesktopLayout \? \(/);
-  assert.match(appSource, /<DesktopSidebarNavigation[\s\S]*?onOpenTuner=\{showTunerMode\}[\s\S]*?onResetSound=\{resetBackingVolumeSettings\}/);
+  assert.match(appSource, /<DesktopSidebarNavigation[\s\S]*?onOpenTuner=\{showTunerMode\}[\s\S]*?onResetSound=\{resetSoundSettings\}/);
   assert.match(sidebarSource, /<details className="desktopSidebarSettings">[\s\S]*?backingVolumeControls\.map/);
   assert.match(sidebarSource, /onOpenRhythmSettings/);
   assert.match(
