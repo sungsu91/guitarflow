@@ -9,16 +9,9 @@ export default function BottomNavigation({ children, className = "", ...props })
     if (!host) return;
     let previousLeft;
     let previousWidth;
-    let previousBottom;
     const sync = () => {
       const { left, width } = host.getBoundingClientRect();
-      const viewport = window.visualViewport;
-      const bottom = viewport && viewport.scale === 1
-        ? viewport.offsetTop + viewport.height
-        : window.innerHeight;
-      if (left === previousLeft && width === previousWidth && bottom === previousBottom) return;
-      previousBottom = bottom;
-      nav.style.setProperty("--bottom-nav-viewport-bottom", `${bottom}px`);
+      if (left === previousLeft && width === previousWidth) return;
       previousLeft = left;
       previousWidth = width;
       nav.style.setProperty("--bottom-nav-left", `${left}px`);
@@ -30,14 +23,12 @@ export default function BottomNavigation({ children, className = "", ...props })
     window.addEventListener("resize", sync);
     window.addEventListener("pageshow", sync);
     window.visualViewport?.addEventListener("resize", sync);
-    window.visualViewport?.addEventListener("scroll", sync);
     return () => {
       observer.disconnect();
       window.removeEventListener("resize", sync);
       window.removeEventListener("pageshow", sync);
       window.visualViewport?.removeEventListener("resize", sync);
-      window.visualViewport?.removeEventListener("scroll", sync);
     };
   }, []);
-  return <div ref={ref} className={`modeSwitch integratedBottomNav ${className}`} aria-label="앱 하단 네비게이션" {...props}>{children}</div>;
+  return <div ref={ref} data-navigation-layout="viewport-bottom-v2" className={`modeSwitch integratedBottomNav ${className}`} aria-label="앱 하단 네비게이션" {...props}>{children}</div>;
 }

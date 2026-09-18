@@ -26312,7 +26312,7 @@ function App({ onReady }) {
     const nextScrollTop = shouldRestore
       ? routeScrollPositionsRef.current.get(nextRouteKey) || 0
       : 0;
-    const restoreScroll = () => window.scrollTo({ left: 0, top: nextScrollTop, behavior: "auto" });
+    const restoreScroll = () => window.scrollTo({ left: 0, top: nextScrollTop, behavior: "instant" });
     restoreScroll();
     const frameId = window.requestAnimationFrame(restoreScroll);
     return () => window.cancelAnimationFrame(frameId);

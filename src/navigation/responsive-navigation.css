@@ -49,7 +49,8 @@ html body main.app.app.app :is(
    their existing navigation policy. IDs intentionally outrank legacy themes. */
 html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav {
   position: fixed !important;
-  inset: calc(var(--bottom-nav-viewport-bottom, 100dvh) - 64px - env(safe-area-inset-bottom, 0px)) auto auto var(--bottom-nav-left, 0px) !important;
+  inset: auto auto 0 var(--bottom-nav-left, 0px) !important;
+  transition: none !important;
   display: grid !important;
   grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
   box-sizing: border-box !important;
