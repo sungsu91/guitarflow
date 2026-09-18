@@ -90,8 +90,8 @@ function compileLegacyDocument(document,base) {
 
 export function updateDocumentChordFret(document,bar,string,fret) {
  const next=copy(document),measure=next.measures[bar];
- measure.chord.frets[6-string]=fret;
- if(fret===null||fret===0)measure.chord.fingers[6-string]=null;
+ measure.chord.frets[document.tuning.length-string]=fret;
+ if(fret===null||fret===0)measure.chord.fingers[document.tuning.length-string]=null;
  measure.events=measure.events.map(event=>{
   if(event.rest)return event;
   const notes=event.notes.flatMap(n=>{if(n.string!==string)return [n];if(fret===null)return [];const changed={...n,fret,locked:true};delete changed.spelling;return [changed];});

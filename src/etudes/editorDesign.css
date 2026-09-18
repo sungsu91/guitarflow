@@ -236,3 +236,63 @@
  .editorDesign .desktopToolColumn .has-connected-panel .mobileInputExtras>button{padding:0 2px!important;gap:3px!important;font-size:12px!important}
  .editorDesign .has-connected-panel>section>header button:focus-visible{outline:2px solid #fff!important;outline-offset:-3px!important}
 }
+/* The native top-layer dialog fills the visual viewport, never the scrolled page. */
+html body dialog.etudeEditor.mobileScoreWorkspace.editorDesign {
+  position:fixed !important;
+  inset:var(--editor-viewport-top,0px) 0 auto !important;
+  margin:0 !important;
+  width:100% !important;
+  max-width:none !important;
+  height:var(--editor-viewport-height,100dvh) !important;
+  max-height:var(--editor-viewport-height,100dvh) !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+  overscroll-behavior:none !important;
+  transform:none !important;
+}
+
+/* Instrument shares the existing notation row; no additional toolbar row. */
+@layer score-workspace {
+ .editorDesign .mobileNotationViews{grid-template-columns:minmax(100px,1fr) minmax(90px,1.2fr) minmax(56px,.8fr) minmax(40px,.6fr)!important}
+ .editorDesign .scoreInstrumentSelect{box-sizing:border-box!important;min-width:0!important;width:100%!important;min-height:34px!important;height:34px!important;padding:0 18px 0 6px!important;margin:0!important;font-size:12px!important;font-weight:650!important;line-height:1.3!important;box-shadow:none!important}
+ .editorDesign .desktopNotationViews .scoreInstrumentSelect{width:100px!important;flex:0 0 100px}
+ @media(max-height:740px){.editorDesign.mobileScoreWorkspace .scoreInstrumentSelect{height:30px!important;min-height:30px!important}}
+ @media(max-height:600px){.editorDesign.mobileScoreWorkspace .scoreInstrumentSelect{height:26px!important;min-height:26px!important}}
+}
+
+@layer score-workspace {
+ .editorDesign .instrumentChangeDialog{position:fixed!important;inset:auto 0!important;top:var(--instrument-change-top,24px)!important;margin:0 auto!important;box-sizing:border-box!important;width:min(420px,calc(100vw - 24px))!important;max-width:none!important;padding:20px!important;border:1px solid var(--ed-line)!important;border-radius:14px!important;background:var(--ed-bg)!important;color:var(--ed-ink)!important;box-shadow:0 12px 40px #0003!important;overflow:auto!important;overscroll-behavior:contain!important;text-align:left!important}
+ .editorDesign .instrumentChangeDialog::backdrop{background:#16120e40}
+ .editorDesign .instrumentChangeDialog h2{margin:0 0 12px!important;font-size:19px!important;color:var(--ed-ink)!important}
+ .editorDesign .instrumentChangeDialog p{margin:0 0 12px!important;font-size:14px!important;line-height:1.6!important;white-space:normal!important;color:var(--ed-ink)!important}
+ .editorDesign .instrumentChangeReason{padding:10px!important;border-radius:8px;background:var(--ed-tool)!important;overflow-wrap:anywhere}
+ .editorDesign .instrumentChangeActions{display:grid!important;gap:8px!important}
+ .editorDesign .instrumentChangeActions button{width:100%!important;min-height:42px!important;height:auto!important;padding:10px!important;white-space:normal!important}
+ .editorDesign .instrumentChangeActions .instrumentChangeSave{background:var(--ed-active)!important;color:white!important}
+}
+
+.editorDesign .techniqueExpressionGroup{grid-template-columns:repeat(5,minmax(0,1fr))}
+
+.editorDesign .scoreBarStepper,.editorDesign .scoreLineActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;min-width:0;position:relative}
+.editorDesign .scoreBarStepper>span{position:absolute;z-index:1;inset:0;display:grid;place-items:center;pointer-events:none;font-size:12px;font-weight:600;color:var(--ed-ink)}
+@layer score-workspace{
+ .editorDesign .mobileCursorPad .scoreBarStepper>button:first-child{justify-content:flex-start!important;padding-left:3px!important;border-radius:8px 0 0 8px!important}
+ .editorDesign .mobileCursorPad .scoreBarStepper>button:last-child{justify-content:flex-end!important;padding-right:3px!important;border-radius:0 8px 8px 0!important}
+ .editorDesign .mobileCursorPad .scoreLineActions>button{font-size:11px!important;padding:0 1px!important;white-space:nowrap!important;min-width:0!important}
+}
+
+.editorDesign .tabDisplayOptions{display:flex;align-items:center;gap:6px;flex:1 0 100%;min-width:0;border-bottom:1px solid var(--ed-line);padding-bottom:6px}
+.editorDesign .tabDisplayOptions>span{font-size:12px;color:var(--ed-muted);min-width:30px}
+@layer score-workspace{.editorDesign .tabDisplayOptions>button{flex:1;height:32px!important;min-height:32px!important;padding:3px 8px!important;font-size:12px!important}}
+
+.editorDesign .editorSoundToggle{display:flex;align-items:center;gap:5px;white-space:nowrap;min-height:32px;cursor:pointer}
+.editorDesign .editorSoundToggle input[type=checkbox]{width:16px;height:16px;min-height:0;margin:0;accent-color:var(--accent)}
+.editorDesign .editorTimbre button:disabled{opacity:.45;cursor:default}
+
+/* Short mobile viewports scroll the workspace instead of collapsing the paper. */
+@media(max-height:540px){
+ .editorDesign.mobileScoreWorkspace{overflow-y:auto!important}
+ .editorDesign.mobileScoreWorkspace>.etudeEditorPreview{flex:0 0 auto;min-height:320px;overflow:visible}
+ .editorDesign.mobileScoreWorkspace .etudeEditorCanvas{flex:none;height:190px;min-height:190px}
+ .editorDesign.mobileScoreWorkspace>.mobileScoreInput{flex-shrink:0}
+}

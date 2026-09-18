@@ -1,0 +1,70 @@
+/* A single score tree owns both portrait and focused landscape presentation. */
+.etudePracticeLayout{min-width:0;position:relative}
+.etudeScoreViewport{position:relative;max-height:72dvh;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;scroll-behavior:auto;overflow-anchor:none}
+.etudeScoreViewport .etudeSheet{overflow:visible;margin:0;max-width:none;width:100%;box-sizing:border-box}
+.etudeScoreViewport .etudeNotation{width:100%;min-width:0}
+.etudePracticeLayout.is-focus{position:fixed;z-index:1080;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;background:var(--theme-bg-soft);padding:env(safe-area-inset-top,0px) max(8px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(8px,env(safe-area-inset-left,0px));color:var(--theme-text)}
+.etudePracticeLayout.is-focus>.etudePracticeToolbar{flex:0 0 auto;margin:0;padding:4px 0;gap:4px;z-index:3}
+.etudePracticeLayout.is-focus .etudeViewTools{border:0;padding:0;gap:6px}
+.etudePracticeLayout.is-focus>.etudeScoreViewport{flex:1;min-height:0;max-height:none;width:100%}
+.etudePracticeLayout.is-focus .etudeSheet{padding:8px 4px 0;border:0;border-radius:0}
+.etudePracticeLayout.is-focus .etudeSheet .etudeNotation{overflow:visible}
+.etudeFocusTips{position:absolute;z-index:4;top:60px;right:12px;bottom:12px;width:min(480px,calc(100% - 24px));overflow:auto;padding:12px;background:var(--theme-surface);border:1px solid var(--theme-border-control);border-radius:12px}
+.etudeViewMenu label{display:grid;gap:4px;font-size:12px;padding:6px;border-top:1px solid var(--etude-line)}
+.etudeViewMenu select{min-height:44px;max-width:100%;background:var(--etude-panel);color:var(--etude-ink)}
+.etudeViewMenu>div{max-height:min(460px,70dvh);overflow:auto;width:200px}
+.etudeReturnPosition{position:sticky;top:8px;left:8px;z-index:2;min-height:40px;margin:0 0 -40px;display:block!important;background:var(--theme-surface)!important;color:var(--theme-text)!important;border:1px solid var(--theme-accent)!important;box-shadow:0 3px 12px #0002}
+.etudeSessionWidget .etudeFloatingTransport{flex-wrap:nowrap;gap:4px}
+.etudeSessionWidget .etudeFloatingTransport button{font-size:12px;padding:6px;flex:auto}
+.etudeSessionWidget header{height:28px}
+.etudeSessionWidget header button{min-height:28px;padding:2px 6px}
+.etudeSessionWidget .etudeBeatRow{margin:4px 0;gap:8px}
+.etudeSessionWidget .etudeFloatingSettings{display:grid;gap:6px}
+.etudeSessionWidget select{min-height:40px;max-width:100%;color:var(--theme-text);background:var(--theme-surface)}
+/* Focus mode covers page navigation; it must not constrain the floating controls. */
+body:has(.etudePracticeLayout.is-focus) .etudeFloatingMetro{max-height:calc(100dvh - 24px - env(safe-area-inset-bottom,0px))}
+@media(prefers-reduced-motion:reduce){.etudeScoreViewport{scroll-behavior:auto}}
+.etudeSessionWidget.is-docked{width:408px;max-width:calc(100dvw - 64px);padding:4px 6px;display:grid;grid-template-columns:32px 106px 1fr;align-items:center;gap:6px}
+.etudeSessionWidget.is-docked header{display:flex;flex-direction:column;height:auto;gap:0}
+.etudeSessionWidget.is-docked header .etudeDragHandle{height:18px;min-height:18px;padding:0}
+.etudeSessionWidget.is-docked header .etudeDragHandle span{display:none}
+.etudeSessionWidget.is-docked header>button:last-child{height:24px;min-height:24px;padding:0}
+.etudeSessionWidget.is-docked .etudeBeatRow{gap:5px;margin:0}
+.etudeSessionWidget.is-docked .etudeBeatRow small{font-size:9px}
+.etudeSessionWidget.is-docked .etudeFloatingSettings{grid-column:1/-1}
+.etudeSessionWidget.is-docked .etudeFloatingTransport button{min-height:40px;padding:3px;font-size:11px}
+.etudeSessionWidget.is-docked .etudeFloatingTransport input{width:64px}
+.etudePracticeLayout.is-focus>.etudePracticeToolbar{min-height:64px;box-sizing:border-box}
+.etudeSessionWidget.is-docked .etudeFloatingTransport button{font-size:12px}
+/* Library-shell button defaults must not wash out focused controls in the dark theme. */
+.pdfStudio .etudePracticeLayout .etudePracticeToolbar :is(button,select){background:var(--theme-surface)!important;color:var(--theme-text)!important;border-color:var(--theme-border-control)!important}
+.pdfStudio .etudePracticeLayout .etudeViewMenu>div{background:var(--theme-surface);color:var(--theme-text);border-color:var(--theme-border-control)}
+.pdfStudio .etudePracticeLayout .etudePracticeToolbar button[aria-pressed=true]{background:color-mix(in srgb,var(--theme-accent) 18%,var(--theme-surface))!important;border-color:var(--theme-accent)!important}
+.etudePracticeToolbar .etudeFollowSelect{width:108px;flex:none;min-height:44px;padding:6px;border:1px solid var(--theme-border-control);border-radius:8px;font-size:12px}
+.etudePracticeToolbar .etudeFocusBack{min-width:40px;font-size:22px;padding:4px 8px}
+.etudeBackingToggleMount,.etudeBackingToggle{display:inline-flex}
+.etudeBackingToggle i{font-style:normal;color:var(--theme-accent)}
+.pdfStudio .etudeLesson :is(.etudeTips,button){background:var(--theme-surface)!important;color:var(--theme-text)!important;border-color:var(--theme-border-control)!important}
+.pdfStudio .etudeLesson :is(p,li,strong,summary,div,span,th,td){color:var(--theme-text)!important}
+.pdfStudio .etudeLesson .etudePrerequisite{background:var(--theme-bg-soft)!important;border-color:var(--theme-accent)!important}
+.pdfStudio .etudeFocusTips{background:rgb(from var(--theme-surface) r g b);color:var(--theme-text);border-color:var(--theme-border-control)}
+.etudeFocusTips{left:12px;right:auto;width:min(440px,calc(100% - 24px));top:68px}
+.etudeBackingDrawer.etudeBackingDrawer--toolbar{right:12px;top:76px;bottom:max(12px,env(safe-area-inset-bottom));max-height:calc(100dvh - 100px);min-height:0}
+.etudeOptionalSound{display:flex!important;align-items:center;gap:8px;min-height:44px;cursor:pointer}
+.etudeOptionalSound input[type=checkbox]{appearance:auto!important;width:18px!important;height:18px!important;min-height:0;accent-color:var(--theme-accent)}
+.etudeFloatingSettings select:disabled{opacity:.5}
+body:has(.etudePracticeLayout.is-focus) .etudeSessionWidget:not(.is-docked){max-height:calc(100dvh - 88px - env(safe-area-inset-bottom,0px))}
+.pdfStudio .etudeLesson .etudePrerequisite{background:color-mix(in srgb,var(--theme-accent) 8%,var(--theme-surface))!important}
+.pdfStudio .etudeFocusTips,.pdfStudio .etudePracticeLayout .etudeViewMenu>div{background:rgb(from var(--theme-surface) r g b / 1)}
+.etudeFloatingSettings .etudeOptionalSound{margin:0!important;padding:6px 0}
+/* The drawer hosts the original player; size the shell to its compact main surface. */
+.etudeBackingDrawer,.etudeBackingDrawer.etudeBackingDrawer--toolbar{bottom:auto;min-height:0;height:auto;max-height:calc(100dvh - 100px);width:min(400px,calc(100dvw - 24px));padding:10px}
+.etudeBackingDrawer .backingLoopPanel{margin:0;width:100%;box-sizing:border-box}
+.etudeOptionalSoundSection{margin-top:12px;border-top:1px solid var(--theme-border-control);padding-top:8px;font-size:12px}
+.etudeOptionalSoundSection>summary{cursor:pointer;min-height:40px;display:list-item;align-content:center;color:var(--theme-text-muted)}
+.etudeOptionalSoundSection>label{margin:8px 0!important}
+/* Focused reader chrome must use the same surface/text pair as its controls. */
+html body main.app.app.app .pdfStudio .etudePracticeLayout.is-focus{background:rgb(from var(--theme-surface) r g b / 1)!important;color:var(--theme-text)!important}
+html body main.app.app.app .pdfStudio .etudePracticeLayout.is-focus>.etudePracticeToolbar{background:rgb(from var(--theme-surface) r g b / 1)!important;border-bottom:1px solid var(--theme-border-control)}
+html body main.app.app.app .pdfStudio .etudePracticeLayout.is-focus .etudePracticeToolbar :is(button,select){color:var(--theme-text)!important;-webkit-text-fill-color:currentColor!important;opacity:1}
+html body main.app.app.app .pdfStudio .etudePracticeLayout.is-focus .etudePracticeToolbar button svg,html body main.app.app.app .pdfStudio .etudePracticeLayout.is-focus .etudePracticeToolbar button svg *{stroke:currentColor!important;color:inherit!important}

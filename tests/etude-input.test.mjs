@@ -40,10 +40,10 @@ test('digits combine without a mode or timeout only at the selected position',()
  for(const value of ['10','12','15','23','24']){const first=resolveFretInput(null,value[0],'a'),next=resolveFretInput({...first,time:-999999},value[1],'a');assert.equal(next.value,Number(value));assert.equal(next.combined,true);}
  const first=resolveFretInput(null,'2','a');assert.equal(resolveFretInput(first,'3','b').value,3);assert.equal(resolveFretInput(first,'7','a').value,7);
 });
-test('duration edits reject overlaps with occupied neighbours and annotated rests atomically',()=>{
+test('duration edits reject occupied neighbours but permit stale picking on blank slots',()=>{
  let d=enterFret(createBlankDocument(),{...cursor,event:1},5),before=structuredClone(d);
  assert.throws(()=>setEventDuration(d,cursor,'2'),/겹칩니다/);assert.deepEqual(d,before);
- d=patchEvent(createBlankDocument(),0,1,{pickStroke:'up'});assert.throws(()=>setEventDuration(d,cursor,'2'),/겹칩니다/);
+ d=patchEvent(createBlankDocument(),0,1,{pickStroke:'up'});assert.equal(setEventDuration(d,cursor,'2').measures[0].events[0].duration,'2');
 });
 test('range copy paste assigns new IDs and preserves source bars, notes and rhythms',()=>{
  const d=toScoreDocument(ETUDES[0]),copy=copyBars(d,1,2),next=pasteBars(d,4,copy);assert.equal(next.measures.length,10);assert.strictEqual(next.measures[0],d.measures[0]);assert.notEqual(next.measures[5].id,d.measures[1].id);assert.deepEqual(next.measures[5].events.map(e=>e.onset),d.measures[1].events.map(e=>e.onset));assert.deepEqual(compileScoreDocument(next).errors,[]);

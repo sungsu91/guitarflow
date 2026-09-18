@@ -1,11 +1,12 @@
+import {performedMeasures} from './scoreMeters.js';
 import {scoreBarOrder} from './scoreRepeats.js';
 import {ticksOf} from './scoreModel.js';
 // All times use sounding MIDI (the guitar staff is engraved one octave higher).
-export function scoreTimeline(score, bpm = score.bpm) {
+export function scoreTimeline(score, bpm = score.bpm, includeNotes = true) {
   const events = [], pending = new Map();
   let offset = 0, writtenEnd = 0;
   const order=scoreBarOrder(score);
-  for (const [visit,bar] of order.entries()) {
+  for (const {visit,bar,meter} of performedMeasures(score,order)) {
     const measure=score.measures[bar];
     if(visit&&bar!==order[visit-1]+1)pending.clear();
     let sequential = 0;
@@ -15,6 +16,7 @@ export function scoreTimeline(score, bpm = score.bpm) {
       // Unentered trailing slots reserve editing space, not extra playback.
       // Explicit rests (including legacy rests without a blank flag) do count.
       if (!(e.rest && e.blank === true)) writtenEnd = Math.max(writtenEnd, start + duration);
+      if (!includeNotes) { sequential = onset + beats * 480; continue; }
       const tones=[...(e.tones??[e])];if(e.arpeggio)tones.sort((a,b)=>e.arpeggio==='up'?b.string-a.string:a.string-b.string);
       if (!e.rest) for (const [toneIndex,tone] of tones.entries()) {
         const delay=e.arpeggio?Math.min(.025,duration/(tones.length*3))*toneIndex:0;
@@ -23,7 +25,8 @@ export function scoreTimeline(score, bpm = score.bpm) {
         pending.delete(key);
         // A tie may not bridge a gap, change string/pitch, or sustain a dead note.
         const prior = candidate && !(tone.dead??e.dead) && !candidate.dead && Math.abs(candidate.start + candidate.duration - start) < 1e-6 ? candidate : null;
-        const note = prior ?? {id:e.id, bar, visit, pickStroke:e.pickStroke??null, vibrato:Boolean(e.vibrato), harmonic:Boolean(tone.harmonic), dead:Boolean(tone.dead??e.dead), midi:tone.midi, fret:tone.fret, string:tone.string, start:toneStart, duration:0, technique:null};
+        const note = prior ?? {id:e.id, bar, visit, pickStroke:e.pickStroke??null, vibrato:Boolean(e.vibrato),palmMute:Boolean(e.palmMute), harmonic:Boolean(tone.harmonic), dead:Boolean(tone.dead??e.dead), midi:tone.midi, fret:tone.fret, string:tone.string, start:toneStart, duration:0, technique:null};
+        if(e.palmMute&&note.palmMuteStart==null)note.palmMuteStart=start;
         note.duration += prior?duration:toneDuration;
         note.technique = e.technique ?? null;
         if (!prior) events.push(note);
@@ -31,7 +34,7 @@ export function scoreTimeline(score, bpm = score.bpm) {
       }
       sequential = onset + beats * 480;
     }
-    offset += (score.meter ?? [4,4])[0] * 4 / (score.meter ?? [4,4])[1];
+    offset += meter[0] * 4 / meter[1];
   }
   return {events:events.sort((a,b)=>a.start-b.start), duration:writtenEnd,order};
 }
@@ -40,8 +43,13 @@ export function scoreTimeline(score, bpm = score.bpm) {
 // independent voices; an unrelated chord tone never inherits a pitch ramp.
 export function guitarVoiceTimeline(score, bpm = score.bpm) {
   const timeline = scoreTimeline(score, bpm), voices = [], last = new Map();
-  const capacity=(score.meter??[4,4])[0]*1920/(score.meter??[4,4])[1];
-  const rests=timeline.order.flatMap((bar,visit)=>score.measures[bar].filter(e=>e.rest&&!e.blank).map(e=>(visit*capacity+e.onset)/480*60/bpm));
+  const rests=performedMeasures(score,timeline.order).flatMap(({bar,barStart})=>{
+    let next=0;
+    return score.measures[bar].flatMap(e=>{
+      const onset=e.onset??next;next=onset+ticksOf(e);
+      return e.rest&&!e.blank?[(barStart+onset)/480*60/bpm]:[];
+    });
+  });
   for (const note of timeline.events) {
     const previous = last.get(note.string), tail = previous?.tail;
     const forward = tail && (tail.visit===note.visit || (tail.visit+1===note.visit && tail.bar+1===note.bar));

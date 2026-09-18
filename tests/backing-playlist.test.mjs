@@ -22,7 +22,23 @@ import {
   setBackingPlaylistPlaybackMode,
   setBackingPlaylistShuffleEnabled,
   shouldRestartBackingPlaylistTrack,
+  shouldLoopBackingTrack,
 } from "../src/backing-loop/backingPlaylist.js";
+
+test("native audio looping follows repeat settings for standalone and playlist playback", () => {
+  const modes = BACKING_PLAYLIST_PLAYBACK_MODES;
+  assert.equal(shouldLoopBackingTrack(modes.SEQUENTIAL, false), false);
+  assert.equal(shouldLoopBackingTrack(modes.SEQUENTIAL, true), false);
+  assert.equal(shouldLoopBackingTrack(modes.REPEAT_ONE, false), true);
+  assert.equal(shouldLoopBackingTrack(modes.REPEAT_ONE, true), true);
+  assert.equal(shouldLoopBackingTrack(modes.REPEAT_ALL, false), true);
+  // Playlist repeat-all must receive ended events to advance to the next track.
+  assert.equal(shouldLoopBackingTrack(modes.REPEAT_ALL, true), false);
+  assert.equal(shouldLoopBackingTrack(modes.SHUFFLE, false), false);
+  // Completing a non-repeating queue must not turn native looping back on.
+  assert.equal(getNextBackingPlaylistIndex({ currentIndex: 1, itemCount: 2 }), -1);
+  assert.equal(shouldLoopBackingTrack(modes.SEQUENTIAL, false), false);
+});
 
 function createMemoryStorage() {
   const values = new Map();
@@ -273,7 +289,7 @@ test("Backing Loop UI uses Playlist as the single queue, import, and saved-list 
   assert.match(controllerSource, /shouldRestartBackingPlaylistTrack/);
   assert.match(controllerSource, /playlistState\.playbackMode/);
   assert.match(controllerSource, /playlistState\.shuffleEnabled/);
-  assert.match(controllerSource, /audio\.loop = nextMode === BACKING_PLAYLIST_PLAYBACK_MODES\.REPEAT_ONE/);
+  assert.match(controllerSource, /audio\.loop = shouldLoopBackingTrack\(nextMode, Boolean\(playlistPlaybackRef\.current\.playlistId\)\)/);
   assert.match(controllerSource, /saveCurrentBackingPlaylist/);
   assert.match(controllerSource, /loadSavedBackingPlaylist/);
   assert.match(controllerSource, /개 파일을 “\$\{targetTitle\}”에 추가했어요/);

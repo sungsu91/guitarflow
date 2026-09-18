@@ -1,3 +1,8 @@
+import usePracticeFollow from './usePracticeFollow.js';
+import {measureMeters,meterTicks} from './scoreMeters.js';
+import usePlaybackFollow from './usePlaybackFollow.js';
+import {drawPalmMute} from './drawPalmMute.js';
+import {scoreInstrument,staffStepForPitch} from './scoreInstruments.js';
 import {drawScoreNavigation,alignNavigationEndings} from './drawScoreNavigation.js';
 import {NAV_COMMANDS} from './scoreNavigation.js';
 import {repeatMarks} from './scoreRepeats.js';
@@ -8,7 +13,16 @@ import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {isBlankEvent,tupletGroups,ticksOf} from './scoreModel.js';
 import {drawTabRhythm,drawTabRests,rhythmGroups} from './tabRhythm.js';
 import { drawChordDiagram } from './chordStudy.js';
-import { Dot, Stem, Renderer, Stave, TabStave, StaveNote, TabNote, GhostNote, Tuplet, Voice, Formatter, Beam, Accidental, StaveConnector, Barline, TabTie, TabSlide, Curve, StaveLine, StaveTie } from 'vexflow';
+import { Clef, Dot, Stem, Renderer, Stave, TabStave, StaveNote, TabNote, GhostNote, Tuplet, Voice, Formatter, Beam, Accidental, StaveConnector, Barline, TabTie, TabSlide, Curve, StaveLine, StaveTie } from 'vexflow';
+
+// Leave a little breathing room between vertically stacked fret numbers.
+const TAB_LINE_SPACING = 16;
+
+function addInstrumentTabClef(tab){
+ const count=tab.getNumLines(),clef=new Clef('tab',count===4?'small':'default');
+ clef.clef={...clef.clef,line:(count-1)/2};
+ tab.addModifier(clef);
+}
 
 // GhostNote preserves an unentered slot's ticks but has no stem. VexFlow 4
 // treats it as a rest and asks for its stem when positioning a tuplet label.
@@ -54,13 +68,13 @@ class EditableTuplet extends Tuplet {
 
 
 function prepareMeasure(measure, etude) {
-    const notes = measure.map(n => isBlankEvent(n)?new GhostNote({duration:n.duration+(n.dotted?'d':'')}):new StaveNote({ keys: n.rest ? ['b/4'] : (n.tones ?? [n]).map(t=>t.pitch.key), duration: n.duration+(n.dotted?'d':'')+(n.rest?'r':''), auto_stem: true }));
+    const notes = measure.map(n => isBlankEvent(n)?new GhostNote({duration:n.duration+(n.dotted?'d':'')}):new StaveNote({ clef:scoreInstrument(etude.instrument).clef, keys: n.rest ? [scoreInstrument(etude.instrument).clef==='bass'?'d/3':'b/4'] : (n.tones ?? [n]).map(t=>t.pitch.key), duration: n.duration+(n.dotted?'d':'')+(n.rest?'r':''), auto_stem: true }));
     const tabs = measure.map((n,i) => {
       if(n.rest) return new GhostNote({duration:n.duration+(n.dotted?'d':'')});
       const note = new AlignedTabNote({ positions: (n.tones ?? [n]).map(t=>({ str: t.string, fret: (t.dead??n.dead)?'X':t.harmonic?`<${t.fret}>`:t.fret })), duration: n.duration+(n.dotted?'d':'') },notes[i]);
       note.render_options.font = '18px Arial';
       note.render_options.draw_dots = true;
-      if(n.dotted)note.addModifier(new TabFretDots(),0);
+      if(n.dotted&&etude.tabRhythmVisible!==false)note.addModifier(new TabFretDots(),0);
       return note;
     });
     measure.forEach((n,i)=>{if(n.dotted&&!isBlankEvent(n))Dot.buildAndAttach([notes[i]],{all:true});});
@@ -84,7 +98,7 @@ function prepareMeasure(measure, etude) {
 
 const spacingCache = new WeakMap();
 function measureSpacing(measure, etude, view) {
-  const key=`${etude.keySignature}/${(etude.meter??[4,4]).join('/')}/${view}`;
+  const key=`${etude.instrument}/${etude.keySignature}/${(etude.meter??[4,4]).join('/')}/${view}`;
   const cached=spacingCache.get(measure);
   if(cached?.key===key)return cached.value;
   const {notes,tabs,voice,tabVoice}=prepareMeasure(measure,etude);
@@ -105,17 +119,18 @@ function measureSpacing(measure, etude, view) {
 // uses the same tick scale, but only pays for its own visible symbols. This is
 // engraving geometry only: musical onset/duration and the audio clock stay intact.
 export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=0}={}) {
-  const capacity=(etude.meter??[4,4])[0]*1920/(etude.meter??[4,4])[1];
+  const meters=measureMeters(etude);
   const rows=[];
   placements.forEach((placement,i)=>{
-    const first=placement.column===1,stave=new Stave(0,0,1000),tab=new TabStave(0,0,1000);
-    if(first){stave.addClef('treble','default','8vb').addKeySignature(etude.keySignature);tab.addClef('tab');}
-    if(i+barOffset===0){stave.addTimeSignature((etude.meter??[4,4]).join('/'));if(view==='tab')tab.addTimeSignature((etude.meter??[4,4]).join('/'));}
+    const meter=meters[i],capacity=meterTicks(meter),meterChanged=i>0&&meter.join()!==meters[i-1].join();
+    const first=placement.column===1,stave=new Stave(0,0,1000),tab=new TabStave(0,0,1000,{num_lines:scoreInstrument(etude.instrument).tuning.length,spacing_between_lines_px:TAB_LINE_SPACING});
+    if(first){stave.addClef(scoreInstrument(etude.instrument).clef,'default',scoreInstrument(etude.instrument).octaveShift?'8vb':undefined).addKeySignature(etude.keySignature);addInstrumentTabClef(tab);}
+    if(i+barOffset===0||meterChanged){stave.addTimeSignature(meter.join('/'));if(view==='tab')tab.addTimeSignature(meter.join('/'));}
     if(!first){stave.setBegBarType(Barline.type.NONE);tab.setBegBarType(Barline.type.NONE);}
     if(repeatMarks(etude)[i]?.repeatStart){stave.setBegBarType(Barline.type.REPEAT_BEGIN);tab.setBegBarType(Barline.type.REPEAT_BEGIN);}
     const tail=repeatMarks(etude)[i]?.repeatEnd?36:20;
     const prefix=view==='tab'?tab.getNoteStartX():stave.getNoteStartX();
-    const points=measureSpacing(etude.measures[i],etude,view);
+    const points=measureSpacing(etude.measures[i],{...etude,meter},view);
     // Note.getAbsoluteX adds the font's stave padding again after noteStartX.
     // Replace that default gap with a compact 6px clearance, keeping the full
     // measured accidental / displaced-note / TAB overhang before the first note.
@@ -123,26 +138,26 @@ export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=
     const inset=(points[0]?.left??0)+6-notePadding;
     const command=NAV_COMMANDS.find(([kind])=>kind===repeatMarks(etude)[i]?.command)?.[1];
     const navigationWidth=command?command.length*8+16:0;
-    (rows[placement.row-1]??=[]).push({index:i,prefix,points,inset,tail,navigationWidth});
+    (rows[placement.row-1]??=[]).push({index:i,prefix,points,inset,tail,navigationWidth,capacity});
   });
   const specs=rows.map(bars=>{
     let scale=0;
-    for(const bar of bars)scale=Math.max(scale,(bar.navigationWidth-bar.prefix-bar.inset-bar.tail)/capacity);
+    for(const bar of bars)scale=Math.max(scale,(bar.navigationWidth-bar.prefix-bar.inset-bar.tail)/bar.capacity);
     for(const bar of bars)for(let i=0;i<bar.points.length;i++){
       const point=bar.points[i],next=bar.points[i+1];
-      const delta=(next?.tick??capacity)-point.tick;
+      const delta=(next?.tick??bar.capacity)-point.tick;
       if(delta>0)scale=Math.max(scale,(point.right+(next?.left??0)+8)/delta);
     }
     const fixed=24+bars.reduce((sum,bar)=>sum+bar.prefix+bar.inset+bar.tail,0);
-    return {bars,scale,fixed,minimum:fixed+bars.length*capacity*scale};
+    return {bars,scale,fixed,minimum:fixed+bars.reduce((sum,bar)=>sum+bar.capacity,0)*scale};
   });
   const totalWidth=Math.max(width,...specs.map(row=>row.minimum));
   const measures=[];
   for(const {bars,scale,fixed} of specs){
-    const tickScale=Math.max(scale,(totalWidth-fixed)/(bars.length*capacity));
+    const tickScale=Math.max(scale,(totalWidth-fixed)/bars.reduce((sum,bar)=>sum+bar.capacity,0));
     let x=12;
     bars.forEach((bar,i)=>{
-      const barWidth=bar.prefix+bar.inset+bar.tail+capacity*tickScale;
+      const barWidth=bar.prefix+bar.inset+bar.tail+bar.capacity*tickScale;
       const leading=i===0?12:0,trailing=i===bars.length-1?12:0;
       measures[bar.index]={x,width:barWidth,cellX:x-leading,cellWidth:barWidth+leading+trailing,
         rowWidth:totalWidth,inset:bar.inset,tickScale};
@@ -152,12 +167,16 @@ export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=
   return {width:totalWidth,measures};
 }
 
-export function drawScore(element, etude, { mobile = false, enlarged = false, landscape = false, bpm = etude.bpm, editor = false, barOffset = 0, tabRhythm = Boolean(etude.document) && etude.document.viewSettings?.tabRhythm !== false, editorWidth, engraving, systemStart=true, systemEnd=true, scoreEnd=true, systemHeadroom=0, systemNavigation=false, view=etude.document?.viewSettings?.notationView??'both' } = {}) {
+export function drawScore(element, etude, { mobile = false, enlarged = false, landscape = false, bpm = etude.bpm, editor = false, barOffset = 0, tabRhythm = Boolean(etude.document) && etude.document.viewSettings?.tabRhythm !== false, tabBeamPosition=etude.document?.viewSettings?.tabBeamPosition??'below',tabPickingPosition=etude.document?.viewSettings?.tabPickingPosition??'below',editorWidth, engraving, responsive=false, systemStart=true, systemEnd=true, scoreEnd=true, systemHeadroom=0, systemNavigation=false, view=etude.document?.viewSettings?.notationView??'both' } = {}) {
+  const stringCount=scoreInstrument(etude.instrument).tuning.length;
+  const numberOnly=etude.document?.viewSettings?.tabRhythm===false||(editor&&!tabRhythm);
+  etude={...etude,tabRhythmVisible:!numberOnly};
+  const upperSpace=view!=='staff'&&((tabRhythm&&tabBeamPosition==='above')||tabPickingPosition==='above')?78:0;
   element.replaceChildren();
   // Respect authored line breaks, then size vector engraving to its rhythmic
   // and symbol requirements. Unconfigured dense studies use one bar on mobile.
   const dense = etude.measures.some(measure => measure.length > 8);
-  const perRow = editor ? 1 : etude.document?.viewSettings?.measuresPerRow ?? (mobile && !landscape && (enlarged || dense) ? 1 : 2);
+  const perRow = editor ? 1 : responsive ? Math.max(1,Math.min(6,Math.floor((editorWidth??980)/(dense?340:260)))) : etude.document?.viewSettings?.measuresPerRow ?? (mobile && !landscape && (enlarged || dense) ? 1 : 2);
   const placements=measureLayout(etude.document?.measures??etude.measures.map((_,i)=>({id:String(i)})),perRow,etude.document?.viewSettings?.systemBreaks??[]);
   const baseWidth=mobile&&landscape?(dense?1100:980):mobile?(enlarged?460:view==='both'?600:400):980;
   const spacing=engraving?null:scoreSpacing(etude,{placements,view,width:editorWidth??baseWidth,barOffset});
@@ -165,10 +184,13 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   const chordHeight=etude.chordShapes?120:0;
   // User edits may add high notes. Reserve headroom for their ledger lines
   // instead of clipping the top of the SVG or colliding with a chord box.
-  const highestLine=Math.max(7,...etude.measures.flat().filter(n=>!n.rest).flatMap(n=>n.tones??[n]).map(n=>((n.pitch.octave-3)*7+'CDEFGAB'.indexOf(n.pitch.letter))/2));
+  const highestLine=Math.max(7,...etude.measures.flat().filter(n=>!n.rest).flatMap(n=>n.tones??[n]).map(n=>(staffStepForPitch(n.pitch,etude.instrument)+2)/2));
   const navigationHeight=systemNavigation||repeatMarks(etude).some(m=>m.ending||m.marker||m.command)?52:0;
   const headroom=navigationHeight+(view==='tab'?0:Math.max(systemHeadroom,Math.ceil(Math.max(0,highestLine-7)*10)));
-  const rowHeight = (view==='tab'?144:view==='staff'?140:228)+chordHeight+headroom+(tabRhythm&&view!=='staff'?55:0);
+  // Compact only the generated practice TAB reader; fret sizes and string spacing stay intact.
+  const compactTab=responsive&&!editor&&view==='tab';
+  const extraTabRoom=compactTab&&etude.measures.some(bar=>bar.some(e=>e.tuplet||e.picking||e.palmMute))?22:0;
+  const rowHeight = (view==='tab'?(compactTab?86:144):view==='staff'?140:(responsive&&!editor?210:228))+extraTabRoom+chordHeight+headroom+upperSpace+(tabRhythm&&view!=='staff'?55:0)+(view==='staff'?0:(stringCount-1)*(TAB_LINE_SPACING-13));
   const height = (placements.at(-1)?.row??1) * rowHeight + 50;
   const renderer = new Renderer(element, Renderer.Backends.SVG);
   renderer.resize(width, height);
@@ -181,7 +203,9 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   const noteElement=note=>element.querySelector(`[id="vf-${note.getAttribute('id')}"]`);
   const metrics = [];
   const drawn=[],navigation=[];
+  const meters=measureMeters(etude);
   etude.measures.forEach((measure, index) => {
+    const meter=meters[index],meterChanged=index>0&&meter.join()!==meters[index-1].join();
     const placement=placements[index],first=editor?systemStart:placement.column===1;
     const geometry=engraving??spacing.measures[index];
     const x = editor?(systemStart?12:0):geometry.x;
@@ -189,12 +213,12 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     if(etude.chordShapes?.[index]) drawChordDiagram(element.querySelector('svg'),etude.chordShapes[index],etude.harmony[index],x+12,y-chordHeight-headroom);
     const w = geometry.width;
     const stave = new Stave(x, y, w);
-    const tab = new TabStave(x, y + (view==='tab'?0:84), w);
+    const tab = new TabStave(x, y + (view==='tab'?0:84)+upperSpace, w,{num_lines:stringCount,spacing_between_lines_px:TAB_LINE_SPACING});
     if (first) {
-      stave.addClef('treble', 'default', '8vb').addKeySignature(etude.keySignature);
-      tab.addClef('tab');
+      stave.addClef(scoreInstrument(etude.instrument).clef,'default',scoreInstrument(etude.instrument).octaveShift?'8vb':undefined).addKeySignature(etude.keySignature);
+      addInstrumentTabClef(tab);
     }
-    if (index + barOffset === 0) {stave.addTimeSignature((etude.meter??[4,4]).join('/'));if(view==='tab')tab.addTimeSignature((etude.meter??[4,4]).join('/'));}
+    if (index + barOffset === 0||meterChanged) {stave.addTimeSignature(meter.join('/'));if(view==='tab')tab.addTimeSignature(meter.join('/'));}
     if(!first){stave.setBegBarType(Barline.type.NONE);tab.setBegBarType(Barline.type.NONE);}
     // Adjacent editor measures use separate SVGs. VexFlow draws a SINGLE
     // end bar to the right of x + width, where the SVG viewport clips it off.
@@ -215,7 +239,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     if(editor&&!systemEnd&&!marks.repeatEnd){
       for(const [staff,group] of [[stave,staffGroup],[tab,tabGroup]]){
         const boundary=document.createElementNS('http://www.w3.org/2000/svg','line');
-        Object.entries({x1:width-1.5,x2:width-1.5,y1:staff.getYForLine(0),y2:staff.getYForLine(staff===tab?5:4),stroke:'#171717','stroke-width':1,'vector-effect':'non-scaling-stroke',class:'etudeMeasureBoundary','pointer-events':'none'}).forEach(([key,value])=>boundary.setAttribute(key,String(value)));
+        Object.entries({x1:width-1.5,x2:width-1.5,y1:staff.getYForLine(0),y2:staff.getYForLine(staff===tab?stringCount-1:4),stroke:'#171717','stroke-width':1,'vector-effect':'non-scaling-stroke',class:'etudeMeasureBoundary','pointer-events':'none'}).forEach(([key,value])=>boundary.setAttribute(key,String(value)));
         group.append(boundary);
       }
     }
@@ -232,7 +256,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     element.querySelector('svg').append(measureNumber);
     if(etude.harmony?.[index]&&!etude.chordShapes) context.setFont('Arial',14,'bold').fillText(etude.harmony[index],x+35,y+5);
     if (first) {context.openGroup('fretiva-both-view');new StaveConnector(stave, tab).setType(StaveConnector.type.BRACKET).setContext(context).draw();context.closeGroup();}
-    const {notes,tabs,tuplets,voice,tabVoice,beams}=prepareMeasure(measure,etude);
+    const {notes,tabs,tuplets,voice,tabVoice,beams}=prepareMeasure(measure,{...etude,meter});
     navigation.push({mark:marks,previous:etude.navigationPrevious??repeatMarks(etude)[index-1],next:etude.navigationNext??repeatMarks(etude)[index+1],x,width:w,top:(view==='tab'?tab:stave).getYForLine(0),first,last:systemEnd,index:index+barOffset,row:placement.row,notes,tabs,tuplets,beams,measure,measureNumberX,start});
     new Formatter().joinVoices([voice]).joinVoices([tabVoice]).formatToStave([voice, tabVoice], stave);
     let elapsed=0;
@@ -243,14 +267,14 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     context.openGroup('fretiva-staff-view');voice.draw(context, stave);context.closeGroup();context.openGroup('fretiva-tab-view');tabVoice.draw(context, tab);context.closeGroup();
     measure.forEach((event,i)=>drawn.push({event,note:notes[i],tab:tabs[i],row:placement.row}));
     // Rests belong inside TAB, independently of the optional lower rhythm stems.
-    drawTabRests(element.querySelector('svg'),measure,notes,tab.getYForLine(2.5)).dataset.scoreBar=index;
+    if(!numberOnly)drawTabRests(element.querySelector('svg'),measure,notes,tab.getYForLine((stringCount-1)/2)).dataset.scoreBar=index;
     const beamGeometry=beams.map(beam=>({indices:beam.getNotes().map(note=>notes.indexOf(note)),xs:beam.getNotes().map(note=>note.getStemX()-Stem.WIDTH/2),levels:['4','8'].map(duration=>beam.getBeamLines(duration))}));
-    if(tabRhythm){drawTabRhythm(element.querySelector('svg'),measure,tabs,tab,beamGeometry);element.querySelectorAll('.etudeTabRhythm').item(index).dataset.scoreBar=index;}
+    if(tabRhythm){drawTabRhythm(element.querySelector('svg'),measure,tabs,tab,beamGeometry,tabBeamPosition);element.querySelectorAll('.etudeTabRhythm').item(index).dataset.scoreBar=index;}
     for(const list of [notes,tabs])list.forEach((note,i)=>{const node=noteElement(note);if(node){node.dataset.scoreBar=index;node.dataset.scoreEvent=i;}});
     measure.forEach((event,i)=>{
-      const px=tabs[i].getAbsoluteX(),py=tab.getYForLine(5)+(tabRhythm?72:25),svg=element.querySelector('svg'),ns='http://www.w3.org/2000/svg';
+      const px=tabs[i].getAbsoluteX(),py=tabPickingPosition==='above'?tab.getYForLine(0)-(tabRhythm&&tabBeamPosition==='above'?((measure.some(e=>e.tuplet)?70:48)+2*(TAB_LINE_SPACING-13)):14):tab.getYForLine(stringCount-1)+(tabRhythm&&tabBeamPosition!=='above'?((measure.some(e=>e.tuplet)?72:56)+2*(TAB_LINE_SPACING-13)):25),svg=element.querySelector('svg'),ns='http://www.w3.org/2000/svg';
       const text=[event.pickStroke==='down'?'Π':event.pickStroke==='up'?'V':'',...(event.tones??[event]).map(n=>[n.finger?`L${n.finger}`:'',n.rightFinger??''].filter(Boolean).join('/'))].filter(Boolean).join(' ');
-      if(text){context.openGroup('fretiva-tab-view');context.setFont('Arial',14,'bold').fillText(text,px-4,py);context.closeGroup();}
+      if(text){const pickGroup=context.openGroup('fretiva-tab-view');pickGroup.setAttribute('data-picking-position',tabPickingPosition);context.setFont('Arial',14,'bold').fillText(text,px-4,py);context.closeGroup();}
       if(editor&&event.pickStroke){const hit=document.createElementNS(ns,'rect');Object.entries({x:px-10,y:py-17,width:24,height:26,class:'etudeEditorHit etudePickHit fretiva-tab-view','data-event':i,'data-string':(event.tones??[event])[0].string,'data-mode':'tab','data-cursor-x':px-12,'data-cursor-y':py-17,fill:'transparent'}).forEach(([k,v])=>hit.setAttribute(k,v));svg.append(hit);}
     });
     // Use a common SVG anchor for a pinch instead of separate glyph-width
@@ -271,6 +295,8 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
       if(event.vibrato){let d=`M ${x-7} ${top-15}`;for(let n=0;n<4;n++)d+=' q 3 -5 6 0 q 3 5 6 0';path(d,'tabVibrato');}
       if(event.arpeggio&&ys.length>1){const ax=x-19;let d=`M ${ax} ${top-5}`;for(let y=top-5;y<bottom+5;y+=8)d+=' q -4 2 0 4 q 4 2 0 4';path(d,'tabArpeggio');const ay=event.arpeggio==='up'?top-8:bottom+10,sign=event.arpeggio==='up'?1:-1;path(`M ${ax-4} ${ay+sign*5} L ${ax} ${ay} L ${ax+4} ${ay+sign*5}`,'tabArpeggioArrow');}
     });
+    const palmMuteObstacles=drawPalmMute(element.querySelector('svg'),measure,view==='staff'?notes:tabs,view==='staff'?stave:tab,{staff:view==='staff',headroom,tabRhythm});
+    navigation.at(-1).palmMuteObstacles=palmMuteObstacles;
     context.openGroup('fretiva-staff-view');beams.forEach(beam => {const group=context.openGroup('etude-beam');group.setAttribute('data-beam-events',beam.getNotes().map(note=>notes.indexOf(note)).join(','));beam.setContext(context).draw();context.closeGroup();});tuplets.forEach(({tuplet,visible})=>{if(visible)tuplet.setContext(context).draw();});context.closeGroup();
     measure.forEach((n, i) => {
       if (!n.technique || !tabs[i+1] || n.rest || measure[i+1].rest || n.tones || measure[i+1].tones) return;
@@ -300,21 +326,24 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     if(!editor){
       const geometry=document.createElementNS('http://www.w3.org/2000/svg','g');
       geometry.dataset.playbackBar=String(index);
+      geometry.dataset.row=String(placement.row);
+      const rowTop=chordHeight?(placement.row-1)*rowHeight:Math.max(0,(view==='tab'?tab:stave).getYForLine(0)-32-headroom);
+      geometry.dataset.rowTop=String(rowTop);geometry.dataset.rowBottom=String(rowTop+rowHeight);
       geometry.dataset.top=String((view==='tab'?tab:stave).getYForLine(0)-12-headroom);
-      geometry.dataset.bottom=String(view==='staff'?stave.getYForLine(4)+28:tab.getYForLine(5)+(tabRhythm?60:14));
+      geometry.dataset.bottom=String(view==='staff'?stave.getYForLine(4)+28:tab.getYForLine(stringCount-1)+(tabRhythm?60:14));
       let elapsed=0;const points=measure.map((event,i)=>{const tick=event.onset??elapsed;elapsed=tick+ticksOf(event);const note=view==='staff'?notes[i]:tabs[i];return {tick,x:event.rest||isBlankEvent(event)?note.getAbsoluteX():note.getStemX()};});
-      points.push({tick:(etude.meter??[4,4])[0]*1920/(etude.meter??[4,4])[1],x:x+w-2});
+      points.push({tick:meterTicks(meter),x:x+w-2});
       geometry.dataset.points=JSON.stringify(points);element.querySelector('svg').append(geometry);
     }
     if(editor) {
       const svg=element.querySelector('svg'),ns='http://www.w3.org/2000/svg';
       svg.dataset.playbackTop=String((view==='tab'?tab:stave).getYForLine(0)-12-headroom);
-      svg.dataset.playbackBottom=String(view==='staff'?stave.getYForLine(4)+28:tab.getYForLine(5)+(tabRhythm?60:14));
+      svg.dataset.playbackBottom=String(view==='staff'?stave.getYForLine(4)+28:tab.getYForLine(stringCount-1)+(tabRhythm?60:14));
       const centers=tabs.map((t,i)=>measure[i].rest?t.getAbsoluteX():t.getStemX());
       const spacing=tab.getYForLine(1)-tab.getYForLine(0);
       measure.forEach((event,i)=>{
         const px=centers[i],left=i?(centers[i-1]+px)/2:px-20,right=i+1<tabs.length?(px+centers[i+1])/2:x+w-5;
-        for(let string=1;string<=6;string++){
+        for(let string=1;string<=stringCount;string++){
           const hit=document.createElementNS(ns,'rect');
           Object.entries({x:left,y:tab.getYForLine(string-1)-spacing/2,width:Math.max(1,right-left),height:spacing,'data-cursor-x':px-12,'data-cursor-y':tab.getYForLine(string-1)-7,'data-event':i,'data-string':string,'data-mode':'tab',class:'etudeEditorHit',fill:'transparent'}).forEach(([k,v])=>hit.setAttribute(k,String(v)));svg.append(hit);
         }
@@ -352,9 +381,9 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     }
     metrics.push(notes.map((n, i) => ({ noteX: n.getAbsoluteX(), tabX: tabs[i].getAbsoluteX(), end: x + w,
       noteCenterX:n.getCenterGlyphX(),tabCenterX:tabs[i].getCenterGlyphX(),
-      rest:measure[i].rest, blank:isBlankEvent(measure[i]), line: n.getKeyProps?.()[0]?.line??3, expectedLine: measure[i].rest ? (n.getKeyProps?.()[0]?.line??3) : ((measure[i].pitch.octave - 3) * 7 + 'CDEFGAB'.indexOf(measure[i].pitch.letter)) / 2,
+      rest:measure[i].rest, blank:isBlankEvent(measure[i]), line: n.getKeyProps?.()[0]?.line??3, expectedLine: measure[i].rest ? (n.getKeyProps?.()[0]?.line??3) : (staffStepForPitch(measure[i].pitch,etude.instrument)+2)/2,
       tones: measure[i].rest ? [] : (measure[i].tones ?? [measure[i]]).map((tone,j)=>({
-        line:n.getKeyProps()[j].line, expectedLine:((tone.pitch.octave-3)*7+'CDEFGAB'.indexOf(tone.pitch.letter))/2,
+        line:n.getKeyProps()[j].line, expectedLine:(staffStepForPitch(tone.pitch,etude.instrument)+2)/2,
         tab:tabs[i].getPositions()[j], expectedTab:{str:tone.string,fret:tone.fret},
       })),
       accidentals: n.getModifiers().filter(m => m.getCategory() === 'Accidental').map(m => m.type) })));
@@ -378,7 +407,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   // visible notation; blank slots and the hidden staff do not reserve space.
   for(const item of navigation){
     const {notes,tabs,measure,beams,tuplets,top,x,first,start,measureNumberX}=item;
-    const obstacles=[{x:measureNumberX-8,y:top-24,width:16,height:14}];
+    const obstacles=[...(item.palmMuteObstacles??[]),{x:measureNumberX-8,y:top-24,width:16,height:14}];
     if(first)obstacles.push({x,y:top-(view==='tab'?0:22),width:start-x,height:65});
     measure.forEach((event,i)=>{
       if(isBlankEvent(event))return;
@@ -403,9 +432,11 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   if(view==='tab')svg.querySelectorAll('.vf-fretiva-staff-view,.vf-fretiva-both-view,[data-mode="staff"]').forEach(node=>node.remove());
   if(view==='staff')svg.querySelectorAll('.vf-fretiva-tab-view,.fretiva-tab-view,.vf-fretiva-both-view,[data-mode="tab"]').forEach(node=>node.remove());
   svg.dataset.notationView=view;
-  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  const trimTop=compactTab?Math.max(0,svg.getBBox().y-8):0;
+  svg.setAttribute('viewBox', `0 ${trimTop} ${width} ${height-trimTop}`);
+  if(compactTab)svg.setAttribute('height',String(height-trimTop));
   svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', `${etude.title}, ${(etude.meter??[4,4]).join("/")}, BPM ${bpm}, 오선보와 TAB`);
+  svg.setAttribute('aria-label', `${etude.title}, ${(etude.meter??[4,4]).join("/")}, BPM ${bpm}, ${view==='staff'?'오선보':view==='tab'?'TAB':'오선보와 TAB'}`);
   svg.style.width = '100%'; svg.style.height = 'auto'; svg.style.display = 'block';
   return metrics;
 }
@@ -414,7 +445,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
 // unmounts the studio and stops audio; returning doesn't engrave it again.
 const scoreCache = new Map();
 export function renderCachedScore(element, etude, options = {}) {
-  const key = `${etude.id}:${Boolean(options.mobile)}:${Boolean(options.enlarged)}:${Boolean(options.landscape)}`;
+  const key = `${etude.id}:${Boolean(options.mobile)}:${Boolean(options.enlarged)}:${Boolean(options.landscape)}:${options.view??"both"}:${options.editorWidth??""}:${Boolean(options.responsive)}`;
   const cached = scoreCache.get(key);
   if (cached?.etude === etude) {
     scoreCache.delete(key); scoreCache.set(key, cached);
@@ -427,8 +458,13 @@ export function renderCachedScore(element, etude, options = {}) {
   return 'engraved';
 }
 
-function Score({ etude, mobile, bpm, enlarged = false, playPosition=null }) {
+function Score({ etude, mobile, bpm, enlarged = false, view, playPosition=null, followPlayback=false,followMode,responsive=false,zoom=1,focusLayout=false }) {
   const ref = useRef(null);
+  const [availableWidth,setAvailableWidth]=useState(0);
+  useLayoutEffect(()=>{if(!responsive)return;const measure=()=>setAvailableWidth(Math.round(ref.current.clientWidth));measure();const observer=new ResizeObserver(measure);observer.observe(ref.current);return()=>observer.disconnect();},[responsive]);
+  const practiceFollow=usePracticeFollow(ref,followMode,Boolean(playPosition?.playing),[availableWidth,view,zoom,focusLayout].join(":"));
+  const follow=usePlaybackFollow(ref,followPlayback&&Boolean(playPosition?.playing));
+  const followRef=useRef(follow);followRef.current=(line,current)=>followMode?practiceFollow.follow(line,current):follow(line);
   const [error, setError] = useState('');
   const [landscape, setLandscape] = useState(() => window.matchMedia('(orientation: landscape)').matches);
   useLayoutEffect(() => {
@@ -438,21 +474,26 @@ function Score({ etude, mobile, bpm, enlarged = false, playPosition=null }) {
     return () => query.removeEventListener('change', update);
   }, []);
   useEffect(() => {
-    try { renderCachedScore(ref.current, etude, { mobile, enlarged, landscape }); setError(''); }
+    try { renderCachedScore(ref.current, etude, { mobile, enlarged, landscape, view, responsive,editorWidth:responsive?Math.max(240,availableWidth/zoom):mobile&&!landscape&&!enlarged?600:undefined }); if(responsive){const svg=ref.current.querySelector('svg');svg.style.width=Math.max(availableWidth,Number(svg.getAttribute('width'))*zoom)+'px';svg.style.maxWidth='none';} setError(''); }
     catch (e) { ref.current?.replaceChildren(); setError('악보를 표시하지 못했습니다. 다른 연습곡을 선택해 주세요.'); console.error(e); }
-  }, [etude, mobile, enlarged, landscape]);
+  }, [etude, mobile, enlarged, landscape, view, responsive, availableWidth, zoom]);
   useEffect(() => {
-    ref.current?.querySelector('svg')?.setAttribute('aria-label', `${etude.title}, ${(etude.meter??[4,4]).join("/")}, BPM ${bpm}, 오선보와 TAB`);
-  }, [etude, mobile, enlarged, landscape, bpm]);
+    ref.current?.querySelector('svg')?.setAttribute('aria-label', `${etude.title}, ${(etude.meter??[4,4]).join("/")}, BPM ${bpm}, ${view==='staff'?'오선보':view==='tab'?'TAB':'오선보와 TAB'}`);
+  }, [etude, mobile, enlarged, landscape, bpm, view]);
   useEffect(()=>{
     const root=ref.current,svg=root?.querySelector('svg');if(!svg||!playPosition)return;
-    const bar=svg.querySelector(`[data-playback-bar="${playPosition.bar}"]`);if(!bar)return;
-    const points=JSON.parse(bar.dataset.points),line=document.createElementNS('http://www.w3.org/2000/svg','line');
-    Object.entries({class:'savedScorePlayhead',y1:bar.dataset.top,y2:bar.dataset.bottom,stroke:'#a63e36','stroke-width':1.8,'vector-effect':'non-scaling-stroke','pointer-events':'none','aria-hidden':'true'}).forEach(([key,value])=>line.setAttribute(key,value));
-    line.dataset.bar=String(playPosition.bar);svg.append(line);let frame;
-    const draw=()=>{const tick=playPosition.getBarTick?.()??points[playPosition.event]?.tick??0,x=playheadX(points,tick);line.setAttribute('x1',x);line.setAttribute('x2',x);frame=requestAnimationFrame(draw);};draw();
-    return()=>{cancelAnimationFrame(frame);line.remove();};
-  },[playPosition,etude,mobile,enlarged,landscape]);
-  return <>{error && <p role="alert">{error}</p>}<div className="etudeNotation" ref={ref} /></>;
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    Object.entries({class:'savedScorePlayhead',stroke:'var(--riff-danger, #c85d54)','stroke-opacity':1,'stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none','aria-hidden':'true'}).forEach(([key,value])=>line.setAttribute(key,value));
+    const wash=line.cloneNode();wash.setAttribute('class','savedScorePlayheadWash');svg.append(wash,line);let frame,activeBar,points;
+    const draw=()=>{
+      const current=playPosition.getCurrentSlot?.()??playPosition;
+      if(activeBar!==current.bar){const bar=svg.querySelector(`[data-playback-bar="${current.bar}"]`);if(!bar)return;activeBar=current.bar;points=JSON.parse(bar.dataset.points);line.setAttribute('y1',bar.dataset.top);line.setAttribute('y2',bar.dataset.bottom);}
+      const tick=playPosition.getTimelineTick?playPosition.getTimelineTick()-current.barStart:playPosition.getBarTick?.()??points[current.event]?.tick??0;
+      const x=playheadX(points,tick);line.setAttribute('x1',x);line.setAttribute('x2',x);line.dataset.tick=String(tick);line.dataset.bar=String(current.bar);line.dataset.visit=String(current.visit??0);for(const attr of ['x1','x2','y1','y2'])wash.setAttribute(attr,line.getAttribute(attr));followRef.current(line,current);
+      if(playPosition.playing)frame=requestAnimationFrame(draw);
+    };draw();
+    return()=>{cancelAnimationFrame(frame);line.remove();wash.remove();};
+  },[playPosition,etude,mobile,enlarged,landscape,view,availableWidth,zoom]);
+  return <>{playPosition&&practiceFollow.suspended&&<button className="etudeReturnPosition" type="button" onClick={practiceFollow.resume}>현재 위치로</button>}{error && <p role="alert">{error}</p>}<div className="etudeNotation" ref={ref} /></>;
 }
 export default memo(Score);

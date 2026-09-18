@@ -1,17 +1,16 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import PracticeSheet from './PracticeSheet.jsx';
+import usePracticeSession,{PracticeSessionPlayback} from './usePracticeSession.jsx';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { ETUDES } from './catalog.js';
 import { lessonCourse, canOpenLesson } from './filters.js';
-import useEtudeMetronome from './useEtudeMetronome.js';
+import './practiceLayout.css';
 import './etudes.css';
 import {toScoreDocument} from './scoreDocument.js';
 import {loadLibrary,saveLibraryDocument} from './scoreLibrary.js';
-import {createBlankDocument,copyDocument} from './scoreModel.js';
-import {TUNING} from './notationData.js';
-import ScorePlayback from './ScorePlayback.jsx';
-import { ChevronDown } from 'lucide-react';
+import {copyDocument} from './scoreModel.js';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { COMMON_PRACTICE_TIPS, PICKING_EXAMPLES, FINGERSTYLE_PRACTICE_TIPS, FINGERSTYLE_EXAMPLES } from './practiceTips.js';
 
-const Score = lazy(() => import('./Score.jsx'));
 const ScoreEditor = lazy(() => import('./ScoreEditor.jsx'));
 function loadEdits(){try{return {...loadLibrary(window.localStorage,ETUDES),scores:{}};}catch{return {records:{},scores:{},errors:['이 브라우저에서는 수정본 저장소를 사용할 수 없습니다.']};}}
 const DEFAULT_ETUDE_ID = 'G-triad-start';
@@ -28,7 +27,7 @@ function SongPicker({ model }) {
  const types=[...new Set(list.map(e=>e.type))],course=list.filter(e=>e.type===selected?.type),index=course.findIndex(e=>e.id===selected?.id);
  return <div className="etudeSongPicker etudeQuickBrowse">
   <div className="etudeQuickSelects"><Select label="연습 유형" value={selected?.type??types[0]} options={types} onChange={type=>select(list.find(e=>e.type===type).id)}/></div>
-  <nav className="etudeQuickPages" aria-label="에튀드 쪽넘김"><button type="button" aria-label="이전 연습곡" disabled={index<=0} onClick={()=>select(course[index-1].id)}>‹ 이전</button><span aria-live="polite">{index+1} / {course.length}</span><button type="button" aria-label="다음 연습곡" disabled={index<0||index>=course.length-1} onClick={()=>select(course[index+1].id)}>다음 ›</button></nav>
+  <nav className="etudeQuickPages" aria-label="에튀드 쪽넘김"><button type="button" aria-label="이전 연습곡" disabled={index<=0} onClick={()=>select(course[index-1].id)}><ChevronLeft aria-hidden="true"/></button><span aria-live="polite">{index+1} / {course.length}</span><button type="button" aria-label="다음 연습곡" disabled={index<0||index>=course.length-1} onClick={()=>select(course[index+1].id)}><ChevronRight aria-hidden="true"/></button></nav>
  </div>;
 }
 
@@ -55,118 +54,28 @@ function LessonTips({ model }) {
   </section>;
 }
 
-function ZoomSheet({ children, onClose, mobile }) {
-  const ref = useRef(null);
-  const [rotationHint, setRotationHint] = useState('');
-  const rotation = useRef({ live: false, locked: false, fullscreen: false });
-  const releaseRotation = () => {
-    if (rotation.current.locked) { window.screen.orientation?.unlock?.(); rotation.current.locked = false; }
-    if (rotation.current.fullscreen && document.fullscreenElement === document.documentElement) document.exitFullscreen?.().catch(() => {});
-    rotation.current.fullscreen = false;
-  };
-  const turnLandscape = async () => {
-    const orientation = window.screen?.orientation;
-    if (!orientation?.lock) { setRotationHint('휴대폰의 회전 잠금을 풀고 가로로 돌려 주세요.'); return; }
-    if (window.matchMedia('(orientation: landscape)').matches) return;
-    try {
-      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen();
-        rotation.current.fullscreen = true;
-      }
-      if (!rotation.current.live) { releaseRotation(); return; }
-      await orientation.lock('landscape');
-      rotation.current.locked = true;
-      if (!rotation.current.live) { releaseRotation(); return; }
-      setRotationHint('가로 보기 중입니다. 닫으면 회전 잠금이 해제됩니다.');
-    } catch {
-      releaseRotation();
-      if (rotation.current.live) setRotationHint('이 브라우저에서는 휴대폰을 직접 가로로 돌려 주세요. 회전 잠금도 확인해 주세요.');
-    }
-  };
-  useLayoutEffect(() => {
-    const dialog = ref.current;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    rotation.current.live = true;
-    dialog.showModal();
-    if (mobile) void turnLandscape();
-    return () => { rotation.current.live = false; releaseRotation(); dialog.close(); document.body.style.overflow = overflow; };
-  }, []);
-  return <dialog ref={ref} className={`etudeZoom ${mobile ? 'etudeZoom--mobile' : 'etudeZoom--desktop'}`} aria-label="확대 악보" onCancel={onClose}><div className="etudeZoomToolbar"><span>확대 악보</span><button type="button" autoFocus onClick={onClose}>닫기 ✕</button></div>{rotationHint && <p className="etudeRotationHint" role="status">{rotationHint}</p>}<article className="etudeSheet">{children}</article></dialog>;
-}
-
-function Metronome({ model }) {
-  const { bpm, setBpm, metro } = model;
-  const [draft, setDraft] = useState(String(bpm));
-  useEffect(() => setDraft(String(bpm)), [bpm]);
-  const commit = () => {
-    const value = draft.trim() === '' || !Number.isFinite(Number(draft)) ? bpm : Math.min(240, Math.max(30, Math.round(Number(draft))));
-    setDraft(String(value)); setBpm(value);
-  };
-  return <section className="etudeMetronome" aria-label="악보 메트로놈">
-    <div className="etudeBeatRow" aria-label={metro.beat < 0 ? '메트로놈 정지' : `${metro.beat + 1}박`}>
-      {[0,1,2,3].map(i => <span key={i} className={`etudeBeat ${metro.beat === i ? 'is-on' : ''} ${i === 0 ? 'is-downbeat' : ''}`}><i />{i + 1}</span>)}
-      <small>4/4</small>
-    </div>
-    <div className="etudeTempoRow">
-      <button type="button" aria-label="BPM 1 낮추기" onClick={() => setBpm(bpm - 1)}>−</button>
-      <label><span>BPM</span><input aria-label="연습 BPM" type="number" inputMode="numeric" min="30" max="240" value={draft} onChange={e => setDraft(e.target.value)} onBlur={commit} onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); }} /></label>
-      <button type="button" aria-label="BPM 1 높이기" onClick={() => setBpm(bpm + 1)}>+</button>
-      <button type="button" className="etudePlay" aria-pressed={metro.playing} onClick={metro.toggle}>{metro.playing ? '■ 정지' : '▶ 시작'}</button>
-    </div>
-    <input className="etudeTempoSlider" aria-label="BPM 슬라이더" type="range" min="30" max="240" value={bpm} onChange={e => setBpm(e.target.value)} />
-    {metro.error && <p role="alert">{metro.error}</p>}
-  </section>;
-}
-
-function Sheet({ model, mobile }) {
-  const [expanded, setExpanded] = useState(false);
-  const { selected: etude, bpm } = model;
-  if (!etude) return null;
-  const customTuning = etude.tuning?.some((pitch,index) => pitch !== TUNING[index]);
-  const tuningLabel = customTuning ? [...etude.tuning].reverse().map(pitch => `${['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'][pitch % 12]}${Math.floor(pitch / 12) - 1}`).join(' ') : '';
-  const content = (enlarged = false) => <>
-    <header className="etudeSheetHeader">
-      <div className="etudeSheetBrand"><img src="/icons/fretiva-lab-icon-192.png" alt="" /><span>FRETIVA LAB</span></div>
-      <h2>{etude.english}</h2>
-      <div className="etudeSheetMeta"><span>{customTuning && `튜닝 (6→1번줄) · ${tuningLabel} · `}{etude.keySignature}</span><span>♩ = {bpm}</span></div>
-    </header>
-    <Suspense fallback={<p className="etudeLoading">악보를 준비하고 있습니다…</p>}><Score etude={etude} mobile={mobile} bpm={bpm} enlarged={enlarged} /></Suspense>
-  </>;
-  return <>
-    <article className="etudeSheet" aria-label="연습 악보">{content()}</article>
-    <details className="etudePracticeExtras"><summary>연습 도구 · TIP</summary><div className="etudeSheetActions"><button type="button" onClick={()=>model.editScore(etude)}>악보 편집</button><button type="button" onClick={() => setExpanded(true)}>{mobile?'가로 전환 ↻':'악보 크게 보기 ↗'}</button></div><ScorePlayback score={etude} bpm={bpm} disabled={Boolean(model.editing)}/><Metronome model={model}/><LessonTips model={model}/>{model.library}</details>
-    {expanded && <ZoomSheet mobile={mobile} onClose={() => setExpanded(false)}>{content(true)}</ZoomSheet>}
-  </>;
-}
-
-function MobileLayout({model}) {
- return <section className="etudeStudio etudeStudio--mobile etudeStudio--simple"><SongPicker model={model}/><Sheet model={model} mobile/></section>;
-}
-function DesktopLayout({model}) {
- return <section className="etudeStudio etudeStudio--desktop etudeStudio--simple"><SongPicker model={model}/><div className="etudeScoreColumn"><Sheet model={model} mobile={false}/></div></section>;
-}
 
 export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, initialId=DEFAULT_ETUDE_ID }) {
   const [edits,setEdits]=useState(loadEdits);
   const [editing,setEditing]=useState(null);
   const [selectedId, setSelectedId] = useState(initialId);
   const [bpm, updateBpm] = useState(()=>edits.scores[initialId]?.bpm??ETUDES.find(e=>e.id===initialId)?.bpm??DEFAULT_ETUDE_BPM);
-  const metro = useEtudeMetronome(bpm);
   const list = useMemo(() => ETUDES.map(e=>edits.scores[e.id]??e), [edits]);
   const selected = list.find(e => e.id === selectedId) ?? list[0];
+  const session=usePracticeSession(selected,bpm,updateBpm);
+  const {controller,layout}=session;
   const filters=selected?{type:selected.type,level:selected.level,style:'전체'}:undefined;
-  const select = id => { metro.stop(); setSelectedId(id); updateBpm((edits.scores[id]??ETUDES.find(e => e.id === id))?.bpm ?? 60); };
+  const select = id => { controller.current?.stop(); setSelectedId(id); updateBpm((edits.scores[id]??ETUDES.find(e => e.id === id))?.bpm ?? 60); };
   const saveEdit=document=>{let result;try{result=saveLibraryDocument(window.localStorage,document,ETUDES);}catch{result={saved:false,errors:['이 브라우저에서는 저장할 수 없습니다. 파일로 내보내세요.']};}if(result.saved)setEdits(current=>({...current,records:{...current.records,[document.id]:result.record}}));return result;};
-  const editScore=score=>{metro.stop();setEditing(copyDocument(toScoreDocument(score)));};
-  const library = <section className="etudeLibrary" aria-label="내 악보 보관함"><details><summary>내 악보 보관함 · {Object.keys(edits.records??{}).length}개</summary><p>기본 교육곡과 별도로 보관됩니다. 사용자 악보는 난이도·학습목표 검수를 받은 곡이 아닙니다.</p><button type="button" onClick={()=>{metro.stop();setEditing(createBlankDocument());}}>빈 악보 만들기</button>{Object.values(edits.records??{}).map(r=><div key={r.document.id}><span>{r.document.title} · {r.status==='saved'?'저장됨':'초안'}</span><button type="button" disabled={r.status==='unreadable'} onClick={()=>{metro.stop();setEditing(r.document);}}>열기</button><button type="button" disabled={r.status==='unreadable'} onClick={()=>setEditing(copyDocument(r.document))}>복사해 편집</button></div>)}</details></section>;
-  const model = { library, editing, saveEdit, editScore, filters, list, selected, select, bpm, metro, onOpenMenu, onExit,
+  const editScore=score=>{controller.current?.stop();setEditing(copyDocument(toScoreDocument(score)));};
+  const model = { ...session, editing, saveEdit, editScore, filters, list, selected, select, bpm, onOpenMenu, onExit,
     openLesson: lesson => { if (!canOpenLesson(selected, lesson, filters)) return; select(lesson.id); },
-    setBpm: v => { metro.stop(); updateBpm(Math.min(240, Math.max(30, Math.round(Number(v) || 30)))); },
+    setBpm: v => { updateBpm(Math.min(240, Math.max(30, Math.round(Number(v) || 30)))); },
  };
   return <>{edits.errors.length>0&&<p role="status" className="etudeStorageNotice">{edits.errors.join(' ')}</p>}
 
-    {mobile ? <MobileLayout model={model} /> : <DesktopLayout model={model} />}
+    <section className={"etudeStudio etudeStudio--simple "+(mobile?"etudeStudio--mobile":"etudeStudio--desktop")} >{!layout.focus&&<SongPicker model={model}/>}<PracticeSheet model={model} mobile={mobile} lessonTips={<LessonTips model={model}/>}/></section>
+    <PracticeSessionPlayback model={model} mobile={mobile} disabled={Boolean(editing)}/>
     {editing&&<Suspense fallback={<p role="status">편집기를 준비하고 있습니다…</p>}><ScoreEditor key={editing.id} document={editing} original={ETUDES.find(e=>e.templateId===editing.origin?.templateId)} mobile={mobile} onClose={()=>setEditing(null)} onSave={saveEdit} onImportPdf={onImportPdf}/></Suspense>}
   </>;
 }

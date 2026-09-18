@@ -6,14 +6,14 @@ function hitAt(x,y){
  while(node?.shadowRoot){const inner=node.shadowRoot.elementFromPoint(x,y);if(!inner||inner===node)break;node=inner;}
  return node?.closest?.('[data-event]');
 }
-function location(hit,x,y,key){
+function location(hit,x,y,key,instrument){
  const section=hit?.getRootNode().host?.closest('[data-bar-index]');if(!section)return null;
  const result={bar:Number(section.dataset.barIndex),event:Number(hit.dataset.event),mode:hit.dataset.mode,string:Number(hit.dataset.string??1)};
  if(result.mode==='staff'){
   const svg=hit.ownerSVGElement,p=svg.createSVGPoint();p.x=x;p.y=y;
   const local=p.matrixTransform(svg.getScreenCTM().inverse());
   result.staffStep=Math.round((Number(hit.dataset.staffBottom)-local.y)/5);
-  result.midi=midiAtStaffStep(result.staffStep,key);
+  result.midi=midiAtStaffStep(result.staffStep,key,instrument);
  }
  return result;
 }
@@ -26,7 +26,7 @@ export default function useScoreDrag({canvas,score,onSelect,onMove,onMessage,ena
  const paint=()=>{
   const state=drag.current;if(!state)return;state.frame=0;
   state.preview.style.transform=`translate(${state.x+16}px,${state.y+16}px)`;
-  const hit=hitAt(state.x,state.y);state.target=hit&&canvas.current.contains(hit.getRootNode().host)?location(hit,state.x,state.y,callbacks.current.score.keySignature):null;
+  const hit=hitAt(state.x,state.y);state.target=hit&&canvas.current.contains(hit.getRootNode().host)?location(hit,state.x,state.y,callbacks.current.score.keySignature,callbacks.current.score.instrument):null;
   if(state.from.mode==='staff'&&state.target?.mode==='staff'&&state.target.staffStep===state.from.staffStep)state.target.midi=state.from.midi;
   state.marker?.remove();state.marker=null;
   state.preview.textContent=state.target?`${state.target.bar+1}마디 · ${state.target.event+1}박 · ${state.target.mode==='tab'?`${state.target.string}번줄`:'음높이 변경'}`:'악보 안에 놓으세요 · Esc 취소';
@@ -43,7 +43,7 @@ export default function useScoreDrag({canvas,score,onSelect,onMove,onMessage,ena
   // the actual pointer position so a ledger extension keeps its own owner.
   const hit=hitAt(e.clientX,e.clientY);
   if(!hit||!canvas.current.contains(hit.getRootNode().host)||hit.dataset.midi===undefined)return;
-  const from=location(hit,e.clientX,e.clientY,score.keySignature);from.string=Number(hit.dataset.string);from.midi=Number(hit.dataset.midi);if(from.mode==='staff')from.staffStep=Math.round((Number(hit.dataset.staffBottom)-Number(hit.dataset.cursorY)-7)/5);
+  const from=location(hit,e.clientX,e.clientY,score.keySignature,score.instrument);from.string=Number(hit.dataset.string);from.midi=Number(hit.dataset.midi);if(from.mode==='staff')from.staffStep=Math.round((Number(hit.dataset.staffBottom)-Number(hit.dataset.cursorY)-7)/5);
   if(e.pointerType!=='touch'){onSelect(from);canvas.current.focus({preventScroll:true});e.preventDefault();}
   // Ledger lines select their note; they are not separate draggable objects.
   if(hit.dataset.dragTone===undefined){if(e.pointerType!=='touch')suppressClick.current=true;return;}

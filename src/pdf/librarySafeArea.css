@@ -1,0 +1,11 @@
+/* viewport-fit=cover places standalone mobile content under the status bar.
+   Reserve that inset inside both library headers, without changing desktop UI. */
+html body main.app .pdfStudio.pdfStudio--mobile > :is(.libraryHeader,.mobileLibraryHud){
+  box-sizing:border-box;
+  height:auto!important;
+  min-height:calc(52px + var(--app-safe-top,env(safe-area-inset-top,0px)));
+  padding-top:var(--app-safe-top,env(safe-area-inset-top,0px))!important;
+  padding-left:max(0px,calc(env(safe-area-inset-left,0px) - 16px));
+  padding-right:max(0px,calc(env(safe-area-inset-right,0px) - 16px));
+  flex-shrink:0;
+}

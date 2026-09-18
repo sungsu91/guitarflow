@@ -11,7 +11,8 @@ export function deleteMeasure(d,bar){
 export function setNoteConnection(d,c,kind){
  const event=d.measures[c.bar]?.events[c.event],following=d.measures[c.bar]?.events[c.event+1];
  if(!event||event.rest||event.dead||!event.notes.length)throw Error('주법을 연결할 시작 음을 선택하세요.');
- if(kind==='clear')return patchEvent(d,c.bar,c.event,{technique:null,tieTo:null,vibrato:false,arpeggio:null,notes:event.notes.map(n=>({...n,harmonic:false}))});
+ if(kind==='clear')return patchEvent(d,c.bar,c.event,{technique:null,tieTo:null,vibrato:false,palmMute:false,arpeggio:null,notes:event.notes.map(n=>({...n,harmonic:false}))});
+ if(kind==='palmMute')return patchEvent(d,c.bar,c.event,{palmMute:!event.palmMute});
  if(kind==='vibrato')return patchEvent(d,c.bar,c.event,{vibrato:!event.vibrato});
  if(kind==='harmonic'){
   const tone=event.notes.find(n=>n.string===c.string);if(!tone)throw Error('하모닉스를 표시할 줄의 프렛을 선택하세요.');
@@ -112,7 +113,7 @@ export function deleteTone(d,c){
  const event=d.measures[c.bar]?.events[c.event];
  // Silence keeps its time slot. An untouched slot is not an editable rest.
  if(!event||isBlankEvent(event)||(!event.rest&&!event.notes.some(n=>n.string===c.string)))return d;
- let next=patchEvent(d,c.bar,c.event,e=>{const notes=e.rest?[]:e.notes.filter(n=>n.string!==c.string);return {...e,notes,rest:!notes.length,blank:!notes.length,technique:notes.length?e.technique:null,...(!notes.length?{pickStroke:null,tieTo:null,dead:false,vibrato:false,arpeggio:null}:{})};});
+ let next=patchEvent(d,c.bar,c.event,e=>{const notes=e.rest?[]:e.notes.filter(n=>n.string!==c.string);return {...e,notes,rest:!notes.length,blank:!notes.length,technique:notes.length?e.technique:null,...(!notes.length?{pickStroke:null,tieTo:null,dead:false,vibrato:false,palmMute:false,arpeggio:null}:{})};});
  if(!isBlankEvent(next.measures[c.bar].events[c.event]))return next;
  // Remove connections ending at the deleted sound, without moving any time slots.
  const previous=c.event?d.measures[c.bar].events[c.event-1]:d.measures[c.bar-1]?.events.at(-1);
@@ -120,7 +121,7 @@ export function deleteTone(d,c){
  return next;
 }
 export function moveFingering(d,c,direction){return patchEvent(d,c.bar,c.event,e=>{const tone=e.notes.find(n=>n.string===c.string);if(!tone)return e;const next=moveSamePitch(tone,direction,d.tuning);if(e.notes.some(n=>n!==tone&&n.string===next.string))return e;return {...e,notes:e.notes.map(n=>n===tone?next:n)};});}
-export function setRest(d,c){return patchEvent(d,c.bar,c.event,{rest:true,blank:false,notes:[],technique:null,pickStroke:null,tieTo:null,dead:false,vibrato:false,arpeggio:null});}
+export function setRest(d,c){return patchEvent(d,c.bar,c.event,{rest:true,blank:false,notes:[],technique:null,pickStroke:null,tieTo:null,dead:false,vibrato:false,palmMute:false,arpeggio:null});}
 export function durationStep(d,c,step){const values=['1','2','4','8','16'];const event=d.measures[c.bar].events[c.event];return setEventDuration(d,c,values[Math.max(0,Math.min(4,values.indexOf(event.duration)+step))]);}
 export function insertEvent(d,c,{duplicate=false,before=false}={}){const m=d.measures[c.bar],e=m.events[c.event];if(e.tuplet)throw Error('3연음 묶음 안에는 박을 삽입하지 않습니다.');if(m.events.length>=64)throw Error('한 마디에 최대 64개 박을 입력할 수 있습니다.');const length=ticksOf(e),at=c.event+(before?0:1),onset=e.onset+(before?0:length),added=duplicate?{...structuredClone(e),id:newId('event'),onset,notes:e.notes.map(n=>({...n,id:newId('tone')}))}:{...blankEvent(onset,e.duration),...(e.dotted?{dotted:true}:{})};const events=[...m.events.slice(0,at),added,...m.events.slice(at).map(n=>({...n,onset:n.onset+length}))];return {...d,measures:d.measures.map((bar,i)=>i===c.bar?{...bar,events}:bar)};}
 // Dragging is an explicit local edit, never a rerun of fingering generation.
@@ -133,7 +134,7 @@ export function moveTone(d,from,to){
  if(to.mode==='staff'){
   const fret=to.midi-d.tuning[tone.string-1];if(!Number.isInteger(fret)||fret<0||fret>24)throw Error('현재 줄에서 낼 수 없는 음입니다. 음정·동일음 운지 후보에서 줄을 먼저 선택하세요.');
   moved.fret=fret;
- }else{if(!Number.isInteger(to.string)||to.string<1||to.string>6)throw Error('TAB의 1–6번줄에 놓으세요.');moved.string=to.string;}
+ }else{if(!Number.isInteger(to.string)||to.string<1||to.string>d.tuning.length)throw Error(`TAB의 1–${d.tuning.length}번줄에 놓으세요.`);moved.string=to.string;}
  if(same&&moved.string===tone.string&&moved.fret===tone.fret)return d;
  const flat=d.measures.flatMap(m=>m.events),connected=e=>{const i=flat.indexOf(e),previous=flat[i-1];return Boolean(e.tieTo||e.technique||previous?.tieTo===e.id||previous?.technique);};
  if(connected(source)||(!same&&connected(target)))throw Error('붙임줄·H/P/SL로 연결된 음은 연결을 먼저 해제한 뒤 이동하세요.');

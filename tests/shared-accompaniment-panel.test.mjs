@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
+const appSource = (await readFile(new URL("../src/App.jsx", import.meta.url), "utf8")).replace(/\r\n/g, "\n");
 const panelSource = await readFile(new URL("../src/rhythm/SharedAccompanimentPanel.jsx", import.meta.url), "utf8");
 const appCss = await readFile(new URL("../src/style.css", import.meta.url), "utf8");
 const desktopNavigationSource = await readFile(new URL("../src/navigation/DesktopSidebarNavigation.jsx", import.meta.url), "utf8");

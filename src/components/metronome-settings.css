@@ -1,4 +1,16 @@
 /* Only the shared rhythm settings surface; transport and other dropdowns stay intact. */
+/* Ivory with a restrained rose pearl tint, scoped to the light settings UI. */
+html body #root .theme-light .rhythmSettings,
+html body .rhythmSettingsPopup.theme-light {
+  --theme-surface:#FCF8F2;
+  --theme-text:#342C28;
+  --theme-border-control:#DCC8C1;
+  --theme-accent:#886457;
+}
+html body #root .theme-light .rhythmSettings .rhythmSettingTrigger {
+  background:linear-gradient(165deg,#FFFCF7,#F5E8E3) !important;
+  box-shadow:inset 0 1px 0 #FFFFFFB3,0 2px 5px #6C44300A !important;
+}
 html body #root .metronomeOptions:has(> .rhythmSettings) { display:flex !important; flex-direction:column !important; height:auto !important; min-height:0 !important; overflow:visible !important; }
 html body #root .rhythmSettings { display:grid !important; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr) !important; gap:6px 10px !important; width:100% !important; min-width:0 !important; container-type:inline-size; }
 html body #root .rhythmSetting { display:flex !important; align-items:center !important; gap:6px !important; min-width:0 !important; }
@@ -9,21 +21,21 @@ html body #root .rhythmSettingTrigger > span { min-width:0; overflow-wrap:anywhe
 html body #root .rhythmSettingTrigger > svg { flex:none; }
 html body #root .rhythmSettingTrigger[aria-expanded=true] { background:color-mix(in srgb,var(--theme-accent) 14%,var(--theme-surface)) !important; border-color:var(--theme-accent) !important; }
 html body #root .rhythmSettingTrigger:focus-visible, html body .rhythmSettingsPopup button:focus-visible { outline:2px solid var(--theme-accent) !important; outline-offset:2px !important; }
-html body .rhythmSettingsPopup { position:fixed; z-index:100400; box-sizing:border-box; display:flex; flex-direction:column; padding:7px; border:1px solid var(--theme-border-control); border-radius:12px; background:var(--theme-surface); color:var(--theme-text); box-shadow:0 4px 16px color-mix(in srgb,var(--theme-text) 14%,transparent); font-family:inherit; }
-html body .rhythmSettingsTail { position:absolute; left:calc(var(--tail-x) - 20px); bottom:-12px; overflow:visible; pointer-events:none; }
-html body .rhythmSettingsTail path { fill:var(--theme-surface); stroke:var(--theme-border-control); stroke-width:1; }
-html body .rhythmSettingsPopup.opens-down .rhythmSettingsTail { bottom:auto; top:-12px; transform:rotate(180deg); }
-html body .rhythmSettingsChoices { display:grid; gap:5px; overflow:auto; min-height:0; overscroll-behavior:contain; scrollbar-width:thin; }
+html body .rhythmSettingsPopup { --popup-surface:color-mix(in srgb,rgb(from var(--theme-surface) r g b) 93%,var(--theme-text)); --popup-border:color-mix(in srgb,var(--theme-accent) 65%,var(--theme-border-control)); position:fixed; z-index:100400; box-sizing:border-box; display:flex; flex-direction:column; padding:10px; border:1px solid var(--popup-border); border-radius:14px; background:var(--popup-surface); color:var(--theme-text); box-shadow:0 10px 28px color-mix(in srgb,var(--theme-text-inverse) 32%,transparent),0 2px 8px color-mix(in srgb,var(--theme-text) 15%,transparent); font-family:inherit; transform-origin:var(--tail-x) bottom; animation:rhythm-popup-enter 170ms ease-out; }
+html body .rhythmSettingsTail { position:absolute; left:calc(var(--tail-x) - 12px); bottom:-9px; overflow:visible; pointer-events:none; }
+html body .rhythmSettingsTail path { fill:var(--popup-surface); stroke:var(--popup-border); stroke-width:1; }
+html body .rhythmSettingsPopup.opens-down .rhythmSettingsTail { bottom:auto; top:-9px; transform:rotate(180deg); }
+html body .rhythmSettingsChoices { display:grid; gap:6px; padding:2px; overflow:auto; min-height:0; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:var(--theme-accent) var(--popup-surface); scrollbar-gutter:stable; }
 html body .rhythmSettingsChoices.tile-choices { grid-template-columns:repeat(4,minmax(0,1fr)); }
 html body .rhythmSettingsChoices.tone-choices { grid-template-columns:repeat(2,minmax(0,1fr)); }
-html body .rhythmSettingsChoice { display:flex; align-items:stretch; min-width:0; border:1px solid var(--theme-border-control); border-radius:8px; background:var(--theme-surface); }
+html body .rhythmSettingsChoice { display:flex; align-items:stretch; min-width:0; border:1px solid color-mix(in srgb,var(--theme-border-control) 45%,transparent); border-radius:8px; background:color-mix(in srgb,var(--theme-surface) 55%,transparent); }
 html body .rhythmSettingsChoice.selected { background:color-mix(in srgb,var(--theme-accent) 14%,var(--theme-surface)); border-color:var(--theme-accent); }
-html body .rhythmSettingsPopup button { margin:0; box-shadow:none; border:0; border-radius:7px; background:transparent; color:inherit; font-family:inherit; font-size:13px; min-height:40px; transform:none; cursor:pointer; }
+html body .rhythmSettingsPopup button { margin:0; box-shadow:none; border:0; border-radius:7px; background:transparent; color:inherit; font-family:inherit; font-size:13px; min-height:44px; transform:none; cursor:pointer; }
 html body .rhythmSettingsChoose { display:flex; align-items:center; justify-content:space-between; flex:1; gap:4px; min-width:0; padding:7px; text-align:left; font-weight:650; }
 html body .rhythmSettingsChoose > span { overflow-wrap:anywhere; min-width:0; }
 html body .rhythmSettingsChoose > svg { flex:none; }
 html body .tile-choices .rhythmSettingsChoose { justify-content:center; font-size:17px; font-variant-numeric:tabular-nums; }
-html body .rhythmSettingsPopup .rhythmSettingsPreview { flex:0 0 36px; width:36px; display:grid; place-items:center; padding:4px; border-left:1px solid var(--theme-border-control); border-radius:0 7px 7px 0; }
+html body .rhythmSettingsPopup .rhythmSettingsPreview { flex:0 0 44px; width:44px; display:grid; place-items:center; padding:4px; border-left:1px solid var(--theme-border-control); border-radius:0 7px 7px 0; }
 html body .rhythmSettingsPopup button:hover { background:color-mix(in srgb,var(--theme-accent) 14%,var(--theme-surface)); }
 html body .rhythmSettingsPopup button:disabled { opacity:.45; cursor:default; }
 @container (max-width:285px) { html body #root .rhythmSetting { grid-column:1 / -1; } }
@@ -41,3 +53,45 @@ html body #root .rhythmSetting--weak { grid-column:2; grid-row:2; }
 @container (max-width:285px) { html body #root .rhythmSettings > .rhythmSetting { grid-column:1 / -1; grid-row:auto; } }
 /* Selected long tone names must not resize the two-row settings grid. */
 html body #root .rhythmSettingTrigger > span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+html body #root .rhythmSettingTrigger > svg { transition:transform 170ms ease-out; }
+html body #root .rhythmSettingTrigger[aria-expanded=true] > svg { transform:rotate(180deg); }
+html body #root .rhythmSettingTrigger[aria-expanded=true] { box-shadow:0 0 0 2px color-mix(in srgb,var(--theme-accent) 18%,transparent) !important; }
+html body .rhythmSettingsPopup.opens-up { --popup-enter-y:4px; }
+html body .rhythmSettingsPopup.opens-down { --popup-enter-y:-4px; transform-origin:var(--tail-x) top; }
+html body .rhythmSettingsChoices.tile-choices { scrollbar-gutter:auto; }
+html body .rhythmSettingsChoices.tone-choices { grid-auto-rows:minmax(44px,auto); }
+@keyframes rhythm-popup-enter { from { opacity:0; transform:translateY(var(--popup-enter-y)); } to { opacity:1; transform:translateY(0); } }
+@media (prefers-reduced-motion:reduce) {
+  html body .rhythmSettingsPopup { animation:none; }
+  html body #root .rhythmSettingTrigger > svg { transition:none; }
+}
+/* The compact parent must grow when the settings container wraps to four rows. */
+html body #root#root .metronomeControl:has(.rhythmSettings),
+html body #root#root .metronomeOptions:has(> .rhythmSettings) { height:auto !important; min-height:max-content !important; flex-shrink:0 !important; }
+/* Keep the popup and its connecting tail on the same ivory surface. */
+html body .rhythmSettingsPopup.theme-light {
+  --popup-surface:#F8F0EA; --popup-border:#CCB4AA;
+  background:linear-gradient(160deg,#FCF8F2,#F8F0EA);
+  box-shadow:0 8px 24px #694B3926,0 2px 6px #694B3912;
+}
+html body .rhythmSettingsPopup.theme-light .rhythmSettingsChoice {
+  background:linear-gradient(165deg,#FFFCF7,#F5E8E3); border-color:#E1CEC6;
+}
+html body .rhythmSettingsPopup.theme-light .rhythmSettingsChoice.selected,
+html body #root .theme-light .rhythmSettings .rhythmSettingTrigger[aria-expanded=true] {
+  background:linear-gradient(150deg,#F3E4DB,#E5CDC2) !important; border-color:#B58D7B !important; color:#49382C !important;
+}
+html body .rhythmSettingsPopup.theme-light button { color:#49382C; }
+html body .rhythmSettingsPopup.theme-light button:hover { background:#EBD8CF; }
+html body .rhythmSettingsPopup.theme-light .rhythmSettingsChoose[aria-pressed=true] { background:transparent; color:#49382C; }
+/* Accompaniment master stays alongside the title in both layout shells. */
+html body #root .sharedAccompanimentPanel > summary > span { display:flex !important; align-items:center; gap:6px !important; }
+html body #root .sharedAccompanimentPanel > summary .sharedAccompanimentMasterToggle {
+  display:inline-flex !important; align-items:center; justify-content:center;
+  flex:0 0 40px; width:40px !important; min-width:40px !important; height:28px !important; min-height:28px !important;
+  padding:2px 5px !important; margin:0 !important; border:1px solid var(--theme-border-control) !important;
+  border-radius:8px !important; background:var(--theme-surface) !important; color:var(--theme-text) !important;
+  font-size:11px !important; font-weight:700; line-height:1 !important;
+}
+html body #root .sharedAccompanimentPanel > summary .sharedAccompanimentMasterToggle[aria-pressed=true] { background:var(--theme-accent) !important; color:var(--theme-text-inverse) !important; }

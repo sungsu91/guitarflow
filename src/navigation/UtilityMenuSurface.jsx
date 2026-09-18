@@ -1,3 +1,4 @@
+import { lockDocumentScroll, containModalTouch } from "../ui/modalScrollLock.js";
 import { useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 
@@ -6,7 +7,9 @@ export default function UtilityMenuSurface({ children, theme, onClose }) {
   const ref = useRef(null);
   useLayoutEffect(() => {
     const previous = document.activeElement;
+    const unlock = lockDocumentScroll();
     const panel = ref.current?.querySelector("#utility-menu-panel");
+    const releaseTouch = panel ? containModalTouch(panel) : () => {};
     panel?.querySelector(".utilityMenuHeader button")?.focus({ preventScroll: true });
     const handleKey = event => {
       if (event.key === "Escape") { event.preventDefault(); onClose(); }
@@ -20,6 +23,8 @@ export default function UtilityMenuSurface({ children, theme, onClose }) {
     panel?.addEventListener("keydown", handleKey);
     return () => {
       panel?.removeEventListener("keydown", handleKey);
+      releaseTouch();
+      unlock();
       if (previous?.isConnected) previous.focus({ preventScroll: true });
     };
   }, [onClose]);

@@ -40,6 +40,8 @@ export function SharedAccompanimentPanel({
   lockedLabel = "추천 진행",
   lockedNotice = "",
   onOpenSettings,
+  onToggleAll,
+  masterDisabled = false,
   onTogglePart,
   onVolumeCommit,
   onVolumeInput,
@@ -98,6 +100,20 @@ export function SharedAccompanimentPanel({
         <span>
           {disabled ? <Lock aria-hidden="true" size={12} /> : null}
           반주 사운드
+          <button
+            type="button"
+            className="sharedAccompanimentMasterToggle"
+            aria-label={`반주 사운드 전체 ${parts.some(part => part.enabled) ? "끄기" : "켜기"}`}
+            aria-pressed={parts.some(part => part.enabled)}
+            disabled={masterDisabled}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onToggleAll?.();
+            }}
+          >
+            {parts.some(part => part.enabled) ? "ON" : "OFF"}
+          </button>
         </span>
         {!hidePartSummary ? <b>{disabled ? `${lockedLabel} · 반주 고정` : "드럼 · 베이스 · 피아노"}</b> : null}
         <button

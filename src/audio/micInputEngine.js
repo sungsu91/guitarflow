@@ -321,6 +321,7 @@ export async function acquireMicInput({
   if (!mediaDevices?.getUserMedia) throw new Error("Microphone capture is not supported.");
   const requestVersion = ++acquisitionVersion;
   await activeSession?.release?.();
+  if (requestVersion !== acquisitionVersion) throw new DOMException("Microphone request was superseded.", "AbortError");
   const rawStream = await requestMicrophone(mediaDevices);
   if (requestVersion !== acquisitionVersion) {
     stopStream(rawStream);
@@ -356,6 +357,11 @@ export async function acquireMicInput({
   }
 
   const session = createSession({ consumerId, context, graph, preset, presetName, rawStream, trackSettings });
+  // Context resume can await an iOS user gesture while another screen acquires input.
+  if (requestVersion !== acquisitionVersion) {
+    await session.release();
+    throw new DOMException("Microphone request was superseded.", "AbortError");
+  }
   activeSession = session;
   return session;
 }

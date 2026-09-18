@@ -1,3 +1,4 @@
+import {TIME_SIGNATURE_OPTIONS,METRONOME_TONE_OPTIONS} from './metronome/options.js';
 import { mediaPermissionGuide } from "./audio/mediaPermissionGuide.js";
 import { FIXED_ADD_VOICINGS, isFixedAddFamily, preservedBadd9 } from "./chords/fixedAddVoicings.js";
 import { ADDITIONAL_CHORD_SHAPES, isAdditionalChord, isPermittedChordOmission, parseAdditionalChordName, spellAdditionalChordTone } from "./chords/additionalChords.js";
@@ -3729,40 +3730,6 @@ const ChordCatalogRow = memo(function ChordCatalogRow({
   );
 });
 
-const TIME_SIGNATURE_OPTIONS = [
-  { id: "1/4", label: "1/4", beats: 1, beatUnit: 4 },
-  { id: "2/4", label: "2/4", beats: 2, beatUnit: 4 },
-  { id: "3/4", label: "3/4", beats: 3, beatUnit: 4 },
-  { id: "4/4", label: "4/4", beats: 4, beatUnit: 4 },
-  { id: "3/8", label: "3/8", beats: 3, beatUnit: 8 },
-  { id: "6/8", label: "6/8", beats: 6, beatUnit: 8 },
-  { id: "9/8", label: "9/8", beats: 9, beatUnit: 8 },
-  { id: "12/8", label: "12/8", beats: 12, beatUnit: 8 },
-];
-
-const METRONOME_TONE_OPTIONS = [
-  { id: "tick", label: "Tick" },
-  { id: "agogo", label: "Agogo", src: "/sounds/agogobell.wav" },
-  { id: "brushSnare", label: "Brush Snare", src: "/sounds/brushsnare.wav" },
-  { id: "cabasa", label: "Cabasa", src: "/sounds/cabasa.wav" },
-  { id: "clap", label: "Clap", src: "/sounds/clap.wav" },
-  { id: "clave", label: "Clave", src: "/sounds/clave.wav" },
-  { id: "hihat", label: "Closed Hat", src: "/sounds/closed hihat.wav" },
-  { id: "congaSlap", label: "Conga Slap", src: "/sounds/congaslap.wav" },
-  { id: "cowbell", label: "Cowbell", src: "/sounds/cowbell.wav" },
-  { id: "fingerTap", label: "Finger Tap", src: "/sounds/fingertap.wav" },
-  { id: "kick", label: "Kick", src: "/sounds/kick.wav" },
-  { id: "openHihat", label: "Open Hat", src: "/sounds/openhihat.wav" },
-  { id: "ride", label: "Ride", src: "/sounds/ride.wav" },
-  { id: "rim", label: "Rim", src: "/sounds/rim.wav" },
-  { id: "shaker", label: "Shaker", src: "/sounds/shaker.wav" },
-  { id: "snap", label: "Snap", src: "/sounds/snap.wav" },
-  { id: "snare", label: "Snare", src: "/sounds/snare.wav" },
-  { id: "stick", label: "Stick", src: "/sounds/stick.wav" },
-  { id: "tambourine", label: "Tambourine", src: "/sounds/tambourine.wav" },
-  { id: "triangle", label: "Triangle", src: "/sounds/trangle.wav" },
-  { id: "woodblock", label: "Woodblock", src: "/sounds/woodblock.wav" },
-];
 const BACKING_SAMPLE_SOURCES = {
   piano: "/sounds/gpg4.wav",
   kick: "/sounds/kick.wav",
@@ -3872,7 +3839,7 @@ const MINI_CHORD_CUSTOM_PATTERN_ID = "custom";
 const MINI_CHORD_GLOBAL_PATTERN_ID = "global";
 const MINI_CHORD_APP_DEFAULT_GLOBAL_SETTINGS = Object.freeze({
   ...GLOBAL_DEFAULT_BACKING_SETTINGS,
-  enabled: Object.freeze({ drum: true, bass: true, piano: true }),
+  enabled: Object.freeze({ drum: false, bass: false, piano: false }),
   volumes: Object.freeze({ ...BACKING_DEFAULT_PART_VOLUMES }),
 });
 const MINI_CHORD_SECTION_TYPE_OPTIONS = [
@@ -14361,7 +14328,7 @@ function getStoredStage3Settings() {
     metronomeAccentTone: "tick",
     metronomeWeakTone: "tick",
     metronomeBeatPattern: normalizeMetronomeBeatPattern([], 4),
-    metronomeSoundOn: false,
+    metronomeSoundOn: true,
   };
   if (typeof window === "undefined") return fallback;
 
@@ -14413,7 +14380,7 @@ function getStoredStage3Settings() {
         hasCurrentToneDefaults ? parsed.metronomeWeakTone ?? "tick" : fallback.metronomeWeakTone,
       ).id,
       metronomeBeatPattern: normalizeMetronomeBeatPattern(parsed.metronomeBeatPattern, metronomeBeatsPerMeasure),
-      metronomeSoundOn: false,
+      metronomeSoundOn: true,
     };
   } catch {
     return fallback;
@@ -15916,7 +15883,7 @@ function getStoredMiniChordGlobalSettings() {
   try {
     const stored = JSON.parse(window.localStorage.getItem(RIFFLAB_GLOBAL_RHYTHM_STORAGE_KEY) ?? "null");
     return stored
-      ? normalizeMiniChordGlobalSettings(stored)
+      ? normalizeMiniChordGlobalSettings({ ...stored, enabled: { drum: false, bass: false, piano: false } })
       : createDefaultMiniChordGlobalSettings();
   } catch {
     return createDefaultMiniChordGlobalSettings();
@@ -20965,11 +20932,12 @@ function App({ onReady }) {
     );
   }, [playBackingSample]);
 
-  const fadeOutActiveBackingSources = useCallback((fadeSeconds = 0.04) => {
+  const fadeOutActiveBackingSources = useCallback((fadeSeconds = 0.04, part = null) => {
     const audio = audioRef.current;
     const now = audio?.currentTime ?? 0;
     const stopAt = audio ? now + fadeSeconds : 0;
-    backingActiveSourcesRef.current.forEach(({ source, gain }) => {
+    backingActiveSourcesRef.current.forEach(({ source, gain, part: sourcePart }) => {
+      if (part && sourcePart !== part) return;
       try {
         if (audio && gain?.gain) {
           if (typeof gain.gain.cancelAndHoldAtTime === "function") {
@@ -23578,6 +23546,8 @@ function App({ onReady }) {
           // Some browsers do not expose microphone permission querying.
         }
       }
+      // Permission checks can finish after navigation; do not steal the next mode's microphone.
+      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER) return false;
       setMicStatus("No Signal");
       const micSession = await acquireMicInput({
         consumerId: "shooting-game-detector",
@@ -29188,8 +29158,7 @@ function App({ onReady }) {
     resetBackingVolumeSettings();
   }, [resetBackingVolumeSettings]);
 
-  const toggleBackingPartEnabled = useCallback((part) => {
-    if (stage3RecommendedAccompanimentLocked) return;
+  const setBackingPartEnabled = useCallback((part, enabled) => {
     const enabledRef = part === "bass"
       ? backingBassEnabledRef
       : part === "piano"
@@ -29205,8 +29174,9 @@ function App({ onReady }) {
       : part === "piano"
         ? backingPianoGainRef
         : backingDrumGainRef;
-    const nextEnabled = !enabledRef.current;
+    const nextEnabled = Boolean(enabled);
     enabledRef.current = nextEnabled;
+    if (!nextEnabled) fadeOutActiveBackingSources(0.02, part);
     if (gainRef.current && audioRef.current) {
       const now = audioRef.current.currentTime;
       const nextGain = nextEnabled ? getBackingPartOutputGain(part, volumeRef.current) : 0;
@@ -29222,7 +29192,18 @@ function App({ onReady }) {
       else if (part === "piano") setBackingPianoEnabled(nextEnabled);
       else setBackingDrumEnabled(nextEnabled);
     });
-  }, [stage3RecommendedAccompanimentLocked]);
+  }, [fadeOutActiveBackingSources]);
+
+  const toggleBackingPartEnabled = useCallback((part) => {
+    if (stage3RecommendedAccompanimentLocked) return;
+    const refs = { drum: backingDrumEnabledRef, bass: backingBassEnabledRef, piano: backingPianoEnabledRef };
+    setBackingPartEnabled(part, !refs[part].current);
+  }, [setBackingPartEnabled, stage3RecommendedAccompanimentLocked]);
+
+  const toggleAllBackingParts = useCallback(() => {
+    const enabled = !(backingDrumEnabledRef.current || backingBassEnabledRef.current || backingPianoEnabledRef.current);
+    for (const part of ["drum", "bass", "piano"]) setBackingPartEnabled(part, enabled);
+  }, [setBackingPartEnabled]);
 
   const requestMiniChordBackingPatternChange = (overrides = {}, options = {}) => {
     const nextBacking = normalizeGlobalAccompanimentSettings({
@@ -31618,9 +31599,11 @@ function App({ onReady }) {
 
           <SharedAccompanimentPanel
             className="sharedAccompanimentPanel--miniChord"
+            masterDisabled={miniChordEditLocked}
             defaultExpanded
             disabled={miniChordEditLocked || miniChordRecommendedAccompanimentLocked}
             onOpenSettings={openMiniChordRhythmSettings}
+            onToggleAll={toggleAllBackingParts}
             onTogglePart={toggleBackingPartEnabled}
             onVolumeCommit={commitBackingVolumeInput}
             onVolumeInput={handleBackingVolumeInput}
@@ -35276,6 +35259,7 @@ function App({ onReady }) {
             lockedLabel="추천 진행"
             lockedNotice="기본 제공 팩은 수정할 수 없습니다"
             onOpenSettings={openMiniChordRhythmSettings}
+            onToggleAll={toggleAllBackingParts}
             onTogglePart={toggleBackingPartEnabled}
             onVolumeCommit={commitBackingVolumeInput}
             onVolumeInput={handleBackingVolumeInput}

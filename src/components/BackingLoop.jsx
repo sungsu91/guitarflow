@@ -122,7 +122,7 @@ function BackingLoopVolume({ controller, mobile = false }) {
   );
 }
 
-function BackingLoopPlayerBar({ controller, mobile = false }) {
+function BackingLoopPlayerBar({ controller, mobile = false, inlinePlaylist = false }) {
   const busy = ["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(controller.phase);
   const hasPlaylistItems = controller.playlistPlaybackItemCount > 0;
   const canPlay = controller.hasRecording || hasPlaylistItems;
@@ -201,7 +201,7 @@ function BackingLoopPlayerBar({ controller, mobile = false }) {
       </div>
       <div className="backingLoopPlayerUtilities">
         <BackingLoopVolume controller={controller} mobile={mobile} />
-        <button
+        {!inlinePlaylist && <button
           aria-expanded={controller.playlistDrawerOpen}
           aria-label={controller.playlistDrawerOpen ? "Playlist 닫기" : "Playlist 열기"}
           className={`backingLoopPlayerIconButton backingLoopPlaylistToggle ${controller.playlistDrawerOpen ? "active" : ""}`}
@@ -213,7 +213,7 @@ function BackingLoopPlayerBar({ controller, mobile = false }) {
           {controller.playlistDrawerOpen
             ? <ChevronDown aria-hidden="true" size={mobile ? 17 : 17} />
             : <ChevronUp aria-hidden="true" size={mobile ? 17 : 17} />}
-        </button>
+        </button>}
       </div>
     </div>
   );
@@ -245,22 +245,22 @@ function BackingLoopTrackInfo({ controller, mobile = false }) {
   );
 }
 
-function MobileBackingLoopPlayer({ controller }) {
+function MobileBackingLoopPlayer({ controller, inlinePlaylist = false }) {
   return (
     <div className="backingLoopMiniPlayer backingLoopMiniPlayer--mobile">
       <BackingLoopTrackInfo controller={controller} mobile />
       <BackingLoopProgress controller={controller} />
-      <BackingLoopPlayerBar controller={controller} mobile />
+      <BackingLoopPlayerBar controller={controller} mobile inlinePlaylist={inlinePlaylist} />
     </div>
   );
 }
 
-function DesktopBackingLoopPlayer({ controller }) {
+function DesktopBackingLoopPlayer({ controller, inlinePlaylist = false }) {
   return (
     <div className="backingLoopMiniPlayer backingLoopMiniPlayer--desktop">
       <BackingLoopTrackInfo controller={controller} />
       <BackingLoopProgress controller={controller} />
-      <BackingLoopPlayerBar controller={controller} />
+      <BackingLoopPlayerBar controller={controller} inlinePlaylist={inlinePlaylist} />
     </div>
   );
 }
@@ -1053,12 +1053,14 @@ function DesktopBackingLoop({ controller, presentation = "default" }) {
   );
 }
 
-export default function BackingLoop({ desktopPresentation = "default", mobile = false, ownerMode = "" }) {
+export default function BackingLoop({ desktopPresentation = "default", mobile = false, ownerMode = "", renderSurface }) {
   const controller = useBackingLoop(ownerMode);
   const mobilePanelRef = useRef(null);
   return (
     <>
-      {mobile
+      {renderSurface ? renderSurface(controller, mobile
+        ? <MobileBackingLoop controller={controller} />
+        : <DesktopBackingLoop controller={controller} />) : mobile
         ? <MobileBackingLoop controller={controller} panelRef={mobilePanelRef} />
         : <DesktopBackingLoop controller={controller} presentation={desktopPresentation} />}
       <audio

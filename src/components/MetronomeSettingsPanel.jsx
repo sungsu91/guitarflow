@@ -19,20 +19,24 @@ export default function MetronomeSettingsPanel({ fields, renderOption }) {
       const view = window.visualViewport;
       const style = getComputedStyle(root.current);
       const safe = side => parseFloat(style.getPropertyValue(`--rhythm-safe-${side}`)) || 0;
-      const leftEdge = (view?.offsetLeft || 0) + Math.max(10,safe('left')), topEdge = (view?.offsetTop || 0) + Math.max(10,safe('top')); 
-      const rightEdge = (view?.offsetLeft || 0) + (view?.width || innerWidth) - Math.max(10,safe('right'));
+      const app = root.current.closest('.app')?.getBoundingClientRect();
+      const viewportLeft = view?.offsetLeft || 0;
+      const viewportRight = viewportLeft + (view?.width || innerWidth);
+      const leftEdge = Math.max(viewportLeft, app?.left ?? viewportLeft) + Math.max(16,safe('left'));
+      const rightEdge = Math.min(viewportRight, app?.right ?? viewportRight) - Math.max(16,safe('right'));
+      const topEdge = (view?.offsetTop || 0) + Math.max(16,safe('top'));
       let bottomEdge = (view?.offsetTop || 0) + (view?.height || innerHeight) - Math.max(10,safe('bottom'));
       const nav = document.querySelector('.integratedBottomNav');
       if (nav?.getClientRects().length) { const nr = nav.getBoundingClientRect(); if (nr.height && nr.top > rect.bottom) bottomEdge = Math.min(bottomEdge, nr.top - 10); }
-      const width = Math.min(field.tone ? 390 : 350, rightEdge - leftEdge);
+      const width = Math.min(field.tone ? 360 : field.id === 'meter' ? 300 : 324, rightEdge - leftEdge);
       const left = Math.max(leftEdge, Math.min(rect.left + rect.width / 2 - width / 2, rightEdge - width));
-      const above = Math.max(0, rect.top - topEdge - 12), below = Math.max(0, bottomEdge - rect.bottom - 12);
-      const ideal = field.tone ? 310 : Math.ceil(field.options.length / 4) * 48 + 16;
+      const above = Math.max(0, rect.top - topEdge - 10), below = Math.max(0, bottomEdge - rect.bottom - 10);
+      const ideal = field.tone ? 256 : Math.ceil(field.options.length / 4) * 52 + 24;
       const up = above >= ideal || above >= below;
       const height = Math.max(0, Math.min(ideal, up ? above : below));
       const colors = {};
       for (const name of ['--theme-surface','--theme-bg-soft','--theme-text','--theme-text-muted','--theme-border-control','--theme-accent','--theme-accent-soft','--theme-text-inverse']) colors[name] = style.getPropertyValue(name);
-      setPlacement({ ...colors, left, width, maxHeight: height, [up ? 'bottom' : 'top']: up ? innerHeight - rect.top + 12 : rect.bottom + 12, '--tail-x': `${rect.left + rect.width / 2 - left}px`, up });
+      setPlacement({ ...colors, theme: root.current.closest('.theme-brand') ? 'brand' : 'light', left, width, maxHeight: height, [up ? 'bottom' : 'top']: up ? innerHeight - rect.top + 10 : rect.bottom + 10, '--tail-x': `${rect.left + rect.width / 2 - left}px`, up });
     };
     position();
     const observer = new ResizeObserver(position);
@@ -68,8 +72,8 @@ export default function MetronomeSettingsPanel({ fields, renderOption }) {
         </button>
       </div>;
     })}
-    {field && placement && createPortal(<div ref={popup} id={id} className={`rhythmSettingsPopup ${placement.up ? 'opens-up' : 'opens-down'}`} style={Object.fromEntries(Object.entries(placement).filter(([key]) => key !== 'up'))} role="dialog" aria-label={`${field.label} 선택`} onKeyDown={onKeys}>
-      <svg className="rhythmSettingsTail" width="40" height="13" viewBox="0 0 40 13" aria-hidden="true"><path d="M0 0 C10 0 16 4 20 12 C24 4 30 0 40 0" /></svg>
+    {field && placement && createPortal(<div ref={popup} id={id} className={`rhythmSettingsPopup theme-${placement.theme} ${placement.up ? 'opens-up' : 'opens-down'}`} style={Object.fromEntries(Object.entries(placement).filter(([key]) => key !== 'up' && key !== 'theme'))} role="dialog" aria-label={`${field.label} 선택`} onKeyDown={onKeys}>
+      <svg className="rhythmSettingsTail" width="24" height="10" viewBox="0 0 24 10" aria-hidden="true"><path d="M0 0 L12 9 L24 0" /></svg>
       <div className={`rhythmSettingsChoices ${field.tone ? 'tone-choices' : 'tile-choices'}`}>
         {field.options.map(option => { const selected = String(option.id) === String(field.value); return <div className={`rhythmSettingsChoice ${selected ? 'selected' : ''}`} key={option.id}>
           <button className="rhythmSettingsChoose" type="button" aria-pressed={selected} disabled={option.disabled} aria-label={option.longLabel || option.label} onClick={() => { field.onChange(option.id); if (!field.tone) close(true); }}><span>{renderOption(option,option.label)}</span><Check size={14} aria-hidden="true" style={{visibility:selected?'visible':'hidden'}} /></button>

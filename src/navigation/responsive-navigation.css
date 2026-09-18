@@ -25,12 +25,12 @@ html body main.app.app.app :is(
 
 /* Palette follows the owning app, including its detached navigation portal. */
 .integratedBottomNav {
-  --bottom-nav-background: #F4F0EA;
-  --bottom-nav-border: #DCD4C9;
+  --bottom-nav-background: linear-gradient(180deg,#FCF8F2 0%,#F3E7E2 100%);
+  --bottom-nav-border: #DCC8C1;
   --bottom-nav-muted: #756D65;
   --bottom-nav-active: #49382C;
-  --bottom-nav-tint: rgba(114, 84, 51, .075);
-  --bottom-nav-press: rgba(114, 84, 51, .13);
+  --bottom-nav-tint: rgba(164, 109, 99, .10);
+  --bottom-nav-press: rgba(164, 109, 99, .16);
   --bottom-nav-shadow: inset 0 1px 0 rgba(255, 252, 247, .65),
     0 -4px 16px rgba(49, 38, 27, .08), 0 -12px 32px rgba(49, 38, 27, .025);
 }
@@ -49,7 +49,7 @@ html body main.app.app.app :is(
    their existing navigation policy. IDs intentionally outrank legacy themes. */
 html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav {
   position: fixed !important;
-  inset: auto auto 0 var(--bottom-nav-left, 0px) !important;
+  inset: calc(var(--bottom-nav-viewport-bottom, 100dvh) - 64px - env(safe-area-inset-bottom, 0px)) auto auto var(--bottom-nav-left, 0px) !important;
   display: grid !important;
   grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
   box-sizing: border-box !important;

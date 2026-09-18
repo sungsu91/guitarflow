@@ -1,6 +1,7 @@
 import {getAudioBusInput,AUDIO_BUS_IDS} from './audioBus.js';
 import {scheduleGuitarPhrase,warmGuitarPhrase} from './fretboardPreviewEngine.js';
 import {alignScorePianoAttack} from './scorePianoSample.js';
+import {createPalmMuteGate} from './scorePalmMute.js';
 
 const pianoBuffers=new WeakMap();
 export async function prepareScoreInstrument(audio,instrument){
@@ -40,10 +41,11 @@ export function createScoreVoiceOutput(audio){
    const at=Math.max(when,audio.currentTime+.016);
    return phrases.map(phrase=>{
     strings.get(phrase.string)?.release(at);
-    const source=instrument==='piano'&&!phrase.dead?pianoVoice(audio,phrase,at,output,pianoBuffer,level):scheduleGuitarPhrase(audio,phrase,at,output,level);
+    const palmGate=phrase.dead?null:createPalmMuteGate(audio,phrase,at,output),destination=palmGate??output;
+    const source=instrument==='piano'&&!phrase.dead?pianoVoice(audio,phrase,at,destination,pianoBuffer,level):scheduleGuitarPhrase(audio,phrase,at,destination,level);
     if(phrase.silenceAt!==undefined)source.release(at+phrase.silenceAt-phrase.start-.014);
     strings.set(phrase.string,source);sources.add(source);
-    source.addEventListener('ended',()=>{sources.delete(source);if(strings.get(phrase.string)===source)strings.delete(phrase.string);if(disposed&&!sources.size)output.disconnect();},{once:true});
+    source.addEventListener('ended',()=>{palmGate?.disconnect();sources.delete(source);if(strings.get(phrase.string)===source)strings.delete(phrase.string);if(disposed&&!sources.size)output.disconnect();},{once:true});
     return source;
    });
   },

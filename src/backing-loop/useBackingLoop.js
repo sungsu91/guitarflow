@@ -49,6 +49,7 @@ import {
   setBackingPlaylistPlaybackMode,
   setBackingPlaylistShuffleEnabled,
   shouldRestartBackingPlaylistTrack,
+  shouldLoopBackingTrack,
   subscribeBackingPlaylist,
 } from "./backingPlaylist";
 import {
@@ -437,8 +438,7 @@ export default function useBackingLoop(ownerMode = "") {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    audio.loop = !playlistPlaybackActive
-      || playlistState.playbackMode === BACKING_PLAYLIST_PLAYBACK_MODES.REPEAT_ONE;
+    audio.loop = shouldLoopBackingTrack(playlistState.playbackMode, playlistPlaybackActive);
   }, [playlistPlaybackActive, playlistState.playbackMode]);
 
   useEffect(() => {
@@ -830,8 +830,7 @@ export default function useBackingLoop(ownerMode = "") {
       const graph = await ensurePlaybackAudioGraph();
       if (!mountedRef.current || !modeActiveRef.current) return;
       const playlistMode = playlistStateRef.current.playbackMode;
-      audio.loop = !playlistPlaybackRef.current.playlistId
-        || playlistMode === BACKING_PLAYLIST_PLAYBACK_MODES.REPEAT_ONE;
+      audio.loop = shouldLoopBackingTrack(playlistMode, Boolean(playlistPlaybackRef.current.playlistId));
       audio.defaultPlaybackRate = 1;
       audio.playbackRate = 1;
       if (!Number.isFinite(audio.currentTime) || audio.currentTime >= (audio.duration || Infinity)) {
@@ -846,7 +845,7 @@ export default function useBackingLoop(ownerMode = "") {
         return;
       }
       graph?.setTransportLevel(1, { timeConstant: 0.006 });
-      setNotice(playlistPlaybackRef.current.playlistId ? "PLAYLIST 재생 중" : "무한 반복 재생 중");
+      setNotice(playlistPlaybackRef.current.playlistId ? "PLAYLIST 재생 중" : audio.loop ? "반복 재생 중" : "백킹 재생 중");
       setPhaseImmediate("playing");
     } catch {
       if (!mountedRef.current || !modeActiveRef.current) return;
@@ -1522,8 +1521,8 @@ export default function useBackingLoop(ownerMode = "") {
     commitPlaylistState((state) => {
       const nextMode = getNextBackingPlaylistRepeatMode(state.playbackMode);
       const audio = audioRef.current;
-      if (audio && playlistPlaybackRef.current.playlistId) {
-        audio.loop = nextMode === BACKING_PLAYLIST_PLAYBACK_MODES.REPEAT_ONE;
+      if (audio) {
+        audio.loop = shouldLoopBackingTrack(nextMode, Boolean(playlistPlaybackRef.current.playlistId));
       }
       return setBackingPlaylistPlaybackMode(state, nextMode);
     });
@@ -1881,6 +1880,12 @@ export default function useBackingLoop(ownerMode = "") {
     if (!audio || phaseRef.current !== "playing") return;
     const playback = playlistPlaybackRef.current;
     if (!playback.playlistId) {
+      if (!shouldLoopBackingTrack(playlistStateRef.current.playbackMode)) {
+        audio.pause();
+        setNotice("백킹 재생 완료");
+        setPhaseImmediate("idle");
+        return;
+      }
       audio.currentTime = 0;
       setCurrentTimeMs(0);
       audio.play().catch(() => {
@@ -1958,8 +1963,10 @@ export default function useBackingLoop(ownerMode = "") {
   const handleLoadedMetadata = useCallback(() => {
     const audio = audioRef.current;
     if (audio) {
-      audio.loop = !playlistPlaybackRef.current.playlistId
-        || playlistStateRef.current.playbackMode === BACKING_PLAYLIST_PLAYBACK_MODES.REPEAT_ONE;
+      audio.loop = shouldLoopBackingTrack(
+        playlistStateRef.current.playbackMode,
+        Boolean(playlistPlaybackRef.current.playlistId),
+      );
       const actualDurationMs = Number.isFinite(audio.duration) && audio.duration > 0
         ? audio.duration * 1000
         : 0;

@@ -295,6 +295,11 @@ export function reconcileBackingPlaylistState(state, libraryIds) {
   }, queue);
 }
 
+export function shouldLoopBackingTrack(playbackMode, playlistPlaybackActive = false) {
+  return playbackMode === BACKING_PLAYLIST_PLAYBACK_MODES.REPEAT_ONE
+    || (!playlistPlaybackActive && playbackMode === BACKING_PLAYLIST_PLAYBACK_MODES.REPEAT_ALL);
+}
+
 export function getNextBackingPlaylistIndex({
   currentIndex = -1,
   itemCount = 0,

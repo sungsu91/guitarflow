@@ -1,4 +1,4 @@
-import {Trash2,FileText,FileMusic,ChevronRight,MoreVertical,Check} from 'lucide-react';
+import {FileText,FileMusic,ChevronRight,MoreVertical,Check} from 'lucide-react';
 import {useEffect,useRef} from 'react';
 
 // Both layouts use the same document identity and actions.
@@ -12,10 +12,9 @@ export default function PdfLibraryCard({item,mobile,busy,onOpen,onRename,onDelet
  const buttonProps={type:'button',disabled:busy||(!selecting&&item.unreadable),'aria-pressed':selecting?selected:undefined,'aria-label':`${item.title} ${selecting?'선택':'열기'}`,onClick:selecting?onToggle:onOpen};
  return <li className={`libraryScoreRow ${mobile?'libraryScoreRow--mobile':'libraryScoreRow--desktop'}`} data-document-type={item.type} data-selected={selected||undefined}>
   {mobile?<button {...buttonProps} className="libraryScoreOpen">{symbol}{name}{!selecting&&<ChevronRight size={20}/>}</button>:<button {...buttonProps} className="libraryScoreOpen libraryScoreOpen--desktop">{symbol}{name}<time dateTime={rawDate||undefined}>{date}</time>{!selecting&&<ChevronRight size={20}/>}</button>}
-  {selecting&&<button type="button" className="libraryDelete" disabled={busy} aria-label={`${item.title} 삭제`} onClick={onDelete}><Trash2 size={18}/></button>}
-  {(!mobile||selecting)&&<details ref={menu} className="libraryMenu" onKeyDown={e=>{if(e.key==='Escape'){menu.current.open=false;menu.current.querySelector('summary').focus();}}}>
+  <details ref={menu} className="libraryMenu" onKeyDown={e=>{if(e.key==='Escape'){menu.current.open=false;menu.current.querySelector('summary').focus();}}}>
    <summary aria-label={`${item.title} 관리`}><MoreVertical size={20}/></summary>
    <div>{onFavorite&&<button type="button" disabled={busy} onClick={()=>{menu.current.open=false;onFavorite();}}>{favorite?'즐겨찾기 해제':'즐겨찾기 추가'}</button>}<button type="button" disabled={busy} onClick={()=>{menu.current.open=false;onRename();}}>이름 변경</button><button type="button" disabled={busy} onClick={()=>{menu.current.open=false;onDelete();}}>삭제</button></div>
-  </details>}
+  </details>
  </li>;
 }

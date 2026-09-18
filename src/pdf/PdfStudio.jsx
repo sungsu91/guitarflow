@@ -87,3 +87,5 @@ function RenameDialog({title,busy,error,onSave,onClose}){
  useEffect(()=>{ref.current.showModal();},[]);
  return <dialog ref={ref} className="pdfDialog" aria-label="악보 이름 변경" onCancel={e=>{if(busy)e.preventDefault();else onClose();}}><form onSubmit={e=>{e.preventDefault();if(value.trim())void onSave(value.trim());}}><h2>이름 변경</h2><label>제목<input autoFocus required maxLength="200" value={value} onChange={e=>setValue(e.target.value)}/></label>{error&&<p role="alert">{error}</p>}<footer><button type="button" disabled={busy} onClick={onClose}>취소</button><button type="submit" disabled={busy||!value.trim()}>저장</button></footer></form></dialog>;
 }
+
+import './librarySafeArea.css';

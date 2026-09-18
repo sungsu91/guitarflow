@@ -16,7 +16,7 @@ assert.deepEqual(scoreTimeline(compileDocumentV2(loaded).score),scoreTimeline(co
 test('dot edit consumes only empty time and preserves later notes',()=>{
 let d=createBlankDocument();d=setEventDuration(d,{bar:0,event:0},'8');d=enterFret(d,{bar:0,event:2,string:5},7);const next=d.measures[0].events[2];const dotted=setDottedEighth(d,{bar:0,event:0});assert.equal(ticksOf(dotted.measures[0].events[0]),360);assert.deepEqual(dotted.measures[0].events[2],next);assert.deepEqual(dotted.measures[0].events.map(e=>e.onset),[0,360,480,960,1440]);assert.equal(compileDocumentV2(dotted).issues.length,0);
 const plain=setDottedEighth(dotted,{bar:0,event:0},false);assert.equal(ticksOf(plain.measures[0].events[0]),240);assert(plain.measures[0].events.some(e=>e===next));assert.equal(compileDocumentV2(plain).issues.length,0);
-const occupied=enterFret(d,{bar:0,event:1,string:5},5);assert.throws(()=>setDottedEighth(occupied,{bar:0,event:0}),/빈 시간/);assert.throws(()=>ensureTriplet(dotted,{bar:0,event:0}),/점8분/);
+const occupied=enterFret(d,{bar:0,event:1,string:5},5);assert.throws(()=>setDottedEighth(occupied,{bar:0,event:0}),/겹칩니다/);assert.throws(()=>ensureTriplet(dotted,{bar:0,event:0}),/점8분/);
 const changed=setEventDuration(dotted,{bar:0,event:0},'16');assert.equal(changed.measures[0].events[0].dotted,undefined);assert.equal(compileDocumentV2(changed).issues.length,0);
 });
 test('three sixteenths can be joined across the automatic beat boundary',()=>{

@@ -1,6 +1,7 @@
 import { mediaPermissionGuide } from "../audio/mediaPermissionGuide.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, ChevronRight, Mic, MicOff, X } from "lucide-react";
+import { installMicForegroundRecovery } from "../audio/micForegroundRecovery.js";
 import { acquireMicInput } from "../audio/micInputEngine.js";
 import { MIC_INPUT_PRESETS } from "../audio/micInputPresets.js";
 import {
@@ -245,8 +246,10 @@ function useTunerController(active) {
     requestVersionRef.current = requestVersion;
     if (analysisFrameRef.current != null) cancelAnimationFrame(analysisFrameRef.current);
     analysisFrameRef.current = null;
-    await sessionRef.current?.release?.();
+    const previousSession = sessionRef.current;
     sessionRef.current = null;
+    await previousSession?.release?.();
+    if (requestVersion !== requestVersionRef.current) return false;
     resetTunerFrequencyState(frequencyStateRef.current);
     resetTunerCompletionState(completionStateRef.current);
     resetTunerSignalState(signalStateRef.current);
@@ -510,7 +513,12 @@ function useTunerController(active) {
   useEffect(() => {
     if (!active) return undefined;
     startMicrophone();
+    const stopRecovery = installMicForegroundRecovery({
+      getSession: () => sessionRef.current,
+      restart: startMicrophone,
+    });
     return () => {
+      stopRecovery();
       releaseMicrophone();
     };
   }, [active, releaseMicrophone, startMicrophone]);

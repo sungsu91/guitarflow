@@ -1,0 +1,10 @@
+.scorePracticeTransport{--etude-line:var(--theme-border-control,#ccd4cc);--etude-muted:var(--theme-text-muted,#66736c);--etude-accent:var(--theme-accent,#477660);border:1px solid var(--etude-line);border-radius:12px;padding:12px;margin:12px 0;background:var(--theme-surface,#fff);color:var(--theme-text,#27342f)}
+.scorePracticeTransport .etudeBeatRow{justify-content:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:10px}
+.scorePracticeMain,.scorePracticeSound{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.scorePracticeTransport label{display:flex;align-items:center;gap:8px;font-size:13px}
+.scorePracticeTransport input{width:76px;min-height:44px;padding:6px;font-size:18px;border-radius:8px;border:1px solid var(--etude-line);background:var(--theme-surface,#fff);color:inherit}
+.scorePracticeTransport button,.scorePracticeTransport select{min-height:44px;font-size:13px}
+.scorePracticeSound{border-top:1px solid var(--etude-line);padding-top:10px;margin-top:10px}
+.scorePracticeTransport :is(button,input,select):focus-visible{outline:2px solid var(--etude-accent);outline-offset:3px}
+.pdfStudio .scorePracticeTransport :is(button,select){background:var(--theme-surface,#fff)!important;color:var(--theme-text,#27342f)!important;border:1px solid var(--theme-border-control,#ccd4cc)!important}
+.pdfStudio .scorePracticeTransport button[aria-pressed=true]{background:var(--theme-accent-soft,var(--theme-surface,#fff))!important;border-color:var(--theme-accent,#477660)!important}

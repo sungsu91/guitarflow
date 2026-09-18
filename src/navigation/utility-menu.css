@@ -1,9 +1,9 @@
 /* Scoped menu palette; navigation, workspaces, and desktop sidebar are untouched. */
-.utilityMenuSurface { --menu-bg:#F2EEE9; --menu-surface:#FAF7F2; --menu-title:#292521; --menu-muted:#6D655D; --menu-accent:#49382C; --menu-border:#DCD4C9; --menu-tile:#ECE5DC; --menu-selected:#EDE5DA; --menu-shadow:0 2px 8px rgba(45,35,25,.05); }
+.utilityMenuSurface { --menu-bg:linear-gradient(155deg,#FBF8F3 0%,#F5ECE7 100%); --menu-surface:linear-gradient(165deg,#FFFCF7 0%,#F5E8E3 100%); --menu-title:#292521; --menu-muted:#6D655D; --menu-accent:#49382C; --menu-border:#DCC8C1; --menu-tile:#EFE2DB; --menu-selected:linear-gradient(150deg,#F6EAE2,#E9D5CC); --menu-shadow:0 2px 8px rgba(45,35,25,.05); }
 .utilityMenuSurface.theme-brand { --menu-bg:#171612; --menu-surface:#242119; --menu-title:#F3EDE1; --menu-muted:#BFB6A6; --menu-accent:#EAC780; --menu-border:#433B2C; --menu-tile:#342D21; --menu-selected:#332D21; --menu-shadow:0 2px 8px rgba(0,0,0,.18); }
 html body #root .utilityMenuSurface { display:contents !important; }
 html body #root .utilityMenuSurface > .utilityMenuLayer { position:fixed !important; inset:0 !important; z-index:100300 !important; transform:none !important; }
-html body #root .utilityMenuSurface .utilityMenuDim { position:absolute !important; inset:0 !important; width:100% !important; height:100% !important; background:rgba(16,15,13,.38) !important; backdrop-filter:blur(3px); border:0 !important; border-radius:0 !important; }
+html body #root .utilityMenuSurface .utilityMenuDim { position:absolute !important; inset:0 !important; width:100% !important; height:100% !important; background:rgba(16,15,13,.38) !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; border:0 !important; border-radius:0 !important; }
 html body #root #utility-menu-panel {
   position:absolute !important; inset:auto max(0px,env(safe-area-inset-right)) calc(max(10px,env(safe-area-inset-bottom)) + 76px) auto !important;
   display:grid !important; grid-template-rows:auto minmax(0,1fr) !important; box-sizing:border-box !important;
