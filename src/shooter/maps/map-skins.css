@@ -2237,3 +2237,19 @@ html body .app:not(.theme-light) .shooterArena.shooterMapSkin .shooterMapSkinSta
     animation: none !important;
   }
 }
+
+/* Show the complete portrait artwork for the six static scenic maps. */
+html body .shooterSkinConfigurator .shooterMapCard > .shooterMapPreview:is(
+  .shooterMapSkin--moonlit-rooftop,
+  .shooterMapSkin--underwater-blue,
+  .shooterMapSkin--aurora-glacier,
+  .shooterMapSkin--above-the-clouds,
+  .shooterMapSkin--milky-way-desert,
+  .shooterMapSkin--firefly-forest
+) {
+  background-image: var(--shooter-map-image) !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-color: #08142d;
+}
