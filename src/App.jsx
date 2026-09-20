@@ -13662,7 +13662,7 @@ const HELP_GUIDE_SECTIONS = [
     group: "start",
     content: (
       <>
-        <p>FRETIVA LAB은 튜닝, 지판, 리듬, 반주와 녹음 도구를 한곳에 모은 <b>기타 연습 앱</b>입니다.</p>
+        <p>FRETIVA LAB은 튜닝, 지판, 리듬, 에튀드·악보저장실, 반주와 녹음 도구를 한곳에 모은 <b>기타 연습 앱</b>입니다.</p>
         <div className="helpFlow" aria-label="튜닝, 참고 지판, 메트로놈 순서로 시작">
           <span>튜닝 확인</span><i aria-hidden="true">→</i><span>참고 지판 연습</span><i aria-hidden="true">→</i><span>메트로놈·반주 연결</span>
         </div>
@@ -13749,6 +13749,51 @@ const HELP_GUIDE_SECTIONS = [
     ),
   },
   {
+    id: "etudes",
+    title: "🎼 에튀드 스튜디오",
+    summary: "연습곡을 고르고 오선보·TAB을 보며 반복 연습",
+    group: "practice",
+    content: (
+      <>
+        <p>모바일은 <b>메뉴 → 에튀드 스튜디오</b>, 데스크톱은 왼쪽 메뉴에서 엽니다. 상단의 <b>에튀드</b> 탭은 앱 연습곡, <b>내 악보</b> 탭은 직접 보관한 악보를 보여줍니다.</p>
+        <div className="helpFlow" aria-label="에튀드 연습 순서">
+          <span>에튀드 탭</span><i aria-hidden="true">→</i><span>연습 유형·곡 선택</span><i aria-hidden="true">→</i><span>BPM 설정</span><i aria-hidden="true">→</i><span>재생하며 연습</span>
+        </div>
+        <ul className="helpFactList">
+          <li><b>연습 유형</b>을 고르고 이전·다음 버튼으로 곡을 바꿉니다. <b>TIP · 연습 방법</b>에서 목표, 준비 사항과 연습 순서를 확인하세요.</li>
+          <li>오선보·TAB과 재생 위치를 보며 천천히 따라 연주합니다. <b>진행 따라가기 패턴</b>은 줄·마디전환·운지·끔 중에서 고를 수 있습니다.</li>
+          <li>직접 저장한 편집 악보는 <b>내 저장 악보</b>에서 다시 선택해 연습할 수 있습니다. 악보 재생은 마이크를 이용한 자동 채점이 아닙니다.</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    id: "score-library",
+    title: "📚 악보저장실 · 내 악보",
+    summary: "PDF 보관, 악보 만들기, 저장·불러오기와 백업",
+    group: "practice",
+    content: (
+      <>
+        <p><b>에튀드 스튜디오 → 내 악보</b>에서 PDF와 직접 만든 편집 악보를 함께 관리합니다. 제목·아티스트 검색과 정렬로 원하는 악보를 찾고, 목록에서 열어 연습하세요.</p>
+        <strong>PDF 악보 보관</strong>
+        <div className="helpFlow" aria-label="PDF 악보 저장 순서">
+          <span>PDF 불러오기</span><i aria-hidden="true">→</i><span>파일·곡 정보 확인</span><i aria-hidden="true">→</i><span>저장</span><i aria-hidden="true">→</i><span>목록에서 열기</span>
+        </div>
+        <p>PDF에는 여백 자르기·텍스트 메모·마디 위치와 반복 연습 설정을 사용할 수 있습니다. 인쇄된 음표나 마디가 자동으로 분석되는 것은 아니며, PDF가 편집 가능한 TAB으로 자동 변환되지는 않습니다.</p>
+        <strong>편집 악보 만들기와 다시 열기</strong>
+        <ul className="helpFactList">
+          <li><b>악보 만들기</b>에서 음·쉼표와 마디를 입력하고 재생으로 확인합니다. <b>저장</b>을 눌러 제목·아티스트·BPM 등 곡 정보를 정한 뒤 저장하세요.</li>
+          <li>저장한 악보는 <b>내 악보</b>에서 다시 열어 연습하거나 편집합니다. 원본을 남기려면 편집기의 <b>다른 이름으로 저장 · 복사본</b>을 사용하세요.</li>
+          <li>편집기의 <b>파일 → 악보 JSON 내보내기</b>로 편집 가능한 백업을 보관합니다. 다시 가져올 때는 <b>악보 만들기 → 파일 → 불러오기…</b>에서 해당 파일을 선택하고 저장하세요.</li>
+          <li><b>PDF 내보내기 · 인쇄</b>는 인쇄 창에서 PDF로 저장하는 기능입니다. 이후에도 음표를 수정하려면 JSON 백업도 함께 보관하세요.</li>
+        </ul>
+        <strong>기기 저장 · 백업</strong>
+        <p>악보는 <b>현재 기기·브라우저에 저장</b>되며 다른 기기로 자동 동기화되지 않습니다. <b>PDF 보관함 백업 / PDF 백업 복원</b>으로 원본과 메모·여백·연습 설정을 옮길 수 있습니다. 편집 악보는 별도로 JSON 파일을 내보내세요.</p>
+        <p className="helpInfoNote"><b>원본 PDF 내보내기</b>에는 여백 자르기와 메모가 포함되지 않습니다. 브라우저 데이터를 지우기 전에는 필요한 악보와 백업 파일을 따로 보관하세요.</p>
+      </>
+    ),
+  },
+  {
     id: "mini-backing",
     title: "🎼 미니반주",
     summary: "마디에 코드를 넣어 드럼·베이스·피아노 반주 만들기",
@@ -13822,7 +13867,15 @@ const HELP_GUIDE_SECTIONS = [
         <div className="helpFlow" aria-label="슈팅게임 사용 순서">
           <span>START</span><i aria-hidden="true">→</i><span>마이크 허용</span><i aria-hidden="true">→</i><span>목표 음 확인</span><i aria-hidden="true">→</i><span>기타로 해당 음 연주</span>
         </div>
-        <p>한 음씩 또렷하게 연주하면 인식이 안정적입니다. 난이도·도움 표시·계이름과 기타·맵·효과는 원하는 스타일로 바꿀 수 있습니다.</p>
+        <p>한 음씩 또렷하게 연주하세요. 하단 기타에서 나가는 피크가 네온 음표에 명중하면 해당 음표가 빛 조각으로 사라집니다.</p>
+        <ul className="helpFactList">
+          <li><b>난이도 버튼</b>을 누르면 바로 아래에 연습 설정이 열립니다. 쉬움·보통·어려움과 각 랜덤 모드를 고르고 설정 완료를 누르세요. 게임 중에는 변경할 수 없습니다.</li>
+          <li><b>하강 속도</b>는 0.75×·1×·1.25×·1.5× 중에서 선택합니다. 음표 등장 간격은 유지하고 내려오는 속도만 바꿉니다.</li>
+          <li>음표에는 음 이름과 옥타브가 표시됩니다. C·D·E·F·G·A·B의 네온색은 각각 고정되며, 언어·계이름 표시도 바꿀 수 있습니다.</li>
+          <li><b>스킨변경</b>에서 기타·이펙트·펫·맵·피크를 선택합니다. 몹은 공통 네온 디자인을 사용합니다.</li>
+          <li>처음 실행할 때 기본 맵은 <b>달빛 옥상</b>입니다. 맵 목록 왼쪽에는 달빛 옥상·푸른 바닷속·오로라 빙하·구름 위·은하수 사막·반딧불 숲이 세로로 배치됩니다. 이미 저장한 맵 선택은 유지됩니다.</li>
+        </ul>
+        <p>원하는 배경과 도움 표시를 고른 뒤 목표 음부터 천천히 익혀보세요.</p>
       </>
     ),
   },
@@ -13885,7 +13938,7 @@ const HELP_GUIDE_SECTIONS = [
         <ul className="helpFactList">
           <li>연습 기록, 불러온 음원과 녹음 파일은 <b>현재 기기의 브라우저 저장공간에만 보관</b>되며 개발자에게 전송되지 않습니다.</li>
           <li>마이크는 튜너·기타 음 인식과 사용자가 직접 시작한 녹음 기능에서만 사용됩니다.</li>
-          <li>브라우저 데이터 삭제, 저장공간 정리 또는 기기 변경 시 로컬 데이터가 사라질 수 있습니다. 중요한 음원은 별도로 보관해주세요.</li>
+          <li>브라우저 데이터 삭제, 저장공간 정리 또는 기기 변경 시 로컬 데이터가 사라질 수 있습니다. 중요한 음원과 악보는 파일 내보내기·백업으로 별도 보관해주세요.</li>
           <li>불러오는 음원은 본인이 이용 권한을 가진 파일만 사용해주세요.</li>
         </ul>
         <strong>문의 및 피드백</strong>
@@ -13912,6 +13965,8 @@ const HELP_GUIDE_SECTION_ORDER = [
   "single-note",
   "scale-pentatonic",
   "rhythm-chord",
+  "etudes",
+  "score-library",
   "mini-backing",
   "backing-audio",
   "tuner",
