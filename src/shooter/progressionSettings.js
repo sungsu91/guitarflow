@@ -7,9 +7,18 @@ export function normalizeShooterProgressSpeed(value) {
 export function scaleShooterProgressDuration(duration, speed) {
   return duration / normalizeShooterProgressSpeed(speed);
 }
-export function getShooterProgressRecovery(difficulty, speed = 1) {
+export function getShooterProgressRecovery(difficulty) {
   const interval = difficulty.startsWith('difficult') ? 280 : difficulty.startsWith('normal') ? 450 : 650;
-  return scaleShooterProgressDuration(interval, speed);
+  return interval;
+}
+export function getShooterConcurrentTargetLimit(difficulty) {
+  return difficulty.startsWith('difficult') ? 4 : difficulty.startsWith('normal') ? 3 : 2;
+}
+// Use the unscaled baseline duration: fall-speed selection must not change
+// spawn cadence. At 1x the next note arrives before the previous reaches bottom.
+export function getShooterStreamInterval(difficulty, targetDuration) {
+  const fraction = difficulty.startsWith('difficult') ? .27 : difficulty.startsWith('normal') ? .36 : .5;
+  return targetDuration * fraction;
 }
 export const SHOOTER_HARD_RANDOM_POSITIONS = Object.freeze(Object.keys(STANDARD_GUITAR_OPEN_MIDI)
   .map(Number).sort((a,b)=>b-a).flatMap(stringNumber => Array.from({length:13}, (_, fretNumber) => {

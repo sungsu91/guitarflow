@@ -204,7 +204,7 @@ import useShooterNoteMonsterTuning from "./shooter/useShooterNoteMonsterTuning.j
 import { NeonNote, NeonNoteBursts } from "./shooter/noteVfx/NeonNote.jsx";
 import { isNoteVfxEnabled } from "./shooter/noteVfx/noteVfx.js";
 import ProgressSettings from "./shooter/ProgressSettings.jsx";
-import { SHOOTER_HARD_RANDOM_POSITIONS, scaleShooterProgressDuration, getShooterProgressRecovery } from "./shooter/progressionSettings.js";
+import { SHOOTER_HARD_RANDOM_POSITIONS, scaleShooterProgressDuration, getShooterProgressRecovery, getShooterConcurrentTargetLimit, getShooterStreamInterval } from "./shooter/progressionSettings.js";
 import useShooterMobileViewport from "./shooter/useShooterMobileViewport.js";
 import {
   commitShooterPitchHit,
@@ -15996,7 +15996,7 @@ const SHOOTER_DIFFICULTY_OPTIONS = [
   { id: SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM, label: "어려움 랜덤", hint: "개방현~12프렛 · # 포함 랜덤" },
 ];
 const DEFAULT_SHOOTER_DIFFICULTY = SHOOTER_DIFFICULTIES.EASY_RANDOM;
-const SHOOTER_MAX_SIMULTANEOUS_TARGETS = 1;
+const SHOOTER_MAX_SIMULTANEOUS_TARGETS = 4;
 const SHOOTER_DIFFICULTY_PACING = {
   [SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM]: {
     durationMs: SHOOTER_RUNTIME_DIFFICULTY.easy.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
@@ -16376,7 +16376,7 @@ function getShooterEffectiveLevel(
 ) {
   const phase = getShooterDifficultyPhase(difficulty, elapsedMs, spawnedCount, difficultPatternId);
   const pacing = getShooterDifficultyPacing(difficulty);
-  const maxTargets = Math.min(pacing.maxTargets, SHOOTER_MAX_SIMULTANEOUS_TARGETS);
+  const maxTargets = Math.min(getShooterConcurrentTargetLimit(difficulty), SHOOTER_MAX_SIMULTANEOUS_TARGETS);
   if (isShooterRandomDifficulty(difficulty)) {
     return {
       name: "랜덤",
@@ -19088,7 +19088,6 @@ function App({ onReady }) {
   const selectedStage3LibraryItem = chordProgressionId.startsWith("slot:")
     ? stage3LibraryItems.find((slot) => slot.id === chordProgressionId.slice(5)) ?? null
     : null;
-  const selectedStage3StorageItem = stage3QuickSlots.find((slot) => slot.id === stage3StorageSelectedId) ?? null;
   const stage3DeleteRequestItems = stage3DeleteRequestIds
     .map((id) => stage3QuickSlots.find((slot) => slot.id === id))
     .filter(Boolean);
@@ -19272,6 +19271,19 @@ function App({ onReady }) {
     ]);
     setStage3StorageChordEditingIndex(null);
   }, []);
+  const resetStage3StorageComposer = useCallback(() => {
+    stage3StorageEditorSessionRef.current += 1;
+    setStage3StorageSelectedId("");
+    setStage3StorageTitle(`내 진행 ${stage3QuickSlots.length + 1}`);
+    setStage3StorageMemo("");
+    setStage3StorageEditingId("");
+    setStage3StorageChordIds([]);
+    setStage3StorageChordEditingIndex(null);
+    applyStage3StorageChordSelection("C", "natural", "major", "none");
+    stage3StorageStrumPatternRef.current = [];
+    setStage3StorageStrumPattern([]);
+    setStage3StorageStrumDraftPattern([]);
+  }, [applyStage3StorageChordSelection, stage3QuickSlots.length]);
   const saveStage3StorageItem = useCallback(({ chordIds: requestedChordIds, title = "" } = {}) => {
     const chordIdsForSave = Array.isArray(requestedChordIds)
       ? requestedChordIds
@@ -21788,9 +21800,7 @@ function App({ onReady }) {
     ];
     shooterScenarioCountdownRef.current = null;
     setShooterScenarioCountdown(null);
-    shooterNextSpawnAtRef.current = gameTimeRef.current + scaleShooterProgressDuration(
-      scenarioStepWindowMs ?? getShooterSpawnGap(difficulty), shooterProgressSpeedRef.current
-    );
+    shooterNextSpawnAtRef.current = gameTimeRef.current + getShooterStreamInterval(difficulty, getShooterTargetDuration(difficulty));
     setShooterTargets([...shooterTargetsRef.current]);
     syncShooterActiveTarget(shooterTargetsRef.current);
     if (resolvedScenarioStep?.isSectionStart) setFeedback(resolvedScenarioStep.sectionAnnouncement);
@@ -22344,7 +22354,9 @@ function App({ onReady }) {
           }
         : currentTarget
     ));
-    shooterNextSpawnAtRef.current = gameTimeRef.current + getShooterProgressRecovery(target.difficulty ?? shooterDifficultyRef.current, shooterProgressSpeedRef.current);
+    if (!shooterTargetsRef.current.some((item) => !item.defeated)) {
+      shooterNextSpawnAtRef.current = gameTimeRef.current + getShooterProgressRecovery(target.difficulty ?? shooterDifficultyRef.current);
+    }
 
     setFeedback("Success");
     flashStage("hit");
@@ -23013,9 +23025,9 @@ function App({ onReady }) {
         !isShooterScriptedDifficulty(shooterDifficultyRef.current)
         &&
         shooterTargetsRef.current.length === 0
-        && shooterNextSpawnAtRef.current - gameTimeRef.current > getShooterProgressRecovery(shooterDifficultyRef.current, shooterProgressSpeedRef.current)
+        && shooterNextSpawnAtRef.current - gameTimeRef.current > getShooterProgressRecovery(shooterDifficultyRef.current)
       ) {
-        shooterNextSpawnAtRef.current = gameTimeRef.current + getShooterProgressRecovery(shooterDifficultyRef.current, shooterProgressSpeedRef.current);
+        shooterNextSpawnAtRef.current = gameTimeRef.current + getShooterProgressRecovery(shooterDifficultyRef.current);
       }
 
       if (gameTimeRef.current >= shooterNextSpawnAtRef.current) {
@@ -23126,7 +23138,9 @@ function App({ onReady }) {
         shooterTargetsRef.current = shooterTargetsRef.current.filter((target) => !removedTargetIds.has(target.id));
       }
       if (missedTargets.length > 0) {
-        shooterNextSpawnAtRef.current = gameTimeRef.current + getShooterProgressRecovery(shooterDifficultyRef.current, shooterProgressSpeedRef.current);
+        if (!shooterTargetsRef.current.some((item) => !item.defeated)) {
+          shooterNextSpawnAtRef.current = gameTimeRef.current + getShooterProgressRecovery(shooterDifficultyRef.current);
+        }
         missedTargets.forEach((target) => {
           target.lifeLost = true;
           if (

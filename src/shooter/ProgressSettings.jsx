@@ -5,6 +5,7 @@ import { SHOOTER_PROGRESS_SPEEDS } from './progressionSettings.js';
 import './progress-settings.css';
 
 export default function ProgressSettings({ mobile, options, difficulty, speed, onDifficulty, onSpeed, onClose }) {
+  const compactOptions = [...options.filter(option => !option.id.endsWith('-random')), ...options.filter(option => option.id.endsWith('-random'))];
   const panel = useRef(null);
   const close = useRef(onClose);
   close.current = onClose;
@@ -25,14 +26,12 @@ export default function ProgressSettings({ mobile, options, difficulty, speed, o
   }, []);
   return createPortal(<div className={`shooterProgressBackdrop ${mobile ? 'shooterProgressBackdrop--mobile' : 'shooterProgressBackdrop--desktop'}`} onClick={event=>{if(event.target===event.currentTarget)onClose();}}>
     <section ref={panel} className="shooterProgressSettings" role="dialog" aria-modal="true" aria-label="난이도와 진행 속도">
-      <header><div><small>연습 설정</small><h2>내 속도로 연주하기</h2></div><button type="button" onClick={onClose} aria-label="설정 닫기">×</button></header>
+      <header><h2>연습 설정</h2><button type="button" onClick={onClose} aria-label="설정 닫기">×</button></header>
       <h3>난이도</h3>
-      <div className="shooterProgressLevels">{options.map(option=><button type="button" key={option.id} aria-pressed={difficulty===option.id} onClick={()=>onDifficulty(option.id)}><strong>{option.label}</strong><small>{option.hint}</small></button>)}</div>
-      <h3>진행 속도 <span>{speed}×</span></h3>
-      <p>모든 난이도의 1×는 쉬움 랜덤과 같은 하강 속도예요.</p>
-      <p>다음 음은 쉬움 → 보통 → 어려움 순으로 더 빠르게 이어져요.</p>
-      <div className="shooterProgressSpeeds">{SHOOTER_PROGRESS_SPEEDS.map(value=><button key={value} type="button" aria-pressed={speed===value} onClick={()=>onSpeed(value)}>{value}×<small>{value<1?'천천히':value===1?'기본':value===1.25?'빠르게':'더 빠르게'}</small></button>)}</div>
-      <p>음표 하강과 등장 간격에 적용됩니다. 연습 중에는 변경할 수 없어요.</p>
+      <div className="shooterProgressLevels">{compactOptions.map(option=><button type="button" key={option.id} title={option.hint} aria-pressed={difficulty===option.id} onClick={()=>onDifficulty(option.id)}><strong>{option.label}</strong></button>)}</div>
+      <h3>하강 속도</h3>
+      <div className="shooterProgressSpeeds">{SHOOTER_PROGRESS_SPEEDS.map(value=><button key={value} type="button" aria-pressed={speed===value} onClick={()=>onSpeed(value)}>{value}×</button>)}</div>
+      <p>등장 간격은 그대로, 내려오는 속도만 조절해요.</p>
       <button className="shooterProgressDone" type="button" onClick={onClose}>설정 완료</button>
     </section>
   </div>, document.body);
