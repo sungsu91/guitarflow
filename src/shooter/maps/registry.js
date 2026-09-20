@@ -13,7 +13,7 @@ import { THREE_D_LAB_MAP_SKIN } from "./skins/threeDLab.js";
 import { MOONLIT_ROOFTOP_MAP_SKIN } from "./skins/moonlitRooftop.js";
 
 export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
-  ...(import.meta.env?.DEV ? [MOONLIT_ROOFTOP_MAP_SKIN] : []),
+  MOONLIT_ROOFTOP_MAP_SKIN,
   GACHA_ARCADE_MAP_SKIN,
   ...SCENIC_MAP_SKINS,
   RIVER_MAP_SKIN,

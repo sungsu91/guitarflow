@@ -49,7 +49,7 @@ test("gacha arcade V3 uses an empty seven-bay background and layered render orde
     "guitar",
     "HUD",
   ]);
-  assert.equal(LAYERED_SHOOTER_MAP_SKINS.at(0), GACHA_ARCADE_MAP_SKIN);
+  assert.ok(LAYERED_SHOOTER_MAP_SKINS.includes(GACHA_ARCADE_MAP_SKIN));
 });
 
 test("four left and three right cabinets each own one staggered clipped claw", () => {
@@ -206,6 +206,6 @@ test("renderer keeps cabinets static and drives all claws from one visibility-aw
   assert.match(styles, /\.shooterMapGachaArcadeSprite[\s\S]*?overflow: hidden/);
   assert.match(sharedClock, /document\.visibilityState !== "hidden"/);
   assert.match(sharedClock, /subscriptions\.delete\(element\)/);
-  assert.match(app, /const DEFAULT_SHOOTER_MAP_ID = "gacha-arcade"/);
+  assert.match(app, /const DEFAULT_SHOOTER_MAP_ID = "moonlit-rooftop"/);
   assert.match(app, /return DEFAULT_SHOOTER_MAP_ID;/);
 });

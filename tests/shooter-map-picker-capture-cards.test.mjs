@@ -83,6 +83,7 @@ test("map picker renders platform-sized full capture cards and a random montage"
   assert.deepEqual(
     LAYERED_SHOOTER_MAP_SKINS.map((map) => map.id),
     [
+      "moonlit-rooftop",
       "gacha-arcade",
       "underwater-blue",
       "aurora-glacier",

@@ -2248,8 +2248,26 @@ html body .shooterSkinConfigurator .shooterMapCard > .shooterMapPreview:is(
   .shooterMapSkin--firefly-forest
 ) {
   background-image: var(--shooter-map-image) !important;
-  background-size: contain !important;
+  background-size: 100% 100% !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
   background-color: #08142d;
 }
+
+/* Reserve the left column for the six static backgrounds. Other maps flow right. */
+html body [role="dialog"].shooterGuitarPickerModal.shooterGuitarPickerModal--map .shooterMapPickerGrid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-auto-flow: row !important;
+  align-content: start;
+}
+html body [role="dialog"].shooterGuitarPickerModal.shooterGuitarPickerModal--map .shooterMapPickerGrid > .shooterMapCard {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+html body [role="dialog"].shooterGuitarPickerModal.shooterGuitarPickerModal--map .shooterMapPickerGrid > .shooterMapCard:has(> .shooterMapSkin--moonlit-rooftop) { grid-column: 1; grid-row: 1; }
+html body [role="dialog"].shooterGuitarPickerModal.shooterGuitarPickerModal--map .shooterMapPickerGrid > .shooterMapCard:has(> .shooterMapSkin--underwater-blue) { grid-column: 1; grid-row: 2; }
+html body [role="dialog"].shooterGuitarPickerModal.shooterGuitarPickerModal--map .shooterMapPickerGrid > .shooterMapCard:has(> .shooterMapSkin--aurora-glacier) { grid-column: 1; grid-row: 3; }
+html body [role="dialog"].shooterGuitarPickerModal.shooterGuitarPickerModal--map .shooterMapPickerGrid > .shooterMapCard:has(> .shooterMapSkin--above-the-clouds) { grid-column: 1; grid-row: 4; }
+html body [role="dialog"].shooterGuitarPickerModal.shooterGuitarPickerModal--map .shooterMapPickerGrid > .shooterMapCard:has(> .shooterMapSkin--milky-way-desert) { grid-column: 1; grid-row: 5; }
+html body [role="dialog"].shooterGuitarPickerModal.shooterGuitarPickerModal--map .shooterMapPickerGrid > .shooterMapCard:has(> .shooterMapSkin--firefly-forest) { grid-column: 1; grid-row: 6; }
