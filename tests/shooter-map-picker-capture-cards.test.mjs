@@ -84,6 +84,11 @@ test("map picker renders platform-sized full capture cards and a random montage"
     LAYERED_SHOOTER_MAP_SKINS.map((map) => map.id),
     [
       "gacha-arcade",
+      "underwater-blue",
+      "aurora-glacier",
+      "above-the-clouds",
+      "milky-way-desert",
+      "firefly-forest",
       "river-garden",
       "lava-canyon",
       "coastal-cove",

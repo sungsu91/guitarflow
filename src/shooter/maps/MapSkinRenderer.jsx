@@ -1059,6 +1059,13 @@ function MapSkinRenderer({
         />
       ) : null}
 
+      {stage === "underlay" && skin.background?.tint ? (
+        <div
+          className="shooterMapBackgroundTint"
+          style={{ position: "absolute", inset: 0, backgroundColor: skin.background.tint, pointerEvents: "none" }}
+        />
+      ) : null}
+
       {stage === "underlay" && skin.id === "autumn_moon_temple_path" ? (
         <AutumnMoonTemplePathField
           active={animationsActive && !editMode}

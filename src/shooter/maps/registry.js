@@ -1,3 +1,4 @@
+import { SCENIC_MAP_SKINS } from "./skins/scenicMaps.js";
 import { ABYSSAL_MOON_CATHEDRAL_MAP_SKIN } from "./skins/abyssalMoonCathedral.js";
 import { AUTUMN_MOON_TEMPLE_PATH_MAP_SKIN } from "./skins/autumnMoonTemplePath.js";
 import { CELESTIAL_ECLIPSE_CLOCKTOWER_MAP_SKIN } from "./skins/celestialEclipseClocktower.js";
@@ -14,6 +15,7 @@ import { MOONLIT_ROOFTOP_MAP_SKIN } from "./skins/moonlitRooftop.js";
 export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
   ...(import.meta.env?.DEV ? [MOONLIT_ROOFTOP_MAP_SKIN] : []),
   GACHA_ARCADE_MAP_SKIN,
+  ...SCENIC_MAP_SKINS,
   RIVER_MAP_SKIN,
   LAVA_CANYON_MAP_SKIN,
   COASTAL_COVE_MAP_SKIN,
