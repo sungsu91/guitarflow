@@ -52,7 +52,10 @@ html body main.app.app.app :is(
    their existing navigation policy. IDs intentionally outrank legacy themes. */
 html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav {
   position: fixed !important;
-  inset: auto auto max(10px, env(safe-area-inset-bottom, 0px)) calc(var(--bottom-nav-left, 0px) + var(--bottom-nav-width, 100%) / 2) !important;
+  /* iOS can move a bottom-anchored fixed element when body scrolling is locked
+     (tuner, shooter, and the menu). Use the same dynamic height as the stage,
+     measured from the top, instead of WebKit's transient fixed-bottom edge. */
+  inset: calc(100dvh - max(10px, env(safe-area-inset-bottom, 0px)) - 64px) auto auto calc(var(--bottom-nav-left, 0px) + var(--bottom-nav-width, 100%) / 2) !important;
   transition: none !important;
   display: grid !important;
   grid-template-columns: repeat(5, minmax(0, 1fr)) !important;

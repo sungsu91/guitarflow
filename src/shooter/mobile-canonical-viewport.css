@@ -368,12 +368,6 @@ html.shooterCanonicalMobile body #root main.app.viewport-portrait:is(.tunerMode,
   border-radius: 0 !important;
 }
 
-/* A restored document scroll must not lift the fixed stage/navigation on iOS. */
-html.shooterCanonicalMobile body {
-  position: fixed !important;
-  inset: 0 !important;
-}
-
 html.shooterCanonicalMobile body #root main.app.viewport-portrait:is(.tunerMode, .shooterMode) > .hud {
   display: none !important;
 }
