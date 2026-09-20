@@ -62,3 +62,10 @@ Generated screenshots and measurements are under ignored `artifacts/note-vfx/`. 
 - `verify-shooter-note-vfx-moonlit.mjs`: 390×844 mobile and 1366×768 desktop portrait both pass background loading, Korean idle/destroy labels, KO↔EN toggling where exposed, cleanup and zero browser errors. Screenshots visually inspected.
 - Eight simultaneous new bursts: all retained after target-list removal and all cleaned up, 33 RAF callbacks in the isolated harness. Five animation stages inspected. All 209 shooter tests and production build pass after the follow-up.
 - Real microphone/device checks and rollout restrictions above still apply. No deployment or merge.
+
+## Follow-up: half-size note bodies and outward fireworks
+
+- Only the SVG body (ring, symbol and label) is scaled to 50% around its original center. Target wrapper dimensions, collision bounds and impact coordinates remain unchanged.
+- Eighteen small sparks now travel outward on distinct radial trajectories, with short fading trails, staggered ignition and a slight downward fall. The main seven fragments remain. Spark endpoints stay approximately within the original target wrapper (35–50 SVG units from center, plus 5 units of downward drift).
+- Destruction still completes in 420 ms; no per-frame JavaScript or new gameplay callbacks. Reduced-motion keeps the fade and suppresses traveling sparks.
+- Five-stage visual review and eight-overlapping-burst cleanup passed (29 RAF callbacks in the isolated harness). Existing 209 shooter tests passed. Browser verification additionally asserts an idle ring diameter of 28% of the SVG wrapper, exactly half the previous 56%.

@@ -9,15 +9,22 @@
 .noteVfxFlash { fill: none; stroke: #fffbea; stroke-width: 2; stroke-linecap: round; opacity: 0; animation: noteVfxFlash 420ms linear both; }
 .noteVfxAfterglow { fill: #fffdf4; filter: drop-shadow(0 0 2px currentColor); opacity: 0; animation: noteVfxAfterglow 420ms linear both; }
 .noteVfxFireworks { filter: drop-shadow(0 0 2px currentColor); }
-.noteVfxFireworks > g { animation: noteVfxFirework 420ms ease-out both; }
-.noteVfxRay { fill: none; stroke: currentColor; stroke-width: .65; stroke-linecap: round; }
+.noteVfxFireworks > g { animation: noteVfxFirework 420ms cubic-bezier(.12,.65,.3,1) both; }
+.noteVfxRay { fill: none; stroke: currentColor; stroke-width: .6; stroke-linecap: round; animation: noteVfxTrail 420ms ease-out both; }
 .noteVfxSpark { fill: #fff9d8; }
 .noteVfxArt--break .noteVfxShard { transform-origin: 50px 50px; animation: noteVfxShatter 420ms ease-out both; }
 .noteVfxArt--break .noteVfxPitch { transform-origin: 50px 50px; animation: noteVfxText 420ms ease-out both; }
 .noteVfxArt--break .noteVfxCore { animation: noteVfxCore 420ms linear both; }
 .noteVfxArt--break .noteVfxHalo { animation: noteVfxHalo 420ms ease-out both; transform-origin: 50px 50px; }
 @keyframes noteVfxHalo { 0% { opacity: .7; transform: scale(1); } 45% { opacity: .25; transform: scale(1.2); } 100% { opacity: 0; transform: scale(1.3); } }
-@keyframes noteVfxFirework { 0%, 12% { opacity: 0; transform: translate(0, 0); } 28% { opacity: 1; } 65% { opacity: .8; } 100% { opacity: 0; transform: translate(calc(var(--dx) * .35), calc(var(--dy) * .35)); } }
+@keyframes noteVfxFirework {
+  0% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(.5); }
+  12% { opacity: 1; }
+  55% { opacity: 1; transform: translate(var(--mx), var(--my)) scale(1); }
+  78% { opacity: .65; }
+  100% { opacity: 0; transform: translate(var(--ex), var(--ey)) scale(.35); }
+}
+@keyframes noteVfxTrail { 0% { opacity: 0; } 18%, 45% { opacity: .8; } 85%, 100% { opacity: 0; } }
 @keyframes noteVfxFlash { 0% { opacity: 1; } 16%, 100% { opacity: 0; } }
 @keyframes noteVfxShatter { 0% { opacity: 1; transform: scale(1); } 22% { opacity: 1; transform: scale(1.07); } 46% { opacity: .95; transform: translate(calc(var(--dx) * .45), calc(var(--dy) * .45)) scale(1.08); } 80% { opacity: .25; transform: translate(var(--dx), var(--dy)) scale(.96); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.9); } }
 @keyframes noteVfxText { 0%, 18% { opacity: 1; transform: scale(1); } 50% { opacity: .55; transform: scale(.96); } 75%, 100% { opacity: 0; transform: scale(.9); } }

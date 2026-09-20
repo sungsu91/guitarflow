@@ -9,9 +9,17 @@ const arcs = Array.from({ length: 6 }, (_, i) => {
   return { path: `M ${point(28, a)} A 28 28 0 0 1 ${point(28, b)} L ${point(23, b - .1)} L ${point(24, a + .12)} Z`, x: Math.cos((a + b) / 2) * 18, y: Math.sin((a + b) / 2) * 18 };
 });
 
+// Fixed trajectories keep the effect repeatable and avoid per-frame JS work.
+const sparks = Array.from({ length: 18 }, (_, i) => {
+  const angle = (i * 20 + (i % 3) * 4) * Math.PI / 180;
+  const radius = 35 + (i % 4) * 5;
+  return { x: Math.cos(angle), y: Math.sin(angle), radius, delay: (i % 3) * 12 };
+});
+
 // One transparent vector design; the pitch is always live text, never baked into art.
 export function NeonNote({ pitch, label = pitch, breaking = false, impact = { x: 50, y: 70 } }) {
   return <svg aria-hidden="true" className={`noteVfxArt${breaking ? ' noteVfxArt--break' : ''}`} viewBox="0 0 100 100" style={{ '--vfx-color': noteVfxColor(pitch) }}>
+    <g className="noteVfxBody" transform="translate(25 25) scale(.5)">
     <circle className="noteVfxCore" cx="50" cy="50" r="27" />
     <circle className="noteVfxHalo" cx="50" cy="50" r="28" />
     <g className="noteVfxRing">
@@ -19,11 +27,19 @@ export function NeonNote({ pitch, label = pitch, breaking = false, impact = { x:
     </g>
     <path className="noteVfxSymbol noteVfxShard" style={{ '--dx': '5px', '--dy': '-10px' }} d="M 53 23 L 53 7 Q 64 10 60 17 Q 60 12 55 12 L 55 23 C 55 29 46 29 47 25 C 48 22 51 22 53 23 Z" />
     <text className="noteVfxPitch" x="50" y="51" textAnchor="middle" dominantBaseline="middle" fontSize={label.length >= 3 ? 21 : 26}>{label}</text>
+    </g>
     {breaking ? <>
       <path className="noteVfxFlash" d={`M ${impact.x - 9} ${impact.y} h 18 M ${impact.x} ${impact.y - 9} v 18`} />
-      <g className="noteVfxFireworks">{arcs.map((arc, i) => <g key={i} style={{ '--dx': `${arc.x}px`, '--dy': `${arc.y}px` }}>
-        <path className="noteVfxRay" d={`M ${50 + arc.x * 1.55} ${50 + arc.y * 1.55} L ${50 + arc.x * 2.45} ${50 + arc.y * 2.45}`} />
-        <path className="noteVfxSpark" d="M 0 -2.5 L .7 -.7 L 2.5 0 L .7 .7 L 0 2.5 L -.7 .7 L -2.5 0 L -.7 -.7 Z" transform={`translate(${50 + arc.x * 1.65} ${50 + arc.y * 1.65})`} />
+      <g className="noteVfxFireworks" transform="translate(50 50)">{sparks.map((spark, i) => <g key={i} style={{
+        '--sx': `${spark.x * 12}px`, '--sy': `${spark.y * 12}px`,
+        '--mx': `${spark.x * spark.radius * .78}px`, '--my': `${spark.y * spark.radius * .78}px`,
+        '--ex': `${spark.x * spark.radius}px`, '--ey': `${spark.y * spark.radius + 5}px`,
+        animationDelay: `${spark.delay}ms`, animationDuration: `${NOTE_VFX_DURATION_MS - spark.delay}ms`,
+      }}>
+        <path className="noteVfxRay" d={`M ${-spark.x * (i % 2 ? 5 : 9)} ${-spark.y * (i % 2 ? 5 : 9)} L 0 0`} />
+        {i % 3 === 0
+          ? <path className="noteVfxSpark" d="M 0 -1.8 L .5 -.5 L 1.8 0 L .5 .5 L 0 1.8 L -.5 .5 L -1.8 0 L -.5 -.5 Z" />
+          : <circle className="noteVfxSpark" r={i % 2 ? .8 : 1.1} />}
       </g>)}</g>
       <g className="noteVfxAfterglow">{arcs.map((arc, i) => <circle key={i} cx={50 + arc.x * 2.5} cy={50 + arc.y * 2.5} r=".8" />)}</g>
     </> : null}
