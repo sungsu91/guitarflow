@@ -9,8 +9,10 @@ import { PARK_MAP_SKIN } from "./skins/park.js";
 import { PSEUDO3D_TEST_MAP_SKIN } from "./skins/pseudo3dTest.js";
 import { RIVER_MAP_SKIN } from "./skins/river.js";
 import { THREE_D_LAB_MAP_SKIN } from "./skins/threeDLab.js";
+import { MOONLIT_ROOFTOP_MAP_SKIN } from "./skins/moonlitRooftop.js";
 
 export const LAYERED_SHOOTER_MAP_SKINS = Object.freeze([
+  ...(import.meta.env?.DEV ? [MOONLIT_ROOFTOP_MAP_SKIN] : []),
   GACHA_ARCADE_MAP_SKIN,
   RIVER_MAP_SKIN,
   LAVA_CANYON_MAP_SKIN,

@@ -12084,6 +12084,7 @@ function getStoredShooterMapId() {
 
 function getStoredShooterMapPreference() {
   if (typeof window === "undefined") return SHOOTER_RANDOM_MAP_ID;
+  if (isNoteVfxEnabled(import.meta.env.DEV, window.location.search)) return "moonlit-rooftop";
   const storedPreference = window.localStorage.getItem(SHOOTER_MAP_PREFERENCE_STORAGE_KEY);
   if (storedPreference === SHOOTER_RANDOM_MAP_ID) return SHOOTER_RANDOM_MAP_ID;
   if (SHOOTER_MAP_OPTIONS.some((map) => map.id === storedPreference)) return storedPreference;
@@ -27367,7 +27368,7 @@ function App({ onReady }) {
       : getFretboardPositionsForPitch(shooterGuidePitch)
     : [];
   const shooterGuidePrimaryLabel = shooterGuidePitch
-    ? isShooterExactPositionMode
+    ? isShooterExactPositionMode && !shooterNoteVfxRequested
       ? shooterGuidePitch
       : getShooterPitchDisplayLabel(shooterGuidePitch, shooterSolfegeOn)
     : "";
@@ -33542,7 +33543,7 @@ function App({ onReady }) {
             ) : null}
 
             {shooterNoteVfxRequested && !horizontalShooterActive && (gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER) ? (
-              <NeonNoteBursts targets={shooterTargets} nodes={shooterTargetNodesRef} arena={shooterArenaRef} />
+              <NeonNoteBursts targets={shooterTargets} nodes={shooterTargetNodesRef} arena={shooterArenaRef} formatPitch={getShooterPitchDisplayLabel} solfegeOn={shooterSolfegeOn} />
             ) : null}
             {shooterTargets.map((target) => {
               const targetDifficulty = target.difficulty ?? shooterDifficulty;
@@ -33648,7 +33649,7 @@ function App({ onReady }) {
                   </span>
                 ) : null}
                 {shooterNoteVfxRequested && !horizontalShooterActive ? (
-                  !target.defeated ? <NeonNote pitch={targetPitch} /> : null
+                  !target.defeated ? <NeonNote pitch={targetPitch} label={getShooterPitchDisplayLabel(targetPitch, shooterSolfegeOn)} /> : null
                 ) : <div className="shooterEnemyMonsterVisual">
                   {horizontalShooterActive && !target.defeated ? (
                     <>

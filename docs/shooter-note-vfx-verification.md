@@ -11,7 +11,7 @@
 
 `src/shooter/noteVfx/` contains the new self-contained SVG/CSS design. It uses live pitch text (including octave and sharp) and seven colored fragments. All stages use the same transparent 100×100 coordinate system. There are no raster assets or baked-in pitch labels. Existing monster assets, styles, guitar, pick and aura are preserved.
 
-420 ms sequence: short impact flash → cracked/expanded ring → six ring fragments plus note symbol → short outward spread with fading pitch → small afterglow. Fragment travel is limited to 12 SVG units; no global flash, smoke or flame is added. Reduced-motion mode uses a fade.
+420 ms sequence: short impact flash → cracked/expanded ring → six ring fragments plus note symbol → short outward spread with fading pitch → small afterglow. Fragment travel is limited to 18 SVG units; no global flash, smoke or flame is added. Reduced-motion mode uses a fade.
 
 The original engine removes normal defeated targets after its existing 260 ms game-clock hold (some scenario targets use 520 ms). The new render-only burst snapshots the defeated target's transform, size, pitch and contact position, and survives independently for 420 ms. It has no collision identity, gameplay callback or animation-frame loop. Original scoring/combo timing and object removal remain unchanged, even though the reference described updating scores after the visual animation. Preserving working gameplay takes precedence here.
 
@@ -52,3 +52,13 @@ npm run build
 ```
 
 Generated screenshots and measurements are under ignored `artifacts/note-vfx/`. `design-review-only.png` is a QA contact sheet, never a game asset. Production renders use only the individual SVG component and CSS source.
+
+## Follow-up: Korean labels, brighter fireworks, moonlit rooftop
+
+- Connected the original KO/EN formatter to idle notes, destruction labels and the primary target HUD in the opt-in preview. Pitch identity, octave and judgment remain unchanged.
+- Brighter white-hot ring/symbol cores with colored halos. Six filled ring shards plus the note symbol, six short rays/star glints and a fading afterglow create a compact firework effect within the same 420 ms duration. A notes use blue; E notes use gold.
+- Copied the user's third supplied PNG unchanged to `public/assets/maps/moonlit-rooftop/moonlit-rooftop.png`. New development-only map “달빛 옥상” uses the existing map renderer, without extra animated objects. Top-aligned cover keeps the moon in view.
+- Opening a fresh `?shooterNoteVfx=1#shooter` preview selects this background. Existing production map defaults and assets remain intact.
+- `verify-shooter-note-vfx-moonlit.mjs`: 390×844 mobile and 1366×768 desktop portrait both pass background loading, Korean idle/destroy labels, KO↔EN toggling where exposed, cleanup and zero browser errors. Screenshots visually inspected.
+- Eight simultaneous new bursts: all retained after target-list removal and all cleaned up, 33 RAF callbacks in the isolated harness. Five animation stages inspected. All 209 shooter tests and production build pass after the follow-up.
+- Real microphone/device checks and rollout restrictions above still apply. No deployment or merge.

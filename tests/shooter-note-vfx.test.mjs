@@ -17,5 +17,6 @@ test('gameplay functions and existing visual assets are identical to the preserv
  const end='  const startShooterMic = useCallback';
  assert.equal(current.slice(current.indexOf(start),current.indexOf(end)),baseline.slice(baseline.indexOf(start),baseline.indexOf(end)));
  const changed=execFileSync('git',['diff','0e79bf3','--name-only','--','src/shooter','src/audio','public'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
- assert.ok(changed.every(path=>path.startsWith('src/shooter/noteVfx/')),changed.join('\n'));
+ const newMapPaths = ['src/shooter/maps/registry.js', 'src/shooter/maps/skins/moonlitRooftop.js', 'public/assets/maps/moonlit-rooftop/moonlit-rooftop.png'];
+ assert.ok(changed.every(path=>path.startsWith('src/shooter/noteVfx/') || newMapPaths.includes(path)),changed.join('\n'));
 });
