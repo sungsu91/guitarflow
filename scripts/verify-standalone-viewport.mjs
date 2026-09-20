@@ -20,6 +20,8 @@ try {for(const width of [390,430]) {
  }
  await nav.getByRole('button',{name:'메뉴 열기',exact:true}).click();
  await page.locator('#utility-menu-panel').waitFor();await check();
+ const lock=await page.evaluate(()=>({root:getComputedStyle(document.documentElement).overflow,body:getComputedStyle(document.body).position}));
+ assert.equal(lock.root,'clip');assert.notEqual(lock.body,'fixed');
  await page.locator('#utility-menu-panel .utilityMenuHeader button').click();
  await page.locator('#utility-menu-panel').waitFor({state:'hidden'});await check();
  await page.screenshot({path:`artifacts/nav/standalone-${width}-${mode}.png`});
@@ -27,3 +29,4 @@ try {for(const width of [390,430]) {
  }
  await page.close();
 }}finally{await browser.close();}
+

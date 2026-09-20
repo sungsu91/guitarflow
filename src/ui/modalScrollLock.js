@@ -6,15 +6,23 @@ export function lockDocumentScroll() {
     const root = document.documentElement, body = document.body;
     const x = window.scrollX, y = window.scrollY;
     const fixedStage = root.classList.contains('shooterCanonicalMobile');
+    const standalone = window.navigator?.standalone === true
+      || window.matchMedia?.('(display-mode: standalone)').matches;
+    const clipStandalone = standalone && window.CSS?.supports?.('overflow', 'clip');
     const changes = [[root,'overflow','hidden'],[root,'overscroll-behavior','none'],[body,'position','fixed'],[body,'top',`${-y}px`],[body,'left',`${-x}px`],[body,'width','100%'],[body,'overflow','hidden'],[body,'overscroll-behavior','none']];
     // Fixed full-screen stages already prevent page scrolling. Fixing body again
     // makes iOS re-evaluate its viewport and moves the bottom chrome.
-    const applied = fixedStage ? changes.filter(([node]) => node !== body) : changes;
+    // Home Screen apps have no browser toolbar to resize around. Do not turn
+    // body into a fixed box or root into an overflow:hidden scroll container
+    // when opening the menu: WebKit can retain the resulting viewport offset.
+    const applied = clipStandalone
+      ? [[root,'overflow','clip'],[root,'overscroll-behavior','none'],[body,'overflow','clip'],[body,'overscroll-behavior','none']]
+      : fixedStage ? changes.filter(([node]) => node !== body) : changes;
     const previous = applied.map(([node,key]) => [node,key,node.style.getPropertyValue(key),node.style.getPropertyPriority(key)]);
     applied.forEach(([node,key,value]) => node.style.setProperty(key,value,'important'));
     restorePage = () => {
       previous.forEach(([node,key,value,priority]) => value ? node.style.setProperty(key,value,priority) : node.style.removeProperty(key));
-      if (!fixedStage) window.scrollTo({left:x,top:y,behavior:'instant'});
+      if (!fixedStage && !clipStandalone) window.scrollTo({left:x,top:y,behavior:'instant'});
     };
   }
   let released = false;

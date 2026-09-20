@@ -390,3 +390,14 @@ html.shooterCanonicalMobile body #root main.app.viewport-portrait.tunerMode .tun
   height: 100% !important;
   min-height: 0 !important;
 }
+
+/* Unlike hidden, clip does not create a document scrolling container. Keeping
+   the root out of scroll-container mode avoids iOS standalone viewport changes
+   when entering/leaving the fixed tuner and game stages. */
+@supports (overflow: clip) {
+  html.shooterCanonicalMobile,
+  html.shooterCanonicalMobile body,
+  html.shooterCanonicalMobile body > #root {
+    overflow: clip !important;
+  }
+}
