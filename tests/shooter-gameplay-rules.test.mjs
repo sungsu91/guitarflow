@@ -31,14 +31,14 @@ test("urgent shooter pacing starts slow and keeps travel independent from spawn 
   assert.deepEqual(SHOOTER_RUNTIME_DIFFICULTY.difficult, {
     bpms: [54, 56, 58, 60, 62], maxTargets: 3, travelMs: 4_800, fretRange: [0, 12],
   });
-  assert.match(appSource, /const targetDuration = getShooterTargetDuration\(difficulty\)/);
+  assert.match(appSource, /const targetDuration = scaleShooterProgressDuration\(getShooterTargetDuration\(difficulty\), shooterProgressSpeedRef.current\)/);
   assert.match(appSource, /\[SHOOTER_DIFFICULTIES\.EASY\]:[\s\S]*?speedScale: 0\.8/);
   assert.match(appSource, /\[SHOOTER_DIFFICULTIES\.EASY_RANDOM\]: \{[^}]*spawnGapMinMs: 3200,[^}]*spawnGapMaxMs: 4200,[^}]*speedScale: 0\.8,[^}]*\}/);
   assert.doesNotMatch(appSource, /\[SHOOTER_DIFFICULTIES\.NORMAL_RANDOM\]: \{[^}]*speedScale:/);
-  assert.match(appSource, /const SHOOTER_NOTE_RECOVERY_MS = 1000;/);
+  assert.match(appSource, /getShooterProgressRecovery\(target.difficulty/);
   assert.match(appSource, /const SHOOTER_MAX_SIMULTANEOUS_TARGETS = 1;/);
   assert.match(appSource, /const maxTargets = Math\.min\(pacing\.maxTargets, SHOOTER_MAX_SIMULTANEOUS_TARGETS\);/);
-  assert.match(appSource, /shooterNextSpawnAtRef\.current = Math\.max\([\s\S]*?gameTimeRef\.current \+ SHOOTER_NOTE_RECOVERY_MS/);
+  assert.match(appSource, /shooterNextSpawnAtRef\.current = gameTimeRef\.current \+ getShooterProgressRecovery/);
   assert.doesNotMatch(appSource, /SHOOTER_EMPTY_REFILL_MS/);
   assert.match(appSource, /0\.9 \* 0\.85 \* \(pacing\.speedScale \?\? 1\)/);
   assert.match(appSource, /scenarioStepWindowMs \?\? getShooterSpawnGap\(difficulty\)/);

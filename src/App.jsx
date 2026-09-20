@@ -203,6 +203,8 @@ import {
 import useShooterNoteMonsterTuning from "./shooter/useShooterNoteMonsterTuning.js";
 import { NeonNote, NeonNoteBursts } from "./shooter/noteVfx/NeonNote.jsx";
 import { isNoteVfxEnabled } from "./shooter/noteVfx/noteVfx.js";
+import ProgressSettings from "./shooter/ProgressSettings.jsx";
+import { SHOOTER_HARD_RANDOM_POSITIONS, scaleShooterProgressDuration, getShooterProgressRecovery } from "./shooter/progressionSettings.js";
 import useShooterMobileViewport from "./shooter/useShooterMobileViewport.js";
 import {
   commitShooterPitchHit,
@@ -13545,7 +13547,6 @@ const SHOOTER_LIFE_LINE_PERCENT = 86;
 const SHOOTER_TARGET_DESTROY_ANIMATION_MS = 260;
 const SHOOTER_PROJECTILE_MS = 640;
 const SHOOTER_PROJECTILE_CONTACT_HOLD_MS = 58;
-const SHOOTER_NOTE_RECOVERY_MS = 1000;
 const SHOOTER_HITBOX_DEBUG_INTERVAL_MS = 32;
 // Default-off developer overlay. In dev builds it can also be enabled with ?debugHitbox=1#shooter.
 const DEBUG_HITBOX = false;
@@ -15984,17 +15985,23 @@ const SHOOTER_DIFFICULTIES = {
   NORMAL: "normal",
   NORMAL_RANDOM: SHOOTER_NORMAL_RANDOM_DIFFICULTY_ID,
   DIFFICULT: "difficult",
+  DIFFICULT_RANDOM: "difficult-random",
 };
 const SHOOTER_DIFFICULTY_OPTIONS = [
-  { id: SHOOTER_DIFFICULTIES.EASY, label: "쉬움", hint: "42 BPM · 0~3프렛 기초 완성" },
+  { id: SHOOTER_DIFFICULTIES.EASY, label: "쉬움", hint: "0~3프렛 · 기초 순서 연습" },
   { id: SHOOTER_DIFFICULTIES.EASY_RANDOM, label: "쉬움 랜덤", hint: SHOOTER_EASY_RANDOM_RANGE_LABEL },
-  { id: SHOOTER_DIFFICULTIES.NORMAL, label: "보통", hint: "48 BPM · 5~10프렛 상행/하행" },
+  { id: SHOOTER_DIFFICULTIES.NORMAL, label: "보통", hint: "5~10프렛 · 상행/하행" },
   { id: SHOOTER_DIFFICULTIES.NORMAL_RANDOM, label: "보통 랜덤", hint: SHOOTER_NORMAL_RANDOM_RANGE_LABEL },
-  { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "54 BPM · E2~E5 E Major 왕복" },
+  { id: SHOOTER_DIFFICULTIES.DIFFICULT, label: "어려움", hint: "E2~E5 · E Major 왕복" },
+  { id: SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM, label: "어려움 랜덤", hint: "개방현~12프렛 · # 포함 랜덤" },
 ];
 const DEFAULT_SHOOTER_DIFFICULTY = SHOOTER_DIFFICULTIES.EASY_RANDOM;
 const SHOOTER_MAX_SIMULTANEOUS_TARGETS = 1;
 const SHOOTER_DIFFICULTY_PACING = {
+  [SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM]: {
+    durationMs: SHOOTER_RUNTIME_DIFFICULTY.easy.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
+    maxTargets: 1, spawnGapMinMs: 600, spawnGapMaxMs: 850,
+  },
   [SHOOTER_DIFFICULTIES.EASY]: {
     durationMs: SHOOTER_RUNTIME_DIFFICULTY.easy.travelMs / ((SHOOTER_LIFE_LINE_PERCENT - 8) / 80),
     maxTargets: SHOOTER_RUNTIME_DIFFICULTY.easy.maxTargets,
@@ -16031,7 +16038,8 @@ function isShooterScriptedDifficulty(difficulty) {
 
 function isShooterRandomDifficulty(difficulty) {
   return difficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM
-    || difficulty === SHOOTER_DIFFICULTIES.NORMAL_RANDOM;
+    || difficulty === SHOOTER_DIFFICULTIES.NORMAL_RANDOM
+    || difficulty === SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM;
 }
 
 function getShooterStartingBpm(difficulty) {
@@ -16286,6 +16294,9 @@ function getShooterDifficultyPhase(
   spawnedCount = 0,
   difficultPatternId = SHOOTER_DIFFICULT_PATTERN_IDS.MAIN,
 ) {
+  if (difficulty === SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM) {
+    return { label: "개방현~12프렛 · # 포함 랜덤", maxFret: 12, poolRatioFloor: 1, poolRatioCap: 1, randomnessBonus: 0, jumpBiasBonus: 0 };
+  }
   if (difficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM) {
     return {
       label: SHOOTER_EASY_RANDOM_RANGE_LABEL,
@@ -16327,7 +16338,8 @@ function getShooterDifficultyPacing(difficulty) {
 }
 
 function getShooterTargetDuration(difficulty) {
-  const pacing = getShooterDifficultyPacing(difficulty);
+  // Shared fall speed; difficulty changes the note pool and recovery cadence.
+  const pacing = getShooterDifficultyPacing(SHOOTER_DIFFICULTIES.EASY_RANDOM);
   const baseDuration = pacing.durationMsMin && pacing.durationMsMax
     ? pacing.durationMsMin + Math.random() * (pacing.durationMsMax - pacing.durationMsMin)
     : pacing.durationMs;
@@ -16463,6 +16475,11 @@ function getShooterDifficultyNotes(
   difficultPatternId = SHOOTER_DIFFICULT_PATTERN_IDS.MAIN,
 ) {
   const phase = getShooterDifficultyPhase(difficulty, elapsedMs, spawnedCount, difficultPatternId);
+  if (difficulty === SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM) {
+    return SHOOTER_HARD_RANDOM_POSITIONS.map((step) => makeGuitarNote({
+      pitch: step.pitch, stringNumber: step.stringNumber, fretNumber: step.fretNumber, group: "shooter-difficult-random",
+    }));
+  }
   if (difficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM) {
     return SHOOTER_EASY_RANDOM_POSITIONS.map((step) => makeGuitarNote({
       pitch: step.pitch,
@@ -17068,6 +17085,8 @@ function App({ onReady }) {
   const [shooterScenarioRoundSummary, setShooterScenarioRoundSummary] = useState(null);
   const [shooterScenarioCountdown, setShooterScenarioCountdown] = useState(null);
   const [shooterDifficultyMenuOpen, setShooterDifficultyMenuOpen] = useState(false);
+  const [shooterProgressSpeed, setShooterProgressSpeed] = useState(1);
+  const shooterProgressSpeedRef = useRef(1);
   const [shooterPlayHelpInfoOpen, setShooterPlayHelpInfoOpen] = useState(false);
   const [shooterPlayHelpLevel, setShooterPlayHelpLevel] = useState(1);
   const [shooterSolfegeOn, setShooterSolfegeOn] = useState(getStoredShooterSolfegeOn);
@@ -21740,7 +21759,7 @@ function App({ onReady }) {
           ? getShooterDifficultStepDurationMs(resolvedScenarioStep, shooterBpmRef.current, scenarioRound)
           : getShooterNormalStepDurationMs(resolvedScenarioStep, shooterBpmRef.current)
       : null;
-    const targetDuration = getShooterTargetDuration(difficulty);
+    const targetDuration = scaleShooterProgressDuration(getShooterTargetDuration(difficulty), shooterProgressSpeedRef.current);
     lastShooterNoteRef.current = detail;
     lastShooterXRef.current = nextX;
     patternRef.current += 1;
@@ -21769,8 +21788,8 @@ function App({ onReady }) {
     ];
     shooterScenarioCountdownRef.current = null;
     setShooterScenarioCountdown(null);
-    shooterNextSpawnAtRef.current = gameTimeRef.current + (
-      scenarioStepWindowMs ?? getShooterSpawnGap(difficulty)
+    shooterNextSpawnAtRef.current = gameTimeRef.current + scaleShooterProgressDuration(
+      scenarioStepWindowMs ?? getShooterSpawnGap(difficulty), shooterProgressSpeedRef.current
     );
     setShooterTargets([...shooterTargetsRef.current]);
     syncShooterActiveTarget(shooterTargetsRef.current);
@@ -22325,10 +22344,7 @@ function App({ onReady }) {
           }
         : currentTarget
     ));
-    shooterNextSpawnAtRef.current = Math.max(
-      shooterNextSpawnAtRef.current,
-      gameTimeRef.current + SHOOTER_NOTE_RECOVERY_MS,
-    );
+    shooterNextSpawnAtRef.current = gameTimeRef.current + getShooterProgressRecovery(target.difficulty ?? shooterDifficultyRef.current, shooterProgressSpeedRef.current);
 
     setFeedback("Success");
     flashStage("hit");
@@ -22997,9 +23013,9 @@ function App({ onReady }) {
         !isShooterScriptedDifficulty(shooterDifficultyRef.current)
         &&
         shooterTargetsRef.current.length === 0
-        && shooterNextSpawnAtRef.current - gameTimeRef.current > SHOOTER_NOTE_RECOVERY_MS
+        && shooterNextSpawnAtRef.current - gameTimeRef.current > getShooterProgressRecovery(shooterDifficultyRef.current, shooterProgressSpeedRef.current)
       ) {
-        shooterNextSpawnAtRef.current = gameTimeRef.current + SHOOTER_NOTE_RECOVERY_MS;
+        shooterNextSpawnAtRef.current = gameTimeRef.current + getShooterProgressRecovery(shooterDifficultyRef.current, shooterProgressSpeedRef.current);
       }
 
       if (gameTimeRef.current >= shooterNextSpawnAtRef.current) {
@@ -23110,10 +23126,7 @@ function App({ onReady }) {
         shooterTargetsRef.current = shooterTargetsRef.current.filter((target) => !removedTargetIds.has(target.id));
       }
       if (missedTargets.length > 0) {
-        shooterNextSpawnAtRef.current = Math.max(
-          shooterNextSpawnAtRef.current,
-          gameTimeRef.current + SHOOTER_NOTE_RECOVERY_MS,
-        );
+        shooterNextSpawnAtRef.current = gameTimeRef.current + getShooterProgressRecovery(shooterDifficultyRef.current, shooterProgressSpeedRef.current);
         missedTargets.forEach((target) => {
           target.lifeLost = true;
           if (
@@ -33041,6 +33054,15 @@ function App({ onReady }) {
           <div className="modeHelper shooterHelper">
             반복 연습으로 지판 인식과 피킹 정확도를 키워보세요.
           </div>
+          {shooterDifficultyMenuOpen && !isShooterDifficultyLocked ? <ProgressSettings
+            mobile={isMobileLayout}
+            options={SHOOTER_DIFFICULTY_OPTIONS}
+            difficulty={shooterDifficulty}
+            speed={shooterProgressSpeed}
+            onDifficulty={changeShooterDifficulty}
+            onSpeed={(value) => { shooterProgressSpeedRef.current = value; setShooterProgressSpeed(value); }}
+            onClose={() => setShooterDifficultyMenuOpen(false)}
+          /> : null}
 
           {!isMobileLayout && !mapEditor.enabled ? <>
           <div className="shooterDifficultyPanel" aria-label="슈팅게임 난이도">
@@ -33054,6 +33076,7 @@ function App({ onReady }) {
               </small>
             </div>
             <div className="shooterDifficultyButtons">
+              <button type="button" disabled={isShooterDifficultyLocked} onClick={() => setShooterDifficultyMenuOpen(true)}>진행 속도 {shooterProgressSpeed}× · 설정</button>
               {SHOOTER_DIFFICULTY_OPTIONS.map((option) => (
                 <button
                   aria-disabled={isShooterDifficultyLocked}
@@ -33200,7 +33223,7 @@ function App({ onReady }) {
                 >
                   <button
                     aria-expanded={shooterDifficultyMenuOpen}
-                    aria-haspopup="listbox"
+                    aria-haspopup="dialog"
                     aria-label="슈팅게임 난이도"
                     className={`mobileShooterDifficultyHud ${isShooterDifficultyLocked ? "locked" : ""}`}
                     disabled={isShooterDifficultyLocked}
@@ -33215,31 +33238,6 @@ function App({ onReady }) {
                     </span>
                     <ChevronDown aria-hidden="true" className="mobileShooterDifficultyChevron" size={11} strokeWidth={2.2} />
                   </button>
-                  {shooterDifficultyMenuOpen && !isShooterDifficultyLocked ? (
-                    <div
-                      aria-label="슈팅게임 난이도 목록"
-                      className="mobileShooterDifficultyMenu"
-                      role="listbox"
-                    >
-                      {SHOOTER_DIFFICULTY_OPTIONS.map((option) => (
-                        <button
-                          aria-selected={shooterDifficulty === option.id}
-                          className={shooterDifficulty === option.id ? "selected" : ""}
-                          key={option.id}
-                          onClick={() => {
-                            changeShooterDifficulty(option.id);
-                            setShooterDifficultyMenuOpen(false);
-                          }}
-                          role="option"
-                          title={option.hint}
-                          type="button"
-                        >
-                          <span>{option.label}</span>
-                          <i aria-hidden="true">{shooterDifficulty === option.id ? "✓" : ""}</i>
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
                 </div>
 
                 <div className={`mobileShooterPlayHelpHud mobileShooterPlayHelpHud--level-${shooterPlayHelpLevel}`}>
@@ -33536,7 +33534,9 @@ function App({ onReady }) {
                   <span>
                     {shooterDifficulty === SHOOTER_DIFFICULTIES.EASY_RANDOM
                       ? SHOOTER_EASY_RANDOM_RANGE_LABEL
-                      : SHOOTER_NORMAL_RANDOM_RANGE_LABEL}
+                      : shooterDifficulty === SHOOTER_DIFFICULTIES.DIFFICULT_RANDOM
+                        ? "개방현~12프렛 · # 포함 랜덤"
+                        : SHOOTER_NORMAL_RANDOM_RANGE_LABEL}
                   </span>
                 ) : null}
               </div>
@@ -33681,6 +33681,14 @@ function App({ onReady }) {
                     </span>
                   ) : null}
                 </div>}
+                {shooterHitboxDebugEnabled && !horizontalShooterActive && !selectedMapIsPseudo3D && !target.defeated && target.hitboxActive !== false ? (() => {
+                  const hurtbox = getShooterTargetHurtbox(target);
+                  if (!hurtbox) return null;
+                  return <svg className="shooterAttachedHitbox" aria-hidden="true" width={hurtbox.radiusX * 2} height={hurtbox.radiusY * 2} viewBox={`${-hurtbox.radiusX} ${-hurtbox.radiusY} ${hurtbox.radiusX * 2} ${hurtbox.radiusY * 2}`}>
+                    <ellipse cx="0" cy="0" rx={hurtbox.radiusX} ry={hurtbox.radiusY} />
+                    <path d="M -4 0 H 4 M 0 -4 V 4" />
+                  </svg>;
+                })() : null}
               </div>
               );
             })}
@@ -33798,7 +33806,7 @@ function App({ onReady }) {
                     </g>
                   </g>
                 ) : null}
-                {shooterDebugGeometry.targets.map((target) => (
+                {(horizontalShooterActive || selectedMapIsPseudo3D) && shooterDebugGeometry.targets.map((target) => (
                   <g className="shooterHitboxDebugEnemy" key={`debug-target-${target.id}`}>
                     <ellipse
                       cx={target.center.x}
@@ -34226,20 +34234,15 @@ function App({ onReady }) {
           {horizontalShooterActive && !mapEditor.enabled ? (
             <DesktopHorizontalBattleControls
               difficultyLabel={shooterDifficultyLabel}
-              difficultyOptions={SHOOTER_DIFFICULTY_OPTIONS}
-              difficultyValue={shooterDifficulty}
               difficultyLocked={isShooterDifficultyLocked}
               helpLevel={shooterPlayHelpLevel}
               micActive={Boolean(streamRef.current)}
               mobileLandscape={mobileLandscapeShooterActive}
               onDifficulty={() => {
                 if (isShooterDifficultyLocked) return;
-                const currentIndex = SHOOTER_DIFFICULTY_OPTIONS.findIndex((option) => option.id === shooterDifficulty);
-                const nextIndex = (currentIndex + 1) % SHOOTER_DIFFICULTY_OPTIONS.length;
-                changeShooterDifficulty(SHOOTER_DIFFICULTY_OPTIONS[nextIndex].id);
+                setShooterDifficultyMenuOpen(true);
               }}
               onHelpChange={setShooterPlayHelpLevel}
-              onDifficultySelect={changeShooterDifficulty}
               onMic={startShooterMic}
               onPause={gameState === GAME_STATES.PAUSED ? resumeGame : pauseGame}
               onRecords={() => setShowShooterRecords((current) => !current)}

@@ -149,7 +149,7 @@ test("desktop battle CSS is scoped to the dedicated renderer class", async () =>
   assert.match(componentSource, /!mobileLandscape \? <button onClick=\{onSkin\}/);
   assert.match(componentSource, /!mobileLandscape \? <button aria-pressed=\{soundOn\}/);
   assert.doesNotMatch(componentSource, /desktopHorizontalPauseButton/);
-  assert.match(componentSource, /desktopHorizontalSelectControl[\s\S]*aria-label="난이도 선택"/);
+  assert.match(componentSource, /aria-haspopup="dialog" disabled=\{difficultyLocked\} onClick=\{onDifficulty\}/);
   assert.match(componentSource, /desktopHorizontalScorePair[\s\S]*BEST[\s\S]*현재/);
   assert.match(css, /mobileLandscapeShooter[\s\S]*shooterGuitarPickerList--filtered \.shooterGuitarPickerGrid \{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\) !important/);
   assert.match(css, /mobileLandscapeShooter[\s\S]*shooterEffectSetPicker \{[\s\S]*grid-template-columns: minmax\(0, 1\.35fr\) minmax\(210px, 0\.8fr\) !important/);

@@ -129,5 +129,5 @@ test("App routes easy difficulty through the fixed course rather than the random
   assert.match(spawnSource, /getShooterEasyTargetX\(resolvedScenarioStep\)/);
   assert.match(spawnSource, /"shooter-easy-scenario"/);
   assert.match(missSource, /const lifeLossCount = missedTargets\.length/);
-  assert.match(appSource, /42 BPM · 0~3프렛 기초 완성/);
+  assert.match(appSource, /0~3프렛 · 기초 순서 연습/);
 });

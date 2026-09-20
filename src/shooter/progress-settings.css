@@ -1,0 +1,21 @@
+.shooterProgressBackdrop { position:fixed; inset:0; z-index:2147483000; background:#050917b8; display:flex; padding:16px; color:#f5f3eb; }
+.shooterProgressBackdrop--mobile { align-items:flex-end; justify-content:center; padding-bottom:max(16px,env(safe-area-inset-bottom)); }
+.shooterProgressBackdrop--desktop { align-items:center; justify-content:center; }
+.shooterProgressSettings { box-sizing:border-box; width:100%; max-width:540px; max-height:calc(100dvh - 32px); overflow:auto; overscroll-behavior:contain; padding:22px; border:1px solid #727480; border-radius:22px; background:linear-gradient(155deg,#202b46,#101624); box-shadow:0 16px 60px #0008; font-family:inherit; }
+.shooterProgressSettings header { display:flex; justify-content:space-between; align-items:center; }
+.shooterProgressSettings h2 { font-size:21px; margin:5px 0 18px; }
+.shooterProgressSettings h3 { font-size:15px; margin:20px 0 10px; }
+.shooterProgressSettings h3 span { float:right; color:#ffe2a0; }
+.shooterProgressSettings p { font-size:12px; line-height:1.6; color:#b9c3d8; }
+.shooterProgressSettings button { display:block; box-sizing:border-box; min-width:0; width:100%; white-space:normal; font:inherit; color:inherit; cursor:pointer; border:1px solid #62708b; border-radius:12px; background:#ffffff08; padding:12px 8px; min-height:44px; }
+.shooterProgressSettings button:focus-visible { outline:3px solid #8ddcff; outline-offset:2px; }
+.shooterProgressSettings header > button { flex:0 0 44px; width:44px; height:44px; padding:0; font-size:24px; }
+.shooterProgressLevels { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.shooterProgressLevels button { text-align:left; padding:12px; }
+.shooterProgressLevels button strong { display:block; font-size:14px; line-height:1.4; }
+.shooterProgressSettings small { display:block; font-size:11px; line-height:1.5; color:#b9c3d8; margin-top:4px; word-break:keep-all; overflow-wrap:anywhere; }
+.shooterProgressSettings button[aria-pressed="true"] { border-color:#ffdc8e; background:#efd29120; box-shadow:inset 0 0 0 1px #ffdc8e; color:#ffe2a0; }
+.shooterProgressSpeeds { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.shooterProgressSettings .shooterProgressDone { width:100%; background:#f2d697; color:#172033; font-weight:800; margin-top:12px; }
+.shooterAttachedHitbox { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); overflow:visible; pointer-events:none; z-index:20; }
+.shooterAttachedHitbox ellipse,.shooterAttachedHitbox path { fill:none; stroke:#ff637e; stroke-width:1; vector-effect:non-scaling-stroke; }

@@ -105,14 +105,11 @@ const DesktopHorizontalBattleView = memo(function DesktopHorizontalBattleView({
 
 export const DesktopHorizontalBattleControls = memo(function DesktopHorizontalBattleControls({
   difficultyLabel,
-  difficultyOptions = [],
-  difficultyValue,
   difficultyLocked,
   helpLevel,
   micActive,
   mobileLandscape = false,
   onDifficulty,
-  onDifficultySelect,
   onHelpChange,
   onMic,
   onMap,
@@ -128,19 +125,11 @@ export const DesktopHorizontalBattleControls = memo(function DesktopHorizontalBa
   return (
     <div className="desktopHorizontalBattleControls" aria-label="가로 슈팅게임 설정">
       {mobileLandscape ? (
-        <label className="desktopHorizontalSelectControl">
+        <button type="button" aria-haspopup="dialog" disabled={difficultyLocked} onClick={onDifficulty}>
           <Gauge aria-hidden="true" size={13} />
           <span>난이도 {difficultyLabel}</span>
           <ChevronDown aria-hidden="true" size={12} />
-          <select
-            aria-label="난이도 선택"
-            disabled={difficultyLocked}
-            onChange={(event) => onDifficultySelect?.(event.target.value)}
-            value={difficultyValue}
-          >
-            {difficultyOptions.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
-          </select>
-        </label>
+        </button>
       ) : <button aria-disabled={difficultyLocked} disabled={difficultyLocked} onClick={onDifficulty} type="button">
         <Gauge aria-hidden="true" size={15} />
         난이도 {difficultyLabel}

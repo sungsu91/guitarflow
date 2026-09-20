@@ -1,5 +1,7 @@
 # Neon note visual patch (development only)
 
+Later user-authorized pacing/settings work is documented in `shooter-progression-verification.md`. Its changes to speed, spawn intervals and hard-random difficulty supersede the original visual-only scope below; pitch judgment, collision and scoring remain protected.
+
 - Branch: `feat/shooter-note-vfx`
 - Preserved source/assets baseline: `0e79bf3` (existing uncommitted application changes included; generated output left in place).
 - Enable: `http://127.0.0.1:5177/?shooterNoteVfx=1#shooter` on the local Vite server.

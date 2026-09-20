@@ -10,13 +10,15 @@ test('neon visuals require an explicit development-only opt in',()=>{
  assert.equal(isNoteVfxEnabled(true,'?shooterNoteVfx=0'),false);
  assert.equal(isNoteVfxEnabled(true,'?shooterNoteVfx=1'),true);
 });
-test('gameplay functions and existing visual assets are identical to the preserved baseline',()=>{
+test('pitch judgment, projectile scoring and collision geometry remain identical after authorized pacing changes',()=>{
  const baseline=execFileSync('git',['show','0e79bf3:src/App.jsx'],{encoding:'utf8',maxBuffer:8e6}).replaceAll('\r\n','\n');
  const current=readFileSync(new URL('../src/App.jsx',import.meta.url),'utf8').replaceAll('\r\n','\n');
- const start='  const flashStage = useCallback';
- const end='  const startShooterMic = useCallback';
- assert.equal(current.slice(current.indexOf(start),current.indexOf(end)),baseline.slice(baseline.indexOf(start),baseline.indexOf(end)));
+ for(const [start,end] of [
+   ['  const resolveShooterProjectileHit = useCallback','  const finalizeShooterRecord = useCallback'],
+   ['  const getShooterTargetHurtbox = useCallback','  const updateShooterHitboxDebug = useCallback'],
+ ]) assert.equal(current.slice(current.indexOf(start),current.indexOf(end)),baseline.slice(baseline.indexOf(start),baseline.indexOf(end)));
  const changed=execFileSync('git',['diff','0e79bf3','--name-only','--','src/shooter','src/audio','public'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
  const newMapPaths = ['src/shooter/maps/registry.js', 'src/shooter/maps/skins/moonlitRooftop.js', 'public/assets/maps/moonlit-rooftop/moonlit-rooftop.png'];
- assert.ok(changed.every(path=>path.startsWith('src/shooter/noteVfx/') || newMapPaths.includes(path)),changed.join('\n'));
+ const progressionPaths=['src/shooter/progressionSettings.js','src/shooter/ProgressSettings.jsx','src/shooter/progress-settings.css','src/shooter/desktopHorizontal/DesktopHorizontalBattleView.jsx'];
+ assert.ok(changed.every(path=>path.startsWith('src/shooter/noteVfx/') || newMapPaths.includes(path) || progressionPaths.includes(path)),changed.join('\n'));
 });
