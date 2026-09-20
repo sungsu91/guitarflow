@@ -19,7 +19,7 @@ const sparks = Array.from({ length: 18 }, (_, i) => {
 // One transparent vector design; the pitch is always live text, never baked into art.
 export function NeonNote({ pitch, label = pitch, breaking = false, impact = { x: 50, y: 70 } }) {
   return <svg aria-hidden="true" className={`noteVfxArt${breaking ? ' noteVfxArt--break' : ''}`} viewBox="0 0 100 100" style={{ '--vfx-color': noteVfxColor(pitch) }}>
-    <g className="noteVfxBody" transform="translate(25 25) scale(.5)">
+    <g className="noteVfxBody" transform="translate(12.5 12.5) scale(.75)">
     <circle className="noteVfxCore" cx="50" cy="50" r="27" />
     <circle className="noteVfxHalo" cx="50" cy="50" r="28" />
     <g className="noteVfxRing">

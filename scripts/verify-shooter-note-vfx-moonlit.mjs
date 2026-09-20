@@ -9,7 +9,7 @@ try { for(const width of [390,1366]) {
  assert.ok(await page.locator('.shooterArena img[src*="moonlit-rooftop"]').count()>0);
  const ko=await page.locator('.shooterEnemy .noteVfxPitch').first().textContent();assert.match(ko,/[도레미파솔라시]/);
  const ringRatio=await page.locator('.shooterEnemy .noteVfxArt').first().evaluate(svg=>svg.querySelector('.noteVfxRing circle').getBoundingClientRect().width/svg.getBoundingClientRect().width);
- assert.ok(Math.abs(ringRatio-.28)<.005, `Half-size ring ratio: ${ringRatio}`);
+ assert.ok(Math.abs(ringRatio-.42)<.005, `Enlarged ring ratio: ${ringRatio}`);
  await page.screenshot({path:`artifacts/note-vfx/moonlit-ko-${width}.png`,style:'.shooterHitboxDebugOverlay,.shooterHitboxDebugToolbar{visibility:hidden}'});
  const toggle=page.getByRole('button',{name:/도레미파솔라시도 표시/});
  if(await toggle.isVisible()) {await toggle.click();assert.match(await page.locator('.shooterEnemy .noteVfxPitch').first().textContent(),/^[A-G]/);await toggle.click();}
