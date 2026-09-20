@@ -1,3 +1,4 @@
+import {effectiveTuning,soundingMidi} from './scoreTuning.js';
 import {SCORE_INSTRUMENTS,scoreInstrument} from './scoreInstruments.js';
 import {NATURAL_HARMONICS,fingeringCandidates} from './scoreModel.js';
 
@@ -5,13 +6,13 @@ import {NATURAL_HARMONICS,fingeringCandidates} from './scoreModel.js';
 // reject a playable chord, especially with re-entrant high-G ukulele tuning.
 function assign(notes,source,target,where) {
   const options=notes.map(note=>{
-    const midi=source[note.string-1]+(note.harmonic?NATURAL_HARMONICS[note.fret]:note.fret);
+    const midi=note.midi??source[note.string-1]+(note.harmonic?NATURAL_HARMONICS[note.fret]:note.fret);
     const candidates=note.dead?target.map((_,i)=>({string:i+1,fret:note.fret})):
       note.harmonic?target.flatMap((open,i)=>Object.entries(NATURAL_HARMONICS).filter(([,interval])=>open+interval===midi).map(([fret])=>({string:i+1,fret:Number(fret)}))):fingeringCandidates(midi,target);
     return candidates.sort((a,b)=>(a.string===note.string?0:1)-(b.string===note.string?0:1)||a.fret-b.fret);
   });
   const order=notes.map((_,i)=>i).sort((a,b)=>options[a].length-options[b].length),result=[],used=new Set();
-  function visit(at){if(at===order.length)return true;const i=order[at];for(const choice of options[i]){if(used.has(choice.string))continue;used.add(choice.string);result[i]={...notes[i],...choice,locked:true};if(visit(at+1))return true;used.delete(choice.string);}return false;}
+  function visit(at){if(at===order.length)return true;const i=order[at];for(const choice of options[i]){if(used.has(choice.string))continue;used.add(choice.string);result[i]={...notes[i],...choice,unplaced:false,locked:true};if(visit(at+1))return true;used.delete(choice.string);}return false;}
   if(!visit(0)){
     const pitches=notes.filter(n=>!n.dead).map(n=>source[n.string-1]+(n.harmonic?NATURAL_HARMONICS[n.fret]:n.fret));
     const reason=pitches.some(midi=>midi<Math.min(...target))
@@ -27,10 +28,10 @@ function assign(notes,source,target,where) {
 export function convertScoreInstrument(document,id){
   if(!Object.hasOwn(SCORE_INSTRUMENTS,id))throw Error('지원하지 않는 악기입니다.');
   if((document.instrument??'guitar')===id)return document;
-  const target=scoreInstrument(id).tuning,next=structuredClone(document),source=document.tuning;
-  next.instrument=id;next.tuning=[...target];
+  const target=scoreInstrument(id).tuning,next=structuredClone(document),source=effectiveTuning(document);
+  next.instrument=id;next.tuning=[...target];next.capo=0;
   next.measures.forEach((bar,b)=>{
-    bar.events.forEach((event,i)=>{event.notes=assign(event.notes.map(n=>({...n,dead:n.dead??event.dead})),source,target,`${b+1}마디 ${i+1}음`);});
+    bar.events.forEach((event,i)=>{event.notes=assign(event.notes.map(n=>({...n,midi:soundingMidi(document,n),dead:n.dead??event.dead})),source,target,`${b+1}마디 ${i+1}음`);});
     if(bar.chord){
       const notes=bar.chord.frets.flatMap((fret,i)=>fret===null?[]:[{string:source.length-i,fret}]);
       const converted=assign(notes,source,target,`${b+1}마디 코드표`);

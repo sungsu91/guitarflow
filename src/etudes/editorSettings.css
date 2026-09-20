@@ -1,0 +1,38 @@
+.editorSettingsPopover{z-index:1000;box-sizing:border-box;background:var(--score-surface);color:var(--score-ink);border:1px solid var(--score-line);border-radius:12px;padding:6px;overflow:visible;box-shadow:0 8px 24px #0003}
+.editorSettingsPopover:before{content:'';position:absolute;top:var(--tail-top);left:var(--tail-x);width:12px;height:12px;transform:translateX(-50%) rotate(45deg);background:var(--score-surface);border-top:1px solid var(--score-line);border-left:1px solid var(--score-line)}
+.editorSettingsBody{position:relative;display:flex;flex-direction:column;gap:8px;max-height:inherit;overflow:auto;overscroll-behavior:contain;padding:6px;box-sizing:border-box}
+.editorSettingsBody header{display:flex;justify-content:space-between;align-items:center}.editorSettingsBody fieldset{min-width:0;border:1px solid var(--score-line);border-radius:8px;display:grid;gap:8px;padding:10px}
+.editorSettingsBody label{display:flex;align-items:center;gap:8px;justify-content:space-between}.editorSettingsBody p{font-size:13px;margin:4px 0;line-height:1.5}.editorSettingsBody small{color:var(--score-muted);line-height:1.5}.editorSettingsBody select{min-width:0;max-width:100%;min-height:40px}.editorSettingsBody button{min-height:40px!important;padding:8px!important}.editorSettingsBody :focus-visible{outline:2px solid var(--score-accent)!important;outline-offset:2px}
+.editorCapoGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.editorFretRange{display:flex;gap:12px}.editorFretRange input{width:64px}.editorSettingsBody input[type=radio]{width:18px;height:18px}
+.editorSettingsPopover .editorSettingsBody button[aria-pressed=true]{background:var(--score-accent)!important;color:var(--score-on-accent)!important}
+.editorInstrumentRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.editorInstrumentRow>select,.editorInstrumentRow>button{min-height:36px!important;flex:1;min-width:110px}.mobileNotationViews .editorInstrumentRow{grid-column:1/-1;display:flex}.mobileNotationViews{flex-wrap:wrap!important}.mobileNotationViews>.editorInstrumentRow{flex-basis:100%}
+.etudeMeasureLayoutBar{flex-wrap:wrap!important;height:auto!important;min-height:38px;flex-shrink:0}.editorBarCount{display:flex;align-items:center;gap:5px;white-space:nowrap}.editorBarCount>div{display:flex;gap:3px}.editorTuningCaption{margin:2px 0;font-size:12px;color:var(--score-muted);flex-shrink:0}.editorTabWarning{font-size:12px;margin:2px 0;color:var(--score-ink);flex-shrink:0}
+
+.editorSettingsPopover{display:flex;flex-direction:column}.editorSettingsBody{min-height:0;max-height:100%;flex:1}
+.editorDesign.mobileScoreWorkspace .editorAudioDock.is-one-row{padding:2px 0 calc(2px + env(safe-area-inset-bottom));border:0;gap:0;border-radius:0;margin:0}
+.editorDesign.mobileScoreWorkspace .is-one-row .editorTransport{display:grid;grid-template-columns:minmax(60px,1fr) 74px 40px 48px minmax(78px,1fr);gap:4px;align-items:center}
+.editorDesign.mobileScoreWorkspace .is-one-row .editorTransport>button,.editorDesign.mobileScoreWorkspace .is-one-row .editorTempo{min-height:40px!important;height:40px!important;padding:3px!important}
+.editorDesign.mobileScoreWorkspace .is-one-row .editorTempo{width:auto;min-width:0}.editorDesign.mobileScoreWorkspace .is-one-row .editorTempo input{width:42px!important;min-width:0!important;padding:2px!important;font-size:17px!important}.editorDesign.mobileScoreWorkspace .is-one-row .editorTempo span{font-size:10px}
+.editorDesign.mobileScoreWorkspace .is-one-row .editorSoundToggle{display:flex;flex-direction:column;align-items:center;justify-content:center;align-self:stretch;margin:0;gap:0;min-height:40px;font-size:10px;white-space:nowrap}.editorDesign.mobileScoreWorkspace .is-one-row .editorCompactTimbre{min-width:0;width:100%;min-height:40px;padding:3px;font-size:12px}
+.editorDesign.mobileScoreWorkspace .mobileScoreInput{padding-bottom:0;gap:3px}.editorDesign.mobileScoreWorkspace .editorAudioDock.is-one-row .editorAudioStatus{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}
+
+
+.scoreTuningCaption{font-size:12px;color:var(--score-muted);margin:4px 0}
+
+/* Labels and the segmented choice form one indivisible line-layout control. */
+.editorDesign .editorBarCount{flex:0 0 auto;gap:3px!important;padding:2px 3px;box-sizing:border-box;border:1px solid var(--ed-line);border-radius:9px;background:var(--ed-surface);color:var(--ed-ink);min-height:38px}
+.editorDesign .editorBarCount>span{padding:0;line-height:1;white-space:nowrap;color:var(--ed-muted)!important;font-weight:400;cursor:default}
+.editorDesign .editorBarCount>div{gap:1px}
+@layer score-workspace {
+ .editorDesign .editorBarCount button{border:1px solid var(--ed-line)!important;box-sizing:border-box;box-shadow:none!important;min-width:32px!important;width:32px!important;height:32px!important;min-height:32px!important;padding:0!important;border-radius:6px!important}
+ .editorDesign .editorBarCount button:not([aria-pressed=true]){background:var(--ed-soft)!important}
+ .editorDesign .editorBarCount button[aria-pressed=true]{border-color:var(--ed-active)!important}
+ .editorDesign .editorBarCount>span{color:var(--ed-muted)!important;font-weight:400!important}
+ .editorDesign .editorInstrumentRow .editorTuningButton{border:1px solid var(--ed-line)!important;background:var(--ed-surface)!important;box-shadow:none!important}
+}
+.editorDesign.mobileScoreWorkspace .etudeMeasureLayoutBar{padding-inline:2px;gap:4px;align-items:center}
+.editorDesign.mobileScoreWorkspace .editorBarCount{font-size:12px}
+
+/* Leave room for the focus outline between the two toolbar rows. */
+.editorDesign.mobileScoreWorkspace .mobileNotationViews{row-gap:8px}
+.editorDesign.mobileScoreWorkspace .editorInstrumentRow{position:relative;z-index:1;min-height:36px}

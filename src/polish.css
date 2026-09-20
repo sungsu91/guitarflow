@@ -8534,7 +8534,7 @@ html body main.app.app.app.app.app.theme-brand
   text-shadow: none !important;
 }
 /* Mini accompaniment: audio-clock-driven progress inside the active half-bar. */
-.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot.playing::after {
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot .miniChordPlaybackProgress {
   position: absolute;
   right: 0;
   bottom: 0;
@@ -8544,10 +8544,14 @@ html body main.app.app.app.app.app.theme-brand
   border-radius: 999px;
   background: linear-gradient(90deg, #a96f23, #edbd62);
   box-shadow: 0 0 7px rgba(185, 125, 35, 0.34);
-  content: "";
   pointer-events: none;
-  transform: scaleX(var(--mini-chord-playback-progress, 0));
+  transform: scaleX(0);
   transform-origin: left center;
+  visibility: hidden;
+}
+
+.miniChordMakerPanelCompact .miniChordTimelineFour .miniChordSlot.playing .miniChordPlaybackProgress {
+  visibility: visible;
   will-change: transform;
 }
 

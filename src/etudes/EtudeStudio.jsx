@@ -5,9 +5,9 @@ import { ETUDES } from './catalog.js';
 import { lessonCourse, canOpenLesson } from './filters.js';
 import './practiceLayout.css';
 import './etudes.css';
-import {toScoreDocument} from './scoreDocument.js';
+import {toScoreDocument,compileScoreDocument} from './scoreDocument.js';
 import {loadLibrary,saveLibraryDocument} from './scoreLibrary.js';
-import {copyDocument} from './scoreModel.js';
+import {copyDocument,createBlankDocument} from './scoreModel.js';
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { COMMON_PRACTICE_TIPS, PICKING_EXAMPLES, FINGERSTYLE_PRACTICE_TIPS, FINGERSTYLE_EXAMPLES } from './practiceTips.js';
 
@@ -23,11 +23,11 @@ function Select({ label, value, options, onChange }) {
 }
 
 function SongPicker({ model }) {
- const {list,selected,select}=model;
+ const {list,selected,select,savedScores,savedId,selectSaved}=model;
  const types=[...new Set(list.map(e=>e.type))],course=list.filter(e=>e.type===selected?.type),index=course.findIndex(e=>e.id===selected?.id);
  return <div className="etudeSongPicker etudeQuickBrowse">
-  <div className="etudeQuickSelects"><Select label="연습 유형" value={selected?.type??types[0]} options={types} onChange={type=>select(list.find(e=>e.type===type).id)}/></div>
-  <nav className="etudeQuickPages" aria-label="에튀드 쪽넘김"><button type="button" aria-label="이전 연습곡" disabled={index<=0} onClick={()=>select(course[index-1].id)}><ChevronLeft aria-hidden="true"/></button><span aria-live="polite">{index+1} / {course.length}</span><button type="button" aria-label="다음 연습곡" disabled={index<0||index>=course.length-1} onClick={()=>select(course[index+1].id)}><ChevronRight aria-hidden="true"/></button></nav>
+  <div className="etudeQuickSelects"><Select label="연습 유형" value={savedId?'':selected?.type??types[0]} options={[{id:'',title:'앱 연습 유형'},...types]} onChange={type=>{if(type)select(list.find(e=>e.type===type).id);}}/><Select label="내 저장 악보" value={savedId} options={[{id:'',title:savedScores.length?'악보 선택':'저장된 악보 없음'},...savedScores.map(r=>({id:r.document.id,title:r.document.title}))]} onChange={selectSaved}/></div>
+  {!savedId&&<nav className="etudeQuickPages" aria-label="에튀드 쪽넘김"><button type="button" aria-label="이전 연습곡" disabled={index<=0} onClick={()=>select(course[index-1].id)}><ChevronLeft aria-hidden="true"/></button><span aria-live="polite">{index+1} / {course.length}</span><button type="button" aria-label="다음 연습곡" disabled={index<0||index>=course.length-1} onClick={()=>select(course[index+1].id)}><ChevronRight aria-hidden="true"/></button></nav>}
  </div>;
 }
 
@@ -58,24 +58,30 @@ function LessonTips({ model }) {
 export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, initialId=DEFAULT_ETUDE_ID }) {
   const [edits,setEdits]=useState(loadEdits);
   const [editing,setEditing]=useState(null);
+  const [savedId,setSavedId]=useState('');
+  const savedScores=Object.values(edits.records).filter(r=>r.status!=='unreadable');
+  const savedRecord=savedScores.find(r=>r.document.id===savedId);
+  const compiled=useMemo(()=>savedRecord?compileScoreDocument(savedRecord.document):null,[savedRecord]);
   const [selectedId, setSelectedId] = useState(initialId);
   const [bpm, updateBpm] = useState(()=>edits.scores[initialId]?.bpm??ETUDES.find(e=>e.id===initialId)?.bpm??DEFAULT_ETUDE_BPM);
   const list = useMemo(() => ETUDES.map(e=>edits.scores[e.id]??e), [edits]);
-  const selected = list.find(e => e.id === selectedId) ?? list[0];
+  const selected = compiled?.score ?? list.find(e => e.id === selectedId) ?? list[0];
   const session=usePracticeSession(selected,bpm,updateBpm);
   const {controller,layout}=session;
   const filters=selected?{type:selected.type,level:selected.level,style:'전체'}:undefined;
-  const select = id => { controller.current?.stop(); setSelectedId(id); updateBpm((edits.scores[id]??ETUDES.find(e => e.id === id))?.bpm ?? 60); };
+  const select = id => { controller.current?.stop(); setSavedId(''); setSelectedId(id); updateBpm((edits.scores[id]??ETUDES.find(e => e.id === id))?.bpm ?? 60); };
+  const selectSaved=id=>{controller.current?.stop();setSavedId(id);updateBpm(savedScores.find(r=>r.document.id===id)?.document.bpm??list.find(e=>e.id===selectedId)?.bpm??60);};
   const saveEdit=document=>{let result;try{result=saveLibraryDocument(window.localStorage,document,ETUDES);}catch{result={saved:false,errors:['이 브라우저에서는 저장할 수 없습니다. 파일로 내보내세요.']};}if(result.saved)setEdits(current=>({...current,records:{...current.records,[document.id]:result.record}}));return result;};
-  const editScore=score=>{controller.current?.stop();setEditing(copyDocument(toScoreDocument(score)));};
-  const model = { ...session, editing, saveEdit, editScore, filters, list, selected, select, bpm, onOpenMenu, onExit,
+  const canEdit=Boolean(savedRecord)||import.meta.env.DEV;
+  const editScore=score=>{if(!canEdit)return;controller.current?.stop();setEditing(savedRecord?structuredClone(savedRecord.document):copyDocument(toScoreDocument(score)));};
+  const model = { ...session, createScore:()=>{controller.current?.stop();setEditing(createBlankDocument());},canEdit, savedScores,savedId,selectSaved,editing, saveEdit, editScore, filters, list, selected, select, bpm, onOpenMenu, onExit,
     openLesson: lesson => { if (!canOpenLesson(selected, lesson, filters)) return; select(lesson.id); },
     setBpm: v => { updateBpm(Math.min(240, Math.max(30, Math.round(Number(v) || 30)))); },
  };
   return <>{edits.errors.length>0&&<p role="status" className="etudeStorageNotice">{edits.errors.join(' ')}</p>}
 
-    <section className={"etudeStudio etudeStudio--simple "+(mobile?"etudeStudio--mobile":"etudeStudio--desktop")} >{!layout.focus&&<SongPicker model={model}/>}<PracticeSheet model={model} mobile={mobile} lessonTips={<LessonTips model={model}/>}/></section>
-    <PracticeSessionPlayback model={model} mobile={mobile} disabled={Boolean(editing)}/>
+    <section className={"etudeStudio etudeStudio--simple "+(mobile?"etudeStudio--mobile":"etudeStudio--desktop")} >{!layout.focus&&<SongPicker model={model}/>}<PracticeSheet model={model} mobile={mobile} title={savedRecord?.document.title} heading={savedRecord?<header className="etudeSheetHeader"><h2>{savedRecord.document.title}</h2><div className="etudeSheetMeta"><span>{savedRecord.document.keySignature}</span><span>♩ = {bpm}</span></div></header>:undefined} lessonTips={savedRecord?undefined:<LessonTips model={model}/>}/></section>
+    <PracticeSessionPlayback model={model} mobile={mobile} disabled={Boolean(editing)||Boolean(compiled?.issues?.length)}/>
     {editing&&<Suspense fallback={<p role="status">편집기를 준비하고 있습니다…</p>}><ScoreEditor key={editing.id} document={editing} original={ETUDES.find(e=>e.templateId===editing.origin?.templateId)} mobile={mobile} onClose={()=>setEditing(null)} onSave={saveEdit} onImportPdf={onImportPdf}/></Suspense>}
   </>;
 }

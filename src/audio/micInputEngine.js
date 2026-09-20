@@ -136,6 +136,7 @@ function createDetectionGraph(context, source, config) {
   return {
     analyser,
     nodes: [source, highpass, detectionGain, analyser, silentSink],
+    highpass,
     recordingStream: null,
   };
 }
@@ -193,9 +194,9 @@ function getLowFrequencyRatio(analyser, frequencyBuffer, sampleRate) {
 }
 
 function createSession({ consumerId, context, graph, preset, presetName, rawStream, trackSettings }) {
-  const floatBuffer = graph?.analyser ? new Float32Array(graph.analyser.fftSize) : null;
-  const byteBuffer = graph?.analyser ? new Uint8Array(graph.analyser.fftSize) : null;
-  const frequencyBuffer = graph?.analyser ? new Float32Array(graph.analyser.frequencyBinCount) : null;
+  let floatBuffer = graph?.analyser ? new Float32Array(graph.analyser.fftSize) : null;
+  let byteBuffer = graph?.analyser ? new Uint8Array(graph.analyser.fftSize) : null;
+  let frequencyBuffer = graph?.analyser ? new Float32Array(graph.analyser.frequencyBinCount) : null;
   const monitorStops = new Set();
   let peakHoldUntil = 0;
   const detectionState = {
@@ -218,6 +219,18 @@ function createSession({ consumerId, context, graph, preset, presetName, rawStre
     rawStream,
     recordingStream: graph?.recordingStream ?? rawStream,
     trackSettings,
+    configureDetection({ fftSize, highpassFrequency }) {
+      if (released || !graph?.highpass || !graph?.analyser) return;
+      if (!Number.isInteger(fftSize) || fftSize < 32 || fftSize > 32768 || (fftSize & (fftSize - 1))) return;
+      if (!Number.isFinite(highpassFrequency) || highpassFrequency <= 0) return;
+      if (graph.analyser.fftSize !== fftSize) {
+        graph.analyser.fftSize = fftSize;
+        floatBuffer = new Float32Array(fftSize);
+        byteBuffer = new Uint8Array(fftSize);
+        frequencyBuffer = new Float32Array(graph.analyser.frequencyBinCount);
+      }
+      graph.highpass.frequency.value = highpassFrequency;
+    },
     readLevelFrame() {
       if (released || !graph?.analyser || !floatBuffer) {
         return { clipping: false, normalized: 0, peak: 0, peakDb: -100, rms: 0, rmsDb: -100, state: "low" };

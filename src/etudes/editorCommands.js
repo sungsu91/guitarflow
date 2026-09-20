@@ -1,3 +1,4 @@
+import {soundingMidi,effectiveTuning,maxFret} from './scoreTuning.js';
 import {NATURAL_HARMONICS,patchEvent,newId,ticksOf,blankEvent,cloneMeasures,moveSamePitch,blankMeasure,isBlankEvent} from './scoreModel.js';
 export function deleteMeasure(d,bar){
  if(d.measures.length<=1)throw Error('악보에는 최소 한 마디가 필요합니다.');
@@ -39,7 +40,7 @@ export function setNoteConnection(d,c,kind){
 // Older documents stored mute on the whole event. Preserve those marks on
 // each existing string before editing just one string.
 const stringTones=e=>e.dead?e.notes.map(n=>({...n,dead:n.dead??true})):e.notes;
-export function enterFret(d,c,fret){return patchEvent(d,c.bar,c.event,e=>{const existing=stringTones(e),old=existing.find(n=>n.string===c.string);const tone={...(old??{id:newId('tone')}),string:c.string,fret,locked:true};delete tone.dead;delete tone.spelling;if(old?.fret!==fret)delete tone.harmonic;const notes=e.rest?[tone]:old?existing.map(n=>n===old?tone:n):[...existing,tone];return {...e,dead:false,rest:false,blank:false,notes};});}
+export function enterFret(d,c,fret){if(!Number.isInteger(fret)||fret<0||fret+(d.capo??0)>maxFret(d))throw Error(`카포 포함 실제 프렛은 ${maxFret(d)} 이하여야 합니다.`);return patchEvent(d,c.bar,c.event,e=>{const existing=stringTones(e),old=existing.find(n=>n.id===c.noteId&&n.unplaced)??existing.find(n=>n.string===c.string);const tone={...(old??{id:newId('tone')}),string:c.string,fret,locked:true};delete tone.dead;delete tone.spelling;delete tone.unplaced;delete tone.previousFingering;delete tone.outsidePreferred;if(old?.fret!==fret)delete tone.harmonic;const notes=e.rest?[tone]:old?existing.map(n=>n===old?tone:n):[...existing,tone];return {...e,dead:false,rest:false,blank:false,notes};});}
 export function enterMutedTone(d,c,duration='4'){
  // Replacing a fret with X never changes an already entered event's rhythm.
  const prepared=entryDocument(d,c,duration);
@@ -78,9 +79,9 @@ function retimeEvent(d,c,duration,dotted=false){
  if(events.length>64)throw Error('한 마디에 최대 64개 입력 위치를 사용할 수 있습니다.');
  return {...d,measures:d.measures.map((bar,i)=>i===c.bar?{...bar,events}:bar)};
 }
-export function setEventDuration(d,c,duration){
+export function setEventDuration(d,c,duration,dotted=false){
  if(!['1','2','4','8','16'].includes(String(duration)))throw Error('지원하지 않는 음표 길이입니다.');
- return retimeEvent(d,c,String(duration));
+ return retimeEvent(d,c,String(duration),dotted);
 }
 export function setDotted(d,c,dotted=true){
  const e=d.measures[c.bar]?.events[c.event];
@@ -111,16 +112,17 @@ export function resolveFretInput(previous,key,location){
 }
 export function deleteTone(d,c){
  const event=d.measures[c.bar]?.events[c.event];
+ const selected=n=>c.noteId&&event?.notes.some(t=>t.id===c.noteId)?n.id===c.noteId:n.string===c.string;
  // Silence keeps its time slot. An untouched slot is not an editable rest.
- if(!event||isBlankEvent(event)||(!event.rest&&!event.notes.some(n=>n.string===c.string)))return d;
- let next=patchEvent(d,c.bar,c.event,e=>{const notes=e.rest?[]:e.notes.filter(n=>n.string!==c.string);return {...e,notes,rest:!notes.length,blank:!notes.length,technique:notes.length?e.technique:null,...(!notes.length?{pickStroke:null,tieTo:null,dead:false,vibrato:false,palmMute:false,arpeggio:null}:{})};});
+ if(!event||isBlankEvent(event)||(!event.rest&&!event.notes.some(selected)))return d;
+ let next=patchEvent(d,c.bar,c.event,e=>{const notes=e.rest?[]:e.notes.filter(n=>!selected(n));return {...e,notes,rest:!notes.length,blank:!notes.length,technique:notes.length?e.technique:null,...(!notes.length?{pickStroke:null,tieTo:null,dead:false,vibrato:false,palmMute:false,arpeggio:null}:{})};});
  if(!isBlankEvent(next.measures[c.bar].events[c.event]))return next;
  // Remove connections ending at the deleted sound, without moving any time slots.
  const previous=c.event?d.measures[c.bar].events[c.event-1]:d.measures[c.bar-1]?.events.at(-1);
  d.measures.forEach((bar,b)=>bar.events.forEach((e,i)=>{const tie=e.tieTo===event.id,technique=e===previous&&e.technique;if(tie||technique)next=patchEvent(next,b,i,{...(tie?{tieTo:null}:{}),...(technique?{technique:null}:{})});}));
  return next;
 }
-export function moveFingering(d,c,direction){return patchEvent(d,c.bar,c.event,e=>{const tone=e.notes.find(n=>n.string===c.string);if(!tone)return e;const next=moveSamePitch(tone,direction,d.tuning);if(e.notes.some(n=>n!==tone&&n.string===next.string))return e;return {...e,notes:e.notes.map(n=>n===tone?next:n)};});}
+export function moveFingering(d,c,direction){return patchEvent(d,c.bar,c.event,e=>{const tone=e.notes.find(n=>n.string===c.string);if(!tone)return e;const next=moveSamePitch(tone,direction,effectiveTuning(d));if(next.fret+(d.capo??0)>maxFret(d)||e.notes.some(n=>n!==tone&&n.string===next.string))return e;return {...e,notes:e.notes.map(n=>n===tone?next:n)};});}
 export function setRest(d,c){return patchEvent(d,c.bar,c.event,{rest:true,blank:false,notes:[],technique:null,pickStroke:null,tieTo:null,dead:false,vibrato:false,palmMute:false,arpeggio:null});}
 export function durationStep(d,c,step){const values=['1','2','4','8','16'];const event=d.measures[c.bar].events[c.event];return setEventDuration(d,c,values[Math.max(0,Math.min(4,values.indexOf(event.duration)+step))]);}
 export function insertEvent(d,c,{duplicate=false,before=false}={}){const m=d.measures[c.bar],e=m.events[c.event];if(e.tuplet)throw Error('3연음 묶음 안에는 박을 삽입하지 않습니다.');if(m.events.length>=64)throw Error('한 마디에 최대 64개 박을 입력할 수 있습니다.');const length=ticksOf(e),at=c.event+(before?0:1),onset=e.onset+(before?0:length),added=duplicate?{...structuredClone(e),id:newId('event'),onset,notes:e.notes.map(n=>({...n,id:newId('tone')}))}:{...blankEvent(onset,e.duration),...(e.dotted?{dotted:true}:{})};const events=[...m.events.slice(0,at),added,...m.events.slice(at).map(n=>({...n,onset:n.onset+length}))];return {...d,measures:d.measures.map((bar,i)=>i===c.bar?{...bar,events}:bar)};}
@@ -132,7 +134,7 @@ export function moveTone(d,from,to){
  const same=source===target;
  let moved={...tone,locked:true};
  if(to.mode==='staff'){
-  const fret=to.midi-d.tuning[tone.string-1];if(!Number.isInteger(fret)||fret<0||fret>24)throw Error('현재 줄에서 낼 수 없는 음입니다. 음정·동일음 운지 후보에서 줄을 먼저 선택하세요.');
+  const fret=to.midi-effectiveTuning(d)[tone.string-1];if(!Number.isInteger(fret)||fret<0||fret+(d.capo??0)>maxFret(d))throw Error('현재 줄에서 낼 수 없는 음입니다. 음정·동일음 운지 후보에서 줄을 먼저 선택하세요.');
   moved.fret=fret;
  }else{if(!Number.isInteger(to.string)||to.string<1||to.string>d.tuning.length)throw Error(`TAB의 1–${d.tuning.length}번줄에 놓으세요.`);moved.string=to.string;}
  if(same&&moved.string===tone.string&&moved.fret===tone.fret)return d;

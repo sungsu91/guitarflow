@@ -1,0 +1,79 @@
+/* Shared color contract for score-library chrome; layout remains platform-specific. */
+.app{--score-bg:#f3f1ed;--score-surface:#fff;--score-soft:#ece8e2;--score-ink:#242321;--score-muted:#69635d;--score-line:#ddd8d0;--score-accent:#49382c;--score-on-accent:#fff;--score-danger:#a63e36}
+.app.theme-brand{
+ --score-bg:rgb(from var(--theme-surface) r g b / 1);
+ --score-surface:color-mix(in srgb,var(--theme-surface) 92%,var(--theme-text));
+ --score-soft:color-mix(in srgb,var(--theme-surface) 85%,var(--theme-text));
+ --score-ink:var(--theme-text);--score-muted:var(--theme-text-muted);
+ --score-line:var(--theme-border-control);--score-accent:var(--theme-accent);
+ --score-on-accent:rgb(from var(--theme-surface) r g b / 1);
+ --score-danger:var(--theme-danger,#f09488);
+}
+@layer score-workspace{
+ .app.theme-brand .editorDesign{
+  --ed-bg:var(--score-bg);--ed-surface:var(--score-surface);--ed-soft:var(--score-soft);--ed-tool:var(--score-soft);
+  --ed-ink:var(--score-ink);--ed-muted:var(--score-muted);--ed-line:var(--score-line);
+  --ed-active:var(--score-accent);--ed-on-accent:var(--score-on-accent);--ed-danger:var(--score-danger);
+  color-scheme:dark;
+ }
+}
+html body main.app.theme-brand #scoreLibraryHome{color-scheme:dark}
+html body main.app.theme-brand.theme-brand.theme-brand .pdfStudio{
+ --library-bg:var(--score-bg);--library-panel:var(--score-surface);--library-hover:var(--score-soft);
+ --library-text:var(--score-ink);--library-muted:var(--score-muted);--library-line:var(--score-line);--library-gold:var(--score-accent);
+}
+html body main.app.theme-brand.theme-brand.theme-brand .pdfStudio :is(.etudePracticeToolbar,.etudeQuickBrowse,.etudeFocusTips,.editablePracticeHeader) :is(button,select,input){
+ background:var(--score-surface)!important;background-image:none!important;color:var(--score-ink)!important;
+ -webkit-text-fill-color:currentColor!important;border-color:var(--score-line)!important;text-shadow:none!important;filter:none!important;
+}
+html body main.app.theme-brand.theme-brand.theme-brand .pdfStudio :is(.etudePracticeToolbar,.etudeQuickBrowse) button:is([aria-pressed=true],[aria-expanded=true]){
+ background:var(--score-soft)!important;color:var(--score-accent)!important;border-color:var(--score-accent)!important;
+}
+html body main.app.theme-brand.theme-brand.theme-brand .pdfStudio :is(.etudeViewMenu>div,.etudeFocusTips,.etudePracticeToolbar){background:var(--score-bg)!important;color:var(--score-ink)!important;border-color:var(--score-line)!important}
+html body main.app.theme-brand.theme-brand.theme-brand .pdfStudio :is(.etudeTips,.etudePrerequisite,.etudeLessonNav,.etudePracticeExtras){background:var(--score-surface)!important;color:var(--score-ink)!important;border-color:var(--score-line)!important}
+html body main.app.theme-brand.theme-brand.theme-brand .pdfStudio .etudePracticeToolbar svg{color:inherit!important;stroke:currentColor!important}
+html body main.app.theme-brand .pdfStudio :is(button,select,input,summary):focus-visible{outline-color:var(--score-accent)!important}
+html body main.app.theme-brand .pdfStudio button:disabled{opacity:.5!important}
+.app.theme-brand :is(.scoreSaveDialog,.pdfDialog){color-scheme:dark;background:var(--score-surface);color:var(--score-ink);border-color:var(--score-line)}
+/* Printed notation is deliberately an opaque paper surface with dark glyphs. */
+.app.theme-brand .editorDesign .etudePaperHeading{background:#fff;color:#242321}
+.app.theme-brand .editorDesign .etudePaperHeading p{color:#69635d}
+
+html body main.app.theme-brand.theme-brand.theme-brand .pdfStudio .etudeSheetHeader,html body main.app.theme-brand.theme-brand.theme-brand .pdfStudio .etudeSheetHeader :is(h2,span){color:var(--score-ink)!important;-webkit-text-fill-color:currentColor!important}
+
+html body main.app.theme-brand .editorDesign .etudeMeasureLayoutBar>span{color:var(--ed-muted)!important}
+html body main.app.theme-brand .pdfStudio .etudeSheetHeader *{text-shadow:none!important}
+html body main.app.theme-brand.theme-brand.theme-brand .pdfStudio{
+ --pdf-ink:var(--score-ink);--pdf-surface:var(--score-bg);--pdf-border:var(--score-line);--pdf-accent:var(--score-accent);
+ background:var(--score-bg)!important;color:var(--score-ink)!important;color-scheme:dark;
+}
+html body main.app.theme-brand.theme-brand.theme-brand .scoreLibraryPractice>header :is(h1,button){color:var(--score-ink)!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}
+html body main.app.theme-brand.theme-brand.theme-brand .scoreLibraryPractice>header button{background:var(--score-surface)!important;border-color:var(--score-line)!important}
+html body main.app.theme-brand.theme-brand.theme-brand .scoreLibraryPractice>small{color:var(--score-muted)!important}
+/* Mobile portrait: quiet panels separate score controls and title from the page. */
+html body main.app.app.app .pdfStudio .etudeStudio--mobile .etudePracticeLayout:not(.is-focus)>.etudePracticeToolbar{
+ background:var(--score-surface)!important;
+ border:1px solid color-mix(in srgb,var(--score-ink) 12%,transparent)!important;
+ border-radius:10px;padding:4px;margin:6px 0 10px;
+}
+html body main.app.app.app .pdfStudio .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeSheetHeader{
+ background:var(--score-surface)!important;
+ border:1px solid color-mix(in srgb,var(--score-ink) 12%,transparent);
+ border-radius:10px;padding:10px 10px 8px;margin:0 0 10px;
+}
+html body main.app.app.app .pdfStudio .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeSheetHeader h2{margin:6px 0 10px}
+html body main.app.app.app .pdfStudio .etudeStudio--mobile .etudePracticeLayout:not(.is-focus) .etudeSheetMeta{padding-bottom:0}
+/* Shared selection behavior, with widths suited to each library layout. */
+.pdfStudio .scoreLibraryPractice>header .savedScorePicker{min-width:0;max-width:440px;flex:1;min-height:44px;padding:8px 30px 8px 12px;border:1px solid var(--score-line);border-radius:8px;background:var(--score-surface);color:var(--score-ink);font:inherit;font-weight:600;text-overflow:ellipsis}
+.pdfStudio--mobile .scoreLibraryPractice>header{flex-wrap:nowrap;gap:8px}
+.pdfStudio--mobile .scoreLibraryPractice>header>button{flex-shrink:0}
+.pdfStudio--mobile .scoreLibraryPractice>header .savedScorePicker{width:0;max-width:none;font-size:14px}
+/* Title, credit and source belong to the same paper as the notation. */
+html body main.app.app.app.app.app .pdfStudio .etudePracticeLayout:not(.is-focus) .etudeSheetHeader{
+ background:#fff!important;color:#242321!important;border:0!important;border-radius:0!important;margin:0!important;padding:12px 10px 8px;
+}
+html body main.app.app.app.app.app .pdfStudio .etudePracticeLayout:not(.is-focus) .etudeSheetHeader :is(h2,span,.etudeSheetAddress){color:#242321!important;-webkit-text-fill-color:currentColor!important}
+html body main.app.app.app.app.app .pdfStudio .etudePracticeLayout:not(.is-focus) .etudeSheetHeader .etudeSheetAddress{text-align:right;font-size:9px}
+
+/* App reading stays free of print-only publisher marks. */
+html body main.app.app.app.app.app .pdfStudio .etudePracticeLayout:not(.is-focus) .etudeSheetHeader{display:block}

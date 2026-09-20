@@ -228,7 +228,10 @@ export function updateTunerFrequencyState(
     ...state.history.slice(-(TUNER_FREQUENCY_HISTORY_SIZE - 1)),
     candidateFrequency,
   ];
-  const historyMedian = medianFrequency(state.history) ?? candidateFrequency;
+  // At 25 Hz, a five-frame median spans an entire 5 Hz vibrato cycle and
+  // cancels its motion. Use three local frames after the jump guard; attack
+  // acquisition and large/octave jump confirmation keep their existing windows.
+  const historyMedian = medianFrequency(state.history.slice(-3)) ?? candidateFrequency;
   const medianDeltaCents = Math.abs(centsBetween(historyMedian, state.frequency));
   const followAmount = medianDeltaCents > 18 ? 0.56 : medianDeltaCents > 7 ? 0.38 : 0.22;
   const currentLog = Math.log2(state.frequency);

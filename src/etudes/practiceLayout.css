@@ -6,7 +6,7 @@
 .etudePracticeLayout.is-focus{position:fixed;z-index:1080;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;background:var(--theme-bg-soft);padding:env(safe-area-inset-top,0px) max(8px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(8px,env(safe-area-inset-left,0px));color:var(--theme-text)}
 .etudePracticeLayout.is-focus>.etudePracticeToolbar{flex:0 0 auto;margin:0;padding:4px 0;gap:4px;z-index:3}
 .etudePracticeLayout.is-focus .etudeViewTools{border:0;padding:0;gap:6px}
-.etudePracticeLayout.is-focus>.etudeScoreViewport{flex:1;min-height:0;max-height:none;width:100%}
+.etudePracticeLayout.is-focus>.etudeScoreViewport{flex:1;min-height:0;max-height:none;width:100%;overflow-x:hidden}
 .etudePracticeLayout.is-focus .etudeSheet{padding:8px 4px 0;border:0;border-radius:0}
 .etudePracticeLayout.is-focus .etudeSheet .etudeNotation{overflow:visible}
 .etudeFocusTips{position:absolute;z-index:4;top:60px;right:12px;bottom:12px;width:min(480px,calc(100% - 24px));overflow:auto;padding:12px;background:var(--theme-surface);border:1px solid var(--theme-border-control);border-radius:12px}
@@ -68,3 +68,57 @@ html body main.app.app.app .pdfStudio .etudePracticeLayout.is-focus{background:r
 html body main.app.app.app .pdfStudio .etudePracticeLayout.is-focus>.etudePracticeToolbar{background:rgb(from var(--theme-surface) r g b / 1)!important;border-bottom:1px solid var(--theme-border-control)}
 html body main.app.app.app .pdfStudio .etudePracticeLayout.is-focus .etudePracticeToolbar :is(button,select){color:var(--theme-text)!important;-webkit-text-fill-color:currentColor!important;opacity:1}
 html body main.app.app.app .pdfStudio .etudePracticeLayout.is-focus .etudePracticeToolbar button svg,html body main.app.app.app .pdfStudio .etudePracticeLayout.is-focus .etudePracticeToolbar button svg *{stroke:currentColor!important;color:inherit!important}
+/* Let a swipe continue into the page at either end of the normal mobile score.
+   Focus mode remains a self-contained reader; desktop keeps its own scrolling. */
+.etudeStudio--mobile .etudePracticeLayout:not(.is-focus)>.etudeScoreViewport{
+ overscroll-behavior-y:auto;
+}
+.etudeSheetHeader .etudeSheetAddress{font-family:Arial,sans-serif;font-size:10px;font-weight:400;letter-spacing:0;line-height:1.5;color:inherit;opacity:.65;text-shadow:none;margin-bottom:6px;overflow-wrap:anywhere}
+.etudeNotationQuick{display:flex;align-items:center;gap:2px;flex-shrink:0}
+.etudePracticeLayout.is-focus .etudeNotationQuick button{white-space:nowrap;font-size:11px;padding:4px 6px}
+.etudeViewChoices,.etudeViewFields{display:contents}
+.etudeViewMenu>.etudeViewOptions.is-mobile{width:min(340px,calc(100dvw - 32px));min-width:0;padding:12px;gap:12px;box-sizing:border-box;max-height:min(440px,calc(100dvh - 100px))}
+.etudeViewOptions.is-mobile .etudeViewChoices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.etudeViewOptions.is-mobile .etudeViewChoices:empty{display:none}
+.etudeViewOptions.is-mobile .etudeViewFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.etudeViewOptions.is-mobile .etudeViewFields>label{min-width:0;padding:0;border:0;gap:6px;font-size:11px;font-weight:600}
+.etudeViewOptions.is-mobile .etudeViewFields select{width:100%;min-width:0;box-sizing:border-box;font-size:12px;padding:8px}
+.etudeViewOptions.is-mobile .etudeViewOptionsClose{justify-self:end;min-width:64px}
+.scoreSourceQr{display:block;width:64px;height:64px;margin-left:auto;background:#fff}
+.scoreEditMenu{position:relative}
+.scoreEditOptions{position:absolute;top:calc(100% + 4px);left:0;z-index:10;display:grid;gap:6px;width:160px;padding:8px;border:1px solid var(--score-line);border-radius:10px;background:var(--score-surface);box-shadow:0 4px 12px #0002}
+.scoreEditOptions button{width:100%;white-space:nowrap}
+.etudeBackingDrawer.etudeBackingDrawer--movable{padding:26px 8px 8px}
+.etudeBackingDrawer .backingLoopTrackInfo.is-drag-handle{touch-action:none;cursor:grab;user-select:none}
+.etudeBackingDrawer .backingLoopTrackInfo.is-drag-handle:active{cursor:grabbing}
+html body main.app.app.app .etudeBackingDrawer>.backingPanelClose{position:absolute;top:2px;right:4px;display:flex;align-items:center;justify-content:center;width:28px;height:24px;min-height:24px;padding:2px;border:0!important;background:transparent!important;color:var(--theme-text)!important;box-shadow:none!important;cursor:pointer}
+/* Use the mobile width instead of reserving room for a closed edge tab. */
+@media(max-width:799px){
+ .etudeFloatingTheme .etudeBackingDrawer.etudeBackingDrawer--movable{width:calc(100dvw - 16px);max-width:calc(100dvw - 16px);box-sizing:border-box;padding:26px 4px 4px}
+ .etudeFloatingTheme .etudeBackingDrawer.etudeBackingDrawer--movable .backingLoopPanel{width:100%;max-width:none;margin:0}
+}
+
+/* Separate view choices, primary layout settings, and secondary navigation settings. */
+.etudeViewOptions .etudeViewChoices{display:grid;gap:4px;padding-bottom:10px;border-bottom:1px solid var(--score-line,var(--etude-line))}
+.etudeViewOptions .etudeViewChoices:empty{display:none}
+.etudeViewOptions .etudeViewChoices button{border:1px solid var(--score-line,var(--etude-line));border-radius:7px;min-height:44px}
+.etudeViewOptions .etudeViewChoices button[aria-pressed=true]{border-color:var(--score-accent);font-weight:700}
+.etudeViewOptions .etudeViewFields{display:grid;gap:10px}
+.etudeViewOptions .etudeViewFields>label{border:0;padding:0}
+.etudeViewOptions .etudeViewFieldsSecondary{border-top:1px solid var(--score-line,var(--etude-line));padding-top:12px}
+.etudeViewOptions .etudeViewOptionsClose{border:1px solid var(--score-line,var(--etude-line));border-radius:7px;min-height:40px}
+
+@layer score-workspace {
+ .etudePracticeLayout .etudeViewOptions :is(.etudeViewChoices button,.etudeViewOptionsClose){border:1px solid var(--score-line)!important;border-radius:7px!important}
+ .etudePracticeLayout .etudeViewOptions .etudeViewChoices button[aria-pressed=true]{border-color:var(--score-accent)!important}
+}
+
+.etudePracticeToolbar .etudeMobileTitleRow{display:flex;align-items:center;gap:8px;flex:0 0 100%;min-width:0;box-sizing:border-box;padding:4px 3px 0;border-top:1px solid var(--score-line)}
+.etudePracticeToolbar .etudeMobileScoreTitle{flex:1;min-width:0;font-size:12px;font-weight:500;line-height:18px;color:var(--score-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.etudeInlineBarCount{display:flex;align-items:center;gap:3px;flex-shrink:0}
+.etudeInlineBarCount>span{font-size:11px;color:var(--score-muted);margin-right:2px}
+@layer score-workspace {
+ .etudePracticeToolbar .etudeInlineBarCount button{width:30px!important;min-width:30px!important;height:34px!important;min-height:34px!important;padding:0!important;border:1px solid var(--score-line)!important;border-radius:5px!important;font-size:12px!important;line-height:1!important;box-shadow:none!important}
+ .etudePracticeToolbar .etudeInlineBarCount button[aria-pressed=true]{border-color:var(--score-accent)!important;background:var(--score-soft)!important;color:var(--score-accent)!important}
+}
+.etudeViewOptions.is-mobile .etudeViewFieldsPrimary:has(>label:only-child){grid-template-columns:minmax(0,1fr)}

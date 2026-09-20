@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+ <g transform="rotate(22 48 33)">
+  <path d="M45 8h6l1 11-2 3v13c9-3 16 5 11 13-2 3 3 5 3 11 0 11-10 15-16 15s-16-4-16-15c0-6 5-8 3-11-5-8 2-16 11-13V22l-2-3z" fill="#252525"/>
+  <circle cx="48" cy="48" r="4.5" fill="#fff"/>
+  <path d="M47 20v41m2-41v41" stroke="#fff" stroke-width=".65"/>
+  <path d="M42 62h12" stroke="#fff" stroke-width="1.8"/>
+ </g>
+ <rect x="0" y="76" width="96" height="20" fill="#fff"/>
+ <text x="48" y="85" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="600" letter-spacing="1.1" fill="#252525">FRETIVA</text>
+ <text x="48" y="94" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" letter-spacing="2.5" fill="#555">LAB</text>
+</svg>

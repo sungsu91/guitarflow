@@ -1,5 +1,5 @@
 import {newId,patchEvent} from './scoreModel.js';
-import {nextEntry} from './editorCommands.js';
+import {nextEntry,setEventDuration} from './editorCommands.js';
 
 const cleared={technique:null,tieTo:null,pickStroke:null,dead:false,vibrato:false,palmMute:false,arpeggio:null};
 // Replacing a vertical grip invalidates ties/legato into that position, but
@@ -20,7 +20,8 @@ export function copyGripToNext(d,c){
  const target=next.document.measures[next.cursor.bar].events[next.cursor.event];
  if(!['1','2','4','8','16'].includes(target.duration))throw Error('다음 위치의 음표 길이를 먼저 선택하세요. 현재 입력을 지원하지 않는 길이입니다.');
  const notes=source.notes.map(n=>({...structuredClone(n),id:newId('tone'),dead:Boolean(n.dead??source.dead)}));
- const document=patchEvent(disconnectIncoming(next.document,next.cursor),next.cursor.bar,next.cursor.event,{...cleared,notes,rest:false,blank:false});
+ const timed=setEventDuration(next.document,next.cursor,source.duration,Boolean(source.dotted));
+ const document=patchEvent(disconnectIncoming(timed,next.cursor),next.cursor.bar,next.cursor.event,{...cleared,notes,rest:false,blank:false});
  return {document,cursor:{...next.cursor,target:undefined},replaced:!target.rest&&target.notes.length>0};
 }
 export function deleteGrip(d,c){

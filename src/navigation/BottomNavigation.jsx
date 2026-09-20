@@ -30,5 +30,5 @@ export default function BottomNavigation({ children, className = "", ...props })
       window.visualViewport?.removeEventListener("resize", sync);
     };
   }, []);
-  return <div ref={ref} data-navigation-layout="viewport-bottom-v2" className={`modeSwitch integratedBottomNav ${className}`} aria-label="앱 하단 네비게이션" {...props}>{children}</div>;
+  return <div ref={ref} data-navigation-layout="floating-bottom-v1" className={`modeSwitch integratedBottomNav ${className}`} aria-label="앱 하단 네비게이션" {...props}>{children}</div>;
 }

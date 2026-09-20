@@ -59,7 +59,7 @@ export default function MobileScoreInput({desktop=false,openTool,onTool,onCloseT
   </div>;
  return <section ref={panel} className={desktop?"desktopScoreInput":"mobileScoreInput"} aria-label="통합 악보 입력">
   {desktop?<>{inputPads}{toolDock}</>:<>{toolDock}{inputPads}</>}
-  <div className="mobileEditorFeedback">{feedback}</div>
+  {feedback&&<div className="mobileEditorFeedback">{feedback}</div>}
   {playback}
  </section>;
 }

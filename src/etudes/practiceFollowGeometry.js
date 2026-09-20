@@ -8,3 +8,13 @@ export function followScrollTarget(rows,index,height,mode,maxScroll){
  const start=mode==='page'?followPageStart(rows,index,height):index;
  return Math.max(0,Math.min(maxScroll,rows[start]?.top??0));
 }
+
+// Leave room ahead of the moving beat while keeping manual horizontal browsing
+// untouched whenever following is suspended or disabled by the caller.
+export function followHorizontalTarget(cursor,width,left,maxScroll,reset=false,lookAhead=false){
+ const start=width*.2,end=width*(lookAhead ? .35 : .75);
+ const visible=cursor-left;
+ const target=reset?cursor-start:visible>end?cursor-end:visible<start?cursor-start:left;
+ return Math.max(0,Math.min(maxScroll,target));
+}
+

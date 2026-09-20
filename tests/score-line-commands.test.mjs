@@ -5,12 +5,30 @@ import {enterFretWithDuration,setEventDuration} from '../src/etudes/editorComman
 import {copyGripToNext,deleteGrip} from '../src/etudes/scoreLineCommands.js';
 const c={bar:0,event:0,string:6};
 function source(){let d=createBlankDocument();for(const [i,fret] of [0,2,0,0,2].entries())d=enterFretWithDuration(d,{...c,string:6-i},fret,'8');return setEventDuration(d,{...c,event:1},'16');}
-test('02002 copies once from an eighth into a sixteenth without multiplying or shifting slots',()=>{
+test('02002 copies the source eighth duration into a sixteenth slot without shifting later music',()=>{
  const d=source(),before=structuredClone(d),timing=d.measures[0].events.map(e=>[e.id,e.onset,e.duration]),r=copyGripToNext(d,c),events=r.document.measures[0].events;
- assert.deepEqual(d,before);assert.deepEqual(events.map(e=>[e.id,e.onset,e.duration]),timing);
- assert.deepEqual(events[1].notes.map(n=>n.fret),[0,2,0,0,2]);assert.equal(events[1].duration,'16');assert(events.slice(2).every(e=>e.blank));
+ assert.deepEqual(d,before);assert.deepEqual(events.slice(2).map(e=>[e.id,e.onset,e.duration]),timing.slice(3));
+ assert.deepEqual(events[1].notes.map(n=>n.fret),[0,2,0,0,2]);assert.equal(events[1].duration,'8');assert(events.slice(2).every(e=>e.blank));
  assert(events[1].notes.every(n=>!events[0].notes.some(old=>old.id===n.id)));assert.equal(r.cursor.event,1);
  assert.deepEqual(compileDocumentV2(r.document).errors,[]);
+});
+test('sixteenth copy crosses a barline with source duration and repeated copies stay sixteenths',()=>{
+ let d=enterFretWithDuration(createBlankDocument(),c,7,'16');
+ for(let i=0;i<19;i++){
+  const result=copyGripToNext(d,{...c,bar:i<16?0:1,event:i%16});d=result.document;
+  assert.equal(d.measures[result.cursor.bar].events[result.cursor.event].duration,'16');
+ }
+ assert.equal(d.measures.length,2);assert.deepEqual(compileDocumentV2(d).errors,[]);
+});
+test('copy refuses to erase following entered music when source duration needs more room',()=>{
+ let d=source();d=enterFretWithDuration(d,{...c,event:2},9,'16');
+ const before=structuredClone(d);assert.throws(()=>copyGripToNext(d,c),/겹칩니다/);assert.deepEqual(d,before);
+});
+test('copy retains a source dotted duration and fills only its required vacant time',()=>{
+ const d=setEventDuration(enterFretWithDuration(createBlankDocument(),c,5,'8'),c,'8',true);
+ const result=copyGripToNext(d,c),event=result.document.measures[0].events[result.cursor.event];
+ assert.equal(event.duration,'8');assert.equal(event.dotted,true);assert.equal(event.onset,360);
+ assert.deepEqual(compileDocumentV2(result.document).errors,[]);
 });
 test('successive copy targets one position each; occupied target is replaced, not merged',()=>{
  let d=source();d=enterFretWithDuration(d,{...c,event:1,string:1},9,'16');

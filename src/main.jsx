@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import SplashIntro from "./launch/SplashIntro.jsx";
 import { createAppLaunchController } from "./launch/appLaunch.js";
 import "./launch/splash-intro.css";
+import { keepScreenAwake } from "./ui/screenWakeLock.js";
 
 const launchController = createAppLaunchController();
 const DeferredAppRuntime = React.lazy(() => import("./AppRuntime.jsx"));
@@ -43,6 +44,7 @@ class AppLoadBoundary extends React.Component {
 }
 
 function Root() {
+  React.useEffect(() => keepScreenAwake(), []);
   const [launching, setLaunching] = React.useState(true);
   const finishLaunch = React.useCallback(() => setLaunching(false), []);
 

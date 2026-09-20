@@ -6,7 +6,6 @@ import { acquireMicInput } from "../audio/micInputEngine.js";
 import { MIC_INPUT_PRESETS } from "../audio/micInputPresets.js";
 import {
   TUNER_MAX_FREQUENCY,
-  TUNER_MIN_FREQUENCY,
   detectPitchYinDetailed,
   getTunerTrackingState,
   getHorizontalTuningState,
@@ -43,6 +42,9 @@ import {
   getTunerBackgroundSwipeOffset,
 } from "./tunerBackground.js";
 
+import { getTunerAnalysisConfig } from "./tunerAnalysisConfig.js";
+import { BASS_HEADSTOCK_DESIGNS, GUITAR_HEADSTOCK_DESIGNS, VIOLIN_HEADSTOCK_DESIGNS, UKULELE_HEADSTOCK_DESIGNS, isNextHeadstockSwipe } from "./tunerHeadstockDesigns.js";
+
 const TUNER_BACKGROUNDS = Object.freeze([
   Object.freeze({
     id: "deep-sea",
@@ -77,7 +79,6 @@ const TUNER_BACKGROUNDS = Object.freeze([
 ]);
 export const TUNER_BACKGROUND_COUNT = TUNER_BACKGROUNDS.length;
 const TUNER_SWIMMER_SPRITE_SRC = "/assets/tuner/just-play-swimmer-sprite.png";
-const TUNER_HEADSTOCK_SRC = "/assets/tuner/just-play-headstock.png";
 const TUNER_GUIDANCE_BADGES = Object.freeze({
   waiting: "/assets/tuner/just-play-tuner-guidance-waiting.png",
   exact: "/assets/tuner/just-play-tuner-guidance-exact.png",
@@ -98,15 +99,6 @@ const TUNER_DEBUG_ENABLED = import.meta.env.DEV
   && typeof window !== "undefined"
   && new URLSearchParams(window.location.search).get("tunerDebug") === "1";
 
-const GUITAR_HEADSTOCK_HOTSPOTS = Object.freeze({
-  6: { left: 11.0, top: 58.6 },
-  5: { left: 11.9, top: 40.5 },
-  4: { left: 12.0, top: 21.2 },
-  3: { left: 88.0, top: 21.3 },
-  2: { left: 88.1, top: 40.3 },
-  1: { left: 89.0, top: 58.6 },
-});
-
 const BASS_HEADSTOCK_HOTSPOTS = Object.freeze({
   4: { left: 14.8, top: 67.3 },
   3: { left: 20.0, top: 50.0 },
@@ -114,31 +106,34 @@ const BASS_HEADSTOCK_HOTSPOTS = Object.freeze({
   1: { left: 31.5, top: 15.1 },
 });
 
-const UKULELE_HEADSTOCK_HOTSPOTS = Object.freeze({
-  4: { left: 12.5, top: 27.4 },
-  3: { left: 12.5, top: 50.5 },
-  2: { left: 87.5, top: 50.5 },
-  1: { left: 87.5, top: 27.4 },
-});
-
 const INSTRUMENT_DEFINITIONS = Object.freeze({
   guitar: Object.freeze({
-    headstockHotspots: GUITAR_HEADSTOCK_HOTSPOTS,
-    headstockSrc: TUNER_HEADSTOCK_SRC,
+    ...GUITAR_HEADSTOCK_DESIGNS[0],
+    designs: GUITAR_HEADSTOCK_DESIGNS,
     id: "guitar",
     label: "기타",
   }),
   bass: Object.freeze({
+    autoTarget: true,
+    preserveDetectedOctave: true,
     headstockHotspots: BASS_HEADSTOCK_HOTSPOTS,
     headstockSrc: "/assets/tuner/just-play-bass-headstock.png",
     id: "bass",
     label: "베이스",
   }),
   ukulele: Object.freeze({
-    headstockHotspots: UKULELE_HEADSTOCK_HOTSPOTS,
-    headstockSrc: "/assets/tuner/just-play-ukulele-headstock.png",
+    ...UKULELE_HEADSTOCK_DESIGNS[0],
+    designs: UKULELE_HEADSTOCK_DESIGNS,
     id: "ukulele",
     label: "우쿨렐레",
+  }),
+  violin: Object.freeze({
+    ...VIOLIN_HEADSTOCK_DESIGNS[0],
+    designs: VIOLIN_HEADSTOCK_DESIGNS,
+    autoTarget: true,
+    preserveDetectedOctave: true,
+    id: "violin",
+    label: "바이올린",
   }),
 });
 
@@ -188,6 +183,7 @@ function createTunerReading(overrides = {}) {
 
 function useTunerController(active) {
   const [instrumentId, setInstrumentId] = useState("guitar");
+  const [designIndexes, setDesignIndexes] = useState({});
   const [presetId, setPresetId] = useState("standard");
   const [selectedString, setSelectedString] = useState(null);
   const [micState, setMicState] = useState("idle");
@@ -200,6 +196,7 @@ function useTunerController(active) {
   const instrumentIdRef = useRef(instrumentId);
   const presetIdRef = useRef(presetId);
   const selectedStringRef = useRef(selectedString);
+  const autoTargetStringRef = useRef(null);
   const frequencyStateRef = useRef(createTunerFrequencyState());
   const completionStateRef = useRef(createTunerCompletionState());
   const signalStateRef = useRef(createTunerSignalState());
@@ -207,6 +204,7 @@ function useTunerController(active) {
 
   useEffect(() => {
     instrumentIdRef.current = instrumentId;
+    autoTargetStringRef.current = null;
     resetTunerFrequencyState(frequencyStateRef.current);
     resetTunerCompletionState(completionStateRef.current);
     resetTunerSignalState(signalStateRef.current);
@@ -216,6 +214,7 @@ function useTunerController(active) {
 
   useEffect(() => {
     presetIdRef.current = presetId;
+    autoTargetStringRef.current = null;
     resetTunerFrequencyState(frequencyStateRef.current);
     resetTunerCompletionState(completionStateRef.current);
     resetTunerSignalState(signalStateRef.current);
@@ -225,6 +224,7 @@ function useTunerController(active) {
 
   useEffect(() => {
     selectedStringRef.current = selectedString;
+    autoTargetStringRef.current = null;
     resetTunerFrequencyState(frequencyStateRef.current);
     resetTunerCompletionState(completionStateRef.current);
     resetTunerSignalState(signalStateRef.current);
@@ -250,6 +250,7 @@ function useTunerController(active) {
     sessionRef.current = null;
     await previousSession?.release?.();
     if (requestVersion !== requestVersionRef.current) return false;
+    autoTargetStringRef.current = null;
     resetTunerFrequencyState(frequencyStateRef.current);
     resetTunerCompletionState(completionStateRef.current);
     resetTunerSignalState(signalStateRef.current);
@@ -273,7 +274,8 @@ function useTunerController(active) {
       }
 
       sessionRef.current = session;
-      const buffer = new Float32Array(session.analyser.fftSize);
+      let buffer = new Float32Array(session.analyser.fftSize);
+      let analysisConfigId = null;
       setMicState("listening");
       lastAnalysisAtRef.current = 0;
 
@@ -289,12 +291,13 @@ function useTunerController(active) {
         const preset = getPreset(instrumentIdRef.current, presetIdRef.current);
         const stringNumber = selectedStringRef.current;
         const filteredFrequency = frequencyStateRef.current.frequency;
-        const rawTracking = getTunerTrackingState(rawFrequency, preset.strings, stringNumber);
-        const filteredTracking = getTunerTrackingState(filteredFrequency, preset.strings, stringNumber);
+        const trackingOptions = { autoTarget: getInstrument(instrumentIdRef.current).autoTarget, previousTargetString: autoTargetStringRef.current };
+        const rawTracking = getTunerTrackingState(rawFrequency, preset.strings, stringNumber, trackingOptions);
+        const filteredTracking = getTunerTrackingState(filteredFrequency, preset.strings, stringNumber, trackingOptions);
         const rawPitch = rawTracking.currentPitch;
         const filteredPitch = filteredTracking.currentPitch;
         const uiCents = visualCentsRef.current.cents;
-        const uiPosition = 50 + getTunerOrbPosition(uiCents, stringNumber != null) * 38;
+        const uiPosition = 50 + getTunerOrbPosition(uiCents, filteredTracking.target != null) * 38;
         setDebugReading({
           attackPresent: detectionFrame.isAttackPresent,
           attackThresholdRms: detectionFrame.attackThresholdRms,
@@ -357,6 +360,7 @@ function useTunerController(active) {
         }
 
         if (transition.shouldClear) {
+          autoTargetStringRef.current = null;
           resetTunerFrequencyState(frequencyStateRef.current);
           resetTunerCompletionState(completionStateRef.current);
           visualCentsRef.current = { cents: null, pitchKey: null, updatedAt: null };
@@ -381,6 +385,12 @@ function useTunerController(active) {
         if (now - lastAnalysisAtRef.current < TUNER_ANALYSIS_INTERVAL_MS) return;
         lastAnalysisAtRef.current = now;
 
+        const analysisConfig = getTunerAnalysisConfig(instrumentIdRef.current, session.audioContext.sampleRate);
+        if (analysisConfigId !== instrumentIdRef.current) {
+          session.configureDetection(analysisConfig);
+          buffer = new Float32Array(session.analyser.fftSize);
+          analysisConfigId = instrumentIdRef.current;
+        }
         session.analyser.getFloatTimeDomainData(buffer);
         const trackingActive = signalStateRef.current.acquired;
         const detectionFrame = session.readDetectionFrame(now, { sustainActive: trackingActive });
@@ -400,7 +410,7 @@ function useTunerController(active) {
         const yinResult = detectPitchYinDetailed(
           buffer,
           session.audioContext.sampleRate,
-          TUNER_MIN_FREQUENCY,
+          analysisConfig.minFrequency,
           TUNER_MAX_FREQUENCY,
           0.16,
         );
@@ -431,7 +441,8 @@ function useTunerController(active) {
         const manualTarget = getTunerStringTarget(preset.strings, selectedStringRef.current);
         const stability = updateTunerFrequencyState(frequencyStateRef.current, {
           allowLargeJump: manualTarget == null || detectionFrame.isAttackPresent,
-          manualTargetFrequency: manualTarget?.frequency ?? null,
+          // Violin manual selection fixes the target, never rewrites the detected octave.
+          manualTargetFrequency: getInstrument(instrumentIdRef.current).preserveDetectedOctave ? null : manualTarget?.frequency ?? null,
           now,
           rawFrequency: candidateFrequency,
         });
@@ -461,9 +472,13 @@ function useTunerController(active) {
         }
 
         const frequency = stability.frequency;
-        const tracking = getTunerTrackingState(frequency, preset.strings, selectedStringRef.current);
+        const tracking = getTunerTrackingState(frequency, preset.strings, selectedStringRef.current, {
+          autoTarget: getInstrument(instrumentIdRef.current).autoTarget,
+          previousTargetString: autoTargetStringRef.current,
+        });
+        autoTargetStringRef.current = tracking.target?.stringNumber ?? null;
         const { cents, currentPitch, target } = tracking;
-        const pitchKey = tracking.manual ? `manual-${target?.pitch}` : `auto-${currentPitch?.pitch}`;
+        const pitchKey = tracking.manual ? `manual-${target?.pitch}` : `auto-${target?.pitch ?? currentPitch?.pitch}`;
         const previousVisual = visualCentsRef.current;
         const pitchChanged = previousVisual.pitchKey !== pitchKey;
         const displayCents = getTunerDisplayCents(cents, previousVisual.cents, {
@@ -523,6 +538,28 @@ function useTunerController(active) {
     };
   }, [active, releaseMicrophone, startMicrophone]);
 
+  const nextHeadstockDesign = useCallback(() => {
+    const count = getPreset(instrumentId, presetId).strings.length;
+    const designKey = instrumentId === "bass" ? `bass-${count}` : instrumentId;
+    const designs = instrumentId === "bass" ? BASS_HEADSTOCK_DESIGNS[count] : getInstrument(instrumentId).designs;
+    if (!designs?.length) return;
+    setDesignIndexes((indexes) => ({
+      ...indexes,
+      [designKey]: ((indexes[designKey] ?? 0) + 1) % designs.length,
+    }));
+  }, [instrumentId, presetId]);
+  const instrument = useMemo(() => {
+    const base = getInstrument(instrumentId);
+    if (instrumentId === "bass") {
+      const count = getPreset(instrumentId, presetId).strings.length;
+      const designs = BASS_HEADSTOCK_DESIGNS[count];
+      return { ...base, ...designs[designIndexes[`bass-${count}`] ?? 0], designs };
+    }
+    if (!base.designs?.length) return base;
+    const design = base.designs[designIndexes[instrumentId] ?? 0];
+    return { ...base, ...design, id: base.id, label: base.label, designId: design.id, designLabel: design.label };
+  }, [instrumentId, presetId, designIndexes]);
+
   const selectString = useCallback((stringNumber) => {
     setSelectedString((current) => (current === stringNumber ? null : stringNumber));
   }, []);
@@ -536,6 +573,7 @@ function useTunerController(active) {
 
   const stopMicrophone = useCallback(async () => {
     await releaseMicrophone();
+    autoTargetStringRef.current = null;
     resetTunerFrequencyState(frequencyStateRef.current);
     resetTunerCompletionState(completionStateRef.current);
     resetTunerSignalState(signalStateRef.current);
@@ -547,7 +585,8 @@ function useTunerController(active) {
 
   return {
     debugReading,
-    instrument: getInstrument(instrumentId),
+    instrument,
+    nextHeadstockDesign,
     micState,
     preset: getPreset(instrumentId, presetId),
     presets: getInstrument(instrumentId).presets,
@@ -555,7 +594,12 @@ function useTunerController(active) {
     restartMicrophone: startMicrophone,
     stopMicrophone,
     selectInstrument,
-    selectPreset: setPresetId,
+    selectPreset: (nextPresetId) => {
+      selectedStringRef.current = null;
+      autoTargetStringRef.current = null;
+      setSelectedString(null);
+      setPresetId(nextPresetId);
+    },
     selectedString,
     selectString,
   };
@@ -664,8 +708,43 @@ function TunerRecognitionStatus({ preset, selectedString }) {
   );
 }
 
+function TunerHeadstockDesignGesture({ label, onNext }) {
+  const swipeRef = useRef(null);
+  return (
+    <div
+      aria-label={`악기 디자인 변경, 현재 ${label}. 위로 쓸어 올리거나 Enter를 누르세요`}
+      className="tunerHeadstockDesignGesture"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (!["ArrowUp", "Enter", " "].includes(event.key)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (!event.repeat) onNext();
+      }}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+        if (event.isPrimary === false || event.button !== 0) return;
+        swipeRef.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }}
+      onPointerUp={(event) => {
+        event.stopPropagation();
+        const swipe = swipeRef.current;
+        swipeRef.current = null;
+        if (!swipe || swipe.id !== event.pointerId) return;
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+        if (isNextHeadstockSwipe(event.clientX - swipe.x, event.clientY - swipe.y)) onNext();
+      }}
+      onPointerCancel={() => { swipeRef.current = null; }}
+      onLostPointerCapture={() => { swipeRef.current = null; }}
+    />
+  );
+}
+
 function TunerHeadstock({
   instrument = TUNER_INSTRUMENTS.guitar,
+  onNextDesign,
   onSelectString,
   preset,
   reading,
@@ -676,8 +755,8 @@ function TunerHeadstock({
   const [headstockAvailable, setHeadstockAvailable] = useState(instrument.id === "guitar");
   const manualTarget = getTunerStringTarget(preset.strings, selectedString);
   const manual = manualTarget != null;
-  const displayedPitch = manualTarget?.pitch ?? "AUTO";
-  const targetComplete = manual && reading?.completed;
+  const displayedPitch = manualTarget?.pitch ?? reading?.target?.pitch ?? "AUTO";
+  const targetComplete = (manual || reading?.target != null) && reading?.completed;
 
   useEffect(() => {
     let cancelled = false;
@@ -690,6 +769,10 @@ function TunerHeadstock({
       if (!cancelled) setHeadstockAvailable(false);
     };
     probe.src = instrument.headstockSrc;
+    instrument.designs?.forEach((design) => {
+      const image = new Image();
+      image.src = design.headstockSrc;
+    });
     return () => {
       cancelled = true;
     };
@@ -699,11 +782,13 @@ function TunerHeadstock({
     <section
       className="tunerHeadstockPanel"
       data-instrument={instrument.id}
+      data-design={instrument.designId}
+      style={{ "--tuner-headstock-fit": instrument.headstockFit ?? "contain" }}
       aria-label={`${instrument.label} 줄 수동 선택`}
     >
       {showMode ? <TunerRecognitionStatus preset={preset} selectedString={selectedString} /> : null}
       <div className={`tunerHeadstockAsset ${headstockAvailable ? "" : "tunerHeadstockAsset--pending"}`}>
-        {showTarget ? (
+        {(showTarget || instrument.autoTarget) ? (
           <div
             aria-label={`목표 음 ${displayedPitch}${targetComplete ? ", 정확" : ""}`}
             className={`tunerHeadstockTarget ${targetComplete ? "complete" : ""}`}
@@ -717,7 +802,8 @@ function TunerHeadstock({
         ) : null}
         {headstockAvailable ? (
           <img
-            alt={`${instrument.label} 튜닝머신 헤드`}
+            key={instrument.headstockSrc}
+            alt={`${instrument.designLabel ?? instrument.label} 튜닝머신 헤드`}
             draggable="false"
             src={instrument.headstockSrc}
           />
@@ -727,6 +813,9 @@ function TunerHeadstock({
             <small>전용 헤드 이미지 준비 중</small>
           </div>
         )}
+        {instrument.designs?.length > 1 && onNextDesign ? (
+          <TunerHeadstockDesignGesture label={instrument.designLabel} onNext={onNextDesign} />
+        ) : null}
         {preset.strings.map((string) => {
           const hotspot = instrument.headstockHotspots[string.stringNumber];
           if (!headstockAvailable || !hotspot) return null;
@@ -741,7 +830,7 @@ function TunerHeadstock({
               style={{ left: `${hotspot.left}%`, top: `${hotspot.top}%` }}
               type="button"
             >
-              <span
+              {!instrument.externalStringButtons ? <span
                 aria-hidden="true"
                 className="tunerPegMagnifier"
               >
@@ -755,7 +844,7 @@ function TunerHeadstock({
                     top: `calc(50% - ${hotspot.top * 1.68}cqi)`,
                   }}
                 />
-              </span>
+              </span> : null}
               <span className="tunerPegLabel">
                 {string.noteName}
               </span>
@@ -771,8 +860,8 @@ function TunerReadout({ controller, guidance }) {
   const { preset, reading, selectedString } = controller;
   const currentPitch = getTunerDisplayPitch(reading)?.pitch ?? "--";
   const manualTarget = getTunerStringTarget(preset.strings, selectedString);
-  const targetPitch = manualTarget?.pitch ?? "AUTO";
-  const targetFrequency = manualTarget?.frequency;
+  const targetPitch = manualTarget?.pitch ?? reading.target?.pitch ?? "AUTO";
+  const targetFrequency = manualTarget?.frequency ?? reading.target?.frequency;
   const centsText = reading.hasSignal && Number.isFinite(reading.cents)
     ? `${reading.cents > 0 ? "+" : ""}${Number(reading.cents).toFixed(1)}`
     : "--";
@@ -958,7 +1047,7 @@ function TunerDebugHud({ reading }) {
 
 function TunerGauge({ controller, guidance, showDirectionScale = true }) {
   const { micState, reading, restartMicrophone, selectedString } = controller;
-  const manual = selectedString != null;
+  const manual = selectedString != null || reading.target != null;
   const needsMicAction = ["denied", "error", "unsupported"].includes(micState);
   const directionState = getHorizontalTuningState(reading);
   const visualCents = Number.isFinite(reading.displayCents) ? reading.displayCents : reading.cents;
@@ -1126,7 +1215,7 @@ function TunerInstrumentSheet({ instrument, onClose, onSelectInstrument }) {
             </button>
           ))}
         </div>
-        <p>악기별 헤드 이미지와 튜닝머신 좌표는 서로 독립된 에셋 슬롯을 사용합니다.</p>
+        <p>악기를 선택한 뒤 줄을 연주해 주세요.</p>
       </section>
     </div>
   );
@@ -1261,6 +1350,7 @@ function MobileTunerLayout({ activeMenu, controller, guidance, onCloseMenu, onOp
         />
         <TunerHeadstock
           instrument={controller.instrument}
+          onNextDesign={controller.nextHeadstockDesign}
           onSelectString={controller.selectString}
           preset={controller.preset}
           reading={controller.reading}
@@ -1307,6 +1397,7 @@ function DesktopTunerLayout({
         </div>
         <TunerHeadstock
           instrument={controller.instrument}
+          onNextDesign={controller.nextHeadstockDesign}
           onSelectString={controller.selectString}
           preset={controller.preset}
           reading={controller.reading}
@@ -1340,7 +1431,7 @@ export default function TunerMode({
   const guidance = useMemo(() => getTunerGuidance({
     cents: controller.reading.cents,
     hasSignal: controller.reading.hasSignal,
-    manual: controller.selectedString != null,
+    manual: controller.selectedString != null || controller.reading.target != null,
     stableExact: controller.reading.completed,
     trackingPhase: controller.reading.trackingPhase,
   }), [
@@ -1348,6 +1439,7 @@ export default function TunerMode({
     controller.reading.completed,
     controller.reading.hasSignal,
     controller.reading.trackingPhase,
+    controller.reading.target,
     controller.selectedString,
   ]);
 

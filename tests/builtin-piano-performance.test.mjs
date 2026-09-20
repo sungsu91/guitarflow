@@ -3,7 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import { arrangeBuiltinPianoEvents, chooseBuiltinPianoVoicing, getBuiltinChordPitchClasses,
-  markBuiltinPianoProgression, matchesBuiltinMiniSlots } from "../src/audio/builtinPianoPerformance.js";
+  markBuiltinPianoProgression, matchesBuiltinMiniSlots, resolveMiniChordPianoPerformance } from "../src/audio/builtinPianoPerformance.js";
 import { RHYTHM_RECOMMENDED_PROGRESSIONS } from "../src/rhythm/recommendedProgressions.js";
 import { VOICING_MOVEMENT_COURSES } from "../src/rhythm/voicingMovementCourses.js";
 import { getMiniChordRecommendedProgressions } from "../src/mini-chord/originalPracticeSongs.js";
@@ -98,12 +98,43 @@ test("layers preserve attacks, drums, input data and end before the next harmony
   }
 });
 
-test("upper HOLD common tones tie only when a finite sample can sustain them", () => {
+test("mini saved copies retain their sound independently of ownership and edits", () => {
+  const preset = allMini[0];
+  const original = JSON.stringify(preset);
+  const mode = resolveMiniChordPianoPerformance(preset, preset.slots, preset.barCount, allMini);
+  assert.equal(mode, "mini");
+  const saved = JSON.parse(JSON.stringify({ ...preset, id: "user-copy", builtIn: false,
+    libraryType: "user", pianoPerformance: mode }));
+  saved.slots[0] = "Dm";
+  assert.equal(resolveMiniChordPianoPerformance(saved, saved.slots, saved.barCount, allMini), mode);
+  assert.equal(JSON.stringify(preset), original);
+  assert.equal(resolveMiniChordPianoPerformance({}, preset.slots, preset.barCount, allMini), mode);
+  assert.equal(resolveMiniChordPianoPerformance({ pianoPerformance: "standard" }, preset.slots, preset.barCount, allMini), "standard");
+  assert.equal(resolveMiniChordPianoPerformance({}, ["C"], 1, allMini), "standard");
+});
+
+test("upper HOLD common tones retrigger at each written attack", () => {
   const progression = [chord("C"), chord("Am")];
   const result = arrangeBuiltinPianoEvents([...attack(0, 0, 1, "hold", 0.5), ...attack(0.5, 1, 2, "hold", 0.5)], progression, 0.5, 0.5, 1);
-  for (const midi of [60, 64]) assert.equal(result.filter((event) => event.midi === midi).length, 1);
+  for (const midi of [60, 64]) assert.equal(result.filter((event) => event.midi === midi).length, 2);
   const separate = arrangeBuiltinPianoEvents([...attack(0, 0, 1, "stab", 0.1), ...attack(0.5, 1, 2, "stab", 0.1)], progression, 0.5, 0.5, 1);
   assert.equal(separate.filter((event) => event.midi === 60).length, 2);
+});
+
+test("mini block chords keep upper attacks on the beat without repeated common-tone ducking", () => {
+  for (const bpm of [40, 76, 96, 132, 240]) {
+    const beat=60/bpm;
+    const progression=[chord("C"),chord("C")];
+    const events=[...attack(0,0,1),...attack(beat*4,1,2).map(event => ({...event,commonTone:true,volume:event.volume*0.86}))];
+    const result=arrangeBuiltinPianoEvents(events,progression,beat*4,beat,beat*8);
+    const upper=result.filter(event=>event.performanceRole==='upper');
+    for(const event of upper) assert.ok(event.offsetSeconds-event.attackStartSeconds<=0.024);
+    for(const first of upper.filter(event=>event.chordIndex===0)) {
+      const repeated=upper.find(event=>event.chordIndex===1 && event.midi===first.midi);
+      assert.ok(Math.abs(first.volume-repeated.volume)<1e-9);
+      assert.equal(repeated.commonTone,false);
+    }
+  }
 });
 
 test("real sample playback honors bass MIDI and short boundary releases, and stops sources", () => {
@@ -123,6 +154,10 @@ test("real sample playback honors bass MIDI and short boundary releases, and sto
   context.play("piano", 1, 0.2, 2 ** ((36 - 67) / 12), 0.2, "piano", "", { builtinPianoPerformance: true, releaseSeconds: 0.05 });
   assert.ok(calls.some(([kind, rate]) => kind === "rate" && Math.abs(rate - 2 ** (-31 / 12)) < 1e-9));
   assert.ok(calls.some(([kind, value, when]) => kind === "exp" && value === 0.0001 && Math.abs(when - 1.25) < 1e-9));
+  calls.length = 0;
+  context.play("piano", 2, 0.2, 1, 0.006, "piano", "", { builtinPianoPerformance: true, releaseSeconds: 0.002 });
+  const envelopeTimes = calls.filter(([kind]) => ["value", "linear", "exp"].includes(kind)).map((entry) => entry[2]);
+  assert.deepEqual(envelopeTimes, [...envelopeTimes].sort((a, b) => a - b), "short-note attack must precede decay and release");
   const fadeStart = app.indexOf("const fadeOutActiveBackingSources = useCallback(");
   const fadeEnd = app.indexOf("const stopBackingScheduler", fadeStart);
   vm.runInContext(app.slice(fadeStart, fadeEnd) + "fadeOutActiveBackingSources();", context);

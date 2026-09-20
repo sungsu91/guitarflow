@@ -1,13 +1,15 @@
-export function drawPalmMute(svg,events,notes,stave,{staff=false,headroom=0,tabRhythm=false}={}){
+export function drawPalmMute(svg,events,notes,stave,{staff=false,headroom=0}={}){
  const ns='http://www.w3.org/2000/svg',groups=[];let group=[];
  events.forEach((event,i)=>{if(event.rest||!event.palmMute){if(group.length)groups.push(group);group=[];}else group.push(i);});if(group.length)groups.push(group);
  return groups.map(indices=>{
   const g=document.createElementNS(ns,'g'),first=indices[0],last=indices.at(-1);
   g.setAttribute('class',`${staff?'fretiva-staff-view':'fretiva-tab-view'} scorePalmMute`);
   g.dataset.palmMuteEvents=indices.join(',');g.setAttribute('aria-label','P.M. 팜 뮤트');
-  const x=notes[first].getAbsoluteX()-8,y=staff?stave.getYForLine(0)-headroom-28:stave.getYForLine(stave.getNumLines()-1)+(tabRhythm?94:44);
+  const x=notes[first].getAbsoluteX()-8,y=stave.getYForLine(0)-(staff?headroom+28:14);
   const label=document.createElementNS(ns,'text');
   Object.entries({x,y,'font-family':'Arial','font-size':14,'font-weight':700,fill:'#171717'}).forEach(([k,v])=>label.setAttribute(k,String(v)));
+  // Keep the label legible where optional upper TAB stems pass through it.
+  if(!staff){label.setAttribute('stroke','white');label.setAttribute('stroke-width','3');label.setAttribute('paint-order','stroke');}
   label.textContent='P.M.';g.append(label);
   const end=notes[last].getAbsoluteX()+12;
   if(indices.length>1&&end>x+36){

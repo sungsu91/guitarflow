@@ -33,7 +33,7 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
     }
     heldPosition.current=-1;setPaused(false);setPlaying(false); setBeat(-1); setTick(-1);
   }, []);
-  const start = useCallback(async ({beatOffset=0,durationSeconds=Infinity,clicks=null}={}) => {
+  const start = useCallback(async ({beatOffset=0,durationSeconds=Infinity,clicks=null,cycleSeconds=0,cycleOffset=0,repeatCount=1}={}) => {
     stop();
     const request = token.current;
     try {
@@ -48,14 +48,17 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
       const fraction=beatOffset-Math.floor(beatOffset),clickOrigin=origin+(fraction?1-fraction:0)*stepSeconds,firstBeat=Math.ceil(beatOffset);
       const s = { context, gain, origin, stepSeconds, positionOffset:beatOffset, firstBeat, oscillators: new Set(), cursor: createAudioTransportCursor({ originTime: clickOrigin, stepSeconds:stepSeconds/clicksPerBeat }), frame: 0, timer: 0 };
       session.current = s;
-      let clickIndex=0;
+      let clickIndex=0,clickCycle=cycleSeconds?Math.floor(cycleOffset/cycleSeconds):0;
       const schedule = () => {
         if (session.current !== s) return;
         const batch = clicks ? {steps:[]} : collectAudioTransportSteps(s.cursor, { currentTime: context.currentTime, horizonSeconds: 0.1 });
         if (clicks) {
-          while (clickIndex < clicks.length && origin + clicks[clickIndex].time < context.currentTime + 0.1) {
-            const click = clicks[clickIndex++];
-            batch.steps.push({...click,time:origin+click.time});
+          while(clicks.length){
+            if(clickIndex===clicks.length){if(!cycleSeconds||clickCycle+1>=repeatCount)break;clickIndex=0;clickCycle++;}
+            const click=clicks[clickIndex],time=origin+click.time+(cycleSeconds?clickCycle*cycleSeconds-cycleOffset:0);
+            if(time>=origin+durationSeconds-1e-7||time>=context.currentTime+0.1)break;
+            clickIndex++;
+            if(time>=origin-1e-7)batch.steps.push({...click,time});
           }
         } else s.cursor = batch.cursor;
         batch.steps.filter(step=>step.time<origin+durationSeconds-1e-7).forEach(step => {

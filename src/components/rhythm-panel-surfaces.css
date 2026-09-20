@@ -1,0 +1,695 @@
+/* A named layer lets these scoped appearance rules override legacy unlayered !important skins. */
+@layer rhythm-surfaces {
+/* Shared rhythm surfaces: appearance only; mobile/desktop layout and transport stay owned by their components. */
+html body #root .app {
+  --studio-canvas:#171512;
+  --studio-surface:#211e19;
+  --studio-warm:#2a231a;
+  --studio-control:#28241e;
+  --studio-border:#5a4c38;
+  --studio-panel-border:var(--studio-border);
+  --studio-divider:#383127;
+  --studio-text:#f2e8d7;
+  --studio-muted:#b3a48e;
+  --studio-accent:#cfad72;
+  --studio-highlight:#cfad72;
+  --studio-selected:#3b3122;
+  --studio-player:#141310;
+  --studio-player-text:#f4ebda;
+  --studio-radius:12px;
+}
+html body #root .app.theme-light {
+  --studio-canvas:#f8f5ee;
+  --studio-surface:#fcf8f0;
+  --studio-warm:#f2e4dc;
+  --studio-control:#fff9f4;
+  --studio-border:#cbb2a2;
+  --studio-panel-border:#d4beb1;
+  --studio-divider:#e6d6cb;
+  --studio-text:#332824;
+  --studio-muted:#62584c;
+  --studio-accent:#896638;
+  --studio-highlight:#896638;
+  --studio-selected:#f3e3de;
+  --studio-player:#4c4035;
+  --studio-player-text:#fbf3df;
+}
+/* One common material for the reusable BPM, rhythm, groove and backing surfaces. */
+html body #root .app :is(.metronomeHeroCard,.metronomeControl:has(.rhythmSettings),.grooveEditor,.metronomeAdvancedDock,.backingLoopPanel,.sharedAccompanimentPanel) {
+  background:var(--studio-surface)!important;
+  border:1px solid var(--studio-border)!important;
+  border-radius:var(--studio-radius)!important;
+  box-shadow:none!important;
+  color:var(--studio-text)!important;
+}
+html body #root .app.metronomeMode > .standaloneMetronomePanel {
+  background:var(--studio-canvas)!important;
+  border:1px solid var(--studio-border)!important;
+  box-shadow:none!important;
+}
+html body #root .app :is(.metronomeHeroCard,.grooveEditor,.backingLoopPanel,.metronomeAdvancedDock)::before,
+html body #root .app :is(.metronomeHeroCard,.grooveEditor,.backingLoopPanel,.metronomeAdvancedDock)::after {
+  background:none!important;box-shadow:none!important;border:0!important;
+}
+html body #root .app :is(.grooveEditor,.grooveModeSelector,.groovePackDialog,.grooveResetDialog) {
+  --groove-surface:var(--studio-surface);
+  --groove-control:var(--studio-control);
+  --groove-border:var(--studio-border);
+  --groove-text:var(--studio-text);
+  --groove-muted:var(--studio-muted);
+  --groove-selected:var(--studio-selected);
+}
+html body #root .app :is(.metronomeDockHandle,.grooveModeSelector>button,.grooveToolbar>button,.grooveGrid select,.grooveStrengthSelect) {
+  background:var(--studio-control)!important;
+  border-color:var(--studio-border)!important;
+  color:var(--studio-text)!important;
+  box-shadow:none!important;
+}
+html body #root .app :is(.grooveModeSelector>button,.grooveToolbar>button)[aria-pressed=true] {
+  background:var(--studio-selected)!important;border-color:var(--studio-accent)!important;
+}
+html body #root .app .metronomeDockHandle {
+  position:relative!important;min-height:34px!important;padding:0 34px!important;
+  background:var(--studio-surface)!important;border-color:var(--studio-panel-border)!important;
+  color:var(--studio-text)!important;font-weight:600!important;box-shadow:none!important;
+}
+html body #root .app .metronomeDockHandle .metronomeDockChevron {
+  position:absolute;right:12px;color:var(--studio-accent)!important;
+}
+html body #root .app .metronomeDockHandle[aria-expanded=true] { background:var(--studio-warm)!important; }
+html body #root .app :is(.metronomeAdvancedSummary,.metronomeTrackerResetButton) {
+  background:transparent!important;box-shadow:none!important;border-color:var(--studio-divider)!important;color:var(--studio-text)!important;
+}
+html body #root .app .metronomeAdvancedSummary :is(span,small) { color:var(--studio-muted)!important; }
+html body #root .app .metronomeAdvancedSummary strong { color:var(--studio-text)!important; }
+html body #root .app .metronomeAdvancedSummary:is(.active,.selected) { background:var(--studio-selected)!important; }
+html body #root .app :is(.metronomeAdvancedPopover,.backingLoopDialog,.backingLoopVolumePopover) {
+  background:var(--studio-surface)!important;border:1px solid var(--studio-border)!important;color:var(--studio-text)!important;
+  border-radius:var(--studio-radius)!important;box-shadow:0 8px 28px #0002!important;
+}
+/* Remove stacked inner frames while retaining the existing hit areas and layout. */
+html body #root .app .metronomeOptions:has(.rhythmSettings) {
+  background:none!important;border:0!important;box-shadow:none!important;
+}
+html body #root .app .metronomeControl:has(.rhythmSettings) { padding:8px!important; }
+html body #root .app .rhythmSettings {
+  --theme-surface:var(--studio-control);
+  --theme-text:var(--studio-text);
+  --theme-border-control:var(--studio-border);
+  --theme-accent:var(--studio-accent);
+}
+html body #root .app .rhythmSettingTrigger {
+  background:var(--studio-control)!important;border-color:var(--studio-border)!important;color:var(--studio-text)!important;
+  border-radius:7px!important;box-shadow:none!important;
+}
+html body #root .app .rhythmSettingTrigger[aria-expanded=true] { background:var(--studio-selected)!important;border-color:var(--studio-accent)!important; }
+html body #root .app .rhythmSettingLabel { color:var(--studio-muted)!important; }
+html body #root .app :is(.metronomeHeroBpmValue strong,.metronomeHeroActionText) { color:var(--studio-text)!important;text-shadow:none!important; }
+html body #root .app :is(.metronomeHeroBpmValue span,.metronomeHeroBpmJumpButton,.metronomeHeroBpmButton) {
+  color:var(--studio-accent)!important;text-shadow:none!important;box-shadow:none!important;
+}
+html body #root .app .metronomeHeroActionPanel { background:none!important;border-color:var(--studio-divider)!important;box-shadow:none!important; }
+html body #root .app .metronomeHeroActionPanel > button {
+  background:transparent!important;box-shadow:none!important;border-color:var(--studio-divider)!important;color:var(--studio-text)!important;text-shadow:none!important;
+}
+html body #root .app .metronomeHeroActionPanel > button[aria-pressed=true] { color:var(--studio-accent)!important; }
+html body #root .app .metronomeBpmAdjustDivider { background:var(--studio-divider)!important; }
+/* The player keeps a single contrasting inset surface, without hardware bevels. */
+html body #root .app .backingLoopPanel {
+  --backing-loop-border:var(--studio-border);
+  --backing-loop-gold:var(--studio-accent);
+  --backing-loop-ink:var(--studio-text);
+  --backing-progress-fill:#d7ad62;
+  --backing-progress-fill-edge:#cba45f;
+  --backing-progress-rail:#74695b;
+  --backing-progress-rail-edge:transparent;
+}
+html body #root .app .backingLoopRecorderHardware,
+html body #root .app .backingLoopGrille { opacity:0;pointer-events:none; }
+html body #root .app .backingLoopMiniPlayer {
+  background:var(--studio-player)!important;border:0!important;border-radius:8px!important;box-shadow:none!important;color:var(--studio-player-text)!important;
+}
+/* A full-size seek target with a clear elapsed/remaining split. The audio state
+   and seek logic stay shared; only each layout's spacing changes below. */
+html body #root .app .backingLoopMiniPlayer .backingLoopProgress {
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  width:100%!important;
+  min-width:0!important;
+  height:14px!important;
+  min-height:14px!important;
+  margin:0!important;
+  padding:4px 2px!important;
+  border:0!important;
+  border-radius:999px;
+  background:transparent!important;
+  box-shadow:none!important;
+  outline:0!important;
+  overflow:visible!important;
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopProgress::before {
+  position:absolute;
+  z-index:0;
+  right:2px;
+  left:2px;
+  top:50%;
+  height:2px;
+  border:0;
+  border-radius:999px;
+  background:linear-gradient(90deg,
+    var(--backing-progress-fill) 0 var(--backing-loop-progress),
+    var(--backing-progress-rail) var(--backing-loop-progress) 100%);
+  box-shadow:none;
+  content:"";
+  pointer-events:none;
+  transform:translateY(-50%);
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopProgress > input {
+  position:relative;
+  z-index:1;
+  width:100%!important;
+  height:14px!important;
+  min-height:14px!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  outline:0!important;
+  cursor:pointer;
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopProgress > input::-webkit-slider-runnable-track {
+  height:2px!important;
+  border:0!important;
+  border-radius:999px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopProgress > input::-webkit-slider-thumb {
+  width:0!important;
+  height:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  appearance:none;
+  -webkit-appearance:none!important;
+  background:transparent!important;
+  clip-path:none;
+  box-shadow:none!important;
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopProgress > input::-moz-range-track {
+  height:2px!important;
+  border:0!important;
+  border-radius:999px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopProgress > input::-moz-range-progress {
+  height:2px!important;
+  border-radius:999px!important;
+  background:transparent!important;
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopProgress > input::-moz-range-thumb {
+  width:0!important;
+  height:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  clip-path:none;
+  box-shadow:none!important;
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopProgressThumb {
+  position:absolute;
+  z-index:2;
+  top:50%;
+  left:clamp(4.5px,var(--backing-loop-progress),calc(100% - 4.5px));
+  display:block;
+  width:9px;
+  height:9px;
+  box-sizing:border-box;
+  border:2px solid #f5eddf;
+  border-radius:50%;
+  background:var(--studio-player);
+  box-shadow:0 0 0 1px rgba(203,164,95,.5);
+  pointer-events:none;
+  transform:translate(-50%,-50%);
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopProgress > input:active + .backingLoopProgressThumb {
+  width:11px;
+  height:11px;
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopProgress:focus-within {
+  background:transparent;
+  outline:0;
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopProgress.is-disabled {
+  opacity:.62!important;
+}
+html body #root .app.viewport-mobile-surface .backingLoopPanel--mobile {
+  grid-template-rows:100px 45px!important;
+  height:163px!important;
+  min-height:163px!important;
+}
+html body #root .app.viewport-mobile-surface .backingLoopMiniPlayer--mobile {
+  grid-template-rows:minmax(29px,auto) 14px 40px!important;
+  padding:6px 8px 5px!important;
+}
+html body #root .desktopLayout .app .backingLoopPanel--desktop .backingLoopMiniPlayer--desktop {
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:minmax(28px,auto) 14px 40px!important;
+  min-height:90px!important;
+  padding:5px 8px!important;
+}
+html body #root .desktopLayout .app .backingLoopPanel--desktop.backingLoopPanel--standaloneDesktop {
+  grid-template-rows:100px 42px auto!important;
+}
+html body #root .desktopLayout .app .backingLoopPanel--desktop.backingLoopPanel--standaloneDesktop .backingLoopMiniPlayer--desktop {
+  grid-template-rows:31px 14px 41px!important;
+  height:100px!important;
+  min-height:100px!important;
+}
+html body #root .app .backingLoopMiniPlayer :is(.backingLoopTrackText strong,.backingLoopTrackText small,time,.backingLoopPlayerIconButton) { color:var(--studio-player-text)!important;text-shadow:none!important; }
+html body #root .app .backingLoopMiniPlayer .backingLoopTrackText small { opacity:.67; }
+html body #root .app :is(.backingLoopTrackBadge,.backingLoopPlayerPlayButton) {
+  background:#f5eddf!important;color:#463b2c!important;border:0!important;box-shadow:none!important;
+}
+html body #root .app .backingLoopPlayerIconButton { background:transparent!important;border:0!important;box-shadow:none!important; }
+html body #root .app .backingLoopPlayerIconButton.active { color:var(--studio-accent)!important; }
+html body #root .app .backingLoopMainControls {
+  background:transparent!important;border:1px solid var(--studio-border)!important;border-radius:7px!important;box-shadow:none!important;
+}
+html body #root .app .backingLoopMainControls .backingLoopButton {
+  background:transparent!important;border-color:var(--studio-divider)!important;box-shadow:none!important;color:var(--studio-text)!important;text-shadow:none!important;
+}
+html body #root .app .backingLoopMainControls .backingLoopButton:disabled { color:var(--studio-muted)!important; }
+html body #root .app .backingLoopMainControls .backingLoopButton::before,
+html body #root .app .backingLoopMainControls .backingLoopButton::after { background:none!important;box-shadow:none!important; }
+/* Portaled rhythm menus share the exact surface/ink of their parent controls. */
+html body .rhythmSettingsPopup {
+  --popup-surface:var(--theme-surface);
+  --popup-border:var(--theme-border-control);
+  background:var(--popup-surface)!important;border-color:var(--popup-border)!important;box-shadow:0 8px 28px #0002!important;
+}
+html body .rhythmSettingsPopup .rhythmSettingsChoice { background:transparent!important;border-color:var(--theme-border-control)!important; }
+html body .rhythmSettingsPopup .rhythmSettingsChoice.selected { background:color-mix(in srgb,var(--theme-accent) 15%,var(--theme-surface))!important; }
+html body .rhythmSettingsPopup button { color:var(--theme-text)!important; }
+/* Geometry remains platform-specific. Mobile aligns the four panels; desktop keeps its columns. */
+html body #root .app.metronomeMode.viewport-mobile-surface > .standaloneMetronomePanel { gap:10px!important; }
+html body #root .app.metronomeMode.viewport-mobile-surface .backingLoopPanel { margin-top:0!important; }
+
+/* Editor actions read as one toolbar, not a collection of raised boxes. */
+html body #root .app :is(.grooveToolbar>button,.grooveGrid select,.grooveStrengthSelect,.grooveModeSelector>button) {
+  border:1px solid transparent!important;background:transparent!important;box-shadow:none!important;border-radius:6px!important;
+}
+html body #root .app .grooveModeSelector>button[aria-pressed=true],
+html body #root .app .grooveToolbar>.grooveDeleteToggle[aria-pressed=true] {
+  background:var(--studio-selected)!important;border-color:var(--studio-border)!important;
+}
+html body #root .app .grooveToolbar>.grooveSaveButton {
+  background:var(--studio-accent)!important;border-color:var(--studio-accent)!important;color:var(--studio-surface)!important;
+}
+html body #root .app .grooveToolbar { border-bottom:1px solid var(--studio-divider);padding-bottom:8px;justify-content:flex-end!important; }
+html body #root .app :is(.metronomeOptions,.metronomeControl):has(.rhythmSettings)::before,
+html body #root .app :is(.metronomeOptions,.metronomeControl):has(.rhythmSettings)::after { background:none!important;box-shadow:none!important;border:0!important; }
+html body #root .app .metronomeControl:has(.rhythmSettings) { padding:8px!important; }
+html body #root .app .metronomeControl:has(.rhythmSettings) .metronomeOptions { border:0!important;padding:0!important; }
+html body #root .app.metronomeMode { background:var(--studio-canvas)!important; }
+html body #root .app .backingLoopMainControls .backingLoopButton { border:0!important;border-right:1px solid var(--studio-divider)!important; }
+html body #root .app .backingLoopMainControls .backingLoopButton:last-child { border-right:0!important; }
+
+
+html body #root .app :is(.grooveEditor,.grooveModeSelector,.metronomeAdvancedDock,.metronomeHeroCard,.backingLoopPanel,.rhythmSettings) :is(button,select,span,strong,small,time) { text-shadow:none!important; }
+html body #root .app .backingLoopMiniPlayer .backingLoopPlayerIconButton svg { color:inherit!important;filter:none!important; }
+html body #root .app .metronomeHeroActionPanel .metronomeHeroActionIcon svg { color:inherit!important;filter:none!important; }
+html body #root .app .backingLoopMiniPlayer .backingLoopPlayerPlayButton:disabled { opacity:.65!important; }
+
+/* Definition comes from fine edges rather than bevels or shadows. */
+html body #root .app .grooveEditor { --groove-off:#29251e; }
+html body #root .app.theme-light .grooveEditor { --groove-off:#eee6d8; }
+html body #root .app .grooveBeat button i { border-color:var(--studio-border)!important;box-shadow:none!important; }
+html body #root .app .grooveBeat button[aria-pressed=true] i { border-color:var(--groove-hit-edge,var(--studio-accent))!important; }
+html body #root .app .grooveBeat + .grooveBeat { border-left-color:var(--studio-border)!important; }
+html body #root .app .grooveModeSelector>button[aria-pressed=true],
+html body #root .app .grooveToolbar>.grooveDeleteToggle[aria-pressed=true] { border-color:var(--studio-accent)!important; }
+html body #root .app .grooveEditor :is(button,select):focus-visible { outline:2px solid var(--studio-highlight)!important;outline-offset:2px; }
+
+/* Warmth stays in the material and active states, without raised edges. */
+html body #root .app :is(.metronomeHeroCard,.metronomeControl:has(.rhythmSettings),.grooveEditor,.metronomeAdvancedDock,.backingLoopPanel,.sharedAccompanimentPanel) {
+  background:linear-gradient(120deg,var(--studio-surface),var(--studio-surface) 55%,var(--studio-warm))!important;
+}
+html body #root .app .grooveModeSelector>button[aria-pressed=true] {
+  background:var(--studio-selected)!important;border-color:var(--studio-highlight)!important;
+}
+html body #root .app .grooveToolbar>.grooveSaveButton {
+  background:var(--studio-highlight)!important;border-color:var(--studio-highlight)!important;
+}
+html body #root .app .backingLoopMainControls .backingLoopRecordButton:not(:disabled) { color:#c94751!important; }
+html body #root .app .backingLoopMainControls .backingLoopRecordButton.active { background:color-mix(in srgb,#c94751 12%,var(--studio-surface))!important; }
+html body #root .app .metronomeHeroPlayButton .metronomeHeroActionIcon { color:var(--studio-accent)!important; }
+@media(hover:hover) {
+  html body #root .app .grooveToolbar>button:not(:disabled):hover,
+  html body #root .app .grooveTrackName select:hover { background:var(--studio-selected)!important;border-color:var(--studio-border)!important; }
+}
+
+html body #root .app .backingLoopMiniPlayer .backingLoopPlayerIconButton :is(svg,svg *) { stroke:currentColor!important; }
+html body #root .app .backingLoopMainControls .backingLoopRecordButton:not(:disabled) > span { color:#c94751!important; }
+html body #root .app :is(.grooveToolbar>button,.grooveModeSelector>button,.grooveTrackName select) { transform:none!important; }
+
+/* The tracker’s rose-beige material carries onto the main panels; the page
+   canvas and editing grid keep their bright ivory reading surface. */
+html body #root .app.theme-light.metronomeMode > .standaloneMetronomePanel {
+  border-color:transparent!important;
+}
+html body #root .app.theme-light :is(.metronomeHeroCard,.metronomeControl:has(.rhythmSettings),.grooveEditor,.metronomeAdvancedDock,.backingLoopPanel,.sharedAccompanimentPanel) {
+  background:linear-gradient(180deg,var(--studio-surface) 35%,var(--studio-warm))!important;
+  border-color:var(--studio-panel-border)!important;
+}
+
+/* The mode display is the metronome's primary surface. Give modes 1/2 and the
+   groove grid the same depth while the BPM transport stays with other panels. */
+html body #root .app.metronomeMode
+  > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+  > :is(.metronomeBeatMatrix--main,.grooveEditor) {
+  position:relative!important;
+  z-index:2;
+  box-sizing:border-box!important;
+  border:1px solid color-mix(in srgb,var(--studio-accent) 52%,var(--studio-border))!important;
+  border-radius:var(--studio-radius)!important;
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb,var(--studio-surface) 94%,white) 0%,
+      color-mix(in srgb,var(--studio-surface) 84%,var(--studio-warm)) 100%)!important;
+  box-shadow:
+    0 7px 16px rgba(0,0,0,.28),
+    0 2px 4px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.12)!important;
+  transform:none!important;
+  animation:none!important;
+}
+html body #root .app.theme-light.metronomeMode
+  > .standaloneMetronomePanel:not(.miniChordMetronomePanel):not(.referenceStandaloneMetronomeDeck)
+  > :is(.metronomeBeatMatrix--main,.grooveEditor) {
+  border-color:#c7a27f!important;
+  background:linear-gradient(180deg,#fffdf8 0%,#f7e8df 100%)!important;
+  box-shadow:
+    0 8px 16px rgba(82,50,38,.14),
+    0 2px 4px rgba(82,50,38,.09),
+    inset 0 1px 0 rgba(255,255,255,.96)!important;
+}
+html body #root .app.theme-light .standaloneMetronomePanel > .grooveEditor { background:var(--studio-surface)!important; }
+html body #root .app.theme-light .grooveToolbar {
+  background:#f6e8e1!important;
+  border-bottom-color:#dec6ba!important;
+  border-radius:11px 11px 0 0!important;
+}
+html body #root .app.theme-light .grooveEditor--mobile > .grooveToolbar {
+  margin:-8px -6px 10px!important;padding:8px 6px!important;
+}
+html body #root .app.theme-light .grooveEditor--desktop > .grooveToolbar {
+  margin:-14px -18px 10px!important;padding:14px 18px 8px!important;
+}
+html body #root .app.theme-light .rhythmSettingTrigger {
+  background:linear-gradient(180deg,var(--studio-control),#f6eae4)!important;
+}
+html body #root .app.theme-light .rhythmSettingTrigger[aria-expanded=true] { background:var(--studio-selected)!important; }
+html body #root .app.theme-light .grooveModeSelector>button[aria-pressed=true],
+html body #root .app.theme-light .grooveToolbar>.grooveDeleteToggle[aria-pressed=true] {
+  border-color:#b9867f!important;
+}
+html body #root .app.theme-light .metronomeAdvancedSummary:is(.active,.selected) { background:var(--studio-selected)!important; }
+html body #root .app.theme-light .grooveBeat + .grooveBeat { border-left-color:var(--studio-divider)!important; }
+html body #root .app.theme-light .metronomeDockHandle { border-color:var(--studio-divider)!important; }
+
+html body #root .app.theme-light .grooveBeat button i { border-color:#a99370!important; }
+html body #root .app.theme-light .grooveBeat button[aria-pressed=true] i { border-color:var(--groove-hit-edge,#8a7356)!important; }
+html body #root .app.theme-light :is(.grooveToolbar small,.grooveStrengthControl,.grooveLabels) { color:var(--studio-muted)!important; }
+
+/* Reading comfort: preserve the ivory surfaces, give small labels readable ink
+   and regular strokes, and keep dense mobile controls distinct from desktop. */
+html body #root .app :is(.grooveToolbar>button,.grooveModeSelector>button,.grooveStrengthSelect) {
+  font-weight:600!important;
+  letter-spacing:normal!important;
+}
+html body #root .app :is(.grooveModeSelector>span,.grooveStrengthControl,.grooveLabels,.rhythmSettingLabel) {
+  color:var(--studio-muted)!important;
+  font-weight:500!important;
+}
+html body #root .app .metronomeHeroBpmValue strong { font-weight:800!important; }
+html body #root .app .backingLoopMiniPlayer .backingLoopTrackText strong {
+  font-weight:600!important;line-height:1.35!important;letter-spacing:normal!important;
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopTrackText small {
+  font-weight:400!important;line-height:1.4!important;letter-spacing:normal!important;opacity:.85;
+}
+html body #root .app .backingLoopMiniPlayer .backingLoopTrackInfo time {
+  font-weight:500!important;font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+html body #root .app .backingLoopMainControls .backingLoopButton > span {
+  font-weight:600!important;letter-spacing:normal!important;
+}
+/* Off cells recede; the colored hit outlines retain their existing emphasis. */
+html body #root .app.theme-light .grooveBeat button:not([aria-pressed=true]) i { border-color:#bdac8e!important; }
+
+html body #root .app.viewport-mobile-surface .grooveModeSelector>span { font-size:11px!important; }
+html body #root .app.viewport-mobile-surface .grooveModeSelector>button { font-size:12px!important; }
+html body #root .app .grooveEditor--mobile :is(.grooveToolbar>button,.grooveStrengthSelect,.grooveTrackName select) {
+  font-size:12px!important;
+}
+html body #root .app .grooveEditor--mobile :is(.grooveLabels,.grooveStrengthControl,.grooveToolbar small) { font-size:11px!important; }
+html body #root .app .grooveEditor--mobile .grooveGrid--tracks { --groove-label-width:72px!important; }
+html body #root .app.viewport-mobile-surface .metronomeDockHandle { font-size:11px!important;font-weight:500!important; }
+html body #root .app.viewport-mobile-surface .metronomeAdvancedSummary :is(span,small) {
+  font-size:10px!important;font-weight:500!important;line-height:1.4!important;letter-spacing:normal!important;
+}
+html body #root .app .metronomeTrackerResetButton > span { font-size:10px!important;font-weight:500!important;letter-spacing:normal!important; }
+html body #root .app.viewport-mobile-surface .rhythmSettingLabel { font-size:12px!important; }
+html body #root .app.viewport-mobile-surface .backingLoopTrackText strong { font-size:12px!important; }
+html body #root .app.viewport-mobile-surface .backingLoopTrackText small { font-size:10px!important; }
+html body #root .app.viewport-mobile-surface .backingLoopTrackInfo time { font-size:10px!important;line-height:1.4!important; }
+html body #root .app.viewport-mobile-surface .backingLoopTrackText { gap:2px!important;min-width:0; }
+html body #root .desktopLayout .app :is(.grooveModeSelector>button,.grooveToolbar>button,.grooveStrengthSelect,.grooveTrackName select) { font-size:13px!important; }
+html body #root .desktopLayout .app :is(.grooveModeSelector>span,.grooveLabels,.grooveStrengthControl,.metronomeDockHandle) { font-size:12px!important; }
+html body #root .desktopLayout .app .backingLoopTrackText strong { font-size:14px!important; }
+html body #root .desktopLayout .app :is(.backingLoopTrackText small,.backingLoopTrackInfo time) { font-size:11px!important; }
+/* The label and value form one input, separate from the track-count indicator. */
+html body #root .app .grooveStrengthControl {
+  gap:0!important;padding:0 0 0 6px!important;margin-right:auto!important;
+  border:1px solid var(--studio-divider)!important;border-radius:6px!important;
+  background:transparent!important;box-shadow:none!important;
+}
+html body #root .app .grooveToolbar .grooveStrengthSelect {
+  width:50px!important;flex-basis:50px!important;border:0!important;
+  padding:2px 17px 2px 4px!important;
+}
+html body #root .app .grooveStrengthControl:focus-within { border-color:var(--studio-accent)!important; }
+html body #root .app .grooveModeSelector > .groovePacksTrigger {
+  display:inline-flex!important;align-items:center!important;gap:4px!important;
+}
+html body #root .app .groovePacksTrigger .groovePackFolder { font-size:12px!important;line-height:1!important; }
+
+/* Rhythm-code training uses the same panel depth as its shared BPM/settings.
+   Keep fret geometry and mobile/desktop placement owned by their layouts. */
+html body #root .app > .chordTransitionPanel {
+  background:var(--studio-canvas)!important;border-color:transparent!important;box-shadow:none!important;
+}
+html body #root .app > .chordTransitionPanel::before,
+html body #root .app > .chordTransitionPanel::after { background:none!important;border:0!important;box-shadow:none!important; }
+html body #root .desktopLayout .app .chordTransitionPanel > :is(.stage3DesktopPrimaryColumn,.stage3DesktopSideColumn) {
+  background:transparent!important;border-color:transparent!important;box-shadow:none!important;
+}
+html body #root .app .chordTransitionPanel :is(.chordTransitionChart,.stage3ProgressHud,.stage3PracticeUtilityPanel,.stageChordSharedFretboard) {
+  box-shadow:none!important;
+}
+html body #root .app .chordTransitionPanel .stage3PracticeUtilityPanel { background:transparent!important; }
+html body #root .app.viewport-mobile-surface .chordTransitionChart,
+html body #root .app .chordTransitionPanel .stage3ProgressHud {
+  background:var(--studio-surface)!important;border-color:var(--studio-divider)!important;
+}
+html body #root .app .chordTransitionPanel .stageChordSharedFretboard {
+  background:transparent!important;border-color:transparent!important;
+}
+html body #root .app .chordTransitionChart .fretboardComponentScroller {
+  background:repeating-linear-gradient(90deg,#ead6ab05 0 7px,transparent 7px 14px),linear-gradient(#443828,#3d3225)!important;
+  border:1px solid var(--studio-panel-border)!important;border-radius:var(--studio-radius)!important;
+  box-shadow:none!important;
+}
+html body #root .app.theme-light .chordTransitionChart .fretboardComponentScroller {
+  background:repeating-linear-gradient(90deg,#99734106 0 7px,transparent 7px 14px),linear-gradient(#f6ecd9,#f2e5cf)!important;
+}
+html body #root .app .chordTransitionChart .fretboardNut { box-shadow:none!important; }
+html body #root .app .stage3EmptyFretboardPrompt {
+  background:var(--studio-surface)!important;color:var(--studio-text)!important;
+  border:1px solid var(--studio-panel-border)!important;border-radius:var(--studio-radius)!important;
+  box-shadow:none!important;backdrop-filter:none!important;
+}
+html body #root .app .stage3EmptyFretboardPrompt :is(strong,span) { color:inherit!important;text-shadow:none!important; }
+html body #root .app .chordTransitionChart .stage3EmptyProgressionMeasure > span { box-shadow:none!important; }
+html body #root .app .chordTransitionChart .rhythmChordMeasure,
+html body #root .app .chordTransitionChart .rhythmChordMeasure > button {
+  box-shadow:none!important;text-shadow:none!important;border-color:var(--studio-border)!important;
+}
+html body #root .app .chordTransitionChart .rhythmChordMeasure > button { background:var(--studio-control)!important; }
+html body #root .app .chordTransitionChart .rhythmChordMeasure[aria-current=step],
+html body #root .app .chordTransitionChart .rhythmChordMeasure > button[aria-current=step] {
+  background:var(--studio-selected)!important;border-color:var(--studio-accent)!important;
+}
+html body #root .app .sharedAccompanimentPanel :is(summary,.miniChordBackingRow) {
+  background:transparent!important;border-color:var(--studio-divider)!important;box-shadow:none!important;
+}
+html body #root .app .sharedAccompanimentPanel > summary {
+  color:var(--studio-text)!important;border-radius:11px 11px 0 0!important;
+}
+html body #root .app .sharedAccompanimentPanel button,
+html body #root .app .sharedAccompanimentPanel > summary::after {
+  background:var(--studio-control)!important;border-color:var(--studio-border)!important;
+  color:var(--studio-text)!important;box-shadow:none!important;text-shadow:none!important;font-weight:600!important;
+}
+html body #root .app .sharedAccompanimentPanel button::before,
+html body #root .app .sharedAccompanimentPanel button::after { background:none!important;box-shadow:none!important; }
+html body #root .app .sharedAccompanimentPanel button:is(.selected,[aria-pressed=true]) {
+  background:var(--studio-selected)!important;border-color:var(--studio-accent)!important;color:var(--studio-text)!important;
+}
+html body #root .app .sharedAccompanimentPanel :is(.miniChordPartMeter,summary > span) { color:var(--studio-text)!important; }
+html body #root .app .sharedAccompanimentPanel button:focus-visible { outline:2px solid var(--studio-accent)!important;outline-offset:2px; }
+html body #root .app .sharedAccompanimentPanel input[type=range]::-webkit-slider-runnable-track {
+  background:var(--studio-divider)!important;border-color:var(--studio-border)!important;box-shadow:none!important;
+}
+html body #root .app .sharedAccompanimentPanel input[type=range]::-moz-range-track {
+  background:var(--studio-divider)!important;border-color:var(--studio-border)!important;box-shadow:none!important;
+}
+html body #root .app .sharedAccompanimentPanel input[type=range]::-moz-range-progress { background:var(--studio-accent)!important; }
+html body #root .app .sharedAccompanimentPanel input[type=range]::-webkit-slider-thumb {
+  background:var(--studio-accent)!important;border-color:var(--studio-accent)!important;box-shadow:none!important;
+}
+html body #root .app .sharedAccompanimentPanel input[type=range]::-moz-range-thumb {
+  background:var(--studio-accent)!important;border-color:var(--studio-accent)!important;box-shadow:none!important;
+}
+html body #root .app .chordTransitionPanel :is(.stage3LoadToolbar button,.stage3MetronomeSoundToggle) {
+  background:var(--studio-control)!important;border-color:var(--studio-border)!important;
+  color:var(--studio-text)!important;box-shadow:none!important;text-shadow:none!important;
+}
+html body #root .app .chordTransitionPanel .stage3LoadToolbar button[aria-expanded=true],
+html body #root .app .chordTransitionPanel .stage3MetronomeSoundToggle[aria-pressed=true] {
+  background:var(--studio-selected)!important;border-color:var(--studio-accent)!important;
+}
+
+/* Mobile rhythm-code hierarchy. Keep every working section inside the outer
+   shell instead of letting its border merge with the shell wall. */
+@media(max-width:767px) {
+  html body #root .app.viewport-mobile-surface > .chordTransitionPanel {
+    gap:0!important;
+    padding:6px 0 calc(92px + env(safe-area-inset-bottom, 0px))!important;
+    background:var(--studio-canvas)!important;
+  }
+  html body #root .app.viewport-mobile-surface > .chordTransitionPanel
+    > .stage3DesktopPrimaryColumn > :is(.chordTransitionBody,.stage3ProgressHud),
+  html body #root .app.viewport-mobile-surface > .chordTransitionPanel
+    > .stage3DesktopSideColumn > :is(.stage3PracticeUtilityPanel,.stage3StandaloneMetronomeControl,.sharedAccompanimentPanel--training) {
+    box-sizing:border-box!important;
+    width:calc(100% - 12px)!important;
+    margin-right:6px!important;
+    margin-left:6px!important;
+    border:1px solid var(--studio-panel-border)!important;
+    border-radius:12px!important;
+    box-shadow:0 3px 9px color-mix(in srgb,var(--studio-text) 7%,transparent)!important;
+  }
+  html body #root .app.viewport-mobile-surface > .chordTransitionPanel
+    > .stage3DesktopPrimaryColumn > .chordTransitionBody {
+    margin-top:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+    background:var(--studio-surface)!important;
+  }
+  html body #root .app.viewport-mobile-surface > .chordTransitionPanel
+    > .stage3DesktopPrimaryColumn > .chordTransitionBody > .chordTransitionChart {
+    border:0!important;
+    border-radius:11px!important;
+    background:var(--studio-surface)!important;
+  }
+  html body #root .app.viewport-mobile-surface > .chordTransitionPanel
+    > .stage3DesktopPrimaryColumn > .stage3ProgressHud {
+    margin-top:6px!important;
+    background:color-mix(in srgb,var(--studio-warm) 44%,var(--studio-surface))!important;
+  }
+  html body #root .app.viewport-mobile-surface > .chordTransitionPanel
+    > .stage3DesktopSideColumn > .stage3PracticeUtilityPanel {
+    margin-top:6px!important;
+    padding:9px 10px 10px!important;
+    background:var(--studio-surface)!important;
+  }
+  html body #root .app.viewport-mobile-surface > .chordTransitionPanel
+    > .stage3DesktopSideColumn > .stage3StandaloneMetronomeControl,
+  html body #root .app.viewport-mobile-surface > .chordTransitionPanel
+    > .stage3DesktopSideColumn > .sharedAccompanimentPanel--training {
+    margin-top:6px!important;
+  }
+  html body #root .app.viewport-mobile-surface > .chordTransitionPanel
+    > .stage3DesktopSideColumn > .sharedAccompanimentPanel--training {
+    margin-bottom:0!important;
+  }
+  html body #root .app.viewport-mobile-surface .chordTransitionChart .stage3ChartTitleText {
+    color:var(--studio-text)!important;
+    font-size:13.5px!important;
+    font-weight:800!important;
+    line-height:1.3!important;
+    opacity:1!important;
+  }
+  html body #root .app.viewport-mobile-surface .chordTransitionChart .currentProgressionReadout
+    .rhythmChordMeasure::before {
+    color:var(--studio-text)!important;
+    font-size:9px!important;
+    font-weight:800!important;
+    opacity:.86!important;
+  }
+  html body #root .app.viewport-mobile-surface .chordTransitionChart .currentProgressionReadout button > span {
+    color:var(--studio-text)!important;
+    font-size:10.5px!important;
+    font-weight:800!important;
+    line-height:1.05!important;
+    opacity:1!important;
+  }
+  html body #root .app.viewport-mobile-surface .chordTransitionChart .currentProgressionReadout button > small {
+    color:var(--studio-muted)!important;
+    font-size:7.5px!important;
+    font-weight:700!important;
+    line-height:1!important;
+    opacity:1!important;
+  }
+  html body #root .app.viewport-mobile-surface .stage3EmptyFretboardPrompt {
+    border-color:var(--studio-accent)!important;
+    background:color-mix(in srgb,var(--studio-surface) 88%,var(--studio-selected))!important;
+  }
+  html body #root .app.viewport-mobile-surface .stage3EmptyFretboardPrompt strong {
+    font-size:15px!important;
+    font-weight:800!important;
+    line-height:1.25!important;
+  }
+  html body #root .app.viewport-mobile-surface .stage3EmptyFretboardPrompt span {
+    color:var(--studio-muted)!important;
+    font-size:10.5px!important;
+    font-weight:650!important;
+    line-height:1.35!important;
+  }
+
+  /* Mode 2: the circular beat touch targets extend beyond the orbit itself.
+     Give that real hit area breathing room above and below the clipped stage. */
+  html body #root .app.metronomeMode.viewport-mobile-surface
+    > .standaloneMetronomePanel
+    > .metronomeBeatMatrix--main.metronomeBeatMatrix--circle {
+    box-sizing:border-box!important;
+    height:clamp(230px,60vw,244px)!important;
+    min-height:clamp(230px,60vw,244px)!important;
+    max-height:clamp(230px,60vw,244px)!important;
+    padding:30px 6px 32px!important;
+  }
+}
+@media(max-width:375px) {
+  html body #root .app .grooveEditor--mobile .grooveToolbar { gap:3px!important; }
+  html body #root .app .grooveEditor--mobile .grooveGrid--tracks { --groove-label-width:68px!important; }
+  html body #root .app.viewport-mobile-surface .grooveModeSelector { gap:4px!important; }
+}
+}

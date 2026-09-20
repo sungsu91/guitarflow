@@ -86,7 +86,10 @@ export function frequencyToNearest(frequency, noteList, maxCents = Infinity) {
     : null;
 }
 
-export function getTunerTrackingState(frequency, noteList, selectedString = null) {
+export function getTunerTrackingState(frequency, noteList, selectedString = null, {
+  autoTarget = false,
+  previousTargetString = null,
+} = {}) {
   const currentPitch = frequencyToChromaticPitch(frequency);
   if (!currentPitch) {
     return { cents: null, currentPitch: null, manual: false, target: null };
@@ -95,15 +98,24 @@ export function getTunerTrackingState(frequency, noteList, selectedString = null
   const manualTarget = selectedString == null
     ? null
     : noteList?.find((note) => note.stringNumber === selectedString) ?? null;
-  const cents = manualTarget
-    ? Math.round(centsBetween(frequency, manualTarget.frequency))
+  let target = manualTarget;
+  if (!target && autoTarget) {
+    target = frequencyToNearest(frequency, noteList);
+    const previous = noteList?.find((note) => note.stringNumber === previousTargetString);
+    // Switch only when the new string is at least 40 cents closer. This gives
+    // a 20-cent margin on either side of the geometric midpoint, not a Hz midpoint.
+    if (previous && target && Math.abs(centsBetween(frequency, previous.frequency))
+      <= Math.abs(centsBetween(frequency, target.frequency)) + 40) target = previous;
+  }
+  const cents = target
+    ? Math.round(centsBetween(frequency, target.frequency))
     : currentPitch.cents;
 
   return {
     cents,
     currentPitch,
     manual: manualTarget != null,
-    target: manualTarget,
+    target,
   };
 }
 

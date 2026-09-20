@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {BackingLoopDragContext} from './BackingLoopDragContext.js';
+import { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AudioLines, ChevronDown, ChevronUp, ListMusic, Mic, Music2, Pause, Play, Plus, Repeat2, RotateCcw, Save, Scissors, Shuffle, SkipBack, SkipForward, Square, Trash2, Volume2, VolumeX, X } from "lucide-react";
 import { BACKING_AUDIO_SOURCE_TYPES } from "../backing-loop/backingAudioSource";
@@ -39,7 +40,10 @@ function BackingLoopProgress({ controller }) {
   const isDisabled = !controller.hasRecording || ["recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(controller.phase);
 
   return (
-    <div className={`backingLoopProgress ${isDisabled ? "is-disabled" : ""}`}>
+    <div
+      className={`backingLoopProgress ${isDisabled ? "is-disabled" : ""}`}
+      style={{ "--backing-loop-progress": `${progress}%` }}
+    >
       <input
         aria-label="백킹 루프 재생 위치"
         disabled={isDisabled}
@@ -47,10 +51,10 @@ function BackingLoopProgress({ controller }) {
         min="0"
         onChange={(event) => controller.seekPlayback(event.target.value)}
         step="10"
-        style={{ "--backing-loop-progress": `${progress}%` }}
         type="range"
         value={positionMs}
       />
+      <i aria-hidden="true" className="backingLoopProgressThumb" />
     </div>
   );
 }
@@ -220,11 +224,12 @@ function BackingLoopPlayerBar({ controller, mobile = false, inlinePlaylist = fal
 }
 
 function BackingLoopTrackInfo({ controller, mobile = false }) {
+  const drag=useContext(BackingLoopDragContext);
   const currentTime = formatBackingLoopTime(controller.currentTimeMs);
   const totalTime = formatBackingLoopTime(controller.durationMs);
   const trackTitle = controller.hasRecording ? controller.title : "PLAYLIST EMPTY";
   const trackSource = controller.playlistPlaybackActive
-    ? controller.playlistPlayingTitle
+    ? ""
     : controller.sourceType === BACKING_AUDIO_SOURCE_TYPES.IMPORT
       ? "IMPORTED AUDIO"
       : controller.hasRecording
@@ -232,13 +237,13 @@ function BackingLoopTrackInfo({ controller, mobile = false }) {
         : "OPEN PLAYLIST TO ADD AUDIO";
 
   return (
-    <div className="backingLoopTrackInfo">
+    <div className={"backingLoopTrackInfo"+(drag?" is-drag-handle":"")} {...(drag?{...drag,role:"button",tabIndex:0,"aria-label":"백킹루프 이동 (드래그 또는 방향키)"}:{})}>
       <span aria-hidden="true" className="backingLoopTrackBadge">
         <AudioLines size={mobile ? 15 : 17} />
       </span>
       <span className="backingLoopTrackText">
         <strong title={trackTitle}>{trackTitle}</strong>
-        <small>{trackSource}</small>
+        {trackSource ? <small>{trackSource}</small> : null}
       </span>
       <time aria-label={`${currentTime} / ${totalTime}`}>{currentTime} / {totalTime}</time>
     </div>

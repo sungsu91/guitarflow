@@ -125,6 +125,7 @@ html body .app:is(.theme-light,.theme-dark) .pdfStudio dialog.etudeEditor.mobile
 .etudeMeasureLayoutBar>div{display:flex;gap:3px}.etudeEditor .etudeMeasureLayoutBar button{height:34px;min-height:34px;min-width:34px;padding:3px 8px;font-size:14px;font-weight:600}.etudeMeasureLayoutBar>button:last-child{margin-left:auto}
 .etudeMeasureGrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:0;row-gap:8px;align-items:start;padding:4px;box-sizing:border-box}
 .etudeZoomBounds{min-width:0;flex-shrink:0}
+.mobileScoreWorkspace .etudeEditorMeasure{content-visibility:visible;contain-intrinsic-size:none}
 .mobileScoreWorkspace .etudeEditorPreview>.mobileScoreZoom{flex:0 0 auto;justify-content:flex-end;min-height:36px;padding:0 3px 3px}
 .etudeEditor .etudeMeasureGrid .etudeEditorMeasure{min-width:0;padding:0;margin:0;border:0;border-radius:0;overflow:hidden;background:white}
 .etudeMeasureLayoutTools{display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;border-bottom:1px solid #e8e0d5;color:#4b3422;font:500 12px system-ui}

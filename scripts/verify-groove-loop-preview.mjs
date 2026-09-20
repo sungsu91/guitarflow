@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict';
+import {writeFileSync} from 'node:fs';
+import {chromium} from 'file:///C:/Users/User/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs';
+const b=await chromium.launch({headless:true,channel:'msedge'});
+try{
+const p=await b.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));
+await p.addInitScript(()=>{
+window.audit={hits:[],cancels:[],timers:[]};const interval=window.setInterval;window.setInterval=function(fn,delay,...args){if(delay===25&&window.audit.audio)window.audit.timers.push(window.audit.audio.currentTime);return interval.call(this,fn,delay,...args);};
+const records=new WeakMap();const start=AudioBufferSourceNode.prototype.start,stop=AudioBufferSourceNode.prototype.stop;
+AudioBufferSourceNode.prototype.start=function(time,...args){const record={time,now:this.context.currentTime};records.set(this,record);window.audit.hits.push(record);window.audit.audio=this.context;return start.call(this,time,...args);};
+AudioBufferSourceNode.prototype.stop=function(time){const record=records.get(this);if(record)record.stop=time??this.context.currentTime;if(time===undefined)window.audit.cancels.push(this.context.currentTime);return stop.call(this,time);};
+});
+await p.goto('http://127.0.0.1:5176/#metronome');await p.getByRole('button',{name:'3 그루브',exact:true}).click();
+const bpm=await p.locator('.metronomeHeroBpmValue strong').innerText();
+await p.locator('.metronomeHeroPlayButton').click();
+await p.getByRole('button',{name:'그루브팩 ▾',exact:true}).click();const d=p.getByRole('dialog',{name:'그루브팩',exact:true});
+await p.evaluate(()=>{window.audit.hits=[];window.audit.cancels=[];});
+await d.getByRole('button',{name:'16비트 미리 듣기',exact:true}).click();await p.waitForTimeout(7200);
+assert.equal(await d.getByRole('button',{name:'16비트 미리 듣기 일시정지',exact:true}).innerText(),'Ⅱ');
+const loop=await p.evaluate(()=>window.audit.hits);
+const times=[...new Set(loop.map(h=>h.time))];const step=60/Number(bpm)/4;
+assert.ok(times.at(-1)-times[0]>6);assert.ok(loop.every(h=>h.time>=h.now));assert.ok(times.slice(1).every((t,i)=>Math.abs(t-times[i]-step)<1e-6));
+await d.getByRole('button',{name:'블루스 셔플',exact:true}).click();await d.locator('.groovePackResults').evaluate(e=>e.scrollTop=100);assert.equal(await d.locator('.groovePackPreview[aria-pressed=true]').count(),1);
+await d.getByLabel('팩 이름 검색').fill('16');assert.equal(await d.locator('.groovePackPreview[aria-pressed=true]').count(),1);
+await d.getByRole('button',{name:'16비트 미리 듣기 일시정지',exact:true}).click();
+const paused=await p.evaluate(()=>({hits:window.audit.hits.length,time:window.audit.cancels.at(-1)}));await p.waitForTimeout(700);assert.equal(await p.evaluate(()=>window.audit.hits.length),paused.hits);
+await d.getByRole('button',{name:'16비트 미리 듣기',exact:true}).click();await p.waitForTimeout(350);
+const resume=await p.evaluate(n=>window.audit.hits.slice(n),paused.hits);const resumeOriginTime=await p.evaluate(()=>window.audit.timers.at(-1));const expectedRemainder=(step-((paused.time-times[0])%step))%step;
+assert.ok(Math.abs((resume[0].time-resumeOriginTime)-(.04+expectedRemainder))<.035,'resume retains sub-step position');
+await d.getByLabel('팩 이름 검색').fill('');
+await d.getByRole('button',{name:'8비트 미리 듣기',exact:true}).click();assert.equal(await d.locator('.groovePackPreview[aria-pressed=true]').count(),1);await p.waitForTimeout(150);
+await d.getByRole('button',{name:'재즈',exact:true}).click();assert.equal(await d.locator('.groovePackPreview[aria-pressed=true]').count(),0);
+const hiddenHits=await p.evaluate(()=>window.audit.hits.length);await p.waitForTimeout(300);assert.equal(await p.evaluate(()=>window.audit.hits.length),hiddenHits);
+await d.getByRole('button',{name:'재즈 라이드 스윙 미리 듣기',exact:true}).click();await p.waitForTimeout(300);
+await d.getByRole('button',{name:'재즈 라이드 스윙',exact:true}).click();await d.getByRole('button',{name:'불러오기',exact:true}).click();assert.equal(await p.locator('.metronomeHeroBpmValue strong').innerText(),bpm);
+const loadedHits=await p.evaluate(()=>window.audit.hits.length);await p.waitForTimeout(300);assert.equal(await p.evaluate(()=>window.audit.hits.length),loadedHits);
+await p.getByRole('button',{name:'그루브팩 ▾',exact:true}).click();await d.getByRole('button',{name:'16비트 미리 듣기',exact:true}).click();await p.waitForTimeout(300);await d.getByRole('button',{name:'그루브팩 창 닫기',exact:true}).click();
+const closedHits=await p.evaluate(()=>window.audit.hits.length);await p.waitForTimeout(500);assert.equal(await p.evaluate(()=>window.audit.hits.length),closedHits);assert.ok(await p.evaluate(()=>window.audit.hits.every(h=>h.stop<=window.audit.audio.currentTime)),'no surviving or future voices after close');assert.deepEqual(errors,[]);
+const result={bpm,loopSeconds:times.at(-1)-times[0],loopSteps:times.length,lateHits:loop.filter(h=>h.time<h.now).length,resumeExpectedDelay:.04+expectedRemainder,resumeActualDelay:resume[0].time-resumeOriginTime,selectionAndScrollKeepPlaying:true,filterStopsHidden:true,loadKeepsBpm:true,closeStops:true};
+writeFileSync('output/groove-final-preview.json',JSON.stringify(result,null,2));console.log(result);
+}finally{await b.close();}

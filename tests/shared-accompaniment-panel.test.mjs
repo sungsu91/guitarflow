@@ -54,7 +54,7 @@ test("shared accompaniment controls stay responsive and unlocked during playback
   assert.doesNotMatch(appSource, /<SharedAccompanimentPanel[\s\S]{0,220}className="sharedAccompanimentPanel--training"[\s\S]{0,220}disabled=\{gameState === GAME_STATES\.PLAYING\}/);
 });
 
-test("mini chord recommendations lock only the in-page panel while shared menus stay independent", () => {
+test("mini chord recommendations remain editable while rhythm training keeps its own lock", () => {
   const miniChordPanelSource = getSourceRange(
     '<SharedAccompanimentPanel\n            className="sharedAccompanimentPanel--miniChord"',
     "{miniChordPageCount > 1",
@@ -71,7 +71,7 @@ test("mini chord recommendations lock only the in-page panel while shared menus 
   assert.match(panelSource, /disabled=\{disabled\}/);
   assert.match(panelSource, /data-accompaniment-locked=\{disabled \? "true" : undefined\}/);
   assert.match(panelSource, /disabled && lockedNotice[\s\S]*sharedAccompanimentLockNotice[\s\S]*\{lockedNotice\}/);
-  assert.match(miniChordPanelSource, /disabled=\{miniChordEditLocked \|\| miniChordRecommendedAccompanimentLocked\}/);
+  assert.match(miniChordPanelSource, /disabled=\{miniChordEditLocked\}/);
   assert.match(trainingPanelSource, /disabled=\{stage3RecommendedAccompanimentLocked\}/);
   assert.match(trainingPanelSource, /lockedNotice="기본 제공 팩은 수정할 수 없습니다"/);
   assert.doesNotMatch(miniChordPanelSource, /lockedNotice=/);

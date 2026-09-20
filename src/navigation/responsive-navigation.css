@@ -24,6 +24,9 @@ html body main.app.app.app :is(
 }
 
 /* Palette follows the owning app, including its detached navigation portal. */
+.appRuntime {
+  --mobile-nav-clearance: calc(74px + max(10px, env(safe-area-inset-bottom, 0px)));
+}
 .integratedBottomNav {
   --bottom-nav-background: linear-gradient(180deg,#FCF8F2 0%,#F3E7E2 100%);
   --bottom-nav-border: #DCC8C1;
@@ -49,28 +52,27 @@ html body main.app.app.app :is(
    their existing navigation policy. IDs intentionally outrank legacy themes. */
 html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) .integratedBottomNav {
   position: fixed !important;
-  inset: auto auto 0 var(--bottom-nav-left, 0px) !important;
+  inset: auto auto max(10px, env(safe-area-inset-bottom, 0px)) calc(var(--bottom-nav-left, 0px) + var(--bottom-nav-width, 100%) / 2) !important;
   transition: none !important;
   display: grid !important;
   grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
   box-sizing: border-box !important;
-  width: var(--bottom-nav-width, 100%) !important;
+  width: min(calc(var(--bottom-nav-width, 100%) - 20px), 370px) !important;
   min-width: 0 !important;
   max-width: none !important;
-  height: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+  height: 64px !important;
   min-height: 0 !important;
   max-height: none !important;
   margin: 0 !important;
-  padding: 0 0 env(safe-area-inset-bottom, 0px) !important;
+  padding: 0 !important;
   gap: 0 !important;
-  border: 0 !important;
-  border-top: 1px solid var(--bottom-nav-border) !important;
-  border-radius: 0 !important;
+  border: 1px solid var(--bottom-nav-border) !important;
+  border-radius: 18px !important;
   background: var(--bottom-nav-background) !important;
   box-shadow: var(--bottom-nav-shadow) !important;
   backdrop-filter: none !important;
-  transform: none !important;
-  overflow: visible !important;
+  transform: translateX(-50%) !important;
+  overflow: hidden !important;
   pointer-events: auto;
 }
 
@@ -83,7 +85,7 @@ html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) 
   box-sizing: border-box !important;
   width: 100% !important;
   min-width: 0 !important;
-  height: 63px !important;
+  height: 62px !important;
   min-height: 0 !important;
   max-height: none !important;
   margin: 0 !important;
@@ -176,7 +178,7 @@ html[data-rifflab-layout="mobile"] body #root main.app:not(.landscapePlayFocus) 
 /* Replace existing navigation clearance instead of adding a second spacer.
    Scaled tuner/game canvases already reserve navigation space internally. */
 html body #root:has(.mobileNavigationSurface, main.menuApp) .mobileLayoutShell main.app:not(.mobileNavigationSurface):not(.landscapePlayFocus):not(.tunerMode):not(.shooterMode) {
-  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+  padding-bottom: var(--mobile-nav-clearance) !important;
 }
 
 html body #root:has(.mobileNavigationSurface, main.menuApp) .mobileLayoutShell main.app:not(.mobileNavigationSurface):not(.landscapePlayFocus)

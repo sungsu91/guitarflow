@@ -163,14 +163,15 @@ test("custom playback honors per-section dynamics, held notes and chord boundari
   assert.match(appSource, /getBackingPianoGuideToneVoicing/);
 });
 
-test("a loaded mini chord recommendation locks its built-in structure and accompaniment", () => {
-  assert.match(appSource, /const miniChordRecommendedAccompanimentLocked = appMode === APP_MODES\.MINI_CHORD_MAKER/);
+test("a loaded mini chord recommendation is editable while saving creates a user copy", () => {
+  assert.doesNotMatch(appSource, /const miniChordRecommendedAccompanimentLocked/);
   assert.match(appSource, /setMiniChordRecommendedProgressionId\(isRecommendedProgression \? next\.id : ""\)/);
-  assert.match(appSource, /disabled=\{miniChordEditLocked \|\| miniChordRecommendedAccompanimentLocked\}/);
-  assert.match(appSource, /const miniChordStructureLocked = miniChordEditLocked \|\| miniChordRecommendedAccompanimentLocked;/);
+  assert.match(appSource, /disabled=\{miniChordEditLocked\}/);
+  assert.match(appSource, /const miniChordStructureLocked = miniChordEditLocked;/);
   assert.match(appSource, /const miniChordArrangementEditLocked = miniChordStructureLocked;/);
   assert.match(appSource, /if \(miniChordStructureLocked\) return;/);
-  assert.match(appSource, /추천 기본팩 잠금 · 편집하려면 저장해 사본을 만드세요/);
+  assert.match(appSource, /저장하면 내 반주로 추가되며 원본은 유지됩니다/);
+  assert.match(appSource, /id: `mini-\$\{Date\.now\(\)\}`,[\s\S]*?libraryType: "user",\s+builtIn: false,/);
   assert.match(appSource, /disabled=\{miniChordStructureLocked\}/);
   assert.match(appSource, /libraryType: miniChordRecommendedProgressionId \? "recommended-progression" : "user"/);
 });

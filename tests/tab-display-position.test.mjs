@@ -35,5 +35,5 @@ test('saved TAB presentation settings preserve note data and playback',()=>{
   assert.deepEqual(loaded.measures,source.measures);
   assert.deepEqual(scoreTimeline(score),timeline);
  }
- assert.deepEqual(createBlankDocument().viewSettings,{tabRhythm:true});
+ assert.deepEqual(createBlankDocument().viewSettings,{tabRhythm:true,notationView:'tab'});
 });

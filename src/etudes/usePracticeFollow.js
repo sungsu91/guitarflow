@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
-import {followScrollTarget} from './practiceFollowGeometry.js';
+import {followScrollTarget,followHorizontalTarget} from './practiceFollowGeometry.js';
 export default function usePracticeFollow(root,mode,playing,revision){
  const [suspended,setSuspended]=useState(false),state=useRef({dirty:true}),latest=useRef({});
  latest.current={mode,playing,suspended};
@@ -12,7 +12,7 @@ export default function usePracticeFollow(root,mode,playing,revision){
  const start=e=>{const t=e.touches[0];touch=t&&{x:t.clientX,y:t.clientY};};
  const move=e=>{const t=e.touches[0];if(touch&&t&&Math.hypot(t.clientX-touch.x,t.clientY-touch.y)>6)suspend();};
  const pointer=e=>{const r=scroller.getBoundingClientRect();if(e.clientX>=r.left+scroller.clientWidth)suspend();};
- const keys=e=>{if(['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(e.key)&&!e.target.closest('input,select,button'))suspend();};
+ const keys=e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(e.key)&&!e.target.closest('input,select,button'))suspend();};
  const dirty=()=>{state.current.dirty=true;};const observer=new ResizeObserver(dirty);observer.observe(scroller);observer.observe(root.current);
  scroller.addEventListener('wheel',wheel,{passive:true});scroller.addEventListener('touchstart',start,{passive:true});scroller.addEventListener('touchmove',move,{passive:true});scroller.addEventListener('pointerdown',pointer);scroller.addEventListener('keydown',keys);
  window.visualViewport?.addEventListener('resize',dirty);
@@ -32,6 +32,20 @@ export default function usePracticeFollow(root,mode,playing,revision){
   if(widget&&widget.right>rect.left&&widget.left<rect.right&&widget.bottom>top&&widget.top<bottom){if(widget.top-top>=bottom-widget.bottom)bottom=Math.max(top,widget.top-8);else top=Math.min(bottom,widget.bottom+8);}
   const height=Math.max(1,bottom-top-12),signature=[rect.width,rect.height,height,top-rect.top,svg.getAttribute('viewBox')].join(':');
   const backwards=s.bar!=null&&current.bar<s.bar;
+  // Unlike vertical following, the beat can leave the viewport within one row.
+  // Track its screen position every frame, including row changes and loop wraps.
+  const maxLeft=scroller.scrollWidth-scroller.clientWidth;
+  if(maxLeft>1){
+    const cursor=line.getBoundingClientRect().left-rect.left-scroller.clientLeft+scroller.scrollLeft;
+    const reset=force||s.dirty||s.svg!==svg||s.row!==row||backwards;
+    const firstBar=svg.querySelector('[data-playback-bar][data-row="'+row+'"]');
+    const lookAhead=Number(firstBar?.dataset.playbackBar)!==current.bar;
+    const targetLeft=followHorizontalTarget(cursor,scroller.clientWidth,scroller.scrollLeft,maxLeft,reset,lookAhead);
+    // Ease into the earlier anchor when the second bar starts, then track it.
+    const left=lookAhead&&!reset?scroller.scrollLeft+(targetLeft-scroller.scrollLeft)*.2:targetLeft;
+    if(Math.abs(scroller.scrollLeft-left)>1)scroller.scrollTo({left,top:scroller.scrollTop,behavior:'instant'});
+  }
+  s.bar=current.bar;
   if(!s.dirty&&s.svg===svg&&s.row===row&&s.signature===signature&&!backwards)return;
   const matrix=svg.getScreenCTM();if(!matrix)return;
   const base=matrix.f-rect.top+scroller.scrollTop;

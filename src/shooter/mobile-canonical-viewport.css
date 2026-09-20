@@ -351,7 +351,7 @@
 /* Portrait stages fill the viewport above the detached navigation. Only the
    canvas width is scaled; height reflows so artwork and controls are not stretched. */
 html.shooterCanonicalMobile body #root main.app.viewport-portrait:is(.tunerMode, .shooterMode) {
-  --shooter-mobile-nav-space: calc((64px + env(safe-area-inset-bottom, 0px)) / var(--shooter-mobile-canvas-scale, 1));
+  --shooter-mobile-nav-space: calc(var(--mobile-nav-clearance) / var(--shooter-mobile-canvas-scale, 1));
   width: var(--portrait-mobile-canvas-width) !important;
   min-width: var(--portrait-mobile-canvas-width) !important;
   max-width: var(--portrait-mobile-canvas-width) !important;

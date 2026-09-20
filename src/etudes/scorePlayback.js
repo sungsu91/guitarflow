@@ -2,7 +2,7 @@ import {performedMeasures} from './scoreMeters.js';
 import {scoreBarOrder} from './scoreRepeats.js';
 import {ticksOf} from './scoreModel.js';
 // All times use sounding MIDI (the guitar staff is engraved one octave higher).
-export function scoreTimeline(score, bpm = score.bpm, includeNotes = true) {
+export function scoreTimeline(score, bpm = score.bpm, includeNotes = true, {playEmptyScore=false} = {}) {
   const events = [], pending = new Map();
   let offset = 0, writtenEnd = 0;
   const order=scoreBarOrder(score);
@@ -36,7 +36,10 @@ export function scoreTimeline(score, bpm = score.bpm, includeNotes = true) {
     }
     offset += meter[0] * 4 / meter[1];
   }
-  return {events:events.sort((a,b)=>a.start-b.start), duration:writtenEnd,order};
+  // The editor can run the metronome/playhead across an entirely blank score.
+  // Entered music still ends at its written end; blanks never create sounds.
+  const duration=writtenEnd||(playEmptyScore?offset*60/bpm:0);
+  return {events:events.sort((a,b)=>a.start-b.start), duration,order};
 }
 
 // Connect only adjacent notes on the same physical string. Other strings keep

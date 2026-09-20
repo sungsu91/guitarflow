@@ -1,5 +1,6 @@
 import {validateMiniChordMarkerEdit,validateMiniChordCommandEdit} from '../mini-chord/notationValidation.js';
 
+export const SECTION_LABELS=['A','B','C','D','E','F','INT','OUT','VERSE','CHORUS','BRIDGE','SOLO','INTERLUDE'];
 export const NAV_MARKERS=[['segno','세뇨','되돌아올 마디의 시작'],['coda','코다','건너뛴 뒤 연주할 마디의 시작'],['toCoda','To Coda','이 마디 연주 후 코다로 이동'],['fine','Fine','이 마디 연주 후 종료']];
 export const NAV_COMMANDS=[['dc','D.C.','처음으로'],['ds','D.S.','세뇨로'],['dcAlFine','D.C. al Fine','처음으로 돌아가 Fine까지'],['dsAlFine','D.S. al Fine','세뇨로 돌아가 Fine까지'],['dcAlCoda','D.C. al Coda','처음으로 돌아가 To Coda에서 이동'],['dsAlCoda','D.S. al Coda','세뇨로 돌아가 To Coda에서 이동']];
 
@@ -33,7 +34,9 @@ export function setScoreNavigation(document,bar,kind,value){
  if(kind==='ending'&&![0,1,2,3,4,5].includes(value))throw Error('엔딩 번호는 1–5입니다.');
  if(kind==='marker'&&value&&!NAV_MARKERS.some(([key])=>key===value))throw Error('위치 기호를 확인하세요.');
  if(kind==='command'&&value&&!NAV_COMMANDS.some(([key])=>key===value))throw Error('이동 명령을 확인하세요.');
- if(!['marker','command','ending'].includes(kind))return document;
+ if(kind==='sectionLabel'&&value&&!SECTION_LABELS.includes(value))throw Error('구간 표기를 확인하세요.');
+ if(kind==='endBarline'&&value&&!['single','double','final'].includes(value))throw Error('마디 끝 선을 확인하세요.');
+ if(!['marker','command','ending','sectionLabel','endBarline'].includes(kind))return document;
  const measures=document.measures.map((m,i)=>{if(i!==bar)return m;const next={...m};if(!value||next[kind]===value)delete next[kind];else next[kind]=value;if(kind==='marker')delete next.markerIndex;if(kind==='command')delete next.targetIndex;return next;});
  return {...document,measures};
 }

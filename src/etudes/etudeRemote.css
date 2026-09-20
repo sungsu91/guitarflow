@@ -47,6 +47,7 @@ html body main.app.app.app .etudeFloatingTheme .etudeRemote .etudePracticeStart 
 .etudeRemotePopover .rhythmSettings{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}
 .etudeRemotePopover .rhythmSetting{width:auto!important;min-width:0!important}
 .etudeRemotePopover .rhythmSetting:last-child{grid-column:1/-1}
+html body main.app .etudeRemotePopover .rhythmSetting--repeat{grid-area:2/1/3/4!important}
 html body main.app.app.app .etudeFloatingTheme .etudeRemote .etudePracticeStart svg,html body main.app.app.app .etudeFloatingTheme .etudeRemote .etudePracticeStart svg *{stroke:var(--theme-surface)!important;color:var(--theme-surface)!important;fill:none!important}
 html body main.app .etudeRemotePopover .rhythmSettings{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
 html body main.app .etudeRemotePopover .rhythmSetting--meter{grid-area:1/1!important}
@@ -116,3 +117,33 @@ html body main.app.app.app .etudeRemotePopover .etudeVolumeMute[aria-pressed=tru
 html body main.app.app.app .etudeRemotePopover .etudeVerticalVolume input[data-metronome-volume]{appearance:auto;writing-mode:vertical-lr;direction:rtl;width:28px;height:150px;min-height:80px;max-height:35dvh;padding:0;border:0;accent-color:var(--remote-brown,var(--theme-accent));background:transparent!important;box-shadow:none!important}
 .etudeVerticalVolume>button{display:grid;place-items:center;min-width:44px;min-height:44px}
 .etudeVerticalVolume>button svg{width:20px;height:20px}
+/* Landscape transport shares the toolbar row; the playback owner never moves. */
+.etudeHudMetroMount:empty{display:none}
+.etudePracticeLayout.is-focus:has(.etudeHudRemote)>.etudePracticeToolbar{display:flex;flex-wrap:nowrap;align-items:center;gap:6px}
+.pdfStudio .etudeCompactTools.is-focus:has(.etudeHudRemote) .etudeViewTools{width:auto;flex:1 1 auto;flex-wrap:nowrap;min-width:0;overflow-x:auto}
+.etudeHudMetroMount{flex:none}
+html body main.app .etudeFloatingTheme .etudeFloatingMetro.etudeSessionWidget.etudeRemote.etudeHudRemote{position:relative!important;inset:auto!important;display:flex;align-items:center;gap:8px;width:auto!important;max-width:none!important;padding:0!important;margin:0;border:0;box-shadow:none;border-radius:0;background:transparent}
+.etudeHudRemote .etudeRemoteBeats{display:flex;gap:6px;flex:none}
+.etudeHudRemote .etudeRemoteControls{display:flex;margin:0;gap:2px;flex:none}
+html body main.app .etudeFloatingTheme .etudeHudRemote button{width:44px;min-width:44px;height:44px;border-radius:6px}
+html body main.app .etudeFloatingTheme .etudeHudRemote .etudeRemoteBpm{width:66px;gap:3px}
+.etudeHudRemote .etudeRemoteBpm strong{font-size:20px}
+.etudeFloatingMetro.etudeSessionWidget.etudeHudRemote .etudeBeat i{width:12px;height:12px}
+.etudeFloatingMetro.etudeSessionWidget.etudeHudRemote .etudeBeatRow{gap:5px;max-width:110px;flex-wrap:nowrap;overflow-x:auto;padding:4px}
+.etudeHudRemote .etudeRemoteBeats>span{font-size:10px}
+body:has(.etudeHudRemote) .etudeCompactTools.is-focus .etudeScoreViewport{padding-bottom:0;scroll-padding-bottom:0}
+/* Two sources share selection logic; mobile keeps both selectors side by side. */
+.etudeSongPicker.etudeQuickBrowse .etudeQuickSelects{grid-template-columns:repeat(2,minmax(0,1fr))}
+html body main.app .etudeQuickBrowse .etudeQuickSelects .etudeSelect{flex-direction:column!important;align-items:stretch!important;gap:5px}
+html body main.app .etudeQuickBrowse .etudeQuickSelects .etudeSelect>select{width:100%;min-width:0;flex:auto}
+.etudeStudio--mobile .etudeSongPicker.etudeQuickBrowse{grid-template-columns:minmax(0,1fr)}
+.etudeStudio--mobile .etudeQuickBrowse .etudeQuickPages{justify-content:flex-end}
+/* Portrait picker: source, saved score, then navigation on the same control row. */
+.etudeStudio--mobile .etudeSongPicker.etudeQuickBrowse{grid-template-columns:minmax(0,1fr) 92px;align-items:end;gap:6px}
+.etudeStudio--mobile .etudeSongPicker.etudeQuickBrowse:not(:has(.etudeQuickPages)){grid-template-columns:minmax(0,1fr)}
+.etudeStudio--mobile .etudeQuickBrowse .etudeQuickSelects{gap:6px}
+.etudeStudio--mobile .etudeQuickBrowse .etudeQuickPages{display:grid;grid-template-columns:44px 44px;grid-template-rows:17px 44px;gap:5px 4px;align-items:center}
+.etudeStudio--mobile .etudeQuickBrowse .etudeQuickPages>span{grid-column:1/-1;grid-row:1;text-align:center;font-size:11px;line-height:17px;min-width:0}
+.etudeStudio--mobile .etudeQuickBrowse .etudeQuickPages>button{grid-row:2;width:44px;min-width:44px;box-sizing:border-box}
+html body main.app.app.app .pdfStudio .etudeStudio--mobile .etudeQuickBrowse .etudeQuickSelects select{font-size:12px!important;padding:8px 4px!important}
+html body main.app .etudeStudio--mobile .etudeQuickBrowse .etudeQuickSelects .etudeSelect>span{font-size:11px!important;line-height:17px}

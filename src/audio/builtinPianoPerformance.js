@@ -6,7 +6,8 @@ export const BUILTIN_PIANO_SAMPLE_MIDI = 67;
 const pc = (midi) => ((midi % 12) + 12) % 12;
 const label = (value) => String(value ?? "").replace(/\s+/g, "");
 
-// Provenance is transient playback data; never persist it into a user's copy.
+// Rhythm provenance is transient. Mini arrangements persist their sound separately
+// from library ownership so saving an editable copy does not change its playback.
 export function markBuiltinPianoProgression(progression, preset, mode) {
   const expected = preset?.progression ?? preset?.slots;
   if (!expected || expected.length !== progression.length) return progression;
@@ -22,6 +23,15 @@ export function matchesBuiltinMiniSlots(preset, slots, barCount) {
   return Boolean(preset?.builtIn && preset.barCount === barCount
     && preset.slots.length === slots.length
     && slots.every((value, index) => label(value) === label(preset.slots[index])));
+}
+
+export function resolveMiniChordPianoPerformance(value, slots, barCount, presets = []) {
+  if (value.pianoPerformance === "mini" || value.pianoPerformance === "standard") {
+    return value.pianoPerformance;
+  }
+  // Recover the sound of older saved copies that did not store a performance mode.
+  return presets.some((preset) => matchesBuiltinMiniSlots(preset, slots, barCount))
+    ? "mini" : "standard";
 }
 
 export function getBuiltinChordPitchClasses(chord) {
@@ -103,7 +113,8 @@ export function arrangeBuiltinPianoEvents(events, progression, slotSeconds, beat
     const strong = Math.abs(start / beatSeconds - Math.round(start / beatSeconds)) < 0.001;
     const notes = voicings[first.chordIndex];
     const ordered = style === "arpDown" ? [...notes].reverse() : notes;
-    const baseVolume = group.reduce((sum, event) => sum + event.volume, 0) / group.length;
+    const baseVolume = group.reduce((sum, event) => sum + event.volume
+      / (mini && event.commonTone ? 0.86 : 1), 0) / group.length;
     let boundaryIndex = first.chordIndex + 1;
     // Existing expanded repeat order is authoritative, including rests and jumps.
     while (boundaryIndex < progression.length
@@ -113,9 +124,8 @@ export function arrangeBuiltinPianoEvents(events, progression, slotSeconds, beat
     const boundary = Math.min(cycleSeconds, boundaryIndex * slotSeconds);
     ordered.forEach((midi, index) => {
       const role = midi < 60 ? "middle" : "upper";
-      const upperDelay = mini && role === "upper"
-        ? Math.min(beatSeconds / 4, first.duration / 4, (boundary - start) / 4) : 0;
-      const offsetSeconds = start + (arp ? index * Math.min(0.045, beatSeconds / 12) : upperDelay + index * 0.006);
+      // Block chords strike together; only explicitly selected arpeggios roll.
+      const offsetSeconds = start + (arp ? index * Math.min(0.045, beatSeconds / 12) : index * 0.006);
       const remaining = boundary - offsetSeconds;
       if (remaining < 0.012) return;
       const releaseSeconds = Math.min(role === "upper" && mini ? 0.28 : 0.14, remaining * 0.25);
@@ -124,10 +134,8 @@ export function arrangeBuiltinPianoEvents(events, progression, slotSeconds, beat
       output.push({ ...first, midi, offsetSeconds, duration, releaseSeconds,
         playbackRate: 2 ** ((midi - BUILTIN_PIANO_SAMPLE_MIDI) / 12),
         volume: baseVolume * (role === "upper" ? (mini ? 0.78 : 0.56) : 0.94)
-          * (strong ? 1 : 0.88) * (commonTone ? 0.88 : 1),
-        commonTone, performanceRole: role, builtinPianoPerformance: true,
-        // Keep all original attacks; only HOLD upper voices may actually tie.
-        allowCommonToneTie: mini && role === "upper" && style === "hold",
+          * (strong ? 1 : 0.88) * (!mini && commonTone ? 0.88 : 1),
+        commonTone: !mini && commonTone, performanceRole: role, builtinPianoPerformance: true,
         attackStartSeconds: start,
         harmonicEndSeconds: boundary,
       });
@@ -147,19 +155,7 @@ export function arrangeBuiltinPianoEvents(events, progression, slotSeconds, beat
     }
   }
   output.sort((a, b) => a.offsetSeconds - b.offsetSeconds);
-  const held = new Map();
-  return output.filter((event) => {
-    if (!event.allowCommonToneTie) return true;
-    const prior = held.get(event.midi);
-    held.set(event.midi, event);
-    if (!prior || prior.offsetSeconds + prior.duration + prior.releaseSeconds + 1e-9 < event.attackStartSeconds
-      || prior.harmonicEndSeconds + 1e-9 < event.attackStartSeconds
-      // The source is a finite ~2.124 s sample, not a looped piano sustain.
-      || event.offsetSeconds + event.duration + event.releaseSeconds - prior.offsetSeconds > 2.1 / prior.playbackRate) return true;
-    prior.duration = event.offsetSeconds + event.duration - prior.offsetSeconds;
-    prior.releaseSeconds = event.releaseSeconds;
-    prior.harmonicEndSeconds = event.harmonicEndSeconds;
-    held.set(event.midi, prior);
-    return false;
-  });
+  // HOLD controls gate length; a later attack must still retrigger the sample.
+  // Extending a decaying sample instead makes the next chord lose its attack.
+  return output;
 }

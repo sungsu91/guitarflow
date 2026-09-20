@@ -11,17 +11,20 @@ try {
   const page=await browser.newPage({viewport:{width,height:844},isMobile:true,hasTouch:true});
   await page.goto(`${url}#tuner`);
   const nav=page.locator('.integratedBottomNav');await nav.waitFor();
-  assert.equal(await nav.getAttribute('data-navigation-layout'),'viewport-bottom-v2','The deployed navigation fix is missing');
+  assert.equal(await nav.getAttribute('data-navigation-layout'),'floating-bottom-v1','The floating navigation rollback is missing');
   await page.evaluate(()=>{
    Object.defineProperty(visualViewport,'height',{configurable:true,value:796});
    visualViewport.dispatchEvent(new Event('resize'));
    visualViewport.dispatchEvent(new Event('scroll'));
   });
-  for(const name of ['튜너','슈팅게임','지판 보기']) {
+  for(const name of ['튜너','메트로놈','슈팅게임','메트로놈','지판 보기']) {
    await nav.getByRole('button',{name,exact:true}).click();
    const check=async()=>{
-    const bottom=await nav.evaluate(e=>e.getBoundingClientRect().bottom);
-    assert.ok(Math.abs(bottom-844)<1,`${name} at ${width}px leaves a ${844-bottom}px bottom gap`);
+    const box=await nav.boundingBox();
+    assert.ok(Math.abs(box.y+box.height-834)<1,`${name} at ${width}px lost its 10px bottom margin`);
+    assert.equal(box.height,64,'Safe area must not add a block inside the floating rail');
+    assert.ok(Math.abs(box.width-Math.min(width-20,370))<1);
+    assert.ok(Math.abs(box.x-(width-box.width)/2)<1);
     assert.equal(await nav.count(),1);
    };
    await check();
@@ -30,6 +33,18 @@ try {
    await page.locator('#utility-menu-panel .utilityMenuHeader button').click();
    await page.locator('#utility-menu-panel').waitFor({state:'hidden'});await check();
   }
+  await nav.getByRole('button',{name:'메뉴 열기',exact:true}).click();
+  await page.locator('#utility-menu-panel').getByRole('radio',{name:/골드 다크/}).click();
+  await page.locator('#utility-menu-panel .utilityMenuHeader button').click();
+  assert.equal(await nav.evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(23, 22, 18)');
+  if(engine===chromium){
+   const session=await page.context().newCDPSession(page);
+   await session.send('Emulation.setSafeAreaInsetsOverride',{insets:{bottom:34,top:47,left:0,right:0}});
+   const box=await nav.boundingBox();
+   assert.equal(box.height,64);
+   assert.ok(Math.abs(box.y+box.height-810)<1,'Safe area belongs outside the floating rail');
+  }
+  await page.screenshot({path:`artifacts/nav/floating-${engine.name()}-${width}.png`});
   console.log(`PASS ${engine.name()} ${width}px: stale viewport, mode switch, menu`);
   await page.close();
  }

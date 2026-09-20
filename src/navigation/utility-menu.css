@@ -10,11 +10,27 @@ html body #root #utility-menu-panel {
   width:min(88vw,330px) !important; min-width:0 !important; max-width:none !important; height:auto !important; max-height:calc(100dvh - 96px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
   padding:0 !important; gap:0 !important; margin:0 !important; overflow:hidden !important; border:1px solid var(--menu-border) !important; border-radius:18px !important;
   background:var(--menu-bg) !important; color:var(--menu-title) !important; box-shadow:0 18px 60px rgba(0,0,0,.22) !important; transform:none !important; animation:none !important; text-shadow:none !important;
+  contain:layout paint style !important; isolation:isolate !important;
+}
+/* The menu is a static modal surface. Legacy global button transitions can
+   otherwise create and discard compositor layers as the pointer crosses rows,
+   which makes scaled Chrome previews briefly rerasterize nearby text. */
+html body #root .utilityMenuSurface .utilityMenuDim,
+html body #root #utility-menu-panel,
+html body #root #utility-menu-panel * {
+  transition:none !important;
+  animation:none !important;
+}
+html body #root main.app.utilityMenuOpen .shooterArena,
+html body #root main.app.utilityMenuOpen .shooterArena *,
+html body #root main.app.utilityMenuOpen .shooterArena *::before,
+html body #root main.app.utilityMenuOpen .shooterArena *::after {
+  animation-play-state:paused !important;
 }
 html body #root #utility-menu-panel .utilityMenuHeader { display:flex !important; align-items:center !important; justify-content:space-between !important; padding:5px 10px 5px 14px !important; margin:0 !important; border:0 !important; background:transparent !important; box-shadow:none !important; }
 html body #root #utility-menu-panel .utilityMenuHeader strong { font-size:21px !important; font-weight:700 !important; color:var(--menu-title) !important; letter-spacing:-.02em !important; }
 html body #root #utility-menu-panel .utilityMenuHeader button { display:grid !important; place-items:center !important; width:44px !important; height:44px !important; min-height:44px !important; padding:0 !important; border:1px solid var(--menu-border) !important; border-radius:50% !important; background:var(--menu-surface) !important; color:var(--menu-title) !important; box-shadow:none !important; }
-html body #root #utility-menu-panel .utilityMenuBody { min-height:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; padding:0 8px 8px; scrollbar-width:thin; }
+html body #root #utility-menu-panel .utilityMenuBody { min-height:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; padding:0 8px 8px; scrollbar-width:thin; contain:paint; }
 html body #root #utility-menu-panel .utilityThemePanel { padding:0 4px 8px !important; margin:0 !important; border:0 !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; }
 html body #root #utility-menu-panel .utilityThemeHeader { margin:0 0 4px !important; }
 html body #root #utility-menu-panel .utilityThemeHeader strong { font-size:13px !important; color:var(--menu-title) !important; }
@@ -26,6 +42,16 @@ html body #root #utility-menu-panel .utilityThemeIcon { display:grid !important;
 html body #root #utility-menu-panel .utilityThemeOptions [aria-checked=true] { border-color:var(--menu-accent) !important; background:var(--menu-selected) !important; color:var(--menu-accent) !important; }
 html body #root #utility-menu-panel .utilityMenuList { display:grid !important; grid-template-columns:minmax(0,1fr) !important; gap:4px !important; padding:0 !important; margin:0 !important; overflow:visible !important; }
 html body #root #utility-menu-panel :is(.utilityMenuItem,.utilitySoundDetails > summary) { display:grid !important; grid-template-columns:34px minmax(0,1fr) 16px !important; align-items:center !important; gap:10px !important; box-sizing:border-box !important; width:100% !important; min-height:54px !important; height:auto !important; padding:12px !important; margin:0 !important; border:1px solid var(--menu-border) !important; border-radius:12px !important; background:var(--menu-surface) !important; color:var(--menu-title) !important; box-shadow:var(--menu-shadow) !important; text-align:left !important; text-decoration:none !important; transform:none !important; }
+html body #root #utility-menu-panel :is(.utilityMenuItem,.utilitySoundDetails > summary) { contain:paint; filter:none !important; }
+@media (hover:hover) {
+  html body #root #utility-menu-panel :is(.utilityMenuItem,.utilitySoundDetails > summary):hover {
+    border-color:color-mix(in srgb,var(--menu-accent) 58%,var(--menu-border)) !important;
+    background:var(--menu-surface) !important;
+    box-shadow:var(--menu-shadow) !important;
+    filter:none !important;
+    transform:none !important;
+  }
+}
 html body #root #utility-menu-panel :is(.utilityMenuItem,.utilitySoundDetails > summary)::before,
 html body #root #utility-menu-panel :is(.utilityMenuItem,.utilitySoundDetails > summary)::after { content:none !important; }
 html body #root #utility-menu-panel .utilityMenuIcon { display:grid !important; place-items:center !important; width:34px !important; height:34px !important; min-width:34px !important; padding:0 !important; margin:0 !important; border:0 !important; border-radius:9px !important; background:var(--menu-tile) !important; color:var(--menu-accent) !important; box-shadow:none !important; text-shadow:none !important; transform:none !important; font:700 20px/1 Arial,sans-serif !important; font-variant-numeric:tabular-nums !important; }

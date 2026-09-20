@@ -12,3 +12,15 @@ html body #root .chordCatalogPanel .chordMiniSharedFretboard .fretboardGrid {
   content-visibility: auto;
   contain-intrinsic-block-size: auto 0px;
 }
+
+/* Skip whole offscreen rows as well as horizontal cards. The browser remembers
+   each measured height, so revisiting a row keeps the catalog scroll position. */
+html[data-rifflab-layout="mobile"] .chordCatalogPanel .chordCatalogRow {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 234px;
+}
+@media (max-width: 430px) {
+  html[data-rifflab-layout="mobile"] .chordCatalogPanel .chordCatalogRow {
+    contain-intrinsic-block-size: auto 220px;
+  }
+}

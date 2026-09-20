@@ -1,9 +1,14 @@
 import { frequencyToChromaticPitch, midiToFrequency } from "./tunerMath.js";
 
 export const TUNER_PRESET_DEFINITIONS = Object.freeze({
+  violin: Object.freeze([
+    Object.freeze({ id: "standard", label: "STANDARD", description: "바이올린 기본 튜닝", midis: [55, 62, 69, 76] }),
+  ]),
   bass: Object.freeze([
-    Object.freeze({ id: "standard", label: "STANDARD", description: "4현 기본 튜닝", midis: [28, 33, 38, 43] }),
-    Object.freeze({ id: "drop-d", label: "DROP D", description: "4번 줄만 D로", midis: [26, 33, 38, 43] }),
+    Object.freeze({ id: "standard", label: "4현 스탠다드", description: "4현 기본 튜닝", midis: [28, 33, 38, 43] }),
+    Object.freeze({ id: "standard-5", label: "5현 스탠다드", description: "5현 기본 튜닝", midis: [23, 28, 33, 38, 43] }),
+    Object.freeze({ id: "standard-6", label: "6현 스탠다드", description: "6현 기본 튜닝", midis: [23, 28, 33, 38, 43, 48] }),
+    Object.freeze({ id: "drop-d", label: "4현 DROP D", description: "4현 · 4번 줄만 D로", midis: [26, 33, 38, 43] }),
   ]),
   guitar: Object.freeze([
     Object.freeze({ id: "standard", label: "STANDARD", description: "기본 튜닝", midis: [40, 45, 50, 55, 59, 64] }),
