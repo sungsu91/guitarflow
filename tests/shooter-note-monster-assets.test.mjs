@@ -41,14 +41,14 @@ test("natural, sharp, and flat pitches share the seven root-note monster familie
   });
 });
 
-test("gameplay can preload one idle frame per note family before targets appear", async () => {
+test("archived idle frames remain available but gameplay no longer preloads them", async () => {
   const idleSources = getShooterNoteMonsterIdleAssetSources("elemental");
   const appSource = await readFile(new URL("../src/App.jsx", import.meta.url), "utf8");
 
   assert.equal(idleSources.length, SHOOTER_NOTE_MONSTER_ROOTS.length);
   assert.deepEqual(idleSources, SHOOTER_NOTE_MONSTER_ROOTS.map((root) => SHOOTER_NOTE_MONSTER_ASSETS[root][0]));
-  assert.match(appSource, /await preloadShooterEnemyIdleAssets\(selectedMonsterSkin\.id\)/);
-  assert.match(appSource, /fetchPriority="high"/);
+  assert.doesNotMatch(appSource, /preloadShooterEnemyIdleAssets|selectedMonsterSkin/);
+  assert.match(appSource, /enemyAssetSources: \[\]/);
 });
 
 test("each of the seven cute-object designs keeps its label in the authored orb center", () => {
@@ -198,12 +198,8 @@ test("Backline Resonance centers the full app-rendered target pitch with manifes
     readFile(new URL("../src/App.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/style.css", import.meta.url), "utf8"),
   ]);
-  assert.match(appSource, /getShooterNoteMonsterPitchText\(/);
-  assert.match(appSource, /data-monster-skin=\{selectedMonsterSkin\.id\}/);
-  assert.match(appSource, /pitchText\.fontSizeRatio/);
-  assert.match(appSource, /pitchText\.outlineWidthRatio/);
-  assert.match(appSource, /monsterRenderedScales\.labelScale \* monsterSkinRenderScale/);
-  assert.match(appSource, /key=\{`\$\{frameSrc\}:\$\{frameIndex\}`\}/);
+  assert.match(appSource, /data-monster-skin="neon"/);
+  assert.doesNotMatch(appSource, /shooterEnemyMonsterIdleFrame|shooterEnemyMonsterBreakFrame/);
   assert.match(styleSource, /max-width: var\(--target-label-max-width, 100%\)/);
   assert.match(styleSource, /white-space: nowrap/);
   assert.doesNotMatch(

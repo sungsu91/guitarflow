@@ -38,7 +38,6 @@ test("skin tabs include the pet catalog beside the effect catalog", async () => 
       ["pet", "펫"],
       ["map", "맵"],
       ["pick", "피크"],
-      ["monster", "몹스킨"],
     ],
   );
 });

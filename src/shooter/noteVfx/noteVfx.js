@@ -1,5 +1,6 @@
 export const NOTE_VFX_DURATION_MS = 420;
-export function isNoteVfxEnabled(dev, search = '') {
+// Optional development map preview; neon monsters are always enabled.
+export function isNoteVfxPreviewRequested(dev, search = '') {
   return dev === true && new URLSearchParams(search).get('shooterNoteVfx') === '1';
 }
 export function noteVfxColor(pitch) {

@@ -2,13 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
-import {isNoteVfxEnabled} from '../src/shooter/noteVfx/noteVfx.js';
+import {isNoteVfxPreviewRequested} from '../src/shooter/noteVfx/noteVfx.js';
 
-test('neon visuals require an explicit development-only opt in',()=>{
- for(const dev of [false,undefined,null]) assert.equal(isNoteVfxEnabled(dev,'?shooterNoteVfx=1'),false);
- assert.equal(isNoteVfxEnabled(true,''),false);
- assert.equal(isNoteVfxEnabled(true,'?shooterNoteVfx=0'),false);
- assert.equal(isNoteVfxEnabled(true,'?shooterNoteVfx=1'),true);
+test('moonlit map preview remains development-only; monster visuals are unconditional',()=>{
+ for(const dev of [false,undefined,null]) assert.equal(isNoteVfxPreviewRequested(dev,'?shooterNoteVfx=1'),false);
+ assert.equal(isNoteVfxPreviewRequested(true,''),false);
+ assert.equal(isNoteVfxPreviewRequested(true,'?shooterNoteVfx=0'),false);
+ assert.equal(isNoteVfxPreviewRequested(true,'?shooterNoteVfx=1'),true);
 });
 test('pitch judgment, projectile scoring and collision geometry remain identical after authorized pacing changes',()=>{
  const baseline=execFileSync('git',['show','0e79bf3:src/App.jsx'],{encoding:'utf8',maxBuffer:8e6}).replaceAll('\r\n','\n');

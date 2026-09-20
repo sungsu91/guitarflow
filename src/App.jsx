@@ -179,30 +179,8 @@ import {
   SHOOTER_PET_SKINS,
   getShooterPetSkinById,
 } from "./shooter/pets.js";
-import {
-  DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID,
-  SHOOTER_NOTE_MONSTER_BREAK_FRAME_COUNT,
-  SHOOTER_NOTE_MONSTER_ROOTS,
-  SHOOTER_NOTE_MONSTER_SKINS,
-  getShooterNoteMonsterAssetSources,
-  getShooterNoteMonsterIdleAssetSources,
-  getShooterNoteMonsterFrames,
-  getShooterNoteMonsterLabelLayout,
-  getShooterNoteMonsterLabelPalette,
-  getShooterNoteMonsterLabelParts,
-  getShooterNoteMonsterPitchText,
-  getShooterNoteMonsterRenderScale,
-  getShooterNoteMonsterSkin,
-  getShooterNoteMonsterSkinRenderScale,
-} from "./shooter/noteMonsterAssets";
-import {
-  getShooterNoteMonsterLabelPosition,
-  getShooterNoteMonsterRenderedScales,
-  getShooterNoteMonsterTuning,
-} from "./shooter/noteMonsterTuning.js";
-import useShooterNoteMonsterTuning from "./shooter/useShooterNoteMonsterTuning.js";
 import { NeonNote, NeonNoteBursts } from "./shooter/noteVfx/NeonNote.jsx";
-import { isNoteVfxEnabled } from "./shooter/noteVfx/noteVfx.js";
+import { isNoteVfxPreviewRequested } from "./shooter/noteVfx/noteVfx.js";
 import ProgressSettings from "./shooter/ProgressSettings.jsx";
 import { SHOOTER_HARD_RANDOM_POSITIONS, scaleShooterProgressDuration, getShooterProgressRecovery, getShooterConcurrentTargetLimit, getShooterStreamInterval } from "./shooter/progressionSettings.js";
 import useShooterMobileViewport from "./shooter/useShooterMobileViewport.js";
@@ -7878,7 +7856,6 @@ const SHOOTER_PLAYER_STORAGE_KEY = "rifflabSelectedPlayer";
 const SHOOTER_GUITAR_STORAGE_KEY = "rifflabSelectedGuitar";
 const SHOOTER_GUITAR_CABINET_STORAGE_KEY = "rifflabShooterGuitarCabinet";
 const SHOOTER_PICK_SKIN_STORAGE_KEY = "rifflabShooterPickSkin";
-const SHOOTER_MONSTER_SKIN_STORAGE_KEY = "rifflabShooterMonsterSkin";
 const SHOOTER_PET_SKIN_STORAGE_KEY = "rifflabShooterPetSkin";
 const DEFAULT_SHOOTER_PET_POSITION = Object.freeze({ x: 80, y: 88 });
 const SHOOTER_EFFECT_STORAGE_KEY = "rifflabShooterEffect";
@@ -8347,7 +8324,6 @@ const SHOOTER_SKIN_TABS = [
   { id: "pet", label: "펫" },
   { id: "map", label: "맵" },
   { id: "pick", label: "피크" },
-  { id: "monster", label: "몹스킨" },
 ];
 
 const shooterScrollHintFrames = new WeakMap();
@@ -9335,9 +9311,7 @@ function getShooterPickSkinById(skinId) {
   return SHOOTER_PICK_SKINS.find((skin) => skin.id === skinId) ?? SHOOTER_PICK_SKINS[0];
 }
 
-function getShooterMonsterSkinById(skinId) {
-  return getShooterNoteMonsterSkin(skinId);
-}
+
 
 function getShooterMapById(
   mapId,
@@ -12046,10 +12020,7 @@ function getStoredShooterGuitarCabinetSkinId() {
   ).id;
 }
 
-function getStoredShooterMonsterSkinId() {
-  if (typeof window === "undefined") return DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID;
-  return getShooterMonsterSkinById(window.localStorage.getItem(SHOOTER_MONSTER_SKIN_STORAGE_KEY)).id;
-}
+
 
 function getStoredShooterPetSkinId() {
   if (typeof window === "undefined") return DEFAULT_SHOOTER_PET_SKIN_ID;
@@ -12086,7 +12057,7 @@ function getStoredShooterMapId() {
 
 function getStoredShooterMapPreference() {
   if (typeof window === "undefined") return SHOOTER_RANDOM_MAP_ID;
-  if (isNoteVfxEnabled(import.meta.env.DEV, window.location.search)) return "moonlit-rooftop";
+  if (isNoteVfxPreviewRequested(import.meta.env.DEV, window.location.search)) return "moonlit-rooftop";
   const storedPreference = window.localStorage.getItem(SHOOTER_MAP_PREFERENCE_STORAGE_KEY);
   if (storedPreference === SHOOTER_RANDOM_MAP_ID) return SHOOTER_RANDOM_MAP_ID;
   if (SHOOTER_MAP_OPTIONS.some((map) => map.id === storedPreference)) return storedPreference;
@@ -16060,18 +16031,6 @@ function silenceShooterSoundGroups(activeGroups) {
 }
 const SHOOTER_NOTE_MONSTER_RENDER_SIZE = NOTE_SIZE * 2.4;
 
-function preloadShooterEnemyAssets(skinId = DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID) {
-  return Promise.all(
-    getShooterNoteMonsterAssetSources(skinId).map(preloadShooterEffectImage),
-  ).then(() => undefined);
-}
-
-function preloadShooterEnemyIdleAssets(skinId = DEFAULT_SHOOTER_NOTE_MONSTER_SKIN_ID) {
-  return Promise.all(
-    getShooterNoteMonsterIdleAssetSources(skinId).map(preloadShooterEffectImage),
-  ).then(() => undefined);
-}
-
 const SHOOTER_RECORDS_STORAGE_KEY = "rifflabShooterRecords";
 const SHOOTER_GUITAR_PIVOT_PERCENT = { x: 50, y: 91.5 };
 const SHOOTER_GUITAR_AIM_LIMIT_DEG = 34;
@@ -17074,7 +17033,6 @@ function App({ onReady }) {
   const [shooterCountInLabel, setShooterCountInLabel] = useState(null);
   const [projectiles, setProjectiles] = useState([]);
   const shooterHitboxDebugEnabled = useMemo(getInitialShooterHitboxDebugMode, []);
-  const shooterNoteVfxRequested = useMemo(() => isNoteVfxEnabled(import.meta.env.DEV, window.location.search), []);
   const [shooterDebugGeometry, setShooterDebugGeometry] = useState(null);
   const [shooterAim, setShooterAim] = useState(undefined);
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
@@ -17100,7 +17058,6 @@ function App({ onReady }) {
     getStoredShooterGuitarCabinetSkinId,
   );
   const [selectedShooterPickSkinId, setSelectedShooterPickSkinId] = useState(getStoredShooterPickSkinId);
-  const [selectedShooterMonsterSkinId, setSelectedShooterMonsterSkinId] = useState(getStoredShooterMonsterSkinId);
   const [selectedShooterPetSkinId, setSelectedShooterPetSkinId] = useState(getStoredShooterPetSkinId);
   const [shooterPetPosition, setShooterPetPosition] = useState(
     () => ({ ...DEFAULT_SHOOTER_PET_POSITION }),
@@ -17198,10 +17155,6 @@ function App({ onReady }) {
     () => getShooterPickSkinById(selectedShooterPickSkinId),
     [selectedShooterPickSkinId],
   );
-  const selectedShooterMonsterSkin = useMemo(
-    () => getShooterMonsterSkinById(selectedShooterMonsterSkinId),
-    [selectedShooterMonsterSkinId],
-  );
   const selectedShooterPetSkin = useMemo(
     () => getShooterPetSkinById(selectedShooterPetSkinId),
     [selectedShooterPetSkinId],
@@ -17228,7 +17181,6 @@ function App({ onReady }) {
     selectedGuitarCabinet.backAssetSrc && selectedGuitarCabinet.frontAssetSrc,
   );
   const selectedPick = selectedShooterPickSkin;
-  const selectedMonsterSkin = selectedShooterMonsterSkin;
   const selectedPet = selectedShooterPetSkin;
   const selectedAuraEffect = selectedShooterAuraEffect;
   const selectedFloorEffect = selectedShooterFloorEffect;
@@ -17349,10 +17301,6 @@ function App({ onReady }) {
     onApplyEffectIds: commitShooterEffectEditorLoadout,
     selectedEffectIds: selectedShooterEffectLoadout,
   });
-  const shooterMonsterEditor = useShooterNoteMonsterTuning({
-    enabled: mapEditor.enabled,
-    selectedSkinId: selectedMonsterSkin.id,
-  });
   const previewFloorEffect = shooterEffectEditor.previewEffects.find(
     (effect) => effect.slot === SHOOTER_EFFECT_EQUIPMENT_SLOTS.FLOOR,
   ) ?? selectedFloorEffect;
@@ -17431,7 +17379,7 @@ function App({ onReady }) {
   shooterEntryAssetsRef.current = appMode === APP_MODES.SHOOTER ? {
     cabinetAssetSources: getShooterGuitarCabinetAssetSources(selectedGuitarCabinet),
     effectLayers: selectedEffectLayers,
-    enemyAssetSources: getShooterNoteMonsterIdleAssetSources(selectedMonsterSkin.id),
+    enemyAssetSources: [],
     guitarAssetSrc: selectedGuitar.assetSrc,
     guitarProjectileAssetSrc: selectedGuitar.projectileAssetSrc,
     mapBackgroundSrc: selectedMap.backgroundImage,
@@ -17584,14 +17532,6 @@ function App({ onReady }) {
     }
   }, []);
 
-  const applyShooterMonsterSkin = useCallback((skinId) => {
-    const nextSkin = getShooterMonsterSkinById(skinId);
-    setSelectedShooterMonsterSkinId(nextSkin.id);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(SHOOTER_MONSTER_SKIN_STORAGE_KEY, nextSkin.id);
-    }
-    void preloadShooterEnemyAssets(nextSkin.id);
-  }, []);
 
   const applyShooterPetSkin = useCallback((skinId) => {
     const nextSkin = getShooterPetSkinById(skinId);
@@ -23884,8 +23824,6 @@ function App({ onReady }) {
       return;
     }
 
-    await preloadShooterEnemyIdleAssets(selectedMonsterSkin.id);
-    void preloadShooterEnemyAssets(selectedMonsterSkin.id);
 
     activeNotesRef.current = initialShooterNotes;
     sequenceRef.current = getPracticeSequence(safeCategory);
@@ -23923,7 +23861,7 @@ function App({ onReady }) {
     setFeedback("Count In");
     setState(GAME_STATES.PLAYING);
     lastFrameRef.current = performance.now();
-  }, [desktopHorizontalClickAttackActive, ensureAudioReady, getPracticeSequence, resetScore, selectedMonsterSkin.id, selectedPentatonic, setState, shooterHitboxDebugEnabled, spawnShooterTarget, startMic]);
+  }, [desktopHorizontalClickAttackActive, ensureAudioReady, getPracticeSequence, resetScore, selectedPentatonic, setState, shooterHitboxDebugEnabled, spawnShooterTarget, startMic]);
 
   const startShooterMic = useCallback(async () => {
     appModeRef.current = APP_MODES.SHOOTER;
@@ -27395,9 +27333,7 @@ function App({ onReady }) {
       : getFretboardPositionsForPitch(shooterGuidePitch)
     : [];
   const shooterGuidePrimaryLabel = shooterGuidePitch
-    ? isShooterExactPositionMode && !shooterNoteVfxRequested
-      ? shooterGuidePitch
-      : getShooterPitchDisplayLabel(shooterGuidePitch, shooterSolfegeOn)
+    ? getShooterPitchDisplayLabel(shooterGuidePitch, shooterSolfegeOn)
     : "";
   const shooterGuideSecondaryLabel = shooterGuidePitch
     ? isShooterExactPositionMode && shooterTargetDetail
@@ -33325,7 +33261,7 @@ function App({ onReady }) {
           <div
             className={`shooterArena ${shooterRendererMode === SHOOTER_RENDERER_MODES.DESKTOP_PORTRAIT ? "shooterArena--desktopPortrait" : ""} ${horizontalShooterActive ? "shooterArena--desktopHorizontal" : ""} ${mobileLandscapeShooterActive ? "shooterArena--mobileLandscape" : ""} ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapIsLayered ? "shooterArena--layeredMap" : ""} ${mapEditor.enabled ? "shooterArena--mapEdit" : ""} ${shooterMapRuntimePerformance.reduceEffects ? "shooterArena--mapEffectsReduced" : ""} shooterArena--aura-${selectedAuraEffect.id} shooterArena--floor-${selectedFloorEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""} ${gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER || utilityMenuOpen ? "shooterArena--animationsPaused" : ""} ${gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterArena--lobby" : "shooterArena--session"}`}
             data-shooter-renderer={shooterRendererMode}
-            data-note-vfx={shooterNoteVfxRequested && !horizontalShooterActive ? "neon" : undefined}
+            data-note-vfx="neon"
             onClick={(event) => {
               if (mapEditor.enabled) return;
               if (mobileLandscapeShooterSelected && !mobileLandscapeShooterActive) return;
@@ -33556,56 +33492,14 @@ function App({ onReady }) {
               </div>
             ) : null}
 
-            {shooterNoteVfxRequested && !horizontalShooterActive && (gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER) ? (
+            {(gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER) ? (
               <NeonNoteBursts targets={shooterTargets} nodes={shooterTargetNodesRef} arena={shooterArenaRef} formatPitch={getShooterPitchDisplayLabel} solfegeOn={shooterSolfegeOn} />
             ) : null}
             {shooterTargets.map((target) => {
               const targetDifficulty = target.difficulty ?? shooterDifficulty;
               const targetIsScriptedScenario = isShooterScriptedDifficulty(targetDifficulty);
               const targetPitch = target.note ?? target.detail?.pitch ?? "C4";
-              const monsterFrames = getShooterNoteMonsterFrames(targetPitch, selectedMonsterSkin.id);
-              const monsterLabel = getShooterNoteMonsterLabelParts(targetPitch);
-              const monsterLabelLayout = getShooterNoteMonsterLabelLayout(targetPitch, selectedMonsterSkin.id);
-              const monsterLabelPalette = getShooterNoteMonsterLabelPalette(targetPitch, selectedMonsterSkin.id);
-              const monsterTuning = getShooterNoteMonsterTuning(
-                shooterMonsterEditor.previewTunings,
-                selectedMonsterSkin.id,
-                targetPitch,
-              );
-              const monsterRenderedScales = getShooterNoteMonsterRenderedScales(monsterTuning);
-              const monsterLabelPosition = getShooterNoteMonsterLabelPosition(
-                monsterLabelLayout,
-                monsterTuning,
-              );
-              const targetPitchDisplayLabel = targetIsScriptedScenario
-                ? targetPitch
-                : getShooterPitchDisplayLabel(targetPitch, shooterSolfegeOn);
-              const monsterPitchLabel = getShooterNoteMonsterPitchText(
-                targetPitch,
-                selectedMonsterSkin.id,
-                targetPitchDisplayLabel,
-              );
-              const monsterRenderScale = getShooterNoteMonsterRenderScale(
-                targetPitch,
-                selectedMonsterSkin.id,
-              )
-                * monsterRenderedScales.monsterScale;
-              const monsterSkinRenderScale = getShooterNoteMonsterSkinRenderScale(selectedMonsterSkin.id);
-              const pitchText = selectedMonsterSkin.pitchText;
-              const monsterLabelFontSize = pitchText?.renderedByApp
-                ? SHOOTER_NOTE_MONSTER_RENDER_SIZE
-                  * monsterRenderScale
-                  * pitchText.fontSizeRatio
-                  * monsterTuning.labelScale
-                : 13 * monsterRenderedScales.labelScale * monsterSkinRenderScale;
-              const monsterLabelOutlineWidth = pitchText?.renderedByApp
-                ? Math.max(
-                  0.8,
-                  SHOOTER_NOTE_MONSTER_RENDER_SIZE
-                    * monsterRenderScale
-                    * pitchText.outlineWidthRatio,
-                )
-                : 0.9 * monsterSkinRenderScale;
+              const targetPitchDisplayLabel = getShooterPitchDisplayLabel(targetPitch, shooterSolfegeOn);
               const targetDestroyDurationMs = target.destroyHoldMs ?? SHOOTER_TARGET_DESTROY_ANIMATION_MS;
               return (
               <div
@@ -33613,8 +33507,8 @@ function App({ onReady }) {
                 className={`enemy shooterEnemy shooterEnemy--monster ${getShooterEnemyDifficultyClass(targetDifficulty)} ${!target.defeated ? "fallingTarget" : ""} ${target.defeated ? "defeated" : ""} ${shooterActiveTargetId === target.id ? "shooterEnemy--currentTarget" : ""} ${target.slashPending ? "shooterEnemy--slashPending" : ""}`}
                 data-click-attack={desktopHorizontalClickAttackActive && !target.defeated ? "true" : undefined}
                 data-current-target={shooterActiveTargetId === target.id ? "true" : undefined}
-                data-monster-skin={selectedMonsterSkin.id}
-                data-note-root={monsterLabel.root}
+                data-monster-skin="neon"
+                data-note-root={targetPitch[0]}
                 key={target.id}
                 onClick={desktopHorizontalClickAttackActive
                   ? (event) => {
@@ -33638,18 +33532,9 @@ function App({ onReady }) {
                   "--target-x": `${target.x}%`,
                   "--target-y": `${target.y}%`,
                   "--hit-note-size": `${NOTE_SIZE}px`,
-                  "--target-render-size": `${SHOOTER_NOTE_MONSTER_RENDER_SIZE * monsterRenderScale}px`,
+                  "--target-render-size": `${SHOOTER_NOTE_MONSTER_RENDER_SIZE * 1.1}px`,
                   "--target-duration-ms": `${target.duration}ms`,
                   "--target-destroy-duration-ms": `${targetDestroyDurationMs}ms`,
-                  "--target-destroy-frame-ms": `${targetDestroyDurationMs / SHOOTER_NOTE_MONSTER_BREAK_FRAME_COUNT}ms`,
-                  "--target-label-x": `${monsterLabelPosition.x}%`,
-                  "--target-label-y": `${monsterLabelPosition.y}%`,
-                  "--target-label-font-size": `${monsterLabelFontSize}px`,
-                  "--target-label-max-width": `${(pitchText?.textMaxWidthRatio ?? 1) * 100}%`,
-                  "--target-label-outline-width": `${monsterLabelOutlineWidth}px`,
-                  "--target-label-color": monsterTuning.labelColor || monsterLabelPalette.color,
-                  "--target-label-outline": monsterTuning.labelOutline || monsterLabelPalette.outline,
-                  "--target-label-glow": monsterLabelPalette.glow,
                   ...getNoteColorStyle(target.note),
                 }}
                 tabIndex={desktopHorizontalClickAttackActive ? 0 : undefined}
@@ -33662,39 +33547,13 @@ function App({ onReady }) {
                     ▼
                   </span>
                 ) : null}
-                {shooterNoteVfxRequested && !horizontalShooterActive ? (
-                  !target.defeated ? <NeonNote pitch={targetPitch} label={getShooterPitchDisplayLabel(targetPitch, shooterSolfegeOn)} /> : null
-                ) : <div className="shooterEnemyMonsterVisual">
-                  {horizontalShooterActive && !target.defeated ? (
-                    <>
-                      <span aria-hidden="true" className="threeDLabEnemySpawnAura" />
-                      <span aria-hidden="true" className="threeDLabEnemyReflection" />
-                    </>
-                  ) : null}
-                  {target.defeated ? monsterFrames.slice(1).map((frameSrc, frameIndex) => (
-                    <img
-                      alt=""
-                      className="shooterEnemyMonsterAsset shooterEnemyMonsterBreakFrame"
-                      draggable="false"
-                      key={`${frameSrc}:${frameIndex}`}
-                      src={frameSrc}
-                      style={{ animationDelay: `${frameIndex * (targetDestroyDurationMs / SHOOTER_NOTE_MONSTER_BREAK_FRAME_COUNT)}ms` }}
-                    />
-                  )) : (
-                    <img
-                      alt=""
-                      className="shooterEnemyMonsterAsset shooterEnemyMonsterIdleFrame"
-                      draggable="false"
-                      fetchPriority="high"
-                      src={monsterFrames[0]}
-                    />
-                  )}
-                  {!target.defeated ? (
-                    <span aria-hidden="true" className="shooterEnemyPitchLabel">
-                      <b>{monsterPitchLabel}</b>
-                    </span>
-                  ) : null}
-                </div>}
+                {horizontalShooterActive && !target.defeated ? (
+                  <div className="shooterEnemyMonsterVisual" aria-hidden="true">
+                    <span className="threeDLabEnemySpawnAura" />
+                    <span className="threeDLabEnemyReflection" />
+                  </div>
+                ) : null}
+                {!target.defeated ? <NeonNote pitch={targetPitch} label={targetPitchDisplayLabel} /> : null}
                 {shooterHitboxDebugEnabled && !horizontalShooterActive && !selectedMapIsPseudo3D && !target.defeated && target.hitboxActive !== false ? (() => {
                   const hurtbox = getShooterTargetHurtbox(target);
                   if (!hurtbox) return null;
@@ -34278,7 +34137,6 @@ function App({ onReady }) {
               editor={mapEditor}
               layout={isMobileLayout ? "mobile" : "desktop"}
               mapOptions={LAYERED_SHOOTER_MAP_SKINS}
-              monsterEditor={shooterMonsterEditor}
               onMapChange={applyShooterMap}
             />
           ) : null}
@@ -34323,8 +34181,8 @@ function App({ onReady }) {
                   <div>
                     <strong>스킨변경</strong>
                     {isMobileLayout ? (
-                      <span title={`${getShooterSkinGuitarTitle(selectedGuitar.title)} · ${selectedGuitarCabinet.label} · ${selectedMonsterSkin.label} · ${selectedPet.label} · ${selectedPick.label} · ${selectedMap.label}`}>
-                        {getShooterSkinGuitarTitle(selectedGuitar.title)} · {selectedGuitarCabinet.label} · {selectedMonsterSkin.label} · {selectedPet.label} · {selectedPick.label} · {selectedMap.label}
+                      <span title={`${getShooterSkinGuitarTitle(selectedGuitar.title)} · ${selectedGuitarCabinet.label} · ${selectedPet.label} · ${selectedPick.label} · ${selectedMap.label}`}>
+                        {getShooterSkinGuitarTitle(selectedGuitar.title)} · {selectedGuitarCabinet.label} · {selectedPet.label} · {selectedPick.label} · {selectedMap.label}
                       </span>
                     ) : null}
                   </div>
@@ -34400,35 +34258,6 @@ function App({ onReady }) {
                           <span>새 기타가 추가되면 여기에 표시됩니다.</span>
                         </div>
                       )}
-                    </div>
-                  ) : shooterSkinTab === "monster" ? (
-                    <div className="shooterSkinOptionGrid shooterSkinOptionGrid--monsters" aria-label="몹 스킨 선택">
-                      {SHOOTER_NOTE_MONSTER_SKINS.map((skin) => {
-                        const isSelected = selectedMonsterSkin.id === skin.id;
-                        return (
-                          <button
-                            aria-pressed={isSelected}
-                            className={`shooterSkinOptionCard shooterSkinOptionCard--monster ${isSelected ? "selected" : ""}`}
-                            key={skin.id}
-                            onClick={() => applyShooterMonsterSkin(skin.id)}
-                            type="button"
-                          >
-                            <span className="shooterMonsterSkinPreview" aria-hidden="true">
-                              {SHOOTER_NOTE_MONSTER_ROOTS.map((noteRoot) => (
-                                <img
-                                  alt=""
-                                  draggable="false"
-                                  key={noteRoot}
-                                  src={skin.assets[noteRoot][0]}
-                                />
-                              ))}
-                            </span>
-                            <strong>{skin.label}</strong>
-                            <small>{skin.description}</small>
-                            <em>{isSelected ? "선택됨" : "선택"}</em>
-                          </button>
-                        );
-                      })}
                     </div>
                   ) : shooterSkinTab === "pet" ? (
                     <div className="shooterSkinOptionGrid shooterSkinOptionGrid--pets" aria-label="펫 스킨 선택">
