@@ -23,7 +23,7 @@ test("a physical iPhone receives the complete portrait map catalog", () => {
 
   assert.equal(isMobileLayout, true);
   assert.deepEqual(mapIds, LAYERED_SHOOTER_MAP_SKINS.map((map) => map.id));
-  assert.equal(mapIds.length, 9);
+  assert.equal(mapIds.length, 15);
 });
 
 test("Vercel revalidates the entry document so phones cannot retain an old map registry", async () => {

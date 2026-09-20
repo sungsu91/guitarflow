@@ -3,11 +3,13 @@ import {createGrooveRow, GROOVE_TONES} from './groove.js';
 import './groove.css';
 
 
+const GrooveTrackName=React.memo(function GrooveTrackName({row,r,changeRow}) {
+  return <div className="grooveTrackName"><select aria-label={`${r+1}행 음색`} value={row.tone} onChange={e=>e.target.value==='mute'?changeRow(r,{muted:!row.muted}):changeRow(r,{tone:e.target.value})}>{GROOVE_TONES.map(([id,text])=><option key={id} value={id}>{text}{row.muted && id===row.tone ? ' (음소거)' : ''}</option>)}<option value="mute">{row.muted?'음소거 해제':'음소거'}</option></select></div>;
+});
+
 const GrooveTrack=React.memo(function GrooveTrack({row,r,beats,divisions,paint,changeRow,canRemove,removing}) {
   const groups=Array.from({length:beats},(_,b)=>b);
   return <div className={`grooveTrack ${row.muted?'is-muted':''}`}>
-        <div className="grooveTrackName"><select aria-label={`${r+1}행 음색`} value={row.tone} onChange={e=>e.target.value==='mute'?changeRow(r,{muted:!row.muted}):changeRow(r,{tone:e.target.value})}>{GROOVE_TONES.map(([id,text])=><option key={id} value={id}>{text}{row.muted && id===row.tone ? ' (음소거)' : ''}</option>)}<option value="mute">{row.muted?'음소거 해제':'음소거'}</option></select>
-        </div>
         <div className="grooveSteps">{groups.map(b=><div className="grooveBeat" key={b}>{Array.from({length:divisions},(_,s)=>{
           const i=b*divisions+s,velocity=row.velocities?.[i]??70;
           return <button type="button" key={s} aria-label={`${r+1}행 ${i+1}칸`} aria-pressed={row.steps[i]} data-strength={velocity>=85?"strong":velocity>=55?"medium":velocity>=35?"soft":"ghost"} title={`${r+1}행 ${i+1}칸 · 강약 ${velocity}`} onClick={()=>{
@@ -26,27 +28,38 @@ function Grid({store,pattern, onChange, beats, divisions, clock, playing, paint,
   const playhead=useRef(null);
   useEffect(()=>{if(root.current)root.current.scrollLeft=0;},[beats,divisions]);
   useEffect(()=>{
-    let frame,animation,key;
+    let frame,animation,key,lastMeasure=-1;
     const update=()=>{
       const {audio,origin,stepSeconds,running}=clock();
       if(audio && running && audio.state==='running' && playhead.current) {
         const duration=stepSeconds*beats*divisions*1000;
-        const nextKey=`${origin}:${duration}`;
+        const travel=Math.max(0,(playhead.current.parentElement?.clientWidth??0)-playhead.current.offsetWidth);
+        const nextKey=`${origin}:${duration}:${travel}`;
         if(key!==nextKey || !animation) {
           animation?.cancel();
-          // Anchor once to the audio transport. Seeking or adjusting playbackRate
-          // while running introduces visible speed changes and boundary jumps.
           animation=playhead.current.animate(
-            [{transform:'translate3d(0,0,0)'},{transform:'translate3d(100%,0,0)'}],
+            [{transform:'translate3d(0,0,0)'},{transform:`translate3d(${travel}px,0,0)`}],
             {duration,iterations:Infinity,easing:'linear',fill:'both'},
           );
-          animation.startTime=document.timeline.currentTime-(audio.currentTime-origin)*1000;
+          const audioNow=audio.currentTime;
+          animation.startTime=performance.now()-(audioNow-origin)*1000;
           key=nextKey;
+          lastMeasure=Math.floor(Math.max(0,(audioNow-origin)*1000)/duration);
+        } else {
+          const elapsedMs=Math.max(0,(audio.currentTime-origin)*1000);
+          const measure=Math.floor(elapsedMs/duration);
+          if(measure!==lastMeasure) {
+            // Re-anchor every wrap to the immutable Web Audio origin. This keeps
+            // the first step of every measure on the same frame as its sound.
+            const audioNow=audio.currentTime;
+            animation.startTime=performance.now()-(audioNow-origin)*1000;
+            lastMeasure=measure;
+          }
         }
       } else if(animation) {
         animation.pause();
-        // A resumed audio context needs a new anchor; ordinary bar wraps do not.
         key=null;
+        lastMeasure=-1;
       }
       frame=requestAnimationFrame(update);
     };
@@ -55,13 +68,19 @@ function Grid({store,pattern, onChange, beats, divisions, clock, playing, paint,
   const groups=Array.from({length:beats},(_,b)=>b);
   const label=s=>divisions===4?['1','e','&','a'][s]:divisions===3?['1','trip','let'][s]:divisions===2?['1','&'][s]:s+1;
   const changeRow=useCallback((r,patch)=>{const current=store.getSnapshot();onChange({...current,name:'custom',rows:patch?current.rows.map((v,i)=>i===r?{...v,...patch}:v):current.rows.filter((_,i)=>i!==r)});},[store,onChange]);
-  return <div ref={root} className="grooveHorizontalScroll" aria-label="그루브 편집 격자"><div className={`grooveGrid grooveGrid--tracks ${removing?'is-removing':''}`} style={{'--groove-beats':beats,'--groove-divisions':divisions,minWidth:beats*divisions>16?`calc(var(--groove-label-width) + ${removing?40:6}px + ${beats*divisions*18}px)`:undefined}}>
-    <div className="grooveTrackHeader"><span/><div className="grooveSteps grooveLabels">{groups.map(b=><div className="grooveBeat" key={b}>{Array.from({length:divisions},(_,s)=><span key={s}>{s===0?b+1:label(s)}</span>)}</div>)}</div>{removing && <div/>}</div>
-    <div className="grooveTrackList" aria-label="그루브 트랙 목록">
-      {pattern.rows.map((row,r)=><GrooveTrack key={r} row={row} r={r} beats={beats} divisions={divisions} paint={paint} changeRow={changeRow} canRemove={pattern.rows.length>1} removing={removing}/> )}
+  return <div className="grooveGridViewport" style={{'--groove-beats':beats,'--groove-divisions':divisions}}>
+    <div className="grooveTrackRail" aria-label="그루브 음색 설정">
+      <span className="grooveTrackRailHeader" aria-hidden="true"/>
+      {pattern.rows.map((row,r)=><GrooveTrackName key={r} row={row} r={r} changeRow={changeRow}/>)}
     </div>
-    <div className="groovePlayTrack" aria-hidden="true"><i ref={playhead} style={{visibility:playing?'visible':'hidden'}}/></div>
-  </div></div>;
+    <div ref={root} className="grooveHorizontalScroll" aria-label="그루브 편집 격자"><div className={`grooveGrid grooveGrid--tracks ${removing?'is-removing':''}`} style={{minWidth:beats*divisions>16?`calc(${removing?34:0}px + ${beats*divisions*18}px)`:undefined}}>
+      <div className="grooveTrackHeader"><div className="grooveSteps grooveLabels">{groups.map(b=><div className="grooveBeat" key={b}>{Array.from({length:divisions},(_,s)=><span key={s}>{s===0?b+1:label(s)}</span>)}</div>)}</div>{removing && <div/>}</div>
+      <div className="grooveTrackList" aria-label="그루브 트랙 목록">
+        {pattern.rows.map((row,r)=><GrooveTrack key={r} row={row} r={r} beats={beats} divisions={divisions} paint={paint} changeRow={changeRow} canRemove={pattern.rows.length>1} removing={removing}/> )}
+      </div>
+      <div className="groovePlayTrack" aria-hidden="true"><i ref={playhead} style={{visibility:playing?'visible':'hidden'}}/></div>
+    </div></div>
+  </div>;
 }
 function GrooveEditor({store,...options}) {
   const pattern=useSyncExternalStore(store.subscribe,store.getSnapshot,store.getSnapshot);

@@ -114,7 +114,7 @@ import {
   FretboardNoteViewerTitle,
 } from "./components/FretboardNoteViewer";
 import { createFretboardNoteViewerStore } from "./fretboard/noteViewerStore.js";
-import { getChordFretWindow } from "./fretboard/chordFretWindow.js";
+import { getChordFretWindow, getTightChordFretRange } from "./fretboard/chordFretWindow.js";
 import SplashIntro from "./launch/SplashIntro";
 import DesktopSidebarNavigation from "./navigation/DesktopSidebarNavigation";
 import MobileNavigationSurface from "./navigation/MobileNavigationSurface.jsx";
@@ -18602,9 +18602,6 @@ function App({ onReady }) {
   const viewerChordPositionLabel = CHORD_VIEWER_POSITIONS.find(
     (position) => position.id === viewerChordPosition,
   )?.label ?? "1구간";
-  const viewerVisibleFrets = viewerMode === FRETBOARD_VIEWER_MODES.CHORD
-    ? viewerCurrentChordPosition?.visibleFrets ?? []
-    : viewerScaleBlock.visibleFrets;
   const viewerFretboardNotes = useMemo(() => {
     if (viewerMode === FRETBOARD_VIEWER_MODES.SCALE) return viewerScaleBlock.notes;
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return viewerMapNotes;
@@ -18627,12 +18624,21 @@ function App({ onReady }) {
       return [minFret, Math.max(maxFret, minFret + 3)];
     }
     if (viewerMode !== FRETBOARD_VIEWER_MODES.CHORD) return [0, 12];
-    const visibleFrets = viewerVisibleFrets ?? [];
-    const minFret = Math.min(...visibleFrets);
-    const maxFret = Math.max(...visibleFrets);
-    if (!Number.isFinite(minFret) || !Number.isFinite(maxFret)) return [0, 12];
-    return [Math.max(0, minFret), Math.max(maxFret, minFret + 2)];
-  }, [viewerMode, viewerNotePositionRange, viewerScaleBlock.visibleFrets, viewerVisibleFrets]);
+    return getTightChordFretRange({
+      barres: viewerChordBarres,
+      fallback: viewerCurrentChordPosition?.visibleFrets ?? [0, 12],
+      notes: viewerFretboardNotes,
+      stringStates: viewerChordStringStates,
+    });
+  }, [viewerChordBarres, viewerChordStringStates, viewerCurrentChordPosition, viewerFretboardNotes, viewerMode, viewerNotePositionRange, viewerScaleBlock.visibleFrets]);
+  const viewerVisibleFrets = useMemo(() => {
+    const [startFret, endFret] = viewerFretboardRange;
+    const visualStartFret = Math.max(1, startFret);
+    return Array.from(
+      { length: Math.max(1, endFret - visualStartFret + 1) },
+      (_, index) => visualStartFret + index,
+    );
+  }, [viewerFretboardRange]);
   const viewerShouldFitFretboard =
     viewerMode === FRETBOARD_VIEWER_MODES.SCALE ||
     viewerMode === FRETBOARD_VIEWER_MODES.CHORD;
@@ -29883,16 +29889,33 @@ function App({ onReady }) {
     prepareStage3BackingSession,
   ]);
 
+  const stage3StorageLoadSelect = (
+    <MetronomeSelectControl
+      ariaLabel="저장된 코드 진행 불러오기"
+      className="stage3StorageLoadSelect"
+      dropdownDirection="down"
+      label="사용자 진행 선택"
+      matchTriggerWidth
+      onChange={(slotId) => {
+        const item = stage3QuickSlots.find((slot) => slot.id === slotId);
+        if (!item) return;
+        editStage3StorageItem(item);
+      }}
+      options={[
+        { id: "", label: "사용자 진행 선택", disabled: true },
+        ...stage3QuickSlots.map((item) => ({
+          id: item.id,
+          label: getStage3SavedTitle(item),
+        })),
+      ]}
+      showLabel={false}
+      value={stage3QuickSlots.some((item) => item.id === stage3StorageSelectedId) ? stage3StorageSelectedId : ""}
+    />
+  );
+
   const stage3StorageComposerActions = (
     <div aria-label="저장 진행 작업" className="stage3StorageComposerActions stage3StorageActionSegment">
-      <button
-        disabled={!selectedStage3StorageItem?.chordIds?.length}
-        onClick={() => loadStage3LibraryItem(selectedStage3StorageItem, { closeStorage: true })}
-        type="button"
-      >
-        불러오기
-      </button>
-      <button disabled={!hasStage3StorageProgression} onClick={requestSaveStage3StorageItem} type="button">
+      <button className="stage3StoragePrimaryAction" disabled={!hasStage3StorageProgression} onClick={requestSaveStage3StorageItem} type="button">
         저장
       </button>
       <button
@@ -29905,6 +29928,9 @@ function App({ onReady }) {
         type="button"
       >
         삭제
+      </button>
+      <button onClick={resetStage3StorageComposer} type="button">
+        초기화
       </button>
     </div>
   );
@@ -34577,39 +34603,27 @@ function App({ onReady }) {
               }}
             >
           {!isDesktopLayout ? (
+            <div className="stage3StorageDialogHeading stage3StorageDialogHeading--mobile">
+              <div>
+                <strong>저장실</strong>
+              </div>
+              {stage3StorageLoadSelect}
+              <button aria-label="저장된 코드 진행 닫기" autoFocus onClick={closeStage3StorageRoom} type="button">
+                <X aria-hidden="true" size={18} />
+              </button>
+            </div>
+          ) : null}
+          {isDesktopLayout ? (
             <div className="stage3StorageDialogHeading">
               <div>
                 <strong>저장된 코드 진행</strong>
               </div>
-              <button aria-label="저장된 코드 진행 닫기" autoFocus onClick={closeStage3StorageRoom} type="button">
-                <X size={17} />
-              </button>
             </div>
           ) : null}
           <div className="stage3InlineSettings stage3StorageComposer stage3PracticeUtilityPanel">
-            <div className="stage3StorageTopBar">
-              <MetronomeSelectControl
-                ariaLabel="저장된 코드 진행 불러오기"
-                className="stage3StorageLoadSelect"
-                dropdownDirection="down"
-                label="사용자 진행 선택"
-                matchTriggerWidth
-                onChange={(slotId) => {
-                  const item = stage3QuickSlots.find((slot) => slot.id === slotId);
-                  if (!item) return;
-                  editStage3StorageItem(item);
-                }}
-                options={[
-                  { id: "", label: "사용자 진행 선택", disabled: true },
-                  ...stage3QuickSlots.map((item) => ({
-                    id: item.id,
-                    label: getStage3SavedTitle(item),
-                  })),
-                ]}
-                showLabel={false}
-                value={stage3QuickSlots.some((item) => item.id === stage3StorageSelectedId) ? stage3StorageSelectedId : ""}
-              />
-              {isDesktopLayout ? (
+            {isDesktopLayout ? (
+              <div className="stage3StorageTopBar">
+                {stage3StorageLoadSelect}
                 <button
                   aria-label="저장된 코드 진행 닫기"
                   autoFocus
@@ -34617,10 +34631,10 @@ function App({ onReady }) {
                   onClick={closeStage3StorageRoom}
                   type="button"
                 >
-                  <X aria-hidden="true" size={17} />
+                  <X aria-hidden="true" size={20} />
                 </button>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
             <div className="stage3StorageChordBuilder" aria-label="저장된 진행 코드 및 주법 선택">
               <div className="stage3ChordBuilderPanel" aria-label="코드 빌더">
                 <div
@@ -34814,15 +34828,6 @@ function App({ onReady }) {
                     type="button"
                   >
                     1박 쉼
-                  </button>
-                  <button
-                    onClick={() => {
-                      setStage3StorageChordIds([]);
-                      setStage3StorageChordEditingIndex(null);
-                    }}
-                    type="button"
-                  >
-                    초기화
                   </button>
                 </div>
               </div>

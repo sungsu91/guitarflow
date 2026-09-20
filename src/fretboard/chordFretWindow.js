@@ -73,3 +73,19 @@ export function getChordFretWindow({
 
   return getStableWindow(0, Math.max(3, maxFret), false);
 }
+
+export function getTightChordFretRange({
+  barres = [],
+  fallback = [0, 3],
+  notes = [],
+  stringStates = {},
+} = {}) {
+  const playedFrets = getPlayedFrets(notes, barres);
+  if (!playedFrets.length) return normalizeFallbackRange(fallback);
+
+  const maxFret = Math.max(...playedFrets);
+  if (hasOpenString(notes, stringStates)) return [0, Math.max(3, maxFret)];
+
+  const minFret = Math.min(...playedFrets);
+  return [minFret, Math.max(maxFret, minFret + 2)];
+}

@@ -8,15 +8,16 @@
 .grooveGrid { position:relative; display:grid; grid-template-columns:68px minmax(0,1fr); gap:6px 6px; align-items:center; }
 .grooveGrid select { width:100%; min-width:0; font-size:11px; height:34px; padding:2px; }
 .grooveSteps { display:grid; grid-template-columns:repeat(var(--groove-beats),minmax(0,1fr)); gap:5px; min-width:0; }
-.grooveBeat { display:grid; grid-template-columns:repeat(var(--groove-divisions),minmax(0,1fr)); gap:2px; min-width:0; }
-.grooveBeat + .grooveBeat { border-left:1px solid #73603b; padding-left:2px; }
+.grooveBeat { position:relative; display:grid; grid-template-columns:repeat(var(--groove-divisions),minmax(0,1fr)); gap:2px; min-width:0; }
+.grooveBeat + .grooveBeat { border-left:0; padding-left:0; }
+.grooveBeat + .grooveBeat::before { content:""; position:absolute; left:-3px; top:2px; bottom:2px; width:1px; background:var(--studio-divider,var(--groove-border,#73603b)); pointer-events:none; }
 .grooveBeat button { display:grid; place-items:center; min-width:0; width:100%; height:34px; padding:0; border:0; background:transparent; touch-action:manipulation; }
 .grooveBeat button i { display:block; width:100%; aspect-ratio:1; max-width:24px; border:1px solid var(--groove-border,#6e6146); border-radius:2px; background:var(--groove-off,#25221b); box-sizing:border-box; }
 .grooveBeat button[aria-pressed=true] i { background:var(--groove-gold,#edc565); border-color:var(--groove-goldEdge,#ffe095); box-shadow:inset 0 0 3px #ffeab0; }
 .grooveBeat button:focus-visible { outline:2px solid white; }
 .grooveLabels { text-align:center; font-size:10px; color:var(--groove-text,#e8d8b7); }
 .groovePlayTrack { position:absolute; left:74px; right:0; top:18px; bottom:0; pointer-events:none; }
-.groovePlayTrack > i { position:absolute; left:0; width:100%; top:0; bottom:0; will-change:transform; border-left:2px solid var(--groove-line,#fff7df); filter:drop-shadow(0 0 2px #000); }
+.groovePlayTrack > i { position:absolute; left:0; width:2px; top:2px; bottom:2px; will-change:transform; transform-origin:0 0; border:0; border-radius:999px; background:var(--groove-playhead-core,#fff3f8); box-shadow:0 0 0 1px var(--groove-playhead-edge,#ff4f91cc),0 0 5px 2px var(--groove-playhead-glow,#ff4f9188); filter:none; }
 .metronomeDockHandle { width:100%; min-height:32px; display:flex; align-items:center; justify-content:center; gap:6px; border:1px solid #65522e; border-radius:10px; color:#dabc75; background:#1a160f; font-size:11px; touch-action:none; }
 .metronomeDockHandle > span { line-height:1; }
 .metronomeDockChevron { flex:none; transition:color 140ms ease; }
@@ -108,6 +109,9 @@ html body .app.app.app.app.app .groovePackDialog.groovePackDialog input { color:
   --groove-goldEdge:#a77c2d;
   --groove-input:#fffdf8;
   --groove-line:#684418;
+  --groove-playhead-core:#f64f87;
+  --groove-playhead-edge:#a82255aa;
+  --groove-playhead-glow:#ff72a766;
 }
 .app.theme-light .grooveBeat + .grooveBeat { border-left-color:#d4c3a2; }
 .app.theme-light .groovePlayTrack > i { filter:none; }
@@ -157,17 +161,22 @@ html body .app.app.app.app.app .groovePackDialog.groovePackDialog.groovePackDial
 html body .app.app.app.app.app .groovePackDialog.groovePackDialog.groovePackDialog .groovePackManageBar button { padding:6px 12px!important; font-size:12px; }
 html body .app.app.app.app.app .groovePackDialog.groovePackDialog.groovePackDialog .groovePackActions { flex-wrap:wrap; justify-content:flex-start; }
 html body .app.app.app.app.app .groovePackDialog.groovePackDialog.groovePackDialog form select { color:var(--groove-text,#f7e7bd); background:var(--groove-control,#302619); border:1px solid var(--groove-border,#806a40); padding:10px; border-radius:8px; }
-/* All tracks expand in normal page flow; no nested scroll area. */
-.grooveGrid.grooveGrid--tracks { display:block; --groove-label-width:68px; }
-.grooveTrackHeader,.grooveTrack { display:grid; grid-template-columns:var(--groove-label-width) minmax(0,1fr); column-gap:6px; align-items:center; }
+/* The tone rail is outside the horizontal scroller, so its native selects never
+   shift or repaint while the beat grid is swiped. */
+.grooveGridViewport { --groove-label-width:68px; display:grid; grid-template-columns:var(--groove-label-width) minmax(0,1fr); min-width:0; min-height:183px; align-items:start; }
+.grooveTrackRail { position:relative; z-index:3; min-width:0; min-height:183px; padding-right:6px; box-sizing:border-box; background:transparent; border-right:1px solid var(--groove-border,#75603b); }
+.grooveTrackRailHeader { display:block; height:23px; }
+.grooveTrackRail .grooveTrackName { display:flex; align-items:center; min-width:0; height:40px; padding:3px 0; box-sizing:border-box; background:transparent; }
+.grooveGrid.grooveGrid--tracks { display:block; min-width:0; }
+.grooveTrackHeader,.grooveTrack { display:grid; grid-template-columns:minmax(0,1fr); column-gap:6px; align-items:center; }
 .grooveTrackHeader { padding-bottom:5px; padding-right:6px; }
 .grooveTrack { min-height:40px; padding:3px 0; }
 .grooveTrackName { min-width:0; }
 .grooveTrack.is-muted .grooveSteps { opacity:.35; }
-.grooveEditor--desktop .grooveGrid--tracks { --groove-label-width:90px; }
-.grooveGrid--tracks .groovePlayTrack { left:calc(var(--groove-label-width) + 6px); right:6px; top:23px; }
+.grooveEditor--desktop .grooveGridViewport { --groove-label-width:90px; }
+.grooveGrid--tracks .groovePlayTrack { left:0; right:6px; top:23px; }
 .groovePackCategories { display:flex; flex-wrap:wrap; gap:5px; flex:none; }
-@media(max-width:360px) { .grooveEditor--mobile .grooveGrid--tracks { --groove-label-width:56px; } }
+@media(max-width:360px) { .grooveEditor--mobile .grooveGridViewport { --groove-label-width:56px; } }
 
 html body .app.app.app.app.app .standaloneMetronomePanel.standaloneMetronomePanel.standaloneMetronomePanel .grooveToolbar button:disabled { opacity:.4; }
 
@@ -212,10 +221,8 @@ html body .app.app.app.app.app .standaloneMetronomePanel.standaloneMetronomePane
 
 /* Native horizontal swipes for dense meters; all rows still expand vertically. */
 .grooveHorizontalScroll { min-width:0; max-width:100%; overflow-x:auto; scrollbar-width:thin; overscroll-behavior-x:contain; touch-action:pan-x pan-y; }
-.grooveHorizontalScroll .grooveTrackName, .grooveHorizontalScroll .grooveTrackHeader > span { position:sticky; left:0; z-index:2; background:var(--groove-surface,#19150f); }
-.grooveHorizontalScroll .grooveTrackHeader > span { align-self:stretch; }
 
-.grooveGrid.is-removing .grooveTrackHeader,.grooveGrid.is-removing .grooveTrack { grid-template-columns:var(--groove-label-width) minmax(0,1fr) 28px; }
+.grooveGrid.is-removing .grooveTrackHeader,.grooveGrid.is-removing .grooveTrack { grid-template-columns:minmax(0,1fr) 28px; }
 .grooveGrid--tracks.is-removing .groovePlayTrack { right:34px; }
 html body .app.app.app.app.app .standaloneMetronomePanel.standaloneMetronomePanel.standaloneMetronomePanel .grooveRemoveTrack { display:grid!important; place-items:center; position:sticky; right:0; z-index:2; width:28px!important; min-width:28px!important; height:34px!important; min-height:34px!important; padding:0!important; border:1px solid var(--groove-border,#75603b)!important; background:var(--groove-surface,#19150f)!important; color:var(--groove-muted,#c5af83)!important; touch-action:manipulation; }
 .grooveRemoveTrack:disabled { opacity:.3; cursor:default; }

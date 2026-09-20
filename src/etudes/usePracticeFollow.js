@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
-import {followScrollTarget,followHorizontalTarget} from './practiceFollowGeometry.js';
+import {followScrollTarget,followHorizontalTarget,followFingeringTarget} from './practiceFollowGeometry.js';
 export default function usePracticeFollow(root,mode,playing,revision){
  const [suspended,setSuspended]=useState(false),state=useRef({dirty:true}),latest=useRef({});
  latest.current={mode,playing,suspended};
@@ -36,16 +36,19 @@ export default function usePracticeFollow(root,mode,playing,revision){
   // Track its screen position every frame, including row changes and loop wraps.
   const maxLeft=scroller.scrollWidth-scroller.clientWidth;
   if(maxLeft>1){
-    const cursor=line.getBoundingClientRect().left-rect.left-scroller.clientLeft+scroller.scrollLeft;
+    const eventNode=mode==='fingering'?svg.querySelector(`[data-score-bar="${current.bar}"][data-score-event="${current.event}"]`):null;
+    const eventRect=eventNode?.getBoundingClientRect();
+    const cursor=eventRect?(eventRect.left+eventRect.right)/2-rect.left-scroller.clientLeft+scroller.scrollLeft:line.getBoundingClientRect().left-rect.left-scroller.clientLeft+scroller.scrollLeft;
     const reset=force||s.dirty||s.svg!==svg||s.row!==row||backwards;
     const firstBar=svg.querySelector('[data-playback-bar][data-row="'+row+'"]');
     const lookAhead=Number(firstBar?.dataset.playbackBar)!==current.bar;
-    const targetLeft=followHorizontalTarget(cursor,scroller.clientWidth,scroller.scrollLeft,maxLeft,reset,lookAhead);
+    const fingeringChanged=s.bar!==current.bar||s.event!==current.event;
+    const targetLeft=mode==='fingering'?followFingeringTarget(cursor,scroller.clientWidth,maxLeft):followHorizontalTarget(cursor,scroller.clientWidth,scroller.scrollLeft,maxLeft,reset,lookAhead);
     // Ease into the earlier anchor when the second bar starts, then track it.
-    const left=lookAhead&&!reset?scroller.scrollLeft+(targetLeft-scroller.scrollLeft)*.2:targetLeft;
-    if(Math.abs(scroller.scrollLeft-left)>1)scroller.scrollTo({left,top:scroller.scrollTop,behavior:'instant'});
+    const left=mode!=='fingering'&&lookAhead&&!reset?scroller.scrollLeft+(targetLeft-scroller.scrollLeft)*.2:targetLeft;
+    if((mode!=='fingering'||reset||fingeringChanged)&&Math.abs(scroller.scrollLeft-left)>1)scroller.scrollTo({left,top:scroller.scrollTop,behavior:'instant'});
   }
-  s.bar=current.bar;
+  s.bar=current.bar;s.event=current.event;
   if(!s.dirty&&s.svg===svg&&s.row===row&&s.signature===signature&&!backwards)return;
   const matrix=svg.getScreenCTM();if(!matrix)return;
   const base=matrix.f-rect.top+scroller.scrollTop;

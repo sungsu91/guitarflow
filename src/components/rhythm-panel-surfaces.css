@@ -59,7 +59,7 @@ html body #root .app :is(.grooveEditor,.grooveModeSelector,.groovePackDialog,.gr
   --groove-muted:var(--studio-muted);
   --groove-selected:var(--studio-selected);
 }
-html body #root .app :is(.metronomeDockHandle,.grooveModeSelector>button,.grooveToolbar>button,.grooveGrid select,.grooveStrengthSelect) {
+html body #root .app :is(.metronomeDockHandle,.grooveModeSelector>button,.grooveToolbar>button,.grooveTrackRail select,.grooveStrengthSelect) {
   background:var(--studio-control)!important;
   border-color:var(--studio-border)!important;
   color:var(--studio-text)!important;
@@ -460,7 +460,25 @@ html body #root .app .grooveEditor--mobile :is(.grooveToolbar>button,.grooveStre
   font-size:12px!important;
 }
 html body #root .app .grooveEditor--mobile :is(.grooveLabels,.grooveStrengthControl,.grooveToolbar small) { font-size:11px!important; }
-html body #root .app .grooveEditor--mobile .grooveGrid--tracks { --groove-label-width:72px!important; }
+html body #root .app .grooveEditor--mobile .grooveGridViewport { --groove-label-width:78px!important; }
+html body #root .app .grooveTrackRail {
+  background:transparent!important;
+  border-right-color:var(--studio-divider)!important;
+}
+html body #root .app .grooveTrackRail .grooveTrackName select {
+  width:100%!important;min-width:0!important;height:32px!important;
+  padding:2px 16px 2px 6px!important;border-radius:7px!important;
+  background:color-mix(in srgb,var(--studio-control) 82%,var(--studio-warm))!important;
+  border:1px solid var(--studio-border)!important;
+  color:var(--studio-text)!important;box-shadow:none!important;
+  appearance:none!important;-webkit-appearance:none!important;background-image:none!important;
+}
+html body #root .app .grooveTrackRail .grooveTrackName { position:relative; }
+html body #root .app .grooveTrackRail .grooveTrackName::after {
+  content:"";position:absolute;right:8px;top:calc(50% - 4px);width:5px;height:5px;
+  border-right:1.5px solid var(--studio-text);border-bottom:1.5px solid var(--studio-text);
+  transform:rotate(45deg);pointer-events:none;
+}
 html body #root .app.viewport-mobile-surface .metronomeDockHandle { font-size:11px!important;font-weight:500!important; }
 html body #root .app.viewport-mobile-surface .metronomeAdvancedSummary :is(span,small) {
   font-size:10px!important;font-weight:500!important;line-height:1.4!important;letter-spacing:normal!important;
@@ -689,7 +707,8 @@ html body #root .app .chordTransitionPanel .stage3MetronomeSoundToggle[aria-pres
 }
 @media(max-width:375px) {
   html body #root .app .grooveEditor--mobile .grooveToolbar { gap:3px!important; }
-  html body #root .app .grooveEditor--mobile .grooveGrid--tracks { --groove-label-width:68px!important; }
+  html body #root .app .grooveEditor--mobile .grooveGridViewport { --groove-label-width:76px!important; }
   html body #root .app.viewport-mobile-surface .grooveModeSelector { gap:4px!important; }
 }
+
 }

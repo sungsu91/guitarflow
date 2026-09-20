@@ -1,0 +1,54 @@
+/* Mobile chord viewer: keep the fret/string field, but remove the extra
+   framed surface and its horizontal top/bottom edge highlights. */
+html body .mobileLayoutShell main.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerMapCard--chord.viewerMapCard
+  .viewerFretboardGestureSurface--chord.viewerFretboardGestureSurface {
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .mobileLayoutShell main.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerMapCard--chord.viewerMapCard
+  .viewerSharedFretboard.viewerSharedFretboard {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .mobileLayoutShell main.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerMapCard--chord.viewerMapCard
+  .viewerSharedFretboard.viewerSharedFretboard
+  .fretboardComponentScroller.fretboardComponentScroller {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html body .mobileLayoutShell main.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerMapCard--chord.viewerMapCard
+  .viewerSharedFretboard.viewerSharedFretboard
+  .fretboardComponentScroller.fretboardComponentScroller::after {
+  content: none !important;
+}
+
+/* Remove the fret field's edge highlights at the nut endpoints.
+   Only the vertical fret borders remain; the six strings keep their skin. */
+html body .mobileLayoutShell main.app.app.app
+  .fretboardViewerPanel--chord.fretboardViewerPanel
+  .viewerMapCard--chord.viewerMapCard
+  .viewerSharedFretboard.viewerSharedFretboard
+  .fretboardGrid > i {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}

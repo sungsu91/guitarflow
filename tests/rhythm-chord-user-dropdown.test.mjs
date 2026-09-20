@@ -6,6 +6,7 @@ const appSourceUrl = new URL("../src/App.jsx", import.meta.url);
 const appStyleUrl = new URL("../src/style.css", import.meta.url);
 const appPolishUrl = new URL("../src/polish.css", import.meta.url);
 const desktopStyleUrl = new URL("../src/layouts/desktop-layout.css", import.meta.url);
+const storageStyleUrl = new URL("../src/components/stage3-storage-redesign.css", import.meta.url);
 
 test("rhythm chord user dropdown exposes bulk selection, locking, and confirmed deletion", async () => {
   const [appSource, appCss] = await Promise.all([
@@ -204,7 +205,7 @@ test("rhythm progression clicks seek the prepared backing clock without rebuildi
   );
 });
 
-test("saved rhythm progressions have one shared load path and an explicit storage-room load action", async () => {
+test("saved rhythm progressions load into the editor directly from the storage dropdown", async () => {
   const [appSource, desktopCss] = await Promise.all([
     readFile(appSourceUrl, "utf8"),
     readFile(desktopStyleUrl, "utf8"),
@@ -217,8 +218,14 @@ test("saved rhythm progressions have one shared load path and an explicit storag
   assert.match(loaderSource, /if \(closeStorage\) exitStage3StorageRoom\(\);[\s\S]*?applyStage3LibraryItem\(item\)/);
   assert.match(loaderSource, /applyStage3LibraryItem\(item\)/);
   assert.match(loaderSource, /prepareStage3BackingSession\(/);
-  assert.match(appSource, /onClick=\{\(\) => loadStage3LibraryItem\(selectedStage3StorageItem, \{ closeStorage: true \}\)\}/);
-  assert.match(appSource, />\s*불러오기\s*</);
+  assert.match(appSource, /onChange=\{\(slotId\) => \{[\s\S]*?editStage3StorageItem\(item\)/);
+  const actionStart = appSource.indexOf('aria-label="저장 진행 작업"');
+  const actionEnd = appSource.indexOf("const stage3DesktopMetronomeSoundToggle", actionStart);
+  const actionSource = appSource.slice(actionStart, actionEnd);
+  assert.doesNotMatch(actionSource, />\s*불러오기\s*</);
+  assert.match(actionSource, />\s*저장\s*</);
+  assert.match(actionSource, />\s*삭제\s*</);
+  assert.match(actionSource, />\s*초기화\s*</);
   assert.match(appSource, /\{!isDesktopLayout \? stage3StorageComposerActions : null\}/);
   assert.match(appSource, /\{isDesktopLayout \? stage3StorageComposerActions : null\}/);
   assert.match(
@@ -259,7 +266,7 @@ test("rhythm storage uses a themed trigger-width dropdown instead of the native 
     readFile(appStyleUrl, "utf8"),
   ]);
   const storagePickerStart = appSource.indexOf('className="stage3StorageLoadSelect"');
-  const storagePickerEnd = appSource.indexOf('<div className="stage3StorageChordBuilder"', storagePickerStart);
+  const storagePickerEnd = appSource.indexOf("\n  );", storagePickerStart);
   const storagePickerSource = appSource.slice(storagePickerStart, storagePickerEnd);
 
   assert.ok(storagePickerStart >= 0 && storagePickerEnd > storagePickerStart);
@@ -405,7 +412,7 @@ test("desktop rhythm storage uses a compact top bar and a taller centered fretbo
   );
   assert.match(
     appSource,
-    /className="stage3StorageTopBar"[\s\S]*?className="stage3StorageLoadSelect"[\s\S]*?\{isDesktopLayout \? \([\s\S]*?className="stage3StorageTopBarClose"/,
+    /className="stage3StorageTopBar"[\s\S]*?\{stage3StorageLoadSelect\}[\s\S]*?className="stage3StorageTopBarClose"/,
   );
   assert.match(
     desktopCss,
@@ -591,14 +598,35 @@ test("LOAD and its selected chord options reuse the two-beat add button palette"
   );
 });
 
-test("mobile rhythm storage keeps save actions visible while compacting vertical space", async () => {
-  const appCss = await readFile(appStyleUrl, "utf8");
+test("mobile rhythm storage stays inset and keeps actions after content without overlap", async () => {
+  const [appSource, appCss, storageCss] = await Promise.all([
+    readFile(appSourceUrl, "utf8"),
+    readFile(appStyleUrl, "utf8"),
+    readFile(storageStyleUrl, "utf8"),
+  ]);
 
+  assert.match(
+    appSource,
+    /className="stage3StorageDialogHeading stage3StorageDialogHeading--mobile"[\s\S]*?<strong>저장실<\/strong>[\s\S]*?\{stage3StorageLoadSelect\}[\s\S]*?<X aria-hidden="true" size=\{18\} \/>/,
+  );
   assert.match(appCss, /Mobile rhythm storage: keep the primary save action visible on first entry/);
   assert.match(appCss, /height: min\(calc\(100dvh - 20px\), 810px\) !important/);
   assert.match(appCss, /--fretboard-board-height: 124px/);
-  assert.match(
-    appCss,
-    /\.stage3StorageRoom \.stage3StorageComposerActions[\s\S]*?position: sticky !important;[\s\S]*?bottom: 0 !important;/,
-  );
+  assert.match(storageCss, /width: min\(400px, calc\(100vw - 28px\)\) !important/);
+  assert.match(storageCss, /height: auto !important;[\s\S]*?max-height: calc\(100dvh - 24px\) !important/);
+  assert.match(storageCss, /scrollbar-gutter: auto !important;[\s\S]*?overflow: hidden !important/);
+  assert.match(storageCss, /:has\(\.progressionChipList > \.rhythmChordMeasure:nth-child\(5\)\)/);
+  assert.match(storageCss, /:has\(\.strumPreviewList > \.strumPattern:nth-child\(3\)\)/);
+  assert.match(storageCss, /\.stage3StorageRoom \.stage3StorageComposerActions[\s\S]*?position: relative !important;[\s\S]*?bottom: auto !important;/);
+  assert.match(storageCss, /grid-template-columns: max-content minmax\(0, 1fr\) !important/);
+  assert.match(storageCss, /grid-template-columns: max-content minmax\(0, 1fr\) 34px !important/);
+  assert.match(storageCss, /--fretboard-board-height: 148px !important/);
+  assert.match(storageCss, /min-height: 180px !important/);
+  assert.match(storageCss, /\.fretboardStringState:is\(\.x, \.o, \.noteOpen\)[\s\S]*?-webkit-text-fill-color: var\(--storage-espresso\) !important/);
+  assert.match(storageCss, /\.fretboardStringState\.noteOpen \{[\s\S]*?background: #493a30 !important;[\s\S]*?-webkit-text-fill-color: #fffaf2 !important/);
+  assert.match(storageCss, /\.fretboardStringState\.noteOpen\.root \{[\s\S]*?border-color: #b78a3d !important/);
+  assert.match(storageCss, /grid-template-columns: 40px minmax\(0, 1fr\) !important/);
+  assert.match(storageCss, /\.chordProgressionEmpty \{[\s\S]*?background: transparent !important;[\s\S]*?-webkit-text-fill-color: #94877d !important;[\s\S]*?font-weight: 500 !important/);
+  assert.match(storageCss, /grid-template-columns: repeat\(7, minmax\(0, 1fr\)\) !important/);
+  assert.match(storageCss, /font-family: Arial, "Noto Sans KR", sans-serif !important;[\s\S]*?font-size: 10px !important;[\s\S]*?font-weight: 700 !important/);
 });

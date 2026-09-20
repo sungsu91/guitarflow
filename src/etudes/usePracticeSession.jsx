@@ -7,7 +7,7 @@ import {getMetronomeSubdivisionOption} from '../metronome/subdivision.js';
 // Separate hook instances retain each screen's own score, tempo and view preferences.
 export default function usePracticeSession(selected,bpm,updateBpm,scope='etude'){
  const [playPosition,setPlayPosition]=useState(null),controller=useRef(null),layout=usePracticeLayout();
- const [followMode,setFollowMode]=useState('line'),[zoom,setZoom]=useState(1),[toolsVisible,setToolsVisible]=useState(false);
+ const [followMode,setFollowMode]=useState('line'),[zoom,setZoom]=useState(1),[toolsVisible,setToolsVisible]=useState(true);
  const [measuresPerRow,setMeasuresPerRow]=useState(0),[hudTarget,setHudTarget]=useState(null);
  const [metroMinimized,setMetroMinimized]=useState(false);
  const minimizeMetro=()=>{setToolsVisible(false);setMetroMinimized(true);};

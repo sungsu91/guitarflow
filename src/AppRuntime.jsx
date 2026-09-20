@@ -22,6 +22,8 @@ import "./fretboard/chord-catalog.css";
 import "./navigation/utility-menu.css";
 import "./components/metronome-settings.css";
 import "./components/rhythm-panel-surfaces.css";
+import "./components/stage3-storage-redesign.css";
+import "./fretboard/viewer-surface.css";
 
 const NAVIGATION_PROBE_KEY = "__RIFFLAB_NAVIGATION_PROBE__";
 const NAVIGATION_PROBE_META_NAME = "rifflab-navigation-performance";

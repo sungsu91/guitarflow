@@ -571,16 +571,17 @@ function Score({ etude, mobile, bpm, enlarged = false, view, playPosition=null, 
     const root=ref.current,svg=root?.querySelector('svg');if(!svg||!playPosition)return;
     const line=document.createElementNS('http://www.w3.org/2000/svg','line');
     Object.entries({class:'savedScorePlayhead',stroke:'var(--riff-danger, #c85d54)','stroke-opacity':1,'stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none','aria-hidden':'true'}).forEach(([key,value])=>line.setAttribute(key,value));
-    const wash=line.cloneNode();wash.setAttribute('class','savedScorePlayheadWash');svg.append(wash,line);let frame,activeBar,points;
+    const wash=line.cloneNode();wash.setAttribute('class','savedScorePlayheadWash');
+    svg.append(wash,line);let frame,activeBar,points;
     const draw=()=>{
       const current=playPosition.getCurrentSlot?.()??playPosition;
       if(activeBar!==current.bar){const bar=svg.querySelector(`[data-playback-bar="${current.bar}"]`);if(!bar)return;activeBar=current.bar;points=JSON.parse(bar.dataset.points);line.setAttribute('y1',bar.dataset.top);line.setAttribute('y2',bar.dataset.bottom);}
       const tick=playPosition.getTimelineTick?playPosition.getTimelineTick()-current.barStart:playPosition.getBarTick?.()??points[current.event]?.tick??0;
-      const x=playheadX(points,tick);line.setAttribute('x1',x);line.setAttribute('x2',x);line.dataset.tick=String(tick);line.dataset.bar=String(current.bar);line.dataset.visit=String(current.visit??0);for(const attr of ['x1','x2','y1','y2'])wash.setAttribute(attr,line.getAttribute(attr));followRef.current(line,current);
+      const x=playheadX(points,tick,followMode);line.setAttribute('x1',x);line.setAttribute('x2',x);line.dataset.tick=String(tick);line.dataset.bar=String(current.bar);line.dataset.visit=String(current.visit??0);for(const attr of ['x1','x2','y1','y2'])wash.setAttribute(attr,line.getAttribute(attr));followRef.current(line,current);
       if(playPosition.playing)frame=requestAnimationFrame(draw);
     };draw();
     return()=>{cancelAnimationFrame(frame);line.remove();wash.remove();};
-  },[playPosition,etude,mobile,enlarged,landscape,view,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout]);
+  },[playPosition,etude,mobile,enlarged,landscape,view,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout,followMode]);
   return <>{etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}{playPosition&&practiceFollow.suspended&&<button className="etudeReturnPosition" type="button" onClick={practiceFollow.resume}>현재 위치로</button>}{error && <p role="alert">{error}</p>}<div className="etudeNotation" ref={ref} /></>;
 }
 export default memo(Score);

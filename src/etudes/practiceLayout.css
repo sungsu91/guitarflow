@@ -82,6 +82,7 @@ html body main.app.app.app .pdfStudio .etudePracticeLayout.is-focus .etudePracti
 .etudeViewOptions.is-mobile .etudeViewChoices:empty{display:none}
 .etudeViewOptions.is-mobile .etudeViewFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .etudeViewOptions.is-mobile .etudeViewFields>label{min-width:0;padding:0;border:0;gap:6px;font-size:11px;font-weight:600}
+.etudeViewOptions.is-mobile .etudeFollowPattern{grid-column:1/-1}
 .etudeViewOptions.is-mobile .etudeViewFields select{width:100%;min-width:0;box-sizing:border-box;font-size:12px;padding:8px}
 .etudeViewOptions.is-mobile .etudeViewOptionsClose{justify-self:end;min-width:64px}
 .scoreSourceQr{display:block;width:64px;height:64px;margin-left:auto;background:#fff}

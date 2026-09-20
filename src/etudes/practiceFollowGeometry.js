@@ -18,3 +18,10 @@ export function followHorizontalTarget(cursor,width,left,maxScroll,reset=false,l
  return Math.max(0,Math.min(maxScroll,target));
 }
 
+// Fingering mode changes only when the written rhythm advances to another
+// event. Keep that event at a stable reading point instead of chasing the
+// continuously moving playhead.
+export function followFingeringTarget(cursor,width,maxScroll){
+ return Math.max(0,Math.min(maxScroll,cursor-width*.42));
+}
+

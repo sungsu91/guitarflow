@@ -9,7 +9,7 @@ import { useMetronomeVolume } from '../audio/metronomeVolumeStore.js';
 const ETUDE_CLICK_PEAK = 1.08;
 const ETUDE_WEAK_CLICK_PEAK = 0.9;
 
-export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, audible = true, downbeatAt, liveTempo = false, clicksPerBeat = 1, toneSrc } = {}) {
+export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, audible = true, downbeatAt, clickAccent, liveTempo = false, clicksPerBeat = 1, toneSrc } = {}) {
   const { volume } = useMetronomeVolume();
   const [playing, setPlaying] = useState(false);
   const [beat, setBeat] = useState(-1);
@@ -17,6 +17,7 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
   const [error, setError] = useState('');
   const session = useRef(null), heldPosition=useRef(-1);
   const [paused,setPaused]=useState(false);
+  const clickAccentRef=useRef(clickAccent); clickAccentRef.current=clickAccent;
   const downbeatRef = useRef(downbeatAt); downbeatRef.current = downbeatAt;
   const config=useRef({beatsPerBar,clicksPerBeat});config.current={beatsPerBar,clicksPerBeat};
   const token = useRef(0);
@@ -64,7 +65,7 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
         batch.steps.filter(step=>step.time<origin+durationSeconds-1e-7).forEach(step => {
           const buffer=toneBuffer.current;
           const o = buffer ? context.createBufferSource() : context.createOscillator(), envelope = context.createGain();
-          const downbeat = step.downbeat ?? (downbeatRef.current ? downbeatRef.current(step.index/config.current.clicksPerBeat+s.firstBeat) : (step.index/config.current.clicksPerBeat+s.firstBeat) % config.current.beatsPerBar === 0);
+          const downbeat = clickAccentRef.current?.(step) ?? step.downbeat ?? (downbeatRef.current ? downbeatRef.current(step.index/config.current.clicksPerBeat+s.firstBeat) : (step.index/config.current.clicksPerBeat+s.firstBeat) % config.current.beatsPerBar === 0);
           if(buffer)o.buffer=buffer;else o.frequency.value = downbeat ? 1200 : 850;
           envelope.gain.setValueAtTime(0.0001, step.time);
           envelope.gain.exponentialRampToValueAtTime(downbeat ? ETUDE_CLICK_PEAK : ETUDE_WEAK_CLICK_PEAK, step.time + 0.002);

@@ -1,5 +1,5 @@
 import {lazy,Suspense,useEffect,useState} from 'react';
-import {ChevronDown,ChevronLeft,Pencil,PanelsTopLeft,ScanLine,Timer,Settings2} from 'lucide-react';
+import {ChevronDown,ChevronLeft,Pencil,PanelsTopLeft,Timer,Settings2} from 'lucide-react';
 import {scoreInstrument} from './scoreInstruments.js';
 import './etudes.css';
 import './practiceLayout.css';
@@ -12,7 +12,6 @@ export default function PracticeSheet({model,mobile,heading,title,lessonTips,foo
  const focus=layout.focus,compact=model.compactTools,quickViews=layout.focus&&layout.viewport.landscape;
  const measuresPerRow=mobile?(model.measuresPerRow||1):model.measuresPerRow;
  const notationButtons=[['tab','TAB'],['both','오선보+TAB'],['staff','오선보']].map(([v,label])=><button key={v} type="button" aria-pressed={model.notationView===v} onClick={()=>model.setNotationView(v)}>{label}</button>);
- const followControl=<label className="etudeFollowControl"><ScanLine aria-hidden="true"/><select className="etudeFollowSelect" aria-label="자동 따라가기" value={model.followMode} onChange={e=>model.setFollowMode(e.target.value)}><option value="line">줄 따라가기</option><option value="page">페이지 전환</option><option value="off">따라가기 끔</option></select><ChevronDown aria-hidden="true"/></label>;
  useEffect(()=>{if(!focus)return;const overflow=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=overflow;};},[focus]);
  if(!etude)return null;
  const compactTitle=title??etude.english??etude.document?.title??etude.title;
@@ -26,14 +25,13 @@ export default function PracticeSheet({model,mobile,heading,title,lessonTips,foo
  <div className="etudeViewMenu"><button type="button" aria-expanded={viewOpen} aria-label={quickViews?"악보 보기 설정":"악보 표시 방식 변경"} aria-controls="etude-notation-options" onClick={()=>setViewOpen(v=>!v)}>{quickViews?<Settings2 aria-hidden="true"/>:<><PanelsTopLeft aria-hidden="true"/><span>{{both:"오선보 + TAB",staff:"오선보만",tab:"TAB만"}[model.notationView]}</span><ChevronDown aria-hidden="true"/></>}</button>
  {viewOpen&&<div id="etude-notation-options" className={"etudeViewOptions"+(mobile?" is-mobile":"")} role="group" aria-label="악보 표시 방식" onKeyDown={e=>{if(e.key==='Escape'){setViewOpen(false);e.currentTarget.previousElementSibling.focus();}}}>
  <div className="etudeViewChoices">{!quickViews&&[['tab','TAB만'],['both','오선보+TAB'],['staff','오선보만']].map(([v,label])=><button key={v} type="button" aria-pressed={model.notationView===v} onClick={()=>model.setNotationView(v)}>{label}</button>)}</div>
- <div className="etudeViewFields etudeViewFieldsPrimary" role="group" aria-label="악보 배치 설정">{compact&&(mobile?<label>자동 따라가기<select aria-label="자동 따라가기" value={model.followMode} onChange={e=>model.setFollowMode(e.target.value)}><option value="line">줄 따라가기</option><option value="page">페이지 전환</option><option value="off">따라가기 끔</option></select></label>:followControl)}
+ <div className="etudeViewFields etudeViewFieldsPrimary" role="group" aria-label="악보 배치 설정">
  {(!mobile||focus)&&<label>한 줄 마디 수<select aria-label="한 줄 마디 수" value={measuresPerRow} onChange={e=>model.setMeasuresPerRow(Number(e.target.value))}>{!mobile&&<option value={0}>자동</option>}{[1,2,3,4].map(n=><option key={n} value={n}>{n}마디</option>)}</select></label>}
  </div><div className="etudeViewFields etudeViewFieldsSecondary" role="group" aria-label="연습 위치와 확대">
  <label>연습 위치<select aria-label="악보 재생 마디" value={model.playPosition?.bar??0} onChange={e=>model.controller.current?.seek({bar:Number(e.target.value),event:0})}>{etude.measures.map((_,i)=><option key={i} value={i}>{i+1}마디</option>)}</select></label>
  {!focus&&<label>악보 확대<select aria-label="악보 확대" value={model.zoom} onChange={e=>model.setZoom(Number(e.target.value))}>{[.8,1,1.25,1.5].map(v=><option key={v} value={v}>{v*100}%</option>)}</select></label>}
  </div><button type="button" className="etudeViewOptionsClose" onClick={()=>setViewOpen(false)}>닫기</button></div>}</div>
  {!focus&&<><div className="scoreEditMenu" onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget))setEditOpen(false);}} onKeyDown={e=>{if(e.key==='Escape')setEditOpen(false);}}><button type="button" aria-label="악보 생성·편집 선택" aria-expanded={editOpen} onClick={()=>setEditOpen(v=>!v)}><Pencil aria-hidden="true"/>생성·편집</button>{editOpen&&<div className="scoreEditOptions"><button type="button" onClick={()=>{setEditOpen(false);model.createScore();}}>새 악보 생성</button><button type="button" disabled={model.canEdit===false} onClick={()=>{setEditOpen(false);model.editScore(etude);}}>현재 악보 편집</button></div>}</div><button type="button" aria-label="가로 전환" onClick={layout.enter}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="5" y="10" width="16" height="10" rx="2"/><path d="M3 12V7a4 4 0 0 1 4-4h6m-3-3 3 3-3 3"/></svg>{compact?"가로":"가로 전환"}</button></>}
- {!compact&&followControl}
  <button type="button" aria-label="메트로놈" title="메트로놈" aria-pressed={model.toolsVisible||model.metroMinimized} onClick={()=>{setTips(false);model.toggleMetro();}}><Timer aria-hidden="true"/>메트로놈{model.playPosition?.playing&&<span aria-label="연습 재생 중"> ·</span>}</button>
  <span className="etudeBackingToggleMount" ref={model.setBackingTarget}/>
  {focus&&lessonTips&&<button type="button" aria-expanded={tips} onClick={()=>{setTips(v=>!v);}}>TIP</button>}

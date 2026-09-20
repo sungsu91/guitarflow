@@ -1,0 +1,820 @@
+/* Saved rhythm progression — flat ivory workspace.
+   This layer is intentionally visual-only: selector data and editor behavior stay in App.jsx. */
+
+html body main.app.app.app .stage3StorageDialogLayer {
+  padding: 12px !important;
+  background: rgba(34, 27, 32, 0.72) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html body main.app.app.app .stage3StorageDialogLayer .stage3StorageRoom.stage3StorageDialog.chordTransitionPanel {
+  --storage-ivory: #fbf7ef;
+  --storage-ivory-strong: #fffdf9;
+  --storage-ivory-muted: #f5efe5;
+  --storage-espresso: #30231d;
+  --storage-espresso-soft: #6b584c;
+  --storage-border: #d8ccc0;
+  --storage-divider: #e5dbd0;
+  --storage-gold: #b78a3d;
+  --storage-gold-soft: #f5ead0;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  width: min(760px, calc(100vw - 24px)) !important;
+  max-width: 760px !important;
+  height: min(calc(100dvh - 24px), 900px) !important;
+  max-height: min(calc(100dvh - 24px), 900px) !important;
+  border: 1px solid var(--storage-border) !important;
+  border-radius: 14px !important;
+  background: var(--storage-ivory) !important;
+  color: var(--storage-espresso) !important;
+  box-shadow: 0 18px 50px rgba(28, 20, 16, 0.2) !important;
+}
+
+html body main.app.app.app .stage3StorageDialogHeading {
+  display: flex !important;
+  min-height: 58px !important;
+  padding: 12px 18px 10px !important;
+  border-bottom: 1px solid var(--storage-divider) !important;
+  background: var(--storage-ivory) !important;
+}
+
+html body main.app.app.app .stage3StorageDialogHeading > div::before {
+  display: none !important;
+  content: none !important;
+}
+
+html body main.app.app.app .stage3StorageDialogHeading strong {
+  color: var(--storage-espresso) !important;
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 1.2 !important;
+}
+
+html body main.app.app.app .stage3StorageDialogHeading > button,
+html body main.app.app.app .stage3StorageDialogHeading > button:is(:hover, :focus-visible, :active) {
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 40px !important;
+  width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  margin: -3px -8px -3px 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: var(--storage-espresso) !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageDialogHeading > button:focus-visible {
+  outline: 2px solid var(--storage-gold) !important;
+  outline-offset: 1px !important;
+}
+
+html body main.app.app.app .stage3StorageDialog .stage3StorageComposer {
+  align-content: start !important;
+  gap: 0 !important;
+  height: 100% !important;
+  max-height: none !important;
+  padding: 12px 18px calc(14px + env(safe-area-inset-bottom)) !important;
+  background: var(--storage-ivory) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-gutter: stable !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3StorageTopBar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin: 0 0 8px !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3StorageTopBarClose,
+html body main.app.app.app .stage3StorageRoom .stage3StorageTopBarClose:is(:hover, :focus-visible, :active) {
+  display: grid !important;
+  place-items: center !important;
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: var(--storage-espresso) !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3StorageTopBarClose:focus-visible {
+  outline: 2px solid var(--storage-gold) !important;
+  outline-offset: 1px !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3StorageTopBar .stage3StorageLoadSelect .metronomeSelectButton {
+  width: 100% !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 14px !important;
+  border: 1px solid var(--storage-border) !important;
+  border-radius: 8px !important;
+  background: var(--storage-ivory-strong) !important;
+  color: var(--storage-espresso) !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3StorageTopBar .stage3StorageLoadSelect .metronomeSelectButton i {
+  color: var(--storage-espresso-soft) !important;
+}
+
+html body main.app.app.app .metronomeSelectPortal.stage3StorageLoadSelect .metronomeSelectMenu {
+  gap: 2px !important;
+  padding: 5px !important;
+  border: 1px solid var(--storage-border, #d8ccc0) !important;
+  border-radius: 8px !important;
+  background: #fffdf9 !important;
+  color: #30231d !important;
+  box-shadow: 0 10px 26px rgba(48, 35, 29, 0.14) !important;
+}
+
+html body main.app.app.app .metronomeSelectPortal.stage3StorageLoadSelect .metronomeSelectOption {
+  min-height: 40px !important;
+  border-radius: 6px !important;
+  color: #30231d !important;
+}
+
+html body main.app.app.app .metronomeSelectPortal.stage3StorageLoadSelect .metronomeSelectOption.selected {
+  border-color: #b78a3d !important;
+  background: #f5ead0 !important;
+  color: #30231d !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder,
+html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReference {
+  gap: 8px !important;
+  padding: 0 0 12px !important;
+  border-bottom: 1px solid var(--storage-divider) !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceHeading {
+  align-items: center !important;
+  padding: 0 2px !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceHeading > strong {
+  color: var(--storage-espresso) !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceHeading > small {
+  color: var(--storage-espresso) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard.fitRange .fretboardComponentScroller {
+  min-height: 181px !important;
+  border: 1px solid #c9af87 !important;
+  border-radius: 10px !important;
+  background:
+    repeating-linear-gradient(90deg, rgba(137, 91, 43, 0.045) 0 8px, rgba(255, 255, 255, 0.08) 8px 16px),
+    #eed8aa !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard :is(.fretboardFretNumbers, .fretboardStringRow span) {
+  color: #3b2b22 !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard .fretboardGrid i {
+  border-color: rgba(63, 50, 39, 0.56) !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard .fretboardStringRow i {
+  background: #746557 !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard .fretboardNut {
+  background: #8e7458 !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard .fretboardNoteChip,
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard .fretboardNoteChip.root {
+  border: 1px solid #9d8d7f !important;
+  background: #fffdf9 !important;
+  color: var(--storage-espresso) !important;
+  outline: 0 !important;
+  box-shadow: 0 1px 3px rgba(48, 35, 29, 0.14) !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard .fretboardStringState:is(.x, .o, .noteOpen) {
+  border-color: #6f5b4c !important;
+  background: #fffdf9 !important;
+  color: var(--storage-espresso) !important;
+  -webkit-text-fill-color: var(--storage-espresso) !important;
+  font-weight: 900 !important;
+  opacity: 1 !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard .fretboardStringState.noteOpen {
+  border-color: #493a30 !important;
+  background: #493a30 !important;
+  color: #fffaf2 !important;
+  -webkit-text-fill-color: #fffaf2 !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard .fretboardStringState.noteOpen.root {
+  border-color: #b78a3d !important;
+  box-shadow: 0 0 0 1px #f1dfb6 !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderOptionSection {
+  grid-template-columns: 52px minmax(0, 1fr) !important;
+  column-gap: 10px !important;
+  padding: 8px 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--storage-divider) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderOptionLabel,
+html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder :is(
+  .stage3OptionRow > span,
+  .stage3AddRow strong span,
+  .stage3InlineProgressionRow > span,
+  .stage3InlineStrum > span
+) {
+  width: 52px !important;
+  min-width: 52px !important;
+  max-width: 52px !important;
+  color: var(--storage-espresso) !important;
+  font-size: 13px !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.02em !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderChipGrid {
+  gap: 6px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderChip,
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button {
+  min-height: 40px !important;
+  height: 40px !important;
+  padding: 0 8px !important;
+  border: 1px solid var(--storage-border) !important;
+  border-radius: 7px !important;
+  background: var(--storage-ivory-strong) !important;
+  color: var(--storage-espresso) !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: border-color 100ms ease, background-color 100ms ease !important;
+}
+
+html body main.app.app.app.theme-light .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderChip,
+html body main.app.app.app.theme-light .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button {
+  background-color: var(--storage-ivory-strong) !important;
+  background-image: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderChip.selected,
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button.selected,
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button[aria-pressed="true"] {
+  border-color: var(--storage-gold) !important;
+  background: var(--storage-gold-soft) !important;
+  color: var(--storage-espresso) !important;
+  font-weight: 800 !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app.theme-light .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderChip.selected,
+html body main.app.app.app.theme-light .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button.selected,
+html body main.app.app.app.theme-light .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button[aria-pressed="true"] {
+  background-color: var(--storage-gold-soft) !important;
+  background-image: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderChip:disabled,
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button:disabled {
+  border-color: #e4ddd5 !important;
+  background: #f6f2ec !important;
+  color: #ab9f95 !important;
+  opacity: 1 !important;
+}
+
+html body main.app.app.app.theme-light .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderChip:disabled,
+html body main.app.app.app.theme-light .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button:disabled {
+  background-color: #f6f2ec !important;
+  background-image: none !important;
+}
+
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl {
+  display: flex !important;
+  gap: 6px !important;
+  width: 100% !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder :is(.stage3OptionRow, .stage3AddRow, .stage3InlineProgressionRow, .stage3InlineStrum) {
+  gap: 10px !important;
+  padding: 10px 0 !important;
+  border-bottom: 1px solid var(--storage-divider) !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder .stage3OptionRow,
+html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder :is(.stage3InlineProgressionRow, .stage3InlineStrum) {
+  grid-template-columns: 52px minmax(0, 1fr) !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder .stage3StrumInlineControl {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 6px !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder .stage3StrumDraftInline {
+  min-height: 28px !important;
+  padding: 3px 2px 0 !important;
+  color: var(--storage-espresso-soft) !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3AddRow {
+  grid-template-columns: 108px minmax(0, 1fr) !important;
+  align-items: center !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3AddRow > strong {
+  display: grid !important;
+  grid-template-columns: 52px minmax(0, 1fr) !important;
+  gap: 2px 4px !important;
+  align-items: center !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3AddRow strong > b {
+  color: var(--storage-espresso) !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3AddRow strong > small {
+  grid-column: 1 / -1 !important;
+  color: var(--storage-espresso-soft) !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3InlineProgressionRow .progressionChipList,
+html body main.app.app.app .stage3StorageRoom .stage3InlineStrum .strumPreviewList {
+  min-height: 52px !important;
+  padding: 7px 9px !important;
+  border: 1px solid var(--storage-border) !important;
+  border-radius: 8px !important;
+  background: var(--storage-ivory-strong) !important;
+  color: var(--storage-espresso) !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3InlineProgressionRow .progressionChipList strong {
+  margin: 2px !important;
+  padding: 0 !important;
+  border: 1px solid var(--storage-border) !important;
+  border-radius: 6px !important;
+  background: var(--storage-ivory-muted) !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3InlineProgressionRow .progressionChipList strong .stage3ProgressionEditButton {
+  min-height: 36px !important;
+  padding: 4px 10px !important;
+  border-radius: 5px !important;
+  background: transparent !important;
+  color: var(--storage-espresso) !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3InlineProgressionRow .stage3ProgressionEditButton.selected {
+  background: var(--storage-gold-soft) !important;
+  box-shadow: inset 0 0 0 1px var(--storage-gold) !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3InlineProgressionRow .stage3ProgressionEditButton small,
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder :is(.stage3StrumDraftInline, .stage3InlineStrum) .strumPatternStep.repeat {
+  color: var(--storage-espresso-soft) !important;
+}
+
+html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder :is(.stage3StrumDraftInline, .stage3InlineStrum) .strumPatternStep.hit {
+  color: var(--storage-espresso) !important;
+  text-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .chordProgressionEmpty {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #94877d !important;
+  -webkit-text-fill-color: #94877d !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.015em !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3StorageComposerActions,
+html body main.app.app.app .stage3StorageRoom .stage3StorageComposerActions.stage3StorageActionSegment {
+  position: sticky !important;
+  bottom: calc(-14px - env(safe-area-inset-bottom)) !important;
+  z-index: 40 !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  justify-self: stretch !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 12px 0 calc(14px + env(safe-area-inset-bottom)) !important;
+  border: 0 !important;
+  border-top: 1px solid var(--storage-divider) !important;
+  border-radius: 0 !important;
+  background: var(--storage-ivory) !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3StorageComposerActions button {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  border: 1px solid var(--storage-border) !important;
+  border-radius: 8px !important;
+  background: var(--storage-ivory-strong) !important;
+  color: var(--storage-espresso) !important;
+  font-size: 13px !important;
+  font-weight: 750 !important;
+  box-shadow: none !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3StorageComposerActions button.stage3StoragePrimaryAction {
+  border-color: var(--storage-espresso) !important;
+  background: var(--storage-espresso) !important;
+  color: var(--storage-ivory-strong) !important;
+}
+
+html body main.app.app.app .stage3StorageRoom .stage3StorageComposerActions button:disabled {
+  border-color: #e3dcd4 !important;
+  background: #f2ede7 !important;
+  color: #aca198 !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 720px) {
+  html body main.app.app.app .stage3StorageDialogLayer {
+    padding: 12px 14px !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialogLayer .stage3StorageRoom.stage3StorageDialog.chordTransitionPanel {
+    width: min(400px, calc(100vw - 28px)) !important;
+    height: auto !important;
+    max-height: calc(100dvh - 24px) !important;
+    border-radius: 12px !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialogHeading.stage3StorageDialogHeading--mobile {
+    display: grid !important;
+    grid-template-columns: max-content minmax(0, 1fr) 34px !important;
+    align-items: center !important;
+    gap: 8px !important;
+    min-height: 44px !important;
+    padding: 5px 8px !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialogHeading.stage3StorageDialogHeading--mobile strong {
+    font-size: 16px !important;
+    white-space: nowrap !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialogHeading--mobile .stage3StorageLoadSelect.metronomeSelectControl {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 1px !important;
+    border: 1px solid #cdbfb1 !important;
+    border-radius: 8px !important;
+    background: var(--storage-ivory-strong) !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialogHeading--mobile .stage3StorageLoadSelect .metronomeSelectButton {
+    width: 100% !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 9px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: var(--storage-espresso) !important;
+    box-shadow: none !important;
+    font-size: 11px !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialogHeading--mobile > button,
+  html body main.app.app.app .stage3StorageDialogHeading--mobile > button:is(:hover, :focus-visible, :active) {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    margin: 0 !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialog.stage3StorageRoom.chordTransitionPanel > .stage3StorageComposer.stage3PracticeUtilityPanel.stage3InlineSettings {
+    height: auto !important;
+    padding: 6px 10px calc(7px + env(safe-area-inset-bottom)) !important;
+    scroll-padding-bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+    scrollbar-gutter: auto !important;
+    overflow: hidden !important;
+  }
+
+  html body main.app.app.app .stage3StorageDialog.stage3StorageRoom.chordTransitionPanel > .stage3StorageComposer.stage3PracticeUtilityPanel.stage3InlineSettings:is(
+    :has(.progressionChipList > .rhythmChordMeasure:nth-child(5)),
+    :has(.strumPreviewList > .strumPattern:nth-child(3))
+  ) {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3StorageTopBar {
+    margin-bottom: 5px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3StorageTopBar .stage3StorageLoadSelect .metronomeSelectButton {
+    height: 36px !important;
+    min-height: 36px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard.fitRange {
+    --fretboard-board-top: 25px !important;
+    --fretboard-board-bottom: 14px !important;
+    --fretboard-board-height: 148px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceFretboard.fitRange .fretboardComponentScroller {
+    min-height: 180px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReference {
+    gap: 3px !important;
+    padding-bottom: 6px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceHeading > strong {
+    font-size: 16px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3ChordMiniReferenceHeading > small {
+    font-size: 12px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderOptionSection {
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+    column-gap: 4px !important;
+    padding: 2px 0 !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderOptionLabel,
+  html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder :is(
+    .stage3OptionRow > span,
+    .stage3AddRow strong span,
+    .stage3InlineProgressionRow > span,
+    .stage3InlineStrum > span
+  ) {
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    font-size: 12px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderChipGrid {
+    gap: 3px 4px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderOptionSection--tensions-2row .chordBuilderChipGrid {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap-inline: 3px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderChip,
+  html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button {
+    min-height: 26px !important;
+    height: 26px !important;
+    padding-inline: 3px !important;
+    font-family: Arial, "Noto Sans KR", sans-serif !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    letter-spacing: -0.02em !important;
+    text-rendering: optimizeLegibility !important;
+    -webkit-font-smoothing: antialiased !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder .stage3OptionRow,
+  html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder :is(.stage3InlineProgressionRow, .stage3InlineStrum) {
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder :is(.stage3OptionRow, .stage3AddRow, .stage3InlineProgressionRow, .stage3InlineStrum) {
+    gap: 4px !important;
+    padding: 4px 0 !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder .stage3StrumInlineControl {
+    grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr) !important;
+    gap: 4px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder .stage3StrumDraftInline {
+    min-height: 18px !important;
+    padding-top: 1px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3StrumPickRow:has(.stage3StrumDraftInline small) .stage3StrumDraftInline {
+    display: none !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder .stage3AddRow {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 4px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder .stage3AddRow > strong {
+    grid-template-columns: auto auto minmax(0, 1fr) !important;
+    gap: 0 5px !important;
+    min-height: 18px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder .stage3AddRow strong > span {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    white-space: nowrap !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder .stage3AddRow strong > small {
+    grid-column: 3 !important;
+    align-self: center !important;
+    white-space: nowrap !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3StorageChordBuilder :is(.stage3InlineProgressionRow, .stage3InlineStrum) {
+    grid-template-columns: max-content minmax(0, 1fr) !important;
+  }
+
+  html body main.app.app.app.theme-light .stage3StorageRoom .stage3StorageChordBuilder :is(.stage3InlineProgressionRow, .stage3InlineStrum) > span {
+    width: auto !important;
+    min-width: max-content !important;
+    max-width: none !important;
+    white-space: nowrap !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3InlineProgressionRow .progressionChipList,
+  html body main.app.app.app .stage3StorageRoom .stage3InlineStrum .strumPreviewList {
+    min-height: 34px !important;
+    padding: 3px 5px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom :is(.stage3InlineProgressionRow, .stage3InlineStrum):has(.chordProgressionEmpty) {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom :is(.stage3InlineProgressionRow, .stage3InlineStrum):has(.chordProgressionEmpty) :is(.progressionChipList, .strumPreviewList) {
+    min-height: 28px !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3InlineProgressionRow .progressionChipList strong .stage3ProgressionEditButton {
+    min-width: 26px !important;
+    min-height: 26px !important;
+    padding: 2px 4px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3InlineProgressionRow .progressionChipList strong {
+    margin: 0 !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3InlineProgressionRow .rhythmChordMeasure {
+    gap: 1px !important;
+    padding: 1px 2px !important;
+    border-inline-width: 1px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3InlineProgressionRow .rhythmChordMeasure > strong > button:last-child {
+    width: 14px !important;
+    min-width: 14px !important;
+    height: 14px !important;
+    min-height: 14px !important;
+    padding: 0 !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3BeatLengthActions {
+    gap: 3px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3BeatLengthActions > button {
+    padding-inline: 2px !important;
+    font-size: 9.5px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3StorageComposerActions,
+  html body main.app.app.app .stage3StorageRoom .stage3StorageComposerActions.stage3StorageActionSegment {
+    position: relative !important;
+    bottom: auto !important;
+    z-index: auto !important;
+    margin-top: 0 !important;
+    padding: 6px 0 calc(1px + env(safe-area-inset-bottom)) !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3StorageComposerActions button {
+    height: 36px !important;
+    min-height: 36px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 374px) {
+  html body main.app.app.app .stage3StorageDialog .stage3StorageComposer {
+    padding-inline: 8px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderOptionSection--tensions-2row .chordBuilderChipGrid {
+    gap: 4px !important;
+  }
+
+  html body main.app.app.app .stage3StorageRoom .stage3ChordBuilderPanel .chordBuilderChip,
+  html body main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3StorageChordBuilder .stage3SegmentControl > button {
+    font-size: 10px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  html body .desktopLayout main.app.app.app .stage3StorageDialogLayer .stage3StorageRoom.stage3StorageDialog.chordTransitionPanel {
+    width: min(920px, calc(100vw - 64px)) !important;
+    max-width: 920px !important;
+    height: min(calc(100dvh - 32px), 900px) !important;
+    max-height: min(calc(100dvh - 32px), 900px) !important;
+  }
+
+  html body .desktopLayout main.app.app.app .stage3StorageDialog > .stage3StorageComposer {
+    padding: 12px 20px 16px !important;
+    overflow-y: auto !important;
+  }
+
+  html body .desktopLayout main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3ChordMiniReferenceFretboard.fitRange {
+    width: min(680px, 82%) !important;
+  }
+
+  html body .desktopLayout main.app.app.app .stage3StorageDialog.stage3StorageRoom .stage3ChordMiniReferenceFretboard.fitRange .fretboardComponentScroller {
+    height: 208px !important;
+    min-height: 208px !important;
+  }
+
+  html body .desktopLayout main.app.app.app .stage3StorageDialog.stage3StorageRoom > .stage3StorageComposerActions,
+  html body .desktopLayout main.app.app.app .stage3StorageDialog.stage3StorageRoom > .stage3StorageComposerActions.stage3StorageActionSegment {
+    position: relative !important;
+    bottom: auto !important;
+    padding: 10px 20px 12px !important;
+  }
+}

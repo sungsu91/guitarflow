@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   HIGH_CHORD_FRET_MARGIN,
   getChordFretWindow,
+  getTightChordFretRange,
 } from "../src/fretboard/chordFretWindow.js";
 
 function makeNotes(frets) {
@@ -45,6 +46,12 @@ test("only a real open string keeps the nut view", () => {
   assert.equal(closedLowPosition.isHighChord, true);
   assert.deepEqual(closedLowPosition.fretRange, [1, 4]);
   assert.deepEqual(closedLowPosition.displayFrets, [1, 2, 3, 4]);
+});
+
+test("the viewer range starts at the first played fret without a leading empty fret", () => {
+  assert.deepEqual(getTightChordFretRange({ notes: makeNotes([5, 7, 5, 5, 5, 5]) }), [5, 7]);
+  assert.deepEqual(getTightChordFretRange({ notes: makeNotes([5, 7, 8]) }), [5, 8]);
+  assert.deepEqual(getTightChordFretRange({ notes: makeNotes([0, 2, 2, 1, 0]) }), [0, 3]);
 });
 
 test("the same start fret reuses a stable memoized window", () => {

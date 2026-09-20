@@ -51,7 +51,7 @@ test("shooter uses the mobile-master HUD at mobile and desktop sizes", async () 
   assert.match(appSource, /function getShooterPitchDisplayLabel\(noteName, solfegeOn\)/);
   assert.match(appSource, /const octave = getPitchOctave\(noteName\);/);
   assert.match(appSource, /`\$\{solfege\}\$\{octave \?\? ""\}`/);
-  assert.match(appSource, /<b>\{monsterPitchLabel\}<\/b>/);
+  assert.match(appSource, /<NeonNote pitch=\{targetPitch\} label=\{targetPitchDisplayLabel\}/);
   assert.match(appSource, /getShooterPitchDisplayLabel\(shooterGuidePitch, shooterSolfegeOn\)/);
   assert.match(appSource, /shooterPlayHelpLevel > 0 \? \(\s*<div className="mobileShooterPlayHelpMessageBar"/);
   assert.match(appSource, /className="mobileShooterPrimaryHudRow"/);
