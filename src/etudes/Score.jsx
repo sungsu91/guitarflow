@@ -1,3 +1,4 @@
+import {slidePairs} from './slidePairs.js';
 import {tabPositions} from './tabPositions.js';
 import {tuningCaption} from './scoreTuning.js';
 import usePracticeFollow from './usePracticeFollow.js';
@@ -78,7 +79,7 @@ class EditableTuplet extends Tuplet {
 
 
 function prepareMeasure(measure, etude) {
-    const notes = measure.map(n => isBlankEvent(n)?new GhostNote({duration:n.duration+(n.dotted?'d':'')}):new StaveNote({ clef:scoreInstrument(etude.instrument).clef, keys: n.rest ? [scoreInstrument(etude.instrument).clef==='bass'?'d/3':'b/4'] : (n.tones ?? [n]).map(t=>t.pitch.key), duration: n.duration+(n.dotted?'d':'')+(n.rest?'r':''), auto_stem: true }));
+    const notes = measure.map(n => isBlankEvent(n)?new GhostNote({duration:n.duration+(n.dotted?'d':'')}):new StaveNote({ clef:scoreInstrument(etude.instrument).clef, keys: n.rest ? [scoreInstrument(etude.instrument).clef==='bass'?'d/3':'b/4'] : (n.tones ?? [n]).map(t=>t.pitch.key+((t.dead??n.dead)?'/x':'')), duration: n.duration+(n.dotted?'d':'')+(n.rest?'r':''), auto_stem: true }));
     const tabs = measure.map((n,i) => {
       if(n.rest) return new GhostNote({duration:n.duration+(n.dotted?'d':'')});
       const note = new AlignedTabNote({ positions: tabPositions(n,scoreInstrument(etude.instrument).tuning.length), duration: n.duration+(n.dotted?'d':'') },notes[i]);
@@ -336,14 +337,17 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     navigation.at(-1).palmMuteObstacles=palmMuteObstacles;
     context.openGroup('fretiva-staff-view');beams.forEach(beam => {const group=context.openGroup('etude-beam');group.setAttribute('data-beam-events',beam.getNotes().map(note=>notes.indexOf(note)).join(','));beam.setContext(context).draw();context.closeGroup();});tuplets.forEach(({tuplet,visible})=>{if(visible)tuplet.setContext(context).draw();});context.closeGroup();
     measure.forEach((n, i) => {
-      if (!n.technique || !tabs[i+1] || n.rest || measure[i+1].rest || n.tones || measure[i+1].tones) return;
+      if (!n.technique || !tabs[i+1] || n.rest || measure[i+1].rest || (n.technique !== 'S' && (n.tones || measure[i+1].tones))) return;
       const tabPair = { first_note: tabs[i], last_note: tabs[i + 1], first_indices: [0], last_indices: [0] };
       context.openGroup('etude-technique');
       if (n.technique === 'S') {
-        const slide = new TabSlide(tabPair);
+        for (const pair of slidePairs(n, measure[i+1])) {
+        const slidePair = {...tabPair, first_indices:[pair.first], last_indices:[pair.last]};
+        const slide = new TabSlide(slidePair);
         slide.renderText = () => {}; // One shared, legible label renderer below.
         context.openGroup('fretiva-tab-view');slide.setContext(context).draw();context.closeGroup();
-        context.openGroup('fretiva-staff-view');new StaveLine({ ...tabPair, first_note: notes[i], last_note: notes[i + 1] }).setContext(context).draw();context.closeGroup();
+        context.openGroup('fretiva-staff-view');new StaveLine({ ...slidePair, first_note: notes[i], last_note: notes[i + 1] }).setContext(context).draw();context.closeGroup();
+        }
       } else {
         context.openGroup('fretiva-tab-view');new TabTie(tabPair).setContext(context).draw();context.closeGroup();
         context.openGroup('fretiva-staff-view');new Curve(notes[i], notes[i + 1], { cps: [{x:0,y:8},{x:0,y:8}] }).setContext(context).draw();context.closeGroup();

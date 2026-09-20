@@ -351,6 +351,10 @@
 /* Portrait stages fill the viewport above the detached navigation. Only the
    canvas width is scaled; height reflows so artwork and controls are not stretched. */
 html.shooterCanonicalMobile body #root main.app.viewport-portrait:is(.tunerMode, .shooterMode) {
+  /* CSS owns the available height: iOS can retain old innerHeight values when
+     returning to a Home Screen app. Keep the status bar outside the stage. */
+  --portrait-mobile-canvas-height: calc((100dvh - env(safe-area-inset-top, 0px)) / var(--shooter-mobile-canvas-scale, 1)) !important;
+  top: env(safe-area-inset-top, 0px) !important;
   --shooter-mobile-nav-space: calc(var(--mobile-nav-clearance) / var(--shooter-mobile-canvas-scale, 1));
   width: var(--portrait-mobile-canvas-width) !important;
   min-width: var(--portrait-mobile-canvas-width) !important;
@@ -362,6 +366,12 @@ html.shooterCanonicalMobile body #root main.app.viewport-portrait:is(.tunerMode,
   gap: 0 !important;
   border: 0 !important;
   border-radius: 0 !important;
+}
+
+/* A restored document scroll must not lift the fixed stage/navigation on iOS. */
+html.shooterCanonicalMobile body {
+  position: fixed !important;
+  inset: 0 !important;
 }
 
 html.shooterCanonicalMobile body #root main.app.viewport-portrait:is(.tunerMode, .shooterMode) > .hud {

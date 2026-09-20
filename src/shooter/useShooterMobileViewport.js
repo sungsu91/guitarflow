@@ -46,6 +46,15 @@ export default function useShooterMobileViewport(active) {
     // one visible frame of the unscaled 430 x 932 canvas when changing modes.
     const entryFrame = getShooterMobileViewportSnapshot(window);
     setFrame((currentFrame) => sameFrame(currentFrame, entryFrame) ? currentFrame : entryFrame);
+    const resume = () => {
+      if (window.document.visibilityState === "hidden") return;
+      window.scrollTo({ left: 0, top: 0, behavior: "instant" });
+      update();
+    };
+    const displayMode = window.matchMedia("(display-mode: standalone)");
+    window.addEventListener("pageshow", resume);
+    window.document.addEventListener("visibilitychange", resume);
+    displayMode.addEventListener?.("change", resume);
     window.addEventListener("resize", update);
     window.addEventListener("orientationchange", update);
     window.visualViewport?.addEventListener?.("resize", update);
@@ -53,6 +62,9 @@ export default function useShooterMobileViewport(active) {
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
+      window.removeEventListener("pageshow", resume);
+      window.document.removeEventListener("visibilitychange", resume);
+      displayMode.removeEventListener?.("change", resume);
       window.removeEventListener("resize", update);
       window.removeEventListener("orientationchange", update);
       window.visualViewport?.removeEventListener?.("resize", update);

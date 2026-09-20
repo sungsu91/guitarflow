@@ -21,5 +21,6 @@ test('pitch judgment, projectile scoring and collision geometry remain identical
  const newMapPaths = ['src/shooter/maps/registry.js', 'src/shooter/maps/skins/moonlitRooftop.js', 'public/assets/maps/moonlit-rooftop/moonlit-rooftop.png'];
  newMapPaths.push('src/shooter/maps/MapSkinRenderer.jsx', 'src/shooter/maps/map-skins.css', 'src/shooter/maps/skins/scenicMaps.js', ...['underwater-blue','aurora-glacier','above-the-clouds','milky-way-desert','firefly-forest'].map(id => `public/assets/maps/${id}/background.png`));
  const progressionPaths=['src/shooter/progressionSettings.js','src/shooter/ProgressSettings.jsx','src/shooter/progress-settings.css','src/shooter/desktopHorizontal/DesktopHorizontalBattleView.jsx'];
- assert.ok(changed.every(path=>path.startsWith('src/shooter/noteVfx/') || newMapPaths.includes(path) || progressionPaths.includes(path)),changed.join('\n'));
+ const viewportPaths=['src/shooter/mobile-canonical-viewport.css','src/shooter/useShooterMobileViewport.js']; // Authorized iPhone Home Screen layout repair.
+ assert.ok(changed.every(path=>path.startsWith('src/shooter/noteVfx/') || newMapPaths.includes(path) || progressionPaths.includes(path) || viewportPaths.includes(path)),changed.join('\n'));
 });

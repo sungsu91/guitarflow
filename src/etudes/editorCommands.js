@@ -1,3 +1,4 @@
+import {slidePairs} from './slidePairs.js';
 import {soundingMidi,effectiveTuning,maxFret} from './scoreTuning.js';
 import {NATURAL_HARMONICS,patchEvent,newId,ticksOf,blankEvent,cloneMeasures,moveSamePitch,blankMeasure,isBlankEvent} from './scoreModel.js';
 export function deleteMeasure(d,bar){
@@ -32,6 +33,10 @@ export function setNoteConnection(d,c,kind){
  }
  if(!['H','P','S'].includes(kind))throw Error('지원하지 않는 연결 주법입니다.');
  if(event.technique===kind)return patchEvent(d,c.bar,c.event,{technique:null});
+ if(kind==='S'){
+  if(!slidePairs(event,following).length||following.onset!==event.onset+ticksOf(event))throw Error('같은 마디에 같은 줄 구성의 연속된 두 음·화음을 입력하고, 각 줄의 프렛을 다르게 설정하세요.');
+  return patchEvent(d,c.bar,c.event,{technique:kind,tieTo:null});
+ }
  if(event.notes.length!==1||!following||following.rest||following.dead||following.notes.length!==1||following.notes[0].string!==event.notes[0].string||following.onset!==event.onset+ticksOf(event))throw Error('같은 마디에서 같은 줄의 연속된 두 단음을 먼저 입력하세요.');
  const difference=following.notes[0].fret-event.notes[0].fret;
  if(!difference||(kind==='H'&&difference<0)||(kind==='P'&&difference>0))throw Error(kind==='H'?'H는 낮은 프렛에서 높은 프렛으로 연결합니다.':kind==='P'?'P는 높은 프렛에서 낮은 프렛으로 연결합니다.':'슬라이드는 서로 다른 프렛 사이에 연결합니다.');
