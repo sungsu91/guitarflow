@@ -48,7 +48,9 @@ export function getShooterMobileViewportSnapshot(targetWindow = window) {
   if (!portraitLocked) return {
     width: viewport.width,
     height: viewport.height,
-    scale: frame.scale,
+    // Portrait height reflows in CSS. Fitting height here would shrink every
+    // control whenever Safari changes its reported height (e.g. permission UI).
+    scale: positiveNumber(viewport.width, SHOOTER_MOBILE_CANVAS_WIDTH) / SHOOTER_MOBILE_CANVAS_WIDTH,
     left: 0,
     top: 0,
     rotation: 0,

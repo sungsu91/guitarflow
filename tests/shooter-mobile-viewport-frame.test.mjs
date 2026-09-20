@@ -107,7 +107,7 @@ test("device emulation uses one coherent viewport pair during desktop-to-mobile 
     visualScale: 0.4,
     visualWidth: 1035,
   }));
-  const expectedScale = Math.min(414 / SHOOTER_MOBILE_CANVAS_WIDTH, 896 / SHOOTER_MOBILE_CANVAS_HEIGHT);
+  const expectedScale = 414 / SHOOTER_MOBILE_CANVAS_WIDTH;
 
   assert.ok(Math.abs(frame.scale - expectedScale) < 1e-12);
   assert.equal(frame.left, 0);
@@ -180,4 +180,17 @@ test("shooter route applies the canonical frame to the entire app surface", asyn
   assert.match(styles, /min-height: 48px !important/);
   assert.match(styles, /border: 1px solid rgba\(255, 218, 139, 0\.52\) !important/);
   assert.match(styles, /linear-gradient\(180deg, rgba\(34, 30, 23, 0\.72\), rgba\(5, 10, 13, 0\.68\)\) !important/);
+});
+
+test('portrait control scale stays constant when permission UI changes height', () => {
+  for (const height of [844, 740, 620, 844]) {
+    const frame = getShooterMobileViewportSnapshot(createViewportWindow({
+      clientHeight:height, clientWidth:390, innerHeight:height, innerWidth:390,
+      visualHeight:height, visualWidth:390, visualScale:1, mediaMatches:true,
+    }));
+    assert.equal(frame.scale,390/430);
+    assert.equal(frame.width,390);
+    assert.equal(frame.height,height);
+    assert.equal(frame.rotation,0);
+  }
 });

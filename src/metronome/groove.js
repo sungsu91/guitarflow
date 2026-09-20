@@ -12,8 +12,16 @@ export function createGrooveStore(initial) {
   };
 }
 export const GROOVE_STRENGTHS = [[100,'강'],[70,'중'],[45,'약'],[25,'고스트']];
-// Conservative, sample-specific trims informed by the decoded peak/RMS audit.
-export const GROOVE_SAMPLE_GAIN = {tick:.65,ride:1.3,brushSnare:1.05,hihat:1,kick:1.4,snare:.7,rim:.55,stick:1,clap:.85,openHihat:.85,shaker:.8,tambourine:.85,cabasa:1.6,cowbell:.7,congaSlap:.75,agogo:.55,triangle:.7,woodblock:1,clave:.7,snap:.9,fingerTap:1.6};
+// Groove-only mix: kick/snare lead; repeated bright percussion sits behind them.
+// Calibrated from the source samples' 20ms RMS, spectral energy and decay;
+// quiet cabasa/clap samples are not attenuated like the high-energy cymbals.
+// Keep row volumes and velocities intact, including deliberately quiet ghost notes.
+export const GROOVE_SAMPLE_GAIN = {
+  kick:1.4, snare:1.05, brushSnare:1.05, rim:.5, clap:.95,
+  hihat:.55, openHihat:.55, ride:.95, shaker:.6, tambourine:.55,
+  cabasa:1.6, cowbell:.6, agogo:.45, triangle:.5,
+  tick:.65, stick:1, congaSlap:.75, woodblock:1, clave:.45, snap:1, fingerTap:1.6,
+};
 export function createGrooveRow(tone='hihat') {
   return {tone,steps:Array(72).fill(false),velocities:Array(72).fill(70),volume:.75,muted:false};
 }

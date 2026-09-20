@@ -15,7 +15,10 @@ try {for(const width of [390,430]) {
  const check=async()=>{const rail=await nav.boundingBox();assert.ok(Math.abs(rail.y+rail.height-810)<1,JSON.stringify({mode,rail}));assert.equal(rail.height,64);};
  await check();
  if(['튜너','슈팅게임'].includes(mode)){
- const box=await page.locator('main.app.viewport-portrait:is(.tunerMode,.shooterMode)').boundingBox();
+ const stage=page.locator('main.app.viewport-portrait:is(.tunerMode,.shooterMode)');
+ const box=await stage.boundingBox();
+ const scale=await stage.evaluate(e=>Number(getComputedStyle(e).getPropertyValue('--shooter-mobile-canvas-scale')));
+ assert.ok(Math.abs(scale-width/430)<1e-7,'Height changes must not shrink controls');
  assert.ok(Math.abs(box.y-47)<1,JSON.stringify(box));assert.ok(Math.abs(box.y+box.height-844)<1,JSON.stringify(box));
  }
  await nav.getByRole('button',{name:'메뉴 열기',exact:true}).click();
@@ -29,4 +32,3 @@ try {for(const width of [390,430]) {
  }
  await page.close();
 }}finally{await browser.close();}
-
