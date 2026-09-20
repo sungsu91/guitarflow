@@ -17,8 +17,8 @@ export const GROOVE_STRENGTHS = [[100,'강'],[70,'중'],[45,'약'],[25,'고스�
 // quiet cabasa/clap samples are not attenuated like the high-energy cymbals.
 // Keep row volumes and velocities intact, including deliberately quiet ghost notes.
 export const GROOVE_SAMPLE_GAIN = {
-  kick:1.4, snare:1.05, brushSnare:1.05, rim:.5, clap:.95,
-  hihat:.55, openHihat:.55, ride:.95, shaker:.6, tambourine:.55,
+  kick:1.4, snare:1.25, brushSnare:1.05, rim:.5, clap:.95,
+  hihat:.4, openHihat:.45, ride:.95, shaker:.6, tambourine:.55,
   cabasa:1.6, cowbell:.6, agogo:.45, triangle:.5,
   tick:.65, stick:1, congaSlap:.75, woodblock:1, clave:.45, snap:1, fingerTap:1.6,
 };

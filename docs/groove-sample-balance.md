@@ -38,3 +38,12 @@ master groove volume at 1, before the existing output bus/limiter. No clipping.
 Reproduce sample analysis: run `scripts/analyze-groove-samples.mjs` with dev server
 at port 5177 and `PLAYWRIGHT_MODULE` pointing to the available Playwright module.
 The script writes detailed data to `artifacts/groove-sample-analysis.json`.
+
+## Backbeat follow-up
+
+Final role-based trims: snare 1.25, closed hat 0.4, open hat 0.45. This raises
+snare another 1.51 dB, lowers closed hat 2.77 dB and open hat 1.74 dB relative
+to the measured first pass above. Kick and ride retain their first-pass trims.
+No conditional ducking: the same played note has the same level regardless of
+other rows. Jazz ride leads via the authored arrangement, and ghost snare
+velocities remain deliberately lower. Existing row volume controls still apply.
