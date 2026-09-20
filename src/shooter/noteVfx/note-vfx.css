@@ -1,0 +1,20 @@
+.noteVfxArt { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; color: var(--vfx-color); }
+.noteVfxCore { fill: #15131f; fill-opacity: .94; }
+.noteVfxRing { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; filter: drop-shadow(0 0 2px currentColor); }
+.noteVfxSymbol { fill: currentColor; filter: drop-shadow(0 0 2px currentColor); }
+.noteVfxPitch { fill: #fffdf4; stroke: #171321; stroke-width: 1.1px; paint-order: stroke; font-family: Arial, sans-serif; font-weight: 800; letter-spacing: -.7px; }
+.noteVfxBurst { position: absolute; z-index: 11; pointer-events: none; }
+.noteVfxFlash { fill: none; stroke: #fffbea; stroke-width: 2; stroke-linecap: round; opacity: 0; animation: noteVfxFlash 420ms linear both; }
+.noteVfxAfterglow { fill: currentColor; opacity: 0; animation: noteVfxAfterglow 420ms linear both; }
+.noteVfxArt--break .noteVfxShard { transform-origin: 50px 50px; animation: noteVfxShatter 420ms ease-out both; }
+.noteVfxArt--break .noteVfxPitch { transform-origin: 50px 50px; animation: noteVfxText 420ms ease-out both; }
+.noteVfxArt--break .noteVfxCore { animation: noteVfxCore 420ms linear both; }
+@keyframes noteVfxFlash { 0% { opacity: 1; } 16%, 100% { opacity: 0; } }
+@keyframes noteVfxShatter { 0% { opacity: 1; transform: scale(1); } 22% { opacity: 1; transform: scale(1.07); } 46% { opacity: .95; transform: translate(calc(var(--dx) * .45), calc(var(--dy) * .45)) scale(1.08); } 80% { opacity: .25; transform: translate(var(--dx), var(--dy)) scale(.96); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.9); } }
+@keyframes noteVfxText { 0%, 18% { opacity: 1; transform: scale(1); } 50% { opacity: .55; transform: scale(.96); } 75%, 100% { opacity: 0; transform: scale(.9); } }
+@keyframes noteVfxCore { 0% { opacity: 1; } 46%, 100% { opacity: 0; } }
+@keyframes noteVfxAfterglow { 0%, 55% { opacity: 0; } 75% { opacity: .65; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .noteVfxArt--break .noteVfxShard, .noteVfxArt--break .noteVfxPitch { animation-name: noteVfxCore; }
+  .noteVfxFlash { animation: none; }
+}

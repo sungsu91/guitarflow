@@ -201,6 +201,8 @@ import {
   getShooterNoteMonsterTuning,
 } from "./shooter/noteMonsterTuning.js";
 import useShooterNoteMonsterTuning from "./shooter/useShooterNoteMonsterTuning.js";
+import { NeonNote, NeonNoteBursts } from "./shooter/noteVfx/NeonNote.jsx";
+import { isNoteVfxEnabled } from "./shooter/noteVfx/noteVfx.js";
 import useShooterMobileViewport from "./shooter/useShooterMobileViewport.js";
 import {
   commitShooterPitchHit,
@@ -17054,6 +17056,7 @@ function App({ onReady }) {
   const [shooterCountInLabel, setShooterCountInLabel] = useState(null);
   const [projectiles, setProjectiles] = useState([]);
   const shooterHitboxDebugEnabled = useMemo(getInitialShooterHitboxDebugMode, []);
+  const shooterNoteVfxRequested = useMemo(() => isNoteVfxEnabled(import.meta.env.DEV, window.location.search), []);
   const [shooterDebugGeometry, setShooterDebugGeometry] = useState(null);
   const [shooterAim, setShooterAim] = useState(undefined);
   const [showShooterFretGuide, setShowShooterFretGuide] = useState(true);
@@ -33309,6 +33312,7 @@ function App({ onReady }) {
           <div
             className={`shooterArena ${shooterRendererMode === SHOOTER_RENDERER_MODES.DESKTOP_PORTRAIT ? "shooterArena--desktopPortrait" : ""} ${horizontalShooterActive ? "shooterArena--desktopHorizontal" : ""} ${mobileLandscapeShooterActive ? "shooterArena--mobileLandscape" : ""} ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapIsLayered ? "shooterArena--layeredMap" : ""} ${mapEditor.enabled ? "shooterArena--mapEdit" : ""} ${shooterMapRuntimePerformance.reduceEffects ? "shooterArena--mapEffectsReduced" : ""} shooterArena--aura-${selectedAuraEffect.id} shooterArena--floor-${selectedFloorEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""} ${gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER || utilityMenuOpen ? "shooterArena--animationsPaused" : ""} ${gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterArena--lobby" : "shooterArena--session"}`}
             data-shooter-renderer={shooterRendererMode}
+            data-note-vfx={shooterNoteVfxRequested && !horizontalShooterActive ? "neon" : undefined}
             onClick={(event) => {
               if (mapEditor.enabled) return;
               if (mobileLandscapeShooterSelected && !mobileLandscapeShooterActive) return;
@@ -33537,6 +33541,9 @@ function App({ onReady }) {
               </div>
             ) : null}
 
+            {shooterNoteVfxRequested && !horizontalShooterActive && (gameState === GAME_STATES.PLAYING || gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER) ? (
+              <NeonNoteBursts targets={shooterTargets} nodes={shooterTargetNodesRef} arena={shooterArenaRef} />
+            ) : null}
             {shooterTargets.map((target) => {
               const targetDifficulty = target.difficulty ?? shooterDifficulty;
               const targetIsScriptedScenario = isShooterScriptedDifficulty(targetDifficulty);
@@ -33640,7 +33647,9 @@ function App({ onReady }) {
                     ▼
                   </span>
                 ) : null}
-                <div className="shooterEnemyMonsterVisual">
+                {shooterNoteVfxRequested && !horizontalShooterActive ? (
+                  !target.defeated ? <NeonNote pitch={targetPitch} /> : null
+                ) : <div className="shooterEnemyMonsterVisual">
                   {horizontalShooterActive && !target.defeated ? (
                     <>
                       <span aria-hidden="true" className="threeDLabEnemySpawnAura" />
@@ -33670,7 +33679,7 @@ function App({ onReady }) {
                       <b>{monsterPitchLabel}</b>
                     </span>
                   ) : null}
-                </div>
+                </div>}
               </div>
               );
             })}
