@@ -18,7 +18,7 @@ try {for(const width of [390,430]) {
  const stage=page.locator('main.app.viewport-portrait:is(.tunerMode,.shooterMode)');
  const box=await stage.boundingBox();
  const scale=await stage.evaluate(e=>Number(getComputedStyle(e).getPropertyValue('--shooter-mobile-canvas-scale')));
- assert.ok(Math.abs(scale-width/430)<1e-7,'Height changes must not shrink controls');
+ assert.ok(scale===1,'Portrait must use native pixels without a transformed app shell');
  assert.ok(Math.abs(box.y-47)<1,JSON.stringify(box));assert.ok(Math.abs(box.y+box.height-844)<1,JSON.stringify(box));
  }
  await nav.getByRole('button',{name:'메뉴 열기',exact:true}).click();

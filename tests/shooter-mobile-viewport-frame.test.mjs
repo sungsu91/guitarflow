@@ -107,7 +107,7 @@ test("device emulation uses one coherent viewport pair during desktop-to-mobile 
     visualScale: 0.4,
     visualWidth: 1035,
   }));
-  const expectedScale = 414 / SHOOTER_MOBILE_CANVAS_WIDTH;
+  const expectedScale = 1;
 
   assert.ok(Math.abs(frame.scale - expectedScale) < 1e-12);
   assert.equal(frame.left, 0);
@@ -188,7 +188,7 @@ test('portrait control scale stays constant when permission UI changes height', 
       clientHeight:height, clientWidth:390, innerHeight:height, innerWidth:390,
       visualHeight:height, visualWidth:390, visualScale:1, mediaMatches:true,
     }));
-    assert.equal(frame.scale,390/430);
+    assert.equal(frame.scale,1);
     assert.equal(frame.width,390);
     assert.equal(frame.height,height);
     assert.equal(frame.rotation,0);

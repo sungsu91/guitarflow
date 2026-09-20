@@ -1,11 +1,11 @@
 /*
- * The 430 x 932 development preview is the single authored mobile canvas.
- * Portrait phones scale its width and reflow its height to fill the viewport.
+ * Landscape fallback retains the authored 430 x 932 canvas.
+ * Portrait phones use native viewport dimensions without scaling the app.
  * The landscape orientation fallback retains the complete rotated canvas.
  */
-  html.shooterCanonicalMobile,
-  html.shooterCanonicalMobile body,
-  html.shooterCanonicalMobile body > #root {
+  html.shooterCanonicalMobile:has(main.app.viewport-landscape),
+  html.shooterCanonicalMobile:has(main.app.viewport-landscape) body,
+  html.shooterCanonicalMobile:has(main.app.viewport-landscape) body > #root {
     width: 100% !important;
     height: 100% !important;
     min-height: 0 !important;
@@ -348,17 +348,20 @@
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.96), 0 0 7px rgba(245, 190, 84, 0.3) !important;
   }
 
-/* Portrait stages fill the viewport above the detached navigation. Only the
-   canvas width is scaled; height reflows so artwork and controls are not stretched. */
+/* Portrait stages use native pixels above the detached navigation. The
+   document width and app transform stay unchanged across mode transitions. */
 html.shooterCanonicalMobile body #root main.app.viewport-portrait:is(.tunerMode, .shooterMode) {
   /* CSS owns the available height: iOS can retain old innerHeight values when
      returning to a Home Screen app. Keep the status bar outside the stage. */
-  --portrait-mobile-canvas-height: calc((100dvh - env(safe-area-inset-top, 0px)) / var(--shooter-mobile-canvas-scale, 1)) !important;
+  --portrait-mobile-canvas-height: calc(100dvh - env(safe-area-inset-top, 0px)) !important;
+  --shooter-mobile-canvas-scale: 1 !important;
+  transform: none !important;
+  left: 0 !important;
   top: env(safe-area-inset-top, 0px) !important;
   --shooter-mobile-nav-space: calc(var(--mobile-nav-clearance) / var(--shooter-mobile-canvas-scale, 1));
-  width: var(--portrait-mobile-canvas-width) !important;
-  min-width: var(--portrait-mobile-canvas-width) !important;
-  max-width: var(--portrait-mobile-canvas-width) !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
   height: var(--portrait-mobile-canvas-height) !important;
   min-height: var(--portrait-mobile-canvas-height) !important;
   max-height: var(--portrait-mobile-canvas-height) !important;
@@ -395,9 +398,28 @@ html.shooterCanonicalMobile body #root main.app.viewport-portrait.tunerMode .tun
    the root out of scroll-container mode avoids iOS standalone viewport changes
    when entering/leaving the fixed tuner and game stages. */
 @supports (overflow: clip) {
-  html.shooterCanonicalMobile,
-  html.shooterCanonicalMobile body,
-  html.shooterCanonicalMobile body > #root {
+  html.shooterCanonicalMobile:has(main.app.viewport-landscape),
+  html.shooterCanonicalMobile:has(main.app.viewport-landscape) body,
+  html.shooterCanonicalMobile:has(main.app.viewport-landscape) body > #root {
     overflow: clip !important;
   }
+}
+
+/* The portrait shell already reserves the status-bar inset exactly once. */
+html.shooterCanonicalMobile body #root main.app.viewport-portrait.tunerMode .tunerMobileControls {
+  top: 0 !important;
+}
+html.shooterCanonicalMobile body #root main.app.viewport-portrait.tunerMode .tunerInputBar--top {
+  padding-top: 8px !important;
+}
+
+/* Native-width portrait HUD: do not retain the 430px canvas column widths. */
+html.shooterCanonicalMobile body #root main.app.viewport-portrait.shooterMode .mobileShooterPrimaryHudRow {
+  grid-template-columns: minmax(80px, 1fr) 126px 52px 48px !important;
+}
+html.shooterCanonicalMobile body #root main.app.viewport-portrait.shooterMode .mobileShooterPrimaryHudRow:has(.shooterRecordingEntrySlot) {
+  grid-template-columns: minmax(80px, 1fr) 126px 46px 40px 44px !important;
+}
+html.shooterCanonicalMobile body #root main.app.viewport-portrait.shooterMode .mobileShooterPlayHelpHud {
+  grid-template-columns: 20px 30px 25px 25px 20px !important;
 }
