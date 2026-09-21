@@ -25,6 +25,6 @@ export function copyGripToNext(d,c){
  return {document,cursor:{...next.cursor,target:undefined},replaced:!target.rest&&target.notes.length>0};
 }
 export function deleteGrip(d,c){
- const event=d.measures[c.bar]?.events[c.event];if(!event||event.rest||!event.notes.length)return d;
- return patchEvent(disconnectIncoming(d,c),c.bar,c.event,{...cleared,notes:[],rest:true,blank:true});
+ const event=d.measures[c.bar]?.events[c.event];if(!event||(!event.lowerRest&&(event.rest||!event.notes.length)))return d;
+ return patchEvent(disconnectIncoming(d,c),c.bar,c.event,{...cleared,notes:[],rest:true,blank:true,lowerRest:false});
 }

@@ -128,6 +128,7 @@ export function resolveFretInput(previous,key,location){
  return {value,combined,text:String(value),location};
 }
 export function deleteTone(d,c){
+ if(c.lowerRest)return patchEvent(d,c.bar,c.event,{lowerRest:false});
  const event=d.measures[c.bar]?.events[c.event];
  const selected=n=>!isFretted(d.instrument)?(c.noteId&&event?.notes.some(t=>t.id===c.noteId)?n.id===c.noteId:n.midi===(event?.notes.some(t=>t.midi===c.midi)?c.midi:event?.notes[0]?.midi)):c.noteId&&event?.notes.some(t=>t.id===c.noteId)?n.id===c.noteId:n.string===c.string;
  // Silence keeps its time slot. An untouched slot is not an editable rest.
