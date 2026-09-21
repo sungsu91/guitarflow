@@ -1,18 +1,18 @@
+import GrooveTonePicker from './GrooveTonePicker.jsx';
 import React, {useEffect, useRef, useState, useSyncExternalStore, useCallback} from 'react';
-import {createGrooveRow, GROOVE_TONES} from './groove.js';
+import {applyGrooveQuick, createGrooveRow, GROOVE_TONES} from './groove.js';
 import './groove.css';
 
 
-const GrooveTrackName=React.memo(function GrooveTrackName({row,r,changeRow}) {
-  return <div className="grooveTrackName"><select aria-label={`${r+1}행 음색`} value={row.tone} onChange={e=>e.target.value==='mute'?changeRow(r,{muted:!row.muted}):changeRow(r,{tone:e.target.value})}>{GROOVE_TONES.map(([id,text])=><option key={id} value={id}>{text}{row.muted && id===row.tone ? ' (음소거)' : ''}</option>)}<option value="mute">{row.muted?'음소거 해제':'음소거'}</option></select></div>;
-});
+const GrooveTrackName=GrooveTonePicker;
 
-const GrooveTrack=React.memo(function GrooveTrack({row,r,beats,divisions,paint,changeRow,canRemove,removing}) {
+const GrooveTrack=React.memo(function GrooveTrack({row,r,beats,divisions,paint,quick,changeRow,canRemove,removing}) {
   const groups=Array.from({length:beats},(_,b)=>b);
   return <div className={`grooveTrack ${row.muted?'is-muted':''}`}>
         <div className="grooveSteps">{groups.map(b=><div className="grooveBeat" key={b}>{Array.from({length:divisions},(_,s)=>{
           const i=b*divisions+s,velocity=row.velocities?.[i]??70;
           return <button type="button" key={s} aria-label={`${r+1}행 ${i+1}칸`} aria-pressed={row.steps[i]} data-strength={velocity>=85?"strong":velocity>=55?"medium":velocity>=35?"soft":"ghost"} title={`${r+1}행 ${i+1}칸 · 강약 ${velocity}`} onClick={()=>{
+            if(quick!=='default') {changeRow(r,applyGrooveQuick(row,quick,i,beats,divisions,paint));return;}
             const steps=[...row.steps],velocities=Array.from({length:72},(_,k)=>row.velocities?.[k]??70);
             steps[i]=!(steps[i] && velocities[i]===Number(paint));
             velocities[i]=Number(paint);
@@ -23,9 +23,44 @@ const GrooveTrack=React.memo(function GrooveTrack({row,r,beats,divisions,paint,c
       </div>;
 });
 
-function Grid({store,pattern, onChange, beats, divisions, clock, playing, paint, removing}) {
+function Grid({store,pattern, onChange, beats, divisions, clock, playing, paint, quick, removing, mobile}) {
   const root=useRef(null);
+  const viewport=useRef(null);
+  const zoomRef=useRef(1);
+  const suppressClickUntil=useRef(0);
+  const [zoom,setZoom]=useState(1);
   const playhead=useRef(null);
+  useEffect(()=>{
+    if(!mobile || !viewport.current)return;
+    const element=viewport.current;
+    let gesture=null;
+    const distance=touches=>Math.hypot(touches[0].clientX-touches[1].clientX,touches[0].clientY-touches[1].clientY);
+    const start=event=>{if(event.touches.length===2){gesture={distance:distance(event.touches),zoom:zoomRef.current};suppressClickUntil.current=Date.now()+400;}};
+    const move=event=>{
+      if(event.touches.length!==2)return;
+      event.preventDefault();
+      suppressClickUntil.current=Date.now()+400;
+      if(!gesture)gesture={distance:distance(event.touches),zoom:zoomRef.current};
+      const next=Math.max(1,Math.min(2.5,gesture.zoom*distance(event.touches)/Math.max(1,gesture.distance)));
+      const scroller=root.current;
+      const middle=(event.touches[0].clientX+event.touches[1].clientX)/2-(scroller?.getBoundingClientRect().left??0);
+      const contentPosition=((scroller?.scrollLeft??0)+middle)/zoomRef.current;
+      zoomRef.current=next;
+      setZoom(next);
+      if(scroller)requestAnimationFrame(()=>{scroller.scrollLeft=contentPosition*next-middle;});
+    };
+    const end=event=>{if(event.touches.length<2)gesture=null;};
+    element.addEventListener('touchstart',start,{passive:true});
+    element.addEventListener('touchmove',move,{passive:false});
+    element.addEventListener('touchend',end);
+    element.addEventListener('touchcancel',end);
+    return()=>{
+      element.removeEventListener('touchstart',start);
+      element.removeEventListener('touchmove',move);
+      element.removeEventListener('touchend',end);
+      element.removeEventListener('touchcancel',end);
+    };
+  },[mobile]);
   useEffect(()=>{if(root.current)root.current.scrollLeft=0;},[beats,divisions]);
   useEffect(()=>{
     let frame,animation,key,lastMeasure=-1;
@@ -68,15 +103,15 @@ function Grid({store,pattern, onChange, beats, divisions, clock, playing, paint,
   const groups=Array.from({length:beats},(_,b)=>b);
   const label=s=>divisions===4?['1','e','&','a'][s]:divisions===3?['1','trip','let'][s]:divisions===2?['1','&'][s]:s+1;
   const changeRow=useCallback((r,patch)=>{const current=store.getSnapshot();onChange({...current,name:'custom',rows:patch?current.rows.map((v,i)=>i===r?{...v,...patch}:v):current.rows.filter((_,i)=>i!==r)});},[store,onChange]);
-  return <div className="grooveGridViewport" style={{'--groove-beats':beats,'--groove-divisions':divisions}}>
+  return <div ref={viewport} className="grooveGridViewport" onClickCapture={event=>{if(Date.now()<suppressClickUntil.current){event.preventDefault();event.stopPropagation();}}} style={{'--groove-beats':beats,'--groove-divisions':divisions,'--groove-zoom':zoom}}>
     <div className="grooveTrackRail" aria-label="그루브 음색 설정">
       <span className="grooveTrackRailHeader" aria-hidden="true"/>
       {pattern.rows.map((row,r)=><GrooveTrackName key={r} row={row} r={r} changeRow={changeRow}/>)}
     </div>
-    <div ref={root} className="grooveHorizontalScroll" aria-label="그루브 편집 격자"><div className={`grooveGrid grooveGrid--tracks ${removing?'is-removing':''}`} style={{minWidth:beats*divisions>16?`calc(${removing?34:0}px + ${beats*divisions*18}px)`:undefined}}>
+    <div ref={root} className="grooveHorizontalScroll" aria-label="그루브 편집 격자"><div className={`grooveGrid grooveGrid--tracks ${removing?'is-removing':''}`} style={{width:zoom>1?`${zoom*100}%`:'100%',minWidth:beats*divisions>16?`calc(${removing?34:0}px + ${beats*divisions*18*zoom}px)`:undefined}}>
       <div className="grooveTrackHeader"><div className="grooveSteps grooveLabels">{groups.map(b=><div className="grooveBeat" key={b}>{Array.from({length:divisions},(_,s)=><span key={s}>{s===0?b+1:label(s)}</span>)}</div>)}</div>{removing && <div/>}</div>
       <div className="grooveTrackList" aria-label="그루브 트랙 목록">
-        {pattern.rows.map((row,r)=><GrooveTrack key={r} row={row} r={r} beats={beats} divisions={divisions} paint={paint} changeRow={changeRow} canRemove={pattern.rows.length>1} removing={removing}/> )}
+        {pattern.rows.map((row,r)=><GrooveTrack key={r} row={row} r={r} beats={beats} divisions={divisions} paint={paint} quick={quick} changeRow={changeRow} canRemove={pattern.rows.length>1} removing={removing}/> )}
       </div>
       <div className="groovePlayTrack" aria-hidden="true"><i ref={playhead} style={{visibility:playing?'visible':'hidden'}}/></div>
     </div></div>
@@ -87,11 +122,12 @@ function GrooveEditor({store,...options}) {
   const props={...options,pattern,store};
   const [paint,setPaint]=useState('70');
   const [removing,setRemoving]=useState(false);
+  const [quick,setQuick]=useState('default');
   const resetDialog=useRef(null);
-  const strength=<label className="grooveStrengthControl">표기:<select className="grooveStrengthSelect" aria-label="표기 방식" value={paint} onChange={e=>setPaint(e.target.value)}><option value="70">기본</option><option value="100">강</option><option value="45">약</option></select></label>;
+  const strength=<><label className="grooveStrengthControl">강약:<select className="grooveStrengthSelect" aria-label="강약" value={paint} onChange={e=>setPaint(e.target.value)}><option value="70">기본</option><option value="100">강</option><option value="45">약</option></select></label><label className="grooveStrengthControl grooveQuickControl">퀵:<select className="grooveStrengthSelect" aria-label="퀵" value={quick} onChange={e=>setQuick(e.target.value)}><option value="default">기본</option><option value="bulk">일괄</option><option value="partial">부분</option></select></label></>;
   return <section className={`grooveEditor grooveEditor--${props.mobile?'mobile':'desktop'}`} aria-label="그루브팩">
-    <div className="grooveToolbar">{strength}<button type="button" onClick={()=>props.onChange({...props.pattern,name:'custom',rows:[...props.pattern.rows,createGrooveRow(GROOVE_TONES.find(([id])=>!props.pattern.rows.some(row=>row.tone===id))?.[0]??'clap')]})}>+ 줄 추가</button><button type="button" className="grooveDeleteToggle" aria-pressed={removing} onClick={()=>setRemoving(value=>!value)}>줄 삭제</button><button type="button" className="grooveSaveButton" onClick={props.onSave}>저장</button><button type="button" onClick={()=>resetDialog.current?.showModal()}>초기화</button></div>
-    <Grid {...props} paint={paint} removing={removing}/>
+    <div className="grooveToolbar">{strength}<span className="grooveRowLabel">줄:</span><button type="button" aria-label="줄 추가" onClick={()=>props.onChange({...props.pattern,name:'custom',rows:[...props.pattern.rows,createGrooveRow(GROOVE_TONES.find(([id])=>!props.pattern.rows.some(row=>row.tone===id))?.[0]??'clap')]})}>추가</button><button type="button" className="grooveDeleteToggle" aria-label="줄 삭제" aria-pressed={removing} onClick={()=>setRemoving(value=>!value)}>삭제</button><button type="button" className="grooveSaveButton" onClick={props.onSave}>저장</button><button type="button" onClick={()=>resetDialog.current?.showModal()}>초기화</button></div>
+    <Grid {...props} paint={paint} quick={quick} removing={removing}/>
     <dialog ref={resetDialog} className="grooveResetDialog" aria-labelledby="groove-reset-title">
       <p id="groove-reset-title">패턴을 초기화할까요?</p>
       <div><button type="button" autoFocus onClick={()=>resetDialog.current?.close()}>아니오</button><button type="button" onClick={()=>{

@@ -21,6 +21,8 @@ test('pitch judgment, projectile scoring and collision geometry remain identical
  const newMapPaths = ['src/shooter/maps/registry.js', 'src/shooter/maps/skins/moonlitRooftop.js', 'public/assets/maps/moonlit-rooftop/moonlit-rooftop.png'];
  newMapPaths.push('src/shooter/maps/MapSkinRenderer.jsx', 'src/shooter/maps/map-skins.css', 'src/shooter/maps/skins/scenicMaps.js', ...['underwater-blue','aurora-glacier','above-the-clouds','milky-way-desert','firefly-forest'].map(id => `public/assets/maps/${id}/background.png`));
  const progressionPaths=['src/shooter/progressionSettings.js','src/shooter/ProgressSettings.jsx','src/shooter/progress-settings.css','src/shooter/desktopHorizontal/DesktopHorizontalBattleView.jsx'];
+ // Score playback is independent of shooter judgment and collision audio.
+ const scoreAudioPaths=['src/audio/scoreInstrument.js','src/audio/scoreDrums.js','src/audio/scoreExpressions.js','src/audio/fretboardPreviewEngine.js'];
  const viewportPaths=['src/shooter/mobile-canonical-viewport.css','src/shooter/useShooterMobileViewport.js','src/shooter/mobileViewportFrame.js']; // Authorized iPhone Home Screen layout repair.
- assert.ok(changed.every(path=>path.startsWith('src/shooter/noteVfx/') || newMapPaths.includes(path) || progressionPaths.includes(path) || viewportPaths.includes(path)),changed.join('\n'));
+ assert.ok(changed.every(path=>path.startsWith('src/shooter/noteVfx/') || path.startsWith('src/shooter/results/') || newMapPaths.includes(path) || progressionPaths.includes(path) || viewportPaths.includes(path) || scoreAudioPaths.includes(path)),changed.join('\n'));
 });

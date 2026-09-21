@@ -1,11 +1,12 @@
-import {scoreInstrument} from './scoreInstruments.js';
+import {normalizeInstrumentDocument} from './scoreInstruments.js';
+import {isFretted,scoreInstrument} from './scoreInstruments.js';
 
 export const HARMONICS={3:31,4:28,5:24,7:19,9:28,12:12,16:28,19:19,24:24};
 // All existing instrument profiles support 0–24 in the editor. This is the
 // editor's supported range, not a claim about every physical instrument.
 export const maxFret=d=>scoreInstrument(d.instrument).maxFret??24;
 export const effectiveTuning=d=>d.tuning.map(n=>n+(d.capo??0));
-export const soundingMidi=(d,n)=>n.unplaced?n.midi:d.tuning[n.string-1]+(d.capo??0)+(n.harmonic?(HARMONICS[n.fret]??n.fret):n.fret);
+export const soundingMidi=(d,n)=>!isFretted(d.instrument)||n.unplaced?n.midi:d.tuning[n.string-1]+(d.capo??0)+(n.harmonic?(HARMONICS[n.fret]??n.fret):n.fret);
 export const midiName=n=>['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'][((n%12)+12)%12]+(Math.floor(n/12)-1);
 export function tuningPresets(instrument){const t=scoreInstrument(instrument).tuning;return [
  {id:'standard',label:'표준 튜닝',tuning:[...t]},
@@ -14,8 +15,8 @@ export function tuningPresets(instrument){const t=scoreInstrument(instrument).tu
  ...(instrument==='guitar'||!instrument?[{id:'drop-d',label:'Drop D',tuning:t.map((n,i)=>i===5?n-2:n)}]:[]),
  ];}
 export const tuningName=d=>tuningPresets(d.instrument).find(p=>p.tuning.every((n,i)=>n===d.tuning[i]))?.label??'사용자 지정';
-export const tuningCaption=d=>[tuningName(d)!=='표준 튜닝'?`${tuningName(d)} (${[...d.tuning].reverse().map(midiName).join(' ')})`:'',d.capo?`카포 ${d.capo}`:''].filter(Boolean).join(' · ');
-export function normalizePitches(d){return {...d,capo:d.capo??0,autoTab:d.autoTab??{mode:'auto',min:0,max:12},measures:d.measures.map(m=>({...m,events:m.events.map(e=>({...e,notes:e.notes.map(n=>({...n,midi:soundingMidi(d,n),locked:n.locked!==false}))}))}))};}
+export const tuningCaption=d=>!isFretted(d.instrument)?'':[tuningName(d)!=='표준 튜닝'?`${tuningName(d)} (${[...d.tuning].reverse().map(midiName).join(' ')})`:'',d.capo?`카포 ${d.capo}`:''].filter(Boolean).join(' · ');
+export function normalizePitches(d){d=normalizeInstrumentDocument(d);return {...d,capo:d.capo??0,autoTab:d.autoTab??{mode:'auto',min:0,max:12},measures:d.measures.map(m=>({...m,events:m.events.map(e=>({...e,notes:e.notes.map(n=>({...n,midi:soundingMidi(d,n),locked:n.locked!==false}))}))}))};}
 export function tabCandidates(d,midi){return effectiveTuning(d).flatMap((open,i)=>{const fret=midi-open;return Number.isInteger(fret)&&fret>=0&&fret+(d.capo??0)<=maxFret(d)?[{string:i+1,fret}]:[];});}
 
 // Bounded exhaustive chord assignment: distinct strings and a maximum five
@@ -38,6 +39,7 @@ export function assignTab(d,notes,neighbors=[]){
  return best??notes.map(n=>n.locked&&!n.unplaced?n:{...n,string:null,fret:null,unplaced:true,outsidePreferred:false});
 }
 export function changeTuning(d,settings,mode='pitch',{reassignLocked=false}={}){
+ if(!isFretted(d.instrument))throw Error('건반·드럼에는 튜닝과 카포를 적용하지 않습니다.');
  const next={...d,...settings};
  if(!Number.isInteger(next.capo??0)||(next.capo??0)<0||(next.capo??0)>Math.min(12,maxFret(next)))throw Error('카포는 0–12프렛을 선택하세요.');
  if(next.tuning.length!==scoreInstrument(next.instrument).tuning.length||next.tuning.some(n=>!Number.isInteger(n)||n<24||n>88))throw Error('개방현은 C1–E6 범위에서 옥타브까지 선택하세요.');

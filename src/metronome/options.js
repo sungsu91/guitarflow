@@ -9,26 +9,42 @@ export const TIME_SIGNATURE_OPTIONS = [
   { id: "12/8", label: "12/8", beats: 12, beatUnit: 8 },
 ];
 
+// Common rhythm sounds first; related variants stay adjacent in both selectors.
 export const METRONOME_TONE_OPTIONS = [
   { id: "tick", label: "Tick" },
-  { id: "agogo", label: "Agogo", src: "/sounds/agogobell.wav" },
-  { id: "brushSnare", label: "Brush Snare", src: "/sounds/brushsnare.wav" },
-  { id: "cabasa", label: "Cabasa", src: "/sounds/cabasa.wav" },
-  { id: "clap", label: "Clap", src: "/sounds/clap.wav" },
-  { id: "clave", label: "Clave", src: "/sounds/clave.wav" },
-  { id: "hihat", label: "Closed Hat", src: "/sounds/closed hihat.wav" },
-  { id: "congaSlap", label: "Conga Slap", src: "/sounds/congaslap.wav" },
-  { id: "cowbell", label: "Cowbell", src: "/sounds/cowbell.wav" },
-  { id: "fingerTap", label: "Finger Tap", src: "/sounds/fingertap.wav" },
   { id: "kick", label: "Kick", src: "/sounds/kick.wav" },
-  { id: "openHihat", label: "Open Hat", src: "/sounds/openhihat.wav" },
-  { id: "ride", label: "Ride", src: "/sounds/ride.wav" },
-  { id: "rim", label: "Rim", src: "/sounds/rim.wav" },
-  { id: "shaker", label: "Shaker", src: "/sounds/shaker.wav" },
-  { id: "snap", label: "Snap", src: "/sounds/snap.wav" },
+
   { id: "snare", label: "Snare", src: "/sounds/snare.wav" },
+  { id: "electronicSnare", label: "Electronic Snare", src: "/sounds/electronic-snare.wav" },
+  { id: "brushSnare", label: "Brush Snare", src: "/sounds/brushsnare.wav" },
+  { id: "rim", label: "Rim", src: "/sounds/rim.wav" },
   { id: "stick", label: "Stick", src: "/sounds/stick.wav" },
+
+  { id: "hihat", label: "Closed Hat", src: "/sounds/closed hihat.wav" },
+  { id: "openHihat", label: "Open Hat", src: "/sounds/openhihat.wav" },
+  { id: "pedalHihat", label: "Pedal Hi-Hat", src: "/sounds/pedal-hihat.wav" },
+
+  { id: "crash", label: "Crash", src: "/sounds/crash.wav" },
+  { id: "ride", label: "Ride", src: "/sounds/ride.wav" },
+  { id: "rideBell", label: "Ride Bell", src: "/sounds/ride-bell.wav" },
+
+  { id: "tomHigh", label: "High Tom", src: "/sounds/tom-high.wav" },
+  { id: "tomMid", label: "Mid Tom", src: "/sounds/tom-mid.wav" },
+  { id: "tomLow", label: "Low Tom", src: "/sounds/tom-low.wav" },
+
+  { id: "clap", label: "Clap", src: "/sounds/clap.wav" },
+  { id: "snap", label: "Snap", src: "/sounds/snap.wav" },
+  { id: "fingerTap", label: "Finger Tap", src: "/sounds/fingertap.wav" },
+
+  { id: "shaker", label: "Shaker", src: "/sounds/shaker.wav" },
   { id: "tambourine", label: "Tambourine", src: "/sounds/tambourine.wav" },
+  { id: "cabasa", label: "Cabasa", src: "/sounds/cabasa.wav" },
+
+  { id: "cowbell", label: "Cowbell", src: "/sounds/cowbell.wav" },
+  { id: "agogo", label: "Agogo", src: "/sounds/agogobell.wav" },
   { id: "triangle", label: "Triangle", src: "/sounds/trangle.wav" },
+
+  { id: "congaSlap", label: "Conga Slap", src: "/sounds/congaslap.wav" },
+  { id: "clave", label: "Clave", src: "/sounds/clave.wav" },
   { id: "woodblock", label: "Woodblock", src: "/sounds/woodblock.wav" },
 ];

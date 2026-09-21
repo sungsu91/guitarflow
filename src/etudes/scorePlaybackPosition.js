@@ -8,7 +8,7 @@ export function playbackSlots(score, order) {
     return score.measures[bar].map((note,event)=>{
       const onset=note.onset??next;next=onset+ticksOf(note);
       return {bar,event,visit,meter,capacity,barStart,tick:barStart+onset,duration:ticksOf(note)};
-    });
+    }).sort((a,b)=>a.tick-b.tick);
   });
 }
 

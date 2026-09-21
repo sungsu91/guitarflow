@@ -1,0 +1,78 @@
+.drumInputPanel{display:grid;gap:5px;padding:5px 8px;min-width:0}.drumCursorRow,.drumEditRow{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:5px;align-items:center}.drumCursorRow output{text-align:center;font-size:12px;font-weight:650}.drumKit{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}.drumPiece{position:relative;isolation:isolate;aspect-ratio:1.04;touch-action:none;user-select:none}.drumPiece svg{width:100%;height:100%;pointer-events:none}.drumPiece span{position:absolute;inset:auto 0 22%;text-align:center;font-size:11px;font-weight:750;color:#181818;pointer-events:none}.drumHatRow{display:flex;align-items:center;gap:4px;font-size:11px}.drumHatRow .drumPreviewToggle{margin-left:auto}.drumVolume{display:flex;gap:9px;align-items:center;font-size:11px}.drumVolume input{width:100%;min-width:0;accent-color:var(--ed-active)}.drumExtra{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;max-height:170px;overflow:auto}.drumExtra button{touch-action:none}.drumEditMenu{position:relative}.drumEditMenu>div{position:absolute;right:0;bottom:100%;z-index:10;display:grid;min-width:140px;padding:6px;background:var(--ed-surface);border:1px solid var(--ed-line);border-radius:8px}.drumEditMenu summary{list-style:none;cursor:pointer;padding:7px 12px}
+@layer score-workspace{
+ .editorDesign .drumInputPanel button{min-height:34px!important;height:auto!important;padding:4px!important;font-size:12px!important}
+ .editorDesign .drumKit .drumPiece{display:block!important;background:transparent!important;box-shadow:none!important;border:1px solid transparent!important;padding:2px!important;min-height:64px!important}
+ .editorDesign .drumKit .drumPiece[data-entered=true],.editorDesign .drumExtra [data-entered=true]{border-color:var(--ed-active)!important}
+ .editorDesign .drumKit .drumPiece[aria-pressed=true]{background:var(--ed-active)!important;transform:scale(.96)}
+ .editorDesign .drumKit .drumPiece span{color:#171717!important;font-size:11px!important}
+ .editorDesign .drumNext,.editorDesign .drumHatRow button[aria-pressed=true]{background:var(--ed-active)!important;color:var(--ed-on-accent)!important}
+ .editorDesign .drumInputPanel button:focus-visible{outline:2px solid var(--ed-active);outline-offset:1px}
+ .editorDesign .drumExtra button{min-height:40px!important}
+}
+@media(max-height:740px){.drumInputPanel{gap:3px;padding:3px 6px}.drumKit{gap:1px}.drumPiece{aspect-ratio:1.28}}
+@layer score-workspace{
+ .editorDesign .drumEditMenu{margin:0!important;padding:0!important;border:0!important;min-height:0!important}
+ .editorDesign .drumEditMenu>summary{display:flex!important;align-items:center;justify-content:center;height:34px!important;min-height:34px!important;margin:0!important;padding:0 13px!important;box-sizing:border-box;border:1px solid var(--ed-line);border-radius:8px;background:var(--ed-surface)}
+ .editorDesign .drumVolume{display:flex!important;flex-direction:row!important;align-items:center!important;height:22px!important;margin:0!important;padding:0!important;font-size:11px!important}
+ .editorDesign .drumVolume input{height:18px!important;min-height:0!important;margin:0!important;padding:0!important;flex:1;max-width:none!important}
+ .editorDesign .drumPiece span{top:42%!important;bottom:auto!important;transform:translateY(-50%);text-shadow:0 1px 1px #fff9}
+ .editorDesign .drum-kick span{top:50%!important}
+ .editorDesign .drumEditRow,.editorDesign .drumCursorRow{margin:0!important}
+}
+
+@layer score-workspace{.editorDesign .drumPiece,.editorDesign .drumExtra button{touch-action:none!important}}
+/* The kit is a single stage; each instrument keeps its own non-overlapping hit area. */
+.drumKit{position:relative;display:block;height:220px;background:radial-gradient(ellipse at 50% 80%,#7772,transparent 68%);isolation:isolate}
+@layer score-workspace{
+ .editorDesign .drumKit .drumPiece{position:absolute!important;aspect-ratio:auto!important;min-height:0!important;border:0!important;border-radius:50%!important;outline-offset:-3px;background:transparent!important}
+ .editorDesign .drumKit .drumPiece[data-entered=true]{outline:1px solid var(--ed-active)!important}
+ .editorDesign .drumKit .drumPiece[aria-pressed=true]{filter:brightness(1.2);transform:scale(.95);box-shadow:0 0 12px var(--ed-active)!important}
+ .editorDesign .drumKit .drum-crash{left:0;top:0;width:25%;height:39%!important}
+ .editorDesign .drumKit .drum-tom1{left:26%;top:10%;width:24%;height:34%!important}
+ .editorDesign .drumKit .drum-tom2{left:50%;top:10%;width:24%;height:34%!important}
+ .editorDesign .drumKit .drum-ride{left:75%;top:0;width:25%;height:39%!important}
+ .editorDesign .drumKit .drum-hat{left:0;top:43%;width:23%;height:43%!important}
+ .editorDesign .drumKit .drum-snare{left:23%;top:48%;width:25%;height:44%!important}
+ .editorDesign .drumKit .drum-kick{left:48%;top:48%;width:28%;height:52%!important}
+ .editorDesign .drumKit .drum-floor{left:76%;top:43%;width:24%;height:49%!important}
+ .editorDesign .drumHatRow{justify-content:flex-start;min-height:28px;gap:5px}
+ .editorDesign .drumHatRow button{min-height:28px!important;font-size:11px!important}
+}
+@media(max-height:740px){.drumKit{height:175px}}
+
+/* PNG coordinates are percentages of the uncropped 1536 × 1024 image. */
+.drumKitPhoto{width:min(100%,max(330px,39svh),375px);height:auto;aspect-ratio:3/2;margin-inline:auto;background:none}
+.drumKitImage{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}
+@layer score-workspace{
+ .editorDesign .drumKitPhoto .drumPiece{padding:0!important;border:0!important;box-shadow:none!important;transform:none!important;background:transparent!important;filter:none!important;outline:none!important;min-width:0!important}
+ .editorDesign .drumKitPhoto .drumPiece::before{content:'';position:absolute;inset:3%;border-radius:50%;pointer-events:none}
+ .editorDesign .drumKitPhoto .drumPiece[data-entered=true]::before{border:1.5px solid #b17e20;box-shadow:0 0 0 1px #fff8}
+ .editorDesign .drumKitPhoto .drumPiece[aria-pressed=true]::before{background:#f4c95a55;box-shadow:inset 0 0 12px #f6c24c}
+ .editorDesign .drumKitPhoto .drumPiece:focus-visible::before{outline:2px solid #187bce;outline-offset:2px}
+ .editorDesign .drumKitPhoto .drumPiece span{inset:50% auto auto 50%!important;transform:translate(-50%,-50%);white-space:nowrap;font-size:11px!important;color:#161616!important;text-shadow:0 1px 2px white,0 -1px 2px white,1px 0 2px white,-1px 0 2px white;pointer-events:none}
+ .editorDesign .drumKitPhoto .drum-crash{left:5%;top:1%;width:27%;height:26%!important}
+ .editorDesign .drumKitPhoto .drum-tom1{left:33%;top:15%;width:17%;height:26%!important}
+ .editorDesign .drumKitPhoto .drum-tom2{left:53%;top:15%;width:17%;height:26%!important}
+ .editorDesign .drumKitPhoto .drum-ride{left:71%;top:7%;width:28%;height:30%!important}
+ .editorDesign .drumKitPhoto .drum-hat{left:1%;top:35%;width:21%;height:26%!important}
+ .editorDesign .drumKitPhoto .drum-snare{left:23%;top:45%;width:19%;height:26%!important}
+ .editorDesign .drumKitPhoto .drum-kick{left:43%;top:52%;width:21%;height:46%!important}
+ .editorDesign .drumKitPhoto .drum-floor{left:66%;top:45%;width:24%;height:25%!important}
+ .editorDesign .drumKitPhoto .drum-kick span{top:28%!important}
+ .editorDesign .drumKitPhoto .drum-kick::before{bottom:36%}
+}
+
+
+@layer score-workspace{.editorDesign .drumKitPhoto .drumPiece[data-entered=true]{outline:none!important}}
+
+
+.drumKitPhoto .drumHitLens{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+@layer score-workspace{
+ .editorDesign .drumKitPhoto button.drumPiece,.editorDesign .drumKitPhoto button.drumPiece[aria-pressed=true],.editorDesign .drumKitPhoto button.drumPiece:not(:disabled):active,.editorDesign .drumKitPhoto button.drumPiece[aria-pressed=true]:not(:disabled):active{background:transparent!important;background-image:none!important;box-shadow:none!important;filter:none!important;transform:none!important;-webkit-tap-highlight-color:transparent;z-index:2}
+ .editorDesign .drumKitPhoto button.drumPiece[aria-pressed=true]::before{background:none!important;box-shadow:none!important}
+ .editorDesign .drumKitPhoto button.drumPiece span{left:var(--label-x)!important;top:var(--label-y)!important}
+}
+
+.editorDesign .drumHatRow .drumBatchSwitch{position:relative;display:grid;grid-template-columns:1fr 1fr;width:68px;min-width:68px;padding:0!important;border-radius:16px!important;background:var(--ed-surface)!important;color:var(--ed-text)!important;isolation:isolate;overflow:hidden}.drumBatchSwitch span{position:relative;z-index:1;font-size:9px}.drumBatchSwitch i{position:absolute;top:2px;bottom:2px;left:2px;width:calc(50% - 2px);border-radius:12px;background:var(--ed-active);transition:transform .15s}.drumBatchSwitch[aria-checked=true] i{transform:translateX(100%)}.drumBatchSwitch[aria-checked=false] span:first-child,.drumBatchSwitch[aria-checked=true] span:nth-child(2){color:var(--ed-on-accent)}.drumBatchLabel{margin-left:3px}
+
+.editorDesign .drumHatRow .drumBatchSwitch i{background:linear-gradient(160deg,#f5f6f7 0%,#b4bac0 42%,#e0e3e6 52%,#939ba3 100%);border:1px solid #8b949c;box-shadow:0 1px 2px #0004,inset 0 1px 0 #fff9;box-sizing:border-box}.editorDesign .drumBatchSwitch[aria-checked=false] span:first-child,.editorDesign .drumBatchSwitch[aria-checked=true] span:nth-child(2){color:#1c252d;font-weight:800}.drumBatchSwitch:focus-visible{outline:2px solid var(--ed-active);outline-offset:2px}

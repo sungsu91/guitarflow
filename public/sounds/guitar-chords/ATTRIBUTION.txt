@@ -1,0 +1,13 @@
+Guitar chord recordings by BiblicalBricksProductions (Freesound)
+License: Creative Commons Attribution 3.0 Unported
+https://creativecommons.org/licenses/by/3.0/
+Original WAV files included unchanged. Playback gain reduced in the app.
+Playback skips the leading silence/handling noise, retaining a short pre-attack margin and a 3 ms fade-in.
+
+C major (guitar).wav - https://freesound.org/people/BiblicalBricksProductions/sounds/192199/
+D major (guitar).wav - https://freesound.org/people/BiblicalBricksProductions/sounds/192200/
+E major (guitar).wav - https://freesound.org/people/BiblicalBricksProductions/sounds/192201/
+F major (guitar).wav - https://freesound.org/people/BiblicalBricksProductions/sounds/192204/
+G major (guitar).wav - https://freesound.org/people/BiblicalBricksProductions/sounds/192203/
+A major (guitar).wav - https://freesound.org/people/BiblicalBricksProductions/sounds/192197/
+B major (guitar).wav - https://freesound.org/people/BiblicalBricksProductions/sounds/192198/

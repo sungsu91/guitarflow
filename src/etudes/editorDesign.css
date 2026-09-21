@@ -308,3 +308,5 @@ html body dialog.etudeEditor.mobileScoreWorkspace.editorDesign {
 .editorDesign .repeatScrollTrack>div{position:absolute;left:0;right:0;border-radius:4px;background:color-mix(in srgb,var(--ed-active) 65%,var(--ed-line))}
 
 .editorDesign.mobileScoreWorkspace .mobileScoreSettingsTitle{display:block!important;overflow:hidden;text-overflow:ellipsis;padding-inline:6px!important}
+.editorDesign.etudeEditor .etudeEditorClosePrompt{background:var(--ed-surface)!important;color:var(--ed-ink)!important;border-color:var(--ed-line)!important}
+.editorDesign.etudeEditor .etudeEditorClosePrompt p{color:var(--ed-ink)!important;-webkit-text-fill-color:var(--ed-ink)!important;opacity:1!important;line-height:1.5;overflow-wrap:anywhere}

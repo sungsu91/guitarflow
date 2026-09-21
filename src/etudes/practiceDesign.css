@@ -15,7 +15,7 @@
 .etudeFollowControl{padding:0}
 .etudeFollowPattern{display:grid;gap:6px;min-width:0;width:100%;box-sizing:border-box}
 .etudeFollowPattern>span{color:var(--theme-text);font-size:11px;font-weight:700;line-height:1.2}
-.etudeFollowPattern>div{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;min-width:0}
+.etudeFollowPattern>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;min-width:0}
 .pdfStudio .etudePracticeLayout .etudeFollowPattern button{min-width:0;min-height:38px;padding:5px 3px;border:1px solid var(--theme-border-control);border-radius:7px;background:var(--theme-surface);box-shadow:none;color:var(--theme-text);font-size:11px;font-weight:650;white-space:nowrap}
 .pdfStudio .etudePracticeLayout .etudeFollowPattern button[aria-pressed=true]{border-color:var(--theme-accent);background:color-mix(in srgb,var(--theme-accent) 15%,var(--theme-surface));color:var(--theme-text);font-weight:800}
 .pdfStudio .etudePracticeLayout .etudePracticeToolbar button:is([aria-pressed=true],[aria-expanded=true]){background:color-mix(in srgb,var(--theme-accent) 18%,var(--theme-surface))!important;border-color:var(--theme-accent)!important}
@@ -92,3 +92,13 @@ body:has(.etudeSessionWidget.is-docked) .etudePracticeLayout.is-focus>.etudePrac
 .etudeFloatingMetro.etudeSessionWidget.is-docked header{flex-direction:row;gap:0}
 .etudeFloatingMetro.etudeSessionWidget.is-docked header>button{width:44px;min-width:44px;min-height:44px;padding:8px}
 .etudeFloatingMetro.etudeSessionWidget header .etudePanelClose{display:grid;place-items:center;width:44px;min-width:44px}
+
+.etudeRhythmToggle{display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer}
+
+/* Color only the existing technique ink; no box or flashing over note digits. */
+.rhythm-technique-active{color:var(--riff-danger,#a8453d)}
+.rhythm-technique-active path,.rhythm-technique-active text,text.rhythm-technique-active{fill:var(--riff-danger,#a8453d)!important}
+path.rhythm-technique-active,.rhythm-technique-active path[fill="none"],.rhythm-technique-active [stroke]:not([stroke="none"]){stroke:var(--riff-danger,#a8453d)!important}
+path.rhythm-technique-active[fill="none"],.rhythm-technique-active path[fill="none"]{fill:none!important}
+.etudePracticeLayout.etudeCompactTools .savedScorePlayhead{stroke-width:1px;stroke-opacity:.65;filter:none;transition:none}
+.etudePracticeLayout.etudeCompactTools .savedScorePlayheadWash{stroke-width:5px;stroke-opacity:.08;filter:none;transition:none}

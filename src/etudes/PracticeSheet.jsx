@@ -39,7 +39,7 @@ export default function PracticeSheet({model,mobile,heading,title,lessonTips,foo
  <div className="etudeScoreViewport" tabIndex={0} aria-label="연습 악보 스크롤 영역">
  <article className="etudeSheet" aria-label="연습 악보">
  {!mobile&&!focus&&(heading??<header className="etudeSheetHeader"><h2>{etude.english}</h2><div className="etudeSheetMeta"><span>{etude.instrument&&etude.instrument!=='guitar'&&scoreInstrument(etude.instrument).label+' · '}{customTuning&&'튜닝 ('+etude.tuning.length+'→1번줄) · '+tuningLabel+' · '}{etude.keySignature}</span><span>♩ = {bpm}</span></div></header>)}
- <Suspense fallback={<p className="etudeLoading">악보를 준비하고 있습니다…</p>}><Score etude={etude} mobile={mobile} bpm={bpm} view={model.notationView} playPosition={model.playPosition} followMode={model.followMode} responsive measuresPerRow={measuresPerRow} zoom={model.zoom} focusLayout={focus}/></Suspense>
+ <Suspense fallback={<p className="etudeLoading">악보를 준비하고 있습니다…</p>}><Score etude={etude} mobile={mobile} bpm={bpm} view={model.notationView} playPosition={model.playPosition} followMode={model.followMode} rhythmProgress={model.rhythmProgress} responsive measuresPerRow={measuresPerRow} zoom={model.zoom} focusLayout={focus}/></Suspense>
  {footer}</article></div>
  {lessonTips&&(!focus||tips)&&<div className={focus?'etudeFocusTips':''}>{lessonTips}</div>}
  </div>;

@@ -25,7 +25,9 @@ export function scoreTimeline(score, bpm = score.bpm, includeNotes = true, {play
         pending.delete(key);
         // A tie may not bridge a gap, change string/pitch, or sustain a dead note.
         const prior = candidate && !(tone.dead??e.dead) && !candidate.dead && Math.abs(candidate.start + candidate.duration - start) < 1e-6 ? candidate : null;
-        const note = prior ?? {id:e.id, bar, visit, pickStroke:e.pickStroke??null, vibrato:Boolean(e.vibrato),palmMute:Boolean(e.palmMute), harmonic:Boolean(tone.harmonic), dead:Boolean(tone.dead??e.dead), midi:tone.midi, fret:tone.fret, string:tone.string, start:toneStart, duration:0, technique:null};
+        const note = prior ?? {id:e.id, bar, visit, pickStroke:e.pickStroke??null, vibrato:Boolean(e.vibrato),palmMute:Boolean(e.palmMute), harmonic:Boolean(tone.harmonic), dead:Boolean(tone.dead??e.dead), midi:tone.midi, fret:tone.fret, string:tone.string, voice:e.voice, start:toneStart, duration:0, technique:null,letRing:Boolean(e.letRing),expressions:[]};
+        note.expressions.push({start:toneStart,duration:toneDuration,bendEffect:tone.bendEffect??null,vibrato:Boolean(e.vibrato)});
+        note.letRing||=Boolean(e.letRing);
         if(e.palmMute&&note.palmMuteStart==null)note.palmMuteStart=start;
         note.duration += prior?duration:toneDuration;
         note.technique = e.technique ?? null;
@@ -50,7 +52,7 @@ export function guitarVoiceTimeline(score, bpm = score.bpm) {
     let next=0;
     return score.measures[bar].flatMap(e=>{
       const onset=e.onset??next;next=onset+ticksOf(e);
-      return e.rest&&!e.blank?[(barStart+onset)/480*60/bpm]:[];
+      return e.rest&&!e.blank?[{start:(barStart+onset)/480*60/bpm,voice:e.voice}]:[];
     });
   });
   for (const note of timeline.events) {
@@ -69,7 +71,7 @@ export function guitarVoiceTimeline(score, bpm = score.bpm) {
     }
   }
   // Entered rests damp ringing strings; empty drafting slots do not invent a pick.
-  for(const voice of voices){const rest=rests.find(start=>start>voice.start+1e-6);if(rest!==undefined)voice.silenceAt=rest;}
+  for(const voice of voices){if(voice.letRing){const next=voices.find(v=>v.string===voice.string&&v.start>voice.start);voice.duration=Math.max(voice.duration,(next?.start??timeline.duration)-voice.start);continue;}const rest=rests.find(r=>(!voice.voice||r.voice===voice.voice)&&r.start>voice.start+1e-6);if(rest!==undefined)voice.silenceAt=rest.start;}
   return {voices, duration:timeline.duration,order:timeline.order};
 }
 

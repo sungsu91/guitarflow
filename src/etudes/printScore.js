@@ -6,6 +6,7 @@ import sourceFrameCss from './scoreSourceFrame.css?raw';
 import qr from './score-source-qr.png';
 import {SCORE_SOURCE_HANDLE} from './scoreSource.js';
 import {scoreCredit} from './scoreMetadata.js';
+import {measureLayout} from './measureLayout.js';
 
 // Preview and print use the same A4 sheets; screen scaling never edits notation.
 export function printEditorScore(container,title,view='both',metadata) {
@@ -35,7 +36,7 @@ export function printEditorScore(container,title,view='both',metadata) {
  const label=doc.createElement('strong');label.textContent='A4 인쇄 미리보기';
  const print=doc.createElement('button');print.textContent='인쇄 · PDF로 저장';print.disabled=true;print.onclick=()=>win.print();
  const close=doc.createElement('button');close.textContent='닫기';close.onclick=()=>win.close();
- const hint=doc.createElement('p');hint.textContent='A4 세로 · 여백 12mm · 페이지당 최대 5줄 · 현재 마디 배치와 보표 표시를 사용합니다.';
+ const hint=doc.createElement('p');hint.textContent='A4 세로 · 여백 12mm · 설정한 한 줄 마디 수와 줄 나누기를 유지합니다.';
  toolbar.append(label,print,close,hint);doc.body.append(toolbar);
  const main=doc.createElement('main');doc.body.append(main);
  const sheets=[];
@@ -49,15 +50,25 @@ export function printEditorScore(container,title,view='both',metadata) {
   if(!section||row!==nextRow){section=doc.createElement('section');sections.push(section);sheet.append(section);row=nextRow;}
   const cell=doc.createElement('div');cell.style.gridColumn=measure?.style.gridColumn??'1 / -1';cell.style.gridRow='1';cell.style.width=measure?.style.width??'';cell.style.marginLeft=measure?.style.marginLeft??'';
   const drawing=doc.importNode(svg,true);
-  drawing.querySelectorAll('.etudeEditorHit,.etudeInputCursor,.etudePlayingSlot,.etudePlayingRow,.etudeBeamRangeSelection').forEach(node=>node.remove());cell.append(drawing);section.append(cell);
+  drawing.querySelectorAll('.etudeEditorHit,.etudeInputCursor,.etudeLastEntered,.etudePlayingSlot,.etudePlayingRow,.etudeBeamRangeSelection').forEach(node=>node.remove());cell.append(drawing);section.append(cell);
  }
- // Re-engrave for paper width: smaller symbols with longer staves, not a
+ // Re-engrave at paper width with readable symbols, never a
  // narrow scaled copy of the mobile editor.
  const compiled=metadata?compileScoreDocument(metadata,undefined,{allowIncomplete:true}).score:null;
- const placements=measures.map((item,i)=>({row:Number(item.measure?.dataset.layoutRow)||i+1,column:i===0||item.measure?.dataset.layoutRow!==measures[i-1].measure?.dataset.layoutRow?1:2}));
+ // Paper engraving uses CSS pixels at physical A4 size, never the editor zoom.
+ const paperWidth=sheet.clientWidth-parseFloat(win.getComputedStyle(sheet).paddingLeft)-parseFloat(win.getComputedStyle(sheet).paddingRight);
+ const placements=compiled?measureLayout(metadata.measures,metadata.viewSettings?.measuresPerRow??1,metadata.viewSettings?.systemBreaks??[]):[];
+ if(compiled){
+  // Density must never override the document's explicit system layout.
+  sections.forEach(section=>section.remove());sections.length=0;
+  for(const placement of placements){
+   if(!sections[placement.row-1]){const section=doc.createElement('section');section.style.display='flex';sections.push(section);sheet.append(section);}
+   const cell=doc.createElement('div');cell.style.flex='none';sections[placement.row-1].append(cell);
+  }
+ }
  const renderForPrint=virtualWidth=>{
   if(!compiled)return;
-  const spacing=scoreSpacing(compiled,{placements,view,width:virtualWidth});
+  const spacing=scoreSpacing(compiled,{placements,view,width:virtualWidth,independentRows:true});
   const systemFootroom=Math.max(0,...compiled.measures.flat().filter(n=>!n.rest).flatMap(n=>n.tones??[n]).map(n=>(-7-staffStepForPitch(n.pitch,compiled.instrument))*5));
   let cellIndex=0;
   for(const section of sections){for(const cell of section.children){
@@ -66,34 +77,32 @@ export function printEditorScore(container,title,view='both',metadata) {
    const host=document.createElement('div');host.style.cssText='position:fixed;left:-100000px;top:0;visibility:hidden';document.body.append(host);
    try{
    drawScore(host,{...compiled,document:undefined,measures:[compiled.measures[i]],repeatMarks:[m],chordShapes:compiled.chordShapes?.[i]?[compiled.chordShapes[i]]:undefined,harmony:[compiled.harmony?.[i]],navigationPrevious:metadata.measures[i-1],navigationNext:metadata.measures[i+1]},
-    {editor:true,barOffset:i,view,systemFootroom,editorWidth:geometry.cellWidth,engraving:geometry,systemStart:first,systemEnd:last,scoreEnd:i===measures.length-1,tabRhythm:metadata.viewSettings?.tabRhythm!==false,tabBeamPosition:metadata.viewSettings?.tabBeamPosition,tabPickingPosition:metadata.viewSettings?.tabPickingPosition});
+    {editor:true,barOffset:i,view,systemFootroom,editorWidth:geometry.cellWidth,engraving:geometry,systemStart:first,systemEnd:last,scoreEnd:i===compiled.measures.length-1,tabRhythm:metadata.viewSettings?.tabRhythm!==false,tabBeamPosition:metadata.viewSettings?.tabBeamPosition,tabPickingPosition:metadata.viewSettings?.tabPickingPosition});
    const svg=host.querySelector('svg');svg.querySelectorAll('.etudeEditorHit,.etudeInputCursor').forEach(el=>el.remove());
-   cell.replaceChildren(doc.importNode(svg,true));cell.style.width=`${geometry.cellWidth/geometry.rowWidth*100}%`;cell.style.marginLeft=`${geometry.cellX/geometry.rowWidth*100}%`;
+   // Keep small annotations readable at physical paper size without changing
+   // note spacing, system breaks, or the size of the whole score.
+   const paperScale=paperWidth/geometry.rowWidth;
+   svg.querySelectorAll('.etudeTechniqueLabel').forEach(label=>{label.style.fontSize=`${Math.max(12,8.5/paperScale)}px`;});
+   cell.replaceChildren(doc.importNode(svg,true));cell.style.width=`${geometry.cellWidth/geometry.rowWidth*100}%`;cell.style.marginLeft='0';
    }finally{host.remove();}
   }}
  };
  const fit=()=>{const scale=Math.min(1,Math.max(1,doc.documentElement.clientWidth-24)/sheets[0].offsetWidth);for(const paper of sheets){paper.style.transform=`scale(${scale})`;paper.parentElement.style.width=`${paper.offsetWidth*scale}px`;paper.parentElement.style.height=`${paper.offsetHeight*scale}px`;}};
  const paginate=()=>{
   if(win.closed)return;
-  // Reserve five systems per A4 page and preserve each SVG's aspect ratio.
-  const rowsPerPage=5,gap=8;
-  const firstTop=sections[0]?.offsetTop??sheet.querySelector('.scoreHeading').offsetHeight;
-  const limit=sheet.clientHeight-parseFloat(win.getComputedStyle(sheet).paddingBottom);
-  const rowHeight=Math.max(1,(limit-firstTop-gap*(rowsPerPage-1))/rowsPerPage);
-  let virtualWidth=view==='both'?1600:1200;renderForPrint(virtualWidth);
-  let tallest=Math.max(1,...sections.map(section=>section.getBoundingClientRect().height));
-  if(compiled&&tallest>rowHeight){virtualWidth*=tallest/rowHeight*1.01;renderForPrint(virtualWidth);tallest=Math.max(1,...sections.map(section=>section.getBoundingClientRect().height));}
-  const scale=Math.min(1,rowHeight/tallest);
+  // Add pages instead of shrinking notation to force a fixed system count.
+  const gap=18;
+  renderForPrint(paperWidth);
   sections.forEach(section=>section.remove());
-  sections.forEach((section,index)=>{
-   if(index>0&&index%rowsPerPage===0)sheet=newSheet();
-   section.style.width=`${scale*100}%`;
-   section.style.marginLeft='auto';section.style.marginRight='auto';
-   section.style.marginBottom=`${gap}px`;
-   sheet.append(section);
-  });
+  for(const section of sections){
+   section.style.width='100%';section.style.marginBottom=gap+'px';sheet.append(section);
+   const bottom=section.offsetTop+section.offsetHeight;
+   const limit=sheet.clientHeight-parseFloat(win.getComputedStyle(sheet).paddingBottom)-12;
+   if(bottom>limit&&sheet.querySelectorAll('section').length>1){section.remove();sheet=newSheet();sheet.append(section);}
+  }
   sheets.forEach((paper,i)=>{const number=doc.createElement('footer');number.className='pageNumber';number.textContent=`${i+1} / ${sheets.length}`;paper.append(number);});
   label.textContent=`A4 인쇄 미리보기 · ${sheets.length}쪽`;fit();print.disabled=false;doc.body.dataset.previewReady='true';
  };
  doc.fonts.ready.then(()=>win.requestAnimationFrame(paginate));win.addEventListener('resize',fit);win.focus();
 }
+

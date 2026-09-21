@@ -1,3 +1,4 @@
+import {scheduleScoreExpressions,maximumBend} from './scoreExpressions.js';
 import {getStringBuffer,PLUCK_VARIANTS} from "./pluckedString.js";
 import { AUDIO_BUS_IDS, getAudioBusInput } from "./audioBus.js";
 
@@ -220,7 +221,7 @@ function schedulePluck(
   const gain = audio.createGain();
   const panner = typeof audio.createStereoPanner === "function" ? audio.createStereoPanner() : null;
   const profile = getCleanGuitarVoiceProfile(position);
-  const maxRate = phrase ? Math.max(1, ...phrase.segments.map(s=>2 ** ((s.midi-position.midi)/12))) : 1;
+  const maxRate = phrase ? Math.max(1, ...phrase.segments.map(s=>2 ** ((s.midi-position.midi+maximumBend(phrase))/12))) : 1;
   const bufferDuration = phrase ? Math.min(8, duration * maxRate + 0.3) : duration;
   const variant=nextVariant(audio);
   source.buffer = getStringBuffer(audio, position, bufferDuration,{variant});
@@ -250,13 +251,7 @@ function schedulePluck(
     }
   }
   lowCut.type = "highpass";
-  if(phrase)for(const segment of phrase.segments){
-    if(!segment.vibrato)continue;
-    const length=Math.min(segment.duration,phrase.duration-(segment.start-phrase.start));if(length<=0)continue;
-    const curve=new Float32Array(Math.max(16,Math.ceil(length*120)));
-    for(let i=0;i<curve.length;i++){const t=i/(curve.length-1)*length;curve[i]=Math.sin(t*Math.PI*2*5.5)*18*Math.min(1,t/.08,(length-t)/.04);}
-    source.detune.setValueCurveAtTime(curve,when+segment.start-phrase.start,length);
-  }
+  if(phrase)scheduleScoreExpressions(source,phrase,when);
   lowCut.frequency.setValueAtTime(48, when);
   lowCut.Q.setValueAtTime(0.58, when);
   tone.type = "lowpass";
@@ -329,7 +324,7 @@ export function scheduleGuitarPhrase(audio, phrase, when, output, level = 0.4) {
 }
 export function warmGuitarPhrase(audio,phrase,offset=0){
  const position={stringNumber:phrase.string,fretNumber:phrase.fret??0,midi:phrase.midi,frequency:440*2**((phrase.midi-69)/12)};
- const duration=Math.max(1.5+phrase.string*.18,phrase.duration),rate=Math.max(1,...(phrase.segments??[]).map(s=>2**((s.midi-phrase.midi)/12)));
+ const duration=Math.max(1.5+phrase.string*.18,phrase.duration),rate=Math.max(1,...(phrase.segments??[]).map(s=>2**((s.midi-phrase.midi+maximumBend(phrase))/12)));
  // One upcoming attack only; variants fill the bounded cache as they are used.
  return getStringBuffer(audio,position,Math.min(8,duration*rate+.3),{variant:((voiceSequences.get(audio)??0)+offset)%PLUCK_VARIANTS,muted:phrase.dead});
 }

@@ -51074,6 +51074,23 @@ html body .app.theme-light.theme-light
   transform: translateY(1px) !important;
 }
 
+/* Mobile chord selection must settle immediately, including synthetic touch hover.
+   Keep selected colors and keyboard focus; omit the global animated sheen. */
+@media (max-width: 680px) {
+  html body main.app.app.app .fretboardViewerPanel .chordBuilderPanel--composer button.chordBuilderChip {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html body main.app.app.app .fretboardViewerPanel .chordBuilderPanel--composer button.chordBuilderChip::after {
+    content: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
 .chordBuilderChip:disabled {
   cursor: default !important;
   opacity: 0.38 !important;
@@ -74300,3 +74317,14 @@ html.shooterCanonicalMobile body .shooterArena:not(.shooterArena--mapEdit):not(.
 html body .desktopLayout .shooterArena--desktopPortrait:not(.shooterArena--mapEdit):not(.shooterMapSkin--dev-three-d-lab) > .shooterGuitarCabinet--gameplay {
   bottom: calc(var(--shooter-guitar-bottom) - 3px);
 }
+
+.viewerSampleCredits {
+  margin: 8px 0;
+  padding: 8px 12px;
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.viewerSampleCredits summary { cursor: pointer; }
+.viewerSampleCredits p { margin: 6px 0; }
+.viewerSampleCredits a { color: inherit; text-decoration: underline; margin-right: 8px; }

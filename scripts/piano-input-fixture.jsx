@@ -1,0 +1,3 @@
+import React from 'react';import {createRoot} from 'react-dom/client';import ScoreEditor from '../src/etudes/ScoreEditor.jsx';import {createBlankDocument} from '../src/etudes/scoreModel.js';import {convertScoreInstrument} from '../src/etudes/convertScoreInstrument.js';
+let root;
+export function mount(width,restore=false){root?.unmount();document.body.replaceChildren();const host=document.createElement('div');document.body.append(host);root=createRoot(host);root.render(<ScoreEditor document={restore?window.pianoSaved:convertScoreInstrument(createBlankDocument(),'piano')} mobile={width<600} onClose={()=>{}} onSave={d=>{window.pianoSaved=structuredClone(d);return {saved:true,record:{status:'saved'}};}}/>);}

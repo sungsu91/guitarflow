@@ -34,3 +34,18 @@
   .noteVfxArt--break .noteVfxShard, .noteVfxArt--break .noteVfxPitch, .noteVfxArt--break .noteVfxHalo { animation-name: noteVfxCore; }
   .noteVfxFlash, .noteVfxFireworks { animation: none; opacity: 0; }
 }
+
+/* A brief center bloom, expanding rim and layered comet tips read as fireworks.
+   These remain visual-only and finish within the existing 420ms lifetime. */
+.noteVfxBloom { fill: #fffdf4; filter: drop-shadow(0 0 4px currentColor); transform-origin: 50px 50px; animation: noteVfxBloom 420ms ease-out both; }
+.noteVfxShockwave { fill: none; stroke: currentColor; stroke-width: 1.4; transform-origin: 50px 50px; animation: noteVfxShockwave 420ms ease-out both; }
+.noteVfxFireworks { filter: drop-shadow(0 0 2px currentColor) drop-shadow(0 0 3px currentColor); }
+.noteVfxRay { stroke-width: 1; }
+.noteVfxRayCore { fill: none; stroke: #fffdf4; stroke-width: .7; stroke-linecap: round; animation: noteVfxTrail 420ms ease-out both; }
+.noteVfxSpark { animation: noteVfxTwinkle 420ms linear both; }
+@keyframes noteVfxBloom { 0% { opacity: .95; transform: scale(.45); } 16% { opacity: .65; transform: scale(1.2); } 32%, 100% { opacity: 0; transform: scale(1.5); } }
+@keyframes noteVfxShockwave { 0% { opacity: .9; transform: scale(.7); } 40% { opacity: .5; } 75%, 100% { opacity: 0; transform: scale(2); } }
+@keyframes noteVfxTwinkle { 0%, 45% { opacity: 1; } 58% { opacity: .35; } 69% { opacity: 1; } 82% { opacity: .25; } 89% { opacity: .8; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .noteVfxBloom, .noteVfxShockwave { animation: none; opacity: 0; }
+}

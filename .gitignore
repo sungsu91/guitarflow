@@ -152,3 +152,7 @@ backup/
 /exports/
 /tmp/
 /artifacts/
+
+# Local verification output and personal library exports
+/output/
+/out-failure.png

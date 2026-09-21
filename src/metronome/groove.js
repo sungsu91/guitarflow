@@ -1,5 +1,5 @@
 import { METRONOME_TONE_OPTIONS } from './options.js';
-const labels = {hihat:'하이햇', snare:'스네어', kick:'킥', clap:'클랩', tick:'클릭',ride:'라이드',brushSnare:'브러시',rim:'림',stick:'스틱',shaker:'셰이커',openHihat:'오픈햇',tambourine:'탬버린',cowbell:'카우벨',congaSlap:'콩가',cabasa:'카바사',agogo:'아고고',triangle:'트라이앵글'};
+const labels = {crash:'크래시',pedalHihat:'페달 하이햇',rideBell:'라이드 벨',electronicSnare:'일렉트릭 스네어',tomHigh:'하이 탐',tomMid:'미드 탐',tomLow:'로우 탐',hihat:'하이햇', snare:'스네어', kick:'킥', clap:'클랩', tick:'클릭',ride:'라이드',brushSnare:'브러시',rim:'림',stick:'스틱',shaker:'셰이커',openHihat:'오픈햇',tambourine:'탬버린',cowbell:'카우벨',congaSlap:'콩가',cabasa:'카바사',agogo:'아고고',triangle:'트라이앵글'};
 export const GROOVE_TONES = METRONOME_TONE_OPTIONS.map(({id, label}) => [id, labels[id] ?? label]);
 // The transport and both editor views share this snapshot without re-rendering App.
 export function createGrooveStore(initial) {
@@ -17,13 +17,25 @@ export const GROOVE_STRENGTHS = [[100,'강'],[70,'중'],[45,'약'],[25,'고스�
 // quiet cabasa/clap samples are not attenuated like the high-energy cymbals.
 // Keep row volumes and velocities intact, including deliberately quiet ghost notes.
 export const GROOVE_SAMPLE_GAIN = {
-  kick:1.4, snare:1.25, brushSnare:1.05, rim:.5, clap:.95,
+  crash:1, pedalHihat:1, rideBell:1, electronicSnare:1, tomHigh:1, tomMid:1, tomLow:1, kick:1.4, snare:1.25, brushSnare:1.05, rim:.5, clap:.95,
   hihat:.4, openHihat:.45, ride:.95, shaker:.6, tambourine:.55,
   cabasa:1.6, cowbell:.6, agogo:.45, triangle:.5,
   tick:.65, stick:1, congaSlap:.75, woodblock:1, clave:.45, snap:1, fingerTap:1.6,
 };
 export function createGrooveRow(tone='hihat') {
   return {tone,steps:Array(72).fill(false),velocities:Array(72).fill(70),volume:.75,muted:false};
+}
+export function applyGrooveQuick(row, mode, index, beats, divisions, strength=70) {
+  const steps=[...row.steps];
+  const velocities=Array.from({length:72},(_,i)=>row.velocities?.[i]??70);
+  const enabled=!(steps[index] && velocities[index]===Number(strength));
+  for(let i=0;i<Math.min(72,beats*divisions);i++) {
+    if(mode==='bulk' || (mode==='partial' && i%divisions===index%divisions)) {
+      steps[i]=enabled;
+      velocities[i]=Number(strength);
+    }
+  }
+  return {...row,steps,velocities};
 }
 export function normalizeGroovePattern(pattern, previous) {
   const rows=(pattern?.rows || []).map((row,index)=>row===previous?.rows[index]?row:({...createGrooveRow(row.tone),...row,
@@ -79,3 +91,4 @@ export function scheduleGrooveStep({audio, output, buffers, pattern, index, time
     source.start(time);source.stop(time+duration+.001);
   });
 }
+

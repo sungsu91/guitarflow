@@ -39,9 +39,9 @@ export function drawTabRhythm(svg,events,tabs,tab,beamGeometry,position='below',
  });
  for(const group of tupletGroups(events)){
   if(group.every(i=>isBlankEvent(events[i])))continue;
-  const left=x(group[0])-5,right=x(group.at(-1))+5,center=(left+right)/2,y=base+direction*19;
+  const first=x(group[0]),last=x(group.at(-1)),center=(first+last)/2,half=Math.max(9,Math.min(16,(last-first)/2)),left=center-half,right=center+half,y=base+direction*19;
   const label=document.createElementNS(ns,'text');for(const [k,v] of Object.entries({x:center,y:y+4,'text-anchor':'middle','font-size':14,'font-family':'Arial','font-weight':600,class:'tabRhythmTuplet'}))label.setAttribute(k,v);label.textContent='3';g.append(label);
-  line(left,y,left,y-direction*4,1,'tabTupletBracket');line(left,y,center-8,y,1,'tabTupletBracket');line(center+8,y,right,y,1,'tabTupletBracket');line(right,y,right,y-direction*4,1,'tabTupletBracket');
+  line(left,y,left,y-direction*4,1,'tabTupletBracket');line(left,y,center-5,y,1,'tabTupletBracket');line(center+5,y,right,y,1,'tabTupletBracket');line(right,y,right,y-direction*4,1,'tabTupletBracket');
  }
  return base;
 }

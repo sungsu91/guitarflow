@@ -1,6 +1,6 @@
 .grooveEditor { min-width:0; padding:10px; border:1px solid var(--groove-border,#796132); border-radius:14px; background:var(--groove-surface,#19150f); color:var(--groove-text,#f6e8c4); }
 .grooveToolbar,.grooveModeSelector { display:flex; align-items:center; gap:8px; }
-.grooveToolbar { margin-bottom:10px; justify-content:space-between; }
+.grooveToolbar { margin-bottom:10px; justify-content:space-between; flex-wrap:wrap; }
 .grooveEditor button,.grooveEditor select,.grooveDialog button,.grooveDialog select,.grooveModeSelector button { color:var(--groove-text,#f6e8c4); background:var(--groove-control,#211b13); border:1px solid var(--groove-border,#75603b); border-radius:5px; padding:5px; }
 .grooveModeSelector { font-size:12px; padding:0 4px; }
 .grooveModeSelector button[aria-pressed=true] { color:#ffd777; border-color:#edc76a; background:var(--groove-selected,#4b391b); }
@@ -217,6 +217,7 @@ html body .app.app.app.app.app .groovePackDialog.groovePackDialog.groovePackDial
 html body .app.app.app.app.app .standaloneMetronomePanel.standaloneMetronomePanel.standaloneMetronomePanel .grooveToolbar .grooveStrengthSelect { width:68px!important; flex-basis:68px; appearance:none!important; -webkit-appearance:none!important; background-image:none!important; padding:2px 18px 2px 8px!important; text-overflow:clip!important; text-align:left!important; }
 
 .grooveStrengthControl { position:relative; }
+.grooveStrengthControl.grooveQuickControl { margin-right:0!important; }
 .grooveStrengthControl::after { content:""; position:absolute; right:7px; top:calc(50% - 4px); width:5px; height:5px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg); pointer-events:none; }
 
 /* Native horizontal swipes for dense meters; all rows still expand vertically. */
@@ -234,3 +235,17 @@ html body .app.app.app.app.app .grooveResetDialog { margin:auto!important; width
 html body .app.app.app.app.app .grooveResetDialog p { margin:0 0 20px!important; font-size:15px!important; text-align:center; }
 html body .app.app.app.app.app .grooveResetDialog > div { display:flex; justify-content:flex-end; gap:10px; }
 html body .app.app.app.app.app .grooveResetDialog button { min-width:76px!important; min-height:40px!important; padding:8px 14px!important; background:var(--groove-control,#211b13)!important; color:var(--groove-text,#f6e8c4)!important; border:1px solid var(--groove-border,#75603b)!important; border-radius:6px; }
+.grooveToneTrigger{width:100%;min-width:0;height:34px;display:flex;align-items:center;justify-content:space-between;gap:2px;font-size:11px!important;padding:3px!important}
+.grooveToneTrigger[aria-expanded=true]{outline:1px solid var(--groove-text,#8d7145);outline-offset:1px}
+.grooveTonePopup{position:fixed;z-index:12000;overflow:auto;overscroll-behavior:contain;padding:7px;box-sizing:border-box;border:1.5px solid var(--groove-border,#92764c);border-radius:9px;background:var(--groove-surface,#faf6ef);color:var(--groove-text,#342c25);box-shadow:0 4px 16px #0003,0 0 0 1px #92764c33}
+.grooveToneChoices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.grooveToneChoice{display:flex;min-width:0}
+.grooveToneChoice button:first-child{flex:1;min-width:0;text-align:left;border-radius:5px 0 0 5px!important;font-size:11px!important;padding:5px!important;min-height:34px}
+.grooveToneChoice button:last-child{flex:0 0 30px;border-radius:0 5px 5px 0!important;border-left:0!important;font-size:11px!important}
+.grooveToneChoice button[aria-pressed=true]{box-shadow:inset 0 0 0 1px currentColor;font-weight:700}
+.grooveToneMute{width:100%;margin-top:6px;font-size:11px!important}
+.rhythmSettingsPopup{border-width:1.5px!important;border-color:#9c805d!important;box-shadow:0 5px 18px #0003,0 0 0 1px #9c805d33!important}
+.rhythmSettingsPopup.theme-brand{border-color:#b18b45!important}
+.grooveTonePopup{background:var(--groove-surface,#faf6ef)!important}
+.grooveTonePopup button{color:var(--groove-text,#342c25);background:var(--groove-control,#fffaf3);border:1px solid var(--groove-border,#bba98a);border-radius:5px;padding:5px;cursor:pointer}
+.grooveTonePopup button:focus-visible{outline:2px solid #9b7948;outline-offset:-2px}

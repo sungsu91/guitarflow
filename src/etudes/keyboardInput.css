@@ -1,0 +1,30 @@
+.scorePitchInput{padding:10px;min-width:0;display:grid;gap:8px}.scorePitchToolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.scorePitchToolbar button,.scoreEnteredNotes button{min-height:34px;padding:5px 9px}.scorePitchToolbar output{flex:1;font-size:12px}.scorePitchToolbar label{display:flex;gap:5px;align-items:center;font-size:12px}.scorePianoKeys{display:flex;isolation:isolate;height:108px;padding-bottom:4px}.scorePianoKeys button{min-width:0;flex:1;border:1px solid #aaa;border-radius:0 0 5px 5px;padding:0 0 7px;display:flex;align-items:flex-end;justify-content:center;font-size:10px}.scorePianoKeys .white-key{background:#fff;color:#222;z-index:1}.scorePianoKeys .black-key{background:#25272a;color:#fff;height:65%;flex:0 0 8%;margin:0 -4%;z-index:2}.scorePianoKeys button[aria-pressed=true]{background:#3b8067;color:white}.scorePianoKeys button:disabled{opacity:.35}.scoreEnteredNotes{display:flex;gap:4px;flex-wrap:wrap;max-height:76px;overflow:auto}.scoreDrumPads{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;max-height:210px;overflow:auto}.scoreDrumPads button{min-height:44px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:4px}.scoreDrumPads small{opacity:.6}.scorePitchInput>small{font-size:11px;line-height:1.5;opacity:.7}.scorePitchInput.is-mobile{gap:5px;padding:6px 10px}.scorePitchInput.is-mobile .scorePianoKeys{height:80px}.scorePitchInput.is-mobile .scoreDrumPads{max-height:150px}.scorePitchInput.is-desktop .scorePianoKeys{height:130px}
+@layer score-workspace{
+ .editorDesign .scorePitchInput{grid-template-columns:minmax(0,1fr);width:100%;box-sizing:border-box}
+ .editorDesign .scorePitchInput>*{min-width:0;max-width:100%;box-sizing:border-box}
+ .editorDesign .scorePitchToolbar{display:flex;flex-wrap:wrap;gap:5px}
+ .editorDesign .scorePitchToolbar button,.editorDesign .scoreEnteredNotes button{height:34px!important;min-height:34px!important;padding:4px 7px!important;min-width:0!important;font-size:11px!important;flex:0 0 auto}
+ .editorDesign .scorePitchToolbar select{max-width:140px;font-size:12px}
+ .editorDesign .scorePitchToolbar output{flex:1 1 auto;min-width:70px}
+ .editorDesign .scorePianoKeys button{height:100%!important;min-height:0!important;padding:0 0 7px!important;align-items:flex-end!important;font-size:10px!important;border-radius:0 0 4px 4px!important;white-space:nowrap!important}
+ .editorDesign .scorePianoKeys .white-key{background:#fff!important;color:#222!important}
+ .editorDesign .scorePianoKeys .black-key{height:65%!important;background:#25272a!important;color:#fff!important}
+ .editorDesign .scorePianoKeys button[aria-pressed=true]{background:var(--ed-active)!important;color:var(--ed-on-accent)!important}
+ .editorDesign .scorePianoKeys button:disabled{opacity:.3!important}
+ .editorDesign .scoreDrumPads button{white-space:normal!important;font-size:11px!important;min-width:0!important;padding:5px!important}
+ .editorDesign .scorePitchInput>small{white-space:normal;overflow-wrap:anywhere}
+}
+
+.scorePianoKeys button{touch-action:none;user-select:none;-webkit-user-select:none}.scorePitchToolbar [role=group]{display:flex;gap:3px}
+.pianoDualInput .pianoHandInput{margin:0;padding:0;border:0;display:grid;gap:3px}
+@layer score-workspace{
+ .editorDesign .pianoDualInput{gap:5px!important;padding:4px 8px!important}
+ .editorDesign .pianoDualInput .scorePitchToolbar{flex-wrap:nowrap;gap:4px}
+ .editorDesign .pianoDualInput .scorePianoKeys{height:64px!important;margin:0}
+ .editorDesign .pianoDualInput .scorePitchToolbar button{height:28px!important;min-height:28px!important;padding:2px 6px!important}
+ .editorDesign .pianoDualInput .pianoRangeRow strong{font-size:11px;margin-right:auto}
+ .editorDesign .pianoDualInput .pianoRangeRow span{font-size:11px}
+ .editorDesign .pianoDualInput .pianoEntryControls output{font-size:10px;min-width:0;white-space:nowrap}
+ .editorDesign .pianoDualInput .scorePianoKeys button{touch-action:none!important}
+}
+@media(min-width:700px){.editorDesign .pianoDualInput .scorePianoKeys{height:84px!important}}

@@ -1,22 +1,27 @@
+import {ReadableTabTie,tabArcGeometry,drawReadableSlide} from './tabConnections.js';
+import {drawKeyboardScore,keyboardSpacing} from './KeyboardScore.js';
+import {isFretted} from './scoreInstruments.js';
 import {slidePairs} from './slidePairs.js';
 import {tabPositions} from './tabPositions.js';
 import {tuningCaption} from './scoreTuning.js';
 import usePracticeFollow from './usePracticeFollow.js';
 import {measureMeters,meterTicks} from './scoreMeters.js';
 import usePlaybackFollow from './usePlaybackFollow.js';
+import {drawExtendedTechniques} from './drawExtendedTechniques.js';
 import {drawPalmMute} from './drawPalmMute.js';
 import {scoreInstrument,staffStepForPitch} from './scoreInstruments.js';
 import {drawScoreNavigation,alignNavigationEndings} from './drawScoreNavigation.js';
 import {NAV_COMMANDS} from './scoreNavigation.js';
 import {repeatMarks} from './scoreRepeats.js';
-import {playheadX} from './scorePlayhead.js';
+import {rhythmTimeline,rhythmHighlighter} from './rhythmProgress.js';
+import {playheadX,rhythmAnchors} from './scorePlayhead.js';
 import {overrideBeamGroups} from './beamOverrides.js';
 import {measureLayout} from './measureLayout.js';
-import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { memo, useMemo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {isBlankEvent,tupletGroups,ticksOf} from './scoreModel.js';
 import {drawTabRhythm,drawTabRests,rhythmGroups} from './tabRhythm.js';
 import { drawChordDiagram } from './chordStudy.js';
-import { Clef, Dot, Stem, Renderer, Stave, TabStave, StaveNote, TabNote, GhostNote, Tuplet, Voice, Formatter, Beam, Accidental, StaveConnector, Barline, TimeSignature, TabTie, TabSlide, Curve, StaveLine, StaveTie } from 'vexflow';
+import { Clef, Dot, Stem, Renderer, Stave, TabStave, StaveNote, TabNote, GhostNote, Tuplet, Voice, Formatter, Beam, Accidental, StaveConnector, Barline, TimeSignature, Curve, StaveLine, StaveTie } from 'vexflow';
 
 // Leave a little breathing room between vertically stacked fret numbers.
 const TAB_LINE_SPACING = 16;
@@ -57,6 +62,12 @@ class TabFretDots extends Dot {
 // TAB stems, ties, picking, hit targets and cursors all consume this same X.
 class AlignedTabNote extends TabNote {
   constructor(options, staffNote) {super(options);this.staffNote=staffNote;}
+  drawPositions() {
+    // VexFlow clears a white rectangle behind each fret. Keep only the glyph.
+    const ctx=this.checkContext(),clear=ctx.clearRect;
+    ctx.clearRect=()=>ctx;
+    try{return super.drawPositions();}finally{ctx.clearRect=clear;}
+  }
   getAbsoluteX() {
     const x=super.getAbsoluteX();
     return this.staffNote?x+this.staffNote.getXShift()+(this.staffNote.getGlyphWidth()-this.getGlyphWidth())/2:x;
@@ -121,7 +132,7 @@ function measureSpacing(measure, etude, view) {
     const tick=measure[i].onset??elapsed;elapsed=tick+ticksOf(measure[i]);
     const metrics=note.getTickContext().getMetrics();
     const tabOverhang=view==='staff'||measure[i].rest?0:Math.max(0,(tabs[i].getGlyphWidth()-notes[i].getGlyphWidth())/2);
-    return {tick,left:Math.max(metrics.totalLeftPx,tabOverhang),right:metrics.notePx+metrics.totalRightPx};
+    return {tick,left:Math.max(metrics.totalLeftPx,tabOverhang),right:metrics.notePx+metrics.totalRightPx+(measure[i].technique==='S'?8:measure[i].slideOut?16:(measure[i].tones??[measure[i]]).some(n=>n.bendEffect)?20:0)};
   });
   spacingCache.set(measure,{key,value});return value;
 }
@@ -131,6 +142,7 @@ function measureSpacing(measure, etude, view) {
 // space to each bar's actual density, without resizing other rows. This is
 // engraving geometry only: musical onset/duration and the audio clock stay intact.
 export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=0,independentRows=false}={}) {
+  if(!isFretted(etude.instrument))return keyboardSpacing(etude,{placements,width});
   const meters=measureMeters(etude);
   const rows=[];
   placements.forEach((placement,i)=>{
@@ -202,6 +214,7 @@ export function scoreSpacing(etude, {placements,view='both',width=600,barOffset=
 }
 
 export function drawScore(element, etude, { mobile = false, enlarged = false, landscape = false, bpm = etude.bpm, editor = false, barOffset = 0, tabRhythm = Boolean(etude.document) && etude.document.viewSettings?.tabRhythm !== false, tabBeamPosition=etude.document?.viewSettings?.tabBeamPosition??'below',tabPickingPosition=etude.document?.viewSettings?.tabPickingPosition??'below',editorWidth, engraving, responsive=false, measuresPerRow=0, systemStart=true, systemEnd=true, scoreEnd=true, systemHeadroom=0, systemFootroom=0, systemNavigation=false, view=etude.document?.viewSettings?.notationView??'both' } = {}) {
+  if(!isFretted(etude.instrument))return drawKeyboardScore(element,etude,{mobile,editor,editorWidth,barOffset,systemStart,systemEnd,measuresPerRow});
   const stringCount=scoreInstrument(etude.instrument).tuning.length;
   const numberOnly=etude.document?.viewSettings?.tabRhythm===false||(editor&&!tabRhythm);
   etude={...etude,tabRhythmVisible:!numberOnly};
@@ -222,7 +235,8 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   const lowestStep=Math.min(-7,...etude.measures.flat().filter(n=>!n.rest).flatMap(n=>n.tones??[n]).map(n=>staffStepForPitch(n.pitch,etude.instrument)));
   const footroom=view==='tab'?0:Math.max(systemFootroom,(-7-lowestStep)*5);
   const navigationHeight=systemNavigation||repeatMarks(etude).some(m=>m.ending||m.marker||m.command)?52:0;
-  const headroom=navigationHeight+(view==='tab'?0:Math.max(systemHeadroom,Math.ceil(Math.max(0,highestLine-7)*10)));
+  const bendRoom=Math.max(0,...etude.measures.flat().map(e=>(e.tones??[e]).filter(n=>n.bendEffect).length*28));
+  const headroom=bendRoom+navigationHeight+(view==='tab'?0:Math.max(systemHeadroom,Math.ceil(Math.max(0,highestLine-7)*10)));
   // Compact only the generated practice TAB reader; fret sizes and string spacing stay intact.
   const compactTab=responsive&&!editor&&view==='tab';
   const compactRhythm=compactTab&&mobile&&tabBeamPosition==='below';
@@ -284,13 +298,15 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     if(etude.accompaniment && first) context.setFont('Arial',13,'italic').fillText('let ring',x+150,y-45);
     // Keep the first number of each system inside the clef/key-signature area.
     // Other measure numbers sit directly above the barline that starts them.
-    const measureNumberX = first ? Math.max(start - 14, x + 50) : x + 4;
+    const measureNumberX = x;
     const measureNumber = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     measureNumber.textContent = String(index + barOffset + 1);
     measureNumber.setAttribute('class', 'etudeMeasureNumber');
     measureNumber.setAttribute('x', String(measureNumberX));
-    measureNumber.setAttribute('y', String((view==='tab'?tab:stave).getYForLine(0) - 13));
+    measureNumber.setAttribute('y', String((view==='tab'?tab:stave).getYForLine(0) - 4));
+    measureNumber.style.cssText='font:400 10px Arial,sans-serif;fill:#999;stroke:none';
     measureNumber.setAttribute('text-anchor', 'middle');
+    element.querySelector('svg').style.overflow='visible';
     element.querySelector('svg').append(measureNumber);
     if(etude.harmony?.[index]&&!etude.chordShapes) context.setFont('Arial',14,'bold').fillText(etude.harmony[index],x+35,y+5);
     if (first) {context.openGroup('fretiva-both-view');new StaveConnector(stave, tab).setType(StaveConnector.type.BRACKET).setContext(context).draw();context.closeGroup();}
@@ -303,16 +319,16 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
       note.getTickContext().setX(geometry.inset+(geometry.positions?.[i]??tick*geometry.tickScale));
     });
     context.openGroup('fretiva-staff-view');voice.draw(context, stave);context.closeGroup();context.openGroup('fretiva-tab-view');tabVoice.draw(context, tab);context.closeGroup();
-    measure.forEach((event,i)=>drawn.push({event,note:notes[i],tab:tabs[i],row:placement.row}));
+    measure.forEach((event,i)=>drawn.push({event,note:notes[i],tab:tabs[i],row:placement.row,key:index+':'+i}));
     // Rests belong inside TAB, independently of the optional lower rhythm stems.
     if(!numberOnly)drawTabRests(element.querySelector('svg'),measure,notes,tab.getYForLine((stringCount-1)/2)).dataset.scoreBar=index;
     const beamGeometry=beams.map(beam=>({indices:beam.getNotes().map(note=>notes.indexOf(note)),xs:beam.getNotes().map(note=>note.getStemX()-Stem.WIDTH/2),levels:['4','8'].map(duration=>beam.getBeamLines(duration))}));
     if(tabRhythm){drawTabRhythm(element.querySelector('svg'),measure,tabs,tab,beamGeometry,tabBeamPosition,{compact:compactRhythm});element.querySelectorAll('.etudeTabRhythm').item(index).dataset.scoreBar=index;}
-    for(const list of [notes,tabs])list.forEach((note,i)=>{const node=noteElement(note);if(node){node.dataset.scoreBar=index;node.dataset.scoreEvent=i;}});
+    for(const list of [notes,tabs])list.forEach((note,i)=>{const node=noteElement(note);if(node){node.dataset.scoreBar=index;node.dataset.scoreEvent=i;if((measure[i].tones??[measure[i]]).some(t=>t.harmonic||t.dead||t.parenthesized))node.dataset.rhythmEvents=index+':'+i;}});
     measure.forEach((event,i)=>{
       const px=tabs[i].getAbsoluteX(),py=tabPickingPosition==='above'?tab.getYForLine(0)-(tabRhythm&&tabBeamPosition==='above'?((measure.some(e=>e.tuplet)?70:48)+2*(TAB_LINE_SPACING-13)):(measure.some(e=>e.palmMute)?36:14)):tab.getYForLine(stringCount-1)+(tabRhythm&&tabBeamPosition!=='above'?((measure.some(e=>e.tuplet)?72:56)+2*(TAB_LINE_SPACING-13)):25),svg=element.querySelector('svg'),ns='http://www.w3.org/2000/svg';
       const text=[event.pickStroke==='down'?'Π':event.pickStroke==='up'?'V':'',...(event.tones??[event]).map(n=>[n.finger?`L${n.finger}`:'',n.rightFinger??''].filter(Boolean).join('/'))].filter(Boolean).join(' ');
-      if(text){const pickGroup=context.openGroup('fretiva-tab-view');pickGroup.setAttribute('data-picking-position',tabPickingPosition);context.setFont('Arial',14,'bold').fillText(text,px-4,py);context.closeGroup();}
+      if(text){const pickGroup=context.openGroup('fretiva-tab-view');pickGroup.setAttribute('data-picking-position',tabPickingPosition);const label=document.createElementNS(ns,'text');Object.entries({x:tabs[i].getStemX(),y:py+(tabPickingPosition==='below'&&measure.some(e=>e.technique==='H'||e.technique==='P')?12:0),'text-anchor':'middle',class:'tabPickingLabel'}).forEach(([k,v])=>label.setAttribute(k,String(v)));label.style.cssText='font:600 11px Arial,sans-serif;fill:#111;stroke:#111;stroke-width:.15;paint-order:stroke fill';label.textContent=text;label.dataset.rhythmEvents=index+':'+i;label.dataset.rhythmRole='picking';pickGroup.append(label);context.closeGroup();}
       if(editor&&event.pickStroke){const hit=document.createElementNS(ns,'rect');Object.entries({x:px-10,y:py-17,width:24,height:26,class:'etudeEditorHit etudePickHit fretiva-tab-view','data-event':i,'data-string':(event.tones??[event])[0].string,'data-mode':'tab','data-cursor-x':px-12,'data-cursor-y':py-17,fill:'transparent'}).forEach(([k,v])=>hit.setAttribute(k,v));svg.append(hit);}
     });
     // Use a common SVG anchor for a pinch instead of separate glyph-width
@@ -329,49 +345,51 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
     measure.forEach((event,i)=>{
       if(event.rest)return;
       const svg=element.querySelector('svg'),ns='http://www.w3.org/2000/svg',x=tabs[i].getStemX(),ys=(event.tones??[event]).map(t=>tab.getYForLine(t.string-1)),top=Math.min(...ys),bottom=Math.max(...ys);
-      const path=(d,kind)=>{const node=document.createElementNS(ns,'path');Object.entries({d,fill:'none',stroke:'#171717','stroke-width':1.6,class:`fretiva-tab-view ${kind}`,'pointer-events':'none'}).forEach(([k,v])=>node.setAttribute(k,v));svg.append(node);};
-      if(event.vibrato){let d=`M ${x-7} ${top-(event.palmMute&&ys.includes(tab.getYForLine(0))?36:15)}`;for(let n=0;n<4;n++)d+=' q 3 -5 6 0 q 3 5 6 0';path(d,'tabVibrato');}
+      const path=(d,kind)=>{const node=document.createElementNS(ns,'path');Object.entries({d,fill:'none',stroke:'#171717','stroke-width':1.2,'vector-effect':'non-scaling-stroke','stroke-linecap':'round',class:`fretiva-tab-view ${kind}`,'pointer-events':'none'}).forEach(([k,v])=>node.setAttribute(k,v));node.dataset.rhythmEvents=index+':'+i;svg.append(node);};
+      if(event.vibrato){let d=`M ${x-7} ${top-(event.palmMute&&ys.includes(tab.getYForLine(0))?36:15)}`;for(let n=0;n<3;n++)d+=' q 1.5 -2 3 0 q 1.5 2 3 0';path(d,'tabVibrato');}
       if(event.arpeggio&&ys.length>1){const ax=x-19;let d=`M ${ax} ${top-5}`;for(let y=top-5;y<bottom+5;y+=8)d+=' q -4 2 0 4 q 4 2 0 4';path(d,'tabArpeggio');const ay=event.arpeggio==='up'?top-8:bottom+10,sign=event.arpeggio==='up'?1:-1;path(`M ${ax-4} ${ay+sign*5} L ${ax} ${ay} L ${ax+4} ${ay+sign*5}`,'tabArpeggioArrow');}
     });
-    const palmMuteObstacles=drawPalmMute(element.querySelector('svg'),measure,view==='staff'?notes:tabs,view==='staff'?stave:tab,{staff:view==='staff',headroom,tabRhythm});
-    navigation.at(-1).palmMuteObstacles=palmMuteObstacles;
+    const palmMuteObstacles=drawPalmMute(element.querySelector('svg'),measure,view==='staff'?notes:tabs,view==='staff'?stave:tab,{staff:view==='staff',headroom,tabRhythm,bar:index});
+    const expressionObstacles=[...drawExtendedTechniques(element.querySelector('svg'),measure,tabs,tab,{tab:true,bar:index,right:x+w}),...drawExtendedTechniques(element.querySelector('svg'),measure,notes,stave,{tab:false,bar:index,right:x+w})];
+    navigation.at(-1).palmMuteObstacles=[...palmMuteObstacles,...expressionObstacles];
     context.openGroup('fretiva-staff-view');beams.forEach(beam => {const group=context.openGroup('etude-beam');group.setAttribute('data-beam-events',beam.getNotes().map(note=>notes.indexOf(note)).join(','));beam.setContext(context).draw();context.closeGroup();});tuplets.forEach(({tuplet,visible})=>{if(visible)tuplet.setContext(context).draw();});context.closeGroup();
+    const legatoStarts=new Map(),legatoMembers=new Set();
+    const isLegato=i=>['H','P'].includes(measure[i]?.technique)&&measure[i+1]&&!measure[i].rest&&!measure[i+1].rest&&!measure[i].tones&&!measure[i+1].tones&&measure[i].string===measure[i+1].string;
+    for(let i=0;i<measure.length-1;i++){
+      if(!isLegato(i)||legatoMembers.has(i))continue;
+      let last=i;while(isLegato(last)){legatoMembers.add(last);last++;}
+      legatoStarts.set(i,last);
+    }
     measure.forEach((n, i) => {
       if (!n.technique || !tabs[i+1] || n.rest || measure[i+1].rest || (n.technique !== 'S' && (n.tones || measure[i+1].tones))) return;
       const tabPair = { first_note: tabs[i], last_note: tabs[i + 1], first_indices: [0], last_indices: [0] };
-      context.openGroup('etude-technique');
+      const techniqueGroup=context.openGroup('etude-technique');techniqueGroup.dataset.rhythmEvents=index+':'+i;
       if (n.technique === 'S') {
         for (const pair of slidePairs(n, measure[i+1])) {
         const slidePair = {...tabPair, first_indices:[pair.first], last_indices:[pair.last]};
-        const slide = new TabSlide(slidePair);
-        slide.renderText = () => {}; // One shared, legible label renderer below.
-        context.openGroup('fretiva-tab-view');slide.setContext(context).draw();context.closeGroup();
+        context.openGroup('fretiva-tab-view');drawReadableSlide(context,tabs[i],tabs[i+1],pair);context.closeGroup();
         context.openGroup('fretiva-staff-view');new StaveLine({ ...slidePair, first_note: notes[i], last_note: notes[i + 1] }).setContext(context).draw();context.closeGroup();
         }
       } else {
-        context.openGroup('fretiva-tab-view');new TabTie(tabPair).setContext(context).draw();context.closeGroup();
-        context.openGroup('fretiva-staff-view');new Curve(notes[i], notes[i + 1], { cps: [{x:0,y:8},{x:0,y:8}] }).setContext(context).draw();context.closeGroup();
+        const last=legatoStarts.get(i);
+        if(last!==undefined){
+          const geometry=tabArcGeometry(tabs[i],tabs[last]);
+          const arc=document.createElementNS('http://www.w3.org/2000/svg','path');
+          Object.entries({d:geometry.d,class:'fretiva-tab-view tabLegatoArc',fill:'none',stroke:'#111','stroke-width':1.25,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','data-legato-start':i,'data-legato-end':last,'data-score-bar':index}).forEach(([k,v])=>arc.setAttribute(k,String(v)));
+          arc.dataset.rhythmEvents=Array.from({length:last-i},(_,j)=>index+':'+(i+j)).join(' ');element.querySelector('svg').append(arc);
+          const curveGroup=context.openGroup('fretiva-staff-view');curveGroup.dataset.rhythmEvents=arc.dataset.rhythmEvents;new Curve(notes[i],notes[last],{cps:[{x:0,y:8},{x:0,y:8}]}).setContext(context).draw();context.closeGroup();
+        }
       }
-      // Center on the connected frets and lift dense pairs farther from string 1.
-      // Recalculate after engraving so narrower bars and two-digit frets keep
-      // the same clearance, including the P.M. and upper picking lanes.
-      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      label.textContent = n.technique === 'S' ? 'SL' : n.technique;
-      label.setAttribute('class', 'etudeTechniqueLabel fretiva-tab-view');
+      // One compact label per connection, in a stable lane for this bar.
+      // Never lift labels against objects from other measures or systems.
+      const svg=element.querySelector('svg'),label=document.createElementNS('http://www.w3.org/2000/svg','text');
       const firstX=tabs[i].getStemX(),lastX=tabs[i+1].getStemX();
-      label.setAttribute('x', String((firstX+lastX)/2));
-      let labelY=tab.getYForLine(0)-18-Math.max(0,36-Math.abs(lastX-firstX))*.35;
-      label.setAttribute('y', String(labelY));
-      label.setAttribute('text-anchor', 'middle');
-      label.setAttribute('style', 'font:700 18px Arial,sans-serif;fill:#111;stroke:white;stroke-width:3px;paint-order:stroke fill;stroke-linejoin:round');
-      const svg=element.querySelector('svg');
-      const obstacles=[...tabs.flatMap(note=>[...noteElement(note)?.querySelectorAll('text')??[]]),...svg.querySelectorAll('.scorePalmMute,[data-picking-position] text,.tabVibrato,.etudeTechniqueLabel,.tabRhythmBeam,.tabRhythmFlag,.tabRhythmLongNote,.tabRhythmTuplet,.tabTupletBracket')].map(node=>node.getBBox());
+      // Labels belong to this TAB staff; only string 1 needs clearance for its arc.
+      const labelY=tab.getYForLine(0)-(n.technique!=='S'&&n.string===1?17:5);
+      Object.entries({x:(firstX+lastX)/2,y:labelY,class:'etudeTechniqueLabel fretiva-tab-view','text-anchor':'middle','data-technique':n.technique,'data-score-bar':index,'data-score-event':i}).forEach(([key,value])=>label.setAttribute(key,String(value)));
+      label.dataset.rhythmEvents=index+':'+i;label.textContent=n.technique==='S'?'SL':n.technique;
+      label.style.cssText='font:400 12px Arial,sans-serif;fill:#111;stroke:none';
       svg.append(label);
-      for(let pass=0;pass<=obstacles.length;pass++){
-        const box=label.getBBox(),collision=obstacles.find(other=>box.x<other.x+other.width+4&&box.x+box.width>other.x-4&&box.y<other.y+other.height+4&&box.y+box.height>other.y-4);
-        if(!collision)break;
-        labelY-=box.y+box.height-collision.y+4;label.setAttribute('y',String(labelY));
-      }
       context.closeGroup();
     });
     if(!editor){
@@ -382,7 +400,7 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
       geometry.dataset.rowTop=String(rowTop);geometry.dataset.rowBottom=String(rowTop+rowHeight);
       geometry.dataset.top=String((view==='tab'?tab:stave).getYForLine(0)-12-headroom);
       geometry.dataset.bottom=String(view==='staff'?stave.getYForLine(4)+28:tab.getYForLine(stringCount-1)+(tabRhythm?60:14));
-      let elapsed=0;const points=measure.map((event,i)=>{const tick=event.onset??elapsed;elapsed=tick+ticksOf(event);const note=view==='staff'?notes[i]:tabs[i];return {tick,x:event.rest||isBlankEvent(event)?note.getAbsoluteX():note.getStemX()};});
+      let elapsed=0;const points=measure.map((event,i)=>{const tick=event.onset??elapsed;elapsed=tick+ticksOf(event);const note=view==='staff'?notes[i]:tabs[i];return {tick,x:event.rest?notes[i].getAbsoluteX()+notes[i].getGlyphWidth()/2:isBlankEvent(event)?note.getAbsoluteX():note.getStemX()};});
       points.push({tick:meterTicks(meter),x:x+w-2});
       geometry.dataset.points=JSON.stringify(points);element.querySelector('svg').append(geometry);
     }
@@ -442,17 +460,20 @@ export function drawScore(element, etude, { mobile = false, enlarged = false, la
   if(etude.incomingTie&&drawn[0]&&!drawn[0].event.rest){
     const b=drawn[0],indices=(b.event.tones??[b.event]).map((_,j)=>j);
     context.openGroup('fretiva-staff-view');new StaveTie({last_note:b.note,first_indices:indices,last_indices:indices}).setContext(context).draw();context.closeGroup();
-    context.openGroup('fretiva-tab-view');new TabTie({last_note:b.tab,first_indices:indices,last_indices:indices},'').setContext(context).draw();context.closeGroup();
+    context.openGroup('fretiva-tab-view');new ReadableTabTie({last_note:b.tab,first_indices:indices,last_indices:indices},'').setContext(context).draw();context.closeGroup();
   }
   for(let i=0;i<drawn.length;i++){
     const a=drawn[i],b=drawn[i+1];if(!a.event.tieTo||a.event.rest)continue;
     const same=b?.event.id===a.event.tieTo&&!b.event.rest&&b.row===a.row;
     const indices=(a.event.tones??[a.event]).map((_,j)=>j);
+    const tieGroup=context.openGroup('scoreTieConnection');tieGroup.dataset.rhythmEvents=a.key;
     context.openGroup('fretiva-staff-view');new StaveTie({first_note:a.note,last_note:same?b.note:undefined,first_indices:indices,last_indices:indices}).setContext(context).draw();context.closeGroup();
-    context.openGroup('fretiva-tab-view');new TabTie({first_note:a.tab,last_note:same?b.tab:undefined,first_indices:indices,last_indices:indices},'').setContext(context).draw();context.closeGroup();
-    if(b?.event.id===a.event.tieTo&&!same){context.openGroup('fretiva-staff-view');new StaveTie({last_note:b.note,first_indices:indices,last_indices:indices}).setContext(context).draw();context.closeGroup();context.openGroup('fretiva-tab-view');new TabTie({last_note:b.tab,first_indices:indices,last_indices:indices},'').setContext(context).draw();context.closeGroup();}
+    context.openGroup('fretiva-tab-view');new ReadableTabTie({first_note:a.tab,last_note:same?b.tab:undefined,first_indices:indices,last_indices:indices},'').setContext(context).draw();context.closeGroup();
+    if(b?.event.id===a.event.tieTo&&!same){context.openGroup('fretiva-staff-view');new StaveTie({last_note:b.note,first_indices:indices,last_indices:indices}).setContext(context).draw();context.closeGroup();context.openGroup('fretiva-tab-view');new ReadableTabTie({last_note:b.tab,first_indices:indices,last_indices:indices},'').setContext(context).draw();context.closeGroup();}
+    context.closeGroup();
   }
   const svg = element.querySelector('svg');
+  svg.querySelectorAll('.vf-etude-technique .vf-fretiva-staff-view path,.vf-scoreTieConnection .vf-fretiva-staff-view path').forEach(path=>{path.setAttribute('stroke','#111');path.setAttribute('stroke-width','.65');path.setAttribute('vector-effect','non-scaling-stroke');});
   // Place navigation after stems and beams have their final geometry. A mark
   // starts next to the stave and moves only when its own horizontal span meets
   // visible notation; blank slots and the hidden staff do not reserve space.
@@ -514,8 +535,9 @@ export function renderCachedScore(element, etude, options = {}) {
   return 'engraved';
 }
 
-function Score({ etude, mobile, bpm, enlarged = false, view, playPosition=null, followPlayback=false,followMode,responsive=false,measuresPerRow=0,zoom=1,focusLayout=false }) {
+function Score({ etude, mobile, bpm, enlarged = false, view, playPosition=null, followPlayback=false,followMode,rhythmProgress=true,responsive=false,measuresPerRow=0,zoom=1,focusLayout=false }) {
   const ref = useRef(null);
+  const rhythmStates=useMemo(()=>rhythmTimeline(etude),[etude]);
   const [availableWidth,setAvailableWidth]=useState(0);
   const [availableHeight,setAvailableHeight]=useState(0);
   useLayoutEffect(()=>{
@@ -576,16 +598,19 @@ function Score({ etude, mobile, bpm, enlarged = false, view, playPosition=null, 
     const line=document.createElementNS('http://www.w3.org/2000/svg','line');
     Object.entries({class:'savedScorePlayhead',stroke:'var(--riff-danger, #c85d54)','stroke-opacity':1,'stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none','aria-hidden':'true'}).forEach(([key,value])=>line.setAttribute(key,value));
     const wash=line.cloneNode();wash.setAttribute('class','savedScorePlayheadWash');
-    svg.append(wash,line);let frame,activeBar,points;
+    svg.append(wash,line);line.style.visibility=wash.style.visibility=rhythmProgress?'visible':'hidden';
+    const highlight=rhythmHighlighter(svg,rhythmStates);let frame,activeBar,points;
     const draw=()=>{
       const current=playPosition.getCurrentSlot?.()??playPosition;
-      if(activeBar!==current.bar){const bar=svg.querySelector(`[data-playback-bar="${current.bar}"]`);if(!bar)return;activeBar=current.bar;points=JSON.parse(bar.dataset.points);line.setAttribute('y1',bar.dataset.top);line.setAttribute('y2',bar.dataset.bottom);}
+      if(activeBar!==current.bar){const bar=svg.querySelector(`[data-playback-bar="${current.bar}"]`);if(!bar)return;activeBar=current.bar;points=rhythmAnchors(JSON.parse(bar.dataset.points));line.setAttribute('y1',bar.dataset.top);line.setAttribute('y2',bar.dataset.bottom);}
       const tick=playPosition.getTimelineTick?playPosition.getTimelineTick()-current.barStart:playPosition.getBarTick?.()??points[current.event]?.tick??0;
-      const x=playheadX(points,tick,followMode);line.setAttribute('x1',x);line.setAttribute('x2',x);line.dataset.tick=String(tick);line.dataset.bar=String(current.bar);line.dataset.visit=String(current.visit??0);for(const attr of ['x1','x2','y1','y2'])wash.setAttribute(attr,line.getAttribute(attr));followRef.current(line,current);
+      highlight.update(current.barStart+tick,rhythmProgress);
+      const x=playheadX(points,tick);line.setAttribute('x1',x);line.setAttribute('x2',x);line.dataset.tick=String(tick);line.dataset.bar=String(current.bar);line.dataset.visit=String(current.visit??0);for(const attr of ['x1','x2','y1','y2'])wash.setAttribute(attr,line.getAttribute(attr));followRef.current(line,current);
       if(playPosition.playing)frame=requestAnimationFrame(draw);
     };draw();
-    return()=>{cancelAnimationFrame(frame);line.remove();wash.remove();};
-  },[playPosition,etude,mobile,enlarged,landscape,view,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout,followMode]);
+    return()=>{cancelAnimationFrame(frame);line.remove();wash.remove();highlight.clear();};
+  },[playPosition,etude,mobile,enlarged,landscape,view,availableWidth,availableHeight,zoom,measuresPerRow,focusLayout,followMode,rhythmProgress]);
   return <>{etude.document&&tuningCaption(etude.document)&&<p className="scoreTuningCaption">{tuningCaption(etude.document)}</p>}{playPosition&&practiceFollow.suspended&&<button className="etudeReturnPosition" type="button" onClick={practiceFollow.resume}>현재 위치로</button>}{error && <p role="alert">{error}</p>}<div className="etudeNotation" ref={ref} /></>;
 }
 export default memo(Score);
+

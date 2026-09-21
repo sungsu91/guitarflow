@@ -1,4 +1,4 @@
-import {isBlankEvent} from './scoreModel.js';
+import {isBlankEvent,patchEvent} from './scoreModel.js';
 import {setEventDuration,setDotted,enterFretWithDuration,enterMutedTone,setRestWithDuration} from './editorCommands.js';
 import {ensureTriplet} from './tuplets.js';
 export function tripletProgress(document,session){
@@ -21,7 +21,7 @@ export function inputRhythm(document,cursor,{selectedDuration,dottedMode='off',t
    if(dottedMode!=='off')next=setDotted(next,cursor,true);
   }
  }
- next=kind==='rest'?setRestWithDuration(next,cursor,selectedDuration):kind==='mute'?enterMutedTone(next,cursor,selectedDuration):enterFretWithDuration(next,cursor,value,selectedDuration);
+ next=kind==='pitch'?patchEvent(next,cursor.bar,cursor.event,e=>({...e,rest:false,blank:false})):kind==='rest'?setRestWithDuration(next,cursor,selectedDuration):kind==='mute'?enterMutedTone(next,cursor,selectedDuration):enterFretWithDuration(next,cursor,value,selectedDuration);
  const event=next.measures[cursor.bar].events[cursor.event];
  const nextSession=tupletMode==='active'&&event.tuplet?{bar:cursor.bar,groupId:event.tuplet.groupId}:session;
  const progress=tripletProgress(next,nextSession);

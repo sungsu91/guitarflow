@@ -27,7 +27,7 @@ function SongPicker({ model }) {
  const types=[...new Set(list.map(e=>e.type))],course=list.filter(e=>e.type===selected?.type),index=course.findIndex(e=>e.id===selected?.id);
  return <div className="etudeSongPicker etudeQuickBrowse">
   <div className="etudeQuickSelects"><Select label="연습 유형" value={savedId?'':selected?.type??types[0]} options={[{id:'',title:'앱 연습 유형'},...types]} onChange={type=>{if(type)select(list.find(e=>e.type===type).id);}}/><Select label="내 저장 악보" value={savedId} options={[{id:'',title:savedScores.length?'악보 선택':'저장된 악보 없음'},...savedScores.map(r=>({id:r.document.id,title:r.document.title}))]} onChange={selectSaved}/></div>
-  {!savedId&&<nav className="etudeQuickPages" aria-label="에튀드 쪽넘김"><button type="button" aria-label="이전 연습곡" disabled={index<=0} onClick={()=>select(course[index-1].id)}><ChevronLeft aria-hidden="true"/></button><span aria-live="polite">{index+1} / {course.length}</span><button type="button" aria-label="다음 연습곡" disabled={index<0||index>=course.length-1} onClick={()=>select(course[index+1].id)}><ChevronRight aria-hidden="true"/></button></nav>}
+  {!savedId&&<nav className="etudeQuickPages" aria-label="에튀드 쪽넘김"><button type="button" aria-label="이전 연습곡" disabled={index<0||course.length<2} onClick={()=>select(course[(index-1+course.length)%course.length].id)}><ChevronLeft aria-hidden="true"/></button><span aria-live="polite">{index+1} / {course.length}</span><button type="button" aria-label="다음 연습곡" disabled={index<0||index>=course.length-1} onClick={()=>select(course[index+1].id)}><ChevronRight aria-hidden="true"/></button></nav>}
  </div>;
 }
 

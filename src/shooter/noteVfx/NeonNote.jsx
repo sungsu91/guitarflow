@@ -10,9 +10,9 @@ const arcs = Array.from({ length: 6 }, (_, i) => {
 });
 
 // Fixed trajectories keep the effect repeatable and avoid per-frame JS work.
-const sparks = Array.from({ length: 18 }, (_, i) => {
-  const angle = (i * 20 + (i % 3) * 4) * Math.PI / 180;
-  const radius = 35 + (i % 4) * 5;
+const sparks = Array.from({ length: 24 }, (_, i) => {
+  const angle = (i * 15 + (i % 3) * 3) * Math.PI / 180;
+  const radius = 40 + (i % 4) * 6;
   return { x: Math.cos(angle), y: Math.sin(angle), radius, delay: (i % 3) * 12 };
 });
 
@@ -29,6 +29,8 @@ export function NeonNote({ pitch, label = pitch, breaking = false, impact = { x:
     <text className="noteVfxPitch" x="50" y="51" textAnchor="middle" dominantBaseline="middle" fontSize={label.length >= 3 ? 21 : 26}>{label}</text>
     </g>
     {breaking ? <>
+      <circle className="noteVfxBloom" cx="50" cy="50" r="9" />
+      <circle className="noteVfxShockwave" cx="50" cy="50" r="22" />
       <path className="noteVfxFlash" d={`M ${impact.x - 9} ${impact.y} h 18 M ${impact.x} ${impact.y - 9} v 18`} />
       <g className="noteVfxFireworks" transform="translate(50 50)">{sparks.map((spark, i) => <g key={i} style={{
         '--sx': `${spark.x * 12}px`, '--sy': `${spark.y * 12}px`,
@@ -36,10 +38,11 @@ export function NeonNote({ pitch, label = pitch, breaking = false, impact = { x:
         '--ex': `${spark.x * spark.radius}px`, '--ey': `${spark.y * spark.radius + 5}px`,
         animationDelay: `${spark.delay}ms`, animationDuration: `${NOTE_VFX_DURATION_MS - spark.delay}ms`,
       }}>
-        <path className="noteVfxRay" d={`M ${-spark.x * (i % 2 ? 5 : 9)} ${-spark.y * (i % 2 ? 5 : 9)} L 0 0`} />
+        <path className="noteVfxRay" d={`M ${-spark.x * (i % 2 ? 9 : 15)} ${-spark.y * (i % 2 ? 9 : 15)} L 0 0`} />
+        <path className="noteVfxRayCore" d={`M ${-spark.x * 5} ${-spark.y * 5} L 0 0`} />
         {i % 3 === 0
-          ? <path className="noteVfxSpark" d="M 0 -1.8 L .5 -.5 L 1.8 0 L .5 .5 L 0 1.8 L -.5 .5 L -1.8 0 L -.5 -.5 Z" />
-          : <circle className="noteVfxSpark" r={i % 2 ? .8 : 1.1} />}
+          ? <path className="noteVfxSpark" d="M 0 -2.6 L .65 -.65 L 2.6 0 L .65 .65 L 0 2.6 L -.65 .65 L -2.6 0 L -.65 -.65 Z" />
+          : <circle className="noteVfxSpark" r={i % 2 ? 1 : 1.35} />}
       </g>)}</g>
       <g className="noteVfxAfterglow">{arcs.map((arc, i) => <circle key={i} cx={50 + arc.x * 2.5} cy={50 + arc.y * 2.5} r=".8" />)}</g>
     </> : null}

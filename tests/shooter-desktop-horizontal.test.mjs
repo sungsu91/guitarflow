@@ -141,8 +141,8 @@ test("desktop battle CSS is scoped to the dedicated renderer class", async () =>
   assert.match(appSource, /const returnToPortraitShooterMap = useCallback[\s\S]*orientation\?\.unlock[\s\S]*exitFullscreen/);
   assert.match(componentSource, /className="shooterRecordingEntrySlot shooterRecordingEntrySlot--landscapeControl"/);
   assert.match(appSource, /appMode === APP_MODES\.SHOOTER && !mobileLandscapeShooterActive && typeof document !== "undefined" \? createPortal\([\s\S]*<ShooterPitchMonitor/);
-  assert.match(appSource, /className="desktopHorizontalGameOverStats"[\s\S]*SCORE[\s\S]*score\.toLocaleString\(\)[\s\S]*COMBO[\s\S]*maxCombo/);
-  assert.match(appSource, /desktopHorizontalRestartNow[\s\S]*바로 시작/);
+  assert.match(appSource, /<ShooterGameOver[\s\S]*score=\{score\}[\s\S]*bestScore=\{shooterRecords.best.score\}/);
+  assert.match(appSource, /<ShooterGameOver[\s\S]*onRestart=\{\(\) => startShooter\(\)\}[\s\S]*onExit=\{showMainMenu\}/);
   assert.match(css, /main\.app\.app\.app\.mobileLandscapeShooter/);
   assert.match(css, /mobileLandscapeShooter \.desktopHorizontalBattleControls \{[\s\S]*top: calc\(env\(safe-area-inset-top\) \+ 6px\)[\s\S]*bottom: auto[\s\S]*grid-template-columns: minmax\(98px, 1\.2fr\)[\s\S]*minmax\(72px, \.85fr\)/);
   assert.match(componentSource, /mobileLandscape \? \([\s\S]*label="SIGNAL"[\s\S]*currentPitch/);

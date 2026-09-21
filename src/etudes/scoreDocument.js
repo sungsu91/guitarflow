@@ -2,7 +2,7 @@ import {TUNING, spellMidi, parseChord, validateEtude} from './notationData.js';
 import {compileDocumentV2,upgradeDocument} from './scoreModel.js';
 export {upgradeDocument} from './scoreModel.js';
 export function toScoreDocument(score) {
- if(score.document)return structuredClone(score.document);
+ if(score.document)return upgradeDocument(score.document);
  const d={...upgradeDocument(legacyDocument(score)),keySignature:score.keySignature??'C',meter:score.meter??[4,4],tuning:score.tuning??[...TUNING]};
  d.measures.forEach((m,b)=>m.events.forEach((e,i)=>e.notes.forEach((n,j)=>{const p=(score.measures[b][i].tones??[score.measures[b][i]])[j].pitch;n.spelling={letter:p.letter,alter:p.alter};})));
  return d;

@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import {chromium} from 'file:///C:/Users/User/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs';
+const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',args:['--autoplay-policy=no-user-gesture-required']});
+try{for(const width of [390,1440]){
+ const page=await browser.newPage({viewport:{width,height:900}}),errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error(e.message);});page.on('console',m=>{if(m.type()==='error')console.error(m.text());});await page.goto('http://127.0.0.1:5173/#etudes',{waitUntil:'networkidle'});
+ await page.evaluate(async width=>{const {mount}=await import('/scripts/rhythm-progress-fixture.jsx');mount(width);
+ },width);
+ await page.waitForSelector('.savedScorePlayhead',{state:'attached',timeout:10000});console.log('mounted',width);
+ // Deterministic audio-position injection tests the actual React/SVG animation path.
+ const positions=await page.evaluate(async()=>{
+ const originalSvg=document.querySelector('.savedScorePlayhead').ownerSVGElement;
+ const frame=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))),out=[];
+ for(const tick of [0,120,240,300,360,540,720,800,880,960,1040,1200,1380,1560,1800,1919,1920,2160,2400,2640,2880,3840,5760]){window.rhythmTest.setTick(tick);await frame();const line=document.querySelector('.savedScorePlayhead'),bar=document.querySelector('[data-playback-bar="'+line.dataset.bar+'"]');out.push({tick,local:Number(line.dataset.tick),bar:Number(line.dataset.bar),x:Number(line.getAttribute('x1')),points:JSON.parse(bar.dataset.points),articulation:line.ownerSVGElement.dataset.rhythmArticulation,active:document.querySelectorAll('.rhythm-technique-active').length});}if(originalSvg!==document.querySelector('.savedScorePlayhead').ownerSVGElement)throw Error('Notation redrawn during animation');return out;});
+ for(const p of positions){const {playheadX}=await import('../src/etudes/scorePlayhead.js');assert(Math.abs(p.x-playheadX(p.points,p.local))<1e-6);}
+ assert.equal(positions.find(p=>p.tick===960).articulation,'rest');assert.equal(positions.find(p=>p.tick===2160).articulation,'connected');assert(positions.find(p=>p.tick===2160).active>0);assert.equal(positions.at(-1).articulation,'tie');assert(positions.at(-1).active>0);
+ await page.evaluate(()=>{rhythmTest.setFollow('page');rhythmTest.setTick(5760);});await page.waitForTimeout(100);assert((await page.locator('.etudeScoreViewport').evaluate(n=>n.scrollTop))>100);
+ await page.evaluate(()=>rhythmTest.setTick(0));await page.waitForTimeout(50);assert((await page.locator('.etudeScoreViewport').evaluate(n=>n.scrollTop))<80);
+ // Presentation edits preserve musical position and recalculate engraved coordinates.
+ for(const view of ['staff','both','tab']){await page.evaluate(view=>{rhythmTest.setTick(2160);rhythmTest.setView(view);rhythmTest.setZoom(1.25);rhythmTest.setFollow('page');},view);await page.waitForTimeout(100);assert.equal(await page.locator('.savedScorePlayhead').getAttribute('data-tick'),'240');}
+ await page.setViewportSize({width:900,height:500});await page.waitForTimeout(150);assert.equal(await page.locator('.savedScorePlayhead').getAttribute('data-tick'),'240');
+ await page.evaluate(()=>{rhythmTest.setFollow('line');rhythmTest.setRhythm(false);rhythmTest.setTick(5760);});await page.waitForTimeout(100);assert.equal(await page.locator('.savedScorePlayhead').evaluate(n=>getComputedStyle(n).visibility),'hidden');assert.equal(await page.locator('.rhythm-technique-active').count(),0);assert((await page.locator('.etudeScoreViewport').evaluate(n=>n.scrollTop))>100);
+ await page.evaluate(()=>{rhythmTest.setRhythm(true);rhythmTest.setFollow('off');});await page.waitForTimeout(100);assert.equal(await page.locator('.savedScorePlayhead').evaluate(n=>getComputedStyle(n).visibility),'visible');
+ // Live Web Audio clock, with optional score audio disabled and click muted.
+ await page.evaluate(()=>{rhythmTest.setManual(false);rhythmTest.controls.onClickSound();});await page.getByText('테스트 연습 시작',{exact:true}).click();await page.waitForTimeout(250);
+ const before=await page.evaluate(()=>rhythmTest.position.getTimelineTick());await page.waitForTimeout(200);const after=await page.evaluate(()=>rhythmTest.position.getTimelineTick());assert(after>before+100);assert.equal(await page.evaluate(()=>rhythmTest.controls.sound),false);assert.equal(await page.evaluate(()=>rhythmTest.controls.click),false);
+ const subdivisionBefore=await page.evaluate(()=>rhythmTest.position.getTimelineTick());await page.evaluate(()=>rhythmTest.setSubdivision(4));await page.waitForTimeout(140);assert((await page.evaluate(()=>rhythmTest.position.getTimelineTick()))>=subdivisionBefore);
+ await page.evaluate(()=>rhythmTest.controls.onSound());await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>rhythmTest.controls.playing),true);await page.evaluate(()=>rhythmTest.controls.onSound());
+ await page.evaluate(()=>rhythmTest.controller.current.pause());await page.waitForTimeout(50);const paused=await page.evaluate(()=>rhythmTest.position.getTimelineTick());await page.waitForTimeout(120);assert.equal(await page.evaluate(()=>rhythmTest.position.getTimelineTick()),paused);
+ await page.evaluate(()=>{rhythmTest.setBpm(90);});await page.waitForTimeout(60);assert.equal(await page.evaluate(()=>rhythmTest.position.getTimelineTick()),paused);await page.evaluate(()=>rhythmTest.controller.current.resume());await page.waitForTimeout(150);assert((await page.evaluate(()=>rhythmTest.position.getTimelineTick()))>paused);
+ await page.evaluate(()=>rhythmTest.setBpm(180));await page.waitForTimeout(130);const tempoA=await page.evaluate(()=>rhythmTest.position.getTimelineTick());await page.waitForTimeout(200);const tempoB=await page.evaluate(()=>rhythmTest.position.getTimelineTick());assert(Math.abs(tempoB-tempoA-288)<85);
+ await page.evaluate(()=>rhythmTest.controller.current.seek({timelineTick:7660}));await page.waitForTimeout(250);const loop=await page.evaluate(()=>({tick:rhythmTest.position.getTimelineTick(),slot:rhythmTest.position.getCurrentSlot()}));assert(loop.tick<1000);assert.equal(loop.slot.bar,0);assert.equal(loop.slot.cycle,1);
+ await page.evaluate(()=>rhythmTest.controller.current.pause());await page.setViewportSize({width,height:900});await page.waitForTimeout(150);await page.screenshot({path:'output/rhythm-progress-'+width+'.png'});
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({width,positions:positions.length,silentClock:true,pauseResume:true,tempo:true,loop:true,views:true,rotation:true,independentControls:true,subdivision:true,soundToggle:true,noNotationRedraw:true}));await page.close();
+}}finally{await browser.close();}

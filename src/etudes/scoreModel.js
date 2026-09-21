@@ -1,7 +1,7 @@
 import {slidePairs} from './slidePairs.js';
 import {soundingMidi,maxFret,HARMONICS} from './scoreTuning.js';
 import {measureMeters} from './scoreMeters.js';
-import {SCORE_INSTRUMENTS,scoreInstrument} from './scoreInstruments.js';
+import {SCORE_INSTRUMENTS,normalizeInstrumentDocument,scoreInstrument,isFretted,validateInstrumentMidi} from './scoreInstruments.js';
 import {repeatIssues} from './scoreRepeats.js';
 export const NATURAL_HARMONICS=HARMONICS;
 import {TUNING, NATURAL, MAJOR, MINOR, spellMidi} from './notationData.js';
@@ -20,7 +20,7 @@ export const blankMeasure=(meter=[4,4])=>({id:newId('bar'),chord:null,harmony:nu
 // remain safe for the retained form controls. Preserve unreadable files verbatim.
 export const hasEditableShape=d=>Boolean(d&&typeof d.id==='string'&&['title','english','purpose'].every(k=>typeof d[k]==='string')&&Array.isArray(d.tuning)&&d.tuning.length===scoreInstrument(d.instrument).tuning.length&&Array.isArray(d.meter)&&d.meter.length===2&&Array.isArray(d.tips)&&Array.isArray(d.measures)&&d.measures.length&&d.measures.every(m=>m&&Array.isArray(m.events)&&m.events.length&&(!m.chord||(Array.isArray(m.chord.frets)&&Array.isArray(m.chord.fingers)))&&m.events.every(e=>e&&Array.isArray(e.notes)&&e.notes.every(n=>n&&typeof n==='object'))));
 export function upgradeDocument(input) {
- const d=structuredClone(input);
+ const d=normalizeInstrumentDocument(structuredClone(input));
  if(d.version===2)return d;
  if(d.version!==1||d.format!=='fretiva.etude')throw Error('지원하지 않는 악보 파일입니다.');
  d.version=2;d.id=`copy-${d.templateId}`;d.origin={templateId:d.templateId,revision:1};d.kind='user';d.meter=[4,4];d.tuning=[...TUNING];d.keySignature='C';
@@ -54,6 +54,16 @@ const cache=new WeakMap();
 export const compileStats={bars:0};
 function compileBar(bar,d) {
  const context=JSON.stringify([d.tuning,d.keySignature,d.meter,d.instrument,d.capo]);const found=cache.get(bar);if(found?.context===context)return found.result;
+ if(d.instrument==='piano'&&bar.events.some(e=>e.voice)){
+  const errors=[],issues=[],byId=new Map();
+  if(bar.events.some(e=>!['left','right'].includes(e.voice)||e.notes.some(n=>n.hand!==e.voice)))errors.push('피아노 성부와 손 배치를 확인하세요.');
+  for(const hand of ['right','left']){
+   const result=compileBar({...bar,events:bar.events.filter(e=>e.voice===hand).map(({voice,...e})=>e)},d);
+   errors.push(...result.errors);issues.push(...result.issues);
+   result.events.forEach(e=>byId.set(e.id,{...e,voice:hand}));
+  }
+  const result={errors,issues,events:bar.events.map(e=>byId.get(e.id)).filter(Boolean)};cache.set(bar,{context,result});return result;
+ }
  compileStats.bars++;
  const errors=[],issues=[],events=[];let end=0;
  const capacity=d.meter[0]*1920/d.meter[1];
@@ -64,8 +74,9 @@ function compileBar(bar,d) {
   if(e.tuplet&&(e.tuplet.actualNotes!==3||e.tuplet.normalNotes!==2||!['8','16'].includes(e.duration)))errors.push(`${e.id}: 지원 연음은 8분·16분음표의 3:2입니다.`);
   if(e.onset!==end)issues.push(`${e.id}: ${e.onset<end?'앞 음과 겹침':'입력되지 않은 박'} (${e.onset/TICKS}박 시작)`);
   end=Math.max(end,e.onset+ticksOf(e));
-  if(!e.rest&&(!e.notes.length||new Set(e.notes.filter(n=>!n.unplaced).map(n=>n.string)).size!==e.notes.filter(n=>!n.unplaced).length))errors.push(`${e.id}: 같은 줄 중복 또는 빈 음표`);
-  const tones=e.notes.map(n=>{if(n.unplaced&&Number.isInteger(n.midi)&&n.midi>=0&&n.midi<=127)return {...n,pitch:pitchForMidi(n.midi,d.keySignature,n.spelling,d.instrument)};if(!Number.isInteger(n.string)||n.string<1||n.string>d.tuning.length||!Number.isInteger(n.fret)||n.fret<0||n.fret+(d.capo??0)>maxFret(d)){errors.push(`${e.id}: 줄 1–${d.tuning.length}, 프렛 0–24를 입력하세요.`);return null;}if(n.dead!=null&&typeof n.dead!=='boolean')errors.push(`${e.id}: 줄별 뮤트음 값은 true/false입니다.`);if(n.harmonic&&!NATURAL_HARMONICS[n.fret])errors.push(`${e.id}: 자연 하모닉스 위치를 확인하세요.`);const midi=soundingMidi(d,n);return {...n,dead:Boolean(n.dead??e.dead),midi,pitch:pitchForMidi(midi,d.keySignature,n.spelling,d.instrument)};}).filter(Boolean);
+  if(!e.rest&&(!e.notes.length||new Set(e.notes.filter(n=>!n.unplaced).map(n=>isFretted(d.instrument)?n.string:n.midi)).size!==e.notes.filter(n=>!n.unplaced).length))errors.push(`${e.id}: 같은 줄 중복 또는 빈 음표`);
+  if(!isFretted(d.instrument)){if(e.letRing||e.slideOut||e.notes.some(n=>n.bendEffect||n.parenthesized)||e.technique||e.pickStroke||e.palmMute||e.vibrato||e.dead||e.arpeggio||e.notes.some(n=>n.harmonic||n.dead||n.string!=null||n.fret!=null))errors.push('건반·드럼에는 현·프렛·기타 주법을 적용할 수 없습니다.');if(e.notes.some(n=>n.hand!=null&&!['left','right'].includes(n.hand)))errors.push('손은 왼손 또는 오른손을 선택하세요.');if(d.instrument==='drums'&&e.tieTo)errors.push('드럼에는 붙임줄을 적용하지 않습니다.');}
+  const tones=e.notes.map(n=>{if(!isFretted(d.instrument)){try{validateInstrumentMidi(d.instrument,n.midi);}catch(error){errors.push(error.message);return null;}return {...n,string:n.midi+1,fret:0,pitch:pitchForMidi(n.midi,d.keySignature,n.spelling,d.instrument)};}if(n.unplaced&&Number.isInteger(n.midi)&&n.midi>=0&&n.midi<=127)return {...n,pitch:pitchForMidi(n.midi,d.keySignature,n.spelling,d.instrument)};if(!Number.isInteger(n.string)||n.string<1||n.string>d.tuning.length||!Number.isInteger(n.fret)||n.fret<0||n.fret+(d.capo??0)>maxFret(d)){errors.push(`${e.id}: 줄 1–${d.tuning.length}, 프렛 0–24를 입력하세요.`);return null;}if(n.dead!=null&&typeof n.dead!=='boolean')errors.push(`${e.id}: 줄별 뮤트음 값은 true/false입니다.`);if(n.harmonic&&!NATURAL_HARMONICS[n.fret])errors.push(`${e.id}: 자연 하모닉스 위치를 확인하세요.`);const midi=soundingMidi(d,n);return {...n,dead:Boolean(n.dead??e.dead),midi,pitch:pitchForMidi(midi,d.keySignature,n.spelling,d.instrument)};}).filter(Boolean);
   if(e.beamBefore!=null&&!['auto','join','break'].includes(e.beamBefore))errors.push(`${e.id}: 빔 설정을 확인하세요.`);
   if(e.dead!=null&&typeof e.dead!=='boolean')errors.push(`${e.id}: 뮤트음 값은 true/false입니다.`);
   if(e.palmMute!=null&&typeof e.palmMute!=='boolean')errors.push(`${e.id}: 팜 뮤트 설정은 true/false입니다.`);
@@ -74,8 +85,11 @@ function compileBar(bar,d) {
   if(e.technique&&!['H','P','S'].includes(e.technique))errors.push(`${e.id}: 지원하지 않는 연결 주법`);
   if(e.notes.some(n=>n.finger!=null&&![1,2,3,4].includes(n.finger)||n.rightFinger!=null&&!['p','i','m','a'].includes(n.rightFinger)))errors.push(`${e.id}: 손가락 기호를 확인하세요.`);
   if(e.pickStroke!=null&&!['up','down'].includes(e.pickStroke))errors.push(`${e.id}: 피킹 방향을 확인하세요.`);
-  for(const key of ['bend','letRing','ghost','grace'])if(e[key]!=null)issues.push(`${e.id}: ${key}는 현재 표시·재생을 지원하지 않습니다. 입력 데이터는 보존합니다.`);
-  events.push({...e,...(tones[0]??{string:1,fret:0,midi:d.tuning[0],pitch:pitchForMidi(d.tuning[0],d.keySignature,undefined,d.instrument)}),id:e.id,...(tones.length>1?{tones}:{}),rest:Boolean(e.rest),duration:e.duration,technique:e.technique??null});
+  if(e.letRing!=null&&typeof e.letRing!=='boolean')errors.push('열린 붙임줄 설정을 확인하세요.');
+  if(e.slideOut!=null&&!['up','down'].includes(e.slideOut))errors.push('슬라이드 아웃 방향을 확인하세요.');
+  for(const n of e.notes){if(n.parenthesized!=null&&typeof n.parenthesized!=='boolean')errors.push('괄호 음표 설정을 확인하세요.');if(n.bendEffect&&(![1,2].includes(n.bendEffect.amount)||!['up','hold','release','up-release'].includes(n.bendEffect.phase)))errors.push('벤드의 음정·형태를 확인하세요.');if(n.bendEffect&&(n.dead||e.dead||n.harmonic))errors.push('뮤트음·자연 하모닉스에는 벤드를 적용하지 않습니다.');}
+  for(const key of ['bend','ghost','grace'])if(e[key]!=null)issues.push(`${e.id}: ${key}는 현재 표시·재생을 지원하지 않습니다. 입력 데이터는 보존합니다.`);
+  events.push({...e,...(tones[0]??{string:1,fret:0,midi:d.tuning[0]??60,pitch:pitchForMidi(d.tuning[0]??60,d.keySignature,undefined,d.instrument)}),id:e.id,...(tones.length>1?{tones}:{}),rest:Boolean(e.rest),duration:e.duration,technique:e.technique??null});
  }
  for(const group of tupletGroups(bar.events)){const first=bar.events[group[0]];if(group.length!==3||group.some((index,j)=>bar.events[index].duration!==first.duration||bar.events[index].onset!==first.onset+j*ticksOf(first)))errors.push('셋잇단음표는 같은 길이의 연속된 세 위치로 구성해야 합니다.');}
  for(const group of tupletGroups(bar.events)){if(group.some(i=>isBlankEvent(bar.events[i])))issues.push(`${Math.floor(bar.events[group[0]].onset/TICKS)+1}박: 셋잇단음표 그룹 미완성`);}
@@ -86,7 +100,9 @@ function compileBar(bar,d) {
  const result={errors,issues,events};cache.set(bar,{context,result});return result;
 }
 export function compileDocumentV2(d,base={}) {
+ d=normalizeInstrumentDocument(d);
  const errors=[],issues=[];
+ if(!isFretted(d?.instrument)&&d?.capo)errors.push('건반·드럼 악보에는 카포를 적용할 수 없습니다.');
  if(d?.capo!=null&&(!Number.isInteger(d.capo)||d.capo<0||d.capo>Math.min(12,maxFret(d))))errors.push('카포 범위를 확인하세요.');
  if(d?.instrument!=null&&!Object.hasOwn(SCORE_INSTRUMENTS,d.instrument))errors.push('지원하지 않는 악기입니다.');
  if(d?.format!=='fretiva.etude'||d.version!==2||!d.id)return {score:null,errors:['악보 형식과 ID를 확인하세요.'],issues};
@@ -103,8 +119,7 @@ export function compileDocumentV2(d,base={}) {
  for(const meter of meters)if(!Array.isArray(meter)||![2,3,4,6].includes(meter[0])||![4,8].includes(meter[1]))errors.push("마디 박자표를 확인하세요.");
  if(errors.length)return {score:null,errors,issues};
  const ids=new Set(),measures=d.measures.map((m,i)=>{for(const id of [m.id,...m.events.flatMap(e=>[e.id,...e.notes.map(n=>n.id)])]){if(!id||ids.has(id))errors.push(`${i+1}마디: 식별자가 없거나 중복됩니다.`);ids.add(id);}const result=compileBar(m,{...d,meter:meters[i]});errors.push(...result.errors.map(s=>`${i+1}마디: ${s}`));issues.push(...result.issues.map(s=>`${i+1}마디: ${s}`));return result.events;});
- measures.forEach((bar,b)=>bar.forEach((e,i)=>{const next=bar[i+1]??measures[b+1]?.[0];if(e.technique&&i===bar.length-1)issues.push(`${b+1}마디 ${i+1}음: 마디 경계를 잇는 H/P/SL 표시는 아직 지원하지 않습니다. 데이터를 보존합니다.`);if(e.technique&&(e.technique==='S'?(!slidePairs(e,next).length||next.onset!==e.onset+ticksOf(e)):(e.rest||e.tones||!next||next.rest||next.tones||next.string!==e.string||next.fret===e.fret||(e.technique==='H'&&next.fret<e.fret)||(e.technique==='P'&&next.fret>e.fret))))issues.push(`${b+1}마디 ${i+1}음: ${e.technique} 연결 대상을 확인하세요.`);if(e.tieTo&&(!next||next.id!==e.tieTo||e.rest||next.rest||JSON.stringify((e.tones??[e]).map(n=>`${n.string}:${n.midi}`).sort())!==JSON.stringify((next.tones??[next]).map(n=>`${n.string}:${n.midi}`).sort())))issues.push(`${b+1}마디 ${i+1}음: 붙임줄 대상·음높이가 다릅니다.`);}));
+ measures.forEach((bar,b)=>bar.forEach((e,i)=>{const next=e.voice?bar.slice(i+1).find(n=>n.voice===e.voice)??measures[b+1]?.find(n=>n.voice===e.voice):bar[i+1]??measures[b+1]?.[0];if(e.technique&&i===bar.length-1)issues.push(`${b+1}마디 ${i+1}음: 마디 경계를 잇는 H/P/SL 표시는 아직 지원하지 않습니다. 데이터를 보존합니다.`);if(e.technique&&(e.technique==='S'?(!slidePairs(e,next).length||next.onset!==e.onset+ticksOf(e)):(e.rest||e.tones||!next||next.rest||next.tones||next.string!==e.string||next.fret===e.fret||(e.technique==='H'&&next.fret<e.fret)||(e.technique==='P'&&next.fret>e.fret))))issues.push(`${b+1}마디 ${i+1}음: ${e.technique} 연결 대상을 확인하세요.`);if(e.tieTo&&(!next||next.id!==e.tieTo||e.rest||next.rest||JSON.stringify((e.tones??[e]).map(n=>`${n.string}:${n.midi}`).sort())!==JSON.stringify((next.tones??[next]).map(n=>`${n.string}:${n.midi}`).sort())))issues.push(`${b+1}마디 ${i+1}음: 붙임줄 대상·음높이가 다릅니다.`);}));
  const score=errors.length?null:{...base,id:d.id,templateId:d.templateId,title:d.title||'제목 없음',english:d.english||d.title||'Untitled',purpose:d.purpose,tips:d.tips,bpm:d.bpm,meter:d.meter,tuning:d.tuning,capo:d.capo??0,autoTab:d.autoTab,instrument:d.instrument??'guitar',keySignature:d.keySignature,measures,document:d,edited:true,reviewStatus:'사용자 악보 · 교육 검수 안 됨',chordShapes:d.measures.some(m=>m.chord)?d.measures.map(m=>m.chord):undefined,harmony:d.measures.map(m=>m.chord?.name??m.harmony),accompaniment:Boolean(base.accompaniment),issues};
  return {score,errors,issues};
 }
-

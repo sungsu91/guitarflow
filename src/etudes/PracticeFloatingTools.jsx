@@ -13,7 +13,7 @@ import {METRONOME_SUBDIVISION_OPTIONS} from '../metronome/subdivision.js';
 import './practiceFloatingTools.css';
 
 // Only handles capture pointers; the score and all controls retain native gestures.
-function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false) {
+function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false, bottomPinned=false) {
   const ref=useRef(null), gesture=useRef(null), moved=useRef(false);
   const [position,setPosition]=useState(()=>{try{const p=JSON.parse(localStorage.getItem(key));return Number.isFinite(p?.x)&&Number.isFinite(p?.y)?p:null;}catch{return null;}});
   const clamp=p=>{
@@ -22,10 +22,11 @@ function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false) {
     const rect=ref.current?.getBoundingClientRect();
     const nav=document.querySelector('.etudePracticeLayout.is-focus')?null:document.querySelector('.integratedBottomNav')?.getBoundingClientRect();
     const safe=parseFloat(getComputedStyle(ref.current).getPropertyValue('--floating-safe-bottom'))||0;
-    const bottom=Math.min(top+height-safe-12,nav?.height&&nav.top>top?nav.top-12:Infinity);
+    const bottom=Math.min(top+height-safe-(bottomPinned?0:12),!bottomPinned&&nav?.height&&nav.top>top?nav.top-12:Infinity);
     const maxY=Math.max(top+12,bottom-(rect?.height??100));
     const maxX=Math.max(left+8,left+width-(rect?.width??280)-(avoidPanel&&width>=800?500:52));
     const next={x:edge?left+width-(rect?.width??40):Math.max(left+8,Math.min(p?.x??left+12,maxX)),y:avoidPanel&&width<800?maxY:Math.max(top+12,Math.min(p?.y??(edge?top+height*.42:maxY),maxY))};
+    if(bottomPinned){next.x=left+(width-(rect?.width??340))/2;next.y=maxY;}
     const toolbar=document.querySelector('.etudePracticeLayout.is-focus .etudeViewTools')?.getBoundingClientRect();
     if(!edge&&toolbar&&next.x<toolbar.right+8&&next.x+(rect?.width??290)>toolbar.left&&next.y<toolbar.bottom+8)next.y=Math.min(maxY,toolbar.bottom+8);
     if(edge){for(const node of document.querySelectorAll(".practiceEdgeTab--movable")){if(node===ref.current)continue;const r=node.getBoundingClientRect(),h=rect?.height??52;if(next.y<r.bottom+8&&next.y+h>r.top-8){const below=r.bottom+8,above=r.top-h-8;next.y=below<=maxY?below:Math.max(top+12,above);}}}
@@ -36,9 +37,9 @@ function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false) {
     update();const observer=new ResizeObserver(update);observer.observe(ref.current);
     window.addEventListener('resize',update);window.visualViewport?.addEventListener('resize',update);window.visualViewport?.addEventListener('scroll',update);
     return()=>{observer.disconnect();window.removeEventListener('resize',update);window.visualViewport?.removeEventListener('resize',update);window.visualViewport?.removeEventListener('scroll',update);};
-  },[avoidPanel,dock]);
+  },[avoidPanel,dock,bottomPinned]);
 
-  useEffect(()=>{if(position)try{localStorage.setItem(key,JSON.stringify(position));}catch{}},[key,position]);
+  useEffect(()=>{if(position&&!bottomPinned)try{localStorage.setItem(key,JSON.stringify(position));}catch{}},[key,position,bottomPinned]);
   const finish=e=>{gesture.current=null;if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);};
   return {ref,style:{left:position?.x??8,top:position?.y??100},handle:{
     onPointerDown:e=>{if(e.button!==0||gesture.current)return;moved.current=false;gesture.current={id:e.pointerId,x:e.clientX,y:e.clientY,origin:position??clamp(null)};e.currentTarget.setPointerCapture(e.pointerId);},
@@ -69,21 +70,21 @@ function FloatingMetronome({model,panelOpen,onHeight}) {
   </section>;
 }
 
-function EtudeRemote({controls:c,model,onHeight}){
+function EtudeRemote({controls:c,model,mobile,onHeight}){
  const dock=Boolean(model.layout.focus&&model.layout.viewport.width>model.layout.viewport.height&&model.hudTarget);
- const floating=useFloatingPosition('riff-etude-remote-position',false,false,dock);
+ const floating=useFloatingPosition('riff-etude-remote-position',false,false,dock,mobile&&!dock);
  const settingsButton=useRef(null),bpmButton=useRef(null),volumeButton=useRef(null),[popup,setPopup]=useState(null);
  const close=useCallback(focus=>{setPopup(null);if(focus)(popup==='settings'?settingsButton:popup==='volume'?volumeButton:bpmButton).current?.focus({preventScroll:true});},[popup]);
  useLayoutEffect(()=>{const el=floating.ref.current;const measure=()=>onHeight(el.getBoundingClientRect().height+24);measure();const observer=new ResizeObserver(measure);observer.observe(el);return()=>observer.disconnect();},[onHeight]);
- const remote=<section ref={floating.ref} style={dock?undefined:floating.style} className={"etudeFloatingMetro etudeSessionWidget etudeRemote"+(dock?" etudeHudRemote":"")} aria-label="악보 메트로놈">
- <div className="etudeRemoteBeats">{!dock&&<button type="button" className="etudeDragHandle" aria-label="메트로놈 이동 (방향키로 이동)" {...floating.handle}><GripHorizontal aria-hidden="true"/></button>}<PracticeBeatDots meter={c.meter} beat={c.beat} showMeter={false} beatAccents={c.beatAccents} onToggleAccent={c.onToggleAccent}/><span>{c.meter.join('/')}</span><button type="button" aria-label="메트로놈 닫기" onClick={model.minimizeMetro}><X aria-hidden="true"/></button></div>
+ const remote=<section ref={floating.ref} style={dock?undefined:floating.style} className={"etudeFloatingMetro etudeSessionWidget etudeRemote"+(dock?" etudeHudRemote":mobile?" etudeRemote--mobileBottom":"")} aria-label="악보 메트로놈">
+ <div className="etudeRemoteBeats">{!dock&&!mobile&&<button type="button" className="etudeDragHandle" aria-label="메트로놈 이동 (방향키로 이동)" {...floating.handle}><GripHorizontal aria-hidden="true"/></button>}<PracticeBeatDots meter={c.meter} beat={c.beat} showMeter={false} beatAccents={c.beatAccents} onToggleAccent={c.onToggleAccent}/><span>{c.meter.join('/')}</span><button type="button" aria-label="메트로놈 닫기" onClick={model.minimizeMetro}><X aria-hidden="true"/></button></div>
  <div className="etudeRemoteControls"><button type="button" ref={bpmButton} className="etudeRemoteBpm" aria-label={'BPM '+c.bpm+' 조절'} aria-expanded={popup==='bpm'} onClick={()=>setPopup(p=>p==='bpm'?null:'bpm')}><strong>{c.bpm}</strong><small>BPM</small></button><button type="button" className="etudePracticeStart" aria-label={c.playing?'일시정지':c.paused?'연습 재개':'연습 시작'} disabled={c.disabled} onClick={c.playing?c.onPause:c.paused?c.onResume:c.onStart}>{c.playing?<Pause/>:<Play/>}</button><button type="button" className="etudePracticeStop" aria-label="정지" disabled={!c.playing&&!c.paused} onClick={c.onStop}><Square/></button><button type="button" ref={volumeButton} aria-label="메트로놈 볼륨" aria-expanded={popup==='volume'} onClick={()=>setPopup(p=>p==='volume'?null:'volume')}>{c.click?<Volume2/>:<VolumeX/>}</button><button type="button" ref={settingsButton} aria-label="메트로놈 상세 설정" aria-expanded={popup==='settings'} onClick={()=>setPopup(p=>p==='settings'?null:'settings')}><Settings2/></button></div>
  {popup&&<PracticePopover anchor={popup==='settings'?settingsButton:popup==='volume'?volumeButton:bpmButton} onClose={close} width={popup==='volume'?94:330} label={popup==='settings'?'메트로놈 설정':popup==='volume'?'메트로놈 볼륨':'BPM 조절'}>{popup==='volume'?<div className="etudeVerticalVolume"><MetronomeVolumeControl className="etudeVerticalVolumeControl" label="볼륨"/><button type="button" aria-label="클릭 음소거" aria-pressed={!c.click} onClick={c.onClickSound}>{c.click?<Volume2 aria-hidden="true"/>:<VolumeX aria-hidden="true"/>}</button></div>:popup==='bpm'?<><label>연습 BPM<input type="number" aria-label="연습 BPM" min="30" max="240" value={c.bpm} onChange={e=>c.onBpm(e.target.value)}/></label><div className="etudeTempoQuick">{[-10,-1,1,10].map(d=><button type="button" key={d} onClick={()=>c.onBpm(c.bpm+d)}>{d>0?'+':''}{d}</button>)}</div></>:<><MetronomeSettingsPanel renderOption={o=>o?.label??o?.longLabel??''} fields={[
  {id:'meter',label:'박자',value:c.meter.join('/'),disabled:true,options:TIME_SIGNATURE_OPTIONS,onChange:()=>{}},
  {id:'subdivision',label:'세분',value:model.subdivision,options:METRONOME_SUBDIVISION_OPTIONS,onChange:model.setSubdivision},
  {id:'tone',label:'음색',tone:true,value:model.tone,options:METRONOME_TONE_OPTIONS,onChange:model.setTone},
  {id:'repeat',label:'반복',value:model.repeatCount??0,options:[{id:0,label:'계속 반복'},...Array.from({length:16},(_,i)=>({id:i+1,label:`${i+1}회`}))],onChange:value=>model.setRepeatCount?.(Number(value))},
- ]}/><FollowPatternControl value={model.followMode} onChange={model.setFollowMode}/><details className="etudeOptionalSoundSection"><summary>악보 소리 · {c.sound?'켜짐':'끔'}</summary><label className="etudeOptionalSound"><input type="checkbox" checked={c.sound} onChange={c.onSound}/>악보 소리 듣기 (선택)</label><label>음색<select aria-label="악보 소리 음색" disabled={!c.sound} value={c.instrument} onChange={e=>c.onInstrument(e.target.value)}><option value="clean-guitar">클린 기타</option><option value="piano">피아노</option></select></label></details></> }</PracticePopover>}{c.error&&<p role="alert">{c.error}</p>}
+ ]}/><FollowPatternControl value={model.followMode} onChange={model.setFollowMode} rhythm={model.rhythmProgress} onRhythmChange={model.setRhythmProgress}/><details className="etudeOptionalSoundSection"><summary>악보 소리 · {c.sound?'켜짐':'끔'}</summary><label className="etudeOptionalSound"><input type="checkbox" checked={c.sound} onChange={c.onSound}/>악보 소리 듣기 (선택)</label><label>음색<select aria-label="악보 소리 음색" disabled={!c.sound} value={c.instrument} onChange={e=>c.onInstrument(e.target.value)}><option value="clean-guitar">클린 기타</option><option value="piano">피아노</option></select></label></details></> }</PracticePopover>}{c.error&&<p role="alert">{c.error}</p>}
  </section>;
  return dock?createPortal(remote,model.hudTarget):remote;
 }
@@ -107,7 +108,7 @@ function FloatingPractice({controls:c,model,panelOpen,onHeight}) {
  {id:'subdivision',label:'세분',value:model.subdivision,options:METRONOME_SUBDIVISION_OPTIONS,onChange:model.setSubdivision},
  {id:'tone',label:'음색',tone:true,value:model.tone,options:METRONOME_TONE_OPTIONS,onChange:model.setTone},
  {id:'repeat',label:'반복',value:model.repeatCount??0,options:[{id:0,label:'계속 반복'},...Array.from({length:16},(_,i)=>({id:i+1,label:`${i+1}회`}))],onChange:value=>model.setRepeatCount?.(Number(value))},
- ]}/><FollowPatternControl value={model.followMode} onChange={model.setFollowMode}/><MetronomeVolumeControl/><details className="etudeOptionalSoundSection"><summary>악보 소리 듣기 · 선택</summary><label className="etudeOptionalSound"><input type="checkbox" checked={c.sound} onChange={c.onSound}/>악보 소리 듣기 (선택)</label><label>악보 소리 음색<select aria-label="악보 소리 음색" disabled={!c.sound} value={c.instrument} onChange={e=>c.onInstrument(e.target.value)}><option value="clean-guitar">클린 기타</option><option value="piano">피아노</option></select></label></details></div>}{c.error&&<p role="alert">{c.error}</p>}
+ ]}/><FollowPatternControl value={model.followMode} onChange={model.setFollowMode} rhythm={model.rhythmProgress} onRhythmChange={model.setRhythmProgress}/><MetronomeVolumeControl/><details className="etudeOptionalSoundSection"><summary>악보 소리 듣기 · 선택</summary><label className="etudeOptionalSound"><input type="checkbox" checked={c.sound} onChange={c.onSound}/>악보 소리 듣기 (선택)</label><label>악보 소리 음색<select aria-label="악보 소리 음색" disabled={!c.sound} value={c.instrument} onChange={e=>c.onInstrument(e.target.value)}><option value="clean-guitar">클린 기타</option><option value="piano">피아노</option></select></label></details></div>}{c.error&&<p role="alert">{c.error}</p>}
  </section>;
 }
 
@@ -145,7 +146,7 @@ export default function PracticeFloatingTools({model,mobile,practiceControls}) {
  const [localOpen,setLocalOpen]=useState(false),[metroHeight,setMetroHeight]=useState(150);
  const open=practiceControls?model.backingOpen:localOpen;
  const setOpen=value=>{if(practiceControls){model.setBackingOpen(value);if(value)model.setTipsOpen(false);}else setLocalOpen(value);};
- return <>{practiceControls&&model.metroMinimized&&!model.toolsVisible&&<div className="etudeFloatingTheme"><MovableEdgeTab scope={model.scope??'etude'} kind="metro" playing={practiceControls.playing} onOpen={()=>{model.setMetroMinimized(false);model.setToolsVisible(true);}}/></div>}{practiceControls?(model.toolsVisible&&(model.compactTools?<EtudeRemote controls={practiceControls} model={model} onHeight={setMetroHeight}/>:<FloatingPractice controls={practiceControls} model={model} panelOpen={open} onHeight={setMetroHeight}/>)):<FloatingMetronome model={model} panelOpen={open} onHeight={setMetroHeight}/>}<PracticeBackingPanel mobile={mobile} scope={model.scope??'etude'} triggerTarget={practiceControls?model.backingTarget:null} open={open} onOpenChange={setOpen} clearance={practiceControls&&!model.toolsVisible?0:metroHeight}/></>;
+ return <>{practiceControls&&model.metroMinimized&&!model.toolsVisible&&<div className="etudeFloatingTheme"><MovableEdgeTab scope={model.scope??'etude'} kind="metro" playing={practiceControls.playing} onOpen={()=>{model.setMetroMinimized(false);model.setToolsVisible(true);}}/></div>}{practiceControls?(model.toolsVisible&&(model.compactTools?<EtudeRemote controls={practiceControls} model={model} mobile={mobile} onHeight={setMetroHeight}/>:<FloatingPractice controls={practiceControls} model={model} panelOpen={open} onHeight={setMetroHeight}/>)):<FloatingMetronome model={model} panelOpen={open} onHeight={setMetroHeight}/>}<PracticeBackingPanel mobile={mobile} scope={model.scope??'etude'} triggerTarget={practiceControls?model.backingTarget:null} open={open} onOpenChange={setOpen} clearance={practiceControls&&!model.toolsVisible?0:metroHeight}/></>;
 }
 
 import './practiceDesign.css';

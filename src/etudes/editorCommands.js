@@ -1,3 +1,4 @@
+import {isFretted} from './scoreInstruments.js';
 import {slidePairs} from './slidePairs.js';
 import {soundingMidi,effectiveTuning,maxFret} from './scoreTuning.js';
 import {NATURAL_HARMONICS,patchEvent,newId,ticksOf,blankEvent,cloneMeasures,moveSamePitch,blankMeasure,isBlankEvent} from './scoreModel.js';
@@ -11,13 +12,24 @@ export function deleteMeasure(d,bar){
 // Connections belong to the starting event; reject impossible destinations
 // instead of saving a symbol that playback cannot interpret.
 export function setNoteConnection(d,c,kind){
+ if(!isFretted(d.instrument)&&!['tie','clear'].includes(kind))throw Error('이 악기에서는 사용할 수 없는 주법입니다.');
+ if(d.instrument==='drums'&&kind==='tie')throw Error('드럼에는 붙임줄을 적용하지 않습니다.');
  const event=d.measures[c.bar]?.events[c.event],following=d.measures[c.bar]?.events[c.event+1];
  if(!event||event.rest||event.dead||!event.notes.length)throw Error('주법을 연결할 시작 음을 선택하세요.');
- if(kind==='clear')return patchEvent(d,c.bar,c.event,{technique:null,tieTo:null,vibrato:false,palmMute:false,arpeggio:null,notes:event.notes.map(n=>({...n,harmonic:false}))});
+ if(kind==='clear')return patchEvent(d,c.bar,c.event,{technique:null,tieTo:null,vibrato:false,palmMute:false,arpeggio:null,letRing:false,slideOut:null,notes:event.notes.map(n=>({...n,harmonic:false,bendEffect:null,parenthesized:false}))});
+ if(kind==='let-ring')return patchEvent(d,c.bar,c.event,{letRing:!event.letRing});
+ if(kind==='slide-out-up'||kind==='slide-out-down'){const direction=kind.slice(10);return patchEvent(d,c.bar,c.event,{slideOut:event.slideOut===direction?null:direction});}
+ if(kind==='parentheses'||kind.startsWith('bend-')){
+  const tone=event.notes.find(n=>n.string===c.string);if(!tone||tone.dead)throw Error('표시할 줄의 음을 선택하세요.');
+  if(kind.startsWith('bend-')&&tone.harmonic)throw Error('자연 하모닉스는 해제한 뒤 벤드를 적용하세요.');
+  const phase=kind.slice(5);if(kind!=='parentheses'&&!['up','hold','release','up-release'].includes(phase))throw Error('벤드 형태를 확인하세요.');
+  return patchEvent(d,c.bar,c.event,{notes:event.notes.map(n=>n!==tone?n:kind==='parentheses'?{...n,parenthesized:!n.parenthesized}:{...n,bendEffect:n.bendEffect?.phase===phase?null:{amount:2,phase}})});
+ }
  if(kind==='palmMute')return patchEvent(d,c.bar,c.event,{palmMute:!event.palmMute});
  if(kind==='vibrato')return patchEvent(d,c.bar,c.event,{vibrato:!event.vibrato});
  if(kind==='harmonic'){
   const tone=event.notes.find(n=>n.string===c.string);if(!tone)throw Error('하모닉스를 표시할 줄의 프렛을 선택하세요.');
+  if(!tone.harmonic&&tone.bendEffect)throw Error('벤드를 해제한 뒤 자연 하모닉스를 적용하세요.');
   if(!tone.harmonic&&!NATURAL_HARMONICS[tone.fret])throw Error('자연 하모닉스는 3·4·5·7·9·12·16·19·24프렛에서 선택하세요.');
   return patchEvent(d,c.bar,c.event,{notes:event.notes.map(n=>n===tone?{...n,harmonic:!n.harmonic}:n)});
  }
@@ -27,7 +39,7 @@ export function setNoteConnection(d,c,kind){
  }
  if(kind==='tie'){
   if(event.tieTo)return patchEvent(d,c.bar,c.event,{tieTo:null});
-  const next=following??d.measures[c.bar+1]?.events[0],pitches=e=>e.notes.map(n=>`${n.string}:${n.fret}:${Boolean(n.harmonic)}`).sort().join('|');
+  const next=following??d.measures[c.bar+1]?.events[0],pitches=e=>e.notes.map(n=>isFretted(d.instrument)?`${n.string}:${n.fret}:${Boolean(n.harmonic)}`:String(n.midi)).sort().join('|');
   if(!next||next.rest||next.dead||pitches(event)!==pitches(next))throw Error('붙임줄은 바로 다음의 같은 줄·같은 음에 연결합니다.');
   return patchEvent(d,c.bar,c.event,{tieTo:next.id,technique:null});
  }
@@ -45,13 +57,13 @@ export function setNoteConnection(d,c,kind){
 // Older documents stored mute on the whole event. Preserve those marks on
 // each existing string before editing just one string.
 const stringTones=e=>e.dead?e.notes.map(n=>({...n,dead:n.dead??true})):e.notes;
-export function enterFret(d,c,fret){if(!Number.isInteger(fret)||fret<0||fret+(d.capo??0)>maxFret(d))throw Error(`카포 포함 실제 프렛은 ${maxFret(d)} 이하여야 합니다.`);return patchEvent(d,c.bar,c.event,e=>{const existing=stringTones(e),old=existing.find(n=>n.id===c.noteId&&n.unplaced)??existing.find(n=>n.string===c.string);const tone={...(old??{id:newId('tone')}),string:c.string,fret,locked:true};delete tone.dead;delete tone.spelling;delete tone.unplaced;delete tone.previousFingering;delete tone.outsidePreferred;if(old?.fret!==fret)delete tone.harmonic;const notes=e.rest?[tone]:old?existing.map(n=>n===old?tone:n):[...existing,tone];return {...e,dead:false,rest:false,blank:false,notes};});}
+export function enterFret(d,c,fret){if(!isFretted(d.instrument))throw Error('화면 건반 또는 드럼 패드로 입력하세요.');if(!Number.isInteger(fret)||fret<0||fret+(d.capo??0)>maxFret(d))throw Error(`카포 포함 실제 프렛은 ${maxFret(d)} 이하여야 합니다.`);return patchEvent(d,c.bar,c.event,e=>{const existing=stringTones(e),old=existing.find(n=>n.id===c.noteId&&n.unplaced)??existing.find(n=>n.string===c.string);const tone={...(old??{id:newId('tone')}),string:c.string,fret,locked:true};delete tone.dead;delete tone.spelling;delete tone.unplaced;delete tone.previousFingering;delete tone.outsidePreferred;if(old?.fret!==fret)delete tone.harmonic;const notes=e.rest?[tone]:old?existing.map(n=>n===old?tone:n):[...existing,tone];return {...e,dead:false,rest:false,blank:false,notes};});}
 export function enterMutedTone(d,c,duration='4'){
  // Replacing a fret with X never changes an already entered event's rhythm.
  const prepared=entryDocument(d,c,duration);
  return patchEvent(prepared,c.bar,c.event,e=>{
   const existing=stringTones(e),old=existing.find(n=>n.string===c.string);
-  const tone={...(old??{id:newId('tone'),fret:0}),string:c.string,locked:true,dead:true};delete tone.harmonic;
+  const tone={...(old??{id:newId('tone'),fret:0}),string:c.string,locked:true,dead:true};delete tone.harmonic;delete tone.bendEffect;
   const notes=e.rest?[tone]:old?existing.map(n=>n===old?tone:n):[...existing,tone];
   return {...e,dead:false,rest:false,blank:false,notes,...(notes.every(n=>n.dead)?{technique:null,tieTo:null}: {})};
  });
@@ -117,10 +129,10 @@ export function resolveFretInput(previous,key,location){
 }
 export function deleteTone(d,c){
  const event=d.measures[c.bar]?.events[c.event];
- const selected=n=>c.noteId&&event?.notes.some(t=>t.id===c.noteId)?n.id===c.noteId:n.string===c.string;
+ const selected=n=>!isFretted(d.instrument)?(c.noteId&&event?.notes.some(t=>t.id===c.noteId)?n.id===c.noteId:n.midi===(event?.notes.some(t=>t.midi===c.midi)?c.midi:event?.notes[0]?.midi)):c.noteId&&event?.notes.some(t=>t.id===c.noteId)?n.id===c.noteId:n.string===c.string;
  // Silence keeps its time slot. An untouched slot is not an editable rest.
  if(!event||isBlankEvent(event)||(!event.rest&&!event.notes.some(selected)))return d;
- let next=patchEvent(d,c.bar,c.event,e=>{const notes=e.rest?[]:e.notes.filter(n=>!selected(n));return {...e,notes,rest:!notes.length,blank:!notes.length,technique:notes.length?e.technique:null,...(!notes.length?{pickStroke:null,tieTo:null,dead:false,vibrato:false,palmMute:false,arpeggio:null}:{})};});
+ let next=patchEvent(d,c.bar,c.event,e=>{const notes=e.rest?[]:e.notes.filter(n=>!selected(n));return {...e,notes,rest:!notes.length,blank:!notes.length,technique:notes.length?e.technique:null,...(!notes.length?{pickStroke:null,tieTo:null,dead:false,vibrato:false,palmMute:false,arpeggio:null,letRing:false,slideOut:null}:{})};});
  if(!isBlankEvent(next.measures[c.bar].events[c.event]))return next;
  // Remove connections ending at the deleted sound, without moving any time slots.
  const previous=c.event?d.measures[c.bar].events[c.event-1]:d.measures[c.bar-1]?.events.at(-1);
@@ -128,7 +140,7 @@ export function deleteTone(d,c){
  return next;
 }
 export function moveFingering(d,c,direction){return patchEvent(d,c.bar,c.event,e=>{const tone=e.notes.find(n=>n.string===c.string);if(!tone)return e;const next=moveSamePitch(tone,direction,effectiveTuning(d));if(next.fret+(d.capo??0)>maxFret(d)||e.notes.some(n=>n!==tone&&n.string===next.string))return e;return {...e,notes:e.notes.map(n=>n===tone?next:n)};});}
-export function setRest(d,c){return patchEvent(d,c.bar,c.event,{rest:true,blank:false,notes:[],technique:null,pickStroke:null,tieTo:null,dead:false,vibrato:false,palmMute:false,arpeggio:null});}
+export function setRest(d,c){return patchEvent(d,c.bar,c.event,{rest:true,blank:false,notes:[],technique:null,pickStroke:null,tieTo:null,dead:false,vibrato:false,palmMute:false,arpeggio:null,letRing:false,slideOut:null});}
 export function durationStep(d,c,step){const values=['1','2','4','8','16'];const event=d.measures[c.bar].events[c.event];return setEventDuration(d,c,values[Math.max(0,Math.min(4,values.indexOf(event.duration)+step))]);}
 export function insertEvent(d,c,{duplicate=false,before=false}={}){const m=d.measures[c.bar],e=m.events[c.event];if(e.tuplet)throw Error('3연음 묶음 안에는 박을 삽입하지 않습니다.');if(m.events.length>=64)throw Error('한 마디에 최대 64개 박을 입력할 수 있습니다.');const length=ticksOf(e),at=c.event+(before?0:1),onset=e.onset+(before?0:length),added=duplicate?{...structuredClone(e),id:newId('event'),onset,notes:e.notes.map(n=>({...n,id:newId('tone')}))}:{...blankEvent(onset,e.duration),...(e.dotted?{dotted:true}:{})};const events=[...m.events.slice(0,at),added,...m.events.slice(at).map(n=>({...n,onset:n.onset+length}))];return {...d,measures:d.measures.map((bar,i)=>i===c.bar?{...bar,events}:bar)};}
 // Dragging is an explicit local edit, never a rerun of fingering generation.

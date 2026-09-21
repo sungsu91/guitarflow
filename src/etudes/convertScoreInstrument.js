@@ -1,5 +1,5 @@
 import {effectiveTuning,soundingMidi} from './scoreTuning.js';
-import {SCORE_INSTRUMENTS,scoreInstrument} from './scoreInstruments.js';
+import {SCORE_INSTRUMENTS,canonicalInstrument,normalizeInstrumentDocument,scoreInstrument,isFretted,validateInstrumentMidi} from './scoreInstruments.js';
 import {NATURAL_HARMONICS,fingeringCandidates} from './scoreModel.js';
 
 // Assign simultaneous pitches to distinct strings. A greedy assignment can
@@ -26,10 +26,23 @@ function assign(notes,source,target,where) {
 }
 
 export function convertScoreInstrument(document,id){
+  document=normalizeInstrumentDocument(document);id=canonicalInstrument(id);
   if(!Object.hasOwn(SCORE_INSTRUMENTS,id))throw Error('지원하지 않는 악기입니다.');
   if((document.instrument??'guitar')===id)return document;
+  if(document.instrument==='piano'&&document.measures.some(m=>m.events.some(e=>e.voice))){
+   const active=['right','left'].filter(hand=>document.measures.some(m=>m.events.some(e=>e.voice===hand&&!e.blank)));
+   if(active.length>1)throw Error('양손의 독립 리듬을 다른 악기의 단일 성부로 자동 변환하지 않습니다. 피아노 악보를 저장하고 새 악보로 시작하세요.');
+   const hand=active[0]??'right';document={...document,measures:document.measures.map(m=>({...m,events:m.events.filter(e=>e.voice===hand).map(({voice,...e})=>e)}))};
+  }
+  const hasNotes=document.measures.some(m=>m.events.some(e=>e.notes.length));
+  if(hasNotes&&(id==='drums'||document.instrument==='drums'))throw Error('음높이 악보와 드럼 리듬은 자동 변환하지 않습니다. 새 악보로 시작하세요.');
   const target=scoreInstrument(id).tuning,next=structuredClone(document),source=effectiveTuning(document);
   next.instrument=id;next.tuning=[...target];next.capo=0;
+  next.viewSettings={...next.viewSettings,notationView:isFretted(id)?(isFretted(document.instrument)?next.viewSettings?.notationView??'tab':'both'):'staff'};
+  if(!isFretted(id)){
+   if(document.measures.some(m=>m.events.some(e=>e.letRing||e.slideOut||e.notes.some(n=>n.bendEffect||n.parenthesized))))throw Error('열린 붙임줄·슬라이드 아웃·벤드·괄호 표시는 현악기 전용입니다. 먼저 해제한 뒤 악기를 변경하세요.');
+   next.measures.forEach(bar=>{if(bar.chord)bar.harmony=bar.chord.name;bar.chord=null;bar.events.forEach(e=>{e.notes=e.notes.map(n=>{const midi=soundingMidi(document,n);validateInstrumentMidi(id,midi);if(n.dead||e.dead)throw Error('뮤트음은 음높이로 변환할 수 없습니다.');return {id:n.id,midi,...(id==='drums'?{}:{hand:n.hand??(midi<60?'left':'right')})};});Object.assign(e,{technique:null,pickStroke:null,palmMute:false,vibrato:false,arpeggio:null});});});return next;
+  }
   next.measures.forEach((bar,b)=>{
     bar.events.forEach((event,i)=>{event.notes=assign(event.notes.map(n=>({...n,midi:soundingMidi(document,n),dead:n.dead??event.dead})),source,target,`${b+1}마디 ${i+1}음`);});
     if(bar.chord){

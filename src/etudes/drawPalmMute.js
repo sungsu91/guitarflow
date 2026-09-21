@@ -1,21 +1,15 @@
-export function drawPalmMute(svg,events,notes,stave,{staff=false,headroom=0}={}){
- const ns='http://www.w3.org/2000/svg',groups=[];let group=[];
- events.forEach((event,i)=>{if(event.rest||!event.palmMute){if(group.length)groups.push(group);group=[];}else group.push(i);});if(group.length)groups.push(group);
- return groups.map(indices=>{
-  const g=document.createElementNS(ns,'g'),first=indices[0],last=indices.at(-1);
+export function drawPalmMute(svg,events,notes,stave,{staff=false,headroom=0,bar=0}={}){
+ const ns='http://www.w3.org/2000/svg';
+ return events.flatMap((event,i)=>{
+  if(event.rest||!event.palmMute)return [];
+  const g=document.createElementNS(ns,'g');
   g.setAttribute('class',`${staff?'fretiva-staff-view':'fretiva-tab-view'} scorePalmMute`);
-  g.dataset.palmMuteEvents=indices.join(',');g.setAttribute('aria-label','P.M. 팜 뮤트');
-  const x=notes[first].getAbsoluteX()-8,y=stave.getYForLine(0)-(staff?headroom+28:14);
+  g.dataset.rhythmEvents=bar+':'+i;g.dataset.palmMuteEvents=String(i);g.setAttribute('aria-label','P.M. 팜 뮤트');
+  // Keep TAB P.M. close to this note's highest fret, not the top of the staff.
+  const x=notes[i].getStemX(),y=staff?stave.getYForLine(0)-headroom-28:Math.min(...notes[i].getYs())-12;
   const label=document.createElementNS(ns,'text');
-  Object.entries({x,y,'font-family':'Arial','font-size':14,'font-weight':700,fill:'#171717'}).forEach(([k,v])=>label.setAttribute(k,String(v)));
-  // Keep the label legible where optional upper TAB stems pass through it.
-  if(!staff){label.setAttribute('stroke','white');label.setAttribute('stroke-width','3');label.setAttribute('paint-order','stroke');}
-  label.textContent='P.M.';g.append(label);
-  const end=notes[last].getAbsoluteX()+12;
-  if(indices.length>1&&end>x+36){
-   const path=document.createElementNS(ns,'path');Object.entries({d:`M ${x+34} ${y-4} H ${end}`,fill:'none',stroke:'#171717','stroke-width':1,'stroke-dasharray':'4 3'}).forEach(([k,v])=>path.setAttribute(k,String(v)));g.append(path);
-   const cap=document.createElementNS(ns,'path');cap.setAttribute('d',`M ${end} ${y-4} v 5`);cap.setAttribute('stroke','#171717');g.append(cap);
-  }
-  svg.append(g);return {x,y:y-12,width:Math.max(32,end-x),height:16};
+  Object.entries({x,y,'text-anchor':'middle','font-family':'Arial','font-weight':600,'font-size':11,'font-weight':600,fill:'#171717',stroke:'none'}).forEach(([k,v])=>label.setAttribute(k,String(v)));
+  label.textContent='P.M.';g.append(label);svg.append(g);
+  return [{x:x-12,y:y-12,width:24,height:16}];
  });
 }

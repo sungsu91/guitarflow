@@ -1,3 +1,5 @@
+import ShooterGameOver from './shooter/results/ShooterGameOver.jsx';
+import ShooterShareButton from './shooter/results/ShooterShareButton.jsx';
 import GroovePacks from './metronome/GroovePacks.jsx';
 import GrooveEditor, { MetronomeDockHandle } from './metronome/GrooveEditor.jsx';
 import { createGroovePattern, scheduleGrooveStep, createGrooveVoiceState, normalizeGroovePattern, createGrooveStore } from './metronome/groove.js';
@@ -55,6 +57,7 @@ import { acquireMicInput } from "./audio/micInputEngine";
 import { installMicForegroundRecovery } from "./audio/micForegroundRecovery.js";
 import { MIC_INPUT_PRESETS } from "./audio/micInputPresets";
 import { playGuitarPositions } from "./audio/fretboardPreviewEngine";
+import { VIEWER_CHORD_SAMPLES, getViewerChordSample, loadViewerChordSample, playViewerChordSample } from "./audio/viewerChordSamples.js";
 import {
   AUDIO_BUS_IDS,
   getAudioBusInput,
@@ -13761,7 +13764,7 @@ const HELP_GUIDE_SECTIONS = [
         </div>
         <ul className="helpFactList">
           <li><b>연습 유형</b>을 고르고 이전·다음 버튼으로 곡을 바꿉니다. <b>TIP · 연습 방법</b>에서 목표, 준비 사항과 연습 순서를 확인하세요.</li>
-          <li>오선보·TAB과 재생 위치를 보며 천천히 따라 연주합니다. <b>진행 따라가기 패턴</b>은 줄·마디전환·운지·끔 중에서 고를 수 있습니다.</li>
+          <li>오선보·TAB과 재생 위치를 보며 천천히 따라 연주합니다. <b>화면 따라가기</b>는 줄·마디전환·끔 중에서 고르고, <b>리듬 진행바</b>는 별도로 켜거나 끌 수 있습니다.</li>
           <li>직접 저장한 편집 악보는 <b>내 저장 악보</b>에서 다시 선택해 연습할 수 있습니다. 악보 재생은 마이크를 이용한 자동 채점이 아닙니다.</li>
         </ul>
       </>
@@ -19939,14 +19942,37 @@ function App({ onReady }) {
     }, { updateHistory: false });
   }, [requestNavigationCommit]);
 
+  const viewerSample = getViewerChordSample(viewerChordRoot, viewerChordQuality, viewerChordExtension);
+  const viewerSoundRequestRef = useRef(0);
+  const viewerSampleStopRef = useRef(null);
+  useEffect(() => () => {
+    viewerSoundRequestRef.current += 1;
+    viewerSampleStopRef.current?.();
+    viewerSampleStopRef.current = null;
+  }, [appMode, viewerMode, viewerChordRoot, viewerChordQuality, viewerChordExtension, viewerChordPosition]);
+
   const handleViewerChordSound = useCallback(async (event) => {
     const chordNotes = viewerCurrentChordPosition?.notes ?? [];
     if (!chordNotes.length) return;
     triggerChordSoundFeedback(event.currentTarget);
+    const request = ++viewerSoundRequestRef.current;
+    viewerSampleStopRef.current?.();
+    viewerSampleStopRef.current = null;
 
     const ready = await ensureAudioReady();
     const audio = audioRef.current;
-    if (!ready || !audio) return;
+    if (!ready || !audio || request !== viewerSoundRequestRef.current) return;
+    if (viewerSample) {
+      try {
+        const buffer = await loadViewerChordSample(audio, viewerSample);
+        if (request !== viewerSoundRequestRef.current) return;
+        viewerSampleStopRef.current = playViewerChordSample(audio, buffer, viewerSample);
+        return;
+      } catch (error) {
+        console.warn("Original chord recording unavailable; using guitar synthesis.", error);
+        if (request !== viewerSoundRequestRef.current) return;
+      }
+    }
     playGuitarPositions(audio, chordNotes, {
       attackSeconds: 0.0075,
       duration: 2.65,
@@ -19955,7 +19981,7 @@ function App({ onReady }) {
       velocityVariation: 0.13,
       volume: 0.46,
     });
-  }, [ensureAudioReady, viewerChordStringStates, viewerCurrentChordPosition]);
+  }, [ensureAudioReady, viewerChordStringStates, viewerCurrentChordPosition, viewerSample]);
 
   const ensureMetronomeOutput = useCallback((audio) => {
     if (!audio) return false;
@@ -30437,6 +30463,7 @@ function App({ onReady }) {
                 </div>
                 <span className="utilityMenuChevron" aria-hidden="true"><ChevronRight size={20} /></span>
               </a>
+              <ShooterShareButton menu score={appMode === APP_MODES.SHOOTER ? score : shooterRecords.recent[0]?.score ?? 0} bestScore={shooterRecords.best.score} />
             </nav>
             <p className="utilityMenuVersion" aria-label={`앱 ${APP_VERSION_LABEL}`}>
               FRETIVA LAB {APP_VERSION_LABEL}
@@ -32385,7 +32412,7 @@ function App({ onReady }) {
                         전체보기
                       </button>
                       <button
-                        aria-label={`${viewerMapTitle} 현재 운지 소리 듣기`}
+                        aria-label={`${viewerMapTitle} ${viewerSample ? "원본 녹음" : "현재 운지"} 소리 듣기`}
                         aria-pressed={false}
                         className="viewerChordSoundButton"
                         disabled={!viewerCurrentChordPosition?.notes?.length}
@@ -32567,6 +32594,16 @@ function App({ onReady }) {
 
           </div>
 
+          {viewerMode === FRETBOARD_VIEWER_MODES.CHORD ? (
+            <details className="viewerSampleCredits">
+              <summary>기타 음원 · BiblicalBricksProductions · CC BY 3.0</summary>
+              <p>C–B 기본 장조는 원본 녹음입니다. 운지 구간별 음 배치는 다를 수 있습니다. 그 외 코드는 현재 운지를 합성해 재생합니다.</p>
+              <p><a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noreferrer">Creative Commons Attribution 3.0</a> · 원본 파일 보존 · 재생 시 앞부분 준비 구간 생략</p>
+              <p>{Object.entries(VIEWER_CHORD_SAMPLES).map(([root, sample]) => (
+                <a key={root} href={sample.source} target="_blank" rel="noreferrer">{sample.title} </a>
+              ))}</p>
+            </details>
+          ) : null}
           {fretboardCatalogReady ? (
             <Activity mode={getModeActivityState(viewerMode, FRETBOARD_VIEWER_MODES.CHORD)}>
               <section
@@ -33981,7 +34018,7 @@ function App({ onReady }) {
               </div>
             ) : null}
             {gameState !== GAME_STATES.PLAYING && !(isMobileLayout && shooterGuitarPickerOpen) && (
-              <div className={`shooterCenterStatus ${gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterCenterStatus--startMenu" : ""} ${gameState === GAME_STATES.PAUSED ? "shooterCenterStatus--pauseMenu" : ""} ${classNameFromLabel(feedback)} ${gameState === GAME_STATES.GAMEOVER ? "gameOver" : ""} ${gameState === GAME_STATES.GAMEOVER && horizontalShooterActive ? "desktopHorizontalResultReceipt" : ""}`}>
+              <div className={gameState === GAME_STATES.GAMEOVER ? "shooterResultHost" : `shooterCenterStatus ${gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterCenterStatus--startMenu" : ""} ${gameState === GAME_STATES.PAUSED ? "shooterCenterStatus--pauseMenu" : ""} ${classNameFromLabel(feedback)} ${gameState === GAME_STATES.GAMEOVER ? "gameOver" : ""} ${gameState === GAME_STATES.GAMEOVER && horizontalShooterActive ? "desktopHorizontalResultReceipt" : ""}`}>
                 {gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? (
                   <div
                     className={`shooterStartPanel ${mapEditor.available ? "shooterStartPanel--withMapEdit" : ""}`}
@@ -34096,89 +34133,12 @@ function App({ onReady }) {
                     </button>
                   </div>
                 ) : (
-                  <>
-                    <strong>
-                      {gameState === GAME_STATES.GAMEOVER
-                        ? "게임 오버"
-                        : gameState === GAME_STATES.PAUSED
-                          ? "일시정지"
-                          : t(feedback)}
-                    </strong>
-                    {gameState === GAME_STATES.GAMEOVER && horizontalShooterActive ? (
-                      <div className="desktopHorizontalGameOverStats" aria-label="가로 슈팅게임 최종 결과">
-                        <span>
-                          <small>SCORE</small>
-                          <b>{score.toLocaleString()}</b>
-                        </span>
-                        <span>
-                          <small>COMBO</small>
-                          <b>{maxCombo}</b>
-                        </span>
-                        <span>
-                          <small>BEST</small>
-                          <b>{Math.max(score, Number(shooterRecords.best.score || 0)).toLocaleString()}</b>
-                        </span>
-                      </div>
-                    ) : null}
-                    {gameState === GAME_STATES.GAMEOVER && !horizontalShooterActive ? <span></span> : null}
-                    <button
-                      className={`mobileShooterStartButton primary ${gameState === GAME_STATES.GAMEOVER && horizontalShooterActive ? "desktopHorizontalRestartNow" : ""}`}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        startShooter();
-                      }}
-                      type="button"
-                    >
-                      <Play size={18} />
-                      {gameState === GAME_STATES.PAUSED
-                        ? "계속"
-                        : gameState === GAME_STATES.GAMEOVER && horizontalShooterActive
-                          ? "바로 시작"
-                          : "시작"}
-                    </button>
-                    {gameState !== GAME_STATES.PAUSED && !(gameState === GAME_STATES.GAMEOVER && horizontalShooterActive) && (
-                      <small className="shooterPlayerSelectedLabel">
-                        {selectedGuitar.title}
-                      </small>
-                    )}
-                    {gameState !== GAME_STATES.PAUSED && !(gameState === GAME_STATES.GAMEOVER && horizontalShooterActive) && (
-                      <button
-                        className="mobileShooterStartButton"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setShooterPickerInitialTab("guitar");
-                        setShooterGuitarPickerOpen(true);
-                        }}
-                        type="button"
-                      >
-                        스킨변경
-                      </button>
-                    )}
-                    {gameState === GAME_STATES.PAUSED && (
-                      <button
-                        className="mobileShooterStartButton"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          stopPracticeSession();
-                        }}
-                        type="button"
-                      >
-                        RESET
-                      </button>
-                    )}
-                    {gameState === GAME_STATES.GAMEOVER && (
-                      <button
-                        className="mobileShooterStartButton"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          stopPracticeSession();
-                        }}
-                        type="button"
-                      >
-                        RESET
-                      </button>
-                    )}
-                  </>
+                  <ShooterGameOver
+                    score={score}
+                    bestScore={shooterRecords.best.score}
+                    onRestart={() => startShooter()}
+                    onExit={showMainMenu}
+                  />
                 )}
               </div>
             )}

@@ -1,14 +1,13 @@
 const FOLLOW_PATTERNS = [
   ['line', '줄'],
   ['page', '마디전환'],
-  ['fingering', '운지'],
   ['off', '끔'],
 ];
 
-export default function FollowPatternControl({ value, onChange }) {
+export default function FollowPatternControl({ value, onChange, rhythm = true, onRhythmChange }) {
   return <div className="etudeFollowPattern">
-    <span>진행 따라가기 패턴</span>
-    <div role="group" aria-label="진행 따라가기 패턴">
+    <span>화면 따라가기</span>
+    <div role="group" aria-label="화면 따라가기">
       {FOLLOW_PATTERNS.map(([next, label]) => <button
         key={next}
         type="button"
@@ -16,5 +15,6 @@ export default function FollowPatternControl({ value, onChange }) {
         onClick={() => onChange(next)}
       >{label}</button>)}
     </div>
+    {onRhythmChange&&<label className="etudeRhythmToggle"><input type="checkbox" checked={rhythm} onChange={e=>onRhythmChange(e.target.checked)}/>리듬 진행바</label>}
   </div>;
 }

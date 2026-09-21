@@ -258,6 +258,16 @@ html body #root .app.viewport-mobile-surface .backingLoopMiniPlayer--mobile {
   grid-template-rows:minmax(29px,auto) 14px 40px!important;
   padding:6px 8px 5px!important;
 }
+html body #root .app.viewport-mobile-surface .etudeBackingDrawer .backingLoopPanel--mobile {
+  grid-template-rows:110px 45px!important;
+  height:173px!important;
+  min-height:173px!important;
+}
+html body #root .app.viewport-mobile-surface .etudeBackingDrawer .backingLoopMiniPlayer--mobile {
+  height:110px!important;
+  min-height:110px!important;
+  padding:6px 8px 13px!important;
+}
 html body #root .desktopLayout .app .backingLoopPanel--desktop .backingLoopMiniPlayer--desktop {
   grid-template-columns:minmax(0,1fr)!important;
   grid-template-rows:minmax(28px,auto) 14px 40px!important;
@@ -279,6 +289,15 @@ html body #root .app :is(.backingLoopTrackBadge,.backingLoopPlayerPlayButton) {
 }
 html body #root .app .backingLoopPlayerIconButton { background:transparent!important;border:0!important;box-shadow:none!important; }
 html body #root .app .backingLoopPlayerIconButton.active { color:var(--studio-accent)!important; }
+/* Repeat and shuffle are unlit until their playback mode is enabled. */
+html body #root .app .backingLoopMiniPlayer :is(.backingLoopRepeatButton,.backingLoopShuffleButton)[aria-pressed="false"] {
+  color:var(--studio-player-text)!important;
+  opacity:.38!important;
+}
+html body #root .app .backingLoopMiniPlayer :is(.backingLoopRepeatButton,.backingLoopShuffleButton)[aria-pressed="true"] {
+  color:#e5bb70!important;
+  opacity:1!important;
+}
 html body #root .app .backingLoopMainControls {
   background:transparent!important;border:1px solid var(--studio-border)!important;border-radius:7px!important;box-shadow:none!important;
 }
@@ -504,6 +523,89 @@ html body #root .app .grooveToolbar .grooveStrengthSelect {
   padding:2px 17px 2px 4px!important;
 }
 html body #root .app .grooveStrengthControl:focus-within { border-color:var(--studio-accent)!important; }
+/* Keep each label outside its select and fit all six mobile controls on one row. */
+html body #root .app .grooveToolbar .grooveStrengthControl {
+  gap:3px!important;padding:0!important;margin:0!important;border:0!important;
+  background:transparent!important;box-shadow:none!important;
+}
+html body #root .app .grooveToolbar .grooveStrengthControl::after { right:8px; }
+html body #root .app .grooveToolbar .grooveStrengthSelect {
+  box-sizing:border-box!important;width:53px!important;min-width:53px!important;
+  flex:0 0 53px!important;border:1px solid var(--studio-divider)!important;
+  border-radius:6px!important;padding:2px 15px 2px 5px!important;
+}
+html body #root .app .grooveToolbar .grooveStrengthSelect:focus-visible {
+  outline:2px solid var(--studio-accent)!important;outline-offset:1px;
+}
+html body #root .app .grooveEditor--mobile .grooveToolbar {
+  box-sizing:border-box!important;
+  flex-wrap:nowrap!important;justify-content:space-between!important;gap:3px!important;
+}
+html body #root .app .grooveToolbar > .grooveRowLabel {
+  flex:0 0 auto;white-space:nowrap;color:var(--studio-muted);font-size:11px;
+}
+html body #root .app .grooveEditor--mobile .grooveToolbar > button {
+  box-sizing:border-box!important;flex:1 1 0!important;min-width:0!important;
+  min-height:34px!important;height:34px!important;padding:2px 3px!important;
+  font-size:11px!important;
+}
+html body #root .app .grooveEditor--mobile .grooveToolbar > button:last-child {
+  flex-grow:1.2!important;
+}
+/* Pinch enlarges the editor grid while the toolbar and page remain at normal size. */
+html body #root .app .grooveEditor--mobile .grooveGridViewport {
+  grid-template-columns:calc(var(--groove-label-width) * var(--groove-zoom)) minmax(0,1fr);
+  touch-action:pan-x pan-y;
+}
+html body #root .app .grooveEditor--mobile .grooveTrackRailHeader {
+  height:calc(23px * var(--groove-zoom));
+}
+html body #root .app .grooveEditor--mobile .grooveTrackRail .grooveTrackName,
+html body #root .app .grooveEditor--mobile .grooveTrack {
+  height:calc(40px * var(--groove-zoom));
+  min-height:calc(40px * var(--groove-zoom));
+}
+html body #root .app .grooveEditor--mobile .grooveTrackRail .grooveTrackName select {
+  height:calc(32px * var(--groove-zoom))!important;
+  font-size:calc(11px * var(--groove-zoom))!important;
+}
+/* Custom tone buttons retain the compact size of the original selects. */
+html body #root .app .grooveEditor--mobile .grooveTrackRail .grooveToneTrigger {
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  height:calc(32px * var(--groove-zoom,1))!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:2px 6px!important;
+  font-size:calc(11px * var(--groove-zoom,1))!important;
+  line-height:1.2!important;
+  border:1px solid var(--studio-border)!important;
+  border-radius:7px!important;
+  background:color-mix(in srgb,var(--studio-control) 82%,var(--studio-warm))!important;
+  color:var(--studio-text)!important;
+  box-shadow:none!important;
+  transform:none!important;
+}
+html body #root .app .grooveEditor--mobile .grooveTrackRail .grooveTrackName::after {
+  content:none!important;
+}
+html body #root .app .grooveEditor--mobile .grooveTrackHeader {
+  height:calc(23px * var(--groove-zoom));padding-bottom:calc(5px * var(--groove-zoom));
+  box-sizing:border-box;
+}
+html body #root .app .grooveEditor--mobile .grooveLabels {
+  font-size:calc(10px * var(--groove-zoom))!important;
+}
+html body #root .app .grooveEditor--mobile .grooveBeat button {
+  height:calc(34px * var(--groove-zoom))!important;
+}
+html body #root .app .grooveEditor--mobile .grooveBeat button i {
+  max-width:calc(24px * var(--groove-zoom))!important;
+}
+html body #root .app .grooveEditor--mobile .grooveGrid--tracks .groovePlayTrack {
+  top:calc(23px * var(--groove-zoom));
+}
 html body #root .app .grooveModeSelector > .groovePacksTrigger {
   display:inline-flex!important;align-items:center!important;gap:4px!important;
 }
@@ -711,4 +813,14 @@ html body #root .app .chordTransitionPanel .stage3MetronomeSoundToggle[aria-pres
   html body #root .app.viewport-mobile-surface .grooveModeSelector { gap:4px!important; }
 }
 
+}
+
+@layer rhythm-surfaces {
+/* The score drawer drag target is not a generic light-theme button. */
+html body #root .app .etudeBackingDrawer .backingLoopTrackInfo.is-drag-handle {
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  color:var(--studio-player-text)!important;
+}
 }

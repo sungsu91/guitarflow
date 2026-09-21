@@ -2,7 +2,7 @@
 // This affects engraving only; every sounding pitch remains in the score data.
 export function tabPositions(event,stringCount){
  const tones=event.tones??[event];
- const positions=tones.filter(t=>!t.unplaced).map(t=>({str:t.string,fret:(t.dead??event.dead)?'X':t.harmonic?`<${t.fret}>`:t.fret}));
+ const positions=tones.filter(t=>!t.unplaced).map(t=>{const fret=(t.dead??event.dead)?'X':t.harmonic?`<${t.fret}>`:t.fret;return {str:t.string,fret:t.parenthesized?`(${fret})`:fret};});
  if(tones.some(t=>t.unplaced)){
   const free=Array.from({length:stringCount},(_,i)=>i+1).filter(str=>!positions.some(p=>p.str===str));
   const middle=(stringCount+1)/2;
