@@ -1,5 +1,9 @@
 export const SHOOTER_SHARE_URL = 'https://guitarflow.vercel.app/#shooter';
 const points = value => Math.max(0, Math.floor(Number(value) || 0));
+export function usesMobileImageSharing(nav = navigator) {
+  return /Android|iPad|iPhone|iPod/i.test(nav.userAgent || '')
+    || (nav.platform === 'MacIntel' && nav.maxTouchPoints > 1);
+}
 export function shooterShareResult(score, bestScore) {
   const value = points(score);
   return {score:value, bestScore:Math.max(value, points(bestScore)), title:'FRETIVA LAB · 슈팅게임',
@@ -33,7 +37,10 @@ export async function shareShooterResult(result, file, nav = navigator) {
     let filesSupported=false;
     try{filesSupported=Boolean(file && nav.canShare?.({files:[file]}));}catch{/* Use text sharing. */}
     try{
-      await nav.share(filesSupported?{...textData,files:[file]}:textData);
+      // Mobile share sheets can show a generic preview for mixed image/link items.
+      // Use a single image on Android and iOS; the UI exposes a separate link action.
+      const fileData = usesMobileImageSharing(nav) ? {files:[file]} : {...textData,files:[file]};
+      await nav.share(filesSupported?fileData:textData);
       return 'shared';
     }catch(error){
       if(error?.name==='AbortError')return 'cancelled';

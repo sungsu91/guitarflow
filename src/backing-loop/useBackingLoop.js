@@ -58,6 +58,8 @@ import {
   prepareImportedBackingAudioSources,
 } from "./backingAudioSource";
 import { isBackingPlaybackSourceReady } from "./backingPlaybackSource.js";
+import {isGrooveBackingId, listGrooveBackingSources, loadGrooveBackingSource} from './grooveBackingSource.js';
+import {subscribeGroovePacks} from '../metronome/groovePackLibrary.js';
 import {
   BACKING_LOOP_DEFAULT_TITLE,
   createBackingLoopId,
@@ -366,10 +368,8 @@ export default function useBackingLoop(ownerMode = "") {
       ]);
       const savedRecordings = backingResult.status === "fulfilled" ? backingResult.value : [];
       const studioMixes = studioResult.status === "fulfilled" ? studioResult.value : [];
-      if (backingResult.status === "rejected" && studioResult.status === "rejected") {
-        throw new Error("AUDIO_LIBRARY_UNAVAILABLE");
-      }
-      return [...studioMixes, ...savedRecordings]
+
+      return [...listGrooveBackingSources(), ...studioMixes, ...savedRecordings]
         .sort((left, right) => right.updatedAt - left.updatedAt);
     };
     const applyLibrary = (showStorageNotice = false) => refreshLibrary(showStorageNotice)
@@ -385,6 +385,7 @@ export default function useBackingLoop(ownerMode = "") {
       });
     const unsubscribeBacking = subscribeBackingLoopLibrary(() => applyLibrary(false));
     const unsubscribeStudio = subscribeAudioStudioBackingSources(() => applyLibrary(false));
+    const unsubscribeGrooves = subscribeGroovePacks(() => applyLibrary(false));
     applyLibrary(true);
 
     return () => {
@@ -392,6 +393,7 @@ export default function useBackingLoop(ownerMode = "") {
       mountedRef.current = false;
       unsubscribeBacking();
       unsubscribeStudio();
+      unsubscribeGrooves();
     };
   }, []);
 
@@ -409,6 +411,22 @@ export default function useBackingLoop(ownerMode = "") {
   useEffect(() => {
     libraryRef.current = library;
   }, [library]);
+
+  useEffect(() => {
+    if (!libraryHydrated || phase === 'loading' || recording?.sourceType !== BACKING_AUDIO_SOURCE_TYPES.GROOVE) return;
+    const source = listGrooveBackingSources().find(item => item.id === recording.id);
+    if (source?.grooveRevision === recording.grooveRevision) return;
+    resetAudioPosition();
+    setRecording(null);
+    setEditSourceRecording(null);
+    setEditSourceAudioData(null);
+    setRecordingAudioData(null);
+    playlistAutoplayRef.current = false;
+    playlistPlaybackRef.current = {itemId: '', playlistId: ''};
+    setPlaylistPlaybackActive(false);
+    setPhaseImmediate('idle');
+    setNotice(source ? '그루브팩이 변경됐어요. 다시 재생하면 최신 패턴과 BPM으로 재생됩니다.' : '원본 그루브팩이 삭제됐어요.');
+  }, [library, libraryHydrated, phase, recording, resetAudioPosition, setPhaseImmediate]);
 
   useEffect(() => {
     if (!libraryHydrated) return;
@@ -872,6 +890,7 @@ export default function useBackingLoop(ownerMode = "") {
   }, [recording?.blob, resetAudioPosition, setPhaseImmediate]);
 
   const openSaveDialog = useCallback(() => {
+    if (recording?.sourceType === BACKING_AUDIO_SOURCE_TYPES.GROOVE) return;
     if (!recording?.blob || ["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading", "playing"].includes(phaseRef.current)) return;
     setSaveError("");
     setTitleDraft(recording.title === BACKING_LOOP_DEFAULT_TITLE ? "" : recording.title);
@@ -1042,6 +1061,7 @@ export default function useBackingLoop(ownerMode = "") {
   }, [libraryEditMode, pausePlayback, recording?.id, selectedLibraryId, selectedLibraryIds]);
 
   const openTrimEditor = useCallback(async () => {
+    if (recording?.sourceType === BACKING_AUDIO_SOURCE_TYPES.GROOVE) return;
     if (!recording?.blob || ["armed", "recording", "requesting", "processing", "trimming", "applying", "saving", "loading"].includes(phaseRef.current)) return;
     const operationVersion = ++operationVersionRef.current;
     resetAudioPosition();
@@ -1389,26 +1409,14 @@ export default function useBackingLoop(ownerMode = "") {
     setSelectedLibraryIds([]);
   }, [playlistLibraryTargetId]);
 
-  const addSelectedLibraryToPlaylist = useCallback(() => {
-    const selectedIds = selectedLibraryIds;
-    if (!selectedIds.length) return;
-    const currentState = playlistStateRef.current;
-    const targetPlaylist = getBackingPlaylistById(currentState, playlistLibraryTargetId)
-      || getActiveBackingPlaylist(currentState);
-    const existingIds = new Set(targetPlaylist.itemIds);
-    const addedIds = selectedIds.filter((id) => !existingIds.has(id));
-    commitPlaylistState((state) => addBackingPlaylistItems(state, targetPlaylist.id, selectedIds));
-    if (targetPlaylist.id === currentState.currentQueue.id) {
-      setSelectedQueueItemIds(addedIds);
-    } else {
-      setSelectedSavedItemIds(addedIds);
-    }
-    setSelectedLibraryIds([]);
+  const addGrooveToPlaylist = useCallback((id) => {
+    if (!listGrooveBackingSources().some(item => item.id === id)) return;
+    const target = getBackingPlaylistById(playlistStateRef.current, playlistLibraryTargetId)
+      || getActiveBackingPlaylist(playlistStateRef.current);
+    commitPlaylistState(state => addBackingPlaylistItems(state, target.id, [id]));
+    setNotice('그루브팩을 연결했어요. 원본 팩의 패턴과 BPM을 공유합니다.');
     setPlaylistLibraryPickerOpen(false);
-    setNotice(addedIds.length
-      ? `${addedIds.length}개 음원을 “${targetPlaylist.title}”에 추가했어요.`
-      : `선택한 음원은 이미 “${targetPlaylist.title}”에 있어요.`);
-  }, [commitPlaylistState, playlistLibraryTargetId, selectedLibraryIds]);
+  }, [commitPlaylistState, playlistLibraryTargetId]);
 
   const saveCurrentPlaylist = useCallback(() => {
     const saveTarget = playlistStateRef.current.savedPlaylists.find((playlist) => playlist.id === playlistSaveTargetId);
@@ -1587,6 +1595,7 @@ export default function useBackingLoop(ownerMode = "") {
   }, [dialog, playlistDeleteTargetId, playlistItemsDeleteTargetId, useOriginalTrimRecording]);
 
   const confirmSave = useCallback(async () => {
+    if (recording?.sourceType === BACKING_AUDIO_SOURCE_TYPES.GROOVE) return;
     if (!recording?.blob || phaseRef.current === "saving") return;
     const title = normalizeBackingLoopTitle(titleDraft);
     if (!title) {
@@ -1640,7 +1649,9 @@ export default function useBackingLoop(ownerMode = "") {
     resetAudioPosition();
     try {
       const inMemoryRecording = libraryRef.current.find((item) => item.id === id);
-      const savedRecording = (isAudioStudioLibraryId(id)
+      const savedRecording = (isGrooveBackingId(id)
+        ? await loadGrooveBackingSource(id)
+        : isAudioStudioLibraryId(id)
         ? await loadAudioStudioBackingSource(id).catch(() => null)
         : await loadBackingLoopRecording(id).catch(() => null)) || (inMemoryRecording?.blob ? inMemoryRecording : null);
       if (!mountedRef.current) return;
@@ -2033,7 +2044,7 @@ export default function useBackingLoop(ownerMode = "") {
 
   return {
     activePlaylist,
-    addSelectedLibraryToPlaylist,
+    addGrooveToPlaylist,
     applyTrim,
     audioRef,
     audioUrl,
@@ -2055,6 +2066,7 @@ export default function useBackingLoop(ownerMode = "") {
     handleLoadedMetadata,
     handlePlaybackEnded,
     hasRecording,
+    isGroove: recording?.sourceType === BACKING_AUDIO_SOURCE_TYPES.GROOVE,
     importAccept: BACKING_AUDIO_FILE_ACCEPT,
     importBackingAudio,
     importCandidates,

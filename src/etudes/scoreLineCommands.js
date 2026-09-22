@@ -1,15 +1,15 @@
-import {newId,patchEvent} from './scoreModel.js';
+import {newId,patchEvent,isBlankEvent} from './scoreModel.js';
 import {nextEntry,setEventDuration} from './editorCommands.js';
 
-const cleared={technique:null,tieTo:null,pickStroke:null,dead:false,vibrato:false,palmMute:false,arpeggio:null};
+const cleared={technique:null,tieTo:null,slurTo:null,pickStroke:null,dead:false,vibrato:false,palmMute:false,arpeggio:null};
 // Replacing a vertical grip invalidates ties/legato into that position, but
 // does not remove rhythmic slots or shift any following music.
 function disconnectIncoming(d,c){
  const target=d.measures[c.bar].events[c.event],previous=c.event?d.measures[c.bar].events[c.event-1]:d.measures[c.bar-1]?.events.at(-1);
  let next=d;
  d.measures.forEach((bar,b)=>bar.events.forEach((e,i)=>{
-  const tie=e.tieTo===target.id,legato=e===previous&&e.technique;
-  if(tie||legato)next=patchEvent(next,b,i,{...(tie?{tieTo:null}:{}),...(legato?{technique:null}:{})});
+  const tie=e.tieTo===target.id,slur=e.slurTo===target.id,legato=e===previous&&e.technique;
+  if(tie||slur||legato)next=patchEvent(next,b,i,{...(tie?{tieTo:null}:{}),...(slur?{slurTo:null}:{}),...(legato?{technique:null}:{})});
  }));return next;
 }
 export function copyGripToNext(d,c){
@@ -25,6 +25,6 @@ export function copyGripToNext(d,c){
  return {document,cursor:{...next.cursor,target:undefined},replaced:!target.rest&&target.notes.length>0};
 }
 export function deleteGrip(d,c){
- const event=d.measures[c.bar]?.events[c.event];if(!event||(!event.lowerRest&&(event.rest||!event.notes.length)))return d;
+ const event=d.measures[c.bar]?.events[c.event];if(!event||(!event.lowerRest&&isBlankEvent(event)))return d;
  return patchEvent(disconnectIncoming(d,c),c.bar,c.event,{...cleared,notes:[],rest:true,blank:true,lowerRest:false});
 }

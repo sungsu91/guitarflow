@@ -1,9 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createBlankDocument,compileDocumentV2,blankMeasure} from '../src/etudes/scoreModel.js';
-import {enterFretWithDuration,setEventDuration} from '../src/etudes/editorCommands.js';
+import {enterFretWithDuration,setEventDuration,setRestWithDuration} from '../src/etudes/editorCommands.js';
 import {copyGripToNext,deleteGrip} from '../src/etudes/scoreLineCommands.js';
 const c={bar:0,event:0,string:6};
+test('line deletion clears an entered rest while preserving its time slot',()=>{
+ const d=setRestWithDuration(createBlankDocument(),c,'8'),before=structuredClone(d);
+ const next=deleteGrip(d,c);
+ assert.equal(next.measures[0].events[0].blank,true);
+ assert.equal(next.measures[0].events[0].duration,'8');
+ assert.equal(next.measures[0].events[0].onset,0);
+ assert.equal(next.measures[0].events[0].id,d.measures[0].events[0].id);
+ assert.deepEqual(next.measures[0].events.slice(1),d.measures[0].events.slice(1));
+ assert.deepEqual(d,before);
+ assert.strictEqual(deleteGrip(next,c),next);
+});
 function source(){let d=createBlankDocument();for(const [i,fret] of [0,2,0,0,2].entries())d=enterFretWithDuration(d,{...c,string:6-i},fret,'8');return setEventDuration(d,{...c,event:1},'16');}
 test('02002 copies the source eighth duration into a sixteenth slot without shifting later music',()=>{
  const d=source(),before=structuredClone(d),timing=d.measures[0].events.map(e=>[e.id,e.onset,e.duration]),r=copyGripToNext(d,c),events=r.document.measures[0].events;

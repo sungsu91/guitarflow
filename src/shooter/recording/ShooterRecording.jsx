@@ -1,3 +1,4 @@
+import ShooterSettingsPopover from '../ShooterSettingsPopover.jsx';
 import CameraBeautyPreview from "./CameraBeautyPreview.jsx";
 import { BEAUTY_LEVELS } from "./cameraBeauty.js";
 import { mediaPermissionGuide } from "../../audio/mediaPermissionGuide.js";
@@ -50,7 +51,10 @@ function DesktopCameraLayout({ children, style }) {
   return <section className="shooterRecordingCamera shooterRecordingCamera--desktop" style={style} aria-label="전면 카메라">{children}</section>;
 }
 
-export default function ShooterRecording({ arenaRef, entryTarget, landscape = false, mobile, ensureMic, onActiveChange }) {
+export default function ShooterRecording({ arenaRef, entryTarget, landscape = false, mobile, ensureMic, onActiveChange, onLayoutChange }) {
+  const [layoutMode, setLayoutMode] = useState(null);
+  const entryButtonRef = useRef(null);
+  const fullCamera = layoutMode === "full";
   const [phase, setPhase] = useState("idle");
   const [seconds, setSeconds] = useState(0);
   const [error, setError] = useState("");
@@ -58,6 +62,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
   const [saveMessage, setSaveMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
+  const [captureReady, setCaptureReady] = useState(false);
   const [cameraStyle, setCameraStyle] = useState({});
   const [filterIndex, setFilterIndex] = useState(0);
   const filterRef = useRef(0);
@@ -95,10 +100,10 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
   const sessionRef = useRef(null);
   const versionRef = useRef(0);
   const mounted = useRef(true);
-  const active = !["idle", "requesting"].includes(phase);
+  const active = !["idle", "choosing", "requesting"].includes(phase);
   const cameraVisible = active && phase !== "review";
-  const callbacks = useRef({ onActiveChange });
-  callbacks.current = { onActiveChange };
+  const callbacks = useRef({ onActiveChange, onLayoutChange });
+  callbacks.current = { onActiveChange, onLayoutChange };
 
   function dispose() {
     ++versionRef.current;
@@ -129,6 +134,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
   function close(message = "") {
     dispose();
     callbacks.current.onActiveChange(false);
+    callbacks.current.onLayoutChange?.(null);
     if (!mounted.current) return;
     setPhase("idle");
     setResult(null);
@@ -155,6 +161,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
       mounted.current = false;
       dispose();
       callbacks.current.onActiveChange(false);
+    callbacks.current.onLayoutChange?.(null);
       document.removeEventListener("visibilitychange", visibility);
       window.removeEventListener("pagehide", pageHide);
     };
@@ -192,6 +199,12 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
       if (mobile) panel.style.scale = originalScale;
       const bounds = panel.getBoundingClientRect();
       const viewport = window.visualViewport;
+      if (fullCamera) {
+        const rect = arena.getBoundingClientRect();
+        overlayRef.current = { mode: "full", outputAspect: bounds.width / bounds.height, beauty: beautyRef.current, filter: CAMERA_FILTERS[filterRef.current].id };
+        setCameraStyle({ left: rect.left - (viewport?.offsetLeft || 0), top: rect.top - (viewport?.offsetTop || 0), width: rect.width, height: rect.height });
+        return;
+      }
       if (mobile && !landscape) {
         const vh = viewport?.height || window.innerHeight;
         const vw = viewport?.width || window.innerWidth;
@@ -237,6 +250,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
     const schedule = () => { if (!frame) frame = requestAnimationFrame(() => { frame = 0; update(); }); };
     moveCameraRef.current = schedule;
     callbacks.current.onActiveChange(mobile);
+    callbacks.current.onLayoutChange?.(fullCamera ? "full" : "split");
     update();
     const observer = new ResizeObserver(update);
     observer.observe(panel);
@@ -255,7 +269,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
       window.visualViewport?.removeEventListener("resize", update);
       window.visualViewport?.removeEventListener("scroll", update);
     };
-  }, [active, landscape, mobile, arenaRef]);
+  }, [active, landscape, mobile, arenaRef, fullCamera]);
 
   function moveCamera(dx, dy) {
     const bounds = arenaRef.current.closest(".shooterPanel").getBoundingClientRect();
@@ -316,6 +330,36 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
     return () => { attached = false; video.pause(); video.srcObject = null; };
   }, [cameraVisible]);
 
+  // Warm the reusable capture cache before REC, not in its click handler.
+  useEffect(() => {
+    setCaptureReady(false);
+    const session = sessionRef.current;
+    if (!cameraVisible || !cameraReady || !session) return;
+    let cancelled = false;
+    const timeout = setTimeout(() => {
+      if (!cancelled && !session.disposed) close("녹화 준비 시간이 초과되었습니다. 다시 시도해주세요.");
+    }, 20000);
+    const prepare = async () => {
+      // Let the camera and its controls paint before the first capture pass.
+      await new Promise(resolve => setTimeout(resolve, 80));
+      if (cancelled || session.disposed) return;
+      const { createSceneCapture } = await import("./sceneCapture.js");
+      if (cancelled || session.disposed) return;
+      const camera = videoRef.current;
+      const panel = arenaRef.current?.closest(".shooterPanel");
+      if (!camera || !panel) return;
+      session.capture = createSceneCapture(panel, { paintCamera: (context, width, height) => {
+        drawComposite(context, null, camera, width, height, { x: 0, y: 0, width: 1, height: 1, beauty: beautyRef.current, filter: CAMERA_FILTERS[filterRef.current].id });
+      } });
+      await session.capture.capture();
+      if (!cancelled && !session.disposed) setCaptureReady(true);
+    };
+    prepare().catch(cause => {
+      if (!cancelled && !session.disposed) close(recordingError(cause));
+    }).finally(() => clearTimeout(timeout));
+    return () => { cancelled = true; clearTimeout(timeout); };
+  }, [cameraVisible, cameraReady, arenaRef]);
+
   useEffect(() => {
     if (phase !== "review") return;
     const main = arenaRef.current?.closest("main");
@@ -325,8 +369,9 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
     return () => { if (main) main.inert = wasInert; };
   }, [phase, arenaRef]);
 
-  async function enter() {
-    if (!["idle", "review"].includes(phase)) return;
+  async function enter(mode = layoutMode) {
+    if (!["choosing", "review"].includes(phase) || !["full", "split"].includes(mode) || sessionRef.current) return;
+    setLayoutMode(mode);
     setError("");
     setCameraReady(false);
     setWideCamera(false);
@@ -391,7 +436,8 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
 
   async function start() {
     const session = sessionRef.current;
-    if (!session || phase !== "preview" || framingBusyRef.current) return;
+    if (!session || phase !== "preview" || framingBusyRef.current || !captureReady || !session.capture || session.startRequested) return;
+    session.startRequested = true;
     setPhase("preparing");
     setSaveMessage("");
     session.prepareTimeout = setTimeout(() => close("녹화 준비 시간이 초과되었습니다. 다시 시도해주세요."), 20000);
@@ -399,9 +445,9 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
       const camera = videoRef.current;
       if (!camera?.videoWidth || camera.readyState < 2) throw new Error("카메라가 준비되지 않았습니다. 다시 시도해주세요.");
       const panel = arenaRef.current.closest(".shooterPanel");
-      const { createSceneCapture } = await import("./sceneCapture.js");
+      // Present the preparing state before allocating the recorder output.
+      await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
       if (session.disposed) return;
-      session.capture = createSceneCapture(panel);
       let game = await session.capture.capture();
       if (session.disposed) return;
       const canvas = document.createElement("canvas");
@@ -511,7 +557,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
       return;
     }
     if (session?.url) URL.revokeObjectURL(session.url);
-    if (session) { session.url = null; session.recorder = null; session.review = false; session.stopRequested = false; }
+    if (session) { session.url = null; session.recorder = null; session.review = false; session.stopRequested = false; session.startRequested = false; }
     setResult(null);
     setSaveMessage("");
     setPhase("preview");
@@ -531,13 +577,18 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
   }
 
   const cameraFilter = CAMERA_FILTERS[filterIndex];
-  const cameraFrame = mobile && videoRef.current?.videoWidth && cameraStyle.width
+  const cameraFrame = !fullCamera && mobile && videoRef.current?.videoWidth && cameraStyle.width
     ? cameraContainRect(videoRef.current.videoWidth, videoRef.current.videoHeight, cameraStyle.width, cameraStyle.height, cameraZoomRef.current)
     : null;
+  const cameraVisual = <>
+      <video className="shooterRecordingLive" style={cameraFrame ? { left: cameraFrame.x, top: cameraFrame.y, width: cameraFrame.width, height: cameraFrame.height } : undefined} ref={videoRef} autoPlay muted playsInline onLoadedData={() => { setCameraReady(true); moveCameraRef.current(); }} onResize={() => moveCameraRef.current()} aria-label="촬영 구도 확인" />
+      {beautyLevel > 0 ? <CameraBeautyPreview videoRef={videoRef} level={beautyLevel} frame={cameraFrame} onUnavailable={disableBeauty} onReady={setBeautyReady} /> : null}
+      {mobile && cameraFilter.color ? <div className="shooterRecordingFilterOverlay" aria-hidden="true" style={{ ...(cameraFrame ? { left: cameraFrame.x, top: cameraFrame.y, width: cameraFrame.width, height: cameraFrame.height } : { inset: 0 }), background: cameraFilter.color, mixBlendMode: cameraFilter.blend === 'source-over' ? 'normal' : cameraFilter.blend }} /> : null}
+  </>;
   const CameraLayout = mobile ? MobileCameraLayout : DesktopCameraLayout;
-  return createPortal(<div ref={uiRef} className={`shooterRecordingUI ${mobile ? "isMobile" : "isDesktop"} ${landscape ? "isLandscape" : ""}`} data-recording-ui="true">
+  return createPortal(<div ref={uiRef} className={`shooterRecordingUI ${mobile ? "isMobile" : "isDesktop"} ${landscape ? "isLandscape" : ""} ${fullCamera ? "isFullCamera" : ""}`} data-recording-ui="true">
     {entryTarget ? createPortal(
-      <button className="shooterRecordingHudButton" aria-label={active ? "촬영모드 종료" : phase === "requesting" ? "권한 확인 중 · 취소" : "촬영모드"} title={active ? "촬영모드 종료" : phase === "requesting" ? "권한 요청 취소" : "촬영모드"} onClick={active || phase === "requesting" ? () => close() : enter} type="button">
+      <button ref={entryButtonRef} aria-expanded={phase === "choosing"} aria-haspopup="dialog" className="shooterRecordingHudButton" aria-label={active ? "촬영모드 종료" : phase === "requesting" ? "권한 확인 중 · 취소" : "촬영모드"} title={active ? "촬영모드 종료" : phase === "requesting" ? "권한 요청 취소" : "촬영모드"} onClick={active || phase === "requesting" ? () => close() : () => { setLayoutMode(null); setError(""); setPhase(phase === "choosing" ? "idle" : "choosing"); }} type="button">
         <Video aria-hidden="true" size={13} strokeWidth={1.8} />
         <span>{phase === "requesting" ? "취소" : landscape ? active ? "촬영 OFF" : "촬영 ON" : active ? "촬영 종료" : "촬영모드"}</span>
       </button>, entryTarget,
@@ -545,15 +596,13 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
     {!active ? <div className="shooterRecordingEntry">
       {error ? <div className="shooterRecordingError" role="alert"><span>{error}</span><button onClick={() => setError("")} type="button" aria-label="알림 닫기">×</button></div> : null}
     </div> : cameraVisible ? <CameraLayout style={cameraStyle} onFilter={changeCameraFilter} filter={cameraFilter} phase={phase}>
-      <video className="shooterRecordingLive" style={cameraFrame ? { left: cameraFrame.x, top: cameraFrame.y, width: cameraFrame.width, height: cameraFrame.height } : undefined} ref={videoRef} autoPlay muted playsInline onLoadedData={() => { setCameraReady(true); moveCameraRef.current(); }} onResize={() => moveCameraRef.current()} aria-label="촬영 구도 확인" />
-      {beautyLevel > 0 ? <CameraBeautyPreview videoRef={videoRef} level={beautyLevel} frame={cameraFrame} onUnavailable={disableBeauty} onReady={setBeautyReady} /> : null}
+      {fullCamera && arenaRef.current ? createPortal(<div className="shooterRecordingMapCamera">{cameraVisual}</div>, arenaRef.current) : cameraVisual}
       {beautyLevel > 0 && !beautyReady ? <span className="shooterRecordingBeautyStatus" role="status">피부 보정 준비 중…</span> : null}
       {['preview', 'recording'].includes(phase) && !beautyUnavailable ? <button className="shooterRecordingBeauty" type="button" onClick={changeBeauty} disabled={!cameraReady} aria-label={`피부 보정: ${BEAUTY_LEVELS[beautyLevel]}`} aria-pressed={beautyLevel > 0}>보정<br />{BEAUTY_LEVELS[beautyLevel]}</button> : null}
-      {mobile && cameraFrame && cameraFilter.color ? <div className="shooterRecordingFilterOverlay" aria-hidden="true" style={{ left: cameraFrame.x, top: cameraFrame.y, width: cameraFrame.width, height: cameraFrame.height, background: cameraFilter.color, mixBlendMode: cameraFilter.blend === 'source-over' ? 'normal' : cameraFilter.blend }} /> : null}
       {mobile && canWidenCamera && phase === 'preview' ? <button className="shooterRecordingWide" type="button" onClick={toggleWideCamera} disabled={!cameraReady || framingBusy} aria-pressed={wideCamera} aria-busy={framingBusy} aria-label="넓게 찍기">
         {wideCamera ? <Minimize2 size={19} aria-hidden="true" /> : <Maximize2 size={19} aria-hidden="true" />}
       </button> : null}
-      {!mobile ? <><button className="shooterRecordingDrag" type="button" aria-label="카메라 위치 이동" title="드래그 또는 방향키로 이동"
+      {!mobile && !fullCamera ? <><button className="shooterRecordingDrag" type="button" aria-label="카메라 위치 이동" title="드래그 또는 방향키로 이동"
         onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); dragRef.current = { x: event.clientX, y: event.clientY }; }}
         onPointerMove={event => { if (!dragRef.current) return; moveCamera(event.clientX - dragRef.current.x, event.clientY - dragRef.current.y); dragRef.current = { x: event.clientX, y: event.clientY }; }}
         onPointerUp={() => { dragRef.current = null; }} onPointerCancel={() => { dragRef.current = null; }} onLostPointerCapture={() => { dragRef.current = null; }}
@@ -563,8 +612,17 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
         onPointerMove={event => { if (!resizeRef.current) return; const dx = event.clientX - resizeRef.current.x; const dy = (event.clientY - resizeRef.current.y) / 1.12; resizeCamera(Math.abs(dx) >= Math.abs(dy) ? dx : dy); resizeRef.current = { x: event.clientX, y: event.clientY }; }}
         onPointerUp={() => { resizeRef.current = null; }} onPointerCancel={() => { resizeRef.current = null; }} onLostPointerCapture={() => { resizeRef.current = null; }}
         onKeyDown={event => { const delta = { ArrowLeft: -8, ArrowUp: -8, ArrowRight: 8, ArrowDown: 8 }[event.key]; if (delta) { event.preventDefault(); resizeCamera(delta); } }}>◢</button></> : null}
-      <CameraControls phase={phase} seconds={seconds} start={start} stop={stop} ready={cameraReady && !framingBusy && (beautyLevel === 0 || beautyReady)} exit={mobile ? () => close() : undefined} />
+      <CameraControls phase={phase} seconds={seconds} start={start} stop={stop} ready={cameraReady && captureReady && !framingBusy && (beautyLevel === 0 || beautyReady)} exit={mobile ? () => close() : undefined} />
     </CameraLayout> : null}
+    {phase === "choosing" ? <ShooterSettingsPopover anchor={entryButtonRef.current} mobile={mobile} label="촬영모드 선택" className="shooterRecordingChoice" onClose={() => setPhase("idle")}>
+      <h2 id="recording-choice-title">촬영모드 선택</h2>
+      <p>촬영할 화면을 선택해주세요.</p>
+      <div className="shooterRecordingChoices">
+        <button type="button" onClick={() => enter("full")}><strong>전체</strong><span>맵 전체를 카메라로 채우고<br />그 위로 음표가 내려옵니다.</span></button>
+        <button type="button" onClick={() => enter("split")}><strong>분할</strong><span>{mobile && !landscape ? "위에는 게임, 아래에는 카메라" : "기존 게임 화면과 별도 카메라"}<br />현재 촬영 구성을 유지합니다.</span></button>
+      </div>
+      <button type="button" onClick={() => setPhase("idle")}>취소</button>
+    </ShooterSettingsPopover> : null}
     {phase === "review" && result ? <div ref={reviewRef} className="shooterRecordingReview" role="dialog" aria-modal="true" aria-label="촬영 결과 확인" onKeyDown={(event) => {
       if (event.key !== "Tab") return;
       const controls = [...reviewRef.current.querySelectorAll("video, button:not(:disabled)")];

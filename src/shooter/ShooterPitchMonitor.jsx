@@ -32,7 +32,7 @@ function DesktopPitchMonitor({ pitch, message }) {
 
 export default function ShooterPitchMonitor({ mobile, pitch, reason, active = true, micStatus }) {
   const message = active ? (STATUS[reason] ?? "소리를 기다리는 중")
-    : micStatus === "Permission Denied" ? "마이크 권한을 허용해주세요" : "마이크 연결 중";
+    : ({ 'Permission Denied': '마이크 권한을 허용해주세요', 'MIDI Disconnected': 'MIDI 장치를 연결해주세요', 'Device Disconnected': '오디오 장치 연결이 끊겼어요', 'Input Error': '오디오 입력 연결 실패' }[micStatus] ?? '마이크 연결 중');
   return mobile
     ? <MobilePitchMonitor pitch={pitch} message={message} />
     : <DesktopPitchMonitor pitch={pitch} message={message} />;

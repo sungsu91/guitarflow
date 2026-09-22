@@ -63,9 +63,11 @@ export default function useEtudeMetronome(bpm, { beatsPerBar = 4, beatUnit = 4, 
           }
         } else s.cursor = batch.cursor;
         batch.steps.filter(step=>step.time<origin+durationSeconds-1e-7).forEach(step => {
+          const accent=clickAccentRef.current?.(step);
+          if(accent==='mute')return;
           const buffer=toneBuffer.current;
           const o = buffer ? context.createBufferSource() : context.createOscillator(), envelope = context.createGain();
-          const downbeat = clickAccentRef.current?.(step) ?? step.downbeat ?? (downbeatRef.current ? downbeatRef.current(step.index/config.current.clicksPerBeat+s.firstBeat) : (step.index/config.current.clicksPerBeat+s.firstBeat) % config.current.beatsPerBar === 0);
+          const downbeat = accent ?? step.downbeat ?? (downbeatRef.current ? downbeatRef.current(step.index/config.current.clicksPerBeat+s.firstBeat) : (step.index/config.current.clicksPerBeat+s.firstBeat) % config.current.beatsPerBar === 0);
           if(buffer)o.buffer=buffer;else o.frequency.value = downbeat ? 1200 : 850;
           envelope.gain.setValueAtTime(0.0001, step.time);
           envelope.gain.exponentialRampToValueAtTime(downbeat ? ETUDE_CLICK_PEAK : ETUDE_WEAK_CLICK_PEAK, step.time + 0.002);

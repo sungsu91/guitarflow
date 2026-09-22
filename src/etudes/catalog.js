@@ -1,3 +1,4 @@
+import {mixedTechniqueStudies,applyStudyExpressions} from './mixedTechniqueStudies.js';
 // Authored patterns materialize once into editable string/fret documents.
 // Display and playback derive sounding MIDI from that document; notation is one octave up.
 import { curriculumTemplates } from './curriculum.js';
@@ -72,6 +73,7 @@ export const TEMPLATES = Object.freeze([
   ...trackStudies({penta:PENTA_SHAPE,pentaIntervals:PENTA}),
   ...chordStudies(),
   ...curriculumAdditions(),
+  ...mixedTechniqueStudies,
 ].map(reviseTemplate).map(template=>({...template,fixedRoot:template.fixedRoot ?? (template.shape===MAJOR_SHAPE || template.shape===PENTA_SHAPE ? 'G' : template.family==='minor' ? 'A' : 'C')})));
 
 const COURSE_ORDER = TRACK_ORDER;
@@ -165,7 +167,7 @@ export function buildEtude(template) {
 }
 
 export const BASE_ETUDES = TEMPLATES.map(template=>{
- const base=buildEtude(template),document=toScoreDocument(base);
+ const base=buildEtude(template),document=toScoreDocument(base);applyStudyExpressions(document,template);
  document.id=base.id;document.kind='builtin';document.origin={templateId:base.templateId,revision:template.revision??1};
  const result=compileScoreDocument(document,base);
  if(!result.score||result.issues.length)throw Error(`${base.id}: ${[...result.errors,...result.issues].join(', ')}`);

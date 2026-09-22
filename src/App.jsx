@@ -1,3 +1,8 @@
+import DeviceConnection from './input/DeviceConnection.jsx';
+import { useAudioInputSelection, useMidiConnection } from './input/useInputSelection.js';
+import { getAudioInputSelection, audioInputError, publishAudioInput } from './input/audioInputSelection.js';
+import { midiInput } from './input/midiInput.js';
+import { midiMatchesShooterTarget, midiInputPitch } from './shooter/midiJudgment.js';
 import ShooterGameOver from './shooter/results/ShooterGameOver.jsx';
 import ShooterShareButton from './shooter/results/ShooterShareButton.jsx';
 import GroovePacks from './metronome/GroovePacks.jsx';
@@ -16245,6 +16250,10 @@ const UI_LABELS = {
   "Choose a practice card": "연습 카드를 선택하세요",
   "Permission Denied": "마이크 권한 거부",
   "Mic Connected": "마이크 연결됨",
+  "MIDI Connected": "MIDI 연결됨",
+  "MIDI Disconnected": "MIDI 미연결",
+  "Device Disconnected": "오디오 장치 연결 해제",
+  "Input Error": "오디오 입력 연결 실패",
   "Listening...": "감지 중",
   "No Signal": "신호 없음",
   curriculum: "연습 목차",
@@ -16730,6 +16739,9 @@ function App({ onReady }) {
   if (!viewerNoteStoreRef.current) viewerNoteStoreRef.current = createFretboardNoteViewerStore();
   const viewerNoteStore = viewerNoteStoreRef.current;
   const [appMode, setAppModeState] = useState(initialRouteRef.current.appMode);
+  const inputSelection = useAudioInputSelection();
+  const midiConnection = useMidiConnection();
+  useLayoutEffect(() => { midiInput.reset(); }, [appMode, inputSelection.shooterSource]);
   const [tunerBackgroundIndex, setTunerBackgroundIndex] = useState(0);
   const tunerHasEnteredRef = useRef(initialRouteRef.current.appMode === APP_MODES.TUNER);
   const initialMountedAppModesRef = useRef(createMountedModeSet(initialRouteRef.current.appMode));
@@ -17078,6 +17090,7 @@ function App({ onReady }) {
   const [feelPlaybackIndex, setFeelPlaybackIndex] = useState(-1);
   const [feelPlaybackProgress, setFeelPlaybackProgress] = useState(0);
   const [isMobileLayout, setIsMobileLayout] = useState(getIsMobileLayout);
+  const [shooterRecordingLayout, setShooterRecordingLayout] = useState(null);
   const [shooterRecordingActive, setShooterRecordingActive] = useState(false);
   const [shooterRecordingEntryTarget, setShooterRecordingEntryTarget] = useState(null);
   // The regular mobile shooter catalog remains portrait-authored. A selected
@@ -17100,6 +17113,7 @@ function App({ onReady }) {
   const shooterBpmRef = useRef(shooterBpm);
   const [shooterScenarioRoundSummary, setShooterScenarioRoundSummary] = useState(null);
   const [shooterScenarioCountdown, setShooterScenarioCountdown] = useState(null);
+  const [shooterDifficultyAnchor, setShooterDifficultyAnchor] = useState(null);
   const [shooterDifficultyMenuOpen, setShooterDifficultyMenuOpen] = useState(false);
   const [shooterProgressSpeed, setShooterProgressSpeed] = useState(1);
   const shooterProgressSpeedRef = useRef(1);
@@ -18429,19 +18443,20 @@ function App({ onReady }) {
   const beatAccuracy = hits === 0 ? 100 : Math.round((perfectCount / hits) * 100);
   const noteAccuracy = accuracy;
   const mostMissedNote = Object.entries(missedNoteCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "-";
-  const hasMic = Boolean(streamRef.current);
+  const hasMic = Boolean(micInputSessionRef.current?.connected) || (appMode === APP_MODES.SHOOTER && inputSelection.shooterSource === "midi" && midiConnection.connected);
   const isSignalActive = hasMic && signalLevel >= ACTIVE_SIGNAL_LEVEL;
   const showLowSignalWarning =
     hasMic && gameState !== GAME_STATES.IDLE && signalLevel > 0 && signalLevel < LOW_SIGNAL_LEVEL;
 
   const micLabel = useMemo(() => {
-    if (micStatus === "Permission Denied") return "Permission Denied";
+    if (appMode === APP_MODES.SHOOTER && inputSelection.shooterSource === 'midi') return midiConnection.connected ? 'MIDI Connected' : 'MIDI Disconnected';
+    if (['Permission Denied', 'Device Disconnected', 'Input Error'].includes(micStatus)) return micStatus;
     if (!hasMic) return "No Signal";
     if (gameState === GAME_STATES.PLAYING) {
       return isSignalActive ? "Listening..." : "No Signal";
     }
     return "Mic Connected";
-  }, [appMode, gameState, hasMic, isSignalActive, micStatus]);
+  }, [appMode, gameState, hasMic, isSignalActive, micStatus, inputSelection.shooterSource, midiConnection.connected]);
 
   const selectedCategory =
     PRACTICE_CATEGORIES.find((category) => category.id === selectedCategoryId) ??
@@ -22698,11 +22713,31 @@ function App({ onReady }) {
     shooterSessionSavedRef.current = true;
   }, []);
 
+  const midiGameHandler = useRef(null);
+  midiGameHandler.current = event => {
+    if (event.type !== 'noteon' || utilityMenuOpen || document.querySelector('dialog[open]')) return;
+    const target = shooterTargetsRef.current.find(candidate => candidate.id === shooterActiveTargetIdRef.current && !candidate.defeated && candidate.hitboxActive !== false && !candidate.pendingProjectileId && !candidate.slashPending);
+    const pitch = target?.detail?.pitch ?? target?.note;
+    const playing = gameStateRef.current === GAME_STATES.PLAYING && !shooterCountInActiveRef.current && !shooterScenarioCountdownRef.current;
+    const matched = playing && midiMatchesShooterTarget(event, { pitch });
+    const accepted = matched && judgeShooterNote(pitch, target.id);
+    const reason = accepted ? 'hit' : playing ? 'wrong-pitch' : 'listening';
+    setDetectedPitch(midiInputPitch(event.note));
+    setShooterPitchStatus(reason);
+  };
+  useEffect(() => midiInput.consume({
+    active: () => appModeRef.current === APP_MODES.SHOOTER && getAudioInputSelection().shooterSource === 'midi',
+    message: event => midiGameHandler.current(event),
+    reset: () => { shooterPitchDisplayRef.current = createShooterPitchDisplayState(); },
+  }), []);
+
   const readMicrophone = useCallback(
     (now) => {
       const analyser = analyserRef.current;
       const buffer = bufferRef.current;
+      if (getAudioInputSelection().shooterSource === "midi") return;
       const micSession = micInputSessionRef.current;
+      if (micSession && !micSession.connected) return;
       const audio = micSession?.audioContext || audioRef.current;
       if (!analyser || !buffer || !audio) return;
       if (now - lastMicReadAtRef.current < MIC_READ_INTERVAL_MS) return;
@@ -23634,6 +23669,12 @@ function App({ onReady }) {
 
   const startMic = useCallback(async ({ quiet = false } = {}) => {
     if (appModeRef.current !== APP_MODES.SHOOTER) return false;
+    if (getAudioInputSelection().shooterSource === 'midi') {
+      await midiInput.connect(false);
+      const ready = midiInput.getSnapshot().connected;
+      setMicStatus(ready ? 'MIDI Connected' : 'MIDI Disconnected');
+      return ready;
+    }
     const requestVersion = ++micRequestVersionRef.current;
     const showPermissionGuide = () => {
       if (quiet) return;
@@ -23645,6 +23686,7 @@ function App({ onReady }) {
         try {
           const permission = await navigator.permissions.query({ name: "microphone" });
           if (permission.state === "denied") {
+            publishAudioInput({ status: "denied" });
             setMicStatus("Permission Denied");
             setFeedback("마이크 권한 필요");
             showPermissionGuide();
@@ -23655,13 +23697,13 @@ function App({ onReady }) {
         }
       }
       // Permission checks can finish after navigation; do not steal the next mode's microphone.
-      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER) return false;
+      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER || getAudioInputSelection().shooterSource !== "audio") return false;
       setMicStatus("No Signal");
       const micSession = await acquireMicInput({
         consumerId: "shooting-game-detector",
         preset: MIC_INPUT_PRESETS.GUITAR_DETECTION,
       });
-      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER) {
+      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER || getAudioInputSelection().shooterSource !== "audio") {
         await micSession.release();
         return false;
       }
@@ -23680,9 +23722,10 @@ function App({ onReady }) {
       if (gameStateRef.current === GAME_STATES.IDLE) setState(GAME_STATES.LISTENING);
       return true;
     } catch (error) {
-      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER) return false;
-      setMicStatus("Permission Denied");
-      setFeedback("마이크 권한 필요");
+      if (requestVersion !== micRequestVersionRef.current || appModeRef.current !== APP_MODES.SHOOTER || getAudioInputSelection().shooterSource !== "audio") return false;
+      const inputError = audioInputError(error);
+      setMicStatus(inputError === 'denied' ? 'Permission Denied' : inputError === 'disconnected' ? 'Device Disconnected' : 'Input Error');
+      setFeedback(inputError === 'denied' ? '마이크 권한 필요' : inputError === 'disconnected' ? '입력 장치 연결 해제' : '입력 연결 실패');
       if (error?.name === "NotAllowedError" || error?.name === "PermissionDeniedError") {
         showPermissionGuide();
       } else {
@@ -23694,7 +23737,7 @@ function App({ onReady }) {
   }, [setState, isMobileLayout]);
 
   useEffect(() => {
-    if (appMode !== APP_MODES.SHOOTER) return;
+    if (appMode !== APP_MODES.SHOOTER || inputSelection.shooterSource !== "audio") return;
     return installMicForegroundRecovery({
       getSession: () => micInputSessionRef.current,
       restart: () => startMic({ quiet: true }),
@@ -23705,13 +23748,31 @@ function App({ onReady }) {
         }
       },
     });
-  }, [appMode, startMic, setState]);
+  }, [appMode, startMic, setState, inputSelection.shooterSource]);
 
   useEffect(() => {
-    if (appMode === APP_MODES.SHOOTER && !streamRef.current) {
-      void startMic();
-    }
-  }, [appMode, startMic]);
+    if (appMode !== APP_MODES.SHOOTER) return;
+    stopMic();
+    if (gameStateRef.current === GAME_STATES.PLAYING) setState(GAME_STATES.PAUSED);
+    if (inputSelection.shooterSource === 'audio') void startMic();
+    else void midiInput.connect(false);
+    return stopMic;
+  }, [appMode, startMic, stopMic, setState, inputSelection.shooterSource, inputSelection.revision]);
+
+  useEffect(() => {
+    if (appMode !== APP_MODES.SHOOTER || inputSelection.shooterSource !== 'midi') return;
+    setMicStatus(midiConnection.connected ? 'MIDI Connected' : 'MIDI Disconnected');
+    if (!midiConnection.connected && gameStateRef.current === GAME_STATES.PLAYING) setState(GAME_STATES.PAUSED);
+  }, [appMode, inputSelection.shooterSource, midiConnection.connected, setState]);
+
+  useEffect(() => {
+    if (appMode !== APP_MODES.SHOOTER || inputSelection.shooterSource !== 'audio' || inputSelection.status !== 'disconnected') return;
+    setMicStatus('Device Disconnected');
+    setDetectedPitch(null);
+    setSignalLevel(0);
+    resetShooterPitchJudgmentState(shooterPitchJudgmentRef.current);
+    if (gameStateRef.current === GAME_STATES.PLAYING) setState(GAME_STATES.PAUSED);
+  }, [appMode, inputSelection.shooterSource, inputSelection.status, setState]);
 
   const startPractice = useCallback(async (category = selectedCategory) => {
     const safeCategory = getPlayableCategory(category);
@@ -23871,12 +23932,12 @@ function App({ onReady }) {
     if (gameStateRef.current === GAME_STATES.PAUSED) {
       let resumeDetectorReady = shooterHitboxDebugEnabled
         || desktopHorizontalClickAttackActive
-        || Boolean(micInputSessionRef.current && analyserRef.current && bufferRef.current);
+        || (getAudioInputSelection().shooterSource === 'midi' ? midiInput.getSnapshot().connected : Boolean(micInputSessionRef.current?.connected && analyserRef.current && bufferRef.current));
       if (!resumeDetectorReady) {
         resumeDetectorReady = await startMic();
       }
       if (!resumeDetectorReady) {
-        setFeedback("Mic required");
+        setFeedback(getAudioInputSelection().shooterSource === "midi" ? "MIDI 장치 연결 필요" : "오디오 입력 필요");
         setState(GAME_STATES.LISTENING);
         return;
       }
@@ -23890,7 +23951,7 @@ function App({ onReady }) {
 
     let detectorReady = shooterHitboxDebugEnabled
       || desktopHorizontalClickAttackActive
-      || Boolean(micInputSessionRef.current && analyserRef.current && bufferRef.current);
+      || (getAudioInputSelection().shooterSource === 'midi' ? midiInput.getSnapshot().connected : Boolean(micInputSessionRef.current?.connected && analyserRef.current && bufferRef.current));
     if (!detectorReady) {
       detectorReady = await startMic();
     }
@@ -23906,7 +23967,7 @@ function App({ onReady }) {
     );
 
     if (!detectorReady) {
-      setFeedback("Mic required");
+      setFeedback(getAudioInputSelection().shooterSource === "midi" ? "MIDI 장치 연결 필요" : "오디오 입력 필요");
       setState(GAME_STATES.LISTENING);
       return;
     }
@@ -30177,7 +30238,7 @@ function App({ onReady }) {
     >
       {isMobileLayout && [APP_MODES.SHOOTER, APP_MODES.TUNER].includes(appMode) ? <MobilePullToRefresh enabled={!utilityMenuOpen && !helpGuideOpen && !mapEditor.enabled && !shooterRecordingActive && !appContentInteractionLocked && (appMode !== APP_MODES.SHOOTER || (gameState !== GAME_STATES.PLAYING && shooterCountInLabel === null))} /> : null}
       {appMode === APP_MODES.SHOOTER && !mapEditor.enabled ? (
-        <ShooterRecording arenaRef={shooterArenaRef} entryTarget={shooterRecordingEntryTarget} landscape={mobileLandscapeShooterActive} mobile={isMobileLayout} ensureMic={startMic} onActiveChange={setShooterRecordingActive} />
+        <ShooterRecording arenaRef={shooterArenaRef} entryTarget={shooterRecordingEntryTarget} landscape={mobileLandscapeShooterActive} mobile={isMobileLayout} ensureMic={startMic} onActiveChange={setShooterRecordingActive} onLayoutChange={setShooterRecordingLayout} />
       ) : null}
       {appMode === APP_MODES.SHOOTER && !mobileLandscapeShooterActive && typeof document !== "undefined" ? createPortal(
         <ShooterPitchMonitor mobile={isMobileLayout} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} />,
@@ -30221,6 +30282,7 @@ function App({ onReady }) {
         onOpenSingleNote={() => showIndependentPracticeCategory("first-position")}
         onOpenTuner={showTunerMode}
         onResetSound={resetSoundSettings}
+        inputControls={appMode === APP_MODES.SHOOTER ? <DeviceConnection scope="shooter" /> : null}
         onSelectTheme={selectAppTheme}
         themeOptions={themeMenuVisible ? themeOptions : []}
         themeTransitionActive={Boolean(themeTransition)}
@@ -30369,6 +30431,7 @@ function App({ onReady }) {
                     <span className="utilityMenuChevron" aria-hidden="true"><ChevronDown size={18} /></span>
                   </summary>
                   <div className="utilitySoundSliders">
+                    {appMode === APP_MODES.SHOOTER && <DeviceConnection scope="shooter" mobile={isMobileLayout} />}
                     <MetronomeVolumeControl className="utilitySoundSliderRow" />
                     {BACKING_PART_VOLUME_CONTROLS.map((control) => {
                       const value = getBackingVolumeValue(control.id);
@@ -33123,6 +33186,7 @@ function App({ onReady }) {
             반복 연습으로 지판 인식과 피킹 정확도를 키워보세요.
           </div>
           {shooterDifficultyMenuOpen && !isShooterDifficultyLocked ? <ProgressSettings
+            anchor={shooterDifficultyAnchor}
             mobile={isMobileLayout}
             options={SHOOTER_DIFFICULTY_OPTIONS}
             difficulty={shooterDifficulty}
@@ -33144,7 +33208,7 @@ function App({ onReady }) {
               </small>
             </div>
             <div className="shooterDifficultyButtons">
-              <button type="button" disabled={isShooterDifficultyLocked} onClick={() => setShooterDifficultyMenuOpen(true)}>진행 속도 {shooterProgressSpeed}× · 설정</button>
+              <button type="button" disabled={isShooterDifficultyLocked} onClick={(event) => { setShooterDifficultyAnchor(event.currentTarget); setShooterDifficultyMenuOpen(true); }}>진행 속도 {shooterProgressSpeed}× · 설정</button>
               {SHOOTER_DIFFICULTY_OPTIONS.map((option) => (
                 <button
                   aria-disabled={isShooterDifficultyLocked}
@@ -33295,7 +33359,7 @@ function App({ onReady }) {
                     aria-label="슈팅게임 난이도"
                     className={`mobileShooterDifficultyHud ${isShooterDifficultyLocked ? "locked" : ""}`}
                     disabled={isShooterDifficultyLocked}
-                    onClick={() => setShooterDifficultyMenuOpen((isOpen) => !isOpen)}
+                    onClick={(event) => { setShooterDifficultyAnchor(event.currentTarget); setShooterDifficultyMenuOpen((isOpen) => !isOpen); }}
                     title={isShooterDifficultyLocked ? "게임 중에는 난이도를 변경할 수 없습니다." : "난이도 선택"}
                     type="button"
                   >
@@ -33355,15 +33419,15 @@ function App({ onReady }) {
                 ) : null}
 
                 <button
-                  aria-label={streamRef.current ? "슈팅게임 마이크 켜짐" : "슈팅게임 마이크 켜기"}
-                  aria-pressed={Boolean(streamRef.current)}
-                  className={`mobileShooterMicHud ${streamRef.current ? "selected" : ""}`}
+                  aria-label={inputSelection.shooterSource === "midi" ? "슈팅게임 MIDI 연결" : streamRef.current ? "슈팅게임 마이크 켜짐" : "슈팅게임 마이크 켜기"}
+                  aria-pressed={hasMic}
+                  className={`mobileShooterMicHud ${hasMic ? "selected" : ""}`}
                   onClick={startShooterMic}
                   type="button"
                 >
                   <span>
                     <Mic aria-hidden="true" size={13} strokeWidth={2} />
-                    <b>{streamRef.current ? "ON" : "OFF"}</b>
+                    <b>{inputSelection.shooterSource === "midi" ? (midiConnection.connected ? "MIDI" : "OFF") : streamRef.current ? "ON" : "OFF"}</b>
                   </span>
                 </button>
               </div>
@@ -33379,6 +33443,7 @@ function App({ onReady }) {
           <div
             className={`shooterArena ${shooterRendererMode === SHOOTER_RENDERER_MODES.DESKTOP_PORTRAIT ? "shooterArena--desktopPortrait" : ""} ${horizontalShooterActive ? "shooterArena--desktopHorizontal" : ""} ${mobileLandscapeShooterActive ? "shooterArena--mobileLandscape" : ""} ${selectedMapSkinClassName} ${selectedMap.backgroundImage ? "shooterArena--imageMap" : ""} ${selectedMapIsLayered ? "shooterArena--layeredMap" : ""} ${mapEditor.enabled ? "shooterArena--mapEdit" : ""} ${shooterMapRuntimePerformance.reduceEffects ? "shooterArena--mapEffectsReduced" : ""} shooterArena--aura-${selectedAuraEffect.id} shooterArena--floor-${selectedFloorEffect.id} ${stageFlash} ${gameState === GAME_STATES.PAUSED ? "paused" : ""} ${gameState === GAME_STATES.PAUSED || gameState === GAME_STATES.GAMEOVER || utilityMenuOpen ? "shooterArena--animationsPaused" : ""} ${gameState !== GAME_STATES.PLAYING && gameState !== GAME_STATES.PAUSED && gameState !== GAME_STATES.GAMEOVER ? "shooterArena--lobby" : "shooterArena--session"}`}
             data-shooter-renderer={shooterRendererMode}
+            data-recording-layout={shooterRecordingLayout || undefined}
             data-note-vfx="neon"
             onClick={(event) => {
               if (mapEditor.enabled) return;
@@ -33391,6 +33456,7 @@ function App({ onReady }) {
             style={selectedMapStyle}
           >
             <ShootingMapRenderer
+              cameraBackground={shooterRecordingLayout === "full"}
               ambientEventsActive={shooterMapRuntimePerformance.ambientEventsActive}
               animationsActive={shooterMapAnimationsActive}
               enhancedEffectsActive={shooterMapRuntimePerformance.enhancedEffectsActive}
@@ -33920,6 +33986,7 @@ function App({ onReady }) {
               </div>
             ) : null}
             <ShootingMapRenderer
+              cameraBackground={shooterRecordingLayout === "full"}
               ambientEventsActive={shooterMapRuntimePerformance.ambientEventsActive}
               animationsActive={shooterMapAnimationsActive}
               enhancedEffectsActive={shooterMapRuntimePerformance.enhancedEffectsActive}

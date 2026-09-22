@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {rhythmTimeline,rhythmStateAt} from '../src/etudes/rhythmProgress.js';
+import {rhythmTimeline,rhythmStateAt,rhythmHighlighter} from '../src/etudes/rhythmProgress.js';
 import {playheadX,rhythmAnchors} from '../src/etudes/scorePlayhead.js';
 import {playbackSlots,slotAtTick} from '../src/etudes/scorePlaybackPosition.js';
 import {scoreTimeline} from '../src/etudes/scorePlayback.js';
@@ -37,4 +37,26 @@ test('H/P/slide connect at authored onset, ornament flags never insert notes or 
 test('a chord can contain a connected slide and a newly picked string together',()=>{
  const s=score([[n(0,'4',{technique:'S',tones:[{string:1,midi:64},{string:2,midi:60}]}),n(480,'2',{tones:[{string:1,midi:66},{string:3,midi:55}]})]]);
  const state=rhythmStateAt(rhythmTimeline(s),480);assert.equal(state.articulation,'mixed');assert.deepEqual(state.attacks,['0:1']);assert(state.marks.includes('0:0'));
+});
+
+test('empty measures and leading silence retain bar timing and clear fingering',()=>{
+ const s=score([[n(0,'4')],[],[n(480,'4')],[n(0,'1',{rest:true})]]);
+ const slots=playbackSlots(s,[0,1,2,3]);
+ assert.equal(slotAtTick(slots,2000).bar,1);
+ assert.equal(slotAtTick(slots,4000).event,-1);
+ assert.equal(slotAtTick(slots,4320).event,0);
+ const states=rhythmTimeline(s);
+ for(const tick of [480,2000,4000,5760])assert.equal(rhythmStateAt(states,tick).articulation,'rest');
+ assert.equal(rhythmStateAt(states,4320).articulation,'attack');
+});
+
+test('fingering highlights only the current note glyph and clears in rests/off',()=>{
+ const state=rhythmTimeline(score([[n(0,'8',{technique:'S'}),n(240,'8',{midi:69}),n(480,'2',{rest:true})]]));
+ const make=(events,role)=>({dataset:{rhythmEvents:events,rhythmRole:role},active:false,classList:{toggle(name,on){this.owner.active=on;},remove(){this.owner.active=false;}}});
+ const nodes=[make('0:0','note'),make('0:1','note'),make('0:0','technique'),make('0:2','note')];
+ nodes.forEach((n,i)=>{n.classList.owner=n;n.querySelectorAll=()=>n.dataset.rhythmRole==='note'&&i!==3?[n]:[];});
+ const highlight=rhythmHighlighter({querySelectorAll:()=>nodes,dataset:{}},state);
+ highlight.update(300);assert.deepEqual(nodes.map(n=>n.active),[false,true,false,false]);
+ highlight.update(600);assert.deepEqual(nodes.map(n=>n.active),[false,false,false,false]);
+ highlight.update(600,false);assert.ok(nodes.every(n=>!n.active));
 });

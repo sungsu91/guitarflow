@@ -1,17 +1,9 @@
 import './groovePackBrowser.css';
 import {useGroovePreview} from './useGroovePreview.js';
-import {RECOMMENDED_GROOVE_PACKS, GROOVE_CATEGORIES} from './recommendedGrooves.js';
+import {GROOVE_CATEGORIES} from './recommendedGrooves.js';
 import {useEffect, useRef, useState} from 'react';
-import {createGroovePattern} from './groove.js';
+import {savePacks, subscribeGroovePacks, readPacks, defaults} from './groovePackLibrary.js';
 
-const STORAGE_KEY = 'rifflab.metronome.groove-packs.v1';
-function readPacks() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    return Array.isArray(saved) ? saved.filter(p => p?.id && typeof p.title === 'string' && Array.isArray(p.pattern?.rows) && p.pattern.rows.length && p.pattern.rows.every(r => typeof r.tone === 'string' && Array.isArray(r.steps))) : [];
-  } catch { return []; }
-}
-const defaults = [...[['8beat','8비트'],['16beat','16비트']].map(([id,title]) => ({id,title,category:'기본',builtin:true,pattern:createGroovePattern(id),timeSignature:'4/4',subdivision:'sixteenth',description:'기본 격자 연습.'})), ...RECOMMENDED_GROOVE_PACKS];
 
 export default function GroovePacks({mode, onClose, pattern, timeSignature, subdivision, onLoad, mobile, preparePreview, bpm}) {
   const dialog = useRef(null);
@@ -30,6 +22,7 @@ export default function GroovePacks({mode, onClose, pattern, timeSignature, subd
   const [error,setError] = useState('');
   const preview = useGroovePreview(preparePreview, bpm, setError);
   useEffect(() => { dialog.current?.showModal(); }, []);
+  useEffect(() => subscribeGroovePacks(() => setPacks(readPacks())), []);
   const source = tab === 'recommended' ? defaults : [...packs].reverse().sort((a,b) => sort === 'name' ? a.title.localeCompare(b.title,'ko') : sort === 'manual' ? (a.order ?? packs.length-1-packs.indexOf(a))-(b.order ?? packs.length-1-packs.indexOf(b)) : 0);
   const visible = source.filter(p => (tab!=='recommended' || category==='전체' || p.category===category) && p.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
   const choice = source.find(p => p.id === selected);
@@ -37,7 +30,7 @@ export default function GroovePacks({mode, onClose, pattern, timeSignature, subd
   useEffect(()=>{if(preview.active && !visible.some(p=>p.id===preview.active))preview.stop();},[visibleIds,preview.active]);
   function closePanel(){preview.stop();onClose();}
   function persist(next) {
-    try { localStorage.setItem(STORAGE_KEY,JSON.stringify(next)); setPacks(next); setError(''); return true; }
+    try { savePacks(next); setPacks(next); setError(''); return true; }
     catch { setError('저장 공간을 사용할 수 없습니다. 다시 시도해 주세요.'); return false; }
   }
   function loadPack(pack) {

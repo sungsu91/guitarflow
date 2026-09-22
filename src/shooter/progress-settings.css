@@ -21,3 +21,8 @@
 .shooterProgressSettings .shooterProgressDone { width:100%; background:#f2d697; color:#172033; font-weight:800; margin-top:12px; }
 .shooterAttachedHitbox { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); overflow:visible; pointer-events:none; z-index:20; }
 .shooterAttachedHitbox ellipse,.shooterAttachedHitbox path { fill:none; stroke:#ff637e; stroke-width:1; vector-effect:non-scaling-stroke; }
+
+/* Attached HUD settings keep their own content within the shared popover shell. */
+.shooterProgressSettings.shooterSettingsPopover { padding: 0; overflow: visible; background: #15221e; border-color: #bd985d; border-radius: 0 0 14px 14px; }
+.shooterProgressSettings.shooterSettingsPopover h2 { color: #f4ce82; }
+.shooterProgressSettings.shooterSettingsPopover button { border-color: #a78b585c; }

@@ -3,6 +3,7 @@ import {
   getMicInputPreset,
   MIC_INPUT_PRESETS,
 } from "./micInputPresets.js";
+import { getAudioInputSelection, publishAudioInput, refreshAudioDevices, audioInputError } from '../input/audioInputSelection.js';
 
 let activeSession = null;
 let acquisitionVersion = 0;
@@ -43,7 +44,7 @@ function createAudioContext(AudioContextApi, presetName) {
   }
 }
 
-export function buildMicrophoneConstraints(mediaDevices = globalThis.navigator?.mediaDevices) {
+export function buildMicrophoneConstraints(mediaDevices = globalThis.navigator?.mediaDevices, selection = {}) {
   const supported = mediaDevices?.getSupportedConstraints?.() ?? null;
   const canUse = (name) => !supported || supported[name] === true;
   const audio = {};
@@ -51,21 +52,24 @@ export function buildMicrophoneConstraints(mediaDevices = globalThis.navigator?.
   if (canUse("echoCancellation")) audio.echoCancellation = false;
   if (canUse("noiseSuppression")) audio.noiseSuppression = false;
   if (canUse("autoGainControl")) audio.autoGainControl = false;
-  if (canUse("channelCount")) audio.channelCount = { ideal: 1 };
+  // Keep all channels exposed by an external device; split only after capture.
+  if (canUse("channelCount") && !selection.deviceId) audio.channelCount = { ideal: 1 };
+  if (selection.deviceId) audio.deviceId = { exact: selection.deviceId };
   if (canUse("sampleRate")) audio.sampleRate = { ideal: 48_000 };
   if (canUse("sampleSize")) audio.sampleSize = { ideal: 16 };
 
   return { audio };
 }
 
-async function requestMicrophone(mediaDevices) {
-  const constraints = buildMicrophoneConstraints(mediaDevices);
+async function requestMicrophone(mediaDevices, selection) {
+  const constraints = buildMicrophoneConstraints(mediaDevices, selection);
   try {
     return await mediaDevices.getUserMedia(constraints);
   } catch (error) {
     const canRetry = ["OverconstrainedError", "NotSupportedError", "TypeError"].includes(error?.name);
     if (!canRetry) throw error;
-    return mediaDevices.getUserMedia({ audio: true });
+    // Never fall back to a different device without the user's selection.
+    return mediaDevices.getUserMedia({ audio: selection.deviceId ? { deviceId: { exact: selection.deviceId } } : true });
   }
 }
 
@@ -126,6 +130,9 @@ function createDetectionGraph(context, source, config) {
   const analyser = configureAnalyser(context, config);
   const silentSink = context.createGain();
   silentSink.gain.value = 0;
+  const inputAnalyser = configureAnalyser(context, config);
+  source.connect(inputAnalyser);
+  inputAnalyser.connect(silentSink);
 
   source.connect(highpass);
   highpass.connect(detectionGain);
@@ -135,7 +142,8 @@ function createDetectionGraph(context, source, config) {
 
   return {
     analyser,
-    nodes: [source, highpass, detectionGain, analyser, silentSink],
+    nodes: [source, highpass, detectionGain, analyser, inputAnalyser, silentSink],
+    inputAnalyser,
     highpass,
     recordingStream: null,
   };
@@ -193,10 +201,13 @@ function getLowFrequencyRatio(analyser, frequencyBuffer, sampleRate) {
   return totalEnergy > 0 ? lowEnergy / totalEnergy : 0;
 }
 
-function createSession({ consumerId, context, graph, preset, presetName, rawStream, trackSettings }) {
+function createSession({ consumerId, context, graph, preset, presetName, rawStream, trackSettings, selectedInput }) {
   let floatBuffer = graph?.analyser ? new Float32Array(graph.analyser.fftSize) : null;
   let byteBuffer = graph?.analyser ? new Uint8Array(graph.analyser.fftSize) : null;
   let frequencyBuffer = graph?.analyser ? new Float32Array(graph.analyser.frequencyBinCount) : null;
+  const meterAnalyser = graph?.inputAnalyser ?? graph?.analyser;
+  const meterFloat = meterAnalyser ? new Float32Array(meterAnalyser.fftSize) : null;
+  const meterByte = meterAnalyser ? new Uint8Array(meterAnalyser.fftSize) : null;
   const monitorStops = new Set();
   let peakHoldUntil = 0;
   const detectionState = {
@@ -205,6 +216,11 @@ function createSession({ consumerId, context, graph, preset, presetName, rawStre
     startedAt: performance.now(),
   };
   let released = false;
+  const tracks = rawStream.getAudioTracks?.() ?? [];
+  const ended = () => {
+    if (!released && activeSession === session && selectedInput) publishAudioInput({ status: 'disconnected', channelCount: 0 });
+  };
+  tracks.forEach(track => track.addEventListener?.('ended', ended));
   const resumeWhenVisible = () => {
     if (released || typeof document === "undefined" || document.visibilityState !== "visible") return;
     if (context?.state === "suspended" || context?.state === "interrupted") context.resume?.().catch?.(() => {});
@@ -219,6 +235,7 @@ function createSession({ consumerId, context, graph, preset, presetName, rawStre
     rawStream,
     recordingStream: graph?.recordingStream ?? rawStream,
     trackSettings,
+    get connected() { return !released && !tracks.some(track => track.readyState === 'ended') && !(selectedInput && getAudioInputSelection().status === 'disconnected'); },
     configureDetection({ fftSize, highpassFrequency }) {
       if (released || !graph?.highpass || !graph?.analyser) return;
       if (!Number.isInteger(fftSize) || fftSize < 32 || fftSize > 32768 || (fftSize & (fftSize - 1))) return;
@@ -232,7 +249,7 @@ function createSession({ consumerId, context, graph, preset, presetName, rawStre
       graph.highpass.frequency.value = highpassFrequency;
     },
     readLevelFrame() {
-      if (released || !graph?.analyser || !floatBuffer) {
+      if (released || !session.connected || !graph?.analyser || !floatBuffer) {
         return { clipping: false, normalized: 0, peak: 0, peakDb: -100, rms: 0, rmsDb: -100, state: "low" };
       }
       const frame = calculateSignalLevel(readTimeDomain(graph.analyser, floatBuffer, byteBuffer));
@@ -285,7 +302,9 @@ function createSession({ consumerId, context, graph, preset, presetName, rawStre
       const run = (now = performance.now()) => {
         if (!active || released) return;
         if (now - lastUpdate >= intervalMs) {
-          const level = session.readLevelFrame();
+          const level = session.connected && meterAnalyser
+            ? calculateSignalLevel(readTimeDomain(meterAnalyser, meterFloat, meterByte))
+            : { normalized: 0, rmsDb: -100, peakDb: -100, clipping: false };
           if (level.clipping) peakHoldUntil = now + 800;
           callback({ ...level, clipping: level.clipping || now < peakHoldUntil });
           lastUpdate = now;
@@ -306,6 +325,8 @@ function createSession({ consumerId, context, graph, preset, presetName, rawStre
     async release() {
       if (released) return;
       released = true;
+      tracks.forEach(track => track.removeEventListener?.('ended', ended));
+      if (activeSession === session && selectedInput) publishAudioInput({ status: 'idle', channelCount: 0 });
       if (typeof document !== "undefined") document.removeEventListener("visibilitychange", resumeWhenVisible);
       monitorStops.forEach((stop) => stop());
       monitorStops.clear();
@@ -330,12 +351,20 @@ export async function acquireMicInput({
   consumerId = "anonymous",
   mediaDevices = globalThis.navigator?.mediaDevices,
   preset: presetName = MIC_INPUT_PRESETS.GUITAR_DETECTION,
+  inputSelection,
 } = {}) {
   if (!mediaDevices?.getUserMedia) throw new Error("Microphone capture is not supported.");
   const requestVersion = ++acquisitionVersion;
   await activeSession?.release?.();
   if (requestVersion !== acquisitionVersion) throw new DOMException("Microphone request was superseded.", "AbortError");
-  const rawStream = await requestMicrophone(mediaDevices);
+  const selectedInput = inputSelection ?? (['just-play-tuner', 'shooting-game-detector'].includes(consumerId) ? getAudioInputSelection() : null);
+  if (selectedInput) publishAudioInput({ status: 'requesting' });
+  let rawStream;
+  try { rawStream = await requestMicrophone(mediaDevices, selectedInput ?? {}); }
+  catch (error) {
+    if (requestVersion === acquisitionVersion && selectedInput) publishAudioInput({ status: audioInputError(error), channelCount: 0 });
+    throw error;
+  }
   if (requestVersion !== acquisitionVersion) {
     stopStream(rawStream);
     throw new DOMException("Microphone request was superseded.", "AbortError");
@@ -353,10 +382,20 @@ export async function acquireMicInput({
     try {
       context = createAudioContext(AudioContextApi, presetName);
       if (context.state === "suspended") await context.resume();
-      const source = context.createMediaStreamSource(rawStream);
+      const rawSource = context.createMediaStreamSource(rawStream);
+      let source = rawSource, splitter = null;
+      const count = Number(trackSettings.channelCount) || 0;
+      const channel = selectedInput?.channel;
+      if (Number.isInteger(channel) && channel >= 0 && channel < count && count > 1 && context.createChannelSplitter) {
+        splitter = context.createChannelSplitter(count);
+        source = context.createGain();
+        rawSource.connect(splitter);
+        splitter.connect(source, channel, 0);
+      }
       graph = presetName === MIC_INPUT_PRESETS.GUITAR_RECORDING
         ? createRecordingGraph(context, source, preset)
         : createDetectionGraph(context, source, preset);
+      if (splitter) graph.nodes.push(rawSource, splitter);
     } catch {
       graph?.nodes?.forEach(safelyDisconnect);
       try {
@@ -369,13 +408,18 @@ export async function acquireMicInput({
     }
   }
 
-  const session = createSession({ consumerId, context, graph, preset, presetName, rawStream, trackSettings });
+  const session = createSession({ consumerId, context, graph, preset, presetName, rawStream, trackSettings, selectedInput });
   // Context resume can await an iOS user gesture while another screen acquires input.
   if (requestVersion !== acquisitionVersion) {
     await session.release();
     throw new DOMException("Microphone request was superseded.", "AbortError");
   }
   activeSession = session;
+  if (selectedInput) {
+    const count = context?.createChannelSplitter ? Number(trackSettings.channelCount) || 0 : 0;
+    publishAudioInput({ status: context && graph ? 'connected' : 'error', channelCount: count, label: rawStream.getAudioTracks?.()[0]?.label ?? '', channel: Number.isInteger(selectedInput.channel) && selectedInput.channel < count ? selectedInput.channel : null });
+    void refreshAudioDevices(mediaDevices);
+  }
   return session;
 }
 

@@ -115,6 +115,9 @@ export async function loadBackingLoopRecording(id) {
 }
 
 export async function saveBackingLoopRecording(recording) {
+  if (recording?.sourceType === BACKING_AUDIO_SOURCE_TYPES.GROOVE) {
+    throw new Error("Shared groove packs are references, not saved recordings.");
+  }
   if (!(recording?.blob instanceof Blob) || recording.blob.size === 0) {
     throw new Error("There is no backing loop to save.");
   }

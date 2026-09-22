@@ -29,7 +29,7 @@ export function upgradeDocument(input) {
 }
 export function createBlankDocument(){return {format:'fretiva.etude',version:2,id:newId('score'),templateId:'custom',kind:'user',origin:null,viewSettings:{tabRhythm:true,notationView:'tab'},title:'새 악보',english:'Untitled Study',purpose:'직접 입력한 악보',tips:[],bpm:60,meter:[4,4],keySignature:'C',instrument:'guitar',tuning:[...TUNING],measures:[blankMeasure()]};}
 export function copyDocument(source){const d=structuredClone(source);d.id=newId('score');d.kind='user';d.title=`${d.title} · 복사`;return d;}
-export function cloneMeasures(measures){const result=structuredClone(measures),ids=new Map();result.forEach(m=>{m.id=newId('bar');m.events.forEach(e=>{const old=e.id;e.id=newId('event');ids.set(old,e.id);e.notes.forEach(n=>{n.id=newId('tone');});});});result.forEach(m=>m.events.forEach(e=>{if(e.tieTo)e.tieTo=ids.get(e.tieTo)??`outside-copy:${e.tieTo}`;if(e.tuplet?.groupId)e.tuplet.groupId=ids.get(e.tuplet.groupId)??e.tuplet.groupId;}));return result;}
+export function cloneMeasures(measures){const result=structuredClone(measures),ids=new Map();result.forEach(m=>{m.id=newId('bar');m.events.forEach(e=>{const old=e.id;e.id=newId('event');ids.set(old,e.id);e.notes.forEach(n=>{n.id=newId('tone');});});});result.forEach(m=>m.events.forEach(e=>{if(e.tieTo)e.tieTo=ids.get(e.tieTo)??`outside-copy:${e.tieTo}`;if(e.slurTo)e.slurTo=ids.get(e.slurTo)??null;if(e.tuplet?.groupId)e.tuplet.groupId=ids.get(e.tuplet.groupId)??e.tuplet.groupId;}));return result;}
 export function cloneMeasure(m){return cloneMeasures([m])[0];}
 export function patchEvent(d,bar,index,patch){const measures=[...d.measures],events=[...measures[bar].events];events[index]=typeof patch==='function'?patch(events[index]):{...events[index],...patch};measures[bar]={...measures[bar],events};return {...d,measures};}
 // Structural sharing for the retained properties panel, which mutates a clone.
@@ -75,21 +75,23 @@ function compileBar(bar,d) {
   if(e.onset!==end)issues.push(`${e.id}: ${e.onset<end?'앞 음과 겹침':'입력되지 않은 박'} (${e.onset/TICKS}박 시작)`);
   end=Math.max(end,e.onset+ticksOf(e));
   if(!e.rest&&(!e.notes.length||new Set(e.notes.filter(n=>!n.unplaced).map(n=>isFretted(d.instrument)?n.string:n.midi)).size!==e.notes.filter(n=>!n.unplaced).length))errors.push(`${e.id}: 같은 줄 중복 또는 빈 음표`);
-  if(!isFretted(d.instrument)){if(e.letRing||e.slideOut||e.notes.some(n=>n.bendEffect||n.parenthesized)||e.technique||e.pickStroke||e.palmMute||e.vibrato||e.dead||e.arpeggio||e.notes.some(n=>n.harmonic||n.dead||n.string!=null||n.fret!=null))errors.push('건반·드럼에는 현·프렛·기타 주법을 적용할 수 없습니다.');if(e.notes.some(n=>n.hand!=null&&!['left','right'].includes(n.hand)))errors.push('손은 왼손 또는 오른손을 선택하세요.');if(d.instrument==='drums'&&e.tieTo)errors.push('드럼에는 붙임줄을 적용하지 않습니다.');}
+  if(!isFretted(d.instrument)){if(e.letRing||e.slideOut||e.slideIn||e.notes.some(n=>n.bendEffect||n.parenthesized)||e.technique||e.pickStroke||e.palmMute||e.vibrato||e.dead||e.arpeggio||e.notes.some(n=>n.harmonic||n.dead||n.string!=null||n.fret!=null))errors.push('건반·드럼에는 현·프렛·기타 주법을 적용할 수 없습니다.');if(e.notes.some(n=>n.hand!=null&&!['left','right'].includes(n.hand)))errors.push('손은 왼손 또는 오른손을 선택하세요.');if(d.instrument==='drums'&&e.tieTo)errors.push('드럼에는 붙임줄을 적용하지 않습니다.');}
   const tones=e.notes.map(n=>{if(!isFretted(d.instrument)){try{validateInstrumentMidi(d.instrument,n.midi);}catch(error){errors.push(error.message);return null;}return {...n,string:n.midi+1,fret:0,pitch:pitchForMidi(n.midi,d.keySignature,n.spelling,d.instrument)};}if(n.unplaced&&Number.isInteger(n.midi)&&n.midi>=0&&n.midi<=127)return {...n,pitch:pitchForMidi(n.midi,d.keySignature,n.spelling,d.instrument)};if(!Number.isInteger(n.string)||n.string<1||n.string>d.tuning.length||!Number.isInteger(n.fret)||n.fret<0||n.fret+(d.capo??0)>maxFret(d)){errors.push(`${e.id}: 줄 1–${d.tuning.length}, 프렛 0–24를 입력하세요.`);return null;}if(n.dead!=null&&typeof n.dead!=='boolean')errors.push(`${e.id}: 줄별 뮤트음 값은 true/false입니다.`);if(n.harmonic&&!NATURAL_HARMONICS[n.fret])errors.push(`${e.id}: 자연 하모닉스 위치를 확인하세요.`);const midi=soundingMidi(d,n);return {...n,dead:Boolean(n.dead??e.dead),midi,pitch:pitchForMidi(midi,d.keySignature,n.spelling,d.instrument)};}).filter(Boolean);
   if(e.beamBefore!=null&&!['auto','join','break'].includes(e.beamBefore))errors.push(`${e.id}: 빔 설정을 확인하세요.`);
   if(e.dead!=null&&typeof e.dead!=='boolean')errors.push(`${e.id}: 뮤트음 값은 true/false입니다.`);
   if(e.palmMute!=null&&typeof e.palmMute!=='boolean')errors.push(`${e.id}: 팜 뮤트 설정은 true/false입니다.`);
   if(e.vibrato!=null&&typeof e.vibrato!=='boolean')errors.push(`${e.id}: 비브라토 설정을 확인하세요.`);
   if(e.arpeggio!=null&&!['up','down'].includes(e.arpeggio))errors.push(`${e.id}: 아르페지오 방향을 확인하세요.`);
+  if(e.slideIn!=null&&!['up','down'].includes(e.slideIn))errors.push('슬라이드 인 방향을 확인하세요.');
+  if(e.slurTo!=null&&typeof e.slurTo!=='string')errors.push(`${e.id}: 이음줄 대상을 확인하세요.`);
   if(e.technique&&!['H','P','S'].includes(e.technique))errors.push(`${e.id}: 지원하지 않는 연결 주법`);
   if(e.notes.some(n=>n.finger!=null&&![1,2,3,4].includes(n.finger)||n.rightFinger!=null&&!['p','i','m','a'].includes(n.rightFinger)))errors.push(`${e.id}: 손가락 기호를 확인하세요.`);
   if(e.pickStroke!=null&&!['up','down'].includes(e.pickStroke))errors.push(`${e.id}: 피킹 방향을 확인하세요.`);
   if(e.letRing!=null&&typeof e.letRing!=='boolean')errors.push('열린 붙임줄 설정을 확인하세요.');
   if(e.slideOut!=null&&!['up','down'].includes(e.slideOut))errors.push('슬라이드 아웃 방향을 확인하세요.');
-  for(const n of e.notes){if(n.parenthesized!=null&&typeof n.parenthesized!=='boolean')errors.push('괄호 음표 설정을 확인하세요.');if(n.bendEffect&&(![1,2].includes(n.bendEffect.amount)||!['up','hold','release','up-release'].includes(n.bendEffect.phase)))errors.push('벤드의 음정·형태를 확인하세요.');if(n.bendEffect&&(n.dead||e.dead||n.harmonic))errors.push('뮤트음·자연 하모닉스에는 벤드를 적용하지 않습니다.');}
+  for(const n of e.notes){if(n.parenthesized!=null&&typeof n.parenthesized!=='boolean')errors.push('괄호 음표 설정을 확인하세요.');if(n.bendEffect&&(![.5,1,2].includes(n.bendEffect.amount)||!['up','hold','release','up-release','prebend'].includes(n.bendEffect.phase)))errors.push('벤드의 음정·형태를 확인하세요.');if(n.bendEffect&&(n.dead||e.dead||n.harmonic))errors.push('뮤트음·자연 하모닉스에는 벤드를 적용하지 않습니다.');}
   for(const key of ['bend','ghost','grace'])if(e[key]!=null)issues.push(`${e.id}: ${key}는 현재 표시·재생을 지원하지 않습니다. 입력 데이터는 보존합니다.`);
-  events.push({...e,...(tones[0]??{string:1,fret:0,midi:d.tuning[0]??60,pitch:pitchForMidi(d.tuning[0]??60,d.keySignature,undefined,d.instrument)}),id:e.id,...(tones.length>1?{tones}:{}),rest:Boolean(e.rest),duration:e.duration,technique:e.technique??null});
+  events.push({...e,...(tones[0]??{string:1,fret:0,midi:d.tuning[0]??60,pitch:pitchForMidi(d.tuning[0]??60,d.keySignature,undefined,d.instrument)}),id:e.id,...(tones.length>1||d.instrument==='drums'&&tones.length?{tones}:{}),rest:Boolean(e.rest),duration:e.duration,technique:e.technique??null});
  }
  for(const group of tupletGroups(bar.events)){const first=bar.events[group[0]];if(group.length!==3||group.some((index,j)=>bar.events[index].duration!==first.duration||bar.events[index].onset!==first.onset+j*ticksOf(first)))errors.push('셋잇단음표는 같은 길이의 연속된 세 위치로 구성해야 합니다.');}
  for(const group of tupletGroups(bar.events)){if(group.some(i=>isBlankEvent(bar.events[i])))issues.push(`${Math.floor(bar.events[group[0]].onset/TICKS)+1}박: 셋잇단음표 그룹 미완성`);}
@@ -115,6 +117,8 @@ export function compileDocumentV2(d,base={}) {
  else if(d.measures.some(m=>!m||!Array.isArray(m.events)||m.events.some(e=>!e||typeof e.rest!=='boolean'||!Array.isArray(e.notes)||e.notes.some(n=>!n||typeof n!=='object'))))errors.push('음표·쉼표 구조를 확인하세요.');
  if(errors.length)return {score:null,errors,issues};
  issues.push(...repeatIssues(d.measures));
+ const slurEvents=d.measures.flatMap(m=>m.events),slurPositions=new Map(slurEvents.map((e,i)=>[e.id,i]));
+ slurEvents.forEach((e,i)=>{if(!e.slurTo)return;const end=slurPositions.get(e.slurTo);if(end===undefined||end<=i||slurEvents.slice(i,end+1).some(n=>n.rest))issues.push('이음줄의 시작음과 끝음을 확인하세요.');});
  const meters=measureMeters(d);
  for(const meter of meters)if(!Array.isArray(meter)||![2,3,4,6].includes(meter[0])||![4,8].includes(meter[1]))errors.push("마디 박자표를 확인하세요.");
  if(errors.length)return {score:null,errors,issues};

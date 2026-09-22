@@ -1,6 +1,7 @@
 import { normalizeBackingLoopTitle } from "./backingLoopUtils.js";
 
 export const BACKING_AUDIO_SOURCE_TYPES = Object.freeze({
+  GROOVE: "groove",
   AUDIO_STUDIO: "audio-studio",
   IMPORT: "import",
   RECORDING: "recording",

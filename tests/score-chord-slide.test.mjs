@@ -8,7 +8,7 @@ import {slidePairs} from '../src/etudes/slidePairs.js';
 function chord(){let d=createBlankDocument();for(const [event,string,fret] of [[0,6,2],[0,5,4],[1,5,5],[1,6,3]])d=enterFret(d,{bar:0,event,string},fret);return d;}
 test('double-stop slides match strings across reordered chord tones and survive saving',()=>{
  const d=setNoteConnection(chord(),{bar:0,event:0,string:6},'S');const r=compileDocumentV2(d);assert.deepEqual(r.errors,[]);assert.deepEqual(r.issues,[]);
- const voices=guitarVoiceTimeline(r.score).voices;assert.equal(voices.length,2);for(const v of voices){assert.equal(v.segments.length,2);assert.equal(v.segments[1].connection,'S');assert.equal(v.segments[0].string,v.segments[1].string);}
+ const voices=guitarVoiceTimeline(r.score).voices;assert.equal(voices.length,4);for(const v of voices.filter(v=>v.segments.length===2)){assert.equal(v.segments[1].connection,'S');assert.equal(v.segments[1].duration,0);assert.equal(v.segments[0].string,v.segments[1].string);}
  const storage=new Map(),adapter={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v)};assert.equal(saveLibraryDocument(adapter,d).saved,true);assert.deepEqual(compileDocumentV2(loadLibrary(adapter).records[d.id].document).score.measures,r.score.measures);
  assert.equal(setNoteConnection(d,{bar:0,event:0},'S').measures[0].events[0].technique,null);
 });

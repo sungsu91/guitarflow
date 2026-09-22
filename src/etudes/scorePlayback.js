@@ -1,3 +1,4 @@
+import {slurSpans,slurCovers} from './slurs.js';
 import {performedMeasures} from './scoreMeters.js';
 import {scoreBarOrder} from './scoreRepeats.js';
 import {ticksOf} from './scoreModel.js';
@@ -25,8 +26,8 @@ export function scoreTimeline(score, bpm = score.bpm, includeNotes = true, {play
         pending.delete(key);
         // A tie may not bridge a gap, change string/pitch, or sustain a dead note.
         const prior = candidate && !(tone.dead??e.dead) && !candidate.dead && Math.abs(candidate.start + candidate.duration - start) < 1e-6 ? candidate : null;
-        const note = prior ?? {id:e.id, bar, visit, pickStroke:e.pickStroke??null, vibrato:Boolean(e.vibrato),palmMute:Boolean(e.palmMute), harmonic:Boolean(tone.harmonic), dead:Boolean(tone.dead??e.dead), midi:tone.midi, fret:tone.fret, string:tone.string, voice:e.voice, start:toneStart, duration:0, technique:null,letRing:Boolean(e.letRing),expressions:[]};
-        note.expressions.push({start:toneStart,duration:toneDuration,bendEffect:tone.bendEffect??null,vibrato:Boolean(e.vibrato)});
+        const note = prior ?? {id:e.id, bar, visit, pickStroke:e.pickStroke??null, vibrato:Boolean(e.vibrato),palmMute:Boolean(e.palmMute), harmonic:Boolean(tone.harmonic), dead:Boolean(tone.dead??e.dead), midi:tone.midi, ...(score.instrument==='drums'?{drumTechnique:tone.drumTechnique,drumArticulation:tone.drumArticulation,beatSeconds:60/bpm*(e.tuplet?2/3:1),writtenDuration:e.duration}:{}), fret:tone.fret, string:tone.string, voice:e.voice, start:toneStart, duration:0, technique:null,letRing:Boolean(e.letRing),expressions:[]};
+        note.expressions.push({start:toneStart,duration:toneDuration,bendEffect:tone.bendEffect??null,vibrato:Boolean(e.vibrato),slideOut:e.slideOut??null,slideIn:e.slideIn??null});
         note.letRing||=Boolean(e.letRing);
         if(e.palmMute&&note.palmMuteStart==null)note.palmMuteStart=start;
         note.duration += prior?duration:toneDuration;
@@ -48,6 +49,7 @@ export function scoreTimeline(score, bpm = score.bpm, includeNotes = true, {play
 // independent voices; an unrelated chord tone never inherits a pitch ramp.
 export function guitarVoiceTimeline(score, bpm = score.bpm) {
   const timeline = scoreTimeline(score, bpm), voices = [], last = new Map();
+  const spans=slurSpans(score.measures);
   const rests=performedMeasures(score,timeline.order).flatMap(({bar,barStart})=>{
     let next=0;
     return score.measures[bar].flatMap(e=>{
@@ -60,14 +62,31 @@ export function guitarVoiceTimeline(score, bpm = score.bpm) {
     const forward = tail && (tail.visit===note.visit || (tail.visit+1===note.visit && tail.bar+1===note.bar));
     const connected = forward && !tail.dead && !note.dead && Math.abs(tail.start + tail.duration - note.start) < 1e-6 &&
       ((tail.technique === 'H' && note.midi > tail.midi) || (tail.technique === 'P' && note.midi < tail.midi) || (tail.technique === 'S' && note.midi !== tail.midi));
-    if (connected) {
-      previous.segments.push({...note, connection:tail.technique});
+    const legatoSlide=connected&&tail.technique==='S'&&slurCovers(spans,tail.id,note.id);
+    if (connected&&tail.technique==='S'&&!legatoSlide) {
+      // Glide into the destination but stop this source at its attack; the
+      // destination starts a separate picked voice below.
+      previous.segments.push({...note,duration:0,connection:'S',expressions:[]});
+    }
+    const bendNext=note.expressions[0]?.bendEffect,bendPrevious=tail?.expressions.at(-1)?.bendEffect;
+    const bendContinuation=forward&&tail.midi===note.midi&&!tail.dead&&!note.dead&&Math.abs(tail.start+tail.duration-note.start)<1e-6&&bendPrevious&&['up','hold','prebend'].includes(bendPrevious.phase)&&['hold','release'].includes(bendNext?.phase);
+    if (bendContinuation||(connected&&(tail.technique!=='S'||legatoSlide))) {
+      previous.segments.push({...note, connection:bendContinuation?'bend':tail.technique});
       previous.duration = note.start + note.duration - previous.start;
       previous.tail = note;
     } else {
       const voice = {...note, segments:[{...note, connection:null}], tail:note};
       voices.push(voice);
       last.set(note.string, voice);
+    }
+  }
+  for(const voice of voices){
+    let previousEnd=-Infinity,held=null;
+    for(const segment of voice.segments)for(const expression of segment.expressions??[]){
+      const effect=expression.bendEffect;
+      if(effect){const inherits=held!==null&&Math.abs(previousEnd-expression.start)<1e-6&&['hold','release'].includes(effect.phase);expression.bendEffect={...effect,fromAmount:inherits?held:effect.amount};held=['up','hold','prebend'].includes(effect.phase)?(effect.phase==='hold'&&inherits?held:effect.amount):0;}
+      else held=null;
+      previousEnd=expression.start+expression.duration;
     }
   }
   // Entered rests damp ringing strings; empty drafting slots do not invent a pick.

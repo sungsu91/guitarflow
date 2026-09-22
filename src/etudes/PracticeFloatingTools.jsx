@@ -1,4 +1,4 @@
-import {BackingLoopDragContext} from '../components/BackingLoopDragContext.js';
+import {BackingLoopDragContext,BackingLoopFoldContext} from '../components/BackingLoopDragContext.js';
 import PracticePopover from './PracticePopover.jsx';
 import {createPortal} from 'react-dom';
 import PracticeBeatDots from './PracticeBeatDots.jsx';
@@ -13,9 +13,9 @@ import {METRONOME_SUBDIVISION_OPTIONS} from '../metronome/subdivision.js';
 import './practiceFloatingTools.css';
 
 // Only handles capture pointers; the score and all controls retain native gestures.
-function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false, bottomPinned=false) {
+function useFloatingPosition(key, edge=false, avoidPanel=false, dock=false, bottomPinned=false,initialPosition=null) {
   const ref=useRef(null), gesture=useRef(null), moved=useRef(false);
-  const [position,setPosition]=useState(()=>{try{const p=JSON.parse(localStorage.getItem(key));return Number.isFinite(p?.x)&&Number.isFinite(p?.y)?p:null;}catch{return null;}});
+  const [position,setPosition]=useState(()=>{if(initialPosition)return initialPosition;try{const p=JSON.parse(localStorage.getItem(key));return Number.isFinite(p?.x)&&Number.isFinite(p?.y)?p:null;}catch{return null;}});
   const clamp=p=>{
     const viewport=window.visualViewport, left=viewport?.offsetLeft??0,top=viewport?.offsetTop??0;
     const width=viewport?.width??innerWidth,height=viewport?.height??innerHeight;
@@ -77,14 +77,13 @@ function EtudeRemote({controls:c,model,mobile,onHeight}){
  const close=useCallback(focus=>{setPopup(null);if(focus)(popup==='settings'?settingsButton:popup==='volume'?volumeButton:bpmButton).current?.focus({preventScroll:true});},[popup]);
  useLayoutEffect(()=>{const el=floating.ref.current;const measure=()=>onHeight(el.getBoundingClientRect().height+24);measure();const observer=new ResizeObserver(measure);observer.observe(el);return()=>observer.disconnect();},[onHeight]);
  const remote=<section ref={floating.ref} style={dock?undefined:floating.style} className={"etudeFloatingMetro etudeSessionWidget etudeRemote"+(dock?" etudeHudRemote":mobile?" etudeRemote--mobileBottom":"")} aria-label="악보 메트로놈">
- <div className="etudeRemoteBeats">{!dock&&!mobile&&<button type="button" className="etudeDragHandle" aria-label="메트로놈 이동 (방향키로 이동)" {...floating.handle}><GripHorizontal aria-hidden="true"/></button>}<PracticeBeatDots meter={c.meter} beat={c.beat} showMeter={false} beatAccents={c.beatAccents} onToggleAccent={c.onToggleAccent}/><span>{c.meter.join('/')}</span><button type="button" aria-label="메트로놈 닫기" onClick={model.minimizeMetro}><X aria-hidden="true"/></button></div>
+ <div className="etudeRemoteBeats">{!dock&&!mobile&&<button type="button" className="etudeDragHandle" aria-label="메트로놈 이동 (방향키로 이동)" {...floating.handle}><GripHorizontal aria-hidden="true"/></button>}<PracticeBeatDots meter={c.meter} beat={c.beat} showMeter={false} beatAccents={c.beatAccents} onToggleAccent={c.onToggleAccent}/>{model.followMode!=='off'&&<span className="practiceCurrentBar" aria-label="진행 마디">{(model.playPosition?.bar??model.startBar??0)+1}/{model.selected?.measures.length??1}마디</span>}<span>{c.meter.join('/')}</span><button type="button" aria-label="메트로놈 닫기" onClick={model.minimizeMetro}><X aria-hidden="true"/></button></div>
  <div className="etudeRemoteControls"><button type="button" ref={bpmButton} className="etudeRemoteBpm" aria-label={'BPM '+c.bpm+' 조절'} aria-expanded={popup==='bpm'} onClick={()=>setPopup(p=>p==='bpm'?null:'bpm')}><strong>{c.bpm}</strong><small>BPM</small></button><button type="button" className="etudePracticeStart" aria-label={c.playing?'일시정지':c.paused?'연습 재개':'연습 시작'} disabled={c.disabled} onClick={c.playing?c.onPause:c.paused?c.onResume:c.onStart}>{c.playing?<Pause/>:<Play/>}</button><button type="button" className="etudePracticeStop" aria-label="정지" disabled={!c.playing&&!c.paused} onClick={c.onStop}><Square/></button><button type="button" ref={volumeButton} aria-label="메트로놈 볼륨" aria-expanded={popup==='volume'} onClick={()=>setPopup(p=>p==='volume'?null:'volume')}>{c.click?<Volume2/>:<VolumeX/>}</button><button type="button" ref={settingsButton} aria-label="메트로놈 상세 설정" aria-expanded={popup==='settings'} onClick={()=>setPopup(p=>p==='settings'?null:'settings')}><Settings2/></button></div>
  {popup&&<PracticePopover anchor={popup==='settings'?settingsButton:popup==='volume'?volumeButton:bpmButton} onClose={close} width={popup==='volume'?94:330} label={popup==='settings'?'메트로놈 설정':popup==='volume'?'메트로놈 볼륨':'BPM 조절'}>{popup==='volume'?<div className="etudeVerticalVolume"><MetronomeVolumeControl className="etudeVerticalVolumeControl" label="볼륨"/><button type="button" aria-label="클릭 음소거" aria-pressed={!c.click} onClick={c.onClickSound}>{c.click?<Volume2 aria-hidden="true"/>:<VolumeX aria-hidden="true"/>}</button></div>:popup==='bpm'?<><label>연습 BPM<input type="number" aria-label="연습 BPM" min="30" max="240" value={c.bpm} onChange={e=>c.onBpm(e.target.value)}/></label><div className="etudeTempoQuick">{[-10,-1,1,10].map(d=><button type="button" key={d} onClick={()=>c.onBpm(c.bpm+d)}>{d>0?'+':''}{d}</button>)}</div></>:<><MetronomeSettingsPanel renderOption={o=>o?.label??o?.longLabel??''} fields={[
  {id:'meter',label:'박자',value:c.meter.join('/'),disabled:true,options:TIME_SIGNATURE_OPTIONS,onChange:()=>{}},
  {id:'subdivision',label:'세분',value:model.subdivision,options:METRONOME_SUBDIVISION_OPTIONS,onChange:model.setSubdivision},
  {id:'tone',label:'음색',tone:true,value:model.tone,options:METRONOME_TONE_OPTIONS,onChange:model.setTone},
- {id:'repeat',label:'반복',value:model.repeatCount??0,options:[{id:0,label:'계속 반복'},...Array.from({length:16},(_,i)=>({id:i+1,label:`${i+1}회`}))],onChange:value=>model.setRepeatCount?.(Number(value))},
- ]}/><FollowPatternControl value={model.followMode} onChange={model.setFollowMode} rhythm={model.rhythmProgress} onRhythmChange={model.setRhythmProgress}/><details className="etudeOptionalSoundSection"><summary>악보 소리 · {c.sound?'켜짐':'끔'}</summary><label className="etudeOptionalSound"><input type="checkbox" checked={c.sound} onChange={c.onSound}/>악보 소리 듣기 (선택)</label><label>음색<select aria-label="악보 소리 음색" disabled={!c.sound} value={c.instrument} onChange={e=>c.onInstrument(e.target.value)}><option value="clean-guitar">클린 기타</option><option value="piano">피아노</option></select></label></details></> }</PracticePopover>}{c.error&&<p role="alert">{c.error}</p>}
+ ]}/><PracticeRepeatControls model={model}/><FollowPatternControl value={model.followMode} onChange={model.setFollowMode}/><button type="button" className="etudeOptionalSoundToggle" aria-label="악보 소리" aria-pressed={c.sound&&model.followMode!=='off'} disabled={model.followMode==='off'} onClick={c.onSound}><span>악보 소리</span><span className="scoreSoundState">{c.sound&&model.followMode!=='off'?'켬':'끔'}</span></button></> }</PracticePopover>}{c.error&&<p role="alert">{c.error}</p>}
  </section>;
  return dock?createPortal(remote,model.hudTarget):remote;
 }
@@ -107,16 +106,15 @@ function FloatingPractice({controls:c,model,panelOpen,onHeight}) {
  {id:'meter',label:'박자',value:c.meter.join('/'),disabled:true,options:TIME_SIGNATURE_OPTIONS,onChange:()=>{}},
  {id:'subdivision',label:'세분',value:model.subdivision,options:METRONOME_SUBDIVISION_OPTIONS,onChange:model.setSubdivision},
  {id:'tone',label:'음색',tone:true,value:model.tone,options:METRONOME_TONE_OPTIONS,onChange:model.setTone},
- {id:'repeat',label:'반복',value:model.repeatCount??0,options:[{id:0,label:'계속 반복'},...Array.from({length:16},(_,i)=>({id:i+1,label:`${i+1}회`}))],onChange:value=>model.setRepeatCount?.(Number(value))},
- ]}/><FollowPatternControl value={model.followMode} onChange={model.setFollowMode} rhythm={model.rhythmProgress} onRhythmChange={model.setRhythmProgress}/><MetronomeVolumeControl/><details className="etudeOptionalSoundSection"><summary>악보 소리 듣기 · 선택</summary><label className="etudeOptionalSound"><input type="checkbox" checked={c.sound} onChange={c.onSound}/>악보 소리 듣기 (선택)</label><label>악보 소리 음색<select aria-label="악보 소리 음색" disabled={!c.sound} value={c.instrument} onChange={e=>c.onInstrument(e.target.value)}><option value="clean-guitar">클린 기타</option><option value="piano">피아노</option></select></label></details></div>}{c.error&&<p role="alert">{c.error}</p>}
+ ]}/><PracticeRepeatControls model={model}/><FollowPatternControl value={model.followMode} onChange={model.setFollowMode}/><MetronomeVolumeControl/><button type="button" className="etudeOptionalSoundToggle" aria-label="악보 소리" aria-pressed={c.sound&&model.followMode!=='off'} disabled={model.followMode==='off'} onClick={c.onSound}><span>악보 소리</span><span className="scoreSoundState">{c.sound&&model.followMode!=='off'?'켬':'끔'}</span></button></div>}{c.error&&<p role="alert">{c.error}</p>}
  </section>;
 }
 
-function MovableBackingPanel({scope,close,children}){
- const position=useFloatingPosition('riff-'+scope+'-backing-panel-position');
+function MovableBackingPanel({scope,close,children,origin}){
+ const position=useFloatingPosition('riff-'+scope+'-backing-panel-position',false,false,false,false,origin);
  const fold=()=>{const el=position.ref.current;if(!el||matchMedia('(prefers-reduced-motion: reduce)').matches){close();return;}const distance=innerWidth-el.getBoundingClientRect().left;el.animate([{transform:'translateX(0)',opacity:1},{transform:'translateX('+distance+'px)',opacity:0}],{duration:180,easing:'ease-in',fill:'forwards'}).finished.then(close,()=>{});};
  return <aside id="etude-backing-panel" className="etudeBackingDrawer etudeBackingDrawer--movable" ref={position.ref} style={position.style} aria-label="백킹루프" onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();close();}}}>
- <button type="button" className="backingPanelClose" aria-label="백킹루프 오른쪽으로 접기" title="오른쪽으로 접기" onClick={fold}><ChevronRight size={20} aria-hidden="true"/></button><BackingLoopDragContext.Provider value={position.handle}>{children}</BackingLoopDragContext.Provider></aside>;
+ <BackingLoopFoldContext.Provider value={fold}><BackingLoopDragContext.Provider value={position.handle}>{children}</BackingLoopDragContext.Provider></BackingLoopFoldContext.Provider></aside>;
 }
 
 function MovableEdgeTab({scope,kind,onOpen,playing}){
@@ -125,14 +123,14 @@ function MovableEdgeTab({scope,kind,onOpen,playing}){
 }
 function BackingSurface({controller,children,open,setOpen,scope,triggerTarget}) {
   const trigger=useRef(null),panel=useRef(null);
-  const [minimized,setMinimized]=useState(false);
+  const [minimized,setMinimized]=useState(false),[openOrigin,setOpenOrigin]=useState(null);
   const floating=useFloatingPosition(`riff-${scope}-backing-position`,true);
   const close=()=>{setOpen(false);setMinimized(true);controller.closeDialog();trigger.current?.focus({preventScroll:true});};
   useEffect(()=>{if(open)panel.current?.querySelector('button')?.focus({preventScroll:true});else controller.closeDialog();},[open]);
   return <>
-    {triggerTarget?createPortal(<span ref={floating.ref} className="etudeBackingToggle"><button ref={trigger} type="button" aria-label="백킹루프" aria-pressed={open||minimized} aria-expanded={open} aria-controls="etude-backing-panel" onClick={()=>{if(open||minimized){controller.pausePlayback();controller.resetPlayback();controller.closeDialog();setOpen(false);setMinimized(false);}else{setOpen(true);}}}><AudioLines aria-hidden="true"/>백킹루프{controller.isPlaying&&<i role="status" aria-label="백킹루프 재생 중"> ·</i>}</button></span>,triggerTarget):(<div ref={floating.ref} className="etudeBackingHandle" style={floating.style}><button ref={trigger} type="button" aria-label={open?'백킹루프 패널 접기':'백킹루프 패널 펼치기'} aria-expanded={open} aria-controls="etude-backing-panel" {...floating.handle} onClick={()=>open?close():setOpen(true)}><span aria-hidden="true">{open?'›':'‹'}</span>{controller.isPlaying&&<i role="status" aria-label="백킹루프 재생 중"/>}</button></div>)}
-    {triggerTarget&&minimized&&!open&&<MovableEdgeTab scope={scope} kind="backing" playing={controller.isPlaying} onOpen={()=>{setMinimized(false);setOpen(true);}}/>}
-    {open&&<MovableBackingPanel scope={scope} close={close}>{children}{controller.notice&&<p role="status">{controller.notice}</p>}</MovableBackingPanel>}
+    {triggerTarget?createPortal(<span ref={floating.ref} className="etudeBackingToggle"><button ref={trigger} type="button" aria-label="백킹루프" aria-pressed={open||minimized} aria-expanded={open} aria-controls="etude-backing-panel" onClick={()=>{if(open||minimized){controller.pausePlayback();controller.resetPlayback();controller.closeDialog();setOpen(false);setMinimized(false);}else{setOpen(true);}}}><AudioLines aria-hidden="true"/>백킹루프{controller.isPlaying&&<i role="status" aria-label="백킹루프 재생 중"> ·</i>}</button></span>,triggerTarget):(<div ref={floating.ref} className="etudeBackingHandle" style={floating.style}><button ref={trigger} type="button" aria-label={open?'백킹루프 패널 접기':'백킹루프 패널 펼치기'} aria-expanded={open} aria-controls="etude-backing-panel" {...floating.handle} onClick={e=>{if(open)close();else{const r=e.currentTarget.getBoundingClientRect();setOpenOrigin({x:r.left,y:r.top});setOpen(true);}}}><span aria-hidden="true">{open?'›':'‹'}</span>{controller.isPlaying&&<i role="status" aria-label="백킹루프 재생 중"/>}</button></div>)}
+    {triggerTarget&&minimized&&!open&&<MovableEdgeTab scope={scope} kind="backing" playing={controller.isPlaying} onOpen={e=>{const r=e.currentTarget.getBoundingClientRect();setOpenOrigin({x:r.left,y:r.top});setMinimized(false);setOpen(true);}}/>}
+    {open&&<MovableBackingPanel scope={scope} close={close} origin={openOrigin}>{children}</MovableBackingPanel>}
   </>;
 }
 
@@ -152,3 +150,19 @@ export default function PracticeFloatingTools({model,mobile,practiceControls}) {
 import './practiceDesign.css';
 
 import './etudeRemote.css';
+
+function PracticeRepeatControls({model}){
+ const count=Math.max(1,model.selected?.measures.length??1);
+ const range=model.loopRange??{start:0,end:count-1};
+ const setRange=(start,end)=>model.setLoopRange(start===0&&end===count-1?null:{start,end});
+ return <fieldset className="practiceRepeatControls">
+  <legend>반복</legend>
+  <select aria-label="반복 횟수" value={model.repeatCount??0} onChange={e=>model.setRepeatCount(Number(e.target.value))}><option value="0">계속 반복</option>{Array.from({length:16},(_,i)=><option key={i} value={i+1}>{i+1}회</option>)}</select>
+  <div className="practiceRepeatRangeRow">
+   <span>구간:</span>
+   <select aria-label="반복 시작 마디" value={range.start} onChange={e=>{const start=Number(e.target.value);setRange(start,Math.max(start,range.end));}}>{Array.from({length:count},(_,i)=><option key={i} value={i}>{i+1}마디</option>)}</select>
+   <span aria-hidden="true">~</span>
+   <select aria-label="반복 끝 마디" value={range.end} onChange={e=>setRange(range.start,Number(e.target.value))}>{Array.from({length:count-range.start},(_,n)=>{const i=n+range.start;return <option key={i} value={i}>{i+1}마디</option>;})}</select>
+  </div>
+ </fieldset>;
+}

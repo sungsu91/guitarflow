@@ -20,6 +20,8 @@ const activeVoices=new WeakMap();
 export const guitarVoiceStats=audio=>({active:activeVoices.get(audio)?.size??0});
 function nextVariant(audio){const n=voiceSequences.get(audio)??0;voiceSequences.set(audio,n+1);return n%PLUCK_VARIANTS;}
 function trackVoice(audio,source){let voices=activeVoices.get(audio);if(!voices){voices=new Set();activeVoices.set(audio,voices);}voices.add(source);source.addEventListener("ended",()=>voices.delete(source),{once:true});}
+function reinforcedSustain(phrase){return Boolean(phrase?.segments?.some(s=>['H','P','bend'].includes(s.connection)||(s.expressions??[]).some(e=>e.bendEffect)));}
+function techniqueSustain(phrase){return Boolean(phrase?.segments?.some(s=>['H','P','S','bend'].includes(s.connection)||(s.expressions??[]).some(e=>e.bendEffect||e.slideIn||e.slideOut)) );}
 function attachRelease(audio,source,output,when){let releaseAt=Infinity;source.release=(at=audio.currentTime)=>{const start=Math.max(at,audio.currentTime);if(start>=releaseAt)return;releaseAt=start;output.gain.cancelScheduledValues(start);output.gain.setValueAtTime(1,start);output.gain.linearRampToValueAtTime(0,start+.012);source.stop(start+.014);};trackVoice(audio,source);}
 const STRUM_VELOCITY_ATTENUATION = [0, 0.55, 0.2, 0.85, 0.4, 1];
 const STRUM_INTERVAL_SHAPE = [1.02, 1.1, 0.97, 0.9, 0.84];
@@ -219,12 +221,14 @@ function schedulePluck(
   const bodyLow = audio.createBiquadFilter();
   const bodyHigh = audio.createBiquadFilter();
   const gain = audio.createGain();
+  const articulation = audio.createGain();articulation.gain.setValueAtTime(1,when);
   const panner = typeof audio.createStereoPanner === "function" ? audio.createStereoPanner() : null;
   const profile = getCleanGuitarVoiceProfile(position);
   const maxRate = phrase ? Math.max(1, ...phrase.segments.map(s=>2 ** ((s.midi-position.midi+maximumBend(phrase))/12))) : 1;
   const bufferDuration = phrase ? Math.min(8, duration * maxRate + 0.3) : duration;
+  const sustain=techniqueSustain(phrase);
   const variant=nextVariant(audio);
-  source.buffer = getStringBuffer(audio, position, bufferDuration,{variant});
+  source.buffer = getStringBuffer(audio, position, bufferDuration,{variant,sustain:reinforcedSustain(phrase)});
   const releaseGain=audio.createGain();releaseGain.gain.value=1;
   level*=1+(variant-1.5)*.018+getHumanizedUnit(voiceSequences.get(audio),position.stringNumber,1)*.012;
   brightnessScale*=1+(variant-1.5)*.025+getHumanizedUnit(voiceSequences.get(audio),position.stringNumber,2)*.015;
@@ -238,7 +242,7 @@ function schedulePluck(
       const rate = 2 ** ((segment.midi-position.midi)/12);
       const oldRate = 2 ** ((previous.midi-position.midi)/12);
       if (segment.connection === 'S') {
-        const glide = Math.min(0.18, previous.duration * 0.65);
+        const glide = Math.min(0.085, 0.025 + Math.abs(segment.midi-previous.midi)*0.009, previous.duration * 0.3);
         source.playbackRate.setValueAtTime(oldRate, arrival - glide);
         source.playbackRate.exponentialRampToValueAtTime(rate, arrival);
       } else {
@@ -247,8 +251,17 @@ function schedulePluck(
         source.playbackRate.setValueAtTime(oldRate, arrival);
         source.playbackRate.exponentialRampToValueAtTime(rate, arrival + Math.min(0.008, segment.duration * 0.1));
       }
+      if(segment.connection==='H'||segment.connection==='P'){
+        const target=1,settle=Math.min(.035,segment.duration*.2);
+        articulation.gain.setValueAtTime(1,arrival);
+        articulation.gain.linearRampToValueAtTime(segment.connection==='H'?1.12:1.18,arrival+.004);
+        articulation.gain.linearRampToValueAtTime(target,arrival+settle);
+      }
       previous = segment;
     }
+  }
+  for(const segment of phrase?.segments??[])for(const expression of segment.expressions??[]){
+    if(expression.slideOut){const end=when+expression.start-phrase.start+expression.duration;articulation.gain.setValueAtTime(.8,end-Math.min(.06,expression.duration*.2));articulation.gain.linearRampToValueAtTime(.0001,end);}
   }
   lowCut.type = "highpass";
   if(phrase)scheduleScoreExpressions(source,phrase,when);
@@ -256,7 +269,7 @@ function schedulePluck(
   lowCut.Q.setValueAtTime(0.58, when);
   tone.type = "lowpass";
   tone.frequency.setValueAtTime(
-    clamp(profile.toneCutoff * (Number(brightnessScale) || 1), 2350, 5400),
+    phrase?.harmonic?position.frequency*1.8:clamp(profile.toneCutoff * (Number(brightnessScale) || 1), 2350, 5400),
     when,
   );
   tone.Q.setValueAtTime(0.52, when);
@@ -273,13 +286,13 @@ function schedulePluck(
   gain.gain.setValueAtTime(0.0001, when);
   gain.gain.exponentialRampToValueAtTime(level, when + safeAttack);
   const sustainUntil = phrase ? duration - Math.min(0.08, duration * 0.2) : duration * 0.74;
-  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, level * 0.32), when + sustainUntil);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, level * (sustain ? 0.8 : 0.32)), when + sustainUntil);
   gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
   source.connect(lowCut);
   lowCut.connect(tone);
   tone.connect(bodyLow);
   bodyLow.connect(bodyHigh);
-  bodyHigh.connect(gain);
+  bodyHigh.connect(articulation);articulation.connect(gain);
   if (panner) {
     gain.connect(releaseGain);
     releaseGain.connect(panner);
@@ -298,7 +311,7 @@ function schedulePluck(
     lowCut.disconnect();
     tone.disconnect();
     bodyLow.disconnect();
-    bodyHigh.disconnect();
+    bodyHigh.disconnect();articulation.disconnect();
     gain.disconnect();
     releaseGain.disconnect();
     panner?.disconnect();
@@ -326,7 +339,7 @@ export function warmGuitarPhrase(audio,phrase,offset=0){
  const position={stringNumber:phrase.string,fretNumber:phrase.fret??0,midi:phrase.midi,frequency:440*2**((phrase.midi-69)/12)};
  const duration=Math.max(1.5+phrase.string*.18,phrase.duration),rate=Math.max(1,...(phrase.segments??[]).map(s=>2**((s.midi-phrase.midi+maximumBend(phrase))/12)));
  // One upcoming attack only; variants fill the bounded cache as they are used.
- return getStringBuffer(audio,position,Math.min(8,duration*rate+.3),{variant:((voiceSequences.get(audio)??0)+offset)%PLUCK_VARIANTS,muted:phrase.dead});
+ return getStringBuffer(audio,position,Math.min(8,duration*rate+.3),{variant:((voiceSequences.get(audio)??0)+offset)%PLUCK_VARIANTS,muted:phrase.dead,sustain:reinforcedSustain(phrase)});
 }
 
 /**

@@ -1656,7 +1656,7 @@ html body main.app.app.app .backingLoopPanel .backingLoopPlayerModes
   gap: 5px;
 }
 
-.backingLoopAudioStudioPicker {
+.backingLoopGroovePicker {
   display: grid;
   gap: 6px;
   padding: 8px;
@@ -1665,33 +1665,33 @@ html body main.app.app.app .backingLoopPanel .backingLoopPlayerModes
   background: rgba(255, 255, 255, 0.36);
 }
 
-.backingLoopAudioStudioPicker > header,
-.backingLoopAudioStudioPicker > footer {
+.backingLoopGroovePicker > header,
+.backingLoopGroovePicker > footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-.backingLoopAudioStudioPicker > header > div {
+.backingLoopGroovePicker > header > div {
   display: grid;
   gap: 2px;
 }
 
-.backingLoopAudioStudioPicker > header strong {
+.backingLoopGroovePicker > header strong {
   color: #5f433c;
   font-size: 8.5px;
   letter-spacing: 0.04em;
 }
 
-.backingLoopAudioStudioPicker > header span,
-.backingLoopAudioStudioPicker > footer span {
+.backingLoopGroovePicker > header span,
+.backingLoopGroovePicker > footer span {
   color: rgba(74, 50, 44, 0.6);
   font-size: 7px;
   font-weight: 800;
 }
 
-.backingLoopAudioStudioPicker > header > button {
+.backingLoopGroovePicker > header > button {
   display: grid;
   width: 26px;
   height: 26px;
@@ -1702,14 +1702,14 @@ html body main.app.app.app .backingLoopPanel .backingLoopPlayerModes
   color: #62463f;
 }
 
-.backingLoopAudioStudioPickerList {
+.backingLoopGroovePickerList {
   display: grid;
   gap: 4px;
   max-height: 142px;
   overflow-y: auto;
 }
 
-.backingLoopAudioStudioPickerList > label {
+.backingLoopGroovePickerList > label {
   display: grid;
   min-width: 0;
   min-height: 32px;
@@ -1725,23 +1725,23 @@ html body main.app.app.app .backingLoopPanel .backingLoopPlayerModes
   font-weight: 850;
 }
 
-.backingLoopAudioStudioPickerList > label.is-added {
+.backingLoopGroovePickerList > label.is-added {
   opacity: 0.58;
 }
 
-.backingLoopAudioStudioPickerList > label > span {
+.backingLoopGroovePickerList > label > span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.backingLoopAudioStudioPickerList > label > small {
+.backingLoopGroovePickerList > label > small {
   color: rgba(74, 50, 44, 0.58);
   font-size: 7px;
   font-variant-numeric: tabular-nums;
 }
 
-.backingLoopAudioStudioPicker > footer button {
+.backingLoopGroovePicker > footer button {
   min-height: 28px;
   padding: 0 9px;
   border: 1px solid rgba(154, 98, 48, 0.38);
@@ -1752,7 +1752,7 @@ html body main.app.app.app .backingLoopPanel .backingLoopPlayerModes
   font-weight: 900;
 }
 
-.backingLoopAudioStudioPicker > footer button:disabled {
+.backingLoopGroovePicker > footer button:disabled {
   opacity: 0.4;
 }
 
@@ -2858,22 +2858,22 @@ html body:has(main.app.theme-brand) :is(
   color: #f6e6c0;
 }
 
-html body:has(main.app.theme-brand) .backingLoopAudioStudioPicker {
+html body:has(main.app.theme-brand) .backingLoopGroovePicker {
   border-color: rgba(217, 170, 85, 0.24);
   background: rgba(7, 7, 5, 0.82);
 }
 
-html body:has(main.app.theme-brand) .backingLoopAudioStudioPicker :is(strong, span, small) {
+html body:has(main.app.theme-brand) .backingLoopGroovePicker :is(strong, span, small) {
   color: rgba(245, 228, 186, 0.76);
 }
 
-html body:has(main.app.theme-brand) .backingLoopAudioStudioPickerList > label {
+html body:has(main.app.theme-brand) .backingLoopGroovePickerList > label {
   border-color: rgba(217, 170, 85, 0.2);
   color: rgba(245, 228, 186, 0.9);
   background: rgba(19, 16, 11, 0.92);
 }
 
-html body:has(main.app.theme-brand) .backingLoopAudioStudioPicker > footer button {
+html body:has(main.app.theme-brand) .backingLoopGroovePicker > footer button {
   border-color: rgba(239, 199, 111, 0.58);
   color: #fff1cd;
   background: linear-gradient(180deg, rgba(180, 126, 46, 0.86), rgba(117, 75, 23, 0.9));
@@ -3113,4 +3113,71 @@ html body:has(main.app.theme-brand) .backingLoopPlaylistNow {
   .backingLoopDialogLayer--playlistDrawer > [role="dialog"] {
     animation: none;
   }
+}
+.backingLoopGrooveFields {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 0;
+}
+.backingLoopGrooveFields label {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+}
+.backingLoopGrooveFields select,
+.backingLoopGrooveFields input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--line, #d7c6b4);
+  border-radius: 7px;
+  background: var(--panel, #fffaf3);
+  color: inherit;
+}
+.backingLoopGrooveFields small { font-size: 11px; line-height: 1.5; }
+
+/* Compact playlist picker; independent from the full metronome pack browser. */
+.backingLoopGroovePicker.backingGrooveMini{gap:7px;padding:9px;min-width:0;border-radius:8px}
+.backingGrooveMini>header strong{font-size:12px;letter-spacing:0}
+.backingGrooveMini button{font:inherit;cursor:pointer}
+.backingGrooveMiniTabs{display:flex;border-bottom:1px solid rgba(137,94,70,.18)}
+.backingGrooveMiniTabs button{flex:1;min-height:30px;border:0;border-bottom:2px solid transparent;background:transparent;color:inherit;font-size:11px}
+.backingGrooveMiniTabs button[aria-pressed=true]{border-bottom-color:#967246;font-weight:750}
+.backingGrooveMiniSearch{display:flex;align-items:center;gap:6px;margin:0;padding:0 8px;min-width:0;border:1px solid rgba(137,94,70,.16);border-radius:5px;background:rgba(120,100,80,.05)}
+.backingGrooveMiniSearch input{width:100%;min-width:0;height:30px;border:0!important;background:transparent!important;padding:0!important;font-size:11px!important;color:inherit;box-shadow:none!important}
+.backingGrooveMiniCategories{display:flex;gap:3px;overflow-x:auto;scrollbar-width:thin}
+.backingGrooveMiniCategories button{flex:1 0 auto;min-height:27px;padding:2px 4px;border:0;border-bottom:1px solid transparent;background:transparent;color:inherit;font-size:10px}
+.backingGrooveMiniCategories button[aria-pressed=true]{border-bottom-color:#967246;font-weight:750}
+.backingGrooveMiniGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;max-height:154px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;align-content:start;min-width:0}
+.backingGrooveMiniRow{display:flex;min-width:0;min-height:34px;border:1px solid rgba(137,94,70,.2);border-radius:5px;background:rgba(255,255,255,.25)}
+.backingGrooveMiniRow.is-selected{border-color:#a47e4a;background:rgba(211,177,121,.17)}
+.backingGrooveMiniRow button{border:0;background:transparent;color:inherit;padding:5px;font-size:10px}
+.backingGrooveMiniPick{display:flex;flex:1;gap:3px;align-items:center;min-width:0;text-align:left}
+.backingGrooveMiniPick span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.backingGrooveMiniPick svg{flex-shrink:0}
+.backingGrooveMiniPreview{display:grid;place-items:center;flex:0 0 28px;min-height:32px}
+.backingGrooveMiniGrid>p{grid-column:1/-1;text-align:center;font-size:11px;margin:12px 0}
+.backingGrooveMini>footer{min-width:0;border-top:1px solid rgba(137,94,70,.15);padding-top:7px}
+.backingGrooveMini>footer span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:10px}
+.backingGrooveMini>footer button{flex-shrink:0;min-height:30px;font-size:10px}
+.backingGrooveMini button:focus-visible{outline:2px solid #a47e4a;outline-offset:-2px}
+.backingLoopPlaylistDialog .backingGrooveMini button{box-shadow:none!important;line-height:1.25;border-radius:4px}
+.backingLoopPlaylistDialog .backingGrooveMini>header>button{width:24px;height:24px;min-width:24px;min-height:24px;padding:0;background:transparent!important}
+.backingLoopPlaylistDialog .backingGrooveMini .backingGrooveMiniPreview{min-width:28px;width:28px;height:32px;min-height:32px;background:transparent!important}
+.backingLoopPlaylistDialog .backingGrooveMini .backingGrooveMiniPick{background:transparent!important}
+.backingGrooveMiniGrid{max-height:112px}
+.backingLoopGroovePicker.backingGrooveMini{gap:5px}
+
+/* Keep mini-picker tabs readable inside the metronome's selected-button theme. */
+html body .backingLoopPlaylistDialog .backingGrooveMini .backingGrooveMiniTabs button[aria-pressed]{
+  background:#faf6ef!important;
+  color:#5b4433!important;
+  opacity:1!important;
+}
+html body .backingLoopPlaylistDialog .backingGrooveMini .backingGrooveMiniTabs button[aria-pressed=true]{
+  background:#f0dfc3!important;
+  color:#3d2b1c!important;
+  border-bottom-color:#926c36!important;
 }

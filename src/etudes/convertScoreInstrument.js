@@ -40,7 +40,7 @@ export function convertScoreInstrument(document,id){
   next.instrument=id;next.tuning=[...target];next.capo=0;
   next.viewSettings={...next.viewSettings,notationView:isFretted(id)?(isFretted(document.instrument)?next.viewSettings?.notationView??'tab':'both'):'staff'};
   if(!isFretted(id)){
-   if(document.measures.some(m=>m.events.some(e=>e.letRing||e.slideOut||e.notes.some(n=>n.bendEffect||n.parenthesized))))throw Error('열린 붙임줄·슬라이드 아웃·벤드·괄호 표시는 현악기 전용입니다. 먼저 해제한 뒤 악기를 변경하세요.');
+   if(document.measures.some(m=>m.events.some(e=>e.letRing||e.slideOut||e.slideIn||e.notes.some(n=>n.bendEffect||n.parenthesized))))throw Error('열린 붙임줄·슬라이드 아웃·벤드·괄호 표시는 현악기 전용입니다. 먼저 해제한 뒤 악기를 변경하세요.');
    next.measures.forEach(bar=>{if(bar.chord)bar.harmony=bar.chord.name;bar.chord=null;bar.events.forEach(e=>{e.notes=e.notes.map(n=>{const midi=soundingMidi(document,n);validateInstrumentMidi(id,midi);if(n.dead||e.dead)throw Error('뮤트음은 음높이로 변환할 수 없습니다.');return {id:n.id,midi,...(id==='drums'?{}:{hand:n.hand??(midi<60?'left':'right')})};});Object.assign(e,{technique:null,pickStroke:null,palmMute:false,vibrato:false,arpeggio:null});});});return next;
   }
   next.measures.forEach((bar,b)=>{

@@ -13,7 +13,7 @@ export function enterMidiNotes(document,cursor,pitches,rhythm){
  const incoming=[...new Set(pitches)].filter(midi=>!old.some(n=>n.midi===midi)).map(midi=>({id:newId('tone'),midi,locked:false}));
  const events=document.measures.flatMap(m=>m.events),index=events.findIndex(e=>e.id===original.id);
  const neighbors=[...(events[index-1]?.notes??[]),...(events[index+1]?.notes??[])];
- const notes=isFretted(document.instrument)?assignTab(document,[...old,...incoming],neighbors):[...old,...incoming].map(({id,midi,hand})=>({id,midi,...(document.instrument==='drums'?{}:{hand:hand??(midi<60?'left':'right')})}));
+ const notes=isFretted(document.instrument)?assignTab(document,[...old,...incoming],neighbors):[...old,...incoming].map(({hand,...tone})=>({...tone,...(document.instrument==='drums'?{}:{hand:hand??(tone.midi<60?'left':'right')})}));
  changed.document=patchEvent(changed.document,cursor.bar,cursor.event,e=>({...e,notes,rest:false,blank:false,dead:false}));
  return changed;
 }

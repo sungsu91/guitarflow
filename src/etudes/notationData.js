@@ -32,7 +32,7 @@ export function spellMidi(midi, root, family, blue = false) {
 export function validateEtude(etude) {
   const errors = [];
   etude.measures.forEach((measure, bar) => {
-    if (measure.reduce((sum, n) => sum + 4 / Number(n.duration), 0) !== 4) errors.push(`마디 ${bar + 1}: 박자 합계`);
+    if (Math.abs(measure.reduce((sum, n) => sum + 4 / Number(n.duration) * (n.dotted ? 1.5 : 1) * (n.tuplet ? n.tuplet.normalNotes / n.tuplet.actualNotes : 1), 0) - 4) > 1e-8) errors.push(`마디 ${bar + 1}: 박자 합계`);
     measure.forEach((n, i) => {
       const label = `${bar + 1}:${i + 1}`;
       const sounding = n.tones ?? [n];

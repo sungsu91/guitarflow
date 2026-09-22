@@ -1,3 +1,9 @@
+// Compare the complete fingering: a different voicing of the same chord must
+// still be shown. An empty measure breaks the run of repeated diagrams.
+export function chordDiagramVisibility(shapes=[],names=[]) {
+  return shapes.map((shape,i)=>Boolean(shape)&&(i===0||!shapes[i-1]||names[i]!==names[i-1]||JSON.stringify(shape)!==JSON.stringify(shapes[i-1])));
+}
+
 export function drawChordDiagram(svg, shape, name, x, y) {
   const ns='http://www.w3.org/2000/svg';
   const group=document.createElementNS(ns,'g');

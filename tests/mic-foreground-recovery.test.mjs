@@ -43,3 +43,17 @@ test('a running context whose clock stayed frozen after backgrounding is rebuilt
   assert.equal(requests,1);
   dispose();
 });
+
+test('device hotplug retries the selected audio once and never revives a stopped input', async () => {
+  const {publishAudioInput}=await import('../src/input/audioInputSelection.js');
+  const doc=new EventTarget(),win=new EventTarget(),mediaDevices=new EventTarget();doc.visibilityState='visible';
+  let available=false,requests=0;
+  mediaDevices.enumerateDevices=async()=>available?[{kind:'audioinput',deviceId:'usb'}]:[];
+  let session=null;
+  publishAudioInput({deviceId:'usb',devices:[],status:'disconnected'});
+  const dispose=installMicForegroundRecovery({doc,win,mediaDevices,getSession:()=>session,restart:async()=>{requests++;session={audioContext:{state:'running'},rawStream:{getAudioTracks:()=>[{readyState:'live'}]}};publishAudioInput({status:'connected'});}});
+  mediaDevices.dispatchEvent(new Event('devicechange'));await new Promise(r=>setImmediate(r));assert.equal(requests,0);
+  available=true;mediaDevices.dispatchEvent(new Event('devicechange'));mediaDevices.dispatchEvent(new Event('devicechange'));await new Promise(r=>setImmediate(r));assert.equal(requests,1);
+  session=null;publishAudioInput({status:'idle'});mediaDevices.dispatchEvent(new Event('devicechange'));await new Promise(r=>setImmediate(r));assert.equal(requests,1);
+  dispose();publishAudioInput({deviceId:'',status:'idle',devices:[]});
+});

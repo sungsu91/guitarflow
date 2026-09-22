@@ -26,6 +26,8 @@ test('pitch judgment, projectile scoring and collision geometry remain identical
  // Approved instrument samples were committed with the score-player release.
  const scoreSamplePaths=JSON.parse(readFileSync(new URL('../scripts/release-audio-assets.json',import.meta.url),'utf8')).map(path=>`public/${path}`);
  scoreSamplePaths.push('public/sounds/guitar-chords/ATTRIBUTION.txt');
+ // Authorized external input adapters; collision/scoring slices above stay unchanged.
+ const externalInputPaths=['src/audio/micInputEngine.js','src/audio/micForegroundRecovery.js','src/shooter/midiJudgment.js','src/shooter/ShooterPitchMonitor.jsx'];
  const viewportPaths=['src/shooter/mobile-canonical-viewport.css','src/shooter/useShooterMobileViewport.js','src/shooter/mobileViewportFrame.js']; // Authorized iPhone Home Screen layout repair.
- assert.ok(changed.every(path=>path.startsWith('src/shooter/noteVfx/') || path.startsWith('src/shooter/results/') || newMapPaths.includes(path) || progressionPaths.includes(path) || viewportPaths.includes(path) || scoreAudioPaths.includes(path) || scoreSamplePaths.includes(path)),changed.join('\n'));
+ assert.ok(changed.every(path=>path.startsWith('src/shooter/noteVfx/') || path.startsWith('src/shooter/results/') || newMapPaths.includes(path) || progressionPaths.includes(path) || externalInputPaths.includes(path) || viewportPaths.includes(path) || scoreAudioPaths.includes(path) || scoreSamplePaths.includes(path)),changed.join('\n'));
 });

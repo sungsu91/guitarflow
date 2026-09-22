@@ -13,13 +13,22 @@ try{for(const width of [390,1440]){
  for(const tick of [0,120,240,300,360,540,720,800,880,960,1040,1200,1380,1560,1800,1919,1920,2160,2400,2640,2880,3840,5760]){window.rhythmTest.setTick(tick);await frame();const line=document.querySelector('.savedScorePlayhead'),bar=document.querySelector('[data-playback-bar="'+line.dataset.bar+'"]');out.push({tick,local:Number(line.dataset.tick),bar:Number(line.dataset.bar),x:Number(line.getAttribute('x1')),points:JSON.parse(bar.dataset.points),articulation:line.ownerSVGElement.dataset.rhythmArticulation,active:document.querySelectorAll('.rhythm-technique-active').length});}if(originalSvg!==document.querySelector('.savedScorePlayhead').ownerSVGElement)throw Error('Notation redrawn during animation');return out;});
  for(const p of positions){const {playheadX}=await import('../src/etudes/scorePlayhead.js');assert(Math.abs(p.x-playheadX(p.points,p.local))<1e-6);}
  assert.equal(positions.find(p=>p.tick===960).articulation,'rest');assert.equal(positions.find(p=>p.tick===2160).articulation,'connected');assert(positions.find(p=>p.tick===2160).active>0);assert.equal(positions.at(-1).articulation,'tie');assert(positions.at(-1).active>0);
- await page.evaluate(()=>{rhythmTest.setFollow('page');rhythmTest.setTick(5760);});await page.waitForTimeout(100);assert((await page.locator('.etudeScoreViewport').evaluate(n=>n.scrollTop))>100);
+ await page.evaluate(()=>{rhythmTest.setFollow('fingering');rhythmTest.setTick(5760);});await page.waitForTimeout(100);assert((await page.locator('.etudeScoreViewport').evaluate(n=>n.scrollTop))>100);
  await page.evaluate(()=>rhythmTest.setTick(0));await page.waitForTimeout(50);assert((await page.locator('.etudeScoreViewport').evaluate(n=>n.scrollTop))<80);
  // Presentation edits preserve musical position and recalculate engraved coordinates.
- for(const view of ['staff','both','tab']){await page.evaluate(view=>{rhythmTest.setTick(2160);rhythmTest.setView(view);rhythmTest.setZoom(1.25);rhythmTest.setFollow('page');},view);await page.waitForTimeout(100);assert.equal(await page.locator('.savedScorePlayhead').getAttribute('data-tick'),'240');}
+ for(const view of ['staff','both','tab']){await page.evaluate(view=>{rhythmTest.setTick(2160);rhythmTest.setView(view);rhythmTest.setZoom(1.25);rhythmTest.setFollow('fingering');},view);await page.waitForTimeout(100);assert.equal(await page.locator('.savedScorePlayhead').getAttribute('data-tick'),'240');}
  await page.setViewportSize({width:900,height:500});await page.waitForTimeout(150);assert.equal(await page.locator('.savedScorePlayhead').getAttribute('data-tick'),'240');
  await page.evaluate(()=>{rhythmTest.setFollow('line');rhythmTest.setRhythm(false);rhythmTest.setTick(5760);});await page.waitForTimeout(100);assert.equal(await page.locator('.savedScorePlayhead').evaluate(n=>getComputedStyle(n).visibility),'hidden');assert.equal(await page.locator('.rhythm-technique-active').count(),0);assert((await page.locator('.etudeScoreViewport').evaluate(n=>n.scrollTop))>100);
- await page.evaluate(()=>{rhythmTest.setRhythm(true);rhythmTest.setFollow('off');});await page.waitForTimeout(100);assert.equal(await page.locator('.savedScorePlayhead').evaluate(n=>getComputedStyle(n).visibility),'visible');
+ await page.evaluate(()=>{rhythmTest.setRhythm(true);rhythmTest.setFollow('off');});await page.waitForTimeout(100);assert.equal(await page.locator('.savedScorePlayhead').evaluate(n=>getComputedStyle(n).visibility),'hidden');
+ // Modes share the same musical position; fingering adds note/link emphasis.
+ await page.evaluate(()=>{rhythmTest.setTick(2220);rhythmTest.setFollow('fingering');});await page.waitForTimeout(100);
+ const fingerX=await page.locator('.savedScorePlayhead').getAttribute('x1');
+ assert((await page.locator('[data-rhythm-role="note"].rhythm-technique-active').count())>0);
+ await page.getByRole('button',{name:'따라가기',exact:true}).click();await page.waitForTimeout(100);
+ assert.equal(await page.locator('.savedScorePlayhead').getAttribute('x1'),fingerX);
+ assert.equal(await page.locator('.rhythm-technique-active').count(),0);
+ assert.equal(await page.getByRole('group',{name:'리듬진행 방식'}).getByRole('button').count(),3);
+ await page.getByRole('button',{name:'운지 따라가기',exact:true}).click();
  // Live Web Audio clock, with optional score audio disabled and click muted.
  await page.evaluate(()=>{rhythmTest.setManual(false);rhythmTest.controls.onClickSound();});await page.getByText('테스트 연습 시작',{exact:true}).click();await page.waitForTimeout(250);
  const before=await page.evaluate(()=>rhythmTest.position.getTimelineTick());await page.waitForTimeout(200);const after=await page.evaluate(()=>rhythmTest.position.getTimelineTick());assert(after>before+100);assert.equal(await page.evaluate(()=>rhythmTest.controls.sound),false);assert.equal(await page.evaluate(()=>rhythmTest.controls.click),false);

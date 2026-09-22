@@ -1,3 +1,5 @@
+import DeviceConnection from '../input/DeviceConnection.jsx';
+import { useAudioInputSelection } from '../input/useInputSelection.js';
 import { mediaPermissionGuide } from "../audio/mediaPermissionGuide.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, ChevronRight, Mic, MicOff, X } from "lucide-react";
@@ -159,7 +161,8 @@ function getPreset(instrumentId, presetId) {
 }
 
 function getMicrophoneErrorState(error) {
-  if (["NotAllowedError", "PermissionDeniedError"].includes(error?.name)) return "denied";
+  if (["NotAllowedError", "PermissionDeniedError", "SecurityError"].includes(error?.name)) return "denied";
+  if (["NotFoundError", "OverconstrainedError"].includes(error?.name)) return "disconnected";
   if (error?.message === "Microphone capture is not supported.") return "unsupported";
   if (error?.name === "AbortError") return "idle";
   return "error";
@@ -182,6 +185,7 @@ function createTunerReading(overrides = {}) {
 }
 
 function useTunerController(active) {
+  const inputSelection = useAudioInputSelection();
   const [instrumentId, setInstrumentId] = useState("guitar");
   const [designIndexes, setDesignIndexes] = useState({});
   const [presetId, setPresetId] = useState("standard");
@@ -536,7 +540,14 @@ function useTunerController(active) {
       stopRecovery();
       releaseMicrophone();
     };
-  }, [active, releaseMicrophone, startMicrophone]);
+  }, [active, releaseMicrophone, startMicrophone, inputSelection.revision]);
+
+  useEffect(() => {
+    if (active && inputSelection.status === 'disconnected') {
+      setMicState('disconnected');
+      setReading(createTunerReading());
+    }
+  }, [active, inputSelection.status]);
 
   const nextHeadstockDesign = useCallback(() => {
     const count = getPreset(instrumentId, presetId).strings.length;
@@ -1248,7 +1259,7 @@ function TunerTopbar({ controller, onOpenSettings, presetInteractive = true }) {
   );
 }
 
-function MobileTunerControls({ activeMenu, controller, onCloseMenu, onOpenInstrument, onOpenSettings }) {
+function MobileTunerControls({ activeMenu, controller, onCloseMenu, onOpenInstrument, onOpenSettings, mobile = false }) {
   return (
     <header className="tunerMobileControls" aria-label="튜너 상단 설정">
       {activeMenu ? (
@@ -1304,6 +1315,7 @@ function MobileTunerControls({ activeMenu, controller, onCloseMenu, onOpenInstru
         </button>
         {activeMenu === "tuning" ? (
           <section aria-label="튜닝 프리셋 목록" className="tunerMobileDropdown tunerMobileDropdown--tuning">
+            <DeviceConnection scope="tuner" mobile={mobile} />
             <small>{controller.instrument.label} 튜닝</small>
             <div role="radiogroup" aria-label="튜닝 프리셋">
               {controller.presets.map((option) => (
@@ -1335,6 +1347,7 @@ function MobileTunerLayout({ activeMenu, controller, guidance, onCloseMenu, onOp
   return (
     <>
       <MobileTunerControls
+        mobile
         activeMenu={activeMenu}
         controller={controller}
         onCloseMenu={onCloseMenu}

@@ -1,5 +1,6 @@
 import {playbackSlots} from './scorePlaybackPosition.js';
 import {scoreBarOrder} from './scoreRepeats.js';
+
 const key=s=>s.bar+':'+s.event;
 const tones=e=>e.tones??[e];
 const pitch=t=>t.string+':'+t.midi;
@@ -15,7 +16,7 @@ function connection(a,b){
 // Visits break links at repeat jumps; simultaneous voices never accumulate time.
 export function rhythmTimeline(score){
  const slots=playbackSlots(score,scoreBarOrder(score));
- const events=slots.map(s=>({...s,note:score.measures[s.bar][s.event],key:key(s),incoming:[],outgoing:[]}));
+ const events=slots.map(s=>({...s,note:score.measures[s.bar][s.event]??{rest:true},key:key(s),incoming:[],outgoing:[]}));
  const starts=new Map();for(const e of events){if(!starts.has(e.tick))starts.set(e.tick,[]);starts.get(e.tick).push(e);}
  for(const a of events){
   const end=a.tick+a.duration;
@@ -34,7 +35,8 @@ export function rhythmTimeline(score){
   const marks=[...new Set(active.flatMap(e=>[e.key,...e.incoming.map(c=>c.key)]))];
   const sounding=active.filter(e=>!e.note.rest);
   const articulation=!sounding.length?'rest':sounding.every(e=>e.incoming.some(c=>c.kind==='tie'))?'tie':sounding.every(fullyConnected)?'connected':sounding.some(e=>e.incoming.length)?'mixed':'attack';
-  return {tick,marks,attacks:sounding.filter(e=>!fullyConnected(e)).map(e=>e.key),notes:active.map(e=>e.key),articulation,techniques:[...new Set(active.flatMap(e=>[...e.incoming,...e.outgoing].map(c=>c.kind)))]};
+  const slides=sounding.flatMap(e=>e.outgoing.filter(c=>c.kind==='S').map(c=>({from:e.key,to:c.key,start:e.tick,end:e.tick+e.duration})));
+  return {tick,marks,slides,attacks:sounding.filter(e=>!fullyConnected(e)).map(e=>e.key),notes:active.map(e=>e.key),articulation,techniques:[...new Set(active.flatMap(e=>[...e.incoming,...e.outgoing].map(c=>c.kind)))]};
  });
 }
 export function rhythmStateAt(states,tick){
@@ -43,7 +45,10 @@ export function rhythmStateAt(states,tick){
 }
 // Cache SVG nodes once per engraving. Updating attributes never redraws notation.
 export function rhythmHighlighter(svg,states){
- const nodes=[...svg.querySelectorAll('[data-rhythm-events]')].map(node=>({node,keys:node.dataset.rhythmEvents.split(' ')}));
+ const nodes=[...svg.querySelectorAll('[data-rhythm-events][data-rhythm-role="note"]')].flatMap(node=>{
+  const glyphs=node.dataset.rhythmTouch==='tab'?[...node.querySelectorAll('text')]:[...node.querySelectorAll('.vf-notehead')];
+  return glyphs.map(glyph=>({node:glyph,keys:node.dataset.rhythmEvents.split(' ')}));
+ });
  let previous;
- return {update(tick,enabled=true){const state=enabled?rhythmStateAt(states,tick):null;if(state===previous)return state;previous=state;const keys=new Set(state?.marks??[]),attacks=new Set(state?.attacks??[]);for(const {node,keys:events} of nodes)node.classList.toggle('rhythm-technique-active',events.some(k=>(node.dataset.rhythmRole==='picking'?attacks:keys).has(k)));svg.dataset.rhythmArticulation=state?.articulation??'';return state;},clear(){for(const {node} of nodes)node.classList.remove('rhythm-technique-active');delete svg.dataset.rhythmArticulation;}};
+ return {update(tick,enabled=true){const state=enabled?rhythmStateAt(states,tick):null;if(state===previous)return state;previous=state;const notes=new Set(state?.notes??[]);for(const {node,keys} of nodes)node.classList.toggle('rhythm-technique-active',keys.some(key=>notes.has(key)));return state;},clear(){for(const {node} of nodes)node.classList.remove('rhythm-technique-active');}};
 }

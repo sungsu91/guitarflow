@@ -3,6 +3,7 @@ import Pseudo3DRenderer from "../pseudo3d/Pseudo3DRenderer.jsx";
 import ThreeDLabHorizontalRenderer from "../threed/ThreeDLabHorizontalRenderer.jsx";
 
 export default function ShootingMapRenderer({
+  cameraBackground = false,
   pseudo3dActive,
   pseudo3dDeveloper,
   pseudo3dSettings,
@@ -15,6 +16,7 @@ export default function ShootingMapRenderer({
   skin,
   ...mapSkinProps
 }) {
+  if (cameraBackground) return null;
   if (skin?.renderer === "pseudo3d") {
     return (
       <Pseudo3DRenderer

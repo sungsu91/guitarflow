@@ -205,7 +205,8 @@ test("Backing Loop UI uses Playlist as the single queue, import, and saved-list 
     readFile(new URL("../src/components/backing-loop.css", import.meta.url), "utf8"),
   ]);
   assert.match(componentSource, /현재 재생목록/);
-  assert.match(componentSource, /App 내 파일 추가/);
+  assert.doesNotMatch(componentSource, /App 내 파일 추가/);
+  assert.match(componentSource, /BackingGroovePicker/);
   assert.match(componentSource, /기기 파일 추가/);
   assert.doesNotMatch(componentSource, /저장 음원 추가/);
   assert.match(componentSource, /선택 해제/);
@@ -247,7 +248,7 @@ test("Backing Loop UI uses Playlist as the single queue, import, and saved-list 
     componentSource.indexOf("const formatTrimSeconds"),
   );
   assert.match(recordingControls, /REC[\s\S]*?EDIT[\s\S]*?DEL[\s\S]*?SAVE/);
-  assert.match(recordingControls, /disabled=\{!controller\.hasRecording \|\| mediaBusy\}/);
+  assert.match(recordingControls, /disabled=\{!controller\.hasRecording \|\| controller\.isGroove \|\| mediaBusy\}/);
   assert.match(recordingControls, /onClick=\{controller\.openTrimEditor\}/);
   assert.doesNotMatch(recordingControls, /toggleRecordingPause|RESUME|>PAUSE</);
   assert.match(componentSource, /Playlist 열기/);

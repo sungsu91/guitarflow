@@ -1,0 +1,15 @@
+.deviceConnection { width: 100%; min-width: 0; margin-block: 10px; color: inherit; font-size: 13px; }
+.deviceConnection > summary { cursor: pointer; padding: 10px 4px; font-weight: 700; }
+.deviceConnection fieldset { min-width: 0; border: 1px solid #8885; border-radius: 10px; padding: 10px; }
+.deviceConnection label { display: grid; gap: 6px; margin: 8px 0; }
+.deviceConnection select { width: 100%; min-width: 0; max-width: 100%; padding: 8px; color: inherit; background: inherit; border: 1px solid #8888; border-radius: 6px; }
+.deviceConnection small { display: block; line-height: 1.5; margin-top: 8px; }
+.deviceConnection p { overflow-wrap: anywhere; }
+.deviceConnection meter { width: 100%; height: 16px; }
+.deviceConnection output { display: block; min-height: 1.5em; }
+.deviceConnection .deviceInputClip { color: #e34e3e; font-weight: 700; }
+.deviceConnectionMobile { max-height: 50dvh; overflow-y: auto; overscroll-behavior: contain; }
+.deviceConnectionMobile select, .deviceConnectionMobile button { min-height: 44px; }
+.deviceConnectionDesktop { max-height: 420px; overflow-y: auto; }
+.tunerModeShell--mobile .tunerMobileDropdown--tuning:has(.deviceConnection[open]) { position: fixed; top: 48px; left: 12px; right: 12px; width: auto; max-height: calc(100dvh - 140px); overflow-y: auto; }
+.tunerModeShell--desktop .tunerMobileDropdown--tuning:has(.deviceConnection[open]) { width: 320px; max-height: 75dvh; overflow-y: auto; }

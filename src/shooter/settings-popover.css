@@ -1,0 +1,7 @@
+.shooterSettingsPopover { position: fixed; z-index: 2147483000; box-sizing: border-box; color: #f4eddb; background: #15221e; border: 1px solid #bd985d; border-radius: 0 0 14px 14px; box-shadow: 0 14px 28px #0007; font: 13px/1.4 system-ui, sans-serif; pointer-events: auto; }
+.shooterSettingsPopoverContent { max-height: inherit; overflow: auto; overscroll-behavior: contain; padding: 16px; box-sizing: border-box; border-radius: inherit; }
+.shooterSettingsConnection { position: absolute; bottom: 100%; left: var(--settings-anchor-left); width: var(--settings-anchor-width); height: var(--settings-anchor-height); box-sizing: border-box; border: 1px solid #bd985d; border-bottom: 0; border-radius: 6px 6px 0 0; pointer-events: none; }
+.shooterSettingsConnection::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: #15221e; }
+html body main.app.app.app.shooterMode button[data-settings-open="true"] { background: #15221e !important; color: #ffe0a0 !important; }
+.shooterSettingsPopover button:focus-visible { outline: 2px solid #f4ce82; outline-offset: 2px; }
+.shooterSettingsPopover--mobile .shooterSettingsPopoverContent { padding: 14px; }

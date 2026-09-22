@@ -2,7 +2,9 @@ import test from 'node:test';import assert from 'node:assert/strict';
 import {createBlankDocument,blankEvent,blankMeasure,compileDocumentV2,compileStats} from '../src/etudes/scoreModel.js';
 import {enterFret} from '../src/etudes/editorCommands.js';
 import {setBeamBefore,canJoinBeam,overrideBeamGroups} from '../src/etudes/beamOverrides.js';
-import {rhythmGroups} from '../src/etudes/tabRhythm.js';
+import {rhythmGroups as readRhythmGroups} from '../src/etudes/tabRhythm.js';
+// Legacy override utilities remain readable; production engraving uses automatic groups.
+const rhythmGroups=(events,meter)=>readRhythmGroups(events,meter,{automatic:false});
 import {scoreTimeline,guitarVoiceTimeline} from '../src/etudes/scorePlayback.js';
 const at=event=>({bar:0,event,string:6});
 export function fixture(duration='8'){let d=createBlankDocument();d.measures[0].events=Array.from({length:Number(duration)},(_,i)=>blankEvent(i*1920/Number(duration),duration));for(let i=0;i<Number(duration);i++)d=enterFret(d,at(i),i%2?7:5);return d;}

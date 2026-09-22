@@ -9,7 +9,7 @@ const boxSize = (n, s, axis) => {
   const sides = axis === "width" ? ["Left", "Right"] : ["Top", "Bottom"];
   return value + (s.boxSizing === "border-box" ? 0 : sides.reduce((sum, side) => sum + number(s["padding" + side]) + number(s["border" + side + "Width"]), 0));
 };
-export function createSceneCapture(panel) {
+export function createSceneCapture(panel, { paintCamera } = {}) {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d", { alpha: false });
   if (!ctx) throw new Error("영상 합성 기능을 사용할 수 없습니다.");
@@ -227,6 +227,11 @@ export function createSceneCapture(panel) {
     ctx.globalAlpha *= number(s.opacity);
     if (s.filter !== "none") ctx.filter = s.filter;
     if (s.mixBlendMode !== "normal" && s.mixBlendMode !== "plus-lighter") ctx.globalCompositeOperation = s.mixBlendMode;
+    if (n.matches(".shooterRecordingMapCamera")) {
+      paintCamera?.(ctx, w, h);
+      ctx.restore();
+      return;
+    }
     const whole = n.matches(UI) || n instanceof SVGElement;
     if (whole) {
       texture(n, s, w, h, true);
@@ -355,6 +360,9 @@ export function createSceneCapture(panel) {
       if (stats.frames === 1) {
         for (let i = 0; i < 3; i++) {
           await Promise.all([...images.values(), ...textures.values()].map((e) => e.promise));
+          // A resolved asset promise alone only yields a microtask. Give the
+          // browser a rendering opportunity between expensive warm-up passes.
+          await new Promise(resolve => setTimeout(resolve, 0));
           frame();
         }
         ctx.getImageData(0, 0, 1, 1);

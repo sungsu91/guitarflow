@@ -55,15 +55,15 @@ function LessonTips({ model }) {
 }
 
 
-export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, initialId=DEFAULT_ETUDE_ID }) {
+export default function EtudeStudio({ mobile, onOpenMenu, onExit, onImportPdf, initialId=DEFAULT_ETUDE_ID, initialSavedId='' }) {
   const [edits,setEdits]=useState(loadEdits);
   const [editing,setEditing]=useState(null);
-  const [savedId,setSavedId]=useState('');
+  const [savedId,setSavedId]=useState(initialSavedId);
   const savedScores=Object.values(edits.records).filter(r=>r.status!=='unreadable');
   const savedRecord=savedScores.find(r=>r.document.id===savedId);
   const compiled=useMemo(()=>savedRecord?compileScoreDocument(savedRecord.document):null,[savedRecord]);
   const [selectedId, setSelectedId] = useState(initialId);
-  const [bpm, updateBpm] = useState(()=>edits.scores[initialId]?.bpm??ETUDES.find(e=>e.id===initialId)?.bpm??DEFAULT_ETUDE_BPM);
+  const [bpm, updateBpm] = useState(()=>edits.records[initialSavedId]?.document?.bpm??edits.scores[initialId]?.bpm??ETUDES.find(e=>e.id===initialId)?.bpm??DEFAULT_ETUDE_BPM);
   const list = useMemo(() => ETUDES.map(e=>edits.scores[e.id]??e), [edits]);
   const selected = compiled?.score ?? list.find(e => e.id === selectedId) ?? list[0];
   const session=usePracticeSession(selected,bpm,updateBpm);

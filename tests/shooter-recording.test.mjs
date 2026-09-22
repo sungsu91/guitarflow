@@ -154,3 +154,14 @@ test("mobile framing retains both horizontal edges for portrait and landscape ca
   assert.equal(await verifyCameraWideFraming({...track,applyConstraints:async()=>{throw Error('denied');}},2),false);
   assert.equal(await verifyCameraWideFraming({...track,applyConstraints:async c=>{if(c.zoom.exact===1)zoom=1;}},2),false);
  });
+
+test("full camera composite keeps the captured camera behind gameplay instead of painting over notes", () => {
+  const calls = [];
+  const context = Object.fromEntries(["fillRect", "drawImage", "save", "translate", "scale", "restore", "beginPath", "rect", "clip"].map(name => [name, (...args) => calls.push([name, ...args])]));
+  const game = { width: 390, height: 720 };
+  const camera = { readyState: 2, videoWidth: 1280, videoHeight: 720 };
+  drawComposite(context, game, camera, 1080, 1994, { mode: "full" });
+  const frames = calls.filter(([name]) => name === "drawImage");
+  assert.equal(frames.length, 1);
+  assert.equal(frames[0][1], game);
+});

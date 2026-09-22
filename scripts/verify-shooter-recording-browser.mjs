@@ -67,6 +67,7 @@ const metrics = page => page.evaluate(() => {
 });
 async function enter(page) {
   await page.getByRole("button", { name: "촬영모드", exact: true }).click();
+    await page.getByRole("dialog", { name: "촬영모드 선택" }).getByRole("button", { name: "분할", exact: false }).click();
   await page.getByRole("button", { name: "● REC", exact: true }).waitFor({ timeout: 30000 });
   if (["1", "2"].includes(process.env.RECORDING_TEST_BEAUTY)) {
     await page.getByRole('button', {name:'피부 보정: 끔', exact:true}).click();
@@ -262,6 +263,7 @@ try {
     if (fault === "denyCamera") await page.evaluate(() => { window.recordingQA.denyCamera = true; });
     if (fault === "lateCamera") await page.evaluate(() => { window.recordingQA.delayCamera = true; });
     await page.getByRole("button", { name: "촬영모드", exact: true }).click();
+    await page.getByRole("dialog", { name: "촬영모드 선택" }).getByRole("button", { name: "분할", exact: false }).click();
     if (fault === "lateCamera") {
       await page.waitForFunction(() => window.recordingQA.resolveCamera);
       await page.getByRole("button", { name: "권한 확인 중 · 취소" }).click();

@@ -123,3 +123,14 @@ html body main.app.app.app .etudeBackingDrawer>.backingPanelClose{position:absol
  .etudePracticeToolbar .etudeInlineBarCount button[aria-pressed=true]{border-color:var(--score-accent)!important;background:var(--score-soft)!important;color:var(--score-accent)!important}
 }
 .etudeViewOptions.is-mobile .etudeViewFieldsPrimary:has(>label:only-child){grid-template-columns:minmax(0,1fr)}
+
+.etudeFloatingTheme .etudeBackingDrawer.etudeBackingDrawer--movable{padding:4px}
+.etudeBackingDrawer .backingLoopPanel{position:relative;padding-top:30px!important}
+html body main.app.app.app .etudeBackingDrawer .backingLoopPanel>.backingPanelClose{position:absolute;top:2px;right:4px;z-index:50;display:flex;align-items:center;justify-content:center;width:28px;height:26px;min-height:26px;padding:0;border:0;background:transparent!important;color:var(--theme-text,#493523)!important;font-size:24px;font-weight:800;box-shadow:none!important;border:0!important;cursor:pointer}
+/* Focus menus open over the score, outside the toolbar's former scroll clip. */
+.pdfStudio .etudePracticeLayout.etudeCompactTools.is-focus .etudePracticeToolbar .etudeViewTools{overflow:visible}
+.etudePracticeLayout.is-focus .etudeViewMenu>div{max-height:calc(100dvh - 90px);overflow:auto;box-sizing:border-box}
+.etudePracticeLayout.is-focus .etudeNotationChoices{width:170px}
+
+.etudePracticeLayout.is-focus>.etudeScoreViewport{overflow-x:auto}
+.etudePracticeLayout.is-focus .etudeFocusBarCount{width:76px;min-width:76px;min-height:40px;padding:4px 6px;font-size:12px;border:1px solid var(--theme-border-control);border-radius:6px;flex-shrink:0}

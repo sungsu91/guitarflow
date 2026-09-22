@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {ETUDES} from '../src/etudes/catalog.js';
+import {scoreTimeline,guitarVoiceTimeline} from '../src/etudes/scorePlayback.js';
+import {playbackSlots,seekTick,slotAtTick} from '../src/etudes/scorePlaybackPosition.js';
+const score={...ETUDES.find(s=>s.measures.length===8),practiceRange:{start:3,end:7}};
+const t=scoreTimeline(score,60,false,{playEmptyScore:true}),v=guitarVoiceTimeline(score,60),slots=playbackSlots(score,t.order);
+assert.deepEqual(t.order,[3,4,5,6,7]);assert.equal(t.duration,20);assert.equal(v.duration,20);
+assert.equal(slotAtTick(slots,0).bar,3);assert.equal(slotAtTick(slots,9599).bar,7);
+assert.equal(seekTick(slots,{bar:5,event:0}),3840);
+assert.ok(v.voices.every(v=>v.start>=0&&v.start<20));
+console.log('4–8 bar range, voice timing, cycle boundaries and clicked-bar seek passed');

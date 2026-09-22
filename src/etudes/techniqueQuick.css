@@ -1,0 +1,60 @@
+.etudeEditor .techniqueQuickDock{position:fixed;z-index:60;background:#fffaf3;color:#352d26;border:1px solid #d8d1c7;border-radius:6px;box-shadow:none;max-height:55dvh;overflow:auto}
+.etudeEditor .techniqueQuickDock.is-mobile{width:190px;max-width:60vw}
+.etudeEditor .techniqueQuickDock.is-desktop{width:240px}
+.etudeEditor .techniqueQuickDock.is-folded{width:auto}
+.etudeEditor .techniqueQuickDock header{display:flex;align-items:center;gap:4px;margin:0;padding:2px 5px;background:transparent;color:#756b60;border-bottom:1px solid #e7e1d8;touch-action:none;cursor:grab}
+.etudeEditor .techniqueQuickDock header strong{flex:1;font-size:13px}
+.etudeEditor .techniqueQuickDock header button{padding:2px 5px;min-height:26px;font-size:11px;color:inherit;background:transparent}
+.etudeEditor .techniqueQuickTab{padding:8px!important;min-height:44px}
+.etudeEditor .techniqueQuickGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:6px}
+.etudeEditor .techniqueQuickGrid>div{display:flex;flex-direction:column;min-width:0}
+.etudeEditor .techniqueQuickGrid button{min-width:0;padding:4px!important;min-height:42px;display:flex;align-items:center;justify-content:center;gap:2px}
+.etudeEditor .techniqueQuickGrid button[aria-pressed=true]{background:#51402f;color:white}
+.editorDesign .techniqueGroup{grid-template-columns:repeat(auto-fit,minmax(44px,1fr))!important;gap:3px!important}
+.editorDesign .techniqueGroup button{min-width:0!important;min-height:42px!important;padding:4px!important;gap:2px!important;flex-direction:row!important}
+.editorDesign .techniqueGroup .techniqueShort{font-size:14px;font-weight:700}
+.editorDesign .techniqueQuickActions{display:flex;gap:5px;align-items:center;margin-bottom:4px}
+.editorDesign .techniqueQuickActions button{padding:4px 7px;min-height:34px;font-size:12px}
+.editorDesign .techniqueQuickActions button[aria-pressed=true]{background:#51402f;color:white}
+.editorDesign .bendAmountOptions{display:flex;gap:4px;margin:4px 0}
+.editorDesign .bendAmountOptions button{min-height:36px;padding:4px 10px}
+.editorDesign .mobileTechniqueTools{max-height:48dvh;overflow:auto}
+@media(min-width:768px){.editorDesign .desktopToolColumn .mobileScoreSmallSheet.is-anchored{width:340px!important;max-width:calc(100vw - 32px)}}
+.editorDesign .mobileToolDock .mobileTechniqueTools .techniqueGroup button{flex-direction:row!important;gap:3px!important;padding:3px 4px!important}
+.editorDesign .mobileToolDock .mobileTechniqueTools .bendAmountOptions button{min-width:48px!important}
+.editorDesign .mobileToolDock .mobileTechniqueTools .techniqueQuickActions button{padding:3px 8px!important}
+.editorDesign .mobileToolDock .mobileTechniqueTools{max-height:none;overflow:visible}
+.editorDesign.mobileScoreWorkspace .mobileToolDock .mobileScoreSmallSheet.is-note.is-anchored{top:auto!important;top:calc(100% + 5px)!important;bottom:auto!important;max-height:min(260px,32dvh)!important}
+.editorDesign .mobileScoreSmallSheetBody:has(.mobileTechniqueTools){padding:8px!important}
+
+.etudeEditor .techniqueQuickTab{touch-action:none;cursor:grab;font-size:20px}
+
+/* Size technique controls to their contents rather than equal-width columns. */
+.editorDesign .techniqueGroup,
+.etudeEditor .techniqueQuickGrid{display:flex!important;flex-wrap:wrap;justify-content:flex-start;gap:4px!important}
+.editorDesign .techniqueGroup>button,
+.etudeEditor .techniqueQuickGrid>div{flex:0 0 auto!important;width:auto!important}
+.editorDesign .techniqueGroup button,
+.editorDesign .mobileToolDock .mobileTechniqueTools .techniqueGroup button,
+.etudeEditor .techniqueQuickGrid button{width:auto!important;min-width:0!important;min-height:30px!important;height:auto!important;padding:3px 5px!important;gap:3px!important;white-space:nowrap;flex-direction:row!important}
+.editorDesign .techniqueGroup button svg,
+.etudeEditor .techniqueQuickGrid button svg{width:18px!important;height:20px!important;flex-shrink:0}
+.editorDesign .techniqueCaption{font-size:12px;line-height:1.2}
+.editorDesign .mobileToolDock .mobileTechniqueTools .bendAmountOptions button,
+.editorDesign .bendAmountOptions button{min-width:0!important;width:auto!important;min-height:30px!important;height:auto!important;padding:3px 6px!important}
+
+/* Flat quick palette; scoped to avoid changing the editor toolbar. */
+.etudeEditor.editorDesign .techniqueQuickDock button{background:transparent!important;background-image:none!important;border:0!important;border-radius:4px!important;box-shadow:none!important;text-shadow:none!important;color:#51483e!important;transform:none!important}
+.etudeEditor.editorDesign .techniqueQuickDock button:hover{background:#eee9e1!important}
+.etudeEditor.editorDesign .techniqueQuickDock button[aria-pressed=true]{background:#e5ddd0!important;color:#342d25!important}
+.etudeEditor.editorDesign .techniqueQuickDock button:focus-visible{outline:2px solid #9b8b75;outline-offset:-2px}
+.etudeEditor.editorDesign .techniqueQuickDock button:disabled{opacity:.4}
+.etudeEditor.editorDesign .techniqueQuickDock header button{height:26px!important;min-height:26px!important;font-weight:500}
+.etudeEditor .techniqueQuickGrid{padding:4px}
+
+.editorDesign .bendAmountOptions{display:inline-flex;width:fit-content;gap:0!important;padding:2px;background:#eee9e1;border:1px solid #d8cfc3;border-radius:6px}
+.etudeEditor.editorDesign .bendAmountOptions button{margin:0!important;min-width:36px!important;padding:4px 9px!important;border:0!important;border-radius:4px!important;background:transparent!important;box-shadow:none!important;color:#756b60!important}
+.etudeEditor.editorDesign .bendAmountOptions button[aria-checked=true]{background:#51483e!important;color:#fff!important}
+.etudeEditor.editorDesign .techniqueQuickActions{gap:6px;padding-bottom:6px;border-bottom:1px solid #e7e1d8}
+.etudeEditor.editorDesign .techniqueQuickActions button{background:transparent!important;box-shadow:none!important;border:1px solid #d8cfc3!important;border-radius:5px!important;padding:4px 8px!important;min-height:30px!important;height:auto!important;color:#51483e!important}
+.etudeEditor.editorDesign .techniqueQuickActions button[aria-pressed=true]{background:#e5ddd0!important;border-color:#ad9e89!important}

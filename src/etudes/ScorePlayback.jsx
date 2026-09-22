@@ -3,7 +3,7 @@ import PracticeTransport from './PracticeTransport.jsx';
 import {performedMeasures,practiceClicks,measureMeters} from './scoreMeters.js';
 import {createPortal} from 'react-dom';
 import EditorAudioDock from './EditorAudioDock.jsx';
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useMemo,useRef,useState} from 'react';
 import {Volume2,VolumeX} from 'lucide-react';
 import {resumeSharedAudioContext} from '../audio/audioBus.js';
 import {createScoreVoiceOutput,prepareScoreInstrument} from '../audio/scoreInstrument.js';
@@ -13,28 +13,30 @@ import {playbackSlots,slotAtTick,seekTick} from './scorePlaybackPosition.js';
 import useEtudeMetronome from './useEtudeMetronome.js';
 import useScoreInstrument from './useScoreInstrument.js';
 import './scoreInstrument.css';
-export default function ScorePlayback({volume=1,score,bpm=score?.bpm,disabled=false,practice=false,toolbar=false,toolbarTarget=null,compact=false,dock=false,onPosition,controller,startAt={bar:0,event:0},onBpm,onBeforePlay,renderPractice,repeatCount=1,metroOptions={}}) {
+export default function ScorePlayback({volume=1,score:sourceScore,practiceRange=null,metronomeOnly=false,bpm=sourceScore?.bpm,disabled=false,practice=false,toolbar=false,toolbarTarget=null,compact=false,dock=false,onPosition,controller,startAt={bar:0,event:0},onBpm,onBeforePlay,renderPractice,repeatCount=1,metroOptions={}}) {
+ const score=useMemo(()=>practiceRange?{...sourceScore,practiceRange}:sourceScore,[sourceScore,practiceRange]);
  const optionalSound=practice||dock;
  const [storedInstrument,setStoredInstrument]=useScoreInstrument();
- const [localInstrument,setLocalInstrument]=useState('clean-guitar'),[sound,setSound]=useState(dock&&score?.instrument==='piano'),[pulse,setPulse]=useState(null);
+ const [sound,setSound]=useState(()=>{try{const saved=localStorage.getItem('fretiva.score.sound');if(saved!==null)return saved==='true';}catch{}return Boolean(dock&&score?.instrument==='piano');}),[pulse,setPulse]=useState(null);
  const fixedInstrument=score&&!isFretted(score.instrument)?score.instrument==='drums'?'drums':'piano':null;
- const instrument=fixedInstrument??(practice?localInstrument:storedInstrument),setInstrument=fixedInstrument?()=>{}:practice?setLocalInstrument:setStoredInstrument;
+ const instrument=fixedInstrument??(dock||practice?'clean-guitar':storedInstrument),setInstrument=fixedInstrument||dock||practice?()=>{}:setStoredInstrument;
  useEffect(()=>{if(dock&&fixedInstrument==='piano')setSound(true);},[dock,fixedInstrument]);
  const timbres=fixedInstrument?[[fixedInstrument,fixedInstrument==='drums'?'드럼':'피아노']]:[['clean-guitar','클린 기타'],['piano','피아노']];
- const voiceSettings=useRef({sound,instrument,volume});voiceSettings.current={sound,instrument,volume};
+ const voiceSettings=useRef({sound,instrument,volume});voiceSettings.current={sound:sound&&!metronomeOnly,instrument,volume};
  const session=useRef(null),trailing=useRef(null),token=useRef(0),held=useRef(null),pending=useRef(null),notify=useRef(onPosition);
  const [playing,setPlaying]=useState(false),[error,setError]=useState(''),[audible,setAudible]=useState(practice||dock),[position,setPosition]=useState(null);notify.current=onPosition;
  const [beatAccents,setBeatAccents]=useState({});
- const metro=useEtudeMetronome(bpm??60,{beatsPerBar:score?.meter?.[0]??4,beatUnit:score?.meter?.[1]??4,audible,clickAccent:practice?step=>step.subdivisionIndex===0&&(beatAccents[step.beat]??(step.beat===0)):undefined,toneSrc:metroOptions.toneSrc});
+ const metro=useEtudeMetronome(bpm??60,{beatsPerBar:score?.meter?.[0]??4,beatUnit:score?.meter?.[1]??4,audible,clickAccent:practice?step=>beatAccents[step.beat]==='mute'?'mute':step.subdivisionIndex===0&&(beatAccents[step.beat]??(step.beat===0)):undefined,toneSrc:metroOptions.toneSrc});
  useEffect(()=>{session.current?.output.setVolume(volume);trailing.current?.setVolume(volume);},[volume]);
  const publish=value=>{setPosition(value);notify.current?.(value);};
  const stop=()=>{token.current++;held.current=null;pending.current=null;metro.stop();trailing.current?.dispose();trailing.current=null;const s=session.current;if(s){clearInterval(s.timer);s.output.dispose();session.current=null;}setPlaying(false);setPulse(null);publish(null);};
  // Presentation/BPM edits keep the transport; only musical document changes stop it.
- useEffect(()=>{stop();return stop;},[score?.document?.measures??score,score?.meter,score?.tuning,score?.keySignature,disabled,optionalSound?null:instrument,repeatCount]);
- useEffect(()=>{if(practice)setSound(false);},[score,practice]);
+ useEffect(()=>{stop();return stop;},[score?.document?.measures??score,score?.meter,score?.tuning,score?.keySignature,disabled,optionalSound?null:instrument,repeatCount,practiceRange]);
+ useEffect(()=>{try{localStorage.setItem('fretiva.score.sound',String(sound));}catch{}},[sound]);
  const previousBpm=useRef(bpm),previousSubdivision=useRef(metroOptions.clicksPerBeat);
  useEffect(()=>{if(previousBpm.current===bpm&&previousSubdivision.current===metroOptions.clicksPerBeat)return;previousBpm.current=bpm;previousSubdivision.current=metroOptions.clicksPerBeat;if((toolbar||practice||dock)&&session.current){const timelineTick=session.current.getTimelineTick();void play({timelineTick});}else if((toolbar||practice||dock)&&pending.current){void play(pending.current);}else if(!toolbar&&!practice&&!dock)stop();},[bpm,metroOptions.clicksPerBeat]);
  const play=async(from=startAt)=>{
+  if(practiceRange&&from.timelineTick==null&&(from.bar<practiceRange.start||from.bar>practiceRange.end))from={bar:practiceRange.start,event:0};
   stop();pending.current=from;onBeforePlay?.();const request=token.current;
   try{
    const ctx=await resumeSharedAudioContext();if(!ctx)throw Error('이 브라우저에서 오디오를 시작할 수 없습니다.');
@@ -77,12 +79,13 @@ export default function ScorePlayback({volume=1,score,bpm=score?.bpm,disabled=fa
    s.instrument=settings.instrument;s.piano=buffer;s.voiceTimeline??=guitarVoiceTimeline(score,bpm);const elapsed=Math.max(0,s.ctx.currentTime-s.start);s.voiceCycle=Math.floor(elapsed/s.timeline.duration);s.voices=voicesFrom(s.voiceTimeline,elapsed%s.timeline.duration);s.nextVoices=s.voiceTimeline.voices;s.index=0;s.soundReady=true;
   }).catch(e=>{if(session.current===s&&s.voiceVersion===version)setError(e.message);});
  };
- useEffect(()=>{if(optionalSound&&session.current)updateSound(session.current);},[sound,instrument,optionalSound]);
+ useEffect(()=>{if(optionalSound&&session.current)updateSound(session.current);},[sound,instrument,optionalSound,metronomeOnly]);
  const pause=()=>{const s=session.current;if(!s)return;const timelineTick=s.getTimelineTick(),localTick=s.getCycleTick(),slot=slotAtTick(playbackSlots(score,scoreTimeline(score,bpm,false).order),localTick);stop();held.current={timelineTick};publish({...slot,playing:false,getTimelineTick:()=>localTick,getBarTick:()=>localTick-slot.barStart});};
  const seek=from=>{if(disabled||!score)return;if(session.current)void play(from);else if(toolbar||practice){const slots=playbackSlots(score,scoreTimeline(score,bpm,false).order),timelineTick=seekTick(slots,from),slot=slotAtTick(slots,timelineTick);held.current={timelineTick};publish({...slot,playing:false,getTimelineTick:()=>timelineTick,getBarTick:()=>timelineTick-slot.barStart});}};
  if(controller)controller.current={seek,stop,pause,isPlaying:()=>Boolean(session.current||pending.current),resume:()=>void play(held.current??startAt)};
- if(practice){const props={fixedInstrument,beatAccents,onToggleAccent:index=>setBeatAccents(values=>({...values,[index]:!(values[index]??(index===0))})),bpm,onBpm,meter:pulse?.meter??position?.meter??(score?measureMeters(score)[0]:[4,4]),beat:playing?pulse?.beat??-1:position?Math.floor(position.getBarTick()/(1920/position.meter[1])):-1,playing,paused:Boolean(position&&!playing),disabled:disabled||!score,onStart:()=>void play(),onStop:stop,onPause:pause,onResume:()=>void play(held.current??startAt),click:audible,onClickSound:()=>setAudible(v=>!v),sound,onSound:()=>setSound(v=>!v),instrument,onInstrument:setInstrument,error:error||metro.error};return renderPractice?renderPractice(props):<PracticeTransport {...props}/>;}
+ if(practice){const props={fixedInstrument,beatAccents,onToggleAccent:index=>setBeatAccents(values=>({...values,[index]:(values[index]??(index===0))===true?false:(values[index]??(index===0))===false?'mute':true})),bpm,onBpm,meter:pulse?.meter??position?.meter??(score?measureMeters(score)[0]:[4,4]),beat:playing?pulse?.beat??-1:position?Math.floor(position.getBarTick()/(1920/position.meter[1])):-1,playing,paused:Boolean(position&&!playing),disabled:disabled||!score,onStart:()=>void play(),onStop:stop,onPause:pause,onResume:()=>void play(held.current??startAt),click:audible,onClickSound:()=>setAudible(v=>!v),sound,onSound:()=>setSound(v=>!v),instrument,onInstrument:setInstrument,error:error||metro.error};return renderPractice?renderPractice(props):<PracticeTransport {...props}/>;}
  if(toolbar){const controls=<><button aria-label={playing||position?'악보 재생 정지':'악보 듣기'} type="button" disabled={disabled||!score} aria-pressed={playing} onClick={()=>playing||position?stop():void play()}>{playing||position?'■ 악보 정지':'▶ 악보 듣기'}</button>{position&&<button type="button" onClick={()=>playing?pause():void play(held.current??startAt)}>{playing?'일시정지':'이어서 재생'}</button>}<label>음색 <select aria-label="악보 음색" value={instrument} onChange={e=>setInstrument(e.target.value)}>{timbres.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label><label>재생 위치 <select disabled={disabled||!score} aria-label="악보 재생 마디" value={position?.bar??0} onChange={e=>seek({bar:Number(e.target.value),event:0})}>{score?.measures.map((_,i)=><option key={i} value={i}>{i+1}마디</option>)}</select></label>{(error||metro.error)&&<p role="alert">{error||metro.error}</p>}</>;return toolbarTarget?createPortal(controls,toolbarTarget):null;}
- if(dock)return <EditorAudioDock fixedInstrument={fixedInstrument} compact={compact} sound={sound} onSound={()=>setSound(v=>!v)} instrument={instrument} onInstrument={setInstrument} playing={playing} disabled={disabled||!score} onPlay={()=>playing?stop():void play()} bpm={bpm} onBpm={onBpm} audible={audible} onAudible={()=>setAudible(v=>!v)} status={playing&&position?`${position.bar+1}마디 · ${Math.floor(score.measures[position.bar][position.event].onset/(1920/score.meter[1]))+1}박`:'준비'} error={error||metro.error}/>;
+ if(dock)return <EditorAudioDock fixedInstrument={fixedInstrument} compact={compact} sound={sound} onSound={()=>setSound(v=>!v)} playing={playing} disabled={disabled||!score} onPlay={()=>playing?stop():void play()} bpm={bpm} onBpm={onBpm} audible={audible} onAudible={()=>setAudible(v=>!v)} status={playing&&position?`${position.bar+1}마디 · ${Math.floor(score.measures[position.bar][position.event].onset/(1920/score.meter[1]))+1}박`:'준비'} error={error||metro.error}/>;
  return <><div className="etudeSoundControls" role="group" aria-label="음색"><span>음색</span>{timbres.map(([value,label])=><button type="button" key={value} aria-pressed={instrument===value} onClick={()=>setInstrument(value)}>{label}</button>)}</div><div className={`etudeScorePlayback ${compact?'is-compact':''}`}><button type="button" disabled={disabled||!score} aria-label={compact?'악보 재생 정지':playing?'악보 재생 정지':'악보 음정·리듬 듣기'} aria-pressed={playing} onClick={()=>playing?stop():void play()}>{compact?(playing?'■':'▶'):(playing?'악보 재생 정지':'악보 음정·리듬 듣기')}</button>{compact?<><label>BPM<input aria-label="악보 재생 BPM" type="number" min="30" max="240" value={bpm} onChange={e=>onBpm?.(Math.max(30,Math.min(240,Number(e.target.value)||60)))}/></label><div className="mobilePlaybackStatus"><span className="mobileBeatPosition">{playing&&position?`${position.bar+1}마디 · ${Math.floor(score.measures[position.bar][position.event].onset/(1920/score.meter[1]))+1}박`:'준비'}</span><button type="button" className="mobileMetro" aria-label="박자 소리" title={audible?'박자 소리 끄기':'박자 소리 켜기'} aria-pressed={audible} onClick={()=>setAudible(value=>!value)}>{audible?<Volume2 size={20} aria-hidden="true"/>:<VolumeX size={20} aria-hidden="true"/>}</button></div></>:<small>{instrument==='drums'?'드럼 · 합성 음색':instrument==='piano'?'피아노 · 참고 음색':'클린 기타 · 플럭 모델링'}</small>}{(error||metro.error)&&<p role="alert">{error||metro.error}</p>}</div></>;
 }
+

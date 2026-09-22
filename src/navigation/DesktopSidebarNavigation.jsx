@@ -80,6 +80,7 @@ export default function DesktopSidebarNavigation({
   onOpenSingleNote,
   onOpenTuner,
   onResetSound,
+  inputControls,
   onSelectTheme,
   themeOptions,
   themeTransitionActive,
@@ -145,6 +146,7 @@ export default function DesktopSidebarNavigation({
               <ChevronDown className="desktopSidebarChevron" size={16} aria-hidden="true" />
             </summary>
             <div className="desktopSidebarSoundControls">
+              {inputControls}
               <MetronomeVolumeControl className="desktopSidebarSoundRow" />
               {backingVolumeControls.map((control) => {
                 const value = getBackingVolumeValue(control.id);

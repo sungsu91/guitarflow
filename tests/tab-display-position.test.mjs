@@ -17,9 +17,15 @@ test('TAB beams mirror around the staff and retain the existing below default',(
    const below=render(),above=render('above');
    assert.equal(below.dataset.beamY,100+(strings-1)*13+36);
    assert.equal(above.dataset.beamY,64);
-   assert.equal(below.children[0].attributes.y1,100+(strings-1)*13+9);
-   assert.equal(above.children[0].attributes.y1,91);
-   assert.equal(above.children[1].attributes.y2,67);
+   const part=(group,kind)=>group.children.find(n=>n.attributes.class===kind).attributes;
+   assert.equal(part(below,'tabRhythmStem').y1,100+(strings-1)*13+9);
+   assert.equal(part(above,'tabRhythmStem').y1,91);
+   assert.equal(part(above,'tabRhythmFlag').y2,67);
+   for(const group of [below,above]){
+    const connector=part(group,'tabRhythmChordStem');
+    assert.equal(connector.x1,50);assert.equal(connector.x2,50);
+    assert.equal(connector.y1,107);assert.equal(connector.y2,100+(strings-1)*13-7);
+   }
   }
  }finally{globalThis.document=original;}
 });

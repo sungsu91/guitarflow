@@ -8,9 +8,9 @@ import {saveLibraryDocument,loadLibrary} from '../src/etudes/scoreLibrary.js';
 for(const {id,document} of techniqueScores())test(`${id}: compiled display data shares pitches with independent playback voices`,()=>{
   const r=compileDocumentV2(document);assert.deepEqual(r.errors,[]);assert.deepEqual(r.issues,[]);
   const before=JSON.stringify(document),plan=guitarVoiceTimeline(r.score);
-  assert.equal(plan.voices.length,id==='picked'?2:1);
+  assert.equal(plan.voices.length,['picked','slide'].includes(id)?2:1);
   assert.equal(plan.voices[0].segments.length,['picked','tie'].includes(id)?1:2);
-  assert.equal(plan.voices[0].duration,id==='picked'?2/3:4/3);
+  assert.equal(plan.voices[0].duration,['picked','slide'].includes(id)?2/3:4/3);
   assert.equal(plan.voices[0].midi,55+document.measures[0].events[0].notes[0].fret);
   assert.equal(JSON.stringify(document),before);
   const map=new Map(),storage={getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v)};

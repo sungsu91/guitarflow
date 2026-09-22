@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import {createBlankDocument,blankEvent,ticksOf,compileDocumentV2} from '../src/etudes/scoreModel.js';
 import {enterFret,setEventDuration,setDottedEighth} from '../src/etudes/editorCommands.js';
 import {setBeamRange} from '../src/etudes/beamOverrides.js';
-import {rhythmGroups} from '../src/etudes/tabRhythm.js';
+import {rhythmGroups as readRhythmGroups} from '../src/etudes/tabRhythm.js';
+// Legacy override utilities remain readable; production engraving uses automatic groups.
+const rhythmGroups=(events,meter)=>readRhythmGroups(events,meter,{automatic:false});
 import {scoreTimeline} from '../src/etudes/scorePlayback.js';
 import {ensureTriplet} from '../src/etudes/tuplets.js';
 function fixture(durations,dotted=false){let d=createBlankDocument(),onset=0;d.measures[0].events=durations.map((duration,i)=>{const e={...blankEvent(onset,duration),...(dotted&&i===0?{dotted:true}:{})};onset+=ticksOf(e);return e;});for(let i=0;i<durations.length;i++)for(const [string,fret] of [[6,9],[5,7]])d=enterFret(d,{bar:0,event:i,string},fret);return d;}

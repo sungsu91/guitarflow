@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import {mkdir} from 'node:fs/promises';
+import {chromium} from 'file:///C:/Users/User/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs';
+import {createBlankDocument,blankMeasure} from '../src/etudes/scoreModel.js';
+import {enterFretWithDuration} from '../src/etudes/editorCommands.js';
+import {setSlur} from '../src/etudes/slurs.js';
+let fixture=createBlankDocument();
+for(let i=0;i<3;i++)fixture=enterFretWithDuration(fixture,{bar:0,event:i,string:3},3+i*2,'8');
+const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});
+await mkdir('artifacts/slurs',{recursive:true});
+try{for(const width of [390,1440]){
+ const page=await browser.newPage({viewport:{width,height:width===390?844:1000}}),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.addInitScript(()=>localStorage.setItem('rifflabThemeMode','light'));
+ await page.goto('http://127.0.0.1:5173/#etudes');
+ await page.getByRole('button',{name:'악보 만들기',exact:true}).click();
+ const dialog=page.getByRole('dialog',{name:'악보 편집',exact:true});await dialog.waitFor();
+ const button=name=>dialog.getByRole('button',{name,exact:true});
+ const note=(bar,event)=>dialog.locator(`[data-bar-index="${bar}"] .etudeNoteHandle[data-event="${event}"][data-mode="tab"][data-string="3"]`);
+ const load=async d=>{await page.getByLabel('악보 파일 선택',{exact:true}).setInputFiles({name:'slurs.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(d))});};
+ await load(fixture);await note(0,0).click();await button('주법 도구 열기').click();
+ await button('슬라이드').click();assert.equal(await dialog.locator('.etudeSlur').count(),0);
+ await button('이음줄(슬러)').click();await note(0,1).click();
+ assert.equal(await dialog.locator('.etudeSlur').count(),1);
+ assert.equal(await dialog.locator('[data-slide-from]').count(),1);
+ assert.equal(await dialog.locator('.tabLegatoArc').count(),0);
+ await page.screenshot({path:`artifacts/slurs/${width}-slide-slur.png`});
+ await note(0,0).click();await button('주법 도구 열기').click();await button('해머온').click();
+ assert.equal(await dialog.locator('.etudeSlur').count(),1);
+ assert.equal(await dialog.locator('.tabLegatoArc').count(),0);
+ await button('이음줄(슬러)').click();
+ assert.equal(await dialog.locator('.etudeSlur').count(),0);
+ assert.equal(await dialog.locator('.tabLegatoArc').count(),1);
+ await button('설정 시트 닫기').click();
+ // Endpoints crossing both a measure and a system remain attached.
+ let across=createBlankDocument();across.measures.push(blankMeasure());
+ across=enterFretWithDuration(across,{bar:0,event:3,string:3},3,'4');
+ across=enterFretWithDuration(across,{bar:1,event:0,string:3},5,'4');
+ across=setSlur(across,across.measures[0].events[3].id,across.measures[1].events[0].id);
+ await load(across);
+ assert.equal(await dialog.locator('.etudeSlur').count(),2);
+ assert.equal(await dialog.getByText(/이 마디를 표시하지 못했습니다/).count(),0);
+ assert.deepEqual(errors,[]);
+ console.log({width,slideWithSlur:true,hammerCurveNotDuplicated:true,crossBar:true,errors});
+ await page.close();
+}}finally{await browser.close();}
