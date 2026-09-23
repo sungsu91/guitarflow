@@ -17,7 +17,7 @@ export function useBackingGroovePreview(volume) {
       const source=await loadGrooveBackingSource(id);if(token!==s.token)return;
       if(!source)throw Error('Missing pack');
       s.url=URL.createObjectURL(source.blob);s.audio=new Audio(s.url);s.audio.loop=true;
-      s.graph=connectMediaElementToBus(s.audio,{level:volume});if(!s.graph)s.audio.volume=volume;
+      s.graph=connectMediaElementToBus(s.audio,{level:volume});s.graph?.setGrooveEnabled(true);if(!s.graph)s.audio.volume=volume;
       await s.audio.play();if(token===s.token)setLoading(false);
     }catch{if(token===s.token){stop();setError('미리 듣기를 시작하지 못했어요.');}}
   }

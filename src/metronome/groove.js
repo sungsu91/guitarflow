@@ -1,3 +1,4 @@
+import {getGrooveMasteringInput} from '../audio/grooveMastering.js';
 import { METRONOME_TONE_OPTIONS } from './options.js';
 const labels = {crash:'크래시',pedalHihat:'페달 하이햇',rideBell:'라이드 벨',electronicSnare:'일렉트릭 스네어',tomHigh:'하이 탐',tomMid:'미드 탐',tomLow:'로우 탐',hihat:'하이햇', snare:'스네어', kick:'킥', clap:'클랩', tick:'클릭',ride:'라이드',brushSnare:'브러시',rim:'림',stick:'스틱',shaker:'셰이커',openHihat:'오픈햇',tambourine:'탬버린',cowbell:'카우벨',congaSlap:'콩가',cabasa:'카바사',agogo:'아고고',triangle:'트라이앵글'};
 export const GROOVE_TONES = METRONOME_TONE_OPTIONS.map(({id, label}) => [id, labels[id] ?? label]);
@@ -51,6 +52,7 @@ export function createGroovePattern(name = '8beat') {
 export function createGrooveVoiceState() {return {openHats:new Set()};}
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 export function scheduleGrooveStep({audio, output, buffers, pattern, index, time, volume, track, voiceState}) {
+  output=getGrooveMasteringInput(audio,output);
   const rows=pattern.rows;
   const closedHat=rows.some(row=>row.tone==='hihat' && !row.muted && (row.volume ?? .75)>0 && row.steps[index]);
   if(closedHat && voiceState) {
@@ -66,7 +68,9 @@ export function scheduleGrooveStep({audio, output, buffers, pattern, index, time
   rows.forEach(row => {
     if (!row.steps[index] || row.muted || row.volume===0 || (row.tone==='openHihat' && closedHat)) return;
     const velocity=clamp(Number(row.velocities?.[index])||70,1,100)/100;
-    const level=clamp(volume ?? 1,0,1)*clamp(row.volume ?? .75,0,1)*velocity*(GROOVE_SAMPLE_GAIN[row.tone]??.7)*.34/Math.sqrt(Math.max(3,rows.length));
+    // Unity mix output: retain musical balance and user volume; the shared
+    // audio bus limits peaks. Empty/muted rows must never lower other voices.
+    const level=clamp(volume ?? 1,0,1)*clamp(row.volume ?? .75,0,1)*velocity*(GROOVE_SAMPLE_GAIN[row.tone]??.7);
     const gain=audio.createGain();
     let source,duration;
     if(row.tone==='tick') {

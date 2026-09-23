@@ -167,10 +167,57 @@ html body #root .app .etudeFloatingTheme .etudeBeatRow button.etudeBeat.is-downb
 .etudeRhythmToggle{display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer}
 
 /* Mobile transport stays at the visible bottom; desktop retains its drag handle. */
-.etudeRemote--mobileBottom .etudeRemoteBeats{grid-template-columns:minmax(0,1fr) auto 32px}
+.etudeRemote--mobileBottom .etudeRemoteBeats{grid-template-columns:minmax(0,1fr) auto auto;padding-right:28px}
+html body main.app.app.app .etudeFloatingTheme .etudeRemote--mobileBottom .etudeRemoteBeats>button{position:absolute;top:2px;right:2px;width:32px;min-height:32px;height:32px;padding:6px}
+/* The last system needs enough scroll travel to reach the reading area above
+   the mobile transport, even when the score viewport extends below the screen. */
+body:has(.etudeRemote--mobileBottom) .mobileLayoutShell .etudeCompactTools .etudeSheet::after{content:'';display:block;height:min(72dvh,720px);pointer-events:none}
+/* Paint the stationary viewport, not a narrow sheet that moves horizontally. */
+.mobileLayoutShell .etudeCompactTools .etudeScoreViewport{background:#fff}
+.mobileLayoutShell .etudeCompactTools .etudeSheet{background:transparent!important}
+.mobileLayoutShell .etudeCompactTools .etudeNotation svg{overflow:hidden}
 
 .etudeRemoteBeats .practiceCurrentBar{white-space:nowrap;font-size:11px;font-variant-numeric:tabular-nums;color:inherit}
 /* A muted beat keeps its timing pulse, with a quiet check inside the circle. */
 .etudeBeat i{position:relative}
 .etudeBeat i .etudeBeatMuteCheck{position:absolute;inset:2px;width:calc(100% - 4px)!important;height:calc(100% - 4px)!important;fill:none!important;stroke:#8b8b8b!important;stroke-width:1.6;opacity:.55;pointer-events:none}
 .etudeBeat i .etudeBeatMuteCheck path{stroke:inherit!important;fill:none!important}
+/* Desktop floating controls have their own compact layout and drag surfaces. */
+.desktopLayout .etudeRemote:not(.etudeHudRemote) .etudeRemoteBeats{display:flex;align-items:center;gap:6px;touch-action:none;cursor:grab;user-select:none}
+.desktopLayout .etudeRemote:not(.etudeHudRemote) .etudeRemoteBeats>.etudeBeatRow{flex:1;min-width:0}
+.desktopLayout .etudeRemote:not(.etudeHudRemote) .etudeRemoteBeats>button{flex:0 0 32px}
+.desktopLayout .etudeRemote:not(.etudeHudRemote) .etudeRemoteBeats>span{flex:none;white-space:nowrap}
+.desktopLayout .etudeRemote:not(.etudeHudRemote) .etudeRemoteBeats:active{cursor:grabbing}
+.desktopLayout .etudeRemote .etudeDragHandle{cursor:grab!important;user-select:none}
+.desktopLayout .etudeBackingDrawer--desktop{max-height:calc(100dvh - 24px);overflow:auto}
+.desktopLayout .etudeBackingDrawer--desktop .backingLoopPanel{grid-template-columns:minmax(0,1fr);width:100%;min-width:0;margin:0;border:0;box-shadow:none}
+/* Desktop toolbar uses content-sized controls; mobile keeps its own rows. */
+html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop.etudeCompactTools:not(.is-focus) .etudeViewTools{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px;width:100%}
+html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop.etudeCompactTools:not(.is-focus) .etudeViewTools>*{width:auto;flex:0 0 auto}
+html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop.etudeCompactTools:not(.is-focus) .etudeViewTools>.etudeViewMenu{min-width:110px}
+html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop.etudeCompactTools:not(.is-focus) .scoreEditMenu>button{padding-inline:10px!important}
+html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop .etudeDesktopBarCount{display:flex;align-items:center;gap:4px;margin-left:auto}
+html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop .etudeDesktopBarCount button{width:32px!important;min-width:32px;min-height:34px;border:1px solid var(--theme-border-control)!important}
+html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop .etudeDesktopBarCount button:first-of-type{width:44px!important}
+html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop .etudeViewTools>.etudeFavoriteToggle{width:36px;min-width:36px}
+/* A mobile grip moves the full-width panel vertically without adding a row. */
+.etudeRemote--mobileBottom .etudeRemoteBeats{touch-action:none;user-select:none;cursor:grab}
+html body main.app.app.app .etudeFloatingTheme .etudeRemote--mobileBottom .etudeMobileRemoteGrip{position:absolute;top:-7px;left:calc(50% - 22px);width:44px;height:22px;min-height:22px;padding:0;touch-action:none;cursor:grab;z-index:1}
+.etudeRemote--mobileBottom .etudeMobileRemoteGrip:active{cursor:grabbing}
+@media(min-width:1024px) and (max-width:1250px){
+ html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop .etudeDesktopBarCount{order:1;flex-basis:100%!important;margin-left:0}
+}
+/* Desktop has room for quiet text labels beside the utility icons. */
+html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop.etudeCompactTools .etudePracticeToolbar button:is([aria-label="메트로놈"],[aria-label="백킹루프"],.etudeFavoriteToggle){width:auto;min-width:0;font-size:12px!important;font-weight:400;gap:5px;padding-inline:7px!important;white-space:nowrap}
+html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop .etudeBackingToggleMount{width:auto!important}
+html body #root main.app.app.app .pdfStudio .etudePracticeLayout--desktop .etudeViewTools .etudeFavoriteToggle{flex:0 0 auto!important;width:auto!important;min-width:0!important;padding-inline:7px!important;gap:5px}
+
+/* Keep view and favorite controls together; reserve the trailing slot for output. */
+html body main.app.app.app .pdfStudio .etudePracticeLayout--desktop .etudeDesktopBarCount{margin-left:12px}
+html body #root main.app.app.app .pdfStudio .etudePracticeLayout--desktop .etudeViewTools .etudeFavoriteToggle{margin-left:0}
+html body #root main.app.app.app .pdfStudio .etudePracticeLayout--desktop .etudeViewTools .etudePrintScore{margin-left:auto;width:auto;min-width:0;gap:5px;padding-inline:7px;font-size:12px!important;white-space:nowrap}
+
+.desktopLayout .etudeRemote:not(.etudeHudRemote){touch-action:none;user-select:none;cursor:grab}
+.desktopLayout .etudeRemote:not(.etudeHudRemote):active{cursor:grabbing}
+
+.etudeRemote--mobileBottom,.etudeBackingDrawer--movable{touch-action:none;user-select:none}

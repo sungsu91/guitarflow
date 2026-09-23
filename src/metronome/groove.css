@@ -249,3 +249,25 @@ html body .app.app.app.app.app .grooveResetDialog button { min-width:76px!import
 .grooveTonePopup{background:var(--groove-surface,#faf6ef)!important}
 .grooveTonePopup button{color:var(--groove-text,#342c25);background:var(--groove-control,#fffaf3);border:1px solid var(--groove-border,#bba98a);border-radius:5px;padding:5px;cursor:pointer}
 .grooveTonePopup button:focus-visible{outline:2px solid #9b7948;outline-offset:-2px}
+/* Match desktop selectors to the sequencer's 40px row pitch. */
+html body .desktopLayout .app .grooveTrackRail .grooveToneTrigger{height:34px!important;min-height:34px!important;max-height:34px!important;margin:0!important;box-sizing:border-box;overflow:hidden;flex:none}
+.desktopLayout .grooveEditor--desktop .grooveGridViewport{--groove-label-width:136px}
+.grooveToneName{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grooveToneTrigger>span:last-child{flex:none}
+.grooveTonePopup--desktop .grooveToneChoices{grid-template-columns:repeat(var(--tone-columns),minmax(0,1fr));gap:8px}
+.grooveTonePopup--desktop .grooveToneChoice{height:40px}
+.grooveTonePopup--desktop .grooveToneChoice button{box-sizing:border-box;margin:0;min-height:40px}
+.grooveTonePopup--desktop .grooveToneChoice button:first-child{white-space:nowrap}
+.grooveTonePopup--desktop .grooveToneMute{min-height:34px}
+
+/* The picker owns its single arrow; suppress generic dropdown decoration. */
+html body #root .app .grooveToneTrigger{background-image:none!important}
+html body #root .app .grooveToneTrigger::after{content:none!important;display:none!important}
+.grooveToneTrigger>.grooveToneChevron{flex:none}
+
+/* A fixed high-contrast pair also works when the popup is portaled outside the theme. */
+html body .grooveTonePopup .grooveToneChoice.is-selected{outline:2px solid #b38b48;outline-offset:1px;border-radius:5px}
+html body .grooveTonePopup .grooveToneChoice>button[aria-pressed=true]{display:flex;align-items:center;justify-content:center;gap:5px;background:#5a432c!important;background-image:none!important;color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:700!important;box-shadow:none!important;opacity:1!important}
+html body .grooveTonePopup .grooveToneChoice>button[aria-pressed=true] span{color:inherit!important;-webkit-text-fill-color:inherit!important}
+html body .grooveTonePopup .grooveToneChoice>button[aria-pressed=true] svg{flex:none;color:#fff!important;stroke:currentColor!important}
+html body .grooveTonePopup .grooveToneChoice.is-selected>button:last-child{background:#f3dfb8!important;color:#49321e!important;-webkit-text-fill-color:#49321e!important}

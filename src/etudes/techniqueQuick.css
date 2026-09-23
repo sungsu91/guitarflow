@@ -58,3 +58,47 @@
 .etudeEditor.editorDesign .techniqueQuickActions{gap:6px;padding-bottom:6px;border-bottom:1px solid #e7e1d8}
 .etudeEditor.editorDesign .techniqueQuickActions button{background:transparent!important;box-shadow:none!important;border:1px solid #d8cfc3!important;border-radius:5px!important;padding:4px 8px!important;min-height:30px!important;height:auto!important;color:#51483e!important}
 .etudeEditor.editorDesign .techniqueQuickActions button[aria-pressed=true]{background:#e5ddd0!important;border-color:#ad9e89!important}
+@layer score-workspace {
+/* Mobile technique sheets use the full row width and one internal scroll area. */
+html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileToolDock .mobileScoreSmallSheet.is-note.is-anchored{max-height:var(--tool-panel-height,260px)!important;overflow:hidden!important;display:flex;flex-direction:column;border-radius:10px}
+html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileScoreSmallSheet.is-note>header{flex:0 0 34px}
+html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileScoreSmallSheetBody{min-width:0;overflow-x:hidden!important;overflow-y:auto!important}
+html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileToolDock .mobileTechniqueTools{gap:8px}
+html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileTechniqueTools .techniqueGroup{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:5px!important;width:100%;box-sizing:border-box}
+html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileTechniqueTools .techniqueGroup:has(>button:nth-child(6)){grid-template-columns:repeat(3,minmax(0,1fr))!important}
+html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileToolDock .mobileTechniqueTools .techniqueGroup>button{width:100%!important;min-width:0!important;height:50px!important;min-height:50px!important;padding:4px 2px!important;flex-direction:column!important;gap:3px!important;box-shadow:none!important;border-radius:7px!important;transform:none!important;white-space:normal!important;line-height:13px!important}
+html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileTechniqueTools .techniqueQuickActions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0;padding-bottom:8px}
+html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileTechniqueTools .techniqueQuickActions button{width:100%;height:36px!important;min-height:36px!important}
+html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileTechniqueTools .bendAmountOptions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;box-sizing:border-box;margin:0}
+html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileToolDock .mobileTechniqueTools .bendAmountOptions button{width:100%!important;min-width:0!important;height:36px!important;min-height:36px!important}
+html body dialog.etudeEditor.editorDesign .techniqueQuickDock.is-mobile{border-radius:10px;overflow:hidden}
+html body dialog.etudeEditor.editorDesign .techniqueQuickDock.is-mobile header{padding:5px 6px}
+html body dialog.etudeEditor.editorDesign .techniqueQuickDock.is-mobile .techniqueQuickGrid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px;gap:5px!important;max-height:calc(55dvh - 42px);overflow-y:auto}
+html body dialog.etudeEditor.editorDesign .techniqueQuickDock.is-mobile .techniqueQuickGrid>div{width:100%!important;min-width:0;position:relative}
+html body dialog.etudeEditor.editorDesign .techniqueQuickDock.is-mobile .techniqueQuickGrid button{width:100%!important;min-width:0!important;height:48px!important;min-height:48px!important;box-sizing:border-box;box-shadow:none!important;transform:none!important;display:flex;flex-direction:column!important;white-space:normal!important;padding:4px 2px!important;font-size:11px!important;line-height:13px!important;border-radius:6px!important}
+html body dialog.etudeEditor.editorDesign .techniqueQuickDock.is-mobile .techniqueQuickGrid>div>button+button{height:24px!important;min-height:24px!important;margin-top:3px}
+
+html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileToolDock .mobileTechniqueTools .techniqueGroup>button{max-height:none!important}
+html body dialog.etudeEditor.editorDesign .techniqueQuickDock.is-mobile .techniqueQuickGrid button{max-height:none!important}
+/* The anchored sheet must cover the keypad beneath it. */
+#mobile-tool-note{background:#faf8f4!important;isolation:isolate}
+#mobile-tool-note .mobileScoreSmallSheetBody,#mobile-tool-note .mobileTechniqueTools{background:#faf8f4!important}
+dialog.mobileScoreWorkspace #mobile-tool-note .techniqueGroup>button{height:50px!important;min-height:50px!important;max-height:none!important;box-shadow:none!important;transform:none!important;flex-direction:column!important;overflow:hidden}
+dialog.mobileScoreWorkspace #mobile-tool-note .techniqueGroup>button svg{flex-shrink:0}
+
+}
+@layer score-workspace {
+ .editorDesign.mobileScoreWorkspace .mobileScoreInput :is(.mobileCursorPad,.mobileFretPad)[inert]{visibility:hidden;pointer-events:none}
+}
+@layer score-workspace {
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileTechniqueTools .techniqueCategoryHeader{position:sticky;top:0;z-index:2;background:#faf8f4;display:grid;grid-template-columns:1fr 1.4fr;gap:6px;padding-bottom:5px}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileTechniqueTools .techniqueQuickActions{display:flex;gap:3px;padding:0;border:0}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .mobileTechniqueTools .techniqueCategoryHeader button{padding:2px 4px!important;font-size:10px!important;min-width:0!important;height:32px!important;min-height:32px!important;box-shadow:none!important;white-space:nowrap}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .techniqueCategoryTabs{display:flex;align-items:center;gap:2px}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .techniqueCategoryTabs span{font-size:10px;white-space:nowrap}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .techniqueCategoryTabs button{flex:1}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace .techniqueCategoryTabs button[aria-selected=true]{background:var(--ed-active);color:var(--ed-on-accent)}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .mobileTechniqueTools .techniqueGroup>button{height:44px!important;min-height:44px!important;padding:2px!important;gap:0!important;line-height:11px!important}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueGroup>button svg{width:18px!important;height:18px!important;margin:0!important}
+ html body dialog.etudeEditor.editorDesign.mobileScoreWorkspace #mobile-tool-note .techniqueCaption{font-size:10px!important;line-height:11px!important;margin:0!important}
+}

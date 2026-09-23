@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {getGrooveMasteringInput} from '../src/audio/grooveMastering.js';
+import {getAudioBusGraph,connectMediaElementToBus,resetSharedAudioForTests} from '../src/audio/audioBus.js';
+import {MAX_GROOVE_VOLUME,GROOVE_VOLUME_UNITY_PERCENT,getGrooveVolumeSnapshot,setGrooveVolume,resetGrooveVolumeForTests} from '../src/audio/grooveVolumeStore.js';
+const param=()=>({value:0,setValueAtTime(v){this.value=v;},setTargetAtTime(v){this.value=v;}});
+const node=()=>({gain:param(),connections:[],connect(n){this.connections.push(n);},disconnect(){this.connections=[];}});
+function context(){return {currentTime:0,destination:node(),createGain:node,createMediaElementSource:node,createDynamicsCompressor(){return {...node(),threshold:param(),knee:param(),ratio:param(),attack:param(),release:param()};}};}
+test('groove mastering reuses one chain per output, without multiplying gain each beat',()=>{const audio=context(),out=node(),first=getGrooveMasteringInput(audio,out);assert.equal(getGrooveMasteringInput(audio,out),first);assert.equal(first.ratio.value,4);assert.equal(first.connections[0].gain.value,4);});
+test('groove volume defaults to 70 percent with boost headroom and adjusts live and media bus without affecting recordings',()=>{resetGrooveVolumeForTests();const audio=context();const buses=getAudioBusGraph(audio).buses;assert.equal(getGrooveVolumeSnapshot().volume * GROOVE_VOLUME_UNITY_PERCENT,70);setGrooveVolume(MAX_GROOVE_VOLUME);assert.equal(buses.groove.gain.value,100/70);setGrooveVolume(999);assert.equal(getGrooveVolumeSnapshot().volume,MAX_GROOVE_VOLUME);setGrooveVolume(1);const media=connectMediaElementToBus({});media.setGrooveEnabled(true);assert.equal(media.programGain.connections[0],buses.groove);setGrooveVolume(.25);assert.equal(buses.groove.gain.value,.25);assert.equal(buses.backing.gain.value,.92);setGrooveVolume(0);assert.equal(buses.groove.gain.value,0);media.setGrooveEnabled(false);assert.equal(media.programGain.connections[0],buses.backing);setGrooveVolume(1);resetSharedAudioForTests();});

@@ -1029,7 +1029,7 @@ export default function BackingLoop({ desktopPresentation = "default", mobile = 
     <>
       {renderSurface ? renderSurface(controller, mobile
         ? <MobileBackingLoop controller={controller} />
-        : <DesktopBackingLoop controller={controller} />) : mobile
+        : <DesktopBackingLoop controller={controller} presentation={desktopPresentation} />) : mobile
         ? <MobileBackingLoop controller={controller} panelRef={mobilePanelRef} />
         : <DesktopBackingLoop controller={controller} presentation={desktopPresentation} />}
       <audio

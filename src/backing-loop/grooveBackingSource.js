@@ -1,3 +1,4 @@
+import {limitGrooveRenderPeaks} from './grooveRenderLevel.js';
 import {normalizeGroovePattern, scheduleGrooveStep, createGrooveVoiceState} from '../metronome/groove.js';
 import {METRONOME_TONE_OPTIONS, TIME_SIGNATURE_OPTIONS} from '../metronome/options.js';
 import {getMetronomeSubdivisionOption} from '../metronome/subdivision.js';
@@ -61,7 +62,9 @@ export async function renderGrooveBacking(pack, bpm) {
       voiceState, track: () => {}});
   }
   const rendered = await audio.startRendering();
-  const blob = encodePcmWav([rendered.getChannelData(0).slice(frames), rendered.getChannelData(1).slice(frames)], sampleRate);
+  const channels = [rendered.getChannelData(0).slice(frames), rendered.getChannelData(1).slice(frames)];
+  limitGrooveRenderPeaks(channels);
+  const blob = encodePcmWav(channels, sampleRate);
   const title = `${pack.title} · ${timing.bpm} BPM`;
   return {blob, durationMs: frames / sampleRate * 1000, title, fileName: `${title}.wav`, mimeType: 'audio/wav', sourceType: 'import', createdAt: Date.now()};
 }

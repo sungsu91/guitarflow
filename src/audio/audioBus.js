@@ -1,8 +1,10 @@
+import {getGrooveVolumeSnapshot, subscribeGrooveVolume} from "./grooveVolumeStore.js";
 export const AUDIO_BUS_IDS = Object.freeze({
   BACKING: "backing",
   INSTRUMENT: "instrument",
   METRONOME: "metronome",
   SFX: "sfx",
+  GROOVE: "groove",
 });
 
 const BUS_LEVELS = Object.freeze({
@@ -10,10 +12,12 @@ const BUS_LEVELS = Object.freeze({
   [AUDIO_BUS_IDS.INSTRUMENT]: 0.9,
   [AUDIO_BUS_IDS.METRONOME]: 0.82,
   [AUDIO_BUS_IDS.SFX]: 0.72,
+  [AUDIO_BUS_IDS.GROOVE]: 1,
 });
 
 let sharedAudioContext = null;
 let sharedGraph = null;
+let unsubscribeGrooveVolume;
 const mediaElementGraphs = new WeakMap();
 
 const clamp = (value, minimum = 0, maximum = 1) => (
@@ -62,6 +66,10 @@ function createSharedGraph(context) {
     buses[id] = bus;
   });
 
+  unsubscribeGrooveVolume?.();
+  const updateGrooveVolume = () => smoothAudioParam(buses.groove.gain, getGrooveVolumeSnapshot().volume, context);
+  updateGrooveVolume();
+  unsubscribeGrooveVolume = subscribeGrooveVolume(updateGrooveVolume);
   const master = context.createGain();
   const limiter = context.createDynamicsCompressor();
   setParamValue(master.gain, 0.9, context.currentTime);
@@ -125,7 +133,7 @@ export function connectMediaElementToBus(element, {
     return cached;
   }
   const context = getSharedAudioContext();
-  const output = getAudioBusInput(busId, context);
+  let output = getAudioBusInput(busId, context);
   if (!context || !output || typeof context.createMediaElementSource !== "function") return null;
 
   const source = context.createMediaElementSource(element);
@@ -155,6 +163,13 @@ export function connectMediaElementToBus(element, {
       return connected;
     },
     programGain,
+    setGrooveEnabled(enabled) {
+      const nextOutput = getAudioBusInput(enabled ? AUDIO_BUS_IDS.GROOVE : busId, context);
+      if (nextOutput === output) return;
+      if (connected) programGain.disconnect();
+      output = nextOutput;
+      if (connected) programGain.connect(output);
+    },
     setLevel(nextLevel, options) {
       smoothAudioParam(programGain.gain, clamp(nextLevel), context, options);
     },

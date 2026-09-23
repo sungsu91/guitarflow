@@ -10,12 +10,11 @@ import { getAudioBusGraph, getSharedAudioContext } from "../../audio/audioBus.js
 import { RECORDING_WIDTH, CAMERA_FILTERS, MOBILE_CAMERA_ZOOM, MOBILE_CAMERA_HEIGHT, verifyCameraWideFraming, setCameraWideFraming, cameraContainRect, frontCameraConstraints, cameraOverlayRect, drawComposite, recorderOptions, recordingError, saveRecording, stopTracks } from "./recordingMedia.js";
 import "./shooter-recording.css";
 
-function CameraControls({ phase, seconds, start, stop, ready, exit }) {
+function CameraControls({ phase, seconds, ready, exit }) {
   return <div className="shooterRecordingControls">
-    {phase === "preview" ? <button onClick={start} disabled={!ready} type="button">{ready ? "● REC" : "카메라 준비 중…"}</button> : null}
+    {phase === "preview" ? <span className="shooterRecordingClock" role="status">{ready ? "● 녹화 대기 · 게임 시작 시 자동 녹화" : "녹화 준비 중…"}</span> : null}
     {phase === "recording" ? <>
       <span className="shooterRecordingClock">● REC {String(Math.floor(seconds / 60)).padStart(2, "0")}:{String(seconds % 60).padStart(2, "0")}</span>
-      <button onClick={stop} type="button" aria-label="녹화 중지">■</button>
     </> : null}
     {["preparing", "stopping"].includes(phase) ? <span role="status">{phase === "preparing" ? "녹화 준비 중…" : "영상 만드는 중…"}</span> : null}
     {exit ? <button className="shooterRecordingExit" type="button" onClick={exit} aria-label="하단 촬영모드 종료">종료</button> : null}
@@ -51,7 +50,7 @@ function DesktopCameraLayout({ children, style }) {
   return <section className="shooterRecordingCamera shooterRecordingCamera--desktop" style={style} aria-label="전면 카메라">{children}</section>;
 }
 
-export default function ShooterRecording({ arenaRef, entryTarget, landscape = false, mobile, ensureMic, onActiveChange, onLayoutChange }) {
+export default function ShooterRecording({ arenaRef, entryTarget, landscape = false, mobile, ensureMic, onActiveChange, onLayoutChange, gamePlaying = false, onReview }) {
   const [layoutMode, setLayoutMode] = useState(null);
   const entryButtonRef = useRef(null);
   const fullCamera = layoutMode === "full";
@@ -102,8 +101,8 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
   const mounted = useRef(true);
   const active = !["idle", "choosing", "requesting"].includes(phase);
   const cameraVisible = active && phase !== "review";
-  const callbacks = useRef({ onActiveChange, onLayoutChange });
-  callbacks.current = { onActiveChange, onLayoutChange };
+  const callbacks = useRef({ onActiveChange, onLayoutChange, onReview });
+  callbacks.current = { onActiveChange, onLayoutChange, onReview };
 
   function dispose() {
     ++versionRef.current;
@@ -434,6 +433,27 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
     session.output = null;
   }
 
+  const readyToRecord = cameraReady && captureReady && !framingBusy && (beautyLevel === 0 || beautyReady);
+  useEffect(() => {
+    if (gamePlaying && phase === "preview" && readyToRecord) void start();
+  }, [gamePlaying, phase, readyToRecord]);
+
+  function requestExit() {
+    if (saving) return;
+    if (phase === "review") {
+      if (confirmDiscard("촬영모드를 종료")) close();
+    } else if (phase === "preparing") {
+      if (sessionRef.current) sessionRef.current.finishAfterStart = true;
+      callbacks.current.onReview?.();
+    } else if (phase === "recording") {
+      stop();
+    } else if (phase !== "stopping") close();
+  }
+
+  function confirmDiscard(action) {
+    return window.confirm(action + "하면 현재 영상이 이 화면에서 사라집니다.\n기기에 보관하려면 먼저 ‘영상 저장’을 눌러주세요.\n이미 기기에 저장한 파일은 유지됩니다.\n계속하시겠습니까?");
+  }
+
   async function start() {
     const session = sessionRef.current;
     if (!session || phase !== "preview" || framingBusyRef.current || !captureReady || !session.capture || session.startRequested) return;
@@ -512,6 +532,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
         } catch (cause) { close(recordingError(cause)); }
       };
       recorder.start(1000);
+      if (session.finishAfterStart) { clearTimeout(session.prepareTimeout); stop(); return; }
       clearTimeout(session.prepareTimeout);
       session.startedAt = performance.now();
       setSeconds(0);
@@ -540,6 +561,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
     const session = sessionRef.current;
     if (!session?.recorder || session.stopRequested || session.recorder.state === "inactive") return;
     session.stopRequested = true;
+    callbacks.current.onReview?.();
     setPhase("stopping");
     clearTimeout(session.captureTimer);
     clearInterval(session.clock);
@@ -550,6 +572,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
   }
 
   function retry() {
+    if (saving || !confirmDiscard("다시 촬영")) return;
     const session = sessionRef.current;
     if (session?.previewEnded || session?.camera.getVideoTracks().some(track => track.readyState !== "live")) {
       close();
@@ -557,9 +580,10 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
       return;
     }
     if (session?.url) URL.revokeObjectURL(session.url);
-    if (session) { session.url = null; session.recorder = null; session.review = false; session.stopRequested = false; session.startRequested = false; }
+    if (session) { session.url = null; session.recorder = null; session.review = false; session.stopRequested = false; session.startRequested = false; session.finishAfterStart = false; }
     setResult(null);
     setSaveMessage("");
+    setSeconds(0);
     setPhase("preview");
   }
 
@@ -588,7 +612,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
   const CameraLayout = mobile ? MobileCameraLayout : DesktopCameraLayout;
   return createPortal(<div ref={uiRef} className={`shooterRecordingUI ${mobile ? "isMobile" : "isDesktop"} ${landscape ? "isLandscape" : ""} ${fullCamera ? "isFullCamera" : ""}`} data-recording-ui="true">
     {entryTarget ? createPortal(
-      <button ref={entryButtonRef} aria-expanded={phase === "choosing"} aria-haspopup="dialog" className="shooterRecordingHudButton" aria-label={active ? "촬영모드 종료" : phase === "requesting" ? "권한 확인 중 · 취소" : "촬영모드"} title={active ? "촬영모드 종료" : phase === "requesting" ? "권한 요청 취소" : "촬영모드"} onClick={active || phase === "requesting" ? () => close() : () => { setLayoutMode(null); setError(""); setPhase(phase === "choosing" ? "idle" : "choosing"); }} type="button">
+      <button ref={entryButtonRef} aria-expanded={phase === "choosing"} aria-haspopup="dialog" className="shooterRecordingHudButton" aria-label={active ? "촬영모드 종료" : phase === "requesting" ? "권한 확인 중 · 취소" : "촬영모드"} title={active ? "촬영모드 종료" : phase === "requesting" ? "권한 요청 취소" : "촬영모드"} onClick={active || phase === "requesting" ? requestExit : () => { setLayoutMode(null); setError(""); setPhase(phase === "choosing" ? "idle" : "choosing"); }} type="button">
         <Video aria-hidden="true" size={13} strokeWidth={1.8} />
         <span>{phase === "requesting" ? "취소" : landscape ? active ? "촬영 OFF" : "촬영 ON" : active ? "촬영 종료" : "촬영모드"}</span>
       </button>, entryTarget,
@@ -612,16 +636,13 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
         onPointerMove={event => { if (!resizeRef.current) return; const dx = event.clientX - resizeRef.current.x; const dy = (event.clientY - resizeRef.current.y) / 1.12; resizeCamera(Math.abs(dx) >= Math.abs(dy) ? dx : dy); resizeRef.current = { x: event.clientX, y: event.clientY }; }}
         onPointerUp={() => { resizeRef.current = null; }} onPointerCancel={() => { resizeRef.current = null; }} onLostPointerCapture={() => { resizeRef.current = null; }}
         onKeyDown={event => { const delta = { ArrowLeft: -8, ArrowUp: -8, ArrowRight: 8, ArrowDown: 8 }[event.key]; if (delta) { event.preventDefault(); resizeCamera(delta); } }}>◢</button></> : null}
-      <CameraControls phase={phase} seconds={seconds} start={start} stop={stop} ready={cameraReady && captureReady && !framingBusy && (beautyLevel === 0 || beautyReady)} exit={mobile ? () => close() : undefined} />
+      <CameraControls phase={phase} seconds={seconds} ready={readyToRecord} exit={requestExit} />
     </CameraLayout> : null}
-    {phase === "choosing" ? <ShooterSettingsPopover anchor={entryButtonRef.current} mobile={mobile} label="촬영모드 선택" className="shooterRecordingChoice" onClose={() => setPhase("idle")}>
-      <h2 id="recording-choice-title">촬영모드 선택</h2>
-      <p>촬영할 화면을 선택해주세요.</p>
+    {phase === "choosing" ? <ShooterSettingsPopover anchor={entryButtonRef.current} mobile={mobile} label="촬영모드 선택" compact className="shooterRecordingChoice" onClose={() => setPhase("idle")}>
       <div className="shooterRecordingChoices">
-        <button type="button" onClick={() => enter("full")}><strong>전체</strong><span>맵 전체를 카메라로 채우고<br />그 위로 음표가 내려옵니다.</span></button>
-        <button type="button" onClick={() => enter("split")}><strong>분할</strong><span>{mobile && !landscape ? "위에는 게임, 아래에는 카메라" : "기존 게임 화면과 별도 카메라"}<br />현재 촬영 구성을 유지합니다.</span></button>
+        <button type="button" onClick={() => enter("full")} title="맵 전체에 카메라 표시">전체</button>
+        <button type="button" onClick={() => enter("split")} title="게임과 카메라 분할 표시">분할</button>
       </div>
-      <button type="button" onClick={() => setPhase("idle")}>취소</button>
     </ShooterSettingsPopover> : null}
     {phase === "review" && result ? <div ref={reviewRef} className="shooterRecordingReview" role="dialog" aria-modal="true" aria-label="촬영 결과 확인" onKeyDown={(event) => {
       if (event.key !== "Tab") return;
@@ -632,7 +653,7 @@ export default function ShooterRecording({ arenaRef, entryTarget, landscape = fa
       if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     }}>
       <video src={result.url} controls playsInline onError={() => setSaveMessage("이 브라우저에서 미리보기를 재생하지 못했습니다. 영상 저장 후 확인해주세요.")} />
-      <div><button onClick={retry} disabled={saving} type="button">다시 촬영</button><button onClick={save} disabled={saving} type="button">{saving ? "저장 중…" : "영상 저장"}</button><button onClick={() => close()} disabled={saving} type="button">촬영모드 종료</button></div>
+      <div><button onClick={retry} disabled={saving} type="button">다시 촬영</button><button onClick={save} disabled={saving} type="button">{saving ? "저장 중…" : "영상 저장"}</button><button onClick={requestExit} disabled={saving} type="button">촬영모드 종료</button></div>
       {saveMessage ? <p role="status">{saveMessage}</p> : null}
     </div> : null}
   </div>, document.body);

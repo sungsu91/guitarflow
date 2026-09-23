@@ -1,0 +1,16 @@
+/* Shared mobile navigation, separate from desktop and instrument input surfaces. */
+.mobileInstrumentControls{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start;min-width:0}
+.mobileInstrumentNavigation{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;align-items:center}
+.mobileInstrumentNavigation output{text-align:center;font-size:10px;line-height:1.3;font-variant-numeric:tabular-nums}
+.mobileInstrumentNavigation small{font-size:9px}
+.mobileInstrumentDown{grid-column:2}
+.mobileInstrumentActions{display:grid;gap:3px;min-width:0}
+.editorDesign.mobileNonFrettedWorkspace .mobileInstrumentActions .mobileInputExtras,.editorDesign.mobileNonFrettedWorkspace .mobileInstrumentActions .drumEditRow,.editorDesign.mobileNonFrettedWorkspace .mobileInstrumentActions .pianoMobileActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;width:100%;min-width:0}
+.editorDesign.mobileNonFrettedWorkspace .mobileInstrumentActions .mobileToolDock{min-width:0;width:100%}
+.mobileNonFrettedWorkspace .mobileDrumBarActions{display:flex;align-items:center;gap:3px;margin-left:auto}
+.editorDesign.mobileNonFrettedWorkspace .mobileDrumBarActions>button:nth-child(-n+2){width:30px;min-width:30px;padding:0;font-size:19px}
+@layer score-workspace{
+ .editorDesign.mobileNonFrettedWorkspace .mobileInstrumentControls button{display:flex!important;align-items:center!important;justify-content:center!important;gap:1px!important;min-width:0!important;width:100%!important;height:32px!important;min-height:32px!important;padding:2px!important;font-size:10px!important;white-space:nowrap!important}
+ .editorDesign.mobileNonFrettedWorkspace .mobileInstrumentNavigation button{height:36px!important;min-height:36px!important}
+ .editorDesign.mobileNonFrettedWorkspace .mobileInstrumentNavigation button>svg{flex-shrink:0}
+}

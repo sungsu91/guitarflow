@@ -120,15 +120,6 @@ html.shooterCanonicalMobile body main.app.app.app.shooterMode .shooterArena[data
 
 .shooterRecordingBeautyStatus { position: absolute; z-index: 2; top: 32px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; padding: 3px 8px; border-radius: 10px; background: #07110ecc; pointer-events: none; }
 
-.shooterRecordingChoice { pointer-events: auto; width: min(480px, calc(100vw - 32px)); box-sizing: border-box; padding: 24px; border: 1px solid #d8b97966; border-radius: 20px; background: #10201d; color: #fff; text-align: center; }
-.shooterRecordingChoice::backdrop { background: #000a; }
-.shooterRecordingChoice h2 { margin: 0 0 8px; font-size: 22px; }
-.shooterRecordingChoice p { color: #bed0c8; }
-.shooterRecordingChoices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 22px 0; }
-.shooterRecordingChoices button { display: grid; gap: 14px; border-radius: 14px; padding: 24px 12px; }
-.shooterRecordingChoices strong { color: #f4ce82; font-size: 22px; }
-.shooterRecordingChoices span { font-size: 12px; line-height: 1.6; }
-.shooterRecordingChoice--mobile { padding: 20px 14px; }
 .shooterRecordingMapCamera { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; background: #020503; }
 html body .shooterArena[data-recording-layout="full"] { background: #020503 !important; }
 html body .shooterArena[data-recording-layout="full"]::before,
@@ -138,14 +129,20 @@ html body .shooterArena[data-recording-layout="full"]::after { content: none !im
 .shooterRecordingUI.isFullCamera .shooterRecordingCamera button { pointer-events: auto; }
 .shooterRecordingUI.isFullCamera .shooterRecordingControls { bottom: 10px; top: auto; }
 
-.shooterRecordingChoice.shooterSettingsPopover { padding: 0; text-align: left; background: #15221e; border-color: #bd985d; border-radius: 0 0 14px 14px; }
-.shooterRecordingChoice.shooterSettingsPopover h2 { font-size: 18px; color: #f4ce82; }
-.shooterRecordingChoice.shooterSettingsPopover p { font-size: 12px; margin: 6px 0 14px; }
-.shooterRecordingChoice.shooterSettingsPopover button { appearance: none; min-height: 42px; border: 1px solid #a78b585c; border-radius: 10px; padding: 10px; color: #f4eddb; background: #ffffff08; font: inherit; cursor: pointer; }
-.shooterRecordingChoice.shooterSettingsPopover .shooterRecordingChoices { gap: 8px; margin: 12px 0; }
-.shooterRecordingChoice.shooterSettingsPopover .shooterRecordingChoices button { gap: 8px; padding: 18px 8px; text-align: center; }
-.shooterRecordingChoice.shooterSettingsPopover .shooterRecordingChoices strong { font-size: 20px; }
-.shooterRecordingChoice.shooterSettingsPopover .shooterSettingsPopoverContent > button { width: 100%; }
-.shooterRecordingChoice.shooterSettingsPopover .shooterRecordingChoices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.shooterRecordingChoice.shooterSettingsPopover .shooterRecordingChoices button { min-width: 0; white-space: normal; }
-.shooterRecordingChoice.shooterSettingsPopover .shooterRecordingChoices span { min-width: 0; white-space: normal; word-break: keep-all; overflow-wrap: anywhere; font-size: 11px; font-weight: 400; color: #c8d0c7; }
+
+.shooterRecordingCamera .shooterRecordingClock { white-space: normal; line-height: 1.4; }
+.shooterRecordingCamera--desktop .shooterRecordingClock { position: static; max-width: 160px; }
+
+/* Compact recording choices; difficulty keeps its full settings panel. */
+.shooterRecordingChoice.shooterSettingsPopover { padding: 0; border-radius: 0 0 12px 12px; }
+.shooterRecordingChoice.shooterSettingsPopover .shooterSettingsPopoverContent { padding: 7px; }
+.shooterRecordingChoices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.shooterRecordingChoices button { appearance: none; min-width: 0; min-height: 32px; padding: 5px 10px; border: 1px solid #b99a5d50; border-radius: 9px; color: #f4ce82; background: #ffffff06; font: 600 12px/1.4 system-ui, sans-serif; cursor: pointer; }
+.shooterRecordingChoices button:hover { background: #d1ae6420; border-color: #d1ae6480; }
+
+/* Match the difficulty panel while preserving the compact recording choices. */
+.shooterRecordingChoice.shooterSettingsPopover { background: #15221e; border-color: #bd985d; box-shadow: 0 14px 28px #0007; }
+.shooterRecordingChoice .shooterSettingsConnection { border-color: #bd985d; }
+.shooterRecordingChoice .shooterSettingsConnection::after { background: #15221e; }
+.shooterRecordingChoice .shooterRecordingChoices button { background: #ffffff06; border-color: #bd985d40; color: #f4eddb; font-weight: 600; }
+.shooterRecordingChoice .shooterRecordingChoices button:hover { background: #efd29114; border-color: #bd985d80; color: #f4ce82; }

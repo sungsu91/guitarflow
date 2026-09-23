@@ -20,6 +20,7 @@ import {repeatMarks} from './scoreRepeats.js';
 
 import {playheadX,rhythmAnchors} from './scorePlayhead.js';
 import {measureLayout} from './measureLayout.js';
+import {mobileScoreWidth} from './mobileScoreSizing.js';
 import { memo, useMemo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {isBlankEvent,tupletGroups,ticksOf} from './scoreModel.js';
 import {drawTabRhythm,drawTabRests,rhythmGroups} from './tabRhythm.js';
@@ -589,7 +590,7 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
     measure();const observer=new ResizeObserver(measure);observer.observe(viewport);
     return()=>observer.disconnect();
   },[responsive,focusLayout,view]);
-  useLayoutEffect(()=>{if(!responsive)return;const measure=()=>setAvailableWidth(Math.round(ref.current.clientWidth));measure();const observer=new ResizeObserver(measure);observer.observe(ref.current);return()=>observer.disconnect();},[responsive]);
+  useLayoutEffect(()=>{if(!responsive)return;const viewport=ref.current.closest('.etudeScoreViewport');const target=mobile&&viewport?viewport:ref.current;const measure=()=>{const sheet=mobile&&viewport?getComputedStyle(viewport.querySelector('.etudeSheet')):null;const width=target.clientWidth-(sheet?(parseFloat(sheet.paddingLeft)||0)+(parseFloat(sheet.paddingRight)||0):0);setAvailableWidth(Math.max(0,Math.round(width)));};measure();const observer=new ResizeObserver(measure);observer.observe(target);return()=>observer.disconnect();},[responsive,mobile]);
   const practiceFollow=usePracticeFollow(ref,followMode,Boolean(playPosition?.playing),[availableWidth,view,zoom,focusLayout,measuresPerRow].join(":"));
   const follow=usePlaybackFollow(ref,followPlayback&&Boolean(playPosition?.playing));
   const followRef=useRef(follow);followRef.current=(line,current)=>followMode?practiceFollow.follow(line,current):follow(line);
@@ -609,7 +610,7 @@ function Score({ practiceRange=null,onSelectBar,selectedBar=null,etude, mobile, 
         const svg=ref.current.querySelector('svg');
         // Keep the complete engraved system inside the landscape viewport,
         // even when dense notation requires a wider internal coordinate space.
-        svg.style.width=focusLayout?(availableWidth*zoom)+'px':Math.max(availableWidth,Number(svg.getAttribute('width'))*zoom)+'px';
+        svg.style.width=(mobile?mobileScoreWidth(availableWidth,Number(svg.getAttribute('width')),zoom,focusLayout):focusLayout?availableWidth*zoom:Math.max(availableWidth,Number(svg.getAttribute('width'))*zoom))+'px';
         svg.style.maxWidth='none';
         // Fill the reader width consistently; tall systems scroll vertically
         // instead of shrinking chord charts and fret numbers to fit two rows.

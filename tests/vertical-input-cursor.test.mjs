@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {verticalInputCursor} from '../src/etudes/verticalInputCursor.js';
+import {DRUMS} from '../src/etudes/scoreInstruments.js';
+test('drum vertical navigation stays on supported lanes without altering notes',()=>{const doc={instrument:'drums',measures:[{events:[{notes:[{id:'snare',midi:38},{id:'tom',midi:41}]}]}]},snapshot=JSON.stringify(doc);let cursor={bar:0,event:0,midi:38,noteId:'snare'};cursor=verticalInputCursor(doc,cursor,-1);assert.equal(cursor.midi,41);assert.equal(cursor.noteId,'tom');for(let i=0;i<50;i++){cursor=verticalInputCursor(doc,cursor,1);assert.ok(DRUMS.some(d=>d.midi===cursor.midi));}assert.equal(JSON.stringify(doc),snapshot);});
+test('piano vertical navigation selects existing notes and clamps the range',()=>{const doc={instrument:'piano',measures:[{events:[{notes:[{id:'d',midi:62}]}]}]};assert.equal(verticalInputCursor(doc,{bar:0,event:0,midi:60},1).noteId,'d');assert.equal(verticalInputCursor(doc,{bar:0,event:0,midi:127},1).midi,127);assert.equal(verticalInputCursor(doc,{bar:0,event:0,midi:0},-1).midi,0);});

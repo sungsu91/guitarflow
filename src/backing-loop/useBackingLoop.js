@@ -846,6 +846,7 @@ export default function useBackingLoop(ownerMode = "") {
       const audio = audioRef.current;
       clearTransportFadeTimer();
       const graph = await ensurePlaybackAudioGraph();
+      graph?.setGrooveEnabled(recording?.sourceType === BACKING_AUDIO_SOURCE_TYPES.GROOVE);
       if (!mountedRef.current || !modeActiveRef.current) return;
       const playlistMode = playlistStateRef.current.playbackMode;
       audio.loop = shouldLoopBackingTrack(playlistMode, Boolean(playlistPlaybackRef.current.playlistId));

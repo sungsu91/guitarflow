@@ -60,7 +60,7 @@ export default function PdfStudio({mobile,onOpenMenu,onExit}) {
  const additions=<div className="libraryActions"><button type="button" disabled={busy} onClick={()=>input.current.click()}><FilePlus2 size={20}/>PDF 불러오기</button><button type="button" onClick={()=>setEditing(createBlankDocument())}><Plus size={20}/>악보 만들기</button></div>;
 
  return <section id={!opened?'scoreLibraryHome':undefined} ref={studio} data-library-view={!opened&&!scoreOpened?mode:undefined} className={`pdfStudio ${mobile?'pdfStudio--mobile':'pdfStudio--desktop'}`}>
-  {!opened&&<LibraryHeader onMenu={onOpenMenu} onExit={onExit}/>}
+  {!opened&&<LibraryHeader mobile={mobile} onMenu={onOpenMenu} onExit={onExit}/>}
   <input ref={input} type="file" accept="application/pdf,.pdf" hidden aria-label="PDF 파일 선택" onChange={importPdf}/><input ref={backup} type="file" accept=".fretiva-pdf" hidden aria-label="PDF 백업 선택" onChange={restore}/>
   {(!mobile||!opened)&&top}
   {error&&<p role="alert" className="pdfError">{error}</p>}{message&&!opened&&<p role="status">{message}</p>}

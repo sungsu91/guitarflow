@@ -46,7 +46,7 @@
 @layer score-workspace{
  .editorDesign .drumKitPhoto .drumPiece{padding:0!important;border:0!important;box-shadow:none!important;transform:none!important;background:transparent!important;filter:none!important;outline:none!important;min-width:0!important}
  .editorDesign .drumKitPhoto .drumPiece::before{content:'';position:absolute;inset:3%;border-radius:50%;pointer-events:none}
- .editorDesign .drumKitPhoto .drumPiece[data-entered=true]::before{border:1.5px solid #b17e20;box-shadow:0 0 0 1px #fff8}
+ .editorDesign .drumKitPhoto .drumPiece[data-entered=true]::before{border:0;box-shadow:none}
  .editorDesign .drumKitPhoto .drumPiece[aria-pressed=true]::before{background:#f4c95a55;box-shadow:inset 0 0 12px #f6c24c}
  .editorDesign .drumKitPhoto .drumPiece:focus-visible::before{outline:2px solid #187bce;outline-offset:2px}
  .editorDesign .drumKitPhoto .drumPiece span{inset:50% auto auto 50%!important;transform:translate(-50%,-50%);white-space:nowrap;font-size:11px!important;color:#161616!important;text-shadow:0 1px 2px white,0 -1px 2px white,1px 0 2px white,-1px 0 2px white;pointer-events:none}
@@ -81,3 +81,62 @@
 @layer score-workspace{.editorDesign .drumHatRow button{min-height:40px!important}.editorDesign .drumExtra{grid-template-columns:repeat(2,minmax(0,1fr));max-height:none}}
 
 .drumHatRow .editorChoiceTrigger{width:auto;min-width:64px}
+
+/* Mobile drum controls reserve the remaining height for the score. */
+.mobileDrumWorkspace .mobileDrumBarActions{display:flex;align-items:center;gap:3px;margin-left:auto}
+.mobileDrumWorkspace .mobileDrumBarActions>button{width:30px;padding:0;font-size:19px}
+.mobileDrumWorkspace .drumInputPanel{gap:4px;padding:3px 4px}
+.mobileDrumWorkspace .drumCompactActions{display:grid;grid-template-columns:1fr 1.2fr;gap:4px;align-items:center}
+.mobileDrumWorkspace .drumCompactActions .mobileInputExtras{grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}
+.mobileDrumWorkspace .drumEditRow{grid-template-columns:1fr 1.2fr 1.2fr;gap:3px}
+.mobileDrumWorkspace .drumHatRow{justify-content:center;gap:4px}
+.mobileDrumWorkspace .drumHatRow .editorChoiceTrigger{margin-left:0}
+.mobileDrumWorkspace .drumKitPhoto{width:min(100%,280px,34svh);height:auto;aspect-ratio:3/2}
+.mobileDrumWorkspace .editorDrumAudio{position:relative;margin:0;padding:0;border:0}
+.mobileDrumWorkspace .editorDrumAudio>summary{display:flex;align-items:center;justify-content:center;width:42px;height:44px;padding:0;list-style:none;cursor:pointer;background:var(--ed-active);color:var(--ed-on-accent);border-radius:8px}
+.mobileDrumWorkspace .editorDrumAudio>summary::-webkit-details-marker{display:none}
+.mobileDrumWorkspace .editorDrumAudioPanel{position:absolute;bottom:calc(100% + 8px);right:0;z-index:20;width:220px;max-width:calc(100vw - 28px);padding:12px;box-sizing:border-box;background:var(--ed-surface);border:1px solid var(--ed-line);border-radius:10px;box-shadow:0 4px 18px #0003;display:grid;gap:10px}
+@layer score-workspace{
+ .editorDesign.mobileDrumWorkspace .drumCompactActions button{height:32px!important;min-height:32px!important;padding:2px!important;font-size:11px!important;white-space:nowrap}
+ .editorDesign.mobileDrumWorkspace .drumHatRow button{min-height:32px!important;height:32px!important}
+ .editorDesign.mobileDrumWorkspace .editorDrumAudioPanel label{display:flex!important;align-items:center!important;gap:8px!important;font-size:12px!important;margin:0!important}
+ .editorDesign.mobileDrumWorkspace .editorDrumAudioPanel label:first-child{flex-wrap:wrap}
+ .editorDesign.mobileDrumWorkspace .editorDrumAudioPanel input[type=range]{width:100%!important;height:24px!important;min-height:24px!important;padding:0!important;accent-color:var(--ed-active)}
+ .editorDesign.mobileDrumWorkspace .editorDrumAudioPanel input[type=checkbox]{width:18px!important;height:18px!important;min-height:18px!important;accent-color:var(--ed-active)}
+}
+/* Keep the compact controls legible even under shared editor toolbar rules. */
+.editorDesign.mobileDrumWorkspace .drumCompactActions .mobileToolDock{min-width:0;width:100%}
+.editorDesign.mobileDrumWorkspace .drumCompactActions .mobileInputExtras{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;gap:3px}
+.editorDesign.mobileDrumWorkspace .mobileDrumBarActions>button{width:auto;min-width:0;padding-inline:6px}
+.editorDesign.mobileDrumWorkspace .mobileDrumBarActions>button:nth-child(-n+2){width:30px;padding:0}
+.editorDesign.mobileDrumWorkspace .drumKitPhoto{width:min(100%,260px,29svh)}
+.editorDesign.mobileDrumWorkspace .mobileScoreInput{position:relative}
+.editorDesign.mobileDrumWorkspace .mobileEditorFeedback{position:absolute;bottom:52px;left:4px;right:4px;z-index:3;background:var(--ed-bg);border-radius:4px}
+
+/* Stack the hi-hat toggles below mobile navigation; keep drum actions together. */
+.mobileDrumWorkspace .mobileInstrumentNavigationColumn{display:grid;gap:3px;min-width:0}
+.mobileDrumWorkspace .drumHatStack{display:grid;grid-template-columns:42px 68px;justify-content:start;align-items:center;gap:3px;font-size:10px}
+.mobileDrumWorkspace .drumHatStack .drumBatchLabel{margin:0}
+.editorDesign.mobileDrumWorkspace .mobileInstrumentActions .mobileInputExtras{grid-template-columns:repeat(3,minmax(0,1fr))}
+@layer score-workspace{
+ .editorDesign.mobileDrumWorkspace .drumHatStack .drumBatchSwitch{position:relative;display:grid!important;grid-template-columns:1fr 1fr;width:68px!important;min-width:68px!important;height:26px!important;min-height:26px!important;padding:0!important;border-radius:16px!important;isolation:isolate;overflow:hidden}
+ .editorDesign.mobileDrumWorkspace .drumHatStack .drumBatchSwitch i{background:linear-gradient(160deg,#f5f6f7,#b4bac0 42%,#e0e3e6 52%,#939ba3);border:1px solid #8b949c;box-sizing:border-box}
+}
+.editorDesign.mobileNonFrettedWorkspace.mobileDrumWorkspace .mobileInstrumentActions .mobileInputExtras{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.editorDesign.mobileDrumWorkspace .drumHatStack .drumBatchSwitch i{background:linear-gradient(160deg,#f5f6f7,#b4bac0 42%,#e0e3e6 52%,#939ba3)!important;border:1px solid #8b949c;box-sizing:border-box}
+/* Fit both switches into the vacant lower-left navigation cell. */
+.editorDesign.mobileDrumWorkspace .mobileInstrumentNavigationColumn{grid-template-columns:minmax(0,1fr) 38px 38px;gap:3px;align-items:start}
+.editorDesign.mobileDrumWorkspace .mobileInstrumentNavigation{display:contents}
+.editorDesign.mobileDrumWorkspace .mobileInstrumentDown{grid-column:2;grid-row:3}
+.editorDesign.mobileDrumWorkspace .drumHatStack{grid-column:1;grid-row:3;grid-template-columns:25px 56px;gap:2px 1px;font-size:9px}
+@layer score-workspace{
+ .editorDesign.mobileDrumWorkspace .drumHatStack .drumBatchSwitch{width:56px!important;min-width:56px!important;height:25px!important;min-height:25px!important}
+ .editorDesign.mobileDrumWorkspace .drumHatStack .drumBatchSwitch span{color:#302820!important;font-size:9px!important;font-weight:700!important;text-shadow:none!important}
+ .editorDesign.mobileDrumWorkspace .drumHatStack .drumBatchSwitch[aria-checked=false] span:first-child,
+ .editorDesign.mobileDrumWorkspace .drumHatStack .drumBatchSwitch[aria-checked=true] span:nth-child(2){color:#161b20!important}
+}
+@layer score-workspace {
+ .editorDesign .editorDrumInline{display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0;margin-left:4px}
+ .editorDesign .editorDrumInline label{display:flex!important;align-items:center!important;gap:3px!important;white-space:nowrap;font-size:10px!important;margin:0!important}
+ .editorDesign .editorDrumInline input[type=checkbox]{width:14px!important;height:14px!important;min-height:14px!important;margin:0!important;padding:0!important;accent-color:var(--ed-active)}
+}

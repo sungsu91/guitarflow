@@ -13,7 +13,7 @@ import {slurSpans} from './slurs.js';
 // Preview and print use the same A4 sheets; screen scaling never edits notation.
 export function printEditorScore(container,title,view='both',metadata) {
  const measures=[...container.querySelectorAll('[data-draw-count]')].map(host=>({svg:host.shadowRoot?.querySelector('svg'),measure:host.closest('[data-layout-row]')})).filter(item=>item.svg);
- if(!measures.length)throw Error('먼저 표시 가능한 악보를 준비하세요.');
+ if(!measures.length&&!metadata)throw Error('먼저 표시 가능한 악보를 준비하세요.');
  const win=window.open('','_blank','width=1000,height=800');if(!win)throw Error('인쇄 미리보기 창을 허용한 후 다시 시도하세요.');
  const doc=win.document;doc.title=`${title} · A4 인쇄 미리보기`;doc.documentElement.lang='ko';
  const viewport=doc.createElement('meta');viewport.name='viewport';viewport.content='width=device-width, initial-scale=1';doc.head.append(viewport);

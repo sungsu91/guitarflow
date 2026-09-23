@@ -1,5 +1,8 @@
 export const AUDIO_TRANSPORT_START_LEAD_SECONDS = 0.06;
 export const AUDIO_TRANSPORT_LOOKAHEAD_SECONDS = 0.18;
+// Keep scheduled metronome audio running through mobile menu/layout work.
+export const METRONOME_LOOKAHEAD_SECONDS = 0.75;
+export const METRONOME_MENU_LOOKAHEAD_SECONDS = 4;
 export const AUDIO_TRANSPORT_SCHEDULER_INTERVAL_MS = 25;
 
 const EPSILON_SECONDS = 1e-9;

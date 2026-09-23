@@ -28,3 +28,9 @@ test('audio gate damps a pitched sound without creating noise or altering transp
  assert.equal(createPalmMuteGate(audio,phrase,10,output),gate);assert.deepEqual(calls,[['set',1,10],['set',1,10.008],['ramp',.0001,10.18]]);assert.equal(phrase.duration,2);
  assert.equal(createPalmMuteGate(audio,{...phrase,palmMute:false},10,output),null);
 });
+
+test('TAB P.M. stays above string one for both high and low grips',async()=>{
+ const {drawPalmMute}=await import('../src/etudes/drawPalmMute.js');const original=globalThis.document;
+ const node=()=>({dataset:{},attrs:{},children:[],setAttribute(k,v){this.attrs[k]=v},append(n){this.children.push(n)}});
+ globalThis.document={createElementNS:node};try{for(const ys of [[100],[152,165]]){const svg=node();drawPalmMute(svg,[{palmMute:true}],[{getStemX:()=>40,getYs:()=>ys}],{getYForLine:i=>100+i*13});assert.equal(svg.children[0].children[0].attrs.y,'88');}}finally{globalThis.document=original;}
+});

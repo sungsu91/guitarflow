@@ -15,5 +15,5 @@ export default function ScoreLibraryTabs({mode,onChange,library=false}){
   window.addEventListener('scroll',schedule,true);window.addEventListener('resize',schedule);place();
   return()=>{cancelAnimationFrame(frame);observer.disconnect();window.removeEventListener('scroll',schedule,true);window.removeEventListener('resize',schedule);};
  },[]);
- return <div ref={anchor} className={library?'libraryTabAnchor':'scoreTabsAnchor'}><nav ref={nav} className={library?'libraryTabs':'scoreMainTabs'} role="tablist" aria-label="악보 카테고리">{[['pdf','내 악보'],['lessons','에튀드']].map(([key,label])=><button key={key} type="button" role="tab" id={`score-tab-${key}`} aria-selected={mode===key} aria-controls="score-library-panel" onClick={()=>onChange(key)}>{label}</button>)}</nav></div>;
+ return <div ref={anchor} className={library?'libraryTabAnchor':'scoreTabsAnchor'}><nav ref={nav} className={library?'libraryTabs':'scoreMainTabs'} role="tablist" aria-label="악보 카테고리">{[['lessons','에튀드'],['pdf','내 악보']].map(([key,label])=><button key={key} type="button" role="tab" id={`score-tab-${key}`} aria-selected={mode===key} aria-controls="score-library-panel" onClick={()=>onChange(key)}>{label}</button>)}</nav></div>;
 }

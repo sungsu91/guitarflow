@@ -310,3 +310,74 @@ html body dialog.etudeEditor.mobileScoreWorkspace.editorDesign {
 .editorDesign.mobileScoreWorkspace .mobileScoreSettingsTitle{display:block!important;overflow:hidden;text-overflow:ellipsis;padding-inline:6px!important}
 .editorDesign.etudeEditor .etudeEditorClosePrompt{background:var(--ed-surface)!important;color:var(--ed-ink)!important;border-color:var(--ed-line)!important}
 .editorDesign.etudeEditor .etudeEditorClosePrompt p{color:var(--ed-ink)!important;-webkit-text-fill-color:var(--ed-ink)!important;opacity:1!important;line-height:1.5;overflow-wrap:anywhere}
+/* Desktop authoring: a large score and one open tool column, with transport
+   in that column; file actions stay beside saving in the top header. */
+html body .app .editorDesign.etudeEditor--desktop[open]{width:calc(100vw - 24px);max-width:none;height:calc(100dvh - 24px);max-height:calc(100dvh - 24px);padding:12px;box-sizing:border-box;overflow:auto}
+html body .app .editorDesign.etudeEditor--desktop .etudeEditorDesktopBody{grid-template-columns:minmax(0,1fr) clamp(380px,27vw,480px);gap:12px;overflow:visible;min-height:620px}
+html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn{display:flex;flex-direction:column;gap:8px;overflow:visible;min-width:0;min-height:min-content;padding:10px}
+html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn>.etudeEditorBottom{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-top:auto;padding-top:8px;min-width:0}
+html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn .editorAudioDock{width:100%;max-width:none;min-width:0;border-bottom:1px solid var(--ed-line)}
+html body .app .editorDesign.etudeEditor--desktop .etudeEditorBottom footer{flex:none;flex-wrap:wrap;justify-content:flex-end}
+html body .app .editorDesign.etudeEditor--desktop .etudeEditorPreview{padding:4px;min-height:620px}
+html body .app .editorDesign.etudeEditor--desktop .etudeEditorCanvas{max-height:none;min-height:380px}
+html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn .mobileScoreSmallSheet.is-anchored{width:100%!important;max-width:100%;max-height:none;overflow:visible}
+html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn .mobileDockPopover{max-height:none;overflow:visible}
+@media(max-height:850px){
+ html body .app .editorDesign.etudeEditor--desktop .etudeEditorDesktopBody,html body .app .editorDesign.etudeEditor--desktop .etudeEditorPreview{min-height:540px}
+ html body .app .editorDesign.etudeEditor--desktop .desktopScoreInput{gap:6px}
+ html body .app .editorDesign.etudeEditor--desktop .desktopAdvanced{margin-top:0;padding:5px}
+ html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn button{min-height:36px}
+}
+html body .app .editorDesign.etudeEditor--desktop .desktopFileActions{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-right:8px;border-right:1px solid var(--ed-line)}
+html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn .mobileInputExtras{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn .editorSoundToggle{display:flex;flex-direction:row;align-items:center;gap:6px;margin:0;min-height:22px}
+html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn .editorSoundToggle input{width:16px;height:16px;min-height:0;margin:0}
+html body .app .editorDesign.etudeEditor--desktop .desktopAdvanced{margin-top:0;padding:6px}
+html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn>.etudeEditorBottom{flex-shrink:0}
+html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn .mobileToolDock{gap:6px}
+html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn .mobileInputExtras{grid-template-columns:repeat(4,minmax(0,1fr))}
+html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn:not(:has(.drumInputPanel)) .mobileInputExtras>button:nth-child(-n+2){grid-column:span 2}
+html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn:has(.drumInputPanel) .mobileInputExtras>button{grid-column:auto}
+html body .app .editorDesign.etudeEditor--desktop .drumKitPhoto{width:min(100%,250px)!important;height:auto!important;aspect-ratio:3/2;margin-inline:auto}
+@media(max-height:850px){
+ html body .app .editorDesign.etudeEditor--desktop .etudeEditorDesktopBody,html body .app .editorDesign.etudeEditor--desktop .etudeEditorPreview{min-height:500px}
+ html body .app .editorDesign.etudeEditor--desktop .desktopToolColumn :is(.mobileCursorPad,.mobileFretPad,.mobileInputExtras) button{height:36px!important;min-height:36px!important}
+ html body .app .editorDesign.etudeEditor--desktop .drumKitPhoto{width:min(100%,230px)!important}
+}
+
+html body .app .editorDesign.etudeEditor--desktop>.etudeEditorStatusMessage{flex-shrink:0;margin:0;font-size:12px}
+
+.editorDesign.etudeEditor--desktop .etudeRangeHint{font-size:11px;color:var(--ed-muted);padding:3px 8px;flex-shrink:0}
+.editorDesign.etudeEditor--desktop [data-score-input]{user-select:none}
+
+/* Desktop places view/history beside the paper and exposes editing categories. */
+.editorDesign.etudeEditor--desktop .desktopScoreViewControls{display:flex;align-items:center;gap:8px;margin-left:auto;flex:none}
+.editorDesign.etudeEditor--desktop .desktopScoreViewControls .etudeToolbarGroup{border:0;padding:0;margin:0}
+.editorDesign.etudeEditor--desktop .etudeMeasureLayoutBar{flex-wrap:wrap;gap:6px}
+.editorDesign.etudeEditor--desktop .desktopDirectTools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-left:auto}
+.editorDesign.etudeEditor--desktop .desktopDirectTools .etudeToolbarSections{width:auto;flex-wrap:wrap;gap:5px}
+.editorDesign.etudeEditor--desktop .desktopDirectTools .etudeToolbarSections button{min-width:0;gap:4px}
+.editorDesign.etudeEditor--desktop .desktopDirectTools .etudeAutoAdvance{display:flex;align-items:center;gap:5px;font-size:11px;margin:0}
+.editorDesign.etudeEditor--desktop .desktopDirectTools .etudeAutoAdvance input{width:16px;height:16px;min-height:0;margin:0}
+.editorDesign.etudeEditor--desktop .etudeToolbarMain{flex-wrap:wrap;gap:8px}
+html body .app .editorDesign.etudeEditor--desktop .desktopScoreViewControls .etudeToolbarZoom{display:flex;flex-direction:row;align-items:center;gap:6px;margin:0;font-size:11px}
+/* Fretted mobile controls: narrow arrows, beat actions below grip actions. */
+.editorDesign.mobileScoreWorkspace .mobileCursorPad{grid-template-columns:34px minmax(60px,1fr) 34px 34px 124px}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad .scoreBarStepper{grid-column:1 / 3;grid-row:1;width:104px;max-width:100%}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad .cursorKey-ArrowUp{grid-column:3;grid-row:1}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad .scoreLineActions{grid-column:5;grid-row:1}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad .cursorKey-ArrowLeft{grid-column:1;grid-row:2}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad output{grid-column:2 / 4;grid-row:2;font-size:10px;min-width:0}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad .cursorKey-ArrowRight{grid-column:4;grid-row:2}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad .scoreBeatActions{grid-column:5;grid-row:2;display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad .scoreBeatActions button{font-size:11px!important;padding:0 1px!important;min-width:0}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad .cursorKey-r{grid-column:1 / 3;grid-row:3;width:104px;max-width:100%}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad .cursorKey-ArrowDown{grid-column:3;grid-row:3}
+.editorDesign.mobileScoreWorkspace .mobileCursorPad>.is-delete{grid-column:5;grid-row:3}
+
+.editorDesign.mobileScoreWorkspace .scoreResetActions{grid-column:5;grid-row:3;position:relative;display:grid;grid-template-columns:1fr 1fr;gap:2px;min-width:0}
+.editorDesign.mobileScoreWorkspace .scoreResetActions>button{font-size:11px!important;padding:0 2px!important;min-width:0;gap:2px}
+.editorDesign.mobileScoreWorkspace .scoreResetActions>button svg{width:14px;height:14px}
+.editorDesign.mobileScoreWorkspace .scoreResetConfirm{position:absolute;right:0;bottom:calc(100% + 6px);z-index:30;width:190px;padding:10px;border:1px solid var(--ed-line);border-radius:9px;background:var(--ed-surface);box-shadow:0 3px 12px #0003;font-size:12px;text-align:center}
+.editorDesign.mobileScoreWorkspace .scoreResetConfirm>div{display:flex;justify-content:center;gap:6px;margin-top:7px}
+.editorDesign.mobileScoreWorkspace .scoreResetConfirm button{width:64px;font-size:12px!important}

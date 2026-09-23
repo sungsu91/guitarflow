@@ -26,3 +26,19 @@
 .shooterProgressSettings.shooterSettingsPopover { padding: 0; overflow: visible; background: #15221e; border-color: #bd985d; border-radius: 0 0 14px 14px; }
 .shooterProgressSettings.shooterSettingsPopover h2 { color: #f4ce82; }
 .shooterProgressSettings.shooterSettingsPopover button { border-color: #a78b585c; }
+
+/* Small immediately-applied choices, with a check on the selected difficulty. */
+.shooterProgressSettings.shooterSettingsPopover .shooterSettingsPopoverContent { padding: 10px; }
+.shooterProgressSettings.shooterSettingsPopover header { margin-bottom: 6px; }
+.shooterProgressSettings.shooterSettingsPopover h2 { font-size: 12px; }
+.shooterProgressSettings.shooterSettingsPopover header > button { flex-basis: 24px; width: 24px; height: 24px; min-height: 24px; border: 0; background: transparent; font-size: 19px; }
+.shooterProgressSettings.shooterSettingsPopover .shooterProgressLevels { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.shooterProgressSettings.shooterSettingsPopover .shooterProgressLevels button { display: flex; align-items: center; justify-content: flex-start; gap: 4px; min-height: 30px; padding: 5px 3px; border-color: transparent; border-radius: 7px; text-align: left; background: transparent; }
+.shooterProgressSettings.shooterSettingsPopover .shooterProgressLevels button[aria-pressed="true"] { background: #efd29114; box-shadow: none; }
+.shooterProgressCheck { width: 12px; flex: 0 0 12px; color: #f4ce82; font-size: 12px; }
+.shooterProgressSettings.shooterSettingsPopover .shooterProgressLevels strong { font-size: 11px; white-space: nowrap; }
+.shooterProgressSettings.shooterSettingsPopover h3 { margin: 10px 0 6px; padding-top: 8px; border-top: 1px solid #bd985d30; font-size: 11px; font-weight: 500; }
+.shooterProgressSettings.shooterSettingsPopover .shooterProgressSpeeds button { min-height: 28px; padding: 4px 2px; font-size: 11px; border-radius: 7px; }
+html body main.app.app.app.shooterMode button.mobileShooterDifficultyHud > span { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; overflow: visible; }
+html body main.app.app.app.shooterMode button.mobileShooterDifficultyHud small { flex-shrink: 0; font-size: 8px !important; }
+html body main.app.app.app.shooterMode button.mobileShooterDifficultyHud strong { flex-shrink: 0; font-size: 11px !important; white-space: nowrap; }

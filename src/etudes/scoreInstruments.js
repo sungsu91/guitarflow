@@ -27,3 +27,11 @@ export const staffStepForPitch = (pitch,id) => {
   const profile=scoreInstrument(id);
   return (pitch.octave+profile.octaveShift)*7+'CDEFGAB'.indexOf(pitch.letter)-profile.staffBottom;
 };
+
+// Staff presentation is independent of hand assignment and sounding pitches.
+export const PIANO_STAFF_LAYOUTS = Object.freeze([
+ {value:'grand',label:'큰보표 (높은음자리 + 낮은음자리)'},
+ {value:'treble',label:'단일 보표 · 높은음자리'},
+ {value:'bass',label:'단일 보표 · 낮은음자리'},
+]);
+export const pianoStaffLayout = value => PIANO_STAFF_LAYOUTS.some(o=>o.value===value)?value:'grand';

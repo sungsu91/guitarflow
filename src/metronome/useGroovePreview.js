@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from 'react';
 import {scheduleGrooveStep, createGrooveVoiceState} from './groove.js';
 import {TIME_SIGNATURE_OPTIONS} from './options.js';
 import {getMetronomeSubdivisionOption} from './subdivision.js';
-import {createAudioTransportCursor,collectAudioTransportSteps,AUDIO_TRANSPORT_SCHEDULER_INTERVAL_MS} from '../audio/transportClock.js';
+import {createAudioTransportCursor,collectAudioTransportSteps,METRONOME_LOOKAHEAD_SECONDS,AUDIO_TRANSPORT_SCHEDULER_INTERVAL_MS} from '../audio/transportClock.js';
 
 // One owner, shared audio clock and transport scheduler, bounded scheduled voices.
 export function useGroovePreview(prepare, bpm, onError) {
@@ -44,7 +44,7 @@ export function useGroovePreview(prepare, bpm, onError) {
       const voiceState=createGrooveVoiceState();
       function schedule() {
         if(token!==s.token)return;
-        const batch=collectAudioTransportSteps(cursor,{currentTime:audio.currentTime});cursor=batch.cursor;
+        const batch=collectAudioTransportSteps(cursor,{currentTime:audio.currentTime,horizonSeconds:METRONOME_LOOKAHEAD_SECONDS});cursor=batch.cursor;
         for(const {index,time} of batch.steps) scheduleGrooveStep({audio,buffers,output,volume,voiceState,pattern:pack.pattern,index:index%(beats*divisions),time,track:(source,gain)=>{
           const voice={source,gain};s.voices.add(voice);
           source.onended=()=>{s.voices.delete(voice);source.disconnect();gain.disconnect();};

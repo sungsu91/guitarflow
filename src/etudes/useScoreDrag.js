@@ -7,6 +7,7 @@ function hitAt(x,y){
  return node?.closest?.('[data-event]');
 }
 function location(hit,x,y,key,instrument){
+ if(hit?.dataset.mode==='staff'&&instrument!=='piano')return null;
  const section=hit?.getRootNode().host?.closest('[data-bar-index]');if(!section)return null;
  const result={bar:Number(section.dataset.barIndex),event:Number(hit.dataset.event),mode:hit.dataset.mode,string:Number(hit.dataset.string??1)};
  if(result.mode==='staff'){
@@ -43,7 +44,7 @@ export default function useScoreDrag({canvas,score,onSelect,onMove,onMessage,ena
   // the actual pointer position so a ledger extension keeps its own owner.
   const hit=hitAt(e.clientX,e.clientY);
   if(!hit||!canvas.current.contains(hit.getRootNode().host)||hit.dataset.midi===undefined)return;
-  const from=location(hit,e.clientX,e.clientY,score.keySignature,score.instrument);from.string=Number(hit.dataset.string);from.midi=Number(hit.dataset.midi);if(from.mode==='staff')from.staffStep=Math.round((Number(hit.dataset.staffBottom)-Number(hit.dataset.cursorY)-7)/5);
+  const from=location(hit,e.clientX,e.clientY,score.keySignature,score.instrument);if(!from)return;from.string=Number(hit.dataset.string);from.midi=Number(hit.dataset.midi);if(from.mode==='staff')from.staffStep=Math.round((Number(hit.dataset.staffBottom)-Number(hit.dataset.cursorY)-7)/5);
   if(e.pointerType!=='touch'){onSelect(from);canvas.current.focus({preventScroll:true});e.preventDefault();}
   // Ledger lines select their note; they are not separate draggable objects.
   if(hit.dataset.dragTone===undefined){if(e.pointerType!=='touch')suppressClick.current=true;return;}

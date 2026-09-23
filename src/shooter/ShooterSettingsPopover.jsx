@@ -5,7 +5,7 @@ import './settings-popover.css';
 let activeSettings = null;
 
 // Shared anchoring and dismissal; each setting keeps its own platform UI.
-export default function ShooterSettingsPopover({ anchor, mobile, label, className = '', onClose, children }) {
+export default function ShooterSettingsPopover({ anchor, mobile, label, className = '', compact = false, panelWidth, onClose, children }) {
   const panel = useRef(null);
   const close = useRef(onClose);
   close.current = onClose;
@@ -26,8 +26,8 @@ export default function ShooterSettingsPopover({ anchor, mobile, label, classNam
       const topEdge = viewport?.offsetTop ?? 0;
       const rightEdge = leftEdge + (viewport?.width ?? window.innerWidth);
       const bottomEdge = topEdge + (viewport?.height ?? window.innerHeight);
-      const width = Math.min(mobile ? 340 : 360, rightEdge - leftEdge - 16);
-      const left = Math.max(leftEdge + 8, Math.min(rect.left, rightEdge - width - 8));
+      const width = Math.min(panelWidth ?? (compact ? 148 : mobile ? 340 : 360), rightEdge - leftEdge - 16);
+      const left = Math.max(leftEdge, Math.min(rect.left, rightEdge - width - 8));
       const top = rect.bottom - 1;
       node.style.width = `${width}px`;
       node.style.left = `${left}px`;
@@ -69,7 +69,7 @@ export default function ShooterSettingsPopover({ anchor, mobile, label, classNam
       document.removeEventListener('keydown', key);
       if (node.contains(document.activeElement) || document.activeElement === document.body) previous?.focus?.({ preventScroll: true });
     };
-  }, [anchor, mobile]);
+  }, [anchor, mobile, compact, panelWidth]);
   return createPortal(<section ref={panel} className={`shooterSettingsPopover ${mobile ? 'shooterSettingsPopover--mobile' : 'shooterSettingsPopover--desktop'} ${className}`} role="dialog" aria-label={label}>
     <span className="shooterSettingsConnection" aria-hidden="true" />
     <div className="shooterSettingsPopoverContent">{children}</div>

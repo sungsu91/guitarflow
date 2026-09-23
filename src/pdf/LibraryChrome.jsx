@@ -1,8 +1,8 @@
 import {Menu,Music,Search,ArrowDownWideNarrow,ChevronDown,ChevronRight,HardDrive} from 'lucide-react';
 import {useEffect,useRef,useState} from 'react';
 
-export function LibraryHeader({onMenu,onExit}){
- return <header className="libraryHeader"><button type="button" aria-label="FRETIVA LAB 홈으로" onClick={onExit}><Music size={26}/><strong>FRETIVA LAB</strong></button><button type="button" aria-label="전체 메뉴" onClick={onMenu}><Menu size={22}/><span>메뉴</span></button></header>;
+export function LibraryHeader({onMenu,onExit,mobile=true}){
+ return <header className="libraryHeader"><button type="button" aria-label="FRETIVA LAB 홈으로" onClick={onExit}><Music size={26}/><strong>FRETIVA LAB</strong></button>{mobile&&<button type="button" aria-label="전체 메뉴" onClick={onMenu}><Menu size={22}/><span>메뉴</span></button>}</header>;
 }
 const sorts=[['practice','최근순','최근 연습'],['added','추가순','최근 추가'],['title','제목순','제목순'],['bpm','BPM순','BPM순']];
 function SearchField({search,onSearch}){return <label className="librarySearch"><Search size={20}/><input aria-label="악보 검색" placeholder="제목, 아티스트 검색" value={search} onChange={e=>onSearch(e.target.value)}/></label>;}

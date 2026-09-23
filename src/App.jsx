@@ -88,6 +88,7 @@ import {
 } from "./metronome/runtime";
 import AudioStudio from "./audio-studio/AudioStudio";
 const EtudeStudio = lazy(() => import("./pdf/PdfStudio.jsx"));
+import GrooveVolumeControl from "./components/GrooveVolumeControl.jsx";
 import MetronomeVolumeControl from "./components/MetronomeVolumeControl.jsx";
 import {
   getMetronomeVolumeSnapshot,
@@ -104,6 +105,8 @@ import {
 } from "./tuner/tunerMath.js";
 import {
   AUDIO_TRANSPORT_LOOKAHEAD_SECONDS,
+  METRONOME_LOOKAHEAD_SECONDS,
+  METRONOME_MENU_LOOKAHEAD_SECONDS,
   AUDIO_TRANSPORT_SCHEDULER_INTERVAL_MS,
   AUDIO_TRANSPORT_START_LEAD_SECONDS,
   collectAudioTransportSteps,
@@ -18068,6 +18071,7 @@ function App({ onReady }) {
   const selectedCategoryIdRef = useRef(initialRouteRef.current.categoryId);
   const viewerModeRef = useRef(FRETBOARD_VIEWER_MODES.CHORD);
   const utilityMenuOpenRef = useRef(false);
+  const refillMetronomeAudioRef = useRef(null);
   const navigationCommitScheduleRef = useRef({ frameId: null, token: 0 });
   const routeSyncRef = useRef(false);
   const routeScrollPositionsRef = useRef(new Map());
@@ -18091,6 +18095,7 @@ function App({ onReady }) {
 
   const requestNavigationCommit = useCallback((target, commit, { updateHistory = true } = {}) => {
     const opensUtilityMenu = target.mode === APP_MODES.MENU && !target.hash;
+    if (opensUtilityMenu) refillMetronomeAudioRef.current?.(METRONOME_MENU_LOOKAHEAD_SECONDS);
     const currentViewMatches = opensUtilityMenu
       ? utilityMenuOpenRef.current
       : !utilityMenuOpenRef.current
@@ -18188,6 +18193,9 @@ function App({ onReady }) {
   const metronomeVolumeRef = useRef(getMetronomeVolumeSnapshot().volume);
   useEffect(() => subscribeMetronomeVolume(() => {
     metronomeVolumeRef.current = getMetronomeVolumeSnapshot().volume;
+    if (audioRef.current && metronomeMasterGainRef.current) {
+      metronomeMasterGainRef.current.gain.setTargetAtTime(metronomeVolumeRef.current, audioRef.current.currentTime, 0.012);
+    }
   }), []);
   const metronomeBeatPatternRef = useRef(normalizeMetronomeBeatPattern([], 4));
   const activeMetronomeScopeRef = useRef(
@@ -20688,7 +20696,7 @@ function App({ onReady }) {
     cancelScheduledMetronomeTicks();
   }, [cancelScheduledMetronomeTicks]);
 
-  const runMetronomeAudioScheduler = useCallback(() => {
+  const runMetronomeAudioScheduler = useCallback((horizonSeconds = METRONOME_LOOKAHEAD_SECONDS) => {
     const audio = audioRef.current;
     if (
       !audio
@@ -20709,7 +20717,7 @@ function App({ onReady }) {
 
     const scheduled = collectAudioTransportSteps(metronomeAudioCursorRef.current, {
       currentTime: audio.currentTime,
-      horizonSeconds: AUDIO_TRANSPORT_LOOKAHEAD_SECONDS,
+      horizonSeconds,
     });
     metronomeAudioCursorRef.current = scheduled.cursor;
     scheduled.steps.forEach(({ index, time }) => {
@@ -20723,13 +20731,15 @@ function App({ onReady }) {
         && completedBar % coachCycleBars >= coachPlayBarsRef.current;
       if (!coachMuted && grooveModeRef.current === "groove") {
         if (metronomeOnRef.current) scheduleGrooveStep({audio,
-          output:getAudioBusInput(AUDIO_BUS_IDS.METRONOME, audio) || audio.destination,
+          output:getAudioBusInput(AUDIO_BUS_IDS.GROOVE, audio) || audio.destination,
           buffers:metronomeSampleBuffersRef.current, pattern:groovePatternRef.current,
-          index:index % ticksPerMeasure, time, volume:metronomeVolumeRef.current ?? 1,
+          index:index % ticksPerMeasure, time, volume:1,
           track:trackScheduledMetronomeSource, voiceState:grooveVoiceStateRef.current});
       } else if (!coachMuted) playPatternTick(beatInBar, subdivisionIndex, time);
     });
   }, [cancelScheduledMetronomeTicks, createMetronomeAudioCursor, playPatternTick]);
+  // Menu mounting can block the main thread on phones; queue audio first.
+  refillMetronomeAudioRef.current = runMetronomeAudioScheduler;
 
   const changeGroovePattern = useCallback((pattern) => {
     const normalized = normalizeGroovePattern(pattern, groovePatternRef.current);
@@ -26835,15 +26845,6 @@ function App({ onReady }) {
   }, [metronomeOn]);
 
   useEffect(() => {
-    if (!metronomeMasterGainRef.current || !audioRef.current) return;
-    metronomeMasterGainRef.current.gain.setTargetAtTime(
-      Math.max(0, Math.min(1, metronomeVolumeRef.current ?? 1)),
-      audioRef.current.currentTime,
-      0.012,
-    );
-  });
-
-  useEffect(() => {
     backingDrumEnabledRef.current = backingDrumEnabled;
   }, [backingDrumEnabled]);
 
@@ -29964,6 +29965,7 @@ function App({ onReady }) {
   );
 
   const closeUtilityMenu = useCallback((event = null) => {
+    refillMetronomeAudioRef.current?.(METRONOME_MENU_LOOKAHEAD_SECONDS);
     releaseControlPressState(event?.currentTarget);
     blockBpmButtonInput();
     utilityMenuOpenRef.current = false;
@@ -29971,6 +29973,7 @@ function App({ onReady }) {
   }, [blockBpmButtonInput]);
 
   const toggleUtilityMenu = useCallback((event = null) => {
+    refillMetronomeAudioRef.current?.(METRONOME_MENU_LOOKAHEAD_SECONDS);
     releaseControlPressState(event?.currentTarget);
     blockBpmButtonInput();
     if (utilityMenuOpenRef.current) {
@@ -30238,7 +30241,7 @@ function App({ onReady }) {
     >
       {isMobileLayout && [APP_MODES.SHOOTER, APP_MODES.TUNER].includes(appMode) ? <MobilePullToRefresh enabled={!utilityMenuOpen && !helpGuideOpen && !mapEditor.enabled && !shooterRecordingActive && !appContentInteractionLocked && (appMode !== APP_MODES.SHOOTER || (gameState !== GAME_STATES.PLAYING && shooterCountInLabel === null))} /> : null}
       {appMode === APP_MODES.SHOOTER && !mapEditor.enabled ? (
-        <ShooterRecording arenaRef={shooterArenaRef} entryTarget={shooterRecordingEntryTarget} landscape={mobileLandscapeShooterActive} mobile={isMobileLayout} ensureMic={startMic} onActiveChange={setShooterRecordingActive} onLayoutChange={setShooterRecordingLayout} />
+        <ShooterRecording arenaRef={shooterArenaRef} entryTarget={shooterRecordingEntryTarget} landscape={mobileLandscapeShooterActive} mobile={isMobileLayout} ensureMic={startMic} onActiveChange={setShooterRecordingActive} onLayoutChange={setShooterRecordingLayout} gamePlaying={gameState === GAME_STATES.PLAYING} onReview={pauseGame} />
       ) : null}
       {appMode === APP_MODES.SHOOTER && !mobileLandscapeShooterActive && typeof document !== "undefined" ? createPortal(
         <ShooterPitchMonitor mobile={isMobileLayout} active={hasMic} pitch={detectedPitch} reason={shooterPitchStatus} micStatus={micStatus} />,
@@ -30433,6 +30436,7 @@ function App({ onReady }) {
                   <div className="utilitySoundSliders">
                     {appMode === APP_MODES.SHOOTER && <DeviceConnection scope="shooter" mobile={isMobileLayout} />}
                     <MetronomeVolumeControl className="utilitySoundSliderRow" />
+                    <GrooveVolumeControl className="utilitySoundSliderRow" />
                     {BACKING_PART_VOLUME_CONTROLS.map((control) => {
                       const value = getBackingVolumeValue(control.id);
                       return (
@@ -33059,7 +33063,7 @@ function App({ onReady }) {
             if (!ready) throw new Error('Audio unavailable');
             const audio = audioRef.current;
             await loadMetronomeSamples(audio);
-            return {audio, buffers:metronomeSampleBuffersRef.current, output:getAudioBusInput(AUDIO_BUS_IDS.METRONOME,audio) || audio.destination, volume:metronomeVolumeRef.current ?? 1};
+            return {audio, buffers:metronomeSampleBuffersRef.current, output:getAudioBusInput(AUDIO_BUS_IDS.GROOVE,audio) || audio.destination, volume:1};
           }} mode={groovePacksDialog} onClose={() => setGroovePacksDialog(null)} mobile={isMobileLayout} pattern={groovePattern} timeSignature={metronomeTimeSignature} subdivision={metronomeSubdivision} onLoad={pack => {if(pack.applyBpm && pack.bpm) changeBpm(pack.bpm);changeGroovePattern(pack.pattern);metronomeTimeSignatureRef.current=pack.timeSignature;setMetronomeTimeSignature(pack.timeSignature);metronomeSubdivisionRef.current=pack.subdivision;setMetronomeSubdivision(pack.subdivision);}}/>}
           {metronomeDisplayMode === "groove" ? <GrooveEditor onSave={openGrooveSave} store={grooveStore} onChange={changeGroovePattern} mobile={isMobileLayout} beats={getTimeSignatureOption(metronomeTimeSignature).beats} divisions={getSubdivisionOption(metronomeSubdivision).clicksPerBeat} clock={grooveClock} playing={isStandaloneMetronomePlaying}/> : <StandaloneMetronomeVisual
             activeBeat={beat}
@@ -33365,7 +33369,6 @@ function App({ onReady }) {
                   >
                     <span>
                       <small>난이도</small>
-                      <i aria-hidden="true">·</i>
                       <strong>{shooterDifficultyLabel}</strong>
                     </span>
                     <ChevronDown aria-hidden="true" className="mobileShooterDifficultyChevron" size={11} strokeWidth={2.2} />
